@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-example-datasets-vo/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  */
 
 declare(strict_types=1);
@@ -169,7 +169,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-vo/specs/example-sets/spec.md#requirement-the-secondary-school-set-is-one-consistent-school
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-secondary-school-set-is-one-consistent-school
 	 */
 	public function testTheSchoolHasItsPromisedShape(): void {
 		self::assertCount(1, self::of('school'));
@@ -240,7 +240,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-vo/specs/example-sets/spec.md#scenario-a-late-arrival-belongs-to-the-pupils-own-class-and-a-teacher-on-duty
+	 * @spec openspec/specs/example-sets/spec.md#scenario-a-late-arrival-belongs-to-the-pupils-own-class-and-a-teacher-on-duty
 	 */
 	public function testEveryMarkBelongsToThePupilsOwnClassAndATeacherOnDuty(): void {
 		$sessions  = self::by(self::of('session'), 'uuid');
@@ -310,7 +310,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-vo/specs/example-sets/spec.md#scenario-the-report-card-and-the-attendance-list-agree
+	 * @spec openspec/specs/example-sets/spec.md#scenario-the-report-card-and-the-attendance-list-agree
 	 */
 	public function testReportCardsCountTheMarksOfTheirPeriod(): void {
 		$sessions = self::by(self::of('session'), 'uuid');
@@ -354,7 +354,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-vo/specs/example-sets/spec.md#requirement-grades-agree-with-the-records-derived-from-them
+	 * @spec openspec/specs/example-sets/spec.md#requirement-grades-agree-with-the-records-derived-from-them
 	 */
 	public function testEveryGradeSitsOnAToetsweekDayThePupilWasInSchool(): void {
 		$plans     = self::by(self::of('curriculum-plan'), 'uuid');
@@ -402,7 +402,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-vo/specs/example-sets/spec.md#scenario-an-se-final-grade-is-the-weighted-average-of-its-se-grades
+	 * @spec openspec/specs/example-sets/spec.md#scenario-an-se-final-grade-is-the-weighted-average-of-its-se-grades
 	 */
 	public function testFinalGradesAreTheWeightedAverageOfTheirGrades(): void {
 		$plans   = self::by(self::of('curriculum-plan'), 'uuid');
@@ -458,7 +458,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-vo/specs/example-sets/spec.md#scenario-the-report-card-shows-the-period-average-of-the-stored-grades
+	 * @spec openspec/specs/example-sets/spec.md#scenario-the-report-card-shows-the-period-average-of-the-stored-grades
 	 */
 	public function testReportCardLinesShowTheStoredGradesOfTheirPeriod(): void {
 		$periods = self::by(self::of('report-period'), 'uuid');
@@ -501,7 +501,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-vo/specs/example-sets/spec.md#scenario-an-approved-profielkeuze-satisfies-the-package-rules
+	 * @spec openspec/specs/example-sets/spec.md#scenario-an-approved-profielkeuze-satisfies-the-package-rules
 	 */
 	public function testTheProfielkeuzeFollowsThePackageRules(): void {
 		$plans     = self::by(self::of('curriculum-plan'), 'uuid');
@@ -544,7 +544,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-vo/specs/example-sets/spec.md#scenario-the-incoming-schooladvies-belongs-to-a-brugklas-pupil
+	 * @spec openspec/specs/example-sets/spec.md#scenario-the-incoming-schooladvies-belongs-to-a-brugklas-pupil
 	 */
 	public function testTheIncomingSchooladviesBelongsToABrugklasPupil(): void {
 		self::assertCount(1, self::of('school-advies'));
@@ -574,7 +574,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-vo/specs/example-sets/spec.md#requirement-the-schools-own-records-tell-the-secondary-school-story
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-schools-own-records-tell-the-secondary-school-story
 	 */
 	public function testTheVerzuimFlagsListTheirRecords(): void {
 		$thresholds = self::by(self::of('attendance-threshold'), 'uuid');
@@ -620,7 +620,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-vo/specs/example-sets/spec.md#requirement-the-secondary-school-set-loads-and-removes-cleanly
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-secondary-school-set-loads-and-removes-cleanly
 	 */
 	public function testTheServiceOffersAndRemovesExactlyThisSet(): void {
 		$appManager = $this->createMock(IAppManager::class);
@@ -651,7 +651,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-vo/specs/example-sets/spec.md#scenario-the-file-is-reproducible
+	 * @spec openspec/specs/example-sets/spec.md#scenario-the-file-is-reproducible
 	 */
 	public function testTheFileIsWhatTheGeneratorProduces(): void {
 		$python = trim((string)shell_exec('command -v python3 2>/dev/null'));

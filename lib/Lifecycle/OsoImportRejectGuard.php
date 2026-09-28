@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
+ * @spec openspec/changes/archive/2026-09-28-oso-inbound-contract/tasks.md#task-2
  */
 
 declare(strict_types=1);
@@ -53,8 +53,8 @@ use Psr\Log\LoggerInterface;
  * on the same transition: OpenRegister calls guards by value, so a guard can
  * not write onto the object (learniq#983).
  *
- * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
- * @spec openspec/changes/oso-inbound-contract/specs/data-exchange/spec.md#scenario-rejecting-without-a-reason-is-refused
+ * @spec openspec/changes/archive/2026-09-28-oso-inbound-contract/tasks.md#task-2
+ * @spec openspec/specs/data-exchange/spec.md#scenario-rejecting-without-a-reason-is-refused
  */
 class OsoImportRejectGuard implements LifecycleGuardInterface {
 
@@ -101,7 +101,7 @@ class OsoImportRejectGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with what is missing.
 	 *
-	 * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
+	 * @spec openspec/changes/archive/2026-09-28-oso-inbound-contract/tasks.md#task-2
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -144,7 +144,7 @@ class OsoImportRejectGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when the user is in admin / coordinators.
 	 *
-	 * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
+	 * @spec openspec/changes/archive/2026-09-28-oso-inbound-contract/tasks.md#task-2
 	 */
 	private function actorIsAuthorised(string $actor): bool {
 		$user = $this->userManager->get($actor);

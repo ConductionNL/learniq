@@ -82,14 +82,24 @@
 			</div>
 
 			<div v-if="mode === 'substitute'" class="substitution-modal__field">
-				<label for="substitution-teacher-id">{{
-					t('learniq', 'Substitute teacher (Nextcloud user ID)')
-				}}</label>
-				<input
-					id="substitution-teacher-id"
+				<NcSelect
 					v-model="substituteTeacherId"
-					type="text"
-					class="substitution-modal__input" />
+					:options="candidateOptions"
+					:reduce="(opt) => opt.value"
+					:loading="loadingCandidates"
+					:taggable="true"
+					:inputLabel="t('learniq', 'Substitute teacher')"
+					:placeholder="
+						t('learniq', 'Teachers on standby are listed first')
+					" />
+				<p class="substitution-modal__hint">
+					{{
+						t(
+							'learniq',
+							'Teachers on standby at this time come first, then teachers who work today and are free. You can also type the user name of another colleague.',
+						)
+					}}
+				</p>
 			</div>
 
 			<div v-if="mode === 'room'" class="substitution-modal__field">
@@ -207,6 +217,7 @@ import {
 	NcNoteCard,
 	NcSelect,
 } from '@nextcloud/vue'
+import { candidateOptions } from '../utils/standby.js'
 
 export default {
 	name: 'SubstitutionModal',
@@ -245,6 +256,9 @@ export default {
 			results: null,
 			saving: false,
 			error: '',
+			// timetabling-standby-slots: who can cover, standby first.
+			candidates: [],
+			loadingCandidates: false,
 		}
 	},
 
@@ -315,16 +329,67 @@ export default {
 		 */
 		canSubmit() {
 			if (!this.changeReasonKind) return false
-			if (this.mode === 'substitute' && !this.substituteTeacherId.trim())
+			if (
+				this.mode === 'substitute'
+				&& !String(this.substituteTeacherId || '').trim()
+			)
 				return false
 			if (this.mode === 'room' && !this.roomId) return false
 			if (this.moreWeeks && this.selectedIds.length === 0) return false
 			return true
 		},
+
+		/**
+		 * The substitution candidates as select options, standby first.
+		 *
+		 * @return {Array<{value:string,label:string,group:string}>}
+		 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
+		 */
+		candidateOptions() {
+			return candidateOptions(this.candidates, (text, vars) =>
+				t('learniq', text, vars),
+			)
+		},
+	},
+
+	watch: {
+		/**
+		 * Load the candidates the first time the substitute mode opens.
+		 *
+		 * @param {string} mode The new mode.
+		 * @return {void}
+		 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
+		 */
+		mode(mode) {
+			if (mode === 'substitute' && this.candidates.length === 0) {
+				this.loadCandidates()
+			}
+		},
 	},
 
 	methods: {
 		t,
+
+		/**
+		 * Load who can cover this lesson. Learniq suggests; the user chooses.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
+		 */
+		async loadCandidates() {
+			this.loadingCandidates = true
+			try {
+				const res = await axios.get(
+					generateUrl('/apps/learniq/api/substitution/candidates'),
+					{ params: { sessionId: this.session.id } },
+				)
+				this.candidates = res.data?.candidates || []
+			} catch {
+				this.candidates = []
+			} finally {
+				this.loadingCandidates = false
+			}
+		},
 
 		/**
 		 * Submit the cancel or substitute-teacher change.
@@ -357,7 +422,7 @@ export default {
 					this.mode === 'cancel' ? 'cancelled' : this.session.lifecycle
 			}
 			if (this.mode === 'substitute') {
-				body.substituteTeacherId = this.substituteTeacherId.trim()
+				body.substituteTeacherId = String(this.substituteTeacherId).trim()
 			}
 
 			try {
@@ -404,7 +469,7 @@ export default {
 						changeReason: this.changeReason || null,
 						substituteTeacherId:
 							this.mode === 'substitute'
-								? this.substituteTeacherId.trim()
+								? String(this.substituteTeacherId).trim()
 								: null,
 						roomId: this.mode === 'room' ? this.roomId : null,
 					},
@@ -564,7 +629,12 @@ export default {
 	color: var(--color-text-maxcontrast);
 }
 
-.substitution-modal__input,
+.substitution-modal__hint {
+	margin: 0;
+	font-size: 0.85em;
+	color: var(--color-text-maxcontrast);
+}
+
 .substitution-modal__textarea {
 	width: 100%;
 	padding: 8px;

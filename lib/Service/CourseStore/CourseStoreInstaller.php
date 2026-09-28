@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-installing-a-shared-course-creates-an-independent-copy-that-keeps-the-credit
+ * @spec openspec/specs/course-management/spec.md#requirement-installing-a-shared-course-creates-an-independent-copy-that-keeps-the-credit
  */
 
 declare(strict_types=1);
@@ -64,7 +64,7 @@ class CourseStoreInstaller {
 	 *
 	 * @return array<string, mixed> `success`, `courseId`, `reportId`, `components` (name, status) and `message`.
 	 *
-	 * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-installing-a-shared-course-creates-an-independent-copy-that-keeps-the-credit
+	 * @spec openspec/specs/course-management/spec.md#requirement-installing-a-shared-course-creates-an-independent-copy-that-keeps-the-credit
 	 */
 	public function install(array $item, string $userId): array {
 		$package = ($item['package'] ?? null);

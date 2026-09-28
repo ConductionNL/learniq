@@ -26,7 +26,7 @@ namespace OCA\Learniq\AppInfo;
 use OCA\OpenRegister\AppHost\Bootstrap;
 use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\AppInfo\Registrar\ServiceOverrideRegistrar;
-use OCA\Learniq\Mcp\LearniqToolProvider;
+use OCA\Learniq\Mcp\LearniqScannableServices;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -91,9 +91,10 @@ class Application extends App implements IBootstrap {
 		// observability aliases — every closure is lazy, so a disabled
 		// OpenRegister never fatals Nextcloud bootstrap.
 		//
-		// The MCP provider alias (formerly hand-written here) and the deep-link
-		// listener (formerly bespoke PHP patterns) are handled by Bootstrap from
-		// the `mcpProvider` option + the manifest `deepLinks` block.
+		// The deep-link listener (formerly bespoke PHP patterns) is handled by
+		// Bootstrap from the manifest `deepLinks` block. Learniq registers no MCP
+		// provider: its agent tools are derived by OpenRegister from the
+		// `x-openregister-mcp` blocks in the register (ADR-063).
 		//
 		// LOAD-ORDER PRELUDE (ADR-040). OC_App::getEnabledApps() sort()s the app
 		// list, and Coordinator::registerApps() walks THAT sorted list calling
@@ -124,7 +125,6 @@ class Application extends App implements IBootstrap {
 			[
 				'namespace' => 'OCA\\Learniq',
 				'sectionName' => 'Learniq',
-				'mcpProvider' => LearniqToolProvider::class,
 			]
 		);
 
@@ -132,6 +132,15 @@ class Application extends App implements IBootstrap {
 		// the action-auth service and the install repair step at Learniq's own
 		// implementations, AFTER Bootstrap so they win over the generic aliases.
 		(new ServiceOverrideRegistrar())->register(context: $context, appId: self::APP_ID);
+
+		// The curated agent tools (hermiq-ai-tooling): OpenRegister's attribute
+		// scan enumerates this alias to find learniq's `#[McpTool]` methods. It is
+		// a scan opt-in, not an IMcpToolProvider, so nothing shadows the tools
+		// OpenRegister derives from the register (ADR-063 decision 2).
+		$context->registerServiceAlias(
+			'OCA\\OpenRegister\\Mcp\\IMcpScannableServices::learniq',
+			LearniqScannableServices::class
+		);
 
 		// Every cross-object write bridge (ADR-031 legitimate exceptions), wired
 		// by domain. See the individual registrars for the per-listener rationale.

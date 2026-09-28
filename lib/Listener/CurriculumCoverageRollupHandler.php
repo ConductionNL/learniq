@@ -36,7 +36,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
+ * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
  */
 
 declare(strict_types=1);
@@ -60,7 +60,7 @@ use Throwable;
  *
  * @template-implements IEventListener<Event>
  *
- * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
+ * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
  */
 class CurriculumCoverageRollupHandler implements IEventListener {
 
@@ -97,7 +97,7 @@ class CurriculumCoverageRollupHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
 	 */
 	public function handle(Event $event): void {
 		$write = $this->unpack(event: $event);
@@ -126,7 +126,7 @@ class CurriculumCoverageRollupHandler implements IEventListener {
 	 *
 	 * @return array{entity: ObjectEntity, new: array<string, mixed>, old: array<string, mixed>}|null
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
 	 */
 	private function unpack(Event $event): ?array {
 		if ($event instanceof ObjectCreatedEvent === true) {
@@ -161,7 +161,7 @@ class CurriculumCoverageRollupHandler implements IEventListener {
 	 *
 	 * @return array<int, string>
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
 	 */
 	private function touchedFrameworks(string $slug, ObjectEntity $entity, array $new, array $old): array {
 		if (in_array(needle: $slug, haystack: self::ALIGNED_SCHEMAS, strict: true) === true) {

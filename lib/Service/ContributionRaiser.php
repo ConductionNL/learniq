@@ -39,7 +39,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
+ * @spec openspec/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
  */
 
 declare(strict_types=1);
@@ -55,7 +55,7 @@ use OCP\IUserManager;
 /**
  * Builds and sends the shillinq contribution raise for one FeeItem.
  *
- * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
+ * @spec openspec/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
  */
 class ContributionRaiser {
 
@@ -116,7 +116,7 @@ class ContributionRaiser {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
+	 * @spec openspec/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
 	 */
 	public function activeFeeItem(string $id): ?array {
 		if ($id === '') {
@@ -141,7 +141,7 @@ class ContributionRaiser {
 	 *
 	 * @return string '' when neither is set.
 	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
+	 * @spec openspec/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
 	 */
 	public function administrationId(string $given): string {
 		$given = trim($given);
@@ -157,7 +157,7 @@ class ContributionRaiser {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
+	 * @spec openspec/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
 	 */
 	public function isAvailable(): bool {
 		return $this->shillinq->isAvailable();
@@ -174,7 +174,7 @@ class ContributionRaiser {
 	 *
 	 * @throws InvalidArgumentException When the fee names no course or group, or has no learners.
 	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
+	 * @spec openspec/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
 	 */
 	public function raise(array $feeItem, string $administrationId, array $options = []): array {
 		$learnerIds = $this->learnersOf(feeItem: $feeItem);
@@ -254,7 +254,7 @@ class ContributionRaiser {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
+	 * @spec openspec/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
 	 */
 	public function payload(array $feeItem, string $administrationId, array $options, array $recipients): array {
 		$payload = [

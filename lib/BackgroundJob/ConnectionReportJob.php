@@ -76,6 +76,7 @@ class ConnectionReportJob extends TimedJob {
 	 */
 	protected function run(mixed $argument): void {
 		$this->reporter->observeTimetable();
+		$this->reporter->observeLti();
 		$this->reporter->reportObservations();
 	}//end run()
 }//end class

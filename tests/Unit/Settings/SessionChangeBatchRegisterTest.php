@@ -108,7 +108,7 @@ class SessionChangeBatchRegisterTest extends TestCase {
 	public function testSessionPointsAtItsBatch(): void {
 		$session = $this->schemas['Session'];
 
-		self::assertSame('0.2.0', $session['version']);
+		self::assertTrue(version_compare($session['version'], '0.2.0', '>='), 'Session version moved with changeBatchId.');
 		self::assertSame('SessionChangeBatch', $session['properties']['changeBatchId']['$ref']);
 		self::assertTrue($session['properties']['changeBatchId']['nullable']);
 	}//end testSessionPointsAtItsBatch()

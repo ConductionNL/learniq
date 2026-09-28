@@ -14,7 +14,7 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
  *
- * @spec openspec/changes/privacy-reuse-openregister-register/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+ * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
  */
 
 declare(strict_types=1);
@@ -56,7 +56,7 @@ use Throwable;
  * upgrade; when it is not there yet the saves fail, are counted, and the next
  * upgrade retries.
  *
- * @spec openspec/changes/privacy-reuse-openregister-register/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+ * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
  */
 class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 
@@ -121,7 +121,7 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/privacy-reuse-openregister-register/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
 	 */
 	public function getName(): string {
 		return 'Move correction and deletion requests to the OpenRegister data subject request register';
@@ -134,7 +134,7 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/privacy-reuse-openregister-register/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
 	 */
 	public function run(IOutput $output): void {
 		try {
@@ -219,7 +219,7 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/privacy-reuse-openregister-register/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
 	 */
 	public static function toCase(array $row, string $sourceId): array {
 		$kind = (string)($row['kind'] ?? '');

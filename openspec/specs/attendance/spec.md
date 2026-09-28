@@ -41,7 +41,9 @@ Institutions record who was present, and some are obliged to act when absence cr
 - GIVEN an `AttendanceThreshold` of 16 unexcused lesuren in a rolling 4 weeks, WHEN a learner's count reaches 16 in any such window, THEN an `AttendanceFlag` is created (`open`) and the `onCross` notification fires to the mentor + coordinator (idempotency-keyed — re-crossing the same window doesn't re-flag).
 - GIVEN a threshold rule with `onCross` including a `data-exchange` target, WHEN the flag is created, THEN a `DataExchangeJob` (see `data-exchange`) is queued to that target; the flag moves `open → reported` only after the job succeeds, and the attempt is in the audit trail.
 - GIVEN a mentor opens the cohort attendance widget, THEN learners are shown with their current count against each applicable threshold, sorted by proximity to the limit.
+
 ## Requirements
+
 ### Requirement: Persist Attendance domain objects in OpenRegister
 
 The system MUST persist `AttendanceRecord`, `ExcuseRequest`, `AttendanceThreshold`, `AttendanceFlag` as
@@ -138,6 +140,99 @@ The frontend MUST be declarative: `src/manifest.json` pages for AttendanceRecord
 - **GIVEN** the attendance app frontend
 - **WHEN** the UI is composed
 - **THEN** AttendanceRecord/ExcuseRequest/AttendanceThreshold/AttendanceFlag index+detail are declarative `src/manifest.json` pages, the only custom views are `MarkAttendanceView`, `SubmitExcuseModal`, and the `cohort-attendance` dashboard widget, and there are no PHP CRUD controllers
+
+### Requirement: AttendanceFlag classifies its statutory flagKind
+
+`AttendanceFlag` MUST carry a `flagKind` enum property (`signal-verzuim`, `langdurig-relatief-verzuim`,
+`thuiszitter`; default `signal-verzuim`) classifying which statutory concern the flag represents (finding
+4.9). SWV notification reuses the existing `dataExchangeJobId` field — no new field is needed for that half
+of the finding.
+
+#### Scenario: A langdurig-relatief-verzuim flag is classified distinctly from a routine signal
+
+- **GIVEN** an `AttendanceThreshold` crossing that represents a langdurig relatief verzuim case
+- **WHEN** the resulting `AttendanceFlag` is created with `flagKind: "langdurig-relatief-verzuim"`
+- **THEN** it is distinguishable from a routine `signal-verzuim` flag by that field alone
+
+#### Scenario: An existing AttendanceFlag without a declared flagKind defaults to signal-verzuim
+
+- **GIVEN** an `AttendanceFlag` row created before this change, with no `flagKind` value stored
+- **WHEN** the row is read
+- **THEN** `flagKind` resolves to its default, `"signal-verzuim"`
+
+### Requirement: A crossed threshold notifies each recipient group once
+
+The `thresholdCrossed` notification of `AttendanceThreshold` MUST name the mentor and the coordinator in one recipient entry, and no group MAY appear in more than one of its entries, so nobody receives the same notification twice.
+
+#### Scenario: The mentor is notified once
+@e2e exclude Register-content invariant; pinned by tests/Unit/Settings/AttendanceThresholdRegisterTest.php (testThresholdCrossedNotificationNotifiesMentorAndCoordinator).
+- **GIVEN** an `AttendanceThreshold` whose unexcused hours rise to its limit
+- **WHEN** the `thresholdCrossed` notification fires
+- **THEN** its recipients are one entry naming `mentor` and `coordinator`
+- **AND** no group is named in a second entry
+
+### Requirement: An attendance flag outside the leerplicht carries a neutral kind
+
+`AttendanceFlag.flagKind` MUST offer `attendance-requirement` next to the school concerns (`signal-verzuim`, `langdurig-relatief-verzuim`, `thuiszitter`), for a learner who falls below an attendance requirement of a course, programme or training that is not a statutory school concern. The flag created for a threshold crossing MUST take its kind from the threshold: `leerplicht-16uur` gives `signal-verzuim`; `college-aanwezigheid`, `training-attendance` and `compliance-presence` give `attendance-requirement`. A `generic` threshold MUST keep the schema default, so existing school installs see no change.
+
+#### Scenario: A university workgroup requirement is not a leerplicht signal
+
+- **GIVEN** an active AttendanceThreshold with `kind: college-aanwezigheid`
+- **WHEN** a guarded `check-threshold` records a crossing for a student
+- **THEN** the created AttendanceFlag has `flagKind: attendance-requirement`
+
+#### Scenario: A company compliance presence requirement is neutral
+
+- **GIVEN** an active AttendanceThreshold with `kind: compliance-presence`
+- **WHEN** a crossing is recorded for an employee
+- **THEN** the created AttendanceFlag has `flagKind: attendance-requirement`
+
+#### Scenario: The leerplicht profile still raises a verzuim signal
+
+- **GIVEN** an active AttendanceThreshold with `kind: leerplicht-16uur`
+- **WHEN** a crossing is recorded for a pupil
+- **THEN** the created AttendanceFlag has `flagKind: signal-verzuim`
+
+### Requirement: The municipality's feedback on a leerplicht report is recorded on the attendance flag
+A coordinator or administrator MUST record the municipality's case route (MAS route) on the reported `AttendanceFlag` through a `recordMunicipalityFeedback` transition that keeps the flag `reported`. The actor and the time MUST be stamped server-side. The report itself is sent by integriq; the flag moves to `reported` only once integriq concluded its job `succeeded`.
+
+#### Scenario: a coordinator records the MAS route
+- GIVEN an attendance flag in `reported`
+- WHEN a coordinator records the municipality's feedback with MAS route "casusoverleg"
+- THEN the flag stays `reported` and `municipalityFeedback.recordedBy` is that coordinator
+
+#### Scenario: the report is not sent yet
+- GIVEN an attendance flag in `in-handling` whose integriq job is `queued`
+- WHEN someone tries to move it to `reported`
+- THEN the transition is refused until integriq concluded the job `succeeded`
+
+### Requirement: The server stamps who an excuse request is about and who filed it
+
+`ExcuseRequest.required` MUST list only what every caller sends: `dateFrom`, `dateTo`, `reason` and `reasonKind`. OpenRegister validates `required` before any listener runs, so the owner fields MUST be filled and enforced by a pre-write listener instead. For a portal report (no Nextcloud session, no `learnerId`, a `learnerRef`) the server MUST take `learnerId`, `learnerRef` and `tenant_id` from the pupil's LearnerProfile, and MUST refuse the report when that profile is unknown or cannot be read. A pupil's own report MUST name the pupil as submitter and record `submittedAuthLevel` `basic`. A guardian's report (`submittedByRef` set) MUST be refused unless the pupil's profile lists that guardian in `guardianRefs`; it MUST record the guardian's user id in `submittedBy` when the guardian has one and `submittedAuthLevel` `substantial`. Every other write MUST have its `learnerRef` derived from `learnerId`, ignoring a client value, and MUST get `submittedAuthLevel` `basic` when it sends none. Every write that still lacks `learnerId`, a submitter (`submittedBy` or `submittedByRef`) or `tenant_id` MUST be refused.
+
+#### Scenario: A pupil reports an absence through the portal
+@e2e exclude Pre-write listener with no screen of its own in learniq; pinned by tests/Unit/Listener/ExcuseRequestOwnerStampTest.php (testAPupilReportIsStampedFromTheProfile).
+- **GIVEN** pupil `pupil-1` with LearnerProfile `lp-1`
+- **WHEN** portaliq creates an ExcuseRequest with the dates, reason and kind, and `learnerRef: "lp-1"`
+- **THEN** it is stored with `learnerId: "pupil-1"`, `submittedBy: "pupil-1"`, the pupil's school and `submittedAuthLevel: "basic"`
+
+#### Scenario: A guardian reports an absence for their child
+@e2e exclude Pre-write listener; pinned by tests/Unit/Listener/ExcuseRequestOwnerStampTest.php (testAGuardianReportNamesTheChildAndTheGuardian).
+- **GIVEN** the pupil's profile lists guardian `gp-1`, whose user is `ouder-1`
+- **WHEN** portaliq creates an ExcuseRequest with `learnerRef: "lp-1"` and `submittedByRef: "gp-1"`
+- **THEN** it is stored with `learnerId: "pupil-1"`, `submittedBy: "ouder-1"` and `submittedAuthLevel: "substantial"`
+
+#### Scenario: A guardian cannot report for somebody else's child
+@e2e exclude Pre-write listener; pinned by tests/Unit/Listener/ExcuseRequestOwnerStampTest.php (testAGuardianOfAnotherChildIsRefused).
+- **GIVEN** the pupil's profile does not list guardian `gp-9`
+- **WHEN** portaliq creates an ExcuseRequest with `learnerRef: "lp-1"` and `submittedByRef: "gp-9"`
+- **THEN** the write is refused with reason `excuse-guardian-unknown`
+
+#### Scenario: Staff are still held to the owner fields
+@e2e exclude Pre-write listener; pinned by tests/Unit/Listener/ExcuseRequestOwnerStampTest.php (testAStaffCreateWithoutItsOwnerFieldsIsRefused).
+- **GIVEN** a signed-in mentor
+- **WHEN** they create an ExcuseRequest without `learnerId`, without a submitter or without `tenant_id`
+- **THEN** the write is refused with reason `excuse-owner-missing`
 
 ## Standards
 

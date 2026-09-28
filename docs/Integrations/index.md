@@ -5,7 +5,7 @@ draft: true
 
 # Integrations
 
-This section is under construction. Integration guides for Scholiq are being authored in Codeberg issue #73 (pre-migration, not migrated to GitHub).
+This section is under construction. Integration guides for Learniq are being authored in Codeberg issue #73 (pre-migration, not migrated to GitHub).
 
 ## Nextcloud Talk (live)
 
@@ -32,6 +32,27 @@ OpenRegister fires no "room linked" event to hook into. A coordinator who
 links a Cohort's conversation after learners are already enrolled adds that
 initial batch once via Talk's own participant UI; every enrolment change
 after that point stays in sync automatically.
+
+## Calendar, contacts, forms and deck (links, never copies)
+
+Six detail pages carry a leaf from a Nextcloud app next to their own data. Each leaf links something that lives in its own app to the learniq record; nothing is copied into the register, and a leaf only shows when its app is installed.
+
+| Leaf | Schema | Page | What you link |
+|---|---|---|---|
+| Calendar | Session | Session | room changes, preparation meetings, excursions |
+| Calendar | Assignment | Assignment | deadline checkpoints around the due date |
+| Calendar | Credential | Credential | renewal planning before the expiry date |
+| Forms | Assignment | Assignment | a structured intake form next to the briefing files |
+| Contacts | LearnerProfile | Learner profile | the learner's or a guardian's contact card |
+| Contacts | Praktijkopleider | Praktijkopleider | the practical trainer's contact card |
+| Deck | BpvPlacement | BPV placement | follow-up cards: visit planning, contract chase, company feedback |
+
+What stays off, and why:
+
+- Course, programme, curriculum plan, course template and regulation are catalogue definitions and carry no leaf beyond files. Their sessions have the dates.
+- Polls, a class agenda and class sign-up forms are communication, which lives in portaliq (decision D1).
+- Email, maps, photos, shares, bookmarks, collectives, notes, activity, time tracking and analytics: no teaching task asked for them, and learniq keeps no learner photos.
+- A calendar leaf never creates events from `startsAt`, `dueAt` or `expiresAt`. Those fields stay the source; the leaf holds what people add around them.
 
 ## Data exchange through Integriq
 

@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-a-loaded-set-can-be-removed-exactly
+ * @spec openspec/specs/example-sets/spec.md#requirement-a-loaded-set-can-be-removed-exactly
  */
 
 declare(strict_types=1);
@@ -49,7 +49,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Removes one example set through OpenRegister's purge command.
  *
- * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-a-loaded-set-can-be-removed-exactly
+ * @spec openspec/specs/example-sets/spec.md#requirement-a-loaded-set-can-be-removed-exactly
  */
 class ExampleSetRemoveCommand extends Command {
 	/**
@@ -75,7 +75,7 @@ class ExampleSetRemoveCommand extends Command {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-a-loaded-set-can-be-removed-exactly
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-loaded-set-can-be-removed-exactly
 	 */
 	protected function configure(): void {
 		$this->setName(name: 'learniq:example-set:remove')
@@ -101,7 +101,7 @@ class ExampleSetRemoveCommand extends Command {
 	 *
 	 * @return int The purge command's exit code; 1 when the set cannot be removed.
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-a-loaded-set-can-be-removed-exactly
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-loaded-set-can-be-removed-exactly
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		$profileId = (string)$input->getArgument('id');

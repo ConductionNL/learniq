@@ -32,7 +32,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lvs-import-contract/tasks.md#task-2
+ * @spec openspec/changes/archive/2026-09-28-lvs-import-contract/tasks.md#task-2
  */
 
 declare(strict_types=1);
@@ -50,7 +50,7 @@ use Psr\Log\LoggerInterface;
  *
  * Only an admin/coordinator may confirm an imported LVS result as verified.
  *
- * @spec openspec/changes/lvs-import-contract/tasks.md#task-2
+ * @spec openspec/changes/archive/2026-09-28-lvs-import-contract/tasks.md#task-2
  */
 class LvsResultVerifyGuard implements LifecycleGuardInterface {
 
@@ -98,7 +98,7 @@ class LvsResultVerifyGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/lvs-import-contract/tasks.md#task-2
+	 * @spec openspec/changes/archive/2026-09-28-lvs-import-contract/tasks.md#task-2
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -122,7 +122,7 @@ class LvsResultVerifyGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when the actor is admin/coordinator; false otherwise.
 	 *
-	 * @spec openspec/changes/lvs-import-contract/tasks.md#task-2
+	 * @spec openspec/changes/archive/2026-09-28-lvs-import-contract/tasks.md#task-2
 	 */
 	private function allows(array $object, string $userId): bool {
 		$actor = $userId;
@@ -150,7 +150,7 @@ class LvsResultVerifyGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when the user is in admin / coordinators.
 	 *
-	 * @spec openspec/changes/lvs-import-contract/tasks.md#task-2
+	 * @spec openspec/changes/archive/2026-09-28-lvs-import-contract/tasks.md#task-2
 	 */
 	private function actorIsAuthorised(string $actor): bool {
 		$user = $this->userManager->get($actor);

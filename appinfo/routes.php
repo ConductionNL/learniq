@@ -47,6 +47,18 @@ return [
         ['name' => 'keyAdmin#generateKey', 'url' => '/api/credentials/admin/generate-key', 'verb' => 'POST'],
         ['name' => 'keyAdmin#keyStatus',   'url' => '/api/credentials/admin/key-status',   'verb' => 'GET'],
 
+        // cmi5 + xAPI (cmi5-xapi-lrs-ingest, ADR-002). The launch key is admin-only;
+        // a launch is for the signed-in learner; the fetch URL and the statement POST
+        // are public because a launched AU has no session: the one-time fetch code and
+        // the launch token are their credentials, and a session caller must pass CSRF.
+        // Controllers: Cmi5KeyAdminController, Cmi5LaunchController, LrsController.
+        ['name' => 'cmi5KeyAdmin#generateKey', 'url' => '/api/cmi5/admin/generate-key', 'verb' => 'POST'],
+        ['name' => 'cmi5KeyAdmin#keyStatus',   'url' => '/api/cmi5/admin/key-status',   'verb' => 'GET'],
+        ['name' => 'cmi5Launch#launch',        'url' => '/api/lessons/{lessonId}/cmi5-launch', 'verb' => 'POST'],
+        ['name' => 'cmi5Launch#fetch',         'url' => '/api/cmi5/fetch/{code}',       'verb' => 'POST'],
+        ['name' => 'lrs#postStatements',       'url' => '/api/lrs/statements',          'verb' => 'POST'],
+        ['name' => 'lrs#getStatements',        'url' => '/api/lrs/statements',          'verb' => 'GET'],
+
         // AI-translated catalogue review (ai-translated-catalogue-review, D24): admin-only
         // via #[AuthorizedAdminSetting]. Lists the Dutch values an AI wrote and no human
         // reviewed (l10n/ai-translated.json), and takes a reviewed key off the list.
@@ -158,6 +170,23 @@ return [
         // (planninq when installed, else Session), after an RBAC read of the cohort
         // (sessions-from-planninq).
         ['name' => 'timetable#cohort', 'url' => '/api/timetable/cohort/{cohortId}', 'verb' => 'GET', 'requirements' => ['cohortId' => '[^/]+']],
+        // Other timetables within the school's visibility policy
+        // (timetabling-visibility-rules). The policy check is in the body.
+        ['name' => 'timetableVisibility#timetable', 'url' => '/api/timetable/of', 'verb' => 'GET'],
+        ['name' => 'timetableVisibility#options', 'url' => '/api/timetable/of/options', 'verb' => 'GET'],
+        ['name' => 'timetableVisibility#policy', 'url' => '/api/timetable/visibility-policy', 'verb' => 'GET'],
+        // Standby hours (timetabling-standby-slots): who can cover a lesson,
+        // standby first, and the caller's own standby blocks. Checks in the body.
+        ['name' => 'standby#candidates', 'url' => '/api/substitution/candidates', 'verb' => 'GET'],
+        ['name' => 'standby#mine', 'url' => '/api/standby/mine', 'verb' => 'GET'],
+        // Teaching activities of a school year, derived from the hour plans
+        // (timetabling-multi-year-hour-plan). Staff groups only, checked in the body.
+        ['name' => 'hourPlan#activities', 'url' => '/api/hour-plans/activities', 'verb' => 'GET'],
+        // Room use report and its opening hours (timetabling-room-utilisation).
+        // Staff groups only, checked in the body.
+        ['name' => 'roomUtilisation#report', 'url' => '/api/reports/room-use', 'verb' => 'GET'],
+        ['name' => 'roomUtilisation#openingHours', 'url' => '/api/reports/room-use/opening-hours', 'verb' => 'GET'],
+        ['name' => 'roomUtilisation#saveOpeningHours', 'url' => '/api/reports/room-use/opening-hours', 'verb' => 'PUT'],
         // One change on several weeks (timetabling-bulk-change-weeks): the lessons of a
         // weekly slot, and a batch that runs each lesson through SessionChangeGuard as
         // the caller. #[NoAdminRequired] + the timetable.bulk-change action in the body.
@@ -170,6 +199,14 @@ return [
         // action matrix or a bare authenticated-user gate.
         // Controller: PeerReviewController (slug: peerReview).
         ['name' => 'peerReview#allocate', 'url' => '/api/peer-review/{assignmentId}/allocate', 'verb' => 'POST'],
+
+        // Double marking (assignments-double-marking): the teacher in charge
+        // allocates markers to the handed-in submissions (instructors,
+        // compliance officers, team leads or admin, checked in the method), and
+        // a marker reads the other marks only after handing in their own.
+        // Controller: SubmissionMarkController (slug: submissionMark).
+        ['name' => 'submissionMark#allocate', 'url' => '/api/assignments/{assignmentId}/markers', 'verb' => 'POST'],
+        ['name' => 'submissionMark#marks', 'url' => '/api/submissions/{submissionId}/marks', 'verb' => 'GET'],
 
         // Peer review work projection (peer-review-projection-guard): what a
         // reviewer sees of the work under review, built by the server. The

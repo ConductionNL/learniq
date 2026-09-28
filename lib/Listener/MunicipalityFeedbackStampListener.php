@@ -48,7 +48,7 @@ use RuntimeException;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/specs/data-exchange/spec.md#requirement-persist-dataexchangejob-and-datamappingprofile-in-openregister
+ * @spec openspec/specs/attendance/spec.md#requirement-the-municipalitys-feedback-on-a-leerplicht-report-is-recorded-on-the-attendance-flag
  */
 class MunicipalityFeedbackStampListener implements IEventListener {
 
@@ -85,7 +85,7 @@ class MunicipalityFeedbackStampListener implements IEventListener {
 	 * @throws RuntimeException When the transition has no acting user.
 	 *
 	 * @spec openspec/changes/verzuim-report-composer/tasks.md#task-2.2
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/attendance/spec.md#requirement-the-municipalitys-feedback-on-a-leerplicht-report-is-recorded-on-the-attendance-flag
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-municipalitys-feedback-on-a-leerplicht-report-is-recorded-on-the-attendance-flag
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false || $event->getAction() !== self::ACTION) {

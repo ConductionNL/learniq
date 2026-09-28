@@ -23,6 +23,7 @@ namespace OCA\Learniq\Tests\Unit\AppInfo;
 
 use Error;
 use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Event\HourPlanActivitiesQueryEvent;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Listener\SessionConflictListener;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -237,6 +238,7 @@ class RegisteredListenersHandleRealEventsTest extends TestCase {
 			ExchangeGateRequestedEvent::class => new ExchangeGateRequestedEvent('job-1', 'learniq', 'leerplicht', 'export', 'attendance-flag/minimal-object', []),
 			ExchangeJobConcludedEvent::class => new ExchangeJobConcludedEvent('learniq', 'job-1', 'swv', 'export', 'support-request/minimal-object', 'succeeded'),
 			ExchangeRecordsReceivedEvent::class => new ExchangeRecordsReceivedEvent('job-1', 'learniq', 'lvs-results', 'import', '', [], []),
+			HourPlanActivitiesQueryEvent::class => new HourPlanActivitiesQueryEvent(sourceApp: 'integriq', academicYear: '2026-2027'),
 			default => null,
 		};
 	}//end event()

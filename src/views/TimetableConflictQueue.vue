@@ -195,7 +195,7 @@ export default {
 	 * Load the queue, and whether this user may import a timetable.
 	 *
 	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
-	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
+	 * @spec openspec/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
 	 */
 	created() {
 		this.load()
@@ -210,7 +210,7 @@ export default {
 		 * (exchange.request), and enable it where planninq takes the delivery.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
+		 * @spec openspec/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
 		 */
 		async loadImportAccess() {
 			try {

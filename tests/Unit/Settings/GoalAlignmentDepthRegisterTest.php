@@ -20,8 +20,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/goal-alignment-depth/tasks.md#task-1-declare-competencyalignments-on-the-four-schemas
- * @spec openspec/changes/goal-alignment-depth/tasks.md#task-4-register-unit-test
+ * @spec openspec/changes/archive/2026-09-28-goal-alignment-depth/tasks.md#task-1-declare-competencyalignments-on-the-four-schemas
+ * @spec openspec/changes/archive/2026-09-28-goal-alignment-depth/tasks.md#task-4-register-unit-test
  */
 
 declare(strict_types=1);

@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/confidential-counsellor-channel/tasks.md#task-4-register-test
+ * @spec openspec/changes/archive/2026-09-28-confidential-counsellor-channel/tasks.md#task-4-register-test
  */
 
 declare(strict_types=1);

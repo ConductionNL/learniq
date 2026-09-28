@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lvs-score-freeze/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
+ * @spec openspec/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
  */
 
 declare(strict_types=1);
@@ -37,7 +37,7 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 /**
  * Wires the evidence freezes.
  *
- * @spec openspec/changes/lvs-score-freeze/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
+ * @spec openspec/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
  */
 class EvidenceFreezeListenerRegistrar {
 	/**
@@ -47,7 +47,7 @@ class EvidenceFreezeListenerRegistrar {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/lvs-score-freeze/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
 	 */
 	public function register(IRegistrationContext $context): void {
 		// AssessmentResult integrity (learniq#948): replaces `appendOnly`, which
