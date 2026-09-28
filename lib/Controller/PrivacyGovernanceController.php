@@ -35,7 +35,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#requirement-a-board-facing-dashboard-composes-group-2fa-and-integration-approval-state
+ * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-a-board-facing-dashboard-composes-group-2fa-and-integration-approval-state
  */
 
 declare(strict_types=1);
@@ -58,7 +58,7 @@ use Throwable;
 /**
  * Composes the board-facing privacy governance dashboard payload.
  *
- * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#requirement-a-board-facing-dashboard-composes-group-2fa-and-integration-approval-state
+ * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-a-board-facing-dashboard-composes-group-2fa-and-integration-approval-state
  */
 class PrivacyGovernanceController extends Controller {
 
@@ -125,8 +125,8 @@ class PrivacyGovernanceController extends Controller {
 	 *
 	 * @return JSONResponse `{groups: [{id, memberCount}], twoFactorEnabledCount, twoFactorEligibleCount, dataExchange: {...}}`.
 	 *
-	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
-	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-two-factor-adoption-degrades-to-unknown-rather-than-a-fabricated-zero
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-two-factor-adoption-degrades-to-unknown-rather-than-a-fabricated-zero
 	 */
 	#[NoAdminRequired]
 	public function overview(): JSONResponse {

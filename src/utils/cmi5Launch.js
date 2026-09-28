@@ -20,7 +20,7 @@
  * test runner without an SFC compile step, same pattern as
  * `src/utils/courseOrder.js`.
  *
- * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
+ * @spec openspec/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
  *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
@@ -39,7 +39,7 @@
  *  `activityId` — the cmi5 AU's activity IRI. `registration` — a UUID
  *  identifying this specific launch attempt.
  * @return {string} The AU launch URL with all five cmi5 query parameters appended.
- * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
+ * @spec openspec/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
  */
 export function buildCmi5LaunchUrl(auLaunchUrl, launch) {
 	if (!auLaunchUrl) {

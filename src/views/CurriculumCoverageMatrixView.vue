@@ -13,7 +13,7 @@
  comes from the CurriculumCoverage rows the rollup keeps current; this view
  computes nothing itself beyond laying the rows out.
 
- @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+ @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 -->
 <template>
 	<div class="curriculum-coverage">
@@ -171,7 +171,7 @@ export default {
 	computed: {
 		/**
 		 * @return {object} The translated labels the pure builders use.
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		labels() {
 			return {
@@ -187,7 +187,7 @@ export default {
 
 		/**
 		 * @return {Array<{id: string, label: string}>} Framework choices.
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		frameworkOptions() {
 			return this.frameworks.map((framework) => ({
@@ -200,7 +200,7 @@ export default {
 
 		/**
 		 * @return {object} The selected framework row.
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		framework() {
 			return (
@@ -212,7 +212,7 @@ export default {
 
 		/**
 		 * @return {object} levelId to label, from the framework's scale.
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		levelLabels() {
 			const labels = {}
@@ -225,7 +225,7 @@ export default {
 
 		/**
 		 * @return {Array<{id: string, label: string}>} Subject choices.
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		subjectChoices() {
 			return subjectOptions(this.coverageRows, this.subjectNames, this.labels)
@@ -233,7 +233,7 @@ export default {
 
 		/**
 		 * @return {{columns: object[], rows: object[], total: object|null}} The matrix input.
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		matrix() {
 			return coverageMatrix({
@@ -247,7 +247,7 @@ export default {
 
 		/**
 		 * @return {string} One sentence with the selection's totals.
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		summary() {
 			const total = this.matrix.total ?? {}
@@ -264,7 +264,7 @@ export default {
 
 		/**
 		 * @return {object[]} The gap list sections.
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-gap-list-names-the-uncovered-goals-per-subject-and-year
+		 * @spec openspec/specs/competency/spec.md#requirement-a-gap-list-names-the-uncovered-goals-per-subject-and-year
 		 */
 		gaps() {
 			return gapList({
@@ -279,7 +279,7 @@ export default {
 	watch: {
 		/**
 		 * @return {void}
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		frameworkId() {
 			this.subjectKey = 'all'
@@ -296,7 +296,7 @@ export default {
 		 * Load the frameworks and preselect one: the ?framework= query, or the first.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		async load() {
 			this.loading = true
@@ -326,7 +326,7 @@ export default {
 		 * Load the selected framework's goals, coverage rows and subject names.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		async loadFramework() {
 			if (!this.frameworkId) return
@@ -358,7 +358,7 @@ export default {
 		 * Resolve each subject's Course name; an unreadable course keeps its id.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-gap-list-names-the-uncovered-goals-per-subject-and-year
+		 * @spec openspec/specs/competency/spec.md#requirement-a-gap-list-names-the-uncovered-goals-per-subject-and-year
 		 */
 		async loadSubjectNames() {
 			const names = {}

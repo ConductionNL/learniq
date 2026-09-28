@@ -12,7 +12,7 @@
  * per kind of organisation, next to the generated set) and what kind of
  * organisation this is (`LearniqSettings.segment`, which the app publishes to
  * the browser as `runtime.workspace.segment`). The contract is written down in
- * openspec/changes/segment-wizard-choice/contract.md.
+ * openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md.
  *
  * @category Controller
  * @package  OCA\Learniq\Controller
@@ -45,7 +45,8 @@ use Psr\Log\LoggerInterface;
 /**
  * First-time setup wizard endpoints.
  *
- * @spec exclude First-time-setup action dispatch; ADR-042 contract, specified in openspec/changes/segment-wizard-choice/contract.md.
+ * @spec exclude First-time-setup action dispatch; ADR-042 contract, specified in
+ *     openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md.
  */
 class SetupController extends Controller {
 	/**
@@ -159,7 +160,7 @@ class SetupController extends Controller {
 	 *
 	 * @return JSONResponse The status document.
 	 *
-	 * @spec exclude Setup status document; ADR-042 contract, specified in openspec/changes/segment-wizard-choice/contract.md.
+	 * @spec exclude Setup status document; ADR-042 contract, specified in openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md.
 	 */
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function status(): JSONResponse {
@@ -201,7 +202,7 @@ class SetupController extends Controller {
 	 *
 	 * @return JSONResponse `{ success, config }`.
 	 *
-	 * @spec exclude Setup config write; ADR-042 contract, specified in openspec/changes/segment-wizard-choice/contract.md.
+	 * @spec exclude Setup config write; ADR-042 contract, specified in openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md.
 	 */
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function saveConfig(): JSONResponse {
@@ -255,7 +256,7 @@ class SetupController extends Controller {
 	 *
 	 * @return JSONResponse `{ success, message }`.
 	 *
-	 * @spec exclude Setup action dispatch; ADR-042 contract, specified in openspec/changes/segment-wizard-choice/contract.md.
+	 * @spec exclude Setup action dispatch; ADR-042 contract, specified in openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md.
 	 */
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function runAction(string $actionId): JSONResponse {
@@ -367,8 +368,8 @@ class SetupController extends Controller {
 	 *
 	 * @return JSONResponse `{ success, message }`.
 	 *
-	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#requirement-the-wizard-removes-a-loaded-example-set-through-openregisters-import-jobs
-	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-removes-a-loaded-example-set-through-openregisters-import-jobs
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
 	 */
 	private function removeExampleSet(?string $profileId=null): JSONResponse {
 		$picked = ($profileId ?? $this->pickedProfile());

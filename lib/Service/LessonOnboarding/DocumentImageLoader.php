@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/docx-through-documentextractor/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
+ * @spec openspec/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ use ZipArchive;
 /**
  * Picture bytes out of a Word package.
  *
- * @spec openspec/changes/docx-through-documentextractor/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
+ * @spec openspec/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
  */
 class DocumentImageLoader {
 
@@ -94,7 +94,7 @@ class DocumentImageLoader {
 	 *
 	 * @return array{name: string, bytes: string}|null
 	 *
-	 * @spec openspec/changes/docx-through-documentextractor/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
 	 */
 	public function load(array $block): ?array {
 		$target = (string)($block['target'] ?? '');
@@ -122,7 +122,7 @@ class DocumentImageLoader {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/docx-through-documentextractor/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
 	 */
 	public function limitReached(): bool {
 		return $this->count >= DocxLessonReader::MAX_IMAGES;
@@ -133,7 +133,7 @@ class DocumentImageLoader {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/docx-through-documentextractor/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
 	 */
 	public function close(): void {
 		if ($this->zip !== null) {

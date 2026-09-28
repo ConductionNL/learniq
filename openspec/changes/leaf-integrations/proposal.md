@@ -1,5 +1,7 @@
 # Proposal: leaf-integrations
 
+> Round 5 (2026-09-28): polls and the Cohort calendar and forms leaves are dropped by decision D1 (communication lives in portaliq). The built surface is calendar on Session, Assignment and Credential; forms on Assignment; contacts on LearnerProfile and Praktijkopleider; deck on BpvPlacement. See tasks.md.
+
 ## Summary
 
 Adopt OpenRegister's app-agnostic integration leaves beyond the two leaf types Scholiq uses today. Scholiq currently consumes exactly two of OpenRegister's ~17 integration providers: **files** (17 `{"type": "integration", "integrationId": "files"}` manifest widgets across detail pages) and **talk** (`linkedTypes: ["talk"]` on `Cohort` and `Session`, with `CohortTalkMembershipHandler` keeping the class-space conversation's participants in sync with active Enrolments). This change adds five more leaf types where they genuinely serve the teaching workflow: **calendar** (session schedules, assignment deadlines, credential-renewal dates as linked CalDAV events), **contacts** (learner/teacher/practical-trainer profiles linked to NC Contacts cards), **forms** (assignment submission intake and class-level excuse-request intake), **deck** (BPV placement follow-up cards), and **polls** (in-course quick polls, deliberately distinct from formal assessments). Every leaf is declarative: a `linkedTypes` entry on the schema in `lib/Settings/scholiq_register.json` plus an integration widget in `src/manifest.json` — no new PHP except zero-or-one listener, no new Vue.

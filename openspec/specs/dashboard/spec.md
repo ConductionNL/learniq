@@ -82,6 +82,251 @@ The system MUST delegate cross-tenant or heavy-aggregation analytics to launchpa
 - **WHEN** the user requests that analytics view
 - **THEN** the dashboard deep-links into launchpad (shared single-sign-on session) rather than rendering a Scholiq-local cross-tenant aggregation
 
+### Requirement: Learning domain dashboard
+The system MUST provide a `LearningDashboard` page (component `LearningDashboard`, route `/learning`) rendered as exactly one `CnDashboardPage`. It MUST surface the learning domain's KPIs (courses, curriculum/programmes, assignments, assessments, grades) as KPI tiles and MUST offer manage-list entry points into the learning leaves (e.g. courses, assignments). It MUST reuse existing `src/views/widgets/*` components (KPI cards, `ManageListWidget`) rather than custom equivalents, and MUST NOT be rendered as a widget inside another dashboard.
+
+#### Scenario: Learning dashboard renders one CnDashboardPage with learning KPIs
+- **GIVEN** an authenticated user navigates to `/learning`
+- **WHEN** the `LearningDashboard` renders
+- **THEN** exactly one `CnDashboardPage` is present and its heading appears once
+- **AND** learning-domain KPI tiles (e.g. courses, assignments, assessments, grades) are shown as distinct widgets
+
+#### Scenario: Learning dashboard manage-lists link into the learning leaves
+- **GIVEN** the user is on the `LearningDashboard`
+- **WHEN** they use a manage-list entry point (e.g. the courses list)
+- **THEN** the browser navigates to the corresponding learning leaf route (e.g. `/courses`)
+
+#### Scenario: Learning dashboard is not a nested dashboard
+<!-- @e2e exclude Structural/anti-pattern assertion — enforced by the hydra dashboard-antipattern gate and the manifest/component unit tests (LearningDashboard is a page component, never referenced as a widget slot on another dashboard); not a positive DOM behaviour distinct from the single-CnDashboardPage scenario above. -->
+- **GIVEN** the `LearningDashboard` component tree
+- **WHEN** it is inspected
+- **THEN** it renders a single `CnDashboardPage` and no widget it hosts renders a nested `CnDashboardPage`
+
+### Requirement: People domain dashboard
+The system MUST provide a `PeopleDashboard` page (component `PeopleDashboard`, route `/people`) rendered as exactly one `CnDashboardPage`. It MUST surface the people domain's KPIs (learners, enrolments, attendance, credentials) as KPI tiles and MUST offer manage-list entry points into the people leaves (e.g. learners, enrolments). It MUST reuse existing `src/views/widgets/*` components rather than custom equivalents, and MUST NOT be rendered as a widget inside another dashboard.
+
+#### Scenario: People dashboard renders one CnDashboardPage with people KPIs
+- **GIVEN** an authenticated user navigates to `/people`
+- **WHEN** the `PeopleDashboard` renders
+- **THEN** exactly one `CnDashboardPage` is present and its heading appears once
+- **AND** people-domain KPI tiles (e.g. learners, enrolments, attendance, credentials) are shown as distinct widgets
+
+#### Scenario: People dashboard manage-lists link into the people leaves
+- **GIVEN** the user is on the `PeopleDashboard`
+- **WHEN** they use a manage-list entry point (e.g. the learners list)
+- **THEN** the browser navigates to the corresponding people leaf route (e.g. `/learner-profiles`)
+
+### Requirement: Every manifest role-visibility literal MUST resolve to a value the role resolver can emit
+
+`DashboardRoleService::resolvePrimaryRole()` is the single source of `runtime.user.primaryRole`, the value every
+`src/manifest.json` `visibleIf.user.primaryRole.in[]` gate is evaluated against. The system MUST guarantee that
+the resolver's set of producible values is a superset of every role literal named across every `visibleIf`
+gate in the app's effective manifest (base + `manifest.d/*.json` fragments). A `visibleIf` predicate is
+fail-safe by construction — any mismatch hides the menu entry rather than erroring — so an unproducible literal
+is a silent access-control misrepresentation, not a visible bug: the menu claims delegated access it can never
+actually grant. The resolver MUST derive role membership from Nextcloud group membership using the unprefixed
+group ids declared by the app's RBAC scope-map configuration (never a `scholiq-`-prefixed convention that no
+declaration provisions), checked admin-first. The producible role vocabulary MUST be the canonical,
+product-neutral set (`learner`, `instructor`, `team-lead`, `coordinator`, `hr`, `compliance-officer`,
+`guardian`, `administration-manager`) shared with the `rbac-declare-groups` change — school-specific words
+(`teacher`, `principal`, `mentor`, `parent`) MUST NOT appear as `visibleIf` literals or resolver return values.
+
+#### Scenario: An instructor-group member sees the Learning-analytics trend heatmap
+- **GIVEN** a signed-in user who is a member of the `instructors` Nextcloud group and no other privileged group
+- **WHEN** they open the Scholiq navigation
+- **THEN** the Group Trend Heatmap menu item is visible
+- **AND** opening it renders the heatmap for their own cohorts
+<!-- @e2e exclude Group-gated nav visibility requires provisioning an `instructors`-only Nextcloud user and logging in as them; the scholiq e2e harness runs a single admin session and cannot switch group membership per test. Verified live instead — see test-plan.md TC-1 for who performs this verification and what is recorded. -->
+
+#### Scenario: A coordinator-group member sees the Engagement configuration items
+- **GIVEN** a signed-in user who is a member of the `coordinators` Nextcloud group and no other privileged group
+- **WHEN** they open the Scholiq navigation
+- **THEN** Point Rules, Engagement Levels, Leaderboards, Point Awards, Engagement Risk Thresholds, and Timetable
+  Conflict Queue are all visible
+<!-- @e2e exclude Requires a `coordinators` group member session the single-admin scholiq e2e harness cannot provision. Verified live instead — see test-plan.md TC-2. -->
+
+#### Scenario: A guardian-group member sees Book Conference Slots but no staff-only item
+- **GIVEN** a signed-in user who is a member of the `guardians` Nextcloud group and no other privileged group
+- **WHEN** they open the Scholiq navigation
+- **THEN** the Book Conference Slots menu item is visible under Conferences
+- **AND** none of the staff-only items (Payments group, Data-exchange group, Engagement group, Compliance,
+  Group Trend Heatmap, Engagement Risk Thresholds, Course Evaluation Responses, Conference Schedule Board,
+  Timetable Conflict Queue) are visible
+<!-- @e2e exclude Requires a `guardians` group member session the single-admin scholiq e2e harness cannot provision. Verified live instead — see test-plan.md TC-3. -->
+
+#### Scenario: A learner with no privileged group membership sees exactly the baseline set
+- **GIVEN** a signed-in user with the `learner` role and no membership in `instructors`, `coordinators`,
+  `team-leads`, `guardians`, `hr`, `compliance-officers`, or `administration-managers`, and not in the
+  Nextcloud admin group
+- **WHEN** they open the Scholiq navigation
+- **THEN** of the 24 `visibleIf.user.primaryRole`-gated menu items, exactly one is visible — Book Conference
+  Slots, via its `learner` literal — and the other 23 are individually confirmed absent
+- **AND** My learning remains visible (governed by the separate group-gated dashboard requirement below, not by
+  `primaryRole`)
+<!-- @e2e exclude Asserts a negative — absence of 23 specific menu entries for a specific group-membership state — which needs a dedicated non-privileged Nextcloud user the single-admin scholiq e2e harness cannot provision. Verified live instead — see test-plan.md TC-4, which names the verifier and requires the exact count and per-item confirmation, not a general "absent" claim. -->
+
+### Requirement: Administrators MUST retain access to every role-gated menu item
+
+A `visibleIf.user.primaryRole.in[]` gate that omits `admin` is unreachable by the one role Nextcloud always
+guarantees exists, on every installation, from first boot. The system MUST include `admin` in the `in[]` list
+of every menu item gated on `user.primaryRole`, with no exception, so that an administrator can always reach
+every feature the app ships regardless of which delegated roles are or are not yet populated with users.
+
+#### Scenario: Admin sees the Compliance item
+- **GIVEN** a signed-in user in the Nextcloud admin group
+- **WHEN** they open the Scholiq navigation
+- **THEN** the Compliance menu item is visible under Insight
+- **AND** opening it renders `/apps/scholiq/compliance` with the seeded regulation, attestation, and
+  external-training coverage data
+<!-- @e2e exclude Server-side admin-group resolution feeding `runtime.user.primaryRole`; verified live on the shared dev instance rather than reproduced as a scholiq DOM-only e2e flow — see test-plan.md TC-5. -->
+
+#### Scenario: Admin sees Book Conference Slots
+- **GIVEN** a signed-in user in the Nextcloud admin group
+- **WHEN** they open the Scholiq navigation
+- **THEN** the Book Conference Slots menu item is visible under Conferences
+<!-- @e2e exclude Server-side admin-group resolution feeding `runtime.user.primaryRole`; verified live on the shared dev instance rather than reproduced as a scholiq DOM-only e2e flow — see test-plan.md TC-6. -->
+
+### Requirement: A CI gate MUST reject a manifest role literal the resolver cannot emit, and a group name no declaration provisions
+
+Because a `visibleIf` mismatch is silent in the running app, the guarantee in the two requirements above MUST
+be enforced mechanically before merge, not only by manual review. The fleet's manifest cross-reference gate
+MUST fail a pull request that either (a) introduces or leaves a `visibleIf.user.primaryRole.in[]` literal in
+the effective manifest that the app's role resolver cannot emit, or (b) introduces or leaves an
+`IGroupManager::isInGroup()` call site naming a group id that is not declared anywhere the app's RBAC group
+collector reads (its OAS scope map or `authorization` blocks).
+
+#### Scenario: Gate fails on a role literal the resolver cannot produce
+- **GIVEN** a pull request adds `"in": ["admin", "auditor"]` to a manifest `visibleIf.user.primaryRole` gate
+- **AND** `DashboardRoleService::resolvePrimaryRole()` has no path that can return `"auditor"`
+- **WHEN** the manifest cross-reference gate runs against the PR diff
+- **THEN** the gate reports a `role-resolvable` finding naming the gate's menu item id and the unproducible
+  literal
+- **AND** the gate's overall status is `failed`
+
+#### Scenario: Gate fails on a group name no declaration provisions
+- **GIVEN** a pull request adds a new `isInGroup($uid, 'auditors')` call to `DashboardRoleService`
+- **AND** no register/schema `authorization` block or OAS scope map anywhere in the app declares the group id
+  `auditors`
+- **WHEN** the manifest cross-reference gate runs against the PR diff
+- **THEN** the gate reports a `group-declared` finding naming the call site and the undeclared group id
+- **AND** the gate's overall status is `failed`
+
+#### Scenario: Gate passes when every literal and every group are accounted for
+- **GIVEN** a pull request's manifest names only role literals `DashboardRoleService::resolvePrimaryRole()` can
+  emit, and every `isInGroup()` call site names a group declared in the app's RBAC configuration
+- **WHEN** the manifest cross-reference gate runs against the PR diff
+- **THEN** the `role-resolvable` and `group-declared` checks both report zero findings
+- **AND** the gate's overall status is `passed`
+
+### Requirement: Mentor, IB-er, and director each get a named, role-gated entry point to the operational dashboard
+
+The system MUST present three additional nav entries under the existing dashboard menu group:
+`DashboardMentorMenu` (label "Mentor"), `DashboardIbMenu` (label "IB-er"), and
+`DashboardDirectorMenu` (label "Director"), each routing to the existing `DashboardTeacher` page.
+Each entry MUST be gated on `user.primaryRole` via the already-resolved, already-exposed
+`primaryRole` runtime value (`DashboardRoleService::resolvePrimaryRole()`), NOT a new
+`canXDashboard` boolean: `DashboardMentorMenu` on `instructor`/`admin`, `DashboardIbMenu` on
+`coordinator`/`admin`, `DashboardDirectorMenu` on `administration-manager`/`admin` — mirroring the
+existing `Compliance`/`AiProcessingDisclosure` entries' own `user.primaryRole`-gated pattern in the
+same manifest file. These entries render the SAME operational dashboard content
+`DashboardTeacher`/`LearniqDashboards.vue` already ships (distinct per-role widget content is
+explicitly out of scope for this requirement — see the change's proposal.md).
+
+#### Scenario: An instructor sees the Mentor entry point
+
+<!-- @e2e exclude Group-gated nav visibility requires provisioning a role-specific Nextcloud user and logging in as them; the learniq e2e harness runs a single admin session and cannot switch group/role membership per test, mirroring the existing dashboard spec's own established exclusion pattern for this exact class of scenario. Verified by reasoning over the built effective manifest (build_effective_manifest.js) instead. -->
+
+- **GIVEN** a signed-in user whose resolved `primaryRole` is `instructor`
+- **WHEN** they open the navigation
+- **THEN** a **Mentor** nav entry is shown, routing to the same page the existing **Teaching**
+  entry routes to
+
+#### Scenario: A coordinator sees the IB-er entry point, and an administration-manager sees the Director entry point
+
+<!-- @e2e exclude Same scope boundary as the scenario above — role-specific session provisioning is not available in this app's e2e harness. Verified by reasoning over the built effective manifest instead. -->
+
+- **GIVEN** a signed-in user whose resolved `primaryRole` is `coordinator`
+- **WHEN** they open the navigation
+- **THEN** an **IB-er** nav entry is shown
+- **GIVEN** a signed-in user whose resolved `primaryRole` is `administration-manager`
+- **WHEN** they open the navigation
+- **THEN** a **Director** nav entry is shown
+
+#### Scenario: An admin sees all three new entries
+
+<!-- @e2e exclude Same scope boundary — role-specific session provisioning is not available in this app's e2e harness. Verified by reasoning over the built effective manifest instead. -->
+
+- **GIVEN** a signed-in user in the Nextcloud admin group
+- **WHEN** they open the navigation
+- **THEN** **Mentor**, **IB-er**, and **Director** entries are all shown, alongside the existing
+  **Administration**, **Teaching**, and **My learning** entries
+
+### Requirement: A fast-finder query builder splits one search term into per-kind OpenRegister requests
+
+`src/utils/globalSearch.js` MUST export `buildGlobalSearchRequests(term, options)`, a pure function that,
+given a non-blank search term, returns exactly two OpenRegister request descriptors — one for the
+`learner-profile` schema and one for the `cohort` schema, both `x-openregister.searchable: true` — each
+carrying an OpenRegister `_search` param set to the trimmed term and a `_limit` (default 8). A blank or
+whitespace-only term MUST return an empty array (no unfiltered request is ever issued).
+
+`classifyPersonKind(roles)` MUST classify a `learner-profile` row as `'staff'` when its `roles` array
+contains any of `instructor`, `hr`, `manager`, `compliance-officer`, `admin`, `mentor`, `principal`, or
+`inspector`, and `'learner'` otherwise (including an empty, missing, or `learner`/`parent`-only `roles`
+array) — findings G-new-1 (learniq has no dedicated `Staff` schema; a staff member is a `LearnerProfile`).
+
+#### Scenario: A blank term builds no requests
+
+- **GIVEN** an empty or whitespace-only search term
+- **WHEN** `buildGlobalSearchRequests` is called
+- **THEN** it returns an empty array
+
+#### Scenario: A real term builds one learner-profile and one cohort request
+
+- **GIVEN** a non-blank search term
+- **WHEN** `buildGlobalSearchRequests` is called
+- **THEN** it returns a `learner-profile` request and a `cohort` request, each carrying `_search` set to the
+  trimmed term
+
+#### Scenario: Every declared staff role classifies as staff, not learner
+
+- **GIVEN** a `learner-profile` row whose `roles` array contains a staff role (`instructor`, `hr`, `manager`,
+  `compliance-officer`, `admin`, `mentor`, `principal`, or `inspector`)
+- **WHEN** `classifyPersonKind` is called with that row's `roles`
+- **THEN** it returns `'staff'`
+
+#### Scenario: A row with no roles set defaults to learner
+
+- **GIVEN** a `learner-profile` row with an empty or missing `roles` array
+- **WHEN** `classifyPersonKind` is called
+- **THEN** it returns `'learner'`
+
+### Requirement: A fast-finder widget on the People dashboard
+
+`PeopleDashboard.vue` MUST include a full-width `GlobalSearchWidget` above its existing KPI row, searching
+across `LearnerProfile` (grouped into Learners/Staff by `classifyPersonKind`) and `Cohort`, with results
+grouped by kind and each result keyboard-reachable (a real router-link, not a mouse-only click target). No
+new top-level menu entry is added.
+
+#### Scenario: A search finds a learner, a staff member, and a cohort in one box
+
+<!-- @e2e exclude no local Nextcloud instance was exercised for this change (see proposal Open Questions);
+     the query-builder/classifier contract this widget depends on is covered by
+     tests/unit-js/globalSearch.test.mjs. A live browser verification pass is a named follow-up, not silently
+     skipped. -->
+
+- **GIVEN** the People dashboard is open
+- **WHEN** a user types a name matching a learner, a staff member, and a cohort
+- **THEN** all three appear, grouped under "Learners", "Staff", and "Cohorts" headings
+- **AND** each result is reachable by keyboard (Tab to focus, Enter to navigate) and navigates to the
+  matching detail page
+
+#### Scenario: No new top-level menu entry is added
+
+- **GIVEN** the app's menu manifest
+- **WHEN** it is read after this change
+- **THEN** no new top-level or `GroupPeople`-child menu entry named for global search exists — the widget
+  lives only on the existing People dashboard page
+
 ## Standards
 NL Design System, WCAG 2.1 AA, Schema.org `Dataset` / `Observation`, Caliper Analytics for event source.
 

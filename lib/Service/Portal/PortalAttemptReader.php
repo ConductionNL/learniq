@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+ * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
 
 declare(strict_types=1);
@@ -38,7 +38,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 /**
  * Reads for portal attempts, filtered by the pupil.
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+ * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
 class PortalAttemptReader {
 
@@ -70,7 +70,7 @@ class PortalAttemptReader {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function exam(string $id): ?array {
 		return $this->one(id: $id, schema: self::ASSESSMENT_SCHEMA);
@@ -83,7 +83,7 @@ class PortalAttemptReader {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function attempt(string $id): ?array {
 		return $this->one(id: $id, schema: self::RESULT_SCHEMA);
@@ -96,7 +96,7 @@ class PortalAttemptReader {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function item(string $id): ?array {
 		return $this->one(id: $id, schema: 'item');
@@ -109,7 +109,7 @@ class PortalAttemptReader {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-result-is-shown-only-once-the-teacher-released-it
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-result-is-shown-only-once-the-teacher-released-it
 	 */
 	public function gradeEntry(string $id): ?array {
 		return $this->one(id: $id, schema: 'grade-entry');
@@ -123,7 +123,7 @@ class PortalAttemptReader {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function attemptsFor(string $examId, string $ncUserId): array {
 		return $this->many(schema: self::RESULT_SCHEMA, filters: ['assessmentId' => $examId, 'learnerId' => $ncUserId]);
@@ -136,7 +136,7 @@ class PortalAttemptReader {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function enrolments(string $ncUserId): array {
 		return $this->many(schema: 'enrolment', filters: ['learnerId' => $ncUserId]);
@@ -150,7 +150,7 @@ class PortalAttemptReader {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function publishedExams(string $field, string $value): array {
 		return $this->many(schema: self::ASSESSMENT_SCHEMA, filters: [$field => $value, 'lifecycle' => 'published']);
@@ -163,7 +163,7 @@ class PortalAttemptReader {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function accommodations(string $ncUserId): array {
 		return $this->many(

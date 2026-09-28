@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/goal-alignment-depth/tasks.md#task-3-competencyalignmentlistener-and-its-registration
+ * @spec openspec/changes/archive/2026-09-28-goal-alignment-depth/tasks.md#task-3-competencyalignmentlistener-and-its-registration
  */
 
 declare(strict_types=1);

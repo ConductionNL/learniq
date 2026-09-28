@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/oso-inbound-contract/tasks.md#task-4
+ * @spec openspec/changes/archive/2026-09-28-oso-inbound-contract/tasks.md#task-4
  */
 
 declare(strict_types=1);
@@ -75,7 +75,7 @@ class OsoImportDossierRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/oso-inbound-contract/specs/data-exchange/spec.md#scenario-an-incoming-overstapdossier-lands-as-a-reviewable-draft-not-a-live-learnerprofile
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-an-incoming-overstapdossier-lands-as-a-reviewable-draft-not-a-live-learnerprofile
 	 */
 	public function testDraftProfileIsSnapshotNotLiveWrite(): void {
 		$prop = $this->config['components']['schemas']['OsoImportDossier']['properties']['draftProfile'];
@@ -110,7 +110,7 @@ class OsoImportDossierRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/oso-inbound-contract/specs/data-exchange/spec.md#scenario-a-received-dossier-is-not-accepted-until-a-coordinator-reviews-it
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-a-received-dossier-is-not-accepted-until-a-coordinator-reviews-it
 	 */
 	public function testLifecycleTransitionShape(): void {
 		$schema = $this->config['components']['schemas']['OsoImportDossier'];

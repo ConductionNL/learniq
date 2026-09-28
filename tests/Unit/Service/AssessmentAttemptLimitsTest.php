@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EUPL-1.2
  *
- * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
+ * @spec openspec/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
  */
 
 declare(strict_types=1);
@@ -124,7 +124,7 @@ class AssessmentAttemptLimitsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#scenario-a-second-attempt-on-a-one-attempt-test-is-refused
+	 * @spec openspec/specs/assessment/spec.md#scenario-a-second-attempt-on-a-one-attempt-test-is-refused
 	 */
 	public function testStartCountsAttemptsAndStampsTheServerClock(): void {
 		$limits = $this->makeLimits();
@@ -146,7 +146,7 @@ class AssessmentAttemptLimitsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#scenario-the-timer-counts-down-to-the-servers-deadline
+	 * @spec openspec/specs/assessment/spec.md#scenario-the-timer-counts-down-to-the-servers-deadline
 	 */
 	public function testTheDeadlineCountsExtraTime(): void {
 		$limits = $this->makeLimits();
@@ -164,7 +164,7 @@ class AssessmentAttemptLimitsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
+	 * @spec openspec/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
 	 */
 	public function testWindowAndCodeComeFirst(): void {
 		$limits = $this->makeLimits();
@@ -182,7 +182,7 @@ class AssessmentAttemptLimitsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#scenario-answers-after-the-deadline-are-not-saved
+	 * @spec openspec/specs/assessment/spec.md#scenario-answers-after-the-deadline-are-not-saved
 	 */
 	public function testAnswersLate(): void {
 		$limits = $this->makeLimits();

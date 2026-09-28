@@ -32,7 +32,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
+ * @spec openspec/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
  */
 
 declare(strict_types=1);
@@ -69,7 +69,7 @@ class StoreAccessService {
 	 *
 	 * @return array{install: bool, publish: bool}
 	 *
-	 * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
 	 */
 	public function forCurrentUser(): array {
 		$user = $this->userSession->getUser();
@@ -88,7 +88,7 @@ class StoreAccessService {
 	 *
 	 * @return array{install: bool, publish: bool}
 	 *
-	 * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
 	 */
 	public function forUser(IUser $user): array {
 		return [

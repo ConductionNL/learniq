@@ -16,9 +16,23 @@ namespace OCA\OpenRegister\Db;
  */
 abstract class AuditTrailMapper {
 	/**
-	 * @param array<string,mixed> $filters
-	 * @param array<string,mixed> $sort
+	 * Same parameter order as OpenRegister's real AuditTrailMapper::findAll():
+	 * a double's callback receives positional arguments in THIS order, so a
+	 * stub that put `$filters` first passed locally and broke against the real
+	 * class in CI.
+	 *
+	 * @param int|null $limit
+	 * @param int|null $offset
+	 * @param array<string,mixed>|null $filters
+	 * @param array<string,mixed>|null $sort
+	 * @param string|null $search
 	 * @return array<int,mixed>
 	 */
-	abstract public function findAll(array $filters = [], array $sort = []): array;
+	abstract public function findAll(
+		?int $limit = null,
+		?int $offset = null,
+		?array $filters = [],
+		?array $sort = ['created' => 'DESC'],
+		?string $search = null,
+	): array;
 }//end class

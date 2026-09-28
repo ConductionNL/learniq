@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/schooladvies-voorlopig-to-rod/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
  */
 
 declare(strict_types=1);
@@ -30,7 +30,7 @@ namespace OCA\Learniq\Service;
 /**
  * Decides whether a voorlopig advice still has to go to ROD.
  *
- * @spec openspec/changes/schooladvies-voorlopig-to-rod/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
  */
 class SchoolAdviesRodTiming {
 
@@ -41,7 +41,7 @@ class SchoolAdviesRodTiming {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/schooladvies-voorlopig-to-rod/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
 	 */
 	public function voorlopigDue(array $advies): bool {
 		foreach (['voorlopigAdviesLevel', 'voorlopigAdviesDate', 'learnerId'] as $field) {

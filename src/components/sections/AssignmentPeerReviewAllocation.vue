@@ -9,7 +9,7 @@
  admin or a teacher of the assignment's cohort. Staff only and only when the
  assignment has peer review turned on; for everyone else it renders nothing.
 
- @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
+ @spec openspec/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
 -->
 <template>
 	<div v-if="panel.visible" class="peer-review-allocation">
@@ -86,7 +86,7 @@ export default {
 	computed: {
 		/**
 		 * @return {object} What the section shows.
-		 * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
 		 */
 		panel() {
 			return peerReviewPanel(this.assignment, this.views, new Date())
@@ -94,7 +94,7 @@ export default {
 
 		/**
 		 * @return {string} The translated strategy.
-		 * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
 		 */
 		strategyLabel() {
 			return (
@@ -108,7 +108,7 @@ export default {
 
 		/**
 		 * @return {string} The result of the last allocation, or ''.
-		 * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
 		 */
 		outcomeText() {
 			if (!this.outcome) return ''
@@ -134,7 +134,7 @@ export default {
 		 * Reload when the page moves to another assignment.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
 		 */
 		assignmentId() {
 			this.load()
@@ -150,7 +150,7 @@ export default {
 		 * Load the assignment's peer review settings.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
 		 */
 		async load() {
 			this.outcome = null
@@ -173,7 +173,7 @@ export default {
 		 * Ask the server to allocate reviewers, then report what it did.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
 		 */
 		async allocate() {
 			this.working = true

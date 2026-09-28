@@ -10,4 +10,5 @@
 
 ## Verification
 - [x] `openspec validate import-records-in-gate-answer` passes
-- [ ] `composer check:strict`, `npm run lint`, hydra gates, each with its exit code in the PR body
+- [x] `composer check:strict`, `npm run lint`, hydra gates, each with its exit code in the PR body
+  - Done on the originating PR #1229: `composer check:strict` 0 (2177 tests OK, phpmd 0 after an isolated-HOME rerun), `npm run lint` 0, hydra gates exit 8 with only inherited reds (gates 3, 25, 49, 53, 55, 60, 112, 113, none on its files). Re-run on current development in the r5-structure part 2 PR.

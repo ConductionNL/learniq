@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
+ * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
  * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
  */
 
@@ -39,7 +39,7 @@ use RuntimeException;
 /**
  * Builds the records a job may hand to integriq.
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
+ * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
  * @spec openspec/changes/verzuim-report-composer/tasks.md#task-3.1
  */
 class DataExchangePayloadBuilder {
@@ -105,8 +105,8 @@ class DataExchangePayloadBuilder {
 	 *
 	 * @throws RuntimeException When the scope selects more than QUERY_LIMIT objects.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-the-personal-number-leaves-learniq-only-in-a-rod-message-and-is-never-logged
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-personal-number-leaves-learniq-only-in-a-rod-message-and-is-never-logged
 	 */
 	public function composeRecords(string $target, ?string $mappingSlug, array $scope, string $tenantId): array {
 		$schema = (string)($scope['schema'] ?? '');
@@ -142,7 +142,7 @@ class DataExchangePayloadBuilder {
 	 *
 	 * @return array<string, mixed> The data.
 	 *
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-the-rod-learner-record-carries-the-personal-number-where-duo-expects-a-bsn
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-rod-learner-record-carries-the-personal-number-where-duo-expects-a-bsn
 	 */
 	private function composeData(string $target, ?string $mappingSlug, ?array $fields, array $object, string $tenantId): array {
 		$carries = $this->disclosure->carriesPersonalNumber(target: $target, mappingSlug: $mappingSlug);

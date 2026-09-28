@@ -48,7 +48,7 @@
   @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
   @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
   @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-media-block-references-an-existing-material-rather-than-duplicating-file-metadata
-  @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+  @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
 -->
 
 <template>
@@ -550,7 +550,7 @@ export default {
 		 * has not said the feature is switched off.
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+		 * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
 		 */
 		assistAvailable() {
 			return this.assistEnabled && !this.assistOff
@@ -660,7 +660,7 @@ export default {
 		 * the AI help still works with the goals that did load.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+		 * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
 		 */
 		async loadAssistGoals() {
 			const course = await this.fetchObject('Course', this.courseId).catch(
@@ -694,7 +694,7 @@ export default {
 		 *
 		 * @param {object} block A richText block.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+		 * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
 		 */
 		async simplifyBlock(block) {
 			if (this.$refs.assistPanel) {
@@ -708,7 +708,7 @@ export default {
 		 *
 		 * @param {{text: string, action: string, provider: string|null, afterBlockId: string|null}} draft The draft.
 		 * @return {void}
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+		 * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
 		 */
 		onAssistDraft(draft) {
 			const block = makeDraftBlock({
@@ -739,7 +739,7 @@ export default {
 		 *
 		 * @param {object} block The draft block.
 		 * @return {void}
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-a-teacher-keeps-an-ai-outline
+		 * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-keeps-an-ai-outline
 		 */
 		keepDraft(block) {
 			keepDraftBlock(block)
@@ -751,7 +751,7 @@ export default {
 		 *
 		 * @param {number} idx Index in `blocks`.
 		 * @return {void}
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+		 * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
 		 */
 		discardDraft(idx) {
 			this.removeBlock(idx)
@@ -763,7 +763,7 @@ export default {
 		 *
 		 * @param {string} goalId The Competency id.
 		 * @return {void}
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-a-teacher-adds-a-suggested-goal
+		 * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-adds-a-suggested-goal
 		 */
 		onAssistAddGoal(goalId) {
 			if (this.competencyIds.includes(goalId)) return
@@ -1008,7 +1008,7 @@ export default {
 		 * Runs after the lesson itself was saved.
 		 *
 		 * @return {Promise<boolean>} True when every note write succeeded.
-		 * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-the-composer-shows-notes-inline-and-saves-them-to-the-staff-store
+		 * @spec openspec/specs/course-management/spec.md#requirement-the-composer-shows-notes-inline-and-saves-them-to-the-staff-store
 		 */
 		async saveTeacherNotes() {
 			const { notes } = splitTeacherNotes(this.blocks)
@@ -1074,7 +1074,7 @@ export default {
 		 * suggestion was added, so a plain save never rewrites the goals.
 		 *
 		 * @return {object} The body.
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-a-teacher-adds-a-suggested-goal
+		 * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-adds-a-suggested-goal
 		 */
 		saveBody() {
 			const body = { blocks: this.serialisableBlocks() }
@@ -1200,7 +1200,7 @@ export default {
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-a-pending-draft-blocks-the-save
+		 * @spec openspec/specs/course-management/spec.md#scenario-a-pending-draft-blocks-the-save
 		 */
 		async save() {
 			this.saveError = ''

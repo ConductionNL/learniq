@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
+ * @spec openspec/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
  */
 
 declare(strict_types=1);
@@ -81,7 +81,7 @@ class StoreRegistrySettingsController extends Controller {
 	 *
 	 * @return JSONResponse `{url, register, tokenSet}`.
 	 *
-	 * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
+	 * @spec openspec/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
 	 */
 	#[AuthorizedAdminSetting(settings: AdminSettings::class)]
 	public function show(): JSONResponse {
@@ -95,7 +95,7 @@ class StoreRegistrySettingsController extends Controller {
 	 *
 	 * @return JSONResponse The saved connection, as show() answers; 400 on a malformed address or register.
 	 *
-	 * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
+	 * @spec openspec/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
 	 */
 	#[AuthorizedAdminSetting(settings: AdminSettings::class)]
 	public function update(): JSONResponse {

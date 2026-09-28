@@ -38,7 +38,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learner-lookup-and-learnerrefs-fixes/specs/assignments/spec.md#requirement-every-submission-carries-server-stamped-learnerrefs
+ * @spec openspec/specs/assignments/spec.md#requirement-every-submission-carries-server-stamped-learnerrefs
  */
 
 declare(strict_types=1);
@@ -60,7 +60,7 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/learner-lookup-and-learnerrefs-fixes/specs/assignments/spec.md#requirement-every-submission-carries-server-stamped-learnerrefs
+ * @spec openspec/specs/assignments/spec.md#requirement-every-submission-carries-server-stamped-learnerrefs
  */
 class SubmissionLearnerRefsStamp implements IEventListener {
 
@@ -89,7 +89,7 @@ class SubmissionLearnerRefsStamp implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learner-lookup-and-learnerrefs-fixes/specs/assignments/spec.md#requirement-every-submission-carries-server-stamped-learnerrefs
+	 * @spec openspec/specs/assignments/spec.md#requirement-every-submission-carries-server-stamped-learnerrefs
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {

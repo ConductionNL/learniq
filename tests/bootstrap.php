@@ -147,6 +147,12 @@ if (interface_exists(\OC\Hooks\Emitter::class) === false) {
 	require_once __DIR__ . '/Stubs/Hooks/Emitter.php';
 }
 
+// Symfony HeaderUtils stub — DataDownloadResponse needs it and only the server
+// ships it, so a controller returning a download could not be unit tested.
+if (class_exists(\Symfony\Component\HttpFoundation\HeaderUtils::class) === false) {
+	require_once __DIR__ . '/Stubs/Symfony/HeaderUtils.php';
+}
+
 // Integriq's connection-registry event (adopt-connection-registry).
 // ConnectionReportService sends it by string class name behind class_exists
 // (ADR-041), so learniq stays installable without integriq. The stub mirrors
