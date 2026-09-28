@@ -57,8 +57,8 @@ Every task writes its test first and runs it against the old code, where it must
 - [x] Test
 
 ## Verification
-- [ ] `openspec validate pok-signature-parent-role` passes
-- [ ] Diff-scoped checks, then `composer check:strict`, `npm run lint`, `npm run format`, `npm run check:schema-l10n`, hydra gates, each with its exit code in the PR body
+- [x] `openspec validate pok-signature-parent-role` passes
+- [x] Diff-scoped checks, then `composer check:strict`, `npm run lint`, `npm run format`, `npm run check:schema-l10n`, hydra gates, each with its exit code in the PR body
 
 ## Quality checklist
 
