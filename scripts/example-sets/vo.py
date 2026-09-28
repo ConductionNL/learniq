@@ -92,6 +92,8 @@ SCHEMAS = [
     "report-card",
     "support-request",
     "dossier-note",
+    # Appended, not inserted, so every earlier bucket keeps its uuid group.
+    "session-change-batch",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -852,6 +854,31 @@ def build() -> dict:
                 "startsAt": stamp(day, 8, 30), "endsAt": stamp(day, end_h, end_m),
                 "location": room["name"], "roomId": room["uuid"], "lifecycle": "completed",
             })
+
+    # --- one change applied to several weeks (timetabling-bulk-change-weeks) -------------
+    # Lokaal H1.03 gets a new digibord on three Tuesdays in March, so 4H1 moves to the
+    # mediatheek for those days in one batch: one message to the class and its parents.
+    moved_days = [d for d in class_days("4H1") if d.weekday() == 1 and d.month == 3][:3]
+    batch_uuid = f"ee{SET_NUMBER}{SCHEMAS.index('session-change-batch') + 1:04x}-0000-4000-8000-{1:012d}"
+    mediatheek = rooms["H1.20"]
+    for day in moved_days:
+        sessions[("4H1", day)].update({
+            "roomId": mediatheek["uuid"], "location": mediatheek["name"], "changeBatchId": batch_uuid,
+            "changeReasonKind": "room-unavailable", "changeReason": "Nieuw digibord in H1.03",
+        })
+    class_4h1 = [p for p in pupils if p["class"] == "4H1"]
+    batch = b.add("session-change-batch", {
+        "kind": "room", "sessionIds": [sessions[("4H1", d)]["uuid"] for d in moved_days], "roomId": mediatheek["uuid"],
+        "changeReasonKind": "room-unavailable", "changeReason": "Nieuw digibord in H1.03",
+        "results": [{"sessionId": sessions[("4H1", d)]["uuid"], "startsAt": sessions[("4H1", d)]["startsAt"],
+                     "outcome": "applied", "reason": None} for d in moved_days],
+        "appliedCount": len(moved_days),
+        "lessonDates": ", ".join(f"{d.day}-{d.month}-{d.year}" for d in moved_days),
+        "affectedLearnerIds": [p["nc"] for p in class_4h1],
+        "affectedParentIds": sorted({g["ncUserId"] for p in class_4h1 for g in p["guardians"]}),
+        "madeBy": TEAMLEIDER_BB,
+    })
+    assert batch["uuid"] == batch_uuid
 
     # First-hour teacher per class per weekday: a teacher of that class who works that day.
     first_hour: dict[tuple[str, int], list[str]] = {}

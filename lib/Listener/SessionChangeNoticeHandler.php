@@ -110,9 +110,38 @@ class SessionChangeNoticeHandler implements IEventListener {
 			return;
 		}
 
-		$this->materialiseAffected(session: $event->getObject()->jsonSerialize());
+		$session = $event->getObject()->jsonSerialize();
+
+		// A lesson changed in a batch sends no message of its own: its
+		// affected lists stay empty and the batch sends one message for all
+		// its lessons (timetabling-bulk-change-weeks).
+		if (is_string($session['changeBatchId'] ?? null) === true && $session['changeBatchId'] !== '') {
+			return;
+		}
+
+		$this->materialiseAffected(session: $session);
 
 	}//end handle()
+
+	/**
+	 * The learners and parents a change to this lesson affects, without
+	 * writing anything.
+	 *
+	 * @param array<string,mixed> $session The Session data.
+	 *
+	 * @return array{learnerIds: array<int,string>, parentIds: array<int,string>}
+	 *
+	 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-affected-people-get-one-message-per-batch
+	 */
+	public function affectedPeople(array $session): array {
+		$tenantId = (string)($session['tenant_id'] ?? '');
+		$learnerIds = $this->resolveCohortLearnerIds(cohortId: (string)($session['cohortId'] ?? ''), tenantId: $tenantId);
+
+		return [
+			'learnerIds' => $learnerIds,
+			'parentIds' => $this->resolveParentIds(learnerIds: $learnerIds, tenantId: $tenantId),
+		];
+	}//end affectedPeople()
 
 	/**
 	 * Resolve and persist affectedLearnerIds/affectedParentIds/changedAt onto the Session.
