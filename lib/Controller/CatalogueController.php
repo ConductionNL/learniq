@@ -229,7 +229,9 @@ class CatalogueController extends Controller {
 	 * @return JSONResponse
 	 */
 	private function notFound(PortalLearner $learner): JSONResponse {
-		return $this->answer(outcome: new PortalOutcome(status: Http::STATUS_NOT_FOUND, body: ['error' => 'not_found'], reason: 'not-found'), learner: $learner);
+		$outcome = new PortalOutcome(status: Http::STATUS_NOT_FOUND, body: ['error' => 'not_found'], reason: 'not-found');
+
+		return $this->answer(outcome: $outcome, learner: $learner);
 	}//end notFound()
 
 	/**
