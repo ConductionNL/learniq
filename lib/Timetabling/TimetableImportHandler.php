@@ -428,10 +428,10 @@ class TimetableImportHandler implements IEventListener {
 	private function loadMappingProfile(string $profileId): ?array {
 		$results = $this->objectService->findAll(
 			[
+				'ids' => [$profileId],
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::MAPPING_PROFILE_SCHEMA,
-					'id' => $profileId,
 				],
 				'limit' => 1,
 			]
@@ -480,10 +480,10 @@ class TimetableImportHandler implements IEventListener {
 	private function saveJobFields(string $jobId, array $fields): void {
 		$existing = $this->objectService->findAll(
 			[
+				'ids' => [$jobId],
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::JOB_SCHEMA,
-					'id' => $jobId,
 				],
 				'limit' => 1,
 			]

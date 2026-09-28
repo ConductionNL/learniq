@@ -225,13 +225,14 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 	 */
 	private function loadAssignment(string $assignmentId, string $tenantId): ?array {
 		// H1: scope Assignment lookup to the same tenant.
-		$filters = ['uuid' => $assignmentId];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$assignments = $this->objectService->findAll(
 			[
+				'ids' => [$assignmentId],
 				'filters' => array_merge(
 					$filters,
 					[

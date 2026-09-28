@@ -377,10 +377,10 @@ class TimetableController extends Controller {
 		foreach (array_keys($roomIds) as $roomId) {
 			$results = $this->objectService->findAll(
 				[
+					'ids' => [$roomId],
 					'filters' => [
 						'register' => self::LEARNIQ_REGISTER,
 						'schema' => 'room',
-						'id' => $roomId,
 					],
 					'limit' => 1,
 				]
