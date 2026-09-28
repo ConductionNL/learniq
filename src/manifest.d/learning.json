@@ -7699,6 +7699,14 @@
 				"register": "learniq"
 			},
 			"_note": "nav-restructure-dashboards: GroupLearning's navigable landing dashboard — a bespoke domain overview with no generic index/detail/dashboard analogue. The nav icon + group association live on the GroupLearning menu entry (base manifest + this fragment's menu route), not on the page (icon/group are not valid v2 page props)."
+		},
+		{
+			"id": "RoomUtilisationReport",
+			"route": "/reports/room-use",
+			"type": "custom",
+			"title": "Room use",
+			"component": "RoomUtilisationReport",
+			"_note": "timetabling-room-utilisation: how well rooms are used over a period, computed by GET /api/reports/room-use. Reached from a Reports card (D8), no menu entry."
 		}
 	]
 }

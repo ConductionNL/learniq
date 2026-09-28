@@ -166,6 +166,8 @@ import QtiImportView from './views/QtiImportView.vue'
 import RapportvergaderingReviewView from './views/RapportvergaderingReviewView.vue'
 import RegulationDetailPage from './views/RegulationDetailPage.vue'
 import RolloverWizard from './views/RolloverWizard.vue'
+// timetabling-room-utilisation: the room use report under Reports.
+import RoomUtilisationReport from './views/RoomUtilisationReport.vue'
 import SelfAssessmentView from './views/SelfAssessmentView.vue'
 import SignatureView from './views/SignatureView.vue'
 import SkillsGapDashboard from './views/SkillsGapDashboard.vue'
@@ -259,6 +261,7 @@ export default {
 	GradeImpactDetail: page(GradeImpactDetail),
 	GroupPlanSubgroupLearnerContext: page(GroupPlanSubgroupLearnerContext),
 	GroupTrendHeatmap: page(GroupTrendHeatmap),
+	RoomUtilisationReport: page(RoomUtilisationReport),
 	ItemAnalysisView: page(ItemAnalysisView),
 	ItemAuthorView: page(ItemAuthorView),
 	LeaderboardView: page(LeaderboardView),
