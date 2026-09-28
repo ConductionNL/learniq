@@ -165,8 +165,9 @@ class BpvCoachAuthorizationRegisterTest extends TestCase {
 	public function testChangedSchemasAreVersionBumped(): void {
 		$schemas = $this->config['components']['schemas'];
 
-		self::assertSame('0.2.0', $schemas['BpvPlacement']['version']);
-		self::assertSame('0.2.0', $schemas['Praktijkopleider']['version']);
+		// A floor, not an exact value: later changes bump these schemas again.
+		self::assertTrue(version_compare($schemas['BpvPlacement']['version'], '0.2.0', '>='));
+		self::assertTrue(version_compare($schemas['Praktijkopleider']['version'], '0.2.0', '>='));
 
 	}//end testChangedSchemasAreVersionBumped()
 }//end class

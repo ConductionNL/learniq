@@ -2604,7 +2604,11 @@ OC.L10N.register(
         "The file of this import cannot be opened by the person who asked for it.": "Het bestand van deze import kan niet worden geopend door de persoon die erom vroeg.",
         "The file of this import is larger than 10 MB or has more than 5,000 rows. Split it and import each part.": "Het bestand van deze import is groter dan 10 MB of heeft meer dan 5.000 rijen. Splits het en importeer elk deel apart.",
         "The file of this import cannot be read as CSV, JSON or XML.": "Het bestand van deze import is niet te lezen als CSV, JSON of XML.",
-        "UUID of the integriq exchange job that received this dossier, when it came in through one. Null for a dossier entered by hand.": "UUID van de integriq-uitwisselingstaak die dit dossier ontving, als het via een taak binnenkwam. Leeg voor een dossier dat met de hand is ingevoerd."
+        "UUID of the integriq exchange job that received this dossier, when it came in through one. Null for a dossier entered by hand.": "UUID van de integriq-uitwisselingstaak die dit dossier ontving, als het via een taak binnenkwam. Leeg voor een dossier dat met de hand is ingevoerd.",
+        "Agenda": "Agenda",
+        "Intake form": "Invulformulier",
+        "Contact card": "Contactkaart",
+        "Follow-ups": "Opvolging"
     },
     "nplurals=2; plural=(n != 1);"
 )
