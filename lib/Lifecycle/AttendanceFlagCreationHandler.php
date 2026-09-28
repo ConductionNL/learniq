@@ -75,6 +75,22 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	private const CHECK_THRESHOLD_ACTION = 'check-threshold';
 
 	/**
+	 * The flag kind a crossing of each threshold kind carries. Only the
+	 * leerplicht profile is a statutory school concern; a course, programme,
+	 * training or company presence requirement gets the neutral kind. A
+	 * `generic` threshold is not listed, so its flag keeps the schema default
+	 * as it always has.
+	 *
+	 * @var array<string, string>
+	 */
+	private const FLAG_KIND_BY_THRESHOLD_KIND = [
+		'leerplicht-16uur' => 'signal-verzuim',
+		'college-aanwezigheid' => 'attendance-requirement',
+		'training-attendance' => 'attendance-requirement',
+		'compliance-presence' => 'attendance-requirement',
+	];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access service.
@@ -164,7 +180,7 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	 *
 	 * @param array<string,mixed> $threshold The AttendanceThreshold data after the transition.
 	 *
-	 * @return array{thresholdId:string,cohortId:mixed,learnerId:string,windowStart:string,windowEnd:string,metricValue:mixed,breachingIds:mixed,tenantId:string}
+	 * @return array{thresholdId:string,cohortId:mixed,learnerId:string,windowStart:string,windowEnd:string,metricValue:mixed,breachingIds:mixed,tenantId:string,thresholdKind:string}
 	 */
 	private function extractCrossingDetail(array $threshold): array {
 		$thresholdId = $threshold['id'] ?? '';
@@ -191,6 +207,7 @@ class AttendanceFlagCreationHandler implements IEventListener {
 			'metricValue' => $metricValue,
 			'breachingIds' => $threshold['checkedBreachingRecordIds'] ?? [],
 			'tenantId' => $threshold['tenant_id'] ?? '',
+			'thresholdKind' => (string)($threshold['kind'] ?? ''),
 		];
 
 	}//end extractCrossingDetail()
@@ -203,6 +220,8 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	 * @param array<string,mixed> $onCross The threshold's onCross configuration.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/grading-defects-from-example-sets/specs/attendance/spec.md#requirement-an-attendance-flag-outside-the-leerplicht-carries-a-neutral-kind
 	 */
 	private function saveFlag(array $detail, array $onCross): void {
 		$mentorId = $this->resolveMentorId(learnerId: $detail['learnerId']);
@@ -232,6 +251,11 @@ class AttendanceFlagCreationHandler implements IEventListener {
 			'lifecycle' => 'open',
 			'tenant_id' => $detail['tenantId'],
 		];
+
+		$flagKind = self::FLAG_KIND_BY_THRESHOLD_KIND[$detail['thresholdKind']] ?? null;
+		if ($flagKind !== null) {
+			$flag['flagKind'] = $flagKind;
+		}
 
 		$this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
