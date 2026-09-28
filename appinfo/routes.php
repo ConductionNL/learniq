@@ -205,6 +205,11 @@ return [
         // #[AuthorizedAdminSetting]; replaces the occ-only configuration.
         ['name' => 'storeRegistrySettings#show',   'url' => '/api/admin/store-registry', 'verb' => 'GET'],
         ['name' => 'storeRegistrySettings#update', 'url' => '/api/admin/store-registry', 'verb' => 'PUT'],
+        // timetable-connection-and-import-screen: the group code maps per rostering
+        // system and the SWV receiver, on the admin page. Controller:
+        // TimetableExchangeSettingsController (admin setting).
+        ['name' => 'timetableExchangeSettings#show',   'url' => '/api/admin/timetable-exchange', 'verb' => 'GET'],
+        ['name' => 'timetableExchangeSettings#update', 'url' => '/api/admin/timetable-exchange', 'verb' => 'PUT'],
 
         // Generic per-user preferences — AppHost GenericPreferencesController.
         ['name' => 'preferences#getPreference', 'url' => '/api/preferences/{key}', 'verb' => 'GET'],
@@ -243,6 +248,8 @@ return [
         // D10 + data-exchange-to-integriq: a timetable import is a delivery into planninq, asked
         // through integriq's RosterImportRequestedEvent. Controller: TimetableImportController.
         ['name' => 'timetableImport#create', 'url' => '/api/timetable/imports', 'verb' => 'POST'],
+        // Whether the caller may import (exchange.request) and planninq is there, for the button.
+        ['name' => 'timetableImport#access', 'url' => '/api/timetable/imports/access', 'verb' => 'GET'],
 
         // Raise a FeeItem's contributions in shillinq (payments-to-shillinq-migration,
         // D19; shillinq contract extracurricular-fee-to-shillinq v1). #[NoAdminRequired]

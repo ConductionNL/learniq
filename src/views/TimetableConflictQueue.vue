@@ -33,7 +33,30 @@
 					)
 				}}
 			</p>
+			<NcButton
+				v-if="canImport"
+				variant="secondary"
+				:disabled="!planninqReady"
+				data-testid="timetable-import-open"
+				@click="importOpen = true">
+				{{ t('learniq', 'Import a timetable') }}
+			</NcButton>
+			<p
+				v-if="canImport && !planninqReady"
+				class="timetable-conflict-queue__subtitle">
+				{{
+					t(
+						'learniq',
+						'Install planninq to import a timetable: integriq delivers it there.',
+					)
+				}}
+			</p>
 		</header>
+
+		<TimetableImportDialog
+			v-if="importOpen"
+			@imported="load"
+			@close="importOpen = false" />
 
 		<div
 			v-if="loading"
@@ -120,6 +143,8 @@
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
+import TimetableImportDialog from '../dialogs/TimetableImportDialog.vue'
+import { IMPORT_ACCESS_URL } from '../utils/timetableExchangeSettings.js'
 
 export default {
 	name: 'TimetableConflictQueue',
@@ -129,10 +154,14 @@ export default {
 		NcEmptyContent,
 		NcLoadingIcon,
 		NcNoteCard,
+		TimetableImportDialog,
 	},
 
 	data() {
 		return {
+			canImport: false,
+			planninqReady: false,
+			importOpen: false,
 			conflicts: [],
 			loading: false,
 			error: '',
@@ -164,10 +193,28 @@ export default {
 
 	created() {
 		this.load()
+		this.loadImportAccess()
 	},
 
 	methods: {
 		t,
+
+		/**
+		 * Show the import button only to someone the import endpoint admits
+		 * (exchange.request), and enable it where planninq takes the delivery.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
+		 */
+		async loadImportAccess() {
+			try {
+				const { data } = await axios.get(generateUrl(IMPORT_ACCESS_URL))
+				this.canImport = data?.canImport === true
+				this.planninqReady = data?.planninq === true
+			} catch {
+				this.canImport = false
+			}
+		},
 
 		/**
 		 * Fetch every TimetableConflict object.
