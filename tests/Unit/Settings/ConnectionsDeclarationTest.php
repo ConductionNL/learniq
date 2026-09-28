@@ -89,6 +89,7 @@ class ConnectionsDeclarationTest extends TestCase {
 		'src/views/settings/AdminRoot.vue',
 		'src/views/settings/DataExchangeSettingsSection.vue',
 		'src/views/settings/TimetableExchangeSettingsSection.vue',
+		'src/views/settings/LtiSettingsSection.vue',
 		'src/views/LearniqSettings.vue',
 	];
 
@@ -249,7 +250,7 @@ class ConnectionsDeclarationTest extends TestCase {
 			$linked[] = $connection['key'];
 		}
 
-		$this->assertSame(expected: ['data-exchange', 'timetable'], actual: $linked);
+		$this->assertSame(expected: ['data-exchange', 'timetable', 'lti'], actual: $linked);
 	}//end testEverySettingsLinkPointsAtAnExistingSection()
 
 	/**
@@ -274,35 +275,29 @@ class ConnectionsDeclarationTest extends TestCase {
 		}
 
 		$this->assertSame(
-			expected: ['lti', 'sbb', 'proctoring', 'plagiarism'],
+			expected: ['sbb', 'proctoring', 'plagiarism'],
 			actual: $unavailable
 		);
 	}//end testEveryUnavailableConnectionSaysWhy()
 
 	/**
-	 * The unavailable messages name the paths learniq really calls.
-	 *
-	 * When one of these constants moves to an endpoint integriq publishes, this
-	 * test goes red. That is the moment to make the row available again.
+	 * LTI launches through integriq's typed event, and learniq reports the row
+	 * from whether that event exists (content-lti-launch-through-integriq).
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-the-connection-registry-says-whether-lti-works
 	 */
-	public function testTheUnavailableMessagesNameTheCalledPaths(): void {
+	public function testLtiLaunchesThroughIntegriqsEventAndIsReported(): void {
 		$byKey = $this->connectionsByKey();
-		$calls = [
-			'lti' => [
-				'lib/Controller/LtiToolPlacementController.php',
-				"'/apps/openconnector/api/lti/deployments/%s/launch'",
-				'api/lti/deployments/[id]/launch',
-			],
-		];
 
-		foreach ($calls as $key => [$file, $constant, $named]) {
-			$source = (string)file_get_contents($this->root() . '/' . $file);
-			$this->assertStringContainsString(needle: $constant, haystack: $source, message: $key . ': the called path changed');
-			$this->assertStringContainsString(needle: $named, haystack: (string)$byKey[$key]['unavailableMessage'], message: $key);
-		}
-	}//end testTheUnavailableMessagesNameTheCalledPaths()
+		$this->assertArrayNotHasKey(key: 'available', array: $byKey['lti']);
+		$this->assertTrue($byKey['lti']['reportedOnly']);
+		$this->assertContains(needle: 'lti', haystack: ConnectionReportService::REPORTED_KEYS);
+		$controller = (string)file_get_contents($this->root() . '/lib/Controller/LtiToolPlacementController.php');
+		$this->assertStringContainsString(needle: "'OCA\\Integriq\\Event\\LtiLaunchRequestedEvent'", haystack: $controller);
+		$this->assertStringNotContainsString(needle: 'api/lti/deployments', haystack: $controller);
+	}//end testLtiLaunchesThroughIntegriqsEventAndIsReported()
 
 	/**
 	 * Data exchange runs through integriq's events, not a route learniq calls

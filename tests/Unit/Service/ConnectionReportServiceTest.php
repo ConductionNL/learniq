@@ -411,4 +411,44 @@ class ConnectionReportServiceTest extends TestCase {
 		$this->service()->observe(key: 'eudi-wallet', status: 'error', reason: 'Integriq refused the wallet offer: 401.');
 		$this->assertSame(expected: 0, actual: $this->writes);
 	}//end testAFailingConfigStoreNeverEscapesAnObservation()
+
+	/**
+	 * The LTI row is available when integriq ships its launch event, unavailable without it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-the-connection-registry-says-whether-lti-works
+	 */
+	public function testTheLtiRowFollowsIntegriqsLaunchEvent(): void {
+		$service = $this->service();
+		$service->observeLti();
+		$service->reportObservations();
+
+		$lti = array_values(array_filter($this->sent, static fn (object $sent): bool => $sent->key === 'lti'));
+		$this->assertSame(['configured'], array_map(static fn (object $sent): string => $sent->status, $lti));
+
+		$time = $this->createMock(originalClassName: ITimeFactory::class);
+		$time->method('getDateTime')->willReturn(new DateTime('2026-09-14 10:30:00', new DateTimeZone('UTC')));
+		$without = new class($this->appConfig, $this->dispatcher, $time, $this->logger, $this->appManager) extends ConnectionReportService {
+
+			/**
+			 * Integriq's launch event is missing.
+			 *
+			 * @param string $eventClass The class name asked for.
+			 *
+			 * @return string|null Null for the launch event.
+			 */
+			protected function resolveEventClass(string $eventClass): ?string {
+				if ($eventClass === self::LTI_LAUNCH_EVENT) {
+					return null;
+				}
+
+				return parent::resolveEventClass(eventClass: $eventClass);
+			}//end resolveEventClass()
+		};
+		$without->observeLti();
+
+		$stored = json_decode($this->config['learniq.connection_observation_lti'] ?? '{}', true);
+		$this->assertSame('unavailable', $stored['status'] ?? null);
+	}//end testTheLtiRowFollowsIntegriqsLaunchEvent()
 }//end class

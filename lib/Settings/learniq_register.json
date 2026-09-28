@@ -135,7 +135,11 @@
                     "compliance",
                     "exchange-partner-approval",
                     "teldatum-check",
-                    "dossier-review"
+                    "dossier-review",
+                    "timetable-visibility-policy",
+                    "standby-slot",
+                    "hour-plan",
+                    "lesson-note"
                 ],
                 "configuration": {
                     "roles": [
@@ -1048,7 +1052,7 @@
             "Course": {
                 "slug": "course",
                 "icon": "BookOpenPageVariantOutline",
-                "version": "0.4.1",
+                "version": "0.5.0",
                 "title": "Course",
                 "description": "A course or training program (Schema.org Course). Lifecycle: draft → published → archived.",
                 "type": "object",
@@ -1331,6 +1335,22 @@
                         "default": [],
                         "title": "Education levels",
                         "description": "The levels this fits, using the NL-LOM education levels. Used to find material across schools."
+                    },
+                    "selfEnrolment": {
+                        "type": "string",
+                        "enum": [
+                            "closed",
+                            "open",
+                            "on-request"
+                        ],
+                        "default": "closed",
+                        "title": "Sign-up by learners",
+                        "description": "Whether learners can sign up themselves from the catalogue: not at all, at once, or on request for a teacher or manager to approve.",
+                        "x-enum-labels": {
+                            "closed": "Closed",
+                            "open": "Open",
+                            "on-request": "On request"
+                        }
                     }
                 },
                 "x-openregister-lifecycle": {
@@ -1451,7 +1471,18 @@
                 "x-openregister-seed": [],
                 "authorization": {
                     "read": [
-                        "authenticated"
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "lifecycle": {
+                                    "$eq": "published"
+                                }
+                            }
+                        }
                     ],
                     "create": [
                         "instructors",
@@ -1465,12 +1496,37 @@
                         "compliance-officers",
                         "team-leads"
                     ]
+                },
+                "configuration": {
+                    "x-openregister-mcp": {
+                        "enabled": true,
+                        "tools": {
+                            "search": {
+                                "description": "Search published courses by code, level, language, mandatory training or regulation. Staff also see drafts.",
+                                "scope": "read",
+                                "readOnlyHint": true,
+                                "filters": [
+                                    "code",
+                                    "level",
+                                    "language",
+                                    "lifecycle",
+                                    "mandatoryTraining",
+                                    "regulationSlug"
+                                ]
+                            },
+                            "get": {
+                                "description": "Get one course by id: title, level, language, mandatory flag and its regulation.",
+                                "scope": "read",
+                                "readOnlyHint": true
+                            }
+                        }
+                    }
                 }
             },
             "Lesson": {
                 "slug": "lesson",
                 "icon": "FileDocumentOutline",
-                "version": "0.5.1",
+                "version": "0.5.2",
                 "title": "Lesson",
                 "description": "A lesson / learning module within a Course (Schema.org LearningResource). Lifecycle: draft → published → retired.",
                 "type": "object",
@@ -1884,7 +1940,18 @@
                 "x-openregister-seed": [],
                 "authorization": {
                     "read": [
-                        "authenticated"
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "lifecycle": {
+                                    "$eq": "published"
+                                }
+                            }
+                        }
                     ],
                     "create": [
                         "instructors",
@@ -1898,6 +1965,29 @@
                         "compliance-officers",
                         "team-leads"
                     ]
+                },
+                "configuration": {
+                    "x-openregister-mcp": {
+                        "enabled": true,
+                        "tools": {
+                            "search": {
+                                "description": "Search lessons, usually by courseId to list a course's modules. Learners see published lessons only.",
+                                "scope": "read",
+                                "readOnlyHint": true,
+                                "filters": [
+                                    "courseId",
+                                    "contentType",
+                                    "lifecycle",
+                                    "mandatoryTraining"
+                                ]
+                            },
+                            "get": {
+                                "description": "Get one lesson by id: title, content type and its place in the course.",
+                                "scope": "read",
+                                "readOnlyHint": true
+                            }
+                        }
+                    }
                 }
             },
             "CourseTemplate": {
@@ -2381,7 +2471,7 @@
             "XapiStatement": {
                 "slug": "xapi-statement",
                 "icon": "TextBoxOutline",
-                "version": "0.1.1",
+                "version": "0.2.0",
                 "title": "XapiStatement",
                 "description": "xAPI 1.0.3 statement stored in the LRS substrate (append-only per ADR-002). Every save emits xapi.statement.received audit entry.",
                 "type": "object",
@@ -2397,6 +2487,28 @@
                     "stored",
                     "tenant_id"
                 ],
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "verified_actor_id": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "hr",
+                        "compliance-officers"
+                    ],
+                    "update": [
+                        "hr",
+                        "compliance-officers"
+                    ]
+                },
                 "properties": {
                     "actor": {
                         "type": "object",
@@ -2625,7 +2737,7 @@
             "Enrolment": {
                 "slug": "enrolment",
                 "icon": "AccountSchoolOutline",
-                "version": "0.2.1",
+                "version": "0.3.0",
                 "title": "Enrolment",
                 "description": "Learner enrolment in a course (Schema.org EnrollmentRequest)",
                 "type": "object",
@@ -2789,6 +2901,27 @@
                         "default": null,
                         "description": "UUID of the destination School this pupil is leaving to, captured alongside the withdraw transition and the existing free-text reason. Additive and nullable.",
                         "title": "Destination School ID"
+                    },
+                    "requestedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "title": "Requested at",
+                        "description": "When the learner signed up from the catalogue."
+                    },
+                    "declineReason": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "Reason for declining",
+                        "description": "Why a sign-up request was declined. The learner sees it."
+                    },
+                    "programmeId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "$ref": "Programme",
+                        "title": "Programme",
+                        "description": "The programme this enrolment came from, when the learner signed up for a whole programme."
                     }
                 },
                 "x-openregister-aggregate-refs": {
@@ -2830,6 +2963,22 @@
                         "fail": {
                             "from": "active",
                             "to": "failed"
+                        },
+                        "approve": {
+                            "from": "pending",
+                            "to": "active",
+                            "description": "A teacher, HR officer, team lead or the learner's manager approves a sign-up request from the catalogue."
+                        },
+                        "decline": {
+                            "from": "pending",
+                            "to": "withdrawn",
+                            "description": "A teacher, HR officer, team lead or the learner's manager declines a sign-up request, with a reason the learner sees.",
+                            "inputs": [
+                                {
+                                    "field": "declineReason",
+                                    "required": true
+                                }
+                            ]
                         }
                     }
                 },
@@ -3056,6 +3205,98 @@
                             "nl": "Een verplichte cursus van een medewerker is over tijd",
                             "en": "An employee's mandatory course is overdue"
                         }
+                    },
+                    "selfSignedUp": {
+                        "trigger": {
+                            "type": "created",
+                            "filter": {
+                                "source": "self",
+                                "lifecycle": "active"
+                            }
+                        },
+                        "enabled": true,
+                        "channels": [
+                            "nc-notification"
+                        ],
+                        "recipients": [
+                            {
+                                "kind": "field",
+                                "field": "learnerId"
+                            }
+                        ],
+                        "subject": {
+                            "nl": "Je bent aangemeld voor een cursus",
+                            "en": "You are signed up for a course"
+                        }
+                    },
+                    "signUpRequested": {
+                        "trigger": {
+                            "type": "created",
+                            "filter": {
+                                "source": "self",
+                                "lifecycle": "pending"
+                            }
+                        },
+                        "enabled": true,
+                        "channels": [
+                            "nc-notification"
+                        ],
+                        "recipients": [
+                            {
+                                "kind": "field",
+                                "field": "managerId"
+                            },
+                            {
+                                "kind": "groups",
+                                "groups": [
+                                    "hr"
+                                ]
+                            }
+                        ],
+                        "subject": {
+                            "nl": "Een leerling vraagt een plek in een cursus",
+                            "en": "A learner asks for a place in a course"
+                        }
+                    },
+                    "signUpApproved": {
+                        "trigger": {
+                            "type": "transition",
+                            "action": "approve"
+                        },
+                        "enabled": true,
+                        "channels": [
+                            "nc-notification"
+                        ],
+                        "recipients": [
+                            {
+                                "kind": "field",
+                                "field": "learnerId"
+                            }
+                        ],
+                        "subject": {
+                            "nl": "Je aanmelding voor een cursus is goedgekeurd",
+                            "en": "Your sign-up for a course was approved"
+                        }
+                    },
+                    "signUpDeclined": {
+                        "trigger": {
+                            "type": "transition",
+                            "action": "decline"
+                        },
+                        "enabled": true,
+                        "channels": [
+                            "nc-notification"
+                        ],
+                        "recipients": [
+                            {
+                                "kind": "field",
+                                "field": "learnerId"
+                            }
+                        ],
+                        "subject": {
+                            "nl": "Je aanmelding voor een cursus is afgewezen",
+                            "en": "Your sign-up for a course was declined"
+                        }
                     }
                 },
                 "authorization": {
@@ -3087,7 +3328,15 @@
                         "instructors",
                         "hr",
                         "compliance-officers",
-                        "team-leads"
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "managerId": "$userId",
+                                "source": "self",
+                                "lifecycle": "pending"
+                            }
+                        }
                     ]
                 },
                 "x-property-rbac": {
@@ -3614,7 +3863,7 @@
             "Regulation": {
                 "slug": "regulation",
                 "icon": "Gavel",
-                "version": "0.1.1",
+                "version": "0.1.2",
                 "title": "Regulation",
                 "description": "Compliance regulation (AVG, BIO, NIS2, etc.) tracked for mandatory training coverage.",
                 "type": "object",
@@ -3904,7 +4153,16 @@
                 "x-openregister-seed": [],
                 "authorization": {
                     "read": [
-                        "authenticated"
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "lifecycle": {
+                                    "$eq": "published"
+                                }
+                            }
+                        }
                     ],
                     "create": [
                         "compliance-officers",
@@ -3914,6 +4172,30 @@
                         "compliance-officers",
                         "team-leads"
                     ]
+                },
+                "configuration": {
+                    "x-openregister-mcp": {
+                        "enabled": true,
+                        "tools": {
+                            "search": {
+                                "description": "Search regulations by slug, audience, whether they are active or need annual renewal.",
+                                "scope": "read",
+                                "readOnlyHint": true,
+                                "filters": [
+                                    "slug",
+                                    "active",
+                                    "audienceScope",
+                                    "requiresAnnualRenewal",
+                                    "lifecycle"
+                                ]
+                            },
+                            "get": {
+                                "description": "Get one regulation by id with its audience and renewal rules.",
+                                "scope": "read",
+                                "readOnlyHint": true
+                            }
+                        }
+                    }
                 }
             },
             "Attestation": {
@@ -4932,7 +5214,7 @@
             "Programme": {
                 "slug": "programme",
                 "icon": "SchoolOutline",
-                "version": "0.2.0",
+                "version": "0.3.0",
                 "title": "Programme",
                 "description": "A named educational or training track (HBO-V bachelor, NIS2 board certification, vmbo-tl examenjaar). Aggregates courses, declares a credential to issue on completion, and points at one CurriculumPlan.",
                 "type": "object",
@@ -5033,6 +5315,22 @@
                         "format": "uuid",
                         "description": "Tenant identifier for multi-tenant isolation.",
                         "title": "Tenant ID"
+                    },
+                    "selfEnrolment": {
+                        "type": "string",
+                        "enum": [
+                            "closed",
+                            "open",
+                            "on-request"
+                        ],
+                        "default": "closed",
+                        "title": "Sign-up by learners",
+                        "description": "Whether learners can sign up themselves from the catalogue: not at all, at once, or on request for a teacher or manager to approve.",
+                        "x-enum-labels": {
+                            "closed": "Closed",
+                            "open": "Open",
+                            "on-request": "On request"
+                        }
                     }
                 },
                 "x-openregister-lifecycle": {
@@ -5057,7 +5355,18 @@
                 "x-openregister-seed": [],
                 "authorization": {
                     "read": [
-                        "authenticated"
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "lifecycle": {
+                                    "$eq": "published"
+                                }
+                            }
+                        }
                     ],
                     "create": [
                         "instructors",
@@ -5071,6 +5380,28 @@
                         "compliance-officers",
                         "team-leads"
                     ]
+                },
+                "configuration": {
+                    "x-openregister-mcp": {
+                        "enabled": true,
+                        "tools": {
+                            "search": {
+                                "description": "Search published programmes by code, level or lifecycle.",
+                                "scope": "read",
+                                "readOnlyHint": true,
+                                "filters": [
+                                    "code",
+                                    "level",
+                                    "lifecycle"
+                                ]
+                            },
+                            "get": {
+                                "description": "Get one programme by id with the courses it is made of.",
+                                "scope": "read",
+                                "readOnlyHint": true
+                            }
+                        }
+                    }
                 }
             },
             "CurriculumPlan": {
@@ -5577,7 +5908,7 @@
             "Cohort": {
                 "slug": "cohort",
                 "icon": "AccountGroupOutline",
-                "version": "0.1.1",
+                "version": "0.2.0",
                 "title": "Cohort",
                 "description": "A group of learners doing a Course or Programme together in a given period. Members are LearnerProfile UUIDs; backed by a Nextcloud group for permissioning. Lifecycle: planned → active → completed | archived.",
                 "type": "object",
@@ -5750,6 +6081,14 @@
                         "default": null,
                         "description": "Standing ReportCardTemplate assignment for this group (report-card-templates change), mirroring ParnasSys's per-leerjaar report setting. Read by ReportCardComposer at ReportPeriod.compose time to decide which sections a composed ReportCard carries. Null means composition falls back to the pre-existing fixed shape (subjectGrades[]/attendanceSummary/mentorComment).",
                         "title": "Report Card Template ID"
+                    },
+                    "programmeYear": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "nullable": true,
+                        "default": null,
+                        "description": "The year of its programme this group is in during its school year. The school year rollover raises it by one.",
+                        "title": "Year of the programme"
                     }
                 },
                 "x-openregister-lifecycle": {
@@ -6181,7 +6520,7 @@
             "Session": {
                 "slug": "session",
                 "icon": "CalendarClockOutline",
-                "version": "0.1.2",
+                "version": "0.2.0",
                 "title": "Session",
                 "description": "A scheduled occurrence of a Cohort meeting: a les, hoorcollege, or workshop. Carries start/end datetime, location (room or online URL), attached Materials, and linked Assignments. The unit a teacher takes attendance against.",
                 "type": "object",
@@ -6469,7 +6808,27 @@
                         }
                     }
                 },
-                "x-openregister-seed": []
+                "x-openregister-seed": [],
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
+                }
             },
             "TimetableConflict": {
                 "slug": "timetable-conflict",
@@ -7117,7 +7476,7 @@
             "Assignment": {
                 "slug": "assignment",
                 "icon": "ClipboardEditOutline",
-                "version": "0.5.1",
+                "version": "0.5.3",
                 "title": "Assignment",
                 "description": "A deliverable that learners hand in: title, instructions, due date, rubric, and submission window. Belongs to a Course, Session, or both. Linked to a CurriculumPlan component to enable grade roll-up.",
                 "type": "object",
@@ -7396,6 +7755,12 @@
                             "average": "Average of the marks",
                             "highest": "Highest mark"
                         }
+                    },
+                    "workGroupSetName": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "Work group set",
+                        "description": "With group hand-in on: the set of work groups whose members hand in together. The hand-in names the learner's whole group in this set."
                     }
                 },
                 "x-openregister-lifecycle": {
@@ -7461,7 +7826,21 @@
                 },
                 "authorization": {
                     "read": [
-                        "authenticated"
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "lifecycle": {
+                                    "$in": [
+                                        "published",
+                                        "closed"
+                                    ]
+                                }
+                            }
+                        }
                     ],
                     "create": [
                         "instructors",
@@ -7479,7 +7858,30 @@
                 "linkedTypes": [
                     "calendar",
                     "forms"
-                ]
+                ],
+                "configuration": {
+                    "x-openregister-mcp": {
+                        "enabled": true,
+                        "tools": {
+                            "search": {
+                                "description": "Search assignments by course, session or cohort. Learners see published and closed ones only.",
+                                "scope": "read",
+                                "readOnlyHint": true,
+                                "filters": [
+                                    "courseId",
+                                    "sessionId",
+                                    "cohortId",
+                                    "lifecycle"
+                                ]
+                            },
+                            "get": {
+                                "description": "Get one assignment by id: instructions, due date and points.",
+                                "scope": "read",
+                                "readOnlyHint": true
+                            }
+                        }
+                    }
+                }
             },
             "Submission": {
                 "slug": "submission",
@@ -15620,7 +16022,7 @@
                 },
                 "slug": "attendance-record",
                 "icon": "ClipboardCheckOutline",
-                "version": "0.2.0",
+                "version": "0.3.0",
                 "title": "AttendanceRecord",
                 "description": "Per-Session per-learner attendance fact. Records whether a learner was present, absent, late, or left early. Not appendOnly — a teacher may correct a mis-marked record; OR's update audit trail is sufficient.",
                 "type": "object",
@@ -15686,7 +16088,7 @@
                     },
                     "markedBy": {
                         "type": "string",
-                        "description": "Nextcloud user ID of the teacher or coordinator who marked attendance.",
+                        "description": "Nextcloud user ID of the teacher or coordinator who marked attendance, or of the learner for a self check-in.",
                         "title": "Marked By"
                     },
                     "markedAt": {
@@ -15714,6 +16116,20 @@
                         "format": "uuid",
                         "description": "Tenant identifier for multi-tenant isolation.",
                         "title": "Tenant ID"
+                    },
+                    "markedVia": {
+                        "type": "string",
+                        "enum": [
+                            "teacher",
+                            "self-check-in"
+                        ],
+                        "default": "teacher",
+                        "title": "Marked through",
+                        "description": "Whether a teacher marked this or the learner checked in with the code on the board.",
+                        "x-enum-labels": {
+                            "teacher": "Teacher",
+                            "self-check-in": "Self check-in"
+                        }
                     }
                 },
                 "x-openregister-calculations": {
@@ -26751,6 +27167,819 @@
                                 "lifecycle": "draft"
                             }
                         }
+                    ]
+                }
+            },
+            "LessonNote": {
+                "slug": "lesson-note",
+                "icon": "NoteTextOutline",
+                "version": "0.1.0",
+                "title": "Lesson note",
+                "description": "A short note on one lesson: the topic, what to bring, homework, or instructions for whoever covers the lesson. Learners see notes for learners in their timetable; a note for the covering teacher reaches staff and the substitute only.",
+                "type": "object",
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": false,
+                    "searchable": true
+                },
+                "required": [
+                    "cohortId",
+                    "text",
+                    "audience",
+                    "tenant_id"
+                ],
+                "properties": {
+                    "sessionId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "$ref": "Session",
+                        "description": "The learniq lesson this note belongs to. Empty when the lesson comes from the school timetable in planninq.",
+                        "title": "Lesson"
+                    },
+                    "timetableSessionRef": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "The school timetable lesson this note belongs to, when the timetable comes from planninq: its source system and its reference there.",
+                        "title": "Timetable lesson",
+                        "properties": {
+                            "sourceSystem": {
+                                "type": "string",
+                                "description": "The timetabling system the lesson came from.",
+                                "title": "Source system"
+                            },
+                            "externalRef": {
+                                "type": "string",
+                                "description": "The lesson's reference in that system.",
+                                "title": "Reference"
+                            }
+                        }
+                    },
+                    "cohortId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "$ref": "Cohort",
+                        "description": "The group of the lesson, copied from the lesson when the note is made.",
+                        "title": "Group"
+                    },
+                    "topic": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 120,
+                        "description": "The topic of the lesson, shown on the lesson in the timetable.",
+                        "title": "Topic"
+                    },
+                    "text": {
+                        "type": "string",
+                        "maxLength": 2000,
+                        "description": "The note itself: what to bring, homework, or instructions.",
+                        "title": "Note"
+                    },
+                    "audience": {
+                        "type": "string",
+                        "enum": [
+                            "learners",
+                            "cover"
+                        ],
+                        "x-enum-labels": {
+                            "learners": "For learners",
+                            "cover": "For the covering teacher"
+                        },
+                        "default": "learners",
+                        "description": "Who reads the note. A note for the covering teacher is never shown to learners.",
+                        "title": "Audience"
+                    },
+                    "authorId": {
+                        "type": "string",
+                        "description": "Nextcloud user id of the teacher who wrote the note. The server writes it when the note is made.",
+                        "title": "Author"
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Tenant identifier for multi-tenant isolation.",
+                        "title": "Tenant ID"
+                    }
+                },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "team-leads",
+                        "compliance-officers"
+                    ],
+                    "create": [
+                        "instructors",
+                        "team-leads",
+                        "compliance-officers"
+                    ],
+                    "update": [
+                        "instructors",
+                        "team-leads",
+                        "compliance-officers"
+                    ]
+                }
+            },
+            "HourPlan": {
+                "slug": "hour-plan",
+                "icon": "TableClock",
+                "version": "0.1.0",
+                "title": "Hour plan",
+                "description": "How many hours a group gets per course, year of the programme and period, over the whole length of a programme, for the groups that start it in one school year. The teaching activities a school year needs are derived from it.",
+                "type": "object",
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": false,
+                    "searchable": true
+                },
+                "required": [
+                    "programmeId",
+                    "intakeYear",
+                    "durationYears",
+                    "tenant_id"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "A short name for the plan, for example the programme and intake year.",
+                        "title": "Name"
+                    },
+                    "programmeId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "$ref": "Programme",
+                        "description": "The programme this plan is for.",
+                        "title": "Programme"
+                    },
+                    "intakeYear": {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-9]{4}$",
+                        "description": "The school year in which the groups on this plan start the programme, for example 2026-2027.",
+                        "title": "Intake year"
+                    },
+                    "durationYears": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 6,
+                        "description": "How many years the programme takes.",
+                        "title": "Duration in years"
+                    },
+                    "periodsPerYear": {
+                        "type": "array",
+                        "default": [],
+                        "description": "The periods of every year of the programme, for example four periods.",
+                        "title": "Periods per year",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "periodCode": {
+                                    "type": "string",
+                                    "description": "A short code for the period, the same as the report period code where the school uses one.",
+                                    "title": "Period code"
+                                },
+                                "label": {
+                                    "type": "string",
+                                    "description": "The name of the period.",
+                                    "title": "Period name"
+                                }
+                            }
+                        }
+                    },
+                    "lines": {
+                        "type": "array",
+                        "default": [],
+                        "description": "One line per course, year of the programme and period, with its hours.",
+                        "title": "Lines",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "courseId",
+                                "programmeYear",
+                                "contactHours"
+                            ],
+                            "properties": {
+                                "courseId": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "$ref": "Course",
+                                    "description": "The course the hours are for.",
+                                    "title": "Course"
+                                },
+                                "programmeYear": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "description": "The year of the programme the hours fall in.",
+                                    "title": "Year of the programme"
+                                },
+                                "periodCode": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "description": "The period the hours fall in. Empty means spread over the whole year.",
+                                    "title": "Period"
+                                },
+                                "contactHours": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "description": "Hours of guided teaching the group gets.",
+                                    "title": "Contact hours"
+                                },
+                                "otherHours": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "default": 0,
+                                    "description": "Other hours, such as work placement or self study.",
+                                    "title": "Other hours"
+                                },
+                                "activityKind": {
+                                    "type": "string",
+                                    "enum": [
+                                        "lesson",
+                                        "practical",
+                                        "work-placement",
+                                        "self-study",
+                                        "exam"
+                                    ],
+                                    "x-enum-labels": {
+                                        "lesson": "Lesson",
+                                        "practical": "Practical",
+                                        "work-placement": "Work placement",
+                                        "self-study": "Self study",
+                                        "exam": "Exam"
+                                    },
+                                    "default": "lesson",
+                                    "description": "What kind of teaching the hours are.",
+                                    "title": "Kind of activity"
+                                },
+                                "note": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "description": "A remark for the timetabler.",
+                                    "title": "Remark"
+                                }
+                            }
+                        }
+                    },
+                    "yearNorms": {
+                        "type": "array",
+                        "default": [],
+                        "description": "The norm per year of the programme: the contact hours and the total hours a year must reach.",
+                        "title": "Norms per year",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "programmeYear": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "description": "The year of the programme the norm is for.",
+                                    "title": "Year of the programme"
+                                },
+                                "contactHours": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "description": "The contact hours this year must reach.",
+                                    "title": "Contact hours norm"
+                                },
+                                "totalHours": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "nullable": true,
+                                    "description": "The total hours this year must reach.",
+                                    "title": "Total hours norm"
+                                }
+                            }
+                        }
+                    },
+                    "lifecycle": {
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "active",
+                            "archived"
+                        ],
+                        "x-enum-labels": {
+                            "draft": "Draft",
+                            "active": "Active",
+                            "archived": "Archived"
+                        },
+                        "default": "draft",
+                        "description": "A draft is being written, an active plan is the one the activity list reads, an archived plan is kept for reference.",
+                        "title": "Status"
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Tenant identifier for multi-tenant isolation.",
+                        "title": "Tenant ID"
+                    }
+                },
+                "x-openregister-lifecycle": {
+                    "property": "lifecycle",
+                    "initial": "draft",
+                    "transitions": {
+                        "activate": {
+                            "from": "draft",
+                            "to": "active",
+                            "requires": "OCA\\Learniq\\Lifecycle\\HourPlanActivationGuard"
+                        },
+                        "archive": {
+                            "from": "active",
+                            "to": "archived"
+                        },
+                        "reopen": {
+                            "from": "archived",
+                            "to": "draft"
+                        }
+                    }
+                },
+                "authorization": {
+                    "read": [
+                        "authenticated"
+                    ],
+                    "create": [
+                        "instructors",
+                        "team-leads",
+                        "compliance-officers"
+                    ],
+                    "update": [
+                        "instructors",
+                        "team-leads",
+                        "compliance-officers"
+                    ]
+                }
+            },
+            "StandbySlot": {
+                "slug": "standby-slot",
+                "icon": "AccountClockOutline",
+                "version": "0.1.0",
+                "title": "Standby slot",
+                "description": "A time in which a teacher is on standby to cover a colleague's lesson: every week on a weekday, or on one date. The substitution dialog lists the teachers on standby first.",
+                "type": "object",
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": false,
+                    "searchable": true
+                },
+                "required": [
+                    "teacherId",
+                    "startsAt",
+                    "endsAt",
+                    "validFrom",
+                    "validUntil",
+                    "tenant_id"
+                ],
+                "properties": {
+                    "teacherId": {
+                        "type": "string",
+                        "description": "Nextcloud user id of the teacher on standby.",
+                        "title": "Teacher"
+                    },
+                    "weekday": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "monday",
+                            "tuesday",
+                            "wednesday",
+                            "thursday",
+                            "friday"
+                        ],
+                        "x-enum-labels": {
+                            "monday": "Monday",
+                            "tuesday": "Tuesday",
+                            "wednesday": "Wednesday",
+                            "thursday": "Thursday",
+                            "friday": "Friday"
+                        },
+                        "description": "The weekday of a weekly standby slot. Leave empty for a slot on one date.",
+                        "title": "Weekday"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "description": "The date of a one-off standby slot. Leave empty for a weekly slot.",
+                        "title": "Date"
+                    },
+                    "startsAt": {
+                        "type": "string",
+                        "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+                        "description": "When the standby starts, for example 10:15.",
+                        "title": "Starts at"
+                    },
+                    "endsAt": {
+                        "type": "string",
+                        "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+                        "description": "When the standby ends, for example 11:05.",
+                        "title": "Ends at"
+                    },
+                    "vestigingId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "$ref": "Vestiging",
+                        "description": "The location the teacher is on standby at. Empty means any location.",
+                        "title": "Location"
+                    },
+                    "validFrom": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "The first day the slot applies, usually the start of the school year.",
+                        "title": "Valid from"
+                    },
+                    "validUntil": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "The last day the slot applies, usually the end of the school year.",
+                        "title": "Valid until"
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Tenant identifier for multi-tenant isolation.",
+                        "title": "Tenant ID"
+                    }
+                },
+                "authorization": {
+                    "read": [
+                        "authenticated"
+                    ],
+                    "create": [
+                        "team-leads",
+                        "compliance-officers"
+                    ],
+                    "update": [
+                        "team-leads",
+                        "compliance-officers"
+                    ]
+                }
+            },
+            "TimetableVisibilityPolicy": {
+                "slug": "timetable-visibility-policy",
+                "icon": "EyeOutline",
+                "version": "0.1.0",
+                "title": "Timetable visibility",
+                "description": "Whose timetables learners and teachers may open on the Timetables page: their own only, those related to their own lessons, or all. One per school; without one the defaults apply.",
+                "type": "object",
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": false,
+                    "searchable": false
+                },
+                "required": [
+                    "tenant_id"
+                ],
+                "properties": {
+                    "learnerSeesGroups": {
+                        "type": "string",
+                        "enum": [
+                            "own",
+                            "all"
+                        ],
+                        "x-enum-labels": {
+                            "own": "Their own groups",
+                            "all": "All groups"
+                        },
+                        "default": "own",
+                        "description": "Which group timetables a learner may open.",
+                        "title": "Learners see groups"
+                    },
+                    "learnerSeesTeachers": {
+                        "type": "string",
+                        "enum": [
+                            "none",
+                            "related",
+                            "all"
+                        ],
+                        "x-enum-labels": {
+                            "none": "None",
+                            "related": "Those of their own lessons",
+                            "all": "All"
+                        },
+                        "default": "related",
+                        "description": "Which teacher timetables a learner may open. Related means the teachers of the learner's own lessons.",
+                        "title": "Learners see teachers"
+                    },
+                    "learnerSeesRooms": {
+                        "type": "string",
+                        "enum": [
+                            "none",
+                            "related",
+                            "all"
+                        ],
+                        "x-enum-labels": {
+                            "none": "None",
+                            "related": "Those of their own lessons",
+                            "all": "All"
+                        },
+                        "default": "related",
+                        "description": "Which room timetables a learner may open. Related means the rooms of the learner's own lessons.",
+                        "title": "Learners see rooms"
+                    },
+                    "instructorSeesGroups": {
+                        "type": "string",
+                        "enum": [
+                            "own",
+                            "all"
+                        ],
+                        "x-enum-labels": {
+                            "own": "Their own groups",
+                            "all": "All groups"
+                        },
+                        "default": "all",
+                        "description": "Which group timetables a teacher may open.",
+                        "title": "Teachers see groups"
+                    },
+                    "instructorSeesTeachers": {
+                        "type": "string",
+                        "enum": [
+                            "own",
+                            "all"
+                        ],
+                        "x-enum-labels": {
+                            "own": "Only their own",
+                            "all": "All teachers"
+                        },
+                        "default": "all",
+                        "description": "Which teacher timetables a teacher may open.",
+                        "title": "Teachers see teachers"
+                    },
+                    "instructorSeesRooms": {
+                        "type": "string",
+                        "enum": [
+                            "all"
+                        ],
+                        "x-enum-labels": {
+                            "all": "All rooms"
+                        },
+                        "default": "all",
+                        "description": "Which room timetables a teacher may open.",
+                        "title": "Teachers see rooms"
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Tenant identifier for multi-tenant isolation.",
+                        "title": "Tenant ID"
+                    }
+                },
+                "authorization": {
+                    "read": [
+                        "authenticated"
+                    ],
+                    "create": [
+                        "team-leads",
+                        "compliance-officers"
+                    ],
+                    "update": [
+                        "team-leads",
+                        "compliance-officers"
+                    ]
+                }
+            },
+            "WorkGroup": {
+                "slug": "work-group",
+                "icon": "AccountGroup",
+                "version": "0.1.0",
+                "title": "Work group",
+                "description": "A small group of learners inside a class, with a maximum size. Learners join one group per set themselves while sign-up is open; teachers can place and move them at any time.",
+                "type": "object",
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": false,
+                    "searchable": true
+                },
+                "required": [
+                    "cohortId",
+                    "setName",
+                    "name",
+                    "maxMembers",
+                    "tenant_id"
+                ],
+                "properties": {
+                    "cohortId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "$ref": "Cohort",
+                        "title": "Class",
+                        "description": "The class these work groups belong to."
+                    },
+                    "courseId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "$ref": "Course",
+                        "title": "Course",
+                        "description": "The course the work groups are for, when they are for one course."
+                    },
+                    "setName": {
+                        "type": "string",
+                        "title": "Set",
+                        "description": "Groups made together form a set, for example a project. A learner is in at most one group per set."
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name",
+                        "description": "The name of the group, for example Groep 3."
+                    },
+                    "maxMembers": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "title": "Maximum members",
+                        "description": "How many learners fit in the group."
+                    },
+                    "memberIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": [],
+                        "title": "Members",
+                        "description": "The learners in the group."
+                    },
+                    "selfJoinUntil": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "title": "Sign-up open until",
+                        "description": "Until when learners can join, move or leave themselves. Empty means the teacher places learners."
+                    },
+                    "lifecycle": {
+                        "type": "string",
+                        "enum": [
+                            "open",
+                            "closed"
+                        ],
+                        "default": "open",
+                        "title": "Status",
+                        "description": "Whether learners can still change their group.",
+                        "x-enum-labels": {
+                            "open": "Open",
+                            "closed": "Closed"
+                        }
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "title": "Tenant",
+                        "description": "The organisation this work group belongs to."
+                    }
+                },
+                "x-openregister-lifecycle": {
+                    "property": "lifecycle",
+                    "initial": "open",
+                    "transitions": {
+                        "close": {
+                            "from": "open",
+                            "to": "closed",
+                            "authorization": [
+                                "instructors",
+                                "team-leads",
+                                "compliance-officers"
+                            ],
+                            "description": "The teacher closes sign-up; learners can no longer change their group."
+                        },
+                        "reopen": {
+                            "from": "closed",
+                            "to": "open",
+                            "authorization": [
+                                "instructors",
+                                "team-leads",
+                                "compliance-officers"
+                            ],
+                            "description": "The teacher opens sign-up again."
+                        }
+                    }
+                },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "team-leads",
+                        "compliance-officers"
+                    ],
+                    "create": [
+                        "instructors",
+                        "team-leads",
+                        "compliance-officers"
+                    ],
+                    "update": [
+                        "instructors",
+                        "team-leads",
+                        "compliance-officers"
+                    ]
+                }
+            },
+            "CheckInWindow": {
+                "slug": "check-in-window",
+                "icon": "CalendarCheckOutline",
+                "version": "0.1.0",
+                "title": "Check-in window",
+                "description": "A time window in which the learners of a lesson check in themselves with a code on the teacher's screen. Only staff read it; the code is never stored.",
+                "type": "object",
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": false,
+                    "searchable": false
+                },
+                "required": [
+                    "sessionId",
+                    "openedBy",
+                    "opensAt",
+                    "closesAt",
+                    "mode",
+                    "tenant_id"
+                ],
+                "properties": {
+                    "sessionId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "$ref": "Session",
+                        "title": "Lesson",
+                        "description": "The lesson the learners check in to."
+                    },
+                    "openedBy": {
+                        "type": "string",
+                        "title": "Opened by",
+                        "description": "The teacher who opened the check-in."
+                    },
+                    "opensAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Opens at",
+                        "description": "From when learners can check in."
+                    },
+                    "closesAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Closes at",
+                        "description": "Until when learners can check in. Never later than the end of the lesson."
+                    },
+                    "lateAfterMinutes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "default": 5,
+                        "title": "Late after (minutes)",
+                        "description": "Minutes after the start of the lesson from which a check-in counts as late."
+                    },
+                    "mode": {
+                        "type": "string",
+                        "enum": [
+                            "rotating-qr",
+                            "link"
+                        ],
+                        "default": "rotating-qr",
+                        "title": "Mode",
+                        "description": "A code on the board that changes every thirty seconds, or one link for an online lesson.",
+                        "x-enum-labels": {
+                            "rotating-qr": "Code on the board",
+                            "link": "Link for an online lesson"
+                        }
+                    },
+                    "lifecycle": {
+                        "type": "string",
+                        "enum": [
+                            "open",
+                            "closed"
+                        ],
+                        "default": "open",
+                        "title": "Status",
+                        "description": "Whether learners can still check in.",
+                        "x-enum-labels": {
+                            "open": "Open",
+                            "closed": "Closed"
+                        }
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "title": "Tenant",
+                        "description": "The organisation this check-in belongs to."
+                    }
+                },
+                "x-openregister-lifecycle": {
+                    "property": "lifecycle",
+                    "initial": "open",
+                    "transitions": {
+                        "close": {
+                            "from": "open",
+                            "to": "closed",
+                            "authorization": [
+                                "instructors",
+                                "compliance-officers"
+                            ],
+                            "description": "The teacher closes the check-in before its close time."
+                        }
+                    }
+                },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "compliance-officers"
+                    ],
+                    "create": [
+                        "instructors",
+                        "compliance-officers"
+                    ],
+                    "update": [
+                        "instructors",
+                        "compliance-officers"
                     ]
                 }
             }

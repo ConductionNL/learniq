@@ -124,6 +124,8 @@
                 <referencedClass name="OCA\OpenRegister\Service\FileService"/>
                 <referencedClass name="OCA\OpenRegister\Service\CalendarEventService"/>
                 <referencedClass name="OCA\OpenRegister\Mcp\IMcpToolProvider"/>
+                <referencedClass name="OCA\OpenRegister\Mcp\IMcpScannableServices"/>
+                <referencedClass name="OCA\OpenRegister\Mcp\Attribute\McpTool"/>
                 <referencedClass name="OCA\OpenRegister\Event\ObjectTransitionedEvent"/>
                 <referencedClass name="OCA\OpenRegister\Service\Lifecycle\TransitionEngine"/>
                 <referencedClass name="OCA\OpenRegister\Db\AuditTrailMapper"/>
@@ -150,6 +152,13 @@
                 <referencedClass name="GuzzleHttp\Exception\GuzzleException"/>
             </errorLevel>
         </UndefinedClass>
+        <!-- OpenRegister's #[McpTool] attribute on the agent tools (hermiq-ai-tooling);
+             the class exists once openregister is installed. -->
+        <UndefinedAttributeClass>
+            <errorLevel type="suppress">
+                <referencedClass name="OCA\OpenRegister\Mcp\Attribute\McpTool"/>
+            </errorLevel>
+        </UndefinedAttributeClass>
         <UndefinedMagicMethod errorLevel="suppress"/>
         <UnusedClass errorLevel="suppress"/>
         <PossiblyUnusedMethod errorLevel="suppress"/>
