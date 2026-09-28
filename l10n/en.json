@@ -2226,7 +2226,14 @@
         "_%n mark allocated._::_%n marks allocated._": [
             "%n mark allocated.",
             "%n marks allocated."
-        ]
+        ],
+        "Europass version": "Europass version",
+        "The certificate as a European Digital Credential, signed with the same key as the Open Badges form. The learner downloads it for their Europass profile.": "The certificate as a European Digital Credential, signed with the same key as the Open Badges form. The learner downloads it for their Europass profile.",
+        "Download for Europass": "Download for Europass",
+        "Create Europass version": "Create Europass version",
+        "The Europass version could not be downloaded.": "The Europass version could not be downloaded.",
+        "The Europass version was created.": "The Europass version was created.",
+        "The Europass version could not be created. Only HR and compliance officers can create it, for an issued certificate.": "The Europass version could not be created. Only HR and compliance officers can create it, for an issued certificate."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

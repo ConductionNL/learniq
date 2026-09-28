@@ -1262,6 +1262,13 @@
         "{pending} pending, {approved} approved, {rejected} rejected.",
         "{percent}% ({covered} of {total})",
         "{planned} of {goals} goals are planned and {assessed} are assessed.",
-        "{shown} of {total} strings"
+        "{shown} of {total} strings",
+        "Europass version",
+        "The certificate as a European Digital Credential, signed with the same key as the Open Badges form. The learner downloads it for their Europass profile.",
+        "Download for Europass",
+        "Create Europass version",
+        "The Europass version could not be downloaded.",
+        "The Europass version was created.",
+        "The Europass version could not be created. Only HR and compliance officers can create it, for an issued certificate."
     ]
 }

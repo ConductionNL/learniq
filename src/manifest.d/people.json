@@ -622,7 +622,40 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "download-europass",
+						"label": "Download for Europass",
+						"icon": "FileCertificateOutline",
+						"type": "api-call",
+						"url": "/apps/learniq/api/credentials/@objectId/europass/download",
+						"method": "POST",
+						"download": true,
+						"filename": "europass.jsonld",
+						"refresh": false,
+						"visibleWhen": {
+							"field": "edciPayload",
+							"op": "notEmpty"
+						},
+						"errorMessage": "The Europass version could not be downloaded."
+					},
+					{
+						"id": "create-europass",
+						"label": "Create Europass version",
+						"icon": "CertificateOutline",
+						"type": "api-call",
+						"url": "/apps/learniq/api/credentials/@objectId/europass",
+						"method": "POST",
+						"confirm": true,
+						"visibleWhen": {
+							"field": "edciPayload",
+							"op": "empty"
+						},
+						"successMessage": "The Europass version was created.",
+						"errorMessage": "The Europass version could not be created. Only HR and compliance officers can create it, for an issued certificate."
+					}
+				]
 			}
 		},
 		{

@@ -2200,7 +2200,14 @@ OC.L10N.register(
         "{marker} is a learner of the hand-in of {learners} and cannot mark it.": "{marker} is a learner of the hand-in of {learners} and cannot mark it.",
         "The hand-in of {learners} already has all its markers, so {marker} was not added.": "The hand-in of {learners} already has all its markers, so {marker} was not added.",
         "The markers could not be allocated.": "The markers could not be allocated.",
-        "_%n mark allocated._::_%n marks allocated._": ["%n mark allocated.","%n marks allocated."]
+        "_%n mark allocated._::_%n marks allocated._": ["%n mark allocated.","%n marks allocated."],
+        "Europass version": "Europass version",
+        "The certificate as a European Digital Credential, signed with the same key as the Open Badges form. The learner downloads it for their Europass profile.": "The certificate as a European Digital Credential, signed with the same key as the Open Badges form. The learner downloads it for their Europass profile.",
+        "Download for Europass": "Download for Europass",
+        "Create Europass version": "Create Europass version",
+        "The Europass version could not be downloaded.": "The Europass version could not be downloaded.",
+        "The Europass version was created.": "The Europass version was created.",
+        "The Europass version could not be created. Only HR and compliance officers can create it, for an issued certificate.": "The Europass version could not be created. Only HR and compliance officers can create it, for an issued certificate."
     },
     "nplurals=2; plural=(n != 1);"
 )
