@@ -26,7 +26,7 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
 use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\Portal\LearnerProfileLookup;
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -45,7 +45,7 @@ class ExcuseRequestOwnerStampTest extends TestCase {
 	private const TENANT = '11111111-1111-4111-8111-111111111111';
 
 	/**
-	 * Active LearnerProfiles by uuid, as LearnerProfileLookup::byRef() returns them.
+	 * Active LearnerProfiles by uuid, as LearnerRefResolver::byRef() returns them.
 	 *
 	 * @var array<string, array<string, mixed>>
 	 */
@@ -71,7 +71,7 @@ class ExcuseRequestOwnerStampTest extends TestCase {
 		$resolver = $this->createMock(ListenerSchemaResolver::class);
 		$resolver->method('guardSchemaSlug')->willReturn($schemaSlug);
 
-		$lookup = $this->createMock(LearnerProfileLookup::class);
+		$lookup = $this->createMock(LearnerRefResolver::class);
 		$lookup->method('byRef')->willReturnCallback(
 			function (string $learnerRef) use ($lookupThrows): ?array {
 				if ($lookupThrows === true) {
@@ -81,7 +81,8 @@ class ExcuseRequestOwnerStampTest extends TestCase {
 				return ($this->profiles[$learnerRef] ?? null);
 			}
 		);
-		$lookup->method('refForUser')->willReturnCallback(
+		// A portal write has no session: only the across-tenants lookup answers.
+		$lookup->method('resolveAcrossTenants')->willReturnCallback(
 			function (string $ncUserId) use ($lookupThrows): ?string {
 				if ($lookupThrows === true) {
 					throw new RuntimeException('database gone');
