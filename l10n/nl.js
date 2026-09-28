@@ -2658,7 +2658,11 @@ OC.L10N.register(
         "{marker} is a learner of the hand-in of {learners} and cannot mark it.": "{marker} is een leerling van het werk van {learners} en kan het niet beoordelen.",
         "The hand-in of {learners} already has all its markers, so {marker} was not added.": "Het werk van {learners} heeft al al zijn beoordelaars, dus {marker} is niet toegevoegd.",
         "The markers could not be allocated.": "De beoordelaars konden niet worden toegewezen.",
-        "_%n mark allocated._::_%n marks allocated._": ["%n beoordeling toegewezen.","%n beoordelingen toegewezen."]
+        "_%n mark allocated._::_%n marks allocated._": ["%n beoordeling toegewezen.","%n beoordelingen toegewezen."],
+        "Agenda": "Agenda",
+        "Intake form": "Invulformulier",
+        "Contact card": "Contactkaart",
+        "Follow-ups": "Opvolging"
     },
     "nplurals=2; plural=(n != 1);"
 )
