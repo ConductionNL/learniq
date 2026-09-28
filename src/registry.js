@@ -57,6 +57,7 @@ import BookConferenceSlotsView from './views/BookConferenceSlotsView.vue'
 // view below — both routes were unreachable at HEAD; fixed here alongside).
 import BsaRiskDashboard from './views/BsaRiskDashboard.vue'
 import BulkEnrolView from './views/BulkEnrolView.vue'
+import CheckInPage from './views/CheckInPage.vue'
 import CohortGradebookView from './views/CohortGradebookView.vue'
 import CohortTimetableView from './views/CohortTimetableView.vue'
 import ConferenceScheduleBoard from './views/ConferenceScheduleBoard.vue'
@@ -245,6 +246,7 @@ export default {
 	// learniq#947
 	AttendanceRegisterView: page(AttendanceRegisterView),
 	BulkEnrolView: page(BulkEnrolView),
+	CheckInPage: page(CheckInPage),
 	CourseCatalogue: page(CourseCatalogue),
 	CohortGradebookView: page(CohortGradebookView),
 	CohortTimetableView: page(CohortTimetableView),

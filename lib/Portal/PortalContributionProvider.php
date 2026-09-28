@@ -168,7 +168,8 @@ class PortalContributionProvider {
 				$this->studentTestActions(),
 				[$this->handInAction()],
 				(new CatalogueFlowActions())->actions(),
-				(new WorkGroupFlowActions())->actions()
+				(new WorkGroupFlowActions())->actions(),
+				(new StudentFlowActions())->actions()
 			),
 			'notifications' => [],
 		];
