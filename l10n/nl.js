@@ -2599,7 +2599,12 @@ OC.L10N.register(
         "Your answers are saved": "Je antwoorden zijn opgeslagen",
         "Your answers could not be saved just now. We try again with your next answer and when you hand in.": "Je antwoorden konden net niet worden opgeslagen. We proberen het opnieuw bij je volgende antwoord en bij het inleveren.",
         "Voorlopig exchange job ID": "Uitwisselingstaak voorlopig advies",
-        "UUID of the integriq exchange job (target bron-rod) requested when the voorlopig advice was sent to ROD. Null until sent.": "UUID van de integriq-uitwisselingstaak (doel bron-rod) die is aangevraagd toen het voorlopig advies naar ROD ging. Leeg tot het is verstuurd."
+        "UUID of the integriq exchange job (target bron-rod) requested when the voorlopig advice was sent to ROD. Null until sent.": "UUID van de integriq-uitwisselingstaak (doel bron-rod) die is aangevraagd toen het voorlopig advies naar ROD ging. Leeg tot het is verstuurd.",
+        "This import names no file, so there is nothing to import.": "Deze import noemt geen bestand, dus er is niets te importeren.",
+        "The file of this import cannot be opened by the person who asked for it.": "Het bestand van deze import kan niet worden geopend door de persoon die erom vroeg.",
+        "The file of this import is larger than 10 MB or has more than 5,000 rows. Split it and import each part.": "Het bestand van deze import is groter dan 10 MB of heeft meer dan 5.000 rijen. Splits het en importeer elk deel apart.",
+        "The file of this import cannot be read as CSV, JSON or XML.": "Het bestand van deze import is niet te lezen als CSV, JSON of XML.",
+        "UUID of the integriq exchange job that received this dossier, when it came in through one. Null for a dossier entered by hand.": "UUID van de integriq-uitwisselingstaak die dit dossier ontving, als het via een taak binnenkwam. Leeg voor een dossier dat met de hand is ingevoerd."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -35,6 +35,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \OCA\Learniq\Controller\CourseSharingController
+ * @uses   \OCA\Learniq\Exception\SharingBlockedException
  */
 class CourseSharingControllerTest extends TestCase {
 
