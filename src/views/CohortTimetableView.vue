@@ -3,9 +3,12 @@
 
 <!--
  CohortTimetableView: the lesson timetable of one cohort, grouped by day
- (route /cohorts/:id/timetable, learniq#947). Reads the cohort's Sessions
- and shows them in CnTimelineView; a cancelled lesson stays visible and is
- marked. Clicking a lesson opens it.
+ (route /cohorts/:id/timetable, learniq#947). Reads the cohort's lessons
+ through the timetable endpoint, which answers from planninq's school
+ timetable when planninq is installed and from learniq's Sessions otherwise
+ (sessions-from-planninq), and shows them in CnTimelineView; a cancelled
+ lesson stays visible and is marked. Clicking a learniq Session opens it; a
+ planninq lesson is changed in the timetable system, not here.
 
  @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
 -->
@@ -15,8 +18,16 @@
 		<NcNoteCard v-else-if="error" type="error">
 			{{ error }}
 		</NcNoteCard>
+		<NcNoteCard v-if="!loading && !error && source === 'planninq'" type="info">
+			{{
+				t(
+					'learniq',
+					'These lessons come from the school timetable. Changes are made there.',
+				)
+			}}
+		</NcNoteCard>
 		<CnTimelineView
-			v-else
+			v-if="!loading && !error"
 			:events="events"
 			:title="t('learniq', 'Timetable: {name}', { name: cohort.name || '' })"
 			:emptyLabel="t('learniq', 'No lessons are scheduled for this group.')"
@@ -32,12 +43,8 @@ import { CnTimelineView } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
-import {
-	listRows,
-	objectsUrl,
-	oneObject,
-	timelineEvents,
-} from '../utils/customPages.js'
+import { fetchCohortTimetable, isLearniqSession } from '../api/timetable.js'
+import { objectsUrl, oneObject, timelineEvents } from '../utils/customPages.js'
 
 export default {
 	name: 'CohortTimetableView',
@@ -50,19 +57,26 @@ export default {
 	},
 
 	data() {
-		return { loading: true, error: '', cohort: {}, events: [] }
+		return {
+			loading: true,
+			error: '',
+			cohort: {},
+			events: [],
+			sessions: [],
+			source: 'learniq',
+		}
 	},
 
 	async mounted() {
 		try {
-			const [cohort, sessions] = await Promise.all([
+			const [cohort, timetable] = await Promise.all([
 				axios.get(generateUrl(objectsUrl('cohort', this.id))),
-				axios.get(generateUrl(objectsUrl('session')), {
-					params: { cohortId: this.id, _limit: 1000 },
-				}),
+				fetchCohortTimetable(this.id),
 			])
 			this.cohort = oneObject(cohort.data)
-			this.events = timelineEvents(listRows(sessions.data))
+			this.sessions = timetable.sessions
+			this.source = timetable.source
+			this.events = timelineEvents(timetable.sessions)
 		} catch {
 			this.error = this.t('learniq', 'The timetable could not be loaded.')
 		} finally {
@@ -77,7 +91,8 @@ export default {
 		 * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
 		 */
 		open(event) {
-			if (event?.id) {
+			const session = this.sessions.find((s) => s.id === event?.id)
+			if (session && isLearniqSession(session)) {
 				this.$router
 					.push({ name: 'SessionDetail', params: { id: event.id } })
 					.catch(() => {})

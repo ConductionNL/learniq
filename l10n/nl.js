@@ -2407,7 +2407,8 @@ OC.L10N.register(
         "Placement coordinator": "Stagecoördinator",
         "Confidential counsellor": "Vertrouwenspersoon",
         "The functions this person holds at the school. A tag describes the job; it grants no access. Access comes from the person's groups.": "De functies die deze persoon op school heeft. Een functie beschrijft het werk en geeft geen toegang. Toegang komt uit de groepen van de persoon.",
-        "Administrative staff": "Administratief medewerker"
+        "Administrative staff": "Administratief medewerker",
+        "These lessons come from the school timetable. Changes are made there.": "Deze lessen komen uit het schoolrooster. Wijzigingen doe je daar."
     },
     "nplurals=2; plural=(n != 1);"
 )

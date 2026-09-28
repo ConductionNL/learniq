@@ -4,7 +4,7 @@
 
 ### Task 1: Timetable source adapter and resolver (V1)
 - **spec_ref**: `openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001`
-- **files**: `lib/Timetabling/Source/*.php`, `tests/Stubs/Planninq/Event/TimetableSessionsQueryEvent.php`, `tests/bootstrap*.php`, `tests/Unit/Timetabling/Source/*Test.php`
+- **files**: `lib/Timetabling/Source/*.php`, `tests/Stubs/Planninq/Event/TimetableSessionsQueryEvent.php`, `tests/Unit/Timetabling/Source/*Test.php`
 - **acceptance_criteria**:
   - GIVEN planninq installed WHEN resolved THEN the planninq source answers; otherwise the local source
   - GIVEN planninq silent WHEN read THEN the source raises instead of returning nothing
@@ -35,12 +35,12 @@
   - GIVEN a readable cohort WHEN its timetable loads THEN the current source's lessons show
   - GIVEN an unreadable cohort WHEN requested THEN 403
   - GIVEN a planninq lesson WHEN shown THEN it does not open as a learniq session and has no Manage button
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ## Verification
-- [ ] All tasks checked off
-- [ ] `openspec validate sessions-from-planninq` passes
+- [x] All tasks checked off
+- [x] `openspec validate sessions-from-planninq` passes
 
 ## Quality checklist
 

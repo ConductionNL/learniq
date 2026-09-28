@@ -1989,7 +1989,8 @@
         "Placement coordinator": "Placement coordinator",
         "Confidential counsellor": "Confidential counsellor",
         "The functions this person holds at the school. A tag describes the job; it grants no access. Access comes from the person's groups.": "The functions this person holds at the school. A tag describes the job; it grants no access. Access comes from the person's groups.",
-        "Administrative staff": "Administrative staff"
+        "Administrative staff": "Administrative staff",
+        "These lessons come from the school timetable. Changes are made there.": "These lessons come from the school timetable. Changes are made there."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
