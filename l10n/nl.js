@@ -2426,7 +2426,18 @@ OC.L10N.register(
         "Page {page} of {pages}": "Pagina {page} van {pages}",
         "The list of AI-translated strings could not be loaded.": "De lijst met door AI vertaalde teksten kon niet worden geladen.",
         "This instance cannot change the list. Review on a development checkout and commit l10n/ai-translated.json.": "Deze installatie kan de lijst niet aanpassen. Controleer op een ontwikkelkopie en commit l10n/ai-translated.json.",
-        "The string could not be marked as reviewed.": "De tekst kon niet als gecontroleerd worden gemarkeerd."
+        "The string could not be marked as reviewed.": "De tekst kon niet als gecontroleerd worden gemarkeerd.",
+        "This test is not open for you right now.": "Deze toets staat nu niet voor je open.",
+        "This test is not open yet.": "Deze toets is nog niet open.",
+        "This test is closed.": "Deze toets is gesloten.",
+        "You have used all your attempts for this test.": "Je hebt al je pogingen voor deze toets gebruikt.",
+        "You can only take this test in the supervised test screen at school.": "Je kunt deze toets alleen maken in het beveiligde toetsscherm op school.",
+        "This test needs an access code. Ask the person supervising the test.": "Voor deze toets heb je een toegangscode nodig. Vraag het aan de toetsbegeleider.",
+        "This test is already handed in.": "Deze toets is al ingeleverd.",
+        "Your school account is not ready for tests yet. Ask your school.": "Je schoolaccount is nog niet klaar voor toetsen. Vraag het aan je school.",
+        "This work could not be found.": "Dit werk is niet gevonden.",
+        "This work is already handed in.": "Dit werk is al ingeleverd.",
+        "This work cannot be handed in right now. Ask your teacher.": "Dit werk kan nu niet worden ingeleverd. Vraag het aan je docent."
     },
     "nplurals=2; plural=(n != 1);"
 )
