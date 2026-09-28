@@ -122,6 +122,7 @@ import MedalOutline from 'vue-material-design-icons/MedalOutline.vue'
 import MedicalBag from 'vue-material-design-icons/MedicalBag.vue'
 import MessageAlertOutline from 'vue-material-design-icons/MessageAlertOutline.vue'
 import MessageTextOutline from 'vue-material-design-icons/MessageTextOutline.vue'
+import MonitorDashboard from 'vue-material-design-icons/MonitorDashboard.vue'
 import NotebookOutline from 'vue-material-design-icons/NotebookOutline.vue'
 import NoteTextOutline from 'vue-material-design-icons/NoteTextOutline.vue'
 import OfficeBuilding from 'vue-material-design-icons/OfficeBuilding.vue'
@@ -277,6 +278,7 @@ export default {
 	MedicalBag,
 	MessageAlertOutline,
 	MessageTextOutline,
+	MonitorDashboard,
 	NoteTextOutline,
 	NotebookOutline,
 	OfficeBuilding,

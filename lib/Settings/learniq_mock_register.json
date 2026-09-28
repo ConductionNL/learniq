@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.29",
+    "version": "1.1.30",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -29085,6 +29085,54 @@
         "confirmedAt": "2026-03-03T09:00:00+00:00",
         "note": "Voorbeeld Note 3",
         "tenant_id": "00000000-0000-4000-8000-000000000002"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "display-screen",
+          "slug": "display-screen-aula-gebouw-a"
+        },
+        "name": "Aula gebouw A",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "roomIds": [],
+        "cohortIds": [],
+        "shows": "today",
+        "showTeacherCodes": true,
+        "tokenHash": null,
+        "tokenCreatedAt": null,
+        "status": "active"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "display-screen",
+          "slug": "display-screen-hal-onderbouw"
+        },
+        "name": "Hal onderbouw",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "roomIds": [],
+        "cohortIds": [],
+        "shows": "today-and-tomorrow",
+        "showTeacherCodes": true,
+        "tokenHash": null,
+        "tokenCreatedAt": null,
+        "status": "active"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "display-screen",
+          "slug": "display-screen-personeelskamer"
+        },
+        "name": "Personeelskamer",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "roomIds": [],
+        "cohortIds": [],
+        "shows": "changes-only",
+        "showTeacherCodes": true,
+        "tokenHash": null,
+        "tokenCreatedAt": null,
+        "status": "active"
       }
     ]
   }

@@ -92,6 +92,8 @@ SCHEMAS = [
     "report-card",
     "support-request",
     "dossier-note",
+    # Appended, not inserted, so every earlier bucket keeps its uuid group.
+    "display-screen",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -852,6 +854,13 @@ def build() -> dict:
                 "startsAt": stamp(day, 8, 30), "endsAt": stamp(day, end_h, end_m),
                 "location": room["name"], "roomId": room["uuid"], "lifecycle": "completed",
             })
+
+    # --- the hall screen of the main building (timetabling-display-screens) --------------
+    # The address is created on first use from the screen's page, so no token is seeded.
+    b.add("display-screen", {
+        "name": "Aula gebouw A", "vestigingId": locations["hoofd"]["uuid"], "roomIds": [], "cohortIds": [],
+        "shows": "today", "showTeacherCodes": True, "status": "active",
+    })
 
     # First-hour teacher per class per weekday: a teacher of that class who works that day.
     first_hour: dict[tuple[str, int], list[str]] = {}
