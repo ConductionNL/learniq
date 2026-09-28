@@ -30,6 +30,7 @@ namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\Learniq\Listener\AssessmentResultIntegrityListener;
 use OCA\Learniq\Listener\CompetencyAlignmentListener;
+use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
@@ -71,19 +72,7 @@ class IntegrityListenerRegistrar {
 			listener: AssessmentResultIntegrityListener::class
 		);
 
-		// Submission owner (assignment-portal-wiring): a portal hand-in gets
-		// its learners and tenant from the pupil's profile, every other write
-		// gets learnerRef from learnerIds[0], and no write may end without
-		// learners or tenant. Create and update, so a client never keeps a
-		// learnerRef of its own.
-		$context->registerEventListener(
-			event: ObjectCreatingEvent::class,
-			listener: SubmissionOwnerStamp::class
-		);
-		$context->registerEventListener(
-			event: ObjectUpdatingEvent::class,
-			listener: SubmissionOwnerStamp::class
-		);
+		$this->registerOwnerStamps(context: $context);
 
 		// PortfolioEntry ownership (learniq#981): every learner may create an
 		// entry, so a non-staff caller may only write one in their own name
@@ -146,4 +135,44 @@ class IntegrityListenerRegistrar {
 			listener: SubmissionResubmissionDateListener::class
 		);
 	}//end register()
+
+	/**
+	 * Register the owner stamps: the listeners that fill, on the server, who a
+	 * portal write belongs to, and refuse any write that still lacks it.
+	 *
+	 * @param IRegistrationContext $context Nextcloud registration context.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/settings-and-excuse-authorization/specs/attendance/spec.md#requirement-the-server-stamps-who-an-excuse-request-is-about-and-who-filed-it
+	 */
+	private function registerOwnerStamps(IRegistrationContext $context): void {
+		// Submission owner (assignment-portal-wiring): a portal hand-in gets
+		// its learners and tenant from the pupil's profile, every other write
+		// gets learnerRef from learnerIds[0], and no write may end without
+		// learners or tenant. Create and update, so a client never keeps a
+		// learnerRef of its own.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: SubmissionOwnerStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: SubmissionOwnerStamp::class
+		);
+
+		// ExcuseRequest owner (settings-and-excuse-authorization): a portal
+		// absence report gets its pupil, submitter, level and tenant from the
+		// profile, a guardian's only for a child that lists them, every other
+		// write gets learnerRef from learnerId, and no write may end without
+		// the pupil, a submitter or the tenant.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: ExcuseRequestOwnerStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: ExcuseRequestOwnerStamp::class
+		);
+	}//end registerOwnerStamps()
 }//end class
