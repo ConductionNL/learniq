@@ -2445,7 +2445,19 @@
         "Placement coordinator": "Stagecoördinator",
         "Confidential counsellor": "Vertrouwenspersoon",
         "The functions this person holds at the school. A tag describes the job; it grants no access. Access comes from the person's groups.": "De functies die deze persoon op school heeft. Een functie beschrijft het werk en geeft geen toegang. Toegang komt uit de groepen van de persoon.",
-        "Administrative staff": "Administratief medewerker"
+        "Administrative staff": "Administratief medewerker",
+        "A teacher's note on a lesson, for colleagues only. Learners and guardians can never read it: not in the lesson player and not through the objects API. The note sits after a lesson block, the way the lesson editor shows it. teacher-notes-protection.": "Een notitie van een docent bij een les, alleen voor collega's. Leerlingen en ouders kunnen hem nooit lezen: niet in de lesweergave en niet via de objecten-API. De notitie staat na een lesblok, zoals de lesbewerker hem toont. teacher-notes-protection.",
+        "Lesson": "Les",
+        "The lesson this note belongs to.": "De les waar deze notitie bij hoort.",
+        "Note ID": "Notitie-ID",
+        "Stable identifier of this note within its lesson, kept when the note moves.": "Vaste aanduiding van deze notitie binnen de les, die blijft als de notitie verschuift.",
+        "After block": "Na blok",
+        "The lesson block this note follows. Empty places the note before the first block.": "Het lesblok waar deze notitie na komt. Leeg zet de notitie voor het eerste blok.",
+        "Position": "Positie",
+        "Order among the notes that follow the same block, starting at 0.": "Volgorde tussen de notities na hetzelfde blok, vanaf 0.",
+        "The note, as markdown. Only staff read it.": "De notitie, in markdown. Alleen medewerkers lezen hem.",
+        "Block type. It decides which payload field below is filled. Teacher notes are not blocks: they are kept apart, where learners cannot read them.": "Bloktype. Dit bepaalt welk inhoudsveld hieronder gevuld is. Notities voor docenten zijn geen blokken: ze worden apart bewaard, waar leerlingen ze niet kunnen lezen.",
+        "Markdown text of a rich text block. Empty for every other block type.": "Markdown-tekst van een tekstblok. Leeg voor elk ander bloktype."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

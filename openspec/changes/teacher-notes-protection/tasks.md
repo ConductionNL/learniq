@@ -11,8 +11,8 @@ Feature tier: must (privacy of pupil-related staff notes).
   - GIVEN the register WHEN a learner, a guardian and a teacher are evaluated THEN only the teacher matches (TC-1)
   - GIVEN a lesson body with a teacherNote block WHEN validated THEN it fails (TC-2)
   - GIVEN the new strings WHEN check:schema-l10n runs THEN it passes
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 2: One splitter for server-side note moves
 - **spec_ref**: `openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-imported-slide-notes-land-in-the-staff-store`
