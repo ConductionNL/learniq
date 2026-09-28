@@ -92,6 +92,7 @@ SCHEMAS = [
     "report-card",
     "support-request",
     "dossier-note",
+    "standby-slot",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -1293,6 +1294,28 @@ def build() -> dict:
     for p, author, date, category, body, confidentiality in notes:
         b.add("dossier-note", {"learnerId": p["nc"], "authorId": author, "date": date, "category": category, "body": body,
                                "confidentiality": confidentiality, "careTeamUserIds": [ZORG, mentor_of(p)]})
+
+    # --- standby hours (timetabling-standby-slots) ------------------------------------------------------
+    # Two teachers on standby in the second hour of every weekday and one in two
+    # afternoon hours, at the main location, for the school year. Each is a
+    # teacher who works that day; the class day blocks mean some also teach then,
+    # which the substitution dialog shows as "has a lesson then".
+    def hhmm(t: tuple[int, int]) -> str:
+        return f"{t[0]:02d}:{t[1]:02d}"
+
+    standby_plan = [(wd, 1) for wd in range(5) for _ in range(2)] + [(2, 4), (3, 5)]
+    used: set[tuple[int, int, str]] = set()
+    pool = [t for t in TEACHERS if t[0] not in MENTORS.values()] + [t for t in TEACHERS if t[0] in MENTORS.values()]
+    for wd, hour in standby_plan:
+        teacher = next(t for t in pool if WEEKDAYS[wd] in t[4] and (wd, hour, t[0]) not in used)
+        used.add((wd, hour, teacher[0]))
+        pool.append(pool.pop(pool.index(teacher)))
+        b.add("standby-slot", {
+            "teacherId": teacher[0], "weekday": WEEKDAYS[wd], "date": None,
+            "startsAt": hhmm(BELL[hour][0]), "endsAt": hhmm(BELL[hour][1]),
+            "vestigingId": locations["hoofd"]["uuid"],
+            "validFrom": FIRST_DAY.isoformat(), "validUntil": LAST_DAY.isoformat(),
+        })
 
     # --- assemble ------------------------------------------------------------------------------------
     for rows in b.buckets.values():

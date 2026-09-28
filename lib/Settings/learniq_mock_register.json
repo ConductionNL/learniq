@@ -29085,6 +29085,54 @@
         "confirmedAt": "2026-03-03T09:00:00+00:00",
         "note": "Voorbeeld Note 3",
         "tenant_id": "00000000-0000-4000-8000-000000000002"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "standby-slot",
+          "slug": "standby-slot-standbyslot-1-1"
+        },
+        "teacherId": "Voorbeeld Teacherid 1",
+        "startsAt": "00:00",
+        "endsAt": "00:00",
+        "validFrom": "2026-03-01",
+        "validUntil": "2026-03-01",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "weekday": "monday",
+        "date": "2026-03-01",
+        "vestigingId": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "standby-slot",
+          "slug": "standby-slot-standbyslot-2-2"
+        },
+        "teacherId": "Voorbeeld Teacherid 2",
+        "startsAt": "11:11",
+        "endsAt": "11:11",
+        "validFrom": "2026-03-02",
+        "validUntil": "2026-03-02",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "weekday": "tuesday",
+        "date": "2026-03-02",
+        "vestigingId": "00000000-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "standby-slot",
+          "slug": "standby-slot-standbyslot-3-3"
+        },
+        "teacherId": "Voorbeeld Teacherid 3",
+        "startsAt": "02:22",
+        "endsAt": "02:22",
+        "validFrom": "2026-03-03",
+        "validUntil": "2026-03-03",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "weekday": "wednesday",
+        "date": "2026-03-03",
+        "vestigingId": "00000000-0000-4000-8000-000000000002"
       }
     ]
   }

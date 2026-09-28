@@ -107,7 +107,9 @@
 		</section>
 
 		<NcEmptyContent
-			v-if="!loading && !error && sessions.length === 0"
+			v-if="
+				!loading && !error && sessions.length === 0 && standby.length === 0
+			"
 			:name="t('learniq', 'No sessions')"
 			:description="emptyDescription">
 			<template #icon>
@@ -116,7 +118,7 @@
 		</NcEmptyContent>
 
 		<div
-			v-if="!loading && !error && sessions.length > 0"
+			v-if="!loading && !error && (sessions.length > 0 || standby.length > 0)"
 			class="my-timetable__grid"
 			:class="{ 'my-timetable__grid--single': mode === 'today' }">
 			<section
@@ -129,7 +131,20 @@
 					<span class="my-timetable__day-date">{{ day.dateLabel }}</span>
 				</header>
 				<ul class="my-timetable__sessions">
-					<li v-if="day.sessions.length === 0" class="my-timetable__none">
+					<li
+						v-for="block in day.standby"
+						:key="'standby-' + block.slotId + block.date"
+						class="my-timetable__standby">
+						<span class="my-timetable__session-time"
+							>{{ block.startsAt }}–{{ block.endsAt }}</span
+						>
+						<span class="my-timetable__session-name">{{
+							t('learniq', 'Standby')
+						}}</span>
+					</li>
+					<li
+						v-if="day.sessions.length === 0 && day.standby.length === 0"
+						class="my-timetable__none">
 						{{ t('learniq', 'No sessions') }}
 					</li>
 					<li
@@ -200,7 +215,11 @@
 <script>
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
 import SubstitutionModal from '../dialogs/SubstitutionModal.vue'
-import { fetchMyTimetable, isLearniqSession } from '../api/timetable.js'
+import {
+	fetchMyStandby,
+	fetchMyTimetable,
+	isLearniqSession,
+} from '../api/timetable.js'
 
 /**
  * Compute the Monday (00:00, local) of the week containing `date`.
@@ -243,6 +262,8 @@ export default {
 			// Where the lessons come from: `learniq` Sessions, or planninq's
 			// school timetable (sessions-from-planninq).
 			source: 'learniq',
+			// The caller's standby blocks this week (timetabling-standby-slots).
+			standby: [],
 		}
 	},
 
@@ -282,7 +303,13 @@ export default {
 						&& ts < next.getTime()
 					)
 				})
+				const dayIso = [
+					day.getFullYear(),
+					String(day.getMonth() + 1).padStart(2, '0'),
+					String(day.getDate()).padStart(2, '0'),
+				].join('-')
 				out.push({
+					standby: this.standby.filter((b) => b.date === dayIso),
 					iso: day.toISOString().slice(0, 10),
 					weekday: day.toLocaleDateString(undefined, { weekday: 'short' }),
 					dateLabel: day.toLocaleDateString(undefined, {
@@ -391,6 +418,10 @@ export default {
 				this.sessions = result.sessions
 				this.changes = result.changes
 				this.source = result.source
+				this.standby = await fetchMyStandby(
+					this.weekStart.toISOString(),
+					this.weekEnd.toISOString(),
+				)
 			} catch (e) {
 				this.error = t(
 					'learniq',
@@ -643,6 +674,15 @@ export default {
 		display: flex;
 		flex-direction: column;
 		gap: 6px;
+	}
+
+	&__standby {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		padding: 8px;
+		border-radius: var(--border-radius, 4px);
+		border: 1px dashed var(--color-primary-element);
 	}
 
 	&__none {

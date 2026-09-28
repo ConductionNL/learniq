@@ -536,6 +536,22 @@
 							]
 						}
 					}
+				},
+				{
+					"id": "StandbyPlanningMenu",
+					"label": "Standby hours",
+					"icon": "AccountClockOutline",
+					"route": "StandbyPlanning",
+					"order": 63,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				}
 			],
 			"visibleIf": {
@@ -7582,6 +7598,14 @@
 				"register": "learniq"
 			},
 			"_note": "nav-restructure-dashboards: GroupLearning's navigable landing dashboard — a bespoke domain overview with no generic index/detail/dashboard analogue. The nav icon + group association live on the GroupLearning menu entry (base manifest + this fragment's menu route), not on the page (icon/group are not valid v2 page props)."
+		},
+		{
+			"id": "StandbyPlanning",
+			"route": "/standby",
+			"type": "custom",
+			"title": "Standby hours",
+			"component": "StandbyPlanning",
+			"_note": "timetabling-standby-slots: the week's standby hours as a weekday by time grid; a coordinator adds or removes a teacher. The substitution dialog lists these teachers first."
 		}
 	]
 }
