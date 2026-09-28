@@ -1,5 +1,7 @@
 # Design: hermiq-ai-tooling
 
+> Round 5 (2026-09-28): built for learniq with three write tools and the minimised read. `issueCredential` and the learniq-side two-phase approval tokens are superseded: a credential has no draft state to accept, hermiq already gates confirm-classified tool calls on an approval, and an agent grade is written as a concept that only a teacher publishes. See tasks.md.
+
 ## Context
 
 After `scholiq-mcp-adoption`, Scholiq's MCP surface is 12 derived, read-only tools over 6 curated schemas; every write verb and every learner-personal-data schema is refused, and `lib/Mcp/` is empty. The refusal of writes was mechanism-specific: the `x-openregister-mcp` dialect cannot express preconditions ("only a published course", "only within the submission window"), so a dialect write verb is an ungoverned write. Nothing in that change argues against writes that run **inside** Scholiq's guarded services.
