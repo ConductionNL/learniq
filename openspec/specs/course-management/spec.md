@@ -625,6 +625,136 @@ all parsing/generation to `CoursePackageImportService`/`CoursePackageExportServi
 - **THEN** the resulting `CoursePackageImportReport` renders with its `entries` table, and the designer can
   filter it to `degraded`/`dropped` rows to see exactly what needs manual attention
 
+### Requirement: A course leaves the school only through the sharing gate
+The system MUST offer a share export, separate from the regular export, that refuses with the full list of reasons unless all of these hold: the course has a `license` that is an open Creative Commons licence or CC0; the course has an `author`; no lesson has its own non-open `license`; no material has a non-empty `license` outside the open set; the exporting user confirmed `noPupilData`; the exporting user confirmed `rightsCleared`. A lesson without its own licence MUST be judged by the course licence.
+
+#### Scenario: A course with no licence is refused
+- **GIVEN** a course with an author and no `license`
+- **WHEN** a teacher requests a share export with both confirmations
+- **THEN** the response is 422 and `blockers` holds `licence-missing`
+
+#### Scenario: All rights reserved is refused
+- **GIVEN** a course with `license: "all-rights-reserved"`
+- **WHEN** a share export is requested
+- **THEN** `blockers` holds `licence-not-open`
+
+#### Scenario: A publisher-licensed material blocks the course
+- **GIVEN** an openly licensed course with one material whose `license` is `© Uitgeverij Voorbeeld`
+- **WHEN** a share export is requested
+- **THEN** `blockers` holds `material-licence-not-open` naming that material
+
+#### Scenario: Missing confirmations are named
+- **GIVEN** an openly licensed course with an author
+- **WHEN** a share export is requested without `noPupilData` and without `rightsCleared`
+- **THEN** `blockers` holds `pupil-data-not-confirmed` and `rights-not-confirmed`, and no consent record is written
+
+### Requirement: A share package carries no school-bound or personal fields
+The share package MUST be learniq JSON without `@self`, `tenant_id`, material `fileRef`, `sessionId`, `cohortId`, `curriculumPlanId`, `curriculumPlanComponentId`, `programmeIds`, `gradeEntryComponentId`, `gradeScaleId` or an assessment's `accessCode`, and with an empty LTI placement list. It MUST add a `sharing` block with the licence, author, subject, education levels, language, goals covered and the share date, and MUST NOT name the Nextcloud user who confirmed.
+
+#### Scenario: An assessment access code does not travel
+- **GIVEN** an assessment with `accessCode: "KLAS3B"` and `cohortId` set
+- **WHEN** its course is share-exported
+- **THEN** the package's assessment has neither `accessCode` nor `cohortId`
+
+### Requirement: Every share export leaves a consent record
+A successful share export MUST write a `CourseShareConsent` with the course, the course name, purpose `download`, the confirming user, the time, both confirmations and the licence. If the record cannot be written, the export MUST fail. `CourseShareConsent` MUST be readable by `instructors`, `team-leads`, `coordinators`, `administration-managers`, `compliance-officers` and the confirming user, creatable by the four course-authoring groups, and updatable by `administration-managers` only.
+
+#### Scenario: A school leader sees who shared what
+- **GIVEN** teacher `docent-07` share-exported course "Nederlands havo 4"
+- **WHEN** a user in `administration-managers` lists course share consents
+- **THEN** a record shows `docent-07`, the time, both confirmations and `CC-BY-SA-4.0`
+
+### Requirement: The export page offers sharing with the confirmations
+The course package export page MUST offer a "Share outside the school" switch that shows the two confirmations, sends the share request, and lists the refusal reasons in the user's language.
+
+#### Scenario: A teacher sees why sharing is refused
+- **GIVEN** the switch is on and the course has no author
+- **WHEN** the teacher submits
+- **THEN** the page lists "Name the author on the course, so others can credit them."
+
+### Requirement: The Store page lists shared courses through the store plane
+Learniq MUST declare a `StoreDescriptor` for schema `shared-course-package` (default register `learniq`) and MUST search and resolve shared courses only through OpenRegister's `GenericStoreService`. `GET /api/store/items` MUST answer `{outcome, cards, kinds, builtIn}`; each card MUST carry `slug`, `title`, `description`, `subject`, `level`, `goals`, `language`, `license`, `author`, `version`, `typeName` and `kind`, and nothing else. With no registry configured it MUST answer `not_configured` without a network call.
+
+#### Scenario: No registry configured
+- **GIVEN** `registry_url` is empty for learniq
+- **WHEN** a signed-in user opens the Store page
+- **THEN** the response outcome is `not_configured`, the card list is empty, and no request left the server
+
+#### Scenario: A teacher finds a shared course
+- **GIVEN** a configured registry holding a shared package "Betoog schrijven, havo 4" licensed CC BY-SA 4.0
+- **WHEN** the teacher searches "betoog"
+- **THEN** a card shows the title, `Nederlandse taal · havo · CC-BY-SA-4.0` under it, and the author
+
+#### Scenario: An anonymous request is refused
+- **GIVEN** no session
+- **WHEN** `GET /api/store/items` is called
+- **THEN** the response is 401
+
+### Requirement: Installing a shared course creates an independent copy that keeps the credit
+`POST /api/store/items/{slug}/install` MUST require the `course-package.import` action, MUST refuse a malformed slug with 400 and an unresolvable one with 404, and MUST import the resolved package through `CoursePackageImportService` as learniq JSON. The import MUST create new objects and MUST carry the course `license`, `author`, `subject`, `educationalLevels`, `language`, `level` and `description` onto the new course when their values are valid. The response MUST list each imported resource with status `installed`, `degraded` or `refused`.
+
+#### Scenario: A shared course is installed as a copy
+- **GIVEN** a resolvable shared package whose course is licensed CC BY-SA 4.0 by "Sectie Nederlands, OSG De Vaart"
+- **WHEN** an administrator installs it
+- **THEN** a new draft course exists with that licence and author, a new course code, and its own lessons
+
+#### Scenario: A package without a package body is refused
+- **GIVEN** a registry object with no `package`
+- **WHEN** it is installed
+- **THEN** the response reports failure and nothing is written
+
+### Requirement: Publishing sends a gated package to the registry
+`POST /api/store/publish` MUST require the `course-package.share` action and MUST run the sharing gate with the two confirmations; a refusal MUST be 422 with `blockers`. On a pass it MUST record a `CourseShareConsent` with purpose `store`, then POST the registry object to `<registry_url>/index.php/apps/openregister/api/objects/<register>/shared-course-package` with the registry token as a Bearer header only, after `SecurityService::assertSafeFetchUrl()`, with redirects refused and 10 second timeouts. A package over 20 MB MUST be refused without a request.
+
+#### Scenario: Publishing without a registry
+- **GIVEN** the gate passes and `registry_url` is empty
+- **WHEN** the teacher publishes
+- **THEN** the outcome is `not_configured` and no request is made
+
+#### Scenario: A private registry address is refused
+- **GIVEN** `registry_url` is `http://192.168.1.10`
+- **WHEN** the teacher publishes
+- **THEN** the outcome is `store_unreachable` and no request is made
+
+#### Scenario: A published course is findable
+- **GIVEN** the gate passes and the registry accepts the POST
+- **WHEN** the teacher publishes "Betoog schrijven, havo 4"
+- **THEN** the response carries outcome `ok` and a slug starting with `course-package-`
+
+### Requirement: Any learniq instance can act as the registry
+The register MUST declare `SharedCoursePackage` (slug `shared-course-package`) holding the card fields as strings, `levels` and `goalsCovered` as arrays, `kind` `course-package`, `sharedAt` and the `package` object. None of the fields the publisher cannot fill (such as `tenant_id`) MAY be required. Read MUST be `authenticated`; create MUST be `instructors`, `team-leads`, `coordinators` and `administration-managers`; update MUST be `administration-managers`.
+
+#### Scenario: A school board runs the registry
+- **GIVEN** a learniq instance whose admin created a service account in `instructors` and handed its token to member schools
+- **WHEN** a member school publishes
+- **THEN** the package is stored as a `SharedCoursePackage` on the board's instance and every member school's store lists it
+
+### Requirement: Courses and lessons carry sharing metadata aligned to NL-LOM
+`Course` and `Lesson` MUST declare four optional properties: `license` (one of `CC0-1.0`, `CC-BY-4.0`, `CC-BY-SA-4.0`, `CC-BY-NC-4.0`, `CC-BY-NC-SA-4.0`, `CC-BY-ND-4.0`, `CC-BY-NC-ND-4.0`, `all-rights-reserved`), `author` (the name to credit), `subject` (the subject name as the Onderwijsbegrippenkader (OBK) gives it) and `educationalLevels` (an array of `po`, `so`, `vmbo`, `havo`, `vwo`, `mbo-1`, `mbo-2`, `mbo-3`, `mbo-4`, `hbo`, `wo`, `adult-education`, `professional-training`). None of them MAY be required, and `license` MUST have no default.
+
+#### Scenario: A teacher marks a course as openly licensed
+- **GIVEN** a `Course` in draft
+- **WHEN** the teacher sets `license: "CC-BY-SA-4.0"`, `author: "Sectie wiskunde, OSG De Vaart"`, `subject: "Rekenen/wiskunde"` and `educationalLevels: ["havo", "vwo"]`
+- **THEN** the course validates and all four values persist
+
+#### Scenario: An existing course without metadata stays valid
+- **GIVEN** a `Course` stored before this change
+- **WHEN** it is read and saved again
+- **THEN** it validates with the four properties absent
+
+#### Scenario: A lesson without a licence falls back to its course
+- **GIVEN** a `Lesson` with no `license` in a `Course` with `license: "CC-BY-4.0"`
+- **WHEN** a consumer resolves the lesson's licence
+- **THEN** it uses `CC-BY-4.0`, as the lesson `license` description states
+
+### Requirement: Licence and level values have translated labels
+`license` and `educationalLevels.items` MUST declare `x-enum-labels` for every value, and every label MUST have an English key and a Dutch value in the catalogue.
+
+#### Scenario: A Dutch teacher picks a licence
+- **GIVEN** a Dutch-language user opens the course form
+- **WHEN** the licence field renders
+- **THEN** `all-rights-reserved` shows as "Alle rechten voorbehouden"
+
 ## Standards
 SCORM, xAPI, cmi5, LTI 1.3, Common Cartridge, NL LOM, VDEX, OAI-PMH, OOAPI 5.0, Schema.org `Course` / `CourseInstance`, ECTS, Bologna. LTI 1.3 / LTI Advantage (Assignment & Grade Services, Deep Linking 2.0) protocol implementation lives entirely in openconnector's `lti-13-platform` adapter; Scholiq covers only the consuming-app placement and launch-delegation contract. WCAG 2.1 AA (reorder keyboard-operability, course-authoring-ux).
 

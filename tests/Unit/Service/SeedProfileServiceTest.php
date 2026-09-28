@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  */
 
 declare(strict_types=1);
@@ -150,7 +150,7 @@ class SeedProfileServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-two-sets-on-disk
+	 * @spec openspec/specs/example-sets/spec.md#scenario-two-sets-on-disk
 	 */
 	public function testChoicesListNoneThenTheSetsByOrderThenTheGeneratedSet(): void {
 		$this->writeProfile('a-vo.json', 'vo', 2);
@@ -168,7 +168,7 @@ class SeedProfileServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-a-broken-file-does-not-hide-the-others
+	 * @spec openspec/specs/example-sets/spec.md#scenario-a-broken-file-does-not-hide-the-others
 	 */
 	public function testABrokenFileIsSkippedAndLogged(): void {
 		$this->writeProfile('po.json', 'po', 1);
@@ -186,7 +186,7 @@ class SeedProfileServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-a-path-in-the-answer-is-refused
+	 * @spec openspec/specs/example-sets/spec.md#scenario-a-path-in-the-answer-is-refused
 	 */
 	public function testOnlyDeclaredIdsAreKnown(): void {
 		$this->writeProfile('po.json', 'po', 1);
@@ -206,7 +206,7 @@ class SeedProfileServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-loading-the-primary-school-set
+	 * @spec openspec/specs/example-sets/spec.md#scenario-loading-the-primary-school-set
 	 */
 	public function testInstallImportsTheDescriptorUnderItsOwnConfigId(): void {
 		$this->writeProfile('po.json', 'po', 1);
@@ -514,7 +514,7 @@ class SeedProfileServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-a-loaded-set-can-be-removed-exactly
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-loaded-set-can-be-removed-exactly
 	 */
 	public function testUuidsForListsEveryUuidLastLoadedFirst(): void {
 		$this->writeProfile('po.json', 'po', 1);
@@ -534,7 +534,7 @@ class SeedProfileServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-the-generated-set-is-refused
+	 * @spec openspec/specs/example-sets/spec.md#scenario-the-generated-set-is-refused
 	 */
 	public function testUuidsForRefusesTheGeneratedSet(): void {
 		$this->expectException(RuntimeException::class);

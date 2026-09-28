@@ -14,7 +14,7 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
  *
- * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-retired-payment-rows-are-archived-before-their-schemas-go
+ * @spec openspec/specs/payments/spec.md#requirement-retired-payment-rows-are-archived-before-their-schemas-go
  */
 
 declare(strict_types=1);
@@ -53,7 +53,7 @@ use Throwable;
  * ORDER. Runs before InitializeSettings, while the retired schemas and their
  * rows are certainly still readable.
  *
- * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-retired-payment-rows-are-archived-before-their-schemas-go
+ * @spec openspec/specs/payments/spec.md#requirement-retired-payment-rows-are-archived-before-their-schemas-go
  */
 class ArchiveRetiredPaymentObjects implements IRepairStep {
 
@@ -94,7 +94,7 @@ class ArchiveRetiredPaymentObjects implements IRepairStep {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-retired-payment-rows-are-archived-before-their-schemas-go
+	 * @spec openspec/specs/payments/spec.md#requirement-retired-payment-rows-are-archived-before-their-schemas-go
 	 */
 	public function getName(): string {
 		return 'Archive the retired orders, order lines and payment transactions to a JSON file';
@@ -107,7 +107,7 @@ class ArchiveRetiredPaymentObjects implements IRepairStep {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-retired-payment-rows-are-archived-before-their-schemas-go
+	 * @spec openspec/specs/payments/spec.md#requirement-retired-payment-rows-are-archived-before-their-schemas-go
 	 */
 	public function run(IOutput $output): void {
 		try {

@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-example-datasets-training/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  */
 
 declare(strict_types=1);
@@ -140,7 +140,7 @@ class TrainingExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-training/specs/example-sets/spec.md#requirement-the-training-institute-set-is-one-consistent-institute
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-training-institute-set-is-one-consistent-institute
 	 */
 	public function testTheInstituteHasItsPromisedShape(): void {
 		self::assertCount(1, self::of('school'));
@@ -196,7 +196,7 @@ class TrainingExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-training/specs/example-sets/spec.md#requirement-the-training-institute-set-is-one-consistent-institute
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-training-institute-set-is-one-consistent-institute
 	 */
 	public function testEveryMarkBelongsToAnEnrolledParticipantAndTheTrainerOnDuty(): void {
 		$sessions = self::by(self::of('session'), 'uuid');
@@ -231,7 +231,7 @@ class TrainingExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-training/specs/example-sets/spec.md#requirement-the-training-institute-set-is-one-consistent-institute
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-training-institute-set-is-one-consistent-institute
 	 */
 	public function testNoTrainerOrRoomIsInTwoPlacesAtOnce(): void {
 		$teacher = [];
@@ -274,7 +274,7 @@ class TrainingExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-training/specs/example-sets/spec.md#requirement-certificates-evaluations-and-waiting-lists-agree-with-what-happened
+	 * @spec openspec/specs/example-sets/spec.md#requirement-certificates-evaluations-and-waiting-lists-agree-with-what-happened
 	 */
 	public function testCertificatesFollowAttendanceAndTests(): void {
 		$enrolments = self::by(self::of('enrolment'), 'uuid');
@@ -351,7 +351,7 @@ class TrainingExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-training/specs/example-sets/spec.md#requirement-certificates-evaluations-and-waiting-lists-agree-with-what-happened
+	 * @spec openspec/specs/example-sets/spec.md#requirement-certificates-evaluations-and-waiting-lists-agree-with-what-happened
 	 */
 	public function testRebookingsAndRenewalsCloseTheLoop(): void {
 		$starts     = self::cohortStarts();
@@ -397,7 +397,7 @@ class TrainingExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-training/specs/example-sets/spec.md#requirement-certificates-evaluations-and-waiting-lists-agree-with-what-happened
+	 * @spec openspec/specs/example-sets/spec.md#requirement-certificates-evaluations-and-waiting-lists-agree-with-what-happened
 	 */
 	public function testTheWaitingListAndTheIntakeAgreeWithTheEnrolments(): void {
 		$profiles   = self::by(self::of('learner-profile'), 'uuid');
@@ -441,7 +441,7 @@ class TrainingExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-training/specs/example-sets/spec.md#requirement-certificates-evaluations-and-waiting-lists-agree-with-what-happened
+	 * @spec openspec/specs/example-sets/spec.md#requirement-certificates-evaluations-and-waiting-lists-agree-with-what-happened
 	 */
 	public function testEvaluationsAddUpToTheQualityScores(): void {
 		$responded = [];
@@ -503,7 +503,7 @@ class TrainingExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-training/specs/example-sets/spec.md#requirement-certificates-evaluations-and-waiting-lists-agree-with-what-happened
+	 * @spec openspec/specs/example-sets/spec.md#requirement-certificates-evaluations-and-waiting-lists-agree-with-what-happened
 	 */
 	public function testPackageReportsAccountForEveryResource(): void {
 		$courses   = self::by(self::of('course'), 'uuid');
@@ -542,7 +542,7 @@ class TrainingExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-training/specs/example-sets/spec.md#requirement-the-training-institute-set-loads-and-removes-cleanly
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-training-institute-set-loads-and-removes-cleanly
 	 */
 	public function testTheServiceOffersAndRemovesExactlyThisSet(): void {
 		$appManager = $this->createMock(IAppManager::class);
@@ -573,7 +573,7 @@ class TrainingExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-training/specs/example-sets/spec.md#requirement-the-training-institute-set-loads-and-removes-cleanly
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-training-institute-set-loads-and-removes-cleanly
 	 */
 	public function testTheFileIsWhatTheGeneratorProduces(): void {
 		$python = trim((string)shell_exec('command -v python3 2>/dev/null'));

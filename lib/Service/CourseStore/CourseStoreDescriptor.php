@@ -34,7 +34,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-the-store-page-lists-shared-courses-through-the-store-plane
+ * @spec openspec/specs/course-management/spec.md#requirement-the-store-page-lists-shared-courses-through-the-store-plane
  * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
  */
 
@@ -120,7 +120,7 @@ class CourseStoreDescriptor {
 	 *
 	 * @return StoreDescriptor
 	 *
-	 * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-the-store-page-lists-shared-courses-through-the-store-plane
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-store-page-lists-shared-courses-through-the-store-plane
 	 * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
 	 */
 	public function descriptor(): StoreDescriptor {
@@ -179,7 +179,7 @@ class CourseStoreDescriptor {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-installing-a-shared-course-creates-an-independent-copy-that-keeps-the-credit
+	 * @spec openspec/specs/course-management/spec.md#requirement-installing-a-shared-course-creates-an-independent-copy-that-keeps-the-credit
 	 */
 	public function isCourseSlug(string $slug): bool {
 		return preg_match('/^course-package-[a-z0-9][a-z0-9-]*[a-z0-9]$/', $slug) === 1;

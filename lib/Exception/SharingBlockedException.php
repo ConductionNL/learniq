@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-a-course-leaves-the-school-only-through-the-sharing-gate
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-leaves-the-school-only-through-the-sharing-gate
  */
 
 declare(strict_types=1);
@@ -51,7 +51,7 @@ class SharingBlockedException extends RuntimeException {
 	 *
 	 * @return array<int, array{code: string, id: string, name: string}>
 	 *
-	 * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-a-course-leaves-the-school-only-through-the-sharing-gate
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-leaves-the-school-only-through-the-sharing-gate
 	 */
 	public function getBlockers(): array {
 		return $this->blockers;

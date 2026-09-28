@@ -17,7 +17,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
- * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
+ * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
  * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
  */
 
@@ -308,7 +308,7 @@ class SegmentServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
 	 */
 	public function testTheWizardCardsUseTheSchemaLabels(): void {
 		$path     = __DIR__ . '/../../../lib/Settings/learniq_register.json';
@@ -342,7 +342,7 @@ class SegmentServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-a-school-picks-primary-school
+	 * @spec openspec/specs/example-sets/spec.md#scenario-a-school-picks-primary-school
 	 */
 	public function testSetSegmentCreatesTheRecordWhenNoneExists(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -396,7 +396,7 @@ class SegmentServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-an-unknown-segment-is-refused
+	 * @spec openspec/specs/example-sets/spec.md#scenario-an-unknown-segment-is-refused
 	 */
 	public function testSetSegmentRefusesAnUnknownCode(): void {
 		$objectService = $this->createMock(ObjectService::class);

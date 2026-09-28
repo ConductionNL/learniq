@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bpv-coach-authorization/tasks.md#task-2-register-tests
+ * @spec openspec/changes/archive/2026-09-28-bpv-coach-authorization/tasks.md#task-2-register-tests
  */
 
 declare(strict_types=1);
