@@ -80,6 +80,8 @@ Publishing goes through OpenRegister's store connection, which keeps the token o
 
 The **Install** and **Publish** buttons on the Store page follow these rows once the app runs a nextcloud-vue release with the store page change (nextcloud-vue #1268). Until then the Store page shows **Install** to Nextcloud admins only, while teachers can already install through the rows above.
 
+Publishing goes through OpenRegister's store connection, which also keeps the token on the server. It needs an OpenRegister that can publish to a store; on an older one, publishing says so and sends nothing. Who may publish is the list of groups for **course-package.share** under **Action authorization**. A user outside those groups gets a clear refusal, and nothing leaves the school.
+
 ## Verification
 
 The settings page is healthy when: the Default register is set, the AI Features table reflects reality, and the Credential Signing section shows a *Created at* timestamp.
