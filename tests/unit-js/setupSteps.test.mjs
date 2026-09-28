@@ -17,10 +17,17 @@ const manifest = JSON.parse(
 const steps = manifest.setup.steps
 const step = (id) => steps.find((s) => s.id === id)
 
-test('welcome, then the example-set offer, then load, segment and done (gate 100)', () => {
+test('welcome, then the example-set offer, then load, segment, removal and done (gate 100)', () => {
 	assert.deepEqual(
 		steps.map((s) => s.id),
-		['welcome', 'example-set', 'load-example-set', 'segment', 'done'],
+		[
+			'welcome',
+			'example-set',
+			'load-example-set',
+			'segment',
+			'remove-example-set',
+			'done',
+		],
 	)
 	assert.equal(manifest.setup.version, 2)
 })
@@ -58,5 +65,20 @@ test('the segment step says the menus follow the answer', () => {
 test('no step is required, so setup never gates the app', () => {
 	for (const s of steps) {
 		assert.notEqual(s.required, true, `${s.id} must stay optional`)
+	}
+})
+
+// example-set-removal-in-wizard: the removal is a run-action step that the
+// server always reports done, so CnSetupWizard never starts it on its own.
+test('the removal step posts its own action and says it only runs on a click', () => {
+	const remove = step('remove-example-set')
+	assert.equal(remove.type, 'run-action')
+	assert.equal(remove.action, 'remove-example-set')
+	assert.match(remove.body, /only runs when you click/)
+	const nl = JSON.parse(
+		readFileSync(new URL('../../l10n/nl.json', import.meta.url), 'utf8'),
+	).translations
+	for (const text of [remove.title, remove.body, step('load-example-set').body]) {
+		assert.ok(nl[text], `"${text}" has a Dutch translation`)
 	}
 })

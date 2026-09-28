@@ -19,7 +19,7 @@ Found by the r2-portal-learniq lane (TRACKER-R2): "the in-app test screen does n
 
 ## Affected Projects
 
-- [ ] Project: `learniq`: `AssessmentAccessPolicy`, `PortalAssessmentCatalogue`, `AssessmentAttemptGateListener`, new `AssessmentAttemptLimits` and `AssessmentAttemptTimeLimitListener`, `IntegrityListenerRegistrar`, `TakeAssessmentView`.
+- [ ] Project: `learniq`: `AssessmentAccessPolicy`, `PortalAssessmentCatalogue`, `AssessmentAttemptGateListener`, new `AssessmentAttemptLimits` and `AssessmentAttemptTimeLimitListener`, `AttemptLimitListenerRegistrar` (called from `SchedulingListenerRegistrar`), `TakeAssessmentView`.
 
 ## Scope
 

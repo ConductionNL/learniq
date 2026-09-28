@@ -23,7 +23,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Listener;
 
 use DateTime;
-use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
+use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\AssessmentAttemptTimeLimitListener;
 use OCA\Learniq\Service\AssessmentAccessPolicy;
 use OCA\Learniq\Service\AssessmentAttemptLimits;
@@ -305,7 +305,7 @@ class AssessmentAttemptTimeLimitListenerTest extends TestCase {
 			}
 		);
 
-		(new IntegrityListenerRegistrar())->register($context);
+		(new EventListenerWiring())->registerAll($context);
 
 		self::assertContains([ObjectUpdatingEvent::class, AssessmentAttemptTimeLimitListener::class], $registered);
 	}//end testTheListenerIsRegistered()

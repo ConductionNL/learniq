@@ -52,6 +52,16 @@ Attendance is complete for the session when: the session shows status *Recorded*
 | The learner you expected is not on the roster | They have no *Active* enrolment on the course, fix the enrolment dates under [Enrol students](./03-enrol-students.md). |
 | You marked the wrong row | Click the same row again, pick the right mark and save, Scholiq keeps the latest mark plus an audit trail (every change shows up under the session's *Logs* tab). |
 
+## Absences reported in the portal
+
+Pupils and parents can report an absence in the school portal. The report lands in your list of absence reports, already linked to the right pupil and school.
+
+- A pupil reports their own absence. The pupil is recorded as the one who reported it.
+- A parent reports for their own child only. A parent who is not on the child's profile gets an error, and nothing is saved.
+- Each report records how strongly the sender signed in: *basic* for a pupil, *substantial* for a parent.
+
+Approve or reject the report as usual. When you enter a report yourself, fill in the pupil, who reported it and the school, or learniq refuses to save it.
+
 ## Reference
 
 - [Submit an excuse](./05-attendance.md#common-issues), the learner-side equivalent (the *Submit excuse* button on their attendance row).

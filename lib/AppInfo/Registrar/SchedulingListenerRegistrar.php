@@ -37,7 +37,6 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\Learniq\Listener\AdmissionsWaitlistPromoter;
 use OCA\Learniq\Listener\ApplicationConversionHandler;
 use OCA\Learniq\Listener\AssessmentAttemptGateListener;
-use OCA\Learniq\Listener\CredentialRenewalListener;
 use OCA\Learniq\Listener\EnrolmentPrerequisiteListener;
 use OCA\Learniq\Listener\SessionChangeNoticeHandler;
 use OCA\Learniq\Listener\SubjectChoiceEnrolmentBridge;
@@ -89,6 +88,10 @@ class SchedulingListenerRegistrar {
 			event: ObjectCreatingEvent::class,
 			listener: AssessmentAttemptGateListener::class
 		);
+
+		// The attempt's time limit (in-app-test-limits-server-side), in a
+		// registrar of its own so this one stays under the coupling limit.
+		(new AttemptLimitListenerRegistrar())->register(context: $context);
 
 		// ADR-031 legitimate exception (admissions-and-subject-choice):
 		// Application `withdrawn`/`rejected` FROM `placed` -> oldest-submittedAt
@@ -142,16 +145,6 @@ class SchedulingListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: SessionChangeNoticeHandler::class
-		);
-
-		// ADR-031 legitimate exception (credential-renewal-listener):
-		// Credential `expire` -> renewal Enrolment create + link-back bridge,
-		// closing the expiry half of the pre-existing "Auto-enrol on renewal
-		// or content-version change" certification requirement. Mirrors
-		// ExemptionGrantHandler's cross-object-create shape.
-		$context->registerEventListener(
-			event: ObjectTransitionedEvent::class,
-			listener: CredentialRenewalListener::class
 		);
 
 		$this->registerWalletOfferConcludedListener(context: $context);

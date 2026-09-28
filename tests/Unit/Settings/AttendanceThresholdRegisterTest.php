@@ -104,6 +104,12 @@ class AttendanceThresholdRegisterTest extends TestCase {
 		self::assertSame('unexcusedLesuren', $rule['trigger']['field']);
 		self::assertSame(['mentor', 'coordinator'], $rule['recipients'][0]['groups']);
 
+		// No group is named twice across the entries, so nobody is notified
+		// twice: the serial landing of round one left a second, mentor-only
+		// entry beside this one (round1-landing-repairs).
+		$groups = array_merge(...array_map(static fn (array $entry): array => ($entry['groups'] ?? []), $rule['recipients']));
+		self::assertSame(array_values(array_unique($groups)), $groups);
+
 	}//end testThresholdCrossedNotificationNotifiesMentorAndCoordinator()
 
 	/**

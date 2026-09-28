@@ -27,7 +27,7 @@ Refusing a late save would leave the attempt in progress forever (the screen's h
 
 ### D4. A listener of its own
 
-The rules could live in `AssessmentResultIntegrityListener`, but that class sits at phpmd's complexity and coupling limits, and the rules are about time, not ownership. A separate pre-write listener on the same event, registered directly like the integrity rules, keeps both readable. The start rules move out of the gate into `AssessmentAttemptLimits`, which keeps the gate's constructor under the parameter limit.
+The rules could live in `AssessmentResultIntegrityListener`, but that class sits at phpmd's complexity and coupling limits, and the rules are about time, not ownership. A separate pre-write listener on the same event, registered directly like the integrity rules (in a small `AttemptLimitListenerRegistrar`, called next to the attempt gate, because every larger registrar is at phpmd's coupling limit), keeps both readable. The start rules move out of the gate into `AssessmentAttemptLimits`, which keeps the gate's constructor under the parameter limit.
 
 ## Declarative-vs-imperative decision (ADR-031)
 
