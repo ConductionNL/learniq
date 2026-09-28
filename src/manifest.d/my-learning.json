@@ -27,6 +27,27 @@
 			"icon": "SchoolOutline",
 			"route": "MyLearningRecordView",
 			"order": 26
+		},
+		{
+			"id": "CatalogueMenu",
+			"label": "Course catalogue",
+			"icon": "BookOpenPageVariantOutline",
+			"route": "CourseCatalogue",
+			"order": 24,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"instructor",
+						"coordinator",
+						"hr",
+						"team-lead",
+						"compliance-officer",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
 		}
 	],
 	"pages": [
@@ -320,6 +341,14 @@
 			"title": "My timetable",
 			"component": "MyTimetable",
 			"_note": "personal-timetable: the signed-in user's own week view. A bespoke component (no generic lib index/detail analogue) rendering the caller's OWN Session objects for a window, resolved server-side from cohort membership (teacher/learner) and RBAC-scoped via ObjectService. Read-only — clicking a session deep-links to SessionDetail; no create/edit here."
+		},
+		{
+			"id": "CourseCatalogue",
+			"route": "/catalogue",
+			"type": "custom",
+			"title": "Course catalogue",
+			"component": "CourseCatalogue",
+			"_note": "Mounts CourseCatalogue (enrolment-catalogue-self-signup): cards with search and filters from learniq's GET /api/catalogue, and Sign up, Request a place or Withdraw through learniq's own endpoints, because the object API lets no learner create an enrolment. Custom on purpose: a combined course and programme catalogue with per-card actions against learniq endpoints, not an index of one schema."
 		}
 	]
 }

@@ -558,8 +558,32 @@
 			"title": "Courses",
 			"config": {
 				"register": "learniq",
-				"schema": "Course"
+				"schema": "Course",
+				"headerActions": [
+					{
+						"id": "imported-courses",
+						"label": "Imported, not yet published",
+						"icon": "PackageDown",
+						"handler": "navigate",
+						"route": "ImportedCourses"
+					}
+				]
 			}
+		},
+		{
+			"id": "ImportedCourses",
+			"route": "/courses/imported",
+			"type": "index",
+			"title": "Imported, not yet published",
+			"config": {
+				"register": "learniq",
+				"schema": "Course",
+				"filter": {
+					"lifecycle": "draft",
+					"license": "all-rights-reserved"
+				}
+			},
+			"_note": "enrolment-catalogue-self-signup: courses an outside provider's catalogue brought in through integriq (connectors-course-marketplace) arrive as drafts with license all-rights-reserved; an administrator reviews them here and publishes the ones the school offers, with sign-up open or on request."
 		},
 		{
 			"id": "CourseDetail",

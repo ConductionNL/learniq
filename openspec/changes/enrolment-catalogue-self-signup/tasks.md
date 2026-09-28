@@ -5,8 +5,9 @@
 ### Task 1: Register: selfEnrolment, Enrolment request fields, notifications
 - **spec_ref**: `specs/enrolment/spec.md#requirement-a-course-or-programme-says-whether-learners-may-sign-up`, `#requirement-the-learner-is-told-in-words-that-fit-a-chosen-course`
 - **files**: `lib/Settings/learniq_register.json` (Course 0.5.0, Programme 0.3.0, Enrolment 0.3.0, notifications; `info.version` bump)
-- [ ] Implement
-- [ ] Test: `tests/Unit/Settings/CatalogueSignUpRegisterTest.php`; gate 18; `npm run check:register`
+- [x] Implement
+- [x] Test: `tests/Unit/Settings/CatalogueSignUpRegisterTest.php`; gate 18; `npm run check:register`
+- OpenRegister has no field filter on a `transition` trigger, so the chosen-course message is a `created` trigger filtered on `source: self` and `lifecycle: active`: an open sign-up is created active (no `activate`, so the mandatory text never fires). Requests get `approve` and `decline` transitions with their own messages instead of the mandatory `activate`. A manager may update a pending self sign-up of their own report (the one write widened; `DeclaredAudienceEnforcedTest` names it).
 
 ### Task 2: Catalogue and sign-up service with routes
 - **spec_ref**: `specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue`, `#requirement-a-learner-signs-up-for-a-whole-programme`, `#requirement-a-learner-withdraws-their-own-sign-up`
@@ -14,26 +15,31 @@
 - **acceptance_criteria**:
   - GIVEN a closed course WHEN a learner signs up THEN it is refused and no enrolment exists
   - GIVEN an enrolment with progress WHEN the learner withdraws THEN it is refused
-- [ ] Implement
-- [ ] Test: `tests/Unit/Service/CatalogueSignUpServiceTest.php`, `tests/Unit/Controller/CatalogueControllerTest.php`; hydra gates 5, 7, 30
+- [x] Implement
+- [x] Test: `tests/Unit/Service/CatalogueSignUpServiceTest.php`, `tests/Unit/Controller/CatalogueControllerTest.php`; hydra gates 5, 7, 30
+- Service split into `CatalogueReader` (list) and `CatalogueSignUpService` (writes, as the learner via `runAs`, `_rbac: false` after the checks). Portal receivers `PortalCatalogueController` (list, sign up, withdraw) on the pattern of #1096 and #1142, with actions in `CatalogueFlowActions`. Controller test is `tests/Unit/Controller/PortalCatalogueControllerTest.php` (covers the app controller too).
 
 ### Task 3: Learner catalogue page and menu entry
 - **spec_ref**: `specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue`, `#requirement-provider-courses-show-their-provider`
 - **files**: `src/views/CourseCatalogue.vue`, `src/manifest.d/my-learning.json`, `src/menu-layout.json` if needed, `src/registry.js`
-- [ ] Implement
+- [x] Implement
 - [ ] Test: Playwright `tests/e2e/course-catalogue.spec.ts` (search, sign up, withdraw)
+- Page `src/views/CourseCatalogue.vue` at `/catalogue`, menu under My learning. Playwright test not written: no live instance in this lane.
 
 ### Task 4: Sign-up requests view and course forms
 - **spec_ref**: `specs/enrolment/spec.md#requirement-a-request-waits-for-a-teacher-or-manager`
 - **files**: `src/manifest.d/people.json` (SignUpRequests), `src/manifest.d/learning.json` (Course and Programme forms, the imported filter)
-- [ ] Implement
+- [x] Implement
 - [ ] Test: Playwright `tests/e2e/course-catalogue.spec.ts` (manager approves a request)
+- `SignUpRequests` index page on enrolment (`source: self`, `lifecycle: pending`) with its menu entry; approve and decline come from EnrolmentDetail's lifecycle actions. `ImportedCourses` index page (`draft`, `all-rights-reserved`) reached from a Courses header action; the lti-lesson part of the filter is left out (an index filter cannot join lessons). Playwright test not written.
 
 ### Task 5: Seed data and translations
 - **files**: training example set generator, `l10n/en.json`, `l10n/nl.json`, `l10n/*.js`
-- [ ] Implement
-- [ ] Test: gate 101, `npm run check:schema-l10n`, `npm run check:l10n-js`
+- [x] Implement
+- [x] Test: gate 101, `npm run check:schema-l10n`, `npm run check:l10n-js`
 
 ## Verification
 - `openspec validate enrolment-catalogue-self-signup --strict` passes
 - `composer check:strict` and `npm run lint` show no new finding against the development baseline
+- Mock register rows carry `selfEnrolment`, `author: Go1` and three self enrolments (active, pending, withdrawn); the training example set generator is not extended.
+

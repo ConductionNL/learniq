@@ -163,7 +163,7 @@ class PortalContributionProvider {
 				$this->studentActivityCollections(),
 				[$this->studentTestsCollection()]
 			),
-			'actions' => array_merge($this->studentActions(), $this->studentTestActions(), [$this->handInAction()]),
+			'actions' => array_merge($this->studentActions(), $this->studentTestActions(), [$this->handInAction()], (new CatalogueFlowActions())->actions()),
 			'notifications' => [],
 		];
 

@@ -22328,13 +22328,14 @@
         "ectsCredits": 0.0,
         "competencyIds": [],
         "prerequisiteCourseIds": [],
-        "license": "CC-BY-SA-4.0",
-        "author": "Voorbeeldschool, sectie Nederlands",
+        "license": "all-rights-reserved",
         "subject": "Nederlandse taal",
         "educationalLevels": [
           "havo",
           "vwo"
-        ]
+        ],
+        "selfEnrolment": "on-request",
+        "author": "Go1"
       },
       {
         "@self": {
@@ -22378,7 +22379,8 @@
             "depth": null
           }
         ],
-        "prerequisiteCourseIds": []
+        "prerequisiteCourseIds": [],
+        "selfEnrolment": "on-request"
       },
       {
         "@self": {
@@ -22409,7 +22411,9 @@
         ],
         "ectsCredits": 1.0,
         "competencyIds": [],
-        "prerequisiteCourseIds": []
+        "prerequisiteCourseIds": [],
+        "selfEnrolment": "open",
+        "author": "Go1"
       },
       {
         "@self": {
@@ -23261,8 +23265,9 @@
         "reason": "Voorbeeld Reason 1",
         "regulationSlug": "Voorbeeld Regulationslug 1",
         "cohortId": "00000000-0000-4000-8000-000000000000",
-        "lifecycle": "pending",
-        "progressPercent": 1.0
+        "lifecycle": "active",
+        "progressPercent": 1.0,
+        "requestedAt": "2026-09-20T10:00:00+00:00"
       },
       {
         "@self": {
@@ -23273,7 +23278,7 @@
         "learnerId": "Voorbeeld Learnerid 2",
         "courseId": "00000000-0000-4000-8000-000000000001",
         "tenant_id": "00000000-0000-4000-8000-000000000001",
-        "source": "manager",
+        "source": "self",
         "learnerRef": "00000000-0000-4000-8000-000000000001",
         "mandatory": false,
         "dueDate": "2026-03-02",
@@ -23282,8 +23287,9 @@
         "reason": "Voorbeeld Reason 2",
         "regulationSlug": "Voorbeeld Regulationslug 2",
         "cohortId": "00000000-0000-4000-8000-000000000001",
-        "lifecycle": "active",
-        "progressPercent": 2.0
+        "lifecycle": "pending",
+        "progressPercent": 2.0,
+        "requestedAt": "2026-09-20T10:00:00+00:00"
       },
       {
         "@self": {
@@ -23294,7 +23300,7 @@
         "learnerId": "Voorbeeld Learnerid 3",
         "courseId": "00000000-0000-4000-8000-000000000002",
         "tenant_id": "00000000-0000-4000-8000-000000000002",
-        "source": "hr",
+        "source": "self",
         "learnerRef": "00000000-0000-4000-8000-000000000002",
         "mandatory": false,
         "dueDate": "2026-03-03",
@@ -23303,8 +23309,10 @@
         "reason": "Voorbeeld Reason 3",
         "regulationSlug": "Voorbeeld Regulationslug 3",
         "cohortId": "00000000-0000-4000-8000-000000000002",
-        "lifecycle": "completed",
-        "progressPercent": 3.0
+        "lifecycle": "withdrawn",
+        "progressPercent": 3.0,
+        "requestedAt": "2026-09-20T10:00:00+00:00",
+        "declineReason": "Deze cursus start pas in het voorjaar."
       },
       {
         "@self": {
@@ -26448,7 +26456,8 @@
         ],
         "credentialTemplateId": "00000000-0000-4000-8000-000000000000",
         "requiredCompetencyIds": [],
-        "lifecycle": "draft"
+        "lifecycle": "draft",
+        "selfEnrolment": "open"
       },
       {
         "@self": {
@@ -26467,7 +26476,8 @@
         ],
         "credentialTemplateId": "00000000-0000-4000-8000-000000000001",
         "requiredCompetencyIds": [],
-        "lifecycle": "published"
+        "lifecycle": "published",
+        "selfEnrolment": "closed"
       },
       {
         "@self": {
@@ -26486,7 +26496,8 @@
         ],
         "credentialTemplateId": "00000000-0000-4000-8000-000000000002",
         "requiredCompetencyIds": [],
-        "lifecycle": "archived"
+        "lifecycle": "archived",
+        "selfEnrolment": "closed"
       },
       {
         "@self": {
