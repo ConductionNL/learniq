@@ -2438,7 +2438,10 @@ OC.L10N.register(
         "This work could not be found.": "Dit werk is niet gevonden.",
         "This work is already handed in.": "Dit werk is al ingeleverd.",
         "This work cannot be handed in right now. Ask your teacher.": "Dit werk kan nu niet worden ingeleverd. Vraag het aan je docent.",
-        "These lessons come from the school timetable. Changes are made there.": "Deze lessen komen uit het schoolrooster. Wijzigingen doe je daar."
+        "These lessons come from the school timetable. Changes are made there.": "Deze lessen komen uit het schoolrooster. Wijzigingen doe je daar.",
+        "The course store is busy. Try again in a few minutes.": "De cursuswinkel heeft het druk. Probeer het over een paar minuten opnieuw.",
+        "You may not publish courses to the store. Your administrator decides who may.": "Je mag geen cursussen in de winkel publiceren. Je beheerder bepaalt wie dat mag.",
+        "This server cannot publish to a course store yet. Ask your administrator to update OpenRegister.": "Deze server kan nog niet publiceren naar een cursuswinkel. Vraag je beheerder OpenRegister bij te werken."
     },
     "nplurals=2; plural=(n != 1);"
 )
