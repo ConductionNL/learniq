@@ -141,10 +141,10 @@ class DocumentImageLoader {
 			$this->zip = null;
 		}
 
-		if (is_resource($this->tempFile) === true) {
-			fclose($this->tempFile);
-		}
-
+		$temp = $this->tempFile;
 		$this->tempFile = null;
+		if (is_resource($temp) === true) {
+			fclose($temp);
+		}
 	}//end close()
 }//end class
