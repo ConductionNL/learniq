@@ -17,7 +17,7 @@
  transition the grade's own page fires, once per entry, one after another.
 
  @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+ @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 -->
 <template>
 	<div class="cohort-gradebook">
@@ -274,7 +274,7 @@ export default {
 
 		/**
 		 * @return {object[]} The live entries of the chosen column, or of all.
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		scoped() {
 			return scopeEntries(this.entries, this.scope)
@@ -282,7 +282,7 @@ export default {
 
 		/**
 		 * @return {object} How the marks in scope are spread.
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		summary() {
 			return distribution(this.scoped, this.scale)
@@ -290,7 +290,7 @@ export default {
 
 		/**
 		 * @return {object[]} The concept marks a publish would send.
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		toPublish() {
 			return publishable(this.scoped)
@@ -302,7 +302,7 @@ export default {
 		 * A new scope starts without a pending confirmation or an old report.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		scope() {
 			this.confirming = false
@@ -456,7 +456,7 @@ export default {
 		 * Best effort: without it the preview skips the passing count.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		async loadScale() {
 			if (!this.plan.gradeScaleId) return
@@ -478,7 +478,7 @@ export default {
 		/**
 		 * @param {string} learnerId Nextcloud user id.
 		 * @return {string} The display name.
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		learnerName(learnerId) {
 			return this.names[learnerId] || learnerId
@@ -487,7 +487,7 @@ export default {
 		/**
 		 * @param {{from: number, to: number}} band A histogram band.
 		 * @return {string} "6 to 7", or one value for a single-point band.
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		bandLabel(band) {
 			const round = (v) => Math.round(v * 10) / 10
@@ -501,7 +501,7 @@ export default {
 		/**
 		 * @param {{count: number}} band A histogram band.
 		 * @return {string} The bar length relative to the fullest band.
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		barWidth(band) {
 			const top = Math.max(1, ...this.summary.bands.map((b) => b.count))
@@ -513,7 +513,7 @@ export default {
 		 * A refused entry never stops the rest.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		async publishAll() {
 			const batch = [...this.toPublish]
@@ -546,7 +546,7 @@ export default {
 		/**
 		 * @param {object} error The axios error of a refused transition.
 		 * @return {string} The server's reason, or a plain fallback.
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		refusalReason(error) {
 			const data = error?.response?.data ?? {}

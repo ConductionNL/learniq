@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+ * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
  */
 
 declare(strict_types=1);
@@ -41,7 +41,7 @@ use OCA\OpenRegister\Service\ObjectService;
  * OpenRegister's LifecycleActionListener merges the returned array into the
  * object it saves.
  *
- * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
+ * @spec openspec/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
  */
 class PokParentSignatureStampAction implements LifecycleActionInterface {
 
@@ -70,7 +70,7 @@ class PokParentSignatureStampAction implements LifecycleActionInterface {
 	 *
 	 * @return array<string,mixed> The POK with `parentSignatureRequired` set; unchanged when it has no id.
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
+	 * @spec openspec/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleActionInterface's.
 	 */

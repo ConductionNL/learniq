@@ -107,7 +107,7 @@ class LearningRecordImportIntakeService {
 	/**
 	 * Write the raw uploaded bytes into the caller's nc:files home, mirroring
 	 * `CoursePackageImportService::writeBytesToFiles()`'s destination
-	 * convention (`Scholiq/{tenant}/...`).
+	 * convention (`Learniq/{tenant}/...`).
 	 *
 	 * @param string $tmpPath Absolute path to the uploaded tmp file.
 	 * @param string $ownerUid Nextcloud user id who will own the file.
@@ -126,7 +126,7 @@ class LearningRecordImportIntakeService {
 				$tenantSegment = $tenantId;
 			}
 
-			$ncBaseDir = 'Scholiq/' . $tenantSegment . '/learning-record-imports';
+			$ncBaseDir = 'Learniq/' . $tenantSegment . '/learning-record-imports';
 			$ncPath = $ncBaseDir . '/' . bin2hex(random_bytes(8)) . '.json';
 
 			$userFolder = $this->rootFolder->getUserFolder($ownerUid);

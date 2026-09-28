@@ -45,9 +45,9 @@
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-subject-with-no-matching-period-component-contributes-no-row-not-an-error
- * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
- * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-an-untemplated-cohort-composes-exactly-as-before-this-change
- * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
+ * @spec openspec/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
+ * @spec openspec/specs/report-card/spec.md#scenario-an-untemplated-cohort-composes-exactly-as-before-this-change
+ * @spec openspec/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
  */
 
 declare(strict_types=1);

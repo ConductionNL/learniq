@@ -140,7 +140,7 @@ class PageController extends Controller {
 	 *
 	 * @return array{install: bool, publish: bool}
 	 *
-	 * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
 	 */
 	private function resolveStoreAccess(): array {
 		try {

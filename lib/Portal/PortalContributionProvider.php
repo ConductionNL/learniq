@@ -36,7 +36,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+ * @spec openspec/specs/portal-contribution/spec.md
  */
 
 declare(strict_types=1);
@@ -63,7 +63,7 @@ namespace OCA\Learniq\Portal;
  * scope-value join (`match: 'scopeField'`) + its minTrust story:
  * openspec/changes/portal-parent/design.md.
  *
- * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+ * @spec openspec/specs/portal-contribution/spec.md
  */
 class PortalContributionProvider {
 	/**
@@ -81,7 +81,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<int, string> The audience identifiers.
 	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md
 	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-praktijkopleider-portal-access-is-a-direct-scope-portalcontributionprovider-audience
 	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
 	 */
@@ -97,7 +97,7 @@ class PortalContributionProvider {
 	 *
 	 * @return string The primary audience identifier.
 	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	public function getAudience(): string {
 		return 'student';
@@ -115,7 +115,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<string, mixed>|null The manifest, or null when not contributing.
 	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	public function getContribution(array $subject): ?array {
 		$audience = $subject['audience'] ?? '';
@@ -153,7 +153,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<string, mixed> The student manifest.
 	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	private function studentContribution(): array {
 		return [
@@ -177,7 +177,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<int, array<string, mixed>> Student result collections.
 	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	private function studentResultCollections(): array {
 		return [
@@ -253,7 +253,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<int, array<string, mixed>> Student activity collections.
 	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	private function studentActivityCollections(): array {
 		return [
@@ -347,7 +347,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<string, mixed> The studentTests collection.
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
 	 */
 	private function studentTestsCollection(): array {
 		return [
@@ -390,7 +390,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<int, array<string, mixed>> The timed-task actions.
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
 	 */
 	private function studentTestActions(): array {
 		$steps = [
@@ -435,7 +435,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<string, mixed> The hand-in action.
 	 *
-	 * @spec openspec/changes/portal-assignment-hand-in-endpoint/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-a-draft-submission-from-the-portal-req-pcon-009
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-a-draft-submission-from-the-portal-req-pcon-009
 	 */
 	private function handInAction(): array {
 		return [
@@ -471,8 +471,8 @@ class PortalContributionProvider {
 	 *
 	 * @return array<int, array<string, mixed>> Student create-actions.
 	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
-	 * @spec openspec/changes/assignment-portal-wiring/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-work-through-the-portal-with-a-real-file-req-pcon-007
+	 * @spec openspec/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-work-through-the-portal-with-a-real-file-req-pcon-007
 	 */
 	private function studentActions(): array {
 		return [
@@ -554,7 +554,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<string, mixed> The parent manifest.
 	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	private function parentContribution(): array {
 		// The one-hop reverse join shared by every parent read collection:
@@ -606,7 +606,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<string, mixed> The parentChildren collection.
 	 *
-	 * @spec openspec/changes/portal-contribution-guardian-audiences/specs/portal-contribution/spec.md#requirement-the-parent-audience-exposes-per-child-and-per-guardian-group-directory-data-req-pcon-006
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-parent-audience-exposes-per-child-and-per-guardian-group-directory-data-req-pcon-006
 	 */
 	private function parentChildrenCollection(): array {
 		return [
@@ -645,7 +645,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<int, array<string, mixed>> Parent create-actions.
 	 *
-	 * @spec openspec/changes/portal-contribution-guardian-audiences/specs/portal-contribution/spec.md#requirement-the-parent-audience-can-report-a-childs-absence-validated-against-the-callers-own-children-req-pcon-007
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-parent-audience-can-report-a-childs-absence-validated-against-the-callers-own-children-req-pcon-007
 	 */
 	private function parentActions(array $childJoin): array {
 		return [
@@ -683,7 +683,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<int, array<string, mixed>> Parent result collections.
 	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	private function parentResultCollections(array $childJoin): array {
 		return [
@@ -745,7 +745,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<int, array<string, mixed>> Parent welfare collections.
 	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	private function parentWelfareCollections(array $childJoin): array {
 		return [

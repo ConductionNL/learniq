@@ -35,7 +35,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+ * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
  */
 
 declare(strict_types=1);
@@ -51,7 +51,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 /**
  * Whether a parent signs a POK, why, and who may.
  *
- * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+ * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
  */
 class PokParentSignatureRule {
 
@@ -99,7 +99,7 @@ class PokParentSignatureRule {
 	 *
 	 * @return array{required: bool, reason: string, parentIds: array<int, string>}
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+	 * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
 	 */
 	public function evaluate(array $pok, ?string $studentSignedAt): array {
 		$profile = $this->learnerProfile(placementId: (string)($pok['bpvPlacementId'] ?? ''));
@@ -130,7 +130,7 @@ class PokParentSignatureRule {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+	 * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
 	 */
 	public function studentSignedAt(array $signatures): ?string {
 		$earliest = null;

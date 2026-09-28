@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-the-rod-learner-record-carries-the-personal-number-where-duo-expects-a-bsn
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-rod-learner-record-carries-the-personal-number-where-duo-expects-a-bsn
  */
 
 declare(strict_types=1);
@@ -42,7 +42,7 @@ use Throwable;
  * the exception class, never its message: an OpenRegister message can quote
  * object data.
  *
- * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-the-personal-number-leaves-learniq-only-in-a-rod-message-and-is-never-logged
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-personal-number-leaves-learniq-only-in-a-rod-message-and-is-never-logged
  */
 class RodPersonalNumberResolver {
 
@@ -82,7 +82,7 @@ class RodPersonalNumberResolver {
 	 *
 	 * @return array{persoonsgebondenNummer: string|null, persoonsgebondenNummerType: string|null} The pair, nulls when absent or invalid.
 	 *
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-the-rod-learner-record-carries-the-personal-number-where-duo-expects-a-bsn
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-rod-learner-record-carries-the-personal-number-where-duo-expects-a-bsn
 	 */
 	public function forProfile(string $profileId, string $tenantId): array {
 		if ($profileId === '') {
@@ -120,7 +120,7 @@ class RodPersonalNumberResolver {
 	 *
 	 * @return array{persoonsgebondenNummer: string|null, persoonsgebondenNummerType: string|null} The pair, nulls when absent or invalid.
 	 *
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-a-school-advice-goes-to-rod-with-duos-aanleverenadviesvo-field-set
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-school-advice-goes-to-rod-with-duos-aanleverenadviesvo-field-set
 	 */
 	public function forLearner(string $ncUserId, string $tenantId): array {
 		if ($ncUserId === '') {
@@ -169,7 +169,7 @@ class RodPersonalNumberResolver {
 	 *
 	 * @return bool True when valid.
 	 *
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-the-rod-learner-record-carries-the-personal-number-where-duo-expects-a-bsn
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-rod-learner-record-carries-the-personal-number-where-duo-expects-a-bsn
 	 */
 	public static function isValid(string $number, string $type): bool {
 		if (preg_match('/^[0-9]{9}$/', $number) !== 1 || isset(self::DUO_TYPES[$type]) === false) {

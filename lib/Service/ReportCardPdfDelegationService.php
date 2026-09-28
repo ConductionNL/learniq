@@ -51,8 +51,8 @@
  *
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-successful-render-records-the-docudesk-document-reference
- * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-an-assigned-template-sends-that-templates-slug-to-docudesk
- * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
+ * @spec openspec/specs/report-card/spec.md#scenario-a-report-card-with-an-assigned-template-sends-that-templates-slug-to-docudesk
+ * @spec openspec/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
  */
 
 declare(strict_types=1);
@@ -295,8 +295,8 @@ class ReportCardPdfDelegationService implements LifecycleGuardInterface {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-an-assigned-template-sends-that-templates-slug-to-docudesk
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-report-card-with-an-assigned-template-sends-that-templates-slug-to-docudesk
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
 	 */
 	private function resolveTemplateSlug(array $reportCard): string {
 		$templateId = $reportCard['templateId'] ?? null;

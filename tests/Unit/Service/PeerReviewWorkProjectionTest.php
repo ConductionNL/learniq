@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+ * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
  */
 
 declare(strict_types=1);

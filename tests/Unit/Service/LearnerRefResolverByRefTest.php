@@ -21,8 +21,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assignment-portal-wiring/specs/assignments/spec.md#requirement-the-server-stamps-who-a-submission-belongs-to
- * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile
+ * @spec openspec/specs/assignments/spec.md#requirement-the-server-stamps-who-a-submission-belongs-to
+ * @spec openspec/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile
  * @spec openspec/specs/portal-contribution/spec.md#REQ-PCON-000
  */
 
@@ -218,7 +218,7 @@ class LearnerRefResolverByRefTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile
+	 * @spec openspec/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile
 	 */
 	public function testOnlyTheAcrossTenantsLookupDropsTenantScoping(): void {
 		$this->profiles['lp-1'] = ['ncUserId' => 'pupil-1', 'lifecycle' => 'active'];
