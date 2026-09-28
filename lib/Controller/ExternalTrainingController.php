@@ -208,6 +208,8 @@ class ExternalTrainingController extends Controller {
 	 *
 	 * @return string|null The saved credential's id ('' when OR returned none), or null when unsigned.
 	 *
+	 * @throws \Exception When OpenRegister refuses the credential or the record save; it reaches the caller as before.
+	 *
 	 * @spec openspec/changes/external-training-recording/tasks.md
 	 */
 	private function saveSignedCredential(array $payload, array $record): ?string {
