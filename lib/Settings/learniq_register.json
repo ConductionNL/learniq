@@ -14282,6 +14282,7 @@
                     },
                     "dataExchangeJobId": {
                         "type": "string",
+                        "x-external-register": "integriq",
                         "nullable": true,
                         "format": "uuid",
                         "description": "UUID of the integriq exchange job (target swv) requested when this request was submitted. Null until submitted, or when integriq is not installed.",
@@ -16375,6 +16376,7 @@
                     },
                     "dataExchangeJobId": {
                         "type": "string",
+                        "x-external-register": "integriq",
                         "nullable": true,
                         "format": "uuid",
                         "description": "UUID of the integriq exchange job (target leerplicht) requested for this flag. Null when no target is configured or integriq is not installed.",
@@ -23611,6 +23613,7 @@
                     },
                     "dataExchangeJobId": {
                         "type": "string",
+                        "x-external-register": "integriq",
                         "format": "uuid",
                         "description": "UUID of the integriq exchange job that imported this result, when it came in through one. Null for a result entered by hand.",
                         "title": "Exchange job ID"
@@ -24176,6 +24179,7 @@
                 "properties": {
                     "dataExchangeJobId": {
                         "type": "string",
+                        "x-external-register": "integriq",
                         "format": "uuid",
                         "description": "UUID of the integriq exchange job that received this dossier, when it came in through one.",
                         "title": "Exchange job ID"
@@ -24856,6 +24860,7 @@
                     },
                     "dataExchangeJobId": {
                         "type": "string",
+                        "x-external-register": "integriq",
                         "nullable": true,
                         "format": "uuid",
                         "default": null,
@@ -26055,6 +26060,7 @@
                 "properties": {
                     "exchangeJobId": {
                         "type": "string",
+                        "x-external-register": "integriq",
                         "format": "uuid",
                         "title": "Exchange job ID",
                         "description": "UUID of the integriq exchange job that carries this file."

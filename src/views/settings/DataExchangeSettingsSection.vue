@@ -35,7 +35,7 @@
 				variant="secondary"
 				@click="open('/data-exchange/parent-reviews')">
 				<template #icon>
-					<FileAccountOutline :size="20" />
+					<AccountCheckOutline :size="20" />
 				</template>
 				{{ t('learniq', 'Parent reviews') }}
 			</NcButton>
@@ -46,7 +46,7 @@
 <script>
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcSettingsSection } from '@nextcloud/vue'
-import FileAccountOutline from 'vue-material-design-icons/FileAccountOutline.vue'
+import AccountCheckOutline from 'vue-material-design-icons/AccountCheckOutline.vue'
 import SwapHorizontal from 'vue-material-design-icons/SwapHorizontal.vue'
 
 export default {
@@ -56,7 +56,7 @@ export default {
 		NcButton,
 		NcSettingsSection,
 		SwapHorizontal,
-		FileAccountOutline,
+		AccountCheckOutline,
 	},
 
 	methods: {

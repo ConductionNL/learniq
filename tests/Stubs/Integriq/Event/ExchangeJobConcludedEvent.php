@@ -4,6 +4,8 @@
  * TEST STUB: a verbatim copy of integriq's ExchangeJobConcludedEvent (ConductionNL/integriq#2220,
  * openspec/changes/learniq-exchange-jobs-native/contract.md). Learniq has no class dependency
  * on integriq; its unit tests construct the real contract, never a double, so a wrong getter fails.
+ * The code is verbatim; the @spec tags point at the learniq requirement that consumes it,
+ * because integriq's spec path does not exist in this repository.
  *
  * Integriq Exchange Job Concluded Event.
  *
@@ -22,7 +24,7 @@
  *
  * @link https://www.Integriq.nl
  *
- * @spec openspec/changes/learniq-exchange-jobs-native/specs/exchange-jobs/spec.md#requirement-req-009-a-terminal-job-raises-a-concluded-event
+ * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
  */
 
 declare(strict_types=1);
@@ -37,7 +39,7 @@ use OCP\EventDispatcher\Event;
  * ADR-041 concluded event. A listener MUST filter on getOwnerApp() and keep
  * its side effect idempotent: an administrator can re-run a job.
  *
- * @spec openspec/changes/learniq-exchange-jobs-native/specs/exchange-jobs/spec.md#requirement-req-009-a-terminal-job-raises-a-concluded-event
+ * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
  */
 class ExchangeJobConcludedEvent extends Event {
 
@@ -74,7 +76,7 @@ class ExchangeJobConcludedEvent extends Event {
 	 *
 	 * @return string The app id.
 	 *
-	 * @spec openspec/changes/learniq-exchange-jobs-native/specs/exchange-jobs/spec.md#requirement-req-009-a-terminal-job-raises-a-concluded-event
+	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function getOwnerApp(): string {
 		return $this->ownerApp;
@@ -86,7 +88,7 @@ class ExchangeJobConcludedEvent extends Event {
 	 *
 	 * @return string The job uuid.
 	 *
-	 * @spec openspec/changes/learniq-exchange-jobs-native/specs/exchange-jobs/spec.md#requirement-req-009-a-terminal-job-raises-a-concluded-event
+	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function getJobId(): string {
 		return $this->jobId;
@@ -98,7 +100,7 @@ class ExchangeJobConcludedEvent extends Event {
 	 *
 	 * @return string The target id.
 	 *
-	 * @spec openspec/changes/learniq-exchange-jobs-native/specs/exchange-jobs/spec.md#requirement-req-009-a-terminal-job-raises-a-concluded-event
+	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function getTarget(): string {
 		return $this->target;
@@ -110,7 +112,7 @@ class ExchangeJobConcludedEvent extends Event {
 	 *
 	 * @return string export, import or sync.
 	 *
-	 * @spec openspec/changes/learniq-exchange-jobs-native/specs/exchange-jobs/spec.md#requirement-req-009-a-terminal-job-raises-a-concluded-event
+	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function getDirection(): string {
 		return $this->direction;
@@ -122,7 +124,7 @@ class ExchangeJobConcludedEvent extends Event {
 	 *
 	 * @return string The reference.
 	 *
-	 * @spec openspec/changes/learniq-exchange-jobs-native/specs/exchange-jobs/spec.md#requirement-req-009-a-terminal-job-raises-a-concluded-event
+	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function getOwnerRef(): string {
 		return $this->ownerRef;
@@ -134,7 +136,7 @@ class ExchangeJobConcludedEvent extends Event {
 	 *
 	 * @return string succeeded, partial, failed or refused.
 	 *
-	 * @spec openspec/changes/learniq-exchange-jobs-native/specs/exchange-jobs/spec.md#requirement-req-009-a-terminal-job-raises-a-concluded-event
+	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function getStatus(): string {
 		return $this->status;
@@ -146,7 +148,7 @@ class ExchangeJobConcludedEvent extends Event {
 	 *
 	 * @return array<string,mixed> {recordsProcessed, recordsAccepted, recordsRejected, runId, artefactRef}.
 	 *
-	 * @spec openspec/changes/learniq-exchange-jobs-native/specs/exchange-jobs/spec.md#requirement-req-009-a-terminal-job-raises-a-concluded-event
+	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function getResult(): array {
 		return $this->result;
@@ -158,7 +160,7 @@ class ExchangeJobConcludedEvent extends Event {
 	 *
 	 * @return array<string,mixed>|null The decision, or null when the gate was not asked.
 	 *
-	 * @spec openspec/changes/learniq-exchange-jobs-native/specs/exchange-jobs/spec.md#requirement-req-009-a-terminal-job-raises-a-concluded-event
+	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function getGateDecision(): ?array {
 		return $this->gateDecision;
@@ -170,7 +172,7 @@ class ExchangeJobConcludedEvent extends Event {
 	 *
 	 * @return string|null The message, or null.
 	 *
-	 * @spec openspec/changes/learniq-exchange-jobs-native/specs/exchange-jobs/spec.md#requirement-req-009-a-terminal-job-raises-a-concluded-event
+	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function getErrorMessage(): ?string {
 		return $this->errorMessage;

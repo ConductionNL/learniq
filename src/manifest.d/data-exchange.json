@@ -46,7 +46,7 @@
 				{
 					"id": "DossierReviewsMenu",
 					"label": "Parent reviews",
-					"icon": "FileAccountOutline",
+					"icon": "AccountCheckOutline",
 					"route": "DossierReviews",
 					"order": 30,
 					"visibleIf": {
@@ -245,7 +245,7 @@
 						"content": {
 							"columns": 2
 						},
-						"icon": "FileAccountOutline"
+						"icon": "AccountCheckOutline"
 					},
 					{
 						"id": "drev-related",

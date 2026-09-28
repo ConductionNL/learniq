@@ -70,7 +70,6 @@ class ExchangeGateListener implements IEventListener {
 	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
 	public function handle(Event $event): void {
-		// Integriq's event class carries allow() and refuse() by contract.
 		if (is_a($event, self::GATE_EVENT) === false
 			|| (string)$this->read(event: $event, getter: 'getOwnerApp') !== self::OWNER_APP
 		) {
@@ -92,12 +91,13 @@ class ExchangeGateListener implements IEventListener {
 			);
 		} catch (Throwable $exception) {
 			$this->logger->error('[ExchangeGateListener] the gate failed: ' . $exception->getMessage());
-			$event->refuse('gate-error', 'Learniq could not decide on this exchange: ' . $exception->getMessage());
+			$reason = 'Learniq could not decide on this exchange: ' . $exception->getMessage();
+			$this->answer(event: $event, method: 'refuse', arguments: ['gate-error', $reason]);
 			return;
 		}
 
 		if (($decision['decision'] ?? '') === ExchangeGateService::DECISION_ALLOW) {
-			$event->allow((array)($decision['records'] ?? []));
+			$this->answer(event: $event, method: 'allow', arguments: [(array)($decision['records'] ?? [])]);
 			return;
 		}
 
@@ -108,8 +108,29 @@ class ExchangeGateListener implements IEventListener {
 			$code = 'gate-error';
 		}
 
-		$event->refuse($code, (string)($decision['reason'] ?? 'Learniq could not decide on this exchange.'));
+		$this->answer(event: $event, method: 'refuse', arguments: [$code, (string)($decision['reason'] ?? 'Learniq could not decide on this exchange.')]);
 	}//end handle()
+
+	/**
+	 * Answer the event through its contract method.
+	 *
+	 * The event is integriq's class, recognised by name; an event without the
+	 * method stays unanswered, which integriq treats as a refusal.
+	 *
+	 * @param Event             $event     The event.
+	 * @param string            $method    allow or refuse.
+	 * @param array<int, mixed> $arguments The method's arguments.
+	 *
+	 * @return void
+	 */
+	private function answer(Event $event, string $method, array $arguments): void {
+		if (method_exists($event, $method) === false) {
+			$this->logger->error('[ExchangeGateListener] integriq\'s gate event has no ' . $method . '(); the job stays unanswered.');
+			return;
+		}
+
+		$event->$method(...$arguments);
+	}//end answer()
 
 	/**
 	 * Call a contract getter on the event.

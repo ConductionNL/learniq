@@ -51,7 +51,9 @@ The interface with integriq is integriq's `openspec/changes/learniq-exchange-job
 
 The gate's refusal codes: `flag-not-in-handling`, `parent-review-pending`,
 `parent-review-rejected`, `partner-approval-missing`, `teldatum-unconfirmed`,
-`disclosure-undefined`, `statutory-incomplete`.
+`disclosure-undefined`, `statutory-incomplete`, `records-unavailable` (the records could not be
+read) and `gate-error` (the gate itself failed; the listener answers a refusal instead of throwing
+into integriq's runner). Integriq adds its own fail-closed codes when learniq does not answer.
 
 ## Versioning
 
