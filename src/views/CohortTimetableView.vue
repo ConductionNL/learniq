@@ -67,6 +67,12 @@ export default {
 		}
 	},
 
+	/**
+	 * Load the cohort and its lessons from the timetable endpoint.
+	 *
+	 * @return {Promise<void>}
+	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+	 */
 	async mounted() {
 		try {
 			const [cohort, timetable] = await Promise.all([
