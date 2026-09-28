@@ -371,6 +371,7 @@ import LockOutline from 'vue-material-design-icons/LockOutline.vue'
 import { buildCmi5LaunchUrl } from '../utils/cmi5Launch.js'
 import { playerVisibleBlocks } from '../utils/lessonBlocks.js'
 import { completionBelongsTo, currentEnrolment } from '../utils/lessonCompletion.js'
+import { buildLtiLaunchForm, isLaunchForm } from '../utils/ltiLaunchForm.js'
 import { createScorm12Api } from '../utils/scorm12Runtime.js'
 
 // learning-progress-and-analytics: contentTypes that do NOT emit xAPI
@@ -926,11 +927,11 @@ export default {
 							),
 					)
 				}
-				if (!body?.formActionUrl || !body?.idToken) {
+				if (!isLaunchForm(body)) {
 					throw new Error(
 						this.t(
 							'learniq',
-							'OpenConnector returned an unexpected launch response.',
+							'Integriq returned an unexpected launch response.',
 						),
 					)
 				}
@@ -1122,14 +1123,14 @@ export default {
 		},
 
 		/**
-		 * Delegate the LTI launch to the backend, which delegates to the
-		 * OpenConnector lti-13-platform adapter (opaque proxy — Learniq
-		 * never inspects the id_token). `lesson.contentRef` names the
-		 * LtiToolPlacement UUID; the backend resolves it.
+		 * Delegate the LTI launch to the backend, which raises integriq's
+		 * launch event and hands back its login initiation form (learniq never
+		 * reads an LTI token). `lesson.contentRef` names the LtiToolPlacement
+		 * UUID; the backend resolves it.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/course-management/spec.md#requirement-place-an-lti-1-3-tool-inside-a-lesson-via-a-dedicated-placement-object
-		 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-oidc-launch-to-the-openconnector-adapter
+		 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 		 */
 		async launchLti() {
 			const placementId = this.lesson?.contentRef
@@ -1168,11 +1169,11 @@ export default {
 							),
 					)
 				}
-				if (!body?.formActionUrl || !body?.idToken) {
+				if (!isLaunchForm(body)) {
 					throw new Error(
 						this.t(
 							'learniq',
-							'OpenConnector returned an unexpected launch response.',
+							'Integriq returned an unexpected launch response.',
 						),
 					)
 				}
@@ -1347,30 +1348,17 @@ export default {
 		},
 
 		/**
-		 * Auto-submit an opaque LTI launch response as a real POST — an
-		 * id_token cannot be delivered via a GET navigation. New tab for
-		 * launchMode='resource-link', the in-page frame for 'deep-linking'.
-		 * Learniq never reads or validates `idToken` — it is forwarded
-		 * exactly as OpenConnector returned it (design.md D5).
+		 * Submit integriq's LTI login initiation form in the browser: every
+		 * field as a hidden input, with the form's method, in a new tab for
+		 * launchMode='resource-link' and in the lesson frame for 'deep-linking'.
+		 * Learniq reads none of the fields (content-lti-launch-through-integriq).
 		 *
-		 * @param {object} launch The opaque {formActionUrl, idToken, launchMode} response.
+		 * @param {object} launch The {formActionUrl, method, fields, launchMode} response.
 		 * @return {void}
-		 * @spec openspec/specs/course-management/spec.md#requirement-place-an-lti-1-3-tool-inside-a-lesson-via-a-dedicated-placement-object
+		 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 		 */
 		submitLtiLaunchForm(launch) {
-			const form = document.createElement('form')
-			form.method = 'POST'
-			form.action = launch.formActionUrl
-			form.target =
-				launch.launchMode === 'deep-linking' ? this.ltiFrameName : '_blank'
-			form.style.display = 'none'
-
-			const input = document.createElement('input')
-			input.type = 'hidden'
-			input.name = 'id_token'
-			input.value = launch.idToken
-			form.appendChild(input)
-
+			const form = buildLtiLaunchForm(document, launch, this.ltiFrameName)
 			document.body.appendChild(form)
 			form.submit()
 			document.body.removeChild(form)
