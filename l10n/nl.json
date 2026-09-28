@@ -1,5 +1,6 @@
 {
     "translations": {
+        "You have used all attempts for this assessment.": "Je hebt al je pogingen voor deze toets gebruikt.",
         "Last Checked Learner ID": "ID van laatst gecontroleerde leerling",
         "Nextcloud user ID of the learner named in the most recent `check-threshold` transition. Transient — overwritten on every check. See attendance-threshold-calculation: OpenRegister's aggregation DSL cannot express a per-individual-learner figure on a shared threshold definition, so a caller (a manual admin/mentor action today; a future scheduled per-learner job is the natural long-term caller) supplies this value as a guarded transition input.": "Nextcloud-gebruikers-ID van de leerling die is opgegeven bij de meest recente `check-threshold`-overgang. Tijdelijk: wordt bij elke controle overschreven. Zie attendance-threshold-calculation: de aggregatietaal van OpenRegister kan geen waarde per individuele leerling uitdrukken op een gedeelde drempeldefinitie, dus een aanroeper (vandaag een handmatige actie van beheerder of mentor, op termijn een geplande taak per leerling) levert deze waarde aan als invoer bij een beveiligde overgang.",
         "Last Checked Metric Value": "Laatst gecontroleerde meetwaarde",

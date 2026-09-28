@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\AppInfo\Registrar;
 
+use OCA\Learniq\Listener\AssessmentAttemptTimeLimitListener;
 use OCA\Learniq\Listener\AssessmentResultIntegrityListener;
 use OCA\Learniq\Listener\CompetencyAlignmentListener;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
@@ -145,5 +146,26 @@ class IntegrityListenerRegistrar {
 			event: ObjectUpdatingEvent::class,
 			listener: SubmissionResubmissionDateListener::class
 		);
+
+		$this->registerAttemptTimeLimit(context: $context);
 	}//end register()
+
+	/**
+	 * Attempt time limit (in-app-test-limits-server-side): the learner cannot
+	 * move an attempt's start or number, and after the deadline plus the grace
+	 * its answers stop changing, as on the portal. A pre-write rule on the
+	 * updating event, registered directly like the integrity rules above.
+	 *
+	 * @param IRegistrationContext $context The app registration context.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
+	 */
+	private function registerAttemptTimeLimit(IRegistrationContext $context): void {
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: AssessmentAttemptTimeLimitListener::class
+		);
+	}//end registerAttemptTimeLimit()
 }//end class
