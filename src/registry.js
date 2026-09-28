@@ -107,6 +107,10 @@ import GroupPlanSubgroupLearnerContext from './views/GroupPlanSubgroupLearnerCon
 // learning-progress-and-analytics: cohort x period grade-trend heat map —
 // the one genuine new custom view this change adds.
 import GroupTrendHeatmap from './views/GroupTrendHeatmap.vue'
+// timetabling-multi-year-hour-plan: the hour plan grid and the teaching
+// activities a school year needs.
+import HourPlanActivities from './views/HourPlanActivities.vue'
+import HourPlanEditor from './views/HourPlanEditor.vue'
 import ItemAnalysisView from './views/ItemAnalysisView.vue'
 import ItemAuthorView from './views/ItemAuthorView.vue'
 // engagement-gamification: the one genuine new custom view this change adds —
@@ -166,9 +170,13 @@ import QtiImportView from './views/QtiImportView.vue'
 import RapportvergaderingReviewView from './views/RapportvergaderingReviewView.vue'
 import RegulationDetailPage from './views/RegulationDetailPage.vue'
 import RolloverWizard from './views/RolloverWizard.vue'
+// timetabling-room-utilisation: the room use report under Reports.
+import RoomUtilisationReport from './views/RoomUtilisationReport.vue'
 import SelfAssessmentView from './views/SelfAssessmentView.vue'
 import SignatureView from './views/SignatureView.vue'
 import SkillsGapDashboard from './views/SkillsGapDashboard.vue'
+// timetabling-standby-slots: the standby planning grid.
+import StandbyPlanning from './views/StandbyPlanning.vue'
 import SubjectChoicePicker from './views/SubjectChoicePicker.vue'
 import SubmitExcuseView from './views/SubmitExcuseView.vue'
 import SubmitWorkView from './views/SubmitWorkView.vue'
@@ -241,6 +249,7 @@ export default {
 	LearningPlanEditorView: page(LearningPlanEditorView),
 	QtiImportView: page(QtiImportView),
 	SignatureView: page(SignatureView),
+	StandbyPlanning: page(StandbyPlanning),
 	SubmitExcuseView: page(SubmitExcuseView),
 	TimetableLookup: page(TimetableLookup),
 	SubmitWorkView: page(SubmitWorkView),
@@ -262,6 +271,9 @@ export default {
 	GradeImpactDetail: page(GradeImpactDetail),
 	GroupPlanSubgroupLearnerContext: page(GroupPlanSubgroupLearnerContext),
 	GroupTrendHeatmap: page(GroupTrendHeatmap),
+	HourPlanActivities: page(HourPlanActivities),
+	HourPlanEditor: page(HourPlanEditor),
+	RoomUtilisationReport: page(RoomUtilisationReport),
 	ItemAnalysisView: page(ItemAnalysisView),
 	ItemAuthorView: page(ItemAuthorView),
 	LeaderboardView: page(LeaderboardView),

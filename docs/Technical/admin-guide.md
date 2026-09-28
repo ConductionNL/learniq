@@ -88,6 +88,19 @@ Or use the **Rotate key** action in the admin panel. The old key is retained for
 
 ---
 
+## Set up cmi5 playback
+
+A cmi5 lesson opens its package only after you generate the cmi5 launch key. Until then learners see "cmi5 playback is not yet available for this lesson".
+
+```bash
+curl -u admin -X POST -H 'OCS-APIREQUEST: true' https://<host>/index.php/apps/learniq/api/cmi5/admin/generate-key
+curl -u admin -H 'OCS-APIREQUEST: true' https://<host>/index.php/apps/learniq/api/cmi5/admin/key-status
+```
+
+The key is one RSA key-pair for the whole instance; the private half is stored encrypted. To replace it, send `confirm=true`; you can do that once a day, and launches that are open at that moment stop sending results.
+
+When a learner opens a cmi5 lesson, learniq gives the package a one-time fetch address for its token, never the token itself. The package then sends its results to `/apps/learniq/api/lrs/statements`. Learniq records who sent each statement from the token, not from what the statement says about itself, and a learner can only read their own statements.
+
 ## Per-Regulation RAG thresholds
 
 Each Regulation can have its own coverage thresholds. Defaults at creation time:

@@ -128,7 +128,8 @@ class TimetableController extends Controller {
 
 		[$windowFrom, $windowTo] = $this->projector->resolveWindow(from: $from, to: $to);
 
-		$cohortIds = $this->resolveCallerCohortIds(uid: $uid);
+		$taughtCohortIds = [];
+		$cohortIds = $this->resolveCallerCohortIds(uid: $uid, taught: $taughtCohortIds);
 		$source = $this->sources->current();
 
 		// With planninq a teacher can have lessons of their own, and with
@@ -158,11 +159,15 @@ class TimetableController extends Controller {
 
 		$roomCache = $this->preloadRooms(sessions: $rawSessions);
 
-		$sessions = $this->projector->windowedSessions(
+		// Each lesson carries the notes the caller may read, and whether the
+		// caller may add one (timetabling-lesson-note).
+		$sessions = $this->projector->personalSessions(
 			rawSessions: $rawSessions,
 			windowFrom: $windowFrom,
 			windowTo: $windowTo,
-			roomCache: $roomCache
+			roomCache: $roomCache,
+			uid: $uid,
+			taughtCohortIds: $taughtCohortIds
 		);
 		$changes = $this->projector->todaysChanges(rawSessions: $rawSessions, roomCache: $roomCache);
 
@@ -306,11 +311,12 @@ class TimetableController extends Controller {
 	 * the caller has an `Enrolment` whose `learnerId` is the caller and whose
 	 * `cohortId` is set. All reads are RBAC/multitenancy-scoped by ObjectService.
 	 *
-	 * @param string $uid The caller's Nextcloud user id.
+	 * @param string            $uid    The caller's Nextcloud user id.
+	 * @param array<int,string> $taught Filled with the cohorts the caller teaches, which read every note of their lessons.
 	 *
 	 * @return array<int,string> The unique cohort UUIDs (may be empty).
 	 */
-	private function resolveCallerCohortIds(string $uid): array {
+	private function resolveCallerCohortIds(string $uid, array &$taught): array {
 		$cohortIds = [];
 
 		// Cohorts where the caller is a teacher or a listed learner. teacherIds
@@ -327,14 +333,15 @@ class TimetableController extends Controller {
 
 		foreach ($cohorts as $row) {
 			$cohort = $this->toArray(row: $row);
-			$teacherIds = $this->toStringList(value: ($cohort['teacherIds'] ?? []));
-			$learnerIds = $this->toStringList(value: ($cohort['learnerIds'] ?? []));
+			$cohortId = (string)($cohort['id'] ?? ($cohort['uuid'] ?? ''));
+			$role = $this->membership(uid: $uid, cohort: $cohort);
+			if ($cohortId === '' || $role === null) {
+				continue;
+			}
 
-			if (in_array($uid, $teacherIds, true) === true || in_array($uid, $learnerIds, true) === true) {
-				$cohortId = (string)($cohort['id'] ?? ($cohort['uuid'] ?? ''));
-				if ($cohortId !== '') {
-					$cohortIds[$cohortId] = true;
-				}
+			$cohortIds[$cohortId] = true;
+			if ($role === 'teacher') {
+				$taught[] = $cohortId;
 			}
 		}
 
@@ -365,6 +372,26 @@ class TimetableController extends Controller {
 
 		return array_keys($cohortIds);
 	}//end resolveCallerCohortIds()
+
+	/**
+	 * The caller's place in a cohort: `teacher`, `learner`, or null.
+	 *
+	 * @param string              $uid    The caller's Nextcloud user id.
+	 * @param array<string,mixed> $cohort The cohort.
+	 *
+	 * @return string|null
+	 */
+	private function membership(string $uid, array $cohort): ?string {
+		if (in_array($uid, $this->toStringList(value: ($cohort['teacherIds'] ?? [])), true) === true) {
+			return 'teacher';
+		}
+
+		if (in_array($uid, $this->toStringList(value: ($cohort['learnerIds'] ?? [])), true) === true) {
+			return 'learner';
+		}
+
+		return null;
+	}//end membership()
 
 	/**
 	 * Pre-load every distinct Room referenced by `roomId` across the given
