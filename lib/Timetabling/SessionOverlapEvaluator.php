@@ -99,9 +99,9 @@ class SessionOverlapEvaluator {
 		}
 
 		// Room-double-booking.
-		$roomA = (string)($sessionA['roomId'] ?? '');
-		if ($roomA !== '' && $roomA === (string)($sessionB['roomId'] ?? '')) {
-			$kinds['room-double-booking'] = $roomA;
+		$sharedRoom = $this->sharedRoomRef(sessionA: $sessionA, sessionB: $sessionB);
+		if ($sharedRoom !== null) {
+			$kinds['room-double-booking'] = $sharedRoom;
 		}
 
 		// Cohort-double-booking.
@@ -182,8 +182,41 @@ class SessionOverlapEvaluator {
 	}//end sharedLearnerRef()
 
 	/**
+	 * The room two Sessions share, if any: the same `roomId`, or, when
+	 * neither has a Room row (a lesson from the planninq timetable source),
+	 * the same school `roomReference` code (sessions-from-planninq).
+	 *
+	 * @param array<string,mixed> $sessionA Session A.
+	 * @param array<string,mixed> $sessionB Session B.
+	 *
+	 * @return string|null The shared room id or code, or null.
+	 *
+	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004
+	 */
+	private function sharedRoomRef(array $sessionA, array $sessionB): ?string {
+		$roomA = (string)($sessionA['roomId'] ?? '');
+		$roomB = (string)($sessionB['roomId'] ?? '');
+		if ($roomA !== '' || $roomB !== '') {
+			if ($roomA === $roomB) {
+				return $roomA;
+			}
+
+			return null;
+		}
+
+		$codeA = (string)($sessionA['roomReference'] ?? '');
+		if ($codeA !== '' && $codeA === (string)($sessionB['roomReference'] ?? '')) {
+			return $codeA;
+		}
+
+		return null;
+	}//end sharedRoomRef()
+
+	/**
 	 * Resolve the "assigned teacher" identity set for a Session: the
-	 * substitute teacher once assigned, else the Cohort's teacherIds.
+	 * substitute teacher once assigned, else the lesson's own teacher account
+	 * (a planninq lesson carries one, sessions-from-planninq), else the
+	 * Cohort's teacherIds.
 	 *
 	 * @param array<string,mixed> $session Session data.
 	 * @param array<string,mixed>|null $cohort The Session's Cohort data, or null.
@@ -194,6 +227,11 @@ class SessionOverlapEvaluator {
 		$substituteId = (string)($session['substituteTeacherId'] ?? '');
 		if ($substituteId !== '') {
 			return [$substituteId];
+		}
+
+		$ownTeacher = (string)($session['teacherUserId'] ?? '');
+		if ($ownTeacher !== '') {
+			return [$ownTeacher];
 		}
 
 		if ($cohort === null) {

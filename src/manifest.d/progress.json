@@ -236,6 +236,14 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"he",
+								"corporate",
+								"training"
+							]
 						}
 					}
 				},
@@ -250,6 +258,14 @@
 							"in": [
 								"admin",
 								"coordinator"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"he",
+								"corporate",
+								"training"
 							]
 						}
 					}
@@ -266,6 +282,14 @@
 								"admin",
 								"coordinator"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"he",
+								"corporate",
+								"training"
+							]
 						}
 					}
 				},
@@ -281,6 +305,14 @@
 								"admin",
 								"coordinator"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"he",
+								"corporate",
+								"training"
+							]
 						}
 					}
 				},
@@ -295,6 +327,14 @@
 							"in": [
 								"admin",
 								"coordinator"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"he",
+								"corporate",
+								"training"
 							]
 						}
 					}
@@ -314,6 +354,14 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"he",
+								"corporate",
+								"training"
+							]
 						}
 					}
 				}
@@ -326,14 +374,6 @@
 						"team-lead",
 						"administration-manager",
 						"admin"
-					]
-				},
-				"workspace.segment": {
-					"in": [
-						"mbo",
-						"he",
-						"corporate",
-						"training"
 					]
 				}
 			}
@@ -359,6 +399,14 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"he",
+								"corporate",
+								"training"
+							]
 						}
 					}
 				},
@@ -377,6 +425,14 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"he",
+								"corporate",
+								"training"
+							]
 						}
 					}
 				},
@@ -392,6 +448,14 @@
 								"admin",
 								"coordinator",
 								"instructor"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"he",
+								"corporate",
+								"training"
 							]
 						}
 					}
@@ -411,6 +475,14 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"he",
+								"corporate",
+								"training"
+							]
 						}
 					}
 				}
@@ -423,14 +495,6 @@
 						"team-lead",
 						"administration-manager",
 						"admin"
-					]
-				},
-				"workspace.segment": {
-					"in": [
-						"mbo",
-						"he",
-						"corporate",
-						"training"
 					]
 				}
 			}
@@ -2514,7 +2578,20 @@
 									"route": "BpvPlacements",
 									"order": 10,
 									"icon": "BriefcaseOutline",
-									"description": "Work placements at an employer"
+									"description": "Work placements at an employer",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"mbo",
+												"corporate"
+											]
+										},
+										"workspace.chosenSegment": {
+											"notIn": [
+												"corporate"
+											]
+										}
+									}
 								},
 								{
 									"id": "PraktijkovereenkomstenMenu",
@@ -2522,7 +2599,20 @@
 									"route": "Praktijkovereenkomsten",
 									"order": 20,
 									"icon": "FileOutline",
-									"description": "Placement agreements (POK)"
+									"description": "Placement agreements (POK)",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"mbo",
+												"corporate"
+											]
+										},
+										"workspace.chosenSegment": {
+											"notIn": [
+												"corporate"
+											]
+										}
+									}
 								},
 								{
 									"id": "WerkprocesAssessmentsMenu",
@@ -2530,7 +2620,20 @@
 									"route": "WerkprocesAssessments",
 									"order": 30,
 									"icon": "Check",
-									"description": "Assessments against work-process criteria"
+									"description": "Assessments against work-process criteria",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"mbo",
+												"corporate"
+											]
+										},
+										"workspace.chosenSegment": {
+											"notIn": [
+												"corporate"
+											]
+										}
+									}
 								},
 								{
 									"id": "BpvVisitReportsMenu",
@@ -2538,7 +2641,20 @@
 									"route": "BpvVisitReports",
 									"order": 40,
 									"icon": "ChartBoxOutline",
-									"description": "Reports from workplace visits"
+									"description": "Reports from workplace visits",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"mbo",
+												"corporate"
+											]
+										},
+										"workspace.chosenSegment": {
+											"notIn": [
+												"corporate"
+											]
+										}
+									}
 								},
 								{
 									"id": "PraktijkopleidersMenu",
@@ -2546,7 +2662,20 @@
 									"route": "Praktijkopleiders",
 									"order": 50,
 									"icon": "AccountBox",
-									"description": "Workplace trainers at the employer"
+									"description": "Workplace trainers at the employer",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"mbo",
+												"corporate"
+											]
+										},
+										"workspace.chosenSegment": {
+											"notIn": [
+												"corporate"
+											]
+										}
+									}
 								},
 								{
 									"id": "PortfoliosMenu",
@@ -2590,7 +2719,17 @@
 									"route": "EvaluationCampaigns",
 									"order": 110,
 									"icon": "ClipboardOutline",
-									"description": "Course-evaluation campaigns"
+									"description": "Course-evaluation campaigns",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"mbo",
+												"he",
+												"corporate",
+												"training"
+											]
+										}
+									}
 								},
 								{
 									"id": "CourseQualityReportMenu",
@@ -2598,7 +2737,17 @@
 									"route": "CourseQualityReport",
 									"order": 120,
 									"icon": "ChartBoxOutline",
-									"description": "Course-quality scores"
+									"description": "Course-quality scores",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"mbo",
+												"he",
+												"corporate",
+												"training"
+											]
+										}
+									}
 								},
 								{
 									"id": "CourseEvaluationResponsesMenu",
@@ -2606,7 +2755,17 @@
 									"route": "CourseEvaluationResponses",
 									"order": 130,
 									"icon": "CommentOutline",
-									"description": "Course-evaluation responses"
+									"description": "Course-evaluation responses",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"mbo",
+												"he",
+												"corporate",
+												"training"
+											]
+										}
+									}
 								},
 								{
 									"id": "ImprovementActionsMenu",
@@ -2614,7 +2773,17 @@
 									"route": "ImprovementActions",
 									"order": 140,
 									"icon": "Check",
-									"description": "Actions raised from evaluations"
+									"description": "Actions raised from evaluations",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"mbo",
+												"he",
+												"corporate",
+												"training"
+											]
+										}
+									}
 								},
 								{
 									"id": "LeaderboardViewMenu",
@@ -2622,7 +2791,17 @@
 									"route": "LeaderboardView",
 									"order": 150,
 									"icon": "AccountArrowRightOutline",
-									"description": "The live engagement leaderboard"
+									"description": "The live engagement leaderboard",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"mbo",
+												"he",
+												"corporate",
+												"training"
+											]
+										}
+									}
 								},
 								{
 									"id": "PointRulesMenu",
@@ -2630,7 +2809,17 @@
 									"route": "PointRules",
 									"order": 160,
 									"icon": "Eye",
-									"description": "How engagement points are earned"
+									"description": "How engagement points are earned",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"mbo",
+												"he",
+												"corporate",
+												"training"
+											]
+										}
+									}
 								},
 								{
 									"id": "EngagementLevelsMenu",
@@ -2638,7 +2827,17 @@
 									"route": "EngagementLevels",
 									"order": 170,
 									"icon": "ClipboardOutline",
-									"description": "Engagement levels and thresholds"
+									"description": "Engagement levels and thresholds",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"mbo",
+												"he",
+												"corporate",
+												"training"
+											]
+										}
+									}
 								},
 								{
 									"id": "LeaderboardsMenu",
@@ -2646,7 +2845,17 @@
 									"route": "Leaderboards",
 									"order": 180,
 									"icon": "AccountArrowRightOutline",
-									"description": "Leaderboard definitions"
+									"description": "Leaderboard definitions",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"mbo",
+												"he",
+												"corporate",
+												"training"
+											]
+										}
+									}
 								},
 								{
 									"id": "PointAwardsMenu",
@@ -2654,7 +2863,17 @@
 									"route": "PointAwards",
 									"order": 190,
 									"icon": "History",
-									"description": "Points awarded to learners"
+									"description": "Points awarded to learners",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"mbo",
+												"he",
+												"corporate",
+												"training"
+											]
+										}
+									}
 								},
 								{
 									"id": "LearnerEngagementsMenu",
@@ -2662,7 +2881,17 @@
 									"route": "LearnerEngagements",
 									"order": 200,
 									"icon": "ChartLine",
-									"description": "Per-learner engagement records"
+									"description": "Per-learner engagement records",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"mbo",
+												"he",
+												"corporate",
+												"training"
+											]
+										}
+									}
 								},
 								{
 									"id": "GroupTrendHeatmapMenu",
@@ -2738,7 +2967,15 @@
 									"route": "BsaRiskDashboard",
 									"order": 300,
 									"icon": "ViewDashboardOutline",
-									"description": "Study-progress risk overview"
+									"description": "Study-progress risk overview",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"he",
+												"corporate"
+											]
+										}
+									}
 								},
 								{
 									"id": "BsaTrajectoriesMenu",
@@ -2746,7 +2983,15 @@
 									"route": "BsaTrajectories",
 									"order": 310,
 									"icon": "BriefcaseOutline",
-									"description": "Study-progress trajectories"
+									"description": "Study-progress trajectories",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"he",
+												"corporate"
+											]
+										}
+									}
 								},
 								{
 									"id": "BsaWarningsMenu",
@@ -2754,7 +2999,15 @@
 									"route": "BsaWarnings",
 									"order": 320,
 									"icon": "Lock",
-									"description": "Study-progress warnings"
+									"description": "Study-progress warnings",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"he",
+												"corporate"
+											]
+										}
+									}
 								},
 								{
 									"id": "BsaDecisionsMenu",
@@ -2762,7 +3015,15 @@
 									"route": "BsaDecisions",
 									"order": 330,
 									"icon": "Gavel",
-									"description": "Formal study-progress decisions"
+									"description": "Formal study-progress decisions",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"he",
+												"corporate"
+											]
+										}
+									}
 								}
 							]
 						}
