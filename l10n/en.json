@@ -2235,7 +2235,32 @@
         "The Europass version was created.": "The Europass version was created.",
         "The Europass version could not be created. Only HR and compliance officers can create it, for an issued certificate.": "The Europass version could not be created. Only HR and compliance officers can create it, for an issued certificate.",
         "This certificate has no Europass version yet, or you may not download it.": "This certificate has no Europass version yet, or you may not download it.",
-        "The Europass version could not be created. It exists already, the certificate is not issued, or only HR and compliance officers can create it.": "The Europass version could not be created. It exists already, the certificate is not issued, or only HR and compliance officers can create it."
+        "The Europass version could not be created. It exists already, the certificate is not issued, or only HR and compliance officers can create it.": "The Europass version could not be created. It exists already, the certificate is not issued, or only HR and compliance officers can create it.",
+        "Reissue certificates": "Reissue certificates",
+        "{revoked} revoked and {expired} expired certificates are left as they are. Learners keep their certificate number, issue date and expiry.": "{revoked} revoked and {expired} expired certificates are left as they are. Learners keep their certificate number, issue date and expiry.",
+        "Reason for the reissue": "Reason for the reissue",
+        "Stored on every certificate and shown in its history.": "Stored on every certificate and shown in its history.",
+        "The reissue has started. Learners get a notification when their certificate is ready.": "The reissue has started. Learners get a notification when their certificate is ready.",
+        "A reissue is waiting to run.": "A reissue is waiting to run.",
+        "Last reissue: {processed} reissued, {skipped} skipped, {failed} failed.": "Last reissue: {processed} reissued, {skipped} skipped, {failed} failed.",
+        "Only HR and compliance officers can reissue certificates.": "Only HR and compliance officers can reissue certificates.",
+        "The reissue could not be started.": "The reissue could not be started.",
+        "Reissued at": "Reissued at",
+        "When the certificate was last reissued.": "When the certificate was last reissued.",
+        "Times reissued": "Times reissued",
+        "How often the certificate was reissued.": "How often the certificate was reissued.",
+        "Reason for the last reissue": "Reason for the last reissue",
+        "Why the certificate was last reissued.": "Why the certificate was last reissued.",
+        "Reissued by": "Reissued by",
+        "Who started the last reissue.": "Who started the last reissue.",
+        "Reissue run": "Reissue run",
+        "The run that last reissued the certificate, so a run never reissues it twice.": "The run that last reissued the certificate, so a run never reissues it twice.",
+        "Wallet note": "Wallet note",
+        "A note on the wallet copy, for example that the wallet holds the version from before a reissue.": "A note on the wallet copy, for example that the wallet holds the version from before a reissue.",
+        "_%n issued certificate will be rebuilt and signed again._::_%n issued certificates will be rebuilt and signed again._": [
+            "%n issued certificate will be rebuilt and signed again.",
+            "%n issued certificates will be rebuilt and signed again."
+        ]
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
