@@ -93,7 +93,7 @@ Everything else, such as people, groups, attendance records, the pupil dossier, 
 
 A choice counts once it names who made it. The wizard always records you. If you set the kind on the **App settings** page instead, fill in "Set by" with your user name, or the app keeps every menu as if nobody chose. Loading example data never counts as a choice.
 
-Loading a set twice adds nothing, because every example object has a fixed id.
+Loading a set twice adds nothing, because every example object has a fixed id. Loading two sets that ship the same regulation, such as the company and the training set with VCA and NIS2, keeps one row per regulation: the set you load second uses the row the first one made.
 
 To remove a set again, open the setup wizard and go to the end. Every set you loaded has its own step, **Remove the example set "..."**, with its own button; click the one for the set you want gone. On an install where no set was loaded before this visit, the wizard shows one step, **Remove the example data**, for the set you pick now. The example objects move to the trash of OpenRegister, so you can restore them; anything you made yourself stays. The step never runs by itself. Only an administrator or a member of `administration-managers` can choose the kind of organisation in the wizard.
 
@@ -105,6 +105,14 @@ php occ learniq:example-set:remove po --apply
 ```
 
 The command hands the set's ids to OpenRegister's `openregister:objects:purge --force`, the one route OpenRegister offers for removing fixtures from archival schemas. It only ever removes objects the set itself shipped.
+
+## Timetable import and SWV hand-offs
+
+The timetable is planninq's: integriq reads it from Zermelo, Untis, Xedule or TimeEdit and delivers it to planninq, and learniq reads the lessons from there. The timetable row on the Integrations page shows as available once planninq is installed; learniq reports it once a day and when you save the admin settings.
+
+Under **Administration settings > Learniq > Timetable and SWV exchange**, say which group code in each rostering system is which group in learniq, and name the integriq receiver of your support requests for the SWV (for example `swv-kindkans`). An import uses the map of the system it reads.
+
+Anyone allowed to request an exchange (by default administrators and administration managers) finds **Import a timetable** on the timetable conflicts page. After the delivery, learniq checks the imported lessons for conflicts.
 
 ## First-login checklist
 

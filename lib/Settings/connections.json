@@ -14,9 +14,9 @@
             "title": "Timetable import",
             "description": "Lessons from Zermelo, Untis or Xedule.",
             "order": 20,
-            "settingsUrl": "/settings/admin/learniq#section-data-exchange",
-            "available": false,
-            "unavailableMessage": "The timetable is planninq's now: integriq delivers it there and learniq reads the lessons from planninq. Learniq no longer imports it."
+            "settingsUrl": "/settings/admin/learniq#section-timetable-exchange",
+            "reportedOnly": true,
+            "unconfiguredMessage": "Learniq has not reported yet whether planninq is installed. It reports once a day, and when you save the admin settings. Integriq delivers the timetable to planninq, and learniq reads the lessons from there."
         },
         {
             "key": "lti",

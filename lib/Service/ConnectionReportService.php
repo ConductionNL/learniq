@@ -34,6 +34,7 @@ namespace OCA\Learniq\Service;
 
 use DateTimeZone;
 use OCA\Learniq\AppInfo\Application;
+use OCP\App\IAppManager;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -64,19 +65,30 @@ class ConnectionReportService {
 	public const WALLET_KEY = 'eudi-wallet';
 
 	/**
+	 * The connection key of the timetable row. Learniq reports it from whether
+	 * planninq is enabled; integriq, which delivers the timetable, is present
+	 * whenever the report can be sent at all
+	 * (timetable-connection-and-import-screen).
+	 *
+	 * @var string
+	 */
+	public const TIMETABLE_KEY = 'timetable';
+
+	/**
 	 * The connections learniq reports on. A unit test keeps every key declared.
 	 *
 	 * @var array<int, string>
 	 */
-	public const REPORTED_KEYS = [self::WALLET_KEY];
+	public const REPORTED_KEYS = [self::WALLET_KEY, self::TIMETABLE_KEY];
 
 	/**
 	 * The statuses an observation may carry: the call got through, it was not
-	 * sent for want of settings, or it failed. Learniq observes nothing else.
+	 * sent for want of settings, it failed, or an app it needs is missing.
+	 * Learniq observes nothing else.
 	 *
 	 * @var array<int, string>
 	 */
-	public const OBSERVABLE_STATUSES = ['configured', 'unconfigured', 'error'];
+	public const OBSERVABLE_STATUSES = ['configured', 'unconfigured', 'error', 'unavailable'];
 
 	/**
 	 * App-config key prefix for a stored observation, followed by the connection key.
@@ -99,12 +111,14 @@ class ConnectionReportService {
 	 * @param IEventDispatcher $eventDispatcher Sends the integriq event (ADR-041).
 	 * @param ITimeFactory     $timeFactory     Stamps when an outcome was first seen.
 	 * @param LoggerInterface  $logger          Records what could not be sent.
+	 * @param IAppManager      $appManager      Says whether planninq is enabled, for the timetable row.
 	 */
 	public function __construct(
 		private readonly IAppConfig $appConfig,
 		private readonly IEventDispatcher $eventDispatcher,
 		private readonly ITimeFactory $timeFactory,
 		private readonly LoggerInterface $logger,
+		private readonly IAppManager $appManager,
 	) {
 	}//end __construct()
 
@@ -208,6 +222,33 @@ class ConnectionReportService {
 			}//end try
 		}//end foreach
 	}//end reportObservations()
+
+	/**
+	 * Record whether the timetable connection can work: integriq delivers the
+	 * timetable into planninq, so it is available exactly when planninq is
+	 * enabled. The daily job and a settings save call it before they report;
+	 * the report itself only goes out when integriq is there.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-the-timetable-connection-is-available-when-planninq-and-integriq-are-installed
+	 */
+	public function observeTimetable(): void {
+		if ($this->appManager->isEnabledForUser('planninq') === true) {
+			$this->observe(
+				key: self::TIMETABLE_KEY,
+				status: 'configured',
+				reason: 'Planninq and integriq are installed: integriq delivers the timetable to planninq, and learniq reads the lessons from planninq.'
+			);
+			return;
+		}
+
+		$this->observe(
+			key: self::TIMETABLE_KEY,
+			status: 'unavailable',
+			reason: 'Planninq is not installed. Integriq delivers the timetable to planninq, and learniq reads the lessons from there.'
+		);
+	}//end observeTimetable()
 
 	/**
 	 * The stored observation for a connection, or null when none is usable.

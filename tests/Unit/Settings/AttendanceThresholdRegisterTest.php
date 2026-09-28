@@ -93,16 +93,18 @@ class AttendanceThresholdRegisterTest extends TestCase {
 
 	/**
 	 * The existing thresholdCrossed notification still triggers on
-	 * unexcusedLesuren (now a real field) and now also notifies coordinator.
+	 * unexcusedLesuren (now a real field) and notifies the coordinators group.
+	 * `mentor` and `coordinator` were role words no install provisions
+	 * (notification-recipients-provisioned).
 	 *
 	 * @return void
 	 */
-	public function testThresholdCrossedNotificationNotifiesMentorAndCoordinator(): void {
+	public function testThresholdCrossedNotificationNotifiesTheCoordinators(): void {
 		$rule = $this->config['components']['schemas']['AttendanceThreshold']['x-openregister-notifications']['thresholdCrossed'];
 
 		self::assertSame('calculatedChange', $rule['trigger']['type']);
 		self::assertSame('unexcusedLesuren', $rule['trigger']['field']);
-		self::assertSame(['mentor', 'coordinator'], $rule['recipients'][0]['groups']);
+		self::assertSame(['coordinators'], $rule['recipients'][0]['groups']);
 
 		// No group is named twice across the entries, so nobody is notified
 		// twice: the serial landing of round one left a second, mentor-only
@@ -110,7 +112,7 @@ class AttendanceThresholdRegisterTest extends TestCase {
 		$groups = array_merge(...array_map(static fn (array $entry): array => ($entry['groups'] ?? []), $rule['recipients']));
 		self::assertSame(array_values(array_unique($groups)), $groups);
 
-	}//end testThresholdCrossedNotificationNotifiesMentorAndCoordinator()
+	}//end testThresholdCrossedNotificationNotifiesTheCoordinators()
 
 	/**
 	 * check-threshold is a guarded active->active self-loop with the
