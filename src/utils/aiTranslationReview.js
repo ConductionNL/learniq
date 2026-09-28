@@ -13,6 +13,7 @@ export const PAGE_SIZE = 50
  *
  * @param {string|Array<string>|null|undefined} value The catalogue value.
  * @return {string}
+ * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
  */
 export function reviewText(value) {
 	if (Array.isArray(value)) {
@@ -28,6 +29,7 @@ export function reviewText(value) {
  * @param {Array<{key: string, source: (string|Array<string>), value: (string|Array<string>|null)}>} items The review list.
  * @param {string} query The filter text.
  * @return {Array<object>}
+ * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
  */
 export function filterReviewItems(items, query) {
 	const needle = String(query || '')
@@ -49,6 +51,7 @@ export function filterReviewItems(items, query) {
  * @param {Array<object>} items The list.
  * @param {number} page The zero-based page.
  * @return {Array<object>}
+ * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
  */
 export function pageOf(items, page) {
 	const start = Math.max(0, page) * PAGE_SIZE

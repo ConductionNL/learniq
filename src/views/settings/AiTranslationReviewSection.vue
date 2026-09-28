@@ -152,6 +152,7 @@ export default {
 		 * The items matching the filter.
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
 		 */
 		filtered() {
 			return filterReviewItems(this.items, this.query)
@@ -161,6 +162,7 @@ export default {
 		 * How many pages the filtered list has.
 		 *
 		 * @return {number}
+		 * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
 		 */
 		pageCount() {
 			return Math.max(1, Math.ceil(this.filtered.length / PAGE_SIZE))
@@ -170,6 +172,7 @@ export default {
 		 * The rows on the current page.
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
 		 */
 		visible() {
 			return pageOf(this.filtered, this.page)
@@ -204,6 +207,7 @@ export default {
 		 *
 		 * @param {string|Array<string>|null} value The catalogue value.
 		 * @return {string}
+		 * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
 		 */
 		asText(value) {
 			return reviewText(value)
