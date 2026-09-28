@@ -35,6 +35,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \OCA\Learniq\Service\CoursePackage\CourseMetadataFilter
  * @covers \OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter
  * @covers \OCA\Learniq\Service\CoursePackage\LearniqJsonCourseImporter
+ * @uses   \OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter
  */
 class CourseMetadataFilterTest extends TestCase {
 

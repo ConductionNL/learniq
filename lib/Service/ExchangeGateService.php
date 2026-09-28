@@ -82,6 +82,7 @@ class ExchangeGateService {
 	 * @param ObjectService              $objectService OR object access.
 	 * @param DataExchangePayloadBuilder $builder       Composes what may leave.
 	 * @param ExchangeDisclosure         $disclosure    Field lists and statutory rules.
+	 * @param ExchangeImportInput        $importInput   Reads an import job's file.
 	 * @param IL10N                      $l10n          Translates the refusal reasons.
 	 * @param LoggerInterface            $logger        Logger.
 	 */
@@ -89,6 +90,7 @@ class ExchangeGateService {
 		private readonly ObjectService $objectService,
 		private readonly DataExchangePayloadBuilder $builder,
 		private readonly ExchangeDisclosure $disclosure,
+		private readonly ExchangeImportInput $importInput,
 		private readonly IL10N $l10n,
 		private readonly LoggerInterface $logger,
 	) {
@@ -109,6 +111,7 @@ class ExchangeGateService {
 	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-refuses-an-oso-or-swv-file-until-a-parent-approved-it
 	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
+	 * @spec openspec/changes/import-records-in-gate-answer/specs/data-exchange/spec.md#requirement-the-gate-hands-the-rows-of-an-import-jobs-file-to-integriq
 	 */
 	public function evaluate(
 		string $jobId,
@@ -126,7 +129,7 @@ class ExchangeGateService {
 		}
 
 		if ($direction === 'import') {
-			return $this->allow(records: []);
+			return $this->importAnswer(jobId: $jobId, target: $target, scope: $scope);
 		}
 
 		$mappingSlug = $this->mappingOf(jobId: $jobId);
@@ -305,6 +308,31 @@ class ExchangeGateService {
 	}//end completenessRefusal()
 
 	/**
+	 * An import job's answer: the rows of the file it names, or a refusal.
+	 * Targets learniq does not land are allowed without records.
+	 *
+	 * Logs the job id and the refusal code only, never a row or a file name.
+	 *
+	 * @param string               $jobId  The integriq job's uuid.
+	 * @param string               $target The exchange target.
+	 * @param array<string, mixed> $scope  The job's scope (`fileId`).
+	 *
+	 * @return array{decision: string, code: string, reason: string, checkedAt: string, records: array<int, array<string, mixed>>}
+	 *
+	 * @spec openspec/changes/import-records-in-gate-answer/specs/data-exchange/spec.md#requirement-the-gate-hands-the-rows-of-an-import-jobs-file-to-integriq
+	 */
+	private function importAnswer(string $jobId, string $target, array $scope): array {
+		$requestedBy = (string)($this->jobRow(jobId: $jobId)['requestedBy'] ?? '');
+		$input = $this->importInput->read(target: $target, scope: $scope, requestedBy: $requestedBy);
+		if ($input['refusal'] === null) {
+			return $this->allow(records: $input['records']);
+		}
+
+		$this->logger->info('[ExchangeGateService] import job ' . $jobId . ' refused: ' . $input['refusal']);
+		return $this->refuse(code: $input['refusal'], reason: $input['reason']);
+	}//end importAnswer()
+
+	/**
 	 * The integriq job's mapping slug, read from integriq's own row.
 	 *
 	 * @param string $jobId The integriq job's uuid.
@@ -312,6 +340,22 @@ class ExchangeGateService {
 	 * @return string|null The slug, or null when the job cannot be read.
 	 */
 	private function mappingOf(string $jobId): ?string {
+		$slug = ($this->jobRow(jobId: $jobId)['exchangeMapping'] ?? null);
+		if (is_string($slug) === false || $slug === '') {
+			return null;
+		}
+
+		return $slug;
+	}//end mappingOf()
+
+	/**
+	 * Integriq's own row of a job, as an array.
+	 *
+	 * @param string $jobId The integriq job's uuid.
+	 *
+	 * @return array<string, mixed> The row, or empty when it cannot be read.
+	 */
+	private function jobRow(string $jobId): array {
 		try {
 			$job = $this->objectService->find(
 				id: $jobId,
@@ -322,21 +366,11 @@ class ExchangeGateService {
 			);
 		} catch (Throwable $exception) {
 			$this->logger->info('[ExchangeGateService] integriq job ' . $jobId . ' could not be read: ' . $exception->getMessage());
-			return null;
+			return [];
 		}
 
-		if ($job === null) {
-			return null;
-		}
-
-		$data = $job->jsonSerialize();
-		$slug = $data['exchangeMapping'] ?? null;
-		if (is_string($slug) === false || $slug === '') {
-			return null;
-		}
-
-		return $slug;
-	}//end mappingOf()
+		return (array)($job?->jsonSerialize() ?? []);
+	}//end jobRow()
 
 	/**
 	 * One learniq row by uuid, as an array.
@@ -428,12 +462,8 @@ class ExchangeGateService {
 	 * @return string The uuid, or the reference itself when it has no slash.
 	 */
 	private function uuidOf(string $ownerRef): string {
-		$slash = strrpos($ownerRef, '/');
-		if ($slash === false) {
-			return $ownerRef;
-		}
-
-		return substr($ownerRef, ($slash + 1));
+		// The leading slash makes a reference without one come back whole.
+		return substr((string)strrchr('/' . $ownerRef, '/'), 1);
 	}//end uuidOf()
 
 	/**
