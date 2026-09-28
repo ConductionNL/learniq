@@ -160,6 +160,17 @@ of the finding.
 - **WHEN** the row is read
 - **THEN** `flagKind` resolves to its default, `"signal-verzuim"`
 
+### Requirement: A crossed threshold notifies each recipient group once
+
+The `thresholdCrossed` notification of `AttendanceThreshold` MUST name the mentor and the coordinator in one recipient entry, and no group MAY appear in more than one of its entries, so nobody receives the same notification twice.
+
+#### Scenario: The mentor is notified once
+@e2e exclude Register-content invariant; pinned by tests/Unit/Settings/AttendanceThresholdRegisterTest.php (testThresholdCrossedNotificationNotifiesMentorAndCoordinator).
+- **GIVEN** an `AttendanceThreshold` whose unexcused hours rise to its limit
+- **WHEN** the `thresholdCrossed` notification fires
+- **THEN** its recipients are one entry naming `mentor` and `coordinator`
+- **AND** no group is named in a second entry
+
 ## Standards
 
 Schema.org `Event` / `Schedule` for sessions; NL Leerplichtwet art. 21a (the 16-uur rule as an `AttendanceThreshold` profile); Digikoppeling / StUF for the leerplicht report (a `data-exchange` adapter); eIDAS / DigiD assurance for authenticated sick-reporting.

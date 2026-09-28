@@ -304,7 +304,7 @@ class PortalContributionProviderTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assignment-portal-wiring/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-work-through-the-portal-with-a-real-file-req-pcon-007
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-work-through-the-portal-with-a-real-file-req-pcon-007
 	 */
 	public function testSubmissionHandInDeclaresAFileField(): void {
 		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);

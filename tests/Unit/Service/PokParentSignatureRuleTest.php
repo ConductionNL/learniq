@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+ * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
  */
 
 declare(strict_types=1);
@@ -134,7 +134,7 @@ class PokParentSignatureRuleTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-a-minors-agreement-waits-for-a-parent
+	 * @spec openspec/specs/bpv/spec.md#scenario-a-minors-agreement-waits-for-a-parent
 	 */
 	public function testAMinorAtSigningNeedsAParent(): void {
 		$pok = $this->seed(birthDate: '2009-04-30');
@@ -154,7 +154,7 @@ class PokParentSignatureRuleTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-an-adults-agreement-needs-no-parent
+	 * @spec openspec/specs/bpv/spec.md#scenario-an-adults-agreement-needs-no-parent
 	 */
 	public function testAnAdultNeedsNoParent(): void {
 		$pok = $this->seed(birthDate: '2006-02-11');
@@ -172,7 +172,7 @@ class PokParentSignatureRuleTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+	 * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
 	 */
 	public function testTheAgeOnTheSigningDayDecides(): void {
 		$pok  = $this->seed(birthDate: '2007-08-23');
@@ -187,7 +187,7 @@ class PokParentSignatureRuleTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
+	 * @spec openspec/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
 	 */
 	public function testWithoutAStudentSignatureTodayDecides(): void {
 		$pok = $this->seed(birthDate: '2010-01-15');
@@ -201,7 +201,7 @@ class PokParentSignatureRuleTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-an-unknown-date-of-birth-asks-for-a-parent
+	 * @spec openspec/specs/bpv/spec.md#scenario-an-unknown-date-of-birth-asks-for-a-parent
 	 */
 	public function testAnUnknownDateOfBirthAsksForAParent(): void {
 		$pok = $this->seed(birthDate: null);
@@ -218,7 +218,7 @@ class PokParentSignatureRuleTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+	 * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
 	 */
 	public function testAPlacementWithoutLearnerRefFindsTheProfileOnTheUserId(): void {
 		$pok = $this->seed(birthDate: '2009-04-30', withLearnerRef: false);
@@ -234,7 +234,7 @@ class PokParentSignatureRuleTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+	 * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
 	 */
 	public function testAMissingPlacementFailsClosed(): void {
 		$result = $this->makeRule()->evaluate(['id' => 'pok-9', 'bpvPlacementId' => 'gone', 'version' => 1], null);

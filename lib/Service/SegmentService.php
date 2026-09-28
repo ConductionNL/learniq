@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
  */
 
 declare(strict_types=1);
@@ -44,7 +44,7 @@ use Throwable;
 /**
  * Reads the current segment from the `LearniqSettings` singleton.
  *
- * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
  */
 class SegmentService {
 
@@ -160,7 +160,7 @@ class SegmentService {
 	 *
 	 * @return string One of SEGMENTS; DEFAULT_SEGMENT when nothing valid is stored.
 	 *
-	 * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
 	 */
 	public function currentSegment(): string {
 		$current = $this->currentRow();

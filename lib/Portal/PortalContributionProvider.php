@@ -472,7 +472,7 @@ class PortalContributionProvider {
 	 * @return array<int, array<string, mixed>> Student create-actions.
 	 *
 	 * @spec openspec/specs/portal-contribution/spec.md
-	 * @spec openspec/changes/assignment-portal-wiring/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-work-through-the-portal-with-a-real-file-req-pcon-007
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-work-through-the-portal-with-a-real-file-req-pcon-007
 	 */
 	private function studentActions(): array {
 		return [
