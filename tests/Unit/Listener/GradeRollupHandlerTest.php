@@ -233,7 +233,7 @@ class GradeRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learner-lookup-and-learnerrefs-fixes/specs/grading/spec.md#requirement-parent-grade-notifications-find-the-learners-profile-on-ncuserid
+	 * @spec openspec/specs/grading/spec.md#requirement-parent-grade-notifications-find-the-learners-profile-on-ncuserid
 	 */
 	public function testParentNotificationsReachTheParentsOnTheLearnersOwnProfile(): void {
 		$now = new DateTime('2026-07-13 12:00:00', new DateTimeZone('Europe/Amsterdam'));
@@ -389,7 +389,7 @@ class GradeRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#scenario-a-recomputed-final-grade-carries-no-cohortid
+	 * @spec openspec/specs/grading/spec.md#scenario-a-recomputed-final-grade-carries-no-cohortid
 	 */
 	public function testARecomputedFinalGradeCarriesNoCohortId(): void {
 		$now = new DateTime('2026-07-13 12:00:00', new DateTimeZone('Europe/Amsterdam'));
@@ -440,7 +440,7 @@ class GradeRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-rollup-followups/specs/grading/spec.md#scenario-a-final-grade-names-the-programme-of-its-plan
+	 * @spec openspec/specs/grading/spec.md#scenario-a-final-grade-names-the-programme-of-its-plan
 	 */
 	public function testAFinalGradeNamesTheProgrammeOfItsPlan(): void {
 		$this->programmes = [
@@ -463,7 +463,7 @@ class GradeRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-rollup-followups/specs/grading/spec.md#scenario-a-final-grade-names-the-programme-of-its-plan
+	 * @spec openspec/specs/grading/spec.md#scenario-a-final-grade-names-the-programme-of-its-plan
 	 */
 	public function testAPlanWithoutAProgrammeLeavesProgrammeIdNull(): void {
 		$now = new DateTime('2026-07-13 12:00:00', new DateTimeZone('Europe/Amsterdam'));

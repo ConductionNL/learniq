@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/example-set-regulation-dedupe/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  */
 
 declare(strict_types=1);
@@ -91,7 +91,7 @@ class SharedCodeFilterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-set-regulation-dedupe/specs/example-sets/spec.md#scenario-the-training-set-after-the-company-set
+	 * @spec openspec/specs/example-sets/spec.md#scenario-the-training-set-after-the-company-set
 	 */
 	public function testTrainingAfterTheCompanySetSkipsVcaAndNis2(): void {
 		$company  = self::descriptor(set: 'corporate');
@@ -121,7 +121,7 @@ class SharedCodeFilterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-set-regulation-dedupe/specs/example-sets/spec.md#scenario-loading-the-same-set-again
+	 * @spec openspec/specs/example-sets/spec.md#scenario-loading-the-same-set-again
 	 */
 	public function testTheSameSetAgainKeepsItsRows(): void {
 		$training = self::descriptor(set: 'training');
@@ -143,7 +143,7 @@ class SharedCodeFilterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-set-regulation-dedupe/specs/example-sets/spec.md#requirement-a-second-example-set-does-not-duplicate-a-regulation-code
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-second-example-set-does-not-duplicate-a-regulation-code
 	 */
 	public function testAFailedReadKeepsEveryRow(): void {
 		$training = self::descriptor(set: 'training');

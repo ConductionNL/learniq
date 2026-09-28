@@ -11,8 +11,8 @@
  * `window.API` object is.
  *
  * This module builds the URL from a launch-token response shape; it does not
- * itself call the (not-yet-built, sibling `cmi5-xapi-lrs-ingest` change)
- * launch-token endpoint — that HTTP call lives in `LessonPlayer.vue`, which
+ * itself call the launch endpoint (`POST /api/lessons/{id}/cmi5-launch`,
+ * cmi5-xapi-lrs-ingest); that HTTP call lives in `LessonPlayer.vue`, which
  * degrades gracefully when the endpoint 404s/503s (see that file and the
  * spec's "cmi5 lesson gracefully degrades" scenario).
  *
@@ -20,7 +20,7 @@
  * test runner without an SFC compile step, same pattern as
  * `src/utils/courseOrder.js`.
  *
- * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
+ * @spec openspec/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
  *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
@@ -39,7 +39,7 @@
  *  `activityId` — the cmi5 AU's activity IRI. `registration` — a UUID
  *  identifying this specific launch attempt.
  * @return {string} The AU launch URL with all five cmi5 query parameters appended.
- * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
+ * @spec openspec/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
  */
 export function buildCmi5LaunchUrl(auLaunchUrl, launch) {
 	if (!auLaunchUrl) {

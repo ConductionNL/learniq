@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/curriculum-coverage-rollup/tasks.md#task-3-curriculumcoveragerollup
+ * @spec openspec/changes/archive/2026-09-28-curriculum-coverage-rollup/tasks.md#task-3-curriculumcoveragerollup
  */
 
 declare(strict_types=1);

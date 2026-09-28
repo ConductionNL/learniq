@@ -483,7 +483,7 @@ export default {
 		 * What the autosave status line says.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
+		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
 		 */
 		autosaveMessage() {
 			if (this.autosaveState === 'saving') {
@@ -1489,7 +1489,7 @@ export default {
 		 * closed tab or a stopped clock loses nothing already answered.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
+		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
 		 */
 		scheduleAutosave() {
 			if (!this.resultId || this.submitted || this.submitting) return
@@ -1504,7 +1504,7 @@ export default {
 		 * Cancel a pending autosave.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
+		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
 		 */
 		clearAutosave() {
 			if (this.autosaveTimeout !== null) {
@@ -1518,7 +1518,7 @@ export default {
 		 * answers change; the server keeps them out after the deadline.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
+		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
 		 */
 		async autosave() {
 			if (!this.resultId || this.submitted || this.submitting) return

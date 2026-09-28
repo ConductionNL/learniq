@@ -64,8 +64,8 @@ export const TEACHER_NOTE_SCHEMA = 'lesson-teacher-note'
  * @param {Array<object>} blocks The composer's blocks.
  * @return {Array<object>} Blocks safe to persist.
  * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
- * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-a-lesson-a-learner-can-read-cannot-hold-a-teacher-note
+ * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+ * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-a-learner-can-read-cannot-hold-a-teacher-note
  */
 export function serialiseLessonBlocks(blocks) {
 	// A teacher note never reaches a Lesson, whatever the caller passes.
@@ -93,7 +93,7 @@ export function serialiseLessonBlocks(blocks) {
  *
  * @param {{blockId: string, text: string, action: string, provider: string|null}} draft The draft.
  * @return {object} The block.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+ * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
  */
 export function makeDraftBlock({ blockId, text, action, provider }) {
 	return {
@@ -117,7 +117,7 @@ export function makeDraftBlock({ blockId, text, action, provider }) {
  *
  * @param {object} block A draft block.
  * @return {object} The same block, without its draft marker.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-a-teacher-keeps-an-ai-outline
+ * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-keeps-an-ai-outline
  */
 export function keepDraftBlock(block) {
 	delete block.assistDraft
@@ -129,7 +129,7 @@ export function keepDraftBlock(block) {
  *
  * @param {Array<object>} blocks The composer's blocks.
  * @return {number} The count.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-a-pending-draft-blocks-the-save
+ * @spec openspec/specs/course-management/spec.md#scenario-a-pending-draft-blocks-the-save
  */
 export function countPendingDrafts(blocks) {
 	return (blocks ?? []).filter((b) => Boolean(b?.assistDraft)).length
@@ -158,7 +158,7 @@ export function playerVisibleBlocks(blocks) {
  *
  * @param {Array<object>} blocks The composer's blocks, notes included.
  * @return {{blocks: Array<object>, notes: Array<{blockId: string, afterBlockId: string, position: number, text: string, noteId: (string|null)}>}} The split.
- * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-the-composer-shows-notes-inline-and-saves-them-to-the-staff-store
+ * @spec openspec/specs/course-management/spec.md#requirement-the-composer-shows-notes-inline-and-saves-them-to-the-staff-store
  */
 export function splitTeacherNotes(blocks) {
 	const lessonBlocks = []
@@ -192,7 +192,7 @@ export function splitTeacherNotes(blocks) {
  * @param {Array<object>} lessonBlocks The lesson's blocks.
  * @param {Array<object>} notes The lesson's `lesson-teacher-note` objects.
  * @return {Array<object>} Blocks with note blocks in place.
- * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-the-composer-shows-notes-inline-and-saves-them-to-the-staff-store
+ * @spec openspec/specs/course-management/spec.md#requirement-the-composer-shows-notes-inline-and-saves-them-to-the-staff-store
  */
 export function mergeTeacherNotes(lessonBlocks, notes) {
 	const ordered = (lessonBlocks ?? [])
@@ -231,7 +231,7 @@ export function mergeTeacherNotes(lessonBlocks, notes) {
  * @param {Array<object>} loaded The notes as loaded (`lesson-teacher-note` objects).
  * @param {Array<object>} current The notes from splitTeacherNotes().
  * @return {{create: Array<object>, update: Array<object>, remove: Array<string>}} The writes; update entries carry `id`, remove holds ids.
- * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-the-composer-shows-notes-inline-and-saves-them-to-the-staff-store
+ * @spec openspec/specs/course-management/spec.md#requirement-the-composer-shows-notes-inline-and-saves-them-to-the-staff-store
  */
 export function diffTeacherNotes(loaded, current) {
 	const idOf = (note) => note?.id ?? note?.uuid ?? note?.['@self']?.id ?? null

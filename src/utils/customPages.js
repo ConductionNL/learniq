@@ -389,7 +389,7 @@ export function moveItem(list, index, delta) {
  * @param {string} args.target Exchange target, such as 'bron-rod'.
  * @param {string} [args.learnerId] One learner's user id, or '' for everyone.
  * @return {object} The request body.
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+ * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
 export function exchangeRequestBody({ target, learnerId }) {
 	const body = { target }
@@ -402,7 +402,7 @@ export function exchangeRequestBody({ target, learnerId }) {
  * The exchange request URL.
  *
  * @return {string} The app-relative URL (POST).
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+ * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
 export function exchangeRequestUrl() {
 	return '/apps/learniq/api/exchange/requests'
@@ -439,7 +439,7 @@ export function coursePackageUrl(courseId, format) {
  * The course-package share URL: the package meant to leave the school.
  *
  * @return {string} The app-relative URL (POST).
- * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-the-export-page-offers-sharing-with-the-confirmations
+ * @spec openspec/specs/course-management/spec.md#requirement-the-export-page-offers-sharing-with-the-confirmations
  */
 export function coursePackageShareUrl() {
 	return '/apps/learniq/api/course-management/course-package-share'
@@ -449,7 +449,7 @@ export function coursePackageShareUrl() {
  * The course store publish URL.
  *
  * @return {string} The app-relative URL (POST).
- * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
+ * @spec openspec/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
  */
 export function coursePackagePublishUrl() {
 	return '/apps/learniq/api/store/publish'
@@ -480,7 +480,7 @@ export const SIGNABLE_SUBJECTS = {
  * @param {string} kind 'learning-plan' or 'praktijkovereenkomst'.
  * @param {object} subject The signed object.
  * @return {boolean} True for a praktijkovereenkomst that needs a parent's signature.
- * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
+ * @spec openspec/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
  */
 export function parentSignatureNeeded(kind, subject) {
 	return (

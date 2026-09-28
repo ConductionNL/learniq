@@ -4,7 +4,7 @@
 // cohort-gradebook-batch-publish: the scope of a publish, the distribution the
 // teacher previews, and the report after the batch.
 //
-// @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+// @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'

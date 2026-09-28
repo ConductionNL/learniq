@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-retired-payment-rows-are-archived-before-their-schemas-go
+ * @spec openspec/specs/payments/spec.md#requirement-retired-payment-rows-are-archived-before-their-schemas-go
  */
 
 declare(strict_types=1);
@@ -258,7 +258,7 @@ class ArchiveRetiredPaymentObjectsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/retired-schemas-prune/specs/nextcloud-app/spec.md#requirement-schemas-learniq-retired-leave-the-instance-once-their-rows-are-kept-elsewhere
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-schemas-learniq-retired-leave-the-instance-once-their-rows-are-kept-elsewhere
 	 */
 	public function testEveryRowInTheArchiveReadsAsArchived(): void {
 		$this->rows = ['order' => [['id' => 'o-1'], ['id' => 'o-2']], 'order-line' => [['id' => 'l-1']]];

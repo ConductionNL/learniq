@@ -31,9 +31,9 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
- * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-an-untemplated-cohort-composes-exactly-as-before-this-change
- * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
+ * @spec openspec/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
+ * @spec openspec/specs/report-card/spec.md#scenario-an-untemplated-cohort-composes-exactly-as-before-this-change
+ * @spec openspec/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
  */
 
 declare(strict_types=1);
@@ -47,7 +47,7 @@ use Psr\Log\LoggerInterface;
  * Resolves a ReportCardTemplate's declared section kinds and gates
  * population by them.
  *
- * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
+ * @spec openspec/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
  */
 class ReportCardTemplateSectionResolver {
 
@@ -80,7 +80,7 @@ class ReportCardTemplateSectionResolver {
 	 *                                fall back to the pre-existing fixed shape via
 	 *                                {@see self::sectionEnabled()}).
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
 	 */
 	public function resolveSectionKinds(mixed $rawTemplateId): ?array {
 		if ($rawTemplateId === null || $rawTemplateId === '') {
@@ -117,7 +117,7 @@ class ReportCardTemplateSectionResolver {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-an-untemplated-cohort-composes-exactly-as-before-this-change
+	 * @spec openspec/specs/report-card/spec.md#scenario-an-untemplated-cohort-composes-exactly-as-before-this-change
 	 */
 	public function sectionEnabled(string $kind, ?array $sectionKinds): bool {
 		if ($sectionKinds === null) {
@@ -140,7 +140,7 @@ class ReportCardTemplateSectionResolver {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
 	 */
 	public function attendanceSectionEnabled(bool $attendanceIncluded, ?array $sectionKinds): bool {
 		if ($attendanceIncluded === false) {

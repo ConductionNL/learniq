@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-the-personal-number-leaves-learniq-only-in-a-rod-message-and-is-never-logged
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-personal-number-leaves-learniq-only-in-a-rod-message-and-is-never-logged
  */
 
 declare(strict_types=1);
@@ -154,8 +154,8 @@ class RodPersonalNumberLeakTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#scenario-an-hr-pass-through-export
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#scenario-an-oso-export
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-an-hr-pass-through-export
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-an-oso-export
 	 */
 	public function testNoOtherExportCarriesTheNumber(): void {
 		$paths = [
@@ -186,7 +186,7 @@ class RodPersonalNumberLeakTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#scenario-a-rod-export-sends-the-bsn-and-keeps-the-eck-id
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-a-rod-export-sends-the-bsn-and-keeps-the-eck-id
 	 */
 	public function testTheRodExportCarriesIt(): void {
 		$records = $this->builder->composeRecords(target: 'bron-rod', mappingSlug: 'learniq-bron-rod-export-learner', scope: ['schema' => 'learner-profile'], tenantId: 't1');
@@ -210,7 +210,7 @@ class RodPersonalNumberLeakTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#scenario-nothing-is-logged
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-nothing-is-logged
 	 */
 	public function testAFailedReadLogsNoValue(): void {
 		$this->findFails = 'row lp-1 personalNumber=' . self::NUMBER . ' failed';
@@ -228,7 +228,7 @@ class RodPersonalNumberLeakTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-the-rod-learner-record-carries-the-personal-number-where-duo-expects-a-bsn
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-rod-learner-record-carries-the-personal-number-where-duo-expects-a-bsn
 	 */
 	public function testTheChecks(): void {
 		$this->assertTrue(RodPersonalNumberResolver::isValid('111222333', 'bsn'));

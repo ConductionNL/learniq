@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
+ * @spec openspec/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
  */
 
 declare(strict_types=1);
@@ -40,7 +40,7 @@ use Throwable;
  * `succeeded` swv job moves its support request, and only from `submitted`, so
  * a repeated conclusion changes nothing.
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
+ * @spec openspec/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
  *
  * @template-implements IEventListener<Event>
  */
@@ -72,7 +72,7 @@ class ExchangeJobConcludedListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function handle(Event $event): void {
 		if (is_a($event, self::CONCLUDED_EVENT) === false

@@ -16,6 +16,8 @@ When a user opens a lesson or block that places an LTI tool, learniq MUST raise 
 
 #### Scenario: A learner opens an external tool from a lesson
 
+<!-- @e2e exclude Needs integriq with an approved tool and a live LTI tool, not in the e2e instance; the launch contract is pinned by tests/Unit/Controller/LtiToolPlacementControllerTest.php and the form by tests/unit-js/ltiLaunchForm.test.mjs. -->
+
 - **GIVEN** integriq is installed with an approved tool, and a lesson whose content is an LTI placement on that tool's deployment
 - **WHEN** a learner opens the lesson and chooses "Open tool"
 - **THEN** the tool opens in a new tab with the learner signed in to it
@@ -42,11 +44,13 @@ When the grade pull receives a score, learniq MUST match it to the placement nam
 
 ### Requirement: The connection registry says whether LTI works
 
-The connection registry MUST report LTI tools as available when integriq's launch event exists, and as unavailable with the message that LTI tools need integriq otherwise. An administrator MUST be able to set the event subscription the grade pull reads from the registry page.
+The connection registry MUST report LTI tools as available when integriq's launch event exists, and as unavailable with the message that LTI tools need integriq otherwise. The `lti` row is reported by learniq (like the timetable row), because integriq's registry page shows what the owning app reports. An administrator MUST be able to set the event subscription the grade pull reads, in an LTI section of learniq's admin settings that the row links to.
 
 #### Scenario: An administrator sees LTI as working
+
+<!-- @e2e exclude The row state comes from integriq's registry page; learniq's report is pinned by tests/Unit/Service/ConnectionReportServiceTest.php and the row and section link by tests/Unit/Settings/ConnectionsDeclarationTest.php. -->
 
 - **GIVEN** integriq with the platform launch installed
 - **WHEN** an administrator opens the connections page
 - **THEN** the LTI tools row shows as available
-- **AND** the row has a field for the grade subscription
+- **AND** the row links to the admin section with the field for the grade subscription

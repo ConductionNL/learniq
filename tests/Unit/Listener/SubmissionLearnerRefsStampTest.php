@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learner-lookup-and-learnerrefs-fixes/specs/assignments/spec.md#requirement-every-submission-carries-server-stamped-learnerrefs
+ * @spec openspec/specs/assignments/spec.md#requirement-every-submission-carries-server-stamped-learnerrefs
  */
 
 declare(strict_types=1);

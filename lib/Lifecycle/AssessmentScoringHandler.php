@@ -370,7 +370,7 @@ class AssessmentScoringHandler implements LifecycleGuardInterface {
 	 *
 	 * @return mixed
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-auto-scoring-reads-the-stored-answer-shape
+	 * @spec openspec/specs/assessment/spec.md#requirement-auto-scoring-reads-the-stored-answer-shape
 	 */
 	private function responseValue(mixed $response): mixed {
 		if (is_array($response) === true && count($response) === 1 && array_key_exists('value', $response) === true) {

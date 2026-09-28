@@ -314,7 +314,7 @@ class PeerReviewAllocationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
+	 * @spec openspec/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
 	 */
 	public function testReadsNestTheSchemaAndRunAsTheSystem(): void {
 		$assignment = [
@@ -346,7 +346,7 @@ class PeerReviewAllocationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
+	 * @spec openspec/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
 	 */
 	public function testDraftsAreNeitherReviewedNorReviewers(): void {
 		$assignment = [

@@ -17,7 +17,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
+ * @spec openspec/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
  */
 
 declare(strict_types=1);
@@ -206,7 +206,7 @@ class PlanninqTimetableImportTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-import-without-a-posted-map-uses-the-kept-map
+	 * @spec openspec/specs/timetabling/spec.md#requirement-an-import-without-a-posted-map-uses-the-kept-map
 	 */
 	public function testAnImportWithoutAMapUsesTheKeptOne(): void {
 		$import = $this->import(keptMaps: '{"roster-zermelo":{"4H1":"cohort-1"}}');
@@ -249,7 +249,7 @@ class PlanninqTimetableImportTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
 	 */
 	public function testIntegriqAbsentSilentOrFailingIsAReadableFailure(): void {
 		$job = ['id' => 'j', 'scope' => ['rosterSource' => 'roster-zermelo']];
@@ -284,7 +284,7 @@ class PlanninqTimetableImportTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004
 	 */
 	public function testConflictScanRunsOnPlanninqLessons(): void {
 		$this->detector->expects($this->once())->method('scanWindow')->with(

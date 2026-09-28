@@ -24,7 +24,7 @@
  *
  * @link https://www.Integriq.nl
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+ * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
  */
 
 declare(strict_types=1);
@@ -44,7 +44,7 @@ use OCP\EventDispatcher\Event;
  *
  * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+ * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
  */
 class ExchangeMappingRequestedEvent extends Event {
 
@@ -93,7 +93,7 @@ class ExchangeMappingRequestedEvent extends Event {
 	 *
 	 * @return string The app id.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function getOwnerApp(): string {
 		return $this->ownerApp;
@@ -105,7 +105,7 @@ class ExchangeMappingRequestedEvent extends Event {
 	 *
 	 * @return string The slug.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function getSlug(): string {
 		return $this->slug;
@@ -117,7 +117,7 @@ class ExchangeMappingRequestedEvent extends Event {
 	 *
 	 * @return string The name.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function getName(): string {
 		return $this->name;
@@ -129,7 +129,7 @@ class ExchangeMappingRequestedEvent extends Event {
 	 *
 	 * @return string The description.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function getDescription(): string {
 		return $this->description;
@@ -141,7 +141,7 @@ class ExchangeMappingRequestedEvent extends Event {
 	 *
 	 * @return array<string,mixed> The rules.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function getMapping(): array {
 		return $this->mapping;
@@ -153,7 +153,7 @@ class ExchangeMappingRequestedEvent extends Event {
 	 *
 	 * @return array<string,mixed> The casts.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function getCast(): array {
 		return $this->cast;
@@ -165,7 +165,7 @@ class ExchangeMappingRequestedEvent extends Event {
 	 *
 	 * @return array<int,string> The field paths.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function getUnset(): array {
 		return $this->unset;
@@ -177,7 +177,7 @@ class ExchangeMappingRequestedEvent extends Event {
 	 *
 	 * @return bool The flag.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function isPassThrough(): bool {
 		return $this->passThrough;
@@ -189,7 +189,7 @@ class ExchangeMappingRequestedEvent extends Event {
 	 *
 	 * @return string|null The id.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function getMappingId(): ?string {
 		return $this->mappingId;
@@ -203,7 +203,7 @@ class ExchangeMappingRequestedEvent extends Event {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function setMappingId(string $mappingId): void {
 		$this->mappingId = $mappingId;
@@ -215,7 +215,7 @@ class ExchangeMappingRequestedEvent extends Event {
 	 *
 	 * @return array{code: string, reason: string}|null The refusal.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function getRefusal(): ?array {
 		return $this->refusal;
@@ -230,7 +230,7 @@ class ExchangeMappingRequestedEvent extends Event {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function refuse(string $code, string $reason): void {
 		$this->refusal = ['code' => $code, 'reason' => $reason];

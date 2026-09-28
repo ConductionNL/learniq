@@ -49,7 +49,7 @@ use Psr\Log\LoggerInterface;
  * exchange job's `exchangeStatus` is `succeeded`. When no job is linked,
  * allows the transition unconditionally (manual report).
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
  */
 class AttendanceFlagReportGuard implements LifecycleGuardInterface {
 
@@ -114,7 +114,7 @@ class AttendanceFlagReportGuard implements LifecycleGuardInterface {
 	 * @return bool True if the report transition is allowed; false otherwise.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-10
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/attendance/spec.md#requirement-the-municipalitys-feedback-on-a-leerplicht-report-is-recorded-on-the-attendance-flag
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-municipalitys-feedback-on-a-leerplicht-report-is-recorded-on-the-attendance-flag
 	 */
 	private function allows(array $object): bool {
 		$dataExchangeJobId = $object['dataExchangeJobId'] ?? null;

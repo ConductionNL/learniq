@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+ * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
  */
 
 declare(strict_types=1);
@@ -30,7 +30,7 @@ namespace OCA\Learniq\Repair;
 /**
  * The old rows in integriq's shapes, for MigrateDataExchangeToIntegriq.
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+ * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
  */
 class LegacyExchangeTranslator {
 
@@ -74,7 +74,7 @@ class LegacyExchangeTranslator {
 	 *
 	 * @return array<string, mixed> The history.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function historyOf(array $job, string $legacyId, array $rejections): array {
 		$result = $job['result'] ?? null;
@@ -150,7 +150,7 @@ class LegacyExchangeTranslator {
 	 *
 	 * @return array<string, mixed> The scope.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function scopeOf(array $job): array {
 		$scope = $job['scope'] ?? [];
@@ -174,7 +174,7 @@ class LegacyExchangeTranslator {
 	 *
 	 * @return string The reference.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function ownerRefOf(array $job, string $legacyId): string {
 		$flag = (string)($job['originFlagId'] ?? '');
@@ -192,7 +192,7 @@ class LegacyExchangeTranslator {
 	 *
 	 * @return string The slug.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function slugOf(array $profile): string {
 		$name = (string)($profile['name'] ?? '');
@@ -211,7 +211,7 @@ class LegacyExchangeTranslator {
 	 *
 	 * @return array<string, string> Output key to source path.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function rulesOf(array $profile): array {
 		$import = (($profile['direction'] ?? 'export') === 'import');

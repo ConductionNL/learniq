@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-a-share-package-carries-no-school-bound-or-personal-fields
+ * @spec openspec/specs/course-management/spec.md#requirement-a-share-package-carries-no-school-bound-or-personal-fields
  */
 
 declare(strict_types=1);
@@ -76,7 +76,7 @@ class CourseSharePackageBuilder {
 	 *
 	 * @return array<string, mixed> The share package.
 	 *
-	 * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-a-share-package-carries-no-school-bound-or-personal-fields
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-share-package-carries-no-school-bound-or-personal-fields
 	 */
 	public function build(array $payload, string $sharedAt): array {
 		$package = $this->strip(payload: $payload);
@@ -97,7 +97,7 @@ class CourseSharePackageBuilder {
 	 *
 	 * @return array<string, mixed> The stripped payload.
 	 *
-	 * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-a-share-package-carries-no-school-bound-or-personal-fields
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-share-package-carries-no-school-bound-or-personal-fields
 	 */
 	public function strip(array $payload): array {
 		$payload['course'] = $this->stripObject(object: (array)($payload['course'] ?? []));
@@ -125,7 +125,7 @@ class CourseSharePackageBuilder {
 	 *
 	 * @return array<string, mixed> The sharing block.
 	 *
-	 * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-a-share-package-carries-no-school-bound-or-personal-fields
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-share-package-carries-no-school-bound-or-personal-fields
 	 */
 	public function sharingBlock(array $course, array $lessons, string $sharedAt): array {
 		$levels = $this->strings(value: ($course['educationalLevels'] ?? []));
