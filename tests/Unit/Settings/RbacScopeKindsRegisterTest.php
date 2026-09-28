@@ -97,8 +97,9 @@ class RbacScopeKindsRegisterTest extends TestCase {
 
 	/**
 	 * DossierNote gains careTeamUserIds (array, default []) and its
-	 * authorization.read keeps the two existing literal entries plus one new
-	 * care-team conditional entry. create/update are unchanged.
+	 * authorization.read keeps the two existing literal entries and the
+	 * author's self-match, plus one new care-team conditional entry.
+	 * create/update are unchanged.
 	 *
 	 * @return void
 	 * @spec   openspec/changes/rbac-scope-kinds-extension/specs/rbac-groups/spec.md#requirement-a-care-team-scope-kind-grants-read-access-via-an-array-of-user-ids-property
@@ -119,10 +120,13 @@ class RbacScopeKindsRegisterTest extends TestCase {
 		$literalGroups = array_values(array_filter($readEntries, 'is_string'));
 		$this->assertEqualsCanonicalizing(['instructors', 'compliance-officers'], $literalGroups, 'The pre-existing read floor MUST be unchanged');
 
+		// Two conditional entries: the author's own note (the self-match the
+		// declared-audience ratchet requires) and the care team.
 		$conditionalEntries = array_values(array_filter($readEntries, 'is_array'));
-		$this->assertCount(1, $conditionalEntries, 'DossierNote.read MUST carry exactly one conditional (care-team) entry');
+		$this->assertCount(2, $conditionalEntries, 'DossierNote.read MUST carry the author and the care-team conditional entries');
+		$this->assertSame(['group' => 'authenticated', 'match' => ['authorId' => '$userId']], $conditionalEntries[0]);
 
-		$entry = $conditionalEntries[0];
+		$entry = $conditionalEntries[1];
 		$this->assertSame('authenticated', $entry['group'] ?? null);
 		$this->assertEqualsCanonicalizing(['careTeamUserIds'], array_keys($entry['match'] ?? []));
 		$this->assertEqualsCanonicalizing(['$contains'], array_keys($entry['match']['careTeamUserIds'] ?? []));

@@ -68,7 +68,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
 
 **Ondersteuning:** support@conduction.nl
     ]]></description>
-    <version>0.3.6-unstable.20260928075937</version>
+    <version>0.3.6-unstable.20260928100615</version>
     <licence>EUPL-1.2</licence>
     <author mail="info@conduction.nl" homepage="https://www.conduction.nl/">Conduction</author>
     <namespace>Learniq</namespace>
@@ -205,6 +205,19 @@ Vrij en open source onder de EUPL-1.2-licentie.
                 when the file exists); writes nothing when there are no rows.
             -->
             <step>OCA\Learniq\Repair\ArchiveRetiredPaymentObjects</step>
+            <!--
+                retired-schemas-prune: OpenRegister's import never removes a
+                schema, so the four schemas retired above (order, order-line,
+                payment-transaction, data-subject-request) would stay forever.
+                Removes them the way occ openregister:schemas:prune-retired
+                does: unlink from every register, then cascade-delete. AFTER
+                the two steps that read their rows: a payment schema goes with
+                its rows only when every row is in the archive; privacy
+                requests go only when there are none (AVG records stay until
+                the school drops them). Idempotent; never aborts the upgrade.
+                post-migration only: a fresh install never had them.
+            -->
+            <step>OCA\Learniq\Repair\PruneRetiredSchemas</step>
             <step>OCA\Learniq\Repair\InitializeSettings</step>
             <!-- ADR-023: seed the action-authorization matrix (default admin-only). -->
             <step>OCA\Learniq\Repair\InitializeActions</step>

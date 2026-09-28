@@ -37,6 +37,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use InvalidArgumentException;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -131,12 +132,14 @@ class SegmentService {
 	 *
 	 * @param ObjectService   $objectService OR object service for the singleton read.
 	 * @param LoggerInterface $logger        PSR logger.
+	 * @param IUserManager    $userManager   Tells a real chooser from a generated demo name.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly IUserManager $userManager,
 	) {
 	}//end __construct()
 
@@ -167,6 +170,71 @@ class SegmentService {
 
 		return $current['segment'];
 	}//end currentSegment()
+
+	/**
+	 * The segment an admin actually chose, or null.
+	 *
+	 * 🔴 A CHOICE NAMES A PERSON. The newest valid row counts only when its
+	 * `setBy` is an existing Nextcloud user. The setup wizard always writes the
+	 * admin's uid; the generated demo register ships three `corporate` rows
+	 * whose `setBy` is a fictional name, and loading demo data must not change
+	 * which menus render (segment-runtime-bridge). A menu that hides for a
+	 * chosen company (`visibleIf: {"workspace.chosenSegment": {"notIn":
+	 * ["corporate"]}}`) therefore stays visible on every install that never
+	 * chose (decision D26).
+	 *
+	 * @return string|null One of SEGMENTS, or null when nobody chose.
+	 *
+	 * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
+	 */
+	public function chosenSegment(): ?string {
+		return $this->workspace()['chosenSegment'];
+	}//end chosenSegment()
+
+	/**
+	 * The segment and the chosen segment from one read, for the page's
+	 * `runtime.workspace`.
+	 *
+	 * @return array{segment: string, chosenSegment: string|null} The two values.
+	 *
+	 * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
+	 */
+	public function workspace(): array {
+		$current = $this->currentRow();
+		if ($current === null) {
+			return ['segment' => self::DEFAULT_SEGMENT, 'chosenSegment' => null];
+		}
+
+		$chosen = null;
+		if ($this->namesAUser(uid: $current['setBy']) === true) {
+			$chosen = $current['segment'];
+		}
+
+		return ['segment' => $current['segment'], 'chosenSegment' => $chosen];
+	}//end workspace()
+
+	/**
+	 * Whether a row's `setBy` is an existing Nextcloud user.
+	 *
+	 * @param string|null $uid The stored `setBy`.
+	 *
+	 * @return bool True for a known user id.
+	 */
+	private function namesAUser(?string $uid): bool {
+		if ($uid === null || $uid === '') {
+			return false;
+		}
+
+		try {
+			return $this->userManager->userExists($uid);
+		} catch (Throwable $e) {
+			$this->logger->info(
+				'[SegmentService] could not check setBy ({message}); treating the segment as not chosen.',
+				['message' => $e->getMessage()]
+			);
+			return false;
+		}
+	}//end namesAUser()
 
 	/**
 	 * Whether a valid segment has been stored at all.
@@ -240,7 +308,7 @@ class SegmentService {
 	 * The row currentSegment() answers from: the most recently updated row
 	 * with a known segment, or null.
 	 *
-	 * @return array{segment: string, uuid: string|null}|null The row's segment and uuid.
+	 * @return array{segment: string, uuid: string|null, setBy: string|null}|null The row's segment, uuid and chooser.
 	 */
 	private function currentRow(): ?array {
 		try {
@@ -274,9 +342,15 @@ class SegmentService {
 			$updated = $this->updatedAt(row: $data);
 			if ($newest === null || $updated > $newest) {
 				$newest  = $updated;
+				$setBy = ($data['setBy'] ?? null);
+				if (is_string($setBy) === false) {
+					$setBy = null;
+				}
+
 				$current = [
 					'segment' => $code,
 					'uuid'    => $this->uuidOf(row: $data),
+					'setBy'   => $setBy,
 				];
 			}
 		}

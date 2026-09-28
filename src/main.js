@@ -27,6 +27,7 @@ import bundledManifest from './manifest.json'
 import menuLayout from './menu-layout.json'
 import pinia from './pinia.js'
 import registry from './registry.js'
+import { applyReportCardGates } from './utils/reportCardGates.js'
 import { buildWorkspaceRuntime, DEFAULT_SEGMENT } from './utils/workspaceRuntime.js'
 
 // Library CSS — must be explicit import (webpack tree-shakes side-effect imports from aliased packages)
@@ -159,6 +160,10 @@ function routesFromManifest(manifest) {
 // (SegmentService, provided by PageController), so a menu item can declare
 // `visibleIf: {"workspace.segment": …}`. It is always defined: a missing or
 // unknown value becomes the default rather than tripping the fail-safe.
+// `workspace.chosenSegment` is the segment an admin actually chose, or null on
+// an install that never chose (still on the default). School-only menus gate
+// on `{"workspace.chosenSegment": {"notIn": ["corporate"]}}`, which passes for
+// null, so a chosen company loses them and nobody else does (D26).
 const dashboardRoles = loadState('learniq', 'dashboardRoles', ['student']) || []
 bundledManifest.runtime = {
 	...(bundledManifest.runtime || {}),
@@ -177,6 +182,7 @@ bundledManifest.runtime = {
 	workspace: buildWorkspaceRuntime(
 		bundledManifest.runtime?.workspace,
 		loadState('learniq', 'segment', DEFAULT_SEGMENT),
+		loadState('learniq', 'chosenSegment', null),
 	),
 }
 
@@ -194,7 +200,12 @@ const fragments = fragmentCtx
 	.keys()
 	.sort()
 	.map((key) => fragmentCtx(key))
-const mergedManifest = buildManifest(bundledManifest, fragments, menuLayout)
+// CnReportsPage ignores a card's `visibleIf` (CnAppNav and CnNavCardGrid
+// honour it), so the Reports cards are filtered here against the runtime
+// built above, with the library's own evaluator (company-segment-menu-gating).
+const mergedManifest = applyReportCardGates(
+	buildManifest(bundledManifest, fragments, menuLayout),
+)
 
 /**
  * The router base for THIS page load.
