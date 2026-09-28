@@ -20,12 +20,6 @@
 						"hr",
 						"admin"
 					]
-				},
-				"workspace.segment": {
-					"in": [
-						"corporate",
-						"training"
-					]
 				}
 			}
 		},
@@ -257,7 +251,15 @@
 									"route": "Compliance",
 									"order": 10,
 									"icon": "ClipboardCheckOutline",
-									"description": "Regulation coverage and attestations"
+									"description": "Regulation coverage and attestations",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"corporate",
+												"training"
+											]
+										}
+									}
 								},
 								{
 									"id": "ExternalTraining",
@@ -265,7 +267,15 @@
 									"route": "ExternalTrainingRecords",
 									"order": 20,
 									"icon": "Plus",
-									"description": "Training recorded outside the app"
+									"description": "Training recorded outside the app",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"corporate",
+												"training"
+											]
+										}
+									}
 								},
 								{
 									"id": "Accessibility",
@@ -302,7 +312,23 @@
 									"route": "ExemptionCases",
 									"order": 70,
 									"icon": "Check",
-									"description": "Exam-board exemption requests"
+									"description": "Exam-board exemption requests",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"vo",
+												"mbo",
+												"he",
+												"corporate",
+												"training"
+											]
+										},
+										"workspace.chosenSegment": {
+											"notIn": [
+												"corporate"
+											]
+										}
+									}
 								},
 								{
 									"id": "FraudCasesMenu",
@@ -310,7 +336,23 @@
 									"route": "FraudCases",
 									"order": 80,
 									"icon": "FolderAccountOutline",
-									"description": "Exam-board integrity cases"
+									"description": "Exam-board integrity cases",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"vo",
+												"mbo",
+												"he",
+												"corporate",
+												"training"
+											]
+										},
+										"workspace.chosenSegment": {
+											"notIn": [
+												"corporate"
+											]
+										}
+									}
 								},
 								{
 									"id": "ItemRevisionFlagsMenu",
@@ -318,7 +360,23 @@
 									"route": "ItemRevisionFlags",
 									"order": 90,
 									"icon": "FlagVariantOutline",
-									"description": "Assessment items flagged for revision"
+									"description": "Assessment items flagged for revision",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"vo",
+												"mbo",
+												"he",
+												"corporate",
+												"training"
+											]
+										},
+										"workspace.chosenSegment": {
+											"notIn": [
+												"corporate"
+											]
+										}
+									}
 								},
 								{
 									"id": "DataSubjectRequestsCard",

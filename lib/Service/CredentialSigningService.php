@@ -5,13 +5,13 @@
  *
  * Builds an Open Badges 3.0 JSON-LD assertion and signs it with the tenant's
  * RS256 keypair. Legitimate PHP per ADR-031: "Cryptographic operations that
- * must run before a state transition" — referenced from the Credential schema's
- * x-openregister-lifecycle.transitions.issue.requires in learniq_register.json.
+ * must run before a state transition".
  *
- * OpenRegister's lifecycle engine resolves this class via DI and calls check()
- * before executing the `issue` transition. check() assembles + signs the OB3
- * payload, injects it into the transitionContext object, and returns true to
- * allow the transition.
+ * The issuing paths (CredentialIssuanceHandler, ExternalTrainingController)
+ * call sign() before they save a Credential, so the signed fields travel in
+ * the create itself. No lifecycle transition calls this class: OpenRegister
+ * runs `requires` guards and `actions` on updates only, and a guard may not
+ * write to the object, so a guard on create never signed anything (learniq#182).
  *
  * @category Service
  * @package  OCA\Learniq\Service
@@ -41,9 +41,8 @@ use OCP\Security\ICrypto;
 /**
  * Assembles the Open Badges 3.0 JSON-LD payload and signs it via RS256.
  *
- * Acts as an OR lifecycle guard on the `issue` transition of the Credential
- * schema. Single responsibility: sign. No CRUD, no notifications, no state
- * management — all of that is declared in the schema.
+ * Single responsibility: sign. No CRUD, no notifications, no state
+ * management; all of that is declared in the schema.
  */
 class CredentialSigningService {
 	/**
@@ -73,20 +72,15 @@ class CredentialSigningService {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * Sign the credential held in a context array, in place.
 	 *
-	 * Called by OpenRegister's lifecycle engine before executing the `issue`
-	 * transition on a Credential object. Assembles the OB3 payload, signs it,
-	 * and injects `openbadges3Payload` + `signature` + `verificationUrl` back
-	 * into the context object so OR persists them in the same write.
+	 * Assembles the OB3 payload, signs it, and injects `openbadges3Payload`,
+	 * `signature`, `issuerDid` and `verificationUrl` back into the context's
+	 * object. sign() is the form the issuing paths call.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the Credential data array
-	 *                                               - 'transition' : 'issue'
-	 *                                               - 'from'       : null
-	 *                                               - 'to'         : 'issued'
+	 * @param array<string,mixed> $transitionContext Context array whose 'object' key holds the Credential data.
 	 *
-	 * @return bool True if signing succeeded (transition allowed); false blocks transition.
+	 * @return bool True if signing succeeded; false when the credential cannot be signed.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
 	 */
@@ -159,6 +153,51 @@ class CredentialSigningService {
 
 		return true;
 	}//end check()
+
+	/**
+	 * Sign a Credential before it is saved.
+	 *
+	 * Gives the credential its id first when it has none, because the signed
+	 * payload names the public verification URL, which carries that id. The
+	 * caller saves the result under the same id (`saveObject(uuid: ...)`) so
+	 * the verify route finds the credential the payload points at.
+	 *
+	 * @param array<string,mixed> $credential The Credential object to be saved.
+	 *
+	 * @return array<string,mixed>|null The credential with `id`, `openbadges3Payload`,
+	 *                                  `signature`, `issuerDid` and `verificationUrl`
+	 *                                  set, or null when it cannot be signed (no
+	 *                                  key for the tenant, or signing failed).
+	 *
+	 * @spec openspec/changes/credentials-europass-edci-export/tasks.md#task-1-prove-or-repair-the-signing-path
+	 */
+	public function sign(array $credential): ?array {
+		if ((string)($credential['id'] ?? '') === '') {
+			$credential['id'] = $this->newCredentialId();
+		}
+
+		$context = ['object' => $credential];
+		if ($this->check(transitionContext: $context) === false) {
+			return null;
+		}
+
+		return $context['object'];
+	}//end sign()
+
+	/**
+	 * A fresh RFC 4122 version 4 UUID for a credential that has no id yet.
+	 *
+	 * @return string The UUID.
+	 *
+	 * @spec openspec/changes/credentials-europass-edci-export/tasks.md#task-1-prove-or-repair-the-signing-path
+	 */
+	private function newCredentialId(): string {
+		$bytes = random_bytes(16);
+		$bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40);
+		$bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);
+
+		return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($bytes), 4));
+	}//end newCredentialId()
 
 	/**
 	 * Assemble the Open Badges 3.0 JSON-LD assertion (without proof).

@@ -42,7 +42,6 @@ use OCA\Learniq\Listener\ExchangeGateListener;
 use OCA\Learniq\Listener\ExchangeJobConcludedListener;
 use OCA\Learniq\Listener\FraudCaseDecisionHandler;
 use OCA\Learniq\Listener\LearnerMergeHandler;
-use OCA\Learniq\Listener\SchoolAdviesSendToRodHandler;
 use OCA\Learniq\Listener\SupportRequestSubmitHandler;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
@@ -94,13 +93,6 @@ class CaseListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: SupportRequestSubmitHandler::class
-		);
-
-		// ADR-031 legitimate exception (po-schooladvies-flow): SchoolAdvies
-		// `verzendenNaarRod` -> ask integriq for the bron-rod exchange job.
-		$context->registerEventListener(
-			event: ObjectTransitionedEvent::class,
-			listener: SchoolAdviesSendToRodHandler::class
 		);
 
 	}//end registerDataExchangeListeners()

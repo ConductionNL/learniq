@@ -340,7 +340,12 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 				'SelfAssessment'         => [...$staff, self::self('learnerId')],
 				'ExemptionCase'          => ['instructors', 'compliance-officers', self::self('learnerId')],
 				'FraudCase'              => ['instructors', 'compliance-officers', self::self('accusedLearnerId'), self::self('reporterId')],
-				'DossierNote'            => ['instructors', 'compliance-officers', self::self('authorId')],
+				'DossierNote'            => [
+					'instructors',
+					'compliance-officers',
+					self::self('authorId'),
+					['group' => 'authenticated', 'match' => ['careTeamUserIds' => ['$contains' => '$userId']]],
+				],
 				'BehaviourIncident'      => ['instructors', 'compliance-officers', self::self('reportedBy')],
 				'WellbeingCheckIn'       => ['instructors', 'compliance-officers', self::self('learnerId')],
 				'BsaDecision'            => [...$staff, self::self('learnerId')],

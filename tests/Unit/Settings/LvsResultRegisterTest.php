@@ -49,15 +49,19 @@ class LvsResultRegisterTest extends TestCase {
 	}//end setUp()
 
 	/**
-	 * LvsResult is append-only and required fields cover the four-provider
-	 * import shape findings.md#6.5 asked for.
+	 * Required fields cover the four-provider import shape findings.md#6.5
+	 * asked for. LvsResult is not append-only: Open Register runs `verify` and
+	 * `archive` as updates and refuses every update on an append-only schema
+	 * (access-control-ratchet-compliance, D23).
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/access-control-ratchet-compliance/specs/data-exchange/spec.md#requirement-imported-lvs-results-and-transfer-dossiers-are-read-and-written-by-the-groups-that-review-them
 	 */
-	public function testRequiredFieldsAndAppendOnly(): void {
+	public function testRequiredFieldsAndNotAppendOnly(): void {
 		$schema = $this->config['components']['schemas']['LvsResult'];
 
-		self::assertTrue($schema['appendOnly']);
+		self::assertNotTrue($schema['appendOnly'] ?? false);
 		self::assertSame(
 			['provider', 'instrument', 'moment', 'learnerId', 'dataExchangeJobId', 'tenant_id'],
 			$schema['required']

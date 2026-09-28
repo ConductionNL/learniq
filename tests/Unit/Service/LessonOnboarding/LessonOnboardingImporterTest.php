@@ -351,4 +351,100 @@ class LessonOnboardingImporterTest extends TestCase {
 		$this->assertCount(1, $result['notes']);
 
 	}//end testAFailedTransitionIsReportedNotHidden()
+
+	/**
+	 * A presentation's speaker notes never enter the lesson: the lesson holds
+	 * the slides only, and each note is written to the staff-only note schema
+	 * after the block of its slide (teacher-notes-protection).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#scenario-a-presentation-with-speaker-notes
+	 */
+	public function testSlideNotesGoToTheStaffStoreNotTheLesson(): void {
+		$this->given(row: ['format' => 'pptx'], fileName: 'Licht.pptx');
+		$this->extractor->method('extract')->willReturn(
+			[
+				'status' => 'ok',
+				'lesson' => [
+					'title' => 'Licht en schaduw',
+					'sections' => [
+						['heading' => 'Dia 1', 'paragraphs' => ['Wat is licht?'], 'images' => [], 'notes' => ''],
+						['heading' => 'Dia 3', 'paragraphs' => ['Proefje met een zaklamp'], 'images' => [], 'notes' => 'Vraag naar de rol van licht.'],
+					],
+					'notes' => [],
+				],
+			]
+		);
+		$this->transitionEngine->method('transition')->willReturn(OrEntityFactory::make([], 'lesson-onboarding-file'));
+
+		$result = $this->importer->import(userId: 'jdevries', rowId: self::ROW, courseId: self::COURSE);
+
+		[$schema, $lesson] = $this->created[0];
+		$this->assertSame('lesson', $schema);
+		$this->assertSame(['richText', 'richText'], array_column($lesson['blocks'], 'type'));
+		$this->assertStringNotContainsString('Vraag naar de rol van licht', (string)json_encode($lesson), 'no note text in the lesson a learner reads');
+
+		$noteWrites = array_values(array_filter($this->created, static fn (array $write): bool => $write[0] === 'lesson-teacher-note'));
+		$this->assertCount(1, $noteWrites);
+		$note = $noteWrites[0][1];
+		$this->assertSame('Vraag naar de rol van licht.', $note['text']);
+		$this->assertSame(self::LESSON, $note['lessonId']);
+		$this->assertSame($lesson['blocks'][1]['blockId'], $note['afterBlockId'], 'the note follows the block of its slide');
+		$this->assertSame(0, $note['position']);
+		$this->assertSame('00000000-0000-0000-0000-000000000001', $note['tenant_id']);
+		$this->assertSame(2, $result['blocks']);
+		$this->assertSame([], $result['notes']);
+	}//end testSlideNotesGoToTheStaffStoreNotTheLesson()
+
+	/**
+	 * A note that cannot be saved does not undo the lesson, and the import
+	 * report says a note is missing.
+	 *
+	 * @return void
+	 */
+	public function testALostNoteIsReported(): void {
+		$this->setUpFailingNoteWriter();
+		$this->given(row: ['format' => 'pptx'], fileName: 'Licht.pptx');
+		$this->extractor->method('extract')->willReturn(
+			['status' => 'ok', 'lesson' => ['title' => 'Licht', 'sections' => [['heading' => 'Dia 1', 'paragraphs' => ['Tekst'], 'images' => [], 'notes' => 'Notitie']], 'notes' => []]]
+		);
+		$this->transitionEngine->expects($this->once())->method('transition')
+			->with(self::ROW, 'import', ['lessonId' => self::LESSON, 'courseId' => self::COURSE, 'importNote' => '1 teacher note(s) could not be saved']);
+
+		$result = $this->importer->import(userId: 'jdevries', rowId: self::ROW, courseId: self::COURSE);
+
+		$this->assertSame(['1 teacher note(s) could not be saved'], $result['notes']);
+	}//end testALostNoteIsReported()
+
+	/**
+	 * Rebuild the importer with an object writer whose note writes fail.
+	 *
+	 * @return void
+	 */
+	private function setUpFailingNoteWriter(): void {
+		$this->setUp();
+		$this->objectWriter = $this->createMock(CoursePackageObjectWriter::class);
+		$this->objectWriter->method('create')->willReturnCallback(
+			function (string $schema, array $object): ?string {
+				$this->created[] = [$schema, $object];
+				return $schema === 'lesson' ? self::LESSON : null;
+			}
+		);
+		$root = $this->createMock(IRootFolder::class);
+		$root->method('getUserFolder')->willReturn($this->userFolder);
+		$folderSetting = $this->createMock(OnboardingFolderSetting::class);
+		$folderSetting->method('tenantOf')->willReturn('00000000-0000-0000-0000-000000000009');
+		$this->importer = new LessonOnboardingImporter(
+			objectService: $this->objectService,
+			objectWriter: $this->objectWriter,
+			fileWriter: $this->fileWriter,
+			extractor: $this->extractor,
+			draftBuilder: new LessonDraftBuilder(),
+			transitionEngine: $this->transitionEngine,
+			rootFolder: $root,
+			folderSetting: $folderSetting,
+			logger: $this->createMock(LoggerInterface::class),
+		);
+	}//end setUpFailingNoteWriter()
 }//end class

@@ -94,7 +94,7 @@ class OsoImportRejectGuardTest extends TestCase {
 	public function testCoordinatorWithReasonIsAllowed(): void {
 		$object = $this->dossier('BRIN does not match any known sending school.');
 
-		self::assertTrue($this->makeGuard(['coordinator'])->check($object, 'reject', 'actor-1')->isAllowed());
+		self::assertTrue($this->makeGuard(['coordinators'])->check($object, 'reject', 'actor-1')->isAllowed());
 
 	}//end testCoordinatorWithReasonIsAllowed()
 
@@ -106,7 +106,7 @@ class OsoImportRejectGuardTest extends TestCase {
 	 * @spec openspec/changes/oso-inbound-contract/specs/data-exchange/spec.md#scenario-rejecting-without-a-reason-is-refused
 	 */
 	public function testMissingReasonRefused(): void {
-		$result = $this->makeGuard(['coordinator'])->check($this->dossier(null), 'reject', 'actor-1');
+		$result = $this->makeGuard(['coordinators'])->check($this->dossier(null), 'reject', 'actor-1');
 
 		self::assertFalse($result->isAllowed());
 		self::assertNotSame('', (string)$result->getMessage());
@@ -119,7 +119,7 @@ class OsoImportRejectGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testEmptyReasonRefused(): void {
-		self::assertFalse($this->makeGuard(['coordinator'])->check($this->dossier(''), 'reject', 'actor-1')->isAllowed());
+		self::assertFalse($this->makeGuard(['coordinators'])->check($this->dossier(''), 'reject', 'actor-1')->isAllowed());
 
 	}//end testEmptyReasonRefused()
 
@@ -129,7 +129,7 @@ class OsoImportRejectGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testWhitespaceOnlyReasonRefused(): void {
-		self::assertFalse($this->makeGuard(['coordinator'])->check($this->dossier('   '), 'reject', 'actor-1')->isAllowed());
+		self::assertFalse($this->makeGuard(['coordinators'])->check($this->dossier('   '), 'reject', 'actor-1')->isAllowed());
 
 	}//end testWhitespaceOnlyReasonRefused()
 
@@ -149,7 +149,20 @@ class OsoImportRejectGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testNoActorIsDenied(): void {
-		self::assertFalse($this->makeGuard(['coordinator'])->check($this->dossier('Not clear.'), 'reject', '')->isAllowed());
+		self::assertFalse($this->makeGuard(['coordinators'])->check($this->dossier('Not clear.'), 'reject', '')->isAllowed());
 
 	}//end testNoActorIsDenied()
+
+	/**
+	 * The singular `coordinator` is not a group the register declares, so a
+	 * member of a group by that name is refused even with a reason.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/access-control-ratchet-compliance/specs/data-exchange/spec.md#requirement-imported-lvs-results-and-transfer-dossiers-are-read-and-written-by-the-groups-that-review-them
+	 */
+	public function testSingularCoordinatorGroupIsDenied(): void {
+		self::assertFalse($this->makeGuard(['coordinator'])->check($this->dossier('Not clear.'), 'reject', 'actor-1')->isAllowed());
+
+	}//end testSingularCoordinatorGroupIsDenied()
 }//end class

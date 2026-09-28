@@ -59,6 +59,7 @@
 							"in": [
 								"instructor",
 								"coordinator",
+								"team-lead",
 								"administration-manager",
 								"admin"
 							]
@@ -352,6 +353,11 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
 						}
 					}
 				},
@@ -369,6 +375,11 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
 						}
 					}
 				},
@@ -384,6 +395,11 @@
 								"coordinator",
 								"administration-manager",
 								"admin"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
 							]
 						}
 					}
