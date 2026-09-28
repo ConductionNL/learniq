@@ -31,7 +31,7 @@
 		{
 			"id": "CheckInMenu",
 			"label": "Check in",
-			"icon": "QrcodeScan",
+			"icon": "CalendarCheckOutline",
 			"route": "CheckIn",
 			"order": 27,
 			"visibleIf": {

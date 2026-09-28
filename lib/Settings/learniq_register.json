@@ -15763,7 +15763,7 @@
             },
             "CheckInWindow": {
                 "slug": "check-in-window",
-                "icon": "QrcodeScan",
+                "icon": "CalendarCheckOutline",
                 "version": "0.1.0",
                 "title": "Check-in window",
                 "description": "A time window in which the learners of a lesson check in themselves with a code on the teacher's screen. Only staff read it; the code is never stored.",

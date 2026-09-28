@@ -133,6 +133,8 @@ class CheckInCodeService {
 	 * Seconds until the current rotating code changes.
 	 *
 	 * @return int
+	 *
+	 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-the-check-in-code-changes-every-thirty-seconds-in-the-room
 	 */
 	public function secondsLeft(): int {
 		return self::STEP_SECONDS - ($this->time->getTime() % self::STEP_SECONDS);
@@ -145,6 +147,8 @@ class CheckInCodeService {
 	 * @param int    $step     The time step, 0 in link mode.
 	 *
 	 * @return string
+	 *
+	 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-the-check-in-code-changes-every-thirty-seconds-in-the-room
 	 */
 	public function codeFor(string $windowId, int $step): string {
 		$mac = hash_hmac('sha256', $windowId . '|' . $step, $this->secret(), true);
