@@ -274,7 +274,7 @@ class ReportCardComposerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learner-lookup-and-learnerrefs-fixes/specs/report-card/spec.md#requirement-a-composed-report-card-carries-the-learners-profile-as-learnerref
+	 * @spec openspec/specs/report-card/spec.md#requirement-a-composed-report-card-carries-the-learners-profile-as-learnerref
 	 */
 	public function testComposeStampsTheLearnerRefFromTheProfileKeyedOnNcUserId(): void {
 		$composer = $this->makeComposer(

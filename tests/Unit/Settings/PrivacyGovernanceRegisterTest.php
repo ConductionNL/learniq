@@ -117,7 +117,7 @@ class PrivacyGovernanceRegisterTest extends TestCase {
 	 * cannot recreate the copy.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/privacy-reuse-openregister-register/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+	 * @spec   openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
 	 */
 	public function testDataSubjectRequestIsRetiredInFavourOfOpenRegister(): void {
 		$this->assertArrayNotHasKey('DataSubjectRequest', $this->config['components']['schemas']);

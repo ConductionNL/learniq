@@ -39,7 +39,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/gradeentry-learnerref-stamp/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
+ * @spec openspec/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
  * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile
  */
 
@@ -53,7 +53,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 /**
  * Resolves a Nextcloud user id to the UUID of its LearnerProfile.
  *
- * @spec openspec/changes/gradeentry-learnerref-stamp/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
+ * @spec openspec/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
  */
 class LearnerRefResolver {
 
@@ -98,7 +98,7 @@ class LearnerRefResolver {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/gradeentry-learnerref-stamp/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
+	 * @spec openspec/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
 	 */
 	public function resolve(string $learnerId): ?string {
 		if ($learnerId === '') {

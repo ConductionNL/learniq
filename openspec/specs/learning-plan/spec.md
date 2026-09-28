@@ -509,6 +509,58 @@ schema is a role lens, not a page") and its enforcing ratchet, gate-68 `duplicat
   no second `type: "index"` page exists over the `learning-plan` schema (gate-68 reports 0
   findings)
 
+### Requirement: Differentiation forms speak of support needs, level and goal
+The teacher-facing titles and property descriptions of `GroupPlan`, `GroupPlanSubgroup`, `SupportRequest` and `ExamAccommodation` MUST describe differentiation by level, goal, time or material and the recording of support needs, in plain sentences without engineering rationale. Engineering rationale MUST live in the property's `x-notes`, which the form does not show. Every rewritten title and description MUST have an English catalogue key and a Dutch value.
+
+#### Scenario: A teacher fills in an instruction group
+- **GIVEN** a Dutch-language teacher opens the form for a group within a group plan
+- **WHEN** the form renders
+- **THEN** the title reads "Instructiegroep" and the approach field explains, in Dutch, how the group is taught to reach its goal
+
+#### Scenario: Engineering notes stay out of the form
+- **GIVEN** the `GroupPlan.supersedesId` property
+- **WHEN** its description is read
+- **THEN** it is one plain sentence, and the version-chain rationale sits in `x-notes`
+
+### Requirement: Style-matching wording never reaches a product surface
+A unit test MUST scan `lib/`, `src/`, `templates/`, `appinfo/`, `docs/`, `openspec/specs/` and `l10n/en.json` and `l10n/nl.json` for wording that claims pupils have fixed styles of learning to match, in English and Dutch, and MUST fail naming each file and line with a hit.
+
+#### Scenario: Someone adds a style field
+- **GIVEN** a change that adds a property described as the pupil's preferred style of learning using the forbidden wording
+- **WHEN** the unit tests run
+- **THEN** the scan test fails and names the register file and line
+
+### Requirement: Settings explain the evidence once
+The AI features section in Settings MUST show one note that Learniq does not profile how a pupil prefers to learn, that research finds no benefit in matching lessons to such a profile, and that teachers differentiate by level, goal, time and material and record support needs instead.
+
+#### Scenario: An administrator reads the AI section
+- **GIVEN** an administrator opens Learniq settings
+- **WHEN** the AI features section renders
+- **THEN** the note is shown with the NRO Kennisrotonde reference
+
+### Requirement: Parent co-signs are verified against the learner's profile found on ncUserId
+
+Activating a LearningPlan MUST apply the required signer roles of its template, where the template is found by its id. A `parent` signature MUST count only when its signer is in the `parentIds` of the learner's LearnerProfile, found on `ncUserId`. The profile lookup MUST NOT depend on the signer's own read access to LearnerProfile.
+
+#### Scenario: A co-sign by the learner's parent activates the plan
+
+- **GIVEN** a template requiring a `teacher` and a `parent` signature
+- **AND** signatures by the teacher and by `ouder-001`, who is on the learner's profile
+- **WHEN** the plan is activated
+- **THEN** the guard allows it
+
+#### Scenario: A co-sign by another pupil's parent is refused
+
+- **GIVEN** the same template and a `parent` signature by `ouder-099`, who is not on the learner's profile
+- **WHEN** the plan is activated
+- **THEN** the guard refuses it
+
+#### Scenario: A plan without the required signatures stays in draft
+
+- **GIVEN** a template requiring signatures and no signatures on the plan
+- **WHEN** the plan is activated
+- **THEN** the guard refuses it
+
 ## Standards
 
 Schema.org `EducationalOccupationalProgram` (loosely) — there is no clean schema.org type, so the canonical form is OpenRegister-native; NL Wet Passend Onderwijs / OPP sector templates as a `LearningPlan` profile; eIDAS / DigiD assurance levels for the signing strength.
