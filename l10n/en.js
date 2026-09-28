@@ -2013,7 +2013,11 @@ OC.L10N.register(
         "Order among the notes that follow the same block, starting at 0.": "Order among the notes that follow the same block, starting at 0.",
         "The note, as markdown. Only staff read it.": "The note, as markdown. Only staff read it.",
         "Block type. It decides which payload field below is filled. Teacher notes are not blocks: they are kept apart, where learners cannot read them.": "Block type. It decides which payload field below is filled. Teacher notes are not blocks: they are kept apart, where learners cannot read them.",
-        "Markdown text of a rich text block. Empty for every other block type.": "Markdown text of a rich text block. Empty for every other block type."
+        "Markdown text of a rich text block. Empty for every other block type.": "Markdown text of a rich text block. Empty for every other block type.",
+        "A parent or guardian also signs this agreement. The student is under 18, or their date of birth is not recorded.": "A parent or guardian also signs this agreement. The student is under 18, or their date of birth is not recorded.",
+        "Parent signature required": "Parent signature required",
+        "Role of the signer. A parent or guardian signs next to a student who is under 18.": "Role of the signer. A parent or guardian signs next to a student who is under 18.",
+        "Whether a parent or guardian also signs. Set when signatures are requested and on activation: yes when the student is under 18, or has no date of birth recorded.": "Whether a parent or guardian also signs. Set when signatures are requested and on activation: yes when the student is under 18, or has no date of birth recorded."
     },
     "nplurals=2; plural=(n != 1);"
 )

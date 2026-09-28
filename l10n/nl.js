@@ -2475,7 +2475,11 @@ OC.L10N.register(
         "Block type. It decides which payload field below is filled. Teacher notes are not blocks: they are kept apart, where learners cannot read them.": "Bloktype. Dit bepaalt welk inhoudsveld hieronder gevuld is. Notities voor docenten zijn geen blokken: ze worden apart bewaard, waar leerlingen ze niet kunnen lezen.",
         "Markdown text of a rich text block. Empty for every other block type.": "Markdown-tekst van een tekstblok. Leeg voor elk ander bloktype.",
         "Only staff can read this note. Learners and parents never see it.": "Alleen medewerkers kunnen deze notitie lezen. Leerlingen en ouders zien hem nooit.",
-        "The lesson was saved, but a teacher note was not. Save again to retry.": "De les is opgeslagen, maar een notitie voor docenten niet. Sla opnieuw op om het nog eens te proberen."
+        "The lesson was saved, but a teacher note was not. Save again to retry.": "De les is opgeslagen, maar een notitie voor docenten niet. Sla opnieuw op om het nog eens te proberen.",
+        "A parent or guardian also signs this agreement. The student is under 18, or their date of birth is not recorded.": "Een ouder of voogd tekent deze overeenkomst ook. De student is jonger dan 18, of zijn geboortedatum is niet bekend.",
+        "Parent signature required": "Handtekening ouder nodig",
+        "Role of the signer. A parent or guardian signs next to a student who is under 18.": "Rol van de ondertekenaar. Een ouder of voogd tekent mee als de student jonger is dan 18.",
+        "Whether a parent or guardian also signs. Set when signatures are requested and on activation: yes when the student is under 18, or has no date of birth recorded.": "Of een ouder of voogd ook tekent. Wordt bepaald bij het vragen om handtekeningen en bij het activeren: ja als de student jonger is dan 18 of geen geboortedatum heeft."
     },
     "nplurals=2; plural=(n != 1);"
 )
