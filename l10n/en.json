@@ -2122,7 +2122,17 @@
         "Finished": "Finished",
         "Code": "Code",
         "What went wrong": "What went wrong",
-        "Record": "Record"
+        "Record": "Record",
+        "Personal number": "Personal number",
+        "The pupil's BSN, or the onderwijsnummer when the pupil has no BSN. Only sent to DUO's register (ROD).": "The pupil's BSN, or the onderwijsnummer when the pupil has no BSN. Only sent to DUO's register (ROD).",
+        "Kind of personal number": "Kind of personal number",
+        "Whether the personal number is a BSN or an onderwijsnummer.": "Whether the personal number is a BSN or an onderwijsnummer.",
+        "BSN": "BSN",
+        "Onderwijsnummer": "Onderwijsnummer",
+        "Onderwijsaanbiedercode": "Onderwijsaanbiedercode",
+        "The school's onderwijsaanbieder code in RIO, three digits, the letter A and three digits, for example 100A200.": "The school's onderwijsaanbieder code in RIO, three digits, the letter A and three digits, for example 100A200.",
+        "School location": "School location",
+        "The school location that gives this advice. DUO needs its vestigingscode.": "The school location that gives this advice. DUO needs its vestigingscode."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

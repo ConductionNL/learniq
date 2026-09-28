@@ -27,9 +27,12 @@ namespace OCA\Learniq\Tests\Unit\Service;
 use OCA\Learniq\Service\DataExchangePayloadBuilder;
 use OCA\Learniq\Service\DataExchangeTransformer;
 use OCA\Learniq\Service\ExchangeDisclosure;
+use OCA\Learniq\Service\RodPersonalNumberResolver;
+use OCA\Learniq\Service\RodSchoolAdviceComposer;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 /**
  * The record composer over an in-memory store.
@@ -71,7 +74,8 @@ class DataExchangePayloadBuilderTest extends TestCase {
 			}
 		);
 
-		return new DataExchangePayloadBuilder($objects, new DataExchangeTransformer($objects), new ExchangeDisclosure());
+		$resolver = new RodPersonalNumberResolver($objects, new NullLogger());
+		return new DataExchangePayloadBuilder($objects, new DataExchangeTransformer($objects), new ExchangeDisclosure(), $resolver, new RodSchoolAdviceComposer($objects, $resolver));
 	}//end builder()
 
 	/**
