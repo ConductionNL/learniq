@@ -24732,7 +24732,6 @@
           "slug": "entitlement-entitlement-1-1"
         },
         "feeItemId": "00000000-0000-4000-8000-000000000000",
-        "orderLineId": "00000000-0000-4000-8000-000000000000",
         "learnerId": "Voorbeeld Learnerid 1",
         "grantedResourceKind": "course-access",
         "tenant_id": "00000000-0000-4000-8000-000000000000",
@@ -24747,7 +24746,6 @@
           "slug": "entitlement-entitlement-2-2"
         },
         "feeItemId": "00000000-0000-4000-8000-000000000001",
-        "orderLineId": "00000000-0000-4000-8000-000000000001",
         "learnerId": "Voorbeeld Learnerid 2",
         "grantedResourceKind": "trip-participation",
         "tenant_id": "00000000-0000-4000-8000-000000000001",
@@ -24762,7 +24760,6 @@
           "slug": "entitlement-entitlement-3-3"
         },
         "feeItemId": "00000000-0000-4000-8000-000000000002",
-        "orderLineId": "00000000-0000-4000-8000-000000000002",
         "learnerId": "Voorbeeld Learnerid 3",
         "grantedResourceKind": "material-access",
         "tenant_id": "00000000-0000-4000-8000-000000000002",
