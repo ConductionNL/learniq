@@ -112,6 +112,19 @@ class ArchiveRetiredPaymentObjectsTest extends TestCase {
 			}
 		);
 
+		$folder->method('getFile')->willReturnCallback(
+			function (string $name): ISimpleFile {
+				if (isset($this->files[$name]) === false) {
+					throw new NotFoundException($name);
+				}
+
+				$file = $this->createMock(ISimpleFile::class);
+				$file->method('getContent')->willReturn($this->files[$name]);
+
+				return $file;
+			}
+		);
+
 		$appData = $this->createMock(IAppData::class);
 		$appData->method('getFolder')->willReturnCallback(
 			function (string $name) use ($folder): ISimpleFolder {
@@ -238,4 +251,54 @@ class ArchiveRetiredPaymentObjectsTest extends TestCase {
 		self::assertNotFalse($import);
 		self::assertLessThan($import, $archive);
 	}//end testTheStepRunsBeforeTheRegisterImport()
+
+	/**
+	 * After the archive is written, a schema whose every row is in it reads
+	 * as archived (retired-schemas-prune).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/retired-schemas-prune/specs/nextcloud-app/spec.md#requirement-schemas-learniq-retired-leave-the-instance-once-their-rows-are-kept-elsewhere
+	 */
+	public function testEveryRowInTheArchiveReadsAsArchived(): void {
+		$this->rows = ['order' => [['id' => 'o-1'], ['id' => 'o-2']], 'order-line' => [['id' => 'l-1']]];
+		$this->makeStep()->run($this->repairOutput());
+
+		self::assertTrue($this->makeStep()->isFullyArchived(schema: 'order', expectedRows: 2));
+		self::assertTrue($this->makeStep()->isFullyArchived(schema: 'order-line', expectedRows: 1));
+	}//end testEveryRowInTheArchiveReadsAsArchived()
+
+	/**
+	 * A row written after the archive, a count that differs from what the
+	 * prune would delete, or a schema the archive does not cover all read as
+	 * not archived.
+	 *
+	 * @return void
+	 */
+	public function testAnythingOutsideTheArchiveReadsAsNotArchived(): void {
+		$this->rows = ['order' => [['id' => 'o-1'], ['id' => 'o-2']]];
+		$step = $this->makeStep();
+		$step->run($this->repairOutput());
+
+		self::assertFalse($step->isFullyArchived(schema: 'order', expectedRows: 5));
+		self::assertFalse($step->isFullyArchived(schema: 'entitlement', expectedRows: 2));
+
+		$this->rows['order'][] = ['id' => 'o-3'];
+		self::assertFalse($step->isFullyArchived(schema: 'order', expectedRows: 3));
+	}//end testAnythingOutsideTheArchiveReadsAsNotArchived()
+
+	/**
+	 * Without an archive, or with one that does not parse, nothing reads as
+	 * archived.
+	 *
+	 * @return void
+	 */
+	public function testNoReadableArchiveMeansNotArchived(): void {
+		$this->rows = ['order' => [['id' => 'o-1']]];
+		self::assertFalse($this->makeStep()->isFullyArchived(schema: 'order', expectedRows: 1));
+
+		$this->folderExists = true;
+		$this->files['retired-payments.json'] = 'not json';
+		self::assertFalse($this->makeStep()->isFullyArchived(schema: 'order', expectedRows: 1));
+	}//end testNoReadableArchiveMeansNotArchived()
 }//end class

@@ -33,9 +33,9 @@ WHAT IS LEFT OUT, ON PURPOSE.
 - Order, OrderLine, PaymentTransaction and Entitlement: decision D19 retires the
   first three; an Entitlement needs an OrderLine. Prices live on FeeItem, which
   D19 keeps.
-- Regulation: its own `slug` property must match ^[A-Z0-9_-]+$, which the
-  contract's lowercase envelope slug (training-regulation-001) can never do.
-  Courses and attestations carry the regulation as a plain slug string.
+- AVG as a Regulation row: learniq_register.json seeds it, and a second row
+  with the same code would be a duplicate. The other regulations are rows here
+  since decision D29 let the contract take a Regulation's slug from the object.
 - Guardians: participants are adults.
 
 Usage:
@@ -111,6 +111,10 @@ SCHEMAS = [
     "course-evaluation-response",
     "course-quality-score",
     "improvement-action",
+    # Appended, not inserted: a uuid encodes its schema's position in this list, so
+    # inserting a schema would move every later uuid and a re-load would duplicate
+    # the set on an install that already has it (example-set-regulation-rows).
+    "regulation",
 ]
 
 CLOSED = [
@@ -1337,13 +1341,49 @@ def build() -> dict:
         for obj in rows:
             for private in [k for k in obj if k.startswith("_")]:
                 del obj[private]
+    # --- the regulations the courses and certificates answer to (D29) ------------
+    # Regulation's own slug is its code (^[A-Z0-9_-]+$), and the contract takes the
+    # slug from the object for such a schema. AVG is seeded by the register. The
+    # institute trains people for their employers and obliges none of them itself,
+    # so no audience is set: the rows name the certificate and how long it lasts.
+    def regulation(code: str, name: str, description: str, criteria: str, renewal: int | None, annual: bool) -> None:
+        fields = {"slug": code, "name": name, "description": description, "applicabilityCriteria": criteria,
+                  "audienceScope": "role-specific", "audienceRoles": [], "requiresAnnualRenewal": annual}
+        if renewal is not None:
+            fields["renewalCycleMonths"] = renewal
+        fields.update({"active": True, "ragRedThreshold": 70, "ragAmberThreshold": 90, "lifecycle": "published"})
+        b.add("regulation", fields)
+
+    regulation("VCA", "VCA, veiligheid, gezondheid en milieu",
+               "Het VCA-diploma voor operationele medewerkers, tien jaar geldig.",
+               "Wie op locatie werkt, als de werkgever of opdrachtgever het vraagt.", 120, False)
+    regulation("ARBOWET-BHV", "Bedrijfshulpverlening (Arbowet artikel 15)",
+               "Het BHV-certificaat: eerste hulp, brand blussen en ontruimen, met een herhaling elk jaar.",
+               "Bedrijfshulpverleners die hun werkgever aanwijst.", 12, True)
+    regulation("ARBOWET-PREVENTIE", "Preventiemedewerker (Arbowet artikel 13)",
+               "De preventiemedewerker helpt de werkgever met de risico-inventarisatie en het plan van aanpak.",
+               "Medewerkers die hun werkgever als preventiemedewerker aanwijst.", None, False)
+    regulation("ARBOBESLUIT-HEFTRUCK", "Heftruckcertificaat (Arbobesluit artikel 7.32)",
+               "Een heftruck bedienen mag alleen met aantoonbare deskundigheid; het certificaat is vijf jaar geldig.",
+               "Heftruckchauffeurs in magazijn, bouw en installatie.", 60, False)
+    regulation("NIS2", "NIS2, informatiebeveiliging voor medewerkers",
+               "Wat de NIS2-richtlijn van medewerkers vraagt: phishing herkennen, incidenten melden en veilig werken.",
+               "Medewerkers van organisaties die onder NIS2 vallen, zoals zorg en gemeenten.", 12, True)
+
+    shipped = {r["slug"] for r in b.buckets["regulation"]}
+    for rows in b.buckets.values():
+        for row in rows:
+            code = row.get("regulationSlug")
+            if code is not None and code != "AVG" and code not in shipped:
+                raise RuntimeError(f"{row['slug']} points at regulation {code}, which this set does not ship")
+
     objects = {name: rows for name, rows in b.buckets.items() if rows}
     total = sum(len(rows) for rows in objects.values())
     return {
         "openapi": "3.0.0",
         "info": {
             "title": "Learniq example set: Training institute",
-            "version": "1.0.0",
+            "version": "1.1.0",
             "description": f"{INSTITUTE}, a fictional training institute in the fictional town of {TOWN}, through the 2025-2026 year.",
         },
         "x-openregister": {
@@ -1372,7 +1412,8 @@ def build() -> dict:
                     "participants from six client companies and private individuals, trainers who teach every edition, a morning and "
                     "an afternoon session per training day with every participant marked, knowledge tests with resits, signed attestations, "
                     "certificates with expiry and renewal, a leadership programme with intake rounds and a waiting list, quarterly course "
-                    "evaluations with quality scores and improvement actions, and the course package imports and export round trips."
+                    "evaluations with quality scores and improvement actions, the course package imports and export round trips, "
+                    "and the regulations the certificates answer to."
                 ),
                 "objects": objects,
             },

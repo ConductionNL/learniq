@@ -82,7 +82,7 @@ class OsoImportAcceptGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testCoordinatorIsAllowed(): void {
-		self::assertTrue($this->makeGuard(['coordinator'])->check(self::DOSSIER, 'accept', 'actor-1')->isAllowed());
+		self::assertTrue($this->makeGuard(['coordinators'])->check(self::DOSSIER, 'accept', 'actor-1')->isAllowed());
 
 	}//end testCoordinatorIsAllowed()
 
@@ -115,7 +115,20 @@ class OsoImportAcceptGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testNoActorIsDenied(): void {
-		self::assertFalse($this->makeGuard(['coordinator'])->check(self::DOSSIER, 'accept', '')->isAllowed());
+		self::assertFalse($this->makeGuard(['coordinators'])->check(self::DOSSIER, 'accept', '')->isAllowed());
 
 	}//end testNoActorIsDenied()
+
+	/**
+	 * The singular `coordinator` is not a group the register declares, so a
+	 * member of a group by that name is refused like anyone else.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/access-control-ratchet-compliance/specs/data-exchange/spec.md#scenario-the-singular-coordinator-group-accepts-nothing
+	 */
+	public function testSingularCoordinatorGroupIsDenied(): void {
+		self::assertFalse($this->makeGuard(['coordinator'])->check(self::DOSSIER, 'accept', 'actor-1')->isAllowed());
+
+	}//end testSingularCoordinatorGroupIsDenied()
 }//end class
