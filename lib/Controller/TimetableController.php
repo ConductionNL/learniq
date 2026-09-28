@@ -26,6 +26,12 @@
  * of the requested window) — the "dagrooster" surface. Still read-only: no
  * new write endpoint, no new schema.
  *
+ * sessions-from-planninq: the sessions come from the current timetable
+ * source ({@see \OCA\Learniq\Timetabling\Source\TimetableSourceResolver}):
+ * planninq's school timetable when planninq is installed (decision D10),
+ * learniq's own `Session` otherwise. `cohort()` serves the cohort timetable
+ * page the same way, after an RBAC read of the cohort.
+ *
  * @category Controller
  * @package  OCA\Learniq\Controller
  *
@@ -49,6 +55,7 @@ namespace OCA\Learniq\Controller;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\TimetableProjector;
+use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -57,6 +64,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 
 /**
  * Personal timetable read surface over existing Session/Cohort/Enrolment objects.
@@ -78,6 +86,7 @@ class TimetableController extends Controller {
 	 * @param IUserSession $userSession Current user session.
 	 * @param ObjectService $objectService OR object query service (RBAC-scoped).
 	 * @param TimetableProjector $projector Window resolution and Session projection.
+	 * @param TimetableSourceResolver $sources Where sessions are read from: planninq when installed, else Session.
 	 * @param LoggerInterface $logger Application logger.
 	 */
 	public function __construct(
@@ -85,6 +94,7 @@ class TimetableController extends Controller {
 		private readonly IUserSession $userSession,
 		private readonly ObjectService $objectService,
 		private readonly TimetableProjector $projector,
+		private readonly TimetableSourceResolver $sources,
 		private readonly LoggerInterface $logger,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
@@ -119,28 +129,38 @@ class TimetableController extends Controller {
 		[$windowFrom, $windowTo] = $this->projector->resolveWindow(from: $from, to: $to);
 
 		$cohortIds = $this->resolveCallerCohortIds(uid: $uid);
+		$source = $this->sources->current();
 
-		// The lessons the caller covers as substitute, whichever cohort they
-		// belong to (learniq#1134). Only those sessions, never their cohort's
-		// other lessons.
-		$coveredSessions = $this->loadCoveredSessions(uid: $uid);
+		// A caller with no cohorts gets an empty timetable, not an error. With
+		// planninq a teacher can still have lessons of their own, and with
+		// learniq's own sessions a substitute has the lessons they cover
+		// (learniq#1134): both come from sessionsForTeacher().
+		try {
+			$teacherSessions = $source->sessionsForTeacher(userId: $uid, from: $windowFrom, to: $windowTo);
+		} catch (RuntimeException $e) {
+			return $this->sourceUnavailable(message: $e->getMessage(), from: $windowFrom, to: $windowTo);
+		}
 
-		// A caller with no cohorts and no cover gets an empty timetable, not an error.
-		if (empty($cohortIds) === true && empty($coveredSessions) === true) {
+		if (empty($cohortIds) === true && empty($teacherSessions) === true) {
 			$this->logger->debug(
 				'[TimetableController] No cohorts resolved for {uid}; returning empty timetable.',
 				['uid' => $uid, 'from' => $windowFrom, 'to' => $windowTo]
 			);
 			return new JSONResponse(
-				data: ['sessions' => [], 'from' => $windowFrom, 'to' => $windowTo, 'changes' => []],
+				data: ['sessions' => [], 'from' => $windowFrom, 'to' => $windowTo, 'changes' => [], 'source' => $source->name()],
 				statusCode: Http::STATUS_OK
 			);
 		}
 
-		$rawSessions = $this->mergeCoveredSessions(
-			rawSessions: $this->loadRawSessionsForCohorts(cohortIds: $cohortIds),
-			coveredSessions: $coveredSessions
-		);
+		try {
+			$rawSessions = $this->mergeById(
+				first: $source->sessionsForCohorts(cohortIds: $cohortIds, from: $windowFrom, to: $windowTo),
+				second: $teacherSessions
+			);
+		} catch (RuntimeException $e) {
+			return $this->sourceUnavailable(message: $e->getMessage(), from: $windowFrom, to: $windowTo);
+		}
+
 		$roomCache = $this->preloadRooms(sessions: $rawSessions);
 
 		$sessions = $this->projector->windowedSessions(
@@ -152,10 +172,136 @@ class TimetableController extends Controller {
 		$changes = $this->projector->todaysChanges(rawSessions: $rawSessions, roomCache: $roomCache);
 
 		return new JSONResponse(
-			data: ['sessions' => $sessions, 'from' => $windowFrom, 'to' => $windowTo, 'changes' => $changes],
+			data: ['sessions' => $sessions, 'from' => $windowFrom, 'to' => $windowTo, 'changes' => $changes, 'source' => $source->name()],
 			statusCode: Http::STATUS_OK
 		);
 	}//end mine()
+
+	/**
+	 * Return one cohort's sessions for a window, from the current timetable source.
+	 *
+	 * The cohort is read first, through OpenRegister with RBAC on: a caller who
+	 * cannot read it gets 403 and no session is read. The window defaults to
+	 * eight weeks from this week's Monday, so a year of lessons is not loaded
+	 * at once.
+	 *
+	 * @param string      $cohortId The cohort UUID.
+	 * @param string|null $from     Inclusive ISO 8601 window start (optional).
+	 * @param string|null $to       Exclusive ISO 8601 window end (optional).
+	 *
+	 * @return JSONResponse 200 with sessions; 401 without a user; 403 when the cohort cannot be read; 503 when the source does not answer.
+	 *
+	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function cohort(string $cohortId, ?string $from = null, ?string $to = null): JSONResponse {
+		if ($this->userSession->getUser() === null) {
+			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
+
+		if ($this->canReadCohort(cohortId: $cohortId) === false) {
+			return new JSONResponse(
+				data: ['error' => 'This group cannot be found, or you cannot see it.'],
+				statusCode: Http::STATUS_FORBIDDEN
+			);
+		}
+
+		if (($to === null || trim($to) === '') && ($from === null || trim($from) === '')) {
+			[$from] = $this->projector->resolveWindow(from: null, to: null);
+			$to = gmdate(DATE_ATOM, ((int)strtotime($from) + (56 * 86400)));
+		}
+
+		[$windowFrom, $windowTo] = $this->projector->resolveWindow(from: $from, to: $to);
+		$source = $this->sources->current();
+
+		try {
+			$rawSessions = $source->sessionsForCohorts(cohortIds: [$cohortId], from: $windowFrom, to: $windowTo);
+		} catch (RuntimeException $e) {
+			return $this->sourceUnavailable(message: $e->getMessage(), from: $windowFrom, to: $windowTo);
+		}
+
+		$sessions = $this->projector->windowedSessions(
+			rawSessions: $rawSessions,
+			windowFrom: $windowFrom,
+			windowTo: $windowTo,
+			roomCache: $this->preloadRooms(sessions: $rawSessions)
+		);
+
+		return new JSONResponse(
+			data: ['sessions' => $sessions, 'from' => $windowFrom, 'to' => $windowTo, 'source' => $source->name()],
+			statusCode: Http::STATUS_OK
+		);
+	}//end cohort()
+
+	/**
+	 * Whether the caller can read the cohort, through OpenRegister RBAC.
+	 *
+	 * Fails closed: a missing cohort, a refused read or an error all answer false.
+	 *
+	 * @param string $cohortId The cohort UUID.
+	 *
+	 * @return bool
+	 */
+	private function canReadCohort(string $cohortId): bool {
+		try {
+			$cohort = $this->objectService->find(id: $cohortId, register: self::LEARNIQ_REGISTER, schema: 'cohort');
+		} catch (\Exception $e) {
+			$this->logger->debug('[TimetableController] Cohort {id} not readable: {msg}', ['id' => $cohortId, 'msg' => $e->getMessage()]);
+			return false;
+		}
+
+		return $cohort !== null;
+	}//end canReadCohort()
+
+	/**
+	 * A 503 answer when the timetable source does not answer.
+	 *
+	 * @param string $message Why the source did not answer.
+	 * @param string $from    The resolved window start.
+	 * @param string $to      The resolved window end.
+	 *
+	 * @return JSONResponse
+	 */
+	private function sourceUnavailable(string $message, string $from, string $to): JSONResponse {
+		$this->logger->warning('[TimetableController] Timetable source unavailable: {msg}', ['msg' => $message]);
+
+		return new JSONResponse(
+			data: ['error' => 'The timetable could not be read.', 'sessions' => [], 'from' => $from, 'to' => $to, 'changes' => []],
+			statusCode: Http::STATUS_SERVICE_UNAVAILABLE
+		);
+	}//end sourceUnavailable()
+
+	/**
+	 * Merge two session lists, keeping the first occurrence of each id.
+	 *
+	 * @param array<int,array<string,mixed>> $first  Sessions read by cohort.
+	 * @param array<int,array<string,mixed>> $second Sessions read by teacher.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function mergeById(array $first, array $second): array {
+		$merged = [];
+		foreach (array_merge($first, $second) as $index => $session) {
+			$key = (string)($session['id'] ?? ($session['uuid'] ?? ''));
+			if ($key === '') {
+				$key = '#' . $index;
+			}
+
+			if (isset($merged[$key]) === false) {
+				$merged[$key] = $session;
+				continue;
+			}
+
+			// A lesson of the caller's own cohort that they also cover keeps
+			// its cohort row and gains the cover mark (learniq#1134).
+			if (($session['cover'] ?? false) === true) {
+				$merged[$key]['cover'] = true;
+			}
+		}
+
+		return array_values($merged);
+	}//end mergeById()
 
 	/**
 	 * Resolve the set of cohort UUIDs the caller belongs to.
@@ -224,115 +370,6 @@ class TimetableController extends Controller {
 
 		return array_keys($cohortIds);
 	}//end resolveCallerCohortIds()
-
-	/**
-	 * Load the Sessions where the caller is the substitute teacher.
-	 *
-	 * A substitute is often neither a teacher nor a learner of the cohort they
-	 * cover, so resolveCallerCohortIds() never reaches these lessons. They are
-	 * read on `substituteTeacherId` (declared on Session), so only the covered
-	 * lessons load, not the rest of that cohort's timetable. Each is marked
-	 * `cover: true`.
-	 *
-	 * @param string $uid The caller's Nextcloud user id.
-	 *
-	 * @return array<int,array<string,mixed>> Raw session data arrays, marked as cover.
-	 *
-	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
-	 */
-	private function loadCoveredSessions(string $uid): array {
-		$results = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => 'session',
-					'substituteTeacherId' => $uid,
-				],
-				'sort' => ['startsAt' => 'ASC'],
-			]
-		);
-
-		$rows = [];
-		foreach ($results as $row) {
-			$session = $this->toArray(row: $row);
-			// Defensive, as for enrolments: never show a lesson another teacher covers.
-			if ((string)($session['substituteTeacherId'] ?? '') !== $uid) {
-				continue;
-			}
-
-			$session['cover'] = true;
-			$rows[] = $session;
-		}
-
-		return $rows;
-	}//end loadCoveredSessions()
-
-	/**
-	 * Add the covered sessions to the cohort sessions, once each.
-	 *
-	 * A lesson of the caller's own cohort that they also cover keeps its cohort
-	 * row and gains the cover mark.
-	 *
-	 * @param array<int,array<string,mixed>> $rawSessions The caller's cohort sessions.
-	 * @param array<int,array<string,mixed>> $coveredSessions The sessions the caller covers.
-	 *
-	 * @return array<int,array<string,mixed>> The combined raw sessions.
-	 *
-	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
-	 */
-	private function mergeCoveredSessions(array $rawSessions, array $coveredSessions): array {
-		$positions = [];
-		foreach ($rawSessions as $index => $session) {
-			$positions[(string)($session['id'] ?? ($session['uuid'] ?? ''))] = $index;
-		}
-
-		foreach ($coveredSessions as $session) {
-			$sessionId = (string)($session['id'] ?? ($session['uuid'] ?? ''));
-			if ($sessionId !== '' && isset($positions[$sessionId]) === true) {
-				$rawSessions[$positions[$sessionId]]['cover'] = true;
-				continue;
-			}
-
-			$rawSessions[] = $session;
-		}
-
-		return $rawSessions;
-	}//end mergeCoveredSessions()
-
-	/**
-	 * Load every raw Session row for the resolved cohorts (no window filter).
-	 *
-	 * Sessions are fetched per cohort (an equality filter on `cohortId`) so no
-	 * cross-cohort session is ever loaded. The unfiltered result backs both
-	 * the windowed `sessions` projection and the same-day `changes` list —
-	 * one query pass, not two.
-	 *
-	 * @param array<int,string> $cohortIds The caller's cohort UUIDs.
-	 *
-	 * @return array<int,array<string,mixed>> Raw session data arrays, all cohorts.
-	 */
-	private function loadRawSessionsForCohorts(array $cohortIds): array {
-		$rows = [];
-
-		foreach ($cohortIds as $cohortId) {
-			$results = $this->objectService->findAll(
-				[
-					'filters' => [
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => 'session',
-						'cohortId' => $cohortId,
-					],
-					'sort' => ['startsAt' => 'ASC'],
-				]
-			);
-
-			foreach ($results as $row) {
-				$rows[] = $this->toArray(row: $row);
-			}
-		}
-
-		return $rows;
-	}//end loadRawSessionsForCohorts()
 
 	/**
 	 * Pre-load every distinct Room referenced by `roomId` across the given

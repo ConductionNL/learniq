@@ -233,6 +233,10 @@ class TimetableProjector {
 			'changeReasonKind' => $session['changeReasonKind'] ?? null,
 			'changeReason' => $session['changeReason'] ?? null,
 			'changedAt' => $session['changedAt'] ?? null,
+			// Where the lesson lives: `learniq` (a Session) or `planninq` (the
+			// school timetable, sessions-from-planninq). A page opens only a
+			// learniq Session as a learniq Session.
+			'source' => (string)($session['source'] ?? 'learniq'),
 		];
 	}//end projectSession()
 
