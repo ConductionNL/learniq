@@ -25,7 +25,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/specs/certification/spec.md#requirement-auto-enrol-on-renewal-or-content-version-change
- * @spec openspec/changes/po-schooladvies-flow/tasks.md
+ * @spec openspec/changes/archive/2026-09-28-po-schooladvies-flow/tasks.md
  */
 
 declare(strict_types=1);
@@ -44,7 +44,7 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
  * Wires the transition bridges that create a follow-up object.
  *
  * @spec openspec/specs/certification/spec.md#requirement-auto-enrol-on-renewal-or-content-version-change
- * @spec openspec/changes/po-schooladvies-flow/tasks.md
+ * @spec openspec/changes/archive/2026-09-28-po-schooladvies-flow/tasks.md
  */
 class TransitionBridgeListenerRegistrar {
 
@@ -56,7 +56,7 @@ class TransitionBridgeListenerRegistrar {
 	 * @return void
 	 *
 	 * @spec openspec/specs/certification/spec.md#requirement-auto-enrol-on-renewal-or-content-version-change
-	 * @spec openspec/changes/po-schooladvies-flow/tasks.md
+	 * @spec openspec/changes/archive/2026-09-28-po-schooladvies-flow/tasks.md
 	 */
 	public function register(IRegistrationContext $context): void {
 		// ADR-031 legitimate exception (credential-renewal-listener):

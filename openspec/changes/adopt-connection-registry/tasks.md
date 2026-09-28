@@ -28,3 +28,4 @@
 - [x] 4.1 Write `tests/e2e/connection-registry.spec.ts`.
 - [x] 4.2 Install integriq in the CI `additional-apps`.
 - [ ] 4.3 Run the e2e spec against an instance with learniq and integriq, then archive this change.
+  - Not run (r5-structure, 2026-09-28): `tests/e2e/connection-registry.spec.ts` exists, but it needs a live instance with learniq and integriq serving this code. Lane rules forbid touching the shared instance on :8080, and the Code Quality workflow (which carries integriq in `additional-apps`) was skipped on development. Archive only after a run.

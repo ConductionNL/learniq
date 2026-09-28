@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-result-is-shown-only-once-the-teacher-released-it
+ * @spec openspec/specs/assessment/spec.md#requirement-a-portal-result-is-shown-only-once-the-teacher-released-it
  */
 
 declare(strict_types=1);
@@ -41,7 +41,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 /**
  * The release rule and the released result.
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-result-is-shown-only-once-the-teacher-released-it
+ * @spec openspec/specs/assessment/spec.md#requirement-a-portal-result-is-shown-only-once-the-teacher-released-it
  */
 class PortalResultReader {
 
@@ -74,7 +74,7 @@ class PortalResultReader {
 	 *
 	 * @return PortalOutcome
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-result-is-shown-only-once-the-teacher-released-it
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-result-is-shown-only-once-the-teacher-released-it
 	 */
 	public function result(PortalLearner $learner, string $attemptId): PortalOutcome {
 		$attempt = $this->reader->attempt(id: $attemptId);

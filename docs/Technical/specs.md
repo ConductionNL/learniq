@@ -1,4 +1,4 @@
-# Scholiq, Applied Specifications
+# Learniq, Applied Specifications
 
 All 6 Wave-2 compliance-audit wedge specs have been applied. Specs live in `openspec/changes/` and were driven by the [Hydra OpenSpec workflow](../../hydra/openspec/).
 

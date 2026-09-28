@@ -2,7 +2,9 @@
 
 ## Purpose
 TBD - created by archiving change bpv-praktijkovereenkomst. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Persist BPV domain objects in OpenRegister
 The system MUST persist `Praktijkopleider`, `BpvPlacement`, `Praktijkovereenkomst`, `PokSignature`, `WerkprocesAssessment`, `BpvVisitReport` as OpenRegister objects with `x-openregister-lifecycle` (`BpvPlacement`: proposed → sbb-verification-pending → confirmed → active → completed | terminated; `Praktijkovereenkomst`: draft → pending-signatures → active → completed | terminated; `WerkprocesAssessment`: draft → submitted → confirmed; `BpvVisitReport`: draft → finalized), relations expressed as `$ref` UUID properties (`BpvPlacement`↔`Praktijkopleider`/`LearnerProfile`/`CurriculumPlan`, `Praktijkovereenkomst`↔`BpvPlacement`, `PokSignature`↔`Praktijkovereenkomst`, `WerkprocesAssessment`↔`BpvPlacement`/`CurriculumPlan`, `BpvVisitReport`↔`BpvPlacement`/`LearnerProfile`), and `x-openregister-calculations` (`Praktijkovereenkomst.isFullySigned`, `BpvVisitReport.nextVisitDue`).
 
@@ -29,7 +31,8 @@ The SBB erkend-leerbedrijf check MUST be a declared `leerbedrijfVerification.pro
 - **THEN** the configured adapter (if any) returns the verification result and no SBB wire protocol is implemented inside Scholiq itself
 
 ### Requirement: Three-party POK signing reuses the Signature pattern via PokSignature
-`Praktijkovereenkomst` signing MUST use a `PokSignature` schema shaped identically to the `learning-plan` `Signature` schema (`subjectId`, `subjectVersion`, `signerId`, `signerRole`, `signedAt`, `assuranceLevel`, `method`, `evidenceRef`, append-only), with `signerRole` restricted to `student | school | praktijkopleider`. The existing `Signature` schema MUST NOT be widened (its `subjectId` is hard-`$ref`'d to `LearningPlan`; widening it to a polymorphic subject would violate the fleet's single-schema relation-dialect rule).
+
+`Praktijkovereenkomst` signing MUST use a `PokSignature` schema shaped identically to the `learning-plan` `Signature` schema (`subjectId`, `subjectVersion`, `signerId`, `signerRole`, `signedAt`, `assuranceLevel`, `method`, `evidenceRef`, append-only), with `signerRole` restricted to `student | school | praktijkopleider | parent`. `parent` is a parent or guardian of a student who is under 18, signing next to the student. The existing `Signature` schema MUST NOT be widened (its `subjectId` is hard-`$ref`'d to `LearningPlan`; widening it to a polymorphic subject would violate the fleet's single-schema relation-dialect rule).
 
 #### Scenario: A POK version requires all three roles signed
 - **GIVEN** a `Praktijkovereenkomst` version with a `PokSignature` from `student` and `school` recorded
@@ -37,14 +40,53 @@ The SBB erkend-leerbedrijf check MUST be a declared `leerbedrijfVerification.pro
 - **THEN** a third `PokSignature` is recorded, append-only, for that version
 - **AND** the prior two signatures remain unchanged
 
-### Requirement: POK activation is gated on all three signatures
-`Praktijkovereenkomst` MUST NOT transition to `active` unless a `PokSignature` exists for each of `student`, `school`, and `praktijkopleider` on the current version, enforced by `PokActivationGuard` and reflected in the `isFullySigned` calculation.
+#### Scenario: A parent signs a minor's agreement
+- **GIVEN** a `Praktijkovereenkomst` for a student aged 17
+- **WHEN** a parent listed on the student's learner profile signs on the signing page
+- **THEN** a `PokSignature` with `signerRole: parent` is recorded, append-only, for that version
+
+### Requirement: POK activation is gated on every required signature
+
+`Praktijkovereenkomst` MUST NOT transition to `active` unless a `PokSignature` exists for each of `student`, `school`, and `praktijkopleider` on the current version, enforced by `PokActivationGuard` and reflected in the `isFullySigned` calculation. When the student was under 18 on the day of their own signature, or no date of birth is recorded, a `parent` signature MUST exist too, and it MUST count only when its `signerId` is in the student's `LearnerProfile.parentIds`. The guard MUST derive this from the placement's learner and the student's signature itself; it MUST NOT rely on a flag stored on the POK. A student who turns 18 after signing still needs the parent signature, because the age at signing decides.
+
+The POK MUST carry `parentSignatureRequired`, set by the server when signatures are requested and again on activation, from the same rule, so the signing flow can ask for the parent. `isFullySigned` MUST require a parent signature when `parentSignatureRequired` is true.
 
 #### Scenario: Activation blocked until fully signed
 - **GIVEN** a `Praktijkovereenkomst` missing the `praktijkopleider` signature
 - **WHEN** an attempt is made to activate it
 - **THEN** `PokActivationGuard` blocks the transition and `isFullySigned` is `false`
 - **AND** once the missing signature is recorded, `isFullySigned` becomes `true` and activation succeeds
+
+#### Scenario: A minor's agreement waits for a parent
+- **GIVEN** a student born 2009-04-30 who signed on 2025-08-22, and signatures from `student`, `school` and `praktijkopleider`
+- **WHEN** the coordinator activates the agreement
+- **THEN** the guard refuses and says a parent or guardian listed on the learner profile also signs
+
+#### Scenario: A listed parent's signature completes it
+- **GIVEN** the same agreement and a `parent` signature from a user in the student's `parentIds`
+- **WHEN** the coordinator activates it
+- **THEN** the agreement becomes `active`
+
+#### Scenario: A self-declared parent does not count
+- **GIVEN** the same agreement and a `parent` signature from a user who is not in the student's `parentIds`
+- **WHEN** the coordinator activates it
+- **THEN** the guard refuses
+
+#### Scenario: An adult's agreement needs no parent
+- **GIVEN** a student aged 19 on the day of signing, and the three signatures
+- **WHEN** the coordinator activates the agreement
+- **THEN** it becomes `active`
+
+#### Scenario: An unknown date of birth asks for a parent
+- **GIVEN** a student profile without a date of birth, and the three signatures
+- **WHEN** the coordinator activates the agreement
+- **THEN** the guard refuses and says to record the date of birth when the student is 18 or older
+
+#### Scenario: The signing flow asks for the parent
+- **GIVEN** a `Praktijkovereenkomst` for a student aged 16
+- **WHEN** the coordinator requests signatures
+- **THEN** the POK carries `parentSignatureRequired: true`
+- **AND** the signing page offers the parent or guardian role and says a parent or guardian also signs
 
 ### Requirement: WerkprocesAssessment aligns to the kwalificatiedossier and emits a GradeEntry
 
@@ -132,3 +174,56 @@ The frontend MUST be declarative: `src/manifest.json` index/detail pages for `Bp
 - **WHEN** the app renders BpvPlacement, Praktijkopleider, Praktijkovereenkomst, WerkprocesAssessment, and BpvVisitReport screens
 - **THEN** index/detail pages come from `src/manifest.json` and the only custom page is `SignPokModal` mounting `CnSignatureCapture`, with no PHP CRUD controllers
 
+### Requirement: BpvPlacement access is enforced, with the school coach and the learner as scopes
+`BpvPlacement` MUST declare an `authorization` block. Read MUST be granted to `instructors`, `hr`, `compliance-officers`, `team-leads`, `coordinators` and `administration-managers`, to the user whose id is in `schoolCoachId`, and to the user whose id is in `learnerId`. Create and update MUST be granted to `instructors`, `hr`, `compliance-officers`, `team-leads` and `coordinators`. The block MUST NOT grant delete.
+
+#### Scenario: A coordinator-only stagecoördinator sees the placements
+- **GIVEN** a user in the `coordinators` group and in no other learniq group
+- **WHEN** they open the BPV placements index
+- **THEN** the placements of their tenant are listed
+
+#### Scenario: The named coach reads their own placement
+- **GIVEN** a `BpvPlacement` whose `schoolCoachId` is user `coach-01`, who is in none of the listed groups
+- **WHEN** `coach-01` reads that placement
+- **THEN** the read succeeds, and a placement naming another coach stays hidden from them
+
+#### Scenario: A learner reads their own placement only
+- **GIVEN** two placements, one with `learnerId` `leerling-01` and one for another learner
+- **WHEN** `leerling-01` lists placements
+- **THEN** only their own placement is returned
+
+### Requirement: Praktijkopleider access is enforced for the BPV staff groups
+`Praktijkopleider` MUST declare an `authorization` block. Read MUST be granted to `instructors`, `hr`, `compliance-officers`, `team-leads`, `coordinators` and `administration-managers`; create and update to `instructors`, `hr`, `compliance-officers`, `team-leads` and `coordinators`. It MUST NOT carry a self-match entry, because a praktijkopleider has no Nextcloud account.
+
+#### Scenario: A coordinator registers a workplace supervisor
+- **GIVEN** a user in the `coordinators` group
+- **WHEN** they create a `Praktijkopleider` for a leerbedrijf
+- **THEN** the object is created and they can read it back
+
+#### Scenario: A learner cannot read supervisor contact details
+- **GIVEN** a user in no staff group
+- **WHEN** they list `Praktijkopleider` objects
+- **THEN** no object is returned
+
+### Requirement: A werkproces code resolves inside the assessment's own kwalificatiedossier
+
+Server-side resolution of `WerkprocesAssessment.competencyId` MUST look for the `werkprocesCode` inside the `sbb-kwalificatiedossier` CompetencyFramework whose `sourceRef` equals the assessment's `kwalificatiedossierCode`, in the assessment's tenant. When no framework carries that dossier code, resolution MAY consider every SBB framework of the tenant, but MUST resolve only when exactly one framework has a Competency with that code. When the code is found in more than one framework, or in none, `competencyId` MUST stay `null` and the miss MUST be logged. Resolution MUST NOT take the first of several matches.
+
+#### Scenario: A repeated code resolves to the assessment's own dossier
+
+- **GIVEN** SBB frameworks with `sourceRef` `90201` and `90302`, each with a Competency coded `B1-K1-W1`
+- **WHEN** a WerkprocesAssessment with `kwalificatiedossierCode: "90302"` and `werkprocesCode: "B1-K1-W1"` is created
+- **THEN** its `competencyId` is the Competency under framework `90302`
+
+#### Scenario: An ambiguous code stays unresolved
+
+- **GIVEN** two SBB frameworks without a `sourceRef` matching the assessment, each with a Competency coded `B1-K1-W1`
+- **WHEN** a WerkprocesAssessment with `werkprocesCode: "B1-K1-W1"` is created
+- **THEN** `competencyId` stays `null`
+- **AND** the assessment is saved and confirmable as before
+
+#### Scenario: A code only one framework knows still resolves
+
+- **GIVEN** no framework carries the assessment's dossier code, and exactly one SBB framework has a Competency coded `B1-K3-W2`
+- **WHEN** a WerkprocesAssessment with `werkprocesCode: "B1-K3-W2"` is created
+- **THEN** its `competencyId` is that Competency

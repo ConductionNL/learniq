@@ -191,7 +191,7 @@ class TimetableController extends Controller {
 	 *
 	 * @return JSONResponse 200 with sessions; 401 without a user; 403 when the cohort cannot be read; 503 when the source does not answer.
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-every-share-export-leaves-a-consent-record
+ * @spec openspec/specs/course-management/spec.md#requirement-every-share-export-leaves-a-consent-record
  */
 
 declare(strict_types=1);
@@ -78,7 +78,7 @@ class CourseShareExportService {
 	 * @throws SharingBlockedException When the gate refuses.
 	 * @throws RuntimeException        When the course is missing or the consent cannot be recorded.
 	 *
-	 * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-every-share-export-leaves-a-consent-record
+	 * @spec openspec/specs/course-management/spec.md#requirement-every-share-export-leaves-a-consent-record
 	 */
 	public function buildPackage(
 		string $courseId,
@@ -121,7 +121,7 @@ class CourseShareExportService {
 	 *
 	 * @throws SharingBlockedException When the gate refuses.
 	 *
-	 * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-a-course-leaves-the-school-only-through-the-sharing-gate
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-leaves-the-school-only-through-the-sharing-gate
 	 */
 	public function export(string $courseId, string $userId, bool $noPupilData, bool $rightsCleared): array {
 		$package = $this->buildPackage(

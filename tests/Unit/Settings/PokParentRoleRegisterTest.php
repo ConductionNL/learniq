@@ -19,8 +19,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-three-party-pok-signing-reuses-the-signature-pattern-via-poksignature
- * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+ * @spec openspec/specs/bpv/spec.md#requirement-three-party-pok-signing-reuses-the-signature-pattern-via-poksignature
+ * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
  */
 
 declare(strict_types=1);
@@ -59,7 +59,7 @@ class PokParentRoleRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-a-parent-signs-a-minors-agreement
+	 * @spec openspec/specs/bpv/spec.md#scenario-a-parent-signs-a-minors-agreement
 	 */
 	public function testAParentCanSign(): void {
 		$roles = $this->schemas['PokSignature']['properties']['signerRole']['enum'];
@@ -75,7 +75,7 @@ class PokParentRoleRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
+	 * @spec openspec/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
 	 */
 	public function testTheAgreementRecordsWhetherAParentSigns(): void {
 		$pok = $this->schemas['Praktijkovereenkomst'];
@@ -101,7 +101,7 @@ class PokParentRoleRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+	 * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
 	 */
 	public function testFullySignedIncludesTheParentWhenOneIsRequired(): void {
 		$pok = $this->schemas['Praktijkovereenkomst'];

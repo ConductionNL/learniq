@@ -26,6 +26,7 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Controller\ExternalTrainingController;
 use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CredentialSigningService;
 use OCA\Learniq\Service\ExternalTrainingService;
 use OCP\AppFramework\Http;
@@ -67,6 +68,7 @@ class ExternalTrainingControllerNotFoundTest extends TestCase {
 			trainingService: $this->createMock(ExternalTrainingService::class),
 			objectService: $objectService,
 			signingService: $this->createMock(CredentialSigningService::class),
+			callerTenant: $this->createMock(CallerTenantResolver::class),
 		);
 	}//end controllerWithThrowingFind()
 
@@ -122,13 +124,20 @@ class ExternalTrainingControllerNotFoundTest extends TestCase {
 		$userSession = $this->createMock(IUserSession::class);
 		$userSession->method('getUser')->willReturn($user);
 
+		// The learner is in the caller's own tenant; the cross-tenant case is
+		// ExternalTrainingControllerCrossTenantTest.
+		$objectService = $this->createMock(ObjectService::class);
+		$callerTenant = $this->createMock(CallerTenantResolver::class);
+		$callerTenant->method('findOwned')->willReturn(['id' => 'learner-1', 'ncUserId' => 'learner', 'tenant_id' => 'tenant-a']);
+
 		$controller = new ExternalTrainingController(
 			request: $this->createMock(IRequest::class),
 			userSession: $userSession,
 			actionAuth: $this->createMock(ActionAuthService::class),
 			trainingService: $trainingService,
-			objectService: $this->createMock(ObjectService::class),
+			objectService: $objectService,
 			signingService: $this->createMock(CredentialSigningService::class),
+			callerTenant: $callerTenant,
 		);
 
 		$response = $controller->learnerCoverage('learner-1', 'NIS2');

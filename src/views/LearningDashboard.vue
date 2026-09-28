@@ -14,7 +14,7 @@
  One component, exactly one CnDashboardPage: never referenced as a widget slot
  on another dashboard (avoids the dashboard-in-dashboard antipattern).
 
- @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-learning-domain-dashboard
+ @spec openspec/specs/dashboard/spec.md#requirement-learning-domain-dashboard
 -->
 <template>
 	<div class="learniq-domain-dashboard">
@@ -88,7 +88,7 @@ export default {
 		 * The dashboard page title.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-learning-domain-dashboard
+		 * @spec openspec/specs/dashboard/spec.md#requirement-learning-domain-dashboard
 		 */
 		pageTitle() {
 			return this.t('learniq', 'Learning')
@@ -98,7 +98,7 @@ export default {
 		 * The CnDashboardPage `widgets` declaration.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-learning-domain-dashboard
+		 * @spec openspec/specs/dashboard/spec.md#requirement-learning-domain-dashboard
 		 */
 		widgets() {
 			return [
@@ -158,7 +158,7 @@ export default {
 		 * The CnDashboardPage `layout` declaration (12-column grid).
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-learning-domain-dashboard
+		 * @spec openspec/specs/dashboard/spec.md#requirement-learning-domain-dashboard
 		 */
 		layout() {
 			return [

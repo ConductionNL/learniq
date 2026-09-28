@@ -423,7 +423,7 @@ export default {
 		 * @param {object} session A session from the timetable endpoint.
 		 *
 		 * @return {boolean} True for a learniq Session.
-		 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+		 * @spec openspec/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
 		 */
 		isLearniqSession(session) {
 			return isLearniqSession(session)

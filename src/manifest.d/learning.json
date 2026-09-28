@@ -2788,6 +2788,13 @@
 						"integrationId": "talk",
 						"title": "Join call",
 						"icon": "Phone"
+					},
+					{
+						"id": "sess-calendar",
+						"type": "integration",
+						"integrationId": "calendar",
+						"title": "Agenda",
+						"icon": "CalendarClockOutline"
 					}
 				],
 				"layout": [
@@ -2871,6 +2878,14 @@
 						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false
+					},
+					{
+						"id": "8",
+						"widgetId": "sess-calendar",
+						"gridX": 0,
+						"gridY": 23,
+						"gridWidth": 12,
+						"gridHeight": 4
 					}
 				],
 				"sidebar": {
@@ -3561,6 +3576,20 @@
 						"integrationId": "files",
 						"title": "Briefing materials",
 						"icon": "FolderOutline"
+					},
+					{
+						"id": "asn-calendar",
+						"type": "integration",
+						"integrationId": "calendar",
+						"title": "Agenda",
+						"icon": "CalendarClockOutline"
+					},
+					{
+						"id": "asn-intake-form",
+						"type": "integration",
+						"integrationId": "forms",
+						"title": "Intake form",
+						"icon": "ClipboardEditOutline"
 					}
 				],
 				"layout": [
@@ -3608,6 +3637,22 @@
 						"gridWidth": 12,
 						"gridHeight": 3,
 						"showTitle": false
+					},
+					{
+						"id": "6",
+						"widgetId": "asn-calendar",
+						"gridX": 0,
+						"gridY": 13,
+						"gridWidth": 6,
+						"gridHeight": 4
+					},
+					{
+						"id": "7",
+						"widgetId": "asn-intake-form",
+						"gridX": 6,
+						"gridY": 13,
+						"gridWidth": 6,
+						"gridHeight": 4
 					}
 				],
 				"bodyWidgets": [
@@ -3645,7 +3690,21 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "allocate-markers",
+						"label": "Allocate markers",
+						"icon": "AccountCheckOutline",
+						"type": "navigate",
+						"target": "/assignments/@objectId/markers",
+						"visibleWhen": {
+							"field": "markersPerSubmission",
+							"op": "gt",
+							"value": 1
+						}
+					}
+				]
 			}
 		},
 		{
@@ -3775,6 +3834,14 @@
 			"title": "Mark submission",
 			"component": "MarkSubmissionView",
 			"_note": "Grading UI (rubric scores, inline feedback, attachments). Lib gap: grading workflow widget. peer-and-self-assessment: gains a read-only PeerFeedbackSummary/SelfAssessment context panel and, when peerReviewWeightPercent is set, an advisory-only blended-score suggestion — never pre-fills proposedGrade."
+		},
+		{
+			"id": "AllocateMarkers",
+			"route": "/assignments/:assignmentId/markers",
+			"type": "custom",
+			"title": "Allocate markers",
+			"component": "AllocateMarkersView",
+			"_note": "Mounts AllocateMarkersView (assignments-double-marking): the teacher in charge names up to markersPerSubmission markers for every handed-in submission or one; learniq's POST /api/assignments/{id}/markers does the allocation. Custom on purpose: it is an action form that picks Nextcloud accounts through the core autocomplete and posts to a learniq endpoint, not a list, record or widget grid of one OpenRegister schema, so no typed page archetype fits."
 		},
 		{
 			"id": "PeerReviews",

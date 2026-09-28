@@ -13,7 +13,7 @@
  * Plain ES module (not a .vue SFC) so it is directly importable from a Node
  * test runner without a build step.
  *
- * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-company-segment-hides-the-school-only-menus
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-company-segment-hides-the-school-only-menus
  *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
@@ -27,7 +27,7 @@ import { passesContextPredicates } from '@conduction/nextcloud-vue/src/utils/vis
  * @param {object} card A `config.cards` entry.
  * @param {object|null|undefined} runtime The manifest runtime.
  * @return {boolean} True when the card has no gate or its gate passes.
- * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-company-segment-hides-the-school-only-menus
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-company-segment-hides-the-school-only-menus
  */
 export function reportCardPasses(card, runtime) {
 	if (!card || typeof card.visibleIf !== 'object' || card.visibleIf === null) {
@@ -43,7 +43,7 @@ export function reportCardPasses(card, runtime) {
  *
  * @param {object} manifest The manifest, with `runtime` already built.
  * @return {object} A manifest whose Reports pages carry only visible cards.
- * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-company-segment-hides-the-school-only-menus
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-company-segment-hides-the-school-only-menus
  */
 export function applyReportCardGates(manifest) {
 	if (!manifest || !Array.isArray(manifest.pages)) {

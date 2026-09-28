@@ -33,7 +33,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
+ * @spec openspec/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ namespace OCA\Learniq\Service;
 /**
  * Computes CurriculumCoverage rows for one framework.
  *
- * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
+ * @spec openspec/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
  */
 class CurriculumCoverageCalculator {
 
@@ -72,7 +72,7 @@ class CurriculumCoverageCalculator {
 	 *
 	 * @return array<int, array<string, mixed>> Coverage rows without ids, total row first.
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-bucketed-by-year-and-subject-with-totals
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-is-bucketed-by-year-and-subject-with-totals
 	 */
 	public function compute(array $framework, array $goals, array $planned, array $assessed, string $now): array {
 		$levels = $this->levelRanks(framework: $framework);
@@ -117,7 +117,7 @@ class CurriculumCoverageCalculator {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
 	 */
 	public function bucketKey(array $row): string {
 		return implode(

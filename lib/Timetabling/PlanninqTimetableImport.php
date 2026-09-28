@@ -34,7 +34,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
+ * @spec openspec/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
  */
 
 declare(strict_types=1);
@@ -50,7 +50,7 @@ use RuntimeException;
 /**
  * Delivers a timetable-import job's rostering source into planninq via integriq.
  *
- * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
+ * @spec openspec/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
  */
 class PlanninqTimetableImport {
 
@@ -98,7 +98,7 @@ class PlanninqTimetableImport {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
 	 */
 	public function applies(): bool {
 		return $this->sources->usesPlanninq();
@@ -114,7 +114,7 @@ class PlanninqTimetableImport {
 	 *
 	 * @throws RuntimeException With a readable message when the delivery cannot happen or failed.
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
 	 */
 	public function deliver(array $job, ?array $profile): array {
 		$systemId = $this->rosterSource(job: $job, profile: $profile);
@@ -173,7 +173,7 @@ class PlanninqTimetableImport {
 	 *
 	 * @return int Number of lessons scanned.
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004
 	 */
 	public function scanConflicts(array $job): int {
 		$scope = $this->scope(job: $job);
