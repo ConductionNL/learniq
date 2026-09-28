@@ -1205,14 +1205,14 @@
       "name": "Hand out a certificate the moment someone finishes a course.",
       "built": {
         "state": "built",
-        "evidence": "lib/Listener/CredentialIssuanceHandler.php",
+        "evidence": "lib/Listener/CredentialIssuanceHandler.php. Corrections round 8 (2026-09-28), learniq#182 (reopened): the handler fires on completion but saves the Credential without the required signature, openbadges3Payload and issuerDid (lib/Listener/CredentialIssuanceHandler.php:133-147; required list at lib/Settings/learniq_register.json:363), and the signing guard it relies on never runs because the Credential lifecycle has no issue transition (lib/Settings/learniq_register.json:550-552), at 4429d54.",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "credentials",
       "featureConfidence": "high",
-      "learniq": "yes",
+      "learniq": "partial",
       "moodle": "yes",
       "moodle-workplace": "yes",
       "ilias": "yes",
@@ -1226,7 +1226,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/actions-after-completion-22609967.html; Actions after Completion: \"You can issue a certificate to a user who has successfully completed the course\" via \"Check Issue a certificate after course completion.\"",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Certificates; certificates are \"diplomas that can be issued upon completion of activities, courses, programs, and certifications\", including \"Automatic issuing of certificates via dynamic rules\" (Certificates_Configuration).",
         "totara": "read 2026-09-26: https://totara.help/docs/certificates; the module \"generates PDF credentials for learners upon course completion\"; badge-criteria includes \"Course completion\"."
-      }
+      },
+      "note": "Own rating yes to partial (corrections round 8, 2026-09-28): a completed enrolment starts the issue path, but the certificate is either refused on validation or stored unsigned and without its badge payload, and issuedBy is always empty because Course declares no issuerName, learniq#182. The repair is task 1 of openspec/changes/credentials-europass-edci-export."
     },
     {
       "id": "cred-open-badges-3",
@@ -1234,14 +1235,14 @@
       "name": "Issue the certificate as an Open Badges 3.0 badge.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json Credential.properties.openbadges3Payload, required; lib/Service/CredentialSigningService.php",
+        "evidence": "lib/Settings/learniq_register.json Credential.properties.openbadges3Payload, required; lib/Service/CredentialSigningService.php. Corrections round 8 (2026-09-28), learniq#182: only CredentialSigningService::check() fills openbadges3Payload (lib/Service/CredentialSigningService.php:93-157, written at :155), and nothing calls it: no Credential transition names it as requires, and both issue paths save without it (lib/Listener/CredentialIssuanceHandler.php:133-147, lib/Controller/ExternalTrainingController.php:184-190), at 4429d54.",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "credentials",
       "featureConfidence": "high",
-      "learniq": "yes",
+      "learniq": "partial",
       "moodle": "partial",
       "moodle-workplace": "partial",
       "ilias": "no",
@@ -1255,7 +1256,8 @@
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Backpacks; documents Open Badges \"v2.0\" and \"v2.1\" backpacks only; Open Badges 3.0 issuing is not described. Workplace includes this Moodle LMS feature: https://moodle.com/solutions/workplace/workplace-features/ says Workplace has \"all features and functionality of Moodle LMS plus additional features\".",
         "totara": "read 2026-09-26: https://totara.help/docs/what-are-open-badges; \"Totara supports Open Badges 2.0\". Badges yes, version 3.0 not stated.",
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for Open Badges, badge standard; badges are gamification badges for points (https://ispringhelpdocs.com/ispring-learn/badges-22613596.html)"
-      }
+      },
+      "note": "Own rating yes to partial (corrections round 8, 2026-09-28): the Open Badges 3.0 payload builder exists but never runs when a certificate is issued, so issued certificates carry no badge payload, learniq#182."
     },
     {
       "id": "cred-cryptographic-signature",
@@ -1263,14 +1265,14 @@
       "name": "Sign each certificate so a third party can check it is genuine.",
       "built": {
         "state": "built",
-        "evidence": "lib/Service/CredentialSigningService.php, RS256 compact JWS in Credential.properties.signature",
+        "evidence": "lib/Service/CredentialSigningService.php, RS256 compact JWS in Credential.properties.signature. Corrections round 8 (2026-09-28), learniq#182: signPayload() is called only from check() (lib/Service/CredentialSigningService.php:129), check() has no caller and no transition requires it, so issued certificates carry no signature and the verify endpoint treats them as unsigned (lib/Controller/CredentialVerifyController.php:234-236), at 4429d54.",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "credentials",
       "featureConfidence": "high",
-      "learniq": "yes",
+      "learniq": "partial",
       "moodle": "no",
       "moodle-workplace": "partial",
       "ilias": "no",
@@ -1284,7 +1286,8 @@
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Certificates_Configuration; \"Certificates contain a unique code which is stored in the database\" checked through Verify certificates. Code lookup, no cryptographic signature documented.",
         "totara": "read 2026-09-26: https://totara.help/docs/certificate-activity-settings; \"A unique 10-digit code of random letters and numbers can be printed on the certificate\" for validation against the trainer's report. No cryptographic signature documented.",
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for certificate signature, signed certificate, verify; signatures appear only for SSO and webhooks"
-      }
+      },
+      "note": "Own rating yes to partial (corrections round 8, 2026-09-28): RS256 signing and the public verify endpoint exist, but signing never runs when a certificate is issued, learniq#182."
     },
     {
       "id": "cred-public-verify-url",
@@ -4835,7 +4838,7 @@
       "name": "Give each person their own timetable, not the whole school's.",
       "built": {
         "state": "built",
-        "evidence": "lib/Controller/TimetableController.php mine(), route /api/timetable/mine; src/manifest.d/my-learning.json MyTimetable",
+        "evidence": "lib/Controller/TimetableController.php mine(), route /api/timetable/mine; src/manifest.d/my-learning.json MyTimetable. Corrections round 8 (2026-09-28), learniq#1134: a substitute teacher does not see the lessons they cover, because resolveCallerCohortIds() matches only Cohort.teacherIds, Cohort.learnerIds and the caller's own enrolments, never Session.substituteTeacherId (lib/Controller/TimetableController.php:164-218), at 4429d54.",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -4856,7 +4859,8 @@
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Appointments_Configuration; sessions \"display on site, course, or user calendars depending on configuration\". Personal calendar, not a timetable.",
         "totara": "read 2026-09-26: https://totara.help/docs/team-page; \"View the user's past and future bookings for seminar events\". Bookings list, not a timetable.",
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/user-trainings-10684682.html; \"In the My Trainings section, users can view the trainings or webinars they are invited to. ... Check trainings weekly or monthly to organize your schedule.\""
-      }
+      },
+      "note": "Corrections round 8 (2026-09-28): substitutes miss the lessons they cover in their own timetable, learniq#1134; rating kept at yes because every teacher, learner and enrolled person does get their own timetable, and the substitute gap is specified in openspec/changes/timetabling-lesson-note."
     },
     {
       "id": "att-timetable-in-my-calendar",
