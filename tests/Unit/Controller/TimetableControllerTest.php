@@ -26,9 +26,22 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+if (class_exists('\\OCA\\Planninq\\Event\\TimetableSessionsQueryEvent') === false) {
+	require_once __DIR__ . '/../../Stubs/Planninq/Event/TimetableSessionsQueryEvent.php';
+}
+
+use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Controller\TimetableController;
 use OCA\Learniq\Service\TimetableProjector;
+use OCA\Learniq\Timetabling\Source\LocalSessionTimetableSource;
+use OCA\Learniq\Timetabling\Source\PlanninqTimetableSource;
+use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
+use OCA\Planninq\Event\TimetableSessionsQueryEvent;
+use OCP\App\IAppManager;
+use OCP\EventDispatcher\Event;
+use OCP\EventDispatcher\IEventDispatcher;
+use OCP\IAppConfig;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
@@ -93,16 +106,56 @@ class TimetableControllerTest extends TestCase {
 	}//end setUp()
 
 	/**
+	 * Criteria of every planninq query, in order.
+	 *
+	 * @var array<int,array<string,mixed>>
+	 */
+	private array $planninqQueries = [];
+
+	/**
 	 * Build the controller under test.
+	 *
+	 * @param array<int,array<string,mixed>>|null $planninqLessons Lessons planninq answers with; null means planninq is not installed.
+	 * @param bool                                $planninqSilent  Whether planninq stays silent.
 	 *
 	 * @return TimetableController The controller.
 	 */
-	private function controller(): TimetableController {
+	private function controller(?array $planninqLessons = null, bool $planninqSilent = false): TimetableController {
+		$dispatcher = $this->createMock(IEventDispatcher::class);
+		$dispatcher->method('dispatchTyped')->willReturnCallback(
+			function (Event $event) use ($planninqLessons, $planninqSilent): void {
+				if (($event instanceof TimetableSessionsQueryEvent) === false || $planninqSilent === true) {
+					return;
+				}
+
+				$criteria = $event->getCriteria();
+				$this->planninqQueries[] = $criteria;
+				$event->setSessions(
+					array_values(
+						array_filter(
+							($planninqLessons ?? []),
+							static fn (array $lesson): bool => (isset($criteria['cohortId']) === true && ($lesson['cohortId'] ?? '') === $criteria['cohortId'])
+								|| (isset($criteria['teacherUserId']) === true && ($lesson['teacherUserId'] ?? '') === $criteria['teacherUserId'])
+						)
+					)
+				);
+			}
+		);
+		$appManager = $this->createMock(IAppManager::class);
+		$appManager->method('isInstalled')->willReturn($planninqLessons !== null);
+		$config = $this->createMock(IAppConfig::class);
+		$config->method('getValueString')->willReturn('auto');
+
 		return new TimetableController(
 			request: $this->createMock(IRequest::class),
 			userSession: $this->userSession,
 			objectService: $this->objectService,
 			projector: new TimetableProjector(logger: $this->logger),
+			sources: new TimetableSourceResolver(
+				$config,
+				new LocalSessionTimetableSource($this->objectService),
+				new PlanninqTimetableSource($appManager, $dispatcher)
+			),
 			logger: $this->logger,
 		);
 	}//end controller()
@@ -165,7 +218,7 @@ class TimetableControllerTest extends TestCase {
 				}
 
 				if ($schema === 'room') {
-					$id = $filters['id'] ?? null;
+					$id = $config['ids'][0] ?? null;
 					return array_values(array_filter($rooms, static fn (array $r): bool => ($r['id'] ?? null) === $id));
 				}
 
@@ -463,4 +516,110 @@ class TimetableControllerTest extends TestCase {
 		$toTs = strtotime($out['to']);
 		$this->assertSame(7 * 24 * 3600, ($toTs - $fromTs));
 	}//end testDefaultWindowIsCurrentWeek()
+
+	/**
+	 * Two planninq lessons: one for cohort c-1 taught by jan, one of jan's in another group.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function planninqLessons(): array {
+		return [
+			['id' => 'p-1', 'title' => 'Wiskunde', 'startsAt' => '2026-01-06T09:00:00+00:00', 'endsAt' => '2026-01-06T09:50:00+00:00', 'cohortId' => 'c-1', 'teacherUserId' => 'jan', 'roomReference' => 'A1.12', 'roomLabel' => null, 'status' => 'scheduled'],
+			['id' => 'p-2', 'title' => 'Wiskunde', 'startsAt' => '2026-01-07T09:00:00+00:00', 'endsAt' => '2026-01-07T09:50:00+00:00', 'cohortId' => '', 'teacherUserId' => 'jan', 'roomReference' => 'A1.12', 'roomLabel' => null, 'status' => 'cancelled'],
+		];
+	}//end planninqLessons()
+
+	/**
+	 * With planninq, my timetable reads planninq by cohort and by the caller's
+	 * own account, merges without duplicates, and writes nothing.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+	 */
+	public function testMineReadsPlanninqByCohortAndTeacher(): void {
+		$this->signInAs('jan');
+		$this->wireFindAll(cohorts: [['id' => 'c-1', 'teacherIds' => ['jan'], 'learnerIds' => []]], enrolments: [], sessions: []);
+		$this->objectService->expects($this->never())->method('saveObject');
+
+		$out = $this->controller(planninqLessons: $this->planninqLessons())->mine($this->from, $this->to)->getData();
+
+		$this->assertSame('planninq', $out['source']);
+		$this->assertSame(['p-1', 'p-2'], array_column($out['sessions'], 'id'));
+		$this->assertSame(['planninq', 'planninq'], array_column($out['sessions'], 'source'));
+		$this->assertSame('cancelled', $out['sessions'][1]['lifecycle']);
+		$this->assertSame('A1.12', $out['sessions'][0]['location']);
+		$this->assertSame('c-1', $this->planninqQueries[0]['cohortId']);
+		$this->assertSame('jan', $this->planninqQueries[1]['teacherUserId']);
+	}//end testMineReadsPlanninqByCohortAndTeacher()
+
+	/**
+	 * A silent planninq is a 503, not an empty timetable.
+	 *
+	 * @return void
+	 */
+	public function testSilentPlanninqIsUnavailableNotEmpty(): void {
+		$this->signInAs('jan');
+		$this->wireFindAll(cohorts: [['id' => 'c-1', 'teacherIds' => ['jan'], 'learnerIds' => []]], enrolments: [], sessions: []);
+
+		$response = $this->controller(planninqLessons: [], planninqSilent: true)->mine($this->from, $this->to);
+
+		$this->assertSame(Http::STATUS_SERVICE_UNAVAILABLE, $response->getStatus());
+	}//end testSilentPlanninqIsUnavailableNotEmpty()
+
+	/**
+	 * The cohort timetable reads the cohort with RBAC, then the source.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+	 */
+	public function testCohortTimetableReadsThroughTheSource(): void {
+		$this->signInAs('jan');
+		$this->objectService->method('find')->willReturn($this->createMock(ObjectEntity::class));
+
+		$out = $this->controller(planninqLessons: $this->planninqLessons())->cohort('c-1', $this->from, $this->to)->getData();
+
+		$this->assertSame('planninq', $out['source']);
+		$this->assertSame(['p-1'], array_column($out['sessions'], 'id'));
+		$this->assertSame($this->from, $out['from']);
+	}//end testCohortTimetableReadsThroughTheSource()
+
+	/**
+	 * The cohort timetable without planninq reads the cohort's Sessions, and
+	 * defaults to an eight-week window.
+	 *
+	 * @return void
+	 */
+	public function testCohortTimetableWithoutPlanninqReadsSessions(): void {
+		$this->signInAs('jan');
+		$this->objectService->method('find')->willReturn($this->createMock(ObjectEntity::class));
+		$monday = (new \DateTimeImmutable('monday this week', new \DateTimeZone('UTC')))->setTime(9, 0);
+		$this->wireFindAll(
+			cohorts: [],
+			enrolments: [],
+			sessions: [['id' => 's-1', 'cohortId' => 'c-1', 'title' => 'Biologie', 'startsAt' => $monday->format(DATE_ATOM), 'endsAt' => $monday->modify('+50 minutes')->format(DATE_ATOM)]]
+		);
+
+		$out = $this->controller()->cohort('c-1')->getData();
+
+		$this->assertSame('learniq', $out['source']);
+		$this->assertSame(['s-1'], array_column($out['sessions'], 'id'));
+		$this->assertSame(56 * 24 * 3600, (strtotime($out['to']) - strtotime($out['from'])));
+	}//end testCohortTimetableWithoutPlanninqReadsSessions()
+
+	/**
+	 * A cohort the caller cannot read is a 403, and no lesson is read.
+	 *
+	 * @return void
+	 */
+	public function testUnreadableCohortIsForbiddenAndReadsNothing(): void {
+		$this->signInAs('learner');
+		$this->objectService->method('find')->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('nope'));
+
+		$response = $this->controller(planninqLessons: $this->planninqLessons())->cohort('c-9', $this->from, $this->to);
+
+		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		$this->assertSame([], $this->planninqQueries);
+	}//end testUnreadableCohortIsForbiddenAndReadsNothing()
 }//end class

@@ -364,10 +364,10 @@ class CohortGroupProvisioningHandler implements IEventListener {
 	private function findCohort(string $cohortId): ?array {
 		$results = $this->objectService->findAll(
 			[
+				'ids' => [$cohortId],
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::COHORT_SCHEMA,
-					'id' => $cohortId,
 				],
 				'limit' => 1,
 			]

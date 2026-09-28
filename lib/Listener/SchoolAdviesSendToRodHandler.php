@@ -234,10 +234,10 @@ class SchoolAdviesSendToRodHandler implements IEventListener {
 	private function saveSchoolAdviesFields(string $schoolAdviesId, array $fields): void {
 		$existing = $this->objectService->findAll(
 			[
+				'ids' => [$schoolAdviesId],
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::SCHOOL_ADVIES_SCHEMA,
-					'id' => $schoolAdviesId,
 				],
 				'limit' => 1,
 			]

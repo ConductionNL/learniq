@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\PageController;
+use OCA\Learniq\Service\CourseStore\StoreAccessService;
 use OCA\Learniq\Service\DashboardRoleService;
 use OCA\Learniq\Service\SegmentService;
 use OCP\AppFramework\Http;
@@ -50,7 +51,7 @@ class PageControllerTest extends TestCase {
 	 *
 	 * @return PageController
 	 */
-	private function controller(?IUser $user, ?IInitialState $initialState = null, bool $segmentFails = false): PageController {
+	private function controller(?IUser $user, ?IInitialState $initialState = null, bool $segmentFails = false, ?StoreAccessService $storeAccess = null): PageController {
 		$userSession = $this->createMock(IUserSession::class);
 		$userSession->method('getUser')->willReturn($user);
 
@@ -65,7 +66,17 @@ class PageControllerTest extends TestCase {
 		if ($segmentFails === true) {
 			$container->method('get')->willThrowException(new RuntimeException('OpenRegister is not installed'));
 		} else {
-			$container->method('get')->with(SegmentService::class)->willReturn($segmentService);
+			$storeAccess = ($storeAccess ?? $this->createMock(StoreAccessService::class));
+			$container->method('get')->willReturnCallback(
+				static function (string $id) use ($segmentService, $storeAccess): object {
+					if ($id === StoreAccessService::class) {
+						return $storeAccess;
+					}
+
+					self::assertSame(SegmentService::class, $id);
+					return $segmentService;
+				}
+			);
 		}
 
 		return new PageController(
@@ -284,4 +295,56 @@ class PageControllerTest extends TestCase {
 		self::assertTrue($provided['confidentialCounsellor']);
 		self::assertSame('instructor', $provided['primaryRole']);
 	}//end testIndexProvidesTheConfidentialCounsellorFlag()
+
+	/**
+	 * A signed-in user's page carries what they may do in the course store
+	 * (store-rights-for-teachers, D27).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
+	 */
+	public function testIndexProvidesTheStoreAccess(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('docent-07');
+
+		$storeAccess = $this->createMock(StoreAccessService::class);
+		$storeAccess->expects(self::once())->method('forCurrentUser')->willReturn(['install' => true, 'publish' => false]);
+
+		$provided     = [];
+		$initialState = $this->createMock(IInitialState::class);
+		$initialState->method('provideInitialState')->willReturnCallback(
+			static function (string $key, mixed $value) use (&$provided): void {
+				$provided[$key] = $value;
+			}
+		);
+
+		$this->controller($user, $initialState, false, $storeAccess)->index();
+
+		self::assertSame(['install' => true, 'publish' => false], ($provided['storeAccess'] ?? null));
+	}//end testIndexProvidesTheStoreAccess()
+
+	/**
+	 * Without OpenRegister the store service cannot be built: the page still
+	 * renders and shows no store buttons.
+	 *
+	 * @return void
+	 */
+	public function testStoreAccessDegradesToNoneWhenItCannotBeResolved(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('docent-07');
+
+		$provided     = [];
+		$initialState = $this->createMock(IInitialState::class);
+		$initialState->method('provideInitialState')->willReturnCallback(
+			static function (string $key, mixed $value) use (&$provided): void {
+				$provided[$key] = $value;
+			}
+		);
+
+		$response = $this->controller($user, $initialState, true)->index();
+
+		self::assertSame('index', $response->getTemplateName());
+		self::assertSame(['install' => false, 'publish' => false], ($provided['storeAccess'] ?? null));
+	}//end testStoreAccessDegradesToNoneWhenItCannotBeResolved()
 }//end class

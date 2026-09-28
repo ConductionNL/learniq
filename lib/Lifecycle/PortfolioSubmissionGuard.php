@@ -259,10 +259,10 @@ class PortfolioSubmissionGuard implements LifecycleGuardInterface {
 
 		$results = $this->objectService->findAll(
 			[
+				'ids' => [$id],
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => $schema,
-					'id' => $id,
 				],
 				'limit' => 1,
 			]

@@ -103,10 +103,10 @@ class AssessmentScoringService {
 
 		$results = $this->objectService->findAll(
 			[
+				'ids' => [$assessmentResultId],
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => 'assessment-result',
-					'uuid' => $assessmentResultId,
 				],
 				'limit' => 1,
 			]

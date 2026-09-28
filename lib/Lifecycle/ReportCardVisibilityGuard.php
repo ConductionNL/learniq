@@ -224,13 +224,14 @@ class ReportCardVisibilityGuard implements LifecycleGuardInterface {
 	 * @return string|null The visibleFrom value, or null when unresolvable/unset.
 	 */
 	private function fetchVisibleFrom(string $gradeEntryId, string $tenantId): ?string {
-		$filters = ['id' => $gradeEntryId];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$results = $this->objectService->findAll(
 			[
+				'ids' => [$gradeEntryId],
 				'filters' => array_merge(
 					$filters,
 					[

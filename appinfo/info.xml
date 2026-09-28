@@ -68,7 +68,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
 
 **Ondersteuning:** support@conduction.nl
     ]]></description>
-    <version>0.3.6-unstable.20260928100615</version>
+    <version>0.3.6-unstable.20260928145637</version>
     <licence>EUPL-1.2</licence>
     <author mail="info@conduction.nl" homepage="https://www.conduction.nl/">Conduction</author>
     <namespace>Learniq</namespace>
@@ -219,8 +219,16 @@ Vrij en open source onder de EUPL-1.2-licentie.
             -->
             <step>OCA\Learniq\Repair\PruneRetiredSchemas</step>
             <step>OCA\Learniq\Repair\InitializeSettings</step>
+            <!-- teacher-notes-protection: move teacherNote blocks out of lessons into the
+                 staff-only lesson-teacher-note schema. After InitializeSettings, which
+                 imports that schema; idempotent, a no-op once no lesson holds a note. -->
+            <step>OCA\Learniq\Repair\MoveTeacherNotesOutOfLessons</step>
             <!-- ADR-023: seed the action-authorization matrix (default admin-only). -->
             <step>OCA\Learniq\Repair\InitializeActions</step>
+            <!-- store-rights-for-teachers (D27): once per instance, add course-store.install
+                 and move course-package.share off the untouched old default. After
+                 InitializeActions, which owns an empty matrix. -->
+            <step>OCA\Learniq\Repair\ApplyStoreRightsDefaults</step>
             <!--
                 Must run AFTER the register sync that adds the English columns.
                 Covers every renamed property together: a register-scoped step

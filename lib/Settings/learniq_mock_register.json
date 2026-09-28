@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.26",
+    "version": "1.1.27",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -24732,7 +24732,6 @@
           "slug": "entitlement-entitlement-1-1"
         },
         "feeItemId": "00000000-0000-4000-8000-000000000000",
-        "orderLineId": "00000000-0000-4000-8000-000000000000",
         "learnerId": "Voorbeeld Learnerid 1",
         "grantedResourceKind": "course-access",
         "tenant_id": "00000000-0000-4000-8000-000000000000",
@@ -24747,7 +24746,6 @@
           "slug": "entitlement-entitlement-2-2"
         },
         "feeItemId": "00000000-0000-4000-8000-000000000001",
-        "orderLineId": "00000000-0000-4000-8000-000000000001",
         "learnerId": "Voorbeeld Learnerid 2",
         "grantedResourceKind": "trip-participation",
         "tenant_id": "00000000-0000-4000-8000-000000000001",
@@ -24762,7 +24760,6 @@
           "slug": "entitlement-entitlement-3-3"
         },
         "feeItemId": "00000000-0000-4000-8000-000000000002",
-        "orderLineId": "00000000-0000-4000-8000-000000000002",
         "learnerId": "Voorbeeld Learnerid 3",
         "grantedResourceKind": "material-access",
         "tenant_id": "00000000-0000-4000-8000-000000000002",
@@ -26955,6 +26952,45 @@
         "mandatoryTraining": false,
         "regulationSlug": "Voorbeeld Regulationslug 3",
         "lifecycle": "retired"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lesson-teacher-note",
+          "slug": "lesson-teacher-note-lessonteachernote-1-1"
+        },
+        "lessonId": "00000000-0000-4000-8000-000000000000",
+        "blockId": "Voorbeeld Blockid 1",
+        "text": "Voorbeeld Text 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "afterBlockId": "",
+        "position": 0
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lesson-teacher-note",
+          "slug": "lesson-teacher-note-lessonteachernote-2-2"
+        },
+        "lessonId": "00000000-0000-4000-8000-000000000001",
+        "blockId": "Voorbeeld Blockid 2",
+        "text": "Voorbeeld Text 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "afterBlockId": "",
+        "position": 0
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lesson-teacher-note",
+          "slug": "lesson-teacher-note-lessonteachernote-3-3"
+        },
+        "lessonId": "00000000-0000-4000-8000-000000000002",
+        "blockId": "Voorbeeld Blockid 3",
+        "text": "Voorbeeld Text 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "afterBlockId": "",
+        "position": 0
       },
       {
         "@self": {

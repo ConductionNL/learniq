@@ -352,10 +352,10 @@ class SupportRequestSubmitHandler implements IEventListener {
 	private function saveSupportRequestFields(string $supportRequestId, array $fields): void {
 		$existing = $this->objectService->findAll(
 			[
+				'ids' => [$supportRequestId],
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::SUPPORT_REQUEST_SCHEMA,
-					'id' => $supportRequestId,
 				],
 				'limit' => 1,
 			]

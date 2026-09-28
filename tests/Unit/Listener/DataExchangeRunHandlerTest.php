@@ -80,7 +80,7 @@ class DataExchangeRunHandlerTest extends TestCase {
 					return [];
 				}
 
-				$id = $config['filters']['id'] ?? null;
+				$id = $config['ids'][0] ?? null;
 				if ($id === null || isset($recordsById[$id]) === false) {
 					return [];
 				}
@@ -404,7 +404,7 @@ class DataExchangeRunHandlerTest extends TestCase {
 				}
 
 				if ($schema === 'learning-plan') {
-					$id = $filters['id'] ?? null;
+					$id = $config['ids'][0] ?? null;
 					if ($id === null || isset($plansById[$id]) === false) {
 						return [];
 					}

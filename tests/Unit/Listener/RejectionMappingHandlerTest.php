@@ -101,10 +101,10 @@ class RejectionMappingHandlerTest extends TestCase {
 						return $resubmissionRejections;
 					}
 
-					if (isset($filters['id']) === true) {
+					if (isset($config['ids'][0]) === true) {
 						// saveRejectionFields() lookup — find in either capture set.
 						foreach (array_merge($existingRejections, $resubmissionRejections) as $row) {
-							if (($row['id'] ?? null) === $filters['id']) {
+							if (($row['id'] ?? null) === $config['ids'][0]) {
 								return [$row];
 							}
 						}
