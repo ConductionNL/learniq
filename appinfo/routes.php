@@ -158,6 +158,9 @@ return [
         // (planninq when installed, else Session), after an RBAC read of the cohort
         // (sessions-from-planninq).
         ['name' => 'timetable#cohort', 'url' => '/api/timetable/cohort/{cohortId}', 'verb' => 'GET', 'requirements' => ['cohortId' => '[^/]+']],
+        // Enrolment forecast (timetabling-enrolment-forecast): compute a scenario and store
+        // its result on it. #[NoAdminRequired] + report.enrolment-forecast in the body.
+        ['name' => 'enrolmentForecast#compute', 'url' => '/api/enrolment-forecasts/{id}/compute', 'verb' => 'POST', 'requirements' => ['id' => '[^/]+']],
         // Teaching activities of a school year, derived from the hour plans
         // (timetabling-multi-year-hour-plan). Staff groups only, checked in the body.
         ['name' => 'hourPlan#activities', 'url' => '/api/hour-plans/activities', 'verb' => 'GET'],

@@ -3060,6 +3060,14 @@
 					}
 				]
 			}
+		},
+		{
+			"id": "EnrolmentForecast",
+			"route": "/reports/enrolment-forecast",
+			"type": "custom",
+			"title": "Enrolment forecast",
+			"component": "EnrolmentForecastView",
+			"_note": "timetabling-enrolment-forecast: scenarios on the enrolment-forecast schema; POST /api/enrolment-forecasts/{id}/compute behind report.enrolment-forecast; opened from the Reports page card (category progress)."
 		}
 	]
 }

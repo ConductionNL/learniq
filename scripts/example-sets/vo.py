@@ -92,6 +92,8 @@ SCHEMAS = [
     "report-card",
     "support-request",
     "dossier-note",
+    # Appended, not inserted, so every earlier bucket keeps its uuid group.
+    "enrolment-forecast",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -660,7 +662,7 @@ def build() -> dict:
             "learnerIds": [p["nc"] for p in pupils if p["class"] == name],
             "period": "Schooljaar", "academicYear": YEAR, "lifecycle": "active", "locationId": locations[loc]["uuid"],
             "teacherAssignments": [{"teacherId": mentor, "role": "primary", "days": list(TEACHER_BY_ID[mentor][4])}],
-            "notes": notes_by_class.get(name), "kind": "teaching",
+            "notes": notes_by_class.get(name), "kind": "teaching", "programmeYear": leerjaar,
         })
         cohorts[name]["_room"] = rooms[room]
 
@@ -852,6 +854,23 @@ def build() -> dict:
                 "startsAt": stamp(day, 8, 30), "endsAt": stamp(day, end_h, end_m),
                 "location": room["name"], "roomId": room["uuid"], "lifecycle": "completed",
             })
+
+    # --- next year's forecast (timetabling-enrolment-forecast) ----------------------------
+    # A spring scenario for 2026-2027: progression rates for havo 3 to 5 and vwo 3 to 6,
+    # and 140 expected in the brugklas. The subject choices of havo 3 above give the
+    # subject table counted and estimated figures. Computed on first use, not seeded.
+    rates = []
+    for stream, years in (("havo", (3, 4, 5)), ("vwo", (3, 4, 5, 6))):
+        for lj in years:
+            final = lj == years[-1]
+            up, repeat = (0.92, 0.0) if final else (0.88, 0.07)
+            rates.append({"programmeId": programmes[stream]["uuid"], "programmeYear": lj,
+                          "upRate": up, "repeatRate": repeat, "leaveRate": round(1 - up - repeat, 2)})
+    b.add("enrolment-forecast", {
+        "name": "Voorjaarsprognose 2026-2027", "targetYear": NEXT_YEAR, "rates": rates,
+        "intake": [{"programmeId": programmes["hv"]["uuid"], "expected": 140}],
+        "targetGroupSize": 28, "result": None, "lifecycle": "draft",
+    })
 
     # First-hour teacher per class per weekday: a teacher of that class who works that day.
     first_hour: dict[tuple[str, int], list[str]] = {}
