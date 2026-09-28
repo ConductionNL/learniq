@@ -2441,7 +2441,23 @@ OC.L10N.register(
         "These lessons come from the school timetable. Changes are made there.": "Deze lessen komen uit het schoolrooster. Wijzigingen doe je daar.",
         "The course store is busy. Try again in a few minutes.": "De cursuswinkel heeft het druk. Probeer het over een paar minuten opnieuw.",
         "You may not publish courses to the store. Your administrator decides who may.": "Je mag geen cursussen in de winkel publiceren. Je beheerder bepaalt wie dat mag.",
-        "This server cannot publish to a course store yet. Ask your administrator to update OpenRegister.": "Deze server kan nog niet publiceren naar een cursuswinkel. Vraag je beheerder OpenRegister bij te werken."
+        "This server cannot publish to a course store yet. Ask your administrator to update OpenRegister.": "Deze server kan nog niet publiceren naar een cursuswinkel. Vraag je beheerder OpenRegister bij te werken.",
+        "A token is set. Enter a new one to replace it, or leave this empty to keep it.": "Er is een token ingesteld. Vul een nieuwe in om die te vervangen, of laat dit leeg om hem te houden.",
+        "Connect a course registry so teachers can find and install courses other schools share. The registry is another learniq, for example your school board's.": "Koppel een cursusregister, zodat docenten cursussen van andere scholen kunnen vinden en installeren. Het register is een andere learniq, bijvoorbeeld die van je schoolbestuur.",
+        "Course store": "Cursuswinkel",
+        "Course store connection saved.": "Koppeling met de cursuswinkel opgeslagen.",
+        "For example https://store.example.nl. Leave empty to disconnect the store.": "Bijvoorbeeld https://store.example.nl. Laat leeg om de winkel los te koppelen.",
+        "Leave empty to use learniq, the usual register name.": "Laat leeg om learniq te gebruiken, de gebruikelijke registernaam.",
+        "Loading the course store connection…": "Koppeling met de cursuswinkel laden…",
+        "Registry address": "Adres van het register",
+        "Remove the stored token": "Opgeslagen token verwijderen",
+        "The course store connection could not be loaded.": "De koppeling met de cursuswinkel kon niet worden geladen.",
+        "The course store connection could not be saved.": "De koppeling met de cursuswinkel kon niet worden opgeslagen.",
+        "The token of an account in the instructors group on the registry.": "Het token van een account in de groep docenten op het register.",
+        "Token": "Token",
+        "The registry address must be a full http or https address.": "Het adres van het register moet een volledig http- of https-adres zijn.",
+        "Put the token in the token field, not in the address.": "Zet het token in het tokenveld, niet in het adres.",
+        "The register is a lowercase name such as learniq.": "Het register is een naam in kleine letters, zoals learniq."
     },
     "nplurals=2; plural=(n != 1);"
 )
