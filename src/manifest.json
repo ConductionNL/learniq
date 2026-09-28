@@ -343,6 +343,11 @@
                   "he",
                   "corporate"
                 ]
+              },
+              "workspace.chosenSegment": {
+                "notIn": [
+                  "corporate"
+                ]
               }
             }
           },

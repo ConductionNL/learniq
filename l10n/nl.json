@@ -2454,6 +2454,8 @@
         "Loads the set you picked. It is sample data, and running it twice adds nothing. You can remove it again at the end of this wizard.": "Laadt de set die je koos. Het zijn voorbeeldgegevens, en twee keer laden voegt niets toe. Je kunt de set aan het einde van deze wizard weer verwijderen.",
         "Remove the example data": "Verwijder de voorbeeldgegevens",
         "This only runs when you click the button. It moves the example set you loaded to the trash and keeps everything you made yourself. You can come back to it later.": "Dit gebeurt alleen als je op de knop klikt. De voorbeeldset die je laadde gaat naar de prullenbak; wat je zelf maakte blijft staan. Je kunt hier later op terugkomen.",
+        "Remove the example set \"{set}\"": "Verwijder de voorbeeldset \"{set}\"",
+        "This only runs when you click the button. It moves this example set to the trash and keeps everything you made yourself.": "Dit gebeurt alleen als je op de knop klikt. Deze voorbeeldset gaat naar de prullenbak; wat je zelf maakte blijft staan.",
         "AI-translated strings": "Door AI vertaalde teksten",
         "These Dutch texts in the app were written by AI and not yet checked by a translator. Check each one, fix it in the catalogue if needed, then mark it as reviewed.": "Deze Nederlandse teksten in de app zijn door AI geschreven en nog niet door een vertaler gecontroleerd. Controleer ze een voor een, verbeter ze zo nodig in de catalogus en markeer ze dan als gecontroleerd.",
         "Loading…": "Laden…",

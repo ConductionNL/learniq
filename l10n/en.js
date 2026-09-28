@@ -1975,6 +1975,8 @@ OC.L10N.register(
         "Loads the set you picked. It is sample data, and running it twice adds nothing. You can remove it again at the end of this wizard.": "Loads the set you picked. It is sample data, and running it twice adds nothing. You can remove it again at the end of this wizard.",
         "Remove the example data": "Remove the example data",
         "This only runs when you click the button. It moves the example set you loaded to the trash and keeps everything you made yourself. You can come back to it later.": "This only runs when you click the button. It moves the example set you loaded to the trash and keeps everything you made yourself. You can come back to it later.",
+        "Remove the example set \"{set}\"": "Remove the example set \"{set}\"",
+        "This only runs when you click the button. It moves this example set to the trash and keeps everything you made yourself.": "This only runs when you click the button. It moves this example set to the trash and keeps everything you made yourself.",
         "AI-translated strings": "AI-translated strings",
         "These Dutch texts in the app were written by AI and not yet checked by a translator. Check each one, fix it in the catalogue if needed, then mark it as reviewed.": "These Dutch texts in the app were written by AI and not yet checked by a translator. Check each one, fix it in the catalogue if needed, then mark it as reviewed.",
         "Loading…": "Loading…",
