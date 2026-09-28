@@ -106,7 +106,7 @@ class DataExchangePayloadBuilder {
 	 * @throws RuntimeException When the scope selects more than QUERY_LIMIT objects.
 	 *
 	 * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-the-personal-number-leaves-learniq-only-in-a-rod-message-and-is-never-logged
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-personal-number-leaves-learniq-only-in-a-rod-message-and-is-never-logged
 	 */
 	public function composeRecords(string $target, ?string $mappingSlug, array $scope, string $tenantId): array {
 		$schema = (string)($scope['schema'] ?? '');
@@ -142,7 +142,7 @@ class DataExchangePayloadBuilder {
 	 *
 	 * @return array<string, mixed> The data.
 	 *
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-the-rod-learner-record-carries-the-personal-number-where-duo-expects-a-bsn
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-rod-learner-record-carries-the-personal-number-where-duo-expects-a-bsn
 	 */
 	private function composeData(string $target, ?string $mappingSlug, ?array $fields, array $object, string $tenantId): array {
 		$carries = $this->disclosure->carriesPersonalNumber(target: $target, mappingSlug: $mappingSlug);

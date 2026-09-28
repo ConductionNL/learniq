@@ -371,6 +371,34 @@ When a learner's published entries on a plan are all exemptions, the final value
 - **THEN** the saved FinalGrade has no `cohortId` key
 - **AND** it keeps `courseId`, `gradeScaleId` and `tenant_id`
 
+### Requirement: One resolver finds a learner's profile
+
+`LearnerRefResolver` MUST be the one class that turns a Nextcloud user id into the uuid of that learner's LearnerProfile, and a `learnerRef` into the active profile row, for the grade, submission and portal stamps. A signed-in caller MUST keep OpenRegister's tenant scoping (`resolve()`); a caller without a session MUST read across tenants (`resolveAcrossTenants()`, `byRef()`). `byRef()` MUST return null for a profile that is merged away, deleted, or names no user, and MUST let a read error propagate.
+
+#### Scenario: A portal stamp and a teacher-side stamp find the same profile
+
+- **GIVEN** pupil `pupil-1` with active profile `lp-1`
+- **WHEN** a portal attempt is stamped (no session) and a teacher's grade is stamped (signed in)
+- **THEN** both get `lp-1` from `LearnerRefResolver`
+- **AND** only the portal lookup drops tenant scoping
+
+#### Scenario: A merged-away profile is not a learner to act for
+
+- **GIVEN** profile `lp-old` merged into `lp-new`
+- **WHEN** a portal request names `lp-old`
+- **THEN** `byRef()` returns null
+
+### Requirement: The final grade roll-up writes the programme it belongs to
+
+When the roll-up writes a `FinalGrade`, it MUST set `programmeId` to the id of the `Programme` whose `curriculumPlanId` is the grade's `curriculumPlanId`. When no programme uses that plan, `programmeId` MUST keep the value the row had, null for a new row.
+
+#### Scenario: A final grade names the programme of its plan
+@e2e exclude Listener write with no UI step of its own; pinned by tests/Unit/Listener/GradeRollupHandlerTest.php::testAFinalGradeNamesTheProgrammeOfItsPlan.
+- **GIVEN** a programme with curriculum plan P
+- **WHEN** a grade entry under plan P is published
+- **THEN** the learner's final grade for P carries that programme's id as `programmeId`
+- **AND** the programme page counts it
+
 ## Standards
 
 Schema.org `Grade`; NL VO PTA/SE convention as a `CurriculumPlan` profile + `GradeScale` 1.0–10.0; ECTS A–F; AVG-Onderwijs (parent vs 18+-learner notification rights); Open Onderwijs API `results` endpoint shape for HE result publication (follow-up, out of scope here).

@@ -435,7 +435,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<string, mixed> The hand-in action.
 	 *
-	 * @spec openspec/changes/portal-assignment-hand-in-endpoint/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-a-draft-submission-from-the-portal-req-pcon-009
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-a-draft-submission-from-the-portal-req-pcon-009
 	 */
 	private function handInAction(): array {
 		return [

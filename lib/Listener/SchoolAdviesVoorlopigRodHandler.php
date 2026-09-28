@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/schooladvies-voorlopig-to-rod/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
  */
 
 declare(strict_types=1);
@@ -48,7 +48,7 @@ use OCP\EventDispatcher\IEventListener;
  *
  * @template-implements IEventListener<Event>
  *
- * @spec openspec/changes/schooladvies-voorlopig-to-rod/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
  */
 class SchoolAdviesVoorlopigRodHandler implements IEventListener {
 
@@ -76,7 +76,7 @@ class SchoolAdviesVoorlopigRodHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/schooladvies-voorlopig-to-rod/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatedEvent === false && $event instanceof ObjectUpdatedEvent === false) {

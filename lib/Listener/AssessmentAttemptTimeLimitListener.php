@@ -38,7 +38,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
+ * @spec openspec/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
  */
 
 declare(strict_types=1);
@@ -60,7 +60,7 @@ use Throwable;
  *
  * @template-implements IEventListener<Event>
  *
- * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
+ * @spec openspec/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
  */
 class AssessmentAttemptTimeLimitListener implements IEventListener {
 
@@ -98,7 +98,7 @@ class AssessmentAttemptTimeLimitListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
+	 * @spec openspec/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectUpdatingEvent === false || $event->isPropagationStopped() === true) {

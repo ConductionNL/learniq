@@ -848,6 +848,57 @@ The system MUST support exporting an `ItemBank` and its `Item`s as a QTI 2.1 pac
 - **WHEN** that `Item`'s `ItemBank` is exported
 - **THEN** the exported `assessmentItem` XML matches the stored `qtiBody` exactly
 
+### Requirement: The in-app test screen shows the server's deadline and saves answers as the learner works
+
+When a learner starts an attempt with a time limit, the server MUST stamp `deadlineAt` on the AssessmentResult: its start plus the time limit plus the learner's granted extra time, the moment the late-answer rule measures against without the grace. The learner MUST NOT change it. The test screen MUST count down to `deadlineAt`, corrected for a wrong browser clock, also when the attempt is resumed, and MUST save the learner's answers on the attempt shortly after each change while it is in progress, telling the learner whether they are saved.
+
+#### Scenario: The timer counts down to the server's deadline
+@e2e exclude Timer and stamp are pinned by unit tests: tests/Unit/Service/AssessmentAttemptLimitsTest.php::testTheDeadlineCountsExtraTime, tests/Unit/Listener/AssessmentAttemptTimeLimitListenerTest.php::testTheLearnerCannotMoveTheDeadline and tests/unit-js/attemptClock.test.mjs.
+- **GIVEN** a 30-minute test and a learner with 50 percent extra time
+- **WHEN** the learner starts at 09:10
+- **THEN** the attempt's `deadlineAt` is 09:55
+- **AND** the screen shows 45:00 remaining
+- **AND** a save that moves `deadlineAt` is refused
+
+#### Scenario: Answers are saved while the learner works
+@e2e exclude Autosave payload and resume are pinned by tests/unit-js/attemptClock.test.mjs; the save runs through the rules pinned in AssessmentResultIntegrityListenerTest.
+- **GIVEN** an attempt in progress
+- **WHEN** the learner answers a question and pauses
+- **THEN** the answers are saved on the attempt, without scores
+- **AND** reopening the attempt shows them
+
+### Requirement: The in-app test screen enforces attempts and time on the server
+
+An attempt a learner starts or saves through the app, not the portal, MUST be held by the server to the same rules as a portal attempt, with the same parts: a new attempt MUST start only inside the window, with the access code, and while the learner has used fewer attempts than the test's `maxAttempts` (default one); the server MUST set the attempt's `startedAt` from its own clock and its `attemptNumber` from the attempts already made; the learner MUST NOT change either afterwards; and after the deadline (start plus time limit plus the learner's extra time) plus 30 seconds, the attempt's answers MUST NOT change, while the save that carries them, a hand-in included, goes through with the answers stored in time. Scores the server adds to unchanged answers MUST be kept. Nextcloud admins and system context are not held to these rules.
+
+#### Scenario: A second attempt on a one-attempt test is refused
+
+- **GIVEN** a test with `maxAttempts: 1` and a learner who has handed in one attempt
+- **WHEN** the learner starts another attempt from the test screen
+- **THEN** the server refuses it with reason `attempts-used`
+- **AND** the screen says the attempts are used
+
+#### Scenario: The server starts the clock
+
+- **GIVEN** a test with `maxAttempts: 3` and one earlier attempt by the learner
+- **WHEN** the screen creates an attempt with `startedAt` in the future and `attemptNumber: 1`
+- **THEN** the attempt is stored with the server's time as `startedAt` and `attemptNumber: 2`
+- **AND** a later save by the learner that moves `startedAt` or `attemptNumber` is refused
+
+#### Scenario: Answers after the deadline are not saved
+
+- **GIVEN** a 30-minute test and an attempt started at 09:00
+- **WHEN** the learner saves changed answers at 09:30:31
+- **THEN** the save goes through with the answers that were stored
+- **AND** at 09:30:20, or at 09:44 with 50 percent extra time, the changed answers are saved
+
+#### Scenario: A late hand-in keeps the answers given in time
+
+- **GIVEN** the same attempt, still in progress at 09:40
+- **WHEN** the learner hands it in with changed answers
+- **THEN** the attempt is handed in with the stored answers
+- **AND** the submit save that adds auto scores to those answers keeps the scores
+
 ## Standards
 
 IMS QTI 3.0 (canonical), QTI 2.x + Common Cartridge (import), LTI 1.3 (external tool launch), Caliper (events), AICC/SCORM/cmi5 for content-embedded quizzes (via `course-management`); EU AI Act Reg. 2024/1689 Annex III §3 (proctoring = high-risk) → ADR-005 gate; ISO/IEC 23988 (computer-based assessment) for proctoring conduct.
