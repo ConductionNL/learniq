@@ -40,10 +40,10 @@ Cut from `origin/development`. Uses openregister PR 4080 (`ConfigurationService:
 - [x] Implement
 
 ## Verification
-- [ ] All tasks checked off
-- [ ] `openspec validate example-set-removal-in-wizard --strict` passes
-- [ ] Diff-scoped checks green (php -l, phpcs, phpstan, phpunit on the touched classes, node setupSteps test, check:specs, l10n checks)
-- [ ] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates run once before push (inherited reds named in the PR)
+- [x] All tasks checked off
+- [x] `openspec validate example-set-removal-in-wizard --strict` passes
+- [x] Diff-scoped checks green (php -l, phpcs, phpstan, phpunit on the touched classes, node setupSteps test, check:specs, l10n checks)
+- [x] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates run once before push (inherited reds named in the PR)
 
 ## Quality checklist
 - Tests: SeedProfileServiceTest (app ids, duck typing), SetupControllerTest (status, every action outcome, the group check), setupSteps node test.
