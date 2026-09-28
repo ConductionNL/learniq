@@ -33,10 +33,10 @@ Cut from `origin/development`; the company (#1054) and training (#1051) sets are
 - [x] Test
 
 ## Verification
-- [ ] All tasks checked off
-- [ ] `openspec validate example-set-regulation-rows --strict` passes
-- [ ] Diff-scoped checks green (the three set tests, generators `--check`, check:register, check:schema-l10n)
-- [ ] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates run once before push (inherited reds named in the PR)
+- [x] All tasks checked off
+- [x] `openspec validate example-set-regulation-rows --strict` passes
+- [x] Diff-scoped checks green (the three set tests, generators `--check`, check:register, check:schema-l10n)
+- [x] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates run once before push (inherited reds named in the PR)
 
 ## Quality checklist
 - Seed data: the Regulation rows in the two example sets (design, Seed Data); no register change.
