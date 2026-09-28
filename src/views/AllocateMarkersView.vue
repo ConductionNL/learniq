@@ -128,6 +128,7 @@ export default {
 	computed: {
 		/**
 		 * @return {number} The assignment's markers per submission.
+		 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
 		 */
 		maxMarkers() {
 			return Number(this.assignment?.markersPerSubmission ?? 1)
@@ -135,6 +136,7 @@ export default {
 
 		/**
 		 * @return {Array<object>} The handed-in submissions.
+		 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
 		 */
 		submissionOptions() {
 			return this.submissions.filter((s) =>
@@ -143,6 +145,12 @@ export default {
 		},
 	},
 
+	/**
+	 * Load the assignment and its submissions, and the first marker options.
+	 *
+	 * @return {Promise<void>}
+	 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
+	 */
 	async mounted() {
 		try {
 			this.assignment = oneObject(

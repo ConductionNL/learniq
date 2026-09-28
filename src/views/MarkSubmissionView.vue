@@ -558,6 +558,7 @@ export default {
 		 * marking and for a marker scoring their own draft.
 		 *
 		 * @return {boolean}
+		 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-one-person-sets-the-final-grade-once-every-mark-is-in
 		 */
 		showsMarkingForm() {
 			return (
@@ -570,6 +571,7 @@ export default {
 		 * The assignment's final grade rule, from the marks answer.
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-one-person-sets-the-final-grade-once-every-mark-is-in
 		 */
 		finalGradeRule() {
 			return (
