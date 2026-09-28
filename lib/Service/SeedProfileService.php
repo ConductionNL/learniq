@@ -211,7 +211,7 @@ class SeedProfileService {
 		$objects = count($this->objectsOf(data: $data));
 
 		$this->configurationService()->importFromApp(
-			appId: Application::APP_ID . '.profile.' . $profileId,
+			appId: $this->importAppId(profileId: $profileId),
 			data: $data,
 			version: $this->appManager->getAppVersion(Application::APP_ID),
 			force: true
@@ -227,6 +227,76 @@ class SeedProfileService {
 			'profile' => $profileId,
 		];
 	}//end install()
+
+	/**
+	 * The app id an example set is imported under, which is also the id its
+	 * import jobs are recorded under.
+	 *
+	 * @param string $profileId The set.
+	 *
+	 * @return string `learniq.profile.<id>`, or `learniq.demo` for the generated set.
+	 *
+	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#requirement-the-wizard-removes-a-loaded-example-set-through-openregisters-import-jobs
+	 */
+	public function importAppId(string $profileId): string {
+		if ($profileId === self::GENERATED_PROFILE) {
+			return DemoDataService::CONFIG_APP_ID;
+		}
+
+		return Application::APP_ID . '.profile.' . $profileId;
+	}//end importAppId()
+
+	/**
+	 * Soft-delete what the recorded imports of one set created.
+	 *
+	 * Calls OpenRegister's `ConfigurationService::softDeleteAppImports()`
+	 * (openregister PR 4080), which removes every object the set's recorded
+	 * import jobs created, as a system operation, and leaves the objects those
+	 * jobs only updated. Removal is a soft delete: the trash can restore it.
+	 *
+	 * 🔴 DUCK-TYPED. An OpenRegister from before that PR has no such method;
+	 * the answer then says so (`supported: false`) instead of throwing, so the
+	 * caller can name the occ command that removes the set by uuid.
+	 *
+	 * @param string $profileId The set: a shipped set id or the generated set.
+	 *
+	 * @return array{supported: bool, appId: string, jobs: array<int, string>, softDeleted: int, errors: int, failedJobs: array<int, string>}
+	 *
+	 * @throws RuntimeException When the id is unknown or OpenRegister is absent.
+	 *
+	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#requirement-the-wizard-removes-a-loaded-example-set-through-openregisters-import-jobs
+	 */
+	public function remove(string $profileId): array {
+		if ($profileId !== self::GENERATED_PROFILE && $this->isKnown(profileId: $profileId) === false) {
+			throw new RuntimeException('No example set is called "' . $profileId . '".');
+		}
+
+		$appId   = $this->importAppId(profileId: $profileId);
+		$service = $this->configurationService();
+		$answer  = ['supported' => false, 'appId' => $appId, 'jobs' => [], 'softDeleted' => 0, 'errors' => 0, 'failedJobs' => []];
+		if (method_exists($service, 'softDeleteAppImports') === false) {
+			return $answer;
+		}
+
+		// Each job report and each error carries its `importJobId`
+		// (ImportService::softDeleteByImportJobId()).
+		$summary = $service->softDeleteAppImports($appId);
+		$errors  = (array)($summary['errors'] ?? []);
+
+		$answer['supported']   = true;
+		$answer['jobs']        = array_values(array_filter(array_map('strval', array_column((array)($summary['jobs'] ?? []), 'importJobId'))));
+		$answer['softDeleted'] = (int)($summary['softDeleted'] ?? 0);
+		$answer['errors']      = count($errors);
+		$answer['failedJobs']  = array_values(array_unique(array_filter(array_map('strval', array_column($errors, 'importJobId')))));
+
+		$this->logger->info(
+			'[SeedProfileService] removed example set "' . $profileId . '": ' . $answer['softDeleted'] . ' object(s) soft-deleted, '
+			. $answer['errors'] . ' error(s).',
+			['app' => Application::APP_ID]
+		);
+
+		return $answer;
+	}//end remove()
 
 	/**
 	 * The fixed uuids of one set, last-loaded first.
