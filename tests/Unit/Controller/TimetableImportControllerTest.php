@@ -17,7 +17,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
+ * @spec openspec/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
  */
 
 declare(strict_types=1);
@@ -76,7 +76,7 @@ class TimetableImportControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004
 	 */
 	public function testADeliveryIntoPlanninq(): void {
 		$planninq = $this->createMock(PlanninqTimetableImport::class);
@@ -124,7 +124,7 @@ class TimetableImportControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#scenario-an-administration-manager-opens-the-timetable-conflicts
+	 * @spec openspec/specs/timetabling/spec.md#scenario-an-administration-manager-opens-the-timetable-conflicts
 	 */
 	public function testTheAccessCheckAnswersTheRightAndPlanninq(): void {
 		$planninq = $this->createMock(PlanninqTimetableImport::class);

@@ -75,14 +75,19 @@
 - [x] PHPUnit unit tests for new/changed business logic (`tests/Unit/`) —
   `AttendanceThresholdCrossingGuardTest`, `AttendanceFlagCreationHandlerTest`,
   `AttendanceThresholdRegisterTest`
-- [ ] Newman/Postman tests for new/changed API endpoints — N/A, no API changed
-- [ ] Browser tests (Playwright MCP) for UI changes — N/A, no UI changed
+- [x] Newman/Postman tests for new/changed API endpoints — N/A, no API changed
+  - N/A, confirmed in r5-structure: ef621887 (#926) touches no controller and no `appinfo/routes.php`.
+- [x] Browser tests (Playwright MCP) for UI changes — N/A, no UI changed
+  - N/A, confirmed in r5-structure: ef621887 changes nothing under `src/`.
 - [x] All tests pass (`vendor/bin/phpunit --filter 'AttendanceThreshold|AttendanceFlagCreationHandler'`)
 
 ## Documentation (company-wide ADR-010)
-- [ ] Feature documentation updated in `docs/` — N/A, no new user-facing surface
-- [ ] Screenshot captured and committed to `docs/images/` — N/A, no visual change
+- [x] Feature documentation updated in `docs/` — N/A, no new user-facing surface
+  - N/A, confirmed in r5-structure: the change adds a guard and revives a handler; no page, setting or menu entry.
+- [x] Screenshot captured and committed to `docs/images/` — N/A, no visual change
+  - N/A, confirmed in r5-structure: no `src/` change, so nothing visual to capture.
 
 ## i18n (company-wide ADR-005)
-- [ ] Dutch (`nl_NL`) and English (`en_US`) translation strings added — N/A,
+- [x] Dutch (`nl_NL`) and English (`en_US`) translation strings added — N/A,
   the notification subject already exists and is unchanged
+  - Done rather than N/A (r5-structure): ef621887 added the five new schema-property titles and descriptions to `l10n/en.json` and `l10n/nl.json` (10 keys, Dutch values present), and the notification subject was unchanged.

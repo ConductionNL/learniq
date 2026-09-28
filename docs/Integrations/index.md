@@ -5,7 +5,7 @@ draft: true
 
 # Integrations
 
-This section is under construction. Integration guides for Scholiq are being authored in Codeberg issue #73 (pre-migration, not migrated to GitHub).
+This section is under construction. Integration guides for Learniq are being authored in Codeberg issue #73 (pre-migration, not migrated to GitHub).
 
 ## Nextcloud Talk (live)
 

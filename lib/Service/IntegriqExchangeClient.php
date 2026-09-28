@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+ * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
 
 declare(strict_types=1);
@@ -41,7 +41,7 @@ use OCP\EventDispatcher\IEventDispatcher;
  * fails closed without it (contract: integriq
  * openspec/changes/learniq-exchange-jobs-native/contract.md).
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+ * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
 class IntegriqExchangeClient {
 
@@ -67,7 +67,7 @@ class IntegriqExchangeClient {
 	 *
 	 * @return bool True when a request can be made.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	public function isAvailable(): bool {
 		return $this->appManager->isEnabledForUser(self::INTEGRIQ_APP) === true
@@ -91,7 +91,7 @@ class IntegriqExchangeClient {
 	 * @throws IntegriqUnavailableException    When integriq cannot carry it.
 	 * @throws ExchangeRequestRefusedException When integriq refused it.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	public function requestJob(
 		string $target,
@@ -125,7 +125,7 @@ class IntegriqExchangeClient {
 	 * @throws IntegriqUnavailableException    When integriq cannot carry it.
 	 * @throws ExchangeRequestRefusedException When integriq refused it.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function requestMapping(string $slug, string $name, string $description, array $mapping): string {
 		$event = $this->newEvent(

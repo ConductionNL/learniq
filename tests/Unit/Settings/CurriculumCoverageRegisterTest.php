@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/curriculum-coverage-rollup/tasks.md#task-1-declare-the-curriculumcoverage-schema-demo-rows-and-catalogue-keys
+ * @spec openspec/changes/archive/2026-09-28-curriculum-coverage-rollup/tasks.md#task-1-declare-the-curriculumcoverage-schema-demo-rows-and-catalogue-keys
  */
 
 declare(strict_types=1);

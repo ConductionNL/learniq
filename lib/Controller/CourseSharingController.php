@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-a-course-leaves-the-school-only-through-the-sharing-gate
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-leaves-the-school-only-through-the-sharing-gate
  */
 
 declare(strict_types=1);
@@ -79,7 +79,7 @@ class CourseSharingController extends Controller {
 	 *
 	 * @return DataDownloadResponse|JSONResponse The package, or a JSON error.
 	 *
-	 * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-a-course-leaves-the-school-only-through-the-sharing-gate
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-leaves-the-school-only-through-the-sharing-gate
 	 */
 	#[NoAdminRequired]
 	public function share(string $courseId=''): DataDownloadResponse|JSONResponse {

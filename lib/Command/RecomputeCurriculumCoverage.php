@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-an-occ-command-fills-coverage-for-existing-data
+ * @spec openspec/specs/competency/spec.md#requirement-an-occ-command-fills-coverage-for-existing-data
  */
 
 declare(strict_types=1);
@@ -38,7 +38,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Recomputes curriculum coverage for every framework, or for one.
  *
- * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-an-occ-command-fills-coverage-for-existing-data
+ * @spec openspec/specs/competency/spec.md#requirement-an-occ-command-fills-coverage-for-existing-data
  */
 class RecomputeCurriculumCoverage extends Command {
 
@@ -60,7 +60,7 @@ class RecomputeCurriculumCoverage extends Command {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-an-occ-command-fills-coverage-for-existing-data
+	 * @spec openspec/specs/competency/spec.md#requirement-an-occ-command-fills-coverage-for-existing-data
 	 */
 	protected function configure(): void {
 		$this->setName(name: 'learniq:curriculum-coverage:recompute');
@@ -81,7 +81,7 @@ class RecomputeCurriculumCoverage extends Command {
 	 *
 	 * @return int 0 on success, 1 when the named framework does not exist.
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-an-occ-command-fills-coverage-for-existing-data
+	 * @spec openspec/specs/competency/spec.md#requirement-an-occ-command-fills-coverage-for-existing-data
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		$frameworkIds = $this->rollup->allFrameworkIds();

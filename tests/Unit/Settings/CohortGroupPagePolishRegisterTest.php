@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cohort-group-page-polish/tasks.md#task-1-add-cohortnotes
+ * @spec openspec/changes/archive/2026-09-28-cohort-group-page-polish/tasks.md#task-1-add-cohortnotes
  */
 
 declare(strict_types=1);
@@ -74,7 +74,7 @@ class CohortGroupPagePolishRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
 	 */
 	public function testSeedFixtureCarriesNotes(): void {
 		$cohort = self::poObject(schema: 'cohort', field: 'name', value: 'Groep 7');

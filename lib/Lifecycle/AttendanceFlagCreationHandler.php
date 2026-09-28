@@ -58,7 +58,7 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+ * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
 class AttendanceFlagCreationHandler implements IEventListener {
 
@@ -232,7 +232,7 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/attendance/spec.md#requirement-an-attendance-flag-outside-the-leerplicht-carries-a-neutral-kind
+	 * @spec openspec/specs/attendance/spec.md#requirement-an-attendance-flag-outside-the-leerplicht-carries-a-neutral-kind
 	 */
 	private function saveFlag(array $detail, array $onCross): void {
 		$mentorId = $this->resolveMentorId(learnerId: $detail['learnerId']);
@@ -350,7 +350,7 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	 *
 	 * @return string|null The integriq job id, or null when integriq did not take it.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	private function requestExchangeJob(string $target, string $flagId, string $tenantId): ?string {
 		$mapping = null;

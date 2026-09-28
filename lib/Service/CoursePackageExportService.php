@@ -161,7 +161,7 @@ class CoursePackageExportService {
 	 *
 	 * @return array<string, mixed> The payload, materials carrying `contentBase64`.
 	 *
-	 * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-a-share-package-carries-no-school-bound-or-personal-fields
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-share-package-carries-no-school-bound-or-personal-fields
 	 */
 	public function toScholiqPayload(array $tree): array {
 		// Base64 the resolved bytes so the JSON tree is a single self-contained,

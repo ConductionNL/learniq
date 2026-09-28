@@ -161,6 +161,11 @@ if (interface_exists(\OC\Hooks\Emitter::class) === false) {
 	include_once __DIR__ . '/Stubs/Hooks/Emitter.php';
 }
 
+// Symfony HeaderUtils stub, as in tests/bootstrap.php: DataDownloadResponse needs it.
+if (class_exists(\Symfony\Component\HttpFoundation\HeaderUtils::class) === false) {
+	include_once __DIR__ . '/Stubs/Symfony/HeaderUtils.php';
+}
+
 // Test-support helpers. Deliberately required rather than registered in
 // composer `autoload-dev`: a dev-built vendor/ bakes autoload-dev into the
 // runtime classmap and can shadow real app classes instance-wide

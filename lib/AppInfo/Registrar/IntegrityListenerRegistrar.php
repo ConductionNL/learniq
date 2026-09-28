@@ -131,7 +131,7 @@ class IntegrityListenerRegistrar {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/settings-and-excuse-authorization/specs/attendance/spec.md#requirement-the-server-stamps-who-an-excuse-request-is-about-and-who-filed-it
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-server-stamps-who-an-excuse-request-is-about-and-who-filed-it
 	 */
 	private function registerOwnerStamps(IRegistrationContext $context): void {
 		// Submission owner (assignment-portal-wiring): a portal hand-in gets

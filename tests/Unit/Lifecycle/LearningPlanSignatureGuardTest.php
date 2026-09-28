@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learner-lookup-and-learnerrefs-fixes/specs/learning-plan/spec.md#requirement-parent-co-signs-are-verified-against-the-learners-profile-found-on-ncuserid
+ * @spec openspec/specs/learning-plan/spec.md#requirement-parent-co-signs-are-verified-against-the-learners-profile-found-on-ncuserid
  */
 
 declare(strict_types=1);

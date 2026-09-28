@@ -19,7 +19,7 @@
  * The transport is injected (`createLessonAssistClient({ post, urlFor })`), so
  * the node test runs every path against a stub.
  *
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+ * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
  */
 
 /** Hermiq's limit on `lessonText`, in characters after trimming. */
@@ -58,7 +58,7 @@ const LANGUAGE_PATTERN = /^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8}){0,2}$/
  *
  * @param {object|undefined|null} appsWebRoots `window.OC.appswebroots`.
  * @return {boolean} True when hermiq is enabled.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+ * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
  */
 export function isHermiqEnabled(appsWebRoots) {
 	return Boolean(appsWebRoots) && appsWebRoots.hermiq !== undefined
@@ -69,7 +69,7 @@ export function isHermiqEnabled(appsWebRoots) {
  *
  * @param {string|undefined|null} language A course language such as `nl`.
  * @return {string} A BCP-47 tag.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+ * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
  */
 export function normaliseLanguage(language) {
 	const tag = String(language ?? '').trim()
@@ -81,7 +81,7 @@ export function normaliseLanguage(language) {
  *
  * @param {string|undefined|null} level The chosen level.
  * @return {string} One of READING_LEVELS.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+ * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
  */
 export function normaliseReadingLevel(level) {
 	return READING_LEVELS.includes(level) ? level : 'B1'
@@ -92,7 +92,7 @@ export function normaliseReadingLevel(level) {
  *
  * @param {number|string|undefined|null} count The chosen count.
  * @return {number} The count, clamped.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+ * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
  */
 export function normaliseQuestionCount(count) {
 	const n = Number.parseInt(count, 10)
@@ -105,7 +105,7 @@ export function normaliseQuestionCount(count) {
  *
  * @param {string|undefined|null} text Any text.
  * @return {string} The trimmed text, at most LESSON_TEXT_MAX characters.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+ * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
  */
 export function clampLessonText(text) {
 	return String(text ?? '')
@@ -120,7 +120,7 @@ export function clampLessonText(text) {
  *
  * @param {Array<object>} blocks The composer's blocks.
  * @return {string} The lesson text, at most LESSON_TEXT_MAX characters.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+ * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
  */
 export function lessonTextFromBlocks(blocks) {
 	const parts = (blocks ?? [])
@@ -138,7 +138,7 @@ export function lessonTextFromBlocks(blocks) {
  *
  * @param {Array<{id: string, title: string}>} goals Candidate goals.
  * @return {{titles: string[], ids: string[]}} Parallel arrays.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-goal-suggestions-map-back-to-goal-ids
+ * @spec openspec/specs/course-management/spec.md#scenario-goal-suggestions-map-back-to-goal-ids
  */
 export function goalPayload(goals) {
 	const titles = []
@@ -166,7 +166,7 @@ export function goalPayload(goals) {
  * @param {Array<{index: number}>|undefined|null} suggestedGoals From the answer.
  * @param {string[]} ids The ids, in the order their titles were sent.
  * @return {string[]} The suggested goal ids, in index order.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-goal-suggestions-map-back-to-goal-ids
+ * @spec openspec/specs/course-management/spec.md#scenario-goal-suggestions-map-back-to-goal-ids
  */
 export function goalIdsFromSuggestions(suggestedGoals, ids) {
 	const result = []
@@ -185,7 +185,7 @@ export function goalIdsFromSuggestions(suggestedGoals, ids) {
  * @param {string} action One of ASSIST_ACTIONS.
  * @param {object} input `{lessonText, goalTitles, language, questionCount, readingLevel}`.
  * @return {object} The body hermiq receives.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+ * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
  */
 export function buildRequestBody(action, input = {}) {
 	const lessonText = clampLessonText(input.lessonText)
@@ -233,7 +233,7 @@ export function buildRequestBody(action, input = {}) {
  * @param {string} action One of ASSIST_ACTIONS.
  * @param {object} body The body from buildRequestBody().
  * @return {boolean} True when the call may go out.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+ * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
  */
 export function canRun(action, body) {
 	const hasText = typeof body?.lessonText === 'string' && body.lessonText !== ''
@@ -251,7 +251,7 @@ export function canRun(action, body) {
  * @param {string} action One of ASSIST_ACTIONS.
  * @param {{status?: number, data?: object, error?: unknown}} response What the transport gave.
  * @return {{outcome: string, reason: string|null, data: object|null}} The classified answer.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+ * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
  */
 export function classifyOutcome(action, response) {
 	const status = response?.status ?? 0
@@ -302,7 +302,7 @@ export function classifyOutcome(action, response) {
  * @param {string} action `outline`, `questions` or `simplify`.
  * @param {object} data A successful answer.
  * @return {string} Markdown for a richText block.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+ * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
  */
 export function draftTextFromResult(action, data) {
 	if (action === 'questions') {
@@ -323,7 +323,7 @@ export function draftTextFromResult(action, data) {
  *
  * @param {{post: (url: string, body: object) => Promise<object>, urlFor: (action: string) => string}} transport The injected transport.
  * @return {{run: (action: string, input: object) => Promise<object>}} `run` resolves to `{outcome, reason, data, body}`.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+ * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
  */
 export function createLessonAssistClient({ post, urlFor }) {
 	return {
@@ -333,7 +333,7 @@ export function createLessonAssistClient({ post, urlFor }) {
 		 * @param {string} action One of ASSIST_ACTIONS.
 		 * @param {object} input The fields the body is built from.
 		 * @return {Promise<object>} `{outcome, reason, data, body}`.
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+		 * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
 		 */
 		async run(action, input) {
 			if (!ASSIST_ACTIONS.includes(action)) {

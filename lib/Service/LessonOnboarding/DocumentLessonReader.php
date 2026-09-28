@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/docx-through-documentextractor/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
+ * @spec openspec/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
  */
 
 declare(strict_types=1);
@@ -44,7 +44,7 @@ use Throwable;
 /**
  * Reads a Word file through OpenRegister's DocumentExtractor.
  *
- * @spec openspec/changes/docx-through-documentextractor/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
+ * @spec openspec/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
  */
 class DocumentLessonReader {
 
@@ -74,7 +74,7 @@ class DocumentLessonReader {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/docx-through-documentextractor/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
 	 */
 	public function isAvailable(): bool {
 		return class_exists($this->extractorClass) === true && method_exists($this->extractorClass, 'extract') === true;
@@ -87,7 +87,7 @@ class DocumentLessonReader {
 	 *
 	 * @return array{available: bool, lesson: array<string, mixed>|null}
 	 *
-	 * @spec openspec/changes/docx-through-documentextractor/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
 	 */
 	public function read(File $file): array {
 		if ($this->isAvailable() === false) {
@@ -124,7 +124,7 @@ class DocumentLessonReader {
 	 *
 	 * @return array<string, mixed> `{title, sections: [{heading, paragraphs, images, notes}], notes}`.
 	 *
-	 * @spec openspec/changes/docx-through-documentextractor/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
 	 */
 	public function toLesson(array $result, DocumentImageLoader $images): array {
 		$sections = [];

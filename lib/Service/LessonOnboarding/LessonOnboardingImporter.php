@@ -197,7 +197,7 @@ class LessonOnboardingImporter {
 	 *
 	 * @return int How many notes could not be saved.
 	 *
-	 * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-imported-slide-notes-land-in-the-staff-store
+	 * @spec openspec/specs/course-management/spec.md#requirement-imported-slide-notes-land-in-the-staff-store
 	 */
 	private function writeTeacherNotes(array $notes, string $lessonId, string $tenantId): int {
 		$lost = 0;
