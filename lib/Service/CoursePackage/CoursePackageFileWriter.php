@@ -135,7 +135,7 @@ class CoursePackageFileWriter {
 				$tenantSegment = $tenantId;
 			}
 
-			$ncBaseDir = 'Scholiq/' . $tenantSegment . '/course-imports';
+			$ncBaseDir = 'Learniq/' . $tenantSegment . '/course-imports';
 			$ncPath = $ncBaseDir . '/' . $filename;
 
 			$userFolder = $this->rootFolder->getUserFolder($importedBy);
