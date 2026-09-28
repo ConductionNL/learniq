@@ -55,5 +55,10 @@ class OnboardingListenerRegistrar {
 		// A file moved into the folder from elsewhere in the teacher's files.
 		$context->registerEventListener(NodeRenamedEvent::class, LessonOnboardingFileListener::class);
 
+		// Optional lesson sign-up rules (timetabling-elective-lesson-signup).
+		// Chained here because EventListenerWiring and SchedulingListenerRegistrar
+		// are both at phpmd's coupling limit.
+		(new ElectiveListenerRegistrar())->register(context: $context);
+
 	}//end register()
 }//end class

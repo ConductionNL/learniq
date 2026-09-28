@@ -498,6 +498,24 @@
 					}
 				},
 				{
+					"id": "ElectiveOffersMenu",
+					"label": "Optional lessons",
+					"icon": "CalendarCheckOutline",
+					"route": "ElectiveOffers",
+					"order": 70,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"team-lead",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "TimetableConflictQueueMenu",
 					"label": "Timetable conflicts",
 					"icon": "TableClock",
@@ -3084,6 +3102,97 @@
 					]
 				}
 			}
+		},
+		{
+			"id": "ElectiveOffers",
+			"route": "/electives/offers",
+			"type": "index",
+			"title": "Optional lessons",
+			"config": {
+				"register": "learniq",
+				"schema": "elective-offer"
+			}
+		},
+		{
+			"id": "ElectiveOfferDetail",
+			"route": "/electives/offers/:id",
+			"type": "detail",
+			"title": "Optional lesson offer",
+			"config": {
+				"register": "learniq",
+				"schema": "elective-offer",
+				"headerActions": [
+					{
+						"id": "offer-roster",
+						"label": "Sign-ups",
+						"type": "navigate",
+						"icon": "AccountCheckOutline",
+						"target": "/electives/offers/@objectId/roster"
+					}
+				],
+				"widgets": [
+					{
+						"id": "elective-offer-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "CalendarCheckOutline"
+					},
+					{
+						"id": "elective-offer-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "elective-offer-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "elective-offer-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			},
+			"_note": "timetabling-elective-lesson-signup: the Sign-ups action opens ElectiveRoster, per lesson who signed up, who of the eligible groups did not, and Place."
+		},
+		{
+			"id": "ElectiveRoster",
+			"route": "/electives/offers/:id/roster",
+			"type": "custom",
+			"title": "Sign-ups",
+			"component": "ElectiveRosterView",
+			"_note": "timetabling-elective-lesson-signup: GET /api/electives/{offerId}/roster and POST .../place, behind elective.manage."
 		},
 		{
 			"id": "TimetableConflicts",

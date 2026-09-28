@@ -22,6 +22,21 @@
 			"order": 25
 		},
 		{
+			"id": "MyElectivesMenu",
+			"label": "Optional lessons",
+			"icon": "CalendarCheckOutline",
+			"route": "MyElectives",
+			"order": 26,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"admin"
+					]
+				}
+			}
+		},
+		{
 			"id": "MyLearningRecordMenu",
 			"label": "My learning record",
 			"icon": "SchoolOutline",
@@ -320,6 +335,14 @@
 			"title": "My timetable",
 			"component": "MyTimetable",
 			"_note": "personal-timetable: the signed-in user's own week view. A bespoke component (no generic lib index/detail analogue) rendering the caller's OWN Session objects for a window, resolved server-side from cohort membership (teacher/learner) and RBAC-scoped via ObjectService. Read-only — clicking a session deep-links to SessionDetail; no create/edit here."
+		},
+		{
+			"id": "MyElectives",
+			"route": "/my-electives",
+			"type": "custom",
+			"title": "Optional lessons",
+			"component": "MyElectives",
+			"_note": "timetabling-elective-lesson-signup: open offers the learner may sign up for, through GET /api/electives; sign-up and withdrawal go through learniq's own endpoints so ElectiveSignUpRules decides."
 		}
 	]
 }
