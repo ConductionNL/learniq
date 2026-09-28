@@ -22,6 +22,25 @@ The tools run with the rights of the person chatting. On all five schemas the st
 
 Everything that names a learner or holds exam content: learner profiles, enrolments, grades, attendance, submissions, credentials, cohorts (a class roster), sessions (they carry the ids of affected learners and substitute teachers), item banks, assessments, proctoring and absence reasons. A tool that can fetch one grade by id can be talked into fetching a hundred, so these schemas derive no tool at all.
 
+## What an agent can do
+
+Four curated tools sit next to the derived reads. Each is off for everyone except admins until an admin grants its action under Admin settings > Learniq > Action authorization, and hermiq asks the person behind the agent for approval where its guardrails say so.
+
+| Tool | Action right | What it writes |
+|---|---|---|
+| `learniq.enrolLearner` | `mcp.enrol-learner` | a pending enrolment; a second call for an open enrolment returns that one |
+| `learniq.recordAttendance` | `mcp.record-attendance` | one attendance record for a learner and a session; a second call corrects it |
+| `learniq.gradeSubmission` | `mcp.grade-submission` | a concept grade for a handed-in submission; learners see it only after a teacher publishes it in the gradebook |
+| `learniq.listExpiringCredentials` | none (reads with your own rights) | nothing; it returns credential id, learner id and name, course id and title, expiry date and renewal course, and nothing else |
+
+Every write goes through the same checks as the screens in the app, in the name of the person the agent works for, and says on the record which tool made it. An agent cannot issue a credential: a credential is signed and leaves the school the moment it exists, so there is no draft for a teacher to accept.
+
+Three chat examples:
+
+1. "Which certificates expire this quarter? Re-enrol those people." The agent lists the expiring certificates and enrols each learner in the renewal course.
+2. "Record attendance for the 9:00 session: everyone present except Jayden, sick." The agent records one row per learner; the excuse itself still goes through an absence request.
+3. "Grade the week-3 submissions against the rubric and let me check them." The agent writes concept grades; you publish them in the gradebook.
+
 ## Migrating from the old tool names
 
 `learniq.listCourses` and `learniq.getCourseDetails` are gone. Use `learniq.course.search`, and `learniq.course.get` plus `learniq.lesson.search` with `courseId`.

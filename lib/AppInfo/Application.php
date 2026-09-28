@@ -26,6 +26,7 @@ namespace OCA\Learniq\AppInfo;
 use OCA\OpenRegister\AppHost\Bootstrap;
 use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\AppInfo\Registrar\ServiceOverrideRegistrar;
+use OCA\Learniq\Mcp\LearniqScannableServices;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -131,6 +132,15 @@ class Application extends App implements IBootstrap {
 		// the action-auth service and the install repair step at Learniq's own
 		// implementations, AFTER Bootstrap so they win over the generic aliases.
 		(new ServiceOverrideRegistrar())->register(context: $context, appId: self::APP_ID);
+
+		// The curated agent tools (hermiq-ai-tooling): OpenRegister's attribute
+		// scan enumerates this alias to find learniq's `#[McpTool]` methods. It is
+		// a scan opt-in, not an IMcpToolProvider, so nothing shadows the tools
+		// OpenRegister derives from the register (ADR-063 decision 2).
+		$context->registerServiceAlias(
+			'OCA\\OpenRegister\\Mcp\\IMcpScannableServices::learniq',
+			LearniqScannableServices::class
+		);
 
 		// Every cross-object write bridge (ADR-031 legitimate exceptions), wired
 		// by domain. See the individual registrars for the per-listener rationale.
