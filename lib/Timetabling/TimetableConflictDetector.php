@@ -117,6 +117,55 @@ class TimetableConflictDetector {
 			return;
 		}
 
+		$this->scanSessions(window: $window, tenantId: $tenantId);
+
+	}//end scan()
+
+	/**
+	 * Scan exactly the given lessons for conflicts, without loading a window.
+	 *
+	 * For a caller that already holds the lessons from a timetable source,
+	 * such as the planninq lessons a timetable-import job just delivered
+	 * (sessions-from-planninq). Cancelled lessons are left out, the same rule
+	 * the Session window applies. Conflict rows are written under `$tenantId`,
+	 * because a planninq lesson carries no learniq tenant of its own.
+	 *
+	 * @param array<int,array<string,mixed>> $sessions Lessons in learniq's session shape.
+	 * @param string                         $tenantId Tenant the conflict rows belong to.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004
+	 */
+	public function scanWindow(array $sessions, string $tenantId): void {
+		$window = [];
+		foreach ($sessions as $session) {
+			$id = (string)($session['id'] ?? ($session['uuid'] ?? ''));
+			if ($id === '' || ($session['lifecycle'] ?? '') === 'cancelled') {
+				continue;
+			}
+
+			$window[$id] = $session;
+		}
+
+		if (count($window) < 2) {
+			return;
+		}
+
+		$this->scanSessions(window: $window, tenantId: $tenantId);
+
+	}//end scanWindow()
+
+	/**
+	 * Pairwise overlap and capacity scan over a loaded window, writing new
+	 * TimetableConflict rows idempotently.
+	 *
+	 * @param array<string,array<string,mixed>> $window   Lessons keyed by id.
+	 * @param string                            $tenantId Tenant scope.
+	 *
+	 * @return void
+	 */
+	private function scanSessions(array $window, string $tenantId): void {
 		$cohortCache = [];
 		$roomCache = [];
 		$assessmentCache = [];
@@ -175,7 +224,7 @@ class TimetableConflictDetector {
 			);
 		}
 
-	}//end scan()
+	}//end scanSessions()
 
 	/**
 	 * Evaluate the pairwise overlap kinds for one Session pair, appending any

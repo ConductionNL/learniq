@@ -1996,7 +1996,8 @@ OC.L10N.register(
         "Your school account is not ready for tests yet. Ask your school.": "Your school account is not ready for tests yet. Ask your school.",
         "This work could not be found.": "This work could not be found.",
         "This work is already handed in.": "This work is already handed in.",
-        "This work cannot be handed in right now. Ask your teacher.": "This work cannot be handed in right now. Ask your teacher."
+        "This work cannot be handed in right now. Ask your teacher.": "This work cannot be handed in right now. Ask your teacher.",
+        "These lessons come from the school timetable. Changes are made there.": "These lessons come from the school timetable. Changes are made there."
     },
     "nplurals=2; plural=(n != 1);"
 )

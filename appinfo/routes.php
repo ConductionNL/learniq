@@ -154,6 +154,10 @@ return [
         // Read-only; #[NoAdminRequired] (any signed-in user) + #[NoCSRFRequired] (GET read).
         // Controller: TimetableController (slug: timetable).
         ['name' => 'timetable#mine', 'url' => '/api/timetable/mine', 'verb' => 'GET'],
+        // Cohort timetable: one cohort's sessions from the current timetable source
+        // (planninq when installed, else Session), after an RBAC read of the cohort
+        // (sessions-from-planninq).
+        ['name' => 'timetable#cohort', 'url' => '/api/timetable/cohort/{cohortId}', 'verb' => 'GET', 'requirements' => ['cohortId' => '[^/]+']],
 
         // Peer review reviewer allocation — genuine batch-matching business logic
         // (peer-and-self-assessment), authorized by an explicit per-object check

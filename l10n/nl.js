@@ -2437,7 +2437,8 @@ OC.L10N.register(
         "Your school account is not ready for tests yet. Ask your school.": "Je schoolaccount is nog niet klaar voor toetsen. Vraag het aan je school.",
         "This work could not be found.": "Dit werk is niet gevonden.",
         "This work is already handed in.": "Dit werk is al ingeleverd.",
-        "This work cannot be handed in right now. Ask your teacher.": "Dit werk kan nu niet worden ingeleverd. Vraag het aan je docent."
+        "This work cannot be handed in right now. Ask your teacher.": "Dit werk kan nu niet worden ingeleverd. Vraag het aan je docent.",
+        "These lessons come from the school timetable. Changes are made there.": "Deze lessen komen uit het schoolrooster. Wijzigingen doe je daar."
     },
     "nplurals=2; plural=(n != 1);"
 )
