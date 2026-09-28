@@ -68,6 +68,15 @@
 			</template>
 		</NcEmptyContent>
 
+		<NcNoteCard v-if="!loading && !error && source === 'planninq'" type="info">
+			{{
+				t(
+					'learniq',
+					'These lessons come from the school timetable. Changes are made there.',
+				)
+			}}
+		</NcNoteCard>
+
 		<section
 			v-if="!loading && !error && changes.length > 0"
 			class="my-timetable__changes"
@@ -132,8 +141,8 @@
 								session.lifecycle === 'cancelled',
 						}">
 						<div
-							tabindex="0"
-							role="button"
+							:tabindex="isLearniqSession(session) ? 0 : undefined"
+							:role="isLearniqSession(session) ? 'button' : undefined"
 							class="my-timetable__session-main"
 							:aria-label="sessionAria(session)"
 							@click="openSession(session)"
@@ -168,6 +177,7 @@
 							</span>
 						</div>
 						<NcButton
+							v-if="isLearniqSession(session)"
 							class="my-timetable__session-manage"
 							variant="tertiary"
 							:aria-label="t('learniq', 'Manage this session')"
@@ -188,9 +198,9 @@
 </template>
 
 <script>
-import { NcButton, NcEmptyContent, NcLoadingIcon } from '@nextcloud/vue'
+import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
 import SubstitutionModal from '../dialogs/SubstitutionModal.vue'
-import { fetchMyTimetable } from '../api/timetable.js'
+import { fetchMyTimetable, isLearniqSession } from '../api/timetable.js'
 
 /**
  * Compute the Monday (00:00, local) of the week containing `date`.
@@ -213,6 +223,7 @@ export default {
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
+		NcNoteCard,
 		SubstitutionModal,
 	},
 
@@ -229,6 +240,9 @@ export default {
 			mode: 'week',
 			// The Session currently open in SubstitutionModal, or null.
 			managingSession: null,
+			// Where the lessons come from: `learniq` Sessions, or planninq's
+			// school timetable (sessions-from-planninq).
+			source: 'learniq',
 		}
 	},
 
@@ -347,6 +361,18 @@ export default {
 	},
 
 	methods: {
+		/**
+		 * Whether a session is a learniq Session (opens and can be managed).
+		 *
+		 * @param {object} session A session from the timetable endpoint.
+		 *
+		 * @return {boolean} True for a learniq Session.
+		 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+		 */
+		isLearniqSession(session) {
+			return isLearniqSession(session)
+		},
+
 		t,
 		/**
 		 * Load the caller's sessions for the current week window.
@@ -364,6 +390,7 @@ export default {
 				)
 				this.sessions = result.sessions
 				this.changes = result.changes
+				this.source = result.source
 			} catch (e) {
 				this.error = t(
 					'learniq',
@@ -415,7 +442,9 @@ export default {
 		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
 		 */
 		openSession(session) {
-			if (!session || !session.id) {
+			// A planninq lesson is not a learniq Session: it is changed in the
+			// timetable system, so it does not open here.
+			if (!isLearniqSession(session)) {
 				return
 			}
 			if (this.$router) {

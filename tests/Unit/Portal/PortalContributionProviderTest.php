@@ -239,7 +239,7 @@ class PortalContributionProviderTest extends TestCase {
 		$actions = $manifest['actions'];
 
 		$this->assertSame(
-			['createSubmission', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult'],
+			['createSubmission', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn'],
 			array_column($actions, 'id')
 		);
 
@@ -265,6 +265,35 @@ class PortalContributionProviderTest extends TestCase {
 		}
 
 	}//end testStudentCreateActionsWhitelistIntakeFields()
+
+	/**
+	 * The hand-in of a draft (portal-assignment-hand-in-endpoint): an
+	 * instance-local POST that stamps `learnerRef`, offered as a row action on
+	 * `studentSubmissions` for drafts only, with the row id stamped under
+	 * `submissionId`.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-assignment-hand-in-endpoint/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-a-draft-submission-from-the-portal-req-pcon-009
+	 */
+	public function testStudentSubmissionsOffersTheHandInOnDrafts(): void {
+		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$handIn = array_values(array_filter($manifest['actions'], static fn (array $a): bool => ($a['id'] ?? '') === 'handIn'))[0];
+		$submissions = array_values(array_filter($manifest['collections'], static fn (array $c): bool => ($c['id'] ?? '') === 'studentSubmissions'))[0];
+
+		$this->assertSame('endpoint-forward', $handIn['type']);
+		$this->assertSame('/apps/learniq/api/portal/submissions/hand-in', $handIn['endpoint']);
+		$this->assertSame('POST', $handIn['method']);
+		$this->assertSame('low', $handIn['minTrust']);
+		$this->assertSame(['submissionId'], $handIn['fields']);
+		$this->assertSame('learnerRef', $handIn['subjectField']);
+		$this->assertSame('learnerRef', $handIn['scopeClaim']);
+		$this->assertSame('submissionId', $handIn['rowField']);
+		$this->assertSame(['field' => 'lifecycle', 'in' => ['draft']], $handIn['rowWhen']);
+		$this->assertSame(['handIn'], $submissions['rowActions']);
+		// The row carries the field rowWhen reads, or portaliq would never offer it.
+		$this->assertContains('lifecycle', $submissions['fields']);
+	}//end testStudentSubmissionsOffersTheHandInOnDrafts()
 
 	/**
 	 * The hand-in declares portaliq's file field on attachmentRefs, inside the

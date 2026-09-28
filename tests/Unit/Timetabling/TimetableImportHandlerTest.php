@@ -33,13 +33,11 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Timetabling\PlanninqTimetableImport;
 use OCA\Learniq\Timetabling\TimetableConflictDetector;
+use OCA\Learniq\Timetabling\TimetableConnectorClient;
 use OCA\Learniq\Timetabling\TimetableImportHandler;
 use OCA\Learniq\Timetabling\TimetableRecordMapper;
-use OCP\App\IAppManager;
-use OCP\Http\Client\IClientService;
-use OCP\IAppConfig;
-use OCP\IURLGenerator;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -74,6 +72,11 @@ class TimetableImportHandlerTest extends TestCase {
 	private array $existingSessions = [];
 
 	/**
+	 * @var array<string,array<int,array<string,mixed>>> Rows of other schemas (job, mapping profile), keyed by schema.
+	 */
+	private array $rows = [];
+
+	/**
 	 * @return void
 	 */
 	protected function setUp(): void {
@@ -82,11 +85,19 @@ class TimetableImportHandlerTest extends TestCase {
 		$this->transitionEngine = $this->createMock(TransitionEngine::class);
 		$this->saves = [];
 		$this->existingSessions = [];
+		$this->rows = [];
 
 		$this->objectService->method('findAll')->willReturnCallback(
 			function (array $config): array {
-				if (($config['filters']['schema'] ?? '') !== 'session') {
-					return [];
+				$schema = ($config['filters']['schema'] ?? '');
+				if ($schema !== 'session') {
+					$id = ($config['filters']['id'] ?? null);
+					return array_values(
+						array_filter(
+							($this->rows[$schema] ?? []),
+							static fn (array $row): bool => $id === null || ($row['id'] ?? null) === $id
+						)
+					);
 				}
 
 				$externalRef = $config['filters']['externalRef'] ?? null;
@@ -119,18 +130,23 @@ class TimetableImportHandlerTest extends TestCase {
 	/**
 	 * Build the handler under test.
 	 *
+	 * @param PlanninqTimetableImport|null $planninqImport The planninq path; by default one that does not apply.
+	 *
 	 * @return TimetableImportHandler
 	 */
-	private function handler(): TimetableImportHandler {
+	private function handler(?PlanninqTimetableImport $planninqImport = null): TimetableImportHandler {
+		if ($planninqImport === null) {
+			$planninqImport = $this->createMock(PlanninqTimetableImport::class);
+			$planninqImport->method('applies')->willReturn(false);
+		}
+
 		return new TimetableImportHandler(
 			$this->objectService,
 			$this->transitionEngine,
 			$this->createMock(TimetableConflictDetector::class),
 			new TimetableRecordMapper(),
-			$this->createMock(IClientService::class),
-			$this->createMock(IURLGenerator::class),
-			$this->createMock(IAppConfig::class),
-			$this->createMock(IAppManager::class),
+			$planninqImport,
+			$this->createMock(TimetableConnectorClient::class),
 			new NullLogger()
 		);
 
@@ -327,4 +343,79 @@ class TimetableImportHandlerTest extends TestCase {
 		self::assertCount(0, $this->saves);
 
 	}//end testHandleIgnoresOtherTargets()
+
+	/**
+	 * A running timetable-import job event for job-1.
+	 *
+	 * @return ObjectTransitionedEvent
+	 */
+	private function runningImportJob(): ObjectTransitionedEvent {
+		$job = ['id' => 'job-1', 'target' => 'timetable-import', 'tenant_id' => 'tenant-a', 'mappingProfileId' => 'profile-z', 'scope' => ['schema' => 'session']];
+		$this->rows['data-exchange-job'] = [$job];
+		$this->rows['data-mapping-profile'] = [['id' => 'profile-z', 'name' => 'Zermelo timetable import', 'targetSchema' => 'Zermelo:Appointment']];
+
+		$objectEntity = $this->createMock(ObjectEntity::class);
+		$objectEntity->method('jsonSerialize')->willReturn($job);
+
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getRegister')->willReturn('learniq');
+		$event->method('getSchema')->willReturn('data-exchange-job');
+		$event->method('getTo')->willReturn('running');
+		$event->method('getObject')->willReturn($objectEntity);
+
+		return $event;
+
+	}//end runningImportJob()
+
+	/**
+	 * With planninq as the source, the job is delivered through integriq: its
+	 * outcome lands on the job, the conflict scan runs on planninq's lessons,
+	 * and no Session is written.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
+	 */
+	public function testPlanninqSourceDeliversAndWritesNoSession(): void {
+		$planninqImport = $this->createMock(PlanninqTimetableImport::class);
+		$planninqImport->method('applies')->willReturn(true);
+		$planninqImport->expects(self::once())->method('deliver')->with(
+			self::callback(static fn (array $job): bool => $job['id'] === 'job-1'),
+			self::callback(static fn (?array $profile): bool => ($profile['targetSchema'] ?? '') === 'Zermelo:Appointment')
+		)->willReturn(
+			['state' => 'partial', 'fields' => ['finishedAt' => 'now', 'result' => ['recordsProcessed' => 3, 'recordsAccepted' => 2, 'recordsRejected' => 1]]]
+		);
+		$planninqImport->expects(self::once())->method('scanConflicts');
+		$this->transitionEngine->expects(self::once())->method('transition')->with('job-1', 'partial');
+
+		$this->handler($planninqImport)->handle($this->runningImportJob());
+
+		self::assertSame([], array_filter($this->saves, static fn (array $save): bool => $save['schema'] === 'session'), 'no Session is written');
+		$last = end($this->saves);
+		self::assertSame('data-exchange-job', $last['schema']);
+		self::assertSame(2, $last['object']['result']['recordsAccepted']);
+
+	}//end testPlanninqSourceDeliversAndWritesNoSession()
+
+	/**
+	 * A delivery that cannot happen fails the job with the readable reason and scans nothing.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
+	 */
+	public function testPlanninqDeliveryFailureFailsTheJob(): void {
+		$planninqImport = $this->createMock(PlanninqTimetableImport::class);
+		$planninqImport->method('applies')->willReturn(true);
+		$planninqImport->method('deliver')->willThrowException(new \RuntimeException('Integriq is not installed, so the timetable cannot be delivered to planninq.'));
+		$planninqImport->expects(self::never())->method('scanConflicts');
+		$this->transitionEngine->expects(self::once())->method('transition')->with('job-1', 'fail');
+
+		$this->handler($planninqImport)->handle($this->runningImportJob());
+
+		$last = end($this->saves);
+		self::assertStringContainsString('Integriq is not installed', $last['object']['errorMessage']);
+		self::assertSame([], array_filter($this->saves, static fn (array $save): bool => $save['schema'] === 'session'));
+
+	}//end testPlanninqDeliveryFailureFailsTheJob()
 }//end class

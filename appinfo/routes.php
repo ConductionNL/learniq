@@ -47,6 +47,12 @@ return [
         ['name' => 'keyAdmin#generateKey', 'url' => '/api/credentials/admin/generate-key', 'verb' => 'POST'],
         ['name' => 'keyAdmin#keyStatus',   'url' => '/api/credentials/admin/key-status',   'verb' => 'GET'],
 
+        // AI-translated catalogue review (ai-translated-catalogue-review, D24): admin-only
+        // via #[AuthorizedAdminSetting]. Lists the Dutch values an AI wrote and no human
+        // reviewed (l10n/ai-translated.json), and takes a reviewed key off the list.
+        ['name' => 'aiTranslationReview#index',    'url' => '/api/l10n/ai-translated',          'verb' => 'GET'],
+        ['name' => 'aiTranslationReview#reviewed', 'url' => '/api/l10n/ai-translated/reviewed', 'verb' => 'POST'],
+
         // Compliance audit-pack export — ZIP generation, user-invokable action (ADR-023: audit-pack.export).
         // Controller: AuditPackExportController (slug: auditPackExport).
         ['name' => 'auditPackExport#export', 'url' => '/api/compliance/audit/export', 'verb' => 'POST'],
@@ -140,12 +146,18 @@ return [
         ['name' => 'portalAssessment#answer',    'url' => '/api/portal/assessments/answer', 'verb' => 'POST'],
         ['name' => 'portalAssessment#submit',    'url' => '/api/portal/assessments/submit', 'verb' => 'POST'],
         ['name' => 'portalAssessment#result',    'url' => '/api/portal/assessments/result', 'verb' => 'POST'],
+        // portal-assignment-hand-in-endpoint: a pupil hands in a portal draft; same assertion receiver pattern.
+        ['name' => 'portalSubmission#handIn',    'url' => '/api/portal/submissions/hand-in', 'verb' => 'POST'],
 
         // Personal timetable — the caller's own sessions for a window, resolved
         // from cohort membership (teacher/learner) via ObjectService (RBAC-scoped).
         // Read-only; #[NoAdminRequired] (any signed-in user) + #[NoCSRFRequired] (GET read).
         // Controller: TimetableController (slug: timetable).
         ['name' => 'timetable#mine', 'url' => '/api/timetable/mine', 'verb' => 'GET'],
+        // Cohort timetable: one cohort's sessions from the current timetable source
+        // (planninq when installed, else Session), after an RBAC read of the cohort
+        // (sessions-from-planninq).
+        ['name' => 'timetable#cohort', 'url' => '/api/timetable/cohort/{cohortId}', 'verb' => 'GET', 'requirements' => ['cohortId' => '[^/]+']],
 
         // Peer review reviewer allocation — genuine batch-matching business logic
         // (peer-and-self-assessment), authorized by an explicit per-object check
