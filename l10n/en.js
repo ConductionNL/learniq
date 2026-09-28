@@ -2138,7 +2138,11 @@ OC.L10N.register(
         "When the time for this attempt runs out, extra time included. Set by the server when the attempt starts; null for a test without a time limit.": "When the time for this attempt runs out, extra time included. Set by the server when the attempt starts; null for a test without a time limit.",
         "Saving your answers": "Saving your answers",
         "Your answers are saved": "Your answers are saved",
-        "Your answers could not be saved just now. We try again with your next answer and when you hand in.": "Your answers could not be saved just now. We try again with your next answer and when you hand in."
+        "Your answers could not be saved just now. We try again with your next answer and when you hand in.": "Your answers could not be saved just now. We try again with your next answer and when you hand in.",
+        "This import names no file, so there is nothing to import.": "This import names no file, so there is nothing to import.",
+        "The file of this import cannot be opened by the person who asked for it.": "The file of this import cannot be opened by the person who asked for it.",
+        "The file of this import is larger than 10 MB or has more than 5,000 rows. Split it and import each part.": "The file of this import is larger than 10 MB or has more than 5,000 rows. Split it and import each part.",
+        "The file of this import cannot be read as CSV, JSON or XML.": "The file of this import cannot be read as CSV, JSON or XML."
     },
     "nplurals=2; plural=(n != 1);"
 )

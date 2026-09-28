@@ -28,12 +28,16 @@ use OCA\Learniq\Service\DataExchangePayloadBuilder;
 use OCA\Learniq\Service\DataExchangeTransformer;
 use OCA\Learniq\Service\ExchangeDisclosure;
 use OCA\Learniq\Service\ExchangeGateService;
+use OCA\Learniq\Service\ExchangeImportInput;
 use OCA\Learniq\Service\RodPersonalNumberResolver;
 use OCA\Learniq\Service\RodSchoolAdviceComposer;
 use OCA\Learniq\Tests\Support\CapturingLogger;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\Files\File;
+use OCP\Files\Folder;
+use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use PHPUnit\Framework\TestCase;
 
@@ -126,7 +130,15 @@ class ExchangeGateServiceTest extends TestCase {
 			$resolver,
 			new RodSchoolAdviceComposer($objects, $resolver)
 		);
-		$this->gate = new ExchangeGateService($objects, $builder, $disclosure, $l10n, $this->logger);
+		$csv = $this->createMock(File::class);
+		$csv->method('getName')->willReturn('cito-m5.csv');
+		$csv->method('getSize')->willReturn(64);
+		$csv->method('getContent')->willReturn("learnerId,instrument,moment\npupil-1,rekenen,M5\npupil-2,spelling,M5\n");
+		$folder = $this->createMock(Folder::class);
+		$folder->method('getFirstNodeById')->willReturnCallback(static fn (int $id): ?File => ($id === 42 ? $csv : null));
+		$root = $this->createMock(IRootFolder::class);
+		$root->method('getUserFolder')->willReturn($folder);
+		$this->gate = new ExchangeGateService($objects, $builder, $disclosure, new ExchangeImportInput($root, $l10n), $l10n, $this->logger);
 	}//end setUp()
 
 	/**
@@ -289,13 +301,55 @@ class ExchangeGateServiceTest extends TestCase {
 	}//end testNobodyTookUpTheFlag()
 
 	/**
-	 * An import needs no records and passes once the other conditions do.
+	 * An LVS results import hands over the rows of the file its scope names.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/import-records-in-gate-answer/specs/data-exchange/spec.md#requirement-the-gate-hands-the-rows-of-an-import-jobs-file-to-integriq
+	 */
+	public function testAnLvsImportHandsOverTheRowsOfItsFile(): void {
+		$this->rows['integriq/job'][] = ['id' => 'job-7', 'ownerApp' => 'learniq', 'requestedBy' => 'teacher'];
+
+		$decision = $this->gate->evaluate('job-7', 'lvs-results', 'import', 'user/teacher', ['fileId' => 42]);
+
+		$this->assertSame('allow', $decision['decision']);
+		$this->assertSame(['42:1', '42:2'], array_column($decision['records'], 'recordId'));
+		$this->assertSame(['learnerId' => 'pupil-1', 'instrument' => 'rekenen', 'moment' => 'M5'], $decision['records'][0]['data']);
+		foreach ($this->logger->records as $record) {
+			$this->assertStringNotContainsString('pupil-1', $record['message'], 'No row is ever logged.');
+		}
+	}//end testAnLvsImportHandsOverTheRowsOfItsFile()
+
+	/**
+	 * An import job without a file, or one its requester cannot open, is refused.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/import-records-in-gate-answer/specs/data-exchange/spec.md#requirement-the-gate-hands-the-rows-of-an-import-jobs-file-to-integriq
+	 */
+	public function testAnImportWithoutAFileIsRefused(): void {
+		$this->rows['integriq/job'][] = ['id' => 'job-8', 'ownerApp' => 'learniq', 'requestedBy' => 'teacher'];
+
+		$missing = $this->gate->evaluate('job-8', 'migration-import', 'import', 'user/teacher', []);
+		$unreadable = $this->gate->evaluate('job-8', 'oso', 'import', 'user/teacher', ['fileId' => 77]);
+		$unknownJob = $this->gate->evaluate('job-unknown', 'oso', 'import', 'user/teacher', ['fileId' => 42]);
+
+		$this->assertSame(['refuse', 'import-input-missing'], [$missing['decision'], $missing['code']]);
+		$this->assertNotSame('', $missing['reason']);
+		$this->assertSame(['refuse', 'import-input-unreadable'], [$unreadable['decision'], $unreadable['code']]);
+		$this->assertSame('import-input-unreadable', $unknownJob['code'], 'A job whose requester cannot be read reads no file.');
+	}//end testAnImportWithoutAFileIsRefused()
+
+	/**
+	 * An import target learniq does not land still passes without records.
 	 *
 	 * @return void
 	 */
-	public function testAnImportPasses(): void {
-		$this->assertSame('allow', $this->gate->evaluate('job-7', 'lvs-results', 'import', 'user/admin', [])['decision']);
-	}//end testAnImportPasses()
+	public function testAnotherImportTargetPassesWithoutRecords(): void {
+		$decision = $this->gate->evaluate('job-9', 'timetable-import', 'import', 'user/admin', []);
+
+		$this->assertSame(['allow', []], [$decision['decision'], $decision['records']]);
+	}//end testAnotherImportTargetPassesWithoutRecords()
 
 	/**
 	 * A profile without a valid number refuses the job, naming the field, never the value.
