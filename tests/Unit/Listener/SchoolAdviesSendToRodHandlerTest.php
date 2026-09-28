@@ -90,11 +90,12 @@ class SchoolAdviesSendToRodHandlerTest extends TestCase {
 	}//end event()
 
 	/**
-	 * Sending to ROD asks integriq for a bron-rod schooladvies job and links it.
+	 * Sending to ROD asks integriq for a bron-rod schooladvies job, naming the school advice mapping, and links it.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#scenario-sending-a-definitief-advies-creates-and-links-a-bron-rod-dataexchangejob
+	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#scenario-the-handler-names-the-mapping
 	 */
 	public function testSendToRodAsksIntegriqAndLinksTheJob(): void {
 		$handler = $this->makeHandler();
@@ -103,7 +104,7 @@ class SchoolAdviesSendToRodHandlerTest extends TestCase {
 			'export',
 			'school-advies/sa-1',
 			['schema' => 'school-advies', 'recordIds' => ['sa-1'], 'tenantId' => 't1', 'berichtsoort' => 'schooladvies'],
-			null
+			'learniq-bron-rod-export-schooladvies'
 		)->willReturn('job-3');
 
 		$handler->handle($this->event(['id' => 'sa-1', 'learnerId' => 'pupil-1', 'tenant_id' => 't1']));

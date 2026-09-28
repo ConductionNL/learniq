@@ -49,6 +49,7 @@ if (is_dir($ocpRoot)) {
 require_once __DIR__ . '/Support/OrEntityFactory.php';
 require_once __DIR__ . '/Support/GuardVerdicts.php';
 require_once __DIR__ . '/Support/RegisterFaithfulStore.php';
+require_once __DIR__ . '/Support/CapturingLogger.php';
 
 // Shared guard: base.php exits() rather than throwing on a bad NC instance, so
 // loading it unconditionally silently truncates the suite to zero tests while
