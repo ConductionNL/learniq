@@ -47,16 +47,16 @@ Feature tier: must (privacy of pupil-related staff notes).
 - **acceptance_criteria**:
   - GIVEN blocks and notes WHEN merged, split and diffed THEN the TC-3 results
   - GIVEN a save WHEN it runs THEN the lesson PATCH carries no teacherNote and notes are created, updated and deleted by blockId
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 6: Docs and copy
 - **spec_ref**: `openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-teacher-notes-live-in-a-store-only-staff-can-read`
 - **files**: `docs/user-guide/user/02-create-course.md` (or the lesson composer doc), `l10n/nl.json`
 - **acceptance_criteria**:
   - GIVEN the teacher guide WHEN read THEN it says learners never see teacher notes, in the player or elsewhere
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ## Quality checklist
 

@@ -2419,7 +2419,9 @@ OC.L10N.register(
         "Order among the notes that follow the same block, starting at 0.": "Volgorde tussen de notities na hetzelfde blok, vanaf 0.",
         "The note, as markdown. Only staff read it.": "De notitie, in markdown. Alleen medewerkers lezen hem.",
         "Block type. It decides which payload field below is filled. Teacher notes are not blocks: they are kept apart, where learners cannot read them.": "Bloktype. Dit bepaalt welk inhoudsveld hieronder gevuld is. Notities voor docenten zijn geen blokken: ze worden apart bewaard, waar leerlingen ze niet kunnen lezen.",
-        "Markdown text of a rich text block. Empty for every other block type.": "Markdown-tekst van een tekstblok. Leeg voor elk ander bloktype."
+        "Markdown text of a rich text block. Empty for every other block type.": "Markdown-tekst van een tekstblok. Leeg voor elk ander bloktype.",
+        "Only staff can read this note. Learners and parents never see it.": "Alleen medewerkers kunnen deze notitie lezen. Leerlingen en ouders zien hem nooit.",
+        "The lesson was saved, but a teacher note was not. Save again to retry.": "De les is opgeslagen, maar een notitie voor docenten niet. Sla opnieuw op om het nog eens te proberen."
     },
     "nplurals=2; plural=(n != 1);"
 )
