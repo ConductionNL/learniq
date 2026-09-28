@@ -65,9 +65,13 @@ class LessonNoteAuthorGuardTest extends TestCase {
 	 *
 	 * @return LessonNoteAuthorGuard
 	 */
-	private function guard(?string $uid, array $groups = [], string $slug = 'lesson-note'): LessonNoteAuthorGuard {
+	private function guard(?string $uid, array $groups = [], string $slug = 'lesson-note', bool $admin = false, bool $resolverThrows = false, bool $findThrows = false): LessonNoteAuthorGuard {
 		$resolver = $this->createMock(ListenerSchemaResolver::class);
-		$resolver->method('guardSchemaSlug')->willReturn($slug);
+		if ($resolverThrows === true) {
+			$resolver->method('guardSchemaSlug')->willThrowException(new \RuntimeException('unknown schema'));
+		} else {
+			$resolver->method('guardSchemaSlug')->willReturn($slug);
+		}
 
 		$session = $this->createMock(IUserSession::class);
 		$user = null;
@@ -79,12 +83,16 @@ class LessonNoteAuthorGuardTest extends TestCase {
 		$session->method('getUser')->willReturn($user);
 
 		$groupManager = $this->createMock(IGroupManager::class);
-		$groupManager->method('isAdmin')->willReturn(false);
+		$groupManager->method('isAdmin')->willReturn($admin);
 		$groupManager->method('isInGroup')->willReturnCallback(static fn (string $u, string $group): bool => in_array($group, $groups, true));
 
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, mixed $register = null, mixed $schema = null): mixed {
+			function (int|string $id, ?array $_extend = [], bool $files = false, mixed $register = null, mixed $schema = null) use ($findThrows): mixed {
+				if ($findThrows === true) {
+					throw new \RuntimeException('database gone');
+				}
+
 				$data = ($this->objects[(string)$schema][(string)$id] ?? null);
 				if ($data === null) {
 					return null;
@@ -252,4 +260,37 @@ class LessonNoteAuthorGuardTest extends TestCase {
 		self::assertContains(ObjectCreatingEvent::class . ' => ' . LessonNoteAuthorGuard::class, $wired);
 		self::assertContains(ObjectUpdatingEvent::class . ' => ' . LessonNoteAuthorGuard::class, $wired);
 	}//end testRegistrarWiresTheGuardOnCreateAndUpdate()
+	/**
+	 * The guard fails closed and stays out of the way where it should.
+	 *
+	 * @return void
+	 */
+	public function testEdgeCases(): void {
+		// An admin writes on any lesson.
+		$admin = $this->create(['sessionId' => 's-2', 'cohortId' => 'cohort-2', 'text' => 'x', 'audience' => 'learners']);
+		$this->guard(uid: 'root', admin: true)->handle($admin);
+		self::assertFalse($admin->isPropagationStopped());
+
+		// An unknown lesson, a note without a cohort, and a failing read are refused.
+		foreach ([
+			['sessionId' => 'gone', 'cohortId' => 'cohort-1'],
+			['cohortId' => ''],
+			['cohortId' => 'unknown-cohort'],
+		] as $note) {
+			$event = $this->create($note + ['text' => 'x', 'audience' => 'learners']);
+			$this->guard(uid: 'tom')->handle($event);
+			self::assertTrue($event->isPropagationStopped(), json_encode($note));
+		}
+
+		$failing = $this->create(['sessionId' => 's-1', 'cohortId' => 'cohort-1', 'text' => 'x', 'audience' => 'learners']);
+		$this->guard(uid: 'tom', findThrows: true)->handle($failing);
+		self::assertTrue($failing->isPropagationStopped());
+
+		// A schema the resolver cannot name is not ours; another event type is ignored.
+		$unknown = $this->create(['cohortId' => 'cohort-1']);
+		$this->guard(uid: 'other', resolverThrows: true)->handle($unknown);
+		self::assertFalse($unknown->isPropagationStopped());
+		$this->guard(uid: 'other')->handle(new \OCP\EventDispatcher\Event());
+		self::assertTrue(true);
+	}//end testEdgeCases()
 }//end class

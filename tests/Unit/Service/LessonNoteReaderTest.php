@@ -43,7 +43,7 @@ class LessonNoteReaderTest extends TestCase {
 	 *
 	 * @return LessonNoteReader
 	 */
-	private function reader(array $notes, array $groups = [], bool $fails = false): LessonNoteReader {
+	private function reader(array $notes, array $groups = [], bool $fails = false, bool $admin = false): LessonNoteReader {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(
 			static function (array $config, bool $_rbac = true) use ($notes, $fails): array {
@@ -58,7 +58,7 @@ class LessonNoteReaderTest extends TestCase {
 			}
 		);
 		$groupManager = $this->createMock(IGroupManager::class);
-		$groupManager->method('isAdmin')->willReturn(false);
+		$groupManager->method('isAdmin')->willReturn($admin);
 		$groupManager->method('isInGroup')->willReturnCallback(static fn (string $u, string $g): bool => in_array($g, $groups, true));
 
 		return new LessonNoteReader($objects, $groupManager, new NullLogger());
@@ -107,4 +107,24 @@ class LessonNoteReaderTest extends TestCase {
 		self::assertSame([], $this->reader(notes: [], fails: true)->forSessions(sessions: [$lesson], uid: 'alice', taughtCohortIds: []));
 		self::assertSame([], $this->reader(notes: [])->forSessions(sessions: [], uid: 'alice', taughtCohortIds: []));
 	}//end testAFailingReadYieldsNoNotes()
+	/**
+	 * A lesson without an id gets no notes; a note on another cohort, or with
+	 * an empty reference, never matches; an admin reads the cover note.
+	 *
+	 * @return void
+	 */
+	public function testEdgeCases(): void {
+		$notes = [['id' => 'n-1', 'cohortId' => 'c-1', 'sessionId' => 's-1', 'text' => 'cover', 'audience' => 'cover']];
+		$reader = $this->reader(notes: $notes, admin: true);
+
+		self::assertSame([], $reader->forSessions(sessions: [['cohortId' => 'c-1']], uid: 'root', taughtCohortIds: []));
+		self::assertCount(1, $reader->forSessions(sessions: [['id' => 's-1', 'cohortId' => 'c-1']], uid: 'root', taughtCohortIds: [])['s-1']);
+		self::assertTrue($reader->markWritable(sessions: [['id' => 's-1', 'cohortId' => 'c-1']], uid: 'root', taughtCohortIds: [])[0]['canAddNote']);
+		self::assertSame([], $reader->markWritable(sessions: [], uid: 'root', taughtCohortIds: []));
+
+		self::assertFalse($reader->belongsTo(note: ['cohortId' => 'c-2', 'sessionId' => 's-1'], session: ['id' => 's-1', 'cohortId' => 'c-1']));
+		self::assertFalse($reader->belongsTo(note: ['cohortId' => 'c-1', 'timetableSessionRef' => ['externalRef' => '']], session: ['id' => 'p-1', 'cohortId' => 'c-1', 'externalRef' => '']));
+		self::assertFalse($reader->belongsTo(note: ['cohortId' => 'c-1', 'timetableSessionRef' => ['externalRef' => 'zm-9']], session: ['id' => 'p-1', 'cohortId' => 'c-1', 'externalRef' => 'zm-1']));
+		self::assertTrue($reader->belongsTo(note: ['cohortId' => 'c-1', 'timetableSessionRef' => ['externalRef' => 'zm-1']], session: ['id' => 'p-1', 'cohortId' => 'c-1', 'externalRef' => 'zm-1']));
+	}//end testEdgeCases()
 }//end class
