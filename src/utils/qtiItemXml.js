@@ -9,7 +9,7 @@
  * item analysis read, so it carries the QTI 2.1 namespace. It used to carry
  * the QTI 3.0 namespace on the same markup.
  *
- * @spec openspec/changes/grading-defects-from-example-sets/specs/assessment/spec.md#requirement-items-are-stored-as-qti-21-and-labelled-as-qti-21
+ * @spec openspec/specs/assessment/spec.md#requirement-items-are-stored-as-qti-21-and-labelled-as-qti-21
  */
 
 /** The QTI 2.1 namespace. */
@@ -20,7 +20,7 @@ export const QTI21_NAMESPACE = 'http://www.imsglobal.org/xsd/imsqti_v2p1'
  *
  * @param {string|null|undefined} str Raw string
  * @return {string} XML-escaped string
- * @spec openspec/changes/grading-defects-from-example-sets/specs/assessment/spec.md#requirement-items-are-stored-as-qti-21-and-labelled-as-qti-21
+ * @spec openspec/specs/assessment/spec.md#requirement-items-are-stored-as-qti-21-and-labelled-as-qti-21
  */
 export function escapeXml(str) {
 	return (str ?? '')
@@ -42,7 +42,7 @@ export function escapeXml(str) {
  * @param {number} form.correctChoiceIdx Index of the correct option (choice only)
  * @param {number} form.maxScore Maximum score
  * @return {string} QTI 2.1 XML string
- * @spec openspec/changes/grading-defects-from-example-sets/specs/assessment/spec.md#requirement-items-are-stored-as-qti-21-and-labelled-as-qti-21
+ * @spec openspec/specs/assessment/spec.md#requirement-items-are-stored-as-qti-21-and-labelled-as-qti-21
  */
 export function buildItemXml({
 	identifier,

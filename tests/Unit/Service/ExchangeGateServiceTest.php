@@ -17,7 +17,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
  */
 
 declare(strict_types=1);
@@ -170,7 +170,7 @@ class ExchangeGateServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
 	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#scenario-a-rod-export-sends-the-bsn-and-keeps-the-eck-id
 	 */
 	public function testARodExportHandsOverFiveFields(): void {
@@ -201,7 +201,7 @@ class ExchangeGateServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
 	 */
 	public function testAStatutoryExportWithoutAMapping(): void {
 		$this->learners();
@@ -220,7 +220,7 @@ class ExchangeGateServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
 	 */
 	public function testARecordMissesItsBirthDate(): void {
 		$this->learners();
@@ -240,7 +240,7 @@ class ExchangeGateServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-refuses-an-oso-or-swv-file-until-a-parent-approved-it
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-refuses-an-oso-or-swv-file-until-a-parent-approved-it
 	 */
 	public function testAnSwvFileWaitsForAParent(): void {
 		$this->assertSame('parent-review-pending', $this->gate->evaluate('job-3', 'swv', 'export', 'support-request/sr-1', [])['code']);

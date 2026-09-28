@@ -692,7 +692,7 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/bpv/spec.md#scenario-a-repeated-code-resolves-to-the-assessments-own-dossier
+	 * @spec openspec/specs/bpv/spec.md#scenario-a-repeated-code-resolves-to-the-assessments-own-dossier
 	 */
 	public function testARepeatedCodeResolvesToTheAssessmentsOwnDossier(): void {
 		$handler = $this->makeHandler();
@@ -717,7 +717,7 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/bpv/spec.md#scenario-an-ambiguous-code-stays-unresolved
+	 * @spec openspec/specs/bpv/spec.md#scenario-an-ambiguous-code-stays-unresolved
 	 */
 	public function testAnAmbiguousCodeStaysUnresolved(): void {
 		$handler = $this->makeHandler();
@@ -739,7 +739,7 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/bpv/spec.md#scenario-a-code-only-one-framework-knows-still-resolves
+	 * @spec openspec/specs/bpv/spec.md#scenario-a-code-only-one-framework-knows-still-resolves
 	 */
 	public function testACodeOnlyOneFrameworkKnowsStillResolves(): void {
 		$handler = $this->makeHandler();

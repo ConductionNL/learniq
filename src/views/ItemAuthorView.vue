@@ -413,7 +413,7 @@ export default {
 		 *
 		 * @return {string} QTI 2.1 XML string
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
-		 * @spec openspec/changes/grading-defects-from-example-sets/specs/assessment/spec.md#requirement-items-are-stored-as-qti-21-and-labelled-as-qti-21
+		 * @spec openspec/specs/assessment/spec.md#requirement-items-are-stored-as-qti-21-and-labelled-as-qti-21
 		 */
 		buildQtiBody() {
 			const {

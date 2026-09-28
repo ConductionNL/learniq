@@ -35,7 +35,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
  */
 
 declare(strict_types=1);
@@ -114,7 +114,7 @@ class CourseStorePublisher {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
 	 */
 	public function isConfigured(): bool {
 		return $this->storeService->isConfigured(descriptor: $this->descriptor->descriptor());
@@ -127,7 +127,7 @@ class CourseStorePublisher {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-publishing-degrades-cleanly-on-an-openregister-without-the-write-path
+	 * @spec openspec/specs/course-management/spec.md#requirement-publishing-degrades-cleanly-on-an-openregister-without-the-write-path
 	 */
 	public function supportsPublish(): bool {
 		return $this->descriptor->supportsPublish() === true
@@ -163,7 +163,7 @@ class CourseStorePublisher {
 	 *
 	 * @return bool True only when the plane answered yes.
 	 *
-	 * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-the-plane-decides-who-may-publish-before-a-package-is-built
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-plane-decides-who-may-publish-before-a-package-is-built
 	 */
 	public function mayPublish(IUser $user): bool {
 		if ($this->supportsPublish() === false) {
@@ -198,7 +198,7 @@ class CourseStorePublisher {
 	 *
 	 * @return array{outcome: string, slug: string}
 	 *
-	 * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
 	 */
 	public function publish(array $package): array {
 		if ($this->supportsPublish() === false) {

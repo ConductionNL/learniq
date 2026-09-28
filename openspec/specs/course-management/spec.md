@@ -932,6 +932,107 @@ The Learniq admin settings page MUST offer a "Course store" section with the reg
 - **WHEN** they call `GET /api/admin/store-registry`
 - **THEN** Nextcloud refuses the request before the controller runs
 
+### Requirement: A course store publish travels through the store plane's write path
+Learniq MUST publish a shared course only through OpenRegister's `GenericStoreService::publish()`, with the `CourseStoreDescriptor` descriptor and the registry object `CourseStoreRegistryObject` builds. Learniq MUST NOT build a registry URL, read the registry token, or open an HTTP client for a publish. The descriptor MUST name the object properties that may leave the server (`publishFields`) and the groups that may send them (`publishGroups`), and `publishGroups` MUST be the groups learniq's own permission matrix holds for the action `course-package.share`. This supersedes the transport sentence of "Publishing sends a gated package to the registry" (lesson-sharing-via-store-plane): the sharing gate and the `CourseShareConsent` record with purpose `store` still run first, but the SSRF guard, the redirect refusal, the timeouts, the Bearer token and the 20 MiB cap are the plane's. FEATURES tier: should (sharing, D22).
+
+#### Scenario: A passing course is published through the plane
+- **GIVEN** a configured registry, a user the matrix and the plane both admit, and a course that passes the sharing gate
+- **WHEN** the user publishes "Betoog schrijven, havo 4"
+- **THEN** learniq calls `GenericStoreService::publish()` once with the course store descriptor and a payload whose `slug` starts with `course-package-`
+- **AND** the response carries outcome `ok` and that slug
+
+#### Scenario: Only listed properties may travel
+- **GIVEN** the registry object for a shared course
+- **WHEN** the descriptor is built
+- **THEN** every property of that object is in `publishFields`, and `publishFields` names nothing the object does not carry
+
+#### Scenario: The matrix is the source of the publish groups
+- **GIVEN** the matrix holds `course-package.share: ["admin", "team-leads"]`
+- **WHEN** the descriptor is built on an OpenRegister that can publish
+- **THEN** its `publishGroups` are `["admin", "team-leads"]`
+
+### Requirement: The plane decides who may publish before a package is built
+`POST /api/store/publish` MUST keep `requireAction('course-package.share')` and MUST then ask OpenRegister's `StoreActionAuthorizer::canPublish()` with the course store descriptor. When the plane refuses, learniq MUST answer 403 with outcome `forbidden` and MUST NOT run the sharing gate, record consent or send anything. Every other plane outcome MUST map to a status: `ok` and `not_configured` 200, `too_large` 413, `rate_limited` 429, `store_unreachable`, `store_rejected` and `store_invalid_response` 502, `not_publishable` 500 (a learniq defect: the descriptor did not opt in).
+
+#### Scenario: The plane refuses a user the matrix admitted
+- **GIVEN** the matrix entry for `course-package.share` is an empty list, so the plane names nobody
+- **WHEN** an administrator publishes
+- **THEN** the response is 403 with outcome `forbidden`, and no gate, consent or request ran
+
+#### Scenario: A rate-limited registry says wait
+- **GIVEN** the registry answers the publish with 429
+- **WHEN** the user publishes
+- **THEN** the response is 429 with outcome `rate_limited`, and the publish screen says to try again in a few minutes
+
+### Requirement: Publishing degrades cleanly on an OpenRegister without the write path
+Learniq MUST probe the installed OpenRegister before it uses the publish path: `StoreDescriptor` must declare `publishFields`, `GenericStoreService` must have `publish()`, and `StoreActionAuthorizer` must have `canPublish()`. When any is missing, search and install MUST keep working, the descriptor MUST be built without the publish arguments, and `POST /api/store/publish` MUST answer 501 with outcome `publish_not_supported` without running the gate or sending a request.
+
+#### Scenario: An older OpenRegister
+- **GIVEN** an OpenRegister whose `StoreDescriptor` has no `publishFields`
+- **WHEN** a user searches the store
+- **THEN** the search answers as before
+- **AND** WHEN the user publishes, the response is 501 with outcome `publish_not_supported` and no request left the server
+
+### Requirement: Teacher notes live in a store only staff can read
+Learniq MUST keep every teacher note as a `LessonTeacherNote` object (`schema:Comment`), never inside a `Lesson`. Its `authorization` MUST grant read, create, update and delete only to staff groups (`instructors`, `team-leads`, `coordinators`, `hr`, `compliance-officers`, `administration-managers` for read; the groups that may write lessons for create, update and delete) and MUST NOT contain `authenticated`, `learners` or `guardians`, with or without a match. The schema MUST NOT be searchable. FEATURES tier: must (privacy of pupil-related staff notes).
+
+#### Scenario: A learner asks for the notes of a lesson
+- **GIVEN** a learner in the `learners` group, and a lesson with the note "Sem heeft hier extra uitleg nodig"
+- **WHEN** the learner lists `lesson-teacher-note` objects filtered on that lesson
+- **THEN** OpenRegister's authorization gives the learner no read rule to match, and nothing is returned
+
+#### Scenario: A guardian asks for a note by id
+- **GIVEN** a guardian in the `guardians` group who knows a note's id
+- **WHEN** the guardian requests it
+- **THEN** no read rule admits the guardian
+
+#### Scenario: A teacher reads the notes of a lesson
+- **GIVEN** a teacher in `instructors`
+- **WHEN** the composer lists the lesson's notes
+- **THEN** the notes are returned
+
+### Requirement: A lesson a learner can read cannot hold a teacher note
+`Lesson.blocks[].type` MUST NOT accept `teacherNote`, so OpenRegister refuses any lesson write that carries a note, whoever sends it. This replaces the office-file-lesson-onboarding requirement that `Lesson.blocks[].type` accepts `teacherNote`; the composer label and the player filter stay.
+
+#### Scenario: A stale client saves a note inside a lesson
+- **GIVEN** a lesson body with a `teacherNote` block
+- **WHEN** it is saved to the objects API
+- **THEN** schema validation refuses it and the stored lesson is unchanged
+
+### Requirement: The composer shows notes inline and saves them to the staff store
+`LessonComposer` MUST load the lesson's `LessonTeacherNote` objects and show each at its place among the blocks: after the block named by `afterBlockId`, or first when that is empty or no longer exists, ordered by `position`. On save it MUST write the lesson's blocks without any note, then create each new note, update each changed note, and delete each note the teacher removed, matched by `blockId`. A failed note write MUST report that the lesson was saved but a note was not.
+
+#### Scenario: A teacher adds a note after the second block
+- **GIVEN** a lesson with blocks A and B
+- **WHEN** the teacher adds a note after B and saves
+- **THEN** the lesson's `blocks` are A and B only, and one `LessonTeacherNote` exists with `afterBlockId` B
+
+#### Scenario: A teacher deletes a note
+- **GIVEN** a lesson with one stored note
+- **WHEN** the teacher removes it in the composer and saves
+- **THEN** that `LessonTeacherNote` is deleted
+
+### Requirement: Imported slide notes land in the staff store
+When the onboarding importer turns a presentation into a lesson draft, the lesson MUST receive only learner-facing blocks, and every slide's speaker note MUST be written as a `LessonTeacherNote` on that lesson, following the block of its slide.
+
+#### Scenario: A presentation with speaker notes
+- **GIVEN** a confirmed presentation whose slide 3 has the note "Vraag naar de rol van licht"
+- **WHEN** it is imported
+- **THEN** the lesson's blocks carry no note, and one `LessonTeacherNote` with that text follows slide 3's block
+
+### Requirement: An upgrade moves the notes lessons already hold
+An upgrade MUST move every `teacherNote` block of every lesson into a `LessonTeacherNote` with the block's `blockId`, `text`, the preceding block as `afterBlockId` and its order among the notes as `position`, and MUST then save the lesson without it. A note whose `lessonId` and `blockId` already exist MUST NOT be created again. A lesson whose note could not be created MUST keep its note block. The app `<version>` MUST move so `occ upgrade` runs the step.
+
+#### Scenario: An imported lesson from before this change
+- **GIVEN** a lesson with blocks A, a note N, and B
+- **WHEN** the upgrade runs
+- **THEN** the lesson's blocks are A and B, and a `LessonTeacherNote` with `blockId` N and `afterBlockId` A exists
+
+#### Scenario: The upgrade runs again after a partial failure
+- **GIVEN** the note for N was created but the lesson save failed
+- **WHEN** the upgrade runs again
+- **THEN** no second note is created and the lesson is saved without N
+
 ## Standards
 SCORM, xAPI, cmi5, LTI 1.3, Common Cartridge, NL LOM, VDEX, OAI-PMH, OOAPI 5.0, Schema.org `Course` / `CourseInstance`, ECTS, Bologna. LTI 1.3 / LTI Advantage (Assignment & Grade Services, Deep Linking 2.0) protocol implementation lives entirely in openconnector's `lti-13-platform` adapter; Scholiq covers only the consuming-app placement and launch-delegation contract. WCAG 2.1 AA (reorder keyboard-operability, course-authoring-ux).
 

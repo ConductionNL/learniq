@@ -24,7 +24,7 @@
  *
  * @link https://www.Integriq.nl
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
  */
 
 declare(strict_types=1);
@@ -44,7 +44,7 @@ use OCP\EventDispatcher\Event;
  * Exactly one answer counts: the first `allow()` or `refuse()` wins, so a
  * second listener cannot flip a refusal into a permission.
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
  */
 class ExchangeGateRequestedEvent extends Event {
 
@@ -103,7 +103,7 @@ class ExchangeGateRequestedEvent extends Event {
 	 *
 	 * @return string The job uuid.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
 	public function getJobId(): string {
 		return $this->jobId;
@@ -115,7 +115,7 @@ class ExchangeGateRequestedEvent extends Event {
 	 *
 	 * @return string The app id.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
 	public function getOwnerApp(): string {
 		return $this->ownerApp;
@@ -127,7 +127,7 @@ class ExchangeGateRequestedEvent extends Event {
 	 *
 	 * @return string The target id.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
 	public function getTarget(): string {
 		return $this->target;
@@ -139,7 +139,7 @@ class ExchangeGateRequestedEvent extends Event {
 	 *
 	 * @return string export, import or sync.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
 	public function getDirection(): string {
 		return $this->direction;
@@ -151,7 +151,7 @@ class ExchangeGateRequestedEvent extends Event {
 	 *
 	 * @return string The reference.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
 	public function getOwnerRef(): string {
 		return $this->ownerRef;
@@ -163,7 +163,7 @@ class ExchangeGateRequestedEvent extends Event {
 	 *
 	 * @return array<string,mixed> The scope.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
 	public function getScope(): array {
 		return $this->scope;
@@ -180,7 +180,7 @@ class ExchangeGateRequestedEvent extends Event {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
 	public function allow(array $records = []): void {
 		if ($this->answered === true) {
@@ -201,7 +201,7 @@ class ExchangeGateRequestedEvent extends Event {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
 	public function refuse(string $code, string $reason): void {
 		if ($this->answered === true) {
@@ -219,7 +219,7 @@ class ExchangeGateRequestedEvent extends Event {
 	 *
 	 * @return bool True once allow() or refuse() ran.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
 	public function isAnswered(): bool {
 		return $this->answered;
@@ -231,7 +231,7 @@ class ExchangeGateRequestedEvent extends Event {
 	 *
 	 * @return bool True on allow.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
 	public function isAllowed(): bool {
 		return $this->allowed;
@@ -243,7 +243,7 @@ class ExchangeGateRequestedEvent extends Event {
 	 *
 	 * @return array<int, array<string, mixed>> The records, empty unless allowed.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
 	public function getRecords(): array {
 		return $this->records;
@@ -255,7 +255,7 @@ class ExchangeGateRequestedEvent extends Event {
 	 *
 	 * @return array{code: string, reason: string}|null The refusal, or null.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
 	public function getRefusal(): ?array {
 		return $this->refusal;

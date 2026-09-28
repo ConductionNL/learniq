@@ -594,7 +594,7 @@ class TrainingExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-set-regulation-rows/specs/example-sets/spec.md#scenario-every-training-regulation-reference-resolves
+	 * @spec openspec/specs/example-sets/spec.md#scenario-every-training-regulation-reference-resolves
 	 */
 	public function testEveryRegulationReferenceResolves(): void {
 		$rows    = self::of('regulation');
@@ -629,7 +629,7 @@ class TrainingExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/training-set-qti-2-1/specs/example-sets/spec.md#requirement-the-training-set-writes-its-items-as-qti-21
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-training-set-writes-its-items-as-qti-21
 	 */
 	public function testEveryItemIsQti21TheAppCanRead(): void {
 		$reader = new QtiChoiceOrderResolver();

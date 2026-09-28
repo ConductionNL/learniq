@@ -63,7 +63,7 @@ class FundingTeldatumRegisterTest extends TestCase {
 	 * stamped confirm transition, and the exchange gate reads it.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+	 * @spec   openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
 	public function testTeldatumCheckHoldsTheConfirmedCount(): void {
 		$schema = $this->config['components']['schemas']['TeldatumCheck'] ?? null;

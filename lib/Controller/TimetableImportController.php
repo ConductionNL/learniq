@@ -82,7 +82,7 @@ class TimetableImportController extends Controller {
 	 *
 	 * @return JSONResponse `{canImport, planninq}`; 401 without a session.
 	 *
-	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
+	 * @spec openspec/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
 	 */
 	#[NoAdminRequired]
 	public function access(): JSONResponse {

@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md
+ * @spec openspec/specs/timetabling/spec.md
  */
 
 declare(strict_types=1);
@@ -71,7 +71,7 @@ class TimetableExchangeSettingsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#scenario-saving-a-map-for-zermelo
+	 * @spec openspec/specs/timetabling/spec.md#scenario-saving-a-map-for-zermelo
 	 */
 	public function testSavedMapsReadBackPerSource(): void {
 		[$settings, $values] = $this->settings();

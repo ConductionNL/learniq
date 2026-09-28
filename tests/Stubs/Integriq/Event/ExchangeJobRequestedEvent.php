@@ -24,7 +24,7 @@
  *
  * @link https://www.Integriq.nl
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+ * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
 
 declare(strict_types=1);
@@ -41,7 +41,7 @@ use OCP\EventDispatcher\Event;
  * consuming apps. A `history` block turns the request into a migration of a
  * finished job, which is stored disabled and never runs.
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+ * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
 class ExchangeJobRequestedEvent extends Event {
 
@@ -92,7 +92,7 @@ class ExchangeJobRequestedEvent extends Event {
 	 *
 	 * @return string The app id.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	public function getOwnerApp(): string {
 		return $this->ownerApp;
@@ -104,7 +104,7 @@ class ExchangeJobRequestedEvent extends Event {
 	 *
 	 * @return string The target id.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	public function getTarget(): string {
 		return $this->target;
@@ -116,7 +116,7 @@ class ExchangeJobRequestedEvent extends Event {
 	 *
 	 * @return string export, import or sync.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	public function getDirection(): string {
 		return $this->direction;
@@ -128,7 +128,7 @@ class ExchangeJobRequestedEvent extends Event {
 	 *
 	 * @return string The reference.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	public function getOwnerRef(): string {
 		return $this->ownerRef;
@@ -140,7 +140,7 @@ class ExchangeJobRequestedEvent extends Event {
 	 *
 	 * @return array<string,mixed> The scope.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	public function getScope(): array {
 		return $this->scope;
@@ -152,7 +152,7 @@ class ExchangeJobRequestedEvent extends Event {
 	 *
 	 * @return string|null The mapping slug.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	public function getMappingSlug(): ?string {
 		return $this->mappingSlug;
@@ -164,7 +164,7 @@ class ExchangeJobRequestedEvent extends Event {
 	 *
 	 * @return string The user id.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	public function getRequestedBy(): string {
 		return $this->requestedBy;
@@ -176,7 +176,7 @@ class ExchangeJobRequestedEvent extends Event {
 	 *
 	 * @return string The name.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	public function getName(): string {
 		return $this->name;
@@ -188,7 +188,7 @@ class ExchangeJobRequestedEvent extends Event {
 	 *
 	 * @return array<string,mixed>|null The history.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	public function getHistory(): ?array {
 		return $this->history;
@@ -200,7 +200,7 @@ class ExchangeJobRequestedEvent extends Event {
 	 *
 	 * @return string|null The job id.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	public function getJobId(): ?string {
 		return $this->jobId;
@@ -214,7 +214,7 @@ class ExchangeJobRequestedEvent extends Event {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	public function setJobId(string $jobId): void {
 		$this->jobId = $jobId;
@@ -226,7 +226,7 @@ class ExchangeJobRequestedEvent extends Event {
 	 *
 	 * @return array{code: string, reason: string}|null The refusal.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	public function getRefusal(): ?array {
 		return $this->refusal;
@@ -241,7 +241,7 @@ class ExchangeJobRequestedEvent extends Event {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	public function refuse(string $code, string $reason): void {
 		$this->refusal = ['code' => $code, 'reason' => $reason];
@@ -253,7 +253,7 @@ class ExchangeJobRequestedEvent extends Event {
 	 *
 	 * @return bool True once a job id or a refusal is set.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	public function isHandled(): bool {
 		return ($this->jobId !== null || $this->refusal !== null);

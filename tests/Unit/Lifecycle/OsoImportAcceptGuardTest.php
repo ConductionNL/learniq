@@ -125,7 +125,7 @@ class OsoImportAcceptGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/access-control-ratchet-compliance/specs/data-exchange/spec.md#scenario-the-singular-coordinator-group-accepts-nothing
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-the-singular-coordinator-group-accepts-nothing
 	 */
 	public function testSingularCoordinatorGroupIsDenied(): void {
 		self::assertFalse($this->makeGuard(['coordinator'])->check(self::DOSSIER, 'accept', 'actor-1')->isAllowed());

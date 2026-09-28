@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
+ * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ namespace OCA\Learniq\Service;
  * `cohort-to-brin` field became `schoolBrin`, which learniq resolves itself.
  * Import mappings are absent: nothing leaves on an import.
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
+ * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
  */
 class ExchangeDisclosure {
 
@@ -143,7 +143,7 @@ class ExchangeDisclosure {
 	 *
 	 * @return array<int, string>|null The field names.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
 	 */
 	public function fieldsFor(?string $mappingSlug): ?array {
 		if ($mappingSlug === null || isset(self::FIELDS[$mappingSlug]) === false) {
@@ -160,7 +160,7 @@ class ExchangeDisclosure {
 	 *
 	 * @return bool True for a statutory target.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
 	 */
 	public function isStatutory(string $target): bool {
 		return in_array($target, self::STATUTORY_TARGETS, true);
@@ -174,7 +174,7 @@ class ExchangeDisclosure {
 	 *
 	 * @return array<int, string> The field names, empty when none are required.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
 	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-a-school-advice-goes-to-rod-with-duos-aanleverenadviesvo-field-set
 	 */
 	public function requiredFor(string $target, ?string $mappingSlug=null): array {

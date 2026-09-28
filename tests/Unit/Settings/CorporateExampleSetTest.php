@@ -328,7 +328,7 @@ class CorporateExampleSetTest extends TestCase {
 	 * @return void
 	 *
 	 * @spec openspec/specs/example-sets/spec.md#requirement-certificates-expire-and-renew-the-way-the-listener-does-it
-	 * @spec openspec/changes/example-set-regulation-rows/specs/example-sets/spec.md#scenario-the-company-scopes-drive-the-certification-check
+	 * @spec openspec/specs/example-sets/spec.md#scenario-the-company-scopes-drive-the-certification-check
 	 */
 	public function testEveryoneACertificationAppliesToHoldsItOrIsBooked(): void {
 		$credentials = self::groupBy(self::of('credential'), 'learnerId');
@@ -651,7 +651,7 @@ class CorporateExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-set-regulation-rows/specs/example-sets/spec.md#scenario-every-company-regulation-reference-resolves
+	 * @spec openspec/specs/example-sets/spec.md#scenario-every-company-regulation-reference-resolves
 	 */
 	public function testEveryRegulationReferenceResolves(): void {
 		$shipped = array_column(self::of('regulation'), 'slug');
@@ -678,7 +678,7 @@ class CorporateExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-set-regulation-rows/specs/example-sets/spec.md#requirement-the-company-and-training-sets-carry-the-regulations-they-reference
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-company-and-training-sets-carry-the-regulations-they-reference
 	 */
 	public function testRegulationsArePublishedWithTheirAudiences(): void {
 		$rows = self::by(self::of('regulation'), 'slug');

@@ -18,7 +18,7 @@
  *
  * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
  * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
- * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
  */
 
 declare(strict_types=1);
@@ -90,7 +90,7 @@ class SegmentServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#scenario-the-wizard-stored-company
+	 * @spec openspec/specs/nextcloud-app/spec.md#scenario-the-wizard-stored-company
 	 */
 	public function testARowSetByAnExistingUserIsAChoice(): void {
 		$rows = [self::row('corporate', '2026-09-27T10:00:00+00:00', 'admin')];
@@ -104,7 +104,7 @@ class SegmentServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#scenario-only-the-generated-demo-rows-exist
+	 * @spec openspec/specs/nextcloud-app/spec.md#scenario-only-the-generated-demo-rows-exist
 	 */
 	public function testTheGeneratedDemoRowsAreNotAChoice(): void {
 		$path = __DIR__ . '/../../../lib/Settings/learniq_mock_register.json';

@@ -197,7 +197,7 @@ class PageControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#scenario-the-wizard-stored-company
+	 * @spec openspec/specs/nextcloud-app/spec.md#scenario-the-wizard-stored-company
 	 */
 	public function testIndexProvidesTheChosenSegment(): void {
 		$user = $this->createMock(IUser::class);

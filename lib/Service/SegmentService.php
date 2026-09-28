@@ -185,7 +185,7 @@ class SegmentService {
 	 *
 	 * @return string|null One of SEGMENTS, or null when nobody chose.
 	 *
-	 * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
 	 */
 	public function chosenSegment(): ?string {
 		return $this->workspace()['chosenSegment'];
@@ -197,7 +197,7 @@ class SegmentService {
 	 *
 	 * @return array{segment: string, chosenSegment: string|null} The two values.
 	 *
-	 * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
 	 */
 	public function workspace(): array {
 		$current = $this->currentRow();

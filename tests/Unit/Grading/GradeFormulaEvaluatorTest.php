@@ -302,7 +302,7 @@ class GradeFormulaEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/study-progress/spec.md#scenario-a-first-year-exemption-counts-toward-the-advice
+	 * @spec openspec/specs/study-progress/spec.md#scenario-a-first-year-exemption-counts-toward-the-advice
 	 */
 	public function testAnExemptedCourseEarnsItsStudyAdviceCredits(): void {
 		$plan = [
@@ -348,7 +348,7 @@ class GradeFormulaEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#scenario-a-partial-exemption-with-a-missing-component-stays-open
+	 * @spec openspec/specs/grading/spec.md#scenario-a-partial-exemption-with-a-missing-component-stays-open
 	 */
 	public function testAPartialExemptionKeepsTheFinalGradeOpen(): void {
 		$plan = [
@@ -374,7 +374,7 @@ class GradeFormulaEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#scenario-a-component-below-its-minimum-fails-the-plan
+	 * @spec openspec/specs/grading/spec.md#scenario-a-component-below-its-minimum-fails-the-plan
 	 */
 	public function testAComponentUnderItsMinValueFailsTheRollUp(): void {
 		$plan = [

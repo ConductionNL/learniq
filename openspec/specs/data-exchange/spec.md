@@ -43,80 +43,6 @@ An institution's data has to flow to and from external systems: a Dutch school's
 
 ## Requirements
 
-### Requirement: Persist DataExchangeJob and DataMappingProfile in OpenRegister
-
-The system MUST persist `DataExchangeJob`, `DataMappingProfile` as OpenRegister objects with
-`x-openregister-lifecycle` (queued → running → succeeded | failed | partial; OSO adds
-pending-parent-review), `x-openregister-relations`, `x-openregister-notifications` (job-done alert), and
-audit-trail emission on every transition (ADR-008). `DataExchangeJob` artefacts MUST be OR file
-attachments. `DataExchangeJob` MUST additionally persist a nullable `municipalityFeedback` — the
-case-handling route (MAS-route) the municipality assigns a `leerplicht` report to, a received-at
-timestamp, and a free-text note — recorded by an authorised coordinator once the municipality communicates
-it. Scholiq records this feedback; it MUST NOT poll for, infer, or automate its ingestion (mirroring the
-existing "record, don't adjudicate" posture already applied to other externally-decided outcomes on this
-register). Every record `DataExchangeRunHandler` builds for OpenConnector MUST carry a `_scholiqRecordId`
-correlation identifier (the source object's own `id`), so that a per-record rejection returned in
-`result.validationReport` can be resolved back to the Scholiq object that produced it; `validationReport`'s
-per-item shape MUST be documented as `{recordId, errorCode, errorMessage, field?}`.
-
-#### Scenario: Persist a job and emit audit on transition
-
-- **GIVEN** a `DataExchangeJob` request
-- **WHEN** the job is created and changes lifecycle state
-- **THEN** the system persists it as an OpenRegister object, emits an audit-trail entry on every
-  transition, and attaches the produced artefact as an OR file attachment
-
-<!-- @e2e exclude Pure OpenRegister persistence/audit-trail behaviour, unchanged by this delta; already covered by the existing data-exchange implementation, no new DOM surface. -->
-
-#### Scenario: Coordinator records the municipality's route decision
-
-- **GIVEN** a succeeded `DataExchangeJob` with `target: leerplicht`
-- **WHEN** an authorised coordinator learns the municipality's case-handling route for the report and
-  records it
-- **THEN** `municipalityFeedback` is set with the route, a timestamp, and the coordinator's note, without
-  Scholiq inferring or automating the decision, and an unauthorised user cannot set this field
-
-<!-- @e2e exclude Unchanged by this delta; behaviour already shipped by verzuim-report-composer. -->
-
-#### Scenario: Every exported record carries a correlation identifier
-
-- **GIVEN** a `DataExchangeJob` builds its payload for OpenConnector, with or without a `DataMappingProfile`
-- **WHEN** `buildPayload()` produces each record
-- **THEN** every record — whether field-mapped, pass-through, or dossier-composed (leerplicht/swv) — carries
-  a `_scholiqRecordId` equal to the source object's own `id`
-
-<!-- @e2e exclude Payload-construction logic in DataExchangeRunHandler::buildPayload(); verified by PHPUnit DataExchangeRunHandlerTest::testBuildPayloadStampsCorrelationIdWithProfile and ::testBuildPayloadStampsCorrelationIdWithoutProfile; no DOM surface — the payload never reaches the browser. -->
-
-### Requirement: Delegate wire protocols to OpenConnector
-
-Scholiq MUST NOT implement Edukoppeling, StUF, OSO-XML, OOAPI, UWLR, or SAML/OAuth attribute-release wire
-protocols. Those MUST be OpenConnector source/target configurations referenced by the `target` field. In
-addition to the existing named targets, `target` MUST support `lvs-results` (direction: `import`) for
-Cito/IEP/Boom/Dia normed test results carried over UWLR — the OpenConnector adapter for this target is
-tracked separately as `integriq-adapter-lvs-imports`; Scholiq implements no UWLR wire code itself.
-
-#### Scenario: Delegate the wire send to OpenConnector
-
-- **GIVEN** a `DataExchangeJob` with a `target` referencing an OpenConnector connection
-- **WHEN** the job runs
-- **THEN** Scholiq hands the payload to the OpenConnector source/target configuration and implements no
-  wire protocol itself
-
-#### Scenario: Course-management catalog publication delegates through the same DataExchangeJob mechanism
-
-- **GIVEN** a `Course` or `Programme` transitions to `published` or `archived`
-- **WHEN** `course-management`'s catalog-publication contract queues the catalog sync
-- **THEN** it does so as a `DataExchangeJob` with `target: ooapi-catalog`
-- **AND** Scholiq implements no OOAPI wire protocol itself — the OpenConnector `ooapi-catalog` adapter and
-  opencatalogi's public OOAPI 5.0 endpoint handle the wire send and public exposure
-
-#### Scenario: Delegate the LVS results import to OpenConnector
-
-- **GIVEN** a `DataExchangeJob` with `target: lvs-results`, `direction: import`
-- **WHEN** the job runs
-- **THEN** Scholiq hands the inbound payload to the OpenConnector `lvs-results` source configuration and
-  implements no UWLR wire protocol itself
-
 ### Requirement: Federated authentication is out of scope
 Federated authentication (DigiD / SURFconext / eduID) is OUT of this spec — it MUST be handled by a Nextcloud-auth-provider + OpenConnector; Scholiq only persists the pseudonymous identifiers on `LearnerProfile` (already does).
 
@@ -124,222 +50,6 @@ Federated authentication (DigiD / SURFconext / eduID) is OUT of this spec — it
 - **GIVEN** a learner authenticated via DigiD / SURFconext / eduID
 - **WHEN** the authentication completes outside this spec's scope
 - **THEN** Scholiq persists only the resulting pseudonymous identifiers on `LearnerProfile` and does not implement the federated authentication itself
-
-### Requirement: OSO parent-review is a lifecycle gate
-The OSO parent-review gate MUST be a lifecycle state; the dossier MUST NOT leave the queue until parent approval is recorded.
-
-#### Scenario: Hold an OSO dossier until parent approval
-- **GIVEN** an OSO export job whose dossier has been composed
-- **WHEN** the job awaits review
-- **THEN** the job stays in `pending-parent-review` and does not leave the queue until parent approval is recorded
-
-### Requirement: Frontend is declarative with named custom views
-The frontend MUST be declarative: `src/manifest.json` pages for DataExchangeJob/DataMappingProfile index+detail; a custom `RequestExportModal` and `OsoDossierReviewView` Vue component. There MUST be no PHP CRUD controllers; the job execution is an OR-event-driven handler that calls OpenConnector (an ADR-031 "external-system bridge" exception, single method).
-
-#### Scenario: Render the surface declaratively with named views
-- **GIVEN** the data-exchange frontend
-- **WHEN** it renders the DataExchangeJob/DataMappingProfile index and detail surfaces
-- **THEN** it is driven by `src/manifest.json` with the custom `RequestExportModal` and `OsoDossierReviewView` views and ships no PHP CRUD controllers
-
-### Requirement: Verzuimloket dossier composition mirrors the OSO dossier composer
-
-For `target: leerplicht`, the job MUST compose its payload the same way the OSO dossier composer does (see
-`attendance`'s "External authority reporting via DataExchangeJob"): from the originating `AttendanceFlag`
-plus its breaching `AttendanceRecord`s and `interventions` history — not the bare summary-field export the
-existing `Leerplicht notification export` `DataMappingProfile` currently ships. Unlike the OSO/SWV
-dossiers, this composition MUST NOT gate on `pending-parent-review`: it is a mandatory Leerplichtwet
-art. 21a report to the municipality, not a discretionary transfer requiring parent consent.
-
-#### Scenario: Verzuimloket dossier is composed like the OSO dossier, without a parent-review gate
-
-- **GIVEN** a `DataExchangeJob` with `target: leerplicht` auto-queued from an `AttendanceFlag`
-- **WHEN** the job composes its payload
-- **THEN** it assembles the dossier from the flag's breaching records and intervention history, and
-  proceeds toward `running` via the same non-OSO path other targets use, without entering
-  `pending-parent-review`
-
-### Requirement: OSO-format dossier parent-review gate covers the SWV zorgvraag target too
-
-The `pending-parent-review` lifecycle gate MUST NOT be limited to the `target: oso` PO→VO overstap case.
-Any `DataExchangeJob` whose composed dossier is OSO-format — including `target: swv` jobs composed from a
-`SupportRequest` (see `learning-plan`) — MUST pass through the identical `pending-parent-review` gate
-before the send proceeds. This MUST be the same lifecycle mechanism (`OsoDossierReviewGuard`-equivalent
-guard on the `approveDossier` transition), not a second, parallel review mechanism.
-
-#### Scenario: SWV zorgvraag dossier gated identically to the OSO overstap dossier
-
-- **GIVEN** a `DataExchangeJob` with `target: swv` whose OSO-format care-request dossier has been composed
-  from a `SupportRequest`
-- **WHEN** the job awaits review
-- **THEN** it enters `pending-parent-review` and does not leave the queue until parent approval is
-  recorded, using the same gate mechanism as the `target: oso` PO→VO overstap flow
-
-### Requirement: Persist ExchangeRejection mapped from job rejections
-
-The system MUST persist `ExchangeRejection` as an OpenRegister object with one row per rejected record from
-a `DataExchangeJob`'s `result.validationReport`: the originating `dataExchangeJobId`, DUO's `errorCode` and
-`errorMessage`, a best-effort `errorCodeRef` into the `ExchangeErrorCode` catalogue, any `offendingFields`
-derivable from the connector's response, a `sourceKind` (`learner-profile | enrolment | final-grade |
-attendance-flag | support-request`) plus the correspondingly-typed nullable `$ref` id field identifying the
-Scholiq object the rejection maps back to, and a `status` lifecycle (`open → corrected → resubmitted →
-accepted | open`, or `open|corrected → waived`). Read access MUST be restricted to `admin`/`principal` roles
-(no dedicated data-exchange-coordinator role exists in this register). `ExchangeRejection` MUST be created
-exclusively by a listener — never through the generic object-create UI.
-
-#### Scenario: A rejected record is persisted with its source-object reference
-
-- **GIVEN** a `DataExchangeJob` result containing a `validationReport` entry with a `recordId` matching an
-  exported `LearnerProfile`
-- **WHEN** the rejection is mapped
-- **THEN** an `ExchangeRejection` is created with `sourceKind: learner-profile`, `learnerProfileId` set to
-  that `LearnerProfile`'s id, `status: open`, and the DUO `errorCode`/`errorMessage` copied verbatim
-
-<!-- @e2e exclude Object-creation logic in the new RejectionMappingHandler; verified by PHPUnit RejectionMappingHandlerTest::testCreatesRejectionWithSourceKind; no DOM surface for object creation itself. -->
-
-#### Scenario: An unauthorised user cannot read rejection detail
-
-- **GIVEN** an authenticated user who is not `admin` or `principal`
-- **WHEN** they attempt to read an `ExchangeRejection` object
-- **THEN** the read is denied by `x-property-rbac`, consistent with `SupportRequest`'s equivalent read
-  restriction
-
-<!-- @e2e exclude RBAC enforcement is OpenRegister-core behaviour driven by a declarative x-property-rbac block, same scope boundary as every other x-property-rbac assertion in this register (verified via schema-declaration tests, not live authorization flows from this repo). -->
-
-### Requirement: Resolve a job's rejected records to their Scholiq source object
-
-The system MUST resolve each `result.validationReport` entry's `recordId` back to the Scholiq object that
-produced it, using the job's own `scope.schema` to determine which `sourceKind` applies, and MUST NOT create
-duplicate `ExchangeRejection` rows for the same `(dataExchangeJobId, recordId)` pair on repeated handler
-invocation (idempotency). When a `DataExchangeJob` is itself a resubmission (referenced by an
-`ExchangeRejection.resubmittedJobId`), the system MUST update the originating rejection rather than create a
-new row: transition it to `accepted` when its `recordId` no longer appears in the new job's
-`validationReport`, or back to `open` with the fresh `errorCode`/`errorMessage` when it still does.
-
-#### Scenario: Idempotent mapping on repeated handler invocation
-
-- **GIVEN** a `DataExchangeJob` has already been mapped into `ExchangeRejection` rows
-- **WHEN** the mapping handler is invoked again for the same job (e.g. a redelivered event)
-- **THEN** no duplicate `ExchangeRejection` rows are created for any `(dataExchangeJobId, recordId)` pair
-  already mapped
-
-<!-- @e2e exclude Idempotency logic verified by PHPUnit RejectionMappingHandlerTest::testDoesNotDuplicateOnRedelivery; no DOM surface. -->
-
-#### Scenario: A resubmitted record that DUO now accepts closes its rejection
-
-- **GIVEN** an `ExchangeRejection` in status `resubmitted` whose `resubmittedJobId` points at a
-  `DataExchangeJob` that has just finished
-- **WHEN** that job's `recordId` no longer appears in the new job's `result.validationReport`
-- **THEN** the `ExchangeRejection` transitions to `accepted`
-
-<!-- @e2e exclude Resubmission-outcome logic verified by PHPUnit RejectionMappingHandlerTest::testResubmittedRecordAcceptedClosesRejection; no DOM surface. -->
-
-#### Scenario: A resubmitted record DUO rejects again reopens its rejection
-
-- **GIVEN** an `ExchangeRejection` in status `resubmitted` whose `resubmittedJobId` points at a
-  `DataExchangeJob` that has just finished
-- **WHEN** that job's `result.validationReport` still contains an entry for the same `recordId`
-- **THEN** the `ExchangeRejection` transitions back to `open` and its `errorCode`/`errorMessage` are updated
-  to the new rejection's values
-
-<!-- @e2e exclude Resubmission-outcome logic verified by PHPUnit RejectionMappingHandlerTest::testResubmittedRecordStillRejectedReopens; no DOM surface. -->
-
-### Requirement: Inline correction worklist with per-rejection resubmission
-
-The frontend MUST expose an `ExchangeRejections` index and `ExchangeRejectionDetail` page (declarative
-`src/manifest.json`, no custom Vue component) where the detail page's `related` widget resolves whichever
-`sourceKind` `$ref` field is set into a deep link to the offending object's own detail page.
-`lifecycleActions` MUST render `Mark corrected` (`open → corrected`), `Resubmit` (`corrected →
-resubmitted`), and `Waive` (`open|corrected → waived`) from the declared lifecycle. `Resubmit` MUST be
-guarded by a role check (admin/coordinator) and, on success, MUST create exactly one new `DataExchangeJob`
-scoped to only that rejection's source object (`scope.filters.id = sourceObjectId`, reusing the existing
-generic filter mechanism — no batched multi-record resubmission). `Waive` MUST require a non-empty
-`waiveReason`, mirroring `DeliberationRecord.pupilVoice`'s waived/waiverReason enforcement, and MUST stamp
-`waivedBy`/`waivedAt` server-side.
-
-#### Scenario: Admin deep-links from a rejection to the offending object
-
-- **GIVEN** an `ExchangeRejection` with `sourceKind: learner-profile` and `learnerProfileId` set
-- **WHEN** an admin opens the rejection's detail page
-- **THEN** the `related` widget shows a link to that `LearnerProfile`'s own detail page
-
-<!-- @e2e tests/e2e/spec-coverage/data-exchange.spec.ts -->
-
-#### Scenario: Resubmit creates exactly one scoped job and stamps the link
-
-- **GIVEN** an `ExchangeRejection` in status `corrected`, created by an admin/coordinator
-- **WHEN** they trigger the `Resubmit` transition
-- **THEN** exactly one new `DataExchangeJob` is created with `scope.filters.id` equal to the rejection's
-  `sourceObjectId` and the same `target`/`mappingProfileId` as the original job, the rejection's
-  `resubmittedJobId` is stamped to the new job's id, and the rejection moves to `resubmitted`
-
-<!-- @e2e tests/e2e/spec-coverage/data-exchange.spec.ts -->
-
-#### Scenario: A non-authorised user cannot resubmit or waive
-
-- **GIVEN** an authenticated user not in the `admin`/`coordinator` groups
-- **WHEN** they attempt the `Resubmit` or `Waive` transition on an `ExchangeRejection`
-- **THEN** the guard denies the transition
-
-<!-- @e2e exclude Role-gate logic verified by PHPUnit RejectionResubmitGuardTest / RejectionWaiveGuardTest, mirroring MunicipalityFeedbackGuardTest's coverage shape; no scholiq DOM surface for the guard itself. -->
-
-#### Scenario: Waiving without a reason is refused
-
-- **GIVEN** an `ExchangeRejection` in status `open` or `corrected`
-- **WHEN** an admin/coordinator attempts the `Waive` transition with an empty `waiveReason`
-- **THEN** the transition is refused
-
-<!-- @e2e exclude Validation logic verified by PHPUnit RejectionWaiveGuardTest::testEmptyReasonRefused, mirroring PupilVoiceGuard's equivalent test. -->
-
-### Requirement: Track rejection age as an informational urgency signal
-
-The system MUST expose a materialised `ageDays` calculation on `ExchangeRejection` (days since `detectedAt`).
-`correctionDeadlineAt` MUST be a plain nullable input field, not a computed fixed-offset deadline — no
-statutory day-count for BRON/ROD afkeurmelding correction is fabricated. When `correctionDeadlineAt` is set,
-`overdue` MUST be a materialised calculation derived from it (`correctionDeadlineAt <= now AND status NOT IN
-(accepted, waived)`); when unset, `overdue` MUST be `false`.
-
-#### Scenario: Age is always available regardless of a deadline
-
-- **GIVEN** an `ExchangeRejection` with no `correctionDeadlineAt` set
-- **WHEN** its `ageDays` calculation is read
-- **THEN** it returns the number of days since `detectedAt`, and `overdue` is `false`
-
-<!-- @e2e exclude Declarative calculation shape verified by ExchangeRejectionRegisterTest::testAgeDaysCalculationShape / testOverdueNullSafeWhenDeadlineUnset, mirroring AttendanceFlag's own calculation-shape test pattern; calculation execution itself runs in OpenRegister core, not Scholiq PHP. -->
-
-#### Scenario: Overdue activates once a deadline is set and passes
-
-- **GIVEN** an `ExchangeRejection` with `correctionDeadlineAt` set to a past date and `status: open`
-- **WHEN** `overdue` is evaluated
-- **THEN** it is `true`
-
-<!-- @e2e exclude Declarative calculation shape verified by ExchangeRejectionRegisterTest::testOverdueTrueWhenDeadlinePassed; calculation execution runs in OpenRegister core. -->
-
-### Requirement: DUO error-code catalogue as local reference data
-
-The system MUST persist `ExchangeErrorCode` as OpenRegister reference-data objects (`code`, optional
-`target`, bilingual `description`, optional `category`, `severity`, `active`) seeded with a starter set
-explicitly documented as illustrative, non-authoritative starter data. `RejectionMappingHandler` MUST
-attempt to resolve each created `ExchangeRejection.errorCodeRef` by matching `(code, target)` against this
-catalogue, and MUST leave `errorCodeRef` null when no match exists rather than blocking rejection creation.
-The system MUST NOT claim this catalogue is authoritative — updates to DUO's real code list are an
-OpenConnector adapter concern, alongside the wire-protocol adapters `data-exchange`'s "Delegate wire
-protocols to OpenConnector" requirement already lists.
-
-#### Scenario: A known error code resolves to its catalogue entry
-
-- **GIVEN** an `ExchangeErrorCode` seeded with `code: "BRON-101"`, `target: "bron-rod"`
-- **WHEN** a rejection with `errorCode: "BRON-101"` from a `target: bron-rod` job is mapped
-- **THEN** the created `ExchangeRejection.errorCodeRef` points at that catalogue entry
-
-<!-- @e2e exclude Catalogue-lookup logic verified by PHPUnit RejectionMappingHandlerTest::testResolvesKnownErrorCode; no DOM surface. -->
-
-#### Scenario: An unknown error code does not block rejection creation
-
-- **GIVEN** no `ExchangeErrorCode` entry matches a rejection's `(errorCode, target)`
-- **WHEN** the rejection is mapped
-- **THEN** the `ExchangeRejection` is still created, with `errorCodeRef` left null
-
-<!-- @e2e exclude Fail-open catalogue-lookup behaviour verified by PHPUnit RejectionMappingHandlerTest::testUnknownErrorCodeLeavesRefNull; no DOM surface. -->
 
 ### Requirement: Data-exchange management is reached from the Admin Settings page
 The data-exchange entry point MUST move from the in-app settings foldout to the Nextcloud Admin Settings page. The `DataExchange` leaf id MUST be removed from `src/menu-layout.json#settingsSection`, and the Admin Settings page (mounted by `lib/Settings/AdminSettings.php` + `src/settings.js` → `src/views/settings/AdminRoot.vue`) MUST render a "Data exchange" settings section that links to the still-routable Data-exchange **jobs** (`#/data-exchange/jobs`) and **mapping profiles** (`#/data-exchange/mapping-profiles`) SPA pages, mirroring the "Manage AI features" affordance in `ScholiqSettings.vue`. Because the Admin Settings mount has no in-app vue-router, the links MUST navigate out via full navigation (hash-form SPA URL), not by embedding router pages. All data-exchange pages (`DataExchangeJobs`, `DataExchangeJobDetail`, `DataMappingProfiles`, `DataMappingProfileDetail`, `RequestExportModal`, `OsoDossierReviewView`) MUST remain registered in `src/manifest.json.pages[]` and routable. No backend, register schema, lifecycle guard, OSO gate or OpenConnector delegation is changed.
@@ -727,6 +437,148 @@ A test that reads a schema's seed rows MUST find a row by its name or id and MUS
 - **GIVEN** 23 `DataMappingProfile` seed rows, more than the 12 and 16 two changes counted
 - **WHEN** the suite runs
 - **THEN** both tests pass, because they assert a floor
+
+### Requirement: Learniq asks integriq to carry an exchange
+Learniq MUST request every data exchange through integriq's `ExchangeJobRequestedEvent`, with its own id as owner, the row that caused it as `ownerRef` and selectors only in the scope. It MUST fail closed when integriq is absent: no job, and a message that integriq is needed. Learniq MUST NOT store a job of its own.
+
+#### Scenario: an attendance flag asks for a leerplicht report
+- GIVEN integriq is installed and an attendance threshold's crossing names the target `leerplicht`
+- WHEN the flag is created
+- THEN learniq dispatches `ExchangeJobRequestedEvent` for `leerplicht`, `export`, mapping `learniq-leerplicht-export-melding`
+- AND the flag's `dataExchangeJobId` is the integriq job id
+
+#### Scenario: integriq is absent
+- GIVEN integriq is not installed
+- WHEN a support request is submitted
+- THEN no job id is stored and no dossier review is created
+- AND the failure is logged, not thrown into the submit
+
+### Requirement: The gate refuses an OSO or SWV file until a parent approved it
+For an `oso` or `swv` export, learniq's gate MUST refuse unless a `DossierReview` for that integriq job is `approved`. Only a parent listed on the learner's profile MUST be able to approve or reject it.
+
+#### Scenario: no parent approved yet
+- GIVEN an `swv` job whose `DossierReview` is `pending`
+- WHEN integriq asks the gate
+- THEN the gate refuses with `parent-review-pending`
+
+#### Scenario: a parent approves
+- GIVEN a `DossierReview` for learner L and a user listed in L's `parentIds`
+- WHEN that user approves it
+- THEN it is `approved` with `reviewedBy` and `reviewedAt` stamped, and the gate allows the job
+
+### Requirement: The gate enforces partner approval, teldatum confirmation and flag handling
+The gate MUST refuse a job whose target has an `ExchangePartnerApproval` row and none `approved`; a job whose scope names a `teldatumDate` without a `confirmed` `TeldatumCheck` for that date and target; and a `leerplicht` job whose attendance flag is still `open`. A target with no partner approval row MUST NOT be blocked by partner approval.
+
+#### Scenario: a partner link awaits approval
+- GIVEN an `ExchangePartnerApproval` for `swv` in status `pending`
+- WHEN integriq asks the gate for an `swv` job whose file a parent approved
+- THEN the gate refuses with `partner-approval-missing`
+
+#### Scenario: the teldatum is not confirmed
+- GIVEN a `bron-rod` job whose scope names `teldatumDate` 2026-10-01 and no confirmed check for it
+- WHEN integriq asks the gate
+- THEN the gate refuses with `teldatum-unconfirmed`
+
+#### Scenario: nobody took up the flag
+- GIVEN a `leerplicht` job whose attendance flag is `open`
+- WHEN integriq asks the gate
+- THEN the gate refuses with `flag-not-in-handling`
+
+### Requirement: What may leave is decided by learniq, per mapping
+When every other condition passes, the gate MUST hand integriq only the fields the job's mapping reads, per record `{recordId, sourceKind, data}`, with the leerplicht and SWV files composed as before, and never `bsnEncrypted`, `bsnHash` or `email`. A statutory target (`bron-rod`, `oso`, `swv`) without a known mapping MUST be refused `disclosure-undefined`. A `bron-rod`, `leerplicht` or `oso` record missing a statutory field MUST refuse the job `statutory-incomplete`, naming fields and references, never values.
+
+#### Scenario: a ROD export hands over five fields
+- GIVEN a `bron-rod` job with mapping `learniq-bron-rod-export-learner` over two complete learner profiles
+- WHEN integriq asks the gate
+- THEN the gate allows with two records whose data holds only `eckId`, `givenName`, `familyName`, `birthDate`, `schoolId`
+
+#### Scenario: a statutory export without a mapping
+- GIVEN a `bron-rod` job for a school advice with no mapping
+- WHEN integriq asks the gate
+- THEN the gate refuses with `disclosure-undefined` and composes no record
+
+#### Scenario: a record misses its birth date
+- GIVEN a `bron-rod` job whose second learner has no `birthDate`
+- WHEN integriq asks the gate
+- THEN the gate refuses with `statutory-incomplete`, naming `birthDate` and that learner's reference
+
+### Requirement: Learniq serves its gate decision over HTTP for people
+`GET /api/exchange-gates/{jobId}` MUST answer `{jobId, decision, code, reason, checkedAt}` for an integriq job owned by learniq, without the records, to admins, administration managers, compliance officers and coordinators; 404 for a job that is not learniq's or when integriq is absent.
+
+#### Scenario: a coordinator checks why a job waits
+- GIVEN an integriq job owned by learniq whose teldatum is unconfirmed
+- WHEN a coordinator calls `GET /api/exchange-gates/{jobId}`
+- THEN the answer is `refuse` with `teldatum-unconfirmed` and no records
+
+### Requirement: The Data exchange menu is a read-only status panel beside the gate pages
+The Data exchange menu MUST show integriq's jobs and rejections owned by learniq, read-only, and the partner approval, teldatum check and dossier review pages. It MUST NOT offer to create or edit a job.
+
+#### Scenario: an administrator opens the panel
+- GIVEN integriq holds two jobs owned by learniq and one owned by another app
+- WHEN an administrator opens Exchange jobs
+- THEN two rows show, without an add or edit action
+
+### Requirement: Existing exchange rows are moved to integriq, or archived
+A repair step MUST archive every row of the four retired schemas to app data, and when integriq is installed MUST send each job (with its rejections) and each customised mapping profile to integriq, once. It MUST NOT delete the old rows.
+
+#### Scenario: an install with integriq
+- GIVEN two learniq jobs, one with a waived rejection, and integriq installed
+- WHEN the repair step runs
+- THEN integriq receives two job requests with history, the archive file holds both jobs and the rejection, and a second run sends nothing
+
+#### Scenario: an install without integriq
+- GIVEN learniq jobs and no integriq
+- WHEN the repair step runs
+- THEN the archive file holds every row and nothing is dispatched
+
+### Requirement: A succeeded SWV exchange routes its support request
+When integriq concludes a learniq `swv` job `succeeded`, learniq MUST move the support request named in the job's scope to `routed-to-swv`; any other outcome MUST change nothing.
+
+#### Scenario: the SWV hand-off succeeded
+- GIVEN a submitted support request whose `swv` job integriq concluded `succeeded`
+- WHEN the concluded event arrives
+- THEN the support request is `routed-to-swv`
+
+### Requirement: Imported LVS results and transfer dossiers are read and written by the groups that review them
+
+`LvsResult` and `OsoImportDossier` MUST each carry an `authorization` block that OpenRegister enforces. Read MUST be granted to `coordinators` and `compliance-officers`, and on `LvsResult` also to the learner the row is about, as `{"group": "authenticated", "match": {"learnerId": "$userId"}}`. `OsoImportDossier` MUST NOT carry a learner self-read, because its `learnerEckId` is not a Nextcloud user. Create and update MUST be granted to `coordinators` and `compliance-officers` only, and neither block MAY grant delete. The `verify` guard of `LvsResult` and the `accept` and `reject` guards of `OsoImportDossier` MUST authorise `admin` and `coordinators`, the group the register declares, and MUST refuse any other group, including a group literally named `coordinator`. `LvsResult` MUST NOT be `appendOnly`, so `verify` and `archive` can run.
+
+#### Scenario: A coordinator verifies an imported LVS result
+@e2e exclude Enforced by OpenRegister from the shipped register JSON and the guard; pinned by tests/Unit/Register/ImportRecordAccessTest.php and tests/Unit/Lifecycle/LvsResultVerifyGuardTest.php.
+- **GIVEN** an `LvsResult` in `imported`
+- **AND** a user in `coordinators`
+- **WHEN** the user fires `verify`
+- **THEN** the result moves to `verified`
+
+#### Scenario: A pupil reads their own LVS result and not a classmate's
+@e2e exclude Enforced by OpenRegister from the shipped register JSON; pinned by tests/Unit/Register/ImportRecordAccessTest.php and tests/Unit/Register/DeclaredAudienceEnforcedTest.php.
+- **GIVEN** pupils A and B, in no staff group, each with an `LvsResult`
+- **WHEN** pupil A lists LVS results
+- **THEN** only A's own result is returned
+
+#### Scenario: An instructor no longer reads transfer dossiers
+@e2e exclude Enforced by OpenRegister from the shipped register JSON; pinned by tests/Unit/Register/ImportRecordAccessTest.php.
+- **GIVEN** a received `OsoImportDossier`
+- **AND** a user in `instructors` only
+- **WHEN** the user lists transfer dossiers
+- **THEN** the dossier is not returned
+
+#### Scenario: The singular coordinator group accepts nothing
+@e2e exclude Guard behaviour with no UI of its own; pinned by tests/Unit/Lifecycle/OsoImportAcceptGuardTest.php.
+- **GIVEN** an `OsoImportDossier` in `under-review`
+- **AND** a user in a group named `coordinator`, which the register does not declare
+- **WHEN** the user fires `accept`
+- **THEN** the guard refuses it
+
+### Requirement: A dossier received without an exchange job is valid
+
+`OsoImportDossier.dataExchangeJobId` MUST accept `null` for a dossier entered by hand, as `LvsResult.dataExchangeJobId` does. Every `null` in a demo object of the learniq register MUST sit on a property declared nullable.
+
+#### Scenario: The demo dossiers pass their own schema
+@e2e exclude Register declaration with no UI; pinned by tests/Unit/Register/DemoNullsAreNullableTest.php::testEveryDemoNullIsOnANullableProperty.
+- **GIVEN** the demo OsoImportDossier rows with `dataExchangeJobId` null
+- **WHEN** they are validated against the schema
+- **THEN** they pass
 
 ## Standards
 
