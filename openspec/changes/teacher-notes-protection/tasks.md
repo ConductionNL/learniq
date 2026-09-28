@@ -20,16 +20,16 @@ Feature tier: must (privacy of pupil-related staff notes).
 - **acceptance_criteria**:
   - GIVEN [A, N, B, N2, N3] WHEN split THEN blocks [A, B] and notes N after A (0), N2 after B (0), N3 after B (1)
   - GIVEN a note first WHEN split THEN its afterBlockId is empty
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 3: The onboarding importer writes notes to the staff store
 - **spec_ref**: `openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-imported-slide-notes-land-in-the-staff-store`
 - **files**: `lib/Service/LessonOnboarding/LessonOnboardingImporter.php`, `tests/Unit/Service/LessonOnboarding/LessonOnboardingImporterTest.php`
 - **acceptance_criteria**:
   - GIVEN a presentation with a slide note WHEN imported THEN the lesson has no teacherNote and one lesson-teacher-note is created after the final blocks (TC-4)
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 4: Upgrade step moves existing notes
 - **spec_ref**: `openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-an-upgrade-moves-the-notes-lessons-already-hold`

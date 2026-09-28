@@ -54,6 +54,11 @@ class LessonOnboardingImporter {
 	private const ROW_SCHEMA = 'lesson-onboarding-file';
 
 	/**
+	 * The staff-only schema teacher notes are written to (teacher-notes-protection).
+	 */
+	private const NOTE_SCHEMA = 'lesson-teacher-note';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService Reads the row, the course and its lessons; updates the lesson.
@@ -65,6 +70,7 @@ class LessonOnboardingImporter {
 	 * @param IRootFolder $rootFolder Resolves the file inside the teacher's files.
 	 * @param OnboardingFolderSetting $folderSetting Tenant fallback.
 	 * @param LoggerInterface $logger Logs ids and counts, never document text.
+	 * @param TeacherNoteSplitter $noteSplitter Takes slide notes out of the lesson blocks.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
@@ -76,6 +82,7 @@ class LessonOnboardingImporter {
 		private readonly IRootFolder $rootFolder,
 		private readonly OnboardingFolderSetting $folderSetting,
 		private readonly LoggerInterface $logger,
+		private readonly TeacherNoteSplitter $noteSplitter=new TeacherNoteSplitter(),
 	) {
 	}//end __construct()
 
@@ -117,12 +124,16 @@ class LessonOnboardingImporter {
 		}
 
 		$fileName = (string)$file->getName();
+		// Slide notes never enter the lesson: every signed-in user reads a
+		// Lesson. They are written to the staff-only note schema once the
+		// final blocks, and so their ids, are known (teacher-notes-protection).
+		$draft = $this->noteSplitter->split(blocks: $this->draftBuilder->build(sections: $lesson['sections']));
 		$payload = [
 			'courseId' => $courseId,
 			'name' => $this->lessonName(title: (string)$lesson['title'], fileName: $fileName),
 			'order' => $this->nextOrder(courseId: $courseId),
 			'contentType' => 'text',
-			'blocks' => $this->draftBuilder->build(sections: $lesson['sections']),
+			'blocks' => $draft['blocks'],
 			'tenant_id' => $tenantId,
 		];
 
@@ -134,9 +145,12 @@ class LessonOnboardingImporter {
 		$context = ['userId' => $userId, 'courseId' => $courseId, 'lessonId' => $lessonId, 'tenantId' => $tenantId];
 		$materialIds = $this->imageMaterials(sections: $lesson['sections'], file: $file, context: $context);
 		if ($materialIds !== []) {
-			$payload['blocks'] = $this->draftBuilder->build(sections: $lesson['sections'], materialIds: $materialIds);
+			$draft = $this->noteSplitter->split(blocks: $this->draftBuilder->build(sections: $lesson['sections'], materialIds: $materialIds));
+			$payload['blocks'] = $draft['blocks'];
 			$this->objectService->saveObject(object: $payload, register: self::REGISTER, schema: 'lesson', uuid: $lessonId);
 		}
+
+		$notesLost = $this->writeTeacherNotes(notes: $draft['notes'], lessonId: $lessonId, tenantId: $tenantId);
 
 		$materials = array_sum(array_map('count', $materialIds));
 		if ($this->originalMaterial(file: $file, format: (string)$row['format'], context: $context) !== null) {
@@ -144,6 +158,10 @@ class LessonOnboardingImporter {
 		}
 
 		$notes = $lesson['notes'];
+		if ($notesLost > 0) {
+			$notes[] = sprintf('%d teacher note(s) could not be saved', $notesLost);
+		}
+
 		$notes = $this->markImported(rowId: $rowId, context: $context, notes: $notes);
 
 		$this->logger->info(
@@ -160,6 +178,37 @@ class LessonOnboardingImporter {
 			'notes' => $notes,
 		];
 	}//end import()
+
+	/**
+	 * Write the lesson's teacher notes to the staff-only note schema, as the
+	 * confirming teacher. A note that fails is counted, not fatal: the lesson
+	 * is already there, and the import report says a note is missing.
+	 *
+	 * @param list<array{blockId: string, afterBlockId: string, position: int, text: string}> $notes The split notes.
+	 * @param string $lessonId The created lesson.
+	 * @param string $tenantId The lesson's tenant.
+	 *
+	 * @return int How many notes could not be saved.
+	 *
+	 * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-imported-slide-notes-land-in-the-staff-store
+	 */
+	private function writeTeacherNotes(array $notes, string $lessonId, string $tenantId): int {
+		$lost = 0;
+		foreach ($notes as $note) {
+			try {
+				$noteId = $this->objectWriter->create(schema: self::NOTE_SCHEMA, object: [...$note, 'lessonId' => $lessonId, 'tenant_id' => $tenantId]);
+			} catch (Throwable $e) {
+				$this->logger->warning('[LessonOnboardingImporter] A teacher note of lesson {lessonId} could not be saved: {error}', ['lessonId' => $lessonId, 'error' => $e->getMessage()]);
+				$noteId = null;
+			}
+
+			if ($noteId === null) {
+				$lost++;
+			}
+		}
+
+		return $lost;
+	}//end writeTeacherNotes()
 
 	/**
 	 * The detection row, read as the teacher; only their own and only while detected.
