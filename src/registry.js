@@ -188,6 +188,8 @@ import TakeAssessmentView from './views/TakeAssessmentView.vue'
 // TimetableConflict, and ExamAccommodation index/detail pages are declarative
 // manifest pages.
 import TimetableConflictQueue from './views/TimetableConflictQueue.vue'
+// timetabling-visibility-rules: other timetables within the school's policy.
+import TimetableLookup from './views/TimetableLookup.vue'
 
 /**
  * Wrap a Vue component into the v2 registry shape required by CnAppRoot's
@@ -249,6 +251,7 @@ export default {
 	SignatureView: page(SignatureView),
 	StandbyPlanning: page(StandbyPlanning),
 	SubmitExcuseView: page(SubmitExcuseView),
+	TimetableLookup: page(TimetableLookup),
 	SubmitWorkView: page(SubmitWorkView),
 
 	AdmissionsReviewBoard: page(AdmissionsReviewBoard),

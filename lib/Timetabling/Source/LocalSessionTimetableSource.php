@@ -5,8 +5,13 @@
  *
  * Learniq's own `Session` schema as a timetable source: the fallback for a
  * school without planninq, and the home of sessions a teacher creates by hand.
- * Reads go through OpenRegister's ObjectService, so RBAC and multitenancy
- * scope them (ADR-022). Sessions are fetched per cohort with an equality
+ * Reads go through OpenRegister's ObjectService with multitenancy on and the
+ * caller's RBAC off: `Session` is readable by staff groups only
+ * (timetabling-visibility-rules), so learners read their lessons through
+ * learniq's timetable endpoints, which decide access before they ask this
+ * source (cohort membership for "My timetable", an RBAC read of the cohort
+ * for the cohort page, the school's visibility policy for other timetables).
+ * Sessions are fetched per cohort with an equality
  * filter, so no other cohort's session is ever loaded. The window is applied
  * by the caller ({@see \OCA\Learniq\Service\TimetableProjector}), because the
  * same rows also back the same-day changes list, whatever their start time.
@@ -95,7 +100,8 @@ class LocalSessionTimetableSource implements TimetableSource {
 						'cohortId' => $cohortId,
 					],
 					'sort' => ['startsAt' => 'ASC'],
-				]
+				],
+				_rbac: false
 			);
 
 			foreach ($results as $row) {
@@ -146,7 +152,8 @@ class LocalSessionTimetableSource implements TimetableSource {
 					'substituteTeacherId' => $userId,
 				],
 				'sort' => ['startsAt' => 'ASC'],
-			]
+			],
+			_rbac: false
 		);
 
 		$rows = [];

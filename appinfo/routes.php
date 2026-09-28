@@ -170,6 +170,11 @@ return [
         // (planninq when installed, else Session), after an RBAC read of the cohort
         // (sessions-from-planninq).
         ['name' => 'timetable#cohort', 'url' => '/api/timetable/cohort/{cohortId}', 'verb' => 'GET', 'requirements' => ['cohortId' => '[^/]+']],
+        // Other timetables within the school's visibility policy
+        // (timetabling-visibility-rules). The policy check is in the body.
+        ['name' => 'timetableVisibility#timetable', 'url' => '/api/timetable/of', 'verb' => 'GET'],
+        ['name' => 'timetableVisibility#options', 'url' => '/api/timetable/of/options', 'verb' => 'GET'],
+        ['name' => 'timetableVisibility#policy', 'url' => '/api/timetable/visibility-policy', 'verb' => 'GET'],
         // Standby hours (timetabling-standby-slots): who can cover a lesson,
         // standby first, and the caller's own standby blocks. Checks in the body.
         ['name' => 'standby#candidates', 'url' => '/api/substitution/candidates', 'verb' => 'GET'],

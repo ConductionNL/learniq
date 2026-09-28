@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.34",
+    "version": "1.1.35",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -29146,6 +29146,48 @@
         "confirmedAt": "2026-03-03T09:00:00+00:00",
         "note": "Voorbeeld Note 3",
         "tenant_id": "00000000-0000-4000-8000-000000000002"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "timetable-visibility-policy",
+          "slug": "timetable-visibility-policy-timetablevisibilitypolicy-1-1"
+        },
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "learnerSeesGroups": "own",
+        "learnerSeesTeachers": "none",
+        "learnerSeesRooms": "none",
+        "instructorSeesGroups": "own",
+        "instructorSeesTeachers": "own",
+        "instructorSeesRooms": "all"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "timetable-visibility-policy",
+          "slug": "timetable-visibility-policy-timetablevisibilitypolicy-2-2"
+        },
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "learnerSeesGroups": "all",
+        "learnerSeesTeachers": "related",
+        "learnerSeesRooms": "related",
+        "instructorSeesGroups": "all",
+        "instructorSeesTeachers": "all",
+        "instructorSeesRooms": "all"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "timetable-visibility-policy",
+          "slug": "timetable-visibility-policy-timetablevisibilitypolicy-3-3"
+        },
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "learnerSeesGroups": "own",
+        "learnerSeesTeachers": "all",
+        "learnerSeesRooms": "all",
+        "instructorSeesGroups": "own",
+        "instructorSeesTeachers": "own",
+        "instructorSeesRooms": "all"
       },
       {
         "@self": {
