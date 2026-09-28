@@ -14,7 +14,7 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
  *
- * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/assignments/spec.md#requirement-existing-submissions-are-back-filled
+ * @spec openspec/specs/assignments/spec.md#requirement-existing-submissions-are-back-filled
  */
 
 declare(strict_types=1);
@@ -41,7 +41,7 @@ use Throwable;
  * never overwrites a stored value. Runs without a session, so every read and
  * write passes `_rbac: false` and `_multitenancy: false`.
  *
- * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/assignments/spec.md#requirement-existing-submissions-are-back-filled
+ * @spec openspec/specs/assignments/spec.md#requirement-existing-submissions-are-back-filled
  */
 class BackfillSubmissionLearnerRefs implements IRepairStep {
 
@@ -76,7 +76,7 @@ class BackfillSubmissionLearnerRefs implements IRepairStep {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/assignments/spec.md#requirement-existing-submissions-are-back-filled
+	 * @spec openspec/specs/assignments/spec.md#requirement-existing-submissions-are-back-filled
 	 */
 	public function getName(): string {
 		return 'Stamp the learner profiles on existing submissions so the portal can show them';
@@ -89,7 +89,7 @@ class BackfillSubmissionLearnerRefs implements IRepairStep {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/assignments/spec.md#requirement-existing-submissions-are-back-filled
+	 * @spec openspec/specs/assignments/spec.md#requirement-existing-submissions-are-back-filled
 	 */
 	public function run(IOutput $output): void {
 		$counts = ['scanned' => 0, 'stamped' => 0, 'noProfile' => 0, 'failed' => 0];

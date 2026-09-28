@@ -282,7 +282,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
 
     <commands>
         <!-- Removes a loaded example set by handing its fixed uuids to
-             occ openregister:objects:purge (openspec/changes/segment-wizard-choice). -->
+             occ openregister:objects:purge (openspec/changes/archive/2026-09-28-segment-wizard-choice). -->
         <command>OCA\Learniq\Command\ExampleSetRemoveCommand</command>
         <!-- curriculum-coverage-rollup: fills CurriculumCoverage rows for data saved
              before the rollup existed; the listener keeps them current afterwards. -->

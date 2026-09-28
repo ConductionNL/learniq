@@ -6,20 +6,8 @@ status: done
 
 ## Purpose
 Consolidates Scholiq's AI surfaces into a single interactive "Assistant" navigation entry that opens the LLM chat companion, removing the duplicate standalone "AI features" menu entry. The EU AI Act AI features register and its detail pages remain routable via deep links and are reachable through a "Manage AI features" affordance on the Settings page, keeping the governance register discoverable.
+
 ## Requirements
-### Requirement: REQ-SAI-001 — The system SHALL expose exactly one interactive AI nav entry, "Assistant"
-The system SHALL present exactly one top-level navigation entry for the interactive AI companion, the `AssistantMenu` entry labelled "Assistant" routing to the `Assistant` chat page (`/assistant`), per ADR-034. The system SHALL NOT present a second top-level AI-labelled nav entry alongside it.
-
-#### Scenario: Only one AI nav entry is shown
-- **GIVEN** the Scholiq app navigation menu is rendered
-- **WHEN** a user scans the menu
-- **THEN** exactly one AI-labelled entry, "Assistant", is present
-- **AND** no "AI features" top-level menu entry appears
-
-#### Scenario: Assistant opens the chat companion
-- **GIVEN** the "Assistant" nav entry
-- **WHEN** the user activates it
-- **THEN** the `Assistant` chat page at `/assistant` renders the LLM chat companion
 
 ### Requirement: REQ-SAI-002 — The system SHALL remove the standalone "AI features" nav entry
 The system SHALL remove the `AiFeaturesMenu` menu array entry from `src/manifest.json.menu[]` so that the "AI features" governance register is no longer a standalone top-level (or settings-section) navigation item.
@@ -30,7 +18,8 @@ The system SHALL remove the `AiFeaturesMenu` menu array entry from `src/manifest
 - **THEN** no entry with `id: "AiFeaturesMenu"` is present
 
 ### Requirement: REQ-SAI-003 — The system SHALL keep the AI features register and Assistant pages routable
-The system SHALL retain the `AiFeatures` (`/ai-features`), `AiFeatureDetail` (`/ai-features/:id`), and `Assistant` (`/assistant`) page objects in `src/manifest.json.pages[]` unchanged, so deep links and the `KpiSchemasWidget` link to `/ai-features` continue to resolve even though the "AI features" menu entry is removed.
+The system SHALL retain the `AiFeatures` (`/ai-features`) and `AiFeatureDetail` (`/ai-features/:id`) page objects in `src/manifest.json.pages[]` unchanged, so deep links and the `KpiSchemasWidget` link to `/ai-features` continue to resolve even though the "AI features" menu entry is removed. The `Assistant` (`/assistant`) page is no longer part of this retained set — it is removed by this change (see REQ-SAI-005).
+<!-- @e2e exclude AI-features governance reachability is unchanged by this change; covered by the existing ai-surface e2e. This requirement is re-affirmed here only to drop the now-removed Assistant page from the retained-pages set. -->
 
 #### Scenario: AI features deep link still resolves
 - **GIVEN** the "AI features" menu entry has been removed
@@ -60,3 +49,22 @@ The system SHALL make the EU AI Act `AiFeature` register reachable from the exis
 - **WHEN** the AVG Art. 30 processing register is rendered
 - **THEN** the `scholiq-ai-features` AI-assisted learning processing block remains visible
 
+### Requirement: REQ-SAI-005 — The system SHALL NOT present an inherited Assistant AI-chat surface
+The system SHALL NOT present the inherited generic "Assistant" AI-chat surface. Specifically: `src/manifest.json.menu[]` SHALL contain no entry with `id: "AssistantMenu"`; `src/manifest.json.pages[]` SHALL contain no page with `id: "Assistant"` (`route: "/assistant"`, `type: "chat"`); `src/menu-layout.json#settingsSection` SHALL NOT list `AssistantMenu`; and consequently the nc-vue `CnAppRoot` floating "Open AI chat" FAB — which renders only while a `type: "chat"` page is declared — SHALL NOT be rendered. This removal does not touch the EU AI Act `AiFeature` governance register.
+<!-- @e2e exclude Absence / static-manifest / nc-vue-FAB assertions — verified by the manifest unit test (no `AssistantMenu` menu id, no `Assistant` page, no `AssistantMenu` in settingsSection) and an in-browser check of the removed FAB at apply; not positive route-smoke DOM behaviours. -->
+
+#### Scenario: Assistant menu entry is absent
+- **GIVEN** the parsed `src/manifest.json`
+- **WHEN** its `menu[]` array is inspected
+- **THEN** no entry with `id: "AssistantMenu"` is present
+
+#### Scenario: Assistant chat page is absent
+- **GIVEN** the parsed `src/manifest.json`
+- **WHEN** its `pages[]` array is inspected
+- **THEN** no page with `id: "Assistant"` (`route: "/assistant"`, `type: "chat"`) is present
+- **AND** `src/menu-layout.json#settingsSection` does not list `AssistantMenu`
+
+#### Scenario: No "Open AI chat" FAB is rendered
+- **GIVEN** the Scholiq app shell has no `type: "chat"` page declared
+- **WHEN** any Scholiq page is rendered
+- **THEN** nc-vue's `CnAppRoot` renders no floating "Open AI chat" action button

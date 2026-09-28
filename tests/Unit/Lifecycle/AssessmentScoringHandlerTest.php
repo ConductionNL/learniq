@@ -141,7 +141,7 @@ class AssessmentScoringHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-auto-scoring-reads-the-stored-answer-shape
+	 * @spec openspec/specs/assessment/spec.md#requirement-auto-scoring-reads-the-stored-answer-shape
 	 */
 	public function testTheStoredValueShapeIsScored(): void {
 		$handler = self::makeHandler(

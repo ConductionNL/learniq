@@ -33,7 +33,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
+ * @spec openspec/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ namespace OCA\Learniq\Service;
 /**
  * Derives, syncs, checks and reads competency alignments.
  *
- * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
+ * @spec openspec/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
  */
 class CompetencyAlignmentNormaliser {
 
@@ -56,7 +56,7 @@ class CompetencyAlignmentNormaliser {
 	 *
 	 * @return array<int, array{competencyId: string, depth: string|null}>
 	 *
-	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-lessons-courses-assignments-and-assessments-align-to-goals-with-a-depth
+	 * @spec openspec/specs/competency/spec.md#requirement-lessons-courses-assignments-and-assessments-align-to-goals-with-a-depth
 	 */
 	public function normalise(mixed $raw): array {
 		if (is_array($raw) === false) {
@@ -92,7 +92,7 @@ class CompetencyAlignmentNormaliser {
 	 *
 	 * @return array<int, string>
 	 *
-	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
 	 */
 	public function idsFromAlignments(array $alignments): array {
 		$ids = [];
@@ -116,7 +116,7 @@ class CompetencyAlignmentNormaliser {
 	 *
 	 * @return array<int, array{competencyId: string, depth: string|null}>
 	 *
-	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
 	 */
 	public function alignmentsFollowIds(array $alignments, mixed $ids): array {
 		$depthByGoal = [];
@@ -148,7 +148,7 @@ class CompetencyAlignmentNormaliser {
 	 *
 	 * @return string|null The refusal message, or null.
 	 *
-	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-a-depth-the-goals-framework-does-not-know-is-refused
+	 * @spec openspec/specs/competency/spec.md#requirement-a-depth-the-goals-framework-does-not-know-is-refused
 	 */
 	public function problem(array $alignments, array $goals): ?string {
 		$seen = [];
@@ -190,7 +190,7 @@ class CompetencyAlignmentNormaliser {
 	 *
 	 * @return array<int, array{competencyId: string, depth: string|null}>
 	 *
-	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-readers-treat-a-flat-only-row-as-alignments-without-depth
+	 * @spec openspec/specs/competency/spec.md#requirement-readers-treat-a-flat-only-row-as-alignments-without-depth
 	 */
 	public function effectiveAlignments(array $row, array $levelsByGoal=[]): array {
 		$alignments = $this->normalise(raw: ($row['competencyAlignments'] ?? []));
@@ -233,7 +233,7 @@ class CompetencyAlignmentNormaliser {
 	 *
 	 * @return array<int, string>
 	 *
-	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-readers-treat-a-flat-only-row-as-alignments-without-depth
+	 * @spec openspec/specs/competency/spec.md#requirement-readers-treat-a-flat-only-row-as-alignments-without-depth
 	 */
 	public function flatIds(mixed $raw): array {
 		if (is_array($raw) === false) {

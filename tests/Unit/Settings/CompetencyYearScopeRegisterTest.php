@@ -20,9 +20,9 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/competency-year-scope/tasks.md#task-1-add-applicableyears-and-subjectid-to-competency
- * @spec openspec/changes/competency-year-scope/tasks.md#task-2-demo-data-and-translation-keys
- * @spec openspec/changes/competency-year-scope/tasks.md#task-3-register-unit-test
+ * @spec openspec/changes/archive/2026-09-28-competency-year-scope/tasks.md#task-1-add-applicableyears-and-subjectid-to-competency
+ * @spec openspec/changes/archive/2026-09-28-competency-year-scope/tasks.md#task-2-demo-data-and-translation-keys
+ * @spec openspec/changes/archive/2026-09-28-competency-year-scope/tasks.md#task-3-register-unit-test
  */
 
 declare(strict_types=1);

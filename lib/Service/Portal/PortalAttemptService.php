@@ -36,7 +36,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+ * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
 
 declare(strict_types=1);
@@ -49,7 +49,7 @@ use OCA\Learniq\Service\AssessmentAccessPolicy;
 /**
  * Starts, saves and hands in a pupil's portal attempts.
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+ * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
 class PortalAttemptService {
 
@@ -84,7 +84,7 @@ class PortalAttemptService {
 	 *
 	 * @return PortalOutcome
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function available(PortalLearner $learner): PortalOutcome {
 		$tasks = [];
@@ -124,7 +124,7 @@ class PortalAttemptService {
 	 *
 	 * @return PortalOutcome
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function start(PortalLearner $learner, string $taskId, mixed $accessCode): PortalOutcome {
 		$exam = $this->reader->exam(id: $taskId);
@@ -161,7 +161,7 @@ class PortalAttemptService {
 	 *
 	 * @return PortalOutcome
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function answer(PortalLearner $learner, string $attemptId, string $itemId, mixed $response): PortalOutcome {
 		$attempt = $this->ownAttempt(learner: $learner, attemptId: $attemptId);
@@ -192,7 +192,7 @@ class PortalAttemptService {
 	 *
 	 * @return PortalOutcome
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function submit(PortalLearner $learner, string $attemptId): PortalOutcome {
 		$attempt = $this->ownAttempt(learner: $learner, attemptId: $attemptId);

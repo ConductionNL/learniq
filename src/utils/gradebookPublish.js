@@ -6,7 +6,7 @@
  * cover, how they are spread, and what the batch did. Pure functions, pinned
  * by node tests.
  *
- * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+ * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
  */
 
 /** Scope value meaning every component of the plan. */
@@ -17,7 +17,7 @@ export const ALL_COMPONENTS = '*'
  *
  * @param {object} entry A GradeEntry.
  * @return {boolean}
- * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+ * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
  */
 function hasMark(entry) {
 	return (
@@ -35,7 +35,7 @@ function hasMark(entry) {
  * @param {object[]} entries GradeEntries of the cohort and plan.
  * @param {string} componentId A component id, or ALL_COMPONENTS.
  * @return {object[]}
- * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+ * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
  */
 export function scopeEntries(entries, componentId) {
 	return (entries ?? []).filter(
@@ -51,7 +51,7 @@ export function scopeEntries(entries, componentId) {
  *
  * @param {object[]} scoped Output of scopeEntries().
  * @return {object[]}
- * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+ * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
  */
 export function publishable(scoped) {
 	return (scoped ?? []).filter((e) => e?.lifecycle === 'concept' && hasMark(e))
@@ -64,7 +64,7 @@ export function publishable(scoped) {
  * @param {number} low Lowest value of the range.
  * @param {number} high Highest value of the range.
  * @return {Array<{from: number, to: number}>} Half-open bands; the last one is closed.
- * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+ * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
  */
 export function bandsFor(low, high) {
 	if (!Number.isFinite(low) || !Number.isFinite(high) || high < low) return []
@@ -91,7 +91,7 @@ export function bandsFor(low, high) {
  * @param {object[]} scoped Output of scopeEntries().
  * @param {object|null} scale The plan's GradeScale (`min`, `max`, `passThreshold`).
  * @return {{count: number, average: number|null, lowest: number|null, highest: number|null, passing: number|null, bands: Array<{from: number, to: number, count: number}>}}
- * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+ * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
  */
 export function distribution(scoped, scale = null) {
 	const values = (scoped ?? []).filter(hasMark).map((e) => Number(e.value))
@@ -146,7 +146,7 @@ export function distribution(scoped, scale = null) {
  *
  * @param {Array<{entry: object, ok: boolean, reason?: string}>} outcomes One per entry, in send order.
  * @return {{published: number, refused: Array<{learnerId: string, reason: string}>}}
- * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+ * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
  */
 export function publishReport(outcomes) {
 	const list = outcomes ?? []

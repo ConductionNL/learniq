@@ -32,7 +32,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
+ * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
  */
 
 declare(strict_types=1);
@@ -47,7 +47,7 @@ use Throwable;
 /**
  * Recomputes and stores a framework's curriculum coverage.
  *
- * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
+ * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
  */
 class CurriculumCoverageRollup {
 
@@ -97,7 +97,7 @@ class CurriculumCoverageRollup {
 	 *
 	 * @return array{saved: int, deleted: int, unchanged: int}
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
 	 */
 	public function recompute(string $frameworkId): array {
 		$result   = ['saved' => 0, 'deleted' => 0, 'unchanged' => 0];
@@ -144,7 +144,7 @@ class CurriculumCoverageRollup {
 	 *
 	 * @return array<int, string>
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
 	 */
 	public function frameworksForGoals(array $goalIds): array {
 		$frameworks = [];
@@ -164,7 +164,7 @@ class CurriculumCoverageRollup {
 	 *
 	 * @return array<int, string>
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-an-occ-command-fills-coverage-for-existing-data
+	 * @spec openspec/specs/competency/spec.md#requirement-an-occ-command-fills-coverage-for-existing-data
 	 */
 	public function allFrameworkIds(): array {
 		return array_values(
@@ -181,7 +181,7 @@ class CurriculumCoverageRollup {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-an-occ-command-fills-coverage-for-existing-data
+	 * @spec openspec/specs/competency/spec.md#requirement-an-occ-command-fills-coverage-for-existing-data
 	 */
 	public function frameworkExists(string $frameworkId): bool {
 		return $this->load(schema: self::FRAMEWORK_SCHEMA, id: $frameworkId) !== null;

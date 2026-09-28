@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-settled-shillinq-contribution-grants-the-learners-entitlement
+ * @spec openspec/specs/payments/spec.md#requirement-a-settled-shillinq-contribution-grants-the-learners-entitlement
  */
 
 declare(strict_types=1);

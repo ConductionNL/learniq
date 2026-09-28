@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
+ * @spec openspec/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
  */
 
 declare(strict_types=1);

@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
  */
 
 declare(strict_types=1);
@@ -44,7 +44,7 @@ use Throwable;
 /**
  * Reads the current segment from the `LearniqSettings` singleton.
  *
- * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
  */
 class SegmentService {
 
@@ -160,7 +160,7 @@ class SegmentService {
 	 *
 	 * @return string One of SEGMENTS; DEFAULT_SEGMENT when nothing valid is stored.
 	 *
-	 * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
 	 */
 	public function currentSegment(): string {
 		$current = $this->currentRow();
@@ -185,7 +185,7 @@ class SegmentService {
 	 *
 	 * @return string|null One of SEGMENTS, or null when nobody chose.
 	 *
-	 * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
 	 */
 	public function chosenSegment(): ?string {
 		return $this->workspace()['chosenSegment'];
@@ -197,7 +197,7 @@ class SegmentService {
 	 *
 	 * @return array{segment: string, chosenSegment: string|null} The two values.
 	 *
-	 * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
 	 */
 	public function workspace(): array {
 		$current = $this->currentRow();
@@ -244,7 +244,7 @@ class SegmentService {
 	 *
 	 * @return bool True when a LearniqSettings row carries a known segment.
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
 	 */
 	public function hasSegment(): bool {
 		return $this->currentRow() !== null;
@@ -255,7 +255,7 @@ class SegmentService {
 	 *
 	 * @return array<int, array{id: string, label: string, description: string, icon: string}> The cards, in SEGMENTS order.
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
 	 */
 	public function listChoices(): array {
 		$choices = [];
@@ -281,7 +281,7 @@ class SegmentService {
 	 *
 	 * @throws InvalidArgumentException When the segment is not one of SEGMENTS.
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
 	 */
 	public function setSegment(string $segment, ?string $actor): void {
 		if (in_array($segment, self::SEGMENTS, true) === false) {

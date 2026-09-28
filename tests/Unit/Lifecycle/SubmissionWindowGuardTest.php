@@ -224,7 +224,7 @@ class SubmissionWindowGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
 	 */
 	public function testResubmissionAfterTheAssignmentDeadlineIsOnTime(): void {
 		$guard = $this->makeGuard($this->assignment('-3 days', false));
@@ -238,7 +238,7 @@ class SubmissionWindowGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
 	 */
 	public function testAPassedResubmissionDateFollowsTheLateRules(): void {
 		$lateOk = $this->makeGuard($this->assignment('-3 days', true));
@@ -254,7 +254,7 @@ class SubmissionWindowGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
 	 */
 	public function testSubmitLateIsRefusedInsideTheResubmissionWindow(): void {
 		$guard = $this->makeGuard($this->assignment('-3 days', true));
@@ -267,7 +267,7 @@ class SubmissionWindowGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
 	 */
 	public function testAResubmissionDateDoesNotWidenWhoMayHandIn(): void {
 		$guard = $this->makeGuard($this->assignment('-3 days', false));

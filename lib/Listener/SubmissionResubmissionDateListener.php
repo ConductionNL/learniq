@@ -31,7 +31,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-only-staff-set-a-resubmission-date
+ * @spec openspec/specs/assignments/spec.md#requirement-only-staff-set-a-resubmission-date
  */
 
 declare(strict_types=1);
@@ -54,7 +54,7 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-only-staff-set-a-resubmission-date
+ * @spec openspec/specs/assignments/spec.md#requirement-only-staff-set-a-resubmission-date
  */
 class SubmissionResubmissionDateListener implements IEventListener {
 
@@ -91,7 +91,7 @@ class SubmissionResubmissionDateListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-only-staff-set-a-resubmission-date
+	 * @spec openspec/specs/assignments/spec.md#requirement-only-staff-set-a-resubmission-date
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {

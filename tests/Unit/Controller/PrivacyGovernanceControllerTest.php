@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#requirement-a-board-facing-dashboard-composes-group-2fa-and-integration-approval-state
+ * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-a-board-facing-dashboard-composes-group-2fa-and-integration-approval-state
  */
 
 declare(strict_types=1);
@@ -67,7 +67,7 @@ class PrivacyGovernanceControllerTest extends TestCase {
 	 * `null` member count — never a fabricated `0`.
 	 *
 	 * @return void
-	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
 	 */
 	public function testUnprovisionedGroupReportsNullNotZero(): void {
 		$groupManager = $this->createMock(IGroupManager::class);
@@ -90,7 +90,7 @@ class PrivacyGovernanceControllerTest extends TestCase {
 	 * A provisioned group reports its real member count.
 	 *
 	 * @return void
-	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
 	 */
 	public function testProvisionedGroupReportsMemberCount(): void {
 		$group = $this->createMock(IGroup::class);
@@ -118,7 +118,7 @@ class PrivacyGovernanceControllerTest extends TestCase {
 	 * ("unknown"), never a fabricated `0` or the literal `false`.
 	 *
 	 * @return void
-	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
 	 */
 	public function testProvisionedGroupWithUncountableMembersReportsNull(): void {
 		$group = $this->createMock(IGroup::class);
@@ -145,7 +145,7 @@ class PrivacyGovernanceControllerTest extends TestCase {
 	 * members, and only a user with at least one enabled provider counts.
 	 *
 	 * @return void
-	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
 	 */
 	public function testTwoFactorAdoptionCountsOnlyEnabledUsers(): void {
 		$userWith2fa = $this->createMock(IUser::class);
@@ -188,7 +188,7 @@ class PrivacyGovernanceControllerTest extends TestCase {
 	 * zero.
 	 *
 	 * @return void
-	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-two-factor-adoption-degrades-to-unknown-rather-than-a-fabricated-zero
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-two-factor-adoption-degrades-to-unknown-rather-than-a-fabricated-zero
 	 */
 	public function testTwoFactorRegistryFailureDegradesToUnknown(): void {
 		$user = $this->createMock(IUser::class);
@@ -220,7 +220,7 @@ class PrivacyGovernanceControllerTest extends TestCase {
 	 * ignored (data-exchange-to-integriq).
 	 *
 	 * @return void
-	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
 	 */
 	public function testPartnerApprovalCountsGroupedByStatus(): void {
 		$groupManager = $this->createMock(IGroupManager::class);
@@ -256,7 +256,7 @@ class PrivacyGovernanceControllerTest extends TestCase {
 	 * own normalisation.
 	 *
 	 * @return void
-	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
 	 */
 	public function testPartnerApprovalCountsNormaliseJsonSerializableObjects(): void {
 		$groupManager = $this->createMock(IGroupManager::class);
