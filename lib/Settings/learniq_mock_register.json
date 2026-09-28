@@ -21039,7 +21039,7 @@
         "allowLateSubmission": false,
         "latePenaltyPercent": 0,
         "rubricId": "00000000-0000-4000-8000-000000000001",
-        "groupSubmission": false,
+        "groupSubmission": true,
         "visibleFrom": "2026-03-02T09:00:00+00:00",
         "visibleUntil": "2026-03-02T09:00:00+00:00",
         "plagiarismProvider": "Voorbeeld Plagiarismprovider 2",
@@ -21049,7 +21049,8 @@
         "peerReviewersPerSubmission": 2,
         "peerReviewAnonymity": "blind",
         "peerReviewAllocationStrategy": "random",
-        "peerReviewDueAt": "2026-03-02T09:00:00+00:00"
+        "peerReviewDueAt": "2026-03-02T09:00:00+00:00",
+        "workGroupSetName": "Project campagne periode 2"
       },
       {
         "@self": {
@@ -28034,6 +28035,99 @@
         "ncGroupId": "Voorbeeld Ncgroupid 1",
         "lifecycle": "planned",
         "reportCardTemplateId": "00000000-0000-4000-8000-0000000000f1"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "WorkGroup",
+          "slug": "workgroup-campagne-groep-1"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "setName": "Project campagne periode 2",
+        "name": "Groep 1",
+        "maxMembers": 4,
+        "memberIds": [
+          "s.ahmed",
+          "l.devries",
+          "t.jansen",
+          "m.bakker"
+        ],
+        "selfJoinUntil": "2026-11-16T23:59:00+00:00",
+        "lifecycle": "open",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "WorkGroup",
+          "slug": "workgroup-campagne-groep-2"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "setName": "Project campagne periode 2",
+        "name": "Groep 2",
+        "maxMembers": 4,
+        "memberIds": [
+          "k.visser",
+          "n.smit",
+          "r.mulder",
+          "e.bos"
+        ],
+        "selfJoinUntil": "2026-11-16T23:59:00+00:00",
+        "lifecycle": "open",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "WorkGroup",
+          "slug": "workgroup-campagne-groep-3"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "setName": "Project campagne periode 2",
+        "name": "Groep 3",
+        "maxMembers": 4,
+        "memberIds": [
+          "j.dekker",
+          "a.peters",
+          "f.hendriks",
+          "d.vos"
+        ],
+        "selfJoinUntil": "2026-11-16T23:59:00+00:00",
+        "lifecycle": "open",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "WorkGroup",
+          "slug": "workgroup-campagne-groep-4"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "setName": "Project campagne periode 2",
+        "name": "Groep 4",
+        "maxMembers": 4,
+        "memberIds": [
+          "y.koster",
+          "b.meijer"
+        ],
+        "selfJoinUntil": "2026-11-16T23:59:00+00:00",
+        "lifecycle": "open",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "WorkGroup",
+          "slug": "workgroup-campagne-groep-5"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "setName": "Project campagne periode 2",
+        "name": "Groep 5",
+        "maxMembers": 4,
+        "memberIds": [],
+        "selfJoinUntil": "2026-11-16T23:59:00+00:00",
+        "lifecycle": "open",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
       },
       {
         "@self": {

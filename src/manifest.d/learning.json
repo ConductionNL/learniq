@@ -2330,6 +2330,52 @@
 						"icon": "AccountSchoolOutline"
 					},
 					{
+						"id": "coh-work-groups",
+						"type": "object-list",
+						"title": "Work groups",
+						"content": {
+							"register": "learniq",
+							"schema": "WorkGroup",
+							"filter": {
+								"cohortId": "@objectId"
+							},
+							"sort": {
+								"field": "name",
+								"dir": "asc"
+							},
+							"limit": 50,
+							"columns": [
+								{
+									"key": "setName",
+									"label": "Set"
+								},
+								{
+									"key": "name",
+									"label": "Name"
+								},
+								{
+									"key": "maxMembers",
+									"label": "Maximum members"
+								},
+								{
+									"key": "selfJoinUntil",
+									"label": "Sign-up open until"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "WorkGroupDetail",
+							"viewAllRoute": "WorkGroups",
+							"viewAllQuery": {
+								"cohortId": "@objectId"
+							},
+							"emptyText": "No work groups yet."
+						},
+						"icon": "AccountGroup"
+					},
+					{
 						"id": "coh-related",
 						"type": "related",
 						"title": "Related",
@@ -2451,6 +2497,14 @@
 						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false
+					},
+					{
+						"id": "work-groups",
+						"widgetId": "coh-work-groups",
+						"gridX": 0,
+						"gridY": 28,
+						"gridWidth": 12,
+						"gridHeight": 4
 					}
 				],
 				"sidebar": {
@@ -2470,6 +2524,30 @@
 					]
 				}
 			}
+		},
+		{
+			"id": "WorkGroups",
+			"route": "/work-groups",
+			"type": "index",
+			"title": "Work groups",
+			"config": {
+				"register": "learniq",
+				"schema": "WorkGroup"
+			}
+		},
+		{
+			"id": "WorkGroupDetail",
+			"route": "/work-groups/:id",
+			"type": "detail",
+			"title": "Work group",
+			"config": {
+				"register": "learniq",
+				"schema": "WorkGroup",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				}
+			},
+			"_note": "enrolment-self-join-work-group: a teacher sets the set, name, maximum size and sign-up date, moves a learner by editing the members, and closes or reopens sign-up. Learners never read this page; they use MyWorkGroups."
 		},
 		{
 			"id": "SubjectTeacherAssignmentDetail",

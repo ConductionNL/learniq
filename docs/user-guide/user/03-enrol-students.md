@@ -52,6 +52,15 @@ The enrolments are good when: the course's *Enrolments* tab shows the learners w
 | The same learner appears enrolled twice | Two enrolments with overlapping date windows are allowed (one per cohort, for example). Close the older one by setting an end date if that was not intentional. |
 | *"Course is not open for enrolment"* | The course is in *Draft* or *Closed* status, set it back to *Open* on the course detail page. |
 
+## Work groups that learners join themselves
+
+For project work you can split a class into work groups that learners join themselves.
+
+1. Open the class and go to **Work groups**. Add a group for each team: the same **Set** for groups made together (for example *Project campagne periode 2*), a **Name**, a **Maximum members** and **Sign-up open until**. Leave the date empty to place learners yourself.
+2. Learners open **My work groups** in learniq, or the portal, and see each group with its free places. They join a group with a free place, move to another group of the same set, or leave, until the date. A full group takes nobody more.
+3. You can move a learner at any time by editing the group's members, and close sign-up early with *Close*.
+4. On a group assignment, set **Work group set** to the set. When one member hands in, the hand-in names the whole group.
+
 ## Reference
 
 - [Track learner progress](./08-track-progress.md), what the learner sees once they are enrolled.
