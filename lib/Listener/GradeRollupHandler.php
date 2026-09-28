@@ -67,6 +67,7 @@ class GradeRollupHandler implements IEventListener {
 	private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
 	private const CURRICULUM_PLAN_SCHEMA = 'curriculum-plan';
+	private const PROGRAMME_SCHEMA = 'programme';
 
 	/**
 	 * Constructor.
@@ -287,6 +288,7 @@ class GradeRollupHandler implements IEventListener {
 			[
 				'learnerId' => $learnerId,
 				'curriculumPlanId' => $curriculumPlanId,
+				'programmeId' => $this->programmeFor(curriculumPlanId: $curriculumPlanId, current: ($existingObj['programmeId'] ?? null)),
 				'courseId' => $entry['courseId'] ?? ($existingObj['courseId'] ?? null),
 				'gradeScaleId' => $entry['gradeScaleId'] ?? ($existingObj['gradeScaleId'] ?? null),
 				'tenant_id' => $tenantId,
@@ -304,6 +306,50 @@ class GradeRollupHandler implements IEventListener {
 		);
 
 	}//end recomputeFinalGrade()
+
+	/**
+	 * The Programme a final grade belongs to: the one whose curriculum plan it
+	 * was computed from. The programme KPI filters FinalGrade on programmeId,
+	 * so a roll-up that never wrote it left every programme at zero. A plan no
+	 * programme uses keeps what the row had (null for a course-level grade).
+	 *
+	 * @param string $curriculumPlanId Plan UUID.
+	 * @param mixed $current The programmeId already on the row, if any.
+	 *
+	 * @return string|null The Programme UUID, or null.
+	 *
+	 * @spec openspec/changes/grading-rollup-followups/specs/grading/spec.md#requirement-the-final-grade-roll-up-writes-the-programme-it-belongs-to
+	 */
+	private function programmeFor(string $curriculumPlanId, mixed $current): ?string {
+		$programmes = $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::PROGRAMME_SCHEMA,
+					'curriculumPlanId' => $curriculumPlanId,
+				],
+				'limit' => 1,
+			]
+		);
+
+		if (empty($programmes) === false) {
+			$programme = $programmes[0];
+			if (is_array($programme) === false) {
+				$programme = $programme->jsonSerialize();
+			}
+
+			$id = ($programme['id'] ?? ($programme['uuid'] ?? null));
+			if (is_string($id) === true && $id !== '') {
+				return $id;
+			}
+		}
+
+		if (is_string($current) === true && $current !== '') {
+			return $current;
+		}
+
+		return null;
+	}//end programmeFor()
 
 	/**
 	 * Resolve LearnerProfile.parentIds and fire the gradePublished notification for each parent.
