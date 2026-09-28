@@ -634,11 +634,7 @@
 						"download": true,
 						"filename": "europass.jsonld",
 						"refresh": false,
-						"visibleWhen": {
-							"field": "edciPayload",
-							"op": "notEmpty"
-						},
-						"errorMessage": "The Europass version could not be downloaded."
+						"errorMessage": "This certificate has no Europass version yet, or you may not download it."
 					},
 					{
 						"id": "create-europass",
@@ -648,12 +644,8 @@
 						"url": "/apps/learniq/api/credentials/@objectId/europass",
 						"method": "POST",
 						"confirm": true,
-						"visibleWhen": {
-							"field": "edciPayload",
-							"op": "empty"
-						},
 						"successMessage": "The Europass version was created.",
-						"errorMessage": "The Europass version could not be created. Only HR and compliance officers can create it, for an issued certificate."
+						"errorMessage": "The Europass version could not be created. It exists already, the certificate is not issued, or only HR and compliance officers can create it."
 					}
 				]
 			}

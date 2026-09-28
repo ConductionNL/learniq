@@ -43,6 +43,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\IGroupManager;
 use OCP\IRequest;
 use OCP\IUserSession;
+use Throwable;
 
 /**
  * Europass download and backfill.
@@ -143,15 +144,19 @@ class CredentialEuropassController extends Controller {
 			return new JSONResponse(data: ['error' => 'already_created'], statusCode: Http::STATUS_CONFLICT);
 		}
 
-		$payload = $this->europass->payloadFor(credential: $credential);
-		if ($payload === null) {
-			return new JSONResponse(data: ['error' => 'cannot_sign'], statusCode: Http::STATUS_UNPROCESSABLE_ENTITY);
-		}
+		try {
+			$payload = $this->europass->payloadFor(credential: $credential);
+			if ($payload === null) {
+				return new JSONResponse(data: ['error' => 'cannot_sign'], statusCode: Http::STATUS_UNPROCESSABLE_ENTITY);
+			}
 
-		$row = $credential;
-		unset($row['@self']);
-		$row['edciPayload'] = $payload;
-		$this->objects->saveObject(object: $row, register: self::REGISTER, schema: self::SCHEMA, uuid: $id, _rbac: false);
+			$row = $credential;
+			unset($row['@self']);
+			$row['edciPayload'] = $payload;
+			$this->objects->saveObject(object: $row, register: self::REGISTER, schema: self::SCHEMA, uuid: $id, _rbac: false);
+		} catch (Throwable) {
+			return new JSONResponse(data: ['error' => 'save_failed'], statusCode: Http::STATUS_INTERNAL_SERVER_ERROR);
+		}
 
 		return new JSONResponse(data: ['created' => true]);
 	}//end create()

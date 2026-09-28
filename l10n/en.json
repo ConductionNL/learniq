@@ -2233,7 +2233,9 @@
         "Create Europass version": "Create Europass version",
         "The Europass version could not be downloaded.": "The Europass version could not be downloaded.",
         "The Europass version was created.": "The Europass version was created.",
-        "The Europass version could not be created. Only HR and compliance officers can create it, for an issued certificate.": "The Europass version could not be created. Only HR and compliance officers can create it, for an issued certificate."
+        "The Europass version could not be created. Only HR and compliance officers can create it, for an issued certificate.": "The Europass version could not be created. Only HR and compliance officers can create it, for an issued certificate.",
+        "This certificate has no Europass version yet, or you may not download it.": "This certificate has no Europass version yet, or you may not download it.",
+        "The Europass version could not be created. It exists already, the certificate is not issued, or only HR and compliance officers can create it.": "The Europass version could not be created. It exists already, the certificate is not issued, or only HR and compliance officers can create it."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
