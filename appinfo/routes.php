@@ -158,6 +158,9 @@ return [
         // (planninq when installed, else Session), after an RBAC read of the cohort
         // (sessions-from-planninq).
         ['name' => 'timetable#cohort', 'url' => '/api/timetable/cohort/{cohortId}', 'verb' => 'GET', 'requirements' => ['cohortId' => '[^/]+']],
+        // Teaching activities of a school year, derived from the hour plans
+        // (timetabling-multi-year-hour-plan). Staff groups only, checked in the body.
+        ['name' => 'hourPlan#activities', 'url' => '/api/hour-plans/activities', 'verb' => 'GET'],
 
         // Peer review reviewer allocation — genuine batch-matching business logic
         // (peer-and-self-assessment), authorized by an explicit per-object check

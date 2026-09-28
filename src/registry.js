@@ -106,6 +106,10 @@ import GroupPlanSubgroupLearnerContext from './views/GroupPlanSubgroupLearnerCon
 // learning-progress-and-analytics: cohort x period grade-trend heat map —
 // the one genuine new custom view this change adds.
 import GroupTrendHeatmap from './views/GroupTrendHeatmap.vue'
+// timetabling-multi-year-hour-plan: the hour plan grid and the teaching
+// activities a school year needs.
+import HourPlanActivities from './views/HourPlanActivities.vue'
+import HourPlanEditor from './views/HourPlanEditor.vue'
 import ItemAnalysisView from './views/ItemAnalysisView.vue'
 import ItemAuthorView from './views/ItemAuthorView.vue'
 // engagement-gamification: the one genuine new custom view this change adds —
@@ -258,6 +262,8 @@ export default {
 	GradeImpactDetail: page(GradeImpactDetail),
 	GroupPlanSubgroupLearnerContext: page(GroupPlanSubgroupLearnerContext),
 	GroupTrendHeatmap: page(GroupTrendHeatmap),
+	HourPlanActivities: page(HourPlanActivities),
+	HourPlanEditor: page(HourPlanEditor),
 	ItemAnalysisView: page(ItemAnalysisView),
 	ItemAuthorView: page(ItemAuthorView),
 	LeaderboardView: page(LeaderboardView),
