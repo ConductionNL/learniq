@@ -30,6 +30,25 @@ class Schema extends Entity implements JsonSerializable {
 	protected ?string $slug = null;
 
 	/**
+	 * The schema's configuration block (annotations such as x-openregister-archival).
+	 *
+	 * @var array<string, mixed>|null
+	 */
+	protected ?array $configuration = null;
+
+	/**
+	 * Whether the schema declares `x-openregister-archival`: mirrors
+	 * OpenRegister's single definition of "is archival".
+	 *
+	 * @return bool
+	 */
+	public function hasArchivalAnnotation(): bool {
+		$configuration = ($this->configuration ?? []);
+
+		return is_array($configuration['x-openregister-archival'] ?? null);
+	}//end hasArchivalAnnotation()
+
+	/**
 	 * Serialize the schema.
 	 *
 	 * @return array<string,mixed>

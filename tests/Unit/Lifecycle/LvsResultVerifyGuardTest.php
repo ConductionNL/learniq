@@ -68,7 +68,7 @@ class LvsResultVerifyGuardTest extends TestCase {
 	 * @spec openspec/changes/lvs-import-contract/specs/data-exchange/spec.md#scenario-an-imported-result-is-not-verified-until-a-coordinator-confirms-it
 	 */
 	public function testCoordinatorIsAllowed(): void {
-		$guard = $this->makeGuard(['coordinator']);
+		$guard = $this->makeGuard(['coordinators']);
 		$object = ['id' => 'lvs-1', 'lifecycle' => 'verified'];
 
 		self::assertAllowed($guard->check($object, 'verify', 'actor-1'));
@@ -109,7 +109,7 @@ class LvsResultVerifyGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testNoActorIsDenied(): void {
-		$guard = $this->makeGuard(['coordinator']);
+		$guard = $this->makeGuard(['coordinators']);
 		$object = ['id' => 'lvs-1', 'lifecycle' => 'verified'];
 
 		self::assertDenied($guard->check($object, 'verify', ''));
@@ -122,10 +122,26 @@ class LvsResultVerifyGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testUnknownActorIsDenied(): void {
-		$guard = $this->makeGuard(['coordinator']);
+		$guard = $this->makeGuard(['coordinators']);
 		$object = ['id' => 'lvs-1', 'lifecycle' => 'verified'];
 
 		self::assertDenied($guard->check($object, 'verify', 'ghost-user'));
 
 	}//end testUnknownActorIsDenied()
+
+	/**
+	 * The singular `coordinator` is not a group the register declares, so a
+	 * member of a group by that name is refused like anyone else.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/access-control-ratchet-compliance/specs/data-exchange/spec.md#requirement-imported-lvs-results-and-transfer-dossiers-are-read-and-written-by-the-groups-that-review-them
+	 */
+	public function testSingularCoordinatorGroupIsDenied(): void {
+		$guard = $this->makeGuard(['coordinator']);
+		$object = ['id' => 'lvs-1', 'lifecycle' => 'verified'];
+
+		self::assertDenied($guard->check($object, 'verify', 'actor-1'));
+
+	}//end testSingularCoordinatorGroupIsDenied()
 }//end class

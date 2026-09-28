@@ -186,7 +186,8 @@ class ConfidentialCounsellorChannelRegisterTest extends TestCase {
 	 */
 	public function testTheSeedRowIsComplete(): void {
 		$schema = $this->schema();
-		$seed   = $schema['x-openregister-seed'][0];
+		// Found by id, not by position: another change may seed this schema too.
+		$seed = $this->seedById(schema: $schema, id: '00000000-0000-0000-0000-0000000f0001');
 
 		foreach ($schema['required'] as $field) {
 			self::assertArrayHasKey($field, $seed);
@@ -218,4 +219,22 @@ class ConfidentialCounsellorChannelRegisterTest extends TestCase {
 		self::assertStringContainsString("loadState('learniq', 'confidentialCounsellor'", $main);
 
 	}//end testTheMenuIsGatedOnTheConfidentialFlag()
+
+	/**
+	 * The seed row with the given id, failing the test when there is none.
+	 *
+	 * @param array<string, mixed> $schema The schema.
+	 * @param string $id The seed row's id.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function seedById(array $schema, string $id): array {
+		foreach (($schema['x-openregister-seed'] ?? []) as $seed) {
+			if (($seed['id'] ?? null) === $id) {
+				return $seed;
+			}
+		}
+
+		self::fail('No seed row with id ' . $id);
+	}//end seedById()
 }//end class

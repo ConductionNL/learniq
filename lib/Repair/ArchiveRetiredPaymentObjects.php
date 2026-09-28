@@ -164,6 +164,78 @@ class ArchiveRetiredPaymentObjects implements IRepairStep {
 	}//end run()
 
 	/**
+	 * Whether every current row of one retired schema is in the archive, so
+	 * the schema can be pruned with its rows (retired-schemas-prune).
+	 *
+	 * True only when the archive file exists, the schema's rows can be read,
+	 * their number equals what the prune would delete, and every row's id is
+	 * among the archived rows of that schema. Any failure answers false.
+	 *
+	 * @param string $schema       Retired schema slug, one of RETIRED_SCHEMAS.
+	 * @param int    $expectedRows Rows the prune would delete.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/retired-schemas-prune/specs/nextcloud-app/spec.md#requirement-schemas-learniq-retired-leave-the-instance-once-their-rows-are-kept-elsewhere
+	 */
+	public function isFullyArchived(string $schema, int $expectedRows): bool {
+		if (in_array($schema, self::RETIRED_SCHEMAS, true) === false) {
+			return false;
+		}
+
+		try {
+			$folder = $this->folder();
+			if ($folder->fileExists(self::FILE) === false) {
+				return false;
+			}
+
+			$export = json_decode($folder->getFile(self::FILE)->getContent(), true, 512, JSON_THROW_ON_ERROR);
+		} catch (Throwable $exception) {
+			$this->logger->info(
+				'[ArchiveRetiredPaymentObjects] Archive not readable: {msg}',
+				['msg' => $exception->getMessage()]
+			);
+			return false;
+		}
+
+		$archived = array_map(fn (mixed $row): string => $this->idOf(row: $row), (array)($export['objects'][$schema] ?? []));
+		$current = $this->readAll(schema: $schema);
+		if (count($current) !== $expectedRows) {
+			return false;
+		}
+
+		foreach ($current as $row) {
+			$id = $this->idOf(row: $row);
+			if ($id === '' || in_array($id, $archived, true) === false) {
+				return false;
+			}
+		}
+
+		return true;
+	}//end isFullyArchived()
+
+	/**
+	 * The object uuid of a serialised row: `id`, `uuid` or `@self.id`, or ''.
+	 *
+	 * @param mixed $row Serialised row.
+	 *
+	 * @return string
+	 */
+	private function idOf(mixed $row): string {
+		if (is_array($row) === false) {
+			return '';
+		}
+
+		foreach ([($row['id'] ?? null), ($row['uuid'] ?? null), ($row['@self']['id'] ?? null)] as $candidate) {
+			if (is_string($candidate) === true && $candidate !== '') {
+				return $candidate;
+			}
+		}
+
+		return '';
+	}//end idOf()
+
+	/**
 	 * The archive folder, created when missing.
 	 *
 	 * @return \OCP\Files\SimpleFS\ISimpleFolder
