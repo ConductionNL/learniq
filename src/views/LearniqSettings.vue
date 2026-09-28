@@ -854,7 +854,7 @@ export default {
 		 * DataSubjectRequests index page.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/privacy-reuse-openregister-register/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+		 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
 		 */
 		async loadRecentDataSubjectRequests() {
 			const store = useObjectStore()
@@ -882,7 +882,7 @@ export default {
 		 * Navigate to the full DataSubjectRequests index page.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/privacy-reuse-openregister-register/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+		 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
 		 */
 		openDataSubjectRequests() {
 			window.location.href =

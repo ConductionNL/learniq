@@ -145,7 +145,7 @@ class SchoolAndLocationRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
 	 */
 	public function testSeedFixturesExerciseRelationAndBackfill(): void {
 		$schools = self::poObjects(schema: 'school');

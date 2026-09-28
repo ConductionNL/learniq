@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+ * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
 
 declare(strict_types=1);
@@ -40,7 +40,7 @@ use OCA\Learniq\Service\LessonReleaseEvaluator;
 /**
  * Which tests a pupil may start, and why not.
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+ * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
 class PortalAssessmentCatalogue {
 
@@ -81,7 +81,7 @@ class PortalAssessmentCatalogue {
 	 *
 	 * @return array<int, array{exam: array<string, mixed>, enrolment: array<string, mixed>}>
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function examsFor(PortalLearner $learner): array {
 		$found = [];
@@ -112,7 +112,7 @@ class PortalAssessmentCatalogue {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function enrolmentFor(PortalLearner $learner, array $exam): ?array {
 		$courseId = (string)($exam['courseId'] ?? '');
@@ -139,7 +139,7 @@ class PortalAssessmentCatalogue {
 	 *
 	 * @return string|null One of the reason constants.
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function startBlock(PortalLearner $learner, array $exam, ?array $enrolment, int $attemptsUsed, DateTimeInterface $now): ?string {
 		if (($exam['lifecycle'] ?? '') !== 'published' || $enrolment === null || $this->otherSchool(learner: $learner, exam: $exam) === true) {

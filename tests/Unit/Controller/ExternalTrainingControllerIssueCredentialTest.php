@@ -30,6 +30,7 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\ExternalTrainingController;
 use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CredentialSigningService;
 use OCA\Learniq\Service\ExternalTrainingService;
 use OCA\Learniq\Service\SigningKeyConfigKey;
@@ -38,6 +39,7 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
 use OCP\IAppConfig;
+use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUser;
@@ -161,12 +163,29 @@ class ExternalTrainingControllerIssueCredentialTest extends TestCase {
 				CredentialSigningService::class => $this->signingService(tenantHasKey: $tenantHasKey),
 				// requireAction() returns void on success: the authorised case.
 				ActionAuthService::class => $this->createMock(ActionAuthService::class),
+				CallerTenantResolver::class => $this->callerTenant(objectService: $objectService),
 				default => $this->createStub($type->getName()),
 			};
 		}
 
 		return $class->newInstanceArgs($arguments);
 	}//end controller()
+
+	/**
+	 * A tenant resolver for a caller bound to the record's tenant.
+	 *
+	 * @param ObjectService $objectService The OR double the record comes from.
+	 *
+	 * @return CallerTenantResolver
+	 */
+	private function callerTenant(ObjectService $objectService): CallerTenantResolver {
+		$config = $this->createMock(IConfig::class);
+		$config->method('getUserValue')->willReturnCallback(
+			static fn (string $userId, string $appName, string $key, mixed $default = ''): mixed => ($key === 'tenant_id' ? self::TENANT : $default)
+		);
+
+		return new CallerTenantResolver($config, $objectService);
+	}//end callerTenant()
 
 	/**
 	 * An ObjectService double with OpenRegister's real method names.

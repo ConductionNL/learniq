@@ -246,7 +246,7 @@ class ConnectionReportService {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-the-timetable-connection-is-available-when-planninq-and-integriq-are-installed
+	 * @spec openspec/specs/timetabling/spec.md#requirement-the-timetable-connection-is-available-when-planninq-and-integriq-are-installed
 	 */
 	public function observeTimetable(): void {
 		if ($this->appManager->isEnabledForUser('planninq') === true) {

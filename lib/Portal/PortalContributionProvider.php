@@ -347,7 +347,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<string, mixed> The studentTests collection.
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
 	 */
 	private function studentTestsCollection(): array {
 		return [
@@ -390,7 +390,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<int, array<string, mixed>> The timed-task actions.
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
 	 */
 	private function studentTestActions(): array {
 		$steps = [
@@ -435,7 +435,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<string, mixed> The hand-in action.
 	 *
-	 * @spec openspec/changes/portal-assignment-hand-in-endpoint/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-a-draft-submission-from-the-portal-req-pcon-009
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-a-draft-submission-from-the-portal-req-pcon-009
 	 */
 	private function handInAction(): array {
 		return [
@@ -472,7 +472,7 @@ class PortalContributionProvider {
 	 * @return array<int, array<string, mixed>> Student create-actions.
 	 *
 	 * @spec openspec/specs/portal-contribution/spec.md
-	 * @spec openspec/changes/assignment-portal-wiring/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-work-through-the-portal-with-a-real-file-req-pcon-007
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-work-through-the-portal-with-a-real-file-req-pcon-007
 	 */
 	private function studentActions(): array {
 		return [

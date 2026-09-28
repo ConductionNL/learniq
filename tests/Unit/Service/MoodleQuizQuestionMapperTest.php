@@ -138,7 +138,7 @@ class MoodleQuizQuestionMapperTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/assessment/spec.md#scenario-a-moodle-quiz-question-becomes-a-qti-21-item
+	 * @spec openspec/specs/assessment/spec.md#scenario-a-moodle-quiz-question-becomes-a-qti-21-item
 	 */
 	public function testAMappedQuestionIsLabelledQti21(): void {
 		$rows = (new MoodleQuizQuestionMapper())->mapQuestions(self::QUESTIONS_XML, 'bank-1', 'tenant-1');

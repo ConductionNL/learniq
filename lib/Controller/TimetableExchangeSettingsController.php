@@ -15,7 +15,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+ * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
  */
 
 declare(strict_types=1);
@@ -35,7 +35,7 @@ use OCP\IRequest;
 /**
  * Admin-only read and write of the timetable and SWV exchange settings.
  *
- * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+ * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
  */
 class TimetableExchangeSettingsController extends Controller {
 	/**
@@ -60,7 +60,7 @@ class TimetableExchangeSettingsController extends Controller {
 	 *
 	 * @return JSONResponse `{sources, groupMaps, swvReceiverId}`.
 	 *
-	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+	 * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 	 */
 	#[AuthorizedAdminSetting(settings: AdminSettings::class)]
 	public function show(): JSONResponse {
@@ -72,7 +72,7 @@ class TimetableExchangeSettingsController extends Controller {
 	 *
 	 * @return JSONResponse The saved settings, as show() answers; 400 with a reason otherwise.
 	 *
-	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+	 * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 	 */
 	#[AuthorizedAdminSetting(settings: AdminSettings::class)]
 	public function update(): JSONResponse {

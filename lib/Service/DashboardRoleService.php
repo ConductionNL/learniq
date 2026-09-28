@@ -120,7 +120,7 @@ class DashboardRoleService {
 	 *
 	 * @return bool True when the user is in the confidential-counsellors group.
 	 *
-	 * @spec openspec/changes/confidential-counsellor-channel/specs/confidential-counsel/spec.md#requirement-the-confidential-notes-menu-is-shown-to-confidential-counsellors-only
+	 * @spec openspec/specs/confidential-counsel/spec.md#requirement-the-confidential-notes-menu-is-shown-to-confidential-counsellors-only
 	 */
 	public function isConfidentialCounsellor(IUser $user): bool {
 		return $this->groupManager->isInGroup($user->getUID(), self::CONFIDENTIAL_COUNSELLOR_GROUP) === true;

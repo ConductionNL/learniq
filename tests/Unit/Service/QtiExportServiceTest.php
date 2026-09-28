@@ -136,7 +136,7 @@ class QtiExportServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/assessment/spec.md#scenario-exporting-an-itembank-produces-a-qti-21-package
+	 * @spec openspec/specs/assessment/spec.md#scenario-exporting-an-itembank-produces-a-qti-21-package
 	 */
 	public function testThePackageDeclaresQti21(): void {
 		$entries = $this->exportEntries(['item-1' => '<?xml version="1.0"?><assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1" identifier="i1"/>']);
@@ -156,7 +156,7 @@ class QtiExportServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/assessment/spec.md#scenario-an-item-stored-under-the-old-label-is-exported-with-the-qti-21-namespace
+	 * @spec openspec/specs/assessment/spec.md#scenario-an-item-stored-under-the-old-label-is-exported-with-the-qti-21-namespace
 	 */
 	public function testAnItemStoredUnderTheOldLabelIsExportedWithTheQti21Namespace(): void {
 		$old = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"

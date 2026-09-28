@@ -352,3 +352,171 @@ The set MUST pass `ExampleSetDescriptorContractTest`, MUST be offered by `SeedPr
 - **GIVEN** the generator
 - **WHEN** `python3 scripts/example-sets/vo.py --check` runs
 - **THEN** it exits 0
+
+### Requirement: The primary school set is one consistent school
+`lib/Settings/profiles/po.json` MUST describe one fictional primary school through the 2025-2026 school year: one `School`, two `Vestiging` locations, seven classes named "Groep 1" to "Groep 8" with a combined "Groep 5/6", between 180 and 220 pupils each with at least one guardian profile (`roles: ["parent"]`) and one enrolment, staff with subject assignments, two report periods with report cards, LVS results, dossier notes and support requests. Every attendance mark MUST sit on a session of the pupil's own class, on a school day on or after the pupil's inschrijving, marked by the teacher whose `teacherAssignments.days` cover that weekday. No session MAY fall in a holiday or on a study day the report periods list. Every report card's `attendanceSummary` MUST count exactly the marks of its period. Every name, address, school and code MUST be fictional, and no object MAY carry a BSN.
+
+#### Scenario: An absence belongs to the pupil's own class and teacher
+- **GIVEN** the set's attendance records
+- **WHEN** each is compared with its session, the pupil's enrolment and the class's teacher assignments
+- **THEN** the session's class is the pupil's class, the day is a weekday on or after the inschrijving, and `markedBy` is the teacher on duty that weekday
+
+#### Scenario: The report card and the attendance list agree
+- **GIVEN** a pupil's report card for Rapport 1
+- **WHEN** the pupil's marks between the period's start and end are counted per status
+- **THEN** the counts equal the card's `absentExcusedCount`, `absentUnexcusedCount`, `lateCount` and `leftEarlyCount`
+
+#### Scenario: The curated seed lives on in the set
+- **GIVEN** the register's former `x-openregister-seed` rows (De Wilgenboom, "Groep 5/6" with its duo split, "Groep 7" notes, Herfstvakantie, the technisch lezen group plan)
+- **WHEN** the set is read
+- **THEN** each is present, found by name, with fictional names and codes
+
+### Requirement: The primary school set loads and removes cleanly
+The set MUST pass `ExampleSetDescriptorContractTest`, MUST be offered by `SeedProfileService` with an `objectCount` equal to the objects it ships, and its removal list (`uuidsFor('po')`) MUST name every object exactly once, the last-loaded first and the school last. The file MUST equal what `scripts/example-sets/po.py` generates.
+
+#### Scenario: The set is offered with its true size
+- **GIVEN** the shipped `po.json`
+- **WHEN** the wizard lists the example sets
+- **THEN** "Primary school" appears with an object count equal to the objects in the file
+
+#### Scenario: Removal covers every object once
+- **GIVEN** the shipped `po.json`
+- **WHEN** `uuidsFor('po')` is read
+- **THEN** it holds as many unique uuids as the file has objects, the last-loaded first, the school last
+
+#### Scenario: The file is reproducible
+- **GIVEN** the generator
+- **WHEN** `python3 scripts/example-sets/po.py --check` runs
+- **THEN** it exits 0
+
+### Requirement: The register no longer carries dark primary school seeds
+The ten `x-openregister-seed` blocks promoted into the set (`School`, `Vestiging`, `Cohort`, `Enrolment`, `ReportPeriod`, `GroupPlan`, `GroupPlanSubgroup`, `GroupPlanEvaluation`, `Staff`, `SubjectTeacherAssignment`) MUST be empty, and the tests that read them MUST read the set instead, finding rows by name or uuid and asserting floors.
+
+#### Scenario: A seed test reads the set
+- **GIVEN** `SchoolAndLocationRegisterTest` and the five other repointed tests
+- **WHEN** they run
+- **THEN** they read `lib/Settings/profiles/po.json` and pass
+
+### Requirement: A schema with its own slug pattern takes the slug from the object
+When a learniq schema declares a `pattern` on its own `slug` property, an example object of that schema MUST use its own `slug` as the envelope slug: the value MUST match the schema's pattern and MUST be unique within the descriptor, and the `<id>-<schema>-<NNN>` form MUST NOT be required of it. Every other contract rule, including the fixed `uuid` inside the set's namespace, MUST still apply. For a schema whose `slug` property has no pattern, or that has no `slug` property, the `<id>-<schema>-<NNN>` form MUST still apply. `ExampleSetDescriptorContractTest` MUST enforce both branches.
+
+#### Scenario: A Regulation row with its code as slug passes
+- **GIVEN** a descriptor with a `regulation` object whose `slug` is `VCA` and whose `uuid` is inside the set's namespace
+- **WHEN** the contract test runs
+- **THEN** it reports no finding for that object
+
+#### Scenario: A Regulation row with the envelope form fails the pattern
+- **GIVEN** a `regulation` object whose `slug` is `corporate-regulation-001`
+- **WHEN** the contract test runs
+- **THEN** it reports that `slug` does not match `^[A-Z0-9_-]+$`
+
+#### Scenario: Two rows with the same code
+- **GIVEN** two `regulation` objects whose `slug` is `VCA`
+- **WHEN** the contract test runs
+- **THEN** it reports the second one as not unique
+
+### Requirement: A set does not re-ship a row the register seeds
+An example object of a schema with its own slug pattern MUST NOT reuse a `slug` that `learniq_register.json` already seeds for that schema, because the importer matches seed objects by `uuid` and would create a second row with the same identifier. The contract test MUST report such an object.
+
+#### Scenario: A set that ships AVG
+- **GIVEN** the register seeds the regulation `AVG`
+- **WHEN** a descriptor ships a `regulation` object with `slug` `AVG`
+- **THEN** the contract test reports that the register already seeds it
+
+### Requirement: The company and training sets carry the regulations they reference
+The company set MUST ship a published, active Regulation row for every `regulationSlug` its objects carry, except the ones the register seeds, and so MUST the training set. Each row's audience MUST describe who that set actually trains: for the company, `department` scopes for VCA (`Operatie`), NEN 3140 (`Operatie/Installatie en service`, `Operatie/Werkplaats`) and the forklift certificate (`Operatie/Magazijn en logistiek`); `all-employees` for the code of conduct and information security; `board` with the `manager` and `compliance-officer` roles for NIS2; and an empty `role-specific` audience for BHV and F-gassen, whose obligation falls on designated people. The training institute obliges none of its participants, so its rows carry an empty `role-specific` audience and describe the certificate they lead to. `profile.objectCount` MUST equal the real count.
+
+#### Scenario: Every company regulation reference resolves
+- **GIVEN** the company set
+- **WHEN** every `regulationSlug` in it is collected
+- **THEN** each one is the `slug` of a Regulation row in the set, or `AVG`
+
+#### Scenario: The company scopes drive the certification check
+- **GIVEN** the company set's Regulation rows with a `department` audience
+- **WHEN** `CorporateExampleSetTest` checks that everyone in scope holds the certificate or is booked on it
+- **THEN** it reads the scopes from those rows, and they include VCA, NEN 3140 and the forklift certificate
+
+#### Scenario: Every training regulation reference resolves
+- **GIVEN** the training set
+- **WHEN** every `regulationSlug` in it is collected
+- **THEN** each one is the `slug` of a Regulation row in the set, or `AVG`
+
+### Requirement: The training set writes its items as QTI 2.1
+Every item in the training example set MUST carry QTI 2.1 markup in the `imsqti_v2p1` namespace, in the form the app's item editor writes: an `assessmentItem` with a `responseDeclaration`, and a `choiceInteraction` of `simpleChoice` options. No item MUST carry QTI 3.0 markup. The app's own choice reader MUST find every option of every item, with the correct answer among them.
+
+#### Scenario: Reading a training item
+- **GIVEN** the training set's item "BHV kennistoets, vraag 1"
+- **WHEN** the app's choice reader reads its `qtiBody`
+- **THEN** it finds three options, one of which is the item's correct response
+
+### Requirement: A second example set does not duplicate a regulation code
+Before a shipped example set is imported, the app MUST leave out each row of the `regulation` bucket whose code (`slug`) already exists in the learniq register under a different uuid. A row whose code exists under its own uuid MUST be kept. When the existing rows cannot be read, every row MUST be kept and the import MUST go on.
+
+#### Scenario: The training set after the company set
+- **GIVEN** the company set is loaded, with its own VCA and NIS2 rows
+- **WHEN** the training set is loaded
+- **THEN** its VCA and NIS2 rows are left out, its other regulations are imported, and no other bucket changes
+
+#### Scenario: Loading the same set again
+- **GIVEN** the training set is loaded
+- **WHEN** it is loaded again
+- **THEN** every one of its regulation rows is imported, so a changed row is updated
+
+### Requirement: The wizard removes a loaded example set through OpenRegister's import jobs
+The setup wizard MUST offer a `remove-example-set` step. Its action MUST remove the example set stored as the wizard's answer by calling OpenRegister's `ConfigurationService::softDeleteAppImports()` with that set's import app id: `learniq.profile.<id>` for a shipped set, `learniq.demo` for the generated one. The call MUST be duck-typed: when the method does not exist, the action MUST NOT fail silently and MUST answer `success: false` with the `occ` command that removes the set instead (`php occ learniq:example-set:remove <id> --apply` for a shipped set). When no set was loaded (no answer, or "None"), or no import job was recorded, the action MUST say so and remove nothing. When OpenRegister reports errors, the action MUST answer `success: false`, name the count, and name `occ openregister:objects:purge --import-job <id>` to finish. A successful removal MUST keep the load step answered, so the wizard does not reopen.
+
+#### Scenario: Removing the company set
+- **GIVEN** the wizard loaded the company set and OpenRegister records one import job for `learniq.profile.corporate`
+- **WHEN** the admin runs "Remove the example data"
+- **THEN** `softDeleteAppImports('learniq.profile.corporate')` is called once
+- **AND** the answer says how many objects moved to the trash
+
+#### Scenario: An OpenRegister without the method
+- **GIVEN** OpenRegister's ConfigurationService has no `softDeleteAppImports`
+- **WHEN** the admin runs the step for the company set
+- **THEN** the answer is `success: false` and names `php occ learniq:example-set:remove corporate --apply`
+
+#### Scenario: Nothing was loaded
+- **GIVEN** the wizard's example set answer is "None"
+- **WHEN** the admin runs the step
+- **THEN** nothing is called and the answer says there is nothing to remove
+
+### Requirement: The removal step never runs by itself
+The setup status MUST report the `remove-example-set` step as done at all times, so the shared wizard neither starts it on entering the step (it auto-runs an outstanding run-action step) nor reopens itself for it (it opens while any optional step is outstanding). The step MUST run only when the admin clicks its button.
+
+#### Scenario: Opening the wizard after loading a set
+- **GIVEN** an example set was just loaded
+- **WHEN** the setup status is read
+- **THEN** `steps.remove-example-set.done` is true
+
+### Requirement: Only an administrator or an administration manager chooses the kind of organisation
+The wizard's segment answer MUST be written to `LearniqSettings.segment` only when the current user is in the `admin` or the `administration-managers` group, the groups the lane brief assigns to the segment. Any other caller MUST get a 403 with a reason, and nothing MUST be written.
+
+#### Scenario: A delegated admin outside both groups
+- **GIVEN** a user who may open the setup wizard but is in neither group
+- **WHEN** they post `segment: corporate`
+- **THEN** the answer is 403 and `setSegment` is not called
+
+#### Scenario: An administration manager
+- **GIVEN** a user in `administration-managers`
+- **WHEN** they post `segment: po`
+- **THEN** the segment is written with them as the one who set it
+
+### Requirement: The wizard lists every loaded example set with its own remove button
+The app MUST record each example set the wizard loads, with its label, in app config (`example_sets_loaded`), and MUST drop a set from that list only after OpenRegister removed a recorded import of it without errors. The page MUST hand the list to the browser as the `loadedExampleSets` initial state, and the browser MUST replace the single `remove-example-set` step with one run-action step per loaded set, step and action `remove-example-set-<id>`, each with its own button (D34). With no set recorded the single step MUST stay. `POST /api/setup/action/remove-example-set-<id>` MUST remove that set through the same path as the single step, and MUST answer 400 for an id that names no set. The setup status MUST report every `remove-example-set-<id>` step as done, so none of them runs by itself or reopens the wizard.
+
+#### Scenario: Two sets were loaded
+- **GIVEN** the company set and then the training set were loaded
+- **WHEN** an admin opens the setup wizard
+- **THEN** it shows "Remove the example set \"Company\"" and "Remove the example set \"Training institute\"", each with its own button
+
+#### Scenario: Removing one of two loaded sets
+- **GIVEN** the company and training sets are loaded
+- **WHEN** the admin clicks the training set's button and OpenRegister removes its recorded import without errors
+- **THEN** only `softDeleteAppImports('learniq.profile.training')` is called
+- **AND** the company set stays on the list
+
+#### Scenario: A removal with errors
+- **GIVEN** OpenRegister reports errors for a set's import
+- **WHEN** the admin clicks that set's button
+- **THEN** the set stays on the list, so its button stays

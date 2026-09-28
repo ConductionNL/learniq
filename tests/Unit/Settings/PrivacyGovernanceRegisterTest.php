@@ -117,7 +117,7 @@ class PrivacyGovernanceRegisterTest extends TestCase {
 	 * cannot recreate the copy.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/privacy-reuse-openregister-register/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+	 * @spec   openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
 	 */
 	public function testDataSubjectRequestIsRetiredInFavourOfOpenRegister(): void {
 		$this->assertArrayNotHasKey('DataSubjectRequest', $this->config['components']['schemas']);
@@ -139,7 +139,7 @@ class PrivacyGovernanceRegisterTest extends TestCase {
 	 * approve and reject lifecycle, and its seed never blocks a real exchange.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+	 * @spec   openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
 	public function testPartnerApprovalIsAStandingRecordPerTarget(): void {
 		$schema = $this->config['components']['schemas']['ExchangePartnerApproval'] ?? null;

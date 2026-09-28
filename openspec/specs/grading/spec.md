@@ -207,6 +207,198 @@ than inventing one alongside its own, larger scope.
 - **WHEN** a `GradeScale` is created with `kind: "dle"` and another with `kind: "leerrendement"`
 - **THEN** both persist as valid OpenRegister objects
 
+### Requirement: A teacher previews and batch-publishes a cohort's concept grades
+
+`CohortGradebookView` MUST offer, under the grid, a publish panel scoped to one plan component or to
+all components. For the marks in scope that are `concept` or `published` it MUST show the count,
+average, lowest and highest mark and a histogram with a text count per band, and, when the plan's
+`GradeScale` has a `passThreshold`, how many pass. It MUST offer "Publish N marks", where N is the
+number of `concept` entries in scope with a numeric value, and MUST ask for confirmation first. On
+confirmation it MUST fire the existing `publish` transition for each of those entries, continue past
+a refused entry, and then report how many were published and which were not, with the reason.
+
+#### Scenario: The preview shows the spread before anything is published
+
+<!-- @e2e exclude Distribution logic covered by node test tests/unit-js/gradebookPublish.test.mjs; lanes do not run against the shared instance. -->
+
+- **GIVEN** a component with concept marks 4.5, 6.0, 7.5 and 8.0 on a scale with `passThreshold` 5.5
+- **WHEN** the teacher picks that component
+- **THEN** the panel shows 4 marks, average 6.5, lowest 4.5, highest 8.0 and 3 passing, and nothing
+  is published yet
+
+#### Scenario: Batch publish publishes every concept mark in scope
+
+<!-- @e2e exclude Node test tests/unit-js/gradebookPublish.test.mjs covers which entries are publishable; the transition is the existing GradeEntry publish. -->
+
+- **GIVEN** a component with 3 concept marks, 1 published mark and 1 concept entry without a value
+- **WHEN** the teacher confirms "Publish 3 marks"
+- **THEN** the `publish` transition fires for exactly those 3 entries
+
+#### Scenario: A refused entry does not stop the batch
+
+<!-- @e2e exclude Node test tests/unit-js/gradebookPublish.test.mjs (publishReport). -->
+
+- **GIVEN** a batch of 3 where the server refuses one entry because its report period is locked
+- **WHEN** the batch runs
+- **THEN** the other 2 are published and the panel names the refused learner with the reason
+
+### Requirement: Every GradeEntry carries a server-stamped learnerRef
+
+`GradeEntryLearnerRefStamp` MUST set `GradeEntry.learnerRef` on every create and update of a
+`grade-entry` object, derived from `learnerId` through `LearnerRefResolver`: the UUID of the
+`LearnerProfile` whose `ncUserId` equals `learnerId`, preferring a profile whose `mergedInto` is
+empty. A `learnerRef` sent by the client MUST be ignored, so no caller can point a grade at another
+learner's portal subject. When no profile matches, `learnerRef` MUST be null, so the grade stays
+out of the portal (fail-closed). The stamp MUST NOT block the write. On update, when the lookup
+fails with an error, the stored `learnerRef` MUST be kept.
+
+#### Scenario: A grade created without learnerRef gets it stamped
+
+<!-- @e2e exclude Server-side write listener with no DOM surface; covered by PHPUnit GradeEntryLearnerRefStampTest. -->
+
+- **GIVEN** a LearnerProfile `lp-1` with `ncUserId: "pupil-1"`
+- **WHEN** a `GradeEntry` is created with `learnerId: "pupil-1"` and no `learnerRef`
+- **THEN** the stored entry carries `learnerRef: "lp-1"`
+
+#### Scenario: A forged learnerRef is replaced by the derived one
+
+<!-- @e2e exclude PHPUnit GradeEntryLearnerRefStampTest. -->
+
+- **GIVEN** LearnerProfiles `lp-1` (`ncUserId: "pupil-1"`) and `lp-2` (`ncUserId: "pupil-2"`)
+- **WHEN** a `GradeEntry` is created with `learnerId: "pupil-1"` and `learnerRef: "lp-2"`
+- **THEN** the stored entry carries `learnerRef: "lp-1"`
+
+#### Scenario: A learner without a profile stays out of the portal
+
+<!-- @e2e exclude PHPUnit GradeEntryLearnerRefStampTest. -->
+
+- **GIVEN** no LearnerProfile with `ncUserId: "pupil-9"`
+- **WHEN** a `GradeEntry` is created with `learnerId: "pupil-9"` and a client-sent `learnerRef`
+- **THEN** the write succeeds and the stored entry carries `learnerRef: null`
+
+#### Scenario: The survivor of a merge wins over the merged-away profile
+
+<!-- @e2e exclude PHPUnit LearnerRefResolverTest. -->
+
+- **GIVEN** LearnerProfiles `lp-old` (`ncUserId: "pupil-1"`, `mergedInto: "lp-new"`) and `lp-new`
+  (`ncUserId: "pupil-1"`, `mergedInto` empty)
+- **WHEN** a `GradeEntry` is created with `learnerId: "pupil-1"`
+- **THEN** the stored entry carries `learnerRef: "lp-new"`
+
+#### Scenario: A failed lookup on update keeps the stored learnerRef
+
+<!-- @e2e exclude PHPUnit GradeEntryLearnerRefStampTest. -->
+
+- **GIVEN** a stored `GradeEntry` with `learnerId: "pupil-1"` and `learnerRef: "lp-1"`
+- **WHEN** it is updated while the LearnerProfile lookup throws
+- **THEN** the write succeeds and the entry keeps `learnerRef: "lp-1"`
+
+### Requirement: Existing GradeEntries are back-filled once
+
+The `BackfillGradeEntryLearnerRef` repair step MUST stamp `learnerRef` on every existing
+`grade-entry` object that has a `learnerId` and no `learnerRef`, using the same resolver. It MUST
+skip rows that already carry a `learnerRef` and rows whose learner has no profile, and it MUST be
+safe to run again: a second run writes nothing new.
+
+#### Scenario: The backfill stamps unstamped rows and skips the rest
+
+<!-- @e2e exclude Repair step with no DOM surface; covered by PHPUnit BackfillGradeEntryLearnerRefTest. -->
+
+- **GIVEN** three GradeEntries: one for `pupil-1` without `learnerRef`, one for `pupil-1` with
+  `learnerRef: "lp-1"`, and one for `pupil-9` who has no profile
+- **WHEN** the repair step runs
+- **THEN** only the first entry is saved, with `learnerRef: "lp-1"`, and a second run saves nothing
+
+### Requirement: Parent grade notifications find the learner's profile on ncUserId
+
+Publishing a GradeEntry MUST notify every parent in the learner's `LearnerProfile.parentIds`, where the profile is found on `ncUserId`. The lookup MUST NOT depend on the publisher's own read access to LearnerProfile, and MUST NOT pick up another learner's profile.
+
+#### Scenario: The learner's own parents are notified
+
+- **GIVEN** pupil `leerling-001` whose profile lists `ouder-001` and `ouder-002`, and another pupil whose profile lists `ouder-099`
+- **WHEN** a grade for `leerling-001` is published
+- **THEN** grade notifications are written for `ouder-001` and `ouder-002` only
+
+### Requirement: Pass rules apply their declared minimum
+
+For an `all-must-pass` CurriculumPlan, the pass verdict MUST compare each `passRules[]` entry's `minValue`, the property the register declares, and MUST NOT read any other key for the minimum. A rule with a `componentId` MUST be met by the learner's best published entry for that component. A rule with `componentId: null` MUST be met by the final value. A component whose best entry is an exemption MUST satisfy its rule without a numeric comparison.
+
+#### Scenario: A component below its minimum fails the plan
+
+- **GIVEN** an `all-must-pass` plan with rules `{componentId: "comp-a", minValue: 5.5}` and `{componentId: "comp-b", minValue: 5.5}`
+- **AND** published entries `comp-a: 8.0` and `comp-b: 4.0`, so the average 6.0 clears a GradeScale threshold of 5.5
+- **WHEN** the final grade is evaluated
+- **THEN** `passed` is `false`
+
+#### Scenario: Every component at or above its minimum passes
+
+- **GIVEN** the same plan with entries `comp-a: 6.0` and `comp-b: 5.5`
+- **WHEN** the final grade is evaluated
+- **THEN** `passed` is `true`
+
+#### Scenario: A final-grade rule compares the final value
+
+- **GIVEN** an `all-must-pass` plan with the single rule `{componentId: null, minValue: 5.5}` and entries on components `comp-a: 7.0` and `comp-b: 6.0`
+- **WHEN** the final grade is evaluated
+- **THEN** `passed` is `true`, because the final value 6.5 meets 5.5
+- **AND** with entries `comp-a: 5.0` and `comp-b: 5.0` and no GradeScale threshold, `passed` is `false`
+
+### Requirement: A plan satisfied entirely by exemptions passes
+
+When a learner's published entries on a plan are all exemptions, the final value MUST stay `null` and `passed` MUST be `true`, provided an exemption covers every component the plan declares. A plan that declares no components MUST pass on its exemption entries alone. A declared component without an exemption or a graded entry MUST keep `passed: null`.
+
+#### Scenario: An exempted unit passes
+
+- **GIVEN** a plan with the single component `unit-1` and one published entry for `unit-1` with `sourceKind: exemption`
+- **WHEN** the final grade is evaluated
+- **THEN** the FinalGrade has `value: null` and `passed: true`
+
+#### Scenario: A partial exemption with a missing component stays open
+
+- **GIVEN** a plan with components `unit-1` and `unit-2`, and only an exemption entry for `unit-1`
+- **WHEN** the final grade is evaluated
+- **THEN** `passed` is `null`
+
+### Requirement: The final grade roll-up writes only declared properties
+
+`GradeRollupHandler` MUST write only properties the `FinalGrade` schema declares. It MUST NOT write `cohortId`, which the schema does not declare and no reader uses. When it merges an existing FinalGrade that still carries `cohortId`, the saved object MUST NOT carry it either.
+
+#### Scenario: A recomputed final grade carries no cohortId
+
+- **GIVEN** a published GradeEntry with `cohortId: "cohort-1"`
+- **AND** an existing FinalGrade for that learner and plan that still carries `cohortId`
+- **WHEN** the roll-up recomputes the FinalGrade
+- **THEN** the saved FinalGrade has no `cohortId` key
+- **AND** it keeps `courseId`, `gradeScaleId` and `tenant_id`
+
+### Requirement: One resolver finds a learner's profile
+
+`LearnerRefResolver` MUST be the one class that turns a Nextcloud user id into the uuid of that learner's LearnerProfile, and a `learnerRef` into the active profile row, for the grade, submission and portal stamps. A signed-in caller MUST keep OpenRegister's tenant scoping (`resolve()`); a caller without a session MUST read across tenants (`resolveAcrossTenants()`, `byRef()`). `byRef()` MUST return null for a profile that is merged away, deleted, or names no user, and MUST let a read error propagate.
+
+#### Scenario: A portal stamp and a teacher-side stamp find the same profile
+
+- **GIVEN** pupil `pupil-1` with active profile `lp-1`
+- **WHEN** a portal attempt is stamped (no session) and a teacher's grade is stamped (signed in)
+- **THEN** both get `lp-1` from `LearnerRefResolver`
+- **AND** only the portal lookup drops tenant scoping
+
+#### Scenario: A merged-away profile is not a learner to act for
+
+- **GIVEN** profile `lp-old` merged into `lp-new`
+- **WHEN** a portal request names `lp-old`
+- **THEN** `byRef()` returns null
+
+### Requirement: The final grade roll-up writes the programme it belongs to
+
+When the roll-up writes a `FinalGrade`, it MUST set `programmeId` to the id of the `Programme` whose `curriculumPlanId` is the grade's `curriculumPlanId`. When no programme uses that plan, `programmeId` MUST keep the value the row had, null for a new row.
+
+#### Scenario: A final grade names the programme of its plan
+@e2e exclude Listener write with no UI step of its own; pinned by tests/Unit/Listener/GradeRollupHandlerTest.php::testAFinalGradeNamesTheProgrammeOfItsPlan.
+- **GIVEN** a programme with curriculum plan P
+- **WHEN** a grade entry under plan P is published
+- **THEN** the learner's final grade for P carries that programme's id as `programmeId`
+- **AND** the programme page counts it
+
 ## Standards
 
 Schema.org `Grade`; NL VO PTA/SE convention as a `CurriculumPlan` profile + `GradeScale` 1.0–10.0; ECTS A–F; AVG-Onderwijs (parent vs 18+-learner notification rights); Open Onderwijs API `results` endpoint shape for HE result publication (follow-up, out of scope here).

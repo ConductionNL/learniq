@@ -166,6 +166,14 @@ return [
         // Controller: PeerReviewController (slug: peerReview).
         ['name' => 'peerReview#allocate', 'url' => '/api/peer-review/{assignmentId}/allocate', 'verb' => 'POST'],
 
+        // Double marking (assignments-double-marking): the teacher in charge
+        // allocates markers to the handed-in submissions (instructors,
+        // compliance officers, team leads or admin, checked in the method), and
+        // a marker reads the other marks only after handing in their own.
+        // Controller: SubmissionMarkController (slug: submissionMark).
+        ['name' => 'submissionMark#allocate', 'url' => '/api/assignments/{assignmentId}/markers', 'verb' => 'POST'],
+        ['name' => 'submissionMark#marks', 'url' => '/api/submissions/{submissionId}/marks', 'verb' => 'GET'],
+
         // Peer review work projection (peer-review-projection-guard): what a
         // reviewer sees of the work under review, built by the server. The
         // authors are withheld for double-blind, the teacher's marking always.
