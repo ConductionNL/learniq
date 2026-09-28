@@ -98,7 +98,7 @@ class TimetableConflictDetectorTest extends TestCase {
 				$rows = $this->fixtures[$schema] ?? [];
 
 				if ($schema === 'cohort' || $schema === 'room') {
-					return array_values(array_filter($rows, static fn (array $r): bool => ($r['id'] ?? null) === ($filters['id'] ?? null)));
+					return array_values(array_filter($rows, static fn (array $r): bool => ($r['id'] ?? null) === ($config['ids'][0] ?? null)));
 				}
 
 				if ($schema === 'exam') {
@@ -431,4 +431,60 @@ class TimetableConflictDetectorTest extends TestCase {
 		self::assertCount(0, $this->saves);
 
 	}//end testEmptyInputIsNoOp()
+
+	/**
+	 * Two overlapping planninq lessons for one teacher account in the same
+	 * room code are flagged from the lessons alone: no Session window load,
+	 * the lesson's own teacher, the school room code, the job's tenant.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004
+	 */
+	public function testScanWindowFlagsPlanninqLessonsForOneTeacher(): void {
+		$lesson = static fn (string $id, string $cohort, string $start, string $end, string $lifecycle = 'scheduled'): array => [
+			'id' => $id,
+			'title' => 'Wiskunde',
+			'startsAt' => $start,
+			'endsAt' => $end,
+			'cohortId' => $cohort,
+			'lifecycle' => $lifecycle,
+			'teacherUserId' => 'jan',
+			'roomReference' => 'A1.12',
+			'source' => 'planninq',
+		];
+
+		$this->detector()->scanWindow(
+			[
+				$lesson('p-1', 'c-1', '2026-09-28T09:00:00+02:00', '2026-09-28T09:50:00+02:00'),
+				$lesson('p-2', 'c-2', '2026-09-28T09:30:00+02:00', '2026-09-28T10:20:00+02:00'),
+				$lesson('p-3', 'c-3', '2026-09-28T09:10:00+02:00', '2026-09-28T09:40:00+02:00', 'cancelled'),
+			],
+			'tenant-1'
+		);
+
+		$kinds = array_map(static fn (array $save): string => $save['object']['kind'], $this->saves);
+		sort($kinds);
+		self::assertSame(['room-double-booking', 'teacher-double-booking'], $kinds, 'the cancelled lesson is left out');
+		foreach ($this->saves as $save) {
+			self::assertSame('timetable-conflict', $save['schema']);
+			self::assertSame('tenant-1', $save['object']['tenant_id']);
+			$ids = $save['object']['sessionIds'];
+			sort($ids);
+			self::assertSame(['p-1', 'p-2'], $ids);
+		}
+
+	}//end testScanWindowFlagsPlanninqLessonsForOneTeacher()
+
+	/**
+	 * A single lesson is not a window.
+	 *
+	 * @return void
+	 */
+	public function testScanWindowNeedsTwoLessons(): void {
+		$this->detector()->scanWindow([['id' => 'p-1', 'startsAt' => '2026-09-28T09:00:00+02:00', 'endsAt' => '2026-09-28T09:50:00+02:00']], 'tenant-1');
+
+		self::assertCount(0, $this->saves);
+
+	}//end testScanWindowNeedsTwoLessons()
 }//end class

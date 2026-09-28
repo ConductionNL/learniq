@@ -618,6 +618,95 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 	}//end testWerkprocesCreationNoMatchLeavesCompetencyIdNull()
 
 	/**
+	 * Seed two SBB dossiers that share werkproces code B1-K1-W1, the way SBB
+	 * repeats codes in every dossier. The logistics dossier comes first, so a
+	 * first-match lookup lands there.
+	 *
+	 * @param string|null $logisticsRef sourceRef of the logistics framework.
+	 * @param string|null $careRef sourceRef of the care framework.
+	 *
+	 * @return void
+	 */
+	private function seedTwoDossiersSharingACode(?string $logisticsRef, ?string $careRef): void {
+		$this->seed('competency-framework', ['id' => 'fw-log', 'sourceAuthority' => 'sbb-kwalificatiedossier', 'sourceRef' => $logisticsRef, 'tenant_id' => 'tenant-a']);
+		$this->seed('competency-framework', ['id' => 'fw-vig', 'sourceAuthority' => 'sbb-kwalificatiedossier', 'sourceRef' => $careRef, 'tenant_id' => 'tenant-a']);
+		$this->seed('competency', ['id' => 'comp-log-w1', 'frameworkId' => 'fw-log', 'code' => 'B1-K1-W1', 'tenant_id' => 'tenant-a']);
+		$this->seed('competency', ['id' => 'comp-vig-w1', 'frameworkId' => 'fw-vig', 'code' => 'B1-K1-W1', 'tenant_id' => 'tenant-a']);
+		$this->seed('competency', ['id' => 'comp-vig-k3w2', 'frameworkId' => 'fw-vig', 'code' => 'B1-K3-W2', 'tenant_id' => 'tenant-a']);
+	}//end seedTwoDossiersSharingACode()
+
+	/**
+	 * A code that repeats across dossiers resolves inside the assessment's own
+	 * dossier. Red before the fix: the first framework's competency won.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/grading-defects-from-example-sets/specs/bpv/spec.md#scenario-a-repeated-code-resolves-to-the-assessments-own-dossier
+	 */
+	public function testARepeatedCodeResolvesToTheAssessmentsOwnDossier(): void {
+		$handler = $this->makeHandler();
+		$this->seedTwoDossiersSharingACode(logisticsRef: '90201', careRef: '90302');
+
+		$handler->handle(
+			$this->makeCreatedEvent(
+				'werkproces-assessment',
+				['id' => 'wpa-vig', 'kwalificatiedossierCode' => '90302', 'werkprocesCode' => 'B1-K1-W1', 'competencyId' => null, 'tenant_id' => 'tenant-a']
+			)
+		);
+
+		$saved = $this->savedFor('werkproces-assessment');
+		$this->assertCount(1, $saved);
+		$this->assertSame('comp-vig-w1', $saved[0]['competencyId']);
+	}//end testARepeatedCodeResolvesToTheAssessmentsOwnDossier()
+
+	/**
+	 * Without a dossier match, a code two frameworks share is ambiguous and
+	 * stays unresolved. Red before the fix: it linked the first framework's
+	 * competency.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/grading-defects-from-example-sets/specs/bpv/spec.md#scenario-an-ambiguous-code-stays-unresolved
+	 */
+	public function testAnAmbiguousCodeStaysUnresolved(): void {
+		$handler = $this->makeHandler();
+		$this->seedTwoDossiersSharingACode(logisticsRef: null, careRef: 'crebo 90302 (voorbeeldcode)');
+
+		$handler->handle(
+			$this->makeCreatedEvent(
+				'werkproces-assessment',
+				['id' => 'wpa-amb', 'kwalificatiedossierCode' => '90302', 'werkprocesCode' => 'B1-K1-W1', 'competencyId' => null, 'tenant_id' => 'tenant-a']
+			)
+		);
+
+		$this->assertCount(0, $this->savedFor('werkproces-assessment'));
+	}//end testAnAmbiguousCodeStaysUnresolved()
+
+	/**
+	 * Without a dossier match, a code exactly one framework knows still
+	 * resolves, so tenants that never filled in sourceRef keep working.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/grading-defects-from-example-sets/specs/bpv/spec.md#scenario-a-code-only-one-framework-knows-still-resolves
+	 */
+	public function testACodeOnlyOneFrameworkKnowsStillResolves(): void {
+		$handler = $this->makeHandler();
+		$this->seedTwoDossiersSharingACode(logisticsRef: null, careRef: null);
+
+		$handler->handle(
+			$this->makeCreatedEvent(
+				'werkproces-assessment',
+				['id' => 'wpa-one', 'werkprocesCode' => 'B1-K3-W2', 'competencyId' => null, 'tenant_id' => 'tenant-a']
+			)
+		);
+
+		$saved = $this->savedFor('werkproces-assessment');
+		$this->assertCount(1, $saved);
+		$this->assertSame('comp-vig-k3w2', $saved[0]['competencyId']);
+	}//end testACodeOnlyOneFrameworkKnowsStillResolves()
+
+	/**
 	 * Events for other schemas/states are ignored entirely.
 	 *
 	 * @return void

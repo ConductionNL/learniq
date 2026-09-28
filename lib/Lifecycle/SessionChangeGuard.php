@@ -258,13 +258,14 @@ class SessionChangeGuard implements LifecycleGuardInterface {
 	 * @return array<string,mixed>|null The cohort data, or null when not found.
 	 */
 	private function loadCohort(string $cohortId, string $tenantId): ?array {
-		$filters = ['id' => $cohortId];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$results = $this->objectService->findAll(
 			[
+				'ids' => [$cohortId],
 				'filters' => array_merge(
 					$filters,
 					[

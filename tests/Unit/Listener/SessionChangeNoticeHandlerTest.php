@@ -84,7 +84,7 @@ class SessionChangeNoticeHandlerTest extends TestCase {
 				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 
 				if ($schema === 'cohort') {
-					return array_values(array_filter($cohorts, static fn (array $c): bool => ($c['id'] ?? null) === ($filters['id'] ?? null)));
+					return array_values(array_filter($cohorts, static fn (array $c): bool => ($c['id'] ?? null) === ($config['ids'][0] ?? null)));
 				}
 
 				if ($schema === 'learner-profile') {

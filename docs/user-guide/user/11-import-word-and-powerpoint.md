@@ -36,7 +36,7 @@ By the end you have chosen an onboarding folder, dropped a file in it, and impor
 
 ## Good to know
 
-- A teacher note is not shown in the lesson player. It is still part of the lesson object, so keep answers to tests out of it.
+- A teacher note is for colleagues only. Learners and parents never see it: not in the lesson player, and not through any other route. It is kept apart from the lesson itself, so you can write in it what you would not put in front of the class.
 - Pictures go to `Scholiq/<school>/course-imports/` in your files.
 - **Stop watching** clears the folder. Files already in your list stay there.
 - Old formats (`.doc`, `.ppt`) and PDF are not read. Save them as `.docx` or `.pptx` first.

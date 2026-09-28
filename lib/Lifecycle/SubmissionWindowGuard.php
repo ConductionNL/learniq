@@ -73,6 +73,41 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 	public const LATE_ACTION = 'submitLate';
 
 	/**
+	 * Refusal: The submission names no assignment.
+	 */
+	public const DENY_NO_ASSIGNMENT_LINK = 'This submission is not linked to an assignment.';
+
+	/**
+	 * Refusal: The caller is not one of the submission's learners.
+	 */
+	public const DENY_NOT_A_LEARNER = 'Only the learners this submission belongs to can hand it in.';
+
+	/**
+	 * Refusal: The assignment does not exist in the submission's tenant.
+	 */
+	public const DENY_ASSIGNMENT_MISSING = 'The assignment of this submission could not be found.';
+
+	/**
+	 * Refusal: The assignment's deadline is malformed.
+	 */
+	public const DENY_DEADLINE_UNREADABLE = 'The deadline of this assignment could not be read.';
+
+	/**
+	 * Refusal: `submitLate` before the deadline.
+	 */
+	public const DENY_NOT_LATE_YET = 'The deadline has not passed, so hand the work in normally.';
+
+	/**
+	 * Refusal: After the deadline, on an assignment that takes no late work.
+	 */
+	public const DENY_LATE_NOT_ACCEPTED = 'The deadline has passed and this assignment does not accept late work.';
+
+	/**
+	 * Refusal: `submit` after the deadline, on an assignment that takes late work.
+	 */
+	public const DENY_ONLY_LATE = 'The deadline has passed, so this work can only be handed in late.';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService   $objectService OR object service for fetching the parent Assignment.
@@ -103,7 +138,7 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$assignmentId = $object['assignmentId'] ?? null;
 		if ($assignmentId === null || $assignmentId === '') {
-			return GuardResult::deny('This submission is not linked to an assignment.');
+			return GuardResult::deny(self::DENY_NO_ASSIGNMENT_LINK);
 		}
 
 		if ($this->callerMayHandIn(object: $object, userId: $userId) === false) {
@@ -111,12 +146,12 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 				'[SubmissionWindowGuard] Caller {uid} is not one of the learners of Submission {id}; blocking {action}.',
 				['uid' => $userId, 'id' => ($object['id'] ?? ''), 'action' => $action]
 			);
-			return GuardResult::deny('Only the learners this submission belongs to can hand it in.');
+			return GuardResult::deny(self::DENY_NOT_A_LEARNER);
 		}
 
 		$assignment = $this->loadAssignment(assignmentId: (string)$assignmentId, tenantId: (string)($object['tenant_id'] ?? ''));
 		if ($assignment === null) {
-			return GuardResult::deny('The assignment of this submission could not be found.');
+			return GuardResult::deny(self::DENY_ASSIGNMENT_MISSING);
 		}
 
 		return $this->windowVerdict(
@@ -157,12 +192,12 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 		$window = $this->windowState(assignment: $assignment);
 
 		if ($window === 'malformed') {
-			return GuardResult::deny('The deadline of this assignment could not be read.');
+			return GuardResult::deny(self::DENY_DEADLINE_UNREADABLE);
 		}
 
 		if ($window === 'open') {
 			if ($late === true) {
-				return GuardResult::deny('The deadline has not passed, so hand the work in normally.');
+				return GuardResult::deny(self::DENY_NOT_LATE_YET);
 			}
 
 			return GuardResult::allow();
@@ -170,11 +205,11 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 
 		// The deadline has passed.
 		if ((bool)($assignment['allowLateSubmission'] ?? false) === false) {
-			return GuardResult::deny('The deadline has passed and this assignment does not accept late work.');
+			return GuardResult::deny(self::DENY_LATE_NOT_ACCEPTED);
 		}
 
 		if ($late === false) {
-			return GuardResult::deny('The deadline has passed, so this work can only be handed in late.');
+			return GuardResult::deny(self::DENY_ONLY_LATE);
 		}
 
 		return GuardResult::allow();
@@ -190,13 +225,14 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 	 */
 	private function loadAssignment(string $assignmentId, string $tenantId): ?array {
 		// H1: scope Assignment lookup to the same tenant.
-		$filters = ['uuid' => $assignmentId];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$assignments = $this->objectService->findAll(
 			[
+				'ids' => [$assignmentId],
 				'filters' => array_merge(
 					$filters,
 					[

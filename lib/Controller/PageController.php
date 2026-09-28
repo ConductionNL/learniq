@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\CourseStore\StoreAccessService;
 use OCA\Learniq\Service\DashboardRoleService;
 use OCA\Learniq\Service\SegmentService;
 use OCP\AppFramework\Controller;
@@ -45,7 +46,7 @@ use Throwable;
  * blob unchanged (v0.1). A partial-override hook from IAppConfig is deferred
  * to v0.2 — the frontend loader's silent-fallback path is exercised in v0.1.
  *
- * @spec exclude framework glue — SPA shell + manifest passthrough + role and segment initial-state provider; no business behaviour
+ * @spec exclude framework glue — SPA shell + manifest passthrough + role, segment and store-access initial-state provider; no business behaviour
  */
 class PageController extends Controller {
 	/**
@@ -96,6 +97,7 @@ class PageController extends Controller {
 			$this->initialState->provideInitialState('segment', $workspace['segment']);
 			$this->initialState->provideInitialState('chosenSegment', $workspace['chosenSegment']);
 			$this->initialState->provideInitialState('confidentialCounsellor', $this->dashboardRoleSvc->isConfidentialCounsellor($user));
+			$this->initialState->provideInitialState('storeAccess', $this->resolveStoreAccess());
 		}
 
 		return new TemplateResponse(Application::APP_ID, 'index');
@@ -122,6 +124,27 @@ class PageController extends Controller {
 			return ['segment' => SegmentService::DEFAULT_SEGMENT, 'chosenSegment' => null];
 		}
 	}//end resolveWorkspace()
+
+	/**
+	 * Which course store actions the signed-in user may take, for the Store page and
+	 * the export screen (store-rights-for-teachers, D27).
+	 *
+	 * Resolved lazily and degraded to "none" on failure, for the same reason
+	 * as resolveSegment(): the store service reaches OpenRegister, and this is
+	 * the app's default route. Showing no store buttons is the safe answer; the
+	 * store endpoints enforce the rights either way.
+	 *
+	 * @return array{install: bool, publish: bool}
+	 *
+	 * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
+	 */
+	private function resolveStoreAccess(): array {
+		try {
+			return $this->container->get(StoreAccessService::class)->forCurrentUser();
+		} catch (Throwable $e) {
+			return ['install' => false, 'publish' => false];
+		}
+	}//end resolveStoreAccess()
 
 	/**
 	 * Serve the SPA for deep links (Vue history mode). Delegates to index().

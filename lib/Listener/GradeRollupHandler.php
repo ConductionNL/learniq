@@ -241,6 +241,7 @@ class GradeRollupHandler implements IEventListener {
 	 * @return void
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-21
+	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#requirement-the-final-grade-roll-up-writes-only-declared-properties
 	 */
 	private function recomputeFinalGrade(
 		string $learnerId,
@@ -275,13 +276,18 @@ class GradeRollupHandler implements IEventListener {
 			$existingObj = $existing[0]->jsonSerialize();
 		}
 
+		// FinalGrade declares no cohortId and no reader uses one (the programme
+		// KPI filters on programmeId), so a row written before this was fixed
+		// drops it on recompute instead of carrying an undeclared key forward.
+		$existingData = $existingObj ?? [];
+		unset($existingData['cohortId']);
+
 		$data = array_merge(
-			$existingObj ?? [],
+			$existingData,
 			[
 				'learnerId' => $learnerId,
 				'curriculumPlanId' => $curriculumPlanId,
 				'courseId' => $entry['courseId'] ?? ($existingObj['courseId'] ?? null),
-				'cohortId' => $entry['cohortId'] ?? ($existingObj['cohortId'] ?? null),
 				'gradeScaleId' => $entry['gradeScaleId'] ?? ($existingObj['gradeScaleId'] ?? null),
 				'tenant_id' => $tenantId,
 				'value' => $result['value'],

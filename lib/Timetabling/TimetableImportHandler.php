@@ -32,6 +32,12 @@
  *    {@see \OCA\Learniq\Timetabling\TimetableConflictDetector}'s batch scan
  *    over every upserted Session.
  *
+ * When planninq is installed it owns the timetable (decision D10,
+ * sessions-from-planninq): the job then goes through
+ * {@see \OCA\Learniq\Timetabling\PlanninqTimetableImport} instead, which
+ * asks integriq to deliver into planninq and writes no Session at all. Steps
+ * 2 to 5 above are the path for a school without planninq.
+ *
  * ADR-031 legitimate exception: external-system bridge — the same shape as
  * `data-exchange`'s existing job-execution handler (DataExchangeRunHandler).
  *
@@ -56,16 +62,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Timetabling;
 
-use OCA\Learniq\Support\FleetAppId;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\App\IAppManager;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
-use OCP\Http\Client\IClientService;
-use OCP\IAppConfig;
-use OCP\IURLGenerator;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -76,14 +77,6 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-timetable-import-delegates-the-wire-protocol-to-openconnector-via-dataexchangejob
  *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects) One over the threshold since
- * IAppManager was injected. The handler builds an OpenConnector URL, and the id
- * that app answers to moves with the fleet rename, so the path has to be
- * resolved against the running instance. It used to reach into the global
- * server for the manager, which is a hidden dependency no test can control and,
- * outside a booted Nextcloud, an autowire from scratch. Naming it as a
- * dependency is the fix; hiding it behind a facade to satisfy the count would
- * put it straight back out of sight.
  */
 class TimetableImportHandler implements IEventListener {
 
@@ -93,39 +86,6 @@ class TimetableImportHandler implements IEventListener {
 	private const SESSION_SCHEMA = 'session';
 	private const TARGET = 'timetable-import';
 
-	/**
-	 * The OpenConnector REST endpoint for triggering a source run — same
-	 * path/contract shape as DataExchangeRunHandler's own
-	 * OPENCONNECTOR_RUN_PATH (documented assumption, not verified against a
-	 * live OpenConnector instance): for `direction: import` the response is
-	 * expected to additionally carry a `records` array of raw external
-	 * records, one per Zermelo/Untis/Xedule occurrence.
-	 */
-	/**
-	 * Path AFTER the app segment; the segment is resolved at call time.
-	 *
-	 * 🔴 THE SEGMENT IS RIGHT AND THE ROUTE IS NOT. Resolving the app name
-	 * through FleetAppId closed the half of this that a name-based check can
-	 * see, and it is worth being explicit that it closed only that half.
-	 *
-	 * Verified 2026-09-09 against integriq `development` a5e43d8: there is no
-	 * `api/sources/{id}/run` under either namespace. That app's entire
-	 * `sources#` surface is `test`, `logs`, `tripCircuitBreaker` and
-	 * `resetCircuitBreaker`; the run-shaped routes it does publish are
-	 * `jobs#run`, `synchronizations#run` and `flows#run`. A source is READ BY a
-	 * synchronization there, it is not a thing you run. The docblock above
-	 * always said this path was an assumption rather than a verified contract.
-	 *
-	 * So this call still 404s, now on every instance rather than half of them,
-	 * and the fix is a run endpoint or a switch to `synchronizations#run` —
-	 * not another edit to the name. Same route, same conclusion, recorded at
-	 * {@see \OCA\Learniq\Listener\DataExchangeRunHandler}.
-	 *
-	 * @var string
-	 */
-	private const OPENCONNECTOR_RUN_PATH = 'api/sources/%s/run';
-
-	private const OPENCONNECTOR_TOKEN_KEY = 'openconnector_api_token';
 
 	/**
 	 * Constructor.
@@ -134,12 +94,8 @@ class TimetableImportHandler implements IEventListener {
 	 * @param TransitionEngine $transitionEngine OR lifecycle engine for job state transitions.
 	 * @param TimetableConflictDetector $conflictDetector The batch conflict scan engine.
 	 * @param TimetableRecordMapper $recordMapper Inbound-record shaping and required-field validation.
-	 * @param IClientService $clientService NC HTTP client factory.
-	 * @param IURLGenerator $urlGenerator NC URL generator for internal requests.
-	 * @param IAppConfig $appConfig NC app config for token lookup.
-	 * @param IAppManager $appManager NC app manager. Resolving the fleet app id
-	 *                                needs it, and it arrives as a dependency now
-	 *                                rather than out of the global server.
+	 * @param PlanninqTimetableImport $planninqImport The job when planninq owns the timetable (D10).
+	 * @param TimetableConnectorClient $connectorClient The legacy connector call, for a school without planninq.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -149,10 +105,8 @@ class TimetableImportHandler implements IEventListener {
 		private readonly TransitionEngine $transitionEngine,
 		private readonly TimetableConflictDetector $conflictDetector,
 		private readonly TimetableRecordMapper $recordMapper,
-		private readonly IClientService $clientService,
-		private readonly IURLGenerator $urlGenerator,
-		private readonly IAppConfig $appConfig,
-		private readonly IAppManager $appManager,
+		private readonly PlanninqTimetableImport $planninqImport,
+		private readonly TimetableConnectorClient $connectorClient,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -215,7 +169,14 @@ class TimetableImportHandler implements IEventListener {
 			$profile = $this->loadMappingProfile(profileId: $mappingProfileId);
 		}
 
-		$connectorResult = $this->callOpenConnector(payload: ['scope' => ($job['scope'] ?? [])]);
+		// Planninq owns the timetable when it is installed (decision D10): the
+		// job asks integriq to deliver into planninq and writes no Session.
+		if ($this->planninqImport->applies() === true) {
+			$this->runPlanninqImport(jobId: $jobId, job: $job, profile: $profile);
+			return;
+		}
+
+		$connectorResult = $this->connectorClient->run(payload: ['scope' => ($job['scope'] ?? [])]);
 
 		if ($connectorResult === null) {
 			$this->failJob(
@@ -272,6 +233,37 @@ class TimetableImportHandler implements IEventListener {
 		);
 
 	}//end runImport()
+
+	/**
+	 * Run the job against planninq: integriq delivers, planninq stores, the
+	 * job records the outcome. No learniq Session is read or written. The
+	 * conflict scan runs on the lessons planninq then holds.
+	 *
+	 * @param string                   $jobId   UUID of the DataExchangeJob.
+	 * @param array<string,mixed>      $job     The DataExchangeJob data.
+	 * @param array<string,mixed>|null $profile The job's DataMappingProfile, or null.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
+	 */
+	private function runPlanninqImport(string $jobId, array $job, ?array $profile): void {
+		try {
+			$outcome = $this->planninqImport->deliver(job: $job, profile: $profile);
+		} catch (\RuntimeException $e) {
+			$this->logger->warning('[TimetableImportHandler] Job {id} failed: {msg}', ['id' => $jobId, 'msg' => $e->getMessage()]);
+			$this->failJob(jobId: $jobId, message: $e->getMessage());
+			return;
+		}
+
+		$this->saveJobFields(jobId: $jobId, fields: $outcome['fields']);
+		$this->transitionEngine->transition($jobId, $outcome['state']);
+
+		if ($outcome['state'] !== 'fail') {
+			$this->planninqImport->scanConflicts(job: $job);
+		}
+
+	}//end runPlanninqImport()
 
 	/**
 	 * Map and validate every inbound record, splitting them into the accepted
@@ -436,10 +428,10 @@ class TimetableImportHandler implements IEventListener {
 	private function loadMappingProfile(string $profileId): ?array {
 		$results = $this->objectService->findAll(
 			[
+				'ids' => [$profileId],
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::MAPPING_PROFILE_SCHEMA,
-					'id' => $profileId,
 				],
 				'limit' => 1,
 			]
@@ -456,60 +448,6 @@ class TimetableImportHandler implements IEventListener {
 
 		return $profile;
 	}//end loadMappingProfile()
-
-	/**
-	 * Call the OpenConnector REST API for the `timetable-import` connection.
-	 *
-	 * @param array<string,mixed> $payload Request payload (job scope).
-	 *
-	 * @return array<string,mixed>|null Response data, or null on failure.
-	 */
-	private function callOpenConnector(array $payload): ?array {
-		$path = FleetAppId::path($this->appManager, 'integriq', sprintf(self::OPENCONNECTOR_RUN_PATH, self::TARGET));
-		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . $path);
-
-		$apiToken = $this->appConfig->getValueString(
-			app: 'learniq',
-			key: self::OPENCONNECTOR_TOKEN_KEY,
-			default: ''
-		);
-
-		$requestOptions = [
-			'json' => $payload,
-			'timeout' => 120,
-		];
-
-		if ($apiToken === '') {
-			$this->logger->warning(
-				'[TimetableImportHandler] No OpenConnector API token configured '
-				. '(learniq.openconnector_api_token); the call may fail with 401/403.'
-			);
-		}
-
-		if ($apiToken !== '') {
-			$requestOptions['headers'] = ['Authorization' => 'Bearer ' . $apiToken];
-		}
-
-		try {
-			$client = $this->clientService->newClient();
-			$response = $client->post($url, $requestOptions);
-
-			$body = json_decode($response->getBody(), true);
-			if (is_array($body) === false) {
-				$this->logger->error('[TimetableImportHandler] OpenConnector returned non-JSON.');
-				return null;
-			}
-
-			return $body;
-		} catch (\Exception $e) {
-			$this->logger->error(
-				'[TimetableImportHandler] OpenConnector call failed: {msg}',
-				['msg' => $e->getMessage()]
-			);
-			return null;
-		}//end try
-
-	}//end callOpenConnector()
 
 	/**
 	 * Persist a failure result and drive the job to `failed`.
@@ -542,10 +480,10 @@ class TimetableImportHandler implements IEventListener {
 	private function saveJobFields(string $jobId, array $fields): void {
 		$existing = $this->objectService->findAll(
 			[
+				'ids' => [$jobId],
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::JOB_SCHEMA,
-					'id' => $jobId,
 				],
 				'limit' => 1,
 			]

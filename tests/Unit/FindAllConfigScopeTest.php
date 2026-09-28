@@ -15,6 +15,13 @@
  * flags a config with two 'filters' keys: the mechanical sweep briefly produced four of those,
  * and PHP keeps only the last key without a word.
  *
+ * A second scan refuses an `id` or `uuid` key inside `filters`. No learniq schema declares
+ * either property, and OpenRegister answers a filter on an undeclared property with `1 = 0`,
+ * so such a read returns nothing. The object id belongs in the config's `ids`. The register
+ * test (FindAllFilterKeysAreDeclaredTest) checks keys against the schema a call names; this
+ * scan does not need the schema, so it also covers reads whose schema is chosen at run time,
+ * such as ObjectRowReader::load(), which hid from the register test that way.
+ *
  * @category Test
  * @package  OCA\Learniq\Tests\Unit
  *
@@ -29,6 +36,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/findall-config-filters-sweep/specs/nextcloud-app/spec.md
+ * @spec openspec/changes/reads-that-filter-on-undeclared-ids/specs/nextcloud-app/spec.md#requirement-no-read-filters-on-an-object-id-property
  */
 
 declare(strict_types=1);
@@ -48,6 +56,13 @@ class FindAllConfigScopeTest extends TestCase {
 	 * @var string[]
 	 */
 	private const SCOPE_KEYS = ['register', 'schema'];
+
+	/**
+	 * Filter keys no learniq schema declares: the object id goes in the config's `ids`.
+	 *
+	 * @var string[]
+	 */
+	private const ID_KEYS = ['id', 'uuid'];
 
 	/**
 	 * Fewer findAll() calls than this means the scan is not reading lib/ at all.
@@ -188,6 +203,244 @@ PHP;
 		self::assertSame([], $this->findViolations(source: $source));
 		self::assertSame(2, $this->callsSeen);
 	}//end testTheDetectorAcceptsScopeKeysInsideFilters()
+
+	/**
+	 * No findAll() under lib/ filters on `id` or `uuid`.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/reads-that-filter-on-undeclared-ids/specs/nextcloud-app/spec.md#scenario-a-read-by-id-puts-the-id-in-ids
+	 */
+	public function testNoFindAllInLibFiltersOnAnObjectId(): void {
+		$violations = [];
+		foreach ($this->collectPhpFiles(dir: dirname(__DIR__, 2) . '/lib') as $file) {
+			foreach ($this->findIdFilters(source: (string)file_get_contents($file)) as $violation) {
+				$violations[] = substr($file, strlen(dirname(__DIR__, 2)) + 1) . ':' . $violation;
+			}
+		}
+
+		self::assertSame(
+			[],
+			$violations,
+			"These findAll() calls filter on id or uuid, which no learniq schema declares, so they read nothing.\n"
+			. "Put the object id in the config's 'ids' instead:\n"
+			. implode("\n", $violations)
+		);
+	}//end testNoFindAllInLibFiltersOnAnObjectId()
+
+	/**
+	 * Control: an id or uuid key is found in a literal, in array_merge(), in tenantScoped()
+	 * and in a variable the filters are built in, whatever the schema.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/reads-that-filter-on-undeclared-ids/specs/nextcloud-app/spec.md#scenario-a-filter-on-id-is-refused-whatever-the-schema
+	 */
+	public function testTheIdDetectorFlagsEveryShape(): void {
+		$source = <<<'PHP'
+<?php
+$a = $this->objectService->findAll(['filters' => ['register' => 'learniq', 'schema' => $schema, 'id' => $id], 'limit' => 1]);
+$b = $this->objectService->findAll(
+	[
+		'filters' => $this->tenantScoped(filters: ['register' => 'learniq', 'schema' => 'exam', 'uuid' => $examId], tenantId: $t),
+	]
+);
+$filters = ['id' => $jobId];
+$filters['tenant_id'] = $t;
+$c = $this->objectService->findAll(['filters' => array_merge($filters, ['register' => 'learniq', 'schema' => 'job'])]);
+$lookup = [];
+$lookup['uuid'] = $planId;
+$d = $this->objectService->findAll(config: ['filters' => array_merge($lookup, ['register' => 'learniq', 'schema' => 'plan'])]);
+PHP;
+
+		self::assertSame(
+			['2: id', '5: uuid', '8: id (via $filters)', '12: uuid (via $lookup)'],
+			$this->findIdFilters(source: $source)
+		);
+	}//end testTheIdDetectorFlagsEveryShape()
+
+	/**
+	 * Control: `ids` at the top level, id-like property names, and an `id` that is not a
+	 * findAll() filter all pass.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/reads-that-filter-on-undeclared-ids/specs/nextcloud-app/spec.md#scenario-a-read-by-id-puts-the-id-in-ids
+	 */
+	public function testTheIdDetectorAcceptsIdsAndLookAlikes(): void {
+		$source = <<<'PHP'
+<?php
+$a = $this->objectService->findAll(['ids' => [$id], 'filters' => ['register' => 'learniq', 'schema' => 'exam', 'tenant_id' => $t], 'limit' => 1]);
+$b = $this->objectService->findAll(['filters' => ['register' => 'learniq', 'schema' => 'grade-entry', 'learnerId' => $uid, 'assessmentResultId' => $id]]);
+$job = $this->objectService->saveObject(object: ['scope' => ['filters' => ['id' => $sourceId]]], register: 'learniq', schema: 'job');
+$this->logger->info('Job {id}', ['id' => $jobId]);
+PHP;
+
+		self::assertSame([], $this->findIdFilters(source: $source));
+	}//end testTheIdDetectorAcceptsIdsAndLookAlikes()
+
+	/**
+	 * Find every `id` or `uuid` key inside the `filters` of a findAll() config in one PHP source.
+	 *
+	 * The filters value is searched at every depth, so `array_merge()` and `tenantScoped()`
+	 * arguments are covered. A variable used in it is resolved within the same file: its
+	 * `$var = [...]` literal and its `$var['id'] = ...` assignments.
+	 *
+	 * @param string $source PHP source code.
+	 *
+	 * @return string[] One "<line>: <key>" entry per violation.
+	 */
+	private function findIdFilters(string $source): array {
+		$tokens = $this->significantTokens(source: $source);
+		$violations = [];
+		$variables = [];
+
+		foreach ($this->findAllConfigOpenings(tokens: $tokens) as $open) {
+			[$start, $end] = $this->filtersValueSpan(tokens: $tokens, open: $open);
+			for ($j = $start; $j < $end; $j++) {
+				if ($this->isIdKey(tokens: $tokens, index: $j) === true) {
+					$violations[] = $tokens[$j]['line'] . ': ' . trim($tokens[$j]['text'], '\'"');
+				}
+
+				if ($tokens[$j]['type'] === T_VARIABLE && $tokens[$j]['text'] !== '$this') {
+					$variables[$tokens[$j]['text']] = true;
+				}
+			}
+		}
+
+		return array_merge($violations, $this->idKeysAssignedTo(tokens: $tokens, variables: $variables));
+	}//end findIdFilters()
+
+	/**
+	 * The index of the '[' that opens each literal findAll() config.
+	 *
+	 * @param array<int,array{type:int|string,text:string,line:int}> $tokens Significant tokens.
+	 *
+	 * @return int[]
+	 */
+	private function findAllConfigOpenings(array $tokens): array {
+		$openings = [];
+		$count = count($tokens);
+		for ($i = 0; $i < ($count - 3); $i++) {
+			if ($this->isObjectOperator(token: $tokens[$i]) === false
+				|| $this->tokenIs(token: $tokens[($i + 1)], type: T_STRING, text: 'findAll') === false
+				|| $tokens[($i + 2)]['text'] !== '('
+			) {
+				continue;
+			}
+
+			$arg = ($i + 3);
+			if ($this->tokenIs(token: $tokens[$arg], type: T_STRING, text: 'config') === true && $tokens[($arg + 1)]['text'] === ':') {
+				$arg += 2;
+			}
+
+			if (isset($tokens[$arg]) === true && $tokens[$arg]['text'] === '[') {
+				$openings[] = $arg;
+			}
+		}
+
+		return $openings;
+	}//end findAllConfigOpenings()
+
+	/**
+	 * The token span [start, end) of the value of the depth-one `'filters'` key in the
+	 * config literal that opens at $open; an empty span when there is none.
+	 *
+	 * @param array<int,array{type:int|string,text:string,line:int}> $tokens Significant tokens.
+	 * @param int                                                    $open   Index of the config's '['.
+	 *
+	 * @return array{0:int,1:int}
+	 */
+	private function filtersValueSpan(array $tokens, int $open): array {
+		$depth = 0;
+		$count = count($tokens);
+		$start = null;
+		for ($j = $open; $j < $count; $j++) {
+			$text = $tokens[$j]['text'];
+			if ($start === null
+				&& $depth === 1
+				&& $tokens[$j]['type'] === T_CONSTANT_ENCAPSED_STRING
+				&& trim($text, '\'"') === 'filters'
+				&& $tokens[($j + 1)]['type'] === T_DOUBLE_ARROW
+			) {
+				$start = ($j + 2);
+			}
+
+			if (in_array($text, ['[', '(', '{'], true) === true) {
+				$depth++;
+			}
+
+			if (in_array($text, [']', ')', '}'], true) === true) {
+				$depth--;
+			}
+
+			// The value ends at the next depth-one comma, or where the config closes.
+			if ($start !== null && $j >= $start && (($depth === 1 && $text === ',') || $depth === 0)) {
+				return [$start, $j];
+			}
+
+			if ($depth === 0) {
+				break;
+			}
+		}//end for
+
+		return [0, 0];
+	}//end filtersValueSpan()
+
+	/**
+	 * Whether the token at $index is an `'id'` or `'uuid'` array key.
+	 *
+	 * @param array<int,array{type:int|string,text:string,line:int}> $tokens Significant tokens.
+	 * @param int                                                    $index  Token index.
+	 *
+	 * @return bool
+	 */
+	private function isIdKey(array $tokens, int $index): bool {
+		return $tokens[$index]['type'] === T_CONSTANT_ENCAPSED_STRING
+			&& isset($tokens[($index + 1)]) === true
+			&& $tokens[($index + 1)]['type'] === T_DOUBLE_ARROW
+			&& in_array(trim($tokens[$index]['text'], '\'"'), self::ID_KEYS, true) === true;
+	}//end isIdKey()
+
+	/**
+	 * Id keys given to the filter variables: `$var = ['id' => ...]` and `$var['id'] = ...`.
+	 *
+	 * @param array<int,array{type:int|string,text:string,line:int}> $tokens    Significant tokens.
+	 * @param array<string,bool>                                     $variables Variables used in a filters value.
+	 *
+	 * @return string[] One "<line>: <key> (via <var>)" entry per violation.
+	 */
+	private function idKeysAssignedTo(array $tokens, array $variables): array {
+		$violations = [];
+		$count = count($tokens);
+		for ($i = 0; $i < ($count - 3); $i++) {
+			$variable = $tokens[$i]['text'];
+			if ($tokens[$i]['type'] !== T_VARIABLE || isset($variables[$variable]) === false) {
+				continue;
+			}
+
+			if ($tokens[($i + 1)]['text'] === '=' && $tokens[($i + 2)]['text'] === '[') {
+				foreach ($this->topLevelKeys(tokens: $tokens, open: ($i + 2)) as $key) {
+					if (in_array($key['name'], self::ID_KEYS, true) === true) {
+						$violations[] = $key['line'] . ': ' . $key['name'] . ' (via ' . $variable . ')';
+					}
+				}
+
+				continue;
+			}
+
+			$name = trim($tokens[($i + 2)]['text'], '\'"');
+			if ($tokens[($i + 1)]['text'] === '['
+				&& $tokens[($i + 2)]['type'] === T_CONSTANT_ENCAPSED_STRING
+				&& $tokens[($i + 3)]['text'] === ']'
+				&& in_array($name, self::ID_KEYS, true) === true
+			) {
+				$violations[] = $tokens[$i]['line'] . ': ' . $name . ' (via ' . $variable . ')';
+			}
+		}//end for
+
+		return $violations;
+	}//end idKeysAssignedTo()
 
 	/**
 	 * Find every top-level register/schema key in a findAll() config in one PHP source.

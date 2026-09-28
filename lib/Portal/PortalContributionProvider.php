@@ -163,7 +163,7 @@ class PortalContributionProvider {
 				$this->studentActivityCollections(),
 				[$this->studentTestsCollection()]
 			),
-			'actions' => array_merge($this->studentActions(), $this->studentTestActions()),
+			'actions' => array_merge($this->studentActions(), $this->studentTestActions(), [$this->handInAction()]),
 			'notifications' => [],
 		];
 
@@ -283,6 +283,9 @@ class PortalContributionProvider {
 				'scopeClaim' => 'learnerRef',
 				'label' => 'My submissions',
 				'listable' => true,
+				// Portal-assignment-hand-in-endpoint: a per-row hand-in on the
+				// pupil's drafts (portaliq contribution-pay-screen row actions).
+				'rowActions' => ['handIn'],
 				'fields' => [
 					'learnerRef',
 					'assignmentId',
@@ -416,6 +419,43 @@ class PortalContributionProvider {
 		return $actions;
 
 	}//end studentTestActions()
+
+	/**
+	 * Hand in a draft submission: a server-to-server forward to
+	 * PortalSubmissionController, which runs `submit` or `submitLate` as the
+	 * pupil through SubmissionWindowGuard.
+	 *
+	 * Portaliq stamps the pupil's own `learnerRef` (`subjectField`) over any
+	 * client value. `rowField` and `rowWhen` make it a row action where
+	 * portaliq supports them (ConductionNL/portaliq#805): a button on the
+	 * pupil's draft rows only, with `submissionId` stamped from the row portaliq
+	 * read under the pupil's scope. Older portaliq ignores both keys and
+	 * forwards `submissionId` from the body; the endpoint checks ownership
+	 * either way.
+	 *
+	 * @return array<string, mixed> The hand-in action.
+	 *
+	 * @spec openspec/changes/portal-assignment-hand-in-endpoint/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-a-draft-submission-from-the-portal-req-pcon-009
+	 */
+	private function handInAction(): array {
+		return [
+			'id' => 'handIn',
+			'type' => 'endpoint-forward',
+			'label' => 'Hand in',
+			'endpoint' => '/apps/learniq/api/portal/submissions/hand-in',
+			'method' => 'POST',
+			'minTrust' => 'low',
+			'fields' => ['submissionId'],
+			'subjectField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'rowField' => 'submissionId',
+			'rowWhen' => [
+				'field' => 'lifecycle',
+				'in' => ['draft'],
+			],
+		];
+
+	}//end handInAction()
 
 	/**
 	 * The learner's own create-actions — hand in an assignment, report an absence.

@@ -166,13 +166,14 @@ class SessionChangeNoticeHandler implements IEventListener {
 			return [];
 		}
 
-		$filters = ['id' => $cohortId];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$results = $this->objectService->findAll(
 			[
+				'ids' => [$cohortId],
 				'filters' => array_merge(
 					$filters,
 					[

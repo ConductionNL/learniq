@@ -24,7 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\Learniq\Service\AssessmentResultPortalStamp;
-use OCA\Learniq\Service\Portal\LearnerProfileLookup;
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -46,8 +46,9 @@ class AssessmentResultPortalStampTest extends TestCase {
 	 * @return AssessmentResultPortalStamp
 	 */
 	private function makeStamp(bool $lookupThrows = false): AssessmentResultPortalStamp {
-		$lookup = $this->createMock(LearnerProfileLookup::class);
-		$lookup->method('refForUser')->willReturnCallback(
+		$lookup = $this->createMock(LearnerRefResolver::class);
+		// A portal write has no session: only the across-tenants lookup answers.
+		$lookup->method('resolveAcrossTenants')->willReturnCallback(
 			static function (string $ncUserId) use ($lookupThrows): ?string {
 				if ($lookupThrows === true) {
 					throw new RuntimeException('database gone');

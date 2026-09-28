@@ -34,7 +34,6 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\Service\Portal\LearnerProfileLookup;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -53,14 +52,14 @@ class AssessmentResultPortalStamp {
 	/**
 	 * Constructor.
 	 *
-	 * @param LearnerProfileLookup $profiles Nextcloud user id to LearnerProfile uuid.
+	 * @param LearnerRefResolver $profiles Nextcloud user id to LearnerProfile uuid.
 	 * @param ObjectService $objectService OpenRegister object access (the test's title).
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly LearnerProfileLookup $profiles,
+		private readonly LearnerRefResolver $profiles,
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
 	) {
@@ -102,7 +101,7 @@ class AssessmentResultPortalStamp {
 		}
 
 		try {
-			return $this->profiles->refForUser(ncUserId: $learnerId);
+			return $this->profiles->resolveAcrossTenants(learnerId: $learnerId);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
 				'[AssessmentResultPortalStamp] Could not resolve the learner profile, stamping null: {msg}',

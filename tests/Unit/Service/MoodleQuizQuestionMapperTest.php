@@ -133,6 +133,25 @@ class MoodleQuizQuestionMapperTest extends TestCase {
 	}//end testSupportedSubtypesProduceCorrectItems()
 
 	/**
+	 * A mapped question is QTI 2.1 markup, labelled QTI 2.1. Red before the
+	 * fix: the mapper stamped the QTI 3.0 namespace on it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/grading-defects-from-example-sets/specs/assessment/spec.md#scenario-a-moodle-quiz-question-becomes-a-qti-21-item
+	 */
+	public function testAMappedQuestionIsLabelledQti21(): void {
+		$rows = (new MoodleQuizQuestionMapper())->mapQuestions(self::QUESTIONS_XML, 'bank-1', 'tenant-1');
+
+		$single = array_values(array_filter($rows, static fn (array $row): bool => $row['title'] === 'Single answer question'))[0];
+		$body = $single['itemData']['qtiBody'];
+
+		self::assertStringContainsString('<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"', $body);
+		self::assertStringContainsString('<simpleChoice ', $body);
+		self::assertStringNotContainsString('v3p0', $body);
+	}//end testAMappedQuestionIsLabelledQti21()
+
+	/**
 	 * An unsupported subtype (drag-and-drop) produces a `dropped` descriptor,
 	 * never a partially-correct `Item`.
 	 *
