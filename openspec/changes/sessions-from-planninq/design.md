@@ -62,7 +62,7 @@ None. No schema changes.
 
 ## Nextcloud Integration
 - Controllers: `TimetableController::cohort()` (new, `#[NoAdminRequired]`, guard: RBAC read of the cohort, 403), `::mine()` (reads through the resolver).
-- Services: `TimetableSourceResolver` (`IAppManager`, `IAppConfig`), `LocalSessionTimetableSource` (`ObjectService`), `PlanninqTimetableSource` (`IEventDispatcher`), `PlanninqTimetableImport` (`IEventDispatcher`).
+- Services: `TimetableSourceResolver` (`IAppConfig`), `LocalSessionTimetableSource` (`ObjectService`), `PlanninqTimetableSource` (`IAppManager`, `IEventDispatcher`), `PlanninqTimetableImport` (`IEventDispatcher`).
 - Events consumed by name: `OCA\Planninq\Event\TimetableSessionsQueryEvent`, `OCA\Integriq\Event\RosterImportRequestedEvent`.
 
 ## Security Considerations
@@ -82,6 +82,7 @@ lib/Timetabling/Source/PlanninqTimetableSource.php      (new)
 lib/Timetabling/Source/TimetableSourceResolver.php      (new)
 lib/Timetabling/PlanninqTimetableImport.php             (new)
 lib/Timetabling/TimetableImportHandler.php              (planninq branch)
+lib/Timetabling/TimetableConnectorClient.php            (the legacy connector call, moved out of the handler unchanged)
 lib/Timetabling/TimetableConflictDetector.php           (scanWindow)
 lib/Timetabling/SessionOverlapEvaluator.php             (teacherUserId, roomReference)
 lib/Service/TimetableProjector.php                      (source on each session)

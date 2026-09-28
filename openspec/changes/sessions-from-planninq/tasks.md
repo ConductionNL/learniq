@@ -8,25 +8,25 @@
 - **acceptance_criteria**:
   - GIVEN planninq installed WHEN resolved THEN the planninq source answers; otherwise the local source
   - GIVEN planninq silent WHEN read THEN the source raises instead of returning nothing
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 2: Planninq branch of the timetable-import job (V1)
 - **spec_ref**: `openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003`
-- **files**: `lib/Timetabling/PlanninqTimetableImport.php`, `lib/Timetabling/TimetableImportHandler.php`, `tests/Stubs/Integriq/Event/RosterImportRequestedEvent.php`, tests
+- **files**: `lib/Timetabling/PlanninqTimetableImport.php`, `lib/Timetabling/TimetableImportHandler.php`, `lib/Timetabling/TimetableConnectorClient.php`, `tests/Stubs/Integriq/Event/RosterImportRequestedEvent.php`, tests
 - **acceptance_criteria**:
   - GIVEN planninq as source WHEN the job runs THEN integriq is asked, counts land on the job and no Session is written
   - GIVEN integriq absent WHEN the job runs THEN it fails with a readable message
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 3: Conflict detection on the adapter's lessons (V1)
 - **spec_ref**: `openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004`
 - **files**: `lib/Timetabling/TimetableConflictDetector.php`, `lib/Timetabling/SessionOverlapEvaluator.php`, tests
 - **acceptance_criteria**:
   - GIVEN two overlapping planninq lessons for one teacher WHEN scanned THEN a teacher double booking is queued
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 4: Cohort and personal timetable read through the adapter (V1)
 - **spec_ref**: `openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005`
