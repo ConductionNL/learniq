@@ -17,7 +17,7 @@
  global-search (finding G-new-1) adds a full-width fast-finder widget above
  the KPI row — see GlobalSearchWidget.vue and src/utils/globalSearch.js.
 
- @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-people-domain-dashboard
+ @spec openspec/specs/dashboard/spec.md#requirement-people-domain-dashboard
  @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-widget-on-the-people-dashboard
 -->
 <template>
@@ -84,7 +84,7 @@ export default {
 		 * The dashboard page title.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-people-domain-dashboard
+		 * @spec openspec/specs/dashboard/spec.md#requirement-people-domain-dashboard
 		 */
 		pageTitle() {
 			return this.t('learniq', 'People')
@@ -94,7 +94,7 @@ export default {
 		 * The CnDashboardPage `widgets` declaration.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-people-domain-dashboard
+		 * @spec openspec/specs/dashboard/spec.md#requirement-people-domain-dashboard
 		 */
 		widgets() {
 			return [
@@ -206,7 +206,7 @@ export default {
 		 * The CnDashboardPage `layout` declaration (12-column grid).
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-people-domain-dashboard
+		 * @spec openspec/specs/dashboard/spec.md#requirement-people-domain-dashboard
 		 */
 		layout() {
 			return [

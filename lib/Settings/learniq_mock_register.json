@@ -253,7 +253,7 @@
       "AccessibilityStatement": {
         "slug": "accessibility-statement",
         "icon": "Human",
-        "version": "0.1.0",
+        "version": "0.1.2",
         "title": "AccessibilityStatement",
         "description": "The toegankelijkheidsverklaring (accessibility statement) record required by the Tijdelijk besluit digitale toegankelijkheid overheid (BDTO, BWBR0040936). Fields mirror the toegankelijkheidsverklaring.nl invulassistent's field order. Lifecycle: draft → published → archived; the publish transition requires AccessibilityStatementPublishGuard, which refuses to publish an unsubstantiated claim (missing evaluation evidence, or a fully-compliant status while a known limitation is still open). See openspec/changes/accessibility-conformance-statement/.",
         "type": "object",
@@ -464,7 +464,7 @@
       "AdmissionsRound": {
         "slug": "admissions-round",
         "icon": "CalendarMultiselectOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "AdmissionsRound",
         "description": "The norm configuration for one intake round, scoped to a Programme (or a whole level when programmeId is null) and academicYear — mirrors BsaTrajectory's role as the shared per-round rule row an Application-scoped guard/handler reads. kind selects which legal branch AdmissionsDecisionGuard applies (mbo-toelatingsrecht, vo-schooladvies-doorstroomtoets, or generic). applicationDeadline and capacity are institution-set with no hardcoded default, mirroring BsaTrajectory.normEcts/AttendanceThreshold's null-scoping precedent.",
         "type": "object",
@@ -608,7 +608,7 @@
         },
         "slug": "AiFeature",
         "icon": "RobotOutline",
-        "version": "0.2.0",
+        "version": "0.2.1",
         "title": "AI Feature",
         "description": "AVG Art. 30 processing-activity declaration for Learniq's AI-assisted learning. The EU AI Act high-risk feature register, DPO-acknowledgement gate, and lifecycle governance are delegated to the Hermiq app (ADR-005); this schema now only carries the processing-activity catalogue annotation.",
         "type": "object",
@@ -641,7 +641,7 @@
       "Application": {
         "slug": "admission",
         "icon": "AccountPlusOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "Application",
         "description": "An aanmelding for a Programme — the pre-enrolment intake path for PO→VO, VO/HO→MBO, and generic admissions (Studielink/HE intake stays on Enrolment; this schema covers every other channel). Scored by a coordinator through an intake conversation to a placed/waitlisted/rejected decision, gated by AdmissionsDecisionGuard for the round's legal branch (kind on the referenced AdmissionsRound). On placement, ApplicationConversionHandler converts the Application into a LearnerProfile and Enrolment rows. guardianId/guardianRef copy ConferenceSignup's ADR-046 dual-identity pair verbatim — no second guardian-account mechanism is introduced.",
         "type": "object",
@@ -1038,7 +1038,7 @@
         },
         "slug": "exam",
         "icon": "ClipboardCheckOutline",
-        "version": "0.2.0",
+        "version": "0.3.2",
         "title": "Assessment",
         "description": "A structured test (toets, tentamen, examen, quiz) composed of items from an ItemBank with a scoring scheme, time limit, attempt policy, availability window, and optional proctoring. AI-assisted proctoring requires the high-risk AI feature to be registered and DPO-enabled in the central Hermiq governance app (ADR-005 DPO gate).",
         "type": "object",
@@ -3292,7 +3292,7 @@
       "BpvPlacement": {
         "slug": "bpv-placement",
         "icon": "BriefcaseCheckOutline",
-        "version": "0.1.0",
+        "version": "0.2.1",
         "title": "BPV Placement",
         "description": "A learner ↔ leerbedrijf match for one beroepspraktijkvorming (BPV, work-placement) period. Gates confirmation on a verified leerbedrijf (WEB art. 7.2.8/7.2.9 — the employer must be a leerbedrijf erkend by SBB) via BpvConfirmationGuard.",
         "type": "object",
@@ -7730,7 +7730,7 @@
       "DeliberationRecord": {
         "slug": "deliberation-record",
         "icon": "AccountGroupOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "DeliberationRecord",
         "description": "A structured, append-only record of a consultation round (parents, municipality, care partners, school, SWV coordinator) concerning a SupportRequest and/or TlvApplication. Carries a first-class pupilVoice block reflecting the 2025 Wet versterking positie ouders en leerlingen in passend onderwijs hoorrecht (insight 1145). Once recorded, immutable — a correction creates a new record referencing the one it supersedes rather than mutating it.",
         "type": "object",
@@ -9120,7 +9120,7 @@
       "EvaluationCampaign": {
         "slug": "evaluation-campaign",
         "icon": "ClipboardTextOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "EvaluationCampaign",
         "description": "A course/module evaluation cycle (vakevaluatie): which Course(s)/Cohort(s) it covers, the academic period, the survey instrument, and a fixed anonymity policy. Opening a campaign provisions one EvaluationInvitation per learner in scope (EvaluationInvitationProvisioningHandler). Lifecycle: draft -> open -> closed -> archived. No existing course-management schema is modified -- courseIds/cohortIds reference Course/Cohort by $ref only. See openspec/changes/course-evaluation/.",
         "type": "object",
@@ -10082,7 +10082,7 @@
       "ExternalAssessor": {
         "slug": "external-assessor",
         "icon": "AccountTieOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "ExternalAssessor",
         "description": "A non-BPV external assessor granted read-only portfolio access. A plain reference/identity object with no OpenRegister lifecycle — a person with no Nextcloud account by definition, structurally identical to Praktijkopleider (ADR-046 premise). This object's own UUID is the portal identity anchor. `active` alone gates whether the portal identity is usable.",
         "type": "object",
@@ -13159,7 +13159,7 @@
         },
         "slug": "learner-profile",
         "icon": "AccountOutline",
-        "version": "0.2.0",
+        "version": "0.3.1",
         "title": "LearnerProfile",
         "description": "Learniq learner profile. Owns role assignment and is the actor reference for enrolments, credentials, and attestations.",
         "type": "object",
@@ -14266,7 +14266,7 @@
       "LearningRecordShare": {
         "slug": "learning-record-share",
         "icon": "ShareVariantOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "LearningRecordShare",
         "description": "A time-boxed, revocable grant of one already-generated LearningRecordExport snapshot to a named external recipient who has no Learniq presence at all — an employer, a receiving school's admissions office. Resolved via a public verification page (LearningRecordShareVerifyController), mirroring CredentialVerifyController's pattern, rather than an NC Files share or a portal-audience match, because the recipient is assumed to have neither (design.md's rejected-alternative on reusing PortfolioShare wholesale). Borrows PortfolioShare's draft/active/revoked lifecycle shape and expiresAt/revokedAt fields, but expiresAt is required here — every share has an end date, a stronger default than PortfolioShare's nullable expiresAt.",
         "type": "object",
@@ -14469,7 +14469,7 @@
       "Lesson": {
         "slug": "lesson",
         "icon": "FileDocumentOutline",
-        "version": "0.3.0",
+        "version": "0.5.1",
         "title": "Lesson",
         "description": "A lesson / learning module within a Course (Schema.org LearningResource). Lifecycle: draft → published → retired.",
         "type": "object",
@@ -14908,7 +14908,7 @@
       "LtiToolPlacement": {
         "slug": "lti-tool-placement",
         "icon": "ApplicationOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "LtiToolPlacement",
         "description": "Places an external LTI 1.3 tool inside a Course or Lesson. Stores only the reference to the corresponding lti_deployment registration living in OpenConnector's own register (cross-app, bare UUID — OR relations do not span registers/apps) plus the optional grading-component mapping an AGS score for this placement feeds. Learniq never stores or handles the OIDC/JWT material itself — that lives entirely in OpenConnector's lti-13-platform adapter. Lifecycle: draft → active → retired.",
         "type": "object",
@@ -15019,7 +15019,7 @@
       "Material": {
         "slug": "material",
         "icon": "FilePresentationBox",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "Material",
         "description": "Metadata for a file, presentation, reading, video, or SCORM/cmi5 package attached to a Course, Lesson, or Session. The bytes live in OpenRegister's native file attachments; this schema carries type, license, LOM-style tags, and ordering.",
         "type": "object",
@@ -16373,7 +16373,7 @@
       "Praktijkopleider": {
         "slug": "praktijkopleider",
         "icon": "AccountTieOutline",
-        "version": "0.1.0",
+        "version": "0.2.1",
         "title": "Praktijkopleider",
         "description": "The workplace supervisor (praktijkopleider) conducting BPV at a leerbedrijf. A plain reference/identity object with no OpenRegister lifecycle — a person with no Nextcloud account by definition (ADR-046 premise). This object's own UUID is the portal identity anchor. `active` alone gates whether the portal identity is usable.",
         "type": "object",
@@ -18858,7 +18858,7 @@
       "SovereigntyPolicy": {
         "slug": "sovereignty-policy",
         "icon": "Earth",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "SovereigntyPolicy",
         "description": "The school-wide AI-processing locality policy (sovereign-ai-guarantee): declares the strictest locality tier the school will accept for AI-assisted processing. A flat, un-lifecycled, singleton policy record — mirrors Hermiq's own TenantControl/ModelPolicy/GuardrailPolicy precedent for a policy record that needs no state machine. One Learniq instance is one school — no organisation/tenant_id scoping, unlike Hermiq's multi-tenant policy records. Read by AiLocalityClassifier/SovereigntyPolicyService and enforced by AssessmentPublishGuard's locality check on ai-assisted proctoring. See openspec/changes/sovereign-ai-guarantee/.",
         "type": "object",
@@ -19727,7 +19727,7 @@
       "TlvApplication": {
         "slug": "tlv-application",
         "icon": "FileCertificateOutline",
-        "version": "0.1.0",
+        "version": "0.1.2",
         "title": "TlvApplication",
         "description": "The toelaatbaarheidsverklaring (TLV) application, tracing to the SupportRequest that triggered it. Learniq records the samenwerkingsverband's (SWV) decision — it does not adjudicate it, per Wet passend onderwijs. validUntil drives a declared tlvExpiringSoon calculation (no PHP TimedJob).",
         "type": "object",
@@ -20273,7 +20273,7 @@
       "XapiStatement": {
         "slug": "xapi-statement",
         "icon": "TextBoxOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "XapiStatement",
         "description": "xAPI 1.0.3 statement stored in the LRS substrate (append-only per ADR-002). Every save emits xapi.statement.received audit entry.",
         "type": "object",

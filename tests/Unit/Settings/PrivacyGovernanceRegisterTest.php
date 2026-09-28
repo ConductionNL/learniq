@@ -26,8 +26,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md
- * @spec openspec/changes/privacy-governance-surfaces/specs/data-exchange/spec.md
+ * @spec openspec/specs/avg-verwerkingsregister/spec.md
+ * @spec openspec/specs/data-exchange/spec.md
  */
 
 declare(strict_types=1);
@@ -69,7 +69,7 @@ class PrivacyGovernanceRegisterTest extends TestCase {
 	 * fields and a compliance-officers-only RBAC floor — no lifecycle.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#requirement-the-school-records-its-privacyconvenant-agreement-and-privacybijsluiter
+	 * @spec   openspec/specs/avg-verwerkingsregister/spec.md#requirement-the-school-records-its-privacyconvenant-agreement-and-privacybijsluiter
 	 */
 	public function testComplianceIsAFlatSingletonWithPrivacyFields(): void {
 		$schema = $this->config['components']['schemas']['Compliance'] ?? null;

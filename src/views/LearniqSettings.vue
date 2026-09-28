@@ -754,7 +754,7 @@ export default {
 		 * LearniqAiProcessingDisclosure's loadPolicy() shape.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#requirement-the-school-records-its-privacyconvenant-agreement-and-privacybijsluiter
+		 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-the-school-records-its-privacyconvenant-agreement-and-privacybijsluiter
 		 */
 		async loadCompliance() {
 			const store = useObjectStore()
@@ -799,7 +799,7 @@ export default {
 		 * ADR-022, mirrors LearniqAiProcessingDisclosure's savePolicy().
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-records-the-signed-privacyconvenant-agreement
+		 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-records-the-signed-privacyconvenant-agreement
 		 */
 		async saveCompliance() {
 			this.complianceSaving = true
