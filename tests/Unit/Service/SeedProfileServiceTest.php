@@ -259,6 +259,155 @@ class SeedProfileServiceTest extends TestCase {
 	}//end testInstallDelegatesTheGeneratedSetAndRefusesTheRest()
 
 	/**
+	 * A remover double: records the app id and answers like OpenRegister's
+	 * ConfigurationService::softDeleteAppImports().
+	 *
+	 * @param array<string, mixed> $summary The summary it answers with.
+	 *
+	 * @return object
+	 */
+	private static function remover(array $summary): object {
+		return new class($summary) {
+			/**
+			 * App ids it was asked to remove.
+			 *
+			 * @var array<int, string>
+			 */
+			public array $calls = [];
+
+			/**
+			 * Constructor.
+			 *
+			 * @param array<string, mixed> $summary The summary to answer with.
+			 */
+			public function __construct(private readonly array $summary) {
+			}//end __construct()
+
+			/**
+			 * Record the call and answer.
+			 *
+			 * @param string $appId The app id.
+			 *
+			 * @return array<string, mixed>
+			 */
+			public function softDeleteAppImports(string $appId): array {
+				$this->calls[] = $appId;
+				return $this->summary;
+			}//end softDeleteAppImports()
+		};
+	}//end remover()
+
+	/**
+	 * Removing a set hands OpenRegister the set's own import app id and reports
+	 * what it soft-deleted, per job.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#scenario-removing-the-company-set
+	 */
+	public function testRemoveSoftDeletesTheSetsRecordedImports(): void {
+		$this->writeProfile('po.json', 'po', 1);
+		$remover   = self::remover(
+			[
+				'appId'       => 'learniq.profile.po',
+				'jobs'        => [['importJobId' => 'job-1', 'softDeleted' => ['a', 'b', 'c'], 'errors' => []]],
+				'softDeleted' => 3,
+				'errors'      => [],
+			]
+		);
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->with('OCA\OpenRegister\Service\ConfigurationService')->willReturn($remover);
+
+		$result = $this->service(container: $container)->remove('po');
+
+		self::assertSame(['learniq.profile.po'], $remover->calls);
+		self::assertTrue($result['supported']);
+		self::assertSame(['job-1'], $result['jobs']);
+		self::assertSame(3, $result['softDeleted']);
+		self::assertSame(0, $result['errors']);
+		self::assertSame([], $result['failedJobs']);
+	}//end testRemoveSoftDeletesTheSetsRecordedImports()
+
+	/**
+	 * Errors are counted and the jobs they belong to are named, so the admin
+	 * can finish them with occ.
+	 *
+	 * @return void
+	 */
+	public function testRemoveNamesTheJobsThatDidNotFinish(): void {
+		$this->writeProfile('po.json', 'po', 1);
+		$remover   = self::remover(
+			[
+				'jobs'        => [
+					['importJobId' => 'job-1', 'softDeleted' => ['a'], 'errors' => []],
+					['importJobId' => 'job-2', 'softDeleted' => [], 'errors' => [['uuid' => 'b', 'error' => 'locked']]],
+				],
+				'softDeleted' => 1,
+				'errors'      => [['importJobId' => 'job-2', 'uuid' => 'b', 'error' => 'locked']],
+			]
+		);
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->willReturn($remover);
+
+		$result = $this->service(container: $container)->remove('po');
+
+		self::assertSame(1, $result['errors']);
+		self::assertSame(['job-2'], $result['failedJobs']);
+	}//end testRemoveNamesTheJobsThatDidNotFinish()
+
+	/**
+	 * The generated set is recorded under learniq.demo, DemoDataService's own
+	 * import id.
+	 *
+	 * @return void
+	 */
+	public function testTheGeneratedSetIsRemovedUnderItsOwnImportId(): void {
+		$remover   = self::remover(['jobs' => [], 'softDeleted' => 0, 'errors' => []]);
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->willReturn($remover);
+
+		$this->service(container: $container)->remove('demo');
+
+		self::assertSame(['learniq.demo'], $remover->calls);
+		self::assertSame(DemoDataService::CONFIG_APP_ID, $this->service()->importAppId('demo'));
+		self::assertSame('learniq.profile.corporate', $this->service()->importAppId('corporate'));
+	}//end testTheGeneratedSetIsRemovedUnderItsOwnImportId()
+
+	/**
+	 * An OpenRegister from before import jobs has no softDeleteAppImports():
+	 * the answer says so and nothing is called; an unknown set throws.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#scenario-an-openregister-without-the-method
+	 */
+	public function testRemoveIsDuckTypedAndRefusesAnUnknownSet(): void {
+		$this->writeProfile('po.json', 'po', 1);
+		$older     = new class {
+			/**
+			 * The import an older ConfigurationService still has.
+			 *
+			 * @return array<string, mixed>
+			 */
+			public function importFromApp(): array {
+				return [];
+			}//end importFromApp()
+		};
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->willReturn($older);
+
+		$result = $this->service(container: $container)->remove('po');
+
+		self::assertFalse($result['supported']);
+		self::assertSame('learniq.profile.po', $result['appId']);
+		self::assertSame(0, $result['softDeleted']);
+
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('"vo"');
+		$this->service(container: $container)->remove('vo');
+	}//end testRemoveIsDuckTypedAndRefusesAnUnknownSet()
+
+	/**
 	 * The removal list is every fixed uuid, last-loaded first.
 	 *
 	 * @return void

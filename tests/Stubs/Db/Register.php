@@ -30,6 +30,40 @@ class Register extends Entity implements JsonSerializable {
 	protected ?string $slug = null;
 
 	/**
+	 * The schema ids the register lists (ints or numeric strings, per import era).
+	 *
+	 * @var array<int, mixed>|null
+	 */
+	protected ?array $schemas = [];
+
+	/**
+	 * The schema ids the register lists.
+	 *
+	 * @return array<int, mixed>
+	 */
+	public function getSchemas(): array {
+		return ($this->schemas ?? []);
+	}//end getSchemas()
+
+	/**
+	 * Replace the schema ids the register lists.
+	 *
+	 * @param array<int, mixed>|string $schemas Schema ids, or their JSON.
+	 *
+	 * @return static
+	 */
+	public function setSchemas($schemas): static {
+		if (is_string($schemas) === true) {
+			$schemas = (json_decode($schemas, true) ?? []);
+		}
+
+		$this->schemas = is_array($schemas) === true ? $schemas : [];
+		$this->markFieldUpdated('schemas');
+
+		return $this;
+	}//end setSchemas()
+
+	/**
 	 * Serialize the register.
 	 *
 	 * @return array<string,mixed>

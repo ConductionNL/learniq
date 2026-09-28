@@ -10,6 +10,7 @@ import { test } from 'node:test'
 import {
 	buildWorkspaceRuntime,
 	DEFAULT_SEGMENT,
+	resolveChosenSegment,
 	resolveSegment,
 	SEGMENTS,
 } from '../../src/utils/workspaceRuntime.js'
@@ -53,15 +54,44 @@ test('a missing or unknown segment becomes the default', () => {
 })
 
 test('buildWorkspaceRuntime sets segment and keeps other workspace keys', () => {
-	assert.deepEqual(buildWorkspaceRuntime(undefined, 'po'), { segment: 'po' })
+	assert.deepEqual(buildWorkspaceRuntime(undefined, 'po'), {
+		segment: 'po',
+		chosenSegment: null,
+	})
 	assert.deepEqual(
-		buildWorkspaceRuntime({ tenant: 'x', segment: 'vo' }, 'training'),
+		buildWorkspaceRuntime(
+			{ tenant: 'x', segment: 'vo' },
+			'training',
+			'training',
+		),
 		{
 			tenant: 'x',
 			segment: 'training',
+			chosenSegment: 'training',
 		},
 	)
 	assert.deepEqual(buildWorkspaceRuntime(null, undefined), {
 		segment: DEFAULT_SEGMENT,
+		chosenSegment: null,
+	})
+})
+
+// company-segment-menu-gating: the chosen segment is a known code or null.
+test('a chosen segment passes through', () => {
+	for (const code of SEGMENTS) {
+		assert.equal(resolveChosenSegment(code), code)
+	}
+})
+
+test('a missing or unknown chosen segment becomes null, never the default', () => {
+	for (const raw of [undefined, null, '', 'kindergarten', 42, ['corporate'], {}]) {
+		assert.equal(resolveChosenSegment(raw), null, `raw ${JSON.stringify(raw)}`)
+	}
+})
+
+test('an install that never chose runs on corporate with no chosen segment', () => {
+	assert.deepEqual(buildWorkspaceRuntime(undefined, 'corporate', null), {
+		segment: 'corporate',
+		chosenSegment: null,
 	})
 })

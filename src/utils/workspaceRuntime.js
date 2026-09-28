@@ -55,16 +55,35 @@ export function resolveSegment(raw) {
 }
 
 /**
+ * Validate the chosen segment from the server.
+ *
+ * `null` means nobody chose: the install runs on the default and keeps every
+ * menu. A menu that hides for a chosen company declares
+ * `visibleIf: {"workspace.chosenSegment": {"notIn": ["corporate"]}}`, which
+ * passes for `null` (decision D26).
+ *
+ * @param {unknown} raw The value `loadState('learniq', 'chosenSegment', …)` returned.
+ * @return {string|null} A known segment code, or null.
+ * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
+ */
+export function resolveChosenSegment(raw) {
+	return typeof raw === 'string' && SEGMENTS.includes(raw) ? raw : null
+}
+
+/**
  * Build `runtime.workspace`, keeping any key the bundled manifest already set.
  *
  * @param {object|undefined} existing The bundled manifest's `runtime.workspace`, if any.
  * @param {unknown} rawSegment The value `loadState('learniq', 'segment', …)` returned.
- * @return {{segment: string}} The workspace runtime.
+ * @param {unknown} rawChosen The value `loadState('learniq', 'chosenSegment', …)` returned.
+ * @return {{segment: string, chosenSegment: (string|null)}} The workspace runtime.
  * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-segment-reaches-the-manifest-runtime
+ * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
  */
-export function buildWorkspaceRuntime(existing, rawSegment) {
+export function buildWorkspaceRuntime(existing, rawSegment, rawChosen = null) {
 	return {
 		...(existing && typeof existing === 'object' ? existing : {}),
 		segment: resolveSegment(rawSegment),
+		chosenSegment: resolveChosenSegment(rawChosen),
 	}
 }
