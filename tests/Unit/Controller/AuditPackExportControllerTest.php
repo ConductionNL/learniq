@@ -306,7 +306,9 @@ class AuditPackExportControllerTest extends TestCase {
 
 		$mapper = $this->createMock(AuditTrailMapper::class);
 		$mapper->method('findAll')->willReturnCallback(
-			function (array $filters = [], array $sort = []): array {
+			function (?int $limit = null, ?int $offset = null, ?array $filters = [], ?array $sort = [], ?string $search = null): array {
+				// OpenRegister's real signature: filters is the third argument.
+				$filters = ($filters ?? []);
 				$this->queries[] = $filters;
 				$equality = $filters;
 				unset($equality['created']);
