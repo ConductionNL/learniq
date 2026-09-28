@@ -201,6 +201,13 @@
 							})
 						}}
 					</span>
+					<span
+						v-if="autosaveState"
+						class="take-assessment__autosave"
+						role="status"
+						aria-live="polite">
+						{{ autosaveMessage }}
+					</span>
 					<span class="take-assessment__progress">
 						{{
 							t('learniq', 'Item {current} of {total}', {
@@ -334,6 +341,12 @@
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import {
+	answersFromResult,
+	responsesPayload,
+	secondsUntilDeadline,
+	serverOffsetMs,
+} from '../utils/attemptClock.js'
 import { transitionUrl } from '../utils/manualScoring.js'
 
 export default {
@@ -386,6 +399,12 @@ export default {
 			secondsRemaining: null,
 			/** @type {number|null} Interval ID */
 			timerInterval: null,
+			/** @type {number} Server time minus browser time, in milliseconds */
+			serverOffset: 0,
+			/** @type {number|null} Timeout ID of the pending autosave */
+			autosaveTimeout: null,
+			/** @type {string|null} 'saving', 'saved' or 'failed' */
+			autosaveState: null,
 			showTestModeIntro: false,
 			showTabLockBlocked: false,
 			nativeTestModeActive: false,
@@ -459,6 +478,25 @@ export default {
 		timeWarning() {
 			return this.secondsRemaining !== null && this.secondsRemaining <= 300
 		},
+
+		/**
+		 * What the autosave status line says.
+		 *
+		 * @return {string}
+		 * @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
+		 */
+		autosaveMessage() {
+			if (this.autosaveState === 'saving') {
+				return this.t('learniq', 'Saving your answers')
+			}
+			if (this.autosaveState === 'failed') {
+				return this.t(
+					'learniq',
+					'Your answers could not be saved just now. We try again with your next answer and when you hand in.',
+				)
+			}
+			return this.t('learniq', 'Your answers are saved')
+		},
 	},
 
 	watch: {
@@ -490,6 +528,7 @@ export default {
 	 */
 	beforeUnmount() {
 		this.clearTimer()
+		this.clearAutosave()
 
 		if (!this.nativeTestModeActive) return
 
@@ -889,6 +928,12 @@ export default {
 			}
 			const json = await resp.json()
 			this.result = json.object ?? json ?? {}
+			this.serverOffset = serverOffsetMs(
+				resp.headers?.get?.('Date'),
+				Date.now(),
+			)
+			// A resumed attempt shows the answers autosave already stored.
+			this.responses = { ...answersFromResult(this.result), ...this.responses }
 		},
 
 		/**
@@ -969,18 +1014,32 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
 		startTimer() {
+			const deadlineAt = this.result?.deadlineAt ?? null
 			const minutes = this.assessment?.timeLimitMinutes ?? null
-			if (!minutes) return
+			if (!deadlineAt && !minutes) return
 
-			this.secondsRemaining = minutes * 60
+			// The server's deadline counts the learner's extra time and does not
+			// restart when the attempt is resumed; the browser's own count is
+			// only the fallback for an attempt without one.
+			const fallbackEnd = Date.now() + (minutes ?? 0) * 60 * 1000
+			const remaining = () => {
+				const fromServer = secondsUntilDeadline(
+					deadlineAt,
+					Date.now(),
+					this.serverOffset,
+				)
+				if (fromServer !== null) return fromServer
+				return Math.max(0, Math.floor((fallbackEnd - Date.now()) / 1000))
+			}
+
+			this.clearTimer()
+			this.secondsRemaining = remaining()
 			this.timerInterval = setInterval(() => {
+				this.secondsRemaining = remaining()
 				if (this.secondsRemaining <= 0) {
 					this.clearTimer()
 					this.submitAssessment()
-					return
 				}
-
-				this.secondsRemaining--
 			}, 1000)
 		},
 
@@ -1426,6 +1485,68 @@ export default {
 		},
 
 		/**
+		 * Save the answers a moment after the learner stops changing them, so a
+		 * closed tab or a stopped clock loses nothing already answered.
+		 *
+		 * @return {void}
+		 * @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
+		 */
+		scheduleAutosave() {
+			if (!this.resultId || this.submitted || this.submitting) return
+			this.clearAutosave()
+			this.autosaveTimeout = setTimeout(() => {
+				this.autosaveTimeout = null
+				this.autosave()
+			}, 1500)
+		},
+
+		/**
+		 * Cancel a pending autosave.
+		 *
+		 * @return {void}
+		 * @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
+		 */
+		clearAutosave() {
+			if (this.autosaveTimeout !== null) {
+				clearTimeout(this.autosaveTimeout)
+				this.autosaveTimeout = null
+			}
+		},
+
+		/**
+		 * Save the answers on the attempt in progress. PATCH, so only the
+		 * answers change; the server keeps them out after the deadline.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
+		 */
+		async autosave() {
+			if (!this.resultId || this.submitted || this.submitting) return
+			this.autosaveState = 'saving'
+			try {
+				const resp = await fetch(
+					generateUrl(
+						`/apps/openregister/api/objects/learniq/assessment-result/${this.resultId}`,
+					),
+					{
+						method: 'PATCH',
+						headers: {
+							'OCS-APIREQUEST': 'true',
+							Accept: 'application/json',
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({
+							responses: responsesPayload(this.items, this.responses),
+						}),
+					},
+				)
+				this.autosaveState = resp.ok ? 'saved' : 'failed'
+			} catch {
+				this.autosaveState = 'failed'
+			}
+		},
+
+		/**
 		 * Set the response for the current item.
 		 *
 		 * @param {unknown} value Learner's response value
@@ -1436,6 +1557,7 @@ export default {
 			const item = this.currentItem
 			if (!item) return
 			this.responses = { ...this.responses, [item.uuid]: value }
+			this.scheduleAutosave()
 		},
 
 		/**
@@ -1474,13 +1596,7 @@ export default {
 			this.submitting = true
 			this.submitError = null
 			this.clearTimer()
-
-			const responsesPayload = this.items.map((item) => ({
-				itemId: item.uuid,
-				response: { value: this.responses[item.uuid] ?? null },
-				autoScore: null,
-				manualScore: null,
-			}))
+			this.clearAutosave()
 
 			try {
 				// Persist responses.
@@ -1497,7 +1613,7 @@ export default {
 						'Content-Type': 'application/json',
 					},
 					body: JSON.stringify({
-						responses: responsesPayload,
+						responses: responsesPayload(this.items, this.responses),
 						submittedAt: new Date().toISOString(),
 					}),
 				})
@@ -1659,6 +1775,10 @@ export default {
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
 	margin-top: var(--default-grid-baseline, 8px);
 	font-size: 0.9em;
+	color: var(--color-text-maxcontrast);
+}
+
+.take-assessment__autosave {
 	color: var(--color-text-maxcontrast);
 }
 

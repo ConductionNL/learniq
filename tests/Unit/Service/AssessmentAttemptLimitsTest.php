@@ -51,6 +51,13 @@ class AssessmentAttemptLimitsTest extends TestCase {
 	private array $attempts = [];
 
 	/**
+	 * The learner's ExamAccommodation rows.
+	 *
+	 * @var array<int, array<string, mixed>>
+	 */
+	private array $accommodations = [];
+
+	/**
 	 * The server's current time.
 	 *
 	 * @var string
@@ -74,7 +81,11 @@ class AssessmentAttemptLimitsTest extends TestCase {
 			}
 		);
 		$objects->method('findAll')->willReturnCallback(
-			fn (array $config = []): array => (($config['filters']['schema'] ?? '') === 'assessment-result') ? $this->attempts : []
+			fn (array $config = []): array => match ($config['filters']['schema'] ?? '') {
+				'assessment-result' => $this->attempts,
+				'exam-accommodation' => $this->accommodations,
+				default => [],
+			}
 		);
 		$time = $this->createMock(ITimeFactory::class);
 		$time->method('getDateTime')->willReturnCallback(fn (): DateTime => new DateTime($this->now));
@@ -121,13 +132,32 @@ class AssessmentAttemptLimitsTest extends TestCase {
 
 		$second = $limits->start(assessment: $this->exams['a1'], payload: ['assessmentId' => 'a1', 'learnerId' => 'learner1', 'accessCode' => 'x']);
 		self::assertNull($second['block']);
-		self::assertSame(['startedAt' => '2026-09-27T09:10:00+00:00', 'attemptNumber' => 2, 'accessCode' => null], $second['stamp']);
+		self::assertSame(['startedAt' => '2026-09-27T09:10:00+00:00', 'attemptNumber' => 2, 'deadlineAt' => '2026-09-27T09:40:00+00:00', 'accessCode' => null], $second['stamp']);
 
 		$this->attempts[] = self::attempt(['lifecycle' => 'submitted']);
 		$third = $limits->start(assessment: $this->exams['a1'], payload: ['assessmentId' => 'a1', 'learnerId' => 'learner1']);
 		self::assertSame(AssessmentAccessPolicy::REASON_ATTEMPTS_USED, $third['block']['reason']);
 		self::assertSame([], $third['stamp']);
 	}//end testStartCountsAttemptsAndStampsTheServerClock()
+
+	/**
+	 * The stamped deadline counts the learner's granted extra time, and a test
+	 * without a time limit has none.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#scenario-the-timer-counts-down-to-the-servers-deadline
+	 */
+	public function testTheDeadlineCountsExtraTime(): void {
+		$limits = $this->makeLimits();
+		$this->accommodations = [['learnerId' => 'learner1', 'accommodationKind' => 'extra-time-percentage', 'value' => 50, 'lifecycle' => 'approved']];
+
+		$start = $limits->start(assessment: $this->exams['a1'], payload: ['assessmentId' => 'a1', 'learnerId' => 'learner1']);
+		self::assertSame('2026-09-27T09:55:00+00:00', $start['stamp']['deadlineAt']);
+
+		$untimed = array_merge($this->exams['a1'], ['timeLimitMinutes' => null]);
+		self::assertNull($limits->start(assessment: $untimed, payload: ['assessmentId' => 'a1', 'learnerId' => 'learner1'])['stamp']['deadlineAt']);
+	}//end testTheDeadlineCountsExtraTime()
 
 	/**
 	 * The window and the access code are checked before the attempts.

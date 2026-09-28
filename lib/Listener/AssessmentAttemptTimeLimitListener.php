@@ -69,7 +69,7 @@ class AssessmentAttemptTimeLimitListener implements IEventListener {
 	/**
 	 * Fields the attempt gate sets and a learner never moves.
 	 */
-	private const START_FIELDS = ['startedAt', 'attemptNumber'];
+	private const START_FIELDS = ['startedAt', 'attemptNumber', 'deadlineAt'];
 
 	/**
 	 * Constructor.
@@ -118,7 +118,7 @@ class AssessmentAttemptTimeLimitListener implements IEventListener {
 			$event->setErrors(
 				[
 					'reason' => 'assessment-result-start-fixed',
-					'message' => 'When an attempt started, and its number, are set by the server.',
+					'message' => 'When an attempt started, its number and its deadline are set by the server.',
 				]
 			);
 			$event->stopPropagation();

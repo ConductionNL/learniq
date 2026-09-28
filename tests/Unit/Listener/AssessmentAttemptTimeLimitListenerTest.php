@@ -191,6 +191,24 @@ class AssessmentAttemptTimeLimitListenerTest extends TestCase {
 	}//end testTheLearnerCannotMoveTheStartOrTheNumber()
 
 	/**
+	 * A learner cannot move the deadline the server stamped either.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#scenario-the-timer-counts-down-to-the-servers-deadline
+	 */
+	public function testTheLearnerCannotMoveTheDeadline(): void {
+		$old = $this->inProgress();
+		$old['deadlineAt'] = '2026-09-27T09:30:00+00:00';
+		$later = $old;
+		$later['deadlineAt'] = '2026-09-27T11:00:00+00:00';
+
+		$event = $this->update($this->makeListener(), $old, $later);
+		self::assertTrue($event->isPropagationStopped());
+		self::assertSame('assessment-result-start-fixed', $event->getErrors()['reason']);
+	}//end testTheLearnerCannotMoveTheDeadline()
+
+	/**
 	 * After the deadline plus the grace, answers no longer change: the save
 	 * goes through with the stored answers.
 	 *
