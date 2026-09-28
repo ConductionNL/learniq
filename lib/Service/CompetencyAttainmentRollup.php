@@ -198,7 +198,7 @@ class CompetencyAttainmentRollup {
 	 * @return array<string,mixed>|null The matching Competency data, or null when none or several match.
 	 *
 	 * @spec openspec/changes/competency-framework/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/bpv/spec.md#requirement-a-werkproces-code-resolves-inside-the-assessments-own-kwalificatiedossier
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-werkproces-code-resolves-inside-the-assessments-own-kwalificatiedossier
 	 */
 	private function findCompetencyByCode(string $code, string $dossierCode, string $tenantId): ?array {
 		$matches = [];
@@ -230,7 +230,7 @@ class CompetencyAttainmentRollup {
 	 *
 	 * @return array<int,string> The frameworks whose sourceRef is the dossier code, else every SBB framework.
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/bpv/spec.md#requirement-a-werkproces-code-resolves-inside-the-assessments-own-kwalificatiedossier
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-werkproces-code-resolves-inside-the-assessments-own-kwalificatiedossier
 	 */
 	private function sbbFrameworkIds(string $dossierCode, string $tenantId): array {
 		$frameworkFilters = ['sourceAuthority' => self::SBB_SOURCE_AUTHORITY];
@@ -281,7 +281,7 @@ class CompetencyAttainmentRollup {
 	 *
 	 * @return array<string,mixed>|null
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/bpv/spec.md#requirement-a-werkproces-code-resolves-inside-the-assessments-own-kwalificatiedossier
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-werkproces-code-resolves-inside-the-assessments-own-kwalificatiedossier
 	 */
 	private function competencyInFramework(string $frameworkId, string $code, string $tenantId): ?array {
 		$competencyFilters = ['frameworkId' => $frameworkId, 'code' => $code];

@@ -124,7 +124,7 @@ class TimetableImportControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#scenario-an-administration-manager-opens-the-timetable-conflicts
+	 * @spec openspec/specs/timetabling/spec.md#scenario-an-administration-manager-opens-the-timetable-conflicts
 	 */
 	public function testTheAccessCheckAnswersTheRightAndPlanninq(): void {
 		$planninq = $this->createMock(PlanninqTimetableImport::class);

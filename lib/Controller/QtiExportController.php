@@ -74,7 +74,7 @@ class QtiExportController extends Controller {
 	 * @return DataDownloadResponse|JSONResponse ZIP stream, or a JSON error.
 	 *
 	 * @spec openspec/changes/course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-21-package
+	 * @spec openspec/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-21-package
 	 */
 	#[NoAdminRequired]
 	public function export(string $itemBankId = ''): DataDownloadResponse|JSONResponse {

@@ -56,7 +56,7 @@ class LvsResultRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/access-control-ratchet-compliance/specs/data-exchange/spec.md#requirement-imported-lvs-results-and-transfer-dossiers-are-read-and-written-by-the-groups-that-review-them
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-imported-lvs-results-and-transfer-dossiers-are-read-and-written-by-the-groups-that-review-them
 	 */
 	public function testRequiredFieldsAndNotAppendOnly(): void {
 		$schema = $this->config['components']['schemas']['LvsResult'];

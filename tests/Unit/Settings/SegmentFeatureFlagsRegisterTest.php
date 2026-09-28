@@ -155,7 +155,7 @@ class SegmentFeatureFlagsRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/settings-and-excuse-authorization/specs/nextcloud-app/spec.md#requirement-only-administration-managers-and-admins-change-the-organisations-segment
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-only-administration-managers-and-admins-change-the-organisations-segment
 	 */
 	public function testOnlyAdministrationManagersChangeTheSegment(): void {
 		$authorization = $this->config['components']['schemas']['LearniqSettings']['authorization'];

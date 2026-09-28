@@ -159,7 +159,7 @@ class OsoImportRejectGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/access-control-ratchet-compliance/specs/data-exchange/spec.md#requirement-imported-lvs-results-and-transfer-dossiers-are-read-and-written-by-the-groups-that-review-them
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-imported-lvs-results-and-transfer-dossiers-are-read-and-written-by-the-groups-that-review-them
 	 */
 	public function testSingularCoordinatorGroupIsDenied(): void {
 		self::assertFalse($this->makeGuard(['coordinator'])->check($this->dossier('Not clear.'), 'reject', 'actor-1')->isAllowed());

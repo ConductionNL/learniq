@@ -23,7 +23,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/specs/example-sets/spec.md#requirement-an-example-set-is-one-descriptor-file-per-segment
- * @spec openspec/changes/example-set-regulation-rows/specs/example-sets/spec.md#requirement-a-schema-with-its-own-slug-pattern-takes-the-slug-from-the-object
+ * @spec openspec/specs/example-sets/spec.md#requirement-a-schema-with-its-own-slug-pattern-takes-the-slug-from-the-object
  */
 
 declare(strict_types=1);

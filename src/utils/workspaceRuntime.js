@@ -64,7 +64,7 @@ export function resolveSegment(raw) {
  *
  * @param {unknown} raw The value `loadState('learniq', 'chosenSegment', …)` returned.
  * @return {string|null} A known segment code, or null.
- * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
  */
 export function resolveChosenSegment(raw) {
 	return typeof raw === 'string' && SEGMENTS.includes(raw) ? raw : null
@@ -78,7 +78,7 @@ export function resolveChosenSegment(raw) {
  * @param {unknown} rawChosen The value `loadState('learniq', 'chosenSegment', …)` returned.
  * @return {{segment: string, chosenSegment: (string|null)}} The workspace runtime.
  * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-segment-reaches-the-manifest-runtime
- * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
  */
 export function buildWorkspaceRuntime(existing, rawSegment, rawChosen = null) {
 	return {

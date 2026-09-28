@@ -206,7 +206,7 @@ class PlanninqTimetableImportTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-import-without-a-posted-map-uses-the-kept-map
+	 * @spec openspec/specs/timetabling/spec.md#requirement-an-import-without-a-posted-map-uses-the-kept-map
 	 */
 	public function testAnImportWithoutAMapUsesTheKeptOne(): void {
 		$import = $this->import(keptMaps: '{"roster-zermelo":{"4H1":"cohort-1"}}');

@@ -389,7 +389,7 @@ class GradeRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#scenario-a-recomputed-final-grade-carries-no-cohortid
+	 * @spec openspec/specs/grading/spec.md#scenario-a-recomputed-final-grade-carries-no-cohortid
 	 */
 	public function testARecomputedFinalGradeCarriesNoCohortId(): void {
 		$now = new DateTime('2026-07-13 12:00:00', new DateTimeZone('Europe/Amsterdam'));

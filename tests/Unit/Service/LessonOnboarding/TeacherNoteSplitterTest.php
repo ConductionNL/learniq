@@ -15,7 +15,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-imported-slide-notes-land-in-the-staff-store
+ * @spec openspec/specs/course-management/spec.md#requirement-imported-slide-notes-land-in-the-staff-store
  */
 
 declare(strict_types=1);
