@@ -2592,7 +2592,12 @@ OC.L10N.register(
         "The timetable was delivered to planninq ({state}).": "Het rooster is afgeleverd bij planninq ({state}).",
         "Timetable and SWV exchange": "Rooster- en SWV-uitwisseling",
         "The SWV receiver is a lowercase name such as swv-kindkans.": "De ontvanger bij het SWV is een naam in kleine letters, zoals swv-kindkans.",
-        "The group maps must be a list per rostering system.": "De groepskoppelingen moeten per roosterpakket een lijst zijn."
+        "The group maps must be a list per rostering system.": "De groepskoppelingen moeten per roosterpakket een lijst zijn.",
+        "Deadline": "Deadline",
+        "When the time for this attempt runs out, extra time included. Set by the server when the attempt starts; null for a test without a time limit.": "Wanneer de tijd voor deze poging op is, extra tijd meegerekend. De server zet dit bij de start van de poging; leeg bij een toets zonder tijdslimiet.",
+        "Saving your answers": "Je antwoorden worden opgeslagen",
+        "Your answers are saved": "Je antwoorden zijn opgeslagen",
+        "Your answers could not be saved just now. We try again with your next answer and when you hand in.": "Je antwoorden konden net niet worden opgeslagen. We proberen het opnieuw bij je volgende antwoord en bij het inleveren."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -107,6 +107,7 @@ class AssessmentAttemptLimits {
 		}
 
 		$stamp = ['startedAt' => $now->format(DateTimeInterface::ATOM), 'attemptNumber' => ($used + 1)];
+		$stamp['deadlineAt'] = $this->deadlineAt(assessment: $assessment, payload: $payload, startedAt: $stamp['startedAt']);
 		if (array_key_exists('accessCode', $payload) === true) {
 			// The typed code proved access; it is not kept on the attempt.
 			$stamp['accessCode'] = null;
@@ -114,6 +115,30 @@ class AssessmentAttemptLimits {
 
 		return ['block' => null, 'stamp' => $stamp];
 	}//end start()
+
+	/**
+	 * The attempt's deadline, extra time included, for the screen's timer:
+	 * the same moment the late-answer rule measures against (without the
+	 * grace). Null for a test without a time limit.
+	 *
+	 * @param array<string, mixed> $assessment The raw Assessment row.
+	 * @param array<string, mixed> $payload The AssessmentResult being created.
+	 * @param string $startedAt The server's start stamp.
+	 *
+	 * @return string|null ISO-8601 deadline, or null.
+	 *
+	 * @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#requirement-the-in-app-test-screen-shows-the-servers-deadline-and-saves-answers-as-the-learner-works
+	 */
+	private function deadlineAt(array $assessment, array $payload, string $startedAt): ?string {
+		$examId = (string)($payload['assessmentId'] ?? '');
+		$extra = $this->clock->extraTimePercentage(
+			accommodations: $this->attempts->accommodations(ncUserId: (string)($payload['learnerId'] ?? '')),
+			assessmentId: $examId
+		);
+		$deadline = $this->clock->deadline(attempt: ['startedAt' => $startedAt], exam: $assessment, extraPercentage: $extra);
+
+		return $deadline?->format(DateTimeInterface::ATOM);
+	}//end deadlineAt()
 
 	/**
 	 * Whether an update changes the learner's answers on their own attempt in
