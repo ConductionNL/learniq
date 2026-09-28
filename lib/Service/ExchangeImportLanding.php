@@ -33,7 +33,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+ * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
  */
 
 declare(strict_types=1);
@@ -47,7 +47,7 @@ use Throwable;
 /**
  * Lands received import records.
  *
- * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+ * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
  */
 class ExchangeImportLanding {
 
@@ -118,7 +118,7 @@ class ExchangeImportLanding {
 	 *
 	 * @return array{accepted: int, rejected: array<int, array{recordId: string, errorCode: string, offendingFields: array<int, string>}>}
 	 *
-	 * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
 	 */
 	public function land(string $target, string $jobId, array $scope, array $records): array {
 		$accepted = 0;

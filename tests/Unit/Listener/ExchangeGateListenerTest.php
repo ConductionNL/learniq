@@ -17,7 +17,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
  */
 
 declare(strict_types=1);
@@ -144,7 +144,7 @@ class ExchangeGateListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function testTheSwvHandOffSucceeded(): void {
 		$state = 'submitted';

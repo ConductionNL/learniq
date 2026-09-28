@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#requirement-persist-schooladvies-domain-objects-in-openregister
+ * @spec openspec/specs/enrolment/spec.md#requirement-persist-schooladvies-domain-objects-in-openregister
  */
 
 declare(strict_types=1);

@@ -67,7 +67,7 @@ class CoursePackageObjectWriter {
 	 * @return string|null Created Course UUID.
 	 *
 	 * @spec openspec/changes/course-package-import-export/design.md#data-model
-	 * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-installing-a-shared-course-creates-an-independent-copy-that-keeps-the-credit
+	 * @spec openspec/specs/course-management/spec.md#requirement-installing-a-shared-course-creates-an-independent-copy-that-keeps-the-credit
 	 */
 	public function createCourse(string $title, ?string $parentCourseId, string $tenantId, array $metadata=[]): ?string {
 		$object = [

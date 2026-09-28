@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-an-upgrade-moves-the-notes-lessons-already-hold
+ * @spec openspec/specs/course-management/spec.md#requirement-an-upgrade-moves-the-notes-lessons-already-hold
  */
 
 declare(strict_types=1);

@@ -16,7 +16,7 @@
  * These flags only decide what renders; every store endpoint checks the same
  * rights itself.
  *
- * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
+ * @spec openspec/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
  */
 
 /**
@@ -24,7 +24,7 @@
  *
  * @param {object|null|undefined} access The `storeAccess` initial state.
  * @return {{install: boolean, publish: boolean}} Both flags as booleans.
- * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
+ * @spec openspec/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
  */
 export function normaliseStoreAccess(access) {
 	return {
@@ -40,7 +40,7 @@ export function normaliseStoreAccess(access) {
  * @param {object} manifest The merged manifest (mutated in place and returned).
  * @param {object|null|undefined} access The `storeAccess` initial state.
  * @return {object} The same manifest.
- * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
+ * @spec openspec/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
  */
 export function applyStoreAccess(manifest, access) {
 	const flags = normaliseStoreAccess(access)

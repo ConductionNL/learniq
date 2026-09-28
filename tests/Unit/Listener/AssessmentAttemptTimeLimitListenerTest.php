@@ -15,7 +15,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
+ * @spec openspec/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
  */
 
 declare(strict_types=1);
@@ -175,7 +175,7 @@ class AssessmentAttemptTimeLimitListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#scenario-the-server-starts-the-clock
+	 * @spec openspec/specs/assessment/spec.md#scenario-the-server-starts-the-clock
 	 */
 	public function testTheLearnerCannotMoveTheStartOrTheNumber(): void {
 		$old = $this->inProgress();
@@ -195,7 +195,7 @@ class AssessmentAttemptTimeLimitListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#scenario-the-timer-counts-down-to-the-servers-deadline
+	 * @spec openspec/specs/assessment/spec.md#scenario-the-timer-counts-down-to-the-servers-deadline
 	 */
 	public function testTheLearnerCannotMoveTheDeadline(): void {
 		$old = $this->inProgress();
@@ -214,7 +214,7 @@ class AssessmentAttemptTimeLimitListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#scenario-answers-after-the-deadline-are-not-saved
+	 * @spec openspec/specs/assessment/spec.md#scenario-answers-after-the-deadline-are-not-saved
 	 */
 	public function testAnswersAfterTheDeadlineAreNotSaved(): void {
 		$old = $this->inProgress();
@@ -231,7 +231,7 @@ class AssessmentAttemptTimeLimitListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#scenario-a-late-hand-in-keeps-the-answers-given-in-time
+	 * @spec openspec/specs/assessment/spec.md#scenario-a-late-hand-in-keeps-the-answers-given-in-time
 	 */
 	public function testALateHandInKeepsTheAnswersGivenInTime(): void {
 		$old = $this->inProgress();
@@ -252,7 +252,7 @@ class AssessmentAttemptTimeLimitListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#scenario-a-late-hand-in-keeps-the-answers-given-in-time
+	 * @spec openspec/specs/assessment/spec.md#scenario-a-late-hand-in-keeps-the-answers-given-in-time
 	 */
 	public function testScoringALateHandInKeepsTheScores(): void {
 		$old = $this->inProgress();
@@ -273,7 +273,7 @@ class AssessmentAttemptTimeLimitListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#scenario-answers-after-the-deadline-are-not-saved
+	 * @spec openspec/specs/assessment/spec.md#scenario-answers-after-the-deadline-are-not-saved
 	 */
 	public function testAnswersInsideTheGraceOrExtraTimeAreSaved(): void {
 		$old = $this->inProgress();

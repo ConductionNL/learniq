@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lvs-import-contract/tasks.md#task-4
+ * @spec openspec/changes/archive/2026-09-28-lvs-import-contract/tasks.md#task-4
  */
 
 declare(strict_types=1);
@@ -56,7 +56,7 @@ class LvsResultRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/access-control-ratchet-compliance/specs/data-exchange/spec.md#requirement-imported-lvs-results-and-transfer-dossiers-are-read-and-written-by-the-groups-that-review-them
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-imported-lvs-results-and-transfer-dossiers-are-read-and-written-by-the-groups-that-review-them
 	 */
 	public function testRequiredFieldsAndNotAppendOnly(): void {
 		$schema = $this->config['components']['schemas']['LvsResult'];
@@ -95,7 +95,7 @@ class LvsResultRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/lvs-import-contract/specs/data-exchange/spec.md#scenario-an-imported-lvs-result-links-to-an-existing-assessmentresult-when-one-exists
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-an-imported-lvs-result-links-to-an-existing-assessmentresult-when-one-exists
 	 */
 	public function testAssessmentResultLinkIsNullable(): void {
 		$props = $this->config['components']['schemas']['LvsResult']['properties'];
@@ -116,7 +116,7 @@ class LvsResultRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/lvs-import-contract/specs/data-exchange/spec.md#scenario-an-imported-result-is-not-verified-until-a-coordinator-confirms-it
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-an-imported-result-is-not-verified-until-a-coordinator-confirms-it
 	 */
 	public function testInitialLifecycleStateIsImported(): void {
 		$schema = $this->config['components']['schemas']['LvsResult'];
@@ -142,7 +142,7 @@ class LvsResultRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/lvs-import-contract/specs/data-exchange/spec.md#scenario-a-learner-can-read-their-own-lvs-results-but-not-another-learners
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-a-learner-can-read-their-own-lvs-results-but-not-another-learners
 	 */
 	public function testRbacReadMirrorsAssessmentResult(): void {
 		$read = $this->config['components']['schemas']['LvsResult']['x-property-rbac']['read'];

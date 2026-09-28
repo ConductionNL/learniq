@@ -7,6 +7,13 @@ deferred/placeholder shape from `portal-contribution` (which used the invented
 reader's real contract: `{register, schema, scopeField, targetField}` plus
 `match: 'scopeField'`.
 
+## RENAMED Requirements
+
+- FROM: `### Requirement: Parent manifest resolves child via a one-hop join (REQ-PCON-004)`
+- TO: `### Requirement: Parent manifest resolves child via a reverse scope-value join (REQ-PCON-004)`
+- FROM: `### Requirement: Scoping uses portal-identity UUID refs (REQ-PCON-005)`
+- TO: `### Requirement: Scoping uses portal-identity UUID refs and a verified via shape (REQ-PCON-005)`
+
 ## MODIFIED Requirements
 
 ### Requirement: Parent manifest resolves child via a reverse scope-value join (REQ-PCON-004)

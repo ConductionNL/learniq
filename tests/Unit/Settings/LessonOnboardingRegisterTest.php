@@ -158,7 +158,7 @@ class LessonOnboardingRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-a-lesson-a-learner-can-read-cannot-hold-a-teacher-note
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-a-learner-can-read-cannot-hold-a-teacher-note
 	 */
 	public function testTeacherNotesAreNotLessonBlocks(): void {
 		$lesson = $this->config['components']['schemas']['Lesson'];

@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lesson-sharing-consent-gate/tasks.md#task-3-controller-route-and-action
+ * @spec openspec/changes/archive/2026-09-28-lesson-sharing-consent-gate/tasks.md#task-3-controller-route-and-action
  */
 
 declare(strict_types=1);

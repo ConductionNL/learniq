@@ -23,8 +23,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#requirement-pass-rules-apply-their-declared-minimum
- * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#requirement-a-plan-satisfied-entirely-by-exemptions-passes
+ * @spec openspec/specs/grading/spec.md#requirement-pass-rules-apply-their-declared-minimum
+ * @spec openspec/specs/grading/spec.md#requirement-a-plan-satisfied-entirely-by-exemptions-passes
  */
 
 declare(strict_types=1);
@@ -102,7 +102,7 @@ class GradePassEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#scenario-a-component-below-its-minimum-fails-the-plan
+	 * @spec openspec/specs/grading/spec.md#scenario-a-component-below-its-minimum-fails-the-plan
 	 */
 	public function testAComponentBelowItsMinValueFailsThePlan(): void {
 		$rules = [
@@ -127,7 +127,7 @@ class GradePassEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#scenario-every-component-at-or-above-its-minimum-passes
+	 * @spec openspec/specs/grading/spec.md#scenario-every-component-at-or-above-its-minimum-passes
 	 */
 	public function testEveryComponentAtItsMinValuePasses(): void {
 		$rules = [
@@ -148,7 +148,7 @@ class GradePassEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#scenario-a-final-grade-rule-compares-the-final-value
+	 * @spec openspec/specs/grading/spec.md#scenario-a-final-grade-rule-compares-the-final-value
 	 */
 	public function testAFinalGradeRuleComparesTheFinalValue(): void {
 		$rules = [['componentId' => null, 'minValue' => 5.5]];
@@ -178,7 +178,7 @@ class GradePassEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#scenario-an-exempted-unit-passes
+	 * @spec openspec/specs/grading/spec.md#scenario-an-exempted-unit-passes
 	 */
 	public function testAnExemptionOnlyPlanPasses(): void {
 		$passed = $this->evaluator->evaluatePassed(
@@ -199,7 +199,7 @@ class GradePassEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#scenario-an-exempted-unit-passes
+	 * @spec openspec/specs/grading/spec.md#scenario-an-exempted-unit-passes
 	 */
 	public function testAnExemptionOnlyAllMustPassPlanWithAFinalGradeRulePasses(): void {
 		$passed = $this->evaluator->evaluatePassed(
@@ -218,7 +218,7 @@ class GradePassEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#requirement-a-plan-satisfied-entirely-by-exemptions-passes
+	 * @spec openspec/specs/grading/spec.md#requirement-a-plan-satisfied-entirely-by-exemptions-passes
 	 */
 	public function testAnExemptionOnlyPlanWithoutComponentsPasses(): void {
 		self::assertTrue(
@@ -231,7 +231,7 @@ class GradePassEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#scenario-a-partial-exemption-with-a-missing-component-stays-open
+	 * @spec openspec/specs/grading/spec.md#scenario-a-partial-exemption-with-a-missing-component-stays-open
 	 */
 	public function testAPartialExemptionStaysOpen(): void {
 		$passed = $this->evaluator->evaluatePassed(
@@ -252,7 +252,7 @@ class GradePassEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#scenario-a-partial-exemption-with-a-missing-component-stays-open
+	 * @spec openspec/specs/grading/spec.md#scenario-a-partial-exemption-with-a-missing-component-stays-open
 	 */
 	public function testARuleComponentWithoutAnExemptionKeepsTheVerdictOpen(): void {
 		$passed = $this->evaluator->evaluatePassed(

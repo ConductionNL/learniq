@@ -26,8 +26,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md
- * @spec openspec/changes/privacy-governance-surfaces/specs/data-exchange/spec.md
+ * @spec openspec/specs/avg-verwerkingsregister/spec.md
+ * @spec openspec/specs/data-exchange/spec.md
  */
 
 declare(strict_types=1);
@@ -69,7 +69,7 @@ class PrivacyGovernanceRegisterTest extends TestCase {
 	 * fields and a compliance-officers-only RBAC floor — no lifecycle.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#requirement-the-school-records-its-privacyconvenant-agreement-and-privacybijsluiter
+	 * @spec   openspec/specs/avg-verwerkingsregister/spec.md#requirement-the-school-records-its-privacyconvenant-agreement-and-privacybijsluiter
 	 */
 	public function testComplianceIsAFlatSingletonWithPrivacyFields(): void {
 		$schema = $this->config['components']['schemas']['Compliance'] ?? null;
@@ -117,7 +117,7 @@ class PrivacyGovernanceRegisterTest extends TestCase {
 	 * cannot recreate the copy.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/privacy-reuse-openregister-register/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+	 * @spec   openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
 	 */
 	public function testDataSubjectRequestIsRetiredInFavourOfOpenRegister(): void {
 		$this->assertArrayNotHasKey('DataSubjectRequest', $this->config['components']['schemas']);
@@ -139,7 +139,7 @@ class PrivacyGovernanceRegisterTest extends TestCase {
 	 * approve and reject lifecycle, and its seed never blocks a real exchange.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+	 * @spec   openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
 	public function testPartnerApprovalIsAStandingRecordPerTarget(): void {
 		$schema = $this->config['components']['schemas']['ExchangePartnerApproval'] ?? null;
