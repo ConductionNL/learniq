@@ -109,11 +109,12 @@ class CheckInCodeController extends Controller {
 
 		$mode = (string)($window['mode'] ?? 'rotating-qr');
 		$code = $this->codes->current(windowId: $windowId, mode: $mode);
+		$page = $this->urls->linkToRouteAbsolute('learniq.page.catchAll', ['path' => 'check-in']);
 
 		return new JSONResponse(
 			data: [
 				'code' => $code,
-				'url' => $this->urls->linkToRouteAbsolute('learniq.page.catchAll', ['path' => 'check-in']) . '?window=' . rawurlencode($windowId) . '&code=' . $code,
+				'url' => $page . '?window=' . rawurlencode($windowId) . '&code=' . $code,
 				'mode' => $mode,
 				'secondsLeft' => $this->codes->secondsLeft(),
 				'checkInCount' => $this->countCheckIns(sessionId: (string)($window['sessionId'] ?? '')),
