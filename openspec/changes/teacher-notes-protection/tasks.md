@@ -38,8 +38,8 @@ Feature tier: must (privacy of pupil-related staff notes).
   - GIVEN a lesson with a note WHEN run THEN note created, lesson saved without it (TC-5)
   - GIVEN the note already exists WHEN run THEN nothing created, lesson stripped
   - GIVEN a failing create WHEN run THEN the lesson is not saved
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 5: The composer loads and saves notes separately
 - **spec_ref**: `openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-the-composer-shows-notes-inline-and-saves-them-to-the-staff-store`

@@ -59,6 +59,14 @@ class LessonOnboardingImporter {
 	private const NOTE_SCHEMA = 'lesson-teacher-note';
 
 	/**
+	 * Takes slide notes out of the lesson blocks. Pure, so it is built here
+	 * rather than injected (the constructor is at phpmd's parameter limit).
+	 *
+	 * @var TeacherNoteSplitter
+	 */
+	private readonly TeacherNoteSplitter $noteSplitter;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService Reads the row, the course and its lessons; updates the lesson.
@@ -70,7 +78,6 @@ class LessonOnboardingImporter {
 	 * @param IRootFolder $rootFolder Resolves the file inside the teacher's files.
 	 * @param OnboardingFolderSetting $folderSetting Tenant fallback.
 	 * @param LoggerInterface $logger Logs ids and counts, never document text.
-	 * @param TeacherNoteSplitter $noteSplitter Takes slide notes out of the lesson blocks.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
@@ -82,8 +89,8 @@ class LessonOnboardingImporter {
 		private readonly IRootFolder $rootFolder,
 		private readonly OnboardingFolderSetting $folderSetting,
 		private readonly LoggerInterface $logger,
-		private readonly TeacherNoteSplitter $noteSplitter=new TeacherNoteSplitter(),
 	) {
+		$this->noteSplitter = new TeacherNoteSplitter();
 	}//end __construct()
 
 	/**
@@ -198,7 +205,10 @@ class LessonOnboardingImporter {
 			try {
 				$noteId = $this->objectWriter->create(schema: self::NOTE_SCHEMA, object: [...$note, 'lessonId' => $lessonId, 'tenant_id' => $tenantId]);
 			} catch (Throwable $e) {
-				$this->logger->warning('[LessonOnboardingImporter] A teacher note of lesson {lessonId} could not be saved: {error}', ['lessonId' => $lessonId, 'error' => $e->getMessage()]);
+				$this->logger->warning(
+					'[LessonOnboardingImporter] A teacher note of lesson {lessonId} could not be saved: {error}',
+					['lessonId' => $lessonId, 'error' => $e->getMessage()]
+				);
 				$noteId = null;
 			}
 
