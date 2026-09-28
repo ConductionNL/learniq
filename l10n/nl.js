@@ -2407,7 +2407,18 @@ OC.L10N.register(
         "Placement coordinator": "Stagecoördinator",
         "Confidential counsellor": "Vertrouwenspersoon",
         "The functions this person holds at the school. A tag describes the job; it grants no access. Access comes from the person's groups.": "De functies die deze persoon op school heeft. Een functie beschrijft het werk en geeft geen toegang. Toegang komt uit de groepen van de persoon.",
-        "Administrative staff": "Administratief medewerker"
+        "Administrative staff": "Administratief medewerker",
+        "This test is not open for you right now.": "Deze toets staat nu niet voor je open.",
+        "This test is not open yet.": "Deze toets is nog niet open.",
+        "This test is closed.": "Deze toets is gesloten.",
+        "You have used all your attempts for this test.": "Je hebt al je pogingen voor deze toets gebruikt.",
+        "You can only take this test in the supervised test screen at school.": "Je kunt deze toets alleen maken in het beveiligde toetsscherm op school.",
+        "This test needs an access code. Ask the person supervising the test.": "Voor deze toets heb je een toegangscode nodig. Vraag het aan de toetsbegeleider.",
+        "This test is already handed in.": "Deze toets is al ingeleverd.",
+        "Your school account is not ready for tests yet. Ask your school.": "Je schoolaccount is nog niet klaar voor toetsen. Vraag het aan je school.",
+        "This work could not be found.": "Dit werk is niet gevonden.",
+        "This work is already handed in.": "Dit werk is al ingeleverd.",
+        "This work cannot be handed in right now. Ask your teacher.": "Dit werk kan nu niet worden ingeleverd. Vraag het aan je docent."
     },
     "nplurals=2; plural=(n != 1);"
 )

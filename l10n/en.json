@@ -1989,7 +1989,18 @@
         "Placement coordinator": "Placement coordinator",
         "Confidential counsellor": "Confidential counsellor",
         "The functions this person holds at the school. A tag describes the job; it grants no access. Access comes from the person's groups.": "The functions this person holds at the school. A tag describes the job; it grants no access. Access comes from the person's groups.",
-        "Administrative staff": "Administrative staff"
+        "Administrative staff": "Administrative staff",
+        "This test is not open for you right now.": "This test is not open for you right now.",
+        "This test is not open yet.": "This test is not open yet.",
+        "This test is closed.": "This test is closed.",
+        "You have used all your attempts for this test.": "You have used all your attempts for this test.",
+        "You can only take this test in the supervised test screen at school.": "You can only take this test in the supervised test screen at school.",
+        "This test needs an access code. Ask the person supervising the test.": "This test needs an access code. Ask the person supervising the test.",
+        "This test is already handed in.": "This test is already handed in.",
+        "Your school account is not ready for tests yet. Ask your school.": "Your school account is not ready for tests yet. Ask your school.",
+        "This work could not be found.": "This work could not be found.",
+        "This work is already handed in.": "This work is already handed in.",
+        "This work cannot be handed in right now. Ask your teacher.": "This work cannot be handed in right now. Ask your teacher."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
