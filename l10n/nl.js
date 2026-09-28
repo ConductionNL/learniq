@@ -2637,7 +2637,14 @@ OC.L10N.register(
         "already took place or cancelled": "al geweest of uitgevallen",
         "changed": "gewijzigd",
         "not changed": "niet gewijzigd",
-        "Change room": "Lokaal wijzigen"
+        "Change room": "Lokaal wijzigen",
+        "The lesson this result is about.": "De les waar dit resultaat over gaat.",
+        "Starts at": "Begint om",
+        "When the lesson starts.": "Wanneer de les begint.",
+        "Whether the change was applied or refused.": "Of de wijziging is doorgevoerd of geweigerd.",
+        "Applied": "Doorgevoerd",
+        "Refused": "Geweigerd",
+        "Why the lesson was refused.": "Waarom de les is geweigerd."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -2180,7 +2180,14 @@ OC.L10N.register(
         "changed": "changed",
         "not changed": "not changed",
         "Change room": "Change room",
-        "Room": "Room"
+        "Room": "Room",
+        "The lesson this result is about.": "The lesson this result is about.",
+        "Starts at": "Starts at",
+        "When the lesson starts.": "When the lesson starts.",
+        "Whether the change was applied or refused.": "Whether the change was applied or refused.",
+        "Applied": "Applied",
+        "Refused": "Refused",
+        "Why the lesson was refused.": "Why the lesson was refused."
     },
     "nplurals=2; plural=(n != 1);"
 )

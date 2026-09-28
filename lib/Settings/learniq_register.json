@@ -6475,7 +6475,7 @@
             },
             "SessionChangeBatch": {
                 "slug": "session-change-batch",
-                "icon": "CalendarMultiselect",
+                "icon": "CalendarMultiselectOutline",
                 "version": "0.1.0",
                 "title": "Session change batch",
                 "description": "One change (cancel, substitute teacher or other room) applied to several lessons of the same weekly slot at once, with the outcome per lesson.",
@@ -6566,22 +6566,34 @@
                             "type": "object",
                             "properties": {
                                 "sessionId": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "title": "Lesson",
+                                    "description": "The lesson this result is about."
                                 },
                                 "startsAt": {
                                     "type": "string",
-                                    "nullable": true
+                                    "nullable": true,
+                                    "title": "Starts at",
+                                    "description": "When the lesson starts."
                                 },
                                 "outcome": {
                                     "type": "string",
                                     "enum": [
                                         "applied",
                                         "refused"
-                                    ]
+                                    ],
+                                    "title": "Outcome",
+                                    "description": "Whether the change was applied or refused.",
+                                    "x-enum-labels": {
+                                        "applied": "Applied",
+                                        "refused": "Refused"
+                                    }
                                 },
                                 "reason": {
                                     "type": "string",
-                                    "nullable": true
+                                    "nullable": true,
+                                    "title": "Reason",
+                                    "description": "Why the lesson was refused."
                                 }
                             }
                         },
