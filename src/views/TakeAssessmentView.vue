@@ -28,7 +28,7 @@
 		<!-- Loading -->
 		<div v-if="loading" class="take-assessment__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('learniq', 'Loading assessment…') }}</span>
+			<span>{{ t('learniq', 'Loading assessment...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -269,7 +269,7 @@
 						class="take-assessment__essay-input"
 						rows="10"
 						aria-labelledby="take-assessment-essay-prompt"
-						:placeholder="t('learniq', 'Write your response here…')"
+						:placeholder="t('learniq', 'Write your response here...')"
 						:value="currentResponse || ''"
 						@input="setResponse($event.target.value)" />
 					<p class="take-assessment__essay-note">
@@ -299,7 +299,7 @@
 						class="take-assessment__essay-input"
 						rows="6"
 						aria-labelledby="take-assessment-other-prompt"
-						:placeholder="t('learniq', 'Enter your response…')"
+						:placeholder="t('learniq', 'Enter your response...')"
 						:value="currentResponse || ''"
 						@input="setResponse($event.target.value)" />
 				</div>
