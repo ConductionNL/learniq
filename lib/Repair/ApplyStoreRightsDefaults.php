@@ -33,7 +33,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-existing-installs-get-the-new-store-defaults-once
+ * @spec openspec/specs/course-management/spec.md#requirement-existing-installs-get-the-new-store-defaults-once
  */
 
 declare(strict_types=1);
@@ -86,7 +86,7 @@ class ApplyStoreRightsDefaults implements IRepairStep {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-existing-installs-get-the-new-store-defaults-once
+	 * @spec openspec/specs/course-management/spec.md#requirement-existing-installs-get-the-new-store-defaults-once
 	 */
 	public function getName(): string {
 		return 'Let teachers install shared courses and team leads publish them (store rights, once)';
@@ -100,7 +100,7 @@ class ApplyStoreRightsDefaults implements IRepairStep {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-existing-installs-get-the-new-store-defaults-once
+	 * @spec openspec/specs/course-management/spec.md#requirement-existing-installs-get-the-new-store-defaults-once
 	 */
 	public function run(IOutput $output): void {
 		if ($this->appConfig->getValueString(Application::APP_ID, self::MARKER, '') !== '') {
@@ -145,7 +145,7 @@ class ApplyStoreRightsDefaults implements IRepairStep {
 	 *
 	 * @return array<string, array<int, string>>
 	 *
-	 * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-existing-installs-get-the-new-store-defaults-once
+	 * @spec openspec/specs/course-management/spec.md#requirement-existing-installs-get-the-new-store-defaults-once
 	 */
 	public function applyDefaults(array $matrix, array $seed): array {
 		if (array_key_exists(self::ACTION_INSTALL, $matrix) === false) {

@@ -36,7 +36,7 @@ Phase 1 ships the **compliance-audit wedge** (6 capabilities, all built). Phase 
 | Capability | Spec | Status |
 |---|---|---|
 | Nextcloud app shell, CnAppRoot Tier-4 manifest, OpenRegister dep check | `nextcloud-app` | **built** |
-| Course + Lesson, cmi5/xAPI runtime, SCORM shim | `course-management` | **built** (follow-up: collapse Course/Module → recursive Course; link CurriculumPlan) |
+| Course + Lesson, cmi5/xAPI runtime, SCORM shim | `course-management` | **built**: cmi5 launch, LRS ingest and the SCORM 1.2 shim (cmi5-xapi-lrs-ingest). Follow-ups: SCORM 2004 shim, cmi5 package importer, collapse Course/Module into a recursive Course, link CurriculumPlan |
 | Bulk-enrol learners, mandatory flag, due_date, reminder cascade | `enrolment` | **built** |
 | Attestation capture, OB3 credential issuance, expiry detection | `certification` | **built** |
 | Regulation tracking, coverage %, audit pack export, immutable evidence | `compliance-audit` | **built** (wedge core) |

@@ -15,7 +15,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-a-learners-personal-number-is-encrypted-and-readable-only-by-administration-and-compliance
+ * @spec openspec/specs/data-exchange/spec.md#requirement-a-learners-personal-number-is-encrypted-and-readable-only-by-administration-and-compliance
  */
 
 declare(strict_types=1);
@@ -47,8 +47,8 @@ class PersonalNumberProtectionTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#scenario-the-register-declares-the-protection
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#scenario-a-teacher-reads-a-learner-profile
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-the-register-declares-the-protection
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-a-teacher-reads-a-learner-profile
 	 */
 	public function testTheRegisterDeclaresTheProtection(): void {
 		$properties = $this->properties();

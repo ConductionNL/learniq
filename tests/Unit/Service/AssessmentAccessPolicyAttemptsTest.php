@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EUPL-1.2
  *
- * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
+ * @spec openspec/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
  */
 
 declare(strict_types=1);
@@ -56,7 +56,7 @@ class AssessmentAccessPolicyAttemptsTest extends TestCase {
 	 *
 	 * @dataProvider cases
 	 *
-	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#scenario-a-second-attempt-on-a-one-attempt-test-is-refused
+	 * @spec openspec/specs/assessment/spec.md#scenario-a-second-attempt-on-a-one-attempt-test-is-refused
 	 */
 	public function testAttemptsBlock(mixed $maxAttempts, int $used, bool $refused): void {
 		$assessment = ['title' => 'Toets'];

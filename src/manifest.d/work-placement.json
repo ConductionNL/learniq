@@ -369,6 +369,13 @@
 							"allowCreate": false
 						},
 						"icon": "MapMarker"
+					},
+					{
+						"id": "bpv-deck",
+						"type": "integration",
+						"integrationId": "deck",
+						"title": "Follow-ups",
+						"icon": "ClipboardListOutline"
 					}
 				],
 				"layout": [
@@ -416,6 +423,14 @@
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": true
+					},
+					{
+						"id": "6",
+						"widgetId": "bpv-deck",
+						"gridX": 0,
+						"gridY": 14,
+						"gridWidth": 12,
+						"gridHeight": 4
 					}
 				],
 				"sidebar": {
@@ -503,6 +518,13 @@
 							"allowCreate": false
 						},
 						"icon": "Briefcase"
+					},
+					{
+						"id": "po-contact",
+						"type": "integration",
+						"integrationId": "contacts",
+						"title": "Contact card",
+						"icon": "AccountBoxOutline"
 					}
 				],
 				"layout": [
@@ -532,6 +554,14 @@
 						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": true
+					},
+					{
+						"id": "4",
+						"widgetId": "po-contact",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 12,
+						"gridHeight": 4
 					}
 				],
 				"sidebar": {

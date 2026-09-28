@@ -31,7 +31,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
+ * @spec openspec/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
  */
 
 declare(strict_types=1);
@@ -46,7 +46,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 /**
  * Start rules and the time limit of a learner's attempt.
  *
- * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
+ * @spec openspec/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
  */
 class AssessmentAttemptLimits {
 
@@ -81,7 +81,7 @@ class AssessmentAttemptLimits {
 	 *
 	 * @return array{block: array{reason: string, message: string}|null, stamp: array<string, mixed>}
 	 *
-	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
+	 * @spec openspec/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
 	 */
 	public function start(array $assessment, array $payload): array {
 		$now = $this->timeFactory->getDateTime();
@@ -127,7 +127,7 @@ class AssessmentAttemptLimits {
 	 *
 	 * @return string|null ISO-8601 deadline, or null.
 	 *
-	 * @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#requirement-the-in-app-test-screen-shows-the-servers-deadline-and-saves-answers-as-the-learner-works
+	 * @spec openspec/specs/assessment/spec.md#requirement-the-in-app-test-screen-shows-the-servers-deadline-and-saves-answers-as-the-learner-works
 	 */
 	private function deadlineAt(array $assessment, array $payload, string $startedAt): ?string {
 		$examId = (string)($payload['assessmentId'] ?? '');
@@ -152,7 +152,7 @@ class AssessmentAttemptLimits {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#scenario-answers-after-the-deadline-are-not-saved
+	 * @spec openspec/specs/assessment/spec.md#scenario-answers-after-the-deadline-are-not-saved
 	 */
 	public function answersLate(array $old, array $new, string $uid): bool {
 		if (in_array((string)($old['lifecycle'] ?? ''), self::IN_PROGRESS_STATES, true) === false

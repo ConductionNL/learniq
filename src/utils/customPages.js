@@ -389,7 +389,7 @@ export function moveItem(list, index, delta) {
  * @param {string} args.target Exchange target, such as 'bron-rod'.
  * @param {string} [args.learnerId] One learner's user id, or '' for everyone.
  * @return {object} The request body.
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+ * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
 export function exchangeRequestBody({ target, learnerId }) {
 	const body = { target }
@@ -402,7 +402,7 @@ export function exchangeRequestBody({ target, learnerId }) {
  * The exchange request URL.
  *
  * @return {string} The app-relative URL (POST).
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+ * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
 export function exchangeRequestUrl() {
 	return '/apps/learniq/api/exchange/requests'
@@ -480,7 +480,7 @@ export const SIGNABLE_SUBJECTS = {
  * @param {string} kind 'learning-plan' or 'praktijkovereenkomst'.
  * @param {object} subject The signed object.
  * @return {boolean} True for a praktijkovereenkomst that needs a parent's signature.
- * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
+ * @spec openspec/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
  */
 export function parentSignatureNeeded(kind, subject) {
 	return (

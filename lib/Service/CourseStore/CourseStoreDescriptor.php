@@ -35,7 +35,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/specs/course-management/spec.md#requirement-the-store-page-lists-shared-courses-through-the-store-plane
- * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
  */
 
 declare(strict_types=1);
@@ -121,7 +121,7 @@ class CourseStoreDescriptor {
 	 * @return StoreDescriptor
 	 *
 	 * @spec openspec/specs/course-management/spec.md#requirement-the-store-page-lists-shared-courses-through-the-store-plane
-	 * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
 	 */
 	public function descriptor(): StoreDescriptor {
 		$arguments = [
@@ -147,7 +147,7 @@ class CourseStoreDescriptor {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-publishing-degrades-cleanly-on-an-openregister-without-the-write-path
+	 * @spec openspec/specs/course-management/spec.md#requirement-publishing-degrades-cleanly-on-an-openregister-without-the-write-path
 	 */
 	public function supportsPublish(): bool {
 		return property_exists(StoreDescriptor::class, 'publishFields') === true

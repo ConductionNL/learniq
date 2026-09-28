@@ -3,7 +3,7 @@
     "info": {
         "title": "Learniq Register",
         "description": "Register containing all schemas for the Learniq application. v0.2.0 declares Learniq's AVG Art. 30 processing activities (learner administration, attendance & leerplicht reporting, grading & assessment, signed attestations, credentialing, data exchange to DUO/OSO/municipality/HR, and AI features) as x-openregister-processing catalogue annotations on LearnerProfile, AttendanceRecord, Assessment, Attestation, Credential, DataExchangeJob, and AiFeature. Each carries purpose (doelbinding), legal basis (rechtsgrond), data categories, backend identifier, retention reference, owner/review fields, and opts the schema into OpenRegister's per-access read-logging (logReads:true, attribution.default referencing the activity code). Seeds arrive as drafts; the school's privacy officer activates them in the OpenRegister lifecycle. v0.3.0 adds ADR-046 portal-identity scoping refs (learnerRef / learnerRefs / submittedByRef / guardianRefs) alongside the existing Nextcloud-user-id fields on GradeEntry, FinalGrade, AttendanceRecord, Enrolment, Submission, ExcuseRequest, LearnerProfile, and GradeNotification — additive, optional, fail-closed; see openspec/changes/portal-identity/. v0.3.1 strips the AiFeature schema to its AVG Art. 30 processing carrier only — EU AI Act high-risk feature governance (lifecycle, DPO acknowledgement, register pages) is delegated to the Hermiq app (ADR-005 amendment). Requires OpenRegister >= 0.2.14. See openspec/specs/avg-verwerkingsregister/spec.md. v0.4.0 adds beroepspraktijkvorming (BPV) — six new schemas (Praktijkopleider, BpvPlacement, Praktijkovereenkomst, PokSignature, WerkprocesAssessment, BpvVisitReport) implementing the MBO work-placement/POK/leerbedrijf-verification/werkproces-assessment domain (WEB art. 7.2.8/7.2.9). No existing schema is modified. See openspec/changes/bpv-praktijkovereenkomst/. v0.5.0 adds parent-conferences (oudergesprekken-cyclus) — five new schemas (ConferenceRound, TeacherAvailability, ConferenceSignup, ConferenceSlot, ConferenceReport) implementing conference-round invitations, guardian/self signup, ConferenceScheduleGenerator's greedy conflict-free slot generation, and an append-only gespreksverslag (ConferenceReport). No existing schema is modified. See openspec/changes/parent-evening-planner/. v0.6.0 adds exam-board (examencommissie) case handling — two new schemas (ExemptionCase, FraudCase) implementing the WHW art. 7.13 exemption (vrijstelling) and fraud/plagiarism dossier flows: ExemptionCase submitted→in-assessment→granted|rejected|withdrawn with ExemptionGrantHandler bridging a grant into a published GradeEntry (sourceKind=exemption); FraudCase reported→hearing-scheduled→heard→decided(+dismissed) with FraudCaseDecisionGuard stamping a 42-day appealDeadline and FraudCaseDecisionHandler invalidating a contested concept GradeEntry on a fraud-proven verdict. GradeEntry gains sourceKind=exemption, exemptionCaseId/fraudCaseId refs, conditional value requiredness, FraudCaseBlockGuard on publish/republish, and a new invalidated terminal state; GradeEntry/FinalGrade gain an examboard RBAC read role. See openspec/changes/exam-board-case-handling/. v0.6.1 is doc-only: DataExchangeJob.target's description gains the 'ooapi-catalog' example, naming the OpenConnector target that syncs published/archived Course, Programme, and Cohort objects to the OOAPI 5.0 catalog hosted by opencatalogi, per the course-management publication contract resolving the course-management/data-exchange OOAPI self-contradiction. No schema/type change — target was already a free-text string. See openspec/changes/delegate-ooapi-to-opencatalogi/. v0.7.0 adds LtiToolPlacement — places an external LTI 1.3 tool inside a Course/Lesson, naming the corresponding lti_deployment UUID in OpenConnector's own register plus an optional CurriculumPlan/component/GradeScale mapping for AGS grade passback; brings the previously-dead Lesson.contentType='lti' enum value to life (contentRef now names an LtiToolPlacement, doc-only correction). GradeEntry.sourceKind gains lti-ags, plus ltiToolPlacementId/ltiAgsResultId fields (same per-sourceKind-id-field shape as submissionId/assessmentResultId/sessionId), so an LTI Assignment & Grade Services score carries an honest, traceable, idempotent origin. See openspec/changes/lti-tool-placement/. v0.8.0 adds the competency capability — CompetencyFramework (a named taxonomy with its own proficiencyLevels scale), Competency (recursive via parentId, mirroring Course.parentCourseId — a leaf Competency IS the learning outcome, no separate LearningOutcome schema), and CompetencyAttainment (a FinalGrade-shaped, read-only, per-(learnerId, competencyId) roll-up recomputed by the new CompetencyAttainmentRollupHandler listener). Course, Lesson, Assignment, Assessment, Item, Credential, and Programme each gain an additive competencyIds/requiredCompetencyIds array. WerkprocesAssessment gains a nullable, server-resolved competencyId generalizing its existing kwalificatiedossierCode/kerntaakCode/werkprocesCode strings (unchanged in shape) into the shared taxonomy, and its confirm transition additionally fires CompetencyAttainmentRollupHandler alongside the existing WerkprocesGradeEmitHandler. See openspec/changes/competency-framework/. v0.9.0 adds learning-progress-and-analytics — LessonCompletion (one row per (learnerId, lessonId), source: xapi | manual, written by the new LessonProgressHandler sibling listener on the same XapiStatement ObjectCreatedEvent XapiCompletionHandler already consumes — no mandatoryTraining/last-lesson gate — plus a learner self-serve manual path); Enrolment gains completedLessonCount/totalPublishedLessonCount aggregate-refs and a progressPercent field (EnrolmentProgressEvaluator/EnrolmentProgressRollupHandler, mirroring FinalGrade.value/GradeFormulaEvaluator — no division operator exists in the calculation DSL); EngagementScore (per learnerId+courseId time-on-task/recency/score, EngagementScoreEvaluator), EngagementRiskThreshold + EngagementRiskFlag (deterministic rule-based at-risk detection generalised beyond the HE/MBO-only BsaTrajectory, mirroring AttendanceThreshold/AttendanceFlag and BsaTrajectory/BsaProgressFlag, via the new EngagementSignalHandler). GroupTrendHeatmap.vue renders a cohort x period grade-trend heat map over existing GradeEntry data — no new schema. See openspec/changes/learning-progress-and-analytics/. v0.10.0 adds adaptive-release-and-prerequisites — closes the prerequisite hole: Course gains prerequisiteCourseIds (array of $ref Course), enforced by the new EnrolmentPrerequisiteListener on OpenRegister's ObjectCreatingEvent for the enrolment schema (NOT a lifecycle `requires` guard — Enrolment has no transition into its initial pending state for one to attach to; mirrors decidesk's SubmissionDeadlineListener/larpingapp's CharacterRequirementListener creation-time-veto shape). Lesson and Assessment each gain releaseConditions (array of {kind: lesson-completed|assessment-min-score, lessonId?, assessmentId?, minScore?}, AND-combined) and availableAfterDays (nullable integer — drip release relative to each learner's OWN Enrolment.created), evaluated per-learner at request time by the new stateless LessonReleaseEvaluator/LessonReleaseController (no @self/@aggregate/@ref calc-DSL token carries a per-viewer identity, so this cannot be materialised). Assessment's existing availableFrom/availableUntil/isAvailable absolute window is unchanged; the new gates layer on top. See openspec/changes/adaptive-release-and-prerequisites/. v0.11.0 adds report-card (periodic rapport composition & rapportvergadering review) — three new schemas: ReportPeriod (the school-wide term a report is composed for: periodCode matching GradeEntry.period/CurriculumPlan.components[].period/FinalGrade.breakdown.periods keys, curriculumPlanIds[]/cohortIds[] scope, a nullable lockDate backing a materialised isLocked calculation — NOT an automatic lifecycle transition, mirroring ConferenceRound.isBookingClosed's documented 'scheduled triggers cannot drive a transition' precedent); ReportCard (one composed document per learner per ReportPeriod: subjectGrades[] snapshotting FinalGrade.breakdown.periods[periodCode] plus sourceGradeEntryIds[], an attendanceSummary, mentor/teacher comments, a forward-compatible nullable competencyAttainment field, and fail-soft docudesk PDF-render state fields; lifecycle draft → rapportvergadering-review → finalised → published-to-parents, with reopen back to review); ReportCardParentNotification (append-only fan-out record mirroring GradeNotification's shape). ReportCardComposer (Listener, ADR-031 cross-object write bridge mirroring DataExchangeRunHandler's composeLeerplichtDossier/composeSwvDossier assembly shape, NOT the DataExchangeJob queue) composes ReportCards on ReportPeriod's compose transition and on ReportCard's recompose self-loop. GradeEntry.publish/republish's requires guard is swapped from FraudCaseBlockGuard to ReportPeriodLockGuard, which composes FraudCaseBlockGuard's existing check internally then additionally blocks publishing into a locked ReportPeriod's scope unless the actor holds admin/mentor/principal — a single-guard composition, not a second `requires` array entry: verified at HEAD (LifecycleAnnotationValidator::validate + LifecycleGuardRegistry::resolve) that `requires` is strictly a single DI-tag string, never an array, so 'second requires entry' precedents named in this change's own design.md (Credential.revoke) do not actually exist as an array in this register — Credential.revoke has exactly one requires guard. ReportCard.publishToParents requires ReportCardVisibilityGuard, which re-resolves every contributing GradeEntry.visibleFrom at the moment of publication (not trusted from compose time) so grade-visibility-scheduling's promise holds end-to-end. PortalContributionProvider::parentContribution() gains a fourth parentReportCards collection, identical childJoin reverse-scope pattern to parentGrades/parentAttendance/parentExcuseRequests, filtered to lifecycle published-to-parents only. See openspec/changes/report-card-composer/. v0.12.0 adds pupil-dossier — the everyday pupil dossier layer underneath the formal LearningPlan/SupportRequest/DeliberationRecord care chain: three new schemas, DossierNote (appendOnly observation/conversation/phone-call-home/concern/positive note, x-property-rbac restricting every row to admin/mentor/coordinator/the note's own authorId — the tightest floor the dialect can express; the finer team-visible/care-team-only/private-to-author tiering beyond that floor is a named, unimplemented OpenRegister platform-capability gap, not a fabricated guarantee), BehaviourIncident (appendOnly what/severity/append-only followUpActions log/resolution, own lifecycle open → in-handling → resolved, escalatedSupportRequestId referencing — never duplicating — a SupportRequest), and WellbeingCheckIn (appendOnly learner-authored moodScale 1-5 + optional comment, no x-openregister-authorization restriction — any authenticated user may submit their own, a documented platform gap same as SupportRequest.raisedBy). All three carry x-openregister-processing catalogue entries (scholiq-pupil-dossier-notes / scholiq-behaviour-incidents / scholiq-wellbeing-checkins). No existing schema is modified. See openspec/changes/pupil-dossier-notes/. v0.13.0 adds course-evaluation (vakevaluatie) — five new schemas closing the gap between Nextcloud Forms (a real survey instrument this change deliberately does not rebuild) and course-quality reporting: EvaluationCampaign (which Course(s)/Cohort(s), academicYear/period, a minimal built-in Likert+free-text questions[] instrument or an external-form convenience link Learniq never ingests, a fixed anonymityPolicy, draft → open → closed → archived); EvaluationInvitation (system-provisioned per learner when a campaign opens, via EvaluationInvitationProvisioningHandler — the ONLY place a learner's identity and response status co-exist, reusing Enrolment.dueReminder's scheduled+filter reminder shape); CourseEvaluationResponse (appendOnly, anonymous BY SCHEMA SHAPE — no learnerId/submittedBy property exists at all, not RBAC-hidden — gated by CourseEvaluationEligibilityGuard, which mirrors ConferenceSignupGuardianGuard's session-resolved-caller-looked-up-against-a-different-schema shape and structurally prevents both uninvited and duplicate submission); CourseQualityScore (materialised per courseId/teacherId/academicYear/period roll-up, recomputed by CourseQualityScoreRollupHandler via CourseQualityScoreEvaluator — averaging exceeds this register's proven declarative count/count_distinct aggregation metrics, mirroring FinalGrade/GradeFormulaEvaluator's x-openregister-triggers.calculatedChange shape exactly, not an `engine`-keyed x-openregister-calculations entry, which is not a dialect key used anywhere in this register); ImprovementAction (declarative opleidingscommissie review/action tracker, no PHP guard). CourseEvaluationResponseSubmittedHandler re-resolves the same session identity after a successful submit and flips the caller's own EvaluationInvitation.hasResponded — a write to a different, unlinked object; the invitation never gains a field referencing which response satisfied it. No course-management schema is modified — Course/Cohort are referenced by $ref only. See openspec/changes/course-evaluation/. v0.14.0 adds payments — the `enrolment`/`course-management` specs both punted payment to 'a separate spec' that was never written; this closes the gap with five new schemas: FeeItem (the chargeable definition — kind, amount/currency/taxPosture, and a required voluntary flag: true is the Wet vrijwillige ouderbijdrage schoolkassa/trip/materials case, false is a genuine paid product like MBO contractonderwijs); Order/OrderLine (payer-facing request draft -> open -> partially-paid | paid -> refunded, with a materialised isOverdue calculation and dueSoon/overdue notifications mirroring Enrolment's exact idiom, and OrderTotalValidationGuard validating OrderLine.lineTotal sums against Order.totalAmount at finalize since no sum aggregation metric is precedented in this register); PaymentTransaction (appendOnly PSP round-trip per ADR-008, mirroring Attestation's evidentiary shape — learniq forwards OpenConnector's opaque status only, parsing nothing PSP-specific); Entitlement (what a paid Order grants — structurally cannot gate a voluntary fee: FeeItemVoluntaryEntitlementGuard blocks the pending -> active grant transition whenever the linked FeeItem.voluntary is true, composing EntitlementOrderPaidGuard which additionally requires the linked Order to have reached paid). PaymentTransactionController delegates payment initiation/callback to OpenConnector's (not-yet-built) mollie-stripe-payment-adapter, reusing the established IClientService/IURLGenerator/IAppConfig bearer-token shape LtiToolPlacementController/DataExchangeRunHandler already use. No invoicing/dunning/ERP — that territory belongs to pipelinq/financeq. See openspec/changes/school-payments/. v0.15.0 adds accessibility-conformance — the toegankelijkheidsverklaring (accessibility statement) obligation under the Tijdelijk besluit digitale toegankelijkheid overheid (BDTO, BWBR0040936): three new schemas, AccessibilityStatement (channel identity, a 3-value status collapsed from the government's five-level A–E scale with the mapping documented in the schema description, evaluation method/date, standard applied, feedback contact, escalation route, a materialised reviewOverdue calculation mirroring Enrolment.isOverdue's @now/dateDiff idiom plus a calculatedChange notification mirroring TlvApplication.tlvExpiringSoon; lifecycle draft → published → archived, with AccessibilityStatementPublishGuard refusing to publish without evaluation evidence or a fully-compliant status while an open/mitigated limitation exists); AccessibilityLimitation (the known-limitations register — WCAG criterion, severity, affected surface, justification, disproportionate-burden flag, workaround, planned-fix date; open → mitigated → fixed; create/update restricted to admin/compliance-officer, mirroring xapi-statement/BsaWarning); AccessibilityFeedback (a user-reported barrier, create open to any authenticated user — the opposite RBAC posture, deliberately — with an onSubmitted notification to compliance-officer/admin mirroring ItemRevisionFlag's created-trigger shape; submitted → acknowledged → resolved). No new PHP controller or route — only the one lifecycle guard, per ADR-022/ADR-031. See openspec/changes/accessibility-conformance-statement/. v0.16.0 adds course-authoring-ux — the one authoring surface course-management never got: Lesson gains blocks (an ordered array of typed content blocks — richText | media | quiz | assignment | ltiTool — each pointing at an existing Material/Assessment/Assignment/LtiToolPlacement UUID or carrying inline markdown for richText, structured JSON mirroring the Assessment.itemRefs precedent, not a new Block schema) and contentRef's top-level required entry is replaced by an allOf/if/then conditional (contentType='text' → contentRef not required; every other contentType unchanged), the second use of the exam-board-case-handling if/then/else construct in this register. Course gains order (nullable integer, additive — null sorts after every sibling with an explicit value) sequencing sibling modules sharing a parentCourseId. New schema CourseTemplate captures a reusable Course→Module→Lesson skeleton (+ optional CurriculumPlan skeleton) instantiated via frontend orchestration against OpenRegister's existing object-create endpoint (no new PHP controller, per ADR-022) — the concrete implementation of the 'Clone for next year' acceptance criterion the spec already promised but never backed with a requirement. Two new custom views (CourseBuilder.vue, LessonComposer.vue) provide drag-and-drop AND keyboard-operable reorder (WCAG 2.1 AA SC 2.1.1) for modules/lessons/blocks; LessonPlayer.vue gains a real contentType='text' rendering path over lesson.blocks, replacing the previously dead lesson.title/lesson.summary/lesson.content reads. See openspec/changes/course-authoring-ux/. v0.17.0 adds timetabling-and-substitution — the operational layer between 'an external optimiser (Zermelo/Untis/Xedule) produced a timetable' and 'a learner/teacher sees today's reality,' deliberately NOT a constraint-solving timetable generator (school-structure's 'Room-booking conflict resolution and timetabling optimisation' stays out of scope, permanently, by design): new Room (bookable resource — capacity/kind/facilities/buildingCode/floor, no lifecycle, the same resource-metadata shape as Material); Session gains additive roomId ($ref Room, location kept unchanged as a display-only fallback), externalRef (timetable-import idempotency key), substituteTeacherId/changeReasonKind/changeReason/affectedLearnerIds/affectedParentIds (mirroring ConferenceRound.invitedLearnerIds), and changedAt (server-stamped, backs personal-timetable's same-day dagrooster changes list), plus a substitute-teacher/substitute-teacher-in-progress self-loop pair (split per from-state — verified at HEAD that TransitionEngine resolves a single scalar 'to', so one from:[scheduled,in-progress] self-loop is not expressible as a single transition entry) and a SessionChangeGuard-gated cancel (now requiring changeReasonKind). New TimetableConflict (teacher/room/cohort/learner-double-booking, room-capacity-exceeded, exam-clash; open → acknowledged → resolved; admin/coordinator-only read; idempotent by (sessionIds, kind); created — never auto-resolved — by TimetableConflictDetector, an OR-event-driven cross-object write bridge mirroring ConferenceScheduleGenerator, invoked by SessionConflictListener on Session create/update and once in batch after a timetable-import DataExchangeJob succeeds). New ExamAccommodation (learnerId/submittedBy/accommodationKind/value/evidenceRef/approvedBy; requested → approved → active → expired|revoked; create open to learner/parent-portal roles, approve restricted to admin/compliance-officer/mentor via the new ExamAccommodationApprovalGuard — a 5th PHP class beyond the 4 named in the timetabling spec's 'Frontend is declarative' text, documented as a deviation since no x-openregister-authorization key expresses a per-transition role gate in this register). DataMappingProfile gains three timetable-import (direction:import) seed profiles (Zermelo/Untis/Xedule), reusing — not duplicating — the existing DataExchangeJob queue (target: timetable-import); the OpenConnector wire adapters themselves are a cross-repo openconnector follow-up, not built here. personal-timetable's TimetableController::mine() projects roomId/Room detail/substitution fields per Session and a same-day changes list — still read-only, no new write endpoint, per personal-timetable's unchanged invariant. See openspec/changes/timetabling-and-substitution/. v0.18.0 adds sovereign-ai-guarantee — the school-verifiable AI-processing locality guarantee, composing (not duplicating) avg-verwerkingsregister's existing scholiq-ai-features AVG Art. 30 activity: new SovereigntyPolicy (flat, un-lifecycled singleton — policy tier on-premises-only | eu-hosted-allowed | third-country-allowed, default eu-hosted-allowed, mirroring Hermiq's TenantControl/ModelPolicy/GuardrailPolicy precedent; create/update restricted to admin/compliance-officer, mirroring AccessibilityLimitation). No AiFeature schema change — EU AI Act governance stays delegated to Hermiq's agentaifeature register per ai-feature-delegate-to-hermiq. New AiLocalityClassifier service derives a {locality, verified, evidence} verdict from Hermiq's real hermiq.llm chat-provider configuration and, for the three OpenRegister-catalogued host-locked broker SaaS providers (openai/fireworks/anthropic), the referenced brokeredcredential's catalogue provider field — never from a hand-typed field; every other configuration (ollama, nextcloud TaskProcessing, an inject-only credential, Hermiq absent) classifies unverified, by construction, since no code path proves an on-premises/eu-hosted destination true today. AssessmentPublishGuard composes a new locality check (SovereigntyPolicyService::isCompliant()) inside its existing check() method after the DPO-enablement check — an unverified locality never satisfies the two stricter policy tiers. New read-only AiProcessingDisclosureController composes Hermiq's agentaifeature register, this AVG carrier, and the locality verdict for a DPO-facing disclosure page (LearniqAiProcessingDisclosure.vue) where no verdict renders compliant/green without verified: true. See openspec/changes/sovereign-ai-guarantee/. v0.19.0 adds portable-learning-record — inverts who holds a learner's trajectory: three new schemas, LearningRecordExport (a learner-initiated, signed, dual-shaped bundle — an ELM/Europass-shaped credential section carrying each in-scope Credential's edciPayload/openbadges3Payload verbatim, plus a lossless scholiqNative section — with a coverageReport[] naming every source object's included/summarized/omitted outcome, mirroring CoursePackageImportReport's honest fidelity/loss-report pattern applied to output instead of input; requested → generated, guarded by the new LearningRecordExportService, signed by LearningRecordExportSigningService reusing KeyManagementService's existing RS256 keypair — no new key material), LearningRecordShare (a time-boxed, revocable grant of one already-generated export snapshot to a named external recipient with no Learniq presence, expiresAt required — never nullable — draft → active → revoked, a materialised isExpired mirroring Credential.isExpired, resolved via the new public LearningRecordShareVerifyController mirroring CredentialVerifyController's pattern rather than reusing PortfolioShare, whose sharedWithKind enum has no shape for an arbitrary external party), and LearningRecordImport (a coordinator-facing, evidence-only report of an applicant-uploaded prior-institution bundle during Application intake, guarded by the new LearningRecordImportService, gated by ActionAuthService::requireAction('learning-record.import') — never auto-writes any other schema; a coordinator acts on it only through the existing ExemptionCase mechanism). No new materialized rollup schema — the learner-facing aggregate view is composed live by the new LearningRecordAggregationService, scoped by learnerRef, reading Enrolment/FinalGrade/CompetencyAttainment/Credential/Portfolio+PortfolioEntry/ExternalTrainingRecord(verified only)/BpvPlacement+WerkprocesAssessment/LessonCompletion(summarized per-course)/ReportCard(published-to-parents only) — explicitly excluding DossierNote/BehaviourIncident/WellbeingCheckIn (staff professional-judgment records, not learner-portable evidence) and AttendanceRecord (leerplicht/BRON compliance spine, not portable 'what I learned' evidence). ExternalTrainingRecord gains an additive, optional learnerRef (its existing learnerId was already a LearnerProfile UUID under a non-standard name; this gives the aggregation service a consistently-named scoping key across all nine consumed schemas) — the one schema this change touches besides the three new ones. Every underlying record keeps its existing hardDelete: false + selectielijst-onderwijs retentionReference posture unchanged: a learner can hold, export, and share a verifiable copy of their record; they cannot delete or force deletion of the school's statutory original. See openspec/changes/portable-learning-record/. v0.20.1 is doc-only: rename-to-learniq — info.title/description, x-openregister.description, the register's own title/description, and the operational role's description now read Learniq, not Learniq; corrects two stale SovereigntyPolicy.properties.setBy/setAt.description references to the already-renamed LearniqAiProcessingDisclosure.vue (was ScholiqAiProcessingDisclosure.vue). No schema, property, enum, x-openregister-processing code/backend/attribution, or scholiqField/scholiqNative/scholiq-json/scholiq-learning-record identifier is touched — those remain scholiq-prefixed by design (AVG read-log attribution and external wire-format compatibility). v0.22.0 is doc/notification-only: session-roster-notifications — Session gains an x-openregister-notifications.rosterChanged block (transition trigger on cancel/substitute-teacher/substitute-teacher-in-progress, recipients the existing SessionChangeNoticeHandler already materialises: affectedLearnerIds/affectedParentIds) so the roster-change notification the timetabling spec already documented actually fires; SessionChangeNoticeHandler itself is unchanged. See openspec/changes/session-roster-notifications/. credential-renewal-listener: closes the expiry half of the pre-existing 'Auto-enrol on renewal or content-version change' certification requirement. CredentialRenewalListener creates a renewal Enrolment (source: credential-renewal, mandatory: true) when a Credential's expire transition fires, and links it back via Credential.renewalEnrolmentId. Enrolment.source gains the credential-renewal enum value. The content-version-change half stays an open, named platform gap (Course has no content-version concept). See openspec/changes/credential-renewal-listener/. attendance-threshold-calculation: declares AttendanceThreshold.x-openregister-calculations (unexcusedLesuren, isThresholdCrossed) backed by a new x-openregister-aggregations per-cohort count of absent-unexcused AttendanceRecords, so the existing thresholdCrossed calculatedChange notification (now also notifying coordinator, not just mentor) fires for real. Adds a guarded manual check-threshold self-loop transition plus five transient checkedLearnerId/checkedMetricValue/checkedWindowStart/checkedWindowEnd/checkedBreachingRecordIds properties, so a caller can submit a genuinely per-learner crossing (the aggregation DSL cannot parameterise a per-learner figure on a shared threshold definition) and AttendanceFlagCreationHandler can create a real AttendanceFlag. See openspec/changes/attendance-threshold-calculation/. adds school-and-location-records: School (BRIN, name, pedagogicalConcept) and Location (schoolId, vestigingscode, onderwijslocatiecode, address) as plain resource-metadata schemas, same shape as Room. Adds an additive Cohort.locationId (nullable, single $ref, never an array) enforcing DUO's one-groep-per-location rule. No board/bestuur entity (decision D2). See openspec/changes/school-and-location-records/. adds school-and-location-records: School (BRIN, name, pedagogicalConcept) and Location (schoolId, vestigingscode, onderwijslocatiecode, address) as plain resource-metadata schemas, same shape as Room. Adds an additive Cohort.locationId (nullable, single $ref, never an array) enforcing DUO's one-groep-per-location rule. No board/bestuur entity (decision D2). See openspec/changes/school-and-location-records/. v0.23.0 adds enrolment-statutory-fields: Enrolment gains inschrijvingDate, volgnummer and its own locationId (the inschrijving's vestiging, independent of any Cohort.locationId), destinationSchoolId on withdrawal, and leerjaar per pupil (1 to 8) so a combination group is one Cohort with a leerjaar per Enrolment rather than parsed from the cohort name. Surfaced as a column on CohortDetail's roster. See openspec/changes/enrolment-statutory-fields/. adds subject-and-teacher-assignment: Staff (ncUserId, roles, qualifications, workingDays) and SubjectTeacherAssignment (cohortId, courseId, teacherId) as plain resource-metadata schemas, same shape as Room, plus an additive Cohort.teacherAssignments (duo-partner role and days per teacher, alongside the unchanged teacherIds). See openspec/changes/subject-and-teacher-assignment/. adds cohort-group-page-polish: an additive Cohort.notes (free text) plus two CohortDetail widgets, a notes card and a today-scoped session list using the manifest's existing @today filter-token grammar. The header-name gap the baseline capture named is already closed by CnDetailPage's objectDisplayName resolution (verified, not re-implemented). See openspec/changes/cohort-group-page-polish/. adds school-year-shape: additive ReportPeriod.holidays and .studyDays, plus two Session-scoped index pages (SessionsToday, SessionsThisWeek) using the manifest's existing @today/@today+Nd filter-token grammar. The TimetableConflictQueue per-teacher filter is explicitly deferred to a follow-up code change: that page is a registered custom Vue component, not a manifest page. See openspec/changes/school-year-shape/. adds segment-feature-flags: a new LearniqSettings singleton schema (segment: po/vo/mbo/he/corporate, default corporate) mirroring SovereigntyPolicy's flat singleton shape, with an admin-only index+detail page. Deliberately does not add any visibleIf menu gating on segment: manifest.runtime has no generic settings-to-runtime bridge, so declaring one now (before the PHP/JS wiring a follow-up code change must add) would hide the gated menus for every tenant via the library's undefined-runtime fail-safe. See openspec/changes/segment-feature-flags/. adds report-card-templates — closes the report-card template-richness gap named by ParnasSys/Easyrapport/MijnRapportfolio/IEP/gibbon research (findings 14.3/7.4/7.5/7.8/7.7/7.3): new ReportCardTemplate schema (an ordered, typed sections[] array — grades/lvs-results/attendance/social-emotional/narrative/pupil-voice/portfolio — each with a scale drawn from a shared library of steps/dots/smileys/grades-1-10/letters/cito-level/text, sections[] required non-empty via minItems:1, plus a testKindSectionMap[] mapping an imported methodetoets/LVS test kind to a section, declared now for the not-yet-built lvs-import-contract change to slot into). Cohort gains reportCardTemplateId (nullable $ref ReportCardTemplate — a standing per-group assignment, mirroring ParnasSys's per-leerjaar report setting); ReportCard gains templateId, stamped by ReportCardComposer from the learner's cohort at compose/recompose time. ReportCardComposer now populates only the sections a cohort's assigned template declares — an untemplated cohort composes the pre-existing fixed subjectGrades[]/attendanceSummary/mentorComment shape unchanged. ReportCardPdfDelegationService now sends the assigned ReportCardTemplate.slug as docudesk's templateSlug instead of the fixed 'report-card' literal, falling back to that literal when no template is assigned — the contract filinq-configurable-report-templates (a sibling filinq change) consumes. See openspec/changes/report-card-templates/. 1.0 adds privacy-governance-surfaces — two new schemas, Compliance (a flat singleton recording whether the Privacyconvenant verwerkersovereenkomst is signed and where it and the privacybijsluiter can be found, closing finding 15.5) and DataSubjectRequest (a staff-logged AVG correction/deletion request with a requested → in-review → completed | rejected lifecycle and an append-only auditTrail, mirroring BehaviourIncident's unguarded-transition shape, closing finding 15.3's request-workflow gap); and five additive DataExchangeJob properties (requiresPartnerApproval, partnerApprovalStatus, partnerApprovedBy, partnerApprovedAt, dataSharedFields) plus one new condition in DataExchangeRunGuard gating the run transition on partner approval, independent of the existing OSO/SWV parent-review gate. See openspec/changes/privacy-governance-surfaces/. adds rbac-scope-kinds-extension — two additive scope-kind grants on the REAL, enforced authorization[action] conditional-match grammar (never the x-property-rbac key, confirmed by direct grep of OpenRegister's lib/ to be unread by any code path, the same decoy class rbac-declare-groups already fixed for x-openregister-authorization): Cohort gains an explicit authorization block reproducing the register cascade plus one own-group read entry (any caller in the cohort's own ncGroupId Nextcloud group may read it, via the $in operator against $user.groups); DossierNote gains a careTeamUserIds property and one additive care-team read entry (via the $contains operator). See openspec/changes/rbac-scope-kinds-extension/. 3.0 adds payment-request-ux — two additive Order properties (paymentRequestSentAt, paymentRequestSentBy, both nullable) staff set through the generic object-edit form, and a presentational change to OrderPaymentPanel.vue: the PSP picker is skipped when exactly one provider is configured (one-tap pay), and a note renders when a request was recorded as sent. No PHP change; PaymentInitiationClient/PaymentTransactionController stay untouched. See openspec/changes/payment-request-ux/. adds care-and-support-index — closes findings 8.11/6.9/L-new-10/8.3-residual/L-new-4 (kindkans/onderwijs-transparant/sera care-team overview evidence, IEP kleuter observatie-instrument, sera bovenschoolse-voorziening traject-status, ParnasSys/Somtoday's OPP six-week rule, ESIS's uitstroombestemming/Geplande groei): LearningPlan gains sixWeekDeadline plus materialised daysUntilSixWeekDeadline/isOverdueForActivation/sixWeekDeadlineApproaching calculations and a calculatedChange-triggered sixWeekDeadlineApproaching notification to coordinatorId (mirrors TlvApplication.tlvExpiringSoon's idiom exactly), plus nullable uitstroombestemming/outflowBandwidth/trackedGrowth[] fields. New ObservationInstrument schema (entries[] per leerlijn: taal/rekenen/sociaal-emotioneel/motoriek/spel/leren-leren, each scored on IEP's documented four-point kleuter scale). New Trajectory (referral -> preparation -> scheduled -> running -> stopped, nullable SupportRequest back-reference) plus append-only TrajectoryStatusUpdate. No existing schema besides LearningPlan is modified. See openspec/changes/care-and-support-index/. 1.0 adds funding-and-teldatum-checks — five additive DataExchangeJob properties (requiresTeldatumCheck, teldatumCheckStatus, teldatumCheckDate, teldatumCheckedBy, teldatumCheckedAt) and one more independent condition in DataExchangeRunGuard gating the run transition on a school-confirmed teldatum pre-flight check (P-new-12), plus a fundingWeightCode property on LearnerProfile for the NOAT/CUMI/NNCA funding-weging classification (P-new-13). Both additive to the existing 13.1/3.1 ROD contract, not new contracts. See openspec/changes/funding-and-teldatum-checks/. 1.0 adds portal-contribution-guardian-audiences — two additive LearnerProfile properties (beeldmateriaalConsent: a per-purpose object over website/socialMedia/schoolgids/classPhoto/video, each nullable-boolean; beeldmateriaalConsentReviewDueAt) closing finding 2.8/PA-new-2, and a PortalContributionProvider change: a new parentChildren directory collection (per-child, per-guardian-group, per-purpose consent state), groupByField on the four existing parent read collections, and a re-enabled parentActions() createExcuseRequest now that portaliq's writer cross-reference guard is merged (portaliq#607). See openspec/changes/portal-contribution-guardian-audiences/. adds trend-and-export-reporting — closes findings 12.6/14.7 (partial via platform mass export) and L-new-1: GradeScale.kind gains dle (didactische leeftijd) and leerrendement as declared scale kinds for the not-yet-built lvs-import-contract change to attach results to (vocabulary only, no calculation). No existing GradeScale row is affected. See openspec/changes/trend-and-export-reporting/. adds po-schooladvies-flow: closes findings 7.9 and 6.7 with a new SchoolAdvies schema for the PO (primary school) groep-8 schooladvies flow, distinct from the VO-intake Application.schoolAdviceLevel: voorlopigAdviesLevel (statutory 31 Jan window), doorstroomtoetsResultLevel, definitiefAdviesLevel (statutory 7 Apr deadline), coordinator-set voorlopigDeadline/definitiefDeadline with materialised daysUntil.../isVoorlopigOverdue/isDefinitiefOverdue calculations mirroring TlvApplication's own idiom, and heroverwegingMotivation. New SchoolAdviesFinalizeGuard blocks vaststellenDefinitief (voorlopig -> definitief) when doorstroomtoetsResultLevel outranks definitiefAdviesLevel on the shared ordinal unless raised, motivated, or the pro/vmbo-bb exemption applies, mirroring AdmissionsDecisionGuard's identical VO-side rule. New SchoolAdviesSendToRodHandler auto-queues a bron-rod DataExchangeJob on verzendenNaarRod (definitief -> verzonden-naar-rod), mirroring SupportRequestSubmitHandler's auto-queue pattern. No existing schema is modified. See openspec/changes/po-schooladvies-flow/. v0.25.0 adds competency-year-scope: Competency gains optional applicableYears (free year labels, e.g. groep 5 or 2026-2027, default []) and subjectId (nullable $ref Course), so a kerndoel or eindterm can be allocated to years and a subject; an empty value inherits from the nearest ancestor at read time. Additive, Competency 0.1.0 -> 0.2.0. See openspec/changes/competency-year-scope/. v0.26.0 adds goal-alignment-depth: Lesson, Course, Assignment and Assessment gain competencyAlignments [{competencyId, depth}], where depth is a levelId of the aligned goal's CompetencyFramework.proficiencyLevels (no fixed enum). competencyIds stays and is kept derived by the new CompetencyAlignmentListener (pre-save), which also refuses an unknown goal, a duplicate goal or a depth the framework does not know. Lesson/Course/Assignment 0.3.0 -> 0.4.0, Assessment 0.3.0. See openspec/changes/goal-alignment-depth/. v0.27.0 adds curriculum-coverage-rollup: a new read-only CurriculumCoverage schema per framework, year and subject counts leaf goals that are planned (a lesson or course aligns to them) and assessed (an assignment or assessment does) separately, with the uncovered and planned-but-not-assessed goal ids and per-goal depth. Kept current by CurriculumCoverageRollupHandler (post-save, never a TimedJob) and filled for existing data by occ learniq:curriculum-coverage:recompute. No existing schema is modified. See openspec/changes/curriculum-coverage-rollup/. adds submission-resubmission-action: Submission gains resubmissionDueAt, the deadline of a requested resubmission. The reopen transition (returned -> draft) now requires it as an input, is authorized for instructors, compliance-officers and team-leads only, and notifies the learners (resubmissionRequested). SubmissionWindowGuard judges the hand-in window against resubmissionDueAt when it is set, so work handed in again after the assignment deadline is on time. Submission 0.2.0 -> 0.3.0. See openspec/changes/submission-resubmission-action/. adds peer-review-projection-guard: a peer reviewer reads the work under review through GET /api/peer-review/{peerReviewId}/work, a server-side projection that withholds the authors for double-blind reviews and never includes the teacher's marking; the reviewer still cannot read the raw Submission. Assignment.peerReviewAnonymity's description now says so. Assignment 0.3.0 -> 0.4.0. See openspec/changes/peer-review-projection-guard/. adds bpv-coach-authorization: BpvPlacement and Praktijkopleider gain an enforced authorization block (they fell through to the register cascade). The cascade groups keep their grants, coordinators and administration-managers read, coordinators write, and on BpvPlacement the schoolCoachId and learnerId users read their own placement. See openspec/changes/bpv-coach-authorization/. adds confidential-counsellor-channel: one new declared scope, confidential-counsellors (D18), and a new ConfidentialNote schema readable only by its author while in that group and by the people the author names; no school role reads it. See openspec/changes/confidential-counsellor-channel/. adds course-content-metadata: Course and Lesson gain optional NL-LOM aligned sharing metadata: license (Creative Commons 4.0 family, CC0 or all-rights-reserved, no default), author, subject (OBK name) and educationalLevels (NL-LOM levels). See openspec/changes/course-content-metadata/./. adds course-content-metadata: Course and Lesson gain optional NL-LOM aligned sharing metadata: license (Creative Commons 4.0 family, CC0 or all-rights-reserved, no default), author, subject (OBK name) and educationalLevels (NL-LOM levels). See openspec/changes/course-content-metadata/. adds lesson-sharing-consent-gate: a new CourseShareConsent schema records who confirmed that a course may leave the school (no pupil data, rights cleared), when and under which licence; written by the share export behind the sharing gate. See openspec/changes/lesson-sharing-consent-gate/./. adds course-content-metadata: Course and Lesson gain optional NL-LOM aligned sharing metadata: license (Creative Commons 4.0 family, CC0 or all-rights-reserved, no default), author, subject (OBK name) and educationalLevels (NL-LOM levels). See openspec/changes/course-content-metadata/. adds lesson-sharing-consent-gate: a new CourseShareConsent schema records who confirmed that a course may leave the school (no pupil data, rights cleared), when and under which licence; written by the share export behind the sharing gate. See openspec/changes/lesson-sharing-consent-gate/. adds lesson-sharing-via-store-plane: a new SharedCoursePackage schema lets any learniq instance act as the course registry that OpenRegister's store plane searches and resolves; member schools publish gated packages to it and install copies from it. Free sharing only. See openspec/changes/lesson-sharing-via-store-plane/. adds differentiation-not-styles-copy: the group plan, instruction group, support request and exam accommodation forms get plain titles and help texts about support needs and differentiation by level, goal, time or material; the engineering rationale moves to x-notes. See openspec/changes/differentiation-not-styles-copy/. v0.25.0 (office-file-lesson-onboarding): new LessonOnboardingFile schema (a Word or PowerPoint file a teacher dropped in their lesson onboarding folder; lifecycle detected -> imported | dismissed, a created notification to the teacher with a link to the review page, self-only read and update) and a teacherNote block type on Lesson.blocks (Lesson 0.3.0 -> 0.4.0), shown in LessonComposer and never rendered by LessonPlayer. Additive. See openspec/changes/office-file-lesson-onboarding/. v0.27.5 (assignment-portal-wiring): Submission gains a scalar learnerRef, the portal scope key, always stamped by the server (SubmissionOwnerStamp). A portal hand-in gets learnerIds, learnerRefs and tenant_id from the pupil's LearnerProfile and the Assignment; learnerIds and tenant_id leave Submission.required because OpenRegister validates required before a listener can stamp them, and the listener enforces both on every write. See openspec/changes/assignment-portal-wiring/. v0.27.6 (assessment-portal-endpoints): AssessmentResult gains learnerRef (the portal scope key) and assessmentTitle, both readOnly and stamped by the attempt gate on every create, so a pupil's attempts can be listed in the portal. See openspec/changes/assessment-portal-endpoints/. v0.27.2 retires the DataSubjectRequest schema (D20, privacy-reuse-openregister-register): correction and deletion requests now live in OpenRegister's shared data-subject-requests register (dataSubjectRequest), and the MigrateDataSubjectRequestsToOpenRegister repair step copies existing rows there. v0.28.0 retires Order, OrderLine and PaymentTransaction (D19, payments-to-shillinq-migration): a school charges through shillinq and the pay screen is portaliq's. Entitlement drops orderLineId for paymentRequestRef, paymentSettledAt and paymentSettledVia; its grant waits for shillinq's settled PaymentRequest (contract extracurricular-fee-to-shillinq v1). ArchiveRetiredPaymentObjects exports existing rows to a JSON file in the app data folder. adds staff-role-vocabulary-extension: Staff.roles gains seven descriptive function tags (career-counsellor, study-adviser, remedial-teacher, care-coordinator, exam-secretary, placement-coordinator, confidential-counsellor) and an x-enum-labels map for all fourteen values. A tag grants no access (D18). See openspec/changes/staff-role-vocabulary-extension/. v0.29.0 (access-control-ratchet-compliance, D23): LvsResult and OsoImportDossier get enforced authorization blocks, read and written by coordinators and compliance-officers, and LvsResult adds the learner's own row. FirstAidIncident adds its reporter's own row. LvsResult and FirstAidIncident are no longer appendOnly, so their lifecycles run. See openspec/changes/access-control-ratchet-compliance/. v0.29.1 (round1-landing-repairs): AttendanceThreshold.thresholdCrossed notifies one recipient entry, mentor and coordinator, instead of notifying the mentor twice. DataExchangeJob.target and DataMappingProfile.target name every connection again (lvs-results, the inbound oso direction, uwlr, edu-v, basispoort, entree-content, migration-import), which the serial landing of round one had overwritten. See openspec/changes/round1-landing-repairs/. v0.29.0 (settings-and-excuse-authorization): LearniqSettings gets an authorization block, read by the staff groups and written by administration-managers only, so an instructor can no longer change the organisation's segment. ExcuseRequest.required keeps only what every caller sends (dateFrom, dateTo, reason, reasonKind); ExcuseRequestOwnerStamp fills learnerId, learnerRef, submittedBy, submittedAuthLevel and tenant_id for a portal absence report and refuses any write that still lacks the pupil, a submitter or the school. See openspec/changes/settings-and-excuse-authorization/. 0.29.2 adds teacher-notes-protection: teacher notes leave Lesson.blocks (the teacherNote block type is gone) for the staff-only LessonTeacherNote schema, which learners and guardians cannot read on any path; MoveTeacherNotesOutOfLessons moves existing notes on upgrade. See openspec/changes/teacher-notes-protection/././. v0.30.0 moves data exchange to integriq (openspec/changes/data-exchange-to-integriq, decision D7): DataExchangeJob, DataMappingProfile, ExchangeRejection and ExchangeErrorCode leave the register (their jobs, mappings, rejections and codes are integriq job, mapping and sync_item_dead_letter rows); ExchangePartnerApproval, TeldatumCheck and DossierReview hold the exchange gate's own state; AttendanceFlag carries the municipality's feedback; the five dataExchangeJobId properties name an integriq job and lose their $ref.",
-        "version": "0.31.6"
+        "version": "0.32.4"
     },
     "x-openregister": {
         "type": "application",
@@ -135,7 +135,8 @@
                     "compliance",
                     "exchange-partner-approval",
                     "teldatum-check",
-                    "dossier-review"
+                    "dossier-review",
+                    "lesson-note"
                 ],
                 "configuration": {
                     "roles": [
@@ -350,7 +351,7 @@
                 },
                 "slug": "credential",
                 "icon": "CertificateOutline",
-                "version": "0.2.0",
+                "version": "0.2.1",
                 "title": "Credential",
                 "description": "Verifiable Credential (W3C VC + Open Badges 3.0). Append-only compliance evidence; issued on enrolment completion; supports expiry detection with tiered reminders.",
                 "type": "object",
@@ -933,7 +934,10 @@
                         "hr",
                         "compliance-officers"
                     ]
-                }
+                },
+                "linkedTypes": [
+                    "calendar"
+                ]
             },
             "AiFeature": {
                 "x-openregister-processing": {
@@ -1045,7 +1049,7 @@
             "Course": {
                 "slug": "course",
                 "icon": "BookOpenPageVariantOutline",
-                "version": "0.4.1",
+                "version": "0.4.2",
                 "title": "Course",
                 "description": "A course or training program (Schema.org Course). Lifecycle: draft → published → archived.",
                 "type": "object",
@@ -1448,7 +1452,18 @@
                 "x-openregister-seed": [],
                 "authorization": {
                     "read": [
-                        "authenticated"
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "lifecycle": {
+                                    "$eq": "published"
+                                }
+                            }
+                        }
                     ],
                     "create": [
                         "instructors",
@@ -1462,12 +1477,37 @@
                         "compliance-officers",
                         "team-leads"
                     ]
+                },
+                "configuration": {
+                    "x-openregister-mcp": {
+                        "enabled": true,
+                        "tools": {
+                            "search": {
+                                "description": "Search published courses by code, level, language, mandatory training or regulation. Staff also see drafts.",
+                                "scope": "read",
+                                "readOnlyHint": true,
+                                "filters": [
+                                    "code",
+                                    "level",
+                                    "language",
+                                    "lifecycle",
+                                    "mandatoryTraining",
+                                    "regulationSlug"
+                                ]
+                            },
+                            "get": {
+                                "description": "Get one course by id: title, level, language, mandatory flag and its regulation.",
+                                "scope": "read",
+                                "readOnlyHint": true
+                            }
+                        }
+                    }
                 }
             },
             "Lesson": {
                 "slug": "lesson",
                 "icon": "FileDocumentOutline",
-                "version": "0.5.1",
+                "version": "0.5.2",
                 "title": "Lesson",
                 "description": "A lesson / learning module within a Course (Schema.org LearningResource). Lifecycle: draft → published → retired.",
                 "type": "object",
@@ -1881,7 +1921,18 @@
                 "x-openregister-seed": [],
                 "authorization": {
                     "read": [
-                        "authenticated"
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "lifecycle": {
+                                    "$eq": "published"
+                                }
+                            }
+                        }
                     ],
                     "create": [
                         "instructors",
@@ -1895,6 +1946,29 @@
                         "compliance-officers",
                         "team-leads"
                     ]
+                },
+                "configuration": {
+                    "x-openregister-mcp": {
+                        "enabled": true,
+                        "tools": {
+                            "search": {
+                                "description": "Search lessons, usually by courseId to list a course's modules. Learners see published lessons only.",
+                                "scope": "read",
+                                "readOnlyHint": true,
+                                "filters": [
+                                    "courseId",
+                                    "contentType",
+                                    "lifecycle",
+                                    "mandatoryTraining"
+                                ]
+                            },
+                            "get": {
+                                "description": "Get one lesson by id: title, content type and its place in the course.",
+                                "scope": "read",
+                                "readOnlyHint": true
+                            }
+                        }
+                    }
                 }
             },
             "CourseTemplate": {
@@ -2378,7 +2452,7 @@
             "XapiStatement": {
                 "slug": "xapi-statement",
                 "icon": "TextBoxOutline",
-                "version": "0.1.1",
+                "version": "0.2.0",
                 "title": "XapiStatement",
                 "description": "xAPI 1.0.3 statement stored in the LRS substrate (append-only per ADR-002). Every save emits xapi.statement.received audit entry.",
                 "type": "object",
@@ -2394,6 +2468,28 @@
                     "stored",
                     "tenant_id"
                 ],
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "verified_actor_id": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "hr",
+                        "compliance-officers"
+                    ],
+                    "update": [
+                        "hr",
+                        "compliance-officers"
+                    ]
+                },
                 "properties": {
                     "actor": {
                         "type": "object",
@@ -3611,7 +3707,7 @@
             "Regulation": {
                 "slug": "regulation",
                 "icon": "Gavel",
-                "version": "0.1.1",
+                "version": "0.1.2",
                 "title": "Regulation",
                 "description": "Compliance regulation (AVG, BIO, NIS2, etc.) tracked for mandatory training coverage.",
                 "type": "object",
@@ -3901,7 +3997,16 @@
                 "x-openregister-seed": [],
                 "authorization": {
                     "read": [
-                        "authenticated"
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "lifecycle": {
+                                    "$eq": "published"
+                                }
+                            }
+                        }
                     ],
                     "create": [
                         "compliance-officers",
@@ -3911,6 +4016,30 @@
                         "compliance-officers",
                         "team-leads"
                     ]
+                },
+                "configuration": {
+                    "x-openregister-mcp": {
+                        "enabled": true,
+                        "tools": {
+                            "search": {
+                                "description": "Search regulations by slug, audience, whether they are active or need annual renewal.",
+                                "scope": "read",
+                                "readOnlyHint": true,
+                                "filters": [
+                                    "slug",
+                                    "active",
+                                    "audienceScope",
+                                    "requiresAnnualRenewal",
+                                    "lifecycle"
+                                ]
+                            },
+                            "get": {
+                                "description": "Get one regulation by id with its audience and renewal rules.",
+                                "scope": "read",
+                                "readOnlyHint": true
+                            }
+                        }
+                    }
                 }
             },
             "Attestation": {
@@ -4439,7 +4568,7 @@
                 },
                 "slug": "learner-profile",
                 "icon": "AccountOutline",
-                "version": "0.3.1",
+                "version": "0.3.2",
                 "title": "LearnerProfile",
                 "description": "Learniq learner profile. Owns role assignment and is the actor reference for enrolments, credentials, and attestations.",
                 "type": "object",
@@ -4921,12 +5050,15 @@
                     },
                     "category": "Leerlingdossier — retained 5 years after uitschrijving pending privacy-officer confirmation against the school's own selectielijst onderwijs (finding 2.9; statutory-field-completeness design.md Decision 3)",
                     "action": "destroy"
-                }
+                },
+                "linkedTypes": [
+                    "contacts"
+                ]
             },
             "Programme": {
                 "slug": "programme",
                 "icon": "SchoolOutline",
-                "version": "0.2.0",
+                "version": "0.2.1",
                 "title": "Programme",
                 "description": "A named educational or training track (HBO-V bachelor, NIS2 board certification, vmbo-tl examenjaar). Aggregates courses, declares a credential to issue on completion, and points at one CurriculumPlan.",
                 "type": "object",
@@ -5051,7 +5183,18 @@
                 "x-openregister-seed": [],
                 "authorization": {
                     "read": [
-                        "authenticated"
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "lifecycle": {
+                                    "$eq": "published"
+                                }
+                            }
+                        }
                     ],
                     "create": [
                         "instructors",
@@ -5065,6 +5208,28 @@
                         "compliance-officers",
                         "team-leads"
                     ]
+                },
+                "configuration": {
+                    "x-openregister-mcp": {
+                        "enabled": true,
+                        "tools": {
+                            "search": {
+                                "description": "Search published programmes by code, level or lifecycle.",
+                                "scope": "read",
+                                "readOnlyHint": true,
+                                "filters": [
+                                    "code",
+                                    "level",
+                                    "lifecycle"
+                                ]
+                            },
+                            "get": {
+                                "description": "Get one programme by id with the courses it is made of.",
+                                "scope": "read",
+                                "readOnlyHint": true
+                            }
+                        }
+                    }
                 }
             },
             "CurriculumPlan": {
@@ -6175,7 +6340,7 @@
             "Session": {
                 "slug": "session",
                 "icon": "CalendarClockOutline",
-                "version": "0.1.1",
+                "version": "0.1.2",
                 "title": "Session",
                 "description": "A scheduled occurrence of a Cohort meeting: a les, hoorcollege, or workshop. Carries start/end datetime, location (room or online URL), attached Materials, and linked Assignments. The unit a teacher takes attendance against.",
                 "type": "object",
@@ -6185,7 +6350,8 @@
                     "searchable": true
                 },
                 "linkedTypes": [
-                    "talk"
+                    "talk",
+                    "calendar"
                 ],
                 "required": [
                     "cohortId",
@@ -7110,7 +7276,7 @@
             "Assignment": {
                 "slug": "assignment",
                 "icon": "ClipboardEditOutline",
-                "version": "0.4.1",
+                "version": "0.5.2",
                 "title": "Assignment",
                 "description": "A deliverable that learners hand in: title, instructions, due date, rubric, and submission window. Belongs to a Course, Session, or both. Linked to a CurriculumPlan component to enable grade roll-up.",
                 "type": "object",
@@ -7365,6 +7531,30 @@
                         "description": "The goals this works on, each with a depth from the goal's own framework. Competency IDs is kept in step with this list.",
                         "x-notes": "goal-alignment-depth: depth is a CompetencyFramework.proficiencyLevels[].levelId of the aligned goal's framework (plan A4), enforced by CompetencyAlignmentListener on save (no enum, the allowed set lives on another object). competencyIds stays and is derived: alignments changed -> competencyIds = their ids in order, deduplicated; only competencyIds changed on a row with alignments -> alignments follow (kept depth, new id depth null, removed id dropped); both changed -> alignments win; a row that never had alignments keeps its competencyIds. Readers use CompetencyAlignmentNormaliser::effectiveAlignments(). widget json because the shared form renders an array of objects as tags.",
                         "title": "Goal alignments"
+                    },
+                    "markersPerSubmission": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 5,
+                        "default": 1,
+                        "title": "Markers per submission",
+                        "description": "How many markers score each hand-in on their own. With 1 the teacher marks alone, as before."
+                    },
+                    "finalGradeRule": {
+                        "type": "string",
+                        "enum": [
+                            "manual",
+                            "average",
+                            "highest"
+                        ],
+                        "default": "manual",
+                        "title": "Final grade rule",
+                        "description": "How the final grade is proposed once every marker has handed in a mark. A person always saves the final grade.",
+                        "x-enum-labels": {
+                            "manual": "Agreed by hand",
+                            "average": "Average of the marks",
+                            "highest": "Highest mark"
+                        }
                     }
                 },
                 "x-openregister-lifecycle": {
@@ -7430,7 +7620,21 @@
                 },
                 "authorization": {
                     "read": [
-                        "authenticated"
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "lifecycle": {
+                                    "$in": [
+                                        "published",
+                                        "closed"
+                                    ]
+                                }
+                            }
+                        }
                     ],
                     "create": [
                         "instructors",
@@ -7444,12 +7648,39 @@
                         "compliance-officers",
                         "team-leads"
                     ]
+                },
+                "linkedTypes": [
+                    "calendar",
+                    "forms"
+                ],
+                "configuration": {
+                    "x-openregister-mcp": {
+                        "enabled": true,
+                        "tools": {
+                            "search": {
+                                "description": "Search assignments by course, session or cohort. Learners see published and closed ones only.",
+                                "scope": "read",
+                                "readOnlyHint": true,
+                                "filters": [
+                                    "courseId",
+                                    "sessionId",
+                                    "cohortId",
+                                    "lifecycle"
+                                ]
+                            },
+                            "get": {
+                                "description": "Get one assignment by id: instructions, due date and points.",
+                                "scope": "read",
+                                "readOnlyHint": true
+                            }
+                        }
+                    }
                 }
             },
             "Submission": {
                 "slug": "submission",
                 "icon": "FileUploadOutline",
-                "version": "0.4.0",
+                "version": "0.5.0",
                 "title": "Submission",
                 "description": "A learner's (or group's) hand-in for an Assignment. Carries file attachment references (bytes live in OpenRegister file attachments), rubric scores from the teacher's marking, and the proposed grade before it becomes a GradeEntry via the grading spec.",
                 "type": "object",
@@ -7617,6 +7848,38 @@
                         "description": "The LearnerProfile of the learner who handed in. The portal shows a pupil the submissions that carry their own profile here.",
                         "title": "Learner Ref",
                         "x-notes": "Server-owned. SubmissionOwnerStamp sets it on every create and update: from the portal subject on a portal hand-in, from learnerIds[0] otherwise. A client value is never kept. Scalar on purpose: portaliq's direct scope compares one value, so the array learnerRefs never matched (assignment-portal-wiring)."
+                    },
+                    "markerIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": [],
+                        "title": "Markers",
+                        "description": "The markers allocated to this hand-in. Empty means one teacher marks it.",
+                        "x-notes": "Written only by SubmissionMarkAllocationService; mirrors the markerId of the hand-in's SubmissionMark rows so the marking screen can pick its mode without a second read."
+                    },
+                    "finalGradeSetBy": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "Final grade set by",
+                        "description": "Who saved the agreed final grade after double marking."
+                    },
+                    "finalGradeRuleApplied": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "manual",
+                            "average",
+                            "highest"
+                        ],
+                        "title": "Final grade rule applied",
+                        "description": "Which rule proposed the final grade that was saved.",
+                        "x-enum-labels": {
+                            "manual": "Agreed by hand",
+                            "average": "Average of the marks",
+                            "highest": "Highest mark"
+                        }
                     }
                 },
                 "x-openregister-lifecycle": {
@@ -18101,7 +18364,7 @@
             "Praktijkopleider": {
                 "slug": "praktijkopleider",
                 "icon": "AccountTieOutline",
-                "version": "0.2.1",
+                "version": "0.2.2",
                 "title": "Praktijkopleider",
                 "description": "The workplace supervisor (praktijkopleider) conducting BPV at a leerbedrijf. A plain reference/identity object with no OpenRegister lifecycle — a person with no Nextcloud account by definition (ADR-046 premise). This object's own UUID is the portal identity anchor. `active` alone gates whether the portal identity is usable.",
                 "type": "object",
@@ -18192,12 +18455,15 @@
                         "team-leads",
                         "coordinators"
                     ]
-                }
+                },
+                "linkedTypes": [
+                    "contacts"
+                ]
             },
             "BpvPlacement": {
                 "slug": "bpv-placement",
                 "icon": "BriefcaseCheckOutline",
-                "version": "0.2.1",
+                "version": "0.2.2",
                 "title": "BPV Placement",
                 "description": "A learner ↔ leerbedrijf match for one beroepspraktijkvorming (BPV, work-placement) period. Gates confirmation on a verified leerbedrijf (WEB art. 7.2.8/7.2.9 — the employer must be a leerbedrijf erkend by SBB) via BpvConfirmationGuard.",
                 "type": "object",
@@ -18435,7 +18701,10 @@
                         "team-leads",
                         "coordinators"
                     ]
-                }
+                },
+                "linkedTypes": [
+                    "deck"
+                ]
             },
             "Praktijkovereenkomst": {
                 "slug": "praktijkovereenkomst",
@@ -26486,6 +26755,309 @@
                         "status": "pending"
                     }
                 ]
+            },
+            "SubmissionMark": {
+                "slug": "submission-mark",
+                "icon": "AccountCheckOutline",
+                "version": "0.1.0",
+                "title": "Submission mark",
+                "description": "One marker's own scores for one hand-in when an assignment is double marked. The teacher in charge sets the final grade once every mark is in; a mark never writes the hand-in's grade or a grade entry itself.",
+                "type": "object",
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": false,
+                    "searchable": false
+                },
+                "required": [
+                    "submissionId",
+                    "assignmentId",
+                    "markerId",
+                    "tenant_id"
+                ],
+                "properties": {
+                    "submissionId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "$ref": "Submission",
+                        "title": "Submission",
+                        "description": "The hand-in this mark is for."
+                    },
+                    "assignmentId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "$ref": "Assignment",
+                        "title": "Assignment",
+                        "description": "The assignment of the hand-in."
+                    },
+                    "markerId": {
+                        "type": "string",
+                        "title": "Marker",
+                        "description": "The marker who scores this hand-in."
+                    },
+                    "rubricScores": {
+                        "type": "array",
+                        "description": "This marker's score per rubric criterion.",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "criterionId",
+                                "levelId",
+                                "points"
+                            ],
+                            "properties": {
+                                "criterionId": {
+                                    "type": "string",
+                                    "description": "Matches Rubric.criteria[].criterionId.",
+                                    "title": "Criterion ID"
+                                },
+                                "levelId": {
+                                    "type": "string",
+                                    "description": "Matches Rubric.criteria[].levels[].levelId.",
+                                    "title": "Level ID"
+                                },
+                                "points": {
+                                    "type": "number",
+                                    "description": "Points awarded for this criterion (from the selected level).",
+                                    "title": "Points Awarded"
+                                }
+                            }
+                        },
+                        "title": "Rubric scores"
+                    },
+                    "proposedGrade": {
+                        "type": "number",
+                        "nullable": true,
+                        "title": "Grade",
+                        "description": "This marker's grade for the hand-in."
+                    },
+                    "feedbackText": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "Notes for the teacher in charge",
+                        "description": "This marker's notes. The learner never sees them."
+                    },
+                    "submittedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "title": "Handed in at",
+                        "description": "When the marker handed in this mark."
+                    },
+                    "submittedBy": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "Handed in by",
+                        "description": "Who handed in this mark."
+                    },
+                    "lifecycle": {
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "submitted"
+                        ],
+                        "default": "draft",
+                        "title": "Status",
+                        "description": "Whether the marker has handed in this mark.",
+                        "x-enum-labels": {
+                            "draft": "Draft",
+                            "submitted": "Handed in"
+                        }
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "title": "Tenant",
+                        "description": "The organisation this mark belongs to."
+                    }
+                },
+                "x-openregister-lifecycle": {
+                    "property": "lifecycle",
+                    "initial": "draft",
+                    "transitions": {
+                        "submit": {
+                            "from": "draft",
+                            "to": "submitted",
+                            "inputs": [
+                                {
+                                    "field": "proposedGrade",
+                                    "required": true
+                                }
+                            ],
+                            "actions": [
+                                {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\StampTransitionActorAction",
+                                    "actionParameters": {
+                                        "actorField": "submittedBy",
+                                        "timeField": "submittedAt"
+                                    }
+                                }
+                            ]
+                        },
+                        "withdraw": {
+                            "from": "submitted",
+                            "to": "draft",
+                            "authorization": [
+                                "instructors",
+                                "compliance-officers",
+                                "team-leads"
+                            ],
+                            "description": "The teacher in charge opens a handed-in mark again for a correction."
+                        }
+                    }
+                },
+                "x-property-rbac": {
+                    "_comment": "A marker reads only their own mark here; other markers' marks are read through GET /api/submissions/{id}/marks, which opens them only after the caller's own mark is handed in.",
+                    "read": {
+                        "anyOf": [
+                            {
+                                "role": "admin"
+                            },
+                            {
+                                "match": {
+                                    "field": "markerId",
+                                    "operator": "eq",
+                                    "value": "$userId"
+                                }
+                            }
+                        ]
+                    }
+                },
+                "authorization": {
+                    "read": [
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "markerId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "markerId": "$userId",
+                                "lifecycle": "draft"
+                            }
+                        }
+                    ]
+                }
+            },
+            "LessonNote": {
+                "slug": "lesson-note",
+                "icon": "NoteTextOutline",
+                "version": "0.1.0",
+                "title": "Lesson note",
+                "description": "A short note on one lesson: the topic, what to bring, homework, or instructions for whoever covers the lesson. Learners see notes for learners in their timetable; a note for the covering teacher reaches staff and the substitute only.",
+                "type": "object",
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": false,
+                    "searchable": true
+                },
+                "required": [
+                    "cohortId",
+                    "text",
+                    "audience",
+                    "tenant_id"
+                ],
+                "properties": {
+                    "sessionId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "$ref": "Session",
+                        "description": "The learniq lesson this note belongs to. Empty when the lesson comes from the school timetable in planninq.",
+                        "title": "Lesson"
+                    },
+                    "timetableSessionRef": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "The school timetable lesson this note belongs to, when the timetable comes from planninq: its source system and its reference there.",
+                        "title": "Timetable lesson",
+                        "properties": {
+                            "sourceSystem": {
+                                "type": "string",
+                                "description": "The timetabling system the lesson came from.",
+                                "title": "Source system"
+                            },
+                            "externalRef": {
+                                "type": "string",
+                                "description": "The lesson's reference in that system.",
+                                "title": "Reference"
+                            }
+                        }
+                    },
+                    "cohortId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "$ref": "Cohort",
+                        "description": "The group of the lesson, copied from the lesson when the note is made.",
+                        "title": "Group"
+                    },
+                    "topic": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 120,
+                        "description": "The topic of the lesson, shown on the lesson in the timetable.",
+                        "title": "Topic"
+                    },
+                    "text": {
+                        "type": "string",
+                        "maxLength": 2000,
+                        "description": "The note itself: what to bring, homework, or instructions.",
+                        "title": "Note"
+                    },
+                    "audience": {
+                        "type": "string",
+                        "enum": [
+                            "learners",
+                            "cover"
+                        ],
+                        "x-enum-labels": {
+                            "learners": "For learners",
+                            "cover": "For the covering teacher"
+                        },
+                        "default": "learners",
+                        "description": "Who reads the note. A note for the covering teacher is never shown to learners.",
+                        "title": "Audience"
+                    },
+                    "authorId": {
+                        "type": "string",
+                        "description": "Nextcloud user id of the teacher who wrote the note. The server writes it when the note is made.",
+                        "title": "Author"
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Tenant identifier for multi-tenant isolation.",
+                        "title": "Tenant ID"
+                    }
+                },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "team-leads",
+                        "compliance-officers"
+                    ],
+                    "create": [
+                        "instructors",
+                        "team-leads",
+                        "compliance-officers"
+                    ],
+                    "update": [
+                        "instructors",
+                        "team-leads",
+                        "compliance-officers"
+                    ]
+                }
             }
         },
         "securitySchemes": {

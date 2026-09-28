@@ -85,7 +85,7 @@ class SegmentFeatureFlagsRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-learniqsettings-knows-six-organisation-kinds
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-learniqsettings-knows-six-organisation-kinds
 	 */
 	public function testEverySegmentHasATranslatedLabel(): void {
 		$segment = $this->config['components']['schemas']['LearniqSettings']['properties']['segment'];
@@ -112,7 +112,7 @@ class SegmentFeatureFlagsRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-generic-demo-data-does-not-change-the-segment
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-generic-demo-data-does-not-change-the-segment
 	 */
 	public function testGenericDemoRowsKeepTheCorporateDefault(): void {
 		$path = __DIR__ . '/../../../lib/Settings/learniq_mock_register.json';
@@ -155,7 +155,7 @@ class SegmentFeatureFlagsRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/settings-and-excuse-authorization/specs/nextcloud-app/spec.md#requirement-only-administration-managers-and-admins-change-the-organisations-segment
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-only-administration-managers-and-admins-change-the-organisations-segment
 	 */
 	public function testOnlyAdministrationManagersChangeTheSegment(): void {
 		$authorization = $this->config['components']['schemas']['LearniqSettings']['authorization'];

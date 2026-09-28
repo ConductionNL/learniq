@@ -15,7 +15,7 @@
  * Plain ES module (not a .vue SFC) so it is directly importable from a Node
  * test runner without a build step.
  *
- * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+ * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
  *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
@@ -47,7 +47,7 @@ function isUsableSet(set) {
  * @param {Array<{id: string, label: string}>|null|undefined} loadedSets The loaded sets.
  * @param {function(string, object=): string} translate The app's translate.
  * @return {object} The manifest.
- * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+ * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
  */
 export function applyExampleSetRemovalSteps(manifest, loadedSets, translate) {
 	const steps = manifest?.setup?.steps

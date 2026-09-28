@@ -9,7 +9,7 @@
  app directory, so a translator works on a development checkout and commits
  it; on a read-only install the button explains that.
 
- @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
+ @spec openspec/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
 -->
 <template>
 	<NcSettingsSection
@@ -152,7 +152,7 @@ export default {
 		 * The items matching the filter.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
+		 * @spec openspec/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
 		 */
 		filtered() {
 			return filterReviewItems(this.items, this.query)
@@ -162,7 +162,7 @@ export default {
 		 * How many pages the filtered list has.
 		 *
 		 * @return {number}
-		 * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
+		 * @spec openspec/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
 		 */
 		pageCount() {
 			return Math.max(1, Math.ceil(this.filtered.length / PAGE_SIZE))
@@ -172,7 +172,7 @@ export default {
 		 * The rows on the current page.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
+		 * @spec openspec/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
 		 */
 		visible() {
 			return pageOf(this.filtered, this.page)
@@ -183,7 +183,7 @@ export default {
 	 * Load the list once.
 	 *
 	 * @return {Promise<void>}
-	 * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
+	 * @spec openspec/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
 	 */
 	async mounted() {
 		try {
@@ -207,7 +207,7 @@ export default {
 		 *
 		 * @param {string|Array<string>|null} value The catalogue value.
 		 * @return {string}
-		 * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
+		 * @spec openspec/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
 		 */
 		asText(value) {
 			return reviewText(value)
@@ -218,7 +218,7 @@ export default {
 		 *
 		 * @param {object} item The row.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-marking-a-key-reviewed-removes-it-from-the-sidecar
+		 * @spec openspec/specs/ai-translated-catalogue/spec.md#requirement-marking-a-key-reviewed-removes-it-from-the-sidecar
 		 */
 		async markReviewed(item) {
 			this.busyKey = item.key

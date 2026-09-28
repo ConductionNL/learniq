@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
  */
 
 declare(strict_types=1);

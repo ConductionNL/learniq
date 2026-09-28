@@ -175,7 +175,51 @@
 								">
 								{{ statusLabel(session) }}
 							</span>
+							<span
+								v-if="session.cover"
+								class="my-timetable__session-badge my-timetable__session-badge--cover">
+								{{ t('learniq', 'Cover') }}
+							</span>
+							<span
+								v-if="noteTopic(session)"
+								class="my-timetable__session-topic">
+								{{ noteTopic(session) }}
+							</span>
 						</div>
+						<details
+							v-if="session.notes && session.notes.length > 0"
+							class="my-timetable__notes">
+							<summary>
+								<NoteTextOutline :size="14" />
+								{{ notesSummary(session) }}
+							</summary>
+							<ul class="my-timetable__notes-list">
+								<li
+									v-for="note in session.notes"
+									:key="note.id"
+									class="my-timetable__note">
+									<strong v-if="note.topic">{{
+										note.topic
+									}}</strong>
+									<span>{{ note.text }}</span>
+									<em
+										v-if="note.audience === 'cover'"
+										class="my-timetable__note-audience">
+										{{
+											t('learniq', 'For the covering teacher')
+										}}
+									</em>
+								</li>
+							</ul>
+						</details>
+						<NcButton
+							v-if="session.canAddNote"
+							class="my-timetable__session-manage"
+							variant="tertiary"
+							:aria-label="t('learniq', 'Add a note to this lesson')"
+							@click="notingSession = session">
+							{{ t('learniq', 'Add note') }}
+						</NcButton>
 						<NcButton
 							v-if="isLearniqSession(session)"
 							class="my-timetable__session-manage"
@@ -194,11 +238,19 @@
 			:session="managingSession"
 			@close="managingSession = null"
 			@changed="onChanged" />
+
+		<LessonNoteDialog
+			v-if="notingSession"
+			:session="notingSession"
+			@close="notingSession = null"
+			@saved="onChanged" />
 	</div>
 </template>
 
 <script>
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
+import NoteTextOutline from 'vue-material-design-icons/NoteTextOutline.vue'
+import LessonNoteDialog from '../dialogs/LessonNoteDialog.vue'
 import SubstitutionModal from '../dialogs/SubstitutionModal.vue'
 import { fetchMyTimetable, isLearniqSession } from '../api/timetable.js'
 
@@ -224,6 +276,8 @@ export default {
 		NcEmptyContent,
 		NcLoadingIcon,
 		NcNoteCard,
+		LessonNoteDialog,
+		NoteTextOutline,
 		SubstitutionModal,
 	},
 
@@ -240,6 +294,8 @@ export default {
 			mode: 'week',
 			// The Session currently open in SubstitutionModal, or null.
 			managingSession: null,
+			// The lesson currently open in LessonNoteDialog, or null.
+			notingSession: null,
 			// Where the lessons come from: `learniq` Sessions, or planninq's
 			// school timetable (sessions-from-planninq).
 			source: 'learniq',
@@ -367,7 +423,7 @@ export default {
 		 * @param {object} session A session from the timetable endpoint.
 		 *
 		 * @return {boolean} True for a learniq Session.
-		 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+		 * @spec openspec/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
 		 */
 		isLearniqSession(session) {
 			return isLearniqSession(session)
@@ -533,6 +589,34 @@ export default {
 		},
 
 		/**
+		 * The topic shown on a lesson: the first note that has one.
+		 *
+		 * @param {object} session The session.
+		 *
+		 * @return {string} The topic, or ''.
+		 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+		 */
+		noteTopic(session) {
+			const note = (session.notes || []).find((n) => n.topic)
+			return note ? note.topic : ''
+		},
+
+		/**
+		 * The summary line of a lesson's notes.
+		 *
+		 * @param {object} session The session.
+		 *
+		 * @return {string} The label.
+		 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+		 */
+		notesSummary(session) {
+			const count = (session.notes || []).length
+			return count === 1
+				? t('learniq', '1 note')
+				: t('learniq', '{count} notes', { count })
+		},
+
+		/**
 		 * Open SubstitutionModal for a session (cancel / assign substitute).
 		 *
 		 * @param {object} session The session to manage.
@@ -653,6 +737,7 @@ export default {
 
 	&__session {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: flex-start;
 		gap: 4px;
 		padding: 8px;
@@ -692,6 +777,38 @@ export default {
 		font-weight: 600;
 	}
 
+	&__session-topic {
+		font-size: 0.8em;
+		font-style: italic;
+	}
+
+	&__notes {
+		flex-basis: 100%;
+		font-size: 0.85em;
+
+		summary {
+			cursor: pointer;
+		}
+	}
+
+	&__notes-list {
+		list-style: none;
+		margin: 4px 0 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	&__note {
+		display: flex;
+		flex-direction: column;
+	}
+
+	&__note-audience {
+		color: var(--color-text-maxcontrast);
+	}
+
 	&__session-loc {
 		font-size: 0.8em;
 		color: var(--color-text-maxcontrast);
@@ -709,6 +826,11 @@ export default {
 		&--cancelled {
 			background: var(--color-error);
 			color: white;
+		}
+
+		&--cover {
+			background: var(--color-primary-element);
+			color: var(--color-primary-element-text);
 		}
 	}
 

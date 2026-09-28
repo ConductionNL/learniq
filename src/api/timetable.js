@@ -71,7 +71,7 @@ export async function fetchMyTimetable(from, to) {
  *
  * @return {Promise<{sessions: Array<object>, from: string, to: string, source: string}>} The
  *   ordered sessions, the resolved window and the source they came from.
- * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+ * @spec openspec/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
  */
 export async function fetchCohortTimetable(cohortId, from, to) {
 	const params = {}
@@ -103,7 +103,7 @@ export async function fetchCohortTimetable(cohortId, from, to) {
  * @param {object} session A session from either timetable endpoint.
  *
  * @return {boolean} True for a learniq Session.
- * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+ * @spec openspec/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
  */
 export function isLearniqSession(session) {
 	return Boolean(session?.id) && (session.source ?? 'learniq') === 'learniq'

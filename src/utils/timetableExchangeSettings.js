@@ -5,7 +5,7 @@
  * Plain ES module (not a .vue SFC) so it is directly importable from a Node
  * test runner without a build step.
  *
- * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+ * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
  *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
@@ -32,7 +32,7 @@ export const SOURCE_LABELS = {
  * @param {Array<string>} sources The source ids, in order.
  * @param {object} groupMaps `{source: {groupCode: cohortId}}`.
  * @return {object} `{source: [{code, cohortId}]}`, one entry per source.
- * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+ * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
  */
 export function mapsToRows(sources, groupMaps) {
 	const rows = {}
@@ -52,7 +52,7 @@ export function mapsToRows(sources, groupMaps) {
  *
  * @param {object} rows `{source: [{code, cohortId}]}`.
  * @return {object} `{source: {groupCode: cohortId}}`.
- * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+ * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
  */
 export function rowsToMaps(rows) {
 	const maps = {}

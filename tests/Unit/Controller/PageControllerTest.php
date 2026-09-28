@@ -17,7 +17,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/retrofit-2026-05-25-app-shell-settings/tasks.md#task-5
- * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-segment-reaches-the-manifest-runtime
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-segment-reaches-the-manifest-runtime
  */
 
 declare(strict_types=1);
@@ -170,7 +170,7 @@ class PageControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#scenario-a-signed-in-users-page-carries-the-segment
+	 * @spec openspec/specs/nextcloud-app/spec.md#scenario-a-signed-in-users-page-carries-the-segment
 	 */
 	public function testIndexProvidesTheSegmentForASignedInUser(): void {
 		$user = $this->createMock(IUser::class);
@@ -197,7 +197,7 @@ class PageControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#scenario-the-wizard-stored-company
+	 * @spec openspec/specs/nextcloud-app/spec.md#scenario-the-wizard-stored-company
 	 */
 	public function testIndexProvidesTheChosenSegment(): void {
 		$user = $this->createMock(IUser::class);
@@ -304,7 +304,7 @@ class PageControllerTest extends TestCase {
 	 * index() hands the page shell the loaded example sets, from which the
 	 * browser builds one removal step per set.
 	 *
-	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#scenario-two-sets-were-loaded
+	 * @spec openspec/specs/example-sets/spec.md#scenario-two-sets-were-loaded
 	 *
 	 * @return void
 	 */
@@ -343,7 +343,7 @@ class PageControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
 	 */
 	public function testIndexProvidesTheStoreAccess(): void {
 		$user = $this->createMock(IUser::class);

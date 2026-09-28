@@ -176,7 +176,7 @@ class ArchiveRetiredPaymentObjects implements IRepairStep {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/retired-schemas-prune/specs/nextcloud-app/spec.md#requirement-schemas-learniq-retired-leave-the-instance-once-their-rows-are-kept-elsewhere
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-schemas-learniq-retired-leave-the-instance-once-their-rows-are-kept-elsewhere
 	 */
 	public function isFullyArchived(string $schema, int $expectedRows): bool {
 		if (in_array($schema, self::RETIRED_SCHEMAS, true) === false) {

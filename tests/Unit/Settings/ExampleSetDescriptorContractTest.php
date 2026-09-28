@@ -4,7 +4,7 @@
  * The example set descriptor contract, enforced.
  *
  * Every `lib/Settings/profiles/*.json` must pass these checks before it ships.
- * Six lanes write one set each against openspec/changes/segment-wizard-choice/
+ * Six lanes write one set each against openspec/changes/archive/2026-09-28-segment-wizard-choice/
  * contract.md; this test is how a set that would not load, would collide with
  * another set, or would leave a dangling reference fails in its own PR instead
  * of in front of an operator who asked for example data.
@@ -23,7 +23,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/specs/example-sets/spec.md#requirement-an-example-set-is-one-descriptor-file-per-segment
- * @spec openspec/changes/example-set-regulation-rows/specs/example-sets/spec.md#requirement-a-schema-with-its-own-slug-pattern-takes-the-slug-from-the-object
+ * @spec openspec/specs/example-sets/spec.md#requirement-a-schema-with-its-own-slug-pattern-takes-the-slug-from-the-object
  */
 
 declare(strict_types=1);

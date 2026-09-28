@@ -133,7 +133,7 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
 	 * @spec openspec/specs/assignments/spec.md#requirement-a-learner-hands-in-their-own-work-and-the-teacher-marks-it
-	 * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$assignmentId = $object['assignmentId'] ?? null;
@@ -169,7 +169,7 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 	 *
 	 * @return array<string,mixed>
 	 *
-	 * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
 	 */
 	private function withDeadline(array $assignment, array $submission): array {
 		$resubmissionDueAt = ($submission['resubmissionDueAt'] ?? null);

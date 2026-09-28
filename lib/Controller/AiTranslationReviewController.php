@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
+ * @spec openspec/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
  */
 
 declare(strict_types=1);
@@ -40,7 +40,7 @@ use OCP\IRequest;
 /**
  * Admin-only review of AI-written catalogue values.
  *
- * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
+ * @spec openspec/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
  */
 class AiTranslationReviewController extends Controller {
 	/**
@@ -61,7 +61,7 @@ class AiTranslationReviewController extends Controller {
 	 *
 	 * @return JSONResponse `{language, total, items: [{key, source, value}]}`.
 	 *
-	 * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
+	 * @spec openspec/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
 	 */
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function index(): JSONResponse {
@@ -75,7 +75,7 @@ class AiTranslationReviewController extends Controller {
 	 *
 	 * @return JSONResponse 200 `{reviewed: key}`, 404 when not listed, 409 `read-only`.
 	 *
-	 * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-marking-a-key-reviewed-removes-it-from-the-sidecar
+	 * @spec openspec/specs/ai-translated-catalogue/spec.md#requirement-marking-a-key-reviewed-removes-it-from-the-sidecar
 	 */
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function reviewed(string $key = ''): JSONResponse {
