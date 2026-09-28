@@ -184,15 +184,36 @@ class ExternalTrainingController extends Controller {
 
 		$payload = $this->trainingService->buildManualCredentialPayload(record: $record, issuedBy: $user->getUID());
 
-		// Sign before the save: OR runs no lifecycle guard or action on a create
-		// (learniq#182), and the signed fields are required. `lifecycle` is left
-		// to OR's declared initial `issued`, as in CredentialIssuanceHandler.
-		$signed = $this->signingService->sign(credential: $payload);
-		if ($signed === null) {
+		$credentialId = $this->saveSignedCredential(payload: $payload, record: $record);
+		if ($credentialId === null) {
 			return new JSONResponse(
 				data: ['error' => 'The credential could not be signed. Generate the credential signing key in the Learniq admin settings first.'],
 				statusCode: Http::STATUS_CONFLICT
 			);
+		}
+
+		return new JSONResponse(data: ['credentialId' => $credentialId], statusCode: Http::STATUS_CREATED);
+	}//end issueCredential()
+
+	/**
+	 * Sign a manual credential, save it, and link it back onto its record.
+	 *
+	 * Signs before the save: OR runs no lifecycle guard or action on a create
+	 * (learniq#182), and the signed fields are required. `lifecycle` is left to
+	 * OR's declared initial `issued`, as in CredentialIssuanceHandler. Nothing is
+	 * saved when the credential cannot be signed.
+	 *
+	 * @param array<string, mixed> $payload The unsigned credential payload.
+	 * @param array<string, mixed> $record  The verified external-training record.
+	 *
+	 * @return string|null The saved credential's id ('' when OR returned none), or null when unsigned.
+	 *
+	 * @spec openspec/changes/external-training-recording/tasks.md
+	 */
+	private function saveSignedCredential(array $payload, array $record): ?string {
+		$signed = $this->signingService->sign(credential: $payload);
+		if ($signed === null) {
+			return null;
 		}
 
 		$signedId = (string)$signed['id'];
@@ -218,8 +239,8 @@ class ExternalTrainingController extends Controller {
 			);
 		}
 
-		return new JSONResponse(data: ['credentialId' => $credentialId], statusCode: Http::STATUS_CREATED);
-	}//end issueCredential()
+		return $credentialId;
+	}//end saveSignedCredential()
 
 	/**
 	 * Report whether a learner is covered for a regulation, and by which class.

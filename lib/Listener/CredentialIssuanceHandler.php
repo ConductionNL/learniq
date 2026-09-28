@@ -136,10 +136,7 @@ class CredentialIssuanceHandler implements IEventListener {
 
 		$expiresAt = $this->resolveExpiresAt(course: $course, completedAt: (string)$completedAt);
 
-		// Sign before the save: OR runs no lifecycle guard or action on a create
-		// (learniq#182), and `signature`, `openbadges3Payload` and `issuerDid`
-		// are required. `lifecycle` is left to OR's declared initial `issued`.
-		$signed = $this->signingService->sign(
+		$this->saveSignedCredential(
 			credential: [
 				'learnerId' => $learnerId,
 				'courseId' => $courseId,
@@ -153,12 +150,30 @@ class CredentialIssuanceHandler implements IEventListener {
 				'tenant_id' => $tenantId,
 			]
 		);
+	}//end handle()
+
+	/**
+	 * Sign a credential and save it under the uuid the signature covers.
+	 *
+	 * Signs before the save: OR runs no lifecycle guard or action on a create
+	 * (learniq#182), and `signature`, `openbadges3Payload` and `issuerDid` are
+	 * required. `lifecycle` is left to OR's declared initial `issued`. A
+	 * credential that cannot be signed is logged and not saved.
+	 *
+	 * @param array<string, mixed> $credential The unsigned credential fields.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
+	 */
+	private function saveSignedCredential(array $credential): void {
+		$signed = $this->signingService->sign(credential: $credential);
 
 		if ($signed === null) {
 			$this->logger->error(
 				'Learniq: no credential issued for enrolment {enrolment}: it could not be signed. '
 				. 'Generate the credential signing key for tenant {tenant} in the Learniq admin settings.',
-				['enrolment' => $enrolmentId, 'tenant' => $tenantId]
+				['enrolment' => $credential['enrolmentId'], 'tenant' => $credential['tenant_id']]
 			);
 			return;
 		}
@@ -172,7 +187,7 @@ class CredentialIssuanceHandler implements IEventListener {
 			object: $signed,
 			uuid: $credentialId
 		);
-	}//end handle()
+	}//end saveSignedCredential()
 
 	/**
 	 * The issuing organisation's display name: the tenant's School `name`.
