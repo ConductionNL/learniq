@@ -7,7 +7,7 @@
  * publish a course that passed the sharing gate.
  *
  *   - GET  /api/store/items                  search, through OpenRegister's store plane
- *   - POST /api/store/items/{slug}/install   resolve through the plane, import as a copy
+ *   - POST /api/store/items/{slug}/install   resolve through the plane, import as a copy (course-store.install)
  *   - POST /api/store/publish                gate, record, publish through the plane
  *
  * ADR-080: discovery is OpenRegister's. This controller injects the engine's
@@ -67,7 +67,11 @@ use Throwable;
  */
 class StoreController extends Controller {
 
-	public const ACTION_INSTALL = 'course-package.import';
+	/**
+	 * Installing a shared course as a copy (D27: any teacher). Not
+	 * `course-package.import`, which also guards the Canvas and Moodle upload.
+	 */
+	public const ACTION_INSTALL = 'course-store.install';
 
 	public const ACTION_PUBLISH = 'course-package.share';
 

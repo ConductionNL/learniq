@@ -158,13 +158,13 @@ class StoreControllerTest extends TestCase {
 	}//end testASearchFailureIsUnreachable()
 
 	/**
-	 * Install checks the import action, refuses a foreign slug, and 404s an
-	 * unresolved one.
+	 * Install checks the store install action (D27: any teacher, not the
+	 * package-import action), refuses a foreign slug, and 404s an unresolved one.
 	 *
 	 * @return void
 	 */
 	public function testInstallGuardsSlugAndResolution(): void {
-		$this->actionAuth->expects(self::exactly(2))->method('requireAction')->with(self::anything(), 'course-package.import');
+		$this->actionAuth->expects(self::exactly(2))->method('requireAction')->with(self::anything(), 'course-store.install');
 		$this->storeService->method('resolve')->willReturn(null);
 
 		self::assertSame(Http::STATUS_BAD_REQUEST, $this->controller()->install('openregister-configset-x')->getStatus());
