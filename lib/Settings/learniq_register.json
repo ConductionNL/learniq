@@ -6128,7 +6128,7 @@
             "Session": {
                 "slug": "session",
                 "icon": "CalendarClockOutline",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "Session",
                 "description": "A scheduled occurrence of a Cohort meeting: a les, hoorcollege, or workshop. Carries start/end datetime, location (room or online URL), attached Materials, and linked Assignments. The unit a teacher takes attendance against.",
                 "type": "object",
@@ -15897,7 +15897,7 @@
             "AttendanceThreshold": {
                 "slug": "attendance-threshold",
                 "icon": "AlertCircleOutline",
-                "version": "0.1.1",
+                "version": "0.1.2",
                 "title": "AttendanceThreshold",
                 "description": "Configurable threshold rule that watches learner attendance over a window and fires when the metric crosses the limit. The leerplicht-16uur kind is the Dutch Leerplichtwet art. 21a profile. Crossing detection uses the same calculatedChange mechanism as Regulation.ragStatus — NOT a TimedJob (ADR-022).",
                 "type": "object",
@@ -16240,7 +16240,7 @@
             "AttendanceFlag": {
                 "slug": "attendance-flag",
                 "icon": "FlagOutline",
-                "version": "0.2.0",
+                "version": "0.2.1",
                 "title": "AttendanceFlag",
                 "description": "Created when an AttendanceThreshold is crossed. appendOnly: true per ADR-008 (immutable audit evidence). The flag tracks the mentor's intervention and any outbound leerplicht report via its lifecycle. It NEVER auto-acts against the learner — human-in-the-loop throughout.",
                 "type": "object",
@@ -23569,7 +23569,7 @@
             "LvsResult": {
                 "slug": "lvs-result",
                 "icon": "ChartBoxOutline",
-                "version": "0.2.0",
+                "version": "0.2.1",
                 "title": "LvsResult",
                 "description": "A normed LVS (leerlingvolgsysteem) test result imported via UWLR from Cito, IEP, Boom, or Dia, linked to an AssessmentResult when the school also ran the same toets as an in-app Assessment. Append-only — an imported result is immutable evidence. Starts as `imported` and is not trusted as report-card/trend input until a coordinator confirms it via the `verify` transition (lvs-import-contract).",
                 "type": "object",
@@ -24240,7 +24240,7 @@
             "OsoImportDossier": {
                 "slug": "oso-import-dossier",
                 "icon": "FileImportOutline",
-                "version": "0.2.0",
+                "version": "0.2.1",
                 "title": "OsoImportDossier",
                 "description": "A received OSO (Overstapservice Onderwijs) overstapdossier, held for coordinator review before acceptance. Evidence-only, mirroring LearningRecordImport's posture: draftProfile is a snapshot of proposed LearnerProfile fields, NEVER a live LearnerProfile — a coordinator who accepts completes the real LearnerProfile through the existing object UI. No wire protocol lives here; the OSO XML receive/parse itself is integriq-adapter-oso's concern (oso-inbound-contract).",
                 "type": "object",
@@ -24728,7 +24728,7 @@
             "SsoAttributeMapping": {
                 "slug": "sso-attribute-mapping",
                 "icon": "ShieldAccountOutline",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "SsoAttributeMapping",
                 "description": "Declares which SAML attribute or OIDC claim maps to which LearnerProfile field (or role), once Nextcloud's own user_saml/user_oidc apps have already authenticated the user. This capability does NOT build an IdP client or a SAML/OIDC handshake — see the identity-federation capability's Purpose. SsoAttributeMappingApplier reads active rows of this schema to compute a LearnerProfile field-update array from a raw attribute bag; no listener wires this to an actual Nextcloud login event in this change (entree-surfconext-sso-contract).",
                 "type": "object",

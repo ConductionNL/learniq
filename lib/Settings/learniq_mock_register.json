@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.27",
+    "version": "1.1.28",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -2118,7 +2118,7 @@
       "AttendanceFlag": {
         "slug": "attendance-flag",
         "icon": "FlagOutline",
-        "version": "0.1.0",
+        "version": "0.2.1",
         "title": "AttendanceFlag",
         "description": "Created when an AttendanceThreshold is crossed. appendOnly: true per ADR-008 (immutable audit evidence). The flag tracks the mentor's intervention and any outbound leerplicht report via its lifecycle. It NEVER auto-acts against the learner — human-in-the-loop throughout.",
         "type": "object",
@@ -19312,7 +19312,7 @@
       "SupportRequest": {
         "slug": "support-request",
         "icon": "HandHeartOutline",
-        "version": "0.1.0",
+        "version": "0.3.0",
         "title": "SupportRequest",
         "description": "A zorgvraag (support/care request) raised from a pupil's dossier by a coordinator, signalling that a learner's needs may exceed what the school can provide alone. May precede a LearningPlan (OPP) or reference an existing one. Submitting it auto-queues a DataExchangeJob (target: swv) that routes an OSO-format care-request dossier to the regional samenwerkingsverband (SWV) for deliberation and a possible TlvApplication.",
         "type": "object",
