@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-example-datasets-mbo/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  */
 
 declare(strict_types=1);
@@ -120,7 +120,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-mbo/specs/example-sets/spec.md#requirement-the-vocational-college-set-is-one-consistent-college
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-vocational-college-set-is-one-consistent-college
 	 */
 	public function testTheCollegeHasItsPromisedShape(): void {
 		self::assertCount(1, self::of('school'));
@@ -176,7 +176,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-mbo/specs/example-sets/spec.md#requirement-the-vocational-college-set-is-one-consistent-college
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-vocational-college-set-is-one-consistent-college
 	 */
 	public function testLessonsNeverFallOnClosedOrPlacementDays(): void {
 		$closed = [];
@@ -225,7 +225,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-mbo/specs/example-sets/spec.md#requirement-the-vocational-college-set-is-one-consistent-college
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-vocational-college-set-is-one-consistent-college
 	 */
 	public function testEveryMarkIsMadeByTheTeacherOfThatLesson(): void {
 		$sessions  = self::by(self::of('session'), 'uuid');
@@ -268,7 +268,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-mbo/specs/example-sets/spec.md#requirement-work-placements-are-signed-visited-and-assessed
+	 * @spec openspec/specs/example-sets/spec.md#requirement-work-placements-are-signed-visited-and-assessed
 	 */
 	public function testPlacementsAreSignedVisitedAndAssessed(): void {
 		$placements  = self::by(self::of('bpv-placement'), 'uuid');
@@ -342,7 +342,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-mbo/specs/example-sets/spec.md#requirement-results-and-study-advice-agree-with-the-engines
+	 * @spec openspec/specs/example-sets/spec.md#requirement-results-and-study-advice-agree-with-the-engines
 	 */
 	public function testFinalGradesAreWhatTheGradeEngineComputes(): void {
 		$plans     = self::by(self::of('curriculum-plan'), 'uuid');
@@ -379,7 +379,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-mbo/specs/example-sets/spec.md#requirement-results-and-study-advice-agree-with-the-engines
+	 * @spec openspec/specs/example-sets/spec.md#requirement-results-and-study-advice-agree-with-the-engines
 	 */
 	public function testFirstYearAdviceCountsThePassedUnits(): void {
 		$courses   = self::by(self::of('course'), 'uuid');
@@ -456,7 +456,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-mbo/specs/example-sets/spec.md#requirement-results-and-study-advice-agree-with-the-engines
+	 * @spec openspec/specs/example-sets/spec.md#requirement-results-and-study-advice-agree-with-the-engines
 	 */
 	public function testExamBoardCasesPointAtTheirResults(): void {
 		$entries  = self::by(self::of('grade-entry'), 'uuid');
@@ -502,7 +502,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-mbo/specs/example-sets/spec.md#requirement-the-vocational-college-set-loads-and-removes-cleanly
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-vocational-college-set-loads-and-removes-cleanly
 	 */
 	public function testTheServiceOffersAndRemovesExactlyThisSet(): void {
 		$appManager = $this->createMock(IAppManager::class);
@@ -595,7 +595,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-mbo/specs/example-sets/spec.md#scenario-the-file-is-reproducible
+	 * @spec openspec/specs/example-sets/spec.md#scenario-the-file-is-reproducible
 	 */
 	public function testTheFileIsWhatTheGeneratorProduces(): void {
 		$python = trim((string)shell_exec('command -v python3 2>/dev/null'));

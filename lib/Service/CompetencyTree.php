@@ -53,7 +53,7 @@ class CompetencyTree {
 	 *
 	 * @return array<string, mixed> The tree (`nodes`, `children`, `roots`).
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
 	 */
 	public function build(array $goals): array {
 		$nodes = [];
@@ -88,7 +88,7 @@ class CompetencyTree {
 	 *
 	 * @return array<int, string>
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
 	 */
 	public function leaves(array $tree): array {
 		$leaves  = [];
@@ -182,7 +182,7 @@ class CompetencyTree {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
 	 */
 	public function isActive(array $row): bool {
 		return in_array(needle: ($row['lifecycle'] ?? null), haystack: self::INACTIVE_STATES, strict: true) === false;

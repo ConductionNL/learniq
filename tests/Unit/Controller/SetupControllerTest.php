@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md
  * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md
  */
@@ -186,7 +186,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-a-school-picks-primary-school
+	 * @spec openspec/specs/example-sets/spec.md#scenario-a-school-picks-primary-school
 	 */
 	public function testAStoredSegmentClosesTheSegmentStep(): void {
 		$this->segments->method('hasSegment')->willReturn(true);
@@ -233,7 +233,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-a-path-in-the-answer-is-refused
+	 * @spec openspec/specs/example-sets/spec.md#scenario-a-path-in-the-answer-is-refused
 	 */
 	public function testAnUnknownSetIsRefusedRatherThanStored(): void {
 		foreach (['vo', '../../config/config', [['nested']]] as $value) {
@@ -268,7 +268,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-a-school-picks-primary-school
+	 * @spec openspec/specs/example-sets/spec.md#scenario-a-school-picks-primary-school
 	 */
 	public function testTheSegmentAnswerIsWrittenWithTheAdminAsSetter(): void {
 		$this->segments->expects(self::once())->method('setSegment')->with('po', 'admin');
@@ -283,7 +283,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-an-unknown-segment-is-refused
+	 * @spec openspec/specs/example-sets/spec.md#scenario-an-unknown-segment-is-refused
 	 */
 	public function testAnUnknownSegmentIsRefused(): void {
 		$this->segments->expects(self::never())->method('setSegment');
@@ -298,7 +298,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-loading-the-primary-school-set
+	 * @spec openspec/specs/example-sets/spec.md#scenario-loading-the-primary-school-set
 	 */
 	public function testLoadingImportsThePickedSetAndNamesTheCount(): void {
 		$written = $this->captureWrites();

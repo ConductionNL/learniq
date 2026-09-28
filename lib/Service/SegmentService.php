@@ -244,7 +244,7 @@ class SegmentService {
 	 *
 	 * @return bool True when a LearniqSettings row carries a known segment.
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
 	 */
 	public function hasSegment(): bool {
 		return $this->currentRow() !== null;
@@ -255,7 +255,7 @@ class SegmentService {
 	 *
 	 * @return array<int, array{id: string, label: string, description: string, icon: string}> The cards, in SEGMENTS order.
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
 	 */
 	public function listChoices(): array {
 		$choices = [];
@@ -281,7 +281,7 @@ class SegmentService {
 	 *
 	 * @throws InvalidArgumentException When the segment is not one of SEGMENTS.
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
 	 */
 	public function setSegment(string $segment, ?string $actor): void {
 		if (in_array($segment, self::SEGMENTS, true) === false) {
