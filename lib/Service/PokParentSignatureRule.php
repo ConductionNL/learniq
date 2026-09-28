@@ -122,6 +122,33 @@ class PokParentSignatureRule {
 	}//end evaluate()
 
 	/**
+	 * The student's earliest signature time among a version's PokSignatures,
+	 * or null. The earliest gives the youngest age, so a doubt falls on the
+	 * side of the parent signing.
+	 *
+	 * @param array<int, array<string, mixed>> $signatures PokSignature rows.
+	 *
+	 * @return string|null
+	 *
+	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+	 */
+	public static function studentSignedAt(array $signatures): ?string {
+		$earliest = null;
+		foreach ($signatures as $row) {
+			$signedAt = $row['signedAt'] ?? null;
+			if (($row['signerRole'] ?? null) !== 'student' || is_string($signedAt) === false || $signedAt === '') {
+				continue;
+			}
+
+			if ($earliest === null || strtotime($signedAt) < strtotime($earliest)) {
+				$earliest = $signedAt;
+			}
+		}
+
+		return $earliest;
+	}//end studentSignedAt()
+
+	/**
 	 * The learner's profile row, through the placement's learnerRef or else
 	 * the learner's user id; null when either cannot be found.
 	 *

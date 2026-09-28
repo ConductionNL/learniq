@@ -29,24 +29,24 @@ Every task writes its test first and runs it against the old code, where it must
 - **acceptance_criteria**:
   - GIVEN a minor's three signatures WHEN activated THEN denied; GIVEN a listed parent's signature too THEN allowed
   - GIVEN a parent signature from an unlisted user THEN denied; GIVEN an adult's three signatures THEN allowed
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 4: PokParentSignatureStampAction writes the flag on requestSignatures and activate
 - **spec_ref**: `openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent`
 - **files**: `lib/Lifecycle/Action/PokParentSignatureStampAction.php`, `tests/Unit/Lifecycle/Action/PokParentSignatureStampActionTest.php`
 - **acceptance_criteria**:
   - GIVEN a 16-year-old's POK WHEN signatures are requested THEN `parentSignatureRequired: true`; GIVEN a 19-year-old THEN false
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 5: The signing page offers the parent role and says when a parent signs
 - **spec_ref**: `openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent`
 - **files**: `src/utils/customPages.js`, `src/views/SignatureView.vue`, `tests/unit-js/customPages.test.mjs`, `l10n/`
 - **acceptance_criteria**:
   - the POK role list includes `parent`; the note shows only for a POK with `parentSignatureRequired: true`
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 6: The MBO example set follows the rule
 - **spec_ref**: `openspec/changes/pok-signature-parent-role/design.md#seed-data`

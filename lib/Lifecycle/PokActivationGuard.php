@@ -8,7 +8,11 @@
  * exists for each of the three required roles (`student`, `school`,
  * `praktijkopleider`) on the POK's current (subjectId, subjectVersion) pair —
  * WEB art. 7.2.8/7.2.9 requires all three parties to sign before the
- * placement starts.
+ * placement starts. When the student was under 18 on the day they signed, or
+ * has no date of birth recorded, a parent or guardian listed in the learner's
+ * `LearnerProfile.parentIds` must sign too (PokParentSignatureRule). The
+ * guard derives that itself; it never reads the POK's
+ * `parentSignatureRequired` flag, which a client could write.
  *
  * Mirrors LearningPlanSignatureGuard's shape (constructor-injected
  * ObjectService + LoggerInterface, a `fetchSignatures()` + `indexByRole()`
@@ -38,12 +42,14 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
+ * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Service\PokParentSignatureRule;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -68,6 +74,20 @@ class PokActivationGuard implements LifecycleGuardInterface {
 	private const DENIAL = 'The practical training agreement needs the signatures of the student, the school and the workplace trainer.';
 
 	/**
+	 * Added when the student was under 18 on the day they signed.
+	 *
+	 * @var string
+	 */
+	private const PARENT_FOR_MINOR = 'The student was under 18 when they signed, so a parent or guardian listed on their learner profile also signs the practical training agreement.';
+
+	/**
+	 * Added when the student's age cannot be established.
+	 *
+	 * @var string
+	 */
+	private const PARENT_FOR_UNKNOWN_AGE = 'The student\'s date of birth is not recorded, so a parent or guardian listed on their learner profile also signs the practical training agreement. Record the date of birth if the student is 18 or older.';
+
+	/**
 	 * Learniq register slug.
 	 */
 	private const LEARNIQ_REGISTER = 'learniq';
@@ -89,12 +109,14 @@ class PokActivationGuard implements LifecycleGuardInterface {
 	 *
 	 * @param ObjectService $objectService OR object query service.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param PokParentSignatureRule $parentRule Whether a parent signs, and who may.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly PokParentSignatureRule $parentRule,
 	) {
 	}//end __construct()
 
@@ -112,68 +134,143 @@ class PokActivationGuard implements LifecycleGuardInterface {
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
-		if ($this->allows(pok: $object) === true) {
+		$reason = $this->denialReason(pok: $object);
+		if ($reason === null) {
 			return GuardResult::allow();
 		}
 
-		return GuardResult::deny(self::DENIAL);
+		return GuardResult::deny($reason);
 	}//end check()
 
 	/**
-	 * The rule behind check(), answered as a boolean.
+	 * The rule behind check(): null when every required signature is there,
+	 * otherwise the reason shown to the caller.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing the
 	 * `activate` transition on a Praktijkovereenkomst object.
 	 *
 	 * @param array<string,mixed> $pok The object at its target state, transition inputs merged in.
 	 *
-	 * @return bool True when all three required roles have a PokSignature for this version;
-	 *              false blocks the transition (HTTP 422).
+	 * @return string|null Null allows; a reason blocks the transition (HTTP 422).
 	 *
 	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
+	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
 	 */
-	private function allows(array $pok): bool {
+	private function denialReason(array $pok): ?string {
 		$pokId = $pok['id'] ?? ($pok['uuid'] ?? '');
 		$version = (int)($pok['version'] ?? 1);
 		$tenantId = $pok['tenant_id'] ?? '';
 
 		if ($pokId === '') {
 			$this->logger->warning('[PokActivationGuard] Praktijkovereenkomst has no id; blocking activation.');
-			return false;
+			return self::DENIAL;
 		}
 
-		$signedRoles = $this->fetchSignedRoles(pokId: $pokId, version: $version, tenantId: $tenantId);
+		$signatures = $this->fetchSignatures(pokId: $pokId, version: $version, tenantId: $tenantId);
+		$missing = array_diff(self::REQUIRED_ROLES, $this->signedRoles(signatures: $signatures));
 
-		$missing = array_diff(self::REQUIRED_ROLES, $signedRoles);
+		$parent = $this->parentRule->evaluate(pok: $pok, studentSignedAt: PokParentSignatureRule::studentSignedAt(signatures: $signatures));
+		$parentMissing = $parent['required'] === true
+			&& $this->aListedParentSigned(signatures: $signatures, parentIds: $parent['parentIds']) === false;
 
-		if (empty($missing) === false) {
+		if (empty($missing) === true && $parentMissing === false) {
 			$this->logger->info(
-				'[PokActivationGuard] Praktijkovereenkomst {id} v{v} missing signatures for role(s): {missing}.',
-				['id' => $pokId, 'v' => $version, 'missing' => implode(', ', $missing)]
+				'[PokActivationGuard] Praktijkovereenkomst {id} v{v} fully signed — allowing activation.',
+				['id' => $pokId, 'v' => $version]
 			);
-			return false;
+			return null;
 		}
 
 		$this->logger->info(
-			'[PokActivationGuard] Praktijkovereenkomst {id} v{v} fully signed — allowing activation.',
-			['id' => $pokId, 'v' => $version]
+			'[PokActivationGuard] Praktijkovereenkomst {id} v{v} missing signatures for role(s): {missing}; parent missing: {parent} ({reason}).',
+			[
+				'id' => $pokId,
+				'v' => $version,
+				'missing' => implode(', ', $missing),
+				'parent' => var_export($parentMissing, true),
+				'reason' => $parent['reason'],
+			]
 		);
 
-		return true;
-	}//end allows()
+		return $this->reasonFor(rolesMissing: empty($missing) === false, parentMissing: $parentMissing, parentReason: $parent['reason']);
+	}//end denialReason()
 
 	/**
-	 * Fetch the distinct set of signerRoles that have signed this POK version.
+	 * The refusal text for what is missing.
+	 *
+	 * @param bool $rolesMissing Whether a student, school or workplace trainer signature is missing.
+	 * @param bool $parentMissing Whether a required parent signature is missing.
+	 * @param string $parentReason PokParentSignatureRule's reason.
+	 *
+	 * @return string
+	 */
+	private function reasonFor(bool $rolesMissing, bool $parentMissing, string $parentReason): string {
+		$parts = [];
+		if ($rolesMissing === true) {
+			$parts[] = self::DENIAL;
+		}
+
+		if ($parentMissing === true) {
+			$parentSentence = self::PARENT_FOR_MINOR;
+			if ($parentReason === PokParentSignatureRule::REASON_UNKNOWN_AGE) {
+				$parentSentence = self::PARENT_FOR_UNKNOWN_AGE;
+			}
+
+			$parts[] = $parentSentence;
+		}
+
+		return implode(' ', $parts);
+	}//end reasonFor()
+
+	/**
+	 * The distinct roles among the three standing roles that have signed.
+	 *
+	 * @param array<int, array<string, mixed>> $signatures PokSignature rows for this version.
+	 *
+	 * @return string[]
+	 */
+	private function signedRoles(array $signatures): array {
+		$roles = [];
+		foreach ($signatures as $row) {
+			$role = $row['signerRole'] ?? null;
+			if (is_string($role) === true && in_array($role, $roles, strict: true) === false) {
+				$roles[] = $role;
+			}
+		}
+
+		return $roles;
+	}//end signedRoles()
+
+	/**
+	 * Whether a `parent` signature comes from one of the learner's listed parents.
+	 *
+	 * @param array<int, array<string, mixed>> $signatures PokSignature rows for this version.
+	 * @param array<int, string> $parentIds The learner's LearnerProfile.parentIds.
+	 *
+	 * @return bool
+	 */
+	private function aListedParentSigned(array $signatures, array $parentIds): bool {
+		foreach ($signatures as $row) {
+			if (($row['signerRole'] ?? null) === 'parent' && in_array((string)($row['signerId'] ?? ''), $parentIds, true) === true) {
+				return true;
+			}
+		}
+
+		return false;
+	}//end aListedParentSigned()
+
+	/**
+	 * Fetch the PokSignatures on this POK version.
 	 *
 	 * @param string $pokId Praktijkovereenkomst UUID.
 	 * @param int $version Praktijkovereenkomst version.
 	 * @param string $tenantId Tenant UUID scope filter.
 	 *
-	 * @return string[] Distinct signerRole values present among the matching PokSignatures.
+	 * @return array<int, array<string, mixed>> The matching PokSignature rows.
 	 *
 	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
 	 */
-	private function fetchSignedRoles(string $pokId, int $version, string $tenantId = ''): array {
+	private function fetchSignatures(string $pokId, int $version, string $tenantId = ''): array {
 		$filters = ['subjectId' => $pokId, 'subjectVersion' => $version];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
@@ -192,19 +289,18 @@ class PokActivationGuard implements LifecycleGuardInterface {
 			]
 		);
 
-		$roles = [];
+		$rows = [];
 		foreach ($raw as $item) {
 			$row = $item;
 			if (is_array($item) === false) {
 				$row = $item->jsonSerialize();
 			}
 
-			$role = $row['signerRole'] ?? null;
-			if ($role !== null && in_array($role, $roles, strict: true) === false) {
-				$roles[] = $role;
+			if (is_array($row) === true) {
+				$rows[] = $row;
 			}
 		}
 
-		return $roles;
-	}//end fetchSignedRoles()
+		return $rows;
+	}//end fetchSignatures()
 }//end class

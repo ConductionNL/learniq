@@ -1,6 +1,7 @@
 OC.L10N.register(
     "learniq",
     {
+        "A parent or guardian also signs this agreement. The student is under 18, or their date of birth is not recorded.": "Een ouder of voogd tekent deze overeenkomst ook. De student is jonger dan 18, of zijn geboortedatum is niet bekend.",
         "Parent signature required": "Handtekening ouder nodig",
         "Role of the signer. A parent or guardian signs next to a student who is under 18.": "Rol van de ondertekenaar. Een ouder of voogd tekent mee als de student jonger is dan 18.",
         "Whether a parent or guardian also signs. Set when signatures are requested and on activation: yes when the student is under 18, or has no date of birth recorded.": "Of een ouder of voogd ook tekent. Wordt bepaald bij het vragen om handtekeningen en bij het activeren: ja als de student jonger is dan 18 of geen geboortedatum heeft.",
