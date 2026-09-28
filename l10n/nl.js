@@ -2678,7 +2678,23 @@ OC.L10N.register(
         "{group}, year {n} of the programme": "{group}, opleidingsjaar {n}",
         "Whole year": "Hele jaar",
         "Only teachers, team leads and compliance officers can read the teaching activities.": "Alleen docenten, teamleiders en compliance officers kunnen de onderwijsactiviteiten lezen.",
-        "The teaching activities could not be loaded.": "De onderwijsactiviteiten konden niet worden geladen."
+        "The teaching activities could not be loaded.": "De onderwijsactiviteiten konden niet worden geladen.",
+        "To": "Tot en met",
+        "All groups": "Alle groepen",
+        "Show": "Tonen",
+        "Export CSV": "CSV exporteren",
+        "This group has no active hour plan, so owed hours are missing.": "Deze groep heeft geen actieve urenplanning, dus de verschuldigde uren ontbreken.",
+        "Owed": "Verschuldigd",
+        "Given": "Gegeven",
+        "Difference": "Verschil",
+        "short": "tekort",
+        "Hide learners": "Leerlingen verbergen",
+        "Show learners": "Leerlingen tonen",
+        "Attended of given": "Aanwezig van gegeven",
+        "{attended} of {given} hours": "{attended} van {given} uur",
+        "below the margin": "onder de marge",
+        "The report could not be loaded.": "Het overzicht kon niet worden geladen.",
+        "Per group and course the contact hours owed by the hour plan, the hours given and the hours each learner attended.": "Per groep en vak de contacturen volgens de urenplanning, de gegeven uren en de uren die elke leerling aanwezig was."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -3156,6 +3156,14 @@
 			}
 		},
 		{
+			"id": "ContactHoursReport",
+			"route": "/reports/contact-hours",
+			"type": "custom",
+			"title": "Contact hours",
+			"component": "ContactHoursReport",
+			"_note": "timetabling-contact-hours: GET /api/reports/contact-hours behind report.contact-hours; opened from the Reports page card (category attendance)."
+		},
+		{
 			"id": "TimetableConflicts",
 			"route": "/timetable-conflicts",
 			"type": "index",

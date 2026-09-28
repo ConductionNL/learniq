@@ -2221,7 +2221,23 @@ OC.L10N.register(
         "Whole year": "Whole year",
         "Only teachers, team leads and compliance officers can read the teaching activities.": "Only teachers, team leads and compliance officers can read the teaching activities.",
         "The teaching activities could not be loaded.": "The teaching activities could not be loaded.",
-        "Group": "Group"
+        "Group": "Group",
+        "To": "To",
+        "All groups": "All groups",
+        "Show": "Show",
+        "Export CSV": "Export CSV",
+        "This group has no active hour plan, so owed hours are missing.": "This group has no active hour plan, so owed hours are missing.",
+        "Owed": "Owed",
+        "Given": "Given",
+        "Difference": "Difference",
+        "short": "short",
+        "Hide learners": "Hide learners",
+        "Show learners": "Show learners",
+        "Attended of given": "Attended of given",
+        "{attended} of {given} hours": "{attended} of {given} hours",
+        "below the margin": "below the margin",
+        "The report could not be loaded.": "The report could not be loaded.",
+        "Per group and course the contact hours owed by the hour plan, the hours given and the hours each learner attended.": "Per group and course the contact hours owed by the hour plan, the hours given and the hours each learner attended."
     },
     "nplurals=2; plural=(n != 1);"
 )

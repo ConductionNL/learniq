@@ -59,6 +59,11 @@ import BulkEnrolView from './views/BulkEnrolView.vue'
 import CohortGradebookView from './views/CohortGradebookView.vue'
 import CohortTimetableView from './views/CohortTimetableView.vue'
 import ConferenceScheduleBoard from './views/ConferenceScheduleBoard.vue'
+// course-package-import-export: the one genuine new custom view this change
+// adds — uploads a Common Cartridge/Moodle course package and renders the
+// resulting CoursePackageImportReport's entries table. Course export reuses
+// the existing CnExportWizard shared component (no new Vue file for export).
+import ContactHoursReport from './views/ContactHoursReport.vue'
 // course-authoring-ux: the two genuine new custom views this change adds —
 // the Course/Module/Lesson tree editor and the per-lesson block composer.
 // Everything else (CourseTemplate index/detail) is a declarative manifest
@@ -73,10 +78,6 @@ import ConferenceScheduleBoard from './views/ConferenceScheduleBoard.vue'
 // pre-existing gap ItemAuthorView/LessonPlayer/PortfolioBuilder already
 // ship with, not one this change introduces.
 import CourseBuilder from './views/CourseBuilder.vue'
-// course-package-import-export: the one genuine new custom view this change
-// adds — uploads a Common Cartridge/Moodle course package and renders the
-// resulting CoursePackageImportReport's entries table. Course export reuses
-// the existing CnExportWizard shared component (no new Vue file for export).
 import CoursePackageImportView from './views/CoursePackageImportView.vue'
 // course-evaluation: the one genuine new custom view this change adds — a
 // coordinator/opleidingscommissie view of a course's CourseQualityScore
@@ -251,6 +252,7 @@ export default {
 	BsaRiskDashboard: page(BsaRiskDashboard),
 	ConferenceScheduleBoard: page(ConferenceScheduleBoard),
 	CourseBuilder: page(CourseBuilder),
+	ContactHoursReport: page(ContactHoursReport),
 	CoursePackageImportView: page(CoursePackageImportView),
 	CourseQualityReport: page(CourseQualityReport),
 	CurriculumCoverageMatrixView: page(CurriculumCoverageMatrixView),

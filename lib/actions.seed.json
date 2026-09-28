@@ -16,6 +16,7 @@
     "regulation.assign": ["admin", "compliance-officer", "hr"],
     "fee-item.raise-contributions": ["admin"],
     "exchange.gate-read": ["admin", "administration-managers", "compliance-officers", "coordinators"],
-    "exchange.request": ["admin", "administration-managers"]
+    "exchange.request": ["admin", "administration-managers"],
+    "report.contact-hours": ["admin", "instructors", "team-leads", "compliance-officers"]
   }
 }

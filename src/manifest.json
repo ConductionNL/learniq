@@ -323,6 +323,21 @@
             }
           },
           {
+            "id": "ContactHoursReport",
+            "label": "Contact hours",
+            "description": "Per group and course the contact hours owed by the hour plan, the hours given and the hours each learner attended.",
+            "icon": "ClockOutline",
+            "category": "attendance",
+            "route": "ContactHoursReport",
+            "visibleIf": {
+              "workspace.chosenSegment": {
+                "notIn": [
+                  "corporate"
+                ]
+              }
+            }
+          },
+          {
             "id": "FinalGrades",
             "label": "Final grades",
             "description": "The final grade per pupil and subject, as it was decided.",
