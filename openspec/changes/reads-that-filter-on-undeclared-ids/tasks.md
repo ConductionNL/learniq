@@ -27,8 +27,8 @@
 - [x] Test
 
 ## Verification
-- [ ] `openspec validate reads-that-filter-on-undeclared-ids` passes
-- [ ] `composer check:strict`, `npm run lint`, hydra gates, each with its exit code in the PR body
+- [x] `openspec validate reads-that-filter-on-undeclared-ids` passes
+- [x] `composer check:strict`, `npm run lint`, hydra gates, each with its exit code in the PR body
 
 ## Quality checklist
 
