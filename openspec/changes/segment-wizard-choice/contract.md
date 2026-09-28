@@ -91,7 +91,8 @@ Required keys and their rules:
 |---|---|
 | `@self` | `configuration: "learniq"`, `register: "learniq"`, `schema` equal to the bucket key |
 | `uuid` | fixed, unique across the file, inside the set's namespace (below). The importer uses it as the object's id and matches on it, so a second load adds nothing |
-| `slug` | `<id>-<schema-slug>-<NNN>`, unique across the file |
+| `slug` | `<id>-<schema-slug>-<NNN>`, unique across the file. **Exception (D29, example-set-regulation-rows):** a schema that declares a `pattern` on its own `slug` property (Regulation: `^[A-Z0-9_-]+$`) takes the slug from the object: the object's own code (`VCA`, `NEN3140`), matching that pattern and unique across the file. The fixed `uuid` rule still applies |
+| register seed rows | a set does not ship an own-slug object whose code the register already seeds (`learniq_register.json` seeds the regulation `AVG`): the importer matches by `uuid`, so it would become a second row with the same code. Reference the register's row by its code instead |
 | properties | only properties the schema declares (gate 108); every `required` property present; enum values from the schema; `date`, `date-time` and `uuid` formats valid; patterns matched |
 | references | any property that is `format: uuid` or `$ref` (or an array of them) holds the `uuid` of an object **in the same file**, or null. Never a uuid from another set, never a random one |
 | people | Nextcloud user id fields (`learnerId`, `teacherId`, `ncUserId`, `authorId`, `markedBy`, `raisedBy`, `coordinatorId`, `submittedBy`, `parentIds[]`, ...) hold fictional ids `<id>-<role>-<NNN>`, for example `po-leerling-001`, `po-leerkracht-01`, `po-ouder-001`. They name no real account |
