@@ -86,8 +86,8 @@ class FindAllFilterKeysAreDeclaredTest extends TestCase {
 		'lib/Lifecycle/AttestationSigningGuard.php: xapi-statement has no property "actor.id"',
 		'lib/Lifecycle/AttestationSigningGuard.php: xapi-statement has no property "object.id"',
 		'lib/Lifecycle/AttestationSigningGuard.php: xapi-statement has no property "verb.id"',
-		'lib/Lifecycle/XapiCompletionHandler.php: lesson has no property "xapiObjectId"',
-		'lib/Listener/LessonProgressHandler.php: lesson has no property "xapiObjectId"',
+		'lib/Service/XapiEnrolmentCompletion.php: lesson has no property "xapiObjectId"',
+		'lib/Service/LessonProgress.php: lesson has no property "xapiObjectId"',
 		'lib/Timetabling/SessionWindowLoader.php: session has no property "sessionDayBucket"',
 	];
 

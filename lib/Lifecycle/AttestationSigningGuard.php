@@ -64,7 +64,7 @@ class AttestationSigningGuard implements LifecycleGuardInterface {
 	/**
 	 * XAPI verb IDs that count as "completed" for attestation pre-condition.
 	 *
-	 * NOTE: these IRIs must match XapiCompletionHandler::COMPLETION_VERBS exactly —
+	 * NOTE: these IRIs must match XapiEnrolmentCompletion::COMPLETION_VERBS exactly —
 	 * both classes must agree on the same xAPI ADL vocabulary. Fixes #201.
 	 *
 	 * @var string[]

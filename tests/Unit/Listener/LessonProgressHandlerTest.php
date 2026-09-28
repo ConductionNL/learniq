@@ -27,8 +27,11 @@ use DateTime;
 use DateTimeZone;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Learniq\BackgroundJob\XapiStatementFollowUpJob;
 use OCA\Learniq\Listener\LessonProgressHandler;
+use OCA\Learniq\Service\LessonProgress;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -56,6 +59,20 @@ class LessonProgressHandlerTest extends TestCase {
 	private array $savedObjects = [];
 
 	/**
+	 * Entries the handler queued, with the job class and dedupe key.
+	 *
+	 * @var array<int, array{jobClass: string, entry: array<string, mixed>, dedupeKey: string|null}>
+	 */
+	private array $queued = [];
+
+	/**
+	 * Whether the deferral fake runs each queued entry straight away.
+	 *
+	 * @var bool
+	 */
+	private bool $runQueued = true;
+
+	/**
 	 * Resolver turning the entity's numeric register/schema ids into slugs.
 	 *
 	 * @var ListenerSchemaResolver&MockObject
@@ -71,6 +88,8 @@ class LessonProgressHandlerTest extends TestCase {
 		parent::setUp();
 		$this->db = [];
 		$this->savedObjects = [];
+		$this->queued = [];
+		$this->runQueued = true;
 		$this->schemaResolver = $this->createMock(ListenerSchemaResolver::class);
 
 	}//end setUp()
@@ -164,12 +183,39 @@ class LessonProgressHandlerTest extends TestCase {
 		$timeFactory = $this->createMock(ITimeFactory::class);
 		$timeFactory->method('getDateTime')->willReturn($now);
 
-		return new LessonProgressHandler(
-			$objectService,
-			$this->schemaResolver,
-			$timeFactory,
-			$this->createMock(LoggerInterface::class)
-		);
+		$progress = new LessonProgress($objectService, $this->createMock(LoggerInterface::class));
+		$test = $this;
+		$deferral = new class ($test, $progress) extends ListenerDeferralService {
+			/**
+			 * Constructor.
+			 *
+			 * @param LessonProgressHandlerTest $test     The test, to record entries.
+			 * @param LessonProgress            $progress The work the job would run.
+			 */
+			public function __construct(
+				private readonly LessonProgressHandlerTest $test,
+				private readonly LessonProgress $progress,
+			) {
+			}//end __construct()
+
+			/**
+			 * Record the entry, then run it as the job would.
+			 *
+			 * @param string               $jobClass  The job class.
+			 * @param array<string, mixed> $entry     The entry.
+			 * @param int                  $chunkSize Unused.
+			 * @param string|null          $dedupeKey The dedupe key.
+			 *
+			 * @return void
+			 */
+			public function defer(string $jobClass, array $entry, int $chunkSize = self::DEFAULT_CHUNK_SIZE, ?string $dedupeKey = null): void {
+				if ($this->test->recordQueued(jobClass: $jobClass, entry: $entry, dedupeKey: $dedupeKey) === true) {
+					$this->progress->record(statement: $entry['statement'], completedAt: $entry['completedAt']);
+				}
+			}//end defer()
+		};
+
+		return new LessonProgressHandler($deferral, $this->schemaResolver, $timeFactory);
 
 	}//end makeHandler()
 
@@ -516,4 +562,51 @@ class LessonProgressHandlerTest extends TestCase {
 		self::assertCount(0, $this->savedCompletions());
 
 	}//end testUnrelatedSchemaIsIgnored()
+
+	/**
+	 * Record one queued entry (called by the deferral fake).
+	 *
+	 * @param string               $jobClass  The job class.
+	 * @param array<string, mixed> $entry     The entry.
+	 * @param string|null          $dedupeKey The dedupe key.
+	 *
+	 * @return bool Whether the fake should run the entry now.
+	 */
+	public function recordQueued(string $jobClass, array $entry, ?string $dedupeKey): bool {
+		$this->queued[] = ['jobClass' => $jobClass, 'entry' => $entry, 'dedupeKey' => $dedupeKey];
+		return $this->runQueued;
+	}//end recordQueued()
+
+	/**
+	 * The handler reads and writes nothing inside the statement's save: it
+	 * queues the statement, stamped with its completion time, for
+	 * XapiStatementFollowUpJob (hydra gate 61, ADR-078).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/gate-61-deferral/specs/progress-tracking/spec.md#scenario-a-completion-statement-is-queued-not-processed-inline
+	 */
+	public function testTheHandlerQueuesTheWorkAndWritesNothingItself(): void {
+		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
+		$this->seed('lesson', ['id' => 'lesson-3', 'courseId' => 'course-1', 'xapiObjectId' => 'https://learniq.test/lessons/lesson-3']);
+		$this->runQueued = false;
+		$handler = $this->makeHandler(now: $now);
+
+		$statement = [
+			'id' => 'stmt-1',
+			'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed'],
+			'object' => ['id' => 'https://learniq.test/lessons/lesson-3'],
+			'verified_actor_id' => 'learner-1',
+		];
+		$handler->handle($this->makeXapiEvent($statement));
+		$handler->handle($this->makeXapiEvent(['id' => 'stmt-2', 'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/attempted']]));
+
+		self::assertCount(0, $this->savedObjects);
+		self::assertCount(1, $this->queued, 'Only a completion statement is queued.');
+		self::assertSame(XapiStatementFollowUpJob::class, $this->queued[0]['jobClass']);
+		self::assertSame(XapiStatementFollowUpJob::LESSON_PROGRESS, $this->queued[0]['entry']['kind']);
+		self::assertSame('stmt-1', $this->queued[0]['entry']['statement']['id']);
+		self::assertSame($now->format(\DATE_ATOM), $this->queued[0]['entry']['completedAt']);
+		self::assertSame('lesson-progress|stmt-1', $this->queued[0]['dedupeKey']);
+	}//end testTheHandlerQueuesTheWorkAndWritesNothingItself()
 }//end class
