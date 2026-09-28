@@ -79,11 +79,11 @@ The kind of organisation decides which menus appear. An install where nobody cho
 | Compliance overview and external training | hidden | hidden | hidden | hidden | shown | shown |
 | Engagement and course evaluation | hidden | hidden | shown | shown | shown | shown |
 | Work placements (BPV) | hidden | hidden | shown | hidden | hidden | hidden |
-| Study progress (BSA) | hidden | hidden | hidden | shown | shown | hidden |
+| Study progress (BSA) | hidden | hidden | hidden | shown | hidden | hidden |
 | Exam board | hidden | shown | shown | shown | hidden | shown |
 | Exam accommodations | hidden | shown | shown | shown | shown | shown |
 | Applications and admissions rounds | hidden | shown | shown | shown | hidden | shown |
-| Subject choices | hidden | shown | shown | shown | shown | hidden |
+| Subject choices | hidden | shown | shown | shown | hidden | hidden |
 | School advies | shown | shown | hidden | hidden | hidden | hidden |
 | Report cards and report periods | shown | shown | shown | shown | hidden | shown |
 | Parent conferences | shown | shown | shown | shown | hidden | shown |
@@ -95,7 +95,7 @@ A choice counts once it names who made it. The wizard always records you. If you
 
 Loading a set twice adds nothing, because every example object has a fixed id. Loading two sets that ship the same regulation, such as the company and the training set with VCA and NIS2, keeps one row per regulation: the set you load second uses the row the first one made.
 
-To remove the set again, open the setup wizard and go to its last step, **Remove the example data**, then click the button. The example objects move to the trash of OpenRegister, so you can restore them; anything you made yourself stays. The step never runs by itself. Only an administrator or a member of `administration-managers` can choose the kind of organisation in the wizard.
+To remove a set again, open the setup wizard and go to the end. Every set you loaded has its own step, **Remove the example set "..."**, with its own button; click the one for the set you want gone. On an install where no set was loaded before this visit, the wizard shows one step, **Remove the example data**, for the set you pick now. The example objects move to the trash of OpenRegister, so you can restore them; anything you made yourself stays. The step never runs by itself. Only an administrator or a member of `administration-managers` can choose the kind of organisation in the wizard.
 
 On an OpenRegister that cannot remove imports from the wizard, or for a set loaded before it could, the step tells you to run the command on the server instead. It shows what it would remove; add `--apply` to remove it:
 

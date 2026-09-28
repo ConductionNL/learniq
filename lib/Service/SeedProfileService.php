@@ -91,6 +91,7 @@ class SeedProfileService {
 	 * @param LoggerInterface    $logger     Records what was imported or skipped.
 	 * @param DemoDataService    $demoData   Lists and imports the generated set.
 	 * @param SharedCodeFilter   $sharedCodes Leaves out a regulation code another set already created.
+	 * @param LoadedExampleSets  $loadedSets Remembers which sets were loaded, for the wizard's removal steps.
 	 *
 	 * @return void
 	 */
@@ -100,6 +101,7 @@ class SeedProfileService {
 		private readonly LoggerInterface $logger,
 		private readonly DemoDataService $demoData,
 		private readonly SharedCodeFilter $sharedCodes,
+		private readonly LoadedExampleSets $loadedSets,
 	) {
 	}//end __construct()
 
@@ -203,6 +205,7 @@ class SeedProfileService {
 	public function install(string $profileId): array {
 		if ($profileId === self::GENERATED_PROFILE) {
 			$imported = $this->demoData->install();
+			$this->loadedSets->recordFromChoices(setId: $profileId, choices: $this->demoData->listChoices());
 			return [
 				'objects' => (int)($imported['objects'] ?? 0),
 				'profile' => $profileId,
@@ -221,6 +224,8 @@ class SeedProfileService {
 			version: $this->appManager->getAppVersion(Application::APP_ID),
 			force: true
 		);
+
+		$this->loadedSets->recordFromChoices(setId: $profileId, choices: [$data['x-openregister']['profile']]);
 
 		$this->logger->info(
 			'[SeedProfileService] imported example set "' . $profileId . '": ' . $objects . ' object(s).',
@@ -294,6 +299,8 @@ class SeedProfileService {
 		$answer['errors']      = count($errors);
 		$answer['failedJobs']  = array_values(array_unique(array_filter(array_map('strval', array_column($errors, 'importJobId')))));
 
+		$this->loadedSets->forgetIfRemoved(setId: $profileId, answer: $answer);
+
 		$this->logger->info(
 			'[SeedProfileService] removed example set "' . $profileId . '": ' . $answer['softDeleted'] . ' object(s) soft-deleted, '
 			. $answer['errors'] . ' error(s).',
@@ -302,6 +309,17 @@ class SeedProfileService {
 
 		return $answer;
 	}//end remove()
+
+	/**
+	 * The loaded-set list the wizard builds its per-set removal steps from.
+	 *
+	 * @return LoadedExampleSets The list.
+	 *
+	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 */
+	public function loadedSets(): LoadedExampleSets {
+		return $this->loadedSets;
+	}//end loadedSets()
 
 	/**
 	 * The fixed uuids of one set, last-loaded first.

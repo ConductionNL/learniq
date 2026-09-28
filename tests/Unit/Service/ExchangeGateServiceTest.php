@@ -28,12 +28,14 @@ use OCA\Learniq\Service\DataExchangePayloadBuilder;
 use OCA\Learniq\Service\DataExchangeTransformer;
 use OCA\Learniq\Service\ExchangeDisclosure;
 use OCA\Learniq\Service\ExchangeGateService;
+use OCA\Learniq\Service\RodPersonalNumberResolver;
+use OCA\Learniq\Service\RodSchoolAdviceComposer;
+use OCA\Learniq\Tests\Support\CapturingLogger;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IL10N;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
 
 /**
  * The gate over an in-memory store; the records come from the real builder.
@@ -60,6 +62,13 @@ class ExchangeGateServiceTest extends TestCase {
 	 * @var ExchangeGateService
 	 */
 	private ExchangeGateService $gate;
+
+	/**
+	 * Every log call of the gate and the resolver.
+	 *
+	 * @var CapturingLogger
+	 */
+	private CapturingLogger $logger;
 
 	/**
 	 * Build the gate.
@@ -107,9 +116,17 @@ class ExchangeGateServiceTest extends TestCase {
 		$l10n = $this->createMock(IL10N::class);
 		$l10n->method('t')->willReturnCallback(static fn (string $text, array $params = []): string => vsprintf($text, $params));
 
+		$this->logger = new CapturingLogger();
 		$disclosure = new ExchangeDisclosure();
-		$builder = new DataExchangePayloadBuilder($objects, new DataExchangeTransformer($objects), $disclosure);
-		$this->gate = new ExchangeGateService($objects, $builder, $disclosure, $l10n, new NullLogger());
+		$resolver = new RodPersonalNumberResolver($objects, $this->logger);
+		$builder = new DataExchangePayloadBuilder(
+			$objects,
+			new DataExchangeTransformer($objects),
+			$disclosure,
+			$resolver,
+			new RodSchoolAdviceComposer($objects, $resolver)
+		);
+		$this->gate = new ExchangeGateService($objects, $builder, $disclosure, $l10n, $this->logger);
 	}//end setUp()
 
 	/**
@@ -131,17 +148,18 @@ class ExchangeGateServiceTest extends TestCase {
 	 */
 	private function learners(): void {
 		$this->rows['learniq/learner-profile'] = [
-			['id' => 'lp-1', 'eckId' => 'eck-1', 'givenName' => 'Sanne', 'familyName' => 'Bakker', 'birthDate' => '2014-03-02', 'schoolId' => '00AA', 'bsnEncrypted' => 'SECRET', 'email' => 'x@y'],
-			['id' => 'lp-2', 'eckId' => 'eck-2', 'givenName' => 'Daan', 'familyName' => 'de Vries', 'birthDate' => '2014-05-20', 'schoolId' => '00AA'],
+			['id' => 'lp-1', 'ncUserId' => 'pupil-1', 'eckId' => 'eck-1', 'givenName' => 'Sanne', 'familyName' => 'Bakker', 'birthDate' => '2014-03-02', 'schoolId' => '00AA', 'bsnEncrypted' => 'SECRET', 'email' => 'x@y', 'personalNumber' => '111222333', 'personalNumberType' => 'bsn'],
+			['id' => 'lp-2', 'ncUserId' => 'pupil-2', 'eckId' => 'eck-2', 'givenName' => 'Daan', 'familyName' => 'de Vries', 'birthDate' => '2014-05-20', 'schoolId' => '00AA', 'personalNumber' => '101234564', 'personalNumberType' => 'onderwijsnummer'],
 		];
 	}//end learners()
 
 	/**
-	 * A ROD export hands over five fields per learner and never the BSN or email.
+	 * A ROD export hands over the five fields plus the personal number, never the legacy BSN field or email.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
+	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#scenario-a-rod-export-sends-the-bsn-and-keeps-the-eck-id
 	 */
 	public function testARodExportHandsOverFiveFields(): void {
 		$this->learners();
@@ -153,8 +171,17 @@ class ExchangeGateServiceTest extends TestCase {
 		$this->assertCount(2, $decision['records']);
 		$this->assertSame('lp-1', $decision['records'][0]['recordId']);
 		$this->assertSame('learner-profile', $decision['records'][0]['sourceKind']);
-		$this->assertSame(['eckId', 'givenName', 'familyName', 'birthDate', 'schoolId'], array_keys($decision['records'][0]['data']));
+		$this->assertSame(
+			['eckId', 'givenName', 'familyName', 'birthDate', 'schoolId', 'persoonsgebondenNummer', 'persoonsgebondenNummerType'],
+			array_keys($decision['records'][0]['data'])
+		);
+		$this->assertSame('eck-1', $decision['records'][0]['data']['eckId'], 'The ECK iD stays for publisher chains.');
+		$this->assertSame('111222333', $decision['records'][0]['data']['persoonsgebondenNummer']);
+		$this->assertSame('burgerservicenummer', $decision['records'][0]['data']['persoonsgebondenNummerType']);
+		$this->assertSame('101234564', $decision['records'][1]['data']['persoonsgebondenNummer']);
+		$this->assertSame('onderwijsnummer', $decision['records'][1]['data']['persoonsgebondenNummerType']);
 		$this->assertStringNotContainsString('SECRET', (string)json_encode($decision['records']));
+		$this->assertStringNotContainsString('111222333', $this->logger->dump(), 'The number is never logged.');
 	}//end testARodExportHandsOverFiveFields()
 
 	/**
@@ -269,4 +296,109 @@ class ExchangeGateServiceTest extends TestCase {
 	public function testAnImportPasses(): void {
 		$this->assertSame('allow', $this->gate->evaluate('job-7', 'lvs-results', 'import', 'user/admin', [])['decision']);
 	}//end testAnImportPasses()
+
+	/**
+	 * A profile without a valid number refuses the job, naming the field, never the value.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#scenario-a-profile-without-a-valid-number
+	 */
+	public function testAProfileWithoutAValidNumber(): void {
+		$this->learners();
+		$this->rows['learniq/learner-profile'][1]['personalNumber'] = '101234565';
+		$this->job('job-1', 'learniq-bron-rod-export-learner');
+
+		$decision = $this->gate->evaluate('job-1', 'bron-rod', 'export', 'user/admin', ['schema' => 'learner-profile']);
+
+		$this->assertSame('statutory-incomplete', $decision['code']);
+		$this->assertStringContainsString('persoonsgebondenNummer', $decision['reason']);
+		$this->assertStringContainsString('learner-profile/lp-2', $decision['reason']);
+		$this->assertStringNotContainsString('101234565', $decision['reason']);
+		$this->assertSame([], $decision['records']);
+	}//end testAProfileWithoutAValidNumber()
+
+	/**
+	 * A vestiging, a school and a learner for a school advice.
+	 *
+	 * @return void
+	 */
+	private function schoolAdvice(): void {
+		$this->learners();
+		$this->rows['learniq/school'] = [['id' => 'school-1', 'brin' => '02VG', 'onderwijsaanbiedercode' => '100A200']];
+		$this->rows['learniq/vestiging'] = [['id' => 'ves-1', 'schoolId' => 'school-1', 'vestigingscode' => '02VG00', 'onderwijslocatiecode' => '300X400']];
+		$this->rows['learniq/school-advies'] = [[
+			'id' => '0a1b2c3d-4e5f-4061-8a7b-9c0d1e2f3a4b',
+			'learnerId' => 'pupil-1',
+			'academicYear' => '2025-2026',
+			'vestigingId' => 'ves-1',
+			'voorlopigAdviesLevel' => 'vmbo-kb',
+			'voorlopigAdviesDate' => '2026-01-20',
+			'doorstroomtoetsResultLevel' => 'havo',
+			'doorstroomtoetsResultDate' => '2026-02-15',
+			'definitiefAdviesLevel' => 'vmbo-gt',
+			'definitiefAdviesDate' => '2026-03-20',
+			'heroverwegingMotivation' => 'PRIVATE MOTIVATION',
+			'lifecycle' => 'verzonden-naar-rod',
+		]];
+		$this->job('job-sa', 'learniq-bron-rod-export-schooladvies');
+	}//end schoolAdvice()
+
+	/**
+	 * A definitief school advice goes with DUO's AanleverenAdviesVO field set and nothing else.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#scenario-a-definitief-advice-is-sent
+	 */
+	public function testASchoolAdviceGoesWithDuosFieldSet(): void {
+		$this->schoolAdvice();
+		$scope = ['schema' => 'school-advies', 'recordIds' => ['0a1b2c3d-4e5f-4061-8a7b-9c0d1e2f3a4b'], 'berichtsoort' => 'schooladvies'];
+
+		$decision = $this->gate->evaluate('job-sa', 'bron-rod', 'export', 'school-advies/0a1b2c3d-4e5f-4061-8a7b-9c0d1e2f3a4b', $scope);
+
+		$this->assertSame('allow', $decision['decision'], $decision['reason']);
+		$this->assertCount(1, $decision['records']);
+		$this->assertSame(
+			[
+				'persoonsgebondenNummer' => '111222333',
+				'persoonsgebondenNummerType' => 'burgerservicenummer',
+				'adviesvolgnummer' => '0a1b2c3d4e5f40618a7b',
+				'onderwijsaanbieder' => '100A200',
+				'onderwijslocatie' => '300X400',
+				'vestigingscode' => '02VG00',
+				'adviesjaar' => '2026',
+				'advies1' => 'VMBO_KB',
+				'advies1Datum' => '2026-01-20',
+				'advies2' => 'VMBO_GL/TL',
+				'advies2Datum' => '2026-03-20',
+			],
+			$decision['records'][0]['data']
+		);
+		$this->assertStringNotContainsString('PRIVATE MOTIVATION', (string)json_encode($decision['records']));
+		$this->assertStringNotContainsString('111222333', $this->logger->dump());
+	}//end testASchoolAdviceGoesWithDuosFieldSet()
+
+	/**
+	 * Without a vestiging in a tenant with two, the job is refused naming vestigingscode.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#scenario-the-advice-has-no-vestiging-and-the-tenant-has-several
+	 */
+	public function testAnAdviceWithoutAVestigingInATenantWithTwo(): void {
+		$this->schoolAdvice();
+		$this->rows['learniq/school-advies'][0]['vestigingId'] = null;
+		$this->rows['learniq/vestiging'][] = ['id' => 'ves-2', 'schoolId' => 'school-1', 'vestigingscode' => '02VG01', 'onderwijslocatiecode' => '300X401'];
+
+		$decision = $this->gate->evaluate('job-sa', 'bron-rod', 'export', 'school-advies/x', ['schema' => 'school-advies']);
+
+		$this->assertSame('statutory-incomplete', $decision['code']);
+		$this->assertStringContainsString('vestigingscode', $decision['reason']);
+
+		array_pop($this->rows['learniq/vestiging']);
+		$decision = $this->gate->evaluate('job-sa', 'bron-rod', 'export', 'school-advies/x', ['schema' => 'school-advies']);
+		$this->assertSame('allow', $decision['decision'], 'A tenant with one vestiging uses it.');
+		$this->assertSame('02VG00', $decision['records'][0]['data']['vestigingscode']);
+	}//end testAnAdviceWithoutAVestigingInATenantWithTwo()
 }//end class
