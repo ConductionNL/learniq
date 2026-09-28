@@ -52,6 +52,17 @@ The enrolments are good when: the course's *Enrolments* tab shows the learners w
 | The same learner appears enrolled twice | Two enrolments with overlapping date windows are allowed (one per cohort, for example). Close the older one by setting an end date if that was not intentional. |
 | *"Course is not open for enrolment"* | The course is in *Draft* or *Closed* status, set it back to *Open* on the course detail page. |
 
+## Let learners sign up themselves
+
+Learners can also sign up from the **Course catalogue** under *My learning*.
+
+1. Open a published course or programme, edit it and set **Sign-up by learners** to *Open* (the learner is in at once) or *On request* (a teacher, HR officer, team lead or the learner's manager approves). Every course starts *Closed*.
+2. The course now shows in the catalogue, with search and filters on level, language, subject and provider. Signing up for a programme enrols the learner in each of its courses.
+3. Requests for a course *On request* wait under **Sign-up requests**. Open one and choose *Approve*, or *Decline* with a reason the learner sees. The learner gets a notification either way.
+4. A learner can withdraw their own sign-up while they have made no progress. An enrolment you made yourself cannot be withdrawn by the learner.
+
+Prerequisites still apply: a learner who has not finished a required course is told which one. Courses an outside provider brings in arrive as drafts; find them with **Imported, not yet published** on the course list and publish the ones your school offers.
+
 ## Work groups that learners join themselves
 
 For project work you can split a class into work groups that learners join themselves.

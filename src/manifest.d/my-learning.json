@@ -42,6 +42,47 @@
 					]
 				}
 			}
+		},
+		{
+			"id": "CatalogueMenu",
+			"label": "Course catalogue",
+			"icon": "BookOpenPageVariantOutline",
+			"route": "CourseCatalogue",
+			"order": 24,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"instructor",
+						"coordinator",
+						"hr",
+						"team-lead",
+						"compliance-officer",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
+		},
+		{
+			"id": "TimetablesMenu",
+			"label": "Timetables",
+			"icon": "TableClock",
+			"route": "Timetables",
+			"order": 27,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"instructor",
+						"coordinator",
+						"team-lead",
+						"compliance-officer",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
 		}
 	],
 	"pages": [
@@ -343,6 +384,14 @@
 			"title": "My work groups",
 			"component": "MyWorkGroups",
 			"_note": "Mounts MyWorkGroups (enrolment-self-join-work-group): the work group sets of the learner's classes from learniq's GET /api/my/work-groups with Join, Move and Leave through learniq's own endpoints, because learners cannot read WorkGroup through the object API. Custom on purpose: grouped sets with per-group actions against learniq endpoints, not an index of one schema."
+		},
+		{
+			"id": "CourseCatalogue",
+			"route": "/catalogue",
+			"type": "custom",
+			"title": "Course catalogue",
+			"component": "CourseCatalogue",
+			"_note": "Mounts CourseCatalogue (enrolment-catalogue-self-signup): cards with search and filters from learniq's GET /api/catalogue, and Sign up, Request a place or Withdraw through learniq's own endpoints, because the object API lets no learner create an enrolment. Custom on purpose: a combined course and programme catalogue with per-card actions against learniq endpoints, not an index of one schema."
 		}
 	]
 }

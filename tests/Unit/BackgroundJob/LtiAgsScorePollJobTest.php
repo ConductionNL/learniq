@@ -371,4 +371,51 @@ class LtiAgsScorePollJobTest extends TestCase {
 
 		self::assertCount(0, $this->savedObjects);
 	}//end testNoOpsWhenSubscriptionNotConfigured()
+
+	/**
+	 * Two placements on one deployment: the score's line item picks the
+	 * placement; a line item naming a placement on another deployment is
+	 * ignored and the deployment lookup decides.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-a-returned-grade-lands-on-the-placement-that-launched-it
+	 */
+	public function testLineItemPicksThePlacement(): void {
+		// The deployment lookup would answer placement-1 (the fixture).
+		$this->placementFixture = [
+			'id' => 'placement-1',
+			'openconnectorDeploymentId' => 'deployment-1',
+			'curriculumPlanId' => 'plan-1',
+			'gradeEntryComponentId' => 'component-1',
+			'gradeScaleId' => '',
+			'tenant_id' => 'tenant-1',
+		];
+		$byId = [
+			'placement-2' => array_merge($this->placementFixture, ['id' => 'placement-2', 'gradeEntryComponentId' => 'component-2']),
+			'placement-x' => array_merge($this->placementFixture, ['id' => 'placement-x', 'openconnectorDeploymentId' => 'deployment-9']),
+		];
+		$this->objectService->method('find')->willReturnCallback(
+			static function (int|string $id) use ($byId): ?ObjectEntity {
+				if (isset($byId[(string)$id]) === false) {
+					return null;
+				}
+
+				return OrEntityFactory::make($byId[(string)$id], 'lti-tool-placement');
+			}
+		);
+
+		$score = ['userId' => 'learner-1', 'scoreGiven' => 7, 'scoreMaximum' => 10];
+		$this->job(
+			messages: [
+				['id' => 'msg-a', 'payload' => ['deploymentUuid' => 'deployment-1', 'lineItemId' => 'placement-2', 'score' => $score]],
+				['id' => 'msg-b', 'payload' => ['deploymentUuid' => 'deployment-1', 'lineItemId' => 'placement-x', 'score' => $score]],
+			]
+		)->run(null);
+
+		self::assertCount(2, $this->savedObjects);
+		self::assertSame('placement-2', $this->savedObjects[0]['object']['ltiToolPlacementId']);
+		self::assertSame('component-2', $this->savedObjects[0]['object']['componentId']);
+		self::assertSame('placement-1', $this->savedObjects[1]['object']['ltiToolPlacementId'], 'a line item on another deployment falls back to the deployment');
+	}//end testLineItemPicksThePlacement()
 }//end class

@@ -54,6 +54,17 @@ Pupils without a Nextcloud account can hand in from the school portal (the porta
 - A pupil can only hand in their own work, and only once.
 - **My submissions** in the portal lists only the pupil's own work.
 
+## Double marking
+
+For a thesis, a final project or PTA work you can let two to five markers mark each hand-in on their own.
+
+1. Open the assignment, edit it and set **Markers per submission** to 2 or more. Choose a **Final grade rule**: agreed by hand, the average of the marks, or the highest mark.
+2. On the assignment, choose **Allocate markers** in the actions menu. Pick the markers and leave the hand-in empty to allocate them to every hand-in, or pick one hand-in.
+3. Each marker opens the hand-in's marking screen, scores it and chooses **Hand in my mark**. A marker only sees the other marks after handing in their own.
+4. Once every mark is in, the marks show side by side. The final grade field starts at the average or the highest mark when you chose that rule, and is empty for agreed by hand. Check it and save: the hand-in is returned to the learner with that grade, as with single marking.
+
+A marker's notes are for the teacher in charge and are never shown to the learner. A learner of a hand-in cannot be allocated as its marker.
+
 ## Common issues
 
 | Symptom | Fix |

@@ -43,6 +43,8 @@ class SettingsService {
 	 */
 	private const CONFIG_KEYS = [
 		'register',
+		// The integriq event subscription the LTI grade pull reads (content-lti-launch-through-integriq).
+		'lti_ags_subscription_id',
 	];
 
 	/**

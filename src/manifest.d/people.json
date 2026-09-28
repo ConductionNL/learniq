@@ -51,6 +51,29 @@
 					}
 				},
 				{
+					"id": "SignUpRequestsMenu",
+					"label": "Sign-up requests",
+					"icon": "AccountGroup",
+					"route": "Enrolments",
+					"order": 21,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"hr",
+								"team-lead",
+								"administration-manager",
+								"admin"
+							]
+						}
+					},
+					"query": {
+						"source": "self",
+						"lifecycle": "pending"
+					}
+				},
+				{
 					"id": "Attendance",
 					"label": "Attendance",
 					"icon": "Calendar",
@@ -561,6 +584,13 @@
 						"integrationId": "files",
 						"title": "Badge & certificate files",
 						"icon": "FolderOutline"
+					},
+					{
+						"id": "cred-calendar",
+						"type": "integration",
+						"integrationId": "calendar",
+						"title": "Agenda",
+						"icon": "CalendarClockOutline"
 					}
 				],
 				"layout": [
@@ -590,6 +620,14 @@
 						"gridWidth": 12,
 						"gridHeight": 3,
 						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "cred-calendar",
+						"gridX": 0,
+						"gridY": 8,
+						"gridWidth": 12,
+						"gridHeight": 4
 					}
 				],
 				"sidebar": {
@@ -1975,6 +2013,13 @@
 							"emptyText": "No wellbeing check-ins found."
 						},
 						"icon": "Heart"
+					},
+					{
+						"id": "lp-contact",
+						"type": "integration",
+						"integrationId": "contacts",
+						"title": "Contact card",
+						"icon": "AccountBoxOutline"
 					}
 				],
 				"layout": [
@@ -2094,6 +2139,14 @@
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
+					},
+					{
+						"id": "13",
+						"widgetId": "lp-contact",
+						"gridX": 0,
+						"gridY": 33,
+						"gridWidth": 12,
+						"gridHeight": 4
 					}
 				],
 				"sidebar": {
