@@ -1044,6 +1044,7 @@
         "UUID of the integriq exchange job that carries this file.",
         "UUID of the integriq exchange job that imported this result, when it came in through one. Null for a result entered by hand.",
         "UUID of the integriq exchange job that received this dossier, when it came in through one.",
+        "UUID of the integriq exchange job that received this dossier, when it came in through one. Null for a dossier entered by hand.",
         "UUID of the matching in-app AssessmentResult, when the school also ran the same toets as an Assessment. Null in the common case where the LVS toets has no learniq-side counterpart.",
         "UUID of the surviving LearnerProfile this profile was merged into. Set before firing the merge transition, which requires it and keeps it; null for active profiles.",
         "UUIDs of the AttendanceRecord rows that breach the threshold, submitted with the most recent `check-threshold` transition.",

@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.28",
+    "version": "1.1.29",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -28947,6 +28947,144 @@
         "tenant_id": "00000000-0000-4000-8000-000000000002",
         "afterBlockId": "",
         "position": 0
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "dossier-review",
+          "slug": "dossier-review-dossierreview-1-1"
+        },
+        "exchangeJobId": "00000000-0000-4000-8000-000000000000",
+        "target": "oso",
+        "learnerUserId": "Voorbeeld Learneruserid 1",
+        "learnerId": "00000000-0000-4000-8000-000000000000",
+        "status": "pending",
+        "reviewedBy": "Voorbeeld Reviewedby 1",
+        "reviewedAt": "2026-03-01T09:00:00+00:00",
+        "note": "Voorbeeld Note 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "dossier-review",
+          "slug": "dossier-review-dossierreview-2-2"
+        },
+        "exchangeJobId": "00000000-0000-4000-8000-000000000001",
+        "target": "swv",
+        "learnerUserId": "Voorbeeld Learneruserid 2",
+        "learnerId": "00000000-0000-4000-8000-000000000001",
+        "status": "approved",
+        "reviewedBy": "Voorbeeld Reviewedby 2",
+        "reviewedAt": "2026-03-02T09:00:00+00:00",
+        "note": "Voorbeeld Note 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "dossier-review",
+          "slug": "dossier-review-dossierreview-3-3"
+        },
+        "exchangeJobId": "00000000-0000-4000-8000-000000000002",
+        "target": "oso",
+        "learnerUserId": "Voorbeeld Learneruserid 3",
+        "learnerId": "00000000-0000-4000-8000-000000000002",
+        "status": "rejected",
+        "reviewedBy": "Voorbeeld Reviewedby 3",
+        "reviewedAt": "2026-03-03T09:00:00+00:00",
+        "note": "Voorbeeld Note 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "exchange-partner-approval",
+          "slug": "exchange-partner-approval-exchangepartnerapproval-1-1"
+        },
+        "target": "bron-rod",
+        "partnerName": "Voorbeeld Partnername 1",
+        "dataSharedFields": [],
+        "status": "pending",
+        "decidedBy": "Voorbeeld Decidedby 1",
+        "decidedAt": "2026-03-01T09:00:00+00:00",
+        "note": "Voorbeeld Note 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "exchange-partner-approval",
+          "slug": "exchange-partner-approval-exchangepartnerapproval-2-2"
+        },
+        "target": "oso",
+        "partnerName": "Voorbeeld Partnername 2",
+        "dataSharedFields": [],
+        "status": "approved",
+        "decidedBy": "Voorbeeld Decidedby 2",
+        "decidedAt": "2026-03-02T09:00:00+00:00",
+        "note": "Voorbeeld Note 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "exchange-partner-approval",
+          "slug": "exchange-partner-approval-exchangepartnerapproval-3-3"
+        },
+        "target": "leerplicht",
+        "partnerName": "Voorbeeld Partnername 3",
+        "dataSharedFields": [],
+        "status": "rejected",
+        "decidedBy": "Voorbeeld Decidedby 3",
+        "decidedAt": "2026-03-03T09:00:00+00:00",
+        "note": "Voorbeeld Note 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "teldatum-check",
+          "slug": "teldatum-check-teldatumcheck-1-1"
+        },
+        "teldatumDate": "2026-03-01",
+        "target": "bron-rod",
+        "pupilCount": 1,
+        "status": "pending",
+        "confirmedBy": "Voorbeeld Confirmedby 1",
+        "confirmedAt": "2026-03-01T09:00:00+00:00",
+        "note": "Voorbeeld Note 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "teldatum-check",
+          "slug": "teldatum-check-teldatumcheck-2-2"
+        },
+        "teldatumDate": "2026-03-02",
+        "target": "oso",
+        "pupilCount": 2,
+        "status": "confirmed",
+        "confirmedBy": "Voorbeeld Confirmedby 2",
+        "confirmedAt": "2026-03-02T09:00:00+00:00",
+        "note": "Voorbeeld Note 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "teldatum-check",
+          "slug": "teldatum-check-teldatumcheck-3-3"
+        },
+        "teldatumDate": "2026-03-03",
+        "target": "leerplicht",
+        "pupilCount": 3,
+        "status": "pending",
+        "confirmedBy": "Voorbeeld Confirmedby 3",
+        "confirmedAt": "2026-03-03T09:00:00+00:00",
+        "note": "Voorbeeld Note 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002"
       }
     ]
   }
