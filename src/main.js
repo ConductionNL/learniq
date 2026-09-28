@@ -27,6 +27,7 @@ import bundledManifest from './manifest.json'
 import menuLayout from './menu-layout.json'
 import pinia from './pinia.js'
 import registry from './registry.js'
+import { applyStoreAccess } from './utils/storeAccess.js'
 import { buildWorkspaceRuntime, DEFAULT_SEGMENT } from './utils/workspaceRuntime.js'
 
 // Library CSS — must be explicit import (webpack tree-shakes side-effect imports from aliased packages)
@@ -195,6 +196,12 @@ const fragments = fragmentCtx
 	.sort()
 	.map((key) => fragmentCtx(key))
 const mergedManifest = buildManifest(bundledManifest, fragments, menuLayout)
+
+// Who sees Install and Publish on the Store page is learniq's answer, resolved
+// server-side from the ADR-023 matrix (store-rights-for-teachers, D27). The
+// manifest cannot express a per-user value, so boot writes it into the store
+// page's config, which CnPageRenderer hands to CnStorePage as props.
+applyStoreAccess(mergedManifest, loadState('learniq', 'storeAccess', null))
 
 /**
  * The router base for THIS page load.

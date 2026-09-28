@@ -25,6 +25,7 @@
 
 		<LearniqSettings v-if="storesReady" />
 		<DataExchangeSettingsSection />
+		<StoreRegistrySettingsSection />
 		<ActionAuthMatrix />
 	</div>
 </template>
@@ -35,6 +36,7 @@ import { loadState } from '@nextcloud/initial-state'
 import ActionAuthMatrix from '../../components/admin/ActionAuthMatrix.vue'
 import LearniqSettings from '../LearniqSettings.vue'
 import DataExchangeSettingsSection from './DataExchangeSettingsSection.vue'
+import StoreRegistrySettingsSection from './StoreRegistrySettingsSection.vue'
 import { initializeStores } from '../../store/store.js'
 
 export default {
@@ -43,6 +45,7 @@ export default {
 		CnVersionInfoCard,
 		LearniqSettings,
 		DataExchangeSettingsSection,
+		StoreRegistrySettingsSection,
 		ActionAuthMatrix,
 	},
 

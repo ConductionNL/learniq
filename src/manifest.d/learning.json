@@ -59,6 +59,7 @@
 							"in": [
 								"instructor",
 								"coordinator",
+								"team-lead",
 								"administration-manager",
 								"admin"
 							]

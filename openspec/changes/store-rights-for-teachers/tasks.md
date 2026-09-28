@@ -41,8 +41,8 @@ Feature tier: should (sharing, D27). Stacked on store-publish-through-plane.
   - GIVEN storeAccess WHEN applyStoreAccess runs THEN every store page config carries canInstall and canPublish, other pages are untouched
   - GIVEN the manifest WHEN read THEN the Store page names publishRoute CoursePackageExport and the export menu admits team-lead
   - GIVEN storeAccess.publish false WHEN the export screen renders THEN no publish button
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 5: Registry connection in the admin settings
 - **spec_ref**: `openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings`
@@ -51,8 +51,8 @@ Feature tier: should (sharing, D27). Stacked on store-publish-through-plane.
   - GIVEN a stored token WHEN GET THEN tokenSet true and no token in the body
   - GIVEN a PUT without token WHEN saved THEN the token is kept; with clearToken THEN removed; with token THEN stored sensitive
   - GIVEN ftp:// or user info in the URL, or a malformed register WHEN PUT THEN 400 and nothing stored
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 6: Copy, catalogue and docs
 - **spec_ref**: `openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings`

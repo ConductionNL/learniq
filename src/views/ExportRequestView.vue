@@ -132,7 +132,7 @@
 					}}
 				</NcButton>
 				<NcButton
-					v-if="kind === 'course-package' && share"
+					v-if="kind === 'course-package' && share && canPublish"
 					variant="secondary"
 					:disabled="busy || !ready"
 					@click="publish">
@@ -146,6 +146,7 @@
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
+import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
 import {
 	NcButton,
@@ -164,6 +165,7 @@ import {
 	objectsUrl,
 	oneObject,
 } from '../utils/customPages.js'
+import { normaliseStoreAccess } from '../utils/storeAccess.js'
 
 export default {
 	name: 'ExportRequestView',
@@ -195,6 +197,12 @@ export default {
 			error: '',
 			done: '',
 			jobId: '',
+			// store-rights-for-teachers (D27): the publish button shows only
+			// to someone the matrix and the store plane admit; the endpoint
+			// checks the same rights.
+			canPublish: normaliseStoreAccess(
+				loadState('learniq', 'storeAccess', null),
+			).publish,
 		}
 	},
 
