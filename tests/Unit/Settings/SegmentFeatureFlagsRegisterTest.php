@@ -146,4 +146,32 @@ class SegmentFeatureFlagsRegisterTest extends TestCase {
 		self::assertSame('date-time', $schema['properties']['setAt']['format']);
 
 	}//end testSetByAndSetAtAreNullableTraceabilityFields()
+
+	/**
+	 * Only administration managers change the segment; every staff group reads
+	 * it; learners and guardians get nothing. Admins pass OpenRegister's admin
+	 * bypass, so they need no entry. Without a block the register cascade let
+	 * every instructor change it (settings-and-excuse-authorization).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/settings-and-excuse-authorization/specs/nextcloud-app/spec.md#requirement-only-administration-managers-and-admins-change-the-organisations-segment
+	 */
+	public function testOnlyAdministrationManagersChangeTheSegment(): void {
+		$authorization = $this->config['components']['schemas']['LearniqSettings']['authorization'];
+
+		self::assertSame(
+			['instructors', 'hr', 'compliance-officers', 'team-leads', 'coordinators', 'administration-managers', 'confidential-counsellors'],
+			$authorization['read']
+		);
+		self::assertSame(['administration-managers'], $authorization['create']);
+		self::assertSame(['administration-managers'], $authorization['update']);
+		self::assertArrayNotHasKey('delete', $authorization);
+
+		$granted = array_merge($authorization['read'], $authorization['create'], $authorization['update']);
+		self::assertNotContains('learners', $granted);
+		self::assertNotContains('guardians', $granted);
+		self::assertNotContains('authenticated', $granted);
+
+	}//end testOnlyAdministrationManagersChangeTheSegment()
 }//end class

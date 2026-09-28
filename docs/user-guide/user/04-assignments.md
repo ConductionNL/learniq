@@ -49,7 +49,9 @@ Pupils without a Nextcloud account can hand in from the school portal (the porta
 
 - Learniq fills in who handed in and which school it belongs to. The pupil cannot choose another pupil.
 - The hand-in shows up in the assignment's submissions list as a draft, with its files.
-- The portal cannot hand the draft in formally yet. Open it in Learniq to mark it, or ask the pupil to hand it in from the app.
+- The pupil then hands the draft in from **My submissions** with **Hand in**. The same rules apply as in the app: before the deadline it is handed in, after the deadline it is handed in late only when the assignment accepts late work, and otherwise the pupil reads that the deadline has passed.
+- A requested resubmission uses its own date, as in the app.
+- A pupil can only hand in their own work, and only once.
 - **My submissions** in the portal lists only the pupil's own work.
 
 ## Common issues

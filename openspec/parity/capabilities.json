@@ -1205,14 +1205,14 @@
       "name": "Hand out a certificate the moment someone finishes a course.",
       "built": {
         "state": "built",
-        "evidence": "lib/Listener/CredentialIssuanceHandler.php",
+        "evidence": "lib/Listener/CredentialIssuanceHandler.php. Corrections round 8 (2026-09-28), learniq#182 (reopened): the handler fires on completion but saves the Credential without the required signature, openbadges3Payload and issuerDid (lib/Listener/CredentialIssuanceHandler.php:133-147; required list at lib/Settings/learniq_register.json:363), and the signing guard it relies on never runs because the Credential lifecycle has no issue transition (lib/Settings/learniq_register.json:550-552), at 4429d54.",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "credentials",
       "featureConfidence": "high",
-      "learniq": "yes",
+      "learniq": "partial",
       "moodle": "yes",
       "moodle-workplace": "yes",
       "ilias": "yes",
@@ -1226,7 +1226,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/actions-after-completion-22609967.html; Actions after Completion: \"You can issue a certificate to a user who has successfully completed the course\" via \"Check Issue a certificate after course completion.\"",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Certificates; certificates are \"diplomas that can be issued upon completion of activities, courses, programs, and certifications\", including \"Automatic issuing of certificates via dynamic rules\" (Certificates_Configuration).",
         "totara": "read 2026-09-26: https://totara.help/docs/certificates; the module \"generates PDF credentials for learners upon course completion\"; badge-criteria includes \"Course completion\"."
-      }
+      },
+      "note": "Own rating yes to partial (corrections round 8, 2026-09-28): a completed enrolment starts the issue path, but the certificate is either refused on validation or stored unsigned and without its badge payload, and issuedBy is always empty because Course declares no issuerName, learniq#182. The repair is task 1 of openspec/changes/credentials-europass-edci-export."
     },
     {
       "id": "cred-open-badges-3",
@@ -1234,14 +1235,14 @@
       "name": "Issue the certificate as an Open Badges 3.0 badge.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json Credential.properties.openbadges3Payload, required; lib/Service/CredentialSigningService.php",
+        "evidence": "lib/Settings/learniq_register.json Credential.properties.openbadges3Payload, required; lib/Service/CredentialSigningService.php. Corrections round 8 (2026-09-28), learniq#182: only CredentialSigningService::check() fills openbadges3Payload (lib/Service/CredentialSigningService.php:93-157, written at :155), and nothing calls it: no Credential transition names it as requires, and both issue paths save without it (lib/Listener/CredentialIssuanceHandler.php:133-147, lib/Controller/ExternalTrainingController.php:184-190), at 4429d54.",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "credentials",
       "featureConfidence": "high",
-      "learniq": "yes",
+      "learniq": "partial",
       "moodle": "partial",
       "moodle-workplace": "partial",
       "ilias": "no",
@@ -1255,7 +1256,8 @@
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Backpacks; documents Open Badges \"v2.0\" and \"v2.1\" backpacks only; Open Badges 3.0 issuing is not described. Workplace includes this Moodle LMS feature: https://moodle.com/solutions/workplace/workplace-features/ says Workplace has \"all features and functionality of Moodle LMS plus additional features\".",
         "totara": "read 2026-09-26: https://totara.help/docs/what-are-open-badges; \"Totara supports Open Badges 2.0\". Badges yes, version 3.0 not stated.",
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for Open Badges, badge standard; badges are gamification badges for points (https://ispringhelpdocs.com/ispring-learn/badges-22613596.html)"
-      }
+      },
+      "note": "Own rating yes to partial (corrections round 8, 2026-09-28): the Open Badges 3.0 payload builder exists but never runs when a certificate is issued, so issued certificates carry no badge payload, learniq#182."
     },
     {
       "id": "cred-cryptographic-signature",
@@ -1263,14 +1265,14 @@
       "name": "Sign each certificate so a third party can check it is genuine.",
       "built": {
         "state": "built",
-        "evidence": "lib/Service/CredentialSigningService.php, RS256 compact JWS in Credential.properties.signature",
+        "evidence": "lib/Service/CredentialSigningService.php, RS256 compact JWS in Credential.properties.signature. Corrections round 8 (2026-09-28), learniq#182: signPayload() is called only from check() (lib/Service/CredentialSigningService.php:129), check() has no caller and no transition requires it, so issued certificates carry no signature and the verify endpoint treats them as unsigned (lib/Controller/CredentialVerifyController.php:234-236), at 4429d54.",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "credentials",
       "featureConfidence": "high",
-      "learniq": "yes",
+      "learniq": "partial",
       "moodle": "no",
       "moodle-workplace": "partial",
       "ilias": "no",
@@ -1284,7 +1286,8 @@
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Certificates_Configuration; \"Certificates contain a unique code which is stored in the database\" checked through Verify certificates. Code lookup, no cryptographic signature documented.",
         "totara": "read 2026-09-26: https://totara.help/docs/certificate-activity-settings; \"A unique 10-digit code of random letters and numbers can be printed on the certificate\" for validation against the trainer's report. No cryptographic signature documented.",
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for certificate signature, signed certificate, verify; signatures appear only for SSO and webhooks"
-      }
+      },
+      "note": "Own rating yes to partial (corrections round 8, 2026-09-28): RS256 signing and the public verify endpoint exist, but signing never runs when a certificate is issued, learniq#182."
     },
     {
       "id": "cred-public-verify-url",
@@ -1553,8 +1556,8 @@
       "area": "credentials",
       "name": "Export a certificate in the European Europass credential format.",
       "built": {
-        "state": "none",
-        "evidence": "lib/Settings/learniq_register.json Credential.properties.edciPayload is declared and marked Phase 3; nothing in lib/ writes it",
+        "state": "specified",
+        "evidence": "lib/Settings/learniq_register.json Credential.properties.edciPayload is declared and marked Phase 3; nothing in lib/ writes it. Specified in openspec/changes/credentials-europass-edci-export/ (OpenSpec pass 2026-09-27).",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -1930,8 +1933,8 @@
       "area": "content",
       "name": "Launch a cmi5 unit and have it send results back.",
       "built": {
-        "state": "none",
-        "evidence": "lib/Service/Cmi5LaunchTokenService.php isEnabled() returns false and mintLaunchToken() returns an empty string",
+        "state": "specified",
+        "evidence": "lib/Service/Cmi5LaunchTokenService.php isEnabled() returns false and mintLaunchToken() returns an empty string. Covered by openspec/changes/cmi5-xapi-lrs-ingest/ (0 of 19 tasks ticked; OpenSpec pass 2026-09-27).",
         "owner": "ConductionNL/learniq",
         "readOn": "2026-09-26"
       },
@@ -1990,8 +1993,8 @@
       "area": "content",
       "name": "Drop an external tool into a lesson over LTI 1.3.",
       "built": {
-        "state": "none",
-        "evidence": "The placement model and lib/Controller/LtiToolPlacementController.php exist, but lib/Settings/connections.json marks lti unavailable: a launch calls api/lti/deployments/[id]/launch on integriq, which has no such endpoint, so no tool opens",
+        "state": "specified",
+        "evidence": "The placement model and lib/Controller/LtiToolPlacementController.php exist, but lib/Settings/connections.json marks lti unavailable: a launch calls api/lti/deployments/[id]/launch on integriq, which has no such endpoint, so no tool opens. Specified in ConductionNL/integriq openspec/changes/connectors-lti-platform-launch/ (integriq#2207, 413357ec). Learniq's half: openspec/changes/content-lti-launch-through-integriq/. (OpenSpec pass 2026-09-27)",
         "owner": "ConductionNL/integriq"
       },
       "provider": "integriq",
@@ -2019,8 +2022,8 @@
       "area": "content",
       "name": "Let an external tool send its grade back into your gradebook.",
       "built": {
-        "state": "none",
-        "evidence": "lib/BackgroundJob/LtiAgsScorePollJob.php no-ops without a subscription id, and lib/Settings/connections.json notes grades only come back from a tool that opened, which none does",
+        "state": "specified",
+        "evidence": "lib/BackgroundJob/LtiAgsScorePollJob.php no-ops without a subscription id, and lib/Settings/connections.json notes grades only come back from a tool that opened, which none does. Specified in ConductionNL/integriq openspec/changes/connectors-lti-platform-launch/ (integriq#2207, 413357ec). Learniq's half: openspec/changes/content-lti-launch-through-integriq/. (OpenSpec pass 2026-09-27)",
         "owner": "ConductionNL/integriq"
       },
       "provider": "integriq",
@@ -4631,8 +4634,8 @@
       "area": "attendance",
       "name": "Report persistent absence onward to the authority.",
       "built": {
-        "state": "none",
-        "evidence": "lib/Lifecycle/AttendanceFlagReportGuard.php gates the transition, but it rides the data-exchange path that lib/Settings/connections.json marks unavailable, so nothing is sent",
+        "state": "specified",
+        "evidence": "lib/Lifecycle/AttendanceFlagReportGuard.php gates the transition, but it rides the data-exchange path that lib/Settings/connections.json marks unavailable, so nothing is sent. Specified in ConductionNL/integriq openspec/changes/connectors-data-exchange-dispatch/ (integriq#2207, 413357ec). Learniq's half is built under D7 and D25 by round 3 (r3-exchange), not specified here. (OpenSpec pass 2026-09-27)",
         "owner": "ConductionNL/integriq"
       },
       "provider": "integriq",
@@ -4776,8 +4779,8 @@
       "area": "attendance",
       "name": "Import a timetable from your scheduling software.",
       "built": {
-        "state": "none",
-        "evidence": "lib/Timetabling/TimetableImportHandler.php exists, and lib/Settings/connections.json marks timetable unavailable: the import calls api/sources/timetable-import/run on integriq, which has no such endpoint, so no lesson arrives",
+        "state": "specified",
+        "evidence": "lib/Timetabling/TimetableImportHandler.php exists, and lib/Settings/connections.json marks timetable unavailable: the import calls api/sources/timetable-import/run on integriq, which has no such endpoint, so no lesson arrives. Specified in ConductionNL/integriq openspec/changes/connectors-data-exchange-dispatch/ (integriq#2207, 413357ec). Learniq's half is built under D7 and D25 by round 3 (r3-exchange), not specified here. (OpenSpec pass 2026-09-27)",
         "owner": "ConductionNL/integriq"
       },
       "provider": "integriq",
@@ -4835,7 +4838,7 @@
       "name": "Give each person their own timetable, not the whole school's.",
       "built": {
         "state": "built",
-        "evidence": "lib/Controller/TimetableController.php mine(), route /api/timetable/mine; src/manifest.d/my-learning.json MyTimetable",
+        "evidence": "lib/Controller/TimetableController.php mine(), route /api/timetable/mine; src/manifest.d/my-learning.json MyTimetable. Corrections round 8 (2026-09-28), learniq#1134: a substitute teacher does not see the lessons they cover, because resolveCallerCohortIds() matches only Cohort.teacherIds, Cohort.learnerIds and the caller's own enrolments, never Session.substituteTeacherId (lib/Controller/TimetableController.php:164-218), at 4429d54.",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -4856,7 +4859,8 @@
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Appointments_Configuration; sessions \"display on site, course, or user calendars depending on configuration\". Personal calendar, not a timetable.",
         "totara": "read 2026-09-26: https://totara.help/docs/team-page; \"View the user's past and future bookings for seminar events\". Bookings list, not a timetable.",
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/user-trainings-10684682.html; \"In the My Trainings section, users can view the trainings or webinars they are invited to. ... Check trainings weekly or monthly to organize your schedule.\""
-      }
+      },
+      "note": "Corrections round 8 (2026-09-28): substitutes miss the lessons they cover in their own timetable, learniq#1134; rating kept at yes because every teacher, learner and enrolled person does get their own timetable, and the substitute gap is specified in openspec/changes/timetabling-lesson-note."
     },
     {
       "id": "att-timetable-in-my-calendar",
@@ -5734,8 +5738,8 @@
       "name": "Hide one sensitive field from a role that may see the rest.",
       "built": {
         "state": "none",
-        "evidence": "lib/Settings/learniq_register.json declares no property-level authorization; x-property-rbac is row-level and OpenRegister does not read it (openregister#4064, learniq#972). OpenRegister can hide a property per group (lib/Service/PropertyRbacHandler.php) once a schema declares it",
-        "owner": "ConductionNL/openregister"
+        "evidence": "lib/Settings/learniq_register.json declares no property-level authorization; x-property-rbac is row-level and OpenRegister does not read it (openregister#4064, learniq#972). OpenRegister can hide a property per group (lib/Service/PropertyRbacHandler.php) once a schema declares it. OpenRegister's half shipped (openregister change 2026-07-13-property-level-read-rbac); the missing half is learniq declaring a property-level read rule, so the owner moved to learniq and the row is deferred (OpenSpec pass 2026-09-27).",
+        "owner": "ConductionNL/learniq"
       },
       "provider": "openregister",
       "providerHow": "OpenRegister hides a property per group when a schema declares a property authorization; learniq declares none.",
@@ -6139,8 +6143,8 @@
       "area": "governance",
       "name": "Push learner data to a national register or another system.",
       "built": {
-        "state": "none",
-        "evidence": "The job and mapping models ship, but lib/Settings/connections.json marks data-exchange unavailable: a run calls api/sources/[target]/run on integriq, which has no such endpoint, so every run fails",
+        "state": "specified",
+        "evidence": "The job and mapping models ship, but lib/Settings/connections.json marks data-exchange unavailable: a run calls api/sources/[target]/run on integriq, which has no such endpoint, so every run fails. Specified in ConductionNL/integriq openspec/changes/connectors-data-exchange-dispatch/ (integriq#2207, 413357ec). Learniq's half is built under D7 and D25 by round 3 (r3-exchange), not specified here. (OpenSpec pass 2026-09-27)",
         "owner": "ConductionNL/integriq"
       },
       "provider": "integriq",
@@ -6555,7 +6559,7 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "none",
+        "state": "decided-no",
         "evidence": "lib/Settings/connections.json:5",
         "owner": "external",
         "reachedOn": "nothing"
@@ -6577,7 +6581,7 @@
       "totara": "unknown",
       "chamilo": "no",
       "ispring-learn": "unknown",
-      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84957: automated link with an external certification provider that updates certification statuses and stores the evidence."
+      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84957: automated link with an external certification provider that updates certification statuses and stores the evidence. Decided no (OpenSpec pass 2026-09-27): Owner external: the updates come from an outside certifier's own system, outside the fleet, per the pass addendum."
     },
     {
       "id": "ass-test-window-or-password",
@@ -6679,8 +6683,8 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "none",
-        "evidence": "lib/Settings/connections.json:5",
+        "state": "specified",
+        "evidence": "lib/Settings/connections.json:5. Specified in ConductionNL/openregister openspec/changes/rapportage-bi-export/ (OData and scheduled exports for BI tools), as openregister's OpenSpec-pass lane recorded (OpenSpec pass 2026-09-27).",
         "owner": "ConductionNL/openregister",
         "reachedOn": "web service only; list export"
       },
@@ -6710,8 +6714,8 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "none",
-        "evidence": "lib/Settings/connections.json:23",
+        "state": "specified",
+        "evidence": "lib/Settings/connections.json:23. Specified in ConductionNL/integriq openspec/changes/connectors-course-marketplace/ (integriq#2207, 413357ec). Learniq's half: openspec/changes/enrolment-catalogue-self-signup/. (OpenSpec pass 2026-09-27)",
         "owner": "ConductionNL/integriq",
         "reachedOn": "nothing"
       },
@@ -6741,9 +6745,9 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "none",
+        "state": "decided-no",
         "evidence": "appinfo/info.xml:28",
-        "owner": "nextcloud",
+        "owner": "nextcloud/server",
         "reachedOn": "Nextcloud login page (with user_saml/user_oidc installed)"
       },
       "provider": "nextcloud",
@@ -6763,7 +6767,7 @@
       "totara": "partial",
       "chamilo": "yes",
       "ispring-learn": "partial",
-      "note": "Demand-signal row added 2026-09-26 (tender). Grafisch Lyceum Rotterdam LMS tender 2026, requirement 206602: single sign-on based on Azure, SURFconext or Entree."
+      "note": "Demand-signal row added 2026-09-26 (tender). Grafisch Lyceum Rotterdam LMS tender 2026, requirement 206602: single sign-on based on Azure, SURFconext or Entree. Decided no (OpenSpec pass 2026-09-27): Owner nextcloud/server (was nextcloud): SURFconext login runs through Nextcloud's user_saml or user_oidc app, a platform capability."
     },
     {
       "id": "gov-four-eyes-on-approved-data",
@@ -6865,8 +6869,8 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "none",
-        "evidence": "lib/Settings/learniq_register.json:6339",
+        "state": "specified",
+        "evidence": "lib/Settings/learniq_register.json:6339. Specified in openspec/changes/enrolment-self-join-work-group/ (OpenSpec pass 2026-09-27).",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing"
       },
@@ -6896,9 +6900,9 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "none",
+        "state": "decided-no",
         "evidence": "src/views/SubmitWorkView.vue (the hand-in screen now renders, but Assignment has no allowed-types or size fields and nothing passes filesAccept or maxSizeMb)",
-        "owner": "nextcloud",
+        "owner": "nextcloud/server",
         "reachedOn": "nothing"
       },
       "provider": "nextcloud",
@@ -6918,7 +6922,7 @@
       "totara": "yes",
       "chamilo": "partial",
       "ispring-learn": "partial",
-      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206632: the teacher sets which file formats may be handed in, with a size limit."
+      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206632: the teacher sets which file formats may be handed in, with a size limit. Decided no (OpenSpec pass 2026-09-27): Owner nextcloud/server (was nextcloud): file type and size limits on an upload are a Nextcloud platform capability, so this row is decided no for learniq per the pass addendum."
     },
     {
       "id": "ass-run-a-survey",
@@ -6958,9 +6962,9 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "none",
+        "state": "decided-no",
         "evidence": "searched src/, lib/, appinfo/ and package.json at fbeee384 for capacitor, cordova, react-native, serviceWorker, service-worker, webmanifest and 'mobile app': no hits, so learniq ships no app and no installable web app; the responsive Nextcloud web interface is the only mobile surface",
-        "owner": "nextcloud",
+        "owner": "nextcloud/server",
         "reachedOn": "any page in a mobile browser"
       },
       "provider": "nextcloud",
@@ -6980,7 +6984,7 @@
       "totara": "yes",
       "chamilo": "partial",
       "ispring-learn": "yes",
-      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206604: the LMS is reachable from any browser and also through an app. built.evidence was 'package.json:1', a line-1 citation that pointed at nothing; replaced 2026-09-27 with the named search."
+      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206604: the LMS is reachable from any browser and also through an app. built.evidence was 'package.json:1', a line-1 citation that pointed at nothing; replaced 2026-09-27 with the named search. Decided no (OpenSpec pass 2026-09-27): Owner nextcloud/server (was nextcloud): the mobile surface is the Nextcloud apps and the responsive web interface; learniq ships no app of its own."
     },
     {
       "id": "gov-wcag-aa",
@@ -7051,8 +7055,8 @@
       "origin": "changelog",
       "originUrl": "https://moodle.atlassian.net/browse/MDL-86006",
       "built": {
-        "state": "none",
-        "evidence": "searched src/ and lib/ at fbeee384 for second marker, secondMarker, double mark, agreed grade, markers and moderat: no marking hits (only a table-prefix variable at lib/Repair/RenameDutchColumns.php:247 and a 'moderate' enum value at lib/Settings/learniq_register.json:22214), so nothing allocates a second marker or reconciles two marks",
+        "state": "specified",
+        "evidence": "searched src/ and lib/ at fbeee384 for second marker, secondMarker, double mark, agreed grade, markers and moderat: no marking hits (only a table-prefix variable at lib/Repair/RenameDutchColumns.php:247 and a 'moderate' enum value at lib/Settings/learniq_register.json:22214), so nothing allocates a second marker or reconciles two marks. Specified in openspec/changes/assignments-double-marking/ (OpenSpec pass 2026-09-27).",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing"
       },
@@ -7144,8 +7148,8 @@
       "origin": "changelog",
       "originUrl": "https://docs.moodle.org/501/en/Moodle_Workplace_release_notes",
       "built": {
-        "state": "none",
-        "evidence": "lib/Listener/CredentialIssuanceHandler.php:121",
+        "state": "specified",
+        "evidence": "lib/Listener/CredentialIssuanceHandler.php:121. Specified in openspec/changes/credentials-bulk-reissue/ (OpenSpec pass 2026-09-27).",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing"
       },
@@ -7175,8 +7179,8 @@
       "origin": "changelog",
       "originUrl": "https://totara.help/docs/digital-self-attendance",
       "built": {
-        "state": "none",
-        "evidence": "lib/Settings/learniq_register.json:13551",
+        "state": "specified",
+        "evidence": "lib/Settings/learniq_register.json:13551. Specified in openspec/changes/attendance-self-check-in/ (OpenSpec pass 2026-09-27).",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing"
       },
@@ -7268,9 +7272,9 @@
       "origin": "roadmap",
       "originUrl": "https://github.com/chamilo/chamilo-lms/issues/3818",
       "built": {
-        "state": "none",
+        "state": "decided-no",
         "evidence": "lib/Settings/learniq_register.json:6589",
-        "owner": "nextcloud",
+        "owner": "nextcloud/server",
         "reachedOn": "any upload (with files_antivirus installed)"
       },
       "provider": "nextcloud",
@@ -7290,7 +7294,7 @@
       "totara": "yes",
       "chamilo": "no",
       "ispring-learn": "unknown",
-      "note": "Demand-signal row added 2026-09-26 (roadmap). chamilo roadmap: https://github.com/chamilo/chamilo-lms/issues/3818 (Feature request, open, milestone 3.1): \"Many institutions require any software they include to scan for viruses on uploaded files. ClamAV is an Open Source anti-virus that could be used for this.\""
+      "note": "Demand-signal row added 2026-09-26 (roadmap). chamilo roadmap: https://github.com/chamilo/chamilo-lms/issues/3818 (Feature request, open, milestone 3.1): \"Many institutions require any software they include to scan for viruses on uploaded files. ClamAV is an Open Source anti-virus that could be used for this.\" Decided no (OpenSpec pass 2026-09-27): Owner nextcloud/server (was nextcloud): virus scanning is the Nextcloud files_antivirus app on every upload, a platform capability."
     },
     {
       "id": "ass-mark-question-by-question",
@@ -7330,8 +7334,8 @@
       "origin": "changelog",
       "originUrl": "https://totara.com/articles/whats-new-totara-version-20/",
       "built": {
-        "state": "none",
-        "evidence": "lib/Settings/learniq_register.json:2427",
+        "state": "specified",
+        "evidence": "lib/Settings/learniq_register.json:2427. Specified in openspec/changes/enrolment-catalogue-self-signup/ (OpenSpec pass 2026-09-27).",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing"
       },
