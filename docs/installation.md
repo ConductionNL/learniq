@@ -72,21 +72,32 @@ The first time an administrator opens Learniq, the setup wizard asks two questio
 1. **Which example data do you want?** Pick the set that matches your organisation: primary school, secondary school, MBO, HBO/WO, company or training institute, as far as they ship in your version. Each set is one fictional organisation with its own people, groups and history. "Every schema, generated values" fills every list with generated values instead. Pick "None" on a production install.
 2. **What kind of organisation is this?** Pick one of the six kinds. Learniq stores it as the segment under **App settings**, where you can change it later. The wizard pre-selects the kind of the example set you loaded.
 
-The kind of organisation decides which menus appear. Company is the default of every install that never chose, so it keeps every menu. The other kinds hide what belongs to someone else:
+The kind of organisation decides which menus appear. An install where nobody chose yet keeps every menu. Once you choose, each kind hides what belongs to someone else:
 
 | Menu | Primary school | Secondary school | MBO | HBO/WO | Company | Training institute |
 |---|---|---|---|---|---|---|
-| Compliance and external training | hidden | hidden | hidden | hidden | shown | shown |
+| Compliance overview and external training | hidden | hidden | hidden | hidden | shown | shown |
 | Engagement and course evaluation | hidden | hidden | shown | shown | shown | shown |
-| Work placements (BPV) | hidden | hidden | shown | hidden | shown | hidden |
+| Work placements (BPV) | hidden | hidden | shown | hidden | hidden | hidden |
 | Study progress (BSA) | hidden | hidden | hidden | shown | shown | hidden |
-| Exam board, exam accommodations, applications and admissions rounds | hidden | shown | shown | shown | shown | shown |
+| Exam board | hidden | shown | shown | shown | hidden | shown |
+| Exam accommodations | hidden | shown | shown | shown | shown | shown |
+| Applications and admissions rounds | hidden | shown | shown | shown | hidden | shown |
 | Subject choices | hidden | shown | shown | shown | shown | hidden |
-| School advies | shown | shown | hidden | hidden | shown | hidden |
+| School advies | shown | shown | hidden | hidden | hidden | hidden |
+| Report cards and report periods | shown | shown | shown | shown | hidden | shown |
+| Parent conferences | shown | shown | shown | shown | hidden | shown |
+| Attendance flags and compulsory education reports | shown | shown | shown | shown | hidden | shown |
 
-Everything else, such as people, groups, attendance, report cards, the pupil dossier and group plans, shows for every kind. Hiding a menu is not an access control: each page still checks who may read its data.
+Everything else, such as people, groups, attendance records, the pupil dossier, group plans, and the accessibility and privacy pages under Compliance, shows for every kind. Hiding a menu is not an access control: each page still checks who may read its data.
 
-Loading a set twice adds nothing, because every example object has a fixed id. To remove a set again, run the command on the server. It shows what it would remove; add `--apply` to remove it:
+A choice counts once it names who made it. The wizard always records you. If you set the kind on the **App settings** page instead, fill in "Set by" with your user name, or the app keeps every menu as if nobody chose. Loading example data never counts as a choice.
+
+Loading a set twice adds nothing, because every example object has a fixed id.
+
+To remove the set again, open the setup wizard and go to its last step, **Remove the example data**, then click the button. The example objects move to the trash of OpenRegister, so you can restore them; anything you made yourself stays. The step never runs by itself. Only an administrator or a member of `administration-managers` can choose the kind of organisation in the wizard.
+
+On an OpenRegister that cannot remove imports from the wizard, or for a set loaded before it could, the step tells you to run the command on the server instead. It shows what it would remove; add `--apply` to remove it:
 
 ```bash
 php occ learniq:example-set:remove po

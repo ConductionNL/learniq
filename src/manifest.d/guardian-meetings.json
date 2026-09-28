@@ -26,6 +26,11 @@
 								"learner",
 								"admin"
 							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
 						}
 					}
 				},
@@ -42,6 +47,11 @@
 								"coordinator",
 								"administration-manager",
 								"admin"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
 							]
 						}
 					}
@@ -60,6 +70,11 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
 						}
 					}
 				},
@@ -75,6 +90,11 @@
 								"admin",
 								"team-lead",
 								"administration-manager"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
 							]
 						}
 					}
@@ -92,6 +112,11 @@
 								"coordinator",
 								"administration-manager",
 								"admin"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
 							]
 						}
 					}

@@ -61,7 +61,7 @@ class PageControllerTest extends TestCase {
 		$roleService->method('resolveViews')->willReturn(['learner']);
 
 		$segmentService = $this->createMock(SegmentService::class);
-		$segmentService->method('currentSegment')->willReturn('po');
+		$segmentService->method('workspace')->willReturn(['segment' => 'po', 'chosenSegment' => 'po']);
 		$container = $this->createMock(ContainerInterface::class);
 		if ($segmentFails === true) {
 			$container->method('get')->willThrowException(new RuntimeException('OpenRegister is not installed'));
@@ -189,6 +189,33 @@ class PageControllerTest extends TestCase {
 	}//end testIndexProvidesTheSegmentForASignedInUser()
 
 	/**
+	 * The page also carries the segment an admin chose, so a menu can hide for
+	 * a chosen company and stay for an install that never chose (D26).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#scenario-the-wizard-stored-company
+	 */
+	public function testIndexProvidesTheChosenSegment(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('learner-1');
+
+		$provided     = [];
+		$initialState = $this->createMock(IInitialState::class);
+		$initialState->method('provideInitialState')
+			->willReturnCallback(
+				static function (string $key, mixed $value) use (&$provided): void {
+					$provided[$key] = $value;
+				}
+			);
+
+		$this->controller($user, $initialState)->index();
+
+		self::assertArrayHasKey('chosenSegment', $provided);
+		self::assertSame('po', $provided['chosenSegment']);
+	}//end testIndexProvidesTheChosenSegment()
+
+	/**
 	 * Without OpenRegister the segment cannot be read, and the start screen
 	 * still renders with the default segment rather than a 500 (ADR-083).
 	 *
@@ -211,6 +238,8 @@ class PageControllerTest extends TestCase {
 
 		self::assertSame('index', $response->getTemplateName());
 		self::assertSame('corporate', ($provided['segment'] ?? null));
+		self::assertArrayHasKey('chosenSegment', $provided);
+		self::assertNull($provided['chosenSegment'], 'a failed read must keep every menu, so nobody chose');
 	}//end testIndexFallsBackToTheDefaultWhenTheSegmentCannotBeResolved()
 
 	/**
