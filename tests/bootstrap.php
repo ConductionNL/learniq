@@ -17,6 +17,9 @@ $autoloader = require __DIR__ . '/../vendor/autoload.php';
 // is irrelevant.
 $autoloader->addPsr4('OCA\\OpenRegister\\', __DIR__ . '/Stubs/');
 $autoloader->addPsr4('OCA\\Talk\\', __DIR__ . '/Stubs/Talk/');
+// Integriq's exchange events, copied verbatim (data-exchange-to-integriq): learniq talks to
+// integriq only through them, and its tests construct the real contract classes.
+$autoloader->addPsr4('OCA\\Integriq\\', __DIR__ . '/Stubs/Integriq/');
 
 // The nextcloud/ocp package ships the OCP\* interface definitions under
 // vendor/nextcloud/ocp/OCP/ but declares an empty Composer autoload block

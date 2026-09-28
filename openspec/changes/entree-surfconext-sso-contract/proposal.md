@@ -3,6 +3,8 @@ kind: code
 depends_on: []
 ---
 
+> Superseded in part by data-exchange-to-integriq (decision D7, 2026-09-28): where it names DataMappingProfile, read the integriq mapping of the same target; the SSO attribute mapping and login stay here. See `openspec/changes/data-exchange-to-integriq/`.
+
 ## Why
 
 `findings.md#13.5` (SHOULD): "Entree Federatie and SURFconext, eduID" — verified at HEAD, the nearest hit is

@@ -58,45 +58,32 @@ class FundingTeldatumRegisterTest extends TestCase {
 	}//end setUp()
 
 	/**
-	 * DataExchangeJob gains the five additive teldatum-check properties,
-	 * each with a backward-compatible default.
+	 * The teldatum check left DataExchangeJob (data-exchange-to-integriq): a
+	 * TeldatumCheck records the confirmed count per teldatum and target, with a
+	 * stamped confirm transition, and the exchange gate reads it.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/funding-and-teldatum-checks/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-a-confirmed-teldatum-pre-flight-check-before-it-runs
+	 * @spec   openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
-	public function testDataExchangeJobGainsTeldatumCheckProperties(): void {
-		$schema = $this->config['components']['schemas']['DataExchangeJob'] ?? null;
-		$this->assertIsArray($schema, 'DataExchangeJob schema MUST exist');
+	public function testTeldatumCheckHoldsTheConfirmedCount(): void {
+		$schema = $this->config['components']['schemas']['TeldatumCheck'] ?? null;
+		$this->assertIsArray($schema, 'TeldatumCheck schema MUST exist');
+		$this->assertArrayNotHasKey('DataExchangeJob', $this->config['components']['schemas']);
 
-		$properties = $schema['properties'] ?? [];
-		$this->assertFalse($properties['requiresTeldatumCheck']['default'] ?? null, 'requiresTeldatumCheck MUST default to false');
-		$this->assertSame('not-required', $properties['teldatumCheckStatus']['default'] ?? null);
-		$this->assertEqualsCanonicalizing(
-			['not-required', 'pending', 'confirmed'],
-			$properties['teldatumCheckStatus']['enum'] ?? []
-		);
+		$properties = $schema['properties'];
+		$this->assertSame(['teldatumDate'], $schema['required']);
+		$this->assertSame('date', $properties['teldatumDate']['format']);
+		$this->assertSame('bron-rod', $properties['target']['default']);
+		$this->assertSame(['pending', 'confirmed'], $properties['status']['enum']);
+		$this->assertSame('pending', $properties['status']['default']);
 
-		foreach (['teldatumCheckDate', 'teldatumCheckedBy', 'teldatumCheckedAt'] as $field) {
-			$this->assertArrayHasKey('default', $properties[$field] ?? [], "$field MUST declare a default");
-			$this->assertNull($properties[$field]['default'], "$field MUST default to null");
-			$this->assertTrue($properties[$field]['nullable'] ?? false, "$field MUST be nullable");
-		}
+		$confirm = $schema['x-openregister-lifecycle']['transitions']['confirm'];
+		$this->assertSame('pending', $confirm['from']);
+		$this->assertSame('confirmed', $confirm['to']);
+		$this->assertSame(['actorField' => 'confirmedBy', 'timeField' => 'confirmedAt'], $confirm['actions'][0]['actionParameters']);
+		$this->assertNotContains('guardians', $schema['authorization']['read']);
 
-		foreach (
-			[
-				'requiresTeldatumCheck',
-				'teldatumCheckStatus',
-				'teldatumCheckDate',
-				'teldatumCheckedBy',
-				'teldatumCheckedAt',
-			] as $field
-		) {
-			$this->assertNotContains($field, $schema['required'] ?? [], "$field MUST NOT be required");
-			$this->assertArrayHasKey('title', $properties[$field]);
-			$this->assertArrayHasKey('description', $properties[$field]);
-		}
-
-	}//end testDataExchangeJobGainsTeldatumCheckProperties()
+	}//end testTeldatumCheckHoldsTheConfirmedCount()
 
 	/**
 	 * LearnerProfile gains fundingWeightCode: a nullable enum, default null,

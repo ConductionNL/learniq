@@ -266,7 +266,7 @@
 			"route": "/privacy-governance",
 			"type": "dashboard",
 			"title": "Privacy governance",
-			"_note": "privacy-reuse-openregister-register (D20): a typed dashboard page, formerly a custom page. Every tile reads PrivacyGovernanceController::overview() through CnStatWidget's endpointSource, and the group table through CnWidgetObjectTable's endpointSource on `groups`; the library shares one request per render. A null figure (group not provisioned, 2FA registry unavailable, DataExchangeJob read failed) shows as `unknown`, never as 0. Gated to admin and compliance officers by the PrivacyGovernanceDashboardMenu entry's visibleIf.",
+			"_note": "privacy-reuse-openregister-register (D20): a typed dashboard page, formerly a custom page. Every tile reads PrivacyGovernanceController::overview() through CnStatWidget's endpointSource, and the group table through CnWidgetObjectTable's endpointSource on `groups`; the library shares one request per render. A null figure (group not provisioned, 2FA registry unavailable, ExchangePartnerApproval read failed) shows as `unknown`, never as 0. Gated to admin and compliance officers by the PrivacyGovernanceDashboardMenu entry's visibleIf.",
 			"config": {
 				"allowEdit": false,
 				"widgets": [

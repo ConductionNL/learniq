@@ -92,12 +92,13 @@ class SsoAttributeMappingRegisterTest extends TestCase {
 	 * @return void
 	 */
 	public function testLifecycleMirrorsDataMappingProfile(): void {
+		// DataMappingProfile left for integriq (data-exchange-to-integriq); the SSO
+		// mapping keeps the lifecycle it copied from it.
 		$lifecycle = $this->config['components']['schemas']['SsoAttributeMapping']['x-openregister-lifecycle'];
-		$dmpLifecycle = $this->config['components']['schemas']['DataMappingProfile']['x-openregister-lifecycle'];
 
-		self::assertSame($dmpLifecycle['property'], $lifecycle['property']);
-		self::assertSame($dmpLifecycle['initial'], $lifecycle['initial']);
-		self::assertSame(array_keys($dmpLifecycle['transitions']), array_keys($lifecycle['transitions']));
+		self::assertSame('lifecycle', $lifecycle['property']);
+		self::assertSame('draft', $lifecycle['initial']);
+		self::assertSame(['activate', 'archive', 'reactivate'], array_keys($lifecycle['transitions']));
 
 	}//end testLifecycleMirrorsDataMappingProfile()
 

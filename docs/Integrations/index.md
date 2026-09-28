@@ -33,10 +33,27 @@ links a Cohort's conversation after learners are already enrolled adds that
 initial batch once via Talk's own participant UI; every enrolment change
 after that point stays in sync automatically.
 
+## Data exchange through Integriq
+
+Integriq sends learniq's reports and files to the outside world: DUO ROD, the
+Verzuimloket, OSO transfer files, UWLR, Edu-V, Basispoort and the
+samenwerkingsverband. Learniq decides what may leave.
+
+Before a job runs, Integriq asks learniq. Learniq checks that a parent approved
+an OSO or SWV file, that the partner link is approved, that the teldatum count
+is confirmed, and that someone has taken up a verzuim signal. Only the fields
+the job's mapping needs leave the school, and never a BSN or an email address.
+
+Follow the jobs under **Data exchange > Exchange jobs**. A record the other
+side rejected shows under **Rejections**; fix it in learniq, then resubmit it
+in Integriq. Parents decide on a file under **Parent reviews**.
+
+Without Integriq nothing is sent, and learniq says so.
+
 Planned integrations include:
 
 - **OpenRegister**: data layer (required)
-- **OpenConnector**: BRON/ROD, UWLR, OSO, Edukoppeling, Studielink, Digikoppeling adapters (required)
+- **Integriq**: BRON/ROD, Verzuimloket, UWLR, Edu-V, OSO and SWV adapters, run as jobs learniq asks for (required for data exchange)
 - **LaunchPad**: student and credential analytics surfaces (recommended)
 - **DocuDesk**: diploma and certificate document templating (optional)
 - **SURFconext**: SSO federation for higher education

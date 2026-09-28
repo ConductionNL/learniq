@@ -5,7 +5,7 @@
  *
  * Coverage for privacy-governance-surfaces: the overview endpoint composes
  * the eight rbac-declare-groups group ids' member counts, best-effort 2FA
- * adoption, and DataExchangeJob partner-approval counts — and degrades to
+ * adoption, and partner approval counts — and degrades to
  * `null` (never a fabricated zero) on any read failure.
  *
  * @category Tests
@@ -216,23 +216,26 @@ class PrivacyGovernanceControllerTest extends TestCase {
 	}//end testTwoFactorRegistryFailureDegradesToUnknown()
 
 	/**
-	 * DataExchangeJob counts are grouped by partnerApprovalStatus, restricted
-	 * to jobs with requiresPartnerApproval: true.
+	 * ExchangePartnerApproval rows are counted by status; an unknown status is
+	 * ignored (data-exchange-to-integriq).
 	 *
 	 * @return void
 	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
 	 */
-	public function testDataExchangeJobCountsGroupedByApprovalStatus(): void {
+	public function testPartnerApprovalCountsGroupedByStatus(): void {
 		$groupManager = $this->createMock(IGroupManager::class);
 		$groupManager->method('get')->willReturn(null);
 
+		// data-exchange-to-integriq: each row is a standing ExchangePartnerApproval.
 		$objectService = $this->createMock(ObjectService::class);
-		$objectService->method('findAll')->willReturn(
+		$objectService->expects($this->once())->method('findAll')->with(
+			$this->callback(static fn (array $config): bool => ($config['filters']['schema'] ?? '') === 'exchange-partner-approval')
+		)->willReturn(
 			[
-				['requiresPartnerApproval' => true, 'partnerApprovalStatus' => 'pending'],
-				['requiresPartnerApproval' => true, 'partnerApprovalStatus' => 'approved'],
-				['requiresPartnerApproval' => true, 'partnerApprovalStatus' => 'approved'],
-				['requiresPartnerApproval' => false, 'partnerApprovalStatus' => 'not-required'],
+				['target' => 'swv', 'status' => 'pending'],
+				['target' => 'oso', 'status' => 'approved'],
+				['target' => 'hr', 'status' => 'approved'],
+				['target' => 'bron-rod', 'status' => 'withdrawn-by-typo'],
 			]
 		);
 
@@ -243,7 +246,7 @@ class PrivacyGovernanceControllerTest extends TestCase {
 		self::assertSame(2, $data['dataExchange']['approved']);
 		self::assertSame(0, $data['dataExchange']['rejected']);
 
-	}//end testDataExchangeJobCountsGroupedByApprovalStatus()
+	}//end testPartnerApprovalCountsGroupedByStatus()
 
 	/**
 	 * `ObjectService::findAll()` may hand back OpenRegister entity objects
@@ -255,7 +258,7 @@ class PrivacyGovernanceControllerTest extends TestCase {
 	 * @return void
 	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
 	 */
-	public function testDataExchangeJobCountsNormaliseJsonSerializableObjects(): void {
+	public function testPartnerApprovalCountsNormaliseJsonSerializableObjects(): void {
 		$groupManager = $this->createMock(IGroupManager::class);
 		$groupManager->method('get')->willReturn(null);
 
@@ -264,7 +267,7 @@ class PrivacyGovernanceControllerTest extends TestCase {
 			 * @return array<string, mixed>
 			 */
 			public function jsonSerialize(): array {
-				return ['requiresPartnerApproval' => true, 'partnerApprovalStatus' => 'approved'];
+				return ['target' => 'swv', 'status' => 'approved'];
 			}
 		};
 
@@ -276,10 +279,10 @@ class PrivacyGovernanceControllerTest extends TestCase {
 
 		self::assertSame(1, $data['dataExchange']['approved']);
 
-	}//end testDataExchangeJobCountsNormaliseJsonSerializableObjects()
+	}//end testPartnerApprovalCountsNormaliseJsonSerializableObjects()
 
 	/**
-	 * A DataExchangeJob read failure degrades to unknown counts rather than
+	 * A partner approval read failure degrades to unknown counts rather than
 	 * erroring the whole dashboard.
 	 *
 	 * @return void

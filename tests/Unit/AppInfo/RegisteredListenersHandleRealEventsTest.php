@@ -26,6 +26,8 @@ use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Listener\SessionConflictListener;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Integriq\Event\ExchangeGateRequestedEvent;
+use OCA\Integriq\Event\ExchangeJobConcludedEvent;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectDeletedEvent;
@@ -230,6 +232,9 @@ class RegisteredListenersHandleRealEventsTest extends TestCase {
 			// A Nextcloud Files event (office-file-lesson-onboarding): the node is a file double.
 			NodeCreatedEvent::class => new NodeCreatedEvent($this->createStub(File::class)),
 			NodeRenamedEvent::class => new NodeRenamedEvent($this->createStub(File::class), $this->createStub(File::class)),
+			// Integriq's exchange events (data-exchange-to-integriq), from the verbatim contract copies.
+			ExchangeGateRequestedEvent::class => new ExchangeGateRequestedEvent('job-1', 'learniq', 'leerplicht', 'export', 'attendance-flag/minimal-object', []),
+			ExchangeJobConcludedEvent::class => new ExchangeJobConcludedEvent('learniq', 'job-1', 'swv', 'export', 'support-request/minimal-object', 'succeeded'),
 			default => null,
 		};
 	}//end event()

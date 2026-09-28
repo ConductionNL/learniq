@@ -67,12 +67,9 @@ class TransitionBridgeListenerRegistrar {
 		);
 
 		// ADR-031 legitimate exception (po-schooladvies-flow): SchoolAdvies
-		// `verzendenNaarRod` transition → auto-queue the bron-rod DataExchangeJob
-		// bridge. Mirrors SupportRequestSubmitHandler's shape exactly, minus the
-		// SWV-specific pending-parent-review advance (bron-rod is not one of
-		// DataExchangeRunHandler's gated targets). Creates a DataExchangeJob
-		// (target: bron-rod, scope.schema: school-advies) in `queued` and stamps
-		// the job id back onto the SchoolAdvies.
+		// `verzendenNaarRod` transition → ask integriq for the bron-rod exchange
+		// job (data-exchange-to-integriq) and stamp its id back onto the
+		// SchoolAdvies.
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: SchoolAdviesSendToRodHandler::class

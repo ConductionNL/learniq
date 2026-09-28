@@ -3,10 +3,9 @@
 /**
  * Learniq SchoolAdviesSendToRodHandler unit tests.
  *
- * Mirrors SupportRequestSubmitHandlerTest's own structure: sending a
- * SchoolAdvies to ROD auto-queues a DataExchangeJob (target: bron-rod,
- * scope.schema: school-advies) and stamps the job id back onto the
- * SchoolAdvies.
+ * Since data-exchange-to-integriq sending a definitief advice to ROD asks
+ * integriq for a bron-rod exchange job (berichtsoort schooladvies) and stamps
+ * its id on the advice. No DataExchangeJob is written.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Listener
@@ -21,217 +20,126 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#requirement-sending-a-definitief-schooladvies-to-rod-auto-queues-the-existing-bron-rod-dataexchangejob
+ * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Exception\ExchangeRequestRefusedException;
+use OCA\Learniq\Listener\SchoolAdviesSendToRodHandler;
+use OCA\Learniq\Service\IntegriqExchangeClient;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Listener\SchoolAdviesSendToRodHandler;
-use OCA\Learniq\Tests\Support\OrEntityFactory;
-use OCP\EventDispatcher\Event;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
 /**
- * Tests for SchoolAdviesSendToRodHandler::handle() on SchoolAdvies -> verzonden-naar-rod.
+ * Tests for SchoolAdviesSendToRodHandler.
  */
 class SchoolAdviesSendToRodHandlerTest extends TestCase {
 
 	/**
 	 * Recorded saveObject() calls.
 	 *
-	 * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
+	 * @var array<int, array{schema: string, object: array<string, mixed>, uuid: mixed}>
 	 */
-	private array $savedObjects = [];
+	private array $saved = [];
 
 	/**
-	 * Reset the capture buffer before each test.
+	 * The integriq client double.
 	 *
-	 * @return void
+	 * @var IntegriqExchangeClient&MockObject
 	 */
-	protected function setUp(): void {
-		parent::setUp();
-		$this->savedObjects = [];
-
-	}//end setUp()
+	private $integriq;
 
 	/**
-	 * Build a handler with a stubbed ObjectService.
-	 *
-	 * @param string|null $savedJobId UUID to return for the DataExchangeJob save, or null to
-	 *                                simulate a save that yields no id.
-	 * @param array<string,mixed>|null $existingSchoolAdvies The SchoolAdvies row findAll() returns when the
-	 *                                                       handler looks it up to stamp dataExchangeJobId onto.
+	 * Build the handler.
 	 *
 	 * @return SchoolAdviesSendToRodHandler
 	 */
-	private function makeHandler(
-		?string $savedJobId,
-		?array $existingSchoolAdvies = null,
-	): SchoolAdviesSendToRodHandler {
+	private function makeHandler(): SchoolAdviesSendToRodHandler {
+		$this->saved = [];
 		$objectService = $this->createMock(ObjectService::class);
-
-		$objectService->method('findAll')->willReturnCallback(
-			function (array $config) use ($existingSchoolAdvies): array {
-				$schema = $config['filters']['schema'] ?? '';
-
-				if ($schema === 'school-advies') {
-					return $existingSchoolAdvies === null ? [] : [$existingSchoolAdvies];
-				}
-
-				return [];
-			}
-		);
-
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) use ($savedJobId): ObjectEntity {
-				$schema = (string)$schema;
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null): ObjectEntity {
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
-				$this->savedObjects[] = [
-					'register' => (string)$register,
-					'schema' => $schema,
-					'object' => $data,
-				];
-
-				if ($schema === 'data-exchange-job') {
-					if ($savedJobId === null) {
-						$idless = $data;
-						unset($idless['id'], $idless['uuid']);
-						return OrEntityFactory::make($idless, $schema, (string)$register);
-					}
-
-					return OrEntityFactory::make(array_merge($data, ['id' => $savedJobId]), $schema, (string)$register);
-				}
-
-				return OrEntityFactory::make($data, $schema, (string)$register);
+				$this->saved[] = ['schema' => (string)$schema, 'object' => $data, 'uuid' => $uuid];
+				return OrEntityFactory::make($data, (string)$schema);
 			}
 		);
+		$this->integriq = $this->createMock(IntegriqExchangeClient::class);
 
-		return new SchoolAdviesSendToRodHandler($objectService, new NullLogger());
+		return new SchoolAdviesSendToRodHandler($objectService, $this->integriq, new NullLogger());
 	}//end makeHandler()
 
 	/**
-	 * Build a mocked ObjectTransitionedEvent for a SchoolAdvies -> verzonden-naar-rod transition.
+	 * A school advice transition event.
 	 *
-	 * @param array<string,mixed> $adviesData The SchoolAdvies' jsonSerialize() payload.
+	 * @param array<string, mixed> $advies The advice data.
+	 * @param string               $to     The target state.
 	 *
 	 * @return ObjectTransitionedEvent
 	 */
-	private function makeEvent(array $adviesData): ObjectTransitionedEvent {
-		$objectEntity = $this->createMock(ObjectEntity::class);
-		$objectEntity->method('jsonSerialize')->willReturn($adviesData);
-
-		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('learniq');
-		$event->method('getSchema')->willReturn('school-advies');
-		$event->method('getAction')->willReturn('verzendenNaarRod');
-		$event->method('getTo')->willReturn('verzonden-naar-rod');
-
-		return $event;
-	}//end makeEvent()
+	private function event(array $advies, string $to = 'verzonden-naar-rod'): ObjectTransitionedEvent {
+		return new ObjectTransitionedEvent(OrEntityFactory::make($advies, 'school-advies'), 'verzendenNaarRod', 'definitief', $to, 'teacher-1', 'learniq', 'school-advies');
+	}//end event()
 
 	/**
-	 * Sending a definitief advies creates a bron-rod DataExchangeJob and
-	 * stamps its id back onto the SchoolAdvies.
+	 * Sending to ROD asks integriq for a bron-rod schooladvies job and links it.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#scenario-sending-a-definitief-advies-creates-and-links-a-bron-rod-dataexchangejob
 	 */
-	public function testSendToRodCreatesAndLinksJob(): void {
-		$adviesData = [
-			'id' => 'advies-1',
-			'learnerId' => 'learner-007',
-			'tenant_id' => 'tenant-a',
-			'definitiefAdviesLevel' => 'havo',
-			'lifecycle' => 'verzonden-naar-rod',
-		];
+	public function testSendToRodAsksIntegriqAndLinksTheJob(): void {
+		$handler = $this->makeHandler();
+		$this->integriq->expects($this->once())->method('requestJob')->with(
+			'bron-rod',
+			'export',
+			'school-advies/sa-1',
+			['schema' => 'school-advies', 'recordIds' => ['sa-1'], 'tenantId' => 't1', 'berichtsoort' => 'schooladvies'],
+			null
+		)->willReturn('job-3');
 
-		$handler = $this->makeHandler(savedJobId: 'job-uuid-1', existingSchoolAdvies: $adviesData);
-		$handler->handle($this->makeEvent($adviesData));
+		$handler->handle($this->event(['id' => 'sa-1', 'learnerId' => 'pupil-1', 'tenant_id' => 't1']));
 
-		$jobSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'data-exchange-job'));
-		self::assertCount(1, $jobSaves);
-		self::assertSame('bron-rod', $jobSaves[0]['object']['target']);
-		self::assertSame('export', $jobSaves[0]['object']['direction']);
-		self::assertSame('school-advies', $jobSaves[0]['object']['scope']['schema']);
-		self::assertSame('learner-007', $jobSaves[0]['object']['scope']['filters']['learnerId']);
-		self::assertSame('advies-1', $jobSaves[0]['object']['scope']['filters']['schoolAdviesId']);
-		self::assertSame('queued', $jobSaves[0]['object']['lifecycle']);
-
-		$adviesSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'school-advies'));
-		self::assertCount(1, $adviesSaves);
-		self::assertSame('job-uuid-1', $adviesSaves[0]['object']['dataExchangeJobId']);
-
-	}//end testSendToRodCreatesAndLinksJob()
+		self::assertCount(1, $this->saved);
+		self::assertSame('school-advies', $this->saved[0]['schema']);
+		self::assertSame('job-3', $this->saved[0]['object']['dataExchangeJobId']);
+		self::assertSame('sa-1', $this->saved[0]['uuid']);
+	}//end testSendToRodAsksIntegriqAndLinksTheJob()
 
 	/**
-	 * A transition to a different state (e.g. vaststellenDefinitief) is ignored.
+	 * A refused request stamps nothing and throws nothing.
 	 *
 	 * @return void
 	 */
-	public function testIgnoresTransitionsNotTargetingVerzondenNaarRod(): void {
-		$adviesData = ['id' => 'advies-2', 'learnerId' => 'learner-008', 'tenant_id' => 'tenant-a'];
+	public function testARefusedRequestStampsNothing(): void {
+		$handler = $this->makeHandler();
+		$this->integriq->method('requestJob')->willThrowException(new ExchangeRequestRefusedException('store-failed', 'No.'));
 
-		$objectEntity = $this->createMock(ObjectEntity::class);
-		$objectEntity->method('jsonSerialize')->willReturn($adviesData);
+		$handler->handle($this->event(['id' => 'sa-1', 'learnerId' => 'pupil-1']));
 
-		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('learniq');
-		$event->method('getSchema')->willReturn('school-advies');
-		$event->method('getAction')->willReturn('vaststellenDefinitief');
-		$event->method('getTo')->willReturn('definitief');
-
-		$handler = $this->makeHandler(savedJobId: 'job-uuid-2');
-		$handler->handle($event);
-
-		self::assertCount(0, $this->savedObjects);
-
-	}//end testIgnoresTransitionsNotTargetingVerzondenNaarRod()
+		self::assertSame([], $this->saved);
+	}//end testARefusedRequestStampsNothing()
 
 	/**
-	 * A SchoolAdvies with no learnerId is skipped defensively — no job is queued.
+	 * Other states and an advice without a learner are left alone.
 	 *
 	 * @return void
 	 */
-	public function testDoesNothingWhenSchoolAdviesHasNoLearnerId(): void {
-		$adviesData = ['id' => 'advies-3', 'tenant_id' => 'tenant-a'];
+	public function testIgnoresOtherStatesAndAnAdviceWithoutALearner(): void {
+		$handler = $this->makeHandler();
+		$this->integriq->expects($this->never())->method('requestJob');
 
-		$handler = $this->makeHandler(savedJobId: 'job-uuid-3');
-		$handler->handle($this->makeEvent($adviesData));
+		$handler->handle($this->event(['id' => 'sa-1', 'learnerId' => 'pupil-1'], 'definitief'));
+		$handler->handle($this->event(['id' => 'sa-1']));
 
-		self::assertCount(0, $this->savedObjects);
-
-	}//end testDoesNothingWhenSchoolAdviesHasNoLearnerId()
-
-	/**
-	 * When the DataExchangeJob save returns no resolvable id, the handler
-	 * logs and stops without touching the SchoolAdvies.
-	 *
-	 * @return void
-	 */
-	public function testStopsWithoutStampingWhenJobSaveReturnsNoId(): void {
-		$adviesData = [
-			'id' => 'advies-4',
-			'learnerId' => 'learner-010',
-			'tenant_id' => 'tenant-a',
-		];
-
-		$handler = $this->makeHandler(savedJobId: null, existingSchoolAdvies: $adviesData);
-		$handler->handle($this->makeEvent($adviesData));
-
-		$jobSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'data-exchange-job'));
-		self::assertCount(1, $jobSaves);
-
-		$adviesSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'school-advies'));
-		self::assertCount(0, $adviesSaves);
-
-	}//end testStopsWithoutStampingWhenJobSaveReturnsNoId()
+		self::assertSame([], $this->saved);
+	}//end testIgnoresOtherStatesAndAnAdviceWithoutALearner()
 }//end class

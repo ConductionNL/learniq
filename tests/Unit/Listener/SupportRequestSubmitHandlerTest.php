@@ -3,12 +3,9 @@
 /**
  * Learniq SupportRequestSubmitHandler unit tests.
  *
- * Covers the `zorgvraag-swv-tlv-chain` change: submitting a SupportRequest
- * auto-queues a DataExchangeJob (target: swv, scope.schema: support-request),
- * stamps the job id back onto the SupportRequest, and advances the job into
- * pending-parent-review — the same gate the existing OSO overstapdossier flow
- * uses (learning-plan spec "SWV routing reuses DataExchangeJob and the
- * existing pending-parent-review gate").
+ * Since data-exchange-to-integriq a submitted SupportRequest asks integriq for
+ * an swv exchange job, stamps its id on the request, and opens a pending
+ * DossierReview the exchange gate waits for. No DataExchangeJob is written.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Listener
@@ -23,292 +20,138 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-6.1
- * @spec openspec/changes/zorgvraag-swv-tlv-chain/specs/learning-plan/spec.md#requirement-swv-routing-reuses-dataexchangejob-and-the-existing-pending-parent-review-gate
+ * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Exception\IntegriqUnavailableException;
+use OCA\Learniq\Listener\SupportRequestSubmitHandler;
+use OCA\Learniq\Service\IntegriqExchangeClient;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
-use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Listener\SupportRequestSubmitHandler;
-use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
+use OCP\IAppConfig;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
 /**
- * Tests for SupportRequestSubmitHandler::handle() on SupportRequest → submitted.
+ * Tests for SupportRequestSubmitHandler.
  */
 class SupportRequestSubmitHandlerTest extends TestCase {
 
 	/**
 	 * Recorded saveObject() calls.
 	 *
-	 * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
+	 * @var array<int, array{schema: string, object: array<string, mixed>, uuid: mixed}>
 	 */
-	private array $savedObjects = [];
+	private array $saved = [];
 
 	/**
-	 * Recorded transition() calls.
+	 * The integriq client double.
 	 *
-	 * @var array<int, array{objectId: string, action: string}>
+	 * @var IntegriqExchangeClient&MockObject
 	 */
-	private array $transitions = [];
+	private $integriq;
 
 	/**
-	 * Reset capture buffers before each test.
-	 *
-	 * @return void
-	 */
-	protected function setUp(): void {
-		parent::setUp();
-		$this->savedObjects = [];
-		$this->transitions = [];
-
-	}//end setUp()
-
-	/**
-	 * Build a handler with stubbed collaborators.
-	 *
-	 * @param string|null $savedJobId UUID to return for the DataExchangeJob save, or null to
-	 *                                simulate a save that yields no id. OpenRegister's
-	 *                                `saveObject(): ObjectEntity` is non-nullable, so the
-	 *                                failure mode is an entity without an id, not a null.
-	 * @param array<string,mixed>|null $mappingProfile DataMappingProfile row to resolve for target=swv, or
-	 *                                                 null when none is configured.
-	 * @param array<string,mixed>|null $existingSupportRequest The SupportRequest row findAll() returns when the
-	 *                                                         handler looks it up to stamp dataExchangeJobId back on.
+	 * Build the handler.
 	 *
 	 * @return SupportRequestSubmitHandler
 	 */
-	private function makeHandler(
-		?string $savedJobId,
-		?array $mappingProfile = null,
-		?array $existingSupportRequest = null,
-	): SupportRequestSubmitHandler {
+	private function makeHandler(): SupportRequestSubmitHandler {
+		$this->saved = [];
 		$objectService = $this->createMock(ObjectService::class);
-
-		$objectService->method('findAll')->willReturnCallback(
-			function (array $config) use ($mappingProfile, $existingSupportRequest): array {
-				$schema = $config['filters']['schema'] ?? '';
-
-				if ($schema === 'data-mapping-profile') {
-					return $mappingProfile === null ? [] : [$mappingProfile];
-				}
-
-				if ($schema === 'support-request') {
-					return $existingSupportRequest === null ? [] : [$existingSupportRequest];
-				}
-
-				return [];
-			}
-		);
-
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) use ($savedJobId): ObjectEntity {
-				$schema = (string)$schema;
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null): ObjectEntity {
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
-				$this->savedObjects[] = [
-					'register' => (string)$register,
-					'schema' => $schema,
-					'object' => $data,
-				];
-
-				if ($schema === 'data-exchange-job') {
-					if ($savedJobId === null) {
-						$idless = $data;
-						unset($idless['id'], $idless['uuid']);
-						return OrEntityFactory::make($idless, $schema, (string)$register);
-					}
-
-					return OrEntityFactory::make(array_merge($data, ['id' => $savedJobId]), $schema, (string)$register);
-				}
-
-				return OrEntityFactory::make($data, $schema, (string)$register);
+				$this->saved[] = ['schema' => (string)$schema, 'object' => $data, 'uuid' => $uuid];
+				return OrEntityFactory::make($data, (string)$schema);
 			}
 		);
 
-		$transitionEngine = $this->createMock(TransitionEngine::class);
-		$transitionEngine->method('transition')->willReturnCallback(
-			function (string $objectId, string $action): ObjectEntity {
-				$this->transitions[] = ['objectId' => $objectId, 'action' => $action];
-				return OrEntityFactory::make(['id' => $objectId], 'data-exchange-job');
-			}
-		);
+		$this->integriq = $this->createMock(IntegriqExchangeClient::class);
+		$config = $this->createMock(IAppConfig::class);
+		$config->method('getValueString')->willReturn('swv-kindkans');
 
-		return new SupportRequestSubmitHandler($objectService, $transitionEngine, new NullLogger());
+		return new SupportRequestSubmitHandler($objectService, $this->integriq, $config, new NullLogger());
 	}//end makeHandler()
 
 	/**
-	 * Build a mocked ObjectTransitionedEvent for a SupportRequest → submitted transition.
+	 * A transition event for a support request.
 	 *
-	 * @param array<string,mixed> $requestData The SupportRequest's jsonSerialize() payload.
+	 * @param array<string, mixed> $request The request data.
+	 * @param string               $to      The target state.
+	 * @param string               $schema  The schema slug.
 	 *
 	 * @return ObjectTransitionedEvent
 	 */
-	private function makeEvent(array $requestData): ObjectTransitionedEvent {
-		$objectEntity = $this->createMock(ObjectEntity::class);
-		$objectEntity->method('jsonSerialize')->willReturn($requestData);
-
-		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('learniq');
-		$event->method('getSchema')->willReturn('support-request');
-		$event->method('getTo')->willReturn('submitted');
-		$event->method('getFrom')->willReturn('draft');
-
-		return $event;
-	}//end makeEvent()
+	private function event(array $request, string $to = 'submitted', string $schema = 'support-request'): ObjectTransitionedEvent {
+		return new ObjectTransitionedEvent(OrEntityFactory::make($request, $schema), 'submit', 'draft', $to, 'coordinator-1', 'learniq', $schema);
+	}//end event()
 
 	/**
-	 * Submitting a SupportRequest queues a DataExchangeJob (target: swv,
-	 * scope.schema: support-request), stamps dataExchangeJobId back onto the
-	 * request, and advances the job into pending-parent-review.
+	 * A submitted request asks integriq for the swv job, stamps it, and opens the review.
 	 *
 	 * @return void
-	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/specs/learning-plan/spec.md#scenario-submitting-a-supportrequest-queues-a-gated-swv-dossier-job
 	 */
-	public function testSubmittedRequestQueuesSwvJobAndAdvancesToPendingParentReview(): void {
-		$handler = $this->makeHandler(
-			savedJobId: 'job-1',
-			mappingProfile: ['id' => 'profile-1', 'target' => 'swv'],
-			existingSupportRequest: ['id' => 'sr-1', 'learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']
+	public function testASubmittedRequestAsksIntegriqAndOpensTheParentReview(): void {
+		$handler = $this->makeHandler();
+		$this->integriq->expects($this->once())->method('requestJob')->with(
+			'swv',
+			'export',
+			'support-request/sr-1',
+			['schema' => 'support-request', 'recordIds' => ['sr-1'], 'tenantId' => 't1', 'receiverId' => 'swv-kindkans'],
+			'learniq-swv-export-zorgvraag',
+			'coordinator-1'
+		)->willReturn('job-5');
+
+		$handler->handle($this->event(['id' => 'sr-1', 'learnerId' => 'pupil-1', 'raisedBy' => 'coordinator-1', 'tenant_id' => 't1']));
+
+		self::assertCount(2, $this->saved);
+		self::assertSame('support-request', $this->saved[0]['schema']);
+		self::assertSame('job-5', $this->saved[0]['object']['dataExchangeJobId']);
+		self::assertSame('sr-1', $this->saved[0]['uuid']);
+		self::assertSame('dossier-review', $this->saved[1]['schema']);
+		self::assertSame(
+			['exchangeJobId' => 'job-5', 'target' => 'swv', 'learnerUserId' => 'pupil-1', 'status' => 'pending', 'tenant_id' => 't1'],
+			$this->saved[1]['object']
 		);
-
-		$supportRequest = [
-			'id' => 'sr-1',
-			'learnerId' => 'learner-1',
-			'raisedBy' => 'coordinator-1',
-			'tenant_id' => 'tenant-a',
-			'lifecycle' => 'submitted',
-		];
-
-		$handler->handle($this->makeEvent($supportRequest));
-
-		$jobSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'data-exchange-job'));
-		self::assertCount(1, $jobSaves);
-		self::assertSame('swv', $jobSaves[0]['object']['target']);
-		self::assertSame('support-request', $jobSaves[0]['object']['scope']['schema']);
-		self::assertSame('learner-1', $jobSaves[0]['object']['scope']['filters']['learnerId']);
-		self::assertSame('sr-1', $jobSaves[0]['object']['scope']['filters']['supportRequestId']);
-		self::assertSame('profile-1', $jobSaves[0]['object']['mappingProfileId']);
-		self::assertSame('coordinator-1', $jobSaves[0]['object']['requestedBy']);
-		self::assertSame('queued', $jobSaves[0]['object']['lifecycle']);
-
-		$requestSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'support-request'));
-		self::assertCount(1, $requestSaves);
-		self::assertSame('job-1', $requestSaves[0]['object']['dataExchangeJobId']);
-
-		self::assertCount(1, $this->transitions);
-		self::assertSame('job-1', $this->transitions[0]['objectId']);
-		self::assertSame('pendingParentReview', $this->transitions[0]['action']);
-
-	}//end testSubmittedRequestQueuesSwvJobAndAdvancesToPendingParentReview()
+	}//end testASubmittedRequestAsksIntegriqAndOpensTheParentReview()
 
 	/**
-	 * No active swv DataMappingProfile is configured — the job is still queued
-	 * (mappingProfileId null), fail-closed enforcement happens later at
-	 * buildPayload() time via MANDATORY_PROFILE_TARGETS, not here.
+	 * Integriq absent: no job id stored and no review opened, and nothing thrown.
 	 *
 	 * @return void
 	 */
-	public function testQueuesJobWithNullMappingProfileIdWhenNoneConfigured(): void {
-		$handler = $this->makeHandler(
-			savedJobId: 'job-2',
-			mappingProfile: null,
-			existingSupportRequest: ['id' => 'sr-2', 'learnerId' => 'learner-2', 'tenant_id' => 'tenant-a']
-		);
+	public function testIntegriqIsAbsent(): void {
+		$handler = $this->makeHandler();
+		$this->integriq->method('requestJob')->willThrowException(new IntegriqUnavailableException('Integriq is not installed.'));
 
-		$supportRequest = [
-			'id' => 'sr-2',
-			'learnerId' => 'learner-2',
-			'raisedBy' => 'coordinator-2',
-			'tenant_id' => 'tenant-a',
-		];
+		$handler->handle($this->event(['id' => 'sr-1', 'learnerId' => 'pupil-1', 'tenant_id' => 't1']));
 
-		$handler->handle($this->makeEvent($supportRequest));
-
-		$jobSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'data-exchange-job'));
-		self::assertCount(1, $jobSaves);
-		self::assertNull($jobSaves[0]['object']['mappingProfileId']);
-
-	}//end testQueuesJobWithNullMappingProfileIdWhenNoneConfigured()
+		self::assertSame([], $this->saved);
+	}//end testIntegriqIsAbsent()
 
 	/**
-	 * A SupportRequest with no learnerId is skipped — no DataExchangeJob queued.
+	 * Other states, other schemas, other events and a request without a learner are left alone.
 	 *
 	 * @return void
 	 */
-	public function testMissingLearnerIdSkips(): void {
-		$handler = $this->makeHandler(savedJobId: 'job-3');
+	public function testIgnoresEverythingElse(): void {
+		$handler = $this->makeHandler();
+		$this->integriq->expects($this->never())->method('requestJob');
 
-		$supportRequest = ['id' => 'sr-3', 'raisedBy' => 'coordinator-1', 'tenant_id' => 'tenant-a'];
+		$handler->handle(new Event());
+		$handler->handle($this->event(['id' => 'sr-1', 'learnerId' => 'pupil-1'], 'routed-to-swv'));
+		$handler->handle($this->event(['id' => 'sr-1', 'learnerId' => 'pupil-1'], 'submitted', 'learning-plan'));
+		$handler->handle($this->event(['id' => 'sr-1']));
 
-		$handler->handle($this->makeEvent($supportRequest));
-
-		self::assertCount(0, $this->savedObjects);
-		self::assertCount(0, $this->transitions);
-
-	}//end testMissingLearnerIdSkips()
-
-	/**
-	 * A non-SupportRequest event (wrong schema) is ignored.
-	 *
-	 * @return void
-	 */
-	public function testWrongSchemaIgnored(): void {
-		$handler = $this->makeHandler(savedJobId: 'job-4');
-
-		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('learniq');
-		$event->method('getSchema')->willReturn('learning-plan');
-		$event->method('getTo')->willReturn('submitted');
-
-		$handler->handle($event);
-
-		self::assertCount(0, $this->savedObjects);
-		self::assertCount(0, $this->transitions);
-
-	}//end testWrongSchemaIgnored()
-
-	/**
-	 * A transition to a state other than `submitted` is ignored.
-	 *
-	 * @return void
-	 */
-	public function testWrongTargetStateIgnored(): void {
-		$handler = $this->makeHandler(savedJobId: 'job-5');
-
-		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('learniq');
-		$event->method('getSchema')->willReturn('support-request');
-		$event->method('getTo')->willReturn('closed');
-
-		$handler->handle($event);
-
-		self::assertCount(0, $this->savedObjects);
-		self::assertCount(0, $this->transitions);
-
-	}//end testWrongTargetStateIgnored()
-
-	/**
-	 * A non-ObjectTransitionedEvent is ignored.
-	 *
-	 * @return void
-	 */
-	public function testNonMatchingEventTypeIgnored(): void {
-		$handler = $this->makeHandler(savedJobId: 'job-6');
-
-		$handler->handle($this->createMock(Event::class));
-
-		self::assertCount(0, $this->savedObjects);
-		self::assertCount(0, $this->transitions);
-
-	}//end testNonMatchingEventTypeIgnored()
+		self::assertSame([], $this->saved);
+	}//end testIgnoresEverythingElse()
 }//end class

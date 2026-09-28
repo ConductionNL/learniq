@@ -49,9 +49,10 @@ const ROUTES: { name: string; path: string }[] = [
 	{ name: 'CredentialVerify', path: '/credentials/test-id/verify' },
 	{ name: 'LearnerHome', path: '/learner' },
 	// @e2e data-exchange::data-exchange-page-remains-routable-via-deep-link
-	// Nav entry moved to Admin Settings (relocate-dataexchange-remove-assistant); pages stay routable.
-	{ name: 'DataExchangeJobs', path: '/data-exchange/jobs' },
-	{ name: 'DataMappingProfiles', path: '/data-exchange/mapping-profiles' },
+	// data-exchange-to-integriq: the status panel over integriq's jobs plus the gate pages.
+	{ name: 'ExchangeJobs', path: '/data-exchange/jobs' },
+	{ name: 'DossierReviews', path: '/data-exchange/parent-reviews' },
+	{ name: 'TeldatumChecks', path: '/data-exchange/teldatum-checks' },
 ]
 
 test.describe('Learniq page routes', () => {

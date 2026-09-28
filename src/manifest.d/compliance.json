@@ -224,14 +224,11 @@
 			"id": "PartnerApprovalJobs",
 			"route": "/compliance/partner-approvals",
 			"type": "index",
-			"title": "Partner integration approvals",
+			"title": "Partner approvals",
 			"config": {
 				"register": "learniq",
-				"schema": "data-exchange-job",
-				"filter": {
-					"requiresPartnerApproval": true
-				},
-				"_note": "privacy-governance-surfaces P-new-7 (\"Koppelingsgegevens inzien\"): the small consent-register index placement.md calls for — every DataExchangeJob target that opted into standing partner approval, with its partnerApprovalStatus and dataSharedFields visible at a glance. Approving/rejecting is done by editing the job's own partnerApprovalStatus field via the generic detail page (DataExchangeJobDetail, data-exchange.json), not a bespoke action here."
+				"schema": "exchange-partner-approval",
+				"_note": "privacy-governance-surfaces P-new-7 (\"Koppelingsgegevens inzien\"): every standing partner link per data exchange target, with its status and shared fields. Since data-exchange-to-integriq each row is an ExchangePartnerApproval with its own approve and reject lifecycle (detail page PartnerApprovalDetail), and learniq's exchange gate reads it before integriq runs a job."
 			}
 		},
 		{

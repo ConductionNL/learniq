@@ -35,8 +35,8 @@
  * expression. The same exception class as ConferenceScheduleGenerator.
  *
  * Invoked by SessionConflictListener (OR-event-driven, on Session
- * create/update) and by TimetableImportHandler (batch, once a
- * timetable-import DataExchangeJob succeeds).
+ * create/update) and by PlanninqTimetableImport (batch, once planninq
+ * took a timetable delivery, requested through TimetableImportController).
  *
  * @category Service
  * @package  OCA\Learniq\Timetabling

@@ -273,7 +273,7 @@ class ConnectionsDeclarationTest extends TestCase {
 		}
 
 		$this->assertSame(
-			expected: ['data-exchange', 'timetable', 'lti', 'sbb', 'proctoring', 'plagiarism'],
+			expected: ['timetable', 'lti', 'sbb', 'proctoring', 'plagiarism'],
 			actual: $unavailable
 		);
 	}//end testEveryUnavailableConnectionSaysWhy()
@@ -289,10 +289,6 @@ class ConnectionsDeclarationTest extends TestCase {
 	public function testTheUnavailableMessagesNameTheCalledPaths(): void {
 		$byKey = $this->connectionsByKey();
 		$calls = [
-			'data-exchange' => ['lib/Listener/DataExchangeRunHandler.php', "'/apps/openconnector/api/sources/%s/run'", 'api/sources/[target]/run'],
-			// The call moved out of TimetableImportHandler when that handler gained its
-			// planninq path (sessions-from-planninq); a school without planninq still makes it.
-			'timetable' => ['lib/Timetabling/TimetableConnectorClient.php', "'api/sources/%s/run'", 'api/sources/timetable-import/run'],
 			'lti' => [
 				'lib/Controller/LtiToolPlacementController.php',
 				"'/apps/openconnector/api/lti/deployments/%s/launch'",
@@ -306,6 +302,21 @@ class ConnectionsDeclarationTest extends TestCase {
 			$this->assertStringContainsString(needle: $named, haystack: (string)$byKey[$key]['unavailableMessage'], message: $key);
 		}
 	}//end testTheUnavailableMessagesNameTheCalledPaths()
+
+	/**
+	 * Data exchange runs through integriq's events, not a route learniq calls
+	 * (data-exchange-to-integriq); the timetable is planninq's (D10).
+	 *
+	 * @return void
+	 */
+	public function testDataExchangeRunsThroughIntegriqAndTheTimetableIsPlanninqs(): void {
+		$byKey = $this->connectionsByKey();
+
+		$this->assertTrue($byKey['data-exchange']['available']);
+		$client = (string)file_get_contents($this->root() . '/lib/Service/IntegriqExchangeClient.php');
+		$this->assertStringContainsString(needle: 'OCA\\\\Integriq\\\\Event\\\\ExchangeJobRequestedEvent', haystack: $client);
+		$this->assertStringContainsString(needle: 'planninq', haystack: (string)$byKey['timetable']['unavailableMessage']);
+	}//end testDataExchangeRunsThroughIntegriqAndTheTimetableIsPlanninqs()
 
 	/**
 	 * Payments need the shillinq administration the raise sends.

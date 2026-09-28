@@ -235,6 +235,14 @@ return [
         // partner-approval status (privacy-governance-surfaces, P-new-6/
         // P-new-7). Controller: PrivacyGovernanceController (slug: privacyGovernance).
         ['name' => 'privacyGovernance#overview', 'url' => '/api/privacy-governance/overview', 'verb' => 'GET'],
+        // data-exchange-to-integriq: learniq's exchange gate decision for people (the
+        // in-process binding is ExchangeGateListener) and the export request screen,
+        // which asks integriq for a job through learniq.
+        ['name' => 'exchangeGate#show', 'url' => '/api/exchange-gates/{jobId}', 'verb' => 'GET'],
+        ['name' => 'exchangeRequest#create', 'url' => '/api/exchange/requests', 'verb' => 'POST'],
+        // D10 + data-exchange-to-integriq: a timetable import is a delivery into planninq, asked
+        // through integriq's RosterImportRequestedEvent. Controller: TimetableImportController.
+        ['name' => 'timetableImport#create', 'url' => '/api/timetable/imports', 'verb' => 'POST'],
 
         // Raise a FeeItem's contributions in shillinq (payments-to-shillinq-migration,
         // D19; shillinq contract extracurricular-fee-to-shillinq v1). #[NoAdminRequired]

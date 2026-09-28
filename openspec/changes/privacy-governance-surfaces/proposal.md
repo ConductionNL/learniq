@@ -4,6 +4,8 @@ kind: code
 
 # Proposal: privacy-governance-surfaces
 
+> Superseded in part by data-exchange-to-integriq (decision D7, 2026-09-28): the partner approval left DataExchangeJob for its own ExchangePartnerApproval record, which learniq's exchange gate reads. See `openspec/changes/data-exchange-to-integriq/`.
+
 ## Summary
 Learniq's compliance surface (`src/views/LearniqSettings.vue` section 4) links out to OpenRegister's per-subject extract and processing log, but has no place to record the school's own AVG governance artefacts and no workflow for the two AVG rights it does not yet serve. Three gaps, evidenced against 12 competitors (kindkans, onderwijs-transparant, ldos, top-dossier, parentcom and others) and ParnasSys's own live product: (1) **15.5** — zero hits for a Privacyconvenant verwerkersovereenkomst or a privacybijsluiter anywhere in the app, while every named competitor publishes both (kindkans/onderwijs-transparant/ldos all list themselves on the Privacyconvenant deelnemers register); (2) **15.3** — the extract and processing-log links exist, but there is no correction or deletion request workflow, so two of the four AVG rights (correctie, deletion) are undocumented and untracked; (3) **P-new-6/P-new-7** — ParnasSys ships a board-level Privacybasis dashboard (2FA use, groepsautorisatie, roles, koppelingen) and a per-koppeling approval/visibility flow ("Beoordeel koppelverzoek", "Koppelingsgegevens inzien"); Learniq has neither a board-facing governance view nor any per-partner approval gate on `DataExchangeJob`, so a data-exchange partner link goes live without anyone at the school having approved it or being able to see what it pulls.
 

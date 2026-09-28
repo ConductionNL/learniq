@@ -32,8 +32,9 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
 /**
- * Tests for MunicipalityFeedbackGuard::check() — the DataExchangeJob
- * recordMunicipalityFeedback (succeeded → succeeded) self-loop transition.
+ * Tests for MunicipalityFeedbackGuard::check() — the AttendanceFlag
+ * recordMunicipalityFeedback (reported → reported) self-loop transition
+ * (moved off DataExchangeJob by data-exchange-to-integriq).
  */
 class MunicipalityFeedbackGuardTest extends TestCase {
 	/**
@@ -61,18 +62,17 @@ class MunicipalityFeedbackGuardTest extends TestCase {
 	}//end makeGuard()
 
 	/**
-	 * The job as the guard would see it: lifecycle stays `succeeded` (a
+	 * The flag as the guard would see it: lifecycle stays `reported` (a
 	 * self-loop) and the `municipalityFeedback` input is merged in.
 	 *
-	 * @param string $target The job's target.
+	 * @param string $lifecycle The flag's state.
 	 *
 	 * @return array<string,mixed>
 	 */
-	private function job(string $target = 'leerplicht'): array {
+	private function job(string $lifecycle = 'reported'): array {
 		return [
-			'id' => 'job-1',
-			'target' => $target,
-			'lifecycle' => 'succeeded',
+			'id' => 'flag-1',
+			'lifecycle' => $lifecycle,
 			'municipalityFeedback' => ['masRoute' => 'jeugdhulp', 'note' => 'Route toegewezen.'],
 		];
 	}//end job()
@@ -123,12 +123,12 @@ class MunicipalityFeedbackGuardTest extends TestCase {
 	}//end testUnauthorisedActorIsDenied()
 
 	/**
-	 * A job that is not a leerplicht report is denied.
+	 * A flag that is not reported yet is denied.
 	 *
 	 * @return void
 	 */
 	public function testNonLeerplichtTargetIsDenied(): void {
-		self::assertFalse($this->makeGuard(['coordinators'])->check($this->job('oso'), 'recordMunicipalityFeedback', 'actor-1')->isAllowed());
+		self::assertFalse($this->makeGuard(['coordinators'])->check($this->job('in-handling'), 'recordMunicipalityFeedback', 'actor-1')->isAllowed());
 
 	}//end testNonLeerplichtTargetIsDenied()
 

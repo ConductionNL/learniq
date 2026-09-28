@@ -38,16 +38,17 @@ use OCA\Learniq\Lifecycle\RolloverExecutionHandler;
 use OCA\Learniq\Listener\BpvLeerbedrijfVerificationHandler;
 use OCA\Learniq\Listener\BsaProgressFlagHandler;
 use OCA\Learniq\Listener\CompetencyAttainmentRollupHandler;
-use OCA\Learniq\Listener\DataExchangeRunHandler;
+use OCA\Learniq\Listener\ExchangeGateListener;
+use OCA\Learniq\Listener\ExchangeJobConcludedListener;
 use OCA\Learniq\Listener\FraudCaseDecisionHandler;
 use OCA\Learniq\Listener\LearnerMergeHandler;
-use OCA\Learniq\Listener\RejectionMappingHandler;
 use OCA\Learniq\Listener\SupportRequestSubmitHandler;
-use OCA\Learniq\Timetabling\TimetableImportHandler;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 /**
  * Wires the data-exchange, case-handling and study-progress bridges.
+ *
+ * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
  */
 class CaseListenerRegistrar {
 	/**
@@ -66,60 +67,32 @@ class CaseListenerRegistrar {
 	}//end register()
 
 	/**
-	 * Register the DataExchangeJob run/answer listeners.
+	 * Register the data exchange listeners (data-exchange-to-integriq).
 	 *
 	 * @param IRegistrationContext $context Nextcloud registration context.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	private function registerDataExchangeListeners(IRegistrationContext $context): void {
-		// ADR-031 legitimate exception: DataExchangeJob lifecycle → running bridge.
-		// When a DataExchangeJob transitions to `running`, the handler loads the
-		// DataMappingProfile, queries source objects, applies field transforms
-		// (bsn-to-pseudonym using eckId, date-iso8601, cohort-to-brin), and delegates
-		// to OpenConnector via REST API. No wire protocols are implemented in Learniq;
-		// all Edukoppeling/StUF/OSO-XML/Digikoppeling/SAML logic lives in OpenConnector.
+		// ADR-041: integriq asks learniq's gate before an exchange job owned by
+		// learniq runs, and tells learniq when the job ends. Registered by class
+		// name, so without integriq nothing is ever dispatched to them.
 		$context->registerEventListener(
-			event: ObjectTransitionedEvent::class,
-			listener: DataExchangeRunHandler::class
+			event: ExchangeGateListener::GATE_EVENT,
+			listener: ExchangeGateListener::class
+		);
+		$context->registerEventListener(
+			event: ExchangeJobConcludedListener::CONCLUDED_EVENT,
+			listener: ExchangeJobConcludedListener::class
 		);
 
-		// ADR-031 legitimate exception: DataExchangeJob lifecycle →
-		// succeeded/partial/failed bridge (duo-afkeurmelding-correction). When a
-		// job finishes, this handler walks result.validationReport and either
-		// creates ExchangeRejection rows (first pass) or updates rejections
-		// referencing this job as their resubmittedJobId (resubmission-outcome
-		// pass) — see RejectionMappingHandler's own docblock.
-		$context->registerEventListener(
-			event: ObjectTransitionedEvent::class,
-			listener: RejectionMappingHandler::class
-		);
-
-		// ADR-031 legitimate exception: SupportRequest `submit` transition → auto-queue
-		// the SWV zorgvraag DataExchangeJob bridge. Mirrors AttendanceFlagCreationHandler's
-		// "queue a DataExchangeJob on this trigger" shape. Creates a DataExchangeJob
-		// (target: swv, scope.schema: support-request) in `queued`, advances it into
-		// `pending-parent-review` via TransitionEngine, and stamps the job id back onto
-		// the SupportRequest. Composition of the OSO-format dossier itself is handled by
-		// DataExchangeRunHandler's target switch when the job later transitions to
-		// `running` — this listener only creates and queues it.
+		// ADR-031 legitimate exception: SupportRequest `submit` -> ask integriq for
+		// the SWV exchange job and open the parents' DossierReview.
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: SupportRequestSubmitHandler::class
-		);
-
-		// ADR-031 legitimate exception (timetabling-and-substitution):
-		// DataExchangeJob lifecycle -> running bridge, filtered to target:
-		// timetable-import (DataExchangeRunHandler bails out for this target
-		// — see its own handle()). Pulls a generated timetable from
-		// OpenConnector and idempotently upserts Session objects by
-		// externalRef, then triggers TimetableConflictDetector's batch scan.
-		// No Zermelo/Untis/Xedule wire protocol is implemented in Learniq.
-		$context->registerEventListener(
-			event: ObjectTransitionedEvent::class,
-			listener: TimetableImportHandler::class
 		);
 
 	}//end registerDataExchangeListeners()

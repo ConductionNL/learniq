@@ -64,7 +64,8 @@ class OsoImportDossierRegisterTest extends TestCase {
 		);
 
 		$props = $schema['properties'];
-		self::assertSame('DataExchangeJob', $props['dataExchangeJobId']['$ref']);
+		// data-exchange-to-integriq: the job lives in integriq, so the id is a plain uuid.
+		self::assertArrayNotHasKey('$ref', $props['dataExchangeJobId']);
 
 	}//end testRequiredFields()
 
@@ -147,70 +148,6 @@ class OsoImportDossierRegisterTest extends TestCase {
 		self::assertSame('coordinator', $anyOf[1]['role']);
 
 	}//end testRbacReadAdminCoordinatorOnly()
-
-	/**
-	 * DataExchangeJob.target's description now documents the oso inbound
-	 * direction.
-	 *
-	 * @return void
-	 */
-	public function testDataExchangeJobTargetDescribesOsoImport(): void {
-		$prop = $this->config['components']['schemas']['DataExchangeJob']['properties']['target'];
-
-		self::assertStringContainsString('OsoImportDossier', $prop['description']);
-
-	}//end testDataExchangeJobTargetDescribesOsoImport()
-
-	/**
-	 * The oso (direction: import) DataMappingProfile seed maps the sending
-	 * school's identity fields.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/oso-inbound-contract/specs/data-exchange/spec.md#scenario-the-oso-import-mapping-profile-declares-the-sending-schools-identity-fields
-	 */
-	public function testOsoImportMappingProfileSeedShape(): void {
-		$seed = $this->config['components']['schemas']['DataMappingProfile']['x-openregister-seed'];
-
-		$profile = null;
-		foreach ($seed as $entry) {
-			if ($entry['target'] === 'oso' && $entry['direction'] === 'import') {
-				$profile = $entry;
-				break;
-			}
-		}
-
-		self::assertNotNull($profile, 'oso (direction: import) DataMappingProfile seed must exist');
-		self::assertSame('oso-import-dossier', $profile['sourceSchema']);
-
-		$mappedFields = array_column($profile['fieldMappings'], 'scholiqField');
-		self::assertContains('learnerEckId', $mappedFields);
-		self::assertContains('sourceSchoolBrin', $mappedFields);
-
-	}//end testOsoImportMappingProfileSeedShape()
-
-	/**
-	 * The existing oso EXPORT seed (direction: export, PO→VO overstap) is
-	 * untouched by this change.
-	 *
-	 * @return void
-	 */
-	public function testExistingOsoExportSeedUnchanged(): void {
-		$seed = $this->config['components']['schemas']['DataMappingProfile']['x-openregister-seed'];
-
-		$exportProfile = null;
-		foreach ($seed as $entry) {
-			if ($entry['target'] === 'oso' && $entry['direction'] === 'export') {
-				$exportProfile = $entry;
-				break;
-			}
-		}
-
-		self::assertNotNull($exportProfile);
-		self::assertSame('OSO transfer dossier', $exportProfile['name']);
-		self::assertSame('learner-profile', $exportProfile['sourceSchema']);
-
-	}//end testExistingOsoExportSeedUnchanged()
 
 	/**
 	 * Every OsoImportDossier property carries a title and description

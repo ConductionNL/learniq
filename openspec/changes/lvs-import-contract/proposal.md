@@ -3,6 +3,8 @@ kind: code
 depends_on: []
 ---
 
+> Superseded in part by data-exchange-to-integriq (decision D7, 2026-09-28): its `lvs-results` DataExchangeJob target and DataMappingProfile seed moved to integriq (the job tag and the mapping `learniq-lvs-results-import-uwlr`). LvsResult and its verification gate stay here. See `openspec/changes/data-exchange-to-integriq/`.
+
 ## Why
 
 `findings.md#6.5` and `#L-new-1` (legal tier MUST) are the cleanest total-absence rows the round-1 competitor

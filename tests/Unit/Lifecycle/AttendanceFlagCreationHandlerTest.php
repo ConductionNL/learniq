@@ -31,7 +31,9 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Learniq\Exception\IntegriqUnavailableException;
 use OCA\Learniq\Lifecycle\AttendanceFlagCreationHandler;
+use OCA\Learniq\Service\IntegriqExchangeClient;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
@@ -55,6 +57,13 @@ class AttendanceFlagCreationHandlerTest extends TestCase {
 	 * @var array<string, array<int, array<string,mixed>>>
 	 */
 	private array $findAllResults = [];
+
+	/**
+	 * The integriq client double.
+	 *
+	 * @var IntegriqExchangeClient&\PHPUnit\Framework\MockObject\MockObject
+	 */
+	private $integriq;
 
 	/**
 	 * Reset capture buffers before each test.
@@ -83,7 +92,7 @@ class AttendanceFlagCreationHandlerTest extends TestCase {
 					'schema' => (string)$schema,
 					'object' => $data,
 				];
-				return OrEntityFactory::make($data, (string)$schema, (string)$register);
+				return OrEntityFactory::make($data, (string)$schema, (string)$register, 'saved-' . count($this->savedObjects));
 			}
 		);
 		$objectService->method('findAll')->willReturnCallback(
@@ -93,7 +102,9 @@ class AttendanceFlagCreationHandlerTest extends TestCase {
 			}
 		);
 
-		return new AttendanceFlagCreationHandler($objectService, new NullLogger());
+		$this->integriq = $this->createMock(IntegriqExchangeClient::class);
+
+		return new AttendanceFlagCreationHandler($objectService, $this->integriq, new NullLogger());
 
 	}//end makeHandler()
 
@@ -158,6 +169,74 @@ class AttendanceFlagCreationHandlerTest extends TestCase {
 		self::assertSame('open', $flagSaves[0]['object']['lifecycle']);
 
 	}//end testCheckThresholdCreatesAttendanceFlag()
+
+	/**
+	 * A crossing whose threshold names a target asks integriq for the job,
+	 * owned by the saved flag, and stamps the job id on the flag
+	 * (data-exchange-to-integriq).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 */
+	public function testAnAttendanceFlagAsksForALeerplichtReport(): void {
+		$handler = $this->makeHandler();
+		$this->integriq->expects($this->once())->method('requestJob')->with(
+			'leerplicht',
+			'export',
+			'attendance-flag/saved-1',
+			['schema' => 'attendance-flag', 'recordIds' => ['saved-1'], 'tenantId' => 'tenant-a'],
+			'learniq-leerplicht-export-melding'
+		)->willReturn('job-7');
+
+		$handler->handle($this->makeEvent([
+			'id' => 'threshold-1',
+			'cohortId' => 'cohort-1',
+			'tenant_id' => 'tenant-a',
+			'checkedLearnerId' => 'learner-1',
+			'checkedMetricValue' => 18,
+			'checkedWindowStart' => '2026-08-01',
+			'checkedWindowEnd' => '2026-08-28',
+			'checkedBreachingRecordIds' => ['rec-1'],
+			'onCross' => ['dataExchangeTarget' => 'leerplicht'],
+		]));
+
+		$flagSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'attendance-flag'));
+		self::assertCount(2, $flagSaves, 'The flag is saved, then stamped with the job id.');
+		self::assertNull($flagSaves[0]['object']['dataExchangeJobId']);
+		self::assertSame('job-7', $flagSaves[1]['object']['dataExchangeJobId']);
+		self::assertSame([], array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'data-exchange-job'));
+
+	}//end testAnAttendanceFlagAsksForALeerplichtReport()
+
+	/**
+	 * Without integriq the flag is still saved, without a job id.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 */
+	public function testWithoutIntegriqTheFlagStaysWithoutAJob(): void {
+		$handler = $this->makeHandler();
+		$this->integriq->method('requestJob')->willThrowException(new IntegriqUnavailableException('Integriq is not installed.'));
+
+		$handler->handle($this->makeEvent([
+			'id' => 'threshold-1',
+			'cohortId' => 'cohort-1',
+			'tenant_id' => 'tenant-a',
+			'checkedLearnerId' => 'learner-1',
+			'checkedMetricValue' => 18,
+			'checkedWindowStart' => '2026-08-01',
+			'checkedWindowEnd' => '2026-08-28',
+			'checkedBreachingRecordIds' => [],
+			'onCross' => ['dataExchangeTarget' => 'leerplicht'],
+		]));
+
+		$flagSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'attendance-flag'));
+		self::assertCount(1, $flagSaves);
+		self::assertNull($flagSaves[0]['object']['dataExchangeJobId']);
+
+	}//end testWithoutIntegriqTheFlagStaysWithoutAJob()
 
 	/**
 	 * Threshold kinds and the flag kind their crossing must carry; null means

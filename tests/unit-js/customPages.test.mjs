@@ -19,8 +19,9 @@ import {
 	attendanceRows,
 	auditPackUrl,
 	bulkEnrolmentBody,
+	exchangeRequestBody,
+	exchangeRequestUrl,
 	EXCUSE_REASON_KINDS,
-	exportJobBody,
 	gradebookGrid,
 	gradeEntryBody,
 	handInAction,
@@ -137,18 +138,15 @@ test('bulk enrolment skips learners with an open enrolment and fits the schema',
 	)
 })
 
-test('an export request is a valid DataExchangeJob with empty filters dropped', () => {
-	const body = exportJobBody({
+test('an export request names a target and, optionally, one learner', () => {
+	assert.deepEqual(exchangeRequestBody({ target: 'bron-rod', learnerId: '  ' }), {
 		target: 'bron-rod',
-		format: '',
-		filters: { courseId: 'x', cohortId: '' },
-		requestedBy: 'admin',
-		requestedAt: '2026-09-27T10:00:00Z',
-		tenantId: 't',
 	})
-	assertFitsSchema(body, 'DataExchangeJob')
-	assert.deepEqual(body.scope, { filters: { courseId: 'x' } })
-	assert.equal('format' in body, false)
+	assert.deepEqual(exchangeRequestBody({ target: 'oso', learnerId: ' sanne ' }), {
+		target: 'oso',
+		learnerId: 'sanne',
+	})
+	assert.equal(exchangeRequestUrl(), '/apps/learniq/api/exchange/requests')
 	assert.match(
 		auditPackUrl('avg', '2026-01-01', '2026-06-30'),
 		/regulationSlug=avg&dateFrom=2026-01-01&dateTo=2026-06-30$/,

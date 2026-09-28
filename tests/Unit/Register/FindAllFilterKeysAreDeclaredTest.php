@@ -62,8 +62,10 @@ class FindAllFilterKeysAreDeclaredTest extends TestCase {
 
 	/**
 	 * Fewer resolved findAll() calls than this means the scan is not reading lib/.
+	 * Lowered from 150 by data-exchange-to-integriq, which deleted the classes that
+	 * ran learniq's own exchange jobs and rejections (about 15 findAll calls).
 	 */
-	private const MIN_RESOLVED_CALLS = 150;
+	private const MIN_RESOLVED_CALLS = 130;
 
 	/**
 	 * Reads that already filtered on an undeclared property when this test landed.

@@ -43,7 +43,7 @@ import AdmissionsReviewBoard from './views/AdmissionsReviewBoard.vue'
 import AssessmentScoringView from './views/AssessmentScoringView.vue'
 // learniq#947: AttendanceRegisterView, BulkEnrolView, CohortGradebookView,
 // CohortTimetableView, ExportRequestView, LearningPlanEditorView,
-// OsoDossierReviewView, QtiImportView, SignatureView, SubmitExcuseView and
+// QtiImportView, SignatureView, SubmitExcuseView and
 // SubmitWorkView are thin views for the custom pages that named a library
 // component directly and so opened as "This page is empty".
 import AttendanceRegisterView from './views/AttendanceRegisterView.vue'
@@ -144,7 +144,6 @@ import MarkSubmissionView from './views/MarkSubmissionView.vue'
 import MyLearningRecordView from './views/MyLearningRecordView.vue'
 // personal-timetable: the signed-in user's own week view over Session objects.
 import MyTimetable from './views/MyTimetable.vue'
-import OsoDossierReviewView from './views/OsoDossierReviewView.vue'
 import PeerReviewMarkingView from './views/PeerReviewMarkingView.vue'
 import PeopleDashboard from './views/PeopleDashboard.vue'
 // eportfolio: the learner's evidence-picker portfolio builder and the
@@ -237,7 +236,6 @@ export default {
 	CohortTimetableView: page(CohortTimetableView),
 	ExportRequestView: page(ExportRequestView),
 	LearningPlanEditorView: page(LearningPlanEditorView),
-	OsoDossierReviewView: page(OsoDossierReviewView),
 	QtiImportView: page(QtiImportView),
 	SignatureView: page(SignatureView),
 	SubmitExcuseView: page(SubmitExcuseView),

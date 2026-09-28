@@ -3,17 +3,17 @@
 /**
  * Learniq OSO Dossier Review Guard
  *
- * Lifecycle guard for the DataExchangeJob schema's `approveDossier`
- * transition (`pending-parent-review → running`). Verifies that the actor
- * approving the dossier is listed as a parent/guardian of the learner whose
- * data is being transferred.
+ * Lifecycle guard for the DossierReview schema's `approve` and `reject`
+ * transitions. Verifies that the actor deciding on an OSO or SWV file is
+ * listed as a parent of the learner whose data would leave the school.
  *
- * The check reads the `scope.filters.learnerId` (or `scope.cohortId` for
- * cohort-wide OSO exports) from the DataExchangeJob, fetches the learner's
- * `LearnerProfile.parentIds`, and returns true only when the approving actor
- * is among them.
+ * The check reads the review's `learnerUserId`, fetches that learner's
+ * `LearnerProfile.parentIds`, and allows only when the actor is among them.
+ * The exchange gate refuses the integriq job until a review is approved
+ * (data-exchange-to-integriq; before that change this guarded the
+ * DataExchangeJob `approveDossier` transition).
  *
- * Referenced from DataExchangeJob.x-openregister-lifecycle.transitions.approveDossier.requires.
+ * Referenced from DossierReview.x-openregister-lifecycle.transitions.{approve,reject}.requires.
  * OR resolves guards by fully-qualified class name from the schema — no
  * Application.php registration needed.
  *
@@ -34,6 +34,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-17
+ * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-refuses-an-oso-or-swv-file-until-a-parent-approved-it
  */
 
 declare(strict_types=1);
@@ -46,10 +47,12 @@ use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
 /**
- * Guards the DataExchangeJob `pending-parent-review → running` transition.
+ * Guards the DossierReview `pending → approved|rejected` transitions.
  *
  * Only a parent listed in the learner's LearnerProfile.parentIds may approve
  * an OSO dossier for transfer.
+ *
+ * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-refuses-an-oso-or-swv-file-until-a-parent-approved-it
  */
 class OsoDossierReviewGuard implements LifecycleGuardInterface {
 
@@ -99,13 +102,12 @@ class OsoDossierReviewGuard implements LifecycleGuardInterface {
 	}//end check()
 
 	/**
-	 * Allow the `pending-parent-review → running` transition.
+	 * Allow a parent's decision on the review.
 	 *
 	 * Returns true only when the actor in the transition context is listed in
-	 * the learner's LearnerProfile.parentIds. The learnerId is read from the
-	 * job's `scope.filters.learnerId` field. When no learnerId is resolvable
-	 * (e.g. a cohort-wide export), this guard returns false and the transition
-	 * must be triggered via administrative override outside this guard.
+	 * the learner's LearnerProfile.parentIds. The learner is the review's
+	 * `learnerUserId`. Without one (a review opened for a cohort-wide export),
+	 * this guard returns false: such a file needs a review per learner.
 	 *
 	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
 	 * @param string $userId The uid of the caller.
@@ -123,14 +125,13 @@ class OsoDossierReviewGuard implements LifecycleGuardInterface {
 			return false;
 		}
 
-		// Resolve learnerId from scope.filters or scope directly.
-		$scope = $object['scope'] ?? [];
-		$filters = $scope['filters'] ?? [];
-		$learnerId = $filters['learnerId'] ?? ($filters['ncUserId'] ?? '');
+		// The review names the learner's account; a DossierReview is created by
+		// learniq together with the exchange request (data-exchange-to-integriq).
+		$learnerId = (string)($object['learnerUserId'] ?? '');
 
 		if ($learnerId === '') {
 			$this->logger->warning(
-				'[OsoDossierReviewGuard] Job {id}: no learnerId in scope — cannot verify parent.',
+				'[OsoDossierReviewGuard] Review {id}: no learnerUserId — cannot verify parent.',
 				['id' => $object['id'] ?? '?']
 			);
 			return false;
