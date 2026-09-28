@@ -26,7 +26,6 @@ namespace OCA\Learniq\AppInfo;
 use OCA\OpenRegister\AppHost\Bootstrap;
 use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\AppInfo\Registrar\ServiceOverrideRegistrar;
-use OCA\Learniq\Mcp\LearniqToolProvider;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -91,9 +90,10 @@ class Application extends App implements IBootstrap {
 		// observability aliases — every closure is lazy, so a disabled
 		// OpenRegister never fatals Nextcloud bootstrap.
 		//
-		// The MCP provider alias (formerly hand-written here) and the deep-link
-		// listener (formerly bespoke PHP patterns) are handled by Bootstrap from
-		// the `mcpProvider` option + the manifest `deepLinks` block.
+		// The deep-link listener (formerly bespoke PHP patterns) is handled by
+		// Bootstrap from the manifest `deepLinks` block. Learniq registers no MCP
+		// provider: its agent tools are derived by OpenRegister from the
+		// `x-openregister-mcp` blocks in the register (ADR-063).
 		//
 		// LOAD-ORDER PRELUDE (ADR-040). OC_App::getEnabledApps() sort()s the app
 		// list, and Coordinator::registerApps() walks THAT sorted list calling
@@ -124,7 +124,6 @@ class Application extends App implements IBootstrap {
 			[
 				'namespace' => 'OCA\\Learniq',
 				'sectionName' => 'Learniq',
-				'mcpProvider' => LearniqToolProvider::class,
 			]
 		);
 

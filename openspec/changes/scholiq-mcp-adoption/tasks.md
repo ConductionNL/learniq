@@ -1,5 +1,15 @@
 # Tasks: scholiq-mcp-adoption
 
+> **Round 5 (2026-09-28): built.** The app is learniq now, so the provider is `LearniqToolProvider` (+ its
+> `CourseToolPresenter`), the register is `lib/Settings/learniq_register.json` and the tools are `learniq.*`.
+> Two differences from July: `session` is OFF (it gained `affectedLearnerIds` and `substituteTeacherId`), so the
+> surface is five schemas and ten tools; and since D23 every schema has an `authorization` block, so the rule is
+> the staff groups plus a lifecycle-matched `authenticated` entry (no `admin` entry: it is not a declared group,
+> OpenRegister's admin bypass covers it). The remote branch `wip/mcp-adoption` held no commits beyond
+> development, so there was nothing to reuse. There is no `CHANGELOG.md`; `docs/Technical/agent-tools.md` records
+> the migration. Tool catalogue checks against a live OpenRegister were not run (no instance for this lane); the
+> register shape is pinned by `tests/Unit/Register/McpDialectRegisterTest.php`.
+
 ## Implementation Tasks
 
 ### Task 1: Declare the MCP dialect on the 6 curated schemas (must / MVP)
@@ -10,8 +20,8 @@
   - GIVEN the same six schemas WHEN their `search.filters` lists are read THEN every entry is a real property of that schema (per REQ-004's list) and no `create`/`update`/`delete` verb appears anywhere in the file
   - GIVEN the other 60 schemas WHEN the file is grepped for `x-openregister-mcp` THEN exactly 6 occurrences are found
   - GIVEN each edit WHEN `python3 -m json.tool lib/Settings/scholiq_register.json` runs THEN it exits 0 and no pre-existing key is dropped
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 2: Add the `authorization.read` lifecycle gate (must / MVP) — BLOCKS Task 3
 - **spec_ref**: `openspec/specs/mcp-tool-surface/spec.md#requirement-draft-and-archived-content-is-not-readable-by-non-admin-callers-req-005`
@@ -22,8 +32,8 @@
   - GIVEN `session` WHEN edited THEN it carries NO lifecycle match rule (its enum has no draft state)
   - GIVEN a draft course and an authenticated non-admin caller WHEN `scholiq.course.search` runs THEN the draft course is absent; WHEN the same caller runs `scholiq.course.get` on it THEN the read is denied
   - GIVEN an admin caller WHEN `scholiq.course.search` runs THEN the draft course IS returned
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 3: Delete `ScholiqToolProvider` and every trace of it (must / MVP)
 - **spec_ref**: `openspec/specs/mcp-tool-surface/spec.md#requirement-no-hand-written-mcp-tool-code-remains-in-scholiq-req-006`
@@ -34,8 +44,8 @@
   - GIVEN `tests/bootstrap.php` and `tests/bootstrap-unit.php` WHEN read THEN the now-dead `IMcpToolProvider` stub `require_once` guards are removed
   - GIVEN the app is installed WHEN the container is asked for `OCA\OpenRegister\Mcp\IMcpToolProvider::scholiq` THEN no service is registered
   - GIVEN the touched PHP files WHEN scoped PHPCS runs THEN it is clean, and `composer test` shows zero new failures against a self-measured baseline
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 4: Verify the derived surface and record the migration (must / MVP)
 - **spec_ref**: `openspec/specs/mcp-tool-surface/spec.md#requirement-no-learner-personal-data-and-no-exam-content-is-exposed-req-003`
@@ -45,23 +55,23 @@
   - GIVEN the MCP tool catalogue for app id `scholiq` WHEN enumerated THEN it contains exactly 12 tools (`{course,lesson,programme,session,assignment,regulation}.{search,get}`), and `scholiq.listCourses` / `scholiq.getCourseDetails` are ABSENT (no shadow)
   - GIVEN the same catalogue WHEN enumerated THEN it contains no `scholiq.learner-profile.*`, `scholiq.grade-entry.*`, `scholiq.attendance-record.*`, `scholiq.item.*`, `scholiq.assessment.*` or `scholiq.cohort.*` tool
   - GIVEN `CHANGELOG.md` WHEN read THEN it records the ADR-063 migration and the breaking tool-id change (`scholiq.listCourses` → `scholiq.course.search`)
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ## Verification
-- [ ] All tasks checked off
-- [ ] `openspec validate scholiq-mcp-adoption --type change --strict` passes
-- [ ] Manual testing against acceptance criteria (non-admin sees no drafts; admin does)
+- [x] All tasks checked off
+- [x] `openspec validate scholiq-mcp-adoption --type change --strict` passes
+- [ ] Manual testing against acceptance criteria (non-admin sees no drafts; admin does): not run, no instance in this lane
 - [ ] Code review against spec requirements
 
 ## Tests (company-wide ADR-009)
-- [ ] PHPUnit: the deleted `ScholiqToolProviderTest` is removed, not skipped; zero new failures vs a self-measured baseline (`composer test`)
-- [ ] All tests pass
+- [x] PHPUnit: the deleted `ScholiqToolProviderTest` is removed, not skipped; zero new failures vs a self-measured baseline (`composer test`)
+- [x] All tests pass
 - Newman/Postman: N/A — this change adds no HTTP endpoint. The MCP surface is served by OpenRegister's `/api/mcp`, which is covered by openregister's own suite.
 - Browser tests (Playwright MCP): N/A — no UI change. The `authorization` rule does change what a non-admin sees in the course list, which is covered by the manual verification above.
 
 ## Documentation (company-wide ADR-010)
-- [ ] `docs/` records the curated MCP schema set, the read-only posture, and the AVG rationale for the 60 OFF schemas
+- [x] `docs/` records the curated MCP schema set (`docs/Technical/agent-tools.md`), the read-only posture, and the AVG rationale for the 60 OFF schemas
 - Screenshots: N/A — no user-facing UI is added or changed.
 
 ## i18n (company-wide ADR-005)
