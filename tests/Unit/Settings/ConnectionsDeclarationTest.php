@@ -290,7 +290,9 @@ class ConnectionsDeclarationTest extends TestCase {
 		$byKey = $this->connectionsByKey();
 		$calls = [
 			'data-exchange' => ['lib/Listener/DataExchangeRunHandler.php', "'/apps/openconnector/api/sources/%s/run'", 'api/sources/[target]/run'],
-			'timetable' => ['lib/Timetabling/TimetableImportHandler.php', "'api/sources/%s/run'", 'api/sources/timetable-import/run'],
+			// The call moved out of TimetableImportHandler when that handler gained its
+			// planninq path (sessions-from-planninq); a school without planninq still makes it.
+			'timetable' => ['lib/Timetabling/TimetableConnectorClient.php', "'api/sources/%s/run'", 'api/sources/timetable-import/run'],
 			'lti' => [
 				'lib/Controller/LtiToolPlacementController.php',
 				"'/apps/openconnector/api/lti/deployments/%s/launch'",
