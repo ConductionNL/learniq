@@ -9,7 +9,7 @@ actions.seed.json ──(fresh install: GenericInitializeActions)──► matri
                                                                       │
 StoreController::install()  ── requireAction('course-store.install') ─┤
 StoreController::publish()  ── requireAction('course-package.share') ─┤ + plane canPublish (store-publish-through-plane)
-StoreAccessService::forUser() ── can(...) both, + publisher probes ───┘
+StoreAccessService::forCurrentUser() ── can(...) both, + probes ───────┘
         │
 PageController::index() ── initial state `storeAccess` {install, publish}
         │
@@ -48,7 +48,9 @@ idempotency check; the marker gives the same once-only guarantee.
 `StoreAccessService::forUser(IUser)` returns `{install, publish}`: install is
 `ActionAuthService::can(user, 'course-store.install')`; publish is
 `can(user, 'course-package.share')` AND `CourseStorePublisher::supportsPublish()` AND
-`mayPublish(user)`. `PageController` provides it as initial state. The controller
+`mayPublish(user)`. `PageController` provides `forCurrentUser()` (the same answer for
+the session's user, none without one) as initial state; asking the service for the
+session user keeps `PageController` under the class-coupling limit. The controller
 endpoints keep their own checks; the state only decides what to render.
 
 ### D4: The page receives per-user booleans from boot, not from the manifest
@@ -120,13 +122,14 @@ and `NcNoteCard` only; no custom colours.
 ```
 lib/actions.seed.json                                    course-store.install, course-package.share
 lib/Repair/ApplyStoreRightsDefaults.php                   new
-appinfo/info.xml                                          register the repair step
+appinfo/info.xml                                          register the repair step, bump <version> (gate 110)
 lib/Controller/StoreController.php                        ACTION_INSTALL = course-store.install
 lib/Service/CourseStore/StoreAccessService.php            new
 lib/Controller/PageController.php                         initial state storeAccess
 lib/Controller/StoreRegistrySettingsController.php        new
 appinfo/routes.php                                        two admin routes
 src/utils/storeAccess.js                                  new
+src/utils/storeRegistrySettings.js                        new (the endpoint path, shared with its test)
 src/main.js                                               applyStoreAccess()
 src/manifest.json                                         Store config publishRoute
 src/manifest.d/learning.json                              export menu admits team-lead
