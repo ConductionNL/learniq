@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
+ * @spec openspec/changes/archive/2026-09-28-oso-inbound-contract/tasks.md#task-2
  */
 
 declare(strict_types=1);
@@ -103,7 +103,7 @@ class OsoImportRejectGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/oso-inbound-contract/specs/data-exchange/spec.md#scenario-rejecting-without-a-reason-is-refused
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-rejecting-without-a-reason-is-refused
 	 */
 	public function testMissingReasonRefused(): void {
 		$result = $this->makeGuard(['coordinators'])->check($this->dossier(null), 'reject', 'actor-1');

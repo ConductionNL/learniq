@@ -33,7 +33,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+ * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
  */
 
 declare(strict_types=1);
@@ -50,7 +50,7 @@ use Throwable;
 /**
  * Builds the reviewer-facing view of a PeerReview's Submission.
  *
- * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+ * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
  */
 class PeerReviewWorkProjection {
 
@@ -102,7 +102,7 @@ class PeerReviewWorkProjection {
 	 *
 	 * @return array{verdict: string, review?: array<string, mixed>, anonymity?: string, submission?: array<string, mixed>, hideAuthor?: bool}
 	 *
-	 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 	 */
 	public function resolve(string $peerReviewId, string $callerId): array {
 		$review = $this->load(id: $peerReviewId, schema: self::PEER_REVIEW_SCHEMA);
@@ -138,7 +138,7 @@ class PeerReviewWorkProjection {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 	 */
 	public function project(array $context): array {
 		$submission = (array)($context['submission'] ?? []);
@@ -177,7 +177,7 @@ class PeerReviewWorkProjection {
 	 *
 	 * @return array{file: File, name: string}|null
 	 *
-	 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 	 */
 	public function file(array $context, string $fileId): ?array {
 		foreach ($this->files(context: $context) as $position => $file) {

@@ -89,12 +89,11 @@ per-item shape MUST be documented as `{recordId, errorCode, errorMessage, field?
 
 ### Requirement: Delegate wire protocols to OpenConnector
 
-Scholiq MUST NOT implement Edukoppeling, StUF, OSO-XML, OOAPI, or SAML/OAuth attribute-release wire
-protocols. Those MUST be OpenConnector source/target configurations referenced by the `target` field,
-including a `ooapi-catalog` target used by `course-management`'s catalog-publication contract to sync
-published `Course`/`Programme`/`Cohort` data to the OOAPI 5.0 endpoint hosted by opencatalogi. (File the
-OpenConnector adapter issues: BRON/ROD, OSO PO→VO, leerplicht-Digikoppeling, SURFconext attributes, generic
-HR, OOAPI catalog.)
+Scholiq MUST NOT implement Edukoppeling, StUF, OSO-XML, OOAPI, UWLR, or SAML/OAuth attribute-release wire
+protocols. Those MUST be OpenConnector source/target configurations referenced by the `target` field. In
+addition to the existing named targets, `target` MUST support `lvs-results` (direction: `import`) for
+Cito/IEP/Boom/Dia normed test results carried over UWLR — the OpenConnector adapter for this target is
+tracked separately as `integriq-adapter-lvs-imports`; Scholiq implements no UWLR wire code itself.
 
 #### Scenario: Delegate the wire send to OpenConnector
 
@@ -110,6 +109,13 @@ HR, OOAPI catalog.)
 - **THEN** it does so as a `DataExchangeJob` with `target: ooapi-catalog`
 - **AND** Scholiq implements no OOAPI wire protocol itself — the OpenConnector `ooapi-catalog` adapter and
   opencatalogi's public OOAPI 5.0 endpoint handle the wire send and public exposure
+
+#### Scenario: Delegate the LVS results import to OpenConnector
+
+- **GIVEN** a `DataExchangeJob` with `target: lvs-results`, `direction: import`
+- **WHEN** the job runs
+- **THEN** Scholiq hands the inbound payload to the OpenConnector `lvs-results` source configuration and
+  implements no UWLR wire protocol itself
 
 ### Requirement: Federated authentication is out of scope
 Federated authentication (DigiD / SURFconext / eduID) is OUT of this spec — it MUST be handled by a Nextcloud-auth-provider + OpenConnector; Scholiq only persists the pseudonymous identifiers on `LearnerProfile` (already does).
@@ -444,6 +450,283 @@ this round, for the same reason).
 - **WHEN** `ImportExportToolsMenu` is inspected
 - **THEN** it routes to `DataExchangeJobs`, and no second `type: "index"` page exists over the
   `data-exchange-job` schema
+
+### Requirement: TimeEdit joins the rostering-import preset family
+
+The system MUST ship a `DataMappingProfile` seed named `TimeEdit timetable import` for `target:
+timetable-import`, `direction: import`, `sourceSchema: session`, matching the shape the existing
+Zermelo/Untis/Xedule seeds already use (externalRef/cohortId/title/startsAt/endsAt/location mapped to
+TimeEdit's own field names).
+
+#### Scenario: TimeEdit matches the existing rostering-import seed shape
+
+- **GIVEN** the `DataMappingProfile` seed data
+- **WHEN** the `TimeEdit timetable import` seed is loaded
+- **THEN** it declares `target: timetable-import`, `direction: import`, `sourceSchema: session`, and maps
+  the same field set (`externalRef`, `cohortId`, `title`, `startsAt`, `endsAt`, `location`) the
+  Zermelo/Untis/Xedule seeds already map
+
+<!-- @e2e exclude Declarative seed-data shape verified by
+     DataMappingProfilePresetsRegisterTest::testTimeEditMatchesExistingRosteringSeedShape; no DOM surface —
+     mirrors the existing Zermelo/Untis/Xedule seed-shape assertions. -->
+
+### Requirement: migration-import job type and payload mappings
+
+The system MUST support a new `target: migration-import` (`direction: import`) on `DataExchangeJob` and
+`DataMappingProfile`, and MUST ship one `DataMappingProfile` seed per migration source system (ParnasSys,
+ESIS, Magister, SOMtoday), each `sourceSchema: learner-profile`, mapping at minimum `eckId`, `givenName`,
+`familyName`, `birthDate`, and `schoolId`.
+
+#### Scenario: Each migration source ships its own preset carrying ECK iD
+
+- **GIVEN** the `DataMappingProfile` seed data
+- **WHEN** the ParnasSys, ESIS, Magister, and SOMtoday seeds are loaded
+- **THEN** each is `target: migration-import`, `direction: import`, `sourceSchema: learner-profile`, and
+  maps `eckId`
+
+<!-- @e2e exclude Declarative seed-data shape verified by
+     DataMappingProfilePresetsRegisterTest::testEachMigrationSourceCarriesEckId; no DOM surface. -->
+
+#### Scenario: DataExchangeJob.target documents the migration-import connection
+
+- **GIVEN** `DataExchangeJob.target`'s description
+- **WHEN** this change lands
+- **THEN** it names `migration-import` as a valid connection
+
+<!-- @e2e exclude Declarative documentation-string shape verified by
+     DataMappingProfilePresetsRegisterTest::testDataExchangeJobTargetDescribesMigrationImport; no DOM
+     surface. -->
+
+### Requirement: UWLR and Edu-V job types and payload mappings
+
+The system MUST ship `DataMappingProfile` seeds for `target: uwlr` covering pupil export
+(`sourceSchema: learner-profile`, carrying `eckId`), group export (`sourceSchema: cohort`), and teacher
+export (`sourceSchema: learner-profile`, carrying `eckId`), plus a `direction: import` seed whose
+`sourceSchema` is `lvs-result` for UWLR's generic results-back data-service direction (deliberately reusing
+`LvsResult` from `lvs-import-contract` rather than a second results schema — both name the same UWLR
+transport). The system MUST additionally ship three `target: edu-v` export seeds, one per qualified data
+service (`Onderwijsdeelnemers`, `Onderwijsgroepen`, `Onderwijsmedewerkers`), since Edu-V qualifies
+certification per data service, per product, not once per connection.
+
+#### Scenario: UWLR pupil and teacher exports carry ECK iD
+
+- **GIVEN** the `DataMappingProfile` seed data
+- **WHEN** the `uwlr` pupil and teacher export profiles are loaded
+- **THEN** both map `eckId` as a `fieldMappings` entry
+
+<!-- @e2e exclude Declarative seed-data shape verified by
+     UwlrEduvBasispoortRegisterTest::testUwlrPupilAndTeacherExportsCarryEckId; no DOM surface. -->
+
+#### Scenario: The UWLR results-import seed reuses LvsResult
+
+- **GIVEN** the `DataMappingProfile` seed data
+- **WHEN** the `uwlr` (direction: import) profile is loaded
+- **THEN** its `sourceSchema` is `lvs-result`
+
+<!-- @e2e exclude Declarative seed-data shape verified by
+     UwlrEduvBasispoortRegisterTest::testUwlrResultsImportReusesLvsResult; no DOM surface. -->
+
+#### Scenario: Edu-V ships one export seed per qualified data service
+
+- **GIVEN** the `DataMappingProfile` seed data
+- **WHEN** the three `edu-v` seeds are loaded
+- **THEN** each names a distinct `targetSchema` (`EduV:Onderwijsdeelnemers`, `EduV:Onderwijsgroepen`,
+  `EduV:Onderwijsmedewerkers`)
+
+<!-- @e2e exclude Declarative seed-data shape verified by
+     UwlrEduvBasispoortRegisterTest::testEduVSeedsCoverThreeDataServices; no DOM surface. -->
+
+### Requirement: Basispoort and Entree content SSO hand-off
+
+The system MUST ship a `target: basispoort` (`direction: sync`) `DataMappingProfile` seed for the PO
+pupil/group/staff export plus SSO hand-off to method/publisher content, and a separate `target:
+entree-content` (`direction: sync`) seed for VO's Entree-based content-access hand-off, per
+`M3-integrations.md`'s PO/VO split (Basispoort is PO-only; VO uses Edu-V/UWLR for data and Entree for content
+SSO). Both are distinct from `entree-surfconext-sso-contract`'s own federated-login concern — these seeds
+hand a pupil off to a THIRD-PARTY method/publisher site, not learniq's own authentication boundary.
+
+#### Scenario: Basispoort and Entree content seeds are sync, not one-way export
+
+- **GIVEN** the `DataMappingProfile` seed data
+- **WHEN** the `basispoort` and `entree-content` profiles are loaded
+- **THEN** both declare `direction: sync`
+
+<!-- @e2e exclude Declarative seed-data shape verified by
+     UwlrEduvBasispoortRegisterTest::testBasispoortAndEntreeContentAreSync; no DOM surface. -->
+
+### Requirement: Persist LvsResult linked to AssessmentResult
+
+The system MUST persist `LvsResult` as an append-only OpenRegister object: `provider` (enum `cito | iep |
+boom | dia`), `instrument`, `moment` (the LVS meetmoment code, e.g. `M6`/`E3`), `takenAt` (calendar date),
+`rawScore` (nullable), `vaardigheidsscore` (nullable), `niveau` (nullable), `referentieniveau` (nullable),
+`dle` (nullable), `learnerId`, `assessmentResultId` (nullable `$ref AssessmentResult` — set only when the
+school also ran the same toets as an in-app `Assessment`), `dataExchangeJobId` (`$ref DataExchangeJob`),
+`tenant_id`. `x-property-rbac.read` MUST restrict reads to `admin` or the learner whose `learnerId` matches
+the requesting user, mirroring `AssessmentResult`'s own read restriction — no dedicated LVS-coordinator role
+exists in this register.
+
+#### Scenario: An imported LVS result links to an existing AssessmentResult when one exists
+
+- **GIVEN** a `DataExchangeJob` with `target: lvs-results` imports a Cito result for a learner who also has
+  a matching in-app `AssessmentResult`
+- **WHEN** the `LvsResult` is created
+- **THEN** `assessmentResultId` is set to that `AssessmentResult`'s id
+
+<!-- @e2e exclude Pure OpenRegister schema/persistence shape, no DOM surface; verified by
+     LvsResultRegisterTest::testAssessmentResultLinkIsNullable. -->
+
+#### Scenario: A learner can read their own LVS results but not another learner's
+
+- **GIVEN** an authenticated learner who is not `admin`
+- **WHEN** they read an `LvsResult` whose `learnerId` does not match their own user id
+- **THEN** the read is denied by `x-property-rbac`, consistent with `AssessmentResult`'s equivalent
+  restriction
+
+<!-- @e2e exclude RBAC enforcement is OpenRegister-core, declarative x-property-rbac, same scope boundary
+     already used by AssessmentResult and ExchangeRejection's equivalent assertions. -->
+
+### Requirement: LvsResult inbound verification gate
+
+An imported `LvsResult` MUST start in an `imported` lifecycle state and MUST NOT be readable as verified
+report-card/trend input until an `admin`/`coordinator` actor transitions it to `verified` via
+`LvsResultVerifyGuard`. This is the D3 "lifecycle gate" every contract change declares for its own
+direction: an automated UWLR/file-drop import is not itself proof the row is trustworthy, and a human
+confirms it once, mirroring `AssessmentResult`'s own `submit → graded` human-confirmation shape.
+`LvsResultVerifyGuard` MUST deny the transition for any actor not in the `admin`/`coordinator` groups.
+
+#### Scenario: An imported result is not verified until a coordinator confirms it
+
+- **GIVEN** an `LvsResult` created by the `lvs-results` import handler
+- **WHEN** it is created
+- **THEN** its lifecycle state is `imported`, not `verified`
+
+<!-- @e2e exclude Declarative lifecycle initial-state shape verified by
+     LvsResultRegisterTest::testInitialLifecycleStateIsImported; no DOM surface. -->
+
+#### Scenario: A non admin/coordinator actor cannot verify an LvsResult
+
+- **GIVEN** an authenticated user who is not in the `admin`/`coordinator` groups
+- **WHEN** they attempt the `verify` transition on an `LvsResult`
+- **THEN** `LvsResultVerifyGuard` denies the transition
+
+<!-- @e2e exclude Role-gate logic verified by PHPUnit LvsResultVerifyGuardTest::testDeniesNonCoordinator,
+     mirroring RejectionResubmitGuardTest's coverage shape; no scholiq DOM surface for the guard itself. -->
+
+### Requirement: lvs-results job type and payload mapping
+
+The system MUST ship a `DataMappingProfile` seed for `target: lvs-results`, `direction: import`,
+`sourceSchema: assessment-result` (the UWLR-carried result is mapped onto the learniq side via the same
+`fieldMappings` mechanism the Zermelo/Untis/Xedule import seeds already use for `direction: import`), naming
+`targetSchema` as the external UWLR/Cito result shape and mapping `provider`, `instrument`, `moment`,
+`rawScore`, `vaardigheidsscore`, `niveau`, `referentieniveau`, and `dle`.
+
+#### Scenario: The lvs-results mapping profile declares the normed-score fields
+
+- **GIVEN** the `DataMappingProfile` seed data
+- **WHEN** the `lvs-results` profile is loaded
+- **THEN** its `fieldMappings` cover `provider`, `instrument`, `moment`, `rawScore`, `vaardigheidsscore`,
+  `niveau`, `referentieniveau`, and `dle`
+
+<!-- @e2e exclude Declarative seed-data shape verified by LvsResultRegisterTest::testLvsResultsMappingProfileSeedShape;
+     no DOM surface — mirrors the existing Zermelo/Untis/Xedule seed-shape assertions. -->
+
+### Requirement: Persist OsoImportDossier for inbound overstapdossiers
+
+The system MUST persist `OsoImportDossier` as an OpenRegister object representing one received OSO
+overstapdossier: `dataExchangeJobId` (`$ref DataExchangeJob`), `sourceSchoolBrin`, `learnerEckId` (nullable),
+`receivedAt`, `categories` (array of `{category, included, data}`, `category` an illustrative,
+non-authoritative starter enum of Besluit-style gegevensblokken — the authoritative Besluit uitwisseling
+category list is a legal-review follow-up, not fabricated here), `draftProfile` (nullable object snapshot of
+proposed `LearnerProfile` fields — NOT a live `LearnerProfile`), `attachmentRefs` (array of nc:files paths),
+`rejectionReason` (nullable), `reviewedBy`/`reviewedAt` (nullable), `tenant_id`. The system MUST NOT
+auto-materialise a `LearnerProfile` from an accepted dossier — a coordinator completes that through the
+existing object UI, mirroring `LearningRecordImport`'s "evidence-only, coordinator acts through the existing
+mechanism" posture (`portable-learning-record`).
+
+#### Scenario: An incoming overstapdossier lands as a reviewable draft, not a live LearnerProfile
+
+- **GIVEN** a `DataExchangeJob` with `target: oso`, `direction: import` receives an overstapdossier
+- **WHEN** the `OsoImportDossier` is created
+- **THEN** its `draftProfile` holds the proposed learner fields and its `categories` record which
+  gegevensblokken were included, and no `LearnerProfile` object is created or modified as a side effect
+
+<!-- @e2e exclude Pure OpenRegister schema/persistence shape, no DOM surface; verified by
+     OsoImportDossierRegisterTest::testDraftProfileIsSnapshotNotLiveWrite. -->
+
+### Requirement: OSO import is reviewed before acceptance
+
+An `OsoImportDossier` MUST start in a `received` lifecycle state and MUST NOT reach `accepted` or `rejected`
+without passing through `under-review`. `accept` MUST require `OsoImportAcceptGuard` (admin/coordinator
+only) and stamps `reviewedBy`/`reviewedAt` server-side. `reject` MUST require `OsoImportRejectGuard`
+(admin/coordinator only) and MUST refuse the transition when `rejectionReason` is empty, mirroring
+`RejectionWaiveGuard`'s `waiveReason` enforcement. This is the D3 "lifecycle gate" every contract change
+declares for its own inbound direction — an OSO import is not itself proof the transferred data is correct
+or complete for this school's record, and a human confirms it once.
+
+#### Scenario: A received dossier is not accepted until a coordinator reviews it
+
+- **GIVEN** an `OsoImportDossier` created by the `oso` (direction: import) job handler
+- **WHEN** it is created
+- **THEN** its lifecycle state is `received`, not `accepted`
+
+<!-- @e2e exclude Declarative lifecycle initial-state shape verified by
+     OsoImportDossierRegisterTest::testInitialLifecycleStateIsReceived; no DOM surface. -->
+
+#### Scenario: A non admin/coordinator actor cannot accept or reject an OsoImportDossier
+
+- **GIVEN** an authenticated user who is not in the `admin`/`coordinator` groups
+- **WHEN** they attempt the `accept` or `reject` transition on an `OsoImportDossier`
+- **THEN** the corresponding guard denies the transition
+
+<!-- @e2e exclude Role-gate logic verified by PHPUnit OsoImportAcceptGuardTest::testDeniesNonCoordinator and
+     OsoImportRejectGuardTest::testDeniesNonCoordinator, mirroring MunicipalityFeedbackGuardTest's coverage
+     shape; no scholiq DOM surface for either guard. -->
+
+#### Scenario: Rejecting without a reason is refused
+
+- **GIVEN** an `OsoImportDossier` in status `under-review`
+- **WHEN** an admin/coordinator attempts the `reject` transition with an empty `rejectionReason`
+- **THEN** the transition is refused
+
+<!-- @e2e exclude Validation logic verified by PHPUnit OsoImportRejectGuardTest::testEmptyReasonRefused,
+     mirroring RejectionWaiveGuardTest's equivalent test. -->
+
+### Requirement: oso target supports the import direction
+
+The system MUST ship a `DataMappingProfile` seed for `target: oso`, `direction: import`, `sourceSchema:
+oso-import-dossier`, mapping the incoming OSO XML's learner/school identity fields
+(`leerlingEckId`/`voornamen`/`achternaam`/`geboortedatum`/BRIN of the sending school) onto
+`OsoImportDossier`'s fields, following the same `direction: import` convention the `timetable-import` seeds
+already use (`scholiqField` names the learniq side, `targetField` the external side).
+
+#### Scenario: The oso import mapping profile declares the sending school's identity fields
+
+- **GIVEN** the `DataMappingProfile` seed data
+- **WHEN** the `oso` (direction: import) profile is loaded
+- **THEN** its `fieldMappings` cover `learnerEckId` and `sourceSchoolBrin`
+
+<!-- @e2e exclude Declarative seed-data shape verified by
+     OsoImportDossierRegisterTest::testOsoImportMappingProfileSeedShape; no DOM surface. -->
+
+### Requirement: The connection field names every connection learniq hands to OpenConnector
+
+The `target` property of `DataExchangeJob` and of `DataMappingProfile` MUST name, in its description, every connection learniq defines: `bron-rod`, `oso` (with its inbound direction), `leerplicht`, `surfconext`, `hr`, `swv`, `timetable-import`, `migration-import`, `lvs-results`, `uwlr`, `edu-v`, `basispoort` and `entree-content`, and the `DataExchangeJob` description MUST also name `ooapi-catalog`. Each description MUST have an English and a Dutch catalogue entry.
+
+#### Scenario: A coordinator reads which connections exist
+@e2e exclude Register-content invariant; pinned by tests/Unit/Settings/UwlrEduvBasispoortRegisterTest.php (testTargetDescriptionsNameNewConnections), LvsResultRegisterTest and OsoImportDossierRegisterTest.
+- **GIVEN** the shipped register
+- **WHEN** the `target` field of a new data exchange job is shown
+- **THEN** its help text names lvs-results, the inbound oso direction, uwlr, edu-v, basispoort, entree-content and migration-import
+
+### Requirement: Register tests find seed rows by identity and assert floors
+
+A test that reads a schema's seed rows MUST find a row by its name or id and MUST assert a minimum count, never an exact count or a position, because other changes append seed rows to the same list.
+
+#### Scenario: A sibling change adds a mapping preset
+@e2e exclude Test-suite invariant; pinned by tests/Unit/Settings/DataMappingProfilePresetsRegisterTest.php and UwlrEduvBasispoortRegisterTest.php.
+- **GIVEN** 23 `DataMappingProfile` seed rows, more than the 12 and 16 two changes counted
+- **WHEN** the suite runs
+- **THEN** both tests pass, because they assert a floor
 
 ## Standards
 

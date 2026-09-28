@@ -192,7 +192,7 @@ class LearnerRefResolver {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/assignment-portal-wiring/specs/assignments/spec.md#requirement-the-server-stamps-who-a-submission-belongs-to
+	 * @spec openspec/specs/assignments/spec.md#requirement-the-server-stamps-who-a-submission-belongs-to
 	 * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile
 	 */
 	public function byRef(string $learnerRef): ?array {

@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
+ * @spec openspec/changes/archive/2026-09-28-oso-inbound-contract/tasks.md#task-2
  */
 
 declare(strict_types=1);

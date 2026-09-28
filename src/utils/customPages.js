@@ -480,7 +480,7 @@ export const SIGNABLE_SUBJECTS = {
  * @param {string} kind 'learning-plan' or 'praktijkovereenkomst'.
  * @param {object} subject The signed object.
  * @return {boolean} True for a praktijkovereenkomst that needs a parent's signature.
- * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
+ * @spec openspec/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
  */
 export function parentSignatureNeeded(kind, subject) {
 	return (

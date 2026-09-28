@@ -30,7 +30,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/entree-surfconext-sso-contract/tasks.md#task-2
+ * @spec openspec/changes/archive/2026-09-28-entree-surfconext-sso-contract/tasks.md#task-2
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ use OCA\OpenRegister\Service\ObjectService;
  * Computes LearnerProfile field updates from an SSO attribute bag and the
  * active SsoAttributeMapping rows for a given provider.
  *
- * @spec openspec/changes/entree-surfconext-sso-contract/tasks.md#task-2
+ * @spec openspec/changes/archive/2026-09-28-entree-surfconext-sso-contract/tasks.md#task-2
  */
 class SsoAttributeMappingApplier {
 
@@ -86,7 +86,7 @@ class SsoAttributeMappingApplier {
 	 *
 	 * @return array<string,mixed> LearnerProfile field updates. Never writes to LearnerProfile itself.
 	 *
-	 * @spec openspec/changes/entree-surfconext-sso-contract/specs/identity-federation/spec.md#requirement-apply-attribute-mappings-to-compute-learnerprofile-updates
+	 * @spec openspec/specs/identity-federation/spec.md#requirement-apply-attribute-mappings-to-compute-learnerprofile-updates
 	 */
 	public function apply(array $attributes, string $provider, string $tenantId): array {
 		$mappings = $this->loadActiveMappings(provider: $provider, tenantId: $tenantId);
@@ -128,7 +128,7 @@ class SsoAttributeMappingApplier {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/entree-surfconext-sso-contract/specs/identity-federation/spec.md#scenario-multiple-role-mappings-accumulate-into-one-roles-array
+	 * @spec openspec/specs/identity-federation/spec.md#scenario-multiple-role-mappings-accumulate-into-one-roles-array
 	 */
 	private function applyRoleMapping(array $mapping, mixed $value, array &$updates): void {
 		$externalValue = $mapping['externalValue'] ?? null;
@@ -153,7 +153,7 @@ class SsoAttributeMappingApplier {
 	 *
 	 * @return array<int,array<string,mixed>> Active mapping rows.
 	 *
-	 * @spec openspec/changes/entree-surfconext-sso-contract/tasks.md#task-2
+	 * @spec openspec/changes/archive/2026-09-28-entree-surfconext-sso-contract/tasks.md#task-2
 	 */
 	private function loadActiveMappings(string $provider, string $tenantId): array {
 		$filters = [
