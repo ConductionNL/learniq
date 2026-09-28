@@ -33,6 +33,9 @@ use RuntimeException;
 
 /**
  * @covers \OCA\Learniq\Service\CourseShareExportService
+ * @uses   \OCA\Learniq\Exception\SharingBlockedException
+ * @uses   \OCA\Learniq\Service\CourseSharingGate
+ * @uses   \OCA\Learniq\Service\CourseSharePackageBuilder
  */
 class CourseShareExportServiceTest extends TestCase {
 
