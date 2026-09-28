@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
+ * @spec openspec/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
  */
 
 declare(strict_types=1);
@@ -40,7 +40,7 @@ use RuntimeException;
 /**
  * A place learniq reads timetable sessions from.
  *
- * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
+ * @spec openspec/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
  */
 interface TimetableSource {
 
@@ -49,7 +49,7 @@ interface TimetableSource {
 	 *
 	 * @return string `learniq` or `planninq`.
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
 	 */
 	public function name(): string;
 
@@ -64,7 +64,7 @@ interface TimetableSource {
 	 *
 	 * @throws RuntimeException When the source cannot answer.
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
 	 */
 	public function sessionsForCohorts(array $cohortIds, ?string $from, ?string $to): array;
 
@@ -79,7 +79,7 @@ interface TimetableSource {
 	 *
 	 * @throws RuntimeException When the source cannot answer.
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
 	 */
 	public function sessionsForTeacher(string $userId, ?string $from, ?string $to): array;
 }//end interface

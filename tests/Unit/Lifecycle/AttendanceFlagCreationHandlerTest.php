@@ -177,7 +177,7 @@ class AttendanceFlagCreationHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	public function testAnAttendanceFlagAsksForALeerplichtReport(): void {
 		$handler = $this->makeHandler();
@@ -214,7 +214,7 @@ class AttendanceFlagCreationHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	public function testWithoutIntegriqTheFlagStaysWithoutAJob(): void {
 		$handler = $this->makeHandler();
@@ -268,7 +268,7 @@ class AttendanceFlagCreationHandlerTest extends TestCase {
 	 *
 	 * @dataProvider thresholdKinds
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/attendance/spec.md#requirement-an-attendance-flag-outside-the-leerplicht-carries-a-neutral-kind
+	 * @spec openspec/specs/attendance/spec.md#requirement-an-attendance-flag-outside-the-leerplicht-carries-a-neutral-kind
 	 */
 	public function testTheFlagKindFollowsTheThresholdKind(?string $thresholdKind, ?string $expected): void {
 		$handler = $this->makeHandler();
@@ -303,7 +303,7 @@ class AttendanceFlagCreationHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/attendance/spec.md#requirement-an-attendance-flag-outside-the-leerplicht-carries-a-neutral-kind
+	 * @spec openspec/specs/attendance/spec.md#requirement-an-attendance-flag-outside-the-leerplicht-carries-a-neutral-kind
 	 */
 	public function testTheRegisterAcceptsEveryFlagKindTheHandlerWrites(): void {
 		$register = json_decode((string)file_get_contents(dirname(__DIR__, 3) . '/lib/Settings/learniq_register.json'), true);

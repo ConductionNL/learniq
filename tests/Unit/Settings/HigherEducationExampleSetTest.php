@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  */
 
 declare(strict_types=1);
@@ -146,7 +146,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
 	 */
 	public function testTheInstitutionHasItsPromisedShape(): void {
 		self::assertSame('00X4', self::find(schema: 'school', field: 'name', value: 'Voorbeeldhogeschool Esdoornstad')['brin']);
@@ -218,7 +218,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
 	 */
 	public function testEveryFinalGradeIsWhatTheEngineComputes(): void {
 		$engine = new GradeAggregationEngine();
@@ -283,7 +283,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#requirement-the-binding-study-advice-follows-the-grades
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-binding-study-advice-follows-the-grades
 	 */
 	public function testTheBindingStudyAdviceCountsThePassedCredits(): void {
 		$courses  = self::by(rows: self::of(schema: 'course'), field: 'uuid');
@@ -334,7 +334,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
 	 */
 	public function testEveryMarkBelongsToTheStudentsOwnWorkgroup(): void {
 		$sessions = self::by(rows: self::of(schema: 'session'), field: 'uuid');
@@ -375,7 +375,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#requirement-the-item-bank-exams-agree-with-their-statistics
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-item-bank-exams-agree-with-their-statistics
 	 */
 	public function testTheItemBankExamsAgreeWithTheirStatistics(): void {
 		$items   = self::by(rows: self::of(schema: 'item'), field: 'uuid');
@@ -456,7 +456,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
 	 */
 	public function testPeerReviewsNeverReviewTheirOwnGroup(): void {
 		$submissions = self::by(rows: self::of(schema: 'submission'), field: 'uuid');
@@ -493,7 +493,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
 	 */
 	public function testEveryInternshipPortfolioIsGradedAndShared(): void {
 		$entries   = self::by(rows: self::of(schema: 'grade-entry'), field: 'uuid');
@@ -525,7 +525,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
 	 */
 	public function testExamBoardCasesAndExportsLeaveATrail(): void {
 		$entries  = self::by(rows: self::of(schema: 'grade-entry'), field: 'uuid');
@@ -579,7 +579,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#requirement-the-higher-education-set-loads-and-removes-cleanly
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-higher-education-set-loads-and-removes-cleanly
 	 */
 	public function testTheServiceOffersAndRemovesExactlyThisSet(): void {
 		$appManager = $this->createMock(IAppManager::class);
@@ -610,7 +610,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#scenario-the-file-is-reproducible
+	 * @spec openspec/specs/example-sets/spec.md#scenario-the-file-is-reproducible
 	 */
 	public function testTheFileIsWhatTheGeneratorProduces(): void {
 		$python = trim((string)shell_exec('command -v python3 2>/dev/null'));

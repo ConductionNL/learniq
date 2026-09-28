@@ -35,8 +35,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/findall-config-filters-sweep/specs/nextcloud-app/spec.md
- * @spec openspec/changes/reads-that-filter-on-undeclared-ids/specs/nextcloud-app/spec.md#requirement-no-read-filters-on-an-object-id-property
+ * @spec openspec/specs/nextcloud-app/spec.md
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-no-read-filters-on-an-object-id-property
  */
 
 declare(strict_types=1);
@@ -209,7 +209,7 @@ PHP;
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/reads-that-filter-on-undeclared-ids/specs/nextcloud-app/spec.md#scenario-a-read-by-id-puts-the-id-in-ids
+	 * @spec openspec/specs/nextcloud-app/spec.md#scenario-a-read-by-id-puts-the-id-in-ids
 	 */
 	public function testNoFindAllInLibFiltersOnAnObjectId(): void {
 		$violations = [];
@@ -234,7 +234,7 @@ PHP;
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/reads-that-filter-on-undeclared-ids/specs/nextcloud-app/spec.md#scenario-a-filter-on-id-is-refused-whatever-the-schema
+	 * @spec openspec/specs/nextcloud-app/spec.md#scenario-a-filter-on-id-is-refused-whatever-the-schema
 	 */
 	public function testTheIdDetectorFlagsEveryShape(): void {
 		$source = <<<'PHP'
@@ -265,7 +265,7 @@ PHP;
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/reads-that-filter-on-undeclared-ids/specs/nextcloud-app/spec.md#scenario-a-read-by-id-puts-the-id-in-ids
+	 * @spec openspec/specs/nextcloud-app/spec.md#scenario-a-read-by-id-puts-the-id-in-ids
 	 */
 	public function testTheIdDetectorAcceptsIdsAndLookAlikes(): void {
 		$source = <<<'PHP'

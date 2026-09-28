@@ -15,7 +15,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-existing-installs-get-the-new-store-defaults-once
+ * @spec openspec/specs/course-management/spec.md#requirement-existing-installs-get-the-new-store-defaults-once
  */
 
 declare(strict_types=1);

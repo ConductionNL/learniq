@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-marking-a-key-reviewed-removes-it-from-the-sidecar
+ * @spec openspec/specs/ai-translated-catalogue/spec.md#requirement-marking-a-key-reviewed-removes-it-from-the-sidecar
  */
 
 declare(strict_types=1);
@@ -32,7 +32,7 @@ namespace OCA\Learniq\Service;
 /**
  * The AI-translated catalogue sidecar: read it, and remove a reviewed key.
  *
- * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
+ * @spec openspec/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
  */
 class AiTranslatedCatalogue {
 	/**
@@ -76,7 +76,7 @@ class AiTranslatedCatalogue {
 	 *
 	 * @return array{language: string, total: int, items: array<int, array{key: string, source: mixed, value: mixed}>}
 	 *
-	 * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
+	 * @spec openspec/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
 	 */
 	public function listing(): array {
 		$sidecar  = $this->sidecar();
@@ -108,7 +108,7 @@ class AiTranslatedCatalogue {
 	 *
 	 * @return string One of REVIEWED, NOT_LISTED, READ_ONLY.
 	 *
-	 * @spec openspec/changes/ai-translated-catalogue-review/specs/ai-translated-catalogue/spec.md#requirement-marking-a-key-reviewed-removes-it-from-the-sidecar
+	 * @spec openspec/specs/ai-translated-catalogue/spec.md#requirement-marking-a-key-reviewed-removes-it-from-the-sidecar
 	 */
 	public function markReviewed(string $key): string {
 		$raw = $this->readRaw();

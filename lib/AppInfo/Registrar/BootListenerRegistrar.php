@@ -257,7 +257,7 @@ class BootListenerRegistrar {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-settled-shillinq-contribution-grants-the-learners-entitlement
+	 * @spec openspec/specs/payments/spec.md#requirement-a-settled-shillinq-contribution-grants-the-learners-entitlement
 	 */
 	private function registerPaymentListeners(IEventDispatcher $dispatcher, string $appId): void {
 		$this->registerFilteredObjectListener(
@@ -292,7 +292,7 @@ class BootListenerRegistrar {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
 	 */
 	public function registerFilteredObjectListener(
 		IEventDispatcher $dispatcher,

@@ -250,7 +250,7 @@ export default {
 		 * The sharing gate's reasons, one translated sentence each.
 		 *
 		 * @return {string[]} The sentences.
-		 * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-the-export-page-offers-sharing-with-the-confirmations
+		 * @spec openspec/specs/course-management/spec.md#requirement-the-export-page-offers-sharing-with-the-confirmations
 		 */
 		blockerTexts() {
 			return this.blockers.map((blocker) => this.blockerText(blocker))
@@ -382,7 +382,7 @@ export default {
 		 * Publish the course to the course store, behind the sharing gate.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
+		 * @spec openspec/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
 		 */
 		async publish() {
 			this.busy = true
@@ -420,8 +420,8 @@ export default {
 		 *
 		 * @param {string} outcome The server's outcome.
 		 * @return {string} The sentence.
-		 * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
-		 * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-the-plane-decides-who-may-publish-before-a-package-is-built
+		 * @spec openspec/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
+		 * @spec openspec/specs/course-management/spec.md#requirement-the-plane-decides-who-may-publish-before-a-package-is-built
 		 */
 		publishText(outcome) {
 			switch (outcome) {
@@ -487,7 +487,7 @@ export default {
 		 *
 		 * @param {Error} e The failure.
 		 * @return {Promise<object>} The parsed body, or {}.
-		 * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-the-export-page-offers-sharing-with-the-confirmations
+		 * @spec openspec/specs/course-management/spec.md#requirement-the-export-page-offers-sharing-with-the-confirmations
 		 */
 		async errorBody(e) {
 			const data = e?.response?.data
@@ -506,7 +506,7 @@ export default {
 		 *
 		 * @param {{code: string, name: string}} blocker The reason.
 		 * @return {string} The sentence.
-		 * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-the-export-page-offers-sharing-with-the-confirmations
+		 * @spec openspec/specs/course-management/spec.md#requirement-the-export-page-offers-sharing-with-the-confirmations
 		 */
 		blockerText(blocker) {
 			const name = blocker?.name ?? ''

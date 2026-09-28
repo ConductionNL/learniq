@@ -176,7 +176,7 @@ export default {
 
 		/**
 		 * @return {boolean} Whether a parent or guardian also signs this subject.
-		 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
+		 * @spec openspec/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
 		 */
 		parentNeeded() {
 			return parentSignatureNeeded(this.subject, this.subjectObject)

@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+ * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
  */
 
 declare(strict_types=1);
@@ -46,7 +46,7 @@ use OCP\EventDispatcher\Event;
  * A rejection carries a record id, a reason code and optional field names,
  * never a value: rejections are stored as dead letters and shown to people.
  *
- * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+ * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
  */
 class ExchangeRecordsReceivedEvent extends Event {
 
@@ -101,7 +101,7 @@ class ExchangeRecordsReceivedEvent extends Event {
 	 *
 	 * @return string The job uuid.
 	 *
-	 * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
 	 */
 	public function getJobId(): string {
 		return $this->jobId;
@@ -113,7 +113,7 @@ class ExchangeRecordsReceivedEvent extends Event {
 	 *
 	 * @return string The app id.
 	 *
-	 * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
 	 */
 	public function getOwnerApp(): string {
 		return $this->ownerApp;
@@ -125,7 +125,7 @@ class ExchangeRecordsReceivedEvent extends Event {
 	 *
 	 * @return string The target id.
 	 *
-	 * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
 	 */
 	public function getTarget(): string {
 		return $this->target;
@@ -137,7 +137,7 @@ class ExchangeRecordsReceivedEvent extends Event {
 	 *
 	 * @return string `import`.
 	 *
-	 * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
 	 */
 	public function getDirection(): string {
 		return $this->direction;
@@ -149,7 +149,7 @@ class ExchangeRecordsReceivedEvent extends Event {
 	 *
 	 * @return string The reference.
 	 *
-	 * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
 	 */
 	public function getOwnerRef(): string {
 		return $this->ownerRef;
@@ -161,7 +161,7 @@ class ExchangeRecordsReceivedEvent extends Event {
 	 *
 	 * @return array<string, mixed> The scope.
 	 *
-	 * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
 	 */
 	public function getScope(): array {
 		return $this->scope;
@@ -173,7 +173,7 @@ class ExchangeRecordsReceivedEvent extends Event {
 	 *
 	 * @return array<int, array<string, mixed>> Each `{recordId, sourceKind, data}`.
 	 *
-	 * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
 	 */
 	public function getRecords(): array {
 		return $this->records;
@@ -192,7 +192,7 @@ class ExchangeRecordsReceivedEvent extends Event {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
 	 */
 	public function accept(int $acceptedCount, array $rejected=[]): void {
 		if ($this->answered === true) {
@@ -238,7 +238,7 @@ class ExchangeRecordsReceivedEvent extends Event {
 	 *
 	 * @return bool True once accept() ran.
 	 *
-	 * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
 	 */
 	public function isAnswered(): bool {
 		return $this->answered;
@@ -250,7 +250,7 @@ class ExchangeRecordsReceivedEvent extends Event {
 	 *
 	 * @return int The count.
 	 *
-	 * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
 	 */
 	public function getAcceptedCount(): int {
 		return $this->acceptedCount;
@@ -262,7 +262,7 @@ class ExchangeRecordsReceivedEvent extends Event {
 	 *
 	 * @return array<int, array{recordId: string, sourceKind: string, errorCode: string, offendingFields: array<int, string>}>
 	 *
-	 * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
 	 */
 	public function getRejected(): array {
 		return $this->rejected;

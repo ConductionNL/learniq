@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
+ * @spec openspec/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
  */
 
 declare(strict_types=1);
@@ -72,7 +72,7 @@ class PokParentSignatureStampActionTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
+	 * @spec openspec/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
 	 */
 	public function testAMinorsAgreementIsFlagged(): void {
 		$asked  = [];
@@ -90,7 +90,7 @@ class PokParentSignatureStampActionTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+	 * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
 	 */
 	public function testAnAdultsAgreementIsNotFlagged(): void {
 		$asked  = [];
@@ -106,7 +106,7 @@ class PokParentSignatureStampActionTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+	 * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
 	 */
 	public function testOnActivationTheStudentsSignatureDateCounts(): void {
 		$asked      = [];

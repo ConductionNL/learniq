@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+ * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
  */
 
 declare(strict_types=1);
@@ -48,7 +48,7 @@ use Throwable;
  * deletes a schema, so the rows stay readable by slug on an existing install
  * until this step has copied them. A new install has nothing to move.
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+ * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -110,7 +110,7 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function getName(): string {
 		return 'Move learniq\'s data exchange jobs and mappings to integriq, archiving every row first';
@@ -123,7 +123,7 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function run(IOutput $output): void {
 		if ($this->appConfig->getValueString(Application::APP_ID, self::MIGRATED_KEY, '') !== '') {

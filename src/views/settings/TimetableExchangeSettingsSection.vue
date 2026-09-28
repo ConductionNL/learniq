@@ -10,7 +10,7 @@
  carries its own. The SWV receiver names the integriq receiver that takes the
  school's support requests (swv_receiver_id).
 
- @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+ @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 -->
 <template>
 	<NcSettingsSection
@@ -146,7 +146,7 @@ export default {
 	computed: {
 		/**
 		 * @return {Array<{id: string, label: string}>} The learniq groups to pick from.
-		 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+		 * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 		 */
 		cohortOptions() {
 			return this.cohorts.map((cohort) => ({
@@ -164,7 +164,7 @@ export default {
 		/**
 		 * @param {string} source A rostering system id.
 		 * @return {string} Its display name.
-		 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+		 * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 		 */
 		label(source) {
 			return SOURCE_LABELS[source] || source
@@ -176,7 +176,7 @@ export default {
 		 *
 		 * @param {string} cohortId The stored id.
 		 * @return {object|null} The option.
-		 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+		 * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 		 */
 		cohortOption(cohortId) {
 			if (!cohortId) {
@@ -193,7 +193,7 @@ export default {
 		/**
 		 * @param {object} data The server's settings.
 		 * @return {void}
-		 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+		 * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 		 */
 		apply(data) {
 			this.sources = data.sources || []
@@ -203,7 +203,7 @@ export default {
 
 		/**
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+		 * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 		 */
 		async load() {
 			this.loading = true
@@ -223,7 +223,7 @@ export default {
 
 		/**
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+		 * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 		 */
 		async loadCohorts() {
 			try {
@@ -241,7 +241,7 @@ export default {
 
 		/**
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+		 * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 		 */
 		async save() {
 			this.saving = true
