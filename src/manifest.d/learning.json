@@ -2729,6 +2729,47 @@
 						"icon": "ClipboardList"
 					},
 					{
+						"id": "sess-notes",
+						"type": "object-list",
+						"title": "Notes",
+						"icon": "NoteTextOutline",
+						"content": {
+							"register": "learniq",
+							"schema": "lesson-note",
+							"filter": {
+								"sessionId": "@objectId",
+								"cohortId": "@object.cohortId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "topic",
+									"label": "Topic"
+								},
+								{
+									"key": "text",
+									"label": "Note"
+								},
+								{
+									"key": "audience",
+									"label": "Audience"
+								}
+							],
+							"emptyText": "No notes on this lesson yet.",
+							"formExcludeFields": [
+								"sessionId",
+								"timetableSessionRef",
+								"cohortId",
+								"authorId",
+								"tenant_id"
+							]
+						}
+					},
+					{
 						"id": "sess-related",
 						"type": "related",
 						"title": "Related",
@@ -2803,10 +2844,19 @@
 						"showTitle": false
 					},
 					{
+						"id": "4-1",
+						"widgetId": "sess-notes",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
 						"id": "5",
 						"widgetId": "sess-related",
 						"gridX": 0,
-						"gridY": 10,
+						"gridY": 15,
 						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2815,7 +2865,7 @@
 						"id": "6",
 						"widgetId": "sess-files",
 						"gridX": 0,
-						"gridY": 15,
+						"gridY": 20,
 						"gridWidth": 12,
 						"gridHeight": 3,
 						"showTitle": false
@@ -2824,7 +2874,7 @@
 						"id": "7",
 						"widgetId": "session-talk",
 						"gridX": 0,
-						"gridY": 18,
+						"gridY": 23,
 						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false

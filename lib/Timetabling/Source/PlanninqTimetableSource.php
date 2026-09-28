@@ -220,6 +220,7 @@ class PlanninqTimetableSource implements TimetableSource {
 			'roomReference' => (string)($lesson['roomReference'] ?? ''),
 			'groupReference' => (string)($lesson['groupReference'] ?? ''),
 			'externalRef' => (string)($lesson['externalRef'] ?? ''),
+			'sourceSystem' => (string)($lesson['sourceSystem'] ?? ''),
 			'source' => self::NAME,
 		];
 	}//end toSession()
