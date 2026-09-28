@@ -32,6 +32,27 @@
 					}
 				},
 				{
+					"id": "ImportedCoursesMenu",
+					"label": "Imported, not yet published",
+					"icon": "PackageDown",
+					"route": "Courses",
+					"query": {
+						"lifecycle": "draft",
+						"license": "all-rights-reserved"
+					},
+					"order": 11,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "CoursePackageImportMenu",
 					"label": "Import course package",
 					"icon": "DatabaseImportOutline",

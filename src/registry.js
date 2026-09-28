@@ -74,6 +74,7 @@ import ConferenceScheduleBoard from './views/ConferenceScheduleBoard.vue'
 // pre-existing gap ItemAuthorView/LessonPlayer/PortfolioBuilder already
 // ship with, not one this change introduces.
 import CourseBuilder from './views/CourseBuilder.vue'
+import CourseCatalogue from './views/CourseCatalogue.vue'
 // course-package-import-export: the one genuine new custom view this change
 // adds — uploads a Common Cartridge/Moodle course package and renders the
 // resulting CoursePackageImportReport's entries table. Course export reuses
@@ -243,6 +244,7 @@ export default {
 	// learniq#947
 	AttendanceRegisterView: page(AttendanceRegisterView),
 	BulkEnrolView: page(BulkEnrolView),
+	CourseCatalogue: page(CourseCatalogue),
 	CohortGradebookView: page(CohortGradebookView),
 	CohortTimetableView: page(CohortTimetableView),
 	ExportRequestView: page(ExportRequestView),

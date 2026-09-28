@@ -27,6 +27,7 @@
 		"DashboardTeacher": "Dashboard",
 		"DashboardStudent": "Dashboard",
 		"MyTimetableMenu": "GroupMyLearning",
+		"CatalogueMenu": "GroupMyLearning",
 		"MyLearningRecordMenu": "GroupMyLearning",
 		"FeeItemsMenu": "GroupPeople",
 		"EntitlementsMenu": "GroupPeople"

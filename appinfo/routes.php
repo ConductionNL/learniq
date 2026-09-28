@@ -195,6 +195,20 @@ return [
         // Controller: PeerReviewController (slug: peerReview).
         ['name' => 'peerReview#allocate', 'url' => '/api/peer-review/{assignmentId}/allocate', 'verb' => 'POST'],
 
+        // Course catalogue (enrolment-catalogue-self-signup): the signed-in
+        // learner lists what they may sign up for, signs up for a course or a
+        // programme, and withdraws an own sign-up; every write is for the
+        // caller only (rules in CatalogueSignUpService).
+        // Controller: CatalogueController (slug: catalogue).
+        ['name' => 'catalogue#index', 'url' => '/api/catalogue', 'verb' => 'GET'],
+        ['name' => 'catalogue#signUpCourse', 'url' => '/api/catalogue/courses/{id}/sign-up', 'verb' => 'POST'],
+        ['name' => 'catalogue#signUpProgramme', 'url' => '/api/catalogue/programmes/{id}/sign-up', 'verb' => 'POST'],
+        ['name' => 'catalogue#withdraw', 'url' => '/api/enrolments/{id}/withdraw', 'verb' => 'POST'],
+        // Portal catalogue receivers (pattern of #1096 and #1142): assertion
+        // only, learnerRef from portaliq. Controller: PortalCatalogueController.
+        ['name' => 'portalCatalogue#catalogue', 'url' => '/api/portal/catalogue', 'verb' => 'POST'],
+        ['name' => 'portalCatalogue#signUp', 'url' => '/api/portal/catalogue/sign-up', 'verb' => 'POST'],
+        ['name' => 'portalCatalogue#withdraw', 'url' => '/api/portal/catalogue/withdraw', 'verb' => 'POST'],
         // Double marking (assignments-double-marking): the teacher in charge
         // allocates markers to the handed-in submissions (instructors,
         // compliance officers, team leads or admin, checked in the method), and
