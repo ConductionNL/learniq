@@ -27,8 +27,8 @@
 - [x] Test
 
 ## Verification
-- [ ] `openspec validate learnerrefs-backfill-and-lookup-dedupe` passes
-- [ ] `composer check:strict`, `npm run lint`, hydra gates, each with its exit code in the PR body
+- [x] `openspec validate learnerrefs-backfill-and-lookup-dedupe` passes
+- [x] `composer check:strict`, `npm run lint`, hydra gates, each with its exit code in the PR body
 
 ## Quality checklist
 
