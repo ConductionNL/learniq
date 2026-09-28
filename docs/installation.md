@@ -106,6 +106,14 @@ php occ learniq:example-set:remove po --apply
 
 The command hands the set's ids to OpenRegister's `openregister:objects:purge --force`, the one route OpenRegister offers for removing fixtures from archival schemas. It only ever removes objects the set itself shipped.
 
+## Timetable import and SWV hand-offs
+
+The timetable is planninq's: integriq reads it from Zermelo, Untis, Xedule or TimeEdit and delivers it to planninq, and learniq reads the lessons from there. The timetable row on the Integrations page shows as available once planninq is installed; learniq reports it once a day and when you save the admin settings.
+
+Under **Administration settings > Learniq > Timetable and SWV exchange**, say which group code in each rostering system is which group in learniq, and name the integriq receiver of your support requests for the SWV (for example `swv-kindkans`). An import uses the map of the system it reads.
+
+Anyone allowed to request an exchange (by default administrators and administration managers) finds **Import a timetable** on the timetable conflicts page. After the delivery, learniq checks the imported lessons for conflicts.
+
 ## First-login checklist
 
 After the registers are initialised:

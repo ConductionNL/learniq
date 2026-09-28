@@ -41,6 +41,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Timetabling;
 
+use OCA\Learniq\Service\TimetableExchangeSettings;
 use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
 use OCP\EventDispatcher\IEventDispatcher;
 use Psr\Log\LoggerInterface;
@@ -58,7 +59,7 @@ class PlanninqTimetableImport {
 	/**
 	 * Mapping-profile vendor to integriq rostering Source row id.
 	 */
-	private const VENDOR_SOURCES = [
+	public const VENDOR_SOURCES = [
 		'zermelo' => 'roster-zermelo',
 		'untis' => 'roster-untis-oneroster',
 		'xedule' => 'roster-xedule',
@@ -77,6 +78,7 @@ class PlanninqTimetableImport {
 	 * @param IEventDispatcher          $dispatcher       Dispatches integriq's event.
 	 * @param TimetableConflictDetector $conflictDetector Scans the delivered lessons.
 	 * @param LoggerInterface           $logger           PSR logger.
+	 * @param TimetableExchangeSettings $groupMaps        The group code maps the administrator keeps per rostering system.
 	 * @param string                    $eventClass       Integriq's event class name (tests only).
 	 *
 	 * @return void
@@ -86,6 +88,7 @@ class PlanninqTimetableImport {
 		private readonly IEventDispatcher $dispatcher,
 		private readonly TimetableConflictDetector $conflictDetector,
 		private readonly LoggerInterface $logger,
+		private readonly TimetableExchangeSettings $groupMaps,
 		private readonly string $eventClass = self::INTEGRIQ_EVENT,
 	) {
 	}//end __construct()
@@ -301,6 +304,15 @@ class PlanninqTimetableImport {
 		$scope = $job['scope'] ?? [];
 		if (is_array($scope) === false) {
 			return [];
+		}
+
+		// A request without its own map uses the one the administrator keeps
+		// for that rostering system (timetable-connection-and-import-screen).
+		if (empty($scope['groupMap']) === true && is_string($scope['rosterSource'] ?? null) === true) {
+			$kept = $this->groupMaps->groupMapFor(source: $scope['rosterSource']);
+			if ($kept !== []) {
+				$scope['groupMap'] = $kept;
+			}
 		}
 
 		return $scope;
