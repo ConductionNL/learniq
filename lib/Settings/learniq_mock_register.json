@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.29",
+    "version": "1.1.30",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -269,8 +269,8 @@
         "properties": {
           "channelTitle": {
             "type": "string",
-            "description": "Human-readable name of the digital channel (app/site) this statement describes — e.g. the school's Scholiq environment name.",
-            "example": "Scholiq — De Vrije School",
+            "description": "Human-readable name of the digital channel (app/site) this statement describes — e.g. the school's Learniq environment name.",
+            "example": "Learniq — De Vrije School",
             "title": "Channel Title"
           },
           "status": {
@@ -528,7 +528,7 @@
             "type": "string",
             "nullable": true,
             "format": "date",
-            "description": "Institution-set deadline by which an Application must be submitted for the mbo-toelatingsrecht safeguard to apply (e.g. the statutory 1 April date). No schema default — the deadline is institution/instance policy, not a Scholiq constant, mirroring BsaTrajectory.normEcts' identical reasoning. Null = no deadline is enforced by AdmissionsDecisionGuard's toelatingsrecht branch.",
+            "description": "Institution-set deadline by which an Application must be submitted for the mbo-toelatingsrecht safeguard to apply (e.g. the statutory 1 April date). No schema default — the deadline is institution/instance policy, not a Learniq constant, mirroring BsaTrajectory.normEcts' identical reasoning. Null = no deadline is enforced by AdmissionsDecisionGuard's toelatingsrecht branch.",
             "title": "Application Deadline"
           },
           "mandatoryIntake": {
@@ -610,7 +610,7 @@
         "icon": "RobotOutline",
         "version": "0.2.0",
         "title": "AI Feature",
-        "description": "AVG Art. 30 processing-activity declaration for Scholiq's AI-assisted learning. The EU AI Act high-risk feature register, DPO-acknowledgement gate, and lifecycle governance are delegated to the Hermiq app (ADR-005); this schema now only carries the processing-activity catalogue annotation.",
+        "description": "AVG Art. 30 processing-activity declaration for Learniq's AI-assisted learning. The EU AI Act high-risk feature register, DPO-acknowledgement gate, and lifecycle governance are delegated to the Hermiq app (ADR-005); this schema now only carries the processing-activity catalogue annotation.",
         "type": "object",
         "required": [
           "slug",
@@ -699,7 +699,7 @@
           "guardianId": {
             "type": "string",
             "nullable": true,
-            "description": "Nextcloud user ID of the guardian, when the family already has an NC/LearnerProfile presence (e.g. a sibling application). Null for the common case of no existing Scholiq identity at intake time — reuses ConferenceSignup.guardianId's shape verbatim.",
+            "description": "Nextcloud user ID of the guardian, when the family already has an NC/LearnerProfile presence (e.g. a sibling application). Null for the common case of no existing Learniq identity at intake time — reuses ConferenceSignup.guardianId's shape verbatim.",
             "title": "Guardian ID"
           },
           "guardianRef": {
@@ -1327,7 +1327,7 @@
               "nativeTestMode": {
                 "type": "boolean",
                 "default": false,
-                "description": "Enables Scholiq's built-in browser-JS delivery hardening (fullscreen enforcement, focus-loss/tab-switch/navigation logging) instead of resolving an external ProvidesProctoring adapter via provider. Mutually exclusive with provider in practice — external provider wins if both are set (config-authoring error, not schema-enforced).",
+                "description": "Enables Learniq's built-in browser-JS delivery hardening (fullscreen enforcement, focus-loss/tab-switch/navigation logging) instead of resolving an external ProvidesProctoring adapter via provider. Mutually exclusive with provider in practice — external provider wins if both are set (config-authoring error, not schema-enforced).",
                 "title": "Native Test Mode"
               },
               "navigationLock": {
@@ -3388,7 +3388,7 @@
               "provider": {
                 "type": "string",
                 "nullable": true,
-                "description": "Configured ProvidesLeerbedrijfVerification adapter identifier resolved via DI. Null means no adapter is configured — Scholiq ships none.",
+                "description": "Configured ProvidesLeerbedrijfVerification adapter identifier resolved via DI. Null means no adapter is configured — Learniq ships none.",
                 "title": "Verification Provider"
               },
               "status": {
@@ -7810,7 +7810,7 @@
                 "refId": {
                   "type": "string",
                   "nullable": true,
-                  "description": "NC user ID or LearnerProfile UUID, for attendees who are Scholiq subjects.",
+                  "description": "NC user ID or LearnerProfile UUID, for attendees who are Learniq subjects.",
                   "default": null,
                   "title": "Attendee Reference ID"
                 }
@@ -9192,7 +9192,7 @@
               "external-form"
             ],
             "default": "built-in",
-            "description": "built-in: Scholiq owns the questions[] instrument end-to-end. external-form: learners are pointed at a supplementary Nextcloud Forms survey via externalFormUrl for free-text-only qualitative input that Scholiq does NOT ingest, read, or aggregate -- a convenience link only (design.md Decision 1).",
+            "description": "built-in: Learniq owns the questions[] instrument end-to-end. external-form: learners are pointed at a supplementary Nextcloud Forms survey via externalFormUrl for free-text-only qualitative input that Learniq does NOT ingest, read, or aggregate -- a convenience link only (design.md Decision 1).",
             "title": "Instrument Kind"
           },
           "questions": {
@@ -9256,7 +9256,7 @@
             "type": "string",
             "nullable": true,
             "format": "uri",
-            "description": "URL of the supplementary Nextcloud Forms survey learners are pointed at. Only meaningful when instrumentKind is external-form. Scholiq never reads or aggregates what is submitted through it (design.md Decision 1).",
+            "description": "URL of the supplementary Nextcloud Forms survey learners are pointed at. Only meaningful when instrumentKind is external-form. Learniq never reads or aggregates what is submitted through it (design.md Decision 1).",
             "title": "External Form URL"
           },
           "anonymityPolicy": {
@@ -10113,7 +10113,7 @@
           "email": {
             "type": "string",
             "format": "email",
-            "description": "Contact email address of the external assessor — used for out-of-band (non-Scholiq) communication, since no NC-reachable notification channel exists for this role.",
+            "description": "Contact email address of the external assessor — used for out-of-band (non-Learniq) communication, since no NC-reachable notification channel exists for this role.",
             "title": "Email Address"
           },
           "organisationName": {
@@ -13161,7 +13161,7 @@
         "icon": "AccountOutline",
         "version": "0.2.0",
         "title": "LearnerProfile",
-        "description": "Scholiq learner profile. Owns role assignment and is the actor reference for enrolments, credentials, and attestations.",
+        "description": "Learniq learner profile. Owns role assignment and is the actor reference for enrolments, credentials, and attestations.",
         "type": "object",
         "required": [
           "ncUserId",
@@ -13235,8 +13235,8 @@
                 "inspector"
               ]
             },
-            "description": "One or more Scholiq roles. The highest-priority role is materialised as primaryRole.",
-            "title": "Scholiq Roles"
+            "description": "One or more Learniq roles. The highest-priority role is materialised as primaryRole.",
+            "title": "Learniq Roles"
           },
           "parentIds": {
             "type": "array",
@@ -14268,7 +14268,7 @@
         "icon": "ShareVariantOutline",
         "version": "0.1.0",
         "title": "LearningRecordShare",
-        "description": "A time-boxed, revocable grant of one already-generated LearningRecordExport snapshot to a named external recipient who has no Scholiq presence at all — an employer, a receiving school's admissions office. Resolved via a public verification page (LearningRecordShareVerifyController), mirroring CredentialVerifyController's pattern, rather than an NC Files share or a portal-audience match, because the recipient is assumed to have neither (design.md's rejected-alternative on reusing PortfolioShare wholesale). Borrows PortfolioShare's draft/active/revoked lifecycle shape and expiresAt/revokedAt fields, but expiresAt is required here — every share has an end date, a stronger default than PortfolioShare's nullable expiresAt.",
+        "description": "A time-boxed, revocable grant of one already-generated LearningRecordExport snapshot to a named external recipient who has no Learniq presence at all — an employer, a receiving school's admissions office. Resolved via a public verification page (LearningRecordShareVerifyController), mirroring CredentialVerifyController's pattern, rather than an NC Files share or a portal-audience match, because the recipient is assumed to have neither (design.md's rejected-alternative on reusing PortfolioShare wholesale). Borrows PortfolioShare's draft/active/revoked lifecycle shape and expiresAt/revokedAt fields, but expiresAt is required here — every share has an end date, a stronger default than PortfolioShare's nullable expiresAt.",
         "type": "object",
         "x-openregister": {
           "active": true,
@@ -14306,7 +14306,7 @@
           },
           "recipientName": {
             "type": "string",
-            "description": "Free-text name of the external recipient (a person or organisation with no Scholiq presence).",
+            "description": "Free-text name of the external recipient (a person or organisation with no Learniq presence).",
             "title": "Recipient Name"
           },
           "recipientEmail": {
@@ -14438,7 +14438,7 @@
               "nl": "Je hebt toegang gekregen tot een portable learning record",
               "en": "You have been granted access to a portable learning record"
             },
-            "_comment": "recipientEmail names an external party with no Scholiq presence by construction (an employer, a receiving school's admissions office) — the same documented, unimplemented out-of-band-delivery gap ExternalAssessor.email/Application.guardianEmail already carry in this register. Declared here so the field is wired per the spec's requirement; actual delivery to a non-NC address is not solved by this rule alone."
+            "_comment": "recipientEmail names an external party with no Learniq presence by construction (an employer, a receiving school's admissions office) — the same documented, unimplemented out-of-band-delivery gap ExternalAssessor.email/Application.guardianEmail already carry in this register. Declared here so the field is wired per the spec's requirement; actual delivery to a non-NC address is not solved by this rule alone."
           }
         },
         "x-property-rbac": {
@@ -14526,7 +14526,7 @@
             "type": "string",
             "nullable": true,
             "description": "nc:files path or cmi5 launch URL for those content types. For contentType='lti', this MUST be the UUID of an LtiToolPlacement object, not a raw link — a static URL cannot carry a signed OIDC launch; the placement is resolved server-side and the actual launch is delegated to OpenConnector's lti-13-platform adapter. Required for every contentType except 'text' (see the allOf/if/then conditional below) — a contentType='text' lesson carries its body in blocks instead and leaves contentRef unset.",
-            "example": "/Scholiq/tenant-uuid/course-uuid/cmi5/lesson-uuid/",
+            "example": "/Learniq/tenant-uuid/course-uuid/cmi5/lesson-uuid/",
             "title": "Content Reference"
           },
           "blocks": {
@@ -14910,7 +14910,7 @@
         "icon": "ApplicationOutline",
         "version": "0.1.0",
         "title": "LtiToolPlacement",
-        "description": "Places an external LTI 1.3 tool inside a Course or Lesson. Stores only the reference to the corresponding lti_deployment registration living in OpenConnector's own register (cross-app, bare UUID — OR relations do not span registers/apps) plus the optional grading-component mapping an AGS score for this placement feeds. Scholiq never stores or handles the OIDC/JWT material itself — that lives entirely in OpenConnector's lti-13-platform adapter. Lifecycle: draft → active → retired.",
+        "description": "Places an external LTI 1.3 tool inside a Course or Lesson. Stores only the reference to the corresponding lti_deployment registration living in OpenConnector's own register (cross-app, bare UUID — OR relations do not span registers/apps) plus the optional grading-component mapping an AGS score for this placement feeds. Learniq never stores or handles the OIDC/JWT material itself — that lives entirely in OpenConnector's lti-13-platform adapter. Lifecycle: draft → active → retired.",
         "type": "object",
         "x-openregister": {
           "active": true,
@@ -15061,7 +15061,7 @@
           "fileRef": {
             "type": "string",
             "description": "OpenRegister file attachment reference (nc:files path or OR attachment ID). The app does NOT store file bytes.",
-            "example": "/Scholiq/tenant-uuid/materials/slides-nis2.pptx",
+            "example": "/Learniq/tenant-uuid/materials/slides-nis2.pptx",
             "title": "File Reference"
           },
           "url": {
@@ -16405,7 +16405,7 @@
           "email": {
             "type": "string",
             "format": "email",
-            "description": "Contact email address of the praktijkopleider — used for out-of-band (non-Scholiq) communication, since no NC-reachable notification channel exists for this role.",
+            "description": "Contact email address of the praktijkopleider — used for out-of-band (non-Learniq) communication, since no NC-reachable notification channel exists for this role.",
             "title": "Email Address"
           },
           "phone": {
@@ -18860,7 +18860,7 @@
         "icon": "Earth",
         "version": "0.1.0",
         "title": "SovereigntyPolicy",
-        "description": "The school-wide AI-processing locality policy (sovereign-ai-guarantee): declares the strictest locality tier the school will accept for AI-assisted processing. A flat, un-lifecycled, singleton policy record — mirrors Hermiq's own TenantControl/ModelPolicy/GuardrailPolicy precedent for a policy record that needs no state machine. One Scholiq instance is one school — no organisation/tenant_id scoping, unlike Hermiq's multi-tenant policy records. Read by AiLocalityClassifier/SovereigntyPolicyService and enforced by AssessmentPublishGuard's locality check on ai-assisted proctoring. See openspec/changes/sovereign-ai-guarantee/.",
+        "description": "The school-wide AI-processing locality policy (sovereign-ai-guarantee): declares the strictest locality tier the school will accept for AI-assisted processing. A flat, un-lifecycled, singleton policy record — mirrors Hermiq's own TenantControl/ModelPolicy/GuardrailPolicy precedent for a policy record that needs no state machine. One Learniq instance is one school — no organisation/tenant_id scoping, unlike Hermiq's multi-tenant policy records. Read by AiLocalityClassifier/SovereigntyPolicyService and enforced by AssessmentPublishGuard's locality check on ai-assisted proctoring. See openspec/changes/sovereign-ai-guarantee/.",
         "type": "object",
         "x-openregister": {
           "active": true,
@@ -19729,7 +19729,7 @@
         "icon": "FileCertificateOutline",
         "version": "0.1.0",
         "title": "TlvApplication",
-        "description": "The toelaatbaarheidsverklaring (TLV) application, tracing to the SupportRequest that triggered it. Scholiq records the samenwerkingsverband's (SWV) decision — it does not adjudicate it, per Wet passend onderwijs. validUntil drives a declared tlvExpiringSoon calculation (no PHP TimedJob).",
+        "description": "The toelaatbaarheidsverklaring (TLV) application, tracing to the SupportRequest that triggered it. Learniq records the samenwerkingsverband's (SWV) decision — it does not adjudicate it, per Wet passend onderwijs. validUntil drives a declared tlvExpiringSoon calculation (no PHP TimedJob).",
         "type": "object",
         "x-openregister": {
           "active": true,
@@ -19770,7 +19770,7 @@
               "conditional",
               null
             ],
-            "description": "The SWV's decision, recorded by a coordinator once received. Null until decided. Scholiq records this decision; it implements no logic that auto-approves, auto-rejects, or predicts it.",
+            "description": "The SWV's decision, recorded by a coordinator once received. Null until decided. Learniq records this decision; it implements no logic that auto-approves, auto-rejects, or predicts it.",
             "default": null,
             "title": "Decision"
           },
@@ -20346,7 +20346,7 @@
             "nullable": true,
             "format": "uuid",
             "$ref": "Course",
-            "description": "UUID of the Course this statement relates to (Scholiq denormalisation)",
+            "description": "UUID of the Course this statement relates to (Learniq denormalisation)",
             "title": "Course ID"
           },
           "lessonId": {
@@ -20354,7 +20354,7 @@
             "nullable": true,
             "format": "uuid",
             "$ref": "Lesson",
-            "description": "UUID of the Lesson this statement relates to (Scholiq denormalisation)",
+            "description": "UUID of the Lesson this statement relates to (Learniq denormalisation)",
             "title": "Lesson ID"
           },
           "verified_actor_id": {
