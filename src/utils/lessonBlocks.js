@@ -141,7 +141,7 @@ export function countPendingDrafts(blocks) {
  *
  * @param {Array<object>} blocks The lesson's blocks.
  * @return {Array<object>} Sorted blocks without teacher notes.
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-notes-stay-out-of-the-player
+ * @spec openspec/specs/course-management/spec.md#scenario-notes-stay-out-of-the-player
  */
 export function playerVisibleBlocks(blocks) {
 	return (blocks ?? [])

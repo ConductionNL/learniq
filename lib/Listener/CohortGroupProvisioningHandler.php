@@ -41,7 +41,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#requirement-cohort-activation-provisions-and-maintains-a-real-nextcloud-group
+ * @spec openspec/specs/school-structure/spec.md#requirement-cohort-activation-provisions-and-maintains-a-real-nextcloud-group
  */
 
 declare(strict_types=1);
@@ -63,7 +63,7 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#requirement-cohort-activation-provisions-and-maintains-a-real-nextcloud-group
+ * @spec openspec/specs/school-structure/spec.md#requirement-cohort-activation-provisions-and-maintains-a-real-nextcloud-group
  */
 class CohortGroupProvisioningHandler implements IEventListener {
 
@@ -107,8 +107,8 @@ class CohortGroupProvisioningHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#scenario-activating-a-cohort-provisions-its-nextcloud-group
-	 * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#scenario-enrolling-a-learner-into-an-active-cohort-adds-them-to-its-group
+	 * @spec openspec/specs/school-structure/spec.md#scenario-activating-a-cohort-provisions-its-nextcloud-group
+	 * @spec openspec/specs/school-structure/spec.md#scenario-enrolling-a-learner-into-an-active-cohort-adds-them-to-its-group
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -146,7 +146,7 @@ class CohortGroupProvisioningHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#scenario-activating-an-already-provisioned-cohort-does-not-provision-a-second-group
+	 * @spec openspec/specs/school-structure/spec.md#scenario-activating-an-already-provisioned-cohort-does-not-provision-a-second-group
 	 */
 	private function provisionGroup(array $cohort): void {
 		$cohortId = (string)($cohort['id'] ?? ($cohort['uuid'] ?? ''));
@@ -219,8 +219,8 @@ class CohortGroupProvisioningHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#scenario-withdrawing-an-enrolment-removes-the-learner-from-the-group
-	 * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#scenario-an-enrolment-change-on-a-not-yet-provisioned-cohort-is-a-no-op-not-an-error
+	 * @spec openspec/specs/school-structure/spec.md#scenario-withdrawing-an-enrolment-removes-the-learner-from-the-group
+	 * @spec openspec/specs/school-structure/spec.md#scenario-an-enrolment-change-on-a-not-yet-provisioned-cohort-is-a-no-op-not-an-error
 	 */
 	private function syncMembership(array $enrolment, bool $add): void {
 		$cohortId = (string)($enrolment['cohortId'] ?? '');

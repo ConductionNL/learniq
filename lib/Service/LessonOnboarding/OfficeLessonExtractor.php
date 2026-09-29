@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
+ * @spec openspec/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
  * @spec openspec/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
  */
 
@@ -81,7 +81,7 @@ class OfficeLessonExtractor {
 	 *
 	 * @return array{status: string, lesson: array|null} `status` is `ok`, `unavailable` or `unreadable`.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-confirmed-powerpoint-file-becomes-one-lesson-draft-or-waits-when-the-reader-is-missing
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-confirmed-powerpoint-file-becomes-one-lesson-draft-or-waits-when-the-reader-is-missing
 	 */
 	public function extract(File $file, string $format): array {
 		if ($format === 'pptx') {
@@ -135,7 +135,7 @@ class OfficeLessonExtractor {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
 	 */
 	public static function hasContent(array $lesson): bool {
 		foreach (($lesson['sections'] ?? []) as $section) {

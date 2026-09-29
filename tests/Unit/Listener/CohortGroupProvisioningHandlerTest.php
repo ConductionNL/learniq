@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#requirement-cohort-activation-provisions-and-maintains-a-real-nextcloud-group
+ * @spec openspec/specs/school-structure/spec.md#requirement-cohort-activation-provisions-and-maintains-a-real-nextcloud-group
  */
 
 declare(strict_types=1);
@@ -219,7 +219,7 @@ class CohortGroupProvisioningHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#scenario-activating-a-cohort-provisions-its-nextcloud-group
+	 * @spec openspec/specs/school-structure/spec.md#scenario-activating-a-cohort-provisions-its-nextcloud-group
 	 */
 	public function testActivatingCohortProvisionsGroupAndAddsMembers(): void {
 		$handler = $this->makeHandler();
@@ -250,7 +250,7 @@ class CohortGroupProvisioningHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#scenario-activating-an-already-provisioned-cohort-does-not-provision-a-second-group
+	 * @spec openspec/specs/school-structure/spec.md#scenario-activating-an-already-provisioned-cohort-does-not-provision-a-second-group
 	 */
 	public function testAlreadyProvisionedCohortIsNotReProvisioned(): void {
 		$handler = $this->makeHandler();
@@ -275,7 +275,7 @@ class CohortGroupProvisioningHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#scenario-an-unresolvable-user-id-is-skipped-not-fatal
+	 * @spec openspec/specs/school-structure/spec.md#scenario-an-unresolvable-user-id-is-skipped-not-fatal
 	 */
 	public function testUnresolvableUserIdIsSkippedNotFatal(): void {
 		$handler = $this->makeHandler(unresolvableUsers: ['ghost-user' => true]);
@@ -303,7 +303,7 @@ class CohortGroupProvisioningHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#scenario-enrolling-a-learner-into-an-active-cohort-adds-them-to-its-group
+	 * @spec openspec/specs/school-structure/spec.md#scenario-enrolling-a-learner-into-an-active-cohort-adds-them-to-its-group
 	 */
 	public function testActivatingEnrolmentAddsLearnerToProvisionedGroup(): void {
 		$group = $this->makeGroup(gid: 'learniq-cohort-cohort-4');
@@ -325,7 +325,7 @@ class CohortGroupProvisioningHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#scenario-withdrawing-an-enrolment-removes-the-learner-from-the-group
+	 * @spec openspec/specs/school-structure/spec.md#scenario-withdrawing-an-enrolment-removes-the-learner-from-the-group
 	 */
 	public function testWithdrawingEnrolmentRemovesLearnerFromGroup(): void {
 		$group = $this->makeGroup(gid: 'learniq-cohort-cohort-5');
@@ -348,7 +348,7 @@ class CohortGroupProvisioningHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#scenario-an-enrolment-change-on-a-not-yet-provisioned-cohort-is-a-no-op-not-an-error
+	 * @spec openspec/specs/school-structure/spec.md#scenario-an-enrolment-change-on-a-not-yet-provisioned-cohort-is-a-no-op-not-an-error
 	 */
 	public function testEnrolmentChangeOnUnprovisionedCohortIsNoOp(): void {
 		$handler = $this->makeHandler(foundCohort: ['id' => 'cohort-6', 'ncGroupId' => null]);

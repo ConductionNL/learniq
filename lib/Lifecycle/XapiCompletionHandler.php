@@ -47,7 +47,7 @@ use OCP\EventDispatcher\IEventListener;
  * @category Lifecycle
  * @package  OCA\Learniq\Lifecycle
  *
- * @spec openspec/changes/gate-61-deferral/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
+ * @spec openspec/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
  *
  * @implements IEventListener<Event>
  */
@@ -83,7 +83,7 @@ class XapiCompletionHandler implements IEventListener {
 	 * @return void
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-19
-	 * @spec openspec/changes/gate-61-deferral/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
+	 * @spec openspec/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatedEvent === false) {

@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
+ * @spec openspec/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
  */
 
 declare(strict_types=1);
@@ -104,7 +104,7 @@ class LessonOnboardingImporter {
 	 *
 	 * @throws OnboardingImportException When the row, the course or the file refuses the import.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-lesson-plan-with-two-headings-and-an-image
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-lesson-plan-with-two-headings-and-an-image
 	 */
 	public function import(string $userId, string $rowId, string $courseId): array {
 		$row = $this->loadRow(userId: $userId, rowId: $rowId);
@@ -230,7 +230,7 @@ class LessonOnboardingImporter {
 	 *
 	 * @throws OnboardingImportException 404 for a missing or foreign row, 409 for one not detected.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-another-teacher-s-row-cannot-be-imported
+	 * @spec openspec/specs/course-management/spec.md#scenario-another-teacher-s-row-cannot-be-imported
 	 */
 	private function loadRow(string $userId, string $rowId): array {
 		$row = $this->findArray(id: $rowId, schema: self::ROW_SCHEMA);

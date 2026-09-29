@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
+ * @spec openspec/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
  */
 
 declare(strict_types=1);
@@ -83,7 +83,7 @@ class OnboardingFolderSettingTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-teacher-picks-a-folder
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-picks-a-folder
 	 */
 	public function testChooseStoresTheFolderId(): void {
 		$this->userFolder->method('get')->with('/Lessen inbox')->willReturn($this->folder(id: 4711, name: 'Lessen inbox'));
@@ -98,7 +98,7 @@ class OnboardingFolderSettingTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-file-is-not-a-folder
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-file-is-not-a-folder
 	 */
 	public function testChooseRefusesAFileAMissingPathAndTheRoot(): void {
 		$this->config->expects($this->never())->method('setUserValue');

@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-confirmed-powerpoint-file-becomes-one-lesson-draft-or-waits-when-the-reader-is-missing
+ * @spec openspec/specs/course-management/spec.md#requirement-a-confirmed-powerpoint-file-becomes-one-lesson-draft-or-waits-when-the-reader-is-missing
  */
 
 declare(strict_types=1);
@@ -69,7 +69,7 @@ class PresentationLessonReader {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-openregister-has-no-presentation-reader-yet
+	 * @spec openspec/specs/course-management/spec.md#scenario-openregister-has-no-presentation-reader-yet
 	 */
 	public function isAvailable(): bool {
 		return class_exists($this->extractorClass) === true && method_exists($this->extractorClass, 'extract') === true;
@@ -84,7 +84,7 @@ class PresentationLessonReader {
 	 *                                                    extractor is missing; `lesson`
 	 *                                                    null when the deck is unreadable.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-deck-with-speaker-notes
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-deck-with-speaker-notes
 	 */
 	public function read(File $file): array {
 		if ($this->isAvailable() === false) {
@@ -115,7 +115,7 @@ class PresentationLessonReader {
 	 *
 	 * @return array<string, mixed> `{title, sections: [{heading, paragraphs, images, notes}], notes}`.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-confirmed-powerpoint-file-becomes-one-lesson-draft-or-waits-when-the-reader-is-missing
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-confirmed-powerpoint-file-becomes-one-lesson-draft-or-waits-when-the-reader-is-missing
 	 */
 	public function toLesson(array $result): array {
 		$sections = [];

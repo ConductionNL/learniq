@@ -16,7 +16,7 @@
 
   @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-course-package-frontend-is-declarative-with-one-named-custom-view-for-the-import-report
   @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
-  @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
+  @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
 -->
 
 <template>

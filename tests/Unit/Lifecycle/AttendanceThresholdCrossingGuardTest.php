@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#scenario-a-guarded-manual-check-below-the-limit-is-refused
+ * @spec openspec/specs/attendance/spec.md#scenario-a-guarded-manual-check-below-the-limit-is-refused
  */
 
 declare(strict_types=1);
@@ -48,7 +48,7 @@ class AttendanceThresholdCrossingGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#scenario-a-guarded-manual-check-records-a-real-per-learner-crossing-and-creates-an-attendanceflag
+	 * @spec openspec/specs/attendance/spec.md#scenario-a-guarded-manual-check-records-a-real-per-learner-crossing-and-creates-an-attendanceflag
 	 */
 	public function testCrossingAtOrAboveLimitIsAllowed(): void {
 		$guard = $this->makeGuard();
@@ -69,7 +69,7 @@ class AttendanceThresholdCrossingGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#scenario-a-guarded-manual-check-below-the-limit-is-refused
+	 * @spec openspec/specs/attendance/spec.md#scenario-a-guarded-manual-check-below-the-limit-is-refused
 	 */
 	public function testBelowLimitIsRefused(): void {
 		$guard = $this->makeGuard();

@@ -84,7 +84,7 @@ class RolloverController extends Controller {
 	 * @return JSONResponse The proposed mappings.
 	 *
 	 * @spec openspec/changes/school-year-rollover/tasks.md
-	 * @spec openspec/changes/fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
+	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
 	 */
 	#[NoAdminRequired]
 	public function proposeMapping(string $fromAcademicYear = ''): JSONResponse {
@@ -140,7 +140,7 @@ class RolloverController extends Controller {
 	 * @throws \Exception When OpenRegister refuses the plan save; it reaches the caller as before.
 	 *
 	 * @spec openspec/changes/school-year-rollover/tasks.md
-	 * @spec openspec/changes/fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
+	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
 	 */
 	#[NoAdminRequired]
 	public function preview(string $planId = ''): JSONResponse {

@@ -23,8 +23,8 @@
     - POST /apps/learniq/api/lesson-onboarding/files/:id/import {courseId}
     - GET /apps/openregister/api/objects/learniq/course (the course picker)
 
-  @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
-  @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
+  @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
+  @spec openspec/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
 -->
 <template>
 	<section
@@ -288,7 +288,7 @@ export default {
 	computed: {
 		/**
 		 * @return {Array<{id: string, label: string}>} Course picker options.
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
+		 * @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
 		 */
 		courseOptions() {
 			return this.courses.map((c) => ({
@@ -333,7 +333,7 @@ export default {
 		 * Load the folder, the teacher's rows and the courses.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
+		 * @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
 		 */
 		async load() {
 			this.loading = true
@@ -370,7 +370,7 @@ export default {
 		 * Pick a folder in the teacher's files and store it.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-teacher-picks-a-folder
+		 * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-picks-a-folder
 		 */
 		async chooseFolder() {
 			let path
@@ -399,7 +399,7 @@ export default {
 		 * Stop watching: clear the setting.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
 		 */
 		stopWatching() {
 			return this.saveFolder('')
@@ -410,7 +410,7 @@ export default {
 		 *
 		 * @param {string} path Path in the teacher's files, or '' to clear.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-file-is-not-a-folder
+		 * @spec openspec/specs/course-management/spec.md#scenario-a-file-is-not-a-folder
 		 */
 		async saveFolder(path) {
 			this.savingFolder = true
@@ -449,7 +449,7 @@ export default {
 		 *
 		 * @param {object} row The detected row.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
+		 * @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
 		 */
 		async importRow(row) {
 			const id = this.rowId(row)
@@ -490,7 +490,7 @@ export default {
 		 *
 		 * @param {object} row The detected row.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-teacher-dismisses-a-file
+		 * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-dismisses-a-file
 		 */
 		async dismissRow(row) {
 			const id = this.rowId(row)
@@ -520,7 +520,7 @@ export default {
 		 *
 		 * @param {string} key From importErrorKey().
 		 * @return {string} The message.
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-openregister-has-no-presentation-reader-yet
+		 * @spec openspec/specs/course-management/spec.md#scenario-openregister-has-no-presentation-reader-yet
 		 */
 		errorMessage(key) {
 			const messages = {
@@ -564,7 +564,7 @@ export default {
 		 * @param {string} courseId The course.
 		 * @param {string} lessonId The lesson.
 		 * @return {void}
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
 		 */
 		openLesson(courseId, lessonId) {
 			if (this.$router) {

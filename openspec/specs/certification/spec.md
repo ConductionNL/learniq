@@ -29,14 +29,31 @@ Certificate templates (visual + metadata); issuance triggered by course/exam com
 - GIVEN a certification has an expiry date, WHEN the daily job runs, THEN learners + managers + compliance officers get tiered notifications at 90/60/30 days.
 - GIVEN a regulation changes and the related course is marked as a new content version, WHEN the change is saved, THEN every previously certified learner is auto-enrolled in the delta module.
 - GIVEN a degree is awarded, WHEN the registrar confirms, THEN a Bologna Diploma Supplement is generated and an EDCI credential is issued.
+
 ## Requirements
+
 ### Requirement: Issue EDCI/Europass and Open Badges 3.0 credentials
-The system MUST issue EDCI / Europass credentials and Open Badges 3.0 with verifiable URLs.
+The system MUST issue EDCI / Europass credentials and Open Badges 3.0 with verifiable URLs, signed using the
+per-tenant RSA-2048 keypair managed by `KeyAdminController`. `KeyAdminController::generateKey()` and
+`::keyStatus()` MUST have a controller-level automated test asserting: key generation never returns private
+key material in the JSON response; rotation of an existing key is blocked without explicit `confirm=true`;
+rotation is blocked within the 24-hour throttle window; and a `tenantId` that does not match the caller's
+server-resolved bound tenant is rejected (403) before any key-management call is made.
 
 #### Scenario: Credential issued with verifiable URL
 - **GIVEN** a learner who completes a course or exam with a defined certificate template
 - **WHEN** the credential is issued
 - **THEN** an EDCI / Europass credential and an Open Badges 3.0 badge are produced, each with a verifiable URL
+
+#### Scenario: Key rotation is throttled, confirmed, and never leaks private key material
+<!-- @e2e exclude Admin-only cryptographic operation; no scholiq DOM surface — covered by KeyAdminControllerTest. -->
+
+- **GIVEN** a tenant already has a signing keypair configured
+- **WHEN** an admin calls `generateKey()` again without `confirm=true`
+- **THEN** the endpoint returns 400 and no new key is generated
+- **WHEN** an admin calls `generateKey()` with `confirm=true` within 24 hours of the last rotation
+- **THEN** the endpoint returns 429 and no new key is generated
+- **AND** in no successful or unsuccessful response does the JSON body ever contain the private key
 
 ### Requirement: Detect expiries on a daily schedule
 The system MUST detect expiries on a daily schedule and dispatch tiered notifications.
@@ -47,9 +64,32 @@ The system MUST detect expiries on a daily schedule and dispatch tiered notifica
 - **THEN** expiries are detected and tiered notifications are dispatched at 90/60/30 days to learners, managers, and compliance officers
 
 ### Requirement: Auto-enrol on renewal or content-version change
-The system MUST auto-enrol learners in renewal or delta modules when triggered by expiry or content-version change.
+
+The system MUST auto-enrol learners in renewal or delta modules when
+triggered by expiry or content-version change.
+
+The **expiry** trigger is implemented: `CredentialRenewalListener` reacts to a
+`Credential`'s `expire` transition (`issued` → `expired`) by creating a new
+`Enrolment` for the same learner/course (`source: credential-renewal`,
+`mandatory: true`) and writing its id back onto `Credential.renewalEnrolmentId`.
+
+The **content-version-change** trigger is NOT implemented by this
+requirement's current scope — it needs a content-version concept on `Course`
+that does not exist today, and a fan-out across every credential-holder
+affected by a version bump, not a single-object transition listener. This is
+a named, open gap, not a silent omission.
+
+#### Scenario: Auto-enrol on credential expiry
+
+- **GIVEN** a previously certified learner whose `Credential` transitions `issued` → `expired`
+- **WHEN** the `expire` transition is applied
+- **THEN** a new `Enrolment` is created for the same learner and course, with `source: credential-renewal`
+- **AND** the expiring `Credential`'s `renewalEnrolmentId` is set to the new Enrolment's id
 
 #### Scenario: Auto-enrol on renewal or content-version change
+
+<!-- @e2e exclude The content-version-change half is not implemented in this change — Course carries no content-version concept today; tracked as an explicit open gap in openspec/changes/archive/2026-09-29-credential-renewal-listener/proposal.md Out of Scope, not silently assumed covered. The expiry half is covered by the scenario above. -->
+
 - **GIVEN** a previously certified learner whose certification expires or whose related course gets a new content version
 - **WHEN** the expiry or content-version change is triggered
 - **THEN** the learner is auto-enrolled in the corresponding renewal or delta module

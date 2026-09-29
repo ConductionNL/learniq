@@ -584,7 +584,7 @@ class LessonProgressHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/gate-61-deferral/specs/progress-tracking/spec.md#scenario-a-completion-statement-is-queued-not-processed-inline
+	 * @spec openspec/specs/progress-tracking/spec.md#scenario-a-completion-statement-is-queued-not-processed-inline
 	 */
 	public function testTheHandlerQueuesTheWorkAndWritesNothingItself(): void {
 		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));

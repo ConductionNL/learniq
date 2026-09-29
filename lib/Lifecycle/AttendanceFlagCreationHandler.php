@@ -155,7 +155,7 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#scenario-a-guarded-manual-check-records-a-real-per-learner-crossing-and-creates-an-attendanceflag
+	 * @spec openspec/specs/attendance/spec.md#scenario-a-guarded-manual-check-records-a-real-per-learner-crossing-and-creates-an-attendanceflag
 	 */
 	private function createFlag(ObjectTransitionedEvent $event): void {
 		$threshold = $event->getObject()->jsonSerialize();

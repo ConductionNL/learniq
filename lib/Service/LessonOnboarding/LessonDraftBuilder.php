@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
+ * @spec openspec/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
  */
 
 declare(strict_types=1);
@@ -42,7 +42,7 @@ class LessonDraftBuilder {
 	 *
 	 * @return list<array<string, mixed>> Blocks with `blockId`, `type`, `order` and one payload each.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-lesson-plan-with-two-headings-and-an-image
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-lesson-plan-with-two-headings-and-an-image
 	 */
 	public function build(array $sections, array $materialIds = []): array {
 		$blocks = [];
@@ -79,7 +79,7 @@ class LessonDraftBuilder {
 	 *
 	 * @return string The markdown, or '' when the section holds no text.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
 	 */
 	public function sectionMarkdown(string $heading, array $paragraphs): string {
 		$markdown = '';

@@ -62,7 +62,7 @@ use OCP\EventDispatcher\IEventListener;
  * Queues every completed or passed xAPI statement for its LessonCompletion
  * upsert; no mandatoryTraining or last-lesson gate.
  *
- * @spec openspec/changes/gate-61-deferral/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
+ * @spec openspec/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
  *
  * @implements IEventListener<Event>
  */
@@ -93,7 +93,7 @@ class LessonProgressHandler implements IEventListener {
 	 * @return void
 	 *
 	 * @spec openspec/changes/learning-progress-and-analytics/specs/progress-tracking/spec.md#requirement-xapi-completion-statements-are-wired-into-per-lesson-completion-not-duplicated
-	 * @spec openspec/changes/gate-61-deferral/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
+	 * @spec openspec/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatedEvent === false) {

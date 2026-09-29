@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/credential-renewal-listener/specs/certification/spec.md#requirement-auto-enrol-on-renewal-or-content-version-change
+ * @spec openspec/specs/certification/spec.md#requirement-auto-enrol-on-renewal-or-content-version-change
  */
 
 declare(strict_types=1);
@@ -117,7 +117,7 @@ class CredentialRenewalListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/credential-renewal-listener/specs/certification/spec.md#scenario-auto-enrol-on-credential-expiry
+	 * @spec openspec/specs/certification/spec.md#scenario-auto-enrol-on-credential-expiry
 	 */
 	public function testExpiredCredentialCreatesAndLinksRenewalEnrolment(): void {
 		$listener = $this->makeListener(savedEnrolment: ['id' => 'enrol-1']);

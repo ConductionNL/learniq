@@ -12,7 +12,7 @@ name: Spec Validation
 #   - check:l10n         — translation-parity ratchet against
 #     l10n/.l10n-parity-baseline.json: a new English key without its Dutch value
 #     fails, and no other required locale may lose a translation it has
-#     (openspec/changes/wire-l10n-parity-ci-gate)
+#     (openspec/specs/i18n-locale-parity)
 #
 # To make these BLOCK a merge, add the "Spec Validation / validate" check to the
 # branch-protection ruleset's required-status-checks list (org settings).

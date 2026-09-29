@@ -305,7 +305,7 @@ class ExchangeGateServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/import-records-in-gate-answer/specs/data-exchange/spec.md#requirement-the-gate-hands-the-rows-of-an-import-jobs-file-to-integriq
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-hands-the-rows-of-an-import-jobs-file-to-integriq
 	 */
 	public function testAnLvsImportHandsOverTheRowsOfItsFile(): void {
 		$this->rows['integriq/job'][] = ['id' => 'job-7', 'ownerApp' => 'learniq', 'requestedBy' => 'teacher'];
@@ -325,7 +325,7 @@ class ExchangeGateServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/import-records-in-gate-answer/specs/data-exchange/spec.md#requirement-the-gate-hands-the-rows-of-an-import-jobs-file-to-integriq
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-hands-the-rows-of-an-import-jobs-file-to-integriq
 	 */
 	public function testAnImportWithoutAFileIsRefused(): void {
 		$this->rows['integriq/job'][] = ['id' => 'job-8', 'ownerApp' => 'learniq', 'requestedBy' => 'teacher'];

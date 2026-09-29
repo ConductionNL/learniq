@@ -516,7 +516,7 @@ export default {
 		 *
 		 * @return {Array<object>}
 		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-notes-stay-out-of-the-player
+		 * @spec openspec/specs/course-management/spec.md#scenario-notes-stay-out-of-the-player
 		 */
 		sortedBlocks() {
 			// office-file-lesson-onboarding: teacher notes never render here.

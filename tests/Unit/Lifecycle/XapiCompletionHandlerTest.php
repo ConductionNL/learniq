@@ -17,7 +17,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/gate-61-deferral/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
+ * @spec openspec/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
  */
 
 declare(strict_types=1);
@@ -198,7 +198,7 @@ class XapiCompletionHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/gate-61-deferral/specs/progress-tracking/spec.md#scenario-a-completion-statement-is-queued-not-processed-inline
+	 * @spec openspec/specs/progress-tracking/spec.md#scenario-a-completion-statement-is-queued-not-processed-inline
 	 */
 	public function testTheHandlerQueuesACompletionStatementAndReadsNothing(): void {
 		$this->course();
@@ -231,7 +231,7 @@ class XapiCompletionHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/gate-61-deferral/specs/progress-tracking/spec.md#scenario-the-job-completes-the-enrolment-on-the-final-mandatory-lesson
+	 * @spec openspec/specs/progress-tracking/spec.md#scenario-the-job-completes-the-enrolment-on-the-final-mandatory-lesson
 	 */
 	public function testTheJobCompletesTheEnrolmentOnTheFinalMandatoryLesson(): void {
 		$this->course();

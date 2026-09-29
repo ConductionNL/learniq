@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
+ * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
  */
 
 declare(strict_types=1);

@@ -47,7 +47,7 @@
  *
  * Ratchet exit codes: 0 at the baseline; 1 worse, better, or no baseline.
  *
- * @spec openspec/changes/wire-l10n-parity-ci-gate/tasks.md#task-3
+ * @spec openspec/changes/archive/2026-09-29-wire-l10n-parity-ci-gate/tasks.md#task-3
  *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>

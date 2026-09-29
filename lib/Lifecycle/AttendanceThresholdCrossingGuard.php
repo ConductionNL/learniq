@@ -9,7 +9,7 @@
  * the transition unless the caller-supplied `checkedMetricValue` (a
  * per-learner unexcused-lesuren figure OpenRegister's aggregation DSL cannot
  * compute declaratively on a shared threshold definition — see
- * openspec/changes/attendance-threshold-calculation/design.md) meets or
+ * openspec/changes/archive/2026-09-29-attendance-threshold-calculation/design.md) meets or
  * exceeds the threshold's own `limit`, and that a `checkedLearnerId` was
  * supplied at all.
  *
@@ -34,7 +34,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#scenario-a-guarded-manual-check-below-the-limit-is-refused
+ * @spec openspec/specs/attendance/spec.md#scenario-a-guarded-manual-check-below-the-limit-is-refused
  */
 
 declare(strict_types=1);
@@ -51,8 +51,8 @@ use Psr\Log\LoggerInterface;
  * Returns true only when `checkedLearnerId` is set and `checkedMetricValue`
  * meets or exceeds `limit`.
  *
- * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#scenario-a-guarded-manual-check-records-a-real-per-learner-crossing-and-creates-an-attendanceflag
- * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#scenario-a-guarded-manual-check-below-the-limit-is-refused
+ * @spec openspec/specs/attendance/spec.md#scenario-a-guarded-manual-check-records-a-real-per-learner-crossing-and-creates-an-attendanceflag
+ * @spec openspec/specs/attendance/spec.md#scenario-a-guarded-manual-check-below-the-limit-is-refused
  */
 class AttendanceThresholdCrossingGuard implements LifecycleGuardInterface {
 
@@ -91,7 +91,7 @@ class AttendanceThresholdCrossingGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#scenario-a-guarded-manual-check-below-the-limit-is-refused
+	 * @spec openspec/specs/attendance/spec.md#scenario-a-guarded-manual-check-below-the-limit-is-refused
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -110,7 +110,7 @@ class AttendanceThresholdCrossingGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True if the transition is allowed; false blocks it (HTTP 422).
 	 *
-	 * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#scenario-a-guarded-manual-check-below-the-limit-is-refused
+	 * @spec openspec/specs/attendance/spec.md#scenario-a-guarded-manual-check-below-the-limit-is-refused
 	 */
 	private function allows(array $threshold): bool {
 
