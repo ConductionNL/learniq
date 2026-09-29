@@ -24,9 +24,9 @@
  * @e2e openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#scenario-an-administrator-sees-lti-as-working
  */
 import type { APIRequestContext, Page } from '@playwright/test'
+
 import * as fs from 'fs'
 import * as path from 'path'
-
 import { expect, test } from './fixtures.ts'
 
 /** Integriq's objects endpoint for learniq's connection rows. */
