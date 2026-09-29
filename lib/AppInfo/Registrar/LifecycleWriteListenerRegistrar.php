@@ -8,6 +8,9 @@
  * results of self-loop lifecycle transitions. OpenRegister runs neither a
  * `requires` guard nor a transition action when the lifecycle value does not
  * change, so those writes run on ObjectTransitionedEvent instead (learniq#983).
+ * It also wires LearnerUserIdStamp, which writes a learner's Nextcloud user id
+ * next to the LearnerProfile uuid on every create and update of
+ * ExternalTrainingRecord, ExemptionCase and FraudCase.
  *
  * @category AppInfo
  * @package  OCA\Learniq\AppInfo\Registrar
@@ -30,9 +33,12 @@ declare(strict_types=1);
 namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\Learniq\Listener\CredentialWalletTransitionListener;
+use OCA\Learniq\Listener\LearnerUserIdStamp;
 use OCA\Learniq\Listener\MunicipalityFeedbackStampListener;
 use OCA\Learniq\Listener\ReportCardPdfTransitionListener;
+use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 /**
@@ -69,6 +75,19 @@ class LifecycleWriteListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: MunicipalityFeedbackStampListener::class
+		);
+
+		// The learner field on ExternalTrainingRecord, ExemptionCase and
+		// FraudCase is a LearnerProfile uuid, so the server writes the user id
+		// next to it; read rules and notifications match on that. A stamp, not
+		// a veto.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: LearnerUserIdStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: LearnerUserIdStamp::class
 		);
 	}//end register()
 }//end class

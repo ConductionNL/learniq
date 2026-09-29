@@ -22,6 +22,7 @@
 import type { APIRequestContext, Browser, Page } from '@playwright/test'
 
 import { request as playwrightRequest } from '@playwright/test'
+import { execFileSync } from 'child_process'
 import { randomBytes } from 'crypto'
 import { baseUrl } from './base-url.ts'
 
@@ -220,6 +221,40 @@ export class LiveFixtures {
 	}
 
 	/**
+	 * Make sure the tenant has a credential signing key, so issuing and
+	 * reissuing can sign. Generates one only when none is configured; an
+	 * existing key is never rotated. The key stays after the run: it is
+	 * instance configuration, not a test row.
+	 *
+	 * @return Whether this call generated the key.
+	 */
+	async ensureSigningKey(): Promise<boolean> {
+		const api = await this.api()
+		const tenantId = await this.tenant()
+		const status = await api.get(
+			`/index.php/apps/learniq/api/credentials/admin/key-status?tenantId=${tenantId}`,
+		)
+		if (!status.ok()) {
+			throw new Error(
+				`reading the signing key status: HTTP ${status.status()}`,
+			)
+		}
+		if ((await status.json()).configured === true) {
+			return false
+		}
+		const made = await api.post(
+			'/index.php/apps/learniq/api/credentials/admin/generate-key',
+			{ form: { tenantId } },
+		)
+		if (!made.ok()) {
+			throw new Error(
+				`generating the signing key was refused: HTTP ${made.status()} ${await made.text()}`,
+			)
+		}
+		return true
+	}
+
+	/**
 	 * Delete everything in the ledger, newest first. Never throws: a
 	 * teardown that throws hides the test's own failure.
 	 *
@@ -240,12 +275,15 @@ export class LiveFixtures {
 			}
 			// Archival schemas (attendance records, for one) refuse user deletes
 			// by design; OpenRegister's ArchivalRetentionTask removes them.
+			// Append-only schemas (credentials) refuse every delete with 405.
+			const answer = res.ok() ? '' : await res.text()
 			const archival =
-				res.status() === 403
-				&& (await res.text()).includes('ArchivalRetentionTask')
-			if (archival) {
+				res.status() === 403 && answer.includes('ArchivalRetentionTask')
+			const appendOnly =
+				res.status() === 405 && answer.includes('SCHEMA_APPEND_ONLY')
+			if (archival || appendOnly) {
 				console.warn(
-					`[live-fixtures] kept by archival retention: ${slug}/${id}`,
+					`[live-fixtures] kept by ${archival ? 'archival retention' : 'an append-only schema'}: ${slug}/${id}`,
 				)
 			} else if (!res.ok() && res.status() !== 404) {
 				left.push(`${slug}/${id}`)
@@ -331,4 +369,117 @@ export async function signInAs(browser: Browser, user: TempUser): Promise<Page> 
 		}
 	})
 	return page
+}
+
+/**
+ * The occ command, split into the executable and its leading arguments.
+ *
+ * @return [command, ...prefix]
+ */
+function occCommand(): string[] {
+	return (
+		process.env.LEARNIQ_E2E_OCC ?? 'docker exec -u www-data nextcloud php occ'
+	)
+		.split(/\s+/)
+		.filter((part) => part !== '')
+}
+
+/**
+ * Read one learniq app-config value.
+ *
+ * @param key The key.
+ * @return The value, or '' when it is not set.
+ */
+export function learniqConfig(key: string): string {
+	const [command, ...prefix] = occCommand()
+	try {
+		return execFileSync(command, [...prefix, 'config:app:get', 'learniq', key], {
+			encoding: 'utf8',
+			timeout: 60_000,
+			stdio: 'pipe',
+		}).trim()
+	} catch {
+		return ''
+	}
+}
+
+/**
+ * Delete learniq app-config keys a run wrote. Never throws: it runs in
+ * teardown, where a throw hides the test's own failure.
+ *
+ * @param keys The keys.
+ */
+export function deleteLearniqConfig(keys: string[]): void {
+	const [command, ...prefix] = occCommand()
+	for (const key of keys) {
+		try {
+			execFileSync(command, [...prefix, 'config:app:delete', 'learniq', key], {
+				encoding: 'utf8',
+				timeout: 60_000,
+				stdio: 'pipe',
+			})
+		} catch {
+			console.warn(`[live-fixtures] could not delete learniq config ${key}`)
+		}
+	}
+}
+
+/**
+ * Run learniq background jobs of one class now, instead of waiting for cron.
+ *
+ * The shared instance runs no cron daemon, so a queued job (a certificate
+ * reissue run, for one) only runs when someone executes it. This runs each
+ * matching job once through `occ background-job:execute`, on the command
+ * prefix in `LEARNIQ_E2E_OCC` (default: the dev container). It only ever
+ * executes jobs of the learniq class it is given.
+ *
+ * @param jobClass The job class, e.g. `OCA\\Learniq\\BackgroundJob\\CredentialReissueJob`.
+ * @param match Picks the jobs to run by their argument.
+ * @return How many jobs ran.
+ */
+export function runLearniqJobs(
+	jobClass: string,
+	match: (argument: Record<string, unknown>) => boolean,
+): number {
+	if (!jobClass.startsWith('OCA\\Learniq\\')) {
+		throw new Error(`refusing to run a job that is not learniq's: ${jobClass}`)
+	}
+	const [command, ...prefix] = occCommand()
+	const listed = execFileSync(
+		command,
+		[...prefix, 'background-job:list', `--class=${jobClass}`, '--output=json'],
+		{ encoding: 'utf8', timeout: 60_000 },
+	)
+	const jobs = JSON.parse(listed) as Array<{ id: string; argument: string }>
+	let ran = 0
+	for (const job of jobs) {
+		let argument: Record<string, unknown>
+		try {
+			argument = JSON.parse(job.argument)
+		} catch {
+			continue
+		}
+		if (!match(argument)) {
+			continue
+		}
+		try {
+			execFileSync(
+				command,
+				[
+					...prefix,
+					'background-job:execute',
+					'--force-execute',
+					String(job.id),
+				],
+				{ encoding: 'utf8', timeout: 300_000, stdio: 'pipe' },
+			)
+		} catch (error: any) {
+			throw new Error(
+				`occ background-job:execute ${job.id} failed (exit ${error?.status}): ${String(error?.stdout ?? '')} ${String(error?.stderr ?? '')}`.trim(),
+				{ cause: error },
+			)
+		}
+		ran++
+	}
+	return ran
 }

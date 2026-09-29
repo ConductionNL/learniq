@@ -66,6 +66,17 @@ return [
         ['name' => 'cmi5Launch#fetch',         'url' => '/api/cmi5/fetch/{code}',       'verb' => 'POST'],
         ['name' => 'lrs#postStatements',       'url' => '/api/lrs/statements',          'verb' => 'POST'],
         ['name' => 'lrs#getStatements',        'url' => '/api/lrs/statements',          'verb' => 'GET'],
+        // xAPI State and Agent Profile documents (LrsDocumentController): public for the
+        // same reason as the statement POST; the launch token or a session with CSRF is
+        // the credential, and a document belongs to the authenticated learner only.
+        ['name' => 'lrsDocument#getState',           'url' => '/api/lrs/activities/state', 'verb' => 'GET'],
+        ['name' => 'lrsDocument#putState',           'url' => '/api/lrs/activities/state', 'verb' => 'PUT'],
+        ['name' => 'lrsDocument#postState',          'url' => '/api/lrs/activities/state', 'verb' => 'POST'],
+        ['name' => 'lrsDocument#deleteState',        'url' => '/api/lrs/activities/state', 'verb' => 'DELETE'],
+        ['name' => 'lrsDocument#getAgentProfile',    'url' => '/api/lrs/agents/profile',   'verb' => 'GET'],
+        ['name' => 'lrsDocument#putAgentProfile',    'url' => '/api/lrs/agents/profile',   'verb' => 'PUT'],
+        ['name' => 'lrsDocument#postAgentProfile',   'url' => '/api/lrs/agents/profile',   'verb' => 'POST'],
+        ['name' => 'lrsDocument#deleteAgentProfile', 'url' => '/api/lrs/agents/profile',   'verb' => 'DELETE'],
 
         // AI-translated catalogue review (ai-translated-catalogue-review, D24): admin-only
         // via #[AuthorizedAdminSetting]. Lists the Dutch values an AI wrote and no human

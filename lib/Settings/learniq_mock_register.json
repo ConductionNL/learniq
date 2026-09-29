@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.44",
+    "version": "1.1.45",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -9846,7 +9846,7 @@
         },
         "slug": "exemption-case",
         "icon": "FileCertificateOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "ExemptionCase",
         "description": "A learner's exemption (vrijstelling) request against one CurriculumPlan.components[] entry, decided by the exam board (examencommissie) on the strength of prior evidence (diploma, certificate, work experience) attached as OpenRegister file evidence. grant/reject require a recorded decisionRationale and policyReference (ExemptionDecisionGuard). On grant, ExemptionGrantHandler creates a GradeEntry (sourceKind: exemption, value: null) and drives it through the existing publish transition.",
         "type": "object",
@@ -9871,6 +9871,12 @@
             "$ref": "LearnerProfile",
             "description": "UUID of the LearnerProfile requesting the exemption.",
             "title": "Learner ID"
+          },
+          "learnerUserId": {
+            "type": "string",
+            "nullable": true,
+            "title": "Learner account",
+            "description": "The learner's Nextcloud user id, written by the server from the LearnerProfile that learnerId names. The learner's read rule and notifications match on it."
           },
           "curriculumPlanId": {
             "type": "string",
@@ -10019,7 +10025,7 @@
             "recipients": [
               {
                 "kind": "field",
-                "field": "learnerId"
+                "field": "learnerUserId"
               }
             ],
             "subject": {
@@ -10039,7 +10045,7 @@
             "recipients": [
               {
                 "kind": "field",
-                "field": "learnerId"
+                "field": "learnerUserId"
               }
             ],
             "subject": {
@@ -10060,7 +10066,7 @@
               },
               {
                 "match": {
-                  "field": "learnerId",
+                  "field": "learnerUserId",
                   "operator": "eq",
                   "value": "$userId"
                 }
@@ -10172,7 +10178,7 @@
         },
         "slug": "external-training-record",
         "icon": "SchoolOutline",
-        "version": "0.2.0",
+        "version": "0.2.1",
         "title": "ExternalTrainingRecord",
         "description": "An externally-completed training (classroom, third-party e-learning, conference, on-the-job) recorded per learner with evidence file attachments and an officer verification gate. A verified, unexpired record counts as compliance evidence for a matching regulation.",
         "type": "object",
@@ -10196,6 +10202,12 @@
             "$ref": "LearnerProfile",
             "description": "UUID of the LearnerProfile this record belongs to.",
             "title": "Learner ID"
+          },
+          "learnerUserId": {
+            "type": "string",
+            "nullable": true,
+            "title": "Learner account",
+            "description": "The learner's Nextcloud user id, written by the server from the LearnerProfile that learnerId names. The learner's read rule matches on it."
           },
           "learnerRef": {
             "type": "string",
@@ -10410,7 +10422,7 @@
               },
               {
                 "match": {
-                  "field": "learnerId",
+                  "field": "learnerUserId",
                   "operator": "eq",
                   "value": "$userId"
                 }
@@ -10804,7 +10816,7 @@
         },
         "slug": "fraud-case",
         "icon": "Gavel",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "FraudCase",
         "description": "A fraud/plagiarism allegation against a learner's work: report → hearing record(s) → reasoned decision → sanction. Linked to the contested work via the same sourceKind/submissionId/assessmentResultId/sessionId shape GradeEntry already uses (a case can be filed before a GradeEntry exists), plus an optional contestedGradeEntryId once one does. decide requires a verdict + rationale (FraudCaseDecisionGuard); a fraud-proven verdict additionally requires a capped sanction and stamps a 42-day appealDeadline. FraudCaseBlockGuard blocks the linked GradeEntry's publish/republish while the case is open or permanently once fraud-proven; FraudCaseDecisionHandler invalidates a still-concept linked GradeEntry on a fraud-proven decision.",
         "type": "object",
@@ -10833,6 +10845,12 @@
             "$ref": "LearnerProfile",
             "description": "UUID of the LearnerProfile the allegation is made against.",
             "title": "Accused Learner ID"
+          },
+          "accusedLearnerUserId": {
+            "type": "string",
+            "nullable": true,
+            "title": "Accused learner account",
+            "description": "The accused learner's Nextcloud user id, written by the server from the LearnerProfile that accusedLearnerId names. The accused learner's read rule and notification match on it."
           },
           "sourceKind": {
             "type": "string",
@@ -11097,7 +11115,7 @@
             "recipients": [
               {
                 "kind": "field",
-                "field": "accusedLearnerId"
+                "field": "accusedLearnerUserId"
               },
               {
                 "kind": "field",
@@ -11122,7 +11140,7 @@
               },
               {
                 "match": {
-                  "field": "accusedLearnerId",
+                  "field": "accusedLearnerUserId",
                   "operator": "eq",
                   "value": "$userId"
                 }

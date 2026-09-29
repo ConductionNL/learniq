@@ -1276,7 +1276,7 @@ def build() -> dict:
     ):
         key = s["programme"]
         case = b.add("exemption-case", {
-            "learnerId": s["profile"]["uuid"], "curriculumPlanId": plans[(key, ckey)]["uuid"], "componentId": cid, "groundsKind": grounds,
+            "learnerId": s["profile"]["uuid"], "learnerUserId": s["profile"]["ncUserId"], "curriculumPlanId": plans[(key, ckey)]["uuid"], "componentId": cid, "groundsKind": grounds,
             "groundsDescription": desc, "submittedAt": stamp(decided - dt.timedelta(days=21), 11, 0), "decisionRationale": rationale,
             "policyReference": f"Onderwijs- en examenregeling {YEAR}, paragraaf vrijstellingen", "decidedBy": chairs[PROGRAMMES[[p[0] for p in PROGRAMMES].index(key)][4]],
             "decidedAt": stamp(decided, 16, 0), "resultingGradeEntryId": None, "lifecycle": "granted" if granted else "rejected",
@@ -1291,7 +1291,7 @@ def build() -> dict:
     contested = raw[(fraud_student["nc"], "B2", "beroepsproduct")][0]
     contested["value"] = max(contested["value"], 6.8)
     fraud = b.add("fraud-case", {
-        "reporterId": teacher_of("ICT", "B2"), "accusedLearnerId": fraud_student["profile"]["uuid"], "sourceKind": "manual",
+        "reporterId": teacher_of("ICT", "B2"), "accusedLearnerId": fraud_student["profile"]["uuid"], "accusedLearnerUserId": fraud_student["profile"]["ncUserId"], "sourceKind": "manual",
         "allegation": "Twee pagina's van het individuele verslag over het datamodel zijn letterlijk overgenomen van een openbare website, zonder bronvermelding.",
         "reportedAt": stamp(dt.date(2026, 2, 2), 10, 0), "hearingDate": stamp(dt.date(2026, 2, 19), 14, 0),
         "hearingRecords": [{"heldAt": stamp(dt.date(2026, 2, 19), 14, 0), "attendees": [fraud_student["nc"], teacher_of("ICT", "B2"), chairs["noord"]],

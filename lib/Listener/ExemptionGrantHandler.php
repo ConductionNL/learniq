@@ -38,6 +38,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
@@ -63,6 +64,7 @@ class ExemptionGrantHandler implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param TransitionEngine $transitionEngine OR lifecycle engine used to dispatch the `publish` transition.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param LearnerRefResolver $profiles The learner's user id from the case's LearnerProfile.
 	 *
 	 * @return void
 	 */
@@ -70,6 +72,7 @@ class ExemptionGrantHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly TransitionEngine $transitionEngine,
 		private readonly LoggerInterface $logger,
+		private readonly LearnerRefResolver $profiles,
 	) {
 	}//end __construct()
 
@@ -127,8 +130,19 @@ class ExemptionGrantHandler implements IEventListener {
 			return;
 		}
 
+		// ExemptionCase.learnerId is the LearnerProfile uuid; GradeEntry.learnerId
+		// is the Nextcloud user id (its learnerRef is stamped from it).
+		$userId = $this->learnerUserId(case: $case);
+		if ($userId === null) {
+			$this->logger->warning(
+				'[ExemptionGrantHandler] ExemptionCase {id}: learner {learner} has no Nextcloud user — no GradeEntry created.',
+				['id' => $caseId, 'learner' => $learnerId]
+			);
+			return;
+		}
+
 		$gradeEntry = [
-			'learnerId' => $learnerId,
+			'learnerId' => $userId,
 			'curriculumPlanId' => $curriculumPlanId,
 			'componentId' => $componentId,
 			'sourceKind' => 'exemption',
@@ -177,4 +191,23 @@ class ExemptionGrantHandler implements IEventListener {
 		);
 
 	}//end createAndPublishGradeEntry()
+
+	/**
+	 * The case's learner as a Nextcloud user id: the stamped learnerUserId,
+	 * else the ncUserId of the profile learnerId names, else null.
+	 *
+	 * @param array<string, mixed> $case The ExemptionCase.
+	 *
+	 * @return string|null
+	 *
+	 * @spec openspec/specs/exam-board/spec.md#requirement-a-granted-exemption-feeds-grading-through-the-existing-publish-path
+	 */
+	private function learnerUserId(array $case): ?string {
+		$userId = ($case['learnerUserId'] ?? null);
+		if (is_string($userId) === true && $userId !== '') {
+			return $userId;
+		}
+
+		return $this->profiles->userIdOf(learnerRef: (string)($case['learnerId'] ?? ''));
+	}//end learnerUserId()
 }//end class
