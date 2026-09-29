@@ -57,7 +57,7 @@
 					"label": "Import course package",
 					"icon": "DatabaseImportOutline",
 					"route": "CoursePackageImportView",
-					"order": 11,
+					"order": 12,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
@@ -74,7 +74,7 @@
 					"label": "Export course package",
 					"icon": "DatabaseExportOutline",
 					"route": "CoursePackageExport",
-					"order": 12,
+					"order": 13,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
@@ -92,7 +92,7 @@
 					"label": "Course package import reports",
 					"icon": "DatabaseImportOutline",
 					"route": "CoursePackageImportReports",
-					"order": 13,
+					"order": 14,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
@@ -358,7 +358,7 @@
 					"label": "Grades",
 					"icon": "Gauge",
 					"route": "GradeEntries",
-					"order": 60,
+					"order": 58,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
@@ -375,7 +375,7 @@
 					"label": "Report periods",
 					"icon": "ChartBoxOutline",
 					"route": "ReportPeriods",
-					"order": 62,
+					"order": 61,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
@@ -472,7 +472,7 @@
 					"label": "Today's sessions",
 					"icon": "Calendar",
 					"route": "SessionsToday",
-					"order": 60,
+					"order": 59,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
@@ -489,7 +489,7 @@
 					"label": "This week's sessions",
 					"icon": "Calendar",
 					"route": "SessionsThisWeek",
-					"order": 61,
+					"order": 60,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
@@ -506,7 +506,7 @@
 					"label": "Rooms",
 					"icon": "OfficeBuilding",
 					"route": "Rooms",
-					"order": 70,
+					"order": 68,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
@@ -523,7 +523,7 @@
 					"label": "Display screens",
 					"icon": "MonitorDashboard",
 					"route": "DisplayScreens",
-					"order": 70,
+					"order": 69,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
