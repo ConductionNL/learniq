@@ -214,6 +214,7 @@ class LtiAgsScorePollJob extends TimedJob {
 	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.2
 	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.3
 	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.4
+	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-a-returned-grade-lands-on-the-placement-that-launched-it
 	 */
 	private function processMessage(array $message): bool {
 		$resultId = (string)($message['id'] ?? ($message['uuid'] ?? ''));
@@ -222,9 +223,17 @@ class LtiAgsScorePollJob extends TimedJob {
 			return false;
 		}
 
-		$data = $message['payload'] ?? [];
+		// The message payload is integriq's whole CloudEvent (the `event` object's
+		// serialisation, see integriq EventService::createEventMessage()); the
+		// score, deployment and line item are its `data`.
+		$envelope = $message['payload'] ?? null;
+		$data     = null;
+		if (is_array($envelope) === true) {
+			$data = $envelope['data'] ?? null;
+		}
+
 		if (is_array($data) === false) {
-			$this->logger->warning('[LtiAgsScorePollJob] Message {id} has no usable payload — skipping.', ['id' => $resultId]);
+			$this->logger->warning('[LtiAgsScorePollJob] Message {id} carries no CloudEvent data — skipping.', ['id' => $resultId]);
 			return false;
 		}
 
@@ -295,7 +304,7 @@ class LtiAgsScorePollJob extends TimedJob {
 	 * while the score was already in flight) is logged and skipped, not
 	 * treated as an error.
 	 *
-	 * @param array<string,mixed> $data The message payload.
+	 * @param array<string,mixed> $data The CloudEvent data of the message.
 	 * @param string $resultId The AGS result id, for the log lines.
 	 *
 	 * @return array{placement: array<string,mixed>, placementId: string}|null The placement, or null when unresolvable.
@@ -343,7 +352,7 @@ class LtiAgsScorePollJob extends TimedJob {
 	 * A message without both a userId and a scoreGiven cannot produce a
 	 * GradeEntry, so it is skipped rather than written with a guessed value.
 	 *
-	 * @param array<string,mixed> $data The message payload.
+	 * @param array<string,mixed> $data The CloudEvent data of the message.
 	 * @param string $resultId The AGS result id, for the log line.
 	 *
 	 * @return array{learnerId: string, scoreGiven: float, scoreMaximum: float|null}|null The score, or null when insufficient.

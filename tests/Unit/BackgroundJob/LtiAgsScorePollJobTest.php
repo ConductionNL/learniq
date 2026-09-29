@@ -192,6 +192,66 @@ class LtiAgsScorePollJobTest extends TestCase {
 	}//end setUp()
 
 	/**
+	 * A pulled message in the shape integriq's pull endpoint really returns.
+	 *
+	 * Built the way integriq builds it, with the real (mirrored) ObjectEntity
+	 * serialisation: `LtiAgsService::receiveScore()` emits a CloudEvent whose
+	 * `data` carries the score (`EventService::emitCloudEvent()` saves it as an
+	 * `event` object), `EventService::createEventMessage()` stores that event's
+	 * `jsonSerialize()` as the message `payload`, and `EventsController::pull()`
+	 * answers with the message objects. So the score fields sit under
+	 * `payload.data`, next to the CloudEvent envelope, never at `payload` level.
+	 * The `x-generated-by` loop marker is left out: OpenRegister drops it on
+	 * save because the `event` schema does not declare it.
+	 *
+	 * @param string              $messageUuid    The event_message uuid (the AGS result id learniq dedupes on).
+	 * @param string              $deploymentUuid The lti_deployment uuid.
+	 * @param string              $lineItemId     The line item (integriq sets it to the placement id).
+	 * @param array<string,mixed> $score          The AGS score body the tool posted.
+	 *
+	 * @return array<string,mixed> The message as the pull response carries it.
+	 */
+	private function integriqMessage(string $messageUuid, string $deploymentUuid, string $lineItemId, array $score): array {
+		$event = OrEntityFactory::make(
+			[
+				'source' => 'lti_deployment/' . $deploymentUuid,
+				'type' => 'nl.conduction.lti.ags.score.received',
+				'time' => '2026-09-29T21:00:00+00:00',
+				'subject' => $lineItemId,
+				'data' => [
+					'deploymentUuid' => $deploymentUuid,
+					'deploymentId' => 'deploy-claim-1',
+					'lineItemId' => $lineItemId,
+					'gradeSink' => null,
+					// IRequest::getParams(): the JSON score body plus the route parameters.
+					'score' => array_merge($score, ['deployment' => $deploymentUuid, 'lineItemId' => $lineItemId]),
+				],
+				'userId' => null,
+			],
+			'event',
+			'integriq',
+			'event-' . $messageUuid
+		);
+
+		$message = OrEntityFactory::make(
+			[
+				'event' => 'event-' . $messageUuid,
+				'consumerId' => null,
+				'subscription' => 'sub-1',
+				'status' => 'pending',
+				'payload' => $event->jsonSerialize(),
+				'created' => '2026-09-29T21:00:00+00:00',
+				'updated' => '2026-09-29T21:00:00+00:00',
+			],
+			'event_message',
+			'integriq',
+			$messageUuid
+		);
+
+		return $message->jsonSerialize();
+	}//end integriqMessage()
+
+	/**
 	 * Build the job under test, wired to return the given pulled messages.
 	 *
 	 * @param array<int,array<string,mixed>> $messages The messages the pull() HTTP call should return.
@@ -246,17 +306,12 @@ class LtiAgsScorePollJobTest extends TestCase {
 			'tenant_id' => 'tenant-1',
 		];
 
-		$message = [
-			'id' => 'msg-1',
-			'payload' => [
-				'deploymentUuid' => 'deployment-1',
-				'score' => [
-					'userId' => 'learner-1',
-					'scoreGiven' => 8.5,
-					'scoreMaximum' => 10,
-				],
-			],
-		];
+		$message = $this->integriqMessage(
+			messageUuid: 'msg-1',
+			deploymentUuid: 'deployment-1',
+			lineItemId: 'placement-1',
+			score: ['userId' => 'learner-1', 'scoreGiven' => 8.5, 'scoreMaximum' => 10]
+		);
 
 		$job = $this->job(messages: [$message]);
 		$job->run(null);
@@ -277,6 +332,49 @@ class LtiAgsScorePollJobTest extends TestCase {
 		// Cursor advanced.
 		self::assertSame('cursor-1', $this->configValues['lti_ags_pull_cursor']);
 	}//end testCreatesConceptGradeEntryForConfiguredPlacement()
+
+	/**
+	 * The score is read from the CloudEvent `data` of a message shaped exactly
+	 * as integriq's pull returns it, including the envelope and `@self` blocks;
+	 * the envelope's `id` and `subject` are not mistaken for learniq's fields.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-a-returned-grade-lands-on-the-placement-that-launched-it
+	 */
+	public function testReadsTheScoreFromTheCloudEventDataOfARealMessage(): void {
+		$this->placementFixture = [
+			'id' => 'placement-1',
+			'openconnectorDeploymentId' => 'deployment-1',
+			'curriculumPlanId' => 'plan-1',
+			'gradeEntryComponentId' => 'component-1',
+			'gradeScaleId' => '',
+			'tenant_id' => 'tenant-1',
+		];
+
+		$message = $this->integriqMessage(
+			messageUuid: 'msg-real',
+			deploymentUuid: 'deployment-1',
+			lineItemId: 'placement-1',
+			score: [
+				'userId' => 'learner-7',
+				'scoreGiven' => 8,
+				'scoreMaximum' => 10,
+				'activityProgress' => 'Completed',
+				'gradingProgress' => 'FullyGraded',
+				'timestamp' => '2026-09-29T21:00:00Z',
+			]
+		);
+		self::assertArrayNotHasKey('deploymentUuid', $message['payload'], 'the fixture must carry the score under payload.data, as integriq does');
+
+		$this->job(messages: [$message])->run(null);
+
+		self::assertCount(1, $this->savedObjects);
+		self::assertSame('learner-7', $this->savedObjects[0]['object']['learnerId']);
+		self::assertSame('placement-1', $this->savedObjects[0]['object']['ltiToolPlacementId']);
+		self::assertSame('msg-real', $this->savedObjects[0]['object']['ltiAgsResultId']);
+		self::assertSame(8.0, $this->savedObjects[0]['object']['value']);
+	}//end testReadsTheScoreFromTheCloudEventDataOfARealMessage()
 
 	/**
 	 * Pulling the same message twice (simulating a redelivery) creates
@@ -301,13 +399,12 @@ class LtiAgsScorePollJobTest extends TestCase {
 			['ltiToolPlacementId' => 'placement-1', 'ltiAgsResultId' => 'msg-1'],
 		];
 
-		$message = [
-			'id' => 'msg-1',
-			'payload' => [
-				'deploymentUuid' => 'deployment-1',
-				'score' => ['userId' => 'learner-1', 'scoreGiven' => 8.5, 'scoreMaximum' => 10],
-			],
-		];
+		$message = $this->integriqMessage(
+			messageUuid: 'msg-1',
+			deploymentUuid: 'deployment-1',
+			lineItemId: 'placement-1',
+			score: ['userId' => 'learner-1', 'scoreGiven' => 8.5, 'scoreMaximum' => 10]
+		);
 
 		$job = $this->job(messages: [$message]);
 		$job->run(null);
@@ -326,13 +423,12 @@ class LtiAgsScorePollJobTest extends TestCase {
 	public function testOrphanMessageIsSkippedWithoutThrowing(): void {
 		$this->placementFixture = null;
 
-		$message = [
-			'id' => 'msg-orphan',
-			'payload' => [
-				'deploymentUuid' => 'deployment-unknown',
-				'score' => ['userId' => 'learner-1', 'scoreGiven' => 5, 'scoreMaximum' => 10],
-			],
-		];
+		$message = $this->integriqMessage(
+			messageUuid: 'msg-orphan',
+			deploymentUuid: 'deployment-unknown',
+			lineItemId: 'placement-gone',
+			score: ['userId' => 'learner-1', 'scoreGiven' => 5, 'scoreMaximum' => 10]
+		);
 
 		$job = $this->job(messages: [$message]);
 
@@ -408,8 +504,8 @@ class LtiAgsScorePollJobTest extends TestCase {
 		$score = ['userId' => 'learner-1', 'scoreGiven' => 7, 'scoreMaximum' => 10];
 		$this->job(
 			messages: [
-				['id' => 'msg-a', 'payload' => ['deploymentUuid' => 'deployment-1', 'lineItemId' => 'placement-2', 'score' => $score]],
-				['id' => 'msg-b', 'payload' => ['deploymentUuid' => 'deployment-1', 'lineItemId' => 'placement-x', 'score' => $score]],
+				$this->integriqMessage(messageUuid: 'msg-a', deploymentUuid: 'deployment-1', lineItemId: 'placement-2', score: $score),
+				$this->integriqMessage(messageUuid: 'msg-b', deploymentUuid: 'deployment-1', lineItemId: 'placement-x', score: $score),
 			]
 		)->run(null);
 

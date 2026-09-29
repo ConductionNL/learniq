@@ -30,6 +30,7 @@
 - **files**: `lib/BackgroundJob/LtiAgsScorePollJob.php`
 - [x] Implement
 - [x] Test: `tests/Unit/BackgroundJob/LtiAgsScorePollJobTest.php` (two placements on one deployment; mismatched deployment falls back): `testLineItemPicksThePlacement`, red on development
+  - lq-lti, 2026-09-29: the job read the score at `payload` level, but integriq stores the whole CloudEvent as the message payload, so the fields sit under `payload.data` and every score was skipped. Fixed; the tests now build messages through the ObjectEntity serialisation the way integriq does (`integriqMessage()`), and `testReadsTheScoreFromTheCloudEventDataOfARealMessage` is red on development.
 
 ### Task 4: Subscription setting and availability
 - **spec_ref**: `specs/course-management/spec.md#requirement-the-connection-registry-says-whether-lti-works`
