@@ -55,8 +55,8 @@
   - GIVEN phase 2 WHEN invoked without a valid approval token, with an expired token, or with a token minted for the acting agent itself THEN it is refused and no domain write occurs
   - GIVEN phase 2 WHEN invoked with a valid human-approver token THEN the domain write executes through the guarded path of Task 2
   - GIVEN `enrolLearner` and `recordAttendance` WHEN invoked THEN they are single-phase (no token required)
-- [ ] Implement (superseded, see the note at the top)
-- [ ] Test (superseded)
+- [x] Superseded: learniq-side two-phase staging with approval tokens is not built. Per the Round 5 note at the top, hermiq's agent-guardrails gate a confirm-classified tool call on an approved, unconsumed Approval and the tool never receives an approval id to verify; the server-side gate is the grade's own `concept` lifecycle, published only by a teacher (REQ-009).
+- [x] Superseded: no two-phase state machine exists to test (see the Implement line above); the concept-grade gate is tested in `tests/Unit/Service/LearniqAgentToolsTest.php::testGradeIsAConceptAndGuardRefusalsPassThrough`. The `issueCredential` half of this task is superseded too: per the note at the top, a credential has no draft state a teacher could accept.
 
 ### Task 4: Agent-principal attribution in the audit trail (must / MVP)
 - **spec_ref**: `openspec/specs/mcp-tool-surface/spec.md#requirement-every-agent-write-is-attributed-to-the-agent-principal-in-the-audit-trail-req-010`
@@ -64,8 +64,8 @@
 - **acceptance_criteria**:
   - GIVEN any tool-path write WHEN the object's audit trail is read THEN it carries agent identity, granting user, tool id, and (for gated writes) proposal reference + approval token id
   - GIVEN the same write performed through the UI WHEN audited THEN it carries no agent fields (control: attribution is tool-path-specific, not global noise)
-- [ ] Implement (superseded, see the note at the top)
-- [ ] Test (superseded)
+- [x] Superseded: agent identity on the record is not built. Per the Round 5 note at the top, learniq does not receive the agent id; OpenRegister's attribute tool provider writes one audit entry per call (tool id and calling user) and hermiq's run log names the agent. Learniq stamps the calling user and a note naming the tool (REQ-010).
+- [x] Superseded: the agent-field audit test has nothing to test (see the Implement line above); the REQ-010 record content (calling user plus tool note) is tested in `tests/Unit/Service/LearniqAgentToolsTest.php`.
 
 ### Task 5: `listExpiringCredentials` minimised projection (must / MVP)
 - **spec_ref**: `openspec/specs/mcp-tool-surface/spec.md#requirement-the-expiring-credentials-read-is-a-closed-minimised-projection-req-011`
@@ -93,7 +93,8 @@
 - [x] `openspec validate hermiq-ai-tooling --type change --strict` passes
 - [ ] Manual testing against acceptance criteria (a denied grant, a rejected proposal, an approved batch)
   - r5-live, 2026-09-29, shared dev instance, still open: needs hermiq driving an agent, not available here.
-- [ ] Code review against spec requirements
+- [x] Code review against spec requirements
+  - Review: openspec/changes/hermiq-ai-tooling/review.md, 6 requirements, 9 scenarios; all 15 rows MET. REQ-011 was PARTIAL (the expiring read dropped every certificate past the first page of 200 issued credentials) and is fixed in this PR with paging and a `truncated` flag, red-then-green tested; this PR also closes three test gaps (REQ-006 registration, REQ-008 zero reads, REQ-010 grade attribution).
 
 ## Tests (company-wide ADR-009)
 - [x] PHPUnit: tool metadata, gate parity, attribution note, projection key-set in `tests/Unit/Service/LearniqAgentToolsTest.php` (the two-phase state machine is superseded); zero failures in the full suite

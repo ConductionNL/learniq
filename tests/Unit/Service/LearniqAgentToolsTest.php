@@ -80,6 +80,13 @@ class LearniqAgentToolsTest extends TestCase {
 	private ?string $guardRefusal = null;
 
 	/**
+	 * How many find/findAll calls the tools made.
+	 *
+	 * @var int
+	 */
+	private int $reads = 0;
+
+	/**
 	 * Build the tools over in-memory objects.
 	 *
 	 * @return LearniqAgentTools
@@ -88,6 +95,7 @@ class LearniqAgentToolsTest extends TestCase {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
 			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+				$this->reads++;
 				foreach ($this->objects[(string)$schema] ?? [] as $row) {
 					if (($row['id'] ?? null) === $id) {
 						return $this->entity(data: $row);
@@ -99,11 +107,14 @@ class LearniqAgentToolsTest extends TestCase {
 		);
 		$objects->method('findAll')->willReturnCallback(
 			function (array $config): array {
+				$this->reads++;
 				$filters = $config['filters'];
 				$schema  = $filters['schema'];
 				unset($filters['register'], $filters['schema']);
 
-				return array_values(
+				// Honour paging the way OpenRegister does, so a tool that reads one
+				// page and treats it as the whole set is caught here.
+				$matches = array_values(
 					array_filter(
 						$this->objects[$schema] ?? [],
 						static function (array $row) use ($filters): bool {
@@ -118,6 +129,8 @@ class LearniqAgentToolsTest extends TestCase {
 						}
 					)
 				);
+
+				return array_slice($matches, (int)($config['offset'] ?? 0), $config['limit'] ?? null);
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
@@ -207,6 +220,7 @@ class LearniqAgentToolsTest extends TestCase {
 		self::assertFalse($tools->recordAttendance(sessionId: 's1', learnerId: 'pupil1', status: 'present')['ok']);
 		self::assertFalse($tools->gradeSubmission(submissionId: 'sub1', value: 7.5)['ok']);
 		self::assertSame([], $this->saves);
+		self::assertSame(0, $this->reads, 'The matrix refuses before any object is read.');
 	}//end testActionMatrixGatesBeforeAnyWrite()
 
 	/**
@@ -249,6 +263,7 @@ class LearniqAgentToolsTest extends TestCase {
 		self::assertSame('a1', $this->saves[0][2], 'the existing record is updated');
 		self::assertSame('teacher1', $this->saves[0][1]['markedBy']);
 		self::assertSame('k1', $this->saves[0][1]['cohortId']);
+		self::assertStringContainsString('learniq.recordAttendance', $this->saves[0][1]['reason']);
 	}//end testAttendanceUpsertsAndRejectsUnknownStatus()
 
 	/**
@@ -268,6 +283,9 @@ class LearniqAgentToolsTest extends TestCase {
 		self::assertSame('assignment-submission', $this->saves[0][1]['sourceKind']);
 		self::assertSame('pupil1', $this->saves[0][1]['learnerId']);
 		self::assertTrue($this->saves[0][3], 'written with RBAC on');
+		self::assertSame('teacher1', $this->saves[0][1]['grader'], 'REQ-010: the grader is the calling user.');
+		self::assertStringContainsString('Good structure', $this->saves[0][1]['comment']);
+		self::assertStringContainsString('learniq.gradeSubmission', $this->saves[0][1]['comment'], 'REQ-010: the comment names the tool.');
 
 		$this->saves        = [];
 		$this->guardRefusal = 'The report period is locked';
@@ -298,5 +316,89 @@ class LearniqAgentToolsTest extends TestCase {
 		self::assertSame('pupil1', $result['credentials'][0]['learnerId'], 'The user id enrolLearner takes, not the profile uuid.');
 		self::assertSame('Sam de Vries', $result['credentials'][0]['learnerDisplayName']);
 		self::assertSame('bhv-herhaling', $result['credentials'][0]['renewalCourseSlug']);
+		self::assertFalse($result['truncated']);
 	}//end testExpiringCredentialsAreAClosedProjection()
+
+	/**
+	 * A certificate past the first page of issued credentials is still found.
+	 *
+	 * Most issued credentials never expire (expiresAt null), so the expiring
+	 * ones can sit anywhere in the list. One page of 200 used to be read as
+	 * the whole set.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/hermiq-ai-tooling/specs/mcp-tool-surface/spec.md#requirement-the-expiring-credentials-read-is-a-closed-minimised-projection-req-011
+	 */
+	public function testExpiringCredentialsPastTheFirstPageAreFound(): void {
+		$credentials = [];
+		for ($i = 0; $i < 250; $i++) {
+			$credentials[] = ['id' => 'forever' . $i, 'learnerId' => 'p' . $i, 'courseId' => 'c1', 'expiresAt' => null, 'lifecycle' => 'issued'];
+		}
+
+		$credentials[] = ['id' => 'late-row', 'learnerId' => 'pupil1', 'courseId' => 'c1', 'expiresAt' => '2026-11-01', 'lifecycle' => 'issued'];
+		$this->objects = ['credential' => $credentials, 'course' => [['id' => 'c1', 'title' => 'BHV']]];
+
+		$result = $this->tools()->listExpiringCredentials(before: '2026-12-31');
+
+		self::assertTrue($result['ok']);
+		self::assertSame(['late-row'], array_column($result['credentials'], 'credentialId'));
+		self::assertFalse($result['truncated']);
+	}//end testExpiringCredentialsPastTheFirstPageAreFound()
+
+	/**
+	 * More expiring certificates than one answer holds come back marked truncated.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/hermiq-ai-tooling/specs/mcp-tool-surface/spec.md#requirement-the-expiring-credentials-read-is-a-closed-minimised-projection-req-011
+	 */
+	public function testTooManyExpiringCredentialsSayTruncated(): void {
+		$credentials = [];
+		for ($i = 0; $i < 201; $i++) {
+			$credentials[] = ['id' => 'cr' . $i, 'learnerId' => 'p' . $i, 'courseId' => 'c1', 'expiresAt' => '2026-11-01', 'lifecycle' => 'issued'];
+		}
+
+		$this->objects = ['credential' => $credentials, 'course' => [['id' => 'c1', 'title' => 'BHV']]];
+
+		$result = $this->tools()->listExpiringCredentials(before: '2026-12-31');
+
+		self::assertCount(200, $result['credentials']);
+		self::assertTrue($result['truncated']);
+	}//end testTooManyExpiringCredentialsSayTruncated()
+
+	/**
+	 * The app opts in to the attribute scan and registers no tool provider.
+	 *
+	 * A provider under `IMcpToolProvider::learniq` would shadow the tools
+	 * OpenRegister derives from the register, so both halves are pinned.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/hermiq-ai-tooling/specs/mcp-tool-surface/spec.md#requirement-no-hand-written-mcp-tool-code-remains-in-scholiq-req-006
+	 */
+	public function testTheAppRegistersScannableServicesAndNoToolProvider(): void {
+		$root        = dirname(__DIR__, 3);
+		$application = (string)file_get_contents($root . '/lib/AppInfo/Application.php');
+
+		self::assertMatchesRegularExpression(
+			"/registerServiceAlias\\(\\s*'OCA\\\\\\\\OpenRegister\\\\\\\\Mcp\\\\\\\\IMcpScannableServices::learniq',\\s*LearniqScannableServices::class\\s*\\)/",
+			$application
+		);
+		self::assertStringNotContainsString("'mcpProvider'", $application);
+		self::assertStringNotContainsString('IMcpToolProvider::', $application);
+
+		$files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root . '/lib', \FilesystemIterator::SKIP_DOTS));
+		foreach ($files as $file) {
+			if ($file->getExtension() !== 'php') {
+				continue;
+			}
+
+			self::assertDoesNotMatchRegularExpression(
+				'/implements[^{]*\\bIMcpToolProvider\\b/',
+				(string)file_get_contents($file->getPathname()),
+				$file->getPathname() . ' implements IMcpToolProvider.'
+			);
+		}
+	}//end testTheAppRegistersScannableServicesAndNoToolProvider()
 }//end class
