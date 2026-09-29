@@ -6,10 +6,11 @@
  * Moves a merged LearnerProfile's history to the surviving profile (learniq#950).
  *
  * Learner-owned records reference the learner in two ways: by Nextcloud user id
- * (`learnerId` on most schemas) and by LearnerProfile UUID (`learnerRef`, and
- * `learnerId` on Credential, ExternalTrainingRecord and ExemptionCase). Stored
- * data does not always follow the declared shape (the credential bridge copies
- * the enrolment's Nextcloud user id into Credential.learnerId), so every
+ * (`learnerId` on most schemas, `learnerUserId` on Credential) and by
+ * LearnerProfile UUID (`learnerRef`, and `learnerId` on Credential,
+ * ExternalTrainingRecord and ExemptionCase). Stored
+ * data does not always follow the declared shape (the credential bridge used to
+ * copy the enrolment's Nextcloud user id into Credential.learnerId), so every
  * reference field is matched against BOTH the old user id and the old profile
  * UUID, and each match is rewritten to the surviving counterpart.
  *
@@ -59,7 +60,7 @@ class LearnerMergeService {
 	 * `learnerId` or `learnerRef` property.
 	 */
 	private const LEARNER_OWNED = [
-		'credential' => ['learnerId'],
+		'credential' => ['learnerId', 'learnerUserId'],
 		'lesson-completion' => ['learnerId', 'learnerRef'],
 		'enrolment' => ['learnerId', 'learnerRef'],
 		'attestation' => ['learnerId'],

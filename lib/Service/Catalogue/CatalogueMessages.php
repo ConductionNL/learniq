@@ -46,6 +46,7 @@ class CatalogueMessages {
 		'already-signed-up' => 'You are already signed up for this course.',
 		'not-withdrawable' => 'You cannot withdraw from this course. Ask your teacher.',
 		'no-account' => 'Your school account is not ready for this yet. Ask your school.',
+		'not-a-learner' => 'Your account has no learner profile yet. Ask your school or administrator to add one.',
 	];
 
 	/**

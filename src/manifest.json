@@ -328,14 +328,7 @@
             "description": "Per group and course the contact hours owed by the hour plan, the hours given and the hours each learner attended.",
             "icon": "CalendarClockOutline",
             "category": "attendance",
-            "route": "ContactHoursReport",
-            "visibleIf": {
-              "workspace.chosenSegment": {
-                "notIn": [
-                  "corporate"
-                ]
-              }
-            }
+            "route": "ContactHoursReport"
           },
           {
             "id": "EnrolmentForecast",
@@ -343,14 +336,7 @@
             "description": "Next year's learners and groups per programme year and subject, from this year's groups, progression rates and subject choices.",
             "icon": "TrendingUp",
             "category": "progress",
-            "route": "EnrolmentForecast",
-            "visibleIf": {
-              "workspace.chosenSegment": {
-                "notIn": [
-                  "corporate"
-                ]
-              }
-            }
+            "route": "EnrolmentForecast"
           },
           {
             "id": "FinalGrades",
@@ -460,11 +446,6 @@
             "category": "quality",
             "route": "RoomUtilisationReport",
             "visibleIf": {
-              "workspace.chosenSegment": {
-                "notIn": [
-                  "corporate"
-                ]
-              },
               "user.primaryRole": {
                 "in": [
                   "instructor",
