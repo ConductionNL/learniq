@@ -217,7 +217,7 @@ export class LiveFixtures {
 			'/index.php/apps/openregister/api/objects/learniq/session?_limit=1',
 		)
 		const row = res.ok() ? ((await res.json()).results ?? [])[0] : null
-		return String(row?.tenant_id ?? '00000000-0000-0000-0000-000000000001')
+		return String(row?.tenant_id ?? '00000000-0000-4000-8000-000000000000')
 	}
 
 	/**
