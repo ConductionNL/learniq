@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
+ * @spec openspec/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
  */
 
 declare(strict_types=1);
@@ -125,7 +125,7 @@ class LessonOnboardingFileListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-teacher-drops-a-word-file-in-the-folder
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-drops-a-word-file-in-the-folder
 	 */
 	public function testADocxInTheFolderIsRecordedForItsOwner(): void {
 		$this->folderSetting->method('folderId')->with('jdevries')->willReturn(self::FOLDER_ID);
@@ -201,7 +201,7 @@ class LessonOnboardingFileListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-file-elsewhere-or-of-another-type-is-ignored
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-file-elsewhere-or-of-another-type-is-ignored
 	 */
 	public function testAFileOutsideTheFolderIsIgnored(): void {
 		$this->folderSetting->method('folderId')->willReturn(self::FOLDER_ID);
@@ -230,7 +230,7 @@ class LessonOnboardingFileListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-file-elsewhere-or-of-another-type-is-ignored
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-file-elsewhere-or-of-another-type-is-ignored
 	 */
 	public function testAnotherTypeIsIgnoredBeforeAnyLookup(): void {
 		$this->folderSetting->expects($this->never())->method('folderId');

@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md
+ * @spec openspec/specs/course-management/spec.md
  */
 
 declare(strict_types=1);
@@ -93,7 +93,7 @@ class LessonOnboardingRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
+	 * @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
 	 */
 	public function testTheLifecycleRunsFromDetectedToImportedOrDismissed(): void {
 		$lifecycle = $this->schema()['x-openregister-lifecycle'];
@@ -115,7 +115,7 @@ class LessonOnboardingRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
 	 */
 	public function testACreatedRowNotifiesTheTeacherWithALinkToTheReviewPage(): void {
 		$notification = $this->schema()['x-openregister-notifications']['detected'];

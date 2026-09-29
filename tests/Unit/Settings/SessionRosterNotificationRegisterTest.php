@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/session-roster-notifications/specs/timetabling/spec.md#requirement-cancellation-or-substitution-notifies-affected-learners-and-parents
+ * @spec openspec/specs/timetabling/spec.md#requirement-cancellation-or-substitution-notifies-affected-learners-and-parents
  */
 
 declare(strict_types=1);
@@ -64,7 +64,7 @@ class SessionRosterNotificationRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/session-roster-notifications/specs/timetabling/spec.md#scenario-assigning-a-substitute-teacher-mid-lesson-also-notifies
+	 * @spec openspec/specs/timetabling/spec.md#scenario-assigning-a-substitute-teacher-mid-lesson-also-notifies
 	 */
 	public function testRosterChangedTriggerCoversAllThreeWatchedActions(): void {
 		$session = $this->config['components']['schemas']['Session'];
@@ -88,7 +88,7 @@ class SessionRosterNotificationRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/session-roster-notifications/specs/timetabling/spec.md#scenario-cancelling-a-session-notifies-every-affected-learner-and-parent
+	 * @spec openspec/specs/timetabling/spec.md#scenario-cancelling-a-session-notifies-every-affected-learner-and-parent
 	 */
 	public function testRosterChangedRecipientsAreTheMaterialisedFields(): void {
 		$rule = $this->config['components']['schemas']['Session']['x-openregister-notifications']['rosterChanged'];

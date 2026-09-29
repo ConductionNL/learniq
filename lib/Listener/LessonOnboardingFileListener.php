@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
+ * @spec openspec/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
  */
 
 declare(strict_types=1);
@@ -98,7 +98,7 @@ class LessonOnboardingFileListener implements IEventListener {
 	 *
 	 * @return string|null `docx`, `pptx` or null.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-file-elsewhere-or-of-another-type-is-ignored
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-file-elsewhere-or-of-another-type-is-ignored
 	 */
 	public static function formatOf(string $fileName): ?string {
 		$extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
@@ -116,7 +116,7 @@ class LessonOnboardingFileListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-teacher-drops-a-word-file-in-the-folder
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-drops-a-word-file-in-the-folder
 	 */
 	public function handle(Event $event): void {
 		$node = self::nodeOf(event: $event);
@@ -149,7 +149,7 @@ class LessonOnboardingFileListener implements IEventListener {
 	 *
 	 * @return Node|null The node, or null for any other event.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
 	 */
 	private static function nodeOf(Event $event): ?Node {
 		if ($event instanceof NodeCreatedEvent) {
@@ -171,7 +171,7 @@ class LessonOnboardingFileListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
 	 */
 	private function record(File $file, string $format): void {
 		$owner = $file->getOwner();
@@ -220,7 +220,7 @@ class LessonOnboardingFileListener implements IEventListener {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
 	 */
 	private function alreadyRecorded(string $teacherId, int $fileId): bool {
 		$existing = $this->objectService->findAll(
@@ -248,7 +248,7 @@ class LessonOnboardingFileListener implements IEventListener {
 	 *
 	 * @return string The relative path, or the bare file name when it cannot be derived.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
 	 */
 	private function relativePath(File $file, string $teacherId): string {
 		$prefix = '/' . $teacherId . '/files';

@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
+ * @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
  */
 
 declare(strict_types=1);
@@ -75,7 +75,7 @@ class LessonOnboardingController extends Controller {
 	 *
 	 * @return JSONResponse `{folderId, path}`, nulls when none is set.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-teacher-picks-a-folder
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-picks-a-folder
 	 */
 	#[NoAdminRequired]
 	public function folder(): JSONResponse {
@@ -94,7 +94,7 @@ class LessonOnboardingController extends Controller {
 	 *
 	 * @return JSONResponse The stored folder, or 400 when the path is not a folder.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-file-is-not-a-folder
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-file-is-not-a-folder
 	 */
 	#[NoAdminRequired]
 	public function setFolder(string $path = ''): JSONResponse {
@@ -118,7 +118,7 @@ class LessonOnboardingController extends Controller {
 	 *
 	 * @return JSONResponse The created draft's summary, or the refusal.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-another-teacher-s-row-cannot-be-imported
+	 * @spec openspec/specs/course-management/spec.md#scenario-another-teacher-s-row-cannot-be-imported
 	 */
 	#[NoAdminRequired]
 	public function import(string $id, string $courseId = ''): JSONResponse {

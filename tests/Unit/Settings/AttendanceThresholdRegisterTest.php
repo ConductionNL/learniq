@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#requirement-threshold-crossing-is-a-declared-calculation-trigger
+ * @spec openspec/specs/attendance/spec.md#requirement-threshold-crossing-is-a-declared-calculation-trigger
  */
 
 declare(strict_types=1);
@@ -58,7 +58,7 @@ class AttendanceThresholdRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#scenario-threshold-crossing-fires-via-declared-calculation-trigger
+	 * @spec openspec/specs/attendance/spec.md#scenario-threshold-crossing-fires-via-declared-calculation-trigger
 	 */
 	public function testUnexcusedRecordCountAggregation(): void {
 		$agg = $this->config['components']['schemas']['AttendanceThreshold']['x-openregister-aggregations']['unexcusedRecordCount'];
@@ -75,7 +75,7 @@ class AttendanceThresholdRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#scenario-threshold-crossing-fires-via-declared-calculation-trigger
+	 * @spec openspec/specs/attendance/spec.md#scenario-threshold-crossing-fires-via-declared-calculation-trigger
 	 */
 	public function testCalculationsAreMaterialised(): void {
 		$calc = $this->config['components']['schemas']['AttendanceThreshold']['x-openregister-calculations'];
@@ -120,7 +120,7 @@ class AttendanceThresholdRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#scenario-a-guarded-manual-check-records-a-real-per-learner-crossing-and-creates-an-attendanceflag
+	 * @spec openspec/specs/attendance/spec.md#scenario-a-guarded-manual-check-records-a-real-per-learner-crossing-and-creates-an-attendanceflag
 	 */
 	public function testCheckThresholdTransitionShape(): void {
 		$transition = $this->config['components']['schemas']['AttendanceThreshold']['x-openregister-lifecycle']['transitions']['check-threshold'];

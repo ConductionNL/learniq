@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
+ * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
  */
 
 declare(strict_types=1);
@@ -40,7 +40,7 @@ use OCP\IUser;
  * Same resolution as AuditPackBuilder and QtiImportController, so a row the
  * caller wrote through those paths carries the tenant this resolver returns.
  *
- * @spec openspec/changes/fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
+ * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
  */
 class CallerTenantResolver {
 	/**
@@ -62,7 +62,7 @@ class CallerTenantResolver {
 	 *
 	 * @return string The bound tenant id, or the instance id when the user is unbound.
 	 *
-	 * @spec openspec/changes/fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
+	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
 	 */
 	public function resolve(IUser $user): string {
 		$tenantId = (string)$this->config->getUserValue(
@@ -90,7 +90,7 @@ class CallerTenantResolver {
 	 *
 	 * @return bool True when the row's tenant equals the caller's tenant.
 	 *
-	 * @spec openspec/changes/fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
+	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
 	 */
 	public function owns(IUser $user, array $row): bool {
 		$rowTenant = (string)($row['tenant_id'] ?? '');
@@ -113,7 +113,7 @@ class CallerTenantResolver {
 	 *
 	 * @return array<string,mixed>|null The serialised object, or null.
 	 *
-	 * @spec openspec/changes/fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
+	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
 	 */
 	public function findOwned(IUser $user, string $id, string $schema): ?array {
 		// ObjectService::find() THROWS DoesNotExistException for an unknown id.

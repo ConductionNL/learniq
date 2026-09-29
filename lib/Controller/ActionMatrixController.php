@@ -113,7 +113,7 @@ class ActionMatrixController extends Controller {
 	 * @return JSONResponse The normalized matrix after the write.
 	 *
 	 * @spec openspec/architecture/adr-023-action-authorization.md
-	 * @spec openspec/changes/controller-test-coverage-security-critical/tasks.md#task-1
+	 * @spec openspec/changes/archive/2026-09-29-controller-test-coverage-security-critical/tasks.md#task-1
 	 */
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function setMatrix(): JSONResponse {
@@ -145,7 +145,7 @@ class ActionMatrixController extends Controller {
 	 *
 	 * @return string|null The reason for refusal, or null for a valid matrix.
 	 *
-	 * @spec openspec/changes/controller-test-coverage-security-critical/tasks.md#task-1
+	 * @spec openspec/changes/archive/2026-09-29-controller-test-coverage-security-critical/tasks.md#task-1
 	 */
 	private function matrixProblem(mixed $matrix): ?string {
 		if (is_array($matrix) === false || $matrix === []) {

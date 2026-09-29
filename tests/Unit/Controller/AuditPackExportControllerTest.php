@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/controller-test-coverage-security-critical/tasks.md#task-3
+ * @spec openspec/changes/archive/2026-09-29-controller-test-coverage-security-critical/tasks.md#task-3
  */
 
 declare(strict_types=1);

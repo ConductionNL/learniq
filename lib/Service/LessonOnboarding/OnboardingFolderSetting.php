@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
+ * @spec openspec/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
  */
 
 declare(strict_types=1);
@@ -67,7 +67,7 @@ class OnboardingFolderSetting {
 	 *
 	 * @return int The folder's file id, or 0.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
 	 */
 	public function folderId(string $userId): int {
 		$value = $this->config->getUserValue($userId, Application::APP_ID, self::CONFIG_KEY, '');
@@ -86,7 +86,7 @@ class OnboardingFolderSetting {
 	 *
 	 * @return array{folderId: int|null, path: string|null}
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
 	 */
 	public function describe(string $userId): array {
 		$folderId = $this->folderId(userId: $userId);
@@ -116,7 +116,7 @@ class OnboardingFolderSetting {
 	 *
 	 * @throws InvalidArgumentException When the path is not a folder in the teacher's files.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-file-is-not-a-folder
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-file-is-not-a-folder
 	 */
 	public function choose(string $userId, string $path): array {
 		$path = trim($path);
@@ -154,7 +154,7 @@ class OnboardingFolderSetting {
 	 *
 	 * @return string The tenant id.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
 	 */
 	public function tenantOf(string $userId): string {
 		$tenantId = $this->config->getUserValue($userId, Application::APP_ID, 'tenant_id', '');

@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/import-records-in-gate-answer/specs/data-exchange/spec.md#requirement-the-gate-hands-the-rows-of-an-import-jobs-file-to-integriq
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-hands-the-rows-of-an-import-jobs-file-to-integriq
  */
 
 declare(strict_types=1);
@@ -38,7 +38,7 @@ use Throwable;
  * looked up only among the files of the person who asked for the job. Nothing
  * here logs: a refusal is a code, and the caller logs the code only.
  *
- * @spec openspec/changes/import-records-in-gate-answer/specs/data-exchange/spec.md#requirement-the-gate-hands-the-rows-of-an-import-jobs-file-to-integriq
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-hands-the-rows-of-an-import-jobs-file-to-integriq
  */
 class ExchangeImportInput {
 
@@ -93,7 +93,7 @@ class ExchangeImportInput {
 	 *
 	 * @return array{records: array<int, array{recordId: string, sourceKind: string, data: array<string, mixed>}>, refusal: string|null, reason: string}
 	 *
-	 * @spec openspec/changes/import-records-in-gate-answer/specs/data-exchange/spec.md#requirement-the-gate-hands-the-rows-of-an-import-jobs-file-to-integriq
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-hands-the-rows-of-an-import-jobs-file-to-integriq
 	 */
 	public function read(string $target, array $scope, string $requestedBy): array {
 		if (isset(self::SOURCE_KINDS[$target]) === false) {

@@ -32,7 +32,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/credential-renewal-listener/specs/certification/spec.md#requirement-auto-enrol-on-renewal-or-content-version-change
+ * @spec openspec/specs/certification/spec.md#requirement-auto-enrol-on-renewal-or-content-version-change
  */
 
 declare(strict_types=1);
@@ -50,7 +50,7 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/credential-renewal-listener/specs/certification/spec.md#requirement-auto-enrol-on-renewal-or-content-version-change
+ * @spec openspec/specs/certification/spec.md#requirement-auto-enrol-on-renewal-or-content-version-change
  */
 class CredentialRenewalListener implements IEventListener {
 
@@ -81,7 +81,7 @@ class CredentialRenewalListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/credential-renewal-listener/specs/certification/spec.md#scenario-auto-enrol-on-credential-expiry
+	 * @spec openspec/specs/certification/spec.md#scenario-auto-enrol-on-credential-expiry
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -106,7 +106,7 @@ class CredentialRenewalListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/credential-renewal-listener/specs/certification/spec.md#scenario-auto-enrol-on-credential-expiry
+	 * @spec openspec/specs/certification/spec.md#scenario-auto-enrol-on-credential-expiry
 	 */
 	private function createRenewalEnrolment(array $credential): void {
 		$credentialId = (string)($credential['id'] ?? ($credential['uuid'] ?? ''));

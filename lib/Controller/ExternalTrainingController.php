@@ -139,7 +139,7 @@ class ExternalTrainingController extends Controller {
 	 * @return JSONResponse The new credentialId, or an error.
 	 *
 	 * @spec openspec/changes/external-training-recording/tasks.md
-	 * @spec openspec/changes/fix-cross-tenant-idor-planid-lookups/tasks.md#task-2
+	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-2
 	 */
 	#[NoAdminRequired]
 	public function issueCredential(string $recordId = ''): JSONResponse {
@@ -254,7 +254,7 @@ class ExternalTrainingController extends Controller {
 	 * @return JSONResponse { covered: bool, evidenceClass: string|null }.
 	 *
 	 * @spec openspec/changes/external-training-recording/tasks.md
-	 * @spec openspec/changes/fix-cross-tenant-idor-planid-lookups/tasks.md#task-2
+	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-2
 	 */
 	#[NoAdminRequired]
 	public function learnerCoverage(string $learnerId = '', string $regulationSlug = ''): JSONResponse {
