@@ -69,7 +69,7 @@ A poll is anonymousish, ungraded, and instant; an assessment is identified, grad
 
 ## Risks / Trade-offs
 
-- A user without the NC app (e.g. Deck not installed) sees no widget — provider `isEnabled()` handles it; the e2e test must therefore run with the leaf apps enabled or assert conditionally.
+- A user without the NC app (e.g. Deck not installed) sees the widget's set-up state ("Deck is not installed"), because each leaf widget declares `requiredApp`. The earlier note here said a provider `isEnabled()` hides the widget; no such check exists in nextcloud-vue, and the first live run (2026-09-29) showed a disabled Deck drawing "No cards linked yet". The e2e asserts both states conditionally on the enabled apps.
 - User-curated links can go stale (a Session moves, its linked prep event doesn't). Accepted: same trade-off as the existing files leaf.
 
 ## Migration Plan

@@ -3030,6 +3030,7 @@
 						"id": "sess-calendar",
 						"type": "integration",
 						"integrationId": "calendar",
+						"requiredApp": "calendar",
 						"title": "Agenda",
 						"icon": "CalendarClockOutline"
 					}
@@ -4008,6 +4009,7 @@
 						"id": "asn-calendar",
 						"type": "integration",
 						"integrationId": "calendar",
+						"requiredApp": "calendar",
 						"title": "Agenda",
 						"icon": "CalendarClockOutline"
 					},
@@ -4015,6 +4017,7 @@
 						"id": "asn-intake-form",
 						"type": "integration",
 						"integrationId": "forms",
+						"requiredApp": "forms",
 						"title": "Intake form",
 						"icon": "ClipboardEditOutline"
 					}
