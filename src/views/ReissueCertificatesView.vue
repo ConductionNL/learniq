@@ -11,7 +11,7 @@
  run through learniq's POST /api/courses/{id}/credentials/reissue. The summary
  of the last run shows when it is done.
 
- @spec openspec/changes/credentials-bulk-reissue/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
+ @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
 -->
 <template>
 	<div class="reissue-certificates">
@@ -106,7 +106,7 @@ export default {
 	computed: {
 		/**
 		 * @return {string} The last run in words.
-		 * @spec openspec/changes/credentials-bulk-reissue/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
+		 * @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
 		 */
 		lastRunText() {
 			if (!this.lastRun || this.lastRun.status === 'queued') {
@@ -133,7 +133,7 @@ export default {
 		 * Load the counts and the last run.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/credentials-bulk-reissue/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
+		 * @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
 		 */
 		async load() {
 			try {
@@ -164,7 +164,7 @@ export default {
 		 * Queue the reissue.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/credentials-bulk-reissue/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
+		 * @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
 		 */
 		async start() {
 			this.busy = true

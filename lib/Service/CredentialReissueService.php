@@ -32,7 +32,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/credentials-bulk-reissue/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
+ * @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
  */
 
 declare(strict_types=1);
@@ -53,7 +53,7 @@ use Throwable;
 /**
  * Preview and run a bulk reissue.
  *
- * @spec openspec/changes/credentials-bulk-reissue/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
+ * @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
  */
 class CredentialReissueService {
 
@@ -108,7 +108,7 @@ class CredentialReissueService {
 	 *
 	 * @return array{issued: int, revoked: int, expired: int}
 	 *
-	 * @spec openspec/changes/credentials-bulk-reissue/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
+	 * @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
 	 */
 	public function preview(string $courseId): array {
 		$counts = ['issued' => 0, 'revoked' => 0, 'expired' => 0];
@@ -129,7 +129,7 @@ class CredentialReissueService {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/credentials-bulk-reissue/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
+	 * @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
 	 */
 	public function summary(string $runId): ?array {
 		$json = $this->config->getValueString(app: Application::APP_ID, key: self::RUN_KEY_PREFIX . $runId, default: '');
@@ -151,7 +151,7 @@ class CredentialReissueService {
 	 *
 	 * @return array{processed: int, skipped: int, failed: int}
 	 *
-	 * @spec openspec/changes/credentials-bulk-reissue/specs/certification/spec.md#requirement-a-reissue-keeps-who-and-when-and-records-why
+	 * @spec openspec/specs/certification/spec.md#requirement-a-reissue-keeps-who-and-when-and-records-why
 	 */
 	public function run(string $courseId, string $runId, string $reason, IUser $actor): array {
 		$totals = ['processed' => 0, 'skipped' => 0, 'failed' => 0];
