@@ -495,7 +495,7 @@ export default {
 					'/apps/openregister/api/objects/learniq/subject-choice/{id}',
 					{ id: choiceId },
 				)
-				await axios.put(transitionUrl, { lifecycle: 'submitted' })
+				await axios.patch(transitionUrl, { lifecycle: 'submitted' })
 
 				this.submitSuccess = true
 				this.selectedCourseIds = []

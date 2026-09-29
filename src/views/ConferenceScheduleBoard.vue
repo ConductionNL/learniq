@@ -336,7 +336,7 @@ export default {
 					'/apps/openregister/api/objects/learniq/conference-round/{id}',
 					{ id: this.selectedRoundId },
 				)
-				await axios.put(url, { lifecycle: 'scheduled' })
+				await axios.patch(url, { lifecycle: 'scheduled' })
 				this.regenerateSuccess = true
 			} catch (e) {
 				console.error('[ConferenceScheduleBoard] regenerate failed', e)

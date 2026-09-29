@@ -437,7 +437,7 @@ export default {
 				'/apps/openregister/api/objects/learniq/timetable-visibility-policy'
 			try {
 				if (this.policyId) {
-					await axios.put(
+					await axios.patch(
 						generateUrl(base + '/' + encodeURIComponent(this.policyId)),
 						this.policy,
 					)

@@ -294,7 +294,7 @@ export default {
 					'/apps/openregister/api/objects/learniq/timetable-conflict/{id}',
 					{ id: conflict.id },
 				)
-				await axios.put(url, { lifecycle })
+				await axios.patch(url, { lifecycle })
 
 				const idx = this.conflicts.findIndex((c) => c.id === conflict.id)
 				if (idx >= 0) {
