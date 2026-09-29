@@ -79,7 +79,8 @@ class TimetableVisibilityRegisterTest extends TestCase {
 	public function testSessionReadIsStaffOnly(): void {
 		$session = $this->schemas['Session'];
 
-		self::assertSame('0.2.0', $session['version']);
+		// A floor, not a pin: other changes bump Session too (bulk change weeks adds changeBatchId).
+		self::assertTrue(version_compare($session['version'], '0.2.0', '>='));
 		self::assertSame(['instructors', 'hr', 'compliance-officers', 'team-leads'], $session['authorization']['read']);
 		self::assertNotContains('authenticated', $session['authorization']['read']);
 		self::assertNotContains('learners', $session['authorization']['read']);

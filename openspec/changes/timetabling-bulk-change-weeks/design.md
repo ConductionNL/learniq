@@ -59,3 +59,10 @@ Notification on `SessionChangeBatch` (`x-openregister-notifications`, trigger on
 ## Seed data
 
 VO example set: one batch cancelling three Tuesday lessons of "Wiskunde B, 4 havo" for "teacher-absence", with one refused lesson (already completed) in `results`.
+
+## As built (2026-09-28)
+
+- OpenRegister's `transition` trigger takes no condition, so "`rosterChanged` skips a lesson in a batch" is realised through its recipients: the batch service writes empty `affectedLearnerIds` and `affectedParentIds` on every lesson it changes, and `SessionChangeNoticeHandler` leaves a lesson with a `changeBatchId` alone. The per-lesson rule then has nobody to tell, and the batch's `created` rule sends the one message with `{{lessonDates}}`. A batch where every lesson was refused has empty lists, so it tells nobody.
+- A room change is an update, not a transition, so the service runs `SessionChangeGuard` itself for it (action `room-change`) before writing.
+- The route opens on the ADR-023 action `timetable.bulk-change` (admin, coordinators, instructors, team leads, compliance officers); the per-lesson guard is the real check.
+- The VO example set's lessons are whole school days in a finished year, all completed, so the seed batch is a room change (4H1 to the mediatheek on three Tuesdays in March) rather than a cancellation with one refused lesson: cancelling seeded days would contradict the attendance records on them.
