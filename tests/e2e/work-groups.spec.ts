@@ -13,7 +13,10 @@
  *
  * @e2e openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-teacher-sets-up-work-groups-with-a-maximum-size
  * @e2e openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+ * @e2e openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-is-in-one-work-group-per-set
+ * @e2e openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-group-hand-in-names-the-whole-work-group
  */
+import { writeFileSync } from 'fs'
 import { expect, test } from './fixtures.ts'
 import { LiveFixtures, signInAs } from './live-fixtures.ts'
 
@@ -154,5 +157,91 @@ test.describe('work groups', () => {
 
 		expect((await fx.read('work-group', freeId)).memberIds).toEqual([learner.id])
 		expect((await fx.read('work-group', fullId)).memberIds).toEqual([classmate])
+	})
+	test('a learner moves to another group of the set and hands in for the whole group', async ({
+		browser,
+	}, testInfo) => {
+		const learner = await fx.user('mover', ['learners'])
+		const others = [1, 2, 3].map((n) => `r5-member${n}-${fx.run}`)
+		const cohortId = await fx.object('cohort', {
+			name: `r5 move class ${fx.run}`,
+			period: 'Q1',
+			academicYear: '2026-2027',
+			learnerIds: [learner.id, ...others],
+		})
+		const setName = `r5 Project campagne ${fx.run}`
+		const fourId = await fx.object('work-group', {
+			cohortId,
+			setName,
+			name: 'Groep 4',
+			maxMembers: 4,
+			memberIds: [learner.id],
+			selfJoinUntil: nextWeek,
+			lifecycle: 'open',
+		})
+		const fiveId = await fx.object('work-group', {
+			cohortId,
+			setName,
+			name: 'Groep 5',
+			maxMembers: 4,
+			memberIds: others,
+			selfJoinUntil: nextWeek,
+			lifecycle: 'open',
+		})
+		const assignmentId = await fx.object('assignment', {
+			title: `r5 Campagneplan ${fx.run}`,
+			maxPoints: 10,
+			cohortId,
+			groupSubmission: true,
+			workGroupSetName: setName,
+			dueAt: nextWeek,
+		})
+
+		const page = await signInAs(browser, learner)
+		try {
+			await page.goto(`${APP}/my-work-groups`, {
+				waitUntil: 'domcontentloaded',
+			})
+			const set = page.locator('.my-work-groups__set', { hasText: setName })
+			await expect(set).toBeVisible({ timeout: 60_000 })
+			const five = set.locator('.my-work-groups__group', {
+				hasText: 'Groep 5',
+			})
+			await five
+				.getByRole('button', { name: 'Move here', exact: true })
+				.click()
+			await expect(
+				five.getByRole('button', { name: 'Leave', exact: true }),
+			).toBeVisible({ timeout: 30_000 })
+
+			expect((await fx.read('work-group', fourId)).memberIds).toEqual([])
+			expect(
+				[...(await fx.read('work-group', fiveId)).memberIds].sort(),
+			).toEqual([...others, learner.id].sort())
+
+			// One member hands in for the whole group.
+			await page.goto(`${APP}/assignments/${assignmentId}/submit`, {
+				waitUntil: 'domcontentloaded',
+			})
+			const work = testInfo.outputPath('campagneplan.txt')
+			writeFileSync(work, `r5 campagneplan ${fx.run}\n`)
+			await page
+				.locator('input[type="file"]')
+				.first()
+				.setInputFiles(work, { timeout: 60_000 })
+			await page.getByRole('button', { name: 'Hand in', exact: true }).click()
+			await expect(page.getByText('Your work is handed in.')).toBeVisible({
+				timeout: 60_000,
+			})
+		} finally {
+			await page.context().close()
+		}
+
+		const submissions = await fx.find('submission', { assignmentId })
+		for (const row of submissions) fx.adopt('submission', String(row.id))
+		expect(submissions).toHaveLength(1)
+		expect([...submissions[0].learnerIds].sort()).toEqual(
+			[learner.id, ...others].sort(),
+		)
 	})
 })
