@@ -43,6 +43,7 @@ namespace OCA\Learniq\Listener;
 use DateTimeImmutable;
 use OCA\Learniq\Service\CredentialSigningService;
 use OCA\Learniq\Service\EuropassIssuer;
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -66,6 +67,7 @@ class CredentialIssuanceHandler implements IEventListener {
 	 * @param CredentialSigningService $signingService Signs the credential before it is saved.
 	 * @param LoggerInterface $logger Records a credential that could not be signed.
 	 * @param EuropassIssuer $europass Adds the signed Europass form.
+	 * @param LearnerRefResolver $profiles Finds the learner's LearnerProfile in the enrolment's tenant.
 	 *
 	 * @return void
 	 */
@@ -74,6 +76,7 @@ class CredentialIssuanceHandler implements IEventListener {
 		private readonly CredentialSigningService $signingService,
 		private readonly LoggerInterface $logger,
 		private readonly EuropassIssuer $europass,
+		private readonly LearnerRefResolver $profiles,
 	) {
 	}//end __construct()
 
@@ -137,23 +140,60 @@ class CredentialIssuanceHandler implements IEventListener {
 			return;
 		}
 
-		$expiresAt = $this->resolveExpiresAt(course: $course, completedAt: (string)$completedAt);
+		$this->issue(enrolment: $enrolment, course: $course, enrolmentId: $enrolmentId, completedAt: (string)$completedAt);
+	}//end handle()
+
+	/**
+	 * Issue the credential for a completed enrolment to the learner's profile.
+	 *
+	 * Enrolment.learnerId is the Nextcloud user id; Credential.learnerId is the
+	 * LearnerProfile uuid (format uuid, $ref LearnerProfile), found in the
+	 * enrolment's tenant. The user id travels along as learnerUserId, which
+	 * the register's read rule matches on. A learner without a profile gets
+	 * no credential and a warning naming the learner and the course.
+	 *
+	 * @param array<string, mixed> $enrolment   The completed enrolment.
+	 * @param array<string, mixed> $course      The course being certified.
+	 * @param mixed                $enrolmentId The enrolment id, when it has one.
+	 * @param string               $completedAt When the enrolment completed.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
+	 */
+	private function issue(array $enrolment, array $course, mixed $enrolmentId, string $completedAt): void {
+		$learnerId = (string)$enrolment['learnerId'];
+		$courseId = $enrolment['courseId'];
+		$tenantId = (string)$enrolment['tenant_id'];
+
+		$profileId = $this->profiles->resolveInTenant(learnerId: $learnerId, tenantId: $tenantId);
+		if ($profileId === null) {
+			$this->logger->warning(
+				'Learniq: no credential issued to learner {learner} for course {course}: '
+				. 'the learner has no LearnerProfile in tenant {tenant}.',
+				['learner' => $learnerId, 'course' => $courseId, 'enrolment' => $enrolmentId, 'tenant' => $tenantId]
+			);
+			return;
+		}
+
+		$expiresAt = $this->resolveExpiresAt(course: $course, completedAt: $completedAt);
 
 		$this->saveSignedCredential(
 			credential: [
-				'learnerId' => $learnerId,
+				'learnerId' => $profileId,
+				'learnerUserId' => $learnerId,
 				'courseId' => $courseId,
 				'enrolmentId' => $enrolmentId,
 				'kind' => 'certificate',
 				'issuedAt' => $completedAt,
 				'expiresAt' => $expiresAt,
-				'issuedBy' => $this->resolveIssuerName(tenantId: (string)$tenantId),
+				'issuedBy' => $this->resolveIssuerName(tenantId: $tenantId),
 				'source' => 'auto',
 				'regulationSlug' => $course['regulationSlug'] ?? null,
 				'tenant_id' => $tenantId,
 			]
 		);
-	}//end handle()
+	}//end issue()
 
 	/**
 	 * Sign a credential and save it under the uuid the signature covers.

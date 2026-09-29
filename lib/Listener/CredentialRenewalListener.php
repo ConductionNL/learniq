@@ -39,6 +39,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Service\CredentialLearner;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -65,12 +66,14 @@ class CredentialRenewalListener implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param CredentialLearner $learners The credential's learner as a Nextcloud user id.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly CredentialLearner $learners,
 	) {
 	}//end __construct()
 
@@ -122,14 +125,28 @@ class CredentialRenewalListener implements IEventListener {
 			return;
 		}
 
+		// Credential.learnerId is the LearnerProfile uuid; Enrolment.learnerId
+		// is the Nextcloud user id, and the uuid goes to Enrolment.learnerRef.
+		$userId = $this->learners->userIdOf(credential: $credential);
+		if ($userId === null) {
+			$this->logger->warning(
+				'[CredentialRenewalListener] Credential {id}: learner {learner} has no Nextcloud user — skipping renewal.',
+				['id' => $credentialId, 'learner' => $learnerId, 'course' => $courseId]
+			);
+			return;
+		}
+
 		$enrolment = [
-			'learnerId' => $learnerId,
+			'learnerId' => $userId,
 			'courseId' => $courseId,
 			'source' => self::ENROLMENT_SOURCE,
 			'mandatory' => true,
 			'regulationSlug' => $credential['regulationSlug'] ?? null,
 			'tenant_id' => $tenantId,
 		];
+		if ($this->learners->isUuid(value: $learnerId) === true) {
+			$enrolment['learnerRef'] = $learnerId;
+		}
 
 		$saved = $this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,

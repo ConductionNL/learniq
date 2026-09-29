@@ -31,6 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\CredentialLearner;
 use OCA\Learniq\Service\EuropassIssuer;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
@@ -68,6 +69,7 @@ class CredentialEuropassController extends Controller {
 	 * @param IGroupManager  $groupManager Group membership and admin checks.
 	 * @param ObjectService  $objects      OpenRegister object access.
 	 * @param EuropassIssuer $europass     Builds and signs the Europass form.
+	 * @param CredentialLearner $learners  Whose credential it is, as a Nextcloud user id.
 	 *
 	 * @return void
 	 */
@@ -77,6 +79,7 @@ class CredentialEuropassController extends Controller {
 		private readonly IGroupManager $groupManager,
 		private readonly ObjectService $objects,
 		private readonly EuropassIssuer $europass,
+		private readonly CredentialLearner $learners,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -100,8 +103,11 @@ class CredentialEuropassController extends Controller {
 		}
 
 		$credential = $this->read(schema: self::SCHEMA, id: $id);
+		// Credential.learnerId is the LearnerProfile uuid, never the user id:
+		// the learner is matched on learnerUserId, or through the profile.
 		$mayRead = $credential !== null
-			&& (($credential['learnerId'] ?? '') === $user->getUID() || $this->isStaff(userId: $user->getUID()) === true);
+			&& ($this->learners->belongsTo(credential: $credential, userId: $user->getUID()) === true
+			|| $this->isStaff(userId: $user->getUID()) === true);
 		if ($mayRead === false || is_array($credential['edciPayload'] ?? null) === false) {
 			return new JSONResponse(data: ['error' => 'not_found'], statusCode: Http::STATUS_NOT_FOUND);
 		}

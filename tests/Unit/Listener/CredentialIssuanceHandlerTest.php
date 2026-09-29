@@ -34,6 +34,7 @@ use OCA\Learniq\Listener\CredentialIssuanceHandler;
 use OCA\Learniq\Service\EdciPayloadBuilder;
 use OCA\Learniq\Service\EuropassIssuer;
 use OCA\Learniq\Service\CredentialSigningService;
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\SigningKeyConfigKey;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
@@ -55,6 +56,30 @@ use ReflectionNamedType;
 class CredentialIssuanceHandlerTest extends TestCase {
 	private const TENANT = 'tenant-kompas';
 	private const SCHOOL_NAME = 'Voorbeeld Opleidingscentrum Het Kompas';
+
+	/**
+	 * The learner's Nextcloud user id, what Enrolment.learnerId holds.
+	 */
+	private const LEARNER_UID = 'k.jansen';
+
+	/**
+	 * The learner's LearnerProfile uuid in the tenant, what Credential.learnerId must hold.
+	 */
+	private const LEARNER_PROFILE = 'ee06000c-0000-4000-8000-000000000042';
+
+	/**
+	 * Whether the learner has a LearnerProfile in the tenant.
+	 *
+	 * @var bool
+	 */
+	private bool $learnerHasProfile = true;
+
+	/**
+	 * Warnings the handler logged, as [message, context].
+	 *
+	 * @var array<int, array{0: string, 1: array<string, mixed>}>
+	 */
+	private array $warnings = [];
 
 	/**
 	 * PEM private key of the test tenant.
@@ -92,6 +117,8 @@ class CredentialIssuanceHandlerTest extends TestCase {
 		$details = openssl_pkey_get_details($resource);
 		$this->publicKeyPem = (string)$details['key'];
 		$this->saved = [];
+		$this->warnings = [];
+		$this->learnerHasProfile = true;
 	}//end setUp()
 
 	/**
@@ -214,6 +241,59 @@ class CredentialIssuanceHandlerTest extends TestCase {
 	}//end testNoCredentialIsSavedWhenTheTenantHasNoSigningKey()
 
 	/**
+	 * The credential names the learner by LearnerProfile uuid, as its schema
+	 * declares, and carries the Nextcloud user id as learnerUserId. Red before
+	 * the fix: the enrolment's user id was copied into learnerId, which fails
+	 * the schema's format uuid for every real user.
+	 *
+	 * @return void
+	 */
+	public function testTheCredentialNamesTheProfileAndCarriesTheUserId(): void {
+		$handler = $this->buildHandler(tenantHasKey: true);
+		$handler->handle($this->completionEvent());
+
+		self::assertCount(1, $this->saved);
+		$credential = $this->saved[0]['object'];
+		self::assertSame(self::LEARNER_PROFILE, $credential['learnerId']);
+		self::assertSame(self::LEARNER_UID, $credential['learnerUserId']);
+		self::assertSame('urn:learniq:learner:' . self::LEARNER_PROFILE, $credential['openbadges3Payload']['credentialSubject']['id']);
+		self::assertStringNotContainsString(self::LEARNER_UID, (string)json_encode($credential['openbadges3Payload']), 'The user id never enters the signed payload.');
+	}//end testTheCredentialNamesTheProfileAndCarriesTheUserId()
+
+	/**
+	 * A learner without a LearnerProfile in the tenant gets no credential,
+	 * and the warning names the learner and the course.
+	 *
+	 * @return void
+	 */
+	public function testNoCredentialIsIssuedToALearnerWithoutAProfile(): void {
+		$this->learnerHasProfile = false;
+		$handler = $this->buildHandler(tenantHasKey: true);
+		$handler->handle($this->completionEvent());
+
+		self::assertSame([], $this->saved, 'No credential is saved without a profile to name.');
+		self::assertCount(1, $this->warnings);
+		self::assertSame(self::LEARNER_UID, $this->warnings[0][1]['learner']);
+		self::assertSame('course-bhv', $this->warnings[0][1]['course']);
+	}//end testNoCredentialIsIssuedToALearnerWithoutAProfile()
+
+	/**
+	 * A logger that records warnings.
+	 *
+	 * @return LoggerInterface
+	 */
+	private function logger(): LoggerInterface {
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->method('warning')->willReturnCallback(
+			function (string|\Stringable $message, array $context = []): void {
+				$this->warnings[] = [(string)$message, $context];
+			}
+		);
+
+		return $logger;
+	}//end logger()
+
+	/**
 	 * The handler is registered for the event OpenRegister dispatches on a
 	 * transition, through the app's real listener wiring.
 	 *
@@ -245,7 +325,7 @@ class CredentialIssuanceHandlerTest extends TestCase {
 			[
 				'id' => 'enrol-0001',
 				'courseId' => 'course-bhv',
-				'learnerId' => 'ee06000c-0000-4000-8000-000000000042',
+				'learnerId' => self::LEARNER_UID,
 				'tenant_id' => self::TENANT,
 				'completedAt' => '2026-09-28T10:00:00+02:00',
 				'lifecycle' => 'completed',
@@ -281,7 +361,8 @@ class CredentialIssuanceHandlerTest extends TestCase {
 					signer: $this->signingService(tenantHasKey: $tenantHasKey),
 					config: $this->createStub(IAppConfig::class)
 				),
-				LoggerInterface::class => $this->createStub(LoggerInterface::class),
+				LoggerInterface::class => $this->logger(),
+				LearnerRefResolver::class => new LearnerRefResolver(objectService: $this->objectService()),
 				default => $this->createStub($type->getName()),
 			};
 		}
@@ -317,8 +398,16 @@ class CredentialIssuanceHandlerTest extends TestCase {
 			}
 		);
 		$objectService->method('findAll')->willReturnCallback(
-			static function (array $config): array {
+			function (array $config): array {
 				$filters = ($config['filters'] ?? []);
+				if ($this->learnerHasProfile === true
+					&& ($filters['schema'] ?? null) === 'learner-profile'
+					&& ($filters['ncUserId'] ?? null) === self::LEARNER_UID
+					&& ($filters['tenant_id'] ?? null) === self::TENANT
+				) {
+					return [OrEntityFactory::make(['id' => self::LEARNER_PROFILE, 'ncUserId' => self::LEARNER_UID, 'tenant_id' => self::TENANT], 'learner-profile')];
+				}
+
 				if (($filters['schema'] ?? null) === 'school' && ($filters['tenant_id'] ?? null) === self::TENANT) {
 					return [
 						OrEntityFactory::make(
