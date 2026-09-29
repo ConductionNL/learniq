@@ -41,7 +41,6 @@ use DateTimeInterface;
 use DateTimeZone;
 use OCA\OpenRegister\Db\AuditTrailMapper;
 use OCA\OpenRegister\Service\AuditHashService;
-use OCP\IConfig;
 use OCP\IUser;
 use ZipArchive;
 
@@ -67,7 +66,7 @@ class AuditPackBuilder {
 	 *
 	 * @param AuditTrailMapper $auditTrailMapper OR audit-trail database mapper.
 	 * @param AuditHashService $auditHashService OR HMAC chain verification service.
-	 * @param IConfig $config NC config for tenant ID lookup.
+	 * @param CallerTenantResolver $tenants Resolves the tenant: the per-user binding, else the default tenant.
 	 * @param CsvCellSanitizer $sanitizer CSV formula-injection neutraliser.
 	 * @param VerwerkingsregisterCsvBuilder $registerCsv AVG Art. 30 register artefact builder.
 	 * @param ExternalTrainingCsvBuilder $trainingCsv External-training evidence artefact builder.
@@ -75,7 +74,7 @@ class AuditPackBuilder {
 	public function __construct(
 		private readonly AuditTrailMapper $auditTrailMapper,
 		private readonly AuditHashService $auditHashService,
-		private readonly IConfig $config,
+		private readonly CallerTenantResolver $tenants,
 		private readonly CsvCellSanitizer $sanitizer,
 		private readonly VerwerkingsregisterCsvBuilder $registerCsv,
 		private readonly ExternalTrainingCsvBuilder $trainingCsv,
@@ -134,29 +133,17 @@ class AuditPackBuilder {
 	/**
 	 * Resolve the requesting tenant's ID.
 	 *
-	 * #184: `instanceid` is the same for every tenant on the instance, so the
-	 * authenticated user's own tenant binding (written by the admin module) is
-	 * preferred; `instanceid` is only the fallback when no per-user mapping exists.
+	 * #184: the authenticated user's own tenant binding is preferred; an
+	 * unbound user belongs to the default tenant (CallerTenantResolver).
 	 *
 	 * @param IUser $user Authenticated user whose tenant binding is read.
 	 *
-	 * @return string Tenant UUID, or the instance id when unbound.
+	 * @return string Tenant UUID, or the default tenant when unbound.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
 	 */
 	private function resolveTenantId(IUser $user): string {
-		$userTenantId = $this->config->getUserValue(
-			userId: $user->getUID(),
-			appName: 'learniq',
-			key: 'tenant_id',
-			default: ''
-		);
-
-		if ($userTenantId !== '') {
-			return $userTenantId;
-		}
-
-		return (string)$this->config->getSystemValue('instanceid', 'unknown');
+		return $this->tenants->resolve(user: $user);
 	}//end resolveTenantId()
 
 	/**
@@ -387,7 +374,7 @@ class AuditPackBuilder {
 	/**
 	 * Build the manifest.json content per ADR-008 §6.
 	 *
-	 * @param string $tenantId Tenant UUID or instanceid.
+	 * @param string $tenantId Tenant UUID.
 	 * @param string $regulationSlug Regulation slug.
 	 * @param string $dateFrom Period start.
 	 * @param string $dateTo Period end.

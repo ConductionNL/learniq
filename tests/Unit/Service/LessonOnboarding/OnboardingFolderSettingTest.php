@@ -22,7 +22,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service\LessonOnboarding;
 
 use InvalidArgumentException;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\LessonOnboarding\OnboardingFolderSetting;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -58,7 +60,7 @@ class OnboardingFolderSettingTest extends TestCase {
 		);
 		$root = $this->createMock(IRootFolder::class);
 		$root->method('getUserFolder')->with('jdevries')->willReturn($this->userFolder);
-		$this->setting = new OnboardingFolderSetting(config: $this->config, rootFolder: $root);
+		$this->setting = new OnboardingFolderSetting(config: $this->config, rootFolder: $root, tenants: new CallerTenantResolver($this->config, $this->createMock(ObjectService::class)));
 
 	}//end setUp()
 
@@ -172,16 +174,17 @@ class OnboardingFolderSettingTest extends TestCase {
 	}//end testFolderIdDefaultsToZero()
 
 	/**
-	 * The tenant is the user's binding, else the instance id.
+	 * The tenant is the user's binding, else the default tenant, never the
+	 * instance id (routed through CallerTenantResolver).
 	 *
 	 * @return void
 	 */
-	public function testTenantOfFallsBackToTheInstance(): void {
+	public function testTenantOfFallsBackToTheDefaultTenant(): void {
 		$this->config->method('getUserValue')->willReturnOnConsecutiveCalls('00000000-0000-0000-0000-000000000001', '');
-		$this->config->method('getSystemValue')->with('instanceid', '')->willReturn('oc-instance');
+		$this->config->expects($this->never())->method('getSystemValue');
 
 		$this->assertSame('00000000-0000-0000-0000-000000000001', $this->setting->tenantOf(userId: 'jdevries'));
-		$this->assertSame('oc-instance', $this->setting->tenantOf(userId: 'jdevries'));
+		$this->assertSame(CallerTenantResolver::DEFAULT_TENANT, $this->setting->tenantOf(userId: 'jdevries'));
 
-	}//end testTenantOfFallsBackToTheInstance()
+	}//end testTenantOfFallsBackToTheDefaultTenant()
 }//end class

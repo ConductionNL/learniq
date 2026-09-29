@@ -39,7 +39,6 @@ use DateTimeInterface;
 use OCA\Learniq\Exception\XapiRequestException;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
-use OCP\IConfig;
 use Throwable;
 
 /**
@@ -95,12 +94,12 @@ class XapiDocumentStore {
 	 * Constructor.
 	 *
 	 * @param ObjectService     $objectService OpenRegister object access.
-	 * @param IConfig           $config        Reads the learner's tenant binding.
+	 * @param CallerTenantResolver $tenants Resolves the tenant: the per-user binding, else the default tenant.
 	 * @param XapiDocumentCodec $codec         Encodes and fingerprints bodies.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly IConfig $config,
+		private readonly CallerTenantResolver $tenants,
 		private readonly XapiDocumentCodec $codec,
 	) {
 	}//end __construct()
@@ -469,18 +468,13 @@ class XapiDocumentStore {
 	}//end toArray()
 
 	/**
-	 * The tenant a learner belongs to: their `tenant_id` preference, else the instance id.
+	 * The tenant a learner belongs to: their `tenant_id` binding, else the default tenant.
 	 *
 	 * @param string $userId The uid.
 	 *
 	 * @return string The tenant id.
 	 */
 	private function tenantFor(string $userId): string {
-		$bound = $this->config->getUserValue(userId: $userId, appName: 'learniq', key: 'tenant_id', default: '');
-		if ($bound !== '') {
-			return $bound;
-		}
-
-		return (string)$this->config->getSystemValue('instanceid', '');
+		return $this->tenants->forUserId(userId: $userId);
 	}//end tenantFor()
 }//end class

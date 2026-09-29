@@ -35,14 +35,29 @@ use OCP\IConfig;
 use OCP\IUser;
 
 /**
- * The caller's tenant: the per-user `tenant_id` binding, else the instance id.
+ * The caller's tenant: the per-user `tenant_id` binding, else the default tenant.
  *
- * Same resolution as AuditPackBuilder and QtiImportController, so a row the
- * caller wrote through those paths carries the tenant this resolver returns.
+ * Every learniq path that stamps or scopes a tenant resolves it here, so a row
+ * written through one path carries the tenant every other path compares with.
+ *
+ * The fallback used to be the Nextcloud instance id. That is not a UUID, so
+ * the 125 schemas that type `tenant_id` as `format: uuid` refused every write
+ * carrying it (xAPI statements answered 500), and it matched none of the
+ * seeded or example-set rows, so tenant-scoped lookups answered 404 on them.
+ * The default tenant is the one the example sets carry (decision by Ruben,
+ * 2026-09-29, option A). A real multi-tenant install binds each user with
+ * `occ user:setting <uid> learniq tenant_id <uuid>` (docs/Technical/tenants.md).
  *
  * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
  */
 class CallerTenantResolver {
+	/**
+	 * The tenant of every user without a per-user binding.
+	 *
+	 * @var string
+	 */
+	public const DEFAULT_TENANT = '00000000-0000-4000-8000-000000000000';
+
 	/**
 	 * Constructor.
 	 *
@@ -60,24 +75,41 @@ class CallerTenantResolver {
 	 *
 	 * @param IUser $user The authenticated caller.
 	 *
-	 * @return string The bound tenant id, or the instance id when the user is unbound.
+	 * @return string The bound tenant id, or DEFAULT_TENANT when the user is unbound.
 	 *
 	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
 	 */
 	public function resolve(IUser $user): string {
-		$tenantId = (string)$this->config->getUserValue(
-			userId: $user->getUID(),
-			appName: Application::APP_ID,
-			key: 'tenant_id',
-			default: ''
-		);
+		return $this->forUserId(userId: $user->getUID());
+	}//end resolve()
 
-		if ($tenantId !== '') {
-			return $tenantId;
+	/**
+	 * Resolve the tenant of a user by uid, for paths that only hold the uid
+	 * (a listener, a background write on a learner's behalf).
+	 *
+	 * @param string $userId The Nextcloud user id.
+	 *
+	 * @return string The bound tenant id, or DEFAULT_TENANT when the user is unbound.
+	 *
+	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
+	 */
+	public function forUserId(string $userId): string {
+		$tenantId = '';
+		if ($userId !== '') {
+			$tenantId = (string)$this->config->getUserValue(
+				userId: $userId,
+				appName: Application::APP_ID,
+				key: 'tenant_id',
+				default: ''
+			);
 		}
 
-		return (string)$this->config->getSystemValue('instanceid', '');
-	}//end resolve()
+		if (trim($tenantId) !== '') {
+			return trim($tenantId);
+		}
+
+		return self::DEFAULT_TENANT;
+	}//end forUserId()
 
 	/**
 	 * Whether an object row belongs to the given user's tenant.
