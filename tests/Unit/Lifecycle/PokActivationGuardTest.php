@@ -17,7 +17,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
- * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+ * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
  */
 
 declare(strict_types=1);
@@ -120,7 +120,7 @@ class PokActivationGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-a-minors-agreement-waits-for-a-parent
+	 * @spec openspec/specs/bpv/spec.md#scenario-a-minors-agreement-waits-for-a-parent
 	 */
 	public function testAMinorsAgreementWaitsForAParent(): void {
 		$result = $this->makeGuard(self::threeSignatures(), birthDate: '2009-04-30')->check($this->pokObject(), 'activate', 'coordinator-1');
@@ -134,7 +134,7 @@ class PokActivationGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-a-listed-parents-signature-completes-it
+	 * @spec openspec/specs/bpv/spec.md#scenario-a-listed-parents-signature-completes-it
 	 */
 	public function testAListedParentsSignatureCompletesIt(): void {
 		$signatures   = self::threeSignatures();
@@ -148,7 +148,7 @@ class PokActivationGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-a-self-declared-parent-does-not-count
+	 * @spec openspec/specs/bpv/spec.md#scenario-a-self-declared-parent-does-not-count
 	 */
 	public function testASelfDeclaredParentDoesNotCount(): void {
 		$signatures   = self::threeSignatures();
@@ -162,7 +162,7 @@ class PokActivationGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-an-unknown-date-of-birth-asks-for-a-parent
+	 * @spec openspec/specs/bpv/spec.md#scenario-an-unknown-date-of-birth-asks-for-a-parent
 	 */
 	public function testAnUnknownDateOfBirthAsksForAParent(): void {
 		$result = $this->makeGuard(self::threeSignatures(), birthDate: null)->check($this->pokObject(), 'activate', 'coordinator-1');
@@ -176,7 +176,7 @@ class PokActivationGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+	 * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
 	 */
 	public function testAStudentWhoSignedAt17StillNeedsTheParent(): void {
 		self::assertDenied($this->makeGuard(self::threeSignatures(), birthDate: '2007-08-23')->check($this->pokObject(), 'activate', 'coordinator-1'));
@@ -188,7 +188,7 @@ class PokActivationGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+	 * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
 	 */
 	public function testAParentDoesNotReplaceAMissingRole(): void {
 		$signatures = [
@@ -208,7 +208,7 @@ class PokActivationGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-an-adults-agreement-needs-no-parent
+	 * @spec openspec/specs/bpv/spec.md#scenario-an-adults-agreement-needs-no-parent
 	 */
 	public function testAllThreeRolesSignedAllowsActivation(): void {
 		$signatures = [

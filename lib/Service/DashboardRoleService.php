@@ -37,7 +37,7 @@ use OCP\IUser;
 /**
  * Resolves Learniq roles and dashboard views from Nextcloud group membership.
  *
- * @spec openspec/changes/fix-dead-role-gates/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit
+ * @spec openspec/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit
  */
 class DashboardRoleService {
 	/**
@@ -95,7 +95,7 @@ class DashboardRoleService {
 	 * @return string One of: admin, compliance-officer, hr, administration-manager, team-lead, coordinator,
 	 *                instructor, confidential-counsellor, guardian, learner.
 	 *
-	 * @spec openspec/changes/fix-dead-role-gates/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit
+	 * @spec openspec/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit
 	 */
 	public function resolvePrimaryRole(IUser $user): string {
 		if ($this->groupManager->isAdmin($user->getUID()) === true) {
@@ -120,7 +120,7 @@ class DashboardRoleService {
 	 *
 	 * @return bool True when the user is in the confidential-counsellors group.
 	 *
-	 * @spec openspec/changes/confidential-counsellor-channel/specs/confidential-counsel/spec.md#requirement-the-confidential-notes-menu-is-shown-to-confidential-counsellors-only
+	 * @spec openspec/specs/confidential-counsel/spec.md#requirement-the-confidential-notes-menu-is-shown-to-confidential-counsellors-only
 	 */
 	public function isConfidentialCounsellor(IUser $user): bool {
 		return $this->groupManager->isInGroup($user->getUID(), self::CONFIDENTIAL_COUNSELLOR_GROUP) === true;
@@ -140,7 +140,7 @@ class DashboardRoleService {
 	 *
 	 * @return string[] Ordered list of accessible views (subset of admin|teacher|student).
 	 *
-	 * @spec openspec/changes/fix-dead-role-gates/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit
+	 * @spec openspec/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit
 	 */
 	public function resolveViews(IUser $user): array {
 		$role = $this->resolvePrimaryRole(user: $user);

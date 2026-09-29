@@ -91,3 +91,4 @@
 - [x] `composer lint` + `phpcs` (errors) clean on changed PHP; `AiFeature`-contract unit tests pass (16 tests, 389 assertions)
 - [x] `npm run lint` (0 errors) + `npm run build` (green) — delegation settings bundle compiles
 - [ ] Manual browser check: Admin Settings "AI Features" section links to Hermiq (installed) / shows install notice (absent); `/ai-features` no longer a Scholiq page; AVG Art. 30 AI block still shown
+  - Not run (r5-structure, 2026-09-28): no Playwright spec covers the admin settings area and lanes may not drive the shared instance. Code-level evidence instead: `src/views/LearniqSettings.vue` section 2 renders the Hermiq link when `hermiqInstalled` and the install notice otherwise; no page in `src/manifest.json` or `src/manifest.d/` has an `ai-feature` route; the AVG Art. 30 carrier stays on the `AiFeature` schema in `lib/Settings/learniq_register.json`. The browser check itself still has to be done.

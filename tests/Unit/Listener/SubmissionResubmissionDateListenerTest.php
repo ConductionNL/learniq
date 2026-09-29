@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-only-staff-set-a-resubmission-date
+ * @spec openspec/specs/assignments/spec.md#requirement-only-staff-set-a-resubmission-date
  */
 
 declare(strict_types=1);

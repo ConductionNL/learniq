@@ -224,4 +224,39 @@ class SessionChangeNoticeHandlerTest extends TestCase {
 		self::assertCount(0, $this->saved);
 
 	}//end testUnwatchedActionIsIgnored()
+	/**
+	 * A lesson changed in a batch sends no message of its own: nothing is
+	 * written onto it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-affected-people-get-one-message-per-batch
+	 */
+	public function testALessonInABatchIsLeftToTheBatch(): void {
+		$this->wire([['id' => 'cohort-1', 'learnerIds' => ['alice']]], [['ncUserId' => 'alice', 'parentIds' => ['parent-alice']]]);
+
+		$this->handler()->handle(
+			$this->makeEvent('cancel', ['id' => 'session-1', 'cohortId' => 'cohort-1', 'changeBatchId' => 'batch-1'])
+		);
+
+		self::assertCount(0, $this->saved);
+
+	}//end testALessonInABatchIsLeftToTheBatch()
+
+	/**
+	 * affectedPeople() resolves learners and parents without writing.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-affected-people-get-one-message-per-batch
+	 */
+	public function testAffectedPeopleResolvesWithoutWriting(): void {
+		$this->wire([['id' => 'cohort-1', 'learnerIds' => ['alice', 'bob']]], [['ncUserId' => 'bob', 'parentIds' => ['parent-bob']]]);
+
+		$people = $this->handler()->affectedPeople(['id' => 'session-1', 'cohortId' => 'cohort-1']);
+
+		self::assertSame(['learnerIds' => ['alice', 'bob'], 'parentIds' => ['parent-bob']], $people);
+		self::assertCount(0, $this->saved);
+
+	}//end testAffectedPeopleResolvesWithoutWriting()
 }//end class

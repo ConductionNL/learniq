@@ -84,7 +84,7 @@ class QtiExportService {
 	 * @throws \RuntimeException When the ItemBank does not exist.
 	 *
 	 * @spec openspec/changes/course-package-import-export/specs/assessment/spec.md#scenario-exporting-an-itembank-produces-a-valid-qti-30-package
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-21-package
+	 * @spec openspec/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-21-package
 	 */
 	public function export(string $itemBankId): string {
 		$bank = $this->objectService->find(id: $itemBankId, register: self::LEARNIQ_REGISTER, schema: 'item-bank');
@@ -122,7 +122,7 @@ class QtiExportService {
 	 * @return string Raw ZIP bytes.
 	 *
 	 * @spec openspec/changes/course-package-import-export/specs/assessment/spec.md#scenario-export-fidelity-is-not-limited-by-the-import-side-parsing-gap
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-21-package
+	 * @spec openspec/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-21-package
 	 */
 	private function buildPackage(array $bankData, array $items): string {
 		$resourceEntries = '';
@@ -165,7 +165,7 @@ class QtiExportService {
 	 *
 	 * @return string The qtiBody to export.
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-21-package
+	 * @spec openspec/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-21-package
 	 */
 	private function relabel(string $qtiBody): string {
 		$pattern = '/(<assessmentItem\b[^>]*\bxmlns=")' . preg_quote(self::OLD_LABEL_NAMESPACE, '/') . '"/';

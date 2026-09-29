@@ -32,7 +32,7 @@ use OCP\IAppConfig;
  * reason: reading them back from the descriptors would parse megabytes of
  * JSON on every page load.
  *
- * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+ * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
  */
 class LoadedExampleSets {
 	/**
@@ -69,7 +69,7 @@ class LoadedExampleSets {
 	 *
 	 * @return array<int, array{id: string, label: string}> The sets.
 	 *
-	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
 	 */
 	public function all(): array {
 		$raw     = $this->appConfig->getValueString(Application::APP_ID, self::CONFIG_KEY, '');
@@ -100,7 +100,7 @@ class LoadedExampleSets {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
 	 */
 	public function record(string $setId, string $label): void {
 		$sets = $this->without(setId: $setId);
@@ -115,7 +115,7 @@ class LoadedExampleSets {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
 	 */
 	public function forget(string $setId): void {
 		$this->store(sets: $this->without(setId: $setId));
@@ -129,7 +129,7 @@ class LoadedExampleSets {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
 	 */
 	public function recordFromChoices(string $setId, array $choices): void {
 		$label = $setId;
@@ -151,7 +151,7 @@ class LoadedExampleSets {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
 	 */
 	public function forgetIfRemoved(string $setId, array $answer): void {
 		if (($answer['errors'] ?? 1) === 0 && ($answer['jobs'] ?? []) !== []) {
@@ -173,7 +173,7 @@ class LoadedExampleSets {
 	 *
 	 * @return array<string, array{done: bool}> Step id to state.
 	 *
-	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
 	 */
 	public function removalSteps(array $choices): array {
 		$steps = [];
@@ -194,7 +194,7 @@ class LoadedExampleSets {
 	 *
 	 * @return string|null The set id.
 	 *
-	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
 	 */
 	public function setIdFromAction(string $actionId): ?string {
 		if (str_starts_with($actionId, self::REMOVE_ACTION_PREFIX) === false) {

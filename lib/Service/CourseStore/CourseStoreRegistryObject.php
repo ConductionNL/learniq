@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-any-learniq-instance-can-act-as-the-registry
+ * @spec openspec/specs/course-management/spec.md#requirement-any-learniq-instance-can-act-as-the-registry
  */
 
 declare(strict_types=1);
@@ -56,7 +56,7 @@ class CourseStoreRegistryObject {
 	 *
 	 * @return array<string, mixed> The `shared-course-package` object.
 	 *
-	 * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-any-learniq-instance-can-act-as-the-registry
+	 * @spec openspec/specs/course-management/spec.md#requirement-any-learniq-instance-can-act-as-the-registry
 	 */
 	public function build(array $package): array {
 		$sharing = (array)($package['sharing'] ?? []);
@@ -97,7 +97,7 @@ class CourseStoreRegistryObject {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
+	 * @spec openspec/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
 	 */
 	public function slug(array $package): string {
 		$title = $this->text(value: (((array)($package['sharing'] ?? []))['title'] ?? null));

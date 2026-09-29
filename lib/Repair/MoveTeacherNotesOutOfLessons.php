@@ -35,7 +35,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-an-upgrade-moves-the-notes-lessons-already-hold
+ * @spec openspec/specs/course-management/spec.md#requirement-an-upgrade-moves-the-notes-lessons-already-hold
  */
 
 declare(strict_types=1);
@@ -84,7 +84,7 @@ class MoveTeacherNotesOutOfLessons implements IRepairStep {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-an-upgrade-moves-the-notes-lessons-already-hold
+	 * @spec openspec/specs/course-management/spec.md#requirement-an-upgrade-moves-the-notes-lessons-already-hold
 	 */
 	public function getName(): string {
 		return 'Move teacher notes out of lessons into the store only staff can read';
@@ -98,7 +98,7 @@ class MoveTeacherNotesOutOfLessons implements IRepairStep {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-an-upgrade-moves-the-notes-lessons-already-hold
+	 * @spec openspec/specs/course-management/spec.md#requirement-an-upgrade-moves-the-notes-lessons-already-hold
 	 */
 	public function run(IOutput $output): void {
 		$counts = ['lessons' => 0, 'notes' => 0, 'left' => 0];

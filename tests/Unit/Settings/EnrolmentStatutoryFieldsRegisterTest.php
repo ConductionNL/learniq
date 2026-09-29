@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/enrolment-statutory-fields/tasks.md#task-1-add-inschrijvinguitschrijvingleerjaar-properties-to-enrolment
+ * @spec openspec/changes/archive/2026-09-28-enrolment-statutory-fields/tasks.md#task-1-add-inschrijvinguitschrijvingleerjaar-properties-to-enrolment
  */
 
 declare(strict_types=1);
@@ -122,7 +122,7 @@ class EnrolmentStatutoryFieldsRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
 	 */
 	public function testSeedFixturesExerciseCombinationGroupLeerjaarSplit(): void {
 		$cohortId = self::poObject(schema: 'cohort', field: 'name', value: 'Groep 5/6')['uuid'];

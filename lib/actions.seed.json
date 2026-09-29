@@ -17,6 +17,11 @@
     "fee-item.raise-contributions": ["admin"],
     "exchange.gate-read": ["admin", "administration-managers", "compliance-officers", "coordinators"],
     "exchange.request": ["admin", "administration-managers"],
+    "mcp.enrol-learner": ["admin"],
+    "mcp.record-attendance": ["admin"],
+    "mcp.grade-submission": ["admin"],
+    "timetable.bulk-change": ["admin", "coordinators", "instructors", "team-leads", "compliance-officers"],
+    "display-screen.manage": ["admin", "team-leads", "compliance-officers"],
     "report.contact-hours": ["admin", "instructors", "team-leads", "compliance-officers"]
   }
 }

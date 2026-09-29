@@ -18,7 +18,7 @@ const INACTIVE = ['archived', 'retired']
  *
  * @param {string} key 'all', 'none' or a Course UUID.
  * @return {{subjectScope: string, subjectId: string|null}} The selection.
- * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+ * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
  */
 export function subjectSelection(key) {
 	if (key === 'all' || !key) return { subjectScope: 'all', subjectId: null }
@@ -32,7 +32,7 @@ export function subjectSelection(key) {
  * @param {object} row A CurriculumCoverage row.
  * @param {{subjectScope: string, subjectId: string|null}} selection The selection.
  * @return {boolean} True when it matches.
- * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+ * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
  */
 export function rowInSelection(row, selection) {
 	if ((row?.subjectScope ?? '') !== selection.subjectScope) return false
@@ -46,7 +46,7 @@ export function rowInSelection(row, selection) {
  *
  * @param {object[]} rows CurriculumCoverage rows.
  * @return {string[]} The labels.
- * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+ * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
  */
 export function yearLabels(rows) {
 	const years = new Set()
@@ -64,7 +64,7 @@ export function yearLabels(rows) {
  *
  * @param {object[]} goals Competency rows of one framework.
  * @return {Array<{id: string, code: string, title: string, depth: number, isLeaf: boolean, parentId: string}>} The ordered nodes.
- * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+ * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
  */
 export function goalTree(goals) {
 	const nodes = new Map()
@@ -121,7 +121,7 @@ export function goalTree(goals) {
  *
  * @param {{code: string, title: string, depth: number}} node A tree node.
  * @return {string} The label.
- * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+ * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
  */
 export function goalLabel(node) {
 	const text = [node.code, node.title].filter(Boolean).join(' · ')
@@ -137,7 +137,7 @@ export function goalLabel(node) {
  * @param {object} labels Translated labels: plannedAssessed, planned, assessed, notCovered.
  * @param {object} [levelLabels] levelId to label, from the framework.
  * @return {string} The cell text.
- * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+ * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
  */
 export function statusLabel(detail, labels, levelLabels = {}) {
 	let text = labels.notCovered
@@ -161,7 +161,7 @@ export function statusLabel(detail, labels, levelLabels = {}) {
  * @param {object} input.labels Translated labels (see statusLabel, plus allYears).
  * @param {object} [input.levelLabels] levelId to label.
  * @return {{columns: object[], rows: object[], total: object|null}} Matrix input plus the selection's total row.
- * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+ * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
  */
 export function coverageMatrix({
 	goals,
@@ -244,7 +244,7 @@ export function coverageMatrix({
  * @param {object} input.subjectNames Course UUID to name.
  * @param {object} input.labels Translated labels: noSubject, allYears.
  * @return {Array<{key: string, subject: string, year: string, notCovered: string[], plannedNotAssessed: string[]}>} The sections.
- * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-gap-list-names-the-uncovered-goals-per-subject-and-year
+ * @spec openspec/specs/competency/spec.md#requirement-a-gap-list-names-the-uncovered-goals-per-subject-and-year
  */
 export function gapList({ goals, coverageRows, subjectNames, labels }) {
 	const names = new Map(
@@ -295,7 +295,7 @@ export function gapList({ goals, coverageRows, subjectNames, labels }) {
  * @param {object} subjectNames Course UUID to name.
  * @param {object} labels Translated labels: allSubjects, noSubject.
  * @return {Array<{id: string, label: string}>} The options.
- * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+ * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
  */
 export function subjectOptions(coverageRows, subjectNames, labels) {
 	const subjects = new Set()
@@ -318,7 +318,7 @@ export function subjectOptions(coverageRows, subjectNames, labels) {
  *
  * @param {object[]} coverageRows CurriculumCoverage rows.
  * @return {string[]} Course UUIDs.
- * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-gap-list-names-the-uncovered-goals-per-subject-and-year
+ * @spec openspec/specs/competency/spec.md#requirement-a-gap-list-names-the-uncovered-goals-per-subject-and-year
  */
 export function subjectIds(coverageRows) {
 	return [

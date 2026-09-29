@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
+ * @spec openspec/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
  */
 
 declare(strict_types=1);
@@ -33,7 +33,7 @@ use OCP\IAppConfig;
 /**
  * Picks the current timetable source.
  *
- * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
+ * @spec openspec/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
  */
 class TimetableSourceResolver {
 
@@ -60,7 +60,7 @@ class TimetableSourceResolver {
 	 *
 	 * @return TimetableSource
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
 	 */
 	public function current(): TimetableSource {
 		if ($this->appConfig->getValueString('learniq', self::CONFIG_KEY, 'auto') === LocalSessionTimetableSource::NAME) {
@@ -79,7 +79,7 @@ class TimetableSourceResolver {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
 	 */
 	public function usesPlanninq(): bool {
 		return $this->current()->name() === PlanninqTimetableSource::NAME;
@@ -90,7 +90,7 @@ class TimetableSourceResolver {
 	 *
 	 * @return PlanninqTimetableSource
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004
 	 */
 	public function planninq(): PlanninqTimetableSource {
 		return $this->planninq;

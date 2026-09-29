@@ -43,8 +43,22 @@ import { CnTimelineView } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
-import { fetchCohortTimetable, isLearniqSession } from '../api/timetable.js'
+import { fetchTimetableOf, isLearniqSession } from '../api/timetable.js'
 import { objectsUrl, oneObject, timelineEvents } from '../utils/customPages.js'
+
+/**
+ * Eight weeks from this week's Monday, as ISO bounds.
+ *
+ * @return {string[]} The window start and end.
+ */
+function eightWeeks() {
+	const monday = new Date()
+	monday.setHours(0, 0, 0, 0)
+	monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7))
+	const end = new Date(monday)
+	end.setDate(monday.getDate() + 56)
+	return [monday.toISOString(), end.toISOString()]
+}
 
 export default {
 	name: 'CohortTimetableView',
@@ -71,13 +85,15 @@ export default {
 	 * Load the cohort and its lessons from the timetable endpoint.
 	 *
 	 * @return {Promise<void>}
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
 	 */
 	async mounted() {
 		try {
 			const [cohort, timetable] = await Promise.all([
 				axios.get(generateUrl(objectsUrl('cohort', this.id))),
-				fetchCohortTimetable(this.id),
+				// Through the visibility policy (timetabling-visibility-rules):
+				// eight weeks from this week's Monday, as before.
+				fetchTimetableOf('cohort', this.id, ...eightWeeks()),
 			])
 			this.cohort = oneObject(cohort.data)
 			this.sessions = timetable.sessions

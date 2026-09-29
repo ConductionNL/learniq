@@ -116,7 +116,7 @@ export function objectId(object) {
  *
  * @param {string[]} learnerIds Cohort.learnerIds (Nextcloud user ids).
  * @param {object[]} records Existing AttendanceRecords for the session.
- * @return {Array<{learnerId: string, status: string, reason: string, recordId: string}>} Rows.
+ * @return {Array<{learnerId: string, status: string, reason: string, recordId: string, markedVia: string, savedStatus: (string|null), savedReason: string}>} Rows.
  * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
  */
 export function attendanceRows(learnerIds, records) {
@@ -128,6 +128,9 @@ export function attendanceRows(learnerIds, records) {
 			status: saved?.status ?? 'present',
 			reason: saved?.reason ?? '',
 			recordId: saved ? objectId(saved) : '',
+			markedVia: saved?.markedVia ?? 'teacher',
+			savedStatus: saved?.status ?? null,
+			savedReason: saved?.reason ?? '',
 		}
 	})
 }
@@ -150,10 +153,33 @@ export function attendanceRecord(row, session, markedBy, markedAt) {
 		status: row.status,
 		markedBy,
 		markedAt,
+		markedVia: 'teacher',
 		tenant_id: session.tenant_id ?? '',
 	}
 	if (row.reason) body.reason = row.reason
 	return body
+}
+
+/**
+ * The register rows a save writes: every row, except a learner's own self
+ * check-in the teacher left as it was, so saving the register never turns a
+ * self check-in into a teacher mark by accident (attendance-self-check-in).
+ * A self check-in the teacher changed is written, and becomes a teacher mark.
+ *
+ * @param {object[]} rows Rows from attendanceRows(), as edited.
+ * @return {object[]} The rows to write.
+ * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-self-check-in-never-overwrites-a-mark
+ */
+export function registerRowsToSave(rows) {
+	return rows.filter(
+		(row) =>
+			!(
+				row.recordId
+				&& row.markedVia === 'self-check-in'
+				&& row.status === row.savedStatus
+				&& (row.reason ?? '') === (row.savedReason ?? '')
+			),
+	)
 }
 
 /**
@@ -389,7 +415,7 @@ export function moveItem(list, index, delta) {
  * @param {string} args.target Exchange target, such as 'bron-rod'.
  * @param {string} [args.learnerId] One learner's user id, or '' for everyone.
  * @return {object} The request body.
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+ * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
 export function exchangeRequestBody({ target, learnerId }) {
 	const body = { target }
@@ -402,7 +428,7 @@ export function exchangeRequestBody({ target, learnerId }) {
  * The exchange request URL.
  *
  * @return {string} The app-relative URL (POST).
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+ * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
 export function exchangeRequestUrl() {
 	return '/apps/learniq/api/exchange/requests'
@@ -439,7 +465,7 @@ export function coursePackageUrl(courseId, format) {
  * The course-package share URL: the package meant to leave the school.
  *
  * @return {string} The app-relative URL (POST).
- * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-the-export-page-offers-sharing-with-the-confirmations
+ * @spec openspec/specs/course-management/spec.md#requirement-the-export-page-offers-sharing-with-the-confirmations
  */
 export function coursePackageShareUrl() {
 	return '/apps/learniq/api/course-management/course-package-share'
@@ -449,7 +475,7 @@ export function coursePackageShareUrl() {
  * The course store publish URL.
  *
  * @return {string} The app-relative URL (POST).
- * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
+ * @spec openspec/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
  */
 export function coursePackagePublishUrl() {
 	return '/apps/learniq/api/store/publish'
@@ -480,7 +506,7 @@ export const SIGNABLE_SUBJECTS = {
  * @param {string} kind 'learning-plan' or 'praktijkovereenkomst'.
  * @param {object} subject The signed object.
  * @return {boolean} True for a praktijkovereenkomst that needs a parent's signature.
- * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
+ * @spec openspec/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
  */
 export function parentSignatureNeeded(kind, subject) {
 	return (

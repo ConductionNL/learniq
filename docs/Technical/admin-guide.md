@@ -1,4 +1,4 @@
-# Scholiq, Admin Guide
+# Learniq, Admin Guide
 
 This guide covers installation, register bootstrapping, signing key configuration, and troubleshooting for Nextcloud administrators.
 
@@ -25,7 +25,7 @@ Both OpenRegister and OpenConnector must be installed and enabled before enablin
 docker exec nextcloud php occ app:enable scholiq
 ```
 
-Or via the Nextcloud App Store: search for **Scholiq**, click **Download and enable**.
+Or via the Nextcloud App Store: search for **Learniq**, click **Download and enable**.
 
 ### 2. Register the scholiq register (manual workaround)
 
@@ -55,7 +55,7 @@ If any are missing, re-run the import. If the import fails, check the OpenRegist
 
 ## Configure tenant signing keys
 
-Scholiq uses RSA key pairs for two purposes:
+Learniq uses RSA key pairs for two purposes:
 
 - **Credential signing**, `CredentialSigningService` RS256-signs Open Badges 3.0 assertions.
 - **Attestation HMAC**, `AttestationSigningGuard` uses the tenant key for HMAC-SHA256.
@@ -65,14 +65,14 @@ Keys are stored via Nextcloud's `ICrypto` interface (encrypted at rest).
 ### Generate a key pair via OCC
 
 ```bash
-docker exec nextcloud php occ scholiq:keys:generate
+docker exec nextcloud php occ learniq:keys:generate
 ```
 
-This generates a new RSA-2048 key pair and stores it in `IAppConfig` under the `scholiq` namespace with key ID `tenant-key-v1`.
+This generates a new RSA-2048 key pair and stores it in `IAppConfig` under the `learniq` namespace with key ID `tenant-key-v1`.
 
 ### Generate a key pair via the admin panel
 
-1. Go to Nextcloud **Settings** > **Scholiq** (admin section).
+1. Go to Nextcloud **Settings** > **Learniq** (admin section).
 2. Under **Signing Keys**, click **Generate new key pair**.
 3. The key ID is displayed. Copy it for audit records.
 
@@ -81,12 +81,25 @@ This generates a new RSA-2048 key pair and stores it in `IAppConfig` under the `
 Key rotation does not invalidate existing signatures, each signed object stores the `signingKeyId` used at signing time.
 
 ```bash
-docker exec nextcloud php occ scholiq:keys:generate --rotate
+docker exec nextcloud php occ learniq:keys:generate --rotate
 ```
 
 Or use the **Rotate key** action in the admin panel. The old key is retained for verification; only new signatures use the new key.
 
 ---
+
+## Set up cmi5 playback
+
+A cmi5 lesson opens its package only after you generate the cmi5 launch key. Until then learners see "cmi5 playback is not yet available for this lesson".
+
+```bash
+curl -u admin -X POST -H 'OCS-APIREQUEST: true' https://<host>/index.php/apps/learniq/api/cmi5/admin/generate-key
+curl -u admin -H 'OCS-APIREQUEST: true' https://<host>/index.php/apps/learniq/api/cmi5/admin/key-status
+```
+
+The key is one RSA key-pair for the whole instance; the private half is stored encrypted. To replace it, send `confirm=true`; you can do that once a day, and launches that are open at that moment stop sending results.
+
+When a learner opens a cmi5 lesson, learniq gives the package a one-time fetch address for its token, never the token itself. The package then sends its results to `/apps/learniq/api/lrs/statements`. Learniq records who sent each statement from the token, not from what the statement says about itself, and a learner can only read their own statements.
 
 ## Per-Regulation RAG thresholds
 
@@ -153,7 +166,7 @@ docker exec nextcloud php occ background-job:run --list
 docker exec nextcloud php occ background-job:run OCA\\OpenRegister\\BackgroundJob\\NotificationJob
 ```
 
-**Check 3, User preferences:** Notifications are gated by user preference keys (`notify_assignments`, `notify_due_dates`). Check that these are not disabled in the user's Scholiq settings.
+**Check 3, User preferences:** Notifications are gated by user preference keys (`notify_assignments`, `notify_due_dates`). Check that these are not disabled in the user's Learniq settings.
 
 ### Attestation signing fails
 
@@ -167,7 +180,7 @@ docker exec nextcloud php occ background-job:run OCA\\OpenRegister\\BackgroundJo
    curl -u admin:admin "http://localhost:8080/index.php/apps/openregister/api/objects?register=scholiq&schema=xapi-statement&actor.name=<userId>&lessonId=<lessonId>"
    ```
 
-2. **Signing key not configured.** Run `occ scholiq:keys:generate` if no key exists.
+2. **Signing key not configured.** Run `occ learniq:keys:generate` if no key exists.
 
 3. **OR version mismatch.** `AttestationSigningGuard` requires `openregister ^v0.2.10`. Check version:
    ```bash

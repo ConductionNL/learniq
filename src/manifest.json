@@ -436,6 +436,29 @@
                 ]
               }
             }
+          },
+          {
+            "id": "RoomUtilisationReport",
+            "label": "Room use",
+            "description": "How many of the open hours each room is used, and how full it is.",
+            "icon": "OfficeBuilding",
+            "category": "quality",
+            "route": "RoomUtilisationReport",
+            "visibleIf": {
+              "workspace.chosenSegment": {
+                "notIn": [
+                  "corporate"
+                ]
+              },
+              "user.primaryRole": {
+                "in": [
+                  "instructor",
+                  "coordinator",
+                  "administration-manager",
+                  "admin"
+                ]
+              }
+            }
           }
         ]
       }

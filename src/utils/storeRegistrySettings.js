@@ -7,7 +7,7 @@
  * the path, so the settings section and its test agree with appinfo/routes.php.
  *
  * @return {string} The path, to wrap in generateUrl().
- * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
+ * @spec openspec/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
  */
 export function storeRegistryUrl() {
 	return '/apps/learniq/api/admin/store-registry'
