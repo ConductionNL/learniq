@@ -17,14 +17,15 @@
  * Locale: nothing forces the E2E language, so statuses are read from the API
  * and rows are found by their declared titles, which are not translated.
  *
- * Written, not run, in the change that added it: it needs an instance with
- * both learniq and integriq.
+ * First run 2026-09-29 against the shared dev instance (learniq + integriq).
  *
  * @e2e openspec/changes/adopt-connection-registry/specs/integrations/spec.md#the-page-lists-only-learniqs-rows
  * @e2e openspec/changes/adopt-connection-registry/specs/integrations/spec.md#add-integration-goes-to-integriq
- * @e2e openspec/changes/adopt-connection-registry/specs/integrations/spec.md#a-connection-to-a-missing-endpoint-reads-not-available-and-names-the-path
+ * @e2e openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#scenario-an-administrator-sees-lti-as-working
  */
 import type { APIRequestContext, Page } from '@playwright/test'
+import * as fs from 'fs'
+import * as path from 'path'
 
 import { expect, test } from './fixtures.ts'
 
@@ -32,17 +33,22 @@ import { expect, test } from './fixtures.ts'
 const CONNECTIONS_API =
 	'/index.php/apps/openregister/api/objects/integriq/app_connection?app=learniq&_limit=50'
 
-/** The declared keys and titles, in declared order. */
-const DECLARED = [
-	{ key: 'data-exchange', title: 'Data exchange' },
-	{ key: 'timetable', title: 'Timetable import' },
-	{ key: 'lti', title: 'LTI tools' },
-	{ key: 'eudi-wallet', title: 'EUDI wallet' },
-	{ key: 'payment', title: 'Payment provider' },
-	{ key: 'sbb', title: 'SBB leerbedrijf check' },
-	{ key: 'proctoring', title: 'Proctoring' },
-	{ key: 'plagiarism', title: 'Plagiarism check' },
-]
+/**
+ * The declared keys and titles, read from the declaration itself.
+ *
+ * This list was hardcoded when the spec was written and went stale twice
+ * before its first run: #1082 renamed `payment` to "Payments through
+ * shillinq", and a hardcoded title makes the page look broken when only the
+ * copy moved. The declaration is the authority for both, so read it.
+ */
+const DECLARED: Array<{ key: string; title: string }> = (
+	JSON.parse(
+		fs.readFileSync(
+			path.join(__dirname, '..', '..', 'lib', 'Settings', 'connections.json'),
+			'utf8',
+		),
+	).connections as Array<{ key: string; title: string }>
+).map(({ key, title }) => ({ key, title }))
 
 /**
  * Learniq's connection rows, keyed by connection key.
@@ -99,18 +105,40 @@ test.describe('Integrations over the connection registry', () => {
 		}
 	})
 
-	test('says data exchange cannot run, and why', async ({
+	/*
+	 * The scenario this replaces ("data exchange reads Not available and names
+	 * api/sources/[target]/run") lost its subject in #1157: integriq carries the
+	 * exchanges now, and `data-exchange` is declared available. No declared row
+	 * names a missing endpoint any more; ConnectionsDeclarationTest still guards
+	 * that any future unavailable message names the path the code calls.
+	 */
+	test('data exchange is declared available and offers its settings', async ({
 		loggedInPage: page,
 	}) => {
 		const dataExchange = (await rowsByKey(page.request))['data-exchange']
 
-		expect(dataExchange?.status).toBe('unavailable')
-		expect(String(dataExchange?.statusMessage)).toContain(
-			'api/sources/[target]/run',
-		)
+		expect(dataExchange?.status).not.toBe('unavailable')
 		expect(dataExchange?.settingsUrl).toBe(
 			'/settings/admin/learniq#section-data-exchange',
 		)
+	})
+
+	/*
+	 * content-lti-launch-through-integriq: the `lti` row is reportedOnly, so its
+	 * status is what learniq last reported (ConnectionReportService::observeLti),
+	 * not anything integriq works out itself.
+	 */
+	test('the LTI row reads what learniq reported', async ({
+		loggedInPage: page,
+	}) => {
+		const lti = (await rowsByKey(page.request)).lti
+		const report = lti?.lastReport as Record<string, unknown> | undefined
+
+		expect(report, 'learniq has not reported the lti row yet').toBeTruthy()
+		expect(lti?.status).toBe(report?.status)
+		// Integriq ships the launch event wherever this suite runs (CI installs it).
+		expect(lti?.status).toBe('configured')
+		expect(lti?.settingsUrl).toBe('/settings/admin/learniq#section-lti')
 	})
 
 	test('sends Add integration to integriq instead of offering a form', async ({
@@ -124,9 +152,14 @@ test.describe('Integrations over the connection registry', () => {
 		// The action lives in the overflow menu. English and Dutch are the two
 		// catalogues this change ships, and nothing forces the E2E locale.
 		await page.locator('[data-testid="cn-actions"] button').first().click()
+		// Wait for the navigation to COMMIT, not for `load`: integriq's page pulls
+		// every app's bundle and ran past the test timeout before `load` on the
+		// shared instance, and integriq drops `link=1` from the address once it has
+		// opened the dialog, so an end-anchored URL match can miss it as well.
 		await Promise.all([
-			page.waitForURL(/\/apps\/integriq\/connections\?app=learniq&link=1$/, {
+			page.waitForURL(/\/apps\/integriq\/connections\?app=learniq/, {
 				timeout: 30_000,
+				waitUntil: 'commit',
 			}),
 			page
 				.getByRole('menuitem', {
@@ -134,5 +167,11 @@ test.describe('Integrations over the connection registry', () => {
 				})
 				.click(),
 		])
+		// What `link=1` asks for: integriq's link dialog, preset to learniq.
+		const dialog = page.getByRole('dialog', {
+			name: /Add integration|Integratie toevoegen/i,
+		})
+		await expect(dialog).toBeVisible({ timeout: 45_000 })
+		await expect(dialog.getByText('learniq', { exact: true })).toBeVisible()
 	})
 })

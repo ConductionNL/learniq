@@ -48,7 +48,7 @@ The connection registry MUST report LTI tools as available when integriq's launc
 
 #### Scenario: An administrator sees LTI as working
 
-<!-- @e2e exclude The row state comes from integriq's registry page; learniq's report is pinned by tests/Unit/Service/ConnectionReportServiceTest.php and the row and section link by tests/Unit/Settings/ConnectionsDeclarationTest.php. -->
+@e2e tests/e2e/connection-registry.spec.ts
 
 - **GIVEN** integriq with the platform launch installed
 - **WHEN** an administrator opens the connections page
