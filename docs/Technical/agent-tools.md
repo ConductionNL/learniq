@@ -31,7 +31,7 @@ Four curated tools sit next to the derived reads. Each is off for everyone excep
 | `learniq.enrolLearner` | `mcp.enrol-learner` | a pending enrolment; a second call for an open enrolment returns that one |
 | `learniq.recordAttendance` | `mcp.record-attendance` | one attendance record for a learner and a session; a second call corrects it |
 | `learniq.gradeSubmission` | `mcp.grade-submission` | a concept grade for a handed-in submission; learners see it only after a teacher publishes it in the gradebook |
-| `learniq.listExpiringCredentials` | none (reads with your own rights) | nothing; it returns credential id, learner id and name, course id and title, expiry date and renewal course, and nothing else |
+| `learniq.listExpiringCredentials` | none (reads with your own rights) | nothing; it returns credential id, learner id and name, course id and title, expiry date and renewal course, and nothing else. It returns at most 200 rows; when there are more, `truncated` is true and the agent should narrow the question by course or date |
 
 Every write goes through the same checks as the screens in the app, in the name of the person the agent works for, and says on the record which tool made it. An agent cannot issue a credential: a credential is signed and leaves the school the moment it exists, so there is no draft for a teacher to accept.
 
