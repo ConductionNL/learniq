@@ -8,6 +8,12 @@
  * doubled, then opens the ZIP it returns. Two tenants share the date range;
  * only the caller's tenant may appear in the pack.
  *
+ * The mapper double behaves like OpenRegister's AuditTrailMapper: it DROPS
+ * every filter outside the real column allowlist (the trail has no tenant
+ * column), and its rows have the real AuditTrail::jsonSerialize() shape. The
+ * earlier double applied a `tenant_id` filter the real mapper drops, so it
+ * passed while every tenant's entries reached the pack in production.
+ *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Controller
  *
@@ -29,6 +35,7 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 use JsonSerializable;
 use OCA\Learniq\Controller\AuditPackExportController;
 use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\AuditEntryAttribution;
 use OCA\Learniq\Service\AuditPackBuilder;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CsvCellSanitizer;
@@ -48,6 +55,7 @@ use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use ZipArchive;
 
 /**
@@ -56,6 +64,39 @@ use ZipArchive;
 class AuditPackExportControllerTest extends TestCase {
 	private const CALLER_TENANT = 'tenant-a';
 	private const OTHER_TENANT = 'tenant-b';
+
+	/**
+	 * The learniq schema id the audit rows point at.
+	 */
+	private const ATTESTATION_SCHEMA = 12;
+
+	/**
+	 * A schema id that does not resolve inside the learniq register.
+	 */
+	private const FOREIGN_SCHEMA = 99;
+
+	/**
+	 * The columns OpenRegister's AuditTrailMapper::findAll() filters on; any
+	 * other filter is silently dropped (AuditTrailMapper.php, findAll()).
+	 */
+	private const MAPPER_FILTER_COLUMNS = [
+		'id', 'uuid', 'schema', 'register', 'object', 'object_uuid', 'action', 'changed', 'user', 'user_name',
+		'session', 'request', 'ip_address', 'version', 'created', 'flow_run', 'flow_node', 'flow_step', 'cause', 'cause_run',
+	];
+
+	/**
+	 * The learniq objects the audit rows are about, by uuid.
+	 *
+	 * @var array<string, array<string, mixed>>
+	 */
+	private array $objects = [];
+
+	/**
+	 * Every object load the attribution made: [filters, ids, rbac, multitenancy].
+	 *
+	 * @var array<int, array{0: array<string, mixed>, 1: array<int, string>, 2: bool, 3: bool}>
+	 */
+	private array $objectLoads = [];
 
 	/**
 	 * Audit-trail rows of both tenants, as OpenRegister stores them.
@@ -86,6 +127,20 @@ class AuditPackExportControllerTest extends TestCase {
 	private array $registerHeaders = [];
 
 	/**
+	 * The pack builder of the last controller() call.
+	 *
+	 * @var AuditPackBuilder
+	 */
+	private AuditPackBuilder $builder;
+
+	/**
+	 * The mapper double of the last controller() call.
+	 *
+	 * @var AuditTrailMapper
+	 */
+	private AuditTrailMapper $mapper;
+
+	/**
 	 * Seed both tenants.
 	 *
 	 * @return void
@@ -93,10 +148,15 @@ class AuditPackExportControllerTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		$this->auditRows = [
-			$this->auditRow(id: 11, tenant: self::CALLER_TENANT, object: 'object-of-a'),
-			$this->auditRow(id: 12, tenant: self::OTHER_TENANT, object: 'object-of-b'),
+		$this->objects = [
+			'object-of-a' => $this->object(uuid: 'object-of-a', tenant: self::CALLER_TENANT),
+			'object-of-b' => $this->object(uuid: 'object-of-b', tenant: self::OTHER_TENANT),
 		];
+		$this->auditRows = [
+			$this->auditRow(id: 11, objectUuid: 'object-of-a'),
+			$this->auditRow(id: 12, objectUuid: 'object-of-b'),
+		];
+		$this->objectLoads = [];
 		$this->trainingRows = [
 			$this->trainingRow(learner: 'learner-of-a', tenant: self::CALLER_TENANT),
 			$this->trainingRow(learner: 'learner-of-b', tenant: self::OTHER_TENANT),
@@ -113,9 +173,19 @@ class AuditPackExportControllerTest extends TestCase {
 	public function testThePackHoldsOnlyTheCallersTenant(): void {
 		$files = $this->exportAndUnzip();
 
+		// The external-training query is filtered on the record's own tenant.
+		// The audit trail cannot be: it has no tenant column, so the entries
+		// are attributed through their objects, loaded without RBAC.
 		self::assertNotSame([], $this->queries);
 		foreach ($this->queries as $filters) {
-			self::assertSame(self::CALLER_TENANT, ($filters['tenant_id'] ?? null), 'A query ran without the caller\'s tenant.');
+			self::assertSame(self::CALLER_TENANT, ($filters['tenant_id'] ?? null), 'A training query ran without the caller\'s tenant.');
+		}
+
+		self::assertNotSame([], $this->objectLoads);
+		foreach ($this->objectLoads as [$filters, $ids, $rbac, $multitenancy]) {
+			self::assertSame('learniq', $filters['register']);
+			self::assertFalse($rbac);
+			self::assertFalse($multitenancy);
 		}
 
 		self::assertStringContainsString('object-of-a', $files['audit-trail.ndjson']);
@@ -128,6 +198,7 @@ class AuditPackExportControllerTest extends TestCase {
 		$manifest = json_decode($files['manifest.json'], true);
 		self::assertSame(self::CALLER_TENANT, $manifest['tenant_id']);
 		self::assertSame(1, $manifest['event_count']);
+		self::assertSame(0, $manifest['unattributed_entries_excluded']);
 
 		// The processing log is scoped by OpenRegister's own RBAC: learniq
 		// forwards the caller's session, never a service identity.
@@ -173,6 +244,105 @@ class AuditPackExportControllerTest extends TestCase {
 	}//end testExternalTrainingEvidenceReachesThePack()
 
 	/**
+	 * Without a regulation (the builder allows it; the controller requires
+	 * one) every entry of the period is a candidate, and still only the
+	 * caller's tenant reaches the pack. The old builder put the other tenant's
+	 * entry in here, because the mapper dropped its tenant_id filter; through
+	 * the controller that leak was masked by a second defect, a regulation
+	 * match on `changed` that never matched OpenRegister's `{old, new}` shape.
+	 *
+	 * @return void
+	 */
+	public function testWithoutARegulationThePackHoldsOnlyTheCallersEntries(): void {
+		$this->controller();
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('officer-a');
+		$files = $this->unzip(bytes: $this->builder->build(user: $user, regulationSlug: '', dateFrom: '2026-01-01', dateTo: '2026-12-31'));
+
+		self::assertStringContainsString('object-of-a', $files['audit-trail.ndjson']);
+		self::assertStringNotContainsString('object-of-b', $files['audit-trail.ndjson']);
+		self::assertStringNotContainsString('object-of-b', $files['audit-trail.csv']);
+		self::assertSame(1, json_decode($files['manifest.json'], true)['event_count']);
+	}//end testWithoutARegulationThePackHoldsOnlyTheCallersEntries()
+
+	/**
+	 * An entry whose object no longer exists cannot be attributed to a tenant:
+	 * it is left out and counted in the manifest.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/compliance-audit/spec.md#scenario-unattributable-audit-trail-entries-are-excluded-and-counted
+	 */
+	public function testAnEntryForADeletedObjectIsLeftOutAndCounted(): void {
+		$this->auditRows[] = $this->auditRow(id: 13, objectUuid: 'deleted-object');
+
+		$files    = $this->exportAndUnzip();
+		$manifest = json_decode($files['manifest.json'], true);
+
+		self::assertStringNotContainsString('deleted-object', $files['audit-trail.ndjson']);
+		self::assertSame(1, $manifest['event_count']);
+		self::assertSame(1, $manifest['unattributed_entries_excluded']);
+	}//end testAnEntryForADeletedObjectIsLeftOutAndCounted()
+
+	/**
+	 * Entries about objects outside the learniq register, or without a
+	 * tenant, or without an object at all, are left out and counted.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/compliance-audit/spec.md#scenario-unattributable-audit-trail-entries-are-excluded-and-counted
+	 */
+	public function testUnattributableEntriesAreLeftOut(): void {
+		$this->objects['other-app-object'] = $this->object(uuid: 'other-app-object', tenant: self::CALLER_TENANT, schema: self::FOREIGN_SCHEMA);
+		$this->objects['untenanted']       = $this->object(uuid: 'untenanted', tenant: '');
+		$this->auditRows[] = $this->auditRow(id: 13, objectUuid: 'other-app-object', schema: self::FOREIGN_SCHEMA);
+		$this->auditRows[] = $this->auditRow(id: 14, objectUuid: 'untenanted');
+		$this->auditRows[] = $this->auditRow(id: 15, objectUuid: '');
+
+		$files    = $this->exportAndUnzip();
+		$manifest = json_decode($files['manifest.json'], true);
+
+		self::assertStringNotContainsString('other-app-object', $files['audit-trail.ndjson']);
+		self::assertStringNotContainsString('untenanted', $files['audit-trail.ndjson']);
+		self::assertSame(1, $manifest['event_count']);
+		self::assertSame(3, $manifest['unattributed_entries_excluded']);
+	}//end testUnattributableEntriesAreLeftOut()
+
+	/**
+	 * The regulation is read from the object, else from the change the entry
+	 * records (OpenRegister stores `changed` as `{field: {old, new}}`).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/compliance-audit/spec.md#scenario-the-regulation-comes-from-the-object-or-the-change
+	 */
+	public function testTheRegulationComesFromTheObjectOrTheChange(): void {
+		$this->objects['object-of-a']['regulationSlug'] = '';
+		$this->objects['avg-object'] = $this->object(uuid: 'avg-object', tenant: self::CALLER_TENANT, regulation: 'avg');
+		$this->auditRows[0]['changed'] = ['regulationSlug' => ['old' => null, 'new' => 'nis2']];
+		$this->auditRows[] = $this->auditRow(id: 13, objectUuid: 'avg-object');
+
+		$files = $this->exportAndUnzip();
+
+		self::assertStringContainsString('object-of-a', $files['audit-trail.ndjson']);
+		self::assertStringNotContainsString('avg-object', $files['audit-trail.ndjson']);
+		self::assertSame(1, json_decode($files['manifest.json'], true)['event_count']);
+	}//end testTheRegulationComesFromTheObjectOrTheChange()
+
+	/**
+	 * Control: the mapper double really drops a tenant_id filter, as the real
+	 * mapper does, so the tests above cannot pass on a filter the mapper ignores.
+	 *
+	 * @return void
+	 */
+	public function testTheMapperDoubleDropsATenantFilter(): void {
+		$this->controller();
+		$rows = $this->mapper->findAll(filters: ['tenant_id' => self::CALLER_TENANT]);
+
+		self::assertCount(2, $rows);
+	}//end testTheMapperDoubleDropsATenantFilter()
+
+	/**
 	 * Call export() for the caller and return the ZIP's files by name.
 	 *
 	 * @return array<string, string>
@@ -183,9 +353,20 @@ class AuditPackExportControllerTest extends TestCase {
 		self::assertInstanceOf(DataDownloadResponse::class, $response);
 		self::assertSame(Http::STATUS_OK, $response->getStatus());
 
+		return $this->unzip(bytes: $response->render());
+	}//end exportAndUnzip()
+
+	/**
+	 * The files of a ZIP, by name.
+	 *
+	 * @param string $bytes The ZIP bytes.
+	 *
+	 * @return array<string, string>
+	 */
+	private function unzip(string $bytes): array {
 		$path = tempnam(sys_get_temp_dir(), 'auditpack');
 		self::assertNotFalse($path);
-		file_put_contents($path, $response->render());
+		file_put_contents($path, $bytes);
 
 		$zip = new ZipArchive();
 		self::assertTrue($zip->open($path));
@@ -199,7 +380,7 @@ class AuditPackExportControllerTest extends TestCase {
 		unlink($path);
 
 		return $files;
-	}//end exportAndUnzip()
+	}//end unzip()
 
 	/**
 	 * File names of an unzipped pack, sorted.
@@ -241,27 +422,44 @@ class AuditPackExportControllerTest extends TestCase {
 	}//end matching()
 
 	/**
-	 * One audit-trail row carrying the regulation in its `changed` payload.
+	 * One audit-trail row in the shape AuditTrail::jsonSerialize() returns:
+	 * numeric register, schema and object ids, the object uuid, `changed` as
+	 * `{field: {old, new}}`, and no tenant.
 	 *
 	 * @param int $id Audit entry id.
-	 * @param string $tenant Tenant the entry belongs to.
-	 * @param string $object Object uuid the entry is about.
+	 * @param string $objectUuid Object uuid the entry is about.
+	 * @param int $schema Schema id the object lives in.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function auditRow(int $id, string $tenant, string $object): array {
+	private function auditRow(int $id, string $objectUuid, int $schema = self::ATTESTATION_SCHEMA): array {
 		return [
 			'id' => $id,
+			'uuid' => 'audit-' . $id,
+			'schema' => $schema,
+			'register' => 3,
+			'object' => 1000 + $id,
+			'objectUuid' => $objectUuid,
 			'action' => 'update',
-			'object' => $object,
-			'register' => 'learniq',
-			'schema' => 'attestation',
+			'changed' => ['status' => ['old' => 'draft', 'new' => 'signed']],
 			'user' => 'officer',
 			'created' => '2026-03-01T10:00:00+00:00',
-			'changed' => json_encode(['regulationSlug' => 'nis2']),
-			'tenant_id' => $tenant,
 		];
 	}//end auditRow()
+
+	/**
+	 * One learniq object an audit row can point at.
+	 *
+	 * @param string $uuid The object uuid.
+	 * @param string $tenant Its tenant_id, or '' for none.
+	 * @param int $schema The schema id it lives in.
+	 * @param string $regulation Its regulationSlug.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function object(string $uuid, string $tenant, int $schema = self::ATTESTATION_SCHEMA, string $regulation = 'nis2'): array {
+		return ['id' => $uuid, 'tenant_id' => $tenant, 'regulationSlug' => $regulation, '_schema' => $schema];
+	}//end object()
 
 	/**
 	 * One verified external-training record.
@@ -308,9 +506,9 @@ class AuditPackExportControllerTest extends TestCase {
 		$mapper = $this->createMock(AuditTrailMapper::class);
 		$mapper->method('findAll')->willReturnCallback(
 			function (?int $limit = null, ?int $offset = null, ?array $filters = [], ?array $sort = [], ?string $search = null): array {
-				// OpenRegister's real signature: filters is the third argument.
-				$filters = ($filters ?? []);
-				$this->queries[] = $filters;
+				// OpenRegister's real signature: filters is the third argument,
+				// and a filter outside the column allowlist is silently dropped.
+				$filters  = array_intersect_key(($filters ?? []), array_flip(self::MAPPER_FILTER_COLUMNS));
 				$equality = $filters;
 				unset($equality['created']);
 
@@ -343,11 +541,16 @@ class AuditPackExportControllerTest extends TestCase {
 
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
-			function (array $query): array {
+			function (array $query, bool $_rbac = true, bool $_multitenancy = true): array {
+				if (isset($query['ids']) === true) {
+					return $this->loadObjects(query: $query, rbac: $_rbac, multitenancy: $_multitenancy);
+				}
+
 				$this->queries[] = $query['filters'];
 				return self::matching(rows: $this->trainingRows, filters: $query['filters']);
 			}
 		);
+		$this->mapper = $mapper;
 
 		$sanitizer = new CsvCellSanitizer();
 
@@ -355,16 +558,46 @@ class AuditPackExportControllerTest extends TestCase {
 			request: $this->createMock(IRequest::class),
 			userSession: $userSession,
 			actionAuth: $this->createMock(ActionAuthService::class),
-			packBuilder: new AuditPackBuilder(
+			packBuilder: $this->builder = new AuditPackBuilder(
 				$mapper,
 				$hashService,
 				new CallerTenantResolver($config, $this->createMock(ObjectService::class)),
 				$sanitizer,
 				$this->registerCsv(sanitizer: $sanitizer),
 				new ExternalTrainingCsvBuilder($objectService, $sanitizer),
+				new AuditEntryAttribution($objectService),
 			),
 		);
 	}//end controller()
+
+	/**
+	 * Objects by uuid within one schema of the learniq register, as
+	 * OpenRegister answers an `ids` query. A schema that does not resolve in
+	 * the learniq register throws, as setSchema() does.
+	 *
+	 * @param array<string, mixed> $query The findAll config.
+	 * @param bool $rbac Whether RBAC was on.
+	 * @param bool $multitenancy Whether multitenancy was on.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function loadObjects(array $query, bool $rbac, bool $multitenancy): array {
+		$this->objectLoads[] = [$query['filters'], $query['ids'], $rbac, $multitenancy];
+		$schema = (int)$query['filters']['schema'];
+		if ($query['filters']['register'] !== 'learniq' || $schema === self::FOREIGN_SCHEMA) {
+			throw new RuntimeException('Schema not found in register');
+		}
+
+		$rows = [];
+		foreach ($query['ids'] as $uuid) {
+			$object = ($this->objects[$uuid] ?? null);
+			if ($object !== null && $object['_schema'] === $schema) {
+				$rows[] = $object;
+			}
+		}
+
+		return $rows;
+	}//end loadObjects()
 
 	/**
 	 * The real verwerkingsregister builder over a recording HTTP client.
