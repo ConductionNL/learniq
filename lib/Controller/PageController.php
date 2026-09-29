@@ -27,6 +27,7 @@ use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CourseStore\StoreAccessService;
 use OCA\Learniq\Service\DashboardRoleService;
+use OCA\Learniq\Service\LineManagerCheck;
 use OCA\Learniq\Service\LoadedExampleSets;
 use OCA\Learniq\Service\SegmentService;
 use OCP\AppFramework\Controller;
@@ -106,6 +107,9 @@ class PageController extends Controller {
 			$this->initialState->provideInitialState('segment', $workspace['segment']);
 			$this->initialState->provideInitialState('chosenSegment', $workspace['chosenSegment']);
 			$this->initialState->provideInitialState('confidentialCounsellor', $this->dashboardRoleSvc->isConfidentialCounsellor($user));
+			// A line manager has no staff role but approves their reports'
+			// self sign-ups, so the menu needs this flag to show them the requests.
+			$this->initialState->provideInitialState('managesLearners', $this->resolveManagesLearners());
 			$this->initialState->provideInitialState('storeAccess', $this->resolveStoreAccess());
 			// One removal step per loaded example set in the setup wizard (D34).
 			$this->initialState->provideInitialState('loadedExampleSets', $this->loadedSets->all());
@@ -159,6 +163,29 @@ class PageController extends Controller {
 			return ['install' => false, 'publish' => false];
 		}
 	}//end resolveStoreAccess()
+
+	/**
+	 * Whether the signed-in user is anyone's line manager, for the
+	 * `user.managesLearners` menu gate.
+	 *
+	 * Resolved lazily and degraded to false on failure, for the same reason
+	 * as resolveWorkspace(): LineManagerCheck reads OpenRegister, and this is
+	 * the app's default route.
+	 *
+	 * @return bool True when at least one learner names the user as manager.
+	 */
+	private function resolveManagesLearners(): bool {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return false;
+		}
+
+		try {
+			return $this->container->get(LineManagerCheck::class)->managesLearners(user: $user);
+		} catch (Throwable $e) {
+			return false;
+		}
+	}//end resolveManagesLearners()
 
 	/**
 	 * The signed-in user's tenant, as CallerTenantResolver resolves it: the

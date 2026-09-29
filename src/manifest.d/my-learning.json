@@ -15,6 +15,50 @@
 			"route": "LearnerHome"
 		},
 		{
+			"id": "ManagerSignUpRequestsMenu",
+			"label": "Sign-up requests",
+			"icon": "AccountGroup",
+			"route": "Enrolments",
+			"order": 29,
+			"_note": "A line manager approves their reports' pending self sign-ups (the Enrolment update rule matches managerId) but has no staff role, so SignUpRequestsMenu under People never reaches them. PageController publishes user.managesLearners; the notIn list is the roles that already reach SignUpRequestsMenu (GroupPeople's gate intersected with its own), so nobody sees the entry twice. The admin reaches the requests under People, and a team lead through TeamLeadSignUpRequestsMenu, so both are excluded here too.",
+			"visibleIf": {
+				"user.managesLearners": true,
+				"user.primaryRole": {
+					"notIn": [
+						"instructor",
+						"coordinator",
+						"hr",
+						"administration-manager",
+						"admin",
+						"team-lead"
+					]
+				}
+			},
+			"query": {
+				"source": "self",
+				"lifecycle": "pending"
+			}
+		},
+		{
+			"id": "TeamLeadSignUpRequestsMenu",
+			"label": "Sign-up requests",
+			"icon": "AccountGroup",
+			"route": "Enrolments",
+			"order": 30,
+			"_note": "Team leads may approve pending self sign-ups (the Enrolment update rule lists team-leads), but GroupPeople's gate leaves them out, so SignUpRequestsMenu under People never reaches them. Opening GroupPeople would show them the whole People landing, which is not wanted (Ruben, 2026-09-29); this entry gives them only the requests. A team lead who also manages someone sees only this entry: ManagerSignUpRequestsMenu excludes team-lead.",
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"team-lead"
+					]
+				}
+			},
+			"query": {
+				"source": "self",
+				"lifecycle": "pending"
+			}
+		},
+		{
 			"id": "MyTimetableMenu",
 			"label": "My timetable",
 			"icon": "TableClock",
