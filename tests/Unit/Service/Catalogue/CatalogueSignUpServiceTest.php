@@ -267,6 +267,63 @@ class CatalogueSignUpServiceTest extends TestCase {
 	}//end testTheCatalogueListsOpenPublishedEntriesWithTheProvider()
 
 	/**
+	 * After a programme sign-up the programme card carries the enrolment, the
+	 * way a course card does, so the catalogue stops offering Sign up.
+	 *
+	 * Reported live: the card said "Done." and still offered "Sign up",
+	 * because programme cards never carried an `enrolment` at all.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-a-track
+	 */
+	public function testAProgrammeCardCarriesTheSignUpAfterSigningUp(): void {
+		$service = $this->service();
+		$reader  = new CatalogueReader(objects: $this->createConfiguredStoreDouble());
+		self::assertNull($reader->entries(userId: 'p.ganpat')['programmes'][0]['enrolment']);
+
+		$service->signUpProgramme(learner: $this->learner(), programmeId: 'p-pm');
+
+		$card = $reader->entries(userId: 'p.ganpat')['programmes'][0];
+		self::assertNotNull($card['enrolment']);
+		// c-excel is open (active), c-lead on request: any active one makes the programme active.
+		self::assertSame('active', $card['enrolment']['lifecycle']);
+		self::assertSame('self', $card['enrolment']['source']);
+		self::assertCount(3, $card['enrolment']['ids']);
+		self::assertSame(0.0, $card['enrolment']['progressPercent']);
+	}//end testAProgrammeCardCarriesTheSignUpAfterSigningUp()
+
+	/**
+	 * Only live enrolments naming the programme count; a withdrawn one or a
+	 * course enrolment outside the programme leaves the card open, and a
+	 * mixed or started set reports what blocks Withdraw.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-a-track
+	 */
+	public function testAProgrammeCardCountsOnlyLiveEnrolmentsNamingIt(): void {
+		$this->service();
+		$reader = new CatalogueReader(objects: $this->createConfiguredStoreDouble());
+
+		$this->store->rows['enrolment'] = [
+			['id' => 'e-w', 'learnerId' => 'p.ganpat', 'courseId' => 'c-excel', 'programmeId' => 'p-pm', 'source' => 'self', 'lifecycle' => 'withdrawn'],
+			['id' => 'e-solo', 'learnerId' => 'p.ganpat', 'courseId' => 'c-lead', 'source' => 'self', 'lifecycle' => 'active'],
+		];
+		self::assertNull($reader->entries(userId: 'p.ganpat')['programmes'][0]['enrolment']);
+
+		$this->store->rows['enrolment'] = [
+			['id' => 'e-a', 'learnerId' => 'p.ganpat', 'courseId' => 'c-excel', 'programmeId' => 'p-pm', 'source' => 'self', 'lifecycle' => 'pending'],
+			['id' => 'e-b', 'learnerId' => 'p.ganpat', 'courseId' => 'c-lead', 'programmeId' => 'p-pm', 'source' => 'hr', 'lifecycle' => 'pending', 'progressPercent' => 40],
+		];
+		$enrolment = $reader->entries(userId: 'p.ganpat')['programmes'][0]['enrolment'];
+		self::assertSame('pending', $enrolment['lifecycle']);
+		self::assertSame('mixed', $enrolment['source']);
+		self::assertSame(40.0, $enrolment['progressPercent']);
+		self::assertSame(['e-a', 'e-b'], $enrolment['ids']);
+	}//end testAProgrammeCardCountsOnlyLiveEnrolmentsNamingIt()
+
+	/**
 	 * An ObjectService double reading the current store.
 	 *
 	 * @return ObjectService
