@@ -5,7 +5,7 @@
  (timetabling-contact-hours). Per group a table of courses with owed, given
  and the difference, shortfalls marked; per learner the hours attended
  against the hours given, below the margin marked. CSV export of both.
- @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+ @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
 -->
 <template>
 	<div class="contact-hours">
@@ -183,7 +183,7 @@ export default {
 		 * Load the report for the chosen window.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
 		 */
 		async load() {
 			this.loading = true
@@ -210,7 +210,7 @@ export default {
 		 *
 		 * @param {string} cohortId The group.
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-learner-who-attended-too-little-is-marked
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-learner-who-attended-too-little-is-marked
 		 */
 		toggle(cohortId) {
 			this.open = { ...this.open, [cohortId]: !this.open[cohortId] }
@@ -222,7 +222,7 @@ export default {
 		 * @param {object} cohort The group's report.
 		 * @param {string} courseId The course.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-learner-who-attended-too-little-is-marked
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-learner-who-attended-too-little-is-marked
 		 */
 		courseName(cohort, courseId) {
 			return (
@@ -236,7 +236,7 @@ export default {
 		 *
 		 * @param {number|null} value Hours.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
 		 */
 		hours(value) {
 			if (value === null || value === undefined) return '–'
@@ -249,7 +249,7 @@ export default {
 		 * Download both tables as CSV.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
 		 */
 		exportCsv() {
 			const rows = [

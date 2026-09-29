@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-every-lesson-in-a-batch-passes-the-same-checks
+ * @spec openspec/specs/timetabling/spec.md#requirement-every-lesson-in-a-batch-passes-the-same-checks
  */
 
 declare(strict_types=1);

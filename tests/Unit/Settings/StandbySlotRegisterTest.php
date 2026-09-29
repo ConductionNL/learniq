@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+ * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
  */
 
 declare(strict_types=1);

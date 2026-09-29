@@ -14,8 +14,8 @@ import { createObject } from './or-api.ts'
  * and ::testSubstituteSeesTheCoverNote, and LessonNoteAuthorGuardTest for the
  * refusal.
  *
- * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#scenario-a-teacher-sets-a-topic-for-next-week-s-lessons
- * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#scenario-a-learner-reads-the-topic-before-class
+ * @spec openspec/specs/personal-timetable/spec.md#scenario-a-teacher-sets-a-topic-for-next-week-s-lessons
+ * @spec openspec/specs/personal-timetable/spec.md#scenario-a-learner-reads-the-topic-before-class
  */
 test.describe('Lesson notes', () => {
 	test('a teacher adds a note for this lesson and next week', async ({

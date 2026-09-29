@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+ * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
  */
 
 declare(strict_types=1);
@@ -37,7 +37,7 @@ use InvalidArgumentException;
 /**
  * Next year's learners and groups from this year's groups and a scenario.
  *
- * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+ * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
  */
 class EnrolmentForecastService {
 
@@ -63,7 +63,7 @@ class EnrolmentForecastService {
 	 *
 	 * @throws InvalidArgumentException When the target year is malformed or rates do not add up to one.
 	 *
-	 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+	 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 	 */
 	public function compute(array $forecast): array {
 		$targetYear = (string)($forecast['targetYear'] ?? '');

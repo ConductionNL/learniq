@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
+ * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
  */
 
 declare(strict_types=1);
@@ -145,7 +145,7 @@ class SubstitutionCandidateServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#scenario-a-coordinator-covers-a-sick-teacher-s-lesson
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-coordinator-covers-a-sick-teacher-s-lesson
 	 */
 	public function testStandbyFirstFreeNextBusyLast(): void {
 		$out = $this->service()->forSession(session: $this->store['session'][0], cohort: $this->store['cohort'][0]);

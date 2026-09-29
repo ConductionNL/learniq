@@ -5,7 +5,7 @@
  * Pure functions, so the series rule is tested without a browser
  * (tests/unit-js/lessonNotes.test.mjs).
  *
- * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
  *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
@@ -16,7 +16,7 @@
  *
  * @param {string} iso ISO 8601 timestamp.
  * @return {string} The slot key, or '' when unparseable.
- * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
  */
 export function slotOf(iso) {
 	const ts = Date.parse(iso || '')
@@ -37,7 +37,7 @@ export function slotOf(iso) {
  * @param {object} a A lesson from a timetable endpoint.
  * @param {object} b Another lesson.
  * @return {boolean} True when b repeats a.
- * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
  */
 export function repeatsLesson(a, b) {
 	if (!a || !b || a.cohortId !== b.cohortId) {
@@ -61,7 +61,7 @@ export function repeatsLesson(a, b) {
  * @param {Array<object>} candidates The cohort's lessons in the weeks after it.
  * @param {number} weeks How many following weeks to include (0 for this lesson only).
  * @return {Array<object>} The target lessons, the chosen one first, no duplicates.
- * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
  */
 export function seriesTargets(lesson, candidates, weeks) {
 	const out = [lesson]
@@ -91,7 +91,7 @@ export function seriesTargets(lesson, candidates, weeks) {
  * @param {object} lesson The target lesson.
  * @param {{topic: string, text: string, audience: string}} form The note.
  * @return {object} The object to POST.
- * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
  */
 export function noteFor(lesson, form) {
 	const note = {

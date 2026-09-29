@@ -5,7 +5,7 @@
  Open offers the learner may sign up for, each lesson with its time, free
  places and window, and Sign up or Withdraw. The server decides; a refusal
  is shown with its reason.
- @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+ @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 -->
 <template>
 	<div class="my-electives">
@@ -106,7 +106,7 @@ export default {
 		 * Load the learner's open offers.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 		 */
 		async load() {
 			this.loading = true
@@ -128,7 +128,7 @@ export default {
 		 * @param {object} offer The offer.
 		 * @param {object} lesson The lesson.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 		 */
 		async signUp(offer, lesson) {
 			await this.act(
@@ -146,7 +146,7 @@ export default {
 		 *
 		 * @param {object} lesson The lesson.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 		 */
 		async withdraw(lesson) {
 			await this.act(
@@ -163,7 +163,7 @@ export default {
 		 * @param {string} url The route.
 		 * @param {object} body The body.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 		 */
 		async act(url, body) {
 			this.busy = true
@@ -183,7 +183,7 @@ export default {
 		 *
 		 * @param {object} lesson The lesson.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 		 */
 		windowLabel(lesson) {
 			if (lesson.opensAt && new Date(lesson.opensAt) > new Date()) {
@@ -199,7 +199,7 @@ export default {
 		 *
 		 * @param {string} iso A date-time.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 		 */
 		formatDate(iso) {
 			const date = new Date(iso)
@@ -218,7 +218,7 @@ export default {
 		 *
 		 * @param {Error} e The failure.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 		 */
 		reason(e) {
 			return (

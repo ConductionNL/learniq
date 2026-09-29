@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  */
 
 declare(strict_types=1);
@@ -46,7 +46,7 @@ use RuntimeException;
 /**
  * Serves the room use report and its opening hours.
  *
- * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  */
 class RoomUtilisationController extends Controller {
 
@@ -96,7 +96,7 @@ class RoomUtilisationController extends Controller {
 	 *
 	 * @return JSONResponse 200 with the report; 400 for a bad window; 401 or 403 for the wrong caller; 503 when the timetable cannot be read.
 	 *
-	 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -137,7 +137,7 @@ class RoomUtilisationController extends Controller {
 	 *
 	 * @return JSONResponse 200 with the opening hours and whether the caller may change them.
 	 *
-	 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -158,7 +158,7 @@ class RoomUtilisationController extends Controller {
 	 *
 	 * @return JSONResponse 200 with what was stored; 400 when invalid; 401/403 outside the writer groups.
 	 *
-	 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 	 */
 	#[NoAdminRequired]
 	public function saveOpeningHours(array $openingHours = []): JSONResponse {

@@ -4,7 +4,7 @@
 // Entry for the public hall-screen page (timetabling-display-screens). A
 // separate, small bundle: the page has no signed-in user and needs none of
 // the app shell, the manifest or the stores.
-// @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
+// @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
 
 import { loadState } from '@nextcloud/initial-state'
 import { createApp } from 'vue'

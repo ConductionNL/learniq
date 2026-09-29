@@ -295,7 +295,7 @@ class RolloverExecutionService {
 	 *
 	 * @return int|null
 	 *
-	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-cohort-knows-which-year-of-its-programme-it-is-in
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-cohort-knows-which-year-of-its-programme-it-is-in
 	 */
 	public function nextProgrammeYear(array $fromCohort, array $mapping): ?int {
 		$year = $fromCohort['programmeYear'] ?? null;

@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+ * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
  */
 
 declare(strict_types=1);
@@ -129,7 +129,7 @@ class HourPlanActivityServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#scenario-a-timetabler-exports-next-year-s-activities
+	 * @spec openspec/specs/school-structure/spec.md#scenario-a-timetabler-exports-next-year-s-activities
 	 */
 	public function testActivitiesOfASchoolYear(): void {
 		$out = $this->service()->forYear(academicYear: '2026-2027');

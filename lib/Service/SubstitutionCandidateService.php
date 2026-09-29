@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
+ * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ use Throwable;
 /**
  * Lists the teachers who can cover a lesson, standby first.
  *
- * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
+ * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
  */
 class SubstitutionCandidateService {
 
@@ -77,7 +77,7 @@ class SubstitutionCandidateService {
 	 *
 	 * @return array<int,array<string,mixed>> `userId`, `displayName`, `group`, `reason` (and `slot` for standby); standby, then free, then busy standby.
 	 *
-	 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
+	 * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
 	 */
 	public function forSession(array $session, array $cohort): array {
 		$start = $this->parse(value: (string)($session['startsAt'] ?? ''));

@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  */
 
 declare(strict_types=1);
@@ -35,7 +35,7 @@ use OCP\IAppConfig;
 /**
  * Reads and writes the opening hours per weekday.
  *
- * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  */
 class OpeningHoursSettings {
 
@@ -62,7 +62,7 @@ class OpeningHoursSettings {
 	 *
 	 * @return array{weekdays:array<string,array{opens:string,closes:string}|null>,closedOnStudyDays:bool}
 	 *
-	 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 	 */
 	public function defaults(): array {
 		$weekdays = [];
@@ -81,7 +81,7 @@ class OpeningHoursSettings {
 	 *
 	 * @return array{weekdays:array<string,array{opens:string,closes:string}|null>,closedOnStudyDays:bool}
 	 *
-	 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 	 */
 	public function get(): array {
 		$decoded = json_decode($this->appConfig->getValueString(Application::APP_ID, self::CONFIG_KEY, ''), true);
@@ -99,7 +99,7 @@ class OpeningHoursSettings {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 	 */
 	public function validate(mixed $value): ?string {
 		if (is_array($value) === false || is_array($value['weekdays'] ?? null) === false) {
@@ -132,7 +132,7 @@ class OpeningHoursSettings {
 	 *
 	 * @return array{weekdays:array<string,array{opens:string,closes:string}|null>,closedOnStudyDays:bool} What was stored.
 	 *
-	 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 	 */
 	public function save(array $value): array {
 		$clean = $this->clean(value: $value);

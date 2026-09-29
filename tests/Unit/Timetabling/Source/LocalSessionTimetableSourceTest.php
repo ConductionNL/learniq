@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-the-api-follows-the-same-line
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-the-api-follows-the-same-line
  */
 
 declare(strict_types=1);

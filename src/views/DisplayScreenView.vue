@@ -5,7 +5,7 @@
  Large type, lessons sorted by time and group, changes highlighted. Refreshes
  every minute; when a refresh fails it keeps the last good data and says when
  it was last updated.
- @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
+ @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
 -->
 <template>
 	<main class="display-screen">
@@ -104,7 +104,7 @@ export default {
 		 * When the data was last updated, as a clock time.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
 		 */
 		updatedLabel() {
 			return this.updatedAt ? this.time(this.updatedAt) : ''
@@ -127,7 +127,7 @@ export default {
 		 * Load the screen's lessons; keep the last good data on a failure.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
 		 */
 		async refresh() {
 			try {
@@ -152,7 +152,7 @@ export default {
 		 *
 		 * @param {string} iso A date-time.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
 		 */
 		time(iso) {
 			const date = new Date(iso)
@@ -168,7 +168,7 @@ export default {
 		 *
 		 * @param {string} change `cancelled`, `other-teacher` or `other-room`.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
 		 */
 		changeLabel(change) {
 			const labels = {

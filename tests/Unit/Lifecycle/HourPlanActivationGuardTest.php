@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#scenario-a-second-active-plan-for-the-same-intake-is-refused
+ * @spec openspec/specs/school-structure/spec.md#scenario-a-second-active-plan-for-the-same-intake-is-refused
  */
 
 declare(strict_types=1);

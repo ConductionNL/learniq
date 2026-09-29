@@ -12,7 +12,7 @@
  same programme and intake year. The generic form cannot render a matrix, so
  this is a custom page.
 
- @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 -->
 <template>
 	<div class="hour-plan-editor">
@@ -247,7 +247,7 @@ export default {
 		 * The grid columns.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 		 */
 		columns() {
 			return planColumns(this.plan)
@@ -257,7 +257,7 @@ export default {
 		 * Totals per year against the norm.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#scenario-a-year-below-its-norm-is-marked
+		 * @spec openspec/specs/school-structure/spec.md#scenario-a-year-below-its-norm-is-marked
 		 */
 		totals() {
 			return yearTotals(this.plan)
@@ -267,7 +267,7 @@ export default {
 		 * The plan's status in words.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 		 */
 		statusLabel() {
 			return (
@@ -284,7 +284,7 @@ export default {
 	 * Load the plan, its programme and the programme's courses.
 	 *
 	 * @return {Promise<void>}
-	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 	 */
 	async mounted() {
 		await this.load()
@@ -297,7 +297,7 @@ export default {
 		 * Load the plan, its programme and the programme's courses.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 		 */
 		async load() {
 			this.loading = true
@@ -341,7 +341,7 @@ export default {
 		 *
 		 * @param {object} col The column.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 		 */
 		colKey(col) {
 			return `${col.programmeYear}-${col.periodCode ?? 'year'}`
@@ -352,7 +352,7 @@ export default {
 		 *
 		 * @param {object} col The column.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 		 */
 		columnLabel(col) {
 			const year = t('learniq', 'Year {n}', { n: col.programmeYear })
@@ -365,7 +365,7 @@ export default {
 		 * @param {object} course The course row.
 		 * @param {object} col The column.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 		 */
 		cellLabel(course, col) {
 			return t('learniq', 'Contact hours for {course}, {column}', {
@@ -380,7 +380,7 @@ export default {
 		 * @param {string} courseId The course.
 		 * @param {object} col The column.
 		 * @return {number}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 		 */
 		hoursOf(courseId, col) {
 			return cellHours(
@@ -398,7 +398,7 @@ export default {
 		 * @param {object} col The column.
 		 * @param {string} value The entered hours.
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 		 */
 		setHours(courseId, col, value) {
 			this.plan = {
@@ -420,7 +420,7 @@ export default {
 		 * @param {number} programmeYear The year.
 		 * @param {string} value The entered norm, empty for none.
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#scenario-a-year-below-its-norm-is-marked
+		 * @spec openspec/specs/school-structure/spec.md#scenario-a-year-below-its-norm-is-marked
 		 */
 		setNorm(programmeYear, value) {
 			const norms = (this.plan.yearNorms || []).filter(
@@ -441,7 +441,7 @@ export default {
 		 * Save the lines and norms.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 		 */
 		async save() {
 			await this.run(async () => {
@@ -460,7 +460,7 @@ export default {
 		 *
 		 * @param {string} action `activate` or `archive`.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#scenario-a-second-active-plan-for-the-same-intake-is-refused
+		 * @spec openspec/specs/school-structure/spec.md#scenario-a-second-active-plan-for-the-same-intake-is-refused
 		 */
 		async transition(action) {
 			if (this.dirty) {
@@ -481,7 +481,7 @@ export default {
 		 * Create a draft copy for the next intake year and open it.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 		 */
 		async copyToNextIntake() {
 			await this.run(async () => {
@@ -503,7 +503,7 @@ export default {
 		 *
 		 * @param {() => Promise<void>} work The write.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 		 */
 		async run(work) {
 			this.busy = true
@@ -529,7 +529,7 @@ export default {
 		 * @param {string} text The message.
 		 * @param {string} [type] `success` or `error`.
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 		 */
 		say(text, type = 'success') {
 			this.message = text

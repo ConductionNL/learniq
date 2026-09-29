@@ -9,7 +9,7 @@
  (GET /api/timetable/of/options), and the week comes from
  GET /api/timetable/of, which refuses anything else with a reason.
 
- @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+ @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 -->
 <template>
 	<div class="timetables">
@@ -184,7 +184,7 @@ export default {
 		 * The three kinds of timetable.
 		 *
 		 * @return {Array<{value: string, label: string}>}
-		 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 		 */
 		kinds() {
 			return [
@@ -198,7 +198,7 @@ export default {
 		 * The policy settings with their choices.
 		 *
 		 * @return {Array<{key: string, label: string, options: Array<{value: string, label: string}>}>}
-		 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
 		 */
 		policyFields() {
 			const own = { value: 'own', label: t('learniq', 'Their own') }
@@ -241,7 +241,7 @@ export default {
 		 * The picker's label for the chosen kind.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 		 */
 		pickerLabel() {
 			return {
@@ -255,7 +255,7 @@ export default {
 		 * The viewed week as a label.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 		 */
 		rangeLabel() {
 			const last = new Date(this.weekStart)
@@ -272,7 +272,7 @@ export default {
 		 * The days of the week that have lessons, each with its lessons.
 		 *
 		 * @return {Array<{iso: string, label: string, sessions: Array<object>}>}
-		 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 		 */
 		days() {
 			const out = []
@@ -306,7 +306,7 @@ export default {
 		 * Load the chosen timetable.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 		 */
 		selectedId() {
 			this.load()
@@ -317,7 +317,7 @@ export default {
 	 * Load the options of the first kind.
 	 *
 	 * @return {void}
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 	 */
 	mounted() {
 		this.loadOptions()
@@ -332,7 +332,7 @@ export default {
 		 *
 		 * @param {string} kind `cohort`, `teacher` or `room`.
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 		 */
 		setKind(kind) {
 			this.kind = kind
@@ -345,7 +345,7 @@ export default {
 		 * Load what the caller may open for the kind.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 		 */
 		async loadOptions() {
 			this.loadingOptions = true
@@ -366,7 +366,7 @@ export default {
 		 * Load the chosen timetable for the viewed week.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 		 */
 		async load() {
 			if (!this.selectedId) {
@@ -410,7 +410,7 @@ export default {
 		 * Load the school's policy and whether the caller may change it.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
 		 */
 		async loadPolicy() {
 			try {
@@ -429,7 +429,7 @@ export default {
 		 * Save the policy: update the school's policy, or create it the first time.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#scenario-a-school-lets-learners-see-every-room
+		 * @spec openspec/specs/personal-timetable/spec.md#scenario-a-school-lets-learners-see-every-room
 		 */
 		async savePolicy() {
 			this.policyMessage = ''
@@ -465,7 +465,7 @@ export default {
 		 *
 		 * @param {number} delta Weeks to move.
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 		 */
 		shiftWeek(delta) {
 			const next = new Date(this.weekStart)
@@ -479,7 +479,7 @@ export default {
 		 *
 		 * @param {object} session The lesson.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 		 */
 		timeRange(session) {
 			const fmt = (iso) => {

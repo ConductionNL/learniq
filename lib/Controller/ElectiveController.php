@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
  */
 
 declare(strict_types=1);
@@ -54,7 +54,7 @@ use Throwable;
 /**
  * Sign up, withdraw, and the coordinator's roster.
  *
- * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
  */
 class ElectiveController extends Controller {
 
@@ -87,7 +87,7 @@ class ElectiveController extends Controller {
 	 *
 	 * @return JSONResponse `{offers: [...]}` or 401.
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -107,7 +107,7 @@ class ElectiveController extends Controller {
 	 *
 	 * @return JSONResponse The sign-up (201), or 401/404/422 with the reason.
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 	 */
 	#[NoAdminRequired]
 	public function signUp(string $offerId): JSONResponse {
@@ -126,7 +126,7 @@ class ElectiveController extends Controller {
 	 *
 	 * @return JSONResponse The sign-up, or 401/404/422 with the reason.
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 	 */
 	#[NoAdminRequired]
 	public function withdraw(string $id): JSONResponse {
@@ -152,7 +152,7 @@ class ElectiveController extends Controller {
 	 *
 	 * @return JSONResponse The roster, or 401/403/404.
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -177,7 +177,7 @@ class ElectiveController extends Controller {
 	 *
 	 * @return JSONResponse The sign-up (201), or 400/401/403/404/422.
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
 	 */
 	#[NoAdminRequired]
 	public function place(string $offerId): JSONResponse {

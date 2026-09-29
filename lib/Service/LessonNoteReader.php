@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ use Throwable;
 /**
  * Reads lesson notes for a set of lessons, filtered to what the caller may see.
  *
- * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
  */
 class LessonNoteReader {
 
@@ -80,7 +80,7 @@ class LessonNoteReader {
 	 *
 	 * @return array<string,array<int,array<string,mixed>>> Notes per lesson id: `topic`, `text`, `audience`, `authorId`.
 	 *
-	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
 	 */
 	public function forSessions(array $sessions, string $uid, array $taughtCohortIds): array {
 		if ($sessions === []) {
@@ -133,7 +133,7 @@ class LessonNoteReader {
 	 *
 	 * @return array<int,array<string,mixed>> The lessons with `canAddNote`.
 	 *
-	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
 	 */
 	public function markWritable(array $sessions, string $uid, array $taughtCohortIds): array {
 		if ($sessions === []) {
@@ -173,7 +173,7 @@ class LessonNoteReader {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
 	 */
 	public function belongsTo(array $note, array $session): bool {
 		if ((string)($note['cohortId'] ?? '') !== (string)($session['cohortId'] ?? '')) {

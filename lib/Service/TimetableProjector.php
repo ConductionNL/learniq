@@ -79,7 +79,7 @@ class TimetableProjector {
 	 *
 	 * @return array<int,array<string,mixed>> The ordered, projected sessions.
 	 *
-	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
 	 */
 	public function personalSessions(
 		array $rawSessions,
@@ -160,7 +160,7 @@ class TimetableProjector {
 	 * @return array<int,array<string,mixed>> The ordered, projected sessions.
 	 *
 	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
-	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
 	 */
 	public function windowedSessions(array $rawSessions, string $windowFrom, string $windowTo, array $roomCache, array $notes = []): array {
 		$fromTs = strtotime($windowFrom);

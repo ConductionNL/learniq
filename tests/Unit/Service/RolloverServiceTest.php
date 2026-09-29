@@ -227,7 +227,7 @@ class RolloverServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#scenario-the-rollover-moves-a-group-into-its-second-year
+	 * @spec openspec/specs/school-structure/spec.md#scenario-the-rollover-moves-a-group-into-its-second-year
 	 */
 	public function testExecuteRaisesTheProgrammeYear(): void {
 		$saved = [];

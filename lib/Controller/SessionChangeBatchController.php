@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
+ * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
  */
 
 declare(strict_types=1);
@@ -46,7 +46,7 @@ use OCP\IUserSession;
 /**
  * Apply one change to several weeks.
  *
- * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
+ * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
  */
 class SessionChangeBatchController extends Controller {
 
@@ -79,7 +79,7 @@ class SessionChangeBatchController extends Controller {
 	 *
 	 * @return JSONResponse `{sessions: [...]}`, or 401/403/404.
 	 *
-	 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
+	 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -102,7 +102,7 @@ class SessionChangeBatchController extends Controller {
 	 *
 	 * @return JSONResponse The batch with its results per lesson, or 400/401/403.
 	 *
-	 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-every-lesson-in-a-batch-passes-the-same-checks
+	 * @spec openspec/specs/timetabling/spec.md#requirement-every-lesson-in-a-batch-passes-the-same-checks
 	 */
 	#[NoAdminRequired]
 	public function create(): JSONResponse {

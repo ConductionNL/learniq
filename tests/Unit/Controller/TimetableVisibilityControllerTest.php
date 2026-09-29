@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
  */
 
 declare(strict_types=1);
@@ -94,7 +94,7 @@ class TimetableVisibilityControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#scenario-a-learner-cannot-open-another-group
+	 * @spec openspec/specs/personal-timetable/spec.md#scenario-a-learner-cannot-open-another-group
 	 */
 	public function testOf(): void {
 		$refused = $this->controller(uid: 'm.yilmaz', allowed: false)->timetable(kind: 'cohort', id: 'c-5b');

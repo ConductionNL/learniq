@@ -10,8 +10,8 @@ import { createObject } from './or-api.ts'
  * a free-text location. The report for that Monday shows the gym at 89
  * percent of nine open hours and the lab at 11 percent.
  *
- * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#scenario-a-deputy-head-checks-the-gyms
- * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#scenario-unassigned-lessons-are-named
+ * @spec openspec/specs/school-structure/spec.md#scenario-a-deputy-head-checks-the-gyms
+ * @spec openspec/specs/school-structure/spec.md#scenario-unassigned-lessons-are-named
  */
 test.describe('Room use', () => {
 	test('the gym is busy, the lab is not, and a roomless lesson is named', async ({

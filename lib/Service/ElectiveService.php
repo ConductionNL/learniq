@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
+ * @spec openspec/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
  */
 
 declare(strict_types=1);
@@ -42,7 +42,7 @@ use Throwable;
 /**
  * Offers, lessons, windows and places.
  *
- * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
+ * @spec openspec/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
  */
 class ElectiveService {
 
@@ -70,7 +70,7 @@ class ElectiveService {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-school-offers-optional-lessons-with-a-window-and-a-capacity
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-school-offers-optional-lessons-with-a-window-and-a-capacity
 	 */
 	public function offer(string $offerId): ?array {
 		return $this->one(id: $offerId, schema: self::OFFER_SCHEMA);
@@ -83,7 +83,7 @@ class ElectiveService {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 	 */
 	public function signUp(string $signUpId): ?array {
 		return $this->one(id: $signUpId, schema: self::SIGN_UP_SCHEMA);
@@ -96,7 +96,7 @@ class ElectiveService {
 	 *
 	 * @return string The session uuid, `sourceSystem:externalRef`, or ''.
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
+	 * @spec openspec/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
 	 */
 	public function lessonKey(array $row): string {
 		$sessionId = $row['sessionId'] ?? null;
@@ -119,7 +119,7 @@ class ElectiveService {
 	 *
 	 * @return array<string, array{key: string, sessionId: ?string, timetableSessionRef: ?array, title: string, startsAt: string, endsAt: string}>
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-school-offers-optional-lessons-with-a-window-and-a-capacity
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-school-offers-optional-lessons-with-a-window-and-a-capacity
 	 */
 	public function lessons(array $offer): array {
 		$lessons = [];
@@ -168,7 +168,7 @@ class ElectiveService {
 	 *
 	 * @return array{opensAt: ?DateTimeImmutable, closesAt: ?DateTimeImmutable}
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-school-offers-optional-lessons-with-a-window-and-a-capacity
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-school-offers-optional-lessons-with-a-window-and-a-capacity
 	 */
 	public function window(array $offer, string $startsAt): array {
 		if (($offer['windowMode'] ?? 'fixed') !== 'relative') {
@@ -194,7 +194,7 @@ class ElectiveService {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 	 */
 	public function isOpen(array $window, DateTimeImmutable $now): bool {
 		if ($window['opensAt'] !== null && $now < $window['opensAt']) {
@@ -212,7 +212,7 @@ class ElectiveService {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
+	 * @spec openspec/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
 	 */
 	public function activeSignUps(string $offerId, ?string $key=null): array {
 		$rows = $this->read(config: ['filters' => ['register' => self::REGISTER, 'schema' => self::SIGN_UP_SCHEMA, 'offerId' => $offerId]]);
@@ -234,7 +234,7 @@ class ElectiveService {
 	 *
 	 * @return array<int, string>|null The learner ids, or null when the offer is open to everyone.
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
+	 * @spec openspec/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
 	 */
 	public function eligibleLearners(array $offer): ?array {
 		$cohortIds = array_values(array_filter((array)($offer['eligibleCohortIds'] ?? []), 'is_string'));
@@ -259,7 +259,7 @@ class ElectiveService {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 	 */
 	public function openOffers(): array {
 		return $this->read(config: ['filters' => ['register' => self::REGISTER, 'schema' => self::OFFER_SCHEMA, 'lifecycle' => 'open']]);
@@ -273,7 +273,7 @@ class ElectiveService {
 	 *
 	 * @return array{uid: string, admin: bool, staff: bool, integration: bool, via: string}
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-another-system-signs-learners-up-through-the-api
+	 * @spec openspec/specs/enrolment/spec.md#requirement-another-system-signs-learners-up-through-the-api
 	 */
 	public function caller(string $uid, array $groups): array {
 		$admin = in_array('admin', $groups, true);

@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ use RuntimeException;
 /**
  * Reads the policy, cohorts, rooms and other timetables' lessons.
  *
- * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
  */
 class TimetableDirectory {
 
@@ -64,7 +64,7 @@ class TimetableDirectory {
 	 *
 	 * @return array<int,array<string,mixed>>
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
 	 */
 	public function policyRows(): array {
 		$config = ['filters' => ['register' => self::REGISTER, 'schema' => 'timetable-visibility-policy']];
@@ -76,7 +76,7 @@ class TimetableDirectory {
 	 *
 	 * @return array<int,array<string,mixed>>
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 	 */
 	public function cohorts(): array {
 		return $this->system(schema: 'cohort', filters: []);
@@ -87,7 +87,7 @@ class TimetableDirectory {
 	 *
 	 * @return array<int,array<string,mixed>>
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 	 */
 	public function rooms(): array {
 		return $this->system(schema: 'room', filters: []);
@@ -100,7 +100,7 @@ class TimetableDirectory {
 	 *
 	 * @return array<int,array<string,mixed>>
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 	 */
 	public function enrolmentsOf(string $uid): array {
 		return $this->system(schema: 'enrolment', filters: ['learnerId' => $uid]);
@@ -118,7 +118,7 @@ class TimetableDirectory {
 	 *
 	 * @throws RuntimeException When the timetable source does not answer.
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 	 */
 	public function lessonsOf(string $kind, string $id, string $from, string $to): array {
 		$source = $this->sources->current();
@@ -161,7 +161,7 @@ class TimetableDirectory {
 	 *
 	 * @return array<string,string>
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 	 */
 	public function roomCodes(): array {
 		$out = [];
@@ -196,7 +196,7 @@ class TimetableDirectory {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 	 */
 	public function idOf(array $row): string {
 		return (string)($row['id'] ?? ($row['uuid'] ?? ''));
@@ -209,7 +209,7 @@ class TimetableDirectory {
 	 *
 	 * @return array<int,string> Room ids.
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 	 */
 	public function roomsOfCohorts(array $cohortIds): array {
 		if ($cohortIds === []) {
@@ -249,7 +249,7 @@ class TimetableDirectory {
 	 *
 	 * @return array<string,string> Name by id; a teacher's name is their user id.
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 	 */
 	public function labels(string $kind): array {
 		$out = [];

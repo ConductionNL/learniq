@@ -11,7 +11,7 @@
  their intake year are named, so a missing plan does not read as nothing to
  schedule. Learniq places nothing in a week or a room.
 
- @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+ @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 -->
 <template>
 	<div class="hour-plan-activities">
@@ -171,7 +171,7 @@ export default {
 		 * This school year, the two before and the two after.
 		 *
 		 * @return {string[]}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+		 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 		 */
 		yearOptions() {
 			const now = new Date()
@@ -190,7 +190,7 @@ export default {
 		 * The activities grouped by group.
 		 *
 		 * @return {Array<{cohortId: string, cohortName: string, programmeYear: number, rows: Array<object>}>}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+		 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 		 */
 		groups() {
 			const byId = new Map()
@@ -216,7 +216,7 @@ export default {
 		 * Reload when the school year changes.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+		 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 		 */
 		academicYear() {
 			this.load()
@@ -227,7 +227,7 @@ export default {
 	 * Load the activities of the default school year.
 	 *
 	 * @return {void}
-	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+	 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 	 */
 	mounted() {
 		this.load()
@@ -240,7 +240,7 @@ export default {
 		 * Load the activities of the chosen school year.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+		 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 		 */
 		async load() {
 			this.loading = true
@@ -275,7 +275,7 @@ export default {
 		 *
 		 * @param {string} kind The kind.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+		 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 		 */
 		kindLabel(kind) {
 			return (
@@ -293,7 +293,7 @@ export default {
 		 * Download the activities as CSV.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#scenario-a-timetabler-exports-next-year-s-activities
+		 * @spec openspec/specs/school-structure/spec.md#scenario-a-timetabler-exports-next-year-s-activities
 		 */
 		exportCsv() {
 			const csv = activitiesCsv(this.activities, {

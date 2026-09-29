@@ -230,7 +230,7 @@ class SessionChangeNoticeHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-affected-people-get-one-message-per-batch
+	 * @spec openspec/specs/timetabling/spec.md#requirement-affected-people-get-one-message-per-batch
 	 */
 	public function testALessonInABatchIsLeftToTheBatch(): void {
 		$this->wire([['id' => 'cohort-1', 'learnerIds' => ['alice']]], [['ncUserId' => 'alice', 'parentIds' => ['parent-alice']]]);
@@ -248,7 +248,7 @@ class SessionChangeNoticeHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-affected-people-get-one-message-per-batch
+	 * @spec openspec/specs/timetabling/spec.md#requirement-affected-people-get-one-message-per-batch
 	 */
 	public function testAffectedPeopleResolvesWithoutWriting(): void {
 		$this->wire([['id' => 'cohort-1', 'learnerIds' => ['alice', 'bob']]], [['ncUserId' => 'bob', 'parentIds' => ['parent-bob']]]);

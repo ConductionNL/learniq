@@ -4,7 +4,7 @@
  *
  * Pure functions, tested in tests/unit-js/hourPlan.test.mjs.
  *
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
  *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
@@ -16,7 +16,7 @@
  *
  * @param {object} plan The hour plan.
  * @return {Array<{programmeYear: number, periodCode: (string|null), label: string}>} The columns.
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
  */
 export function planColumns(plan) {
 	const years = Math.max(1, Number(plan?.durationYears) || 1)
@@ -46,7 +46,7 @@ export function planColumns(plan) {
  * @param {number} programmeYear The year of the programme.
  * @param {string|null} periodCode The period, or null for the whole year.
  * @return {number} The contact hours, 0 when there is no line.
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
  */
 export function cellHours(lines, courseId, programmeYear, periodCode) {
 	const line = (lines || []).find(
@@ -68,7 +68,7 @@ export function cellHours(lines, courseId, programmeYear, periodCode) {
  * @param {string|null} periodCode The period, or null.
  * @param {number|string} hours The contact hours entered.
  * @return {Array<object>} New lines.
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
  */
 export function setCell(lines, courseId, programmeYear, periodCode, hours) {
 	const value = Math.max(0, Number(hours) || 0)
@@ -107,7 +107,7 @@ export function setCell(lines, courseId, programmeYear, periodCode, hours) {
  *
  * @param {object} plan The hour plan.
  * @return {Array<{programmeYear: number, contactHours: number, otherHours: number, norm: (number|null), shortBy: number}>} One row per year.
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
  */
 export function yearTotals(plan) {
 	const years = Math.max(1, Number(plan?.durationYears) || 1)
@@ -145,7 +145,7 @@ export function yearTotals(plan) {
  *
  * @param {string} year A school year, `YYYY-YYYY`.
  * @return {string} The next school year, or '' when unreadable.
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
  */
 export function nextSchoolYear(year) {
 	const match = /^(\d{4})-(\d{4})$/.exec(year || '')
@@ -161,7 +161,7 @@ export function nextSchoolYear(year) {
  *
  * @param {object} plan The hour plan.
  * @return {object} The new plan to POST.
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
  */
 export function copyForNextIntake(plan) {
 	const intakeYear = nextSchoolYear(plan.intakeYear)
@@ -184,7 +184,7 @@ export function copyForNextIntake(plan) {
  * @param {Array<object>} activities Rows from `GET /api/hour-plans/activities`.
  * @param {object} headers Column titles by key.
  * @return {string} The CSV text.
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+ * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
  */
 export function activitiesCsv(activities, headers) {
 	const keys = [

@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
+ * @spec openspec/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
  */
 
 declare(strict_types=1);
@@ -35,7 +35,7 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 /**
  * Wires the sign-up rules.
  *
- * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
+ * @spec openspec/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
  */
 class ElectiveListenerRegistrar {
 	/**
@@ -45,7 +45,7 @@ class ElectiveListenerRegistrar {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
+	 * @spec openspec/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
 	 */
 	public function register(IRegistrationContext $context): void {
 		// Pre-write vetoes, registered directly and not narrowed through

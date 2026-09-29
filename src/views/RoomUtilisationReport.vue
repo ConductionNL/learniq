@@ -11,8 +11,8 @@
  and compliance officers change the opening hours the report counts from.
  Everything is computed by GET /api/reports/room-use; nothing is stored.
 
- @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
- @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-lessons-without-a-room-are-counted-not-hidden
+ @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+ @spec openspec/specs/school-structure/spec.md#requirement-lessons-without-a-room-are-counted-not-hidden
 -->
 <template>
 	<div class="room-use">
@@ -316,7 +316,7 @@ export default {
 		 * The room kind filter options.
 		 *
 		 * @return {Array<{value: string, label: string}>}
-		 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 		 */
 		kindOptions() {
 			return ['classroom', 'lab', 'gym', 'auditorium', 'online', 'other'].map(
@@ -328,7 +328,7 @@ export default {
 		 * The weekdays of the opening hours form.
 		 *
 		 * @return {Array<{key: string, label: string}>}
-		 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 		 */
 		weekdays() {
 			return [
@@ -346,7 +346,7 @@ export default {
 		 * Every clock hour that appears in the grid.
 		 *
 		 * @return {number[]}
-		 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 		 */
 		gridHours() {
 			const hours = new Set()
@@ -363,7 +363,7 @@ export default {
 	 * Load the buildings, the opening hours and this week's report.
 	 *
 	 * @return {Promise<void>}
-	 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 	 */
 	async mounted() {
 		await Promise.all([this.loadBuildings(), this.loadOpeningHours()])
@@ -379,7 +379,7 @@ export default {
 		 *
 		 * @param {Date} date The date.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 		 */
 		isoDay(date) {
 			const d = date instanceof Date ? date : new Date(date)
@@ -390,7 +390,7 @@ export default {
 		 * Load the report for the chosen window and filters.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 		 */
 		async load() {
 			this.loading = true
@@ -419,7 +419,7 @@ export default {
 		 * The building codes of all rooms, for the filter.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 		 */
 		async loadBuildings() {
 			try {
@@ -442,7 +442,7 @@ export default {
 		 * Load the opening hours and whether the caller may change them.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 		 */
 		async loadOpeningHours() {
 			try {
@@ -460,7 +460,7 @@ export default {
 		 * @param {string} key The weekday.
 		 * @param {boolean} open Whether it is open.
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 		 */
 		toggleDay(key, open) {
 			this.openingHours.weekdays[key] = open
@@ -472,7 +472,7 @@ export default {
 		 * Save the opening hours and reload the report.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 		 */
 		async saveOpeningHours() {
 			this.hoursMessage = ''
@@ -498,7 +498,7 @@ export default {
 		 * @param {object} day A grid column.
 		 * @param {number} hour The clock hour.
 		 * @return {number|null}
-		 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 		 */
 		shareOf(day, hour) {
 			const cell = day.hours.find((h) => h.hour === hour)
@@ -511,7 +511,7 @@ export default {
 		 * @param {object} day A grid column.
 		 * @param {number} hour The clock hour.
 		 * @return {number}
-		 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 		 */
 		heatOf(day, hour) {
 			return heatLevel(this.shareOf(day, hour))
@@ -522,7 +522,7 @@ export default {
 		 *
 		 * @param {number} index 0 for Monday.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 		 */
 		weekdayLabel(index) {
 			// 5 January 2026 is a Monday.
@@ -536,7 +536,7 @@ export default {
 		 *
 		 * @param {string} kind The kind.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 		 */
 		kindLabel(kind) {
 			return (
@@ -558,7 +558,7 @@ export default {
 		 *
 		 * @param {object} session The lesson.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-lessons-without-a-room-are-counted-not-hidden
+		 * @spec openspec/specs/school-structure/spec.md#requirement-lessons-without-a-room-are-counted-not-hidden
 		 */
 		lessonLabel(session) {
 			const ts = Date.parse(session.startsAt || '')
@@ -580,7 +580,7 @@ export default {
 		 * Download the room table as CSV.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+		 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 		 */
 		exportCsv() {
 			const csv = roomsCsv(this.report.rooms, {

@@ -6,8 +6,8 @@ import { createObject } from './or-api.ts'
  * teacher on standby is listed first for a lesson at that time, and the
  * admin's own standby shows in "My timetable".
  *
- * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#scenario-a-coordinator-puts-a-teacher-on-standby
- * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#scenario-a-coordinator-covers-a-sick-teacher-s-lesson
+ * @spec openspec/specs/timetabling/spec.md#scenario-a-coordinator-puts-a-teacher-on-standby
+ * @spec openspec/specs/timetabling/spec.md#scenario-a-coordinator-covers-a-sick-teacher-s-lesson
  */
 test.describe('Standby hours', () => {
 	test('standby is planned, listed first, and shown in the timetable', async ({

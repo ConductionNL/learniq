@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ use Throwable;
 /**
  * Accumulates room use for one report.
  *
- * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  */
 class RoomUseTally {
 
@@ -89,7 +89,7 @@ class RoomUseTally {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 	 */
 	public function add(array $session, string $roomId, array $groupSizes): void {
 		$span = $this->openSpan(session: $session);
@@ -127,7 +127,7 @@ class RoomUseTally {
 	 *
 	 * @return array<int,array<string,mixed>> Sorted from most to least used.
 	 *
-	 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 	 */
 	public function roomRows(int $openMinutes): array {
 		$rows = [];
@@ -166,7 +166,7 @@ class RoomUseTally {
 	 *
 	 * @return array<int,array{weekday:int,hours:array<int,array{hour:int,share:float}>}>
 	 *
-	 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 	 */
 	public function grid(): array {
 		$roomCount = count($this->rooms);
@@ -196,7 +196,7 @@ class RoomUseTally {
 	 *
 	 * @return array{count:int,sessions:array<int,array<string,mixed>>}
 	 *
-	 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-lessons-without-a-room-are-counted-not-hidden
+	 * @spec openspec/specs/school-structure/spec.md#requirement-lessons-without-a-room-are-counted-not-hidden
 	 */
 	public function unassigned(int $limit): array {
 		return ['count' => count($this->unassigned), 'sessions' => array_slice($this->unassigned, 0, $limit)];

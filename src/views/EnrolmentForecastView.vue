@@ -6,7 +6,7 @@
  and intake, compute, and read how many learners and groups each programme
  year and subject needs. Every figure is a forecast, labelled with its
  scenario and the time it was computed; estimated subject figures are marked.
- @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+ @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 -->
 <template>
 	<div class="forecast">
@@ -207,7 +207,7 @@ export default {
 		 * The scenarios as select options.
 		 *
 		 * @return {Array<{value: string, label: string}>}
-		 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 		 */
 		scenarioOptions() {
 			return this.scenarios.map((row) => ({
@@ -228,7 +228,7 @@ export default {
 		 * Load the scenarios and programme names.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 		 */
 		async load() {
 			try {
@@ -260,7 +260,7 @@ export default {
 		 *
 		 * @param {string} id The scenario.
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 		 */
 		pick(id) {
 			const found = this.scenarios.find((row) => row.id === id)
@@ -279,7 +279,7 @@ export default {
 		 * Save the rates and intake.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 		 */
 		async save() {
 			await this.run(async () => {
@@ -297,7 +297,7 @@ export default {
 		 * Save, then compute the forecast.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 		 */
 		async compute() {
 			await this.save()
@@ -316,7 +316,7 @@ export default {
 		 * Copy the scenario as a new draft.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 		 */
 		async copy() {
 			await this.run(async () => {
@@ -342,7 +342,7 @@ export default {
 		 *
 		 * @param {function(): Promise<void>} action The action.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 		 */
 		async run(action) {
 			this.busy = true
@@ -361,7 +361,7 @@ export default {
 		 *
 		 * @param {string} id The programme.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 		 */
 		programmeName(id) {
 			return this.programmes[id] || id
@@ -372,7 +372,7 @@ export default {
 		 *
 		 * @param {string} iso A date-time.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 		 */
 		formatTime(iso) {
 			const date = new Date(iso)
@@ -383,7 +383,7 @@ export default {
 		 * Download the result tables as CSV.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-the-forecast-says-how-many-groups-are-needed
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-the-forecast-says-how-many-groups-are-needed
 		 */
 		exportCsv() {
 			const rows = [
@@ -438,7 +438,7 @@ export default {
 		 *
 		 * @param {Error} e The failure.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 		 */
 		reason(e) {
 			return (

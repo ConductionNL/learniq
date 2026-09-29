@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  */
 
 declare(strict_types=1);
@@ -44,7 +44,7 @@ use Throwable;
 /**
  * Computes room use over a period.
  *
- * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  */
 class RoomUtilisationService {
 
@@ -83,7 +83,7 @@ class RoomUtilisationService {
 	 *
 	 * @throws RuntimeException When the timetable source does not answer.
 	 *
-	 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 	 */
 	public function forPeriod(string $from, string $to, ?string $kind = null, ?string $building = null): array {
 		$settings = $this->openingHours->get();
@@ -127,7 +127,7 @@ class RoomUtilisationService {
 	 *
 	 * @return array<string,array{weekday:int,opens:int,closes:int,minutes:int}> Keyed by `Y-m-d`.
 	 *
-	 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 	 */
 	public function teachingDays(string $from, string $to, array $settings): array {
 		$start = $this->parseDay(day: $from);
@@ -161,7 +161,7 @@ class RoomUtilisationService {
 	 *
 	 * @return DateTimeImmutable|null
 	 *
-	 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 	 */
 	public function parseDay(string $day): ?DateTimeImmutable {
 		if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $day) !== 1) {

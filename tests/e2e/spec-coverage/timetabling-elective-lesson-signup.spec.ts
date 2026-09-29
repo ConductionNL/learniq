@@ -7,10 +7,10 @@
  * sign up with a Place button.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#scenario-a-coordinator-offers-weekly-extra-maths
- *   @e2e openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-thursday
- *   @e2e openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#scenario-the-window-has-closed
- *   @e2e openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#scenario-a-coordinator-places-a-learner-after-the-deadline
+ *   @e2e openspec/specs/enrolment/spec.md#scenario-a-coordinator-offers-weekly-extra-maths
+ *   @e2e openspec/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-thursday
+ *   @e2e openspec/specs/enrolment/spec.md#scenario-the-window-has-closed
+ *   @e2e openspec/specs/enrolment/spec.md#scenario-a-coordinator-places-a-learner-after-the-deadline
  *
  * The rules themselves (capacity for staff, one per lesson, eligibility, the
  * API door) are covered by ElectiveSignUpRulesTest with the real events.
@@ -18,8 +18,8 @@
 import { expect, test } from '../fixtures.ts'
 
 test.describe('timetabling-elective-lesson-signup', () => {
-	// @e2e openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#scenario-a-coordinator-offers-weekly-extra-maths
-	// @e2e openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#scenario-a-coordinator-places-a-learner-after-the-deadline
+	// @e2e openspec/specs/enrolment/spec.md#scenario-a-coordinator-offers-weekly-extra-maths
+	// @e2e openspec/specs/enrolment/spec.md#scenario-a-coordinator-places-a-learner-after-the-deadline
 	test('a coordinator creates an offer and opens its sign-ups page', async ({
 		loggedInPage: page,
 	}) => {
@@ -47,8 +47,8 @@ test.describe('timetabling-elective-lesson-signup', () => {
 		)
 	})
 
-	// @e2e openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-thursday
-	// @e2e openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#scenario-the-window-has-closed
+	// @e2e openspec/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-thursday
+	// @e2e openspec/specs/enrolment/spec.md#scenario-the-window-has-closed
 	test('the optional lessons page renders the open offers', async ({
 		loggedInPage: page,
 	}) => {

@@ -28,7 +28,7 @@
  one batch to POST /api/session-change-batches; the server runs each lesson
  through the same transition and guard, and the dialog shows the outcome per
  lesson.
- @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
+ @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
 -->
 <template>
 	<NcDialog
@@ -312,7 +312,7 @@ export default {
 		 * Room options for the room mode.
 		 *
 		 * @return {Array<{value:string,label:string}>}
-		 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
+		 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
 		 */
 		roomOptions() {
 			return this.rooms.map((room) => ({
@@ -343,7 +343,7 @@ export default {
 		 * The substitution candidates as select options, standby first.
 		 *
 		 * @return {Array<{value:string,label:string,group:string}>}
-		 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
+		 * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
 		 */
 		candidateOptions() {
 			return candidateOptions(this.candidates, (text, vars) =>
@@ -358,7 +358,7 @@ export default {
 		 *
 		 * @param {string} mode The new mode.
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
+		 * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
 		 */
 		mode(mode) {
 			if (mode === 'substitute' && this.candidates.length === 0) {
@@ -374,7 +374,7 @@ export default {
 		 * Load who can cover this lesson. Learniq suggests; the user chooses.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
+		 * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
 		 */
 		async loadCandidates() {
 			this.loadingCandidates = true
@@ -449,7 +449,7 @@ export default {
 		 * outcome per lesson.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-every-lesson-in-a-batch-passes-the-same-checks
+		 * @spec openspec/specs/timetabling/spec.md#requirement-every-lesson-in-a-batch-passes-the-same-checks
 		 */
 		async submitBatch() {
 			this.saving = true
@@ -492,7 +492,7 @@ export default {
 		 * Switch to the room mode and load the rooms once.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
+		 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
 		 */
 		async selectRoomMode() {
 			this.mode = 'room'
@@ -516,7 +516,7 @@ export default {
 		 *
 		 * @param {boolean} on Whether it is on.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
+		 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
 		 */
 		async toggleMoreWeeks(on) {
 			this.moreWeeks = on
@@ -531,7 +531,7 @@ export default {
 		 * Load the lessons of the same weekly slot up to the until date.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
+		 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
 		 */
 		async loadSeries() {
 			this.loadingSeries = true
@@ -560,7 +560,7 @@ export default {
 		 * @param {string} id The lesson.
 		 * @param {boolean} on Whether it is ticked.
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
+		 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
 		 */
 		toggleLesson(id, on) {
 			this.selectedIds = on
@@ -573,7 +573,7 @@ export default {
 		 *
 		 * @param {string} iso The start date-time.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
+		 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
 		 */
 		formatDate(iso) {
 			if (!iso) return ''

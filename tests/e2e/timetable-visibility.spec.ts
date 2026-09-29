@@ -11,7 +11,7 @@ import { createObject } from './or-api.ts'
  * ::testLearnerRelatedTeachersAndRooms, and the 403 by
  * TimetableVisibilityControllerTest::testOf.
  *
- * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#scenario-a-learner-looks-up-their-maths-teacher
+ * @spec openspec/specs/personal-timetable/spec.md#scenario-a-learner-looks-up-their-maths-teacher
  */
 test.describe('Timetables', () => {
 	test('a teacher timetable opens from the picker', async ({

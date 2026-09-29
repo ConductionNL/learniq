@@ -4,7 +4,7 @@
  *
  * Pure functions, tested in tests/unit-js/standby.test.mjs.
  *
- * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+ * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
  *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
@@ -18,7 +18,7 @@ export const WEEKDAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
  *
  * @param {Array<object>} slots Weekly and one-off standby slots.
  * @return {Array<{startsAt: string, endsAt: string, cells: object}>} Rows by start time; cells keyed by weekday.
- * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+ * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
  */
 export function planningGrid(slots) {
 	const rows = new Map()
@@ -50,7 +50,7 @@ export function planningGrid(slots) {
  * @param {Array<object>} candidates Rows from `GET /api/substitution/candidates`.
  * @param {(text: string, vars?: object) => string} translate `t` bound to learniq, for the reason texts.
  * @return {Array<{value: string, label: string, group: string}>} The options.
- * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
+ * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
  */
 export function candidateOptions(candidates, translate) {
 	return (candidates || []).map((c) => {
@@ -76,7 +76,7 @@ export function candidateOptions(candidates, translate) {
  *
  * @param {Date} date Any date.
  * @return {{validFrom: string, validUntil: string}} The bounds.
- * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+ * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
  */
 export function schoolYearBounds(date) {
 	const start = date.getMonth() >= 7 ? date.getFullYear() : date.getFullYear() - 1

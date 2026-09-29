@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+ * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
  */
 
 declare(strict_types=1);
@@ -35,7 +35,7 @@ use Throwable;
 /**
  * Groups, programmes, applications and choices for the forecast.
  *
- * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+ * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
  */
 class EnrolmentForecastReader {
 
@@ -60,7 +60,7 @@ class EnrolmentForecastReader {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+	 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 	 */
 	public function currentGroups(string $academicYear): array {
 		return array_values(
@@ -78,7 +78,7 @@ class EnrolmentForecastReader {
 	 *
 	 * @return array<string, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+	 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 	 */
 	public function programmes(): array {
 		return $this->byId(rows: $this->read(schema: 'programme', filters: []));
@@ -92,7 +92,7 @@ class EnrolmentForecastReader {
 	 *
 	 * @return array<string, int>
 	 *
-	 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+	 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 	 */
 	public function durations(array $current): array {
 		$durations = [];
@@ -118,7 +118,7 @@ class EnrolmentForecastReader {
 	 *
 	 * @return array<string, float> Count by programme.
 	 *
-	 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+	 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 	 */
 	public function placedApplications(string $targetYear): array {
 		$rounds = [];
@@ -147,7 +147,7 @@ class EnrolmentForecastReader {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+	 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 	 */
 	public function approvedChoices(string $targetYear): array {
 		return array_values(
@@ -164,7 +164,7 @@ class EnrolmentForecastReader {
 	 *
 	 * @return array<string, string>
 	 *
-	 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-the-forecast-says-how-many-groups-are-needed
+	 * @spec openspec/specs/student-analytics/spec.md#requirement-the-forecast-says-how-many-groups-are-needed
 	 */
 	public function courseNames(): array {
 		$courses = $this->byId(rows: $this->read(schema: 'course', filters: []));

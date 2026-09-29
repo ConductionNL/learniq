@@ -8,9 +8,9 @@ import { createObject } from './or-api.ts'
  * The admin makes a two-year programme with two courses, an active plan for
  * the intake year of a group in its second year, and a group in that year.
  *
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#scenario-a-coordinator-plans-three-years-of-a-programme
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#scenario-a-year-below-its-norm-is-marked
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#scenario-a-timetabler-exports-next-year-s-activities
+ * @spec openspec/specs/school-structure/spec.md#scenario-a-coordinator-plans-three-years-of-a-programme
+ * @spec openspec/specs/school-structure/spec.md#scenario-a-year-below-its-norm-is-marked
+ * @spec openspec/specs/school-structure/spec.md#scenario-a-timetabler-exports-next-year-s-activities
  */
 test.describe('Hour plans', () => {
 	test('enter hours, see a shortfall, list the activities', async ({
