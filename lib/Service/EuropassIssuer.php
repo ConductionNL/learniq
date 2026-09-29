@@ -49,6 +49,11 @@ class EuropassIssuer {
 	private const REGISTER = 'learniq';
 
 	/**
+	 * A LearnerProfile uuid, what Credential.learnerId holds.
+	 */
+	private const UUID_PATTERN = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
+
+	/**
 	 * App config key of the issuer's legal identifier (KvK number or BRIN).
 	 */
 	public const IDENTIFIER_KEY = 'europass_issuer_identifier';
@@ -195,13 +200,23 @@ class EuropassIssuer {
 	/**
 	 * The learner's profile (name only is used), or null.
 	 *
-	 * @param string $learnerId The learner's Nextcloud user id.
+	 * Credential.learnerId is the LearnerProfile uuid, so the profile is read
+	 * by id. Only a legacy row whose learnerId is not a uuid (it held the
+	 * Nextcloud user id) is looked up by `ncUserId`.
+	 *
+	 * @param string $learnerId The credential's learnerId: a LearnerProfile uuid.
 	 *
 	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
 	 */
 	private function learner(string $learnerId): ?array {
 		if ($learnerId === '') {
 			return null;
+		}
+
+		if (preg_match(self::UUID_PATTERN, $learnerId) === 1) {
+			return $this->read(schema: 'learner-profile', id: $learnerId);
 		}
 
 		return $this->first(filters: ['schema' => 'learner-profile', 'ncUserId' => $learnerId]);

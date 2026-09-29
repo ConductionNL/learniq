@@ -20,7 +20,7 @@
     - GET  /api/objects/learniq/Submission?filters[learnerIds]=:learnerId
     - GET  /api/objects/learniq/werkproces-assessment?filters[...]
     - GET  /api/objects/learniq/external-training-record?filters[learnerId]=:learnerId
-    - GET  /api/objects/learniq/Credential?filters[learnerId]=:learnerId
+    - GET  /api/objects/learniq/Credential?filters[learnerUserId]=:learnerId
     - POST /api/objects/learniq/portfolio-entry
     - POST /api/objects/:id/transition           ({ action: 'submit' })
 
@@ -577,7 +577,9 @@ export default {
 				} else if (kind === 'credential') {
 					const rows = await this.fetchList(
 						'Credential',
-						`filters[learnerId]=${uid}&_limit=100`,
+						// Credential.learnerId is the LearnerProfile uuid; the
+						// learner's user id is on learnerUserId.
+						`filters[learnerUserId]=${uid}&_limit=100`,
 					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,

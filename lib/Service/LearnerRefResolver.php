@@ -152,6 +152,42 @@ class LearnerRefResolver {
 	}//end resolveAcrossTenants()
 
 	/**
+	 * The same answer as resolve(), within one named tenant: for a caller that
+	 * knows the tenant from the record it acts on (an enrolment, a credential)
+	 * rather than from the session, such as an event listener. Reads across
+	 * the session's tenant scoping, then narrows on `tenant_id`, so a user with
+	 * profiles in two tenants gets the one the record belongs to.
+	 *
+	 * @param string $learnerId Nextcloud user id.
+	 * @param string $tenantId  The tenant the profile must belong to.
+	 *
+	 * @return string|null
+	 *
+	 * @spec openspec/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile
+	 */
+	public function resolveInTenant(string $learnerId, string $tenantId): ?string {
+		if ($learnerId === '' || $tenantId === '') {
+			return null;
+		}
+
+		$profiles = $this->objectService->findAll(
+			config: [
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::PROFILE_SCHEMA,
+					'ncUserId' => $learnerId,
+					'tenant_id' => $tenantId,
+				],
+				'limit' => self::MAX_PROFILES,
+			],
+			_rbac: false,
+			_multitenancy: false
+		);
+
+		return $this->survivor(profiles: $profiles);
+	}//end resolveInTenant()
+
+	/**
 	 * The uuid of the profile that is not merged away, else the first one;
 	 * null when there is none.
 	 *
