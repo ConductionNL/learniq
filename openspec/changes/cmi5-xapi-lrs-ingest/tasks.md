@@ -111,8 +111,11 @@
       either header is 409. Every response carries `X-Experience-API-Version: 1.0.3`.
 - [x] 8.4 The launch writes `LMS.LaunchData` (cmi5 section 10.2.1) before it hands out a fetch code, and answers
       503 without one when the write fails.
-- [ ] 8.5 Register: add the `xapi-document` schema (fragment in `design.md`). Until it ships, the tests declare it
-      through `RegisterFaithfulStore::declarePending()`, and a live launch answers 503 `cmi5_launch_data_failed`.
+- [x] 8.5 Register: add the `xapi-document` schema (fragment in `design.md`).
+      - Evidence: `XapiDocument` is in `lib/Settings/learniq_register.json` and listed in the learniq register's
+        `schemas`, with its 26 strings in en/nl (the nl AI-written, in `l10n/ai-translated.json`).
+        `tests/Support/XapiDocumentsInMemory.php` no longer calls `declarePending()`.
+        The LRS, launch and store tests pass against the real fragment (43 tests), and check:schema-l10n is 0.
 - [x] 8.6 Unit tests: `LrsDocumentControllerTest` (every verb on both resources, refusals, concurrency),
       `XapiDocumentStoreTest`, `XapiCallerResolverTest`, and `Cmi5LaunchControllerTest::testLaunchWritesLaunchData`,
       `::testLaunchDataDefaults`, `::testNoLaunchWithoutLaunchData`.

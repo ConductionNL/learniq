@@ -5,8 +5,7 @@
  *
  * `find`, `findAll`, `saveObject` and `deleteObject` act on the same rows, with
  * OpenRegister's filter semantics, so a test reads back exactly what the code
- * wrote. The xapi-document schema is declared through
- * RegisterFaithfulStore::declarePending() until it ships in the register.
+ * wrote. The xapi-document schema is read from the register like every other.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Support
@@ -36,16 +35,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 trait XapiDocumentsInMemory {
 
 	/**
-	 * The properties the pending xapi-document schema declares (see the change's design.md).
-	 *
-	 * @var array<int, string>
-	 */
-	private static array $xapiDocumentProperties = [
-		'kind', 'documentId', 'activityId', 'registration', 'agent', 'contents', 'contentEncoding',
-		'contentType', 'etag', 'updated', 'verified_actor_id', 'lessonId', 'tenant_id',
-	];
-
-	/**
 	 * An ObjectService whose xapi-document rows live in `$store`.
 	 *
 	 * @param RegisterFaithfulStore $store The rows.
@@ -53,8 +42,6 @@ trait XapiDocumentsInMemory {
 	 * @return ObjectService&MockObject
 	 */
 	private function xapiObjectService(RegisterFaithfulStore $store): ObjectService&MockObject {
-		RegisterFaithfulStore::declarePending('xapi-document', self::$xapiDocumentProperties);
-
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(
 			static fn (array $config = [], bool $rbac = true, bool $multitenancy = true): array => $store->findAll($config, $rbac, $multitenancy)
