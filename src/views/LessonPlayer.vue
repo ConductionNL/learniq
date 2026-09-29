@@ -763,7 +763,7 @@ export default {
 					fetchInto('Material', id, this.materialsById),
 				),
 				...[...assessmentIds].map((id) =>
-					fetchInto('Assessment', id, this.assessmentsById),
+					fetchInto('exam', id, this.assessmentsById),
 				),
 				...[...assignmentIds].map((id) =>
 					fetchInto('Assignment', id, this.assignmentsById),

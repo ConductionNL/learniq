@@ -82,7 +82,8 @@ class CatalogueReader {
 	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-provider-courses-show-their-provider
 	 */
 	public function entries(string $userId, string $search = '', array $filters = []): array {
-		$mine = $this->enrolmentsByCourse(userId: $userId);
+		$rows = $this->enrolmentRows(userId: $userId);
+		$mine = $this->byCourse(rows: $rows);
 		$courses = [];
 		foreach ($this->published(schema: 'course') as $course) {
 			if ($this->matches(row: $course, search: $search, filters: $filters) === true) {
@@ -93,7 +94,10 @@ class CatalogueReader {
 		$programmes = [];
 		foreach ($this->published(schema: 'programme') as $programme) {
 			if ($this->matches(row: $programme, search: $search, filters: $filters) === true) {
-				$programmes[] = $this->card(row: $programme, kind: 'programme') + ['courseIds' => array_values((array)($programme['courseIds'] ?? []))];
+				$programmes[] = $this->card(row: $programme, kind: 'programme') + [
+					'courseIds' => array_values((array)($programme['courseIds'] ?? [])),
+					'enrolment' => $this->programmeEnrolment(programmeId: (string)$programme['id'], rows: $rows),
+				];
 			}
 		}
 
@@ -111,6 +115,17 @@ class CatalogueReader {
 	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
 	 */
 	public function enrolmentsByCourse(string $userId): array {
+		return $this->byCourse(rows: $this->enrolmentRows(userId: $userId));
+	}//end enrolmentsByCourse()
+
+	/**
+	 * The learner's enrolment rows, as arrays.
+	 *
+	 * @param string $userId The learner.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private function enrolmentRows(string $userId): array {
 		if ($userId === '') {
 			return [];
 		}
@@ -120,9 +135,20 @@ class CatalogueReader {
 			_rbac: false
 		);
 
+		return array_map(fn (mixed $row): array => $this->toArray(value: $row), array_values((array)$rows));
+	}//end enrolmentRows()
+
+	/**
+	 * Enrolment rows keyed by course id; a live one wins over a withdrawn or
+	 * finished one.
+	 *
+	 * @param list<array<string, mixed>> $rows The learner's enrolment rows.
+	 *
+	 * @return array<string, array{id: string, lifecycle: string, source: string, progressPercent: float}>
+	 */
+	private function byCourse(array $rows): array {
 		$byCourse = [];
 		foreach ($rows as $row) {
-			$row = $this->toArray(value: $row);
 			$courseId = (string)($row['courseId'] ?? '');
 			$lifecycle = (string)($row['lifecycle'] ?? '');
 			$known = ($byCourse[$courseId] ?? null);
@@ -139,7 +165,61 @@ class CatalogueReader {
 		}
 
 		return $byCourse;
-	}//end enrolmentsByCourse()
+	}//end byCourse()
+
+	/**
+	 * The learner's sign-up for a programme, summarised the way a course card
+	 * carries its enrolment, or null when there is no live one.
+	 *
+	 * A programme sign-up creates one enrolment per course, each carrying the
+	 * `programmeId` (CatalogueSignUpService::signUpProgramme), so the card's
+	 * state is read from those rows: `active` once any is active, else
+	 * `pending`. `ids` lists every live one, so withdrawing the programme
+	 * withdraws each of them; `source` is `self` only when all of them are
+	 * self sign-ups, and `progressPercent` is the highest, so the card offers
+	 * Withdraw on exactly the terms a single course enrolment does.
+	 *
+	 * @param string                     $programmeId The programme uuid.
+	 * @param list<array<string, mixed>> $rows        The learner's enrolment rows.
+	 *
+	 * @return array{id: string, ids: list<string>, lifecycle: string, source: string, progressPercent: float}|null
+	 *
+	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-a-track
+	 */
+	private function programmeEnrolment(string $programmeId, array $rows): ?array {
+		$live = array_values(
+			array_filter(
+				$rows,
+				static fn (array $row): bool => (string)($row['programmeId'] ?? '') === $programmeId
+					&& in_array((string)($row['lifecycle'] ?? ''), self::LIVE_STATES, true) === true
+			)
+		);
+		if ($programmeId === '' || $live === []) {
+			return null;
+		}
+
+		$lifecycles = array_map(static fn (array $row): string => (string)$row['lifecycle'], $live);
+		$sources    = array_unique(array_map(static fn (array $row): string => (string)($row['source'] ?? ''), $live));
+		$progress   = array_map(static fn (array $row): float => (float)($row['progressPercent'] ?? 0), $live);
+
+		$lifecycle = 'pending';
+		if (in_array('active', $lifecycles, true) === true) {
+			$lifecycle = 'active';
+		}
+
+		$source = 'mixed';
+		if (count($sources) === 1) {
+			$source = (string)reset($sources);
+		}
+
+		return [
+			'id' => (string)$live[0]['id'],
+			'ids' => array_map(static fn (array $row): string => (string)$row['id'], $live),
+			'lifecycle' => $lifecycle,
+			'source' => $source,
+			'progressPercent' => max($progress),
+		];
+	}//end programmeEnrolment()
 
 	/**
 	 * Published rows of a schema that are open for sign-up.

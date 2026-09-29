@@ -37,6 +37,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -239,8 +240,14 @@ class ExternalTrainingService {
 	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 */
 	public function buildManualCredentialPayload(array $record, string $issuedBy): array {
+		// ExternalTrainingRecord.learnerId is already the LearnerProfile uuid,
+		// as Credential.learnerId must be; learnerUserId is that profile's
+		// Nextcloud user id, which the credential's read rule matches on.
+		$learnerId = (string)($record['learnerId'] ?? '');
+
 		return [
-			'learnerId' => (string)($record['learnerId'] ?? ''),
+			'learnerId' => $learnerId,
+			'learnerUserId' => $this->profileUserId(profileId: $learnerId),
 			'kind' => 'external-training',
 			'issuedAt' => (string)($record['completedAt'] ?? ''),
 			'expiresAt' => ($record['validUntil'] ?? null),
@@ -250,6 +257,40 @@ class ExternalTrainingService {
 			'tenant_id' => (string)($record['tenant_id'] ?? ''),
 		];
 	}//end buildManualCredentialPayload()
+
+	/**
+	 * The Nextcloud user id of a LearnerProfile, or null when there is none.
+	 *
+	 * @param string $profileId LearnerProfile uuid.
+	 *
+	 * @return string|null
+	 *
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
+	 */
+	private function profileUserId(string $profileId): ?string {
+		if ($profileId === '') {
+			return null;
+		}
+
+		try {
+			$profile = $this->objectService->find(
+				id: $profileId,
+				register: self::LEARNIQ_REGISTER,
+				schema: 'learner-profile',
+				_rbac: false,
+				_multitenancy: false
+			);
+		} catch (DoesNotExistException) {
+			return null;
+		}
+
+		$ncUserId = ($profile?->jsonSerialize()['ncUserId'] ?? null);
+		if (is_string($ncUserId) === false || $ncUserId === '') {
+			return null;
+		}
+
+		return $ncUserId;
+	}//end profileUserId()
 
 	/**
 	 * Whether a signed Attestation exists for the learner + regulation.

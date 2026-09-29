@@ -29,6 +29,8 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Listener\CredentialRenewalListener;
+use OCA\Learniq\Service\CredentialLearner;
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
@@ -38,6 +40,11 @@ use Psr\Log\NullLogger;
  * Tests for CredentialRenewalListener::handle() on Credential -> expired.
  */
 class CredentialRenewalListenerTest extends TestCase {
+
+	/**
+	 * The learner's LearnerProfile uuid, what Credential.learnerId holds.
+	 */
+	private const PROFILE = '5a1d3c2b-7e6f-4a8b-9c0d-1e2f3a4b5c6d';
 
 	/**
 	 * Recorded saveObject() calls.
@@ -85,7 +92,12 @@ class CredentialRenewalListenerTest extends TestCase {
 			}
 		);
 
-		return new CredentialRenewalListener($objectService, new NullLogger());
+		$profiles = $this->createMock(LearnerRefResolver::class);
+		$profiles->method('byRef')->willReturnCallback(
+			static fn (string $learnerRef): ?array => $learnerRef === self::PROFILE ? ['id' => self::PROFILE, 'ncUserId' => 'learner-1'] : null
+		);
+
+		return new CredentialRenewalListener($objectService, new NullLogger(), new CredentialLearner(profiles: $profiles));
 
 	}//end makeListener()
 
@@ -124,7 +136,8 @@ class CredentialRenewalListenerTest extends TestCase {
 
 		$credential = [
 			'id' => 'cred-1',
-			'learnerId' => 'learner-1',
+			'learnerId' => self::PROFILE,
+			'learnerUserId' => 'learner-1',
 			'courseId' => 'course-1',
 			'regulationSlug' => 'avg-2018',
 			'tenant_id' => 'tenant-a',
@@ -137,7 +150,8 @@ class CredentialRenewalListenerTest extends TestCase {
 		self::assertCount(1, $enrolmentSaves);
 		self::assertSame('credential-renewal', $enrolmentSaves[0]['object']['source']);
 		self::assertTrue($enrolmentSaves[0]['object']['mandatory']);
-		self::assertSame('learner-1', $enrolmentSaves[0]['object']['learnerId']);
+		self::assertSame('learner-1', $enrolmentSaves[0]['object']['learnerId'], 'Enrolment.learnerId is the user id, not the profile uuid.');
+		self::assertSame(self::PROFILE, $enrolmentSaves[0]['object']['learnerRef']);
 		self::assertSame('course-1', $enrolmentSaves[0]['object']['courseId']);
 		self::assertSame('avg-2018', $enrolmentSaves[0]['object']['regulationSlug']);
 
@@ -146,6 +160,22 @@ class CredentialRenewalListenerTest extends TestCase {
 		self::assertSame('enrol-1', $credentialSaves[0]['object']['renewalEnrolmentId']);
 
 	}//end testExpiredCredentialCreatesAndLinksRenewalEnrolment()
+
+	/**
+	 * A row written before learnerUserId existed renews for the user its
+	 * profile names.
+	 *
+	 * @return void
+	 */
+	public function testALegacyCredentialRenewsForTheProfilesUser(): void {
+		$listener = $this->makeListener(savedEnrolment: ['id' => 'enrol-3']);
+
+		$listener->handle($this->makeEvent(['id' => 'cred-3', 'learnerId' => self::PROFILE, 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']));
+
+		$enrolmentSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'enrolment'));
+		self::assertCount(1, $enrolmentSaves);
+		self::assertSame('learner-1', $enrolmentSaves[0]['object']['learnerId']);
+	}//end testALegacyCredentialRenewsForTheProfilesUser()
 
 	/**
 	 * A Credential missing learnerId/courseId/tenant_id is skipped — no

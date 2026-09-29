@@ -270,7 +270,9 @@ const registryProp = { ...registry }
 // The caller's tenant (CallerTenantResolver, via PageController) becomes
 // nextcloud-vue's tenant context, so the shared create dialog fills a hidden
 // `tenant_id` with the value every learniq write carries.
-const callerTenant = normaliseCallerTenant(loadState('learniq', 'callerTenant', null))
+const callerTenant = normaliseCallerTenant(
+	loadState('learniq', 'callerTenant', null),
+)
 
 const app = createApp({
 	render: () =>
