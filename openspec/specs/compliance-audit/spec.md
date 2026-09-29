@@ -57,10 +57,13 @@ The system MUST maintain an append-only digitally signed evidence log; any mutat
 - **THEN** the append-only log rejects the change and the signature-verification report flags the break
 
 ### Requirement: Export audit-ready ZIP per regulation and date range
-The system MUST export an audit-ready ZIP per regulation and date range. `AuditPackExportController::export()`
-MUST have a controller-level automated test asserting the export is scoped to the caller's own `tenant_id`
-across every underlying query it issues (audit trail, external-training, verwerkingsregister), and that a
-date range with no matching entries produces a header-only ZIP rather than an error.
+The system MUST export an audit-ready ZIP per regulation and date range, holding only the caller's own tenant's evidence.
+
+The audit trail has no tenant column, and OpenRegister's `AuditTrailMapper::findAll()` drops any filter outside its column allowlist, so the audit-trail query is filtered on the period only. An audit-trail entry MUST reach the pack only when the object it is about is a learniq object whose `tenant_id` equals the caller's tenant (as `CallerTenantResolver` resolves it): the builder loads those objects, grouped by schema, with RBAC and multitenancy off, and keeps an entry by its object's tenant. An entry whose regulation does not match MUST be left out; the regulation is the object's own `regulationSlug`, else the value the entry itself changed (OpenRegister records `changed` as `{field: {old, new}}`, read new then old).
+
+An entry that cannot be attributed to a tenant (its object no longer exists, lies outside the learniq register, carries no `tenant_id`, or the entry names no object) MUST be left out, because it cannot be shown to be the caller's, and MUST be counted in the manifest as `unattributed_entries_excluded`. The external-training query MUST filter on the record's own `tenant_id`, and the verwerkingsregister MUST be read with the caller's own session.
+
+`AuditPackExportController::export()` MUST have a controller-level automated test asserting the pack holds only the caller's tenant's entries, with an audit-trail double that drops unknown filters as the real mapper does, and that a date range with no matching entries produces a header-only ZIP rather than an error.
 
 #### Scenario: Audit pack exported for a regulation
 <!-- @e2e exclude ZIP-stream backend artefact (AuditPackExportController::export) gated by the ADR-023 audit-pack.export action; no DOM surface to drive the download stream. -->
@@ -74,8 +77,23 @@ date range with no matching entries produces a header-only ZIP rather than an er
 
 - **GIVEN** two tenants A and B each have audit-trail entries within the requested date range
 - **WHEN** a user bound to tenant A calls `export()`
-- **THEN** the produced ZIP contains only tenant A's entries
-- **AND** this behaviour is asserted by a controller-level automated test, not only by reasoning about the code
+- **THEN** the produced ZIP contains only the entries whose object belongs to tenant A
+- **AND** this behaviour is asserted by a controller-level automated test whose audit-trail double drops a `tenant_id` filter, as OpenRegister's mapper does, not only by reasoning about the code
+
+#### Scenario: Unattributable audit-trail entries are excluded and counted
+<!-- @e2e exclude Controller-level PHPUnit test (AuditPackExportControllerTest), no scholiq DOM surface. -->
+
+- **GIVEN** audit-trail entries in the period whose object was deleted, lies outside the learniq register, or carries no `tenant_id`
+- **WHEN** a user calls `export()`
+- **THEN** none of those entries is in the pack
+- **AND** the manifest's `unattributed_entries_excluded` equals the number left out
+
+#### Scenario: The regulation comes from the object or the change
+<!-- @e2e exclude Controller-level PHPUnit test (AuditPackExportControllerTest), no scholiq DOM surface. -->
+
+- **GIVEN** an entry about an object without a `regulationSlug`, whose recorded change set `regulationSlug` to the requested regulation, and an entry about an object of another regulation
+- **WHEN** the pack is exported for the requested regulation
+- **THEN** the first entry is in the pack and the second is not
 
 ### Requirement: Coverage computation MUST include verified external training records
 
