@@ -430,7 +430,7 @@ export default {
 					'/apps/openregister/api/objects/learniq/session/{id}',
 					{ id: this.session.id },
 				)
-				await axios.put(url, body)
+				await axios.patch(url, body)
 				this.$emit('changed')
 				this.$emit('close')
 			} catch (e) {

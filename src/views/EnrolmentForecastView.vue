@@ -283,7 +283,7 @@ export default {
 		 */
 		async save() {
 			await this.run(async () => {
-				await axios.put(
+				await axios.patch(
 					generateUrl(OBJECTS + 'enrolment-forecast/' + this.scenario.id),
 					{
 						rates: this.scenario.rates,

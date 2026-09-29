@@ -355,7 +355,7 @@ export default {
 					'/apps/openregister/api/objects/learniq/conference-signup/{id}',
 					{ id: signupId },
 				)
-				await axios.put(transitionUrl, { lifecycle: 'submitted' })
+				await axios.patch(transitionUrl, { lifecycle: 'submitted' })
 
 				this.submitSuccess = true
 				this.selectedTeacherIds = []
