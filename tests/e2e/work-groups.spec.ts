@@ -11,10 +11,10 @@
  * Learner: a temporary learner in the class sees the open set, a full group
  * offers no button, and joining a group with a free place makes them a member.
  *
- * @e2e openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-teacher-sets-up-work-groups-with-a-maximum-size
- * @e2e openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
- * @e2e openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-is-in-one-work-group-per-set
- * @e2e openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-group-hand-in-names-the-whole-work-group
+ * @e2e openspec/specs/enrolment/spec.md#requirement-a-teacher-sets-up-work-groups-with-a-maximum-size
+ * @e2e openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+ * @e2e openspec/specs/enrolment/spec.md#requirement-a-learner-is-in-one-work-group-per-set
+ * @e2e openspec/specs/enrolment/spec.md#requirement-a-group-hand-in-names-the-whole-work-group
  */
 import { writeFileSync } from 'fs'
 import { expect, test } from './fixtures.ts'

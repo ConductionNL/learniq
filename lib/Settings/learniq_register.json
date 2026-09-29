@@ -26563,7 +26563,7 @@
             "ConfidentialNote": {
                 "slug": "confidential-note",
                 "icon": "ShieldAccountOutline",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "Confidential note",
                 "description": "A confidential counsellor's (vertrouwenspersoon) note on one case. Only the author, while in the confidential-counsellors group, and the people the author names can read it. No school role can: not instructors, coordinators, compliance officers or administration managers. Nextcloud admins bypass OpenRegister access rules, so keep the admin group to IT staff. No reference to or from any other schema, not searchable, hard delete. confidential-counsel.",
                 "type": "object",
@@ -26685,7 +26685,7 @@
             "CourseShareConsent": {
                 "slug": "course-share-consent",
                 "icon": "ShieldCheckOutline",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "Course share consent",
                 "description": "A record that a course left the school: who confirmed it held no pupil data and that the school may share everything in it, when, and under which licence. Written by the share export (and the store publish) before the package is handed over; a record that cannot be written stops the share. Stays inside the school: the shared package carries only the chosen author. course-management.",
                 "type": "object",
@@ -26804,7 +26804,7 @@
             "SharedCoursePackage": {
                 "slug": "shared-course-package",
                 "icon": "StoreOutline",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "Shared course",
                 "description": "A course another school shared through the course store, as the registry stores it. Written by a publishing school through the registry's objects API after its sharing gate passed; read by member schools through OpenRegister's store plane, which shows the string card fields and hands the full package to an install. Lets any learniq instance, such as a school board's, act as the course registry. course-management.",
                 "type": "object",
@@ -27226,7 +27226,7 @@
             "LessonTeacherNote": {
                 "slug": "lesson-teacher-note",
                 "icon": "NoteTextOutline",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "Teacher note",
                 "description": "A teacher's note on a lesson, for colleagues only. Learners and guardians can never read it: not in the lesson player and not through the objects API. The note sits after a lesson block, the way the lesson editor shows it. teacher-notes-protection.",
                 "type": "object",

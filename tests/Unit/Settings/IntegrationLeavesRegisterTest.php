@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/leaf-integrations/specs/integration-leaves/spec.md#requirement-leaves-are-declared-not-coded-req-001
+ * @spec openspec/specs/integration-leaves/spec.md#requirement-leaves-are-declared-not-coded-req-001
  */
 
 declare(strict_types=1);
@@ -153,7 +153,7 @@ class IntegrationLeavesRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/leaf-integrations/specs/integration-leaves/spec.md#requirement-learniq-declares-no-polls-leaf-req-006
+	 * @spec openspec/specs/integration-leaves/spec.md#requirement-learniq-declares-no-polls-leaf-req-006
 	 */
 	public function testTheRegisterDeclaresExactlyTheAgreedLeaves(): void {
 		$declared = [];
@@ -176,7 +176,7 @@ class IntegrationLeavesRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/leaf-integrations/specs/integration-leaves/spec.md#requirement-calendar-leaves-on-session-assignment-and-credential-req-002
+	 * @spec openspec/specs/integration-leaves/spec.md#requirement-calendar-leaves-on-session-assignment-and-credential-req-002
 	 */
 	public function testTheManifestDrawsExactlyTheAgreedLeaves(): void {
 		$schemas = self::schemas();
@@ -206,7 +206,7 @@ class IntegrationLeavesRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/leaf-integrations/specs/integration-leaves/spec.md#requirement-leaves-are-declared-not-coded-req-001
+	 * @spec openspec/specs/integration-leaves/spec.md#requirement-leaves-are-declared-not-coded-req-001
 	 */
 	public function testEveryNewLeafWidgetDeclaresItsRequiredApp(): void {
 		foreach (self::pages() as $page) {
@@ -226,7 +226,7 @@ class IntegrationLeavesRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/leaf-integrations/specs/integration-leaves/spec.md#requirement-calendar-leaves-on-session-assignment-and-credential-req-002
+	 * @spec openspec/specs/integration-leaves/spec.md#requirement-calendar-leaves-on-session-assignment-and-credential-req-002
 	 */
 	public function testCatalogueDefinitionsCarryNoLeaf(): void {
 		$schemas = self::schemas();
@@ -252,7 +252,7 @@ class IntegrationLeavesRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/leaf-integrations/specs/integration-leaves/spec.md#requirement-leaves-are-declared-not-coded-req-001
+	 * @spec openspec/specs/integration-leaves/spec.md#requirement-leaves-are-declared-not-coded-req-001
 	 */
 	public function testLibShipsNoIntegrationProvider(): void {
 		$files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::root() . '/lib', FilesystemIterator::SKIP_DOTS));

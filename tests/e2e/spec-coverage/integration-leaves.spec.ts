@@ -5,10 +5,10 @@
  * contacts, forms and deck leaves declared on six detail pages.
  *
  * Covers:
- *   @e2e openspec/changes/leaf-integrations/specs/integration-leaves/spec.md#scenario-a-teacher-links-a-renewal-event-to-an-expiring-credential
- *   @e2e openspec/changes/leaf-integrations/specs/integration-leaves/spec.md#scenario-a-bpv-coordinator-links-the-practical-trainers-contact-card
- *   @e2e openspec/changes/leaf-integrations/specs/integration-leaves/spec.md#scenario-an-assignment-gains-a-structured-intake-form
- *   @e2e openspec/changes/leaf-integrations/specs/integration-leaves/spec.md#scenario-a-school-coach-tracks-a-placement-chase-as-a-card
+ *   @e2e openspec/specs/integration-leaves/spec.md#scenario-a-teacher-links-a-renewal-event-to-an-expiring-credential
+ *   @e2e openspec/specs/integration-leaves/spec.md#scenario-a-bpv-coordinator-links-the-practical-trainers-contact-card
+ *   @e2e openspec/specs/integration-leaves/spec.md#scenario-an-assignment-gains-a-structured-intake-form
+ *   @e2e openspec/specs/integration-leaves/spec.md#scenario-a-school-coach-tracks-a-placement-chase-as-a-card
  *
  * What the browser can answer: the widget is wired onto the page and follows
  * the leaf's required app. Each leaf widget declares `requiredApp`, so both
@@ -155,7 +155,7 @@ test.describe('leaf-integrations: calendar, contacts, forms and deck leaves', ()
 	test.describe.configure({ timeout: 120_000 })
 
 	for (const c of CASES) {
-		// @e2e openspec/changes/leaf-integrations/specs/integration-leaves/spec.md
+		// @e2e openspec/specs/integration-leaves/spec.md
 		test(`${c.page} carries its leaf widgets`, async ({
 			loggedInPage: page,
 		}) => {

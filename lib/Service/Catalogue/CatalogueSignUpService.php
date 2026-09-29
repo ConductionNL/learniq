@@ -40,7 +40,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
  */
 
 declare(strict_types=1);
@@ -59,7 +59,7 @@ use Throwable;
 /**
  * Sign-up and withdraw on the learner's own behalf.
  *
- * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
  */
 class CatalogueSignUpService {
 
@@ -88,7 +88,7 @@ class CatalogueSignUpService {
 	 *
 	 * @return PortalOutcome 200 `{courses, programmes}`.
 	 *
-	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
 	 */
 	public function catalogue(PortalLearner $learner, string $search): PortalOutcome {
 		return new PortalOutcome(status: Http::STATUS_OK, body: $this->reader->entries(userId: $learner->ncUserId, search: $search));
@@ -102,8 +102,8 @@ class CatalogueSignUpService {
 	 *
 	 * @return PortalOutcome 200 `{enrolmentId, lifecycle}`, or 404 / 409 / 422 with a reason.
 	 *
-	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-an-open-course
-	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#scenario-a-prerequisite-blocks-a-sign-up
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-an-open-course
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-prerequisite-blocks-a-sign-up
 	 */
 	public function signUpCourse(PortalLearner $learner, string $courseId): PortalOutcome {
 		$course = $this->openEntry(schema: 'course', id: $courseId);
@@ -133,7 +133,7 @@ class CatalogueSignUpService {
 	 *
 	 * @return PortalOutcome 200 `{created: [...], refused: [...]}`, or 404 / 422.
 	 *
-	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-a-track
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-a-track
 	 */
 	public function signUpProgramme(PortalLearner $learner, string $programmeId): PortalOutcome {
 		$programme = $this->openEntry(schema: 'programme', id: $programmeId);
@@ -175,7 +175,7 @@ class CatalogueSignUpService {
 	 *
 	 * @return PortalOutcome 200 `{enrolmentId, lifecycle}`, or 404 / 422.
 	 *
-	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#scenario-a-learner-changes-their-mind
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-learner-changes-their-mind
 	 */
 	public function withdraw(PortalLearner $learner, string $enrolmentId): PortalOutcome {
 		$enrolment = $this->read(schema: self::ENROLMENT, id: $enrolmentId);
@@ -210,7 +210,7 @@ class CatalogueSignUpService {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-withdraws-their-own-sign-up
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-withdraws-their-own-sign-up
 	 */
 	public function requireOwnEnrolment(PortalLearner $learner, string $enrolmentId): bool {
 		$enrolment = $this->read(schema: self::ENROLMENT, id: $enrolmentId);
@@ -228,7 +228,7 @@ class CatalogueSignUpService {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-course-or-programme-says-whether-learners-may-sign-up
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-course-or-programme-says-whether-learners-may-sign-up
 	 */
 	public function requireOpenForSignUp(string $schema, string $id): bool {
 		return is_array($this->openEntry(schema: $schema, id: $id)) === true;
