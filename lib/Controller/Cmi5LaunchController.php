@@ -35,6 +35,7 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\Cmi5LaunchTokenService;
+use OCA\Learniq\Service\XapiDocumentStore;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -49,6 +50,7 @@ use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\Security\ISecureRandom;
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
@@ -64,6 +66,27 @@ class Cmi5LaunchController extends Controller {
 	 * @var int
 	 */
 	private const FETCH_TTL_SECONDS = 300;
+
+	/**
+	 * The stateId of the launch data document (cmi5 section 10.2.1).
+	 *
+	 * @var string
+	 */
+	public const LAUNCH_DATA_STATE_ID = 'LMS.LaunchData';
+
+	/**
+	 * The cmi5 session id context extension.
+	 *
+	 * @var string
+	 */
+	private const SESSION_ID_EXTENSION = 'https://w3id.org/xapi/cmi5/context/extensions/sessionid';
+
+	/**
+	 * The moveOn values cmi5 section 13.1.4 allows.
+	 *
+	 * @var array<int, string>
+	 */
+	private const MOVE_ON = ['Passed', 'Completed', 'CompletedAndPassed', 'CompletedOrPassed', 'NotApplicable'];
 
 	/**
 	 * The cache the fetch codes live in.
@@ -82,6 +105,8 @@ class Cmi5LaunchController extends Controller {
 	 * @param ICacheFactory          $cacheFactory  Holds the one-time fetch codes.
 	 * @param ISecureRandom          $secureRandom  Generates fetch codes.
 	 * @param IURLGenerator          $urlGenerator  Builds the absolute endpoint URLs.
+	 * @param XapiDocumentStore      $documents     Stores the LMS.LaunchData state document.
+	 * @param LoggerInterface        $logger        PSR logger.
 	 */
 	public function __construct(
 		IRequest $request,
@@ -91,6 +116,8 @@ class Cmi5LaunchController extends Controller {
 		ICacheFactory $cacheFactory,
 		private readonly ISecureRandom $secureRandom,
 		private readonly IURLGenerator $urlGenerator,
+		private readonly XapiDocumentStore $documents,
+		private readonly LoggerInterface $logger,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 		$this->fetchCodes = $cacheFactory->createDistributed('learniq-cmi5-fetch');
@@ -136,6 +163,34 @@ class Cmi5LaunchController extends Controller {
 			activityId: $activityId
 		);
 
+		$actor = [
+			'objectType' => 'Agent',
+			'account'    => ['homePage' => $this->urlGenerator->getAbsoluteURL('/'), 'name' => $uid],
+		];
+
+		// cmi5 section 10.2.1: the LMS writes LMS.LaunchData before the AU launches,
+		// and an AU that cannot read it must abort. No fetch code without it.
+		try {
+			$this->documents->put(
+				key: $this->documents->key(
+					kind: XapiDocumentStore::KIND_STATE,
+					actorId: $uid,
+					activityId: $activityId,
+					registration: $registration,
+					documentId: self::LAUNCH_DATA_STATE_ID
+				),
+				contents: (string)json_encode($this->launchData(lesson: $lesson, lessonId: $lessonId, activityId: $activityId), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+				contentType: 'application/json',
+				context: ['agent' => $actor, 'lessonId' => $lessonId]
+			);
+		} catch (Throwable $e) {
+			$this->logger->error('[Cmi5LaunchController] writing LMS.LaunchData failed: {msg}', ['msg' => $e->getMessage()]);
+			return new JSONResponse(
+				data: ['error' => 'cmi5_launch_data_failed', 'message' => 'The lesson could not be prepared for launch. Please try again later.'],
+				statusCode: Http::STATUS_SERVICE_UNAVAILABLE
+			);
+		}
+
 		$code = $this->secureRandom->generate(48, ISecureRandom::CHAR_ALPHANUMERIC);
 		$this->fetchCodes->set($code, $token, self::FETCH_TTL_SECONDS);
 
@@ -143,10 +198,7 @@ class Cmi5LaunchController extends Controller {
 			data: [
 				'endpoint'     => $this->urlGenerator->getAbsoluteURL('/apps/learniq/api/lrs/'),
 				'fetchUrl'     => $this->urlGenerator->getAbsoluteURL('/apps/learniq/api/cmi5/fetch/' . $code),
-				'actor'        => [
-					'objectType' => 'Agent',
-					'account'    => ['homePage' => $this->urlGenerator->getAbsoluteURL('/'), 'name' => $uid],
-				],
+				'actor'        => $actor,
 				'activityId'   => $activityId,
 				'registration' => $registration,
 			]
@@ -181,6 +233,51 @@ class Cmi5LaunchController extends Controller {
 
 		return new JSONResponse(data: ['auth-token' => $this->tokens->authToken(launchToken: $token)]);
 	}//end fetch()
+
+	/**
+	 * The LMS.LaunchData state document for a launch (cmi5 section 10.2.1).
+	 *
+	 * `moveOn`, `masteryScore` and `launchParameters` come from the lesson when
+	 * it carries them; without a course structure import the lesson rarely does,
+	 * so `moveOn` falls back to NotApplicable, the cmi5 course structure default.
+	 * learniq has no course structure publisher id, so the grouping context
+	 * activity is the AU's own activity IRI.
+	 *
+	 * @param array<string, mixed> $lesson     The lesson as read.
+	 * @param string               $lessonId   The lesson UUID.
+	 * @param string               $activityId The AU activity IRI of this launch.
+	 *
+	 * @return array<string, mixed> The document.
+	 */
+	private function launchData(array $lesson, string $lessonId, string $activityId): array {
+		$moveOn = (string)($lesson['moveOn'] ?? '');
+		if (in_array($moveOn, self::MOVE_ON, true) === false) {
+			$moveOn = 'NotApplicable';
+		}
+
+		$courseId = (string)($lesson['courseId'] ?? '');
+		$data = [
+			'contextTemplate' => [
+				'contextActivities' => ['grouping' => [['objectType' => 'Activity', 'id' => $activityId]]],
+				'extensions'        => [self::SESSION_ID_EXTENSION => $this->uuid()],
+			],
+			'launchMode'      => 'Normal',
+			'moveOn'          => $moveOn,
+			'returnURL'       => $this->urlGenerator->getAbsoluteURL('/apps/learniq/courses/' . rawurlencode($courseId) . '/lessons/' . rawurlencode($lessonId)),
+		];
+
+		$launchParameters = $lesson['launchParameters'] ?? null;
+		if (is_string($launchParameters) === true && $launchParameters !== '') {
+			$data['launchParameters'] = $launchParameters;
+		}
+
+		$masteryScore = $lesson['masteryScore'] ?? null;
+		if ((is_int($masteryScore) === true || is_float($masteryScore) === true) && $masteryScore >= 0 && $masteryScore <= 1) {
+			$data['masteryScore'] = $masteryScore;
+		}
+
+		return $data;
+	}//end launchData()
 
 	/**
 	 * Read a lesson with the caller's RBAC, or null.

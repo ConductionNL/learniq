@@ -168,6 +168,8 @@ require_once __DIR__ . '/Support/OrEntityFactory.php';
 require_once __DIR__ . '/Support/GuardVerdicts.php';
 require_once __DIR__ . '/Support/RegisterFaithfulStore.php';
 require_once __DIR__ . '/Support/CapturingLogger.php';
+require_once __DIR__ . '/Support/XapiDocumentsInMemory.php';
+require_once __DIR__ . '/Support/QueryRequest.php';
 
 // Integriq's connection-registry event (adopt-connection-registry).
 // ConnectionReportService sends it by string class name behind class_exists

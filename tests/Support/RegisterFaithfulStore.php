@@ -55,6 +55,13 @@ final class RegisterFaithfulStore {
 	private static ?array $declared = null;
 
 	/**
+	 * Slugs declared through declarePending(), not read from the register.
+	 *
+	 * @var array<string, true>
+	 */
+	private static array $pending = [];
+
+	/**
 	 * Rows keyed by schema slug.
 	 *
 	 * @var array<string, array<int, array<string, mixed>>>
@@ -168,6 +175,27 @@ final class RegisterFaithfulStore {
 
 		return true;
 	}//end matches()
+
+	/**
+	 * Declare a schema the register does not ship yet, so a test can exercise
+	 * code written ahead of its register change. Remove the call once the
+	 * schema is in `learniq_register.json`; a slug that already ships is
+	 * refused so the two can never disagree.
+	 *
+	 * @param string             $slug       The schema slug.
+	 * @param array<int, string> $properties The property names the pending schema declares.
+	 *
+	 * @return void
+	 */
+	public static function declarePending(string $slug, array $properties): void {
+		$declared = self::declaredProperties();
+		if (isset($declared[$slug]) === true && isset(self::$pending[$slug]) === false) {
+			throw new RuntimeException("Schema '$slug' ships in the register now: drop the declarePending() call");
+		}
+
+		self::$declared[$slug] = $properties;
+		self::$pending[$slug]  = true;
+	}//end declarePending()
 
 	/**
 	 * Declared property names per schema slug, read once from the register.

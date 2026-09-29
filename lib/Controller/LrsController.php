@@ -44,6 +44,7 @@ namespace OCA\Learniq\Controller;
 use InvalidArgumentException;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\Cmi5LaunchTokenService;
+use OCA\Learniq\Service\XapiCallerResolver;
 use OCA\Learniq\Service\XapiStatementIngest;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -71,7 +72,7 @@ class LrsController extends Controller {
 	 * @param IRequest               $request      The current request.
 	 * @param IUserSession           $userSession  The session, for lesson-player callers.
 	 * @param IGroupManager          $groupManager Admin check for the query scope.
-	 * @param Cmi5LaunchTokenService $tokens       Verifies AU launch tokens.
+	 * @param XapiCallerResolver     $callers      Resolves the token or session caller.
 	 * @param XapiStatementIngest    $ingest       Stamps, stores and reads statements.
 	 * @param LoggerInterface        $logger       PSR logger.
 	 */
@@ -79,7 +80,7 @@ class LrsController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
-		private readonly Cmi5LaunchTokenService $tokens,
+		private readonly XapiCallerResolver $callers,
 		private readonly XapiStatementIngest $ingest,
 		private readonly LoggerInterface $logger,
 	) {
@@ -152,30 +153,22 @@ class LrsController extends Controller {
 	}//end getStatements()
 
 	/**
-	 * Resolve the caller: a valid launch token first, else a session with a valid request token.
+	 * Resolve the caller through the shared resolver, keeping the launch keys a statement stores.
 	 *
-	 * @return array{actorId: string, launch: array<string, string>}|null The identity, or null.
+	 * @return array{actorId: string, launch: array{lessonId: string, courseId: string}}|null The identity, or null.
 	 */
 	private function authenticate(): ?array {
-		$header = trim((string)$this->request->getHeader('Authorization'));
-		if (preg_match('/^(Basic|Bearer)\s+(\S+)$/i', $header, $match) === 1) {
-			$claims = $this->tokens->verifyAuthToken(credential: $match[2]);
-			if ($claims === null) {
-				return null;
-			}
-
-			return [
-				'actorId' => (string)$claims['sub'],
-				'launch'  => ['lessonId' => (string)($claims['aud'] ?? ''), 'courseId' => (string)($claims['courseId'] ?? '')],
-			];
-		}
-
-		$user = $this->userSession->getUser();
-		if ($user === null || $this->request->passesCSRFCheck() === false) {
+		$caller = $this->callers->resolve(request: $this->request);
+		if ($caller === null) {
 			return null;
 		}
 
-		return ['actorId' => $user->getUID(), 'launch' => []];
+		$launch = [];
+		if ($caller['launch'] !== []) {
+			$launch = ['lessonId' => $caller['launch']['lessonId'] ?? '', 'courseId' => $caller['launch']['courseId'] ?? ''];
+		}
+
+		return ['actorId' => $caller['actorId'], 'launch' => $launch];
 	}//end authenticate()
 
 	/**
