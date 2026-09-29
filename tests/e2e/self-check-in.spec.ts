@@ -13,8 +13,8 @@
  * The lesson is created running: it started two minutes ago, inside the
  * default five-minute grace, so the record is `present`.
  *
- * @e2e openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-teacher-opens-a-self-check-in-window-for-a-lesson
- * @e2e openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+ * @e2e openspec/specs/attendance/spec.md#requirement-a-teacher-opens-a-self-check-in-window-for-a-lesson
+ * @e2e openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
  */
 import { expect, test } from './fixtures.ts'
 import { LiveFixtures, signInAs } from './live-fixtures.ts'

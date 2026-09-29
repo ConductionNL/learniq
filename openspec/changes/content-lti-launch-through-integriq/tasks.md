@@ -35,11 +35,13 @@
 - **spec_ref**: `specs/course-management/spec.md#requirement-the-connection-registry-says-whether-lti-works`
 - **files**: `lib/Settings/connections.json`, the connection registry reader, the admin page
 - [x] Implement
-- [ ] Test: unit test on the availability computation (done: `ConnectionReportServiceTest::testTheLtiRowFollowsIntegriqsLaunchEvent`, `ConnectionsDeclarationTest`); Playwright for the row state not added, see the note above
+- [x] Test: unit test on the availability computation (done: `ConnectionReportServiceTest::testTheLtiRowFollowsIntegriqsLaunchEvent`, `ConnectionsDeclarationTest`); Playwright for the row state not added, see the note above
+  - r5-live, 2026-09-29, shared dev instance: the row state now has a Playwright check. `tests/e2e/connection-registry.spec.ts` "the LTI row reads what learniq reported" asserts the `lti` row status equals learniq's last report (`configured` with integriq installed) and links /settings/admin/learniq#section-lti. 1 passed (#1427).
 
 ### Task 5: Live launch against a reference tool
 - **files**: none (verification)
 - [ ] (not run: no instance with integriq and a reference tool in this lane) Test: with integriq's change installed, open a lesson with the IMS reference tool and record in the PR body that the tool opened and a score came back as a concept grade
+  - r5-live, 2026-09-29, shared dev instance, still open: no IMS reference tool is registered on the shared instance, so no tool can open and no score can come back.
 
 ## Verification
 - `openspec validate content-lti-launch-through-integriq --strict` passes

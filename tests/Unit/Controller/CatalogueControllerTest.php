@@ -82,12 +82,13 @@ class CatalogueControllerTest extends TestCase {
 	/**
 	 * The in-app controller for a learner with a profile.
 	 *
-	 * @param array<string, mixed> $params The query parameters.
-	 * @param array<int, mixed>    $seen   Receives the reader's arguments.
+	 * @param array<string, mixed> $params     The query parameters.
+	 * @param array<int, mixed>    $seen       Receives the reader's arguments.
+	 * @param string|null          $profileRef The caller's profile uuid, null for none.
 	 *
 	 * @return CatalogueController
 	 */
-	private function controller(array $params, array &$seen): CatalogueController {
+	private function controller(array $params, array &$seen, ?string $profileRef='lp-1'): CatalogueController {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('p.ganpat');
 		$session = $this->createMock(IUserSession::class);
@@ -102,7 +103,7 @@ class CatalogueControllerTest extends TestCase {
 			}
 		);
 		$profiles = $this->createMock(LearnerRefResolver::class);
-		$profiles->method('resolve')->willReturn('lp-1');
+		$profiles->method('resolve')->willReturn($profileRef);
 
 		return new CatalogueController(request: $request, userSession: $session, reader: $reader, signUps: $this->signUps(), messages: $this->messages(), profiles: $profiles);
 	}//end controller()
@@ -138,6 +139,23 @@ class CatalogueControllerTest extends TestCase {
 		self::assertSame(404, $controller->withdraw(id: 'other')->getStatus());
 		self::assertSame(404, $controller->signUpCourse(id: 'closed')->getStatus());
 	}//end testWritesReachTheServiceOnlyForOpenAndOwnObjects()
+
+	/**
+	 * An account without a learner profile is refused every write with
+	 * `not_a_learner` and a message that says who to ask, not a bare code.
+	 *
+	 * @return void
+	 */
+	public function testAnAccountWithoutALearnerProfileIsToldWhoToAsk(): void {
+		$seen = [];
+		$controller = $this->controller(params: [], seen: $seen, profileRef: null);
+		$expected = ['error' => 'not_a_learner', 'message' => 'Your account has no learner profile yet. Ask your school or administrator to add one.'];
+
+		foreach ([$controller->signUpCourse(id: 'c-1'), $controller->signUpProgramme(id: 'p-1'), $controller->withdraw(id: 'e-1')] as $response) {
+			self::assertSame(403, $response->getStatus());
+			self::assertSame($expected, $response->getData());
+		}
+	}//end testAnAccountWithoutALearnerProfileIsToldWhoToAsk()
 
 	/**
 	 * The portal lists the catalogue and withdraws for the pupil, and an

@@ -518,7 +518,7 @@ export default {
 					'/apps/openregister/api/objects/learniq/report-card/{id}',
 					{ id },
 				)
-				await axios.put(url, { lifecycle: toLifecycle })
+				await axios.patch(url, { lifecycle: toLifecycle })
 				await this.loadCards()
 			} catch (e) {
 				console.error('[RapportvergaderingReviewView] transition failed', e)

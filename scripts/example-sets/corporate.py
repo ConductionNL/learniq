@@ -594,7 +594,9 @@ def build() -> dict:
         if expires is not None:
             payload["validUntil"] = iso(expires)
         payload["credentialSubject"] = {"type": ["AchievementSubject"], "achievement": {"type": ["Achievement"], "name": c["name"]}}
-        fields = {"learnerId": p["profile"]["uuid"], "courseId": c["uuid"], "kind": "certificate", "issuedAt": iso(issued)}
+        # learnerId is the LearnerProfile uuid; learnerUserId its Nextcloud user id, the read rule's key.
+        fields = {"learnerId": p["profile"]["uuid"], "learnerUserId": p["profile"]["ncUserId"], "courseId": c["uuid"],
+                  "kind": "certificate", "issuedAt": iso(issued)}
         if expires is not None:
             fields["expiresAt"] = iso(expires)
         fields.update({"issuerDid": issuer[1], "signature": UNSIGNED, "openbadges3Payload": payload, "issuedBy": issuer[0], "source": source})

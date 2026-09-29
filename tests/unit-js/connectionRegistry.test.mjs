@@ -9,7 +9,7 @@
 // nothing, and neither logs a thing. So this test reads the real fragment and
 // checks every name against the module that has to answer it.
 //
-// @spec openspec/changes/adopt-connection-registry/specs/integrations/spec.md#requirement-req-int-conn-003-an-admin-reads-learniqs-connections-on-an-integrations-page
+// @spec openspec/specs/integrations/spec.md#requirement-req-int-conn-003-an-admin-reads-learniqs-connections-on-an-integrations-page
 
 import assert from 'node:assert/strict'
 import fs from 'node:fs'

@@ -23,7 +23,8 @@
 - **spec_ref**: `specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue`, `#requirement-provider-courses-show-their-provider`
 - **files**: `src/views/CourseCatalogue.vue`, `src/manifest.d/my-learning.json`, `src/menu-layout.json` if needed, `src/registry.js`
 - [x] Implement
-- [ ] Test: Playwright `tests/e2e/course-catalogue.spec.ts` (search, sign up, withdraw)
+- [x] Test: Playwright `tests/e2e/course-catalogue.spec.ts` (search, sign up, withdraw)
+- Live 2026-09-29 on localhost:8080 (#1460, served 71a2c414): the coordinator and learner tests passed (56.8s, 3.0m). Admin sets "Sign-up by learners" to Open on the course form (selfEnrolment becomes open). A temporary learner with a learner profile then searches, signs up (one enrolment: active, source self) and withdraws (withdrawn, "Sign up" shows again). They sign up for a programme of three courses (three enrolments, each with the programmeId), see "Provider: Go1" on a provider course, and request a place on an on-request course (one enrolment: pending, self).
 - Page `src/views/CourseCatalogue.vue` at `/catalogue`, menu under My learning. Playwright test not written: no live instance in this lane.
 
 ### Task 4: Sign-up requests view and course forms
@@ -31,6 +32,7 @@
 - **files**: `src/manifest.d/people.json` (SignUpRequests), `src/manifest.d/learning.json` (Course and Programme forms, the imported filter)
 - [x] Implement
 - [ ] Test: Playwright `tests/e2e/course-catalogue.spec.ts` (manager approves a request)
+- Live 2026-09-29 (#1460): a temporary team lead (not the manager) approves the pending request from EnrolmentDetail, and the enrolment becomes active. The test stays red on its soft check for a button named "Approve": nextcloud-vue 2.57.1 `CnLifecycleActions.labelFor()` labels the transition with its schema description. Open until the label reads Approve and the manager path runs.
 - Sign-up requests are a menu preset on the Enrolments index (`query: {source: self, lifecycle: pending}`), and "Imported, not yet published" a preset on the Courses index (`lifecycle: draft`, `license: all-rights-reserved`), per ADR-097 decision 5 (no second index page per schema); approve and decline come from EnrolmentDetail's lifecycle actions. The lti-lesson part of the imported filter is left out (an index filter cannot join lessons). Playwright test not written.
 
 ### Task 5: Seed data and translations

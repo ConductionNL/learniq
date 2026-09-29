@@ -19,7 +19,7 @@
  * Dynamic routes (`:id`) are left out: with a placeholder id they render a
  * not-found state, which says nothing about whether the component resolved.
  *
- * @e2e openspec/changes/registry-component-fix/specs/component-registry/spec.md#requirement-every-type-custom-manifest-pages-component-must-be-registered
+ * @e2e openspec/specs/component-registry/spec.md#requirement-every-type-custom-manifest-pages-component-must-be-registered
  */
 import { effectiveManifest } from './effective-manifest.ts'
 import { expect, test } from './fixtures.ts'

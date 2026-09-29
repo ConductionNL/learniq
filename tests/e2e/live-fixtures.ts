@@ -346,11 +346,10 @@ export async function signInAs(browser: Browser, user: TempUser): Promise<Page> 
 		.locator('#submit, button[type="submit"], input[type="submit"]')
 		.first()
 		.click()
-	// Wait for the redirect only, not for the landing page to load: the
-	// dashboard a fresh account lands on pulls every app's widgets and can
-	// take longer than a minute to fire `load` on the shared instance.
+	// The post-login landing page is Nextcloud's dashboard, which loads every
+	// app's widgets; on the shared instance that took over 60 s under load.
 	await page.waitForURL((url) => !url.pathname.includes('/login'), {
-		timeout: 60_000,
+		timeout: 120_000,
 		waitUntil: 'commit',
 	})
 	await page.evaluate(() => {

@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-a-marker-sees-other-marks-only-after-submitting-their-own
+ * @spec openspec/specs/assignments/spec.md#requirement-a-marker-sees-other-marks-only-after-submitting-their-own
  */
 
 declare(strict_types=1);
@@ -40,7 +40,7 @@ use OCA\OpenRegister\Service\ObjectService;
 /**
  * Reads the marks of one submission for one caller.
  *
- * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-a-marker-sees-other-marks-only-after-submitting-their-own
+ * @spec openspec/specs/assignments/spec.md#requirement-a-marker-sees-other-marks-only-after-submitting-their-own
  */
 class SubmissionMarkReader {
 
@@ -70,7 +70,7 @@ class SubmissionMarkReader {
 	 *
 	 * @return array{allowed: bool, marks: list<array<string, mixed>>, ownMark: array<string, mixed>|null, complete: bool, summary: array|null}
 	 *
-	 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#scenario-the-second-marker-cannot-peek
+	 * @spec openspec/specs/assignments/spec.md#scenario-the-second-marker-cannot-peek
 	 */
 	public function forCaller(array $submission, string $userId, bool $seesAll): array {
 		$marks = $this->marks(submissionId: (string)($submission['id'] ?? ''));
@@ -103,7 +103,7 @@ class SubmissionMarkReader {
 	 *
 	 * @return array{allocated: int, submitted: int, average: float|null, highest: float|null}
 	 *
-	 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-one-person-sets-the-final-grade-once-every-mark-is-in
+	 * @spec openspec/specs/assignments/spec.md#requirement-one-person-sets-the-final-grade-once-every-mark-is-in
 	 */
 	public function summary(array $marks): array {
 		$grades = [];

@@ -4,7 +4,7 @@
 		"spdx-copyright": "2026 Conduction B.V.",
 		"change": "segment-feature-flags",
 		"adr": "ADR-037 modular manifest fragment — never edit src/manifest.json",
-		"description": "LearniqSettings: the admin-only segment (po/vo/mbo/he/corporate) setting. Does not gate any other menu's visibility yet; see openspec/changes/segment-feature-flags/."
+		"description": "LearniqSettings: the admin-only segment (po/vo/mbo/he/corporate) setting. Does not gate any other menu's visibility yet; see openspec/changes/archive/2026-09-28-segment-feature-flags/."
 	},
 	"menu": [
 		{
@@ -38,7 +38,7 @@
 			"route": "/settings/learniq/:id",
 			"type": "detail",
 			"title": "App settings",
-			"_note": "LearniqSettings is a flat, un-lifecycled singleton (segment, setBy, setAt) mirroring SovereigntyPolicy's own singleton shape — an admin-configuration archetype, not a document or a correspondence record (HARD RULE 1: no email/calendar/files leaves). Body is a single Data widget; no Related panel (nothing else references this record yet). Sidebar keeps metadata + audit-trail. Setting segment here does not yet change which menus render for anyone: menu gating on this value is a follow-up code change (see openspec/changes/segment-feature-flags/design.md).",
+			"_note": "LearniqSettings is a flat, un-lifecycled singleton (segment, setBy, setAt) mirroring SovereigntyPolicy's own singleton shape — an admin-configuration archetype, not a document or a correspondence record (HARD RULE 1: no email/calendar/files leaves). Body is a single Data widget; no Related panel (nothing else references this record yet). Sidebar keeps metadata + audit-trail. Setting segment here does not yet change which menus render for anyone: menu gating on this value is a follow-up code change (see openspec/changes/archive/2026-09-28-segment-feature-flags/design.md).",
 			"config": {
 				"register": "learniq",
 				"schema": "LearniqSettings",

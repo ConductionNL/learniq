@@ -49,6 +49,9 @@
       queryable via GET, `verified_actor_id` is the authenticated learner (not the payload's claimed actor),
       and the OR audit-trail entry `xapi.statement.received` exists (the schema's `appendOnly` lifecycle
       fired).
+  - r5-live, 2026-09-29, shared dev instance, still open. Works live: generating the launch key, a learner launch (200 with endpoint, fetchUrl, actor, registration), and redeeming the fetch code (200, auth-token). Blocked by two findings, each now with its own lane:
+  - (1) OpenRegister: `POST /api/lrs/statements` with a valid token answers 500 `SCHEMA_APPEND_ONLY ... update operations are not permitted`. OR treats any save with a uuid on an append-only schema as an update, and the ingest passes the xAPI statement id. 0 statements stored.
+  - (2) `Authorization: Basic <token>`, as cmi5 AUs send it, is refused with 401 by Nextcloud's auth layer before LrsController runs; `Bearer <token>` reaches it.
 - [x] 3.5 Security test: POST a statement with `payload.actor.account.name` set to a different learner's UUID
       → assert `verified_actor_id` is still the authenticated caller's own identity, not the payload claim.
 
@@ -82,3 +85,14 @@
 - [x] 6.3 Run `composer check:strict` on all touched/new PHP files and fix any pre-existing warnings
       encountered in them (per CLAUDE.md).
 - [x] 6.4 Run `openspec validate cmi5-xapi-lrs-ingest --strict` and resolve any errors.
+
+## 7. Basic auth reachability
+
+- [x] 7.1 Hand out the auth-token as the base64 of the launch JWT (`Cmi5LaunchTokenService::authToken()`), so a
+      cmi5 AU's `Authorization: Basic <auth-token>` is not read by Nextcloud as a `user:password` login and
+      rejected before `LrsController` runs. Decision and live proof in `design.md`.
+- [x] 7.2 Verify the credential with `Cmi5LaunchTokenService::verifyAuthToken()`, which accepts the auth-token
+      and, for Bearer callers, the bare JWT.
+- [x] 7.3 Unit tests: `Cmi5LaunchTokenServiceTest::testAuthTokenIsNotReadAsANextcloudLoginAndVerifies` and
+      `::testInvalidAuthTokensAreRefused`; `Cmi5LaunchControllerTest::testLaunchAndSingleUseFetch` asserts the
+      fetch URL hands out the wrapped token.

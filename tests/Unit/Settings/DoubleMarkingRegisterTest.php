@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-an-assignment-can-ask-for-more-than-one-marker
+ * @spec openspec/specs/assignments/spec.md#requirement-an-assignment-can-ask-for-more-than-one-marker
  */
 
 declare(strict_types=1);

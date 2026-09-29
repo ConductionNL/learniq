@@ -233,7 +233,7 @@ export default {
 					'/apps/openregister/api/objects/learniq/report-period/{id}',
 					{ id: this.reportPeriodId },
 				)
-				await axios.put(url, { lifecycle: 'composed' })
+				await axios.patch(url, { lifecycle: 'composed' })
 				this.$emit('composed')
 				this.$emit('close')
 			} catch (e) {

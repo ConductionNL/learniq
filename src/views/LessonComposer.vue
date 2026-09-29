@@ -624,7 +624,7 @@ export default {
 							`filters[lessonId]=${this.lessonId}&_limit=200`,
 						),
 						this.fetchList(
-							'Assessment',
+							'exam',
 							`filters[courseId]=${this.courseId}&_limit=200`,
 						),
 						this.fetchList(

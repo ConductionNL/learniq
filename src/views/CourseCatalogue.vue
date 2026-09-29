@@ -126,6 +126,7 @@ import {
 	NcSelect,
 	NcTextField,
 } from '@nextcloud/vue'
+import { canWithdraw, isLive, withdrawIds } from '../utils/catalogueCard.js'
 
 export default {
 	name: 'CourseCatalogue',
@@ -215,7 +216,7 @@ export default {
 		 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
 		 */
 		isLive(entry) {
-			return ['pending', 'active'].includes(entry.enrolment?.lifecycle)
+			return isLive(entry)
 		},
 
 		/**
@@ -224,13 +225,7 @@ export default {
 		 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-withdraws-their-own-sign-up
 		 */
 		canWithdraw(entry) {
-			const e = entry.enrolment
-			return Boolean(
-				e
-				&& this.isLive(entry)
-				&& e.source === 'self'
-				&& !(e.progressPercent > 0),
-			)
+			return canWithdraw(entry)
 		},
 
 		/**
@@ -289,7 +284,8 @@ export default {
 		},
 
 		/**
-		 * Withdraw an own sign-up.
+		 * Withdraw an own sign-up: the course's enrolment, or every live
+		 * enrolment a programme sign-up created.
 		 *
 		 * @param {object} entry A catalogue card.
 		 * @return {Promise<void>}
@@ -298,11 +294,11 @@ export default {
 		async withdraw(entry) {
 			this.busy = entry.id
 			try {
-				await axios.post(
-					generateUrl(
-						`/apps/learniq/api/enrolments/${entry.enrolment.id}/withdraw`,
-					),
-				)
+				for (const id of withdrawIds(entry)) {
+					await axios.post(
+						generateUrl(`/apps/learniq/api/enrolments/${id}/withdraw`),
+					)
+				}
 				await this.load()
 			} catch (error) {
 				this.notes = {

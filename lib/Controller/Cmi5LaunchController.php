@@ -179,7 +179,7 @@ class Cmi5LaunchController extends Controller {
 
 		$this->fetchCodes->remove($code);
 
-		return new JSONResponse(data: ['auth-token' => $token]);
+		return new JSONResponse(data: ['auth-token' => $this->tokens->authToken(launchToken: $token)]);
 	}//end fetch()
 
 	/**

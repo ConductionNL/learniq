@@ -247,6 +247,55 @@ class Cmi5LaunchTokenService {
 	}//end verifyLaunchToken()
 
 	/**
+	 * Wrap a launch JWT into the cmi5 `auth-token` the AU sends as `Authorization: Basic <auth-token>`.
+	 *
+	 * The cmi5 spec (§8.2.3) makes the AU send the auth-token verbatim as Basic credentials.
+	 * Nextcloud base64-decodes every Basic header and, when the result has the
+	 * `user:password` shape, attempts a login and answers 401 before any app
+	 * code runs (`OC\User\Session::tryBasicAuthLogin`, caught in `index.php`).
+	 * A bare JWT has that shape: its header decodes to `{"alg":"RS256",...`.
+	 * The base64 of the JWT decodes to the JWT itself, whose alphabet
+	 * (base64url plus `.`) never contains a colon, so Nextcloud sees no
+	 * credentials, skips the login and lets the public LRS route run.
+	 *
+	 * @param string $launchToken The compact JWT from mintLaunchToken().
+	 *
+	 * @return string The auth-token handed out by the fetch URL.
+	 *
+	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#7-basic-auth-reachability
+	 */
+	public function authToken(string $launchToken): string {
+		return base64_encode($launchToken);
+	}//end authToken()
+
+	/**
+	 * Verify the credential an AU sends (Basic or Bearer) and return the launch claims, or null.
+	 *
+	 * Accepts the auth-token from authToken() and, for Bearer callers, the bare
+	 * JWT. Standard base64 has no `.`, so a credential with exactly two dots is
+	 * a bare JWT; anything else is decoded strictly first.
+	 *
+	 * @param string $credential The credential after the `Basic ` or `Bearer ` scheme.
+	 *
+	 * @return array<string, mixed>|null The claims, or null.
+	 *
+	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#7-basic-auth-reachability
+	 */
+	public function verifyAuthToken(string $credential): ?array {
+		$launchToken = $credential;
+		if (substr_count($credential, '.') !== 2) {
+			$decoded = base64_decode($credential, true);
+			if ($decoded === false) {
+				return null;
+			}
+
+			$launchToken = $decoded;
+		}
+
+		return $this->verifyLaunchToken(token: $launchToken);
+	}//end verifyAuthToken()
+
+	/**
 	 * The encrypted private key as stored, or '' when absent.
 	 *
 	 * @return string The stored ciphertext.

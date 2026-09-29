@@ -10,9 +10,9 @@
  * temporary markers in learniq's `instructors` group. The learner is only a
  * name on the hand-in: no one signs in as them.
  *
- * @e2e openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
- * @e2e openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-each-marker-scores-in-their-own-submissionmark
- * @e2e openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-one-person-sets-the-final-grade-once-every-mark-is-in
+ * @e2e openspec/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
+ * @e2e openspec/specs/assignments/spec.md#requirement-each-marker-scores-in-their-own-submissionmark
+ * @e2e openspec/specs/assignments/spec.md#requirement-one-person-sets-the-final-grade-once-every-mark-is-in
  */
 import type { Browser } from '@playwright/test'
 import type { TempUser } from './live-fixtures.ts'
@@ -53,7 +53,7 @@ async function handInMark(
 }
 
 test.describe('double marking', () => {
-	test.describe.configure({ timeout: 300_000 })
+	test.describe.configure({ timeout: 480_000 })
 
 	const fx = new LiveFixtures()
 

@@ -32,6 +32,8 @@ namespace OCA\Learniq\Tests\Unit\Service;
 use OCA\Learniq\Mcp\LearniqScannableServices;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\AgentToolAnswer;
+use OCA\Learniq\Service\CredentialLearner;
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\LearniqAgentTools;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Mcp\Attribute\McpTool;
@@ -148,7 +150,7 @@ class LearniqAgentToolsTest extends TestCase {
 		$users = $this->createMock(IUserManager::class);
 		$users->method('get')->willReturn($named);
 
-		return new LearniqAgentTools(objectService: $objects, userSession: $session, actionAuth: $auth, answer: new AgentToolAnswer(userManager: $users));
+		return new LearniqAgentTools(objectService: $objects, userSession: $session, actionAuth: $auth, answer: new AgentToolAnswer(userManager: $users), learners: new CredentialLearner(profiles: new LearnerRefResolver(objectService: $objects)));
 	}//end tools()
 
 	/**
@@ -282,7 +284,7 @@ class LearniqAgentToolsTest extends TestCase {
 	public function testExpiringCredentialsAreAClosedProjection(): void {
 		$this->objects = [
 			'credential' => [
-				['id' => 'cr1', 'learnerId' => 'pupil1', 'courseId' => 'c1', 'expiresAt' => '2026-11-01', 'lifecycle' => 'issued', 'signature' => 'secret', 'openbadges3Payload' => ['x' => 1]],
+				['id' => 'cr1', 'learnerId' => '9d2c4e6a-1b3f-4a5c-8e7d-6f5a4b3c2d1e', 'learnerUserId' => 'pupil1', 'courseId' => 'c1', 'expiresAt' => '2026-11-01', 'lifecycle' => 'issued', 'signature' => 'secret', 'openbadges3Payload' => ['x' => 1]],
 				['id' => 'cr2', 'learnerId' => 'pupil2', 'courseId' => 'c1', 'expiresAt' => '2027-06-01', 'lifecycle' => 'issued'],
 			],
 			'course'     => [['id' => 'c1', 'title' => 'BHV', 'renewalCourseSlug' => 'bhv-herhaling']],
@@ -293,6 +295,7 @@ class LearniqAgentToolsTest extends TestCase {
 		self::assertTrue($result['ok']);
 		self::assertCount(1, $result['credentials']);
 		self::assertSame(LearniqAgentTools::EXPIRING_FIELDS, array_keys($result['credentials'][0]));
+		self::assertSame('pupil1', $result['credentials'][0]['learnerId'], 'The user id enrolLearner takes, not the profile uuid.');
 		self::assertSame('Sam de Vries', $result['credentials'][0]['learnerDisplayName']);
 		self::assertSame('bhv-herhaling', $result['credentials'][0]['renewalCourseSlug']);
 	}//end testExpiringCredentialsAreAClosedProjection()
