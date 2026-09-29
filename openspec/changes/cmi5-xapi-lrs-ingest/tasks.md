@@ -82,3 +82,14 @@
 - [x] 6.3 Run `composer check:strict` on all touched/new PHP files and fix any pre-existing warnings
       encountered in them (per CLAUDE.md).
 - [x] 6.4 Run `openspec validate cmi5-xapi-lrs-ingest --strict` and resolve any errors.
+
+## 7. Basic auth reachability
+
+- [x] 7.1 Hand out the auth-token as the base64 of the launch JWT (`Cmi5LaunchTokenService::authToken()`), so a
+      cmi5 AU's `Authorization: Basic <auth-token>` is not read by Nextcloud as a `user:password` login and
+      rejected before `LrsController` runs. Decision and live proof in `design.md`.
+- [x] 7.2 Verify the credential with `Cmi5LaunchTokenService::verifyAuthToken()`, which accepts the auth-token
+      and, for Bearer callers, the bare JWT.
+- [x] 7.3 Unit tests: `Cmi5LaunchTokenServiceTest::testAuthTokenIsNotReadAsANextcloudLoginAndVerifies` and
+      `::testInvalidAuthTokensAreRefused`; `Cmi5LaunchControllerTest::testLaunchAndSingleUseFetch` asserts the
+      fetch URL hands out the wrapped token.
