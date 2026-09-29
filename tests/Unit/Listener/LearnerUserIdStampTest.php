@@ -277,6 +277,22 @@ class LearnerUserIdStampTest extends TestCase {
 	}//end testAFraudCaseGetsTheAccusedLearnersUserId()
 
 	/**
+	 * A FraudCase moved to another profile (a learner merge re-saves it with
+	 * the survivor's uuid) gets that profile's user id, not the stored one.
+	 *
+	 * @return void
+	 */
+	public function testAMovedFraudCaseReDerivesTheAccusedUserId(): void {
+		$event = new ObjectUpdatingEvent(
+			OrEntityFactory::make(['id' => 'fc-1', 'accusedLearnerId' => self::PROFILE_A, 'accusedLearnerUserId' => 'b.bakker'], 'fraud-case'),
+			OrEntityFactory::make(['id' => 'fc-1', 'accusedLearnerId' => self::PROFILE_B, 'accusedLearnerUserId' => 'b.bakker'], 'fraud-case')
+		);
+		$this->makeStamp(slug: 'fraud-case')->handle($event);
+
+		self::assertSame('a.devries', $event->getModifiedData()['accusedLearnerUserId']);
+	}//end testAMovedFraudCaseReDerivesTheAccusedUserId()
+
+	/**
 	 * The stamp is wired on both create and update, asserted from the caller.
 	 *
 	 * @return void
