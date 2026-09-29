@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\LrsDocumentController;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\XapiCallerResolver;
 use OCA\Learniq\Service\XapiDocumentCodec;
 use OCA\Learniq\Service\XapiDocumentRequest;
@@ -31,6 +32,7 @@ use OCA\Learniq\Service\XapiDocumentStore;
 use OCA\Learniq\Service\XapiRequestBody;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\Learniq\Tests\Support\XapiDocumentsInMemory;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataDisplayResponse;
 use OCP\AppFramework\Http\Response;
@@ -106,7 +108,7 @@ class LrsDocumentControllerTest extends TestCase {
 
 		$config = $this->createMock(IConfig::class);
 		$config->method('getUserValue')->willReturn('tenant-a');
-		$documents = new XapiDocumentStore(objectService: $this->xapiObjectService(store: $this->rows), config: $config, codec: new XapiDocumentCodec());
+		$documents = new XapiDocumentStore(objectService: $this->xapiObjectService(store: $this->rows), tenants: new CallerTenantResolver($config, $this->createMock(ObjectService::class)), codec: new XapiDocumentCodec());
 
 		return new LrsDocumentController(
 			request: $request,

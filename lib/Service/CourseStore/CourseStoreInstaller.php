@@ -30,8 +30,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\CourseStore;
 
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CoursePackageImportService;
-use OCP\IConfig;
 
 /**
  * Registry object in, imported copy and report out.
@@ -47,11 +47,11 @@ class CourseStoreInstaller {
 	 * Constructor.
 	 *
 	 * @param CoursePackageImportService $importService The existing course package importer.
-	 * @param IConfig                    $config        Resolves the installer's tenant, as the upload import does.
+	 * @param CallerTenantResolver $tenants Resolves the tenant: the per-user binding, else the default tenant.
 	 */
 	public function __construct(
 		private readonly CoursePackageImportService $importService,
-		private readonly IConfig $config,
+		private readonly CallerTenantResolver $tenants,
 	) {
 
 	}//end __construct()
@@ -100,7 +100,7 @@ class CourseStoreInstaller {
 	}//end install()
 
 	/**
-	 * The installer's tenant: their per-user binding, else the instance id,
+	 * The installer's tenant: their per-user binding, else the default tenant,
 	 * the same resolution CoursePackageImportController applies to an upload.
 	 *
 	 * @param string $userId Nextcloud user id.
@@ -108,12 +108,7 @@ class CourseStoreInstaller {
 	 * @return string
 	 */
 	private function tenantFor(string $userId): string {
-		$tenantId = (string)$this->config->getUserValue($userId, 'learniq', 'tenant_id', '');
-		if ($tenantId !== '') {
-			return $tenantId;
-		}
-
-		return (string)$this->config->getSystemValue('instanceid', '');
+		return $this->tenants->forUserId(userId: $userId);
 
 	}//end tenantFor()
 

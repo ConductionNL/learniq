@@ -36,7 +36,6 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use InvalidArgumentException;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\IConfig;
 
 /**
  * Stamps and stores xAPI statements, and reads them back scoped to a learner.
@@ -84,11 +83,11 @@ class XapiStatementIngest {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param IConfig       $config        Reads the learner's tenant binding.
+	 * @param CallerTenantResolver $tenants Resolves the tenant: the per-user binding, else the default tenant.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly IConfig $config,
+		private readonly CallerTenantResolver $tenants,
 	) {
 	}//end __construct()
 
@@ -214,18 +213,13 @@ class XapiStatementIngest {
 	}//end statementId()
 
 	/**
-	 * The tenant a learner belongs to: their `tenant_id` preference, else the instance id.
+	 * The tenant a learner belongs to: their `tenant_id` binding, else the default tenant.
 	 *
 	 * @param string $userId The uid.
 	 *
 	 * @return string The tenant id.
 	 */
 	private function tenantFor(string $userId): string {
-		$bound = $this->config->getUserValue(userId: $userId, appName: 'learniq', key: 'tenant_id', default: '');
-		if ($bound !== '') {
-			return $bound;
-		}
-
-		return (string)$this->config->getSystemValue('instanceid', '');
+		return $this->tenants->forUserId(userId: $userId);
 	}//end tenantFor()
 }//end class

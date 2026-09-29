@@ -24,10 +24,12 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\Learniq\Exception\XapiRequestException;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\XapiDocumentCodec;
 use OCA\Learniq\Service\XapiDocumentStore;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\Learniq\Tests\Support\XapiDocumentsInMemory;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\IConfig;
 use PHPUnit\Framework\TestCase;
 
@@ -73,7 +75,7 @@ class XapiDocumentStoreTest extends TestCase {
 		$this->rows = new RegisterFaithfulStore();
 		$config     = $this->createMock(IConfig::class);
 		$config->method('getUserValue')->willReturn('tenant-a');
-		$this->store = new XapiDocumentStore(objectService: $this->xapiObjectService(store: $this->rows), config: $config, codec: new XapiDocumentCodec());
+		$this->store = new XapiDocumentStore(objectService: $this->xapiObjectService(store: $this->rows), tenants: new CallerTenantResolver($config, $this->createMock(ObjectService::class)), codec: new XapiDocumentCodec());
 	}//end setUp()
 
 	/**

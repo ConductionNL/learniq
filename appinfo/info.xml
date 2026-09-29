@@ -245,6 +245,14 @@ Vrij en open source onder de EUPL-1.2-licentie.
             -->
             <step>OCA\Learniq\Repair\BackfillGradeEntryLearnerRef</step>
             <!--
+                default-tenant fallback (Ruben, 2026-09-29, option A): an unbound
+                user's tenant used to be the instance id, which is not a UUID and
+                matched no seeded row. Moves rows that carry it to the default
+                tenant. After InitializeSettings (the register must exist).
+                Idempotent; touches only rows whose tenant_id is the instance id.
+            -->
+            <step>OCA\Learniq\Repair\MoveInstanceIdTenantToDefaultTenant</step>
+            <!--
                 data-exchange-to-integriq (D7): archives every retired
                 DataExchangeJob, DataMappingProfile, ExchangeRejection and
                 ExchangeErrorCode row to data-exchange-archive/, then, when

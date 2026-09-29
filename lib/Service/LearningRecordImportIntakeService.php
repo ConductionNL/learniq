@@ -42,7 +42,6 @@ use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
-use OCP\IConfig;
 use OCP\IUser;
 use Psr\Log\LoggerInterface;
 
@@ -63,7 +62,7 @@ class LearningRecordImportIntakeService {
 	 * @param ObjectService $objectService OR object create/read service.
 	 * @param TransitionEngine $transitionEngine OR lifecycle engine used to dispatch the `parse` transition.
 	 * @param IRootFolder $rootFolder NC root folder for writing the uploaded bytes.
-	 * @param IConfig $config Nextcloud config for tenant resolution.
+	 * @param CallerTenantResolver $tenants Resolves the tenant: the per-user binding, else the default tenant.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -72,7 +71,7 @@ class LearningRecordImportIntakeService {
 		private readonly ObjectService $objectService,
 		private readonly TransitionEngine $transitionEngine,
 		private readonly IRootFolder $rootFolder,
-		private readonly IConfig $config,
+		private readonly CallerTenantResolver $tenants,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -80,28 +79,17 @@ class LearningRecordImportIntakeService {
 	/**
 	 * Resolve the requesting tenant's ID.
 	 *
-	 * The authenticated user's own tenant binding wins; `instanceid` is only the
-	 * fallback, because it is the same for every tenant on the instance.
+	 * The authenticated user's own tenant binding wins; an unbound user belongs
+	 * to the default tenant (CallerTenantResolver).
 	 *
 	 * @param IUser $user Authenticated user whose tenant binding is read.
 	 *
-	 * @return string Tenant UUID, or the instance id when unbound.
+	 * @return string Tenant UUID, or the default tenant when unbound.
 	 *
 	 * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 	 */
 	public function resolveTenantId(IUser $user): string {
-		$userTenantId = $this->config->getUserValue(
-			userId: $user->getUID(),
-			appName: 'learniq',
-			key: 'tenant_id',
-			default: ''
-		);
-
-		if ($userTenantId !== '') {
-			return $userTenantId;
-		}
-
-		return (string)$this->config->getSystemValue('instanceid', '');
+		return $this->tenants->resolve(user: $user);
 	}//end resolveTenantId()
 
 	/**

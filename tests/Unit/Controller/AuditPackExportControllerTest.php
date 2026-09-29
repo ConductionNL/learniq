@@ -30,6 +30,7 @@ use JsonSerializable;
 use OCA\Learniq\Controller\AuditPackExportController;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\AuditPackBuilder;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CsvCellSanitizer;
 use OCA\Learniq\Service\ExternalTrainingCsvBuilder;
 use OCA\Learniq\Service\VerwerkingsregisterCsvBuilder;
@@ -357,7 +358,7 @@ class AuditPackExportControllerTest extends TestCase {
 			packBuilder: new AuditPackBuilder(
 				$mapper,
 				$hashService,
-				$config,
+				new CallerTenantResolver($config, $this->createMock(ObjectService::class)),
 				$sanitizer,
 				$this->registerCsv(sanitizer: $sanitizer),
 				new ExternalTrainingCsvBuilder($objectService, $sanitizer),
