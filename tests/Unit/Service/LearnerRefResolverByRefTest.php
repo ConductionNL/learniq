@@ -229,4 +229,21 @@ class LearnerRefResolverByRefTest extends TestCase {
 
 		self::assertSame([true, false], $this->multitenancy);
 	}//end testOnlyTheAcrossTenantsLookupDropsTenantScoping()
+
+	/**
+	 * userIdOf() gives the ncUserId of the active profile a ref names, and
+	 * null for a merged, deleted or unknown one.
+	 *
+	 * @return void
+	 */
+	public function testTheUserIdOfAProfileRef(): void {
+		$this->profiles['lp-1'] = ['ncUserId' => 'pupil-1', 'lifecycle' => 'active'];
+		$this->profiles['lp-merged'] = ['ncUserId' => 'pupil-2', 'lifecycle' => 'active', 'mergedInto' => 'lp-1'];
+		$lookup = $this->makeLookup();
+
+		self::assertSame('pupil-1', $lookup->userIdOf(learnerRef: 'lp-1'));
+		self::assertNull($lookup->userIdOf(learnerRef: 'lp-merged'));
+		self::assertNull($lookup->userIdOf(learnerRef: 'lp-missing'));
+		self::assertNull($lookup->userIdOf(learnerRef: ''));
+	}//end testTheUserIdOfAProfileRef()
 }//end class
