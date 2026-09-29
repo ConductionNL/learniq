@@ -193,7 +193,12 @@ class LtiToolPlacementControllerTest extends TestCase {
 				'pl1' => ['id' => 'pl1', 'openconnectorDeploymentId' => 'dep-1', 'launchMode' => 'resource-link', 'courseId' => 'c1', 'lessonId' => 'l1'],
 				'pl2' => ['id' => 'pl2', 'openconnectorDeploymentId' => '', 'launchMode' => 'resource-link'],
 			],
-			'course'             => ['c1' => ['id' => 'c1', 'title' => 'Aardrijkskunde']],
+			// Real Course shape: the display name is `name` (lib/Settings/learniq_register.json).
+			'course'             => [
+				'c1' => ['id' => 'c1', 'code' => 'AK-3H', 'name' => 'Aardrijkskunde'],
+				'c2' => ['id' => 'c2', 'code' => 'GS-3H', 'name' => 'Geschiedenis'],
+			],
+			'lesson'             => ['l2' => ['id' => 'l2', 'courseId' => 'c2', 'name' => 'De Gouden Eeuw', 'contentType' => 'lti']],
 		];
 	}//end setUp()
 
@@ -220,6 +225,39 @@ class LtiToolPlacementControllerTest extends TestCase {
 		self::assertSame('Aardrijkskunde', $this->dispatched->getContextTitle());
 		self::assertSame('https://school.example/apps/learniq/lessons/l1', $this->dispatched->getReturnUrl());
 	}//end testLaunchRaisesTheEventAndReturnsTheForm()
+
+	/**
+	 * A lesson-level placement has no courseId; the context is the lesson's course.
+	 *
+	 * @return void
+	 */
+	public function testALessonPlacementRunsInTheLessonsCourse(): void {
+		$this->objects['lti-tool-placement']['pl3'] = ['id' => 'pl3', 'openconnectorDeploymentId' => 'dep-1', 'launchMode' => 'resource-link', 'courseId' => null, 'lessonId' => 'l2'];
+
+		$this->controller()->launch(placementId: 'pl3');
+
+		self::assertSame('c2', $this->dispatched->getContextId());
+		self::assertSame('Geschiedenis', $this->dispatched->getContextTitle());
+		self::assertSame('https://school.example/apps/learniq/lessons/l2', $this->dispatched->getReturnUrl());
+	}//end testALessonPlacementRunsInTheLessonsCourse()
+
+	/**
+	 * The fixture's Course shape is the register's: a `name`, no `title`.
+	 *
+	 * @return void
+	 */
+	public function testTheCourseFixtureHasTheRegistersShape(): void {
+		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
+		$course   = null;
+		foreach ($register['components']['schemas'] as $schema) {
+			if (($schema['slug'] ?? '') === 'course') {
+				$course = $schema;
+			}
+		}
+
+		self::assertArrayHasKey('name', $course['properties']);
+		self::assertArrayNotHasKey('title', $course['properties']);
+	}//end testTheCourseFixtureHasTheRegistersShape()
 
 	/**
 	 * Teaching staff launch as Instructor, and deep linking asks for a deep-linking message.

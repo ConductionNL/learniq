@@ -53,5 +53,9 @@ class ElectiveListenerRegistrar {
 		// isPropagationStopped() between subscriptions.
 		$context->registerEventListener(event: ObjectCreatingEvent::class, listener: ElectiveSignUpRules::class);
 		$context->registerEventListener(event: ObjectUpdatingEvent::class, listener: ElectiveSignUpRules::class);
+
+		// The exam schedule checks (timetabling-exam-schedule): pre-write, like the
+		// sign-up rules above, in a registrar of their own.
+		(new ExamScheduleListenerRegistrar())->register(context: $context);
 	}//end register()
 }//end class
