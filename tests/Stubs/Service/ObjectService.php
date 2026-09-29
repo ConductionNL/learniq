@@ -140,4 +140,15 @@ abstract class ObjectService {
 	 */
 	abstract public function runAs(IUser $user, callable $operation);
 
+	/**
+	 * Run a trusted callable with system rights (no RBAC, no multitenancy).
+	 *
+	 * Mirrors the real signature exactly: no return type.
+	 *
+	 * @param callable $operation The trusted operation to execute.
+	 *
+	 * @return mixed
+	 */
+	abstract public function runAsSystem(callable $operation);
+
 }//end class

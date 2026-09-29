@@ -519,6 +519,23 @@
 					}
 				},
 				{
+					"id": "DisplayScreensMenu",
+					"label": "Display screens",
+					"icon": "MonitorDashboard",
+					"route": "DisplayScreens",
+					"order": 70,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"team-lead",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "TimetableConflictQueueMenu",
 					"label": "Timetable conflicts",
 					"icon": "TableClock",
@@ -3351,6 +3368,97 @@
 					]
 				}
 			}
+		},
+		{
+			"id": "DisplayScreens",
+			"route": "/display-screens",
+			"type": "index",
+			"title": "Display screens",
+			"config": {
+				"register": "learniq",
+				"schema": "display-screen"
+			}
+		},
+		{
+			"id": "DisplayScreenDetail",
+			"route": "/display-screens/:id",
+			"type": "detail",
+			"title": "Display screen",
+			"config": {
+				"register": "learniq",
+				"schema": "display-screen",
+				"headerActions": [
+					{
+						"id": "screen-address",
+						"label": "Address",
+						"type": "navigate",
+						"icon": "LinkVariant",
+						"target": "/display-screens/@objectId/address"
+					}
+				],
+				"widgets": [
+					{
+						"id": "display-screen-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "MonitorDashboard"
+					},
+					{
+						"id": "display-screen-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "display-screen-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "display-screen-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			},
+			"_note": "timetabling-display-screens: the Address action opens DisplayScreenAddress, which creates, renews or revokes the screen's secret address and shows a new address once."
+		},
+		{
+			"id": "DisplayScreenAddress",
+			"route": "/display-screens/:id/address",
+			"type": "custom",
+			"title": "Screen address",
+			"component": "DisplayScreenAddressView",
+			"_note": "timetabling-display-screens: POST /api/display-screens/{id}/token answers the address once; POST .../revoke stops it at once."
 		},
 		{
 			"id": "TimetableConflicts",

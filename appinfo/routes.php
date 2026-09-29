@@ -200,6 +200,14 @@ return [
         // the caller. #[NoAdminRequired] + the timetable.bulk-change action in the body.
         ['name' => 'sessionChangeBatch#series', 'url' => '/api/sessions/{id}/series', 'verb' => 'GET', 'requirements' => ['id' => '[^/]+']],
         ['name' => 'sessionChangeBatch#create', 'url' => '/api/session-change-batches', 'verb' => 'POST'],
+        // Hall screens (timetabling-display-screens): staff create, renew and revoke a
+        // screen's secret address (#[NoAdminRequired] + display-screen.manage in the body);
+        // the screen itself opens a #[PublicPage] page and its data with that token,
+        // brute-force protected, answering a pinned shape with no personal data.
+        ['name' => 'displayScreen#token', 'url' => '/api/display-screens/{id}/token', 'verb' => 'POST', 'requirements' => ['id' => '[^/]+']],
+        ['name' => 'displayScreen#revoke', 'url' => '/api/display-screens/{id}/revoke', 'verb' => 'POST', 'requirements' => ['id' => '[^/]+']],
+        ['name' => 'displayScreenPublic#data', 'url' => '/api/public/display/{token}', 'verb' => 'GET', 'requirements' => ['token' => '[^/]+']],
+        ['name' => 'displayScreenPublic#page', 'url' => '/display/{token}', 'verb' => 'GET', 'requirements' => ['token' => '[^/]+']],
 
         // Peer review reviewer allocation — genuine batch-matching business logic
         // (peer-and-self-assessment), authorized by an explicit per-object check
