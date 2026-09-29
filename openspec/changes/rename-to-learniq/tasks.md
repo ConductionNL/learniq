@@ -41,6 +41,7 @@ boundary resolves at runtime.
 - [x] Implement (repair step + all 117 call sites in the same deploy, per design.md's ordering requirement)
   - Done before round 5: `lib/Repair/RenameRegisterSlug.php` is registered as a post-migration step in `appinfo/info.xml`; `tests/Unit/Repair/RenameRegisterSlugTest.php` covers rename, collision refusal, idempotency and fail-closed paths. The remaining `'scholiq'` literals in `lib/` are the repair steps' own OLD values and `FleetAppId`'s alias list, which is intended.
 - [ ] Verify against seeded pre-existing objects (migration.md's Validation section — fetch a known pre-migration object id under `register: 'learniq'`, confirm byte-identical property values)
+  - r5-live, 2026-09-29, shared dev instance: needs a throwaway instance (an upgrade from a scholiq install); not run on the shared one.
   - Not run: needs a live install with pre-rename objects; lane rules forbid touching the shared instance. The unit tests under the implement box cover the repair step's logic, not the byte-identical read.
 
 ## 4. IAppConfig key migration (data)
@@ -54,6 +55,7 @@ boundary resolves at runtime.
 - [x] Implement (repair step + all `IAppConfig` call-site renames)
   - Done before round 5: `lib/Repair/MigrateAppConfigKeys.php` is a post-migration step; `tests/Unit/Repair/MigrateAppConfigKeysTest.php` covers copy, no-overwrite of an existing learniq value, empty-source skip and the no-op path.
 - [ ] Verify action-authorization matrix survives (upgrade an install with a customized `scholiq.actions`, confirm `occ config:app:get learniq actions` matches)
+  - r5-live, 2026-09-29, shared dev instance: needs a throwaway instance; not run on the shared one.
   - Not run: needs an upgrade of a live install that carries a customized `scholiq.actions`; lane rules forbid touching the shared instance. The unit tests named under the implement box cover the copy and no-overwrite mechanics.
 
 ## 5. Manifest and register JSON
@@ -129,6 +131,7 @@ boundary resolves at runtime.
 - **acceptance_criteria**:
   - GIVEN a clean Nextcloud instance with no prior `scholiq` install WHEN `learniq` is installed THEN install completes with zero errors in `nextcloud.log`, the register imports under slug `learniq`, and the app's start screen renders
 - [ ] Verify (clean-instance install per test-plan.md TC-1/TC-2)
+  - r5-live, 2026-09-29, shared dev instance: needs a throwaway instance; not run on the shared one.
   - Not run: a clean-instance install needs a fresh Nextcloud container, and the round 5 lane rules forbid touching containers or the shared instance on :8080. Needs an operator or a CI job with a fresh install.
 
 ## 12. Route-reachability verification (ADR-029)
@@ -139,6 +142,7 @@ boundary resolves at runtime.
 - **acceptance_criteria**:
   - GIVEN the full Playwright e2e suite retargeted to `/apps/learniq/...` WHEN run against the renamed, freshly-installed app THEN every previously-passing test still passes and `hydra-gate-route-reachability` reports zero unrouted or wrong-binding methods
 - [ ] Verify (e2e suite green + route-reachability gate clean per test-plan.md TC-6/TC-7)
+  - r5-live, 2026-09-29, shared dev instance: partly. The e2e specs run in this pass are green (connection-registry, shell, integration-leaves, pages, custom-pages-mount, self-check-in, double-marking, menu-personas), but the full suite was not run as one.
   - Not run: the Playwright suite needs a live instance serving this branch (same reason as task 11). The hydra route-reachability gate result is in the r5 part 1 PR body.
 
 ## 13. Cross-app coordination
@@ -164,6 +168,7 @@ boundary resolves at runtime.
   - GIVEN every task above (1–12) is verified GREEN WHEN the repo is renamed `ConductionNL/scholiq` → `ConductionNL/learniq` THEN GitHub's automatic redirect from the old URL is confirmed working
   - GIVEN the App Store id changes WHEN the new listing is published THEN it is treated as a republish (new listing), not an in-place update, per design.md, and the old listing links to the new one
 - [ ] Verify (redirect confirmed, new App Store listing live, old listing cross-links)
+  - r5-live, 2026-09-29, shared dev instance: the App Store listing is admin-only and outside this lane.
   - Partly done: the GitHub redirect works (`gh repo view ConductionNL/scholiq` resolves to ConductionNL/learniq) and the new App Store listing is live (apps.nextcloud.com/apps/learniq). The old listing (apps.nextcloud.com/apps/scholiq) does not link to the new one yet: that is an App Store admin action no lane can take.
 
 ## Verification

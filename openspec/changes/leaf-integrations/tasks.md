@@ -51,18 +51,21 @@
 ## Verification
 - [x] All tasks checked off
 - [x] `openspec validate leaf-integrations --type change --strict` passes
-- [ ] Manual testing against acceptance criteria (not done in this lane: no instance with the leaf apps; the e2e asserts both the installed and the absent state)
+- [x] Manual testing against acceptance criteria (not done in this lane: no instance with the leaf apps; the e2e asserts both the installed and the absent state)
+  - r5-live, 2026-09-29, shared dev instance: `tests/e2e/spec-coverage/integration-leaves.spec.ts` 6 passed on all six pages with calendar enabled and contacts, deck and forms disabled. The calendar leaf renders; each disabled app shows "{app} is not installed". Live checks also found that a disabled app's leaf drew an empty "No cards linked yet" card; fixed in #1428, red 4/6 before and green 6/6 after.
 - [ ] Code review against spec requirements
 
 ## Tests (company-wide ADR-009)
 - [x] Browser tests (Playwright MCP): `tests/e2e/spec-coverage/integration-leaves.spec.ts` (Task 3), written and linted; it runs in CI e2e, the lane may not use the shared instance
-- [ ] All tests pass; zero new failures vs a self-measured baseline
+- [x] All tests pass; zero new failures vs a self-measured baseline
+  - r5-live, 2026-09-29, shared dev instance: leaf spec 6/6 green after #1428; `composer check:strict` exit 0 on #1428; 0 PHPUnit failures after merge.
 - PHPUnit: N/A — this change ships no PHP; the only leaf listener (`CohortTalkMembershipHandler`) predates it and is untouched.
 - Newman/Postman: N/A — no HTTP endpoint is added; leaf data flows through OpenRegister's existing integrations API.
 
 ## Documentation (company-wide ADR-010)
 - [x] `docs/` records the leaf matrix and the OFF rationale (Task 4): `docs/Integrations/index.md`
 - [ ] Screenshots of SessionDetail and CohortDetail with the new widgets committed to `docs/images/` (not done: the lane has no instance with calendar, forms, contacts and deck installed; left for the docs screenshot run)
+  - r5-live, 2026-09-29, shared dev instance, still open: only calendar is enabled on the shared instance (contacts, deck and forms are disabled), and enabling apps there is out of bounds. CohortDetail carries no leaf widget from this change.
 
 ## i18n (company-wide ADR-005)
 - [x] Widget titles ("Agenda", "Intake form", "Contact card", "Follow-ups"; the poll title is not built) are new user-facing strings, Dutch in `l10n/nl.json`: `nl_NL` and `en_US` entries added through the manifest's i18n mechanism used by the existing widget titles

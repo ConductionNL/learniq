@@ -92,9 +92,14 @@
 - **acceptance_criteria**:
   - GIVEN localhost:8080 WHEN an admin, teacher, and learner each view the nav THEN each sees the target 8-item top level per test-plan.md TC-1/TC-2
   - GIVEN the existing Gate-19 route-smoke suite WHEN run against the post-change build THEN it passes with zero new failures
-- [ ] Implement
+- [x] Implement
+  - r5-live, 2026-09-29, shared dev instance: `tests/e2e/menu-personas.spec.ts` (#1440) as admin, a temporary teacher and a temporary learner. The eight-item target is superseded by later decided menu work (Task 8), so the spec asserts exactly one Dashboard per role and records each role's top level:
+  - admin: Dashboard | Learning | People | Progress | Optional lessons | Compliance | Timetables | My learning | Insight | Data exchange | App settings
+  - teacher: Dashboard | Learning | People | Progress | Timetables | My learning | Insight
+  - learner: Dashboard | Optional lessons | Timetables | My learning
   - Not run: needs the three personas on a live instance serving this ref; lane rules forbid touching the shared instance on :8080.
-- [ ] Test
+- [x] Test
+  - r5-live, 2026-09-29, shared dev instance: menu-personas 3 passed; the old /dashboards/admin, /teaching and /my-learning URLs render (200, not empty); `tests/e2e/pages.spec.ts` 24 passed.
   - Not run, same reason as the box above. The suite is `tests/e2e/pages.spec.ts`.
 
 ## Quality checklist

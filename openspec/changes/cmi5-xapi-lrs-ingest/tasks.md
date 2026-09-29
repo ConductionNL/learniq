@@ -49,6 +49,9 @@
       queryable via GET, `verified_actor_id` is the authenticated learner (not the payload's claimed actor),
       and the OR audit-trail entry `xapi.statement.received` exists (the schema's `appendOnly` lifecycle
       fired).
+  - r5-live, 2026-09-29, shared dev instance, still open. Works live: generating the launch key, a learner launch (200 with endpoint, fetchUrl, actor, registration), and redeeming the fetch code (200, auth-token). Blocked by two findings, each now with its own lane:
+  - (1) OpenRegister: `POST /api/lrs/statements` with a valid token answers 500 `SCHEMA_APPEND_ONLY ... update operations are not permitted`. OR treats any save with a uuid on an append-only schema as an update, and the ingest passes the xAPI statement id. 0 statements stored.
+  - (2) `Authorization: Basic <token>`, as cmi5 AUs send it, is refused with 401 by Nextcloud's auth layer before LrsController runs; `Bearer <token>` reaches it.
 - [x] 3.5 Security test: POST a statement with `payload.actor.account.name` set to a different learner's UUID
       → assert `verified_actor_id` is still the authenticated caller's own identity, not the payload claim.
 
