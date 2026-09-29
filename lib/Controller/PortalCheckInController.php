@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+ * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
  */
 
 declare(strict_types=1);
@@ -57,7 +57,7 @@ use Throwable;
 /**
  * Receives portaliq's check-in forward for one pupil.
  *
- * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+ * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
  */
 class PortalCheckInController extends Controller {
 
@@ -104,7 +104,7 @@ class PortalCheckInController extends Controller {
 	 *
 	 * @return JSONResponse 200 `{status, sessionId}`, or 401 / 403 / 404 / 409 / 422 / 502.
 	 *
-	 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]

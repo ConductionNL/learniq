@@ -378,7 +378,7 @@ class WalletOfferDelegationService implements LifecycleGuardInterface {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adopt-connection-registry/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
+	 * @spec openspec/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
 	 */
 	private function observeConnection(string $status, string $reason): void {
 		$this->connectionReports?->observe(key: ConnectionReportService::WALLET_KEY, status: $status, reason: $reason);

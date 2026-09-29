@@ -15,7 +15,7 @@
  *
  * TC-2's direct URLs: the three old role dashboards still render for admin.
  *
- * @e2e openspec/changes/menu-six-main-items/specs/navigation/spec.md#requirement-the-dashboard-entry-resolves-by-role-instead-of-three-separate-rows
+ * @e2e openspec/specs/navigation/spec.md#requirement-the-dashboard-entry-resolves-by-role-instead-of-three-separate-rows
  */
 import type { Page } from '@playwright/test'
 

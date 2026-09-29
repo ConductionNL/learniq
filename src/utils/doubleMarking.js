@@ -18,7 +18,7 @@
  * @param {object} submission The Submission (markerIds).
  * @param {object|null} marks The GET /api/submissions/{id}/marks answer, or null when it was refused.
  * @return {string}
- * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-each-marker-scores-in-their-own-submissionmark
+ * @spec openspec/specs/assignments/spec.md#requirement-each-marker-scores-in-their-own-submissionmark
  */
 export function markingMode(assignment, submission, marks) {
 	const markers = Number(assignment?.markersPerSubmission ?? 1)
@@ -47,7 +47,7 @@ export function markingMode(assignment, submission, marks) {
  * @param {string} rule `manual`, `average` or `highest`.
  * @param {object|null} summary `{ average, highest }` from the marks answer.
  * @return {number|null} Null for `manual`: a person types the grade.
- * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#scenario-the-average-rule-proposes-a-grade-and-waits-for-a-person
+ * @spec openspec/specs/assignments/spec.md#scenario-the-average-rule-proposes-a-grade-and-waits-for-a-person
  */
 export function prefillFinalGrade(rule, summary) {
 	if (!summary) {

@@ -11,7 +11,7 @@
  SubmissionMark per marker and hand-in, never twice, and refuses a marker who
  is one of the hand-in's own learners; each refusal is listed here.
 
- @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
+ @spec openspec/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
 -->
 <template>
 	<div class="allocate-markers">
@@ -128,7 +128,7 @@ export default {
 	computed: {
 		/**
 		 * @return {number} The assignment's markers per submission.
-		 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
+		 * @spec openspec/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
 		 */
 		maxMarkers() {
 			return Number(this.assignment?.markersPerSubmission ?? 1)
@@ -136,7 +136,7 @@ export default {
 
 		/**
 		 * @return {Array<object>} The handed-in submissions.
-		 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
+		 * @spec openspec/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
 		 */
 		submissionOptions() {
 			return this.submissions.filter((s) =>
@@ -149,7 +149,7 @@ export default {
 	 * Load the assignment and its submissions, and the first marker options.
 	 *
 	 * @return {Promise<void>}
-	 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
+	 * @spec openspec/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
 	 */
 	async mounted() {
 		try {
@@ -177,7 +177,7 @@ export default {
 		/**
 		 * @param {object} s A Submission.
 		 * @return {string} The learners of the hand-in.
-		 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
+		 * @spec openspec/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
 		 */
 		submissionLabel(s) {
 			return (s.learnerIds || []).join(', ') || s.id
@@ -188,7 +188,7 @@ export default {
 		 *
 		 * @param {string} query Typed text.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
+		 * @spec openspec/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
 		 */
 		async searchUsers(query) {
 			this.searching = true
@@ -216,7 +216,7 @@ export default {
 		/**
 		 * @param {object} item A refusal from the allocation.
 		 * @return {string} The refusal in words.
-		 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#scenario-a-learner-cannot-mark-their-own-group-work
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-cannot-mark-their-own-group-work
 		 */
 		refusalText(item) {
 			const hand = this.submissionLabel(
@@ -242,7 +242,7 @@ export default {
 		 * Allocate the chosen markers.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#scenario-a-coordinator-allocates-two-markers-to-every-hand-in
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-coordinator-allocates-two-markers-to-every-hand-in
 		 */
 		async allocate() {
 			this.saving = true

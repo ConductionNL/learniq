@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
+ * @spec openspec/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
  */
 
 declare(strict_types=1);
