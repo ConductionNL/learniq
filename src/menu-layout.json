@@ -6,6 +6,7 @@
 	},
 	"relocations": {
 		"GroupTimetabling": "GroupLearning",
+		"GroupExamSchedule": "GroupLearning",
 		"GroupAdmissions": "GroupPeople",
 		"GroupPupilDossier": "GroupPeople",
 		"GroupConferences": "GroupPeople",

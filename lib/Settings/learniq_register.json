@@ -8028,7 +8028,7 @@
             },
             "ExamSitting": {
                 "slug": "exam-sitting",
-                "icon": "FileClockOutline",
+                "icon": "ClipboardTextClockOutline",
                 "version": "0.1.0",
                 "title": "Exam sitting",
                 "description": "One exam placed in a test week: when, in which rooms, for which classes, and how many invigilators it needs. The server refuses rooms that are too small and records clashes with other lessons and exams. timetabling-exam-schedule.",
@@ -8260,7 +8260,7 @@
             },
             "InvigilatorAssignment": {
                 "slug": "invigilator-assignment",
-                "icon": "AccountEyeOutline",
+                "icon": "AccountCheckOutline",
                 "version": "0.1.0",
                 "title": "Invigilator assignment",
                 "description": "A request to one colleague to invigilate one exam. It stays pending until they confirm or decline; a decline frees the place again. timetabling-exam-schedule.",
