@@ -2687,6 +2687,20 @@ OC.L10N.register(
         "Place": "Place",
         "Sign-ups": "Sign-ups",
         "_%n place free_::_%n places free_": ["%n place free","%n places free"],
+        "To": "To",
+        "Export CSV": "Export CSV",
+        "This group has no active hour plan, so owed hours are missing.": "This group has no active hour plan, so owed hours are missing.",
+        "Owed": "Owed",
+        "Given": "Given",
+        "Difference": "Difference",
+        "short": "short",
+        "Hide learners": "Hide learners",
+        "Show learners": "Show learners",
+        "Attended of given": "Attended of given",
+        "{attended} of {given} hours": "{attended} of {given} hours",
+        "below the margin": "below the margin",
+        "The report could not be loaded.": "The report could not be loaded.",
+        "Per group and course the contact hours owed by the hour plan, the hours given and the hours each learner attended.": "Per group and course the contact hours owed by the hour plan, the hours given and the hours each learner attended.",
         "Enrolment forecast": "Enrolment forecast",
         "A scenario for next school year: progression rates per programme year, expected intake and a target group size, with the last computed forecast.": "A scenario for next school year: progression rates per programme year, expected intake and a target group size, with the last computed forecast.",
         "The scenario's name.": "The scenario's name.",
@@ -2722,8 +2736,7 @@ OC.L10N.register(
         "Groups needed": "Groups needed",
         "estimated": "estimated",
         "{name} (copy)": "{name} (copy)",
-        "Next year's learners and groups per programme year and subject, from this year's groups, progression rates and subject choices.": "Next year's learners and groups per programme year and subject, from this year's groups, progression rates and subject choices.",
-        "Export CSV": "Export CSV"
+        "Next year's learners and groups per programme year and subject, from this year's groups, progression rates and subject choices.": "Next year's learners and groups per programme year and subject, from this year's groups, progression rates and subject choices."
     },
     "nplurals=2; plural=(n != 1);"
 )

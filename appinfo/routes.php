@@ -178,6 +178,10 @@ return [
         // (planninq when installed, else Session), after an RBAC read of the cohort
         // (sessions-from-planninq).
         ['name' => 'timetable#cohort', 'url' => '/api/timetable/cohort/{cohortId}', 'verb' => 'GET', 'requirements' => ['cohortId' => '[^/]+']],
+        // Contact hours (timetabling-contact-hours): owed by the hour plan, given by held
+        // lessons, attended per learner, for a window. #[NoAdminRequired] + the
+        // report.contact-hours action in the body.
+        ['name' => 'contactHours#index', 'url' => '/api/reports/contact-hours', 'verb' => 'GET'],
         // Enrolment forecast (timetabling-enrolment-forecast): compute a scenario and store
         // its result on it. #[NoAdminRequired] + report.enrolment-forecast in the body.
         ['name' => 'enrolmentForecast#compute', 'url' => '/api/enrolment-forecasts/{id}/compute', 'verb' => 'POST', 'requirements' => ['id' => '[^/]+']],

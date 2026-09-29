@@ -3149,6 +3149,20 @@ OC.L10N.register(
         "Place": "Plaatsen",
         "Sign-ups": "Inschrijvingen",
         "_%n place free_::_%n places free_": ["%n plaats vrij","%n plaatsen vrij"],
+        "To": "Tot en met",
+        "Export CSV": "CSV exporteren",
+        "This group has no active hour plan, so owed hours are missing.": "Deze groep heeft geen actieve urenplanning, dus de verschuldigde uren ontbreken.",
+        "Owed": "Verschuldigd",
+        "Given": "Gegeven",
+        "Difference": "Verschil",
+        "short": "tekort",
+        "Hide learners": "Leerlingen verbergen",
+        "Show learners": "Leerlingen tonen",
+        "Attended of given": "Aanwezig van gegeven",
+        "{attended} of {given} hours": "{attended} van {given} uur",
+        "below the margin": "onder de marge",
+        "The report could not be loaded.": "Het overzicht kon niet worden geladen.",
+        "Per group and course the contact hours owed by the hour plan, the hours given and the hours each learner attended.": "Per groep en vak de contacturen volgens de urenplanning, de gegeven uren en de uren die elke leerling aanwezig was.",
         "Enrolment forecast": "Leerlingenprognose",
         "A scenario for next school year: progression rates per programme year, expected intake and a target group size, with the last computed forecast.": "Een scenario voor volgend schooljaar: doorstroompercentages per leerjaar, de verwachte instroom en een groepsgrootte, met de laatst berekende prognose.",
         "The scenario's name.": "De naam van het scenario.",
@@ -3184,8 +3198,7 @@ OC.L10N.register(
         "Groups needed": "Benodigde groepen",
         "estimated": "geschat",
         "{name} (copy)": "{name} (kopie)",
-        "Next year's learners and groups per programme year and subject, from this year's groups, progression rates and subject choices.": "Leerlingen en groepen van volgend jaar per leerjaar en vak, uit de groepen van dit jaar, de doorstroom en de vakkenkeuzes.",
-        "Export CSV": "CSV exporteren"
+        "Next year's learners and groups per programme year and subject, from this year's groups, progression rates and subject choices.": "Leerlingen en groepen van volgend jaar per leerjaar en vak, uit de groepen van dit jaar, de doorstroom en de vakkenkeuzes."
     },
     "nplurals=2; plural=(n != 1);"
 )
