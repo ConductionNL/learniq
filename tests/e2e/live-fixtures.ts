@@ -425,6 +425,42 @@ export function deleteLearniqConfig(keys: string[]): void {
 }
 
 /**
+ * List queued background jobs of one class, read-only. Used to see that a
+ * notification was queued on an instance without cron, where it is never
+ * delivered during the run.
+ *
+ * @param jobClass The job class.
+ * @return Each job's id and parsed argument.
+ */
+export function listJobs(
+	jobClass: string,
+): Array<{ id: string; argument: Record<string, any> }> {
+	const [command, ...prefix] = occCommand()
+	const listed = execFileSync(
+		command,
+		[
+			...prefix,
+			'background-job:list',
+			`--class=${jobClass}`,
+			'--output=json',
+			'--limit=5000',
+		],
+		{ encoding: 'utf8', timeout: 60_000, stdio: 'pipe' },
+	)
+	return (JSON.parse(listed) as Array<{ id: string; argument: string }>).map(
+		(job) => {
+			let argument: Record<string, any>
+			try {
+				argument = JSON.parse(job.argument)
+			} catch {
+				argument = {}
+			}
+			return { id: String(job.id), argument }
+		},
+	)
+}
+
+/**
  * Run learniq background jobs of one class now, instead of waiting for cron.
  *
  * The shared instance runs no cron daemon, so a queued job (a certificate
