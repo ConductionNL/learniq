@@ -46,11 +46,19 @@ export function applyIntegrationTitles(manifest) {
 			continue
 		}
 		for (const widget of widgets) {
-			const prop = widget?.type === 'integration' ? TITLE_PROP_BY_INTEGRATION[widget.integrationId] : undefined
+			const prop =
+				widget?.type === 'integration'
+					? TITLE_PROP_BY_INTEGRATION[widget.integrationId]
+					: undefined
 			if (!prop || typeof widget.title !== 'string' || widget.title === '') {
 				continue
 			}
-			const props = widget.props && typeof widget.props === 'object' && !Array.isArray(widget.props) ? widget.props : {}
+			const props =
+				widget.props
+				&& typeof widget.props === 'object'
+				&& !Array.isArray(widget.props)
+					? widget.props
+					: {}
 			if (props[prop] !== undefined) {
 				continue
 			}

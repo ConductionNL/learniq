@@ -7,7 +7,7 @@
  CnAppRoot resolves this name against the customComponents registry at runtime.
 
  Sections:
-   1. OpenRegister default register picker (IAppConfig key: default_register)
+   1. OpenRegister default register picker (IAppConfig key: register)
    2. AI features read-only table (sourced from AiFeature schema objects via OR)
    3. Credential signing key widget (calls CredentialSigningController — ADR-031)
 -->
@@ -343,6 +343,11 @@ import {
 import AccountSearchOutline from 'vue-material-design-icons/AccountSearchOutline.vue'
 import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
+import {
+	DEFAULT_REGISTER_KEY,
+	registerValue,
+	selectedRegister,
+} from '../utils/defaultRegister.js'
 
 // The slugs privacy-governance-surfaces declares in
 // lib/Settings/learniq_register.json, verbatim (the resolver lowercases both
@@ -385,6 +390,7 @@ export default {
 	data() {
 		return {
 			defaultRegister: null,
+			savedRegister: '',
 			registerOptions: [],
 			registersLoading: false,
 			signingKeyLoading: false,
@@ -561,6 +567,12 @@ export default {
 			this.loadCompliance(),
 			this.loadRecentDataSubjectRequests(),
 		])
+		// Both the register list and the saved value are in now; show the
+		// saved register instead of an empty picker.
+		this.defaultRegister = selectedRegister(
+			this.registerOptions,
+			this.savedRegister,
+		)
 	},
 
 	methods: {
@@ -614,6 +626,7 @@ export default {
 					// OpenRegister is installed; both gate the AVG Art. 30 section.
 					this.isAdmin = !!data.isAdmin
 					this.openRegisterInstalled = !!data.openregisters
+					this.savedRegister = data[DEFAULT_REGISTER_KEY] || ''
 				}
 			} catch (error) {
 				// eslint-disable-next-line no-console
@@ -628,7 +641,8 @@ export default {
 		 * @spec openspec/changes/archive/retrofit-2026-05-25-app-shell-settings/tasks.md#tasks
 		 */
 		async saveDefaultRegister() {
-			if (!this.defaultRegister) return
+			const value = registerValue(this.defaultRegister)
+			if (value === '') return
 			try {
 				await fetch(generateUrl('/apps/learniq/api/settings'), {
 					method: 'POST',
@@ -636,11 +650,11 @@ export default {
 						'Content-Type': 'application/json',
 						requesttoken: getRequestToken(),
 					},
-					body: JSON.stringify({
-						default_register:
-							this.defaultRegister.slug || this.defaultRegister,
-					}),
+					// `register` is the key SettingsService persists; the former
+					// `default_register` was not in CONFIG_KEYS and was dropped.
+					body: JSON.stringify({ [DEFAULT_REGISTER_KEY]: value }),
 				})
+				this.savedRegister = value
 			} catch (error) {
 				// eslint-disable-next-line no-console
 				console.error('[LearniqSettings] saveDefaultRegister failed:', error)
