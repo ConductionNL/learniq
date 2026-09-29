@@ -69,6 +69,7 @@
   - GIVEN the app deployed on localhost:8080 WHEN an admin views the fully-expanded nav THEN it is pixel-for-pixel identical to the pre-change nav (test-plan.md TC-2)
   - GIVEN the existing Gate-19 route-smoke suite WHEN run against the post-split build THEN it passes with zero new failures and zero edits to the route table (test-plan.md TC-4)
 - [ ] Implement
+  - r5-live, 2026-09-29, shared dev instance: TC-4 half done: `tests/e2e/pages.spec.ts` 24 passed, route table unchanged. TC-2 (pixel-identical nav against the pre-change build) still open: it needs the pre-split build served, and the shared checkout may not be switched.
   - Not run: needs the app deployed on a live instance serving this ref; lane rules forbid touching the shared instance on :8080. The route smoke suite is `tests/e2e/pages.spec.ts`, unchanged.
 - [ ] Test
   - Not run, same reason as the box above.

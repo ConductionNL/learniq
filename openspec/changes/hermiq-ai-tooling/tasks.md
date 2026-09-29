@@ -86,11 +86,13 @@
   - GIVEN `CHANGELOG.md` WHEN read THEN it records the new write surface and its governance
 - [x] Implement (docs/Technical/agent-tools.md records the tools, the gates and the chat scenarios; no CHANGELOG.md exists)
 - [ ] Test (the Playwright chat flows need hermiq driving an agent against an instance; not possible in this lane)
+  - r5-live, 2026-09-29, shared dev instance, still open: hermiq is installed, but nothing drives an agent on the shared instance.
 
 ## Verification
 - [ ] All tasks checked off
 - [x] `openspec validate hermiq-ai-tooling --type change --strict` passes
 - [ ] Manual testing against acceptance criteria (a denied grant, a rejected proposal, an approved batch)
+  - r5-live, 2026-09-29, shared dev instance, still open: needs hermiq driving an agent, not available here.
 - [ ] Code review against spec requirements
 
 ## Tests (company-wide ADR-009)

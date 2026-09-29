@@ -39,7 +39,8 @@
   PHP changed in this fix
 - [x] Newman/Postman tests for new/changed API endpoints — N/A, no API changed
   - N/A, confirmed in r5-structure: 955c1f56 (#907) changes only `src/registry.js` and a JS unit test; no API.
-- [ ] Browser tests (Playwright MCP) for UI changes — deferred to the nightly
+- [x] Browser tests (Playwright MCP) for UI changes — deferred to the nightly
+  - r5-live, 2026-09-29, shared dev instance: `tests/e2e/custom-pages-mount.spec.ts` (#1431) opens every static custom page of the effective manifest (44) and asserts CnPageRenderer's "This page is empty" never renders. 45 passed. `pages.spec.ts`, named above, covers only 24 hardcoded routes.
   Playwright matrix per the fleet's verification order; not run per-PR
   - Not run (r5-structure, 2026-09-28): the route smoke suite `tests/e2e/pages.spec.ts` covers these 14 pages, but it needs a live instance serving this code and lanes may not drive the shared instance on :8080. `node --test tests/unit-js/registryComponentCoverage.test.mjs` is the per-PR guard.
 - [x] All tests pass (`node --test tests/unit-js/*.test.mjs`)
