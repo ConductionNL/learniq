@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-persist-exam-board-domain-objects-in-openregister
+ * @spec openspec/specs/exam-board/spec.md#requirement-persist-exam-board-domain-objects-in-openregister
  */
 
 declare(strict_types=1);

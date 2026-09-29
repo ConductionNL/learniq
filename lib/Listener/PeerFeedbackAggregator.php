@@ -38,8 +38,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
+ * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
+ * @spec openspec/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
  */
 
 declare(strict_types=1);
@@ -57,7 +57,7 @@ use OCP\EventDispatcher\IEventListener;
  * Bridges PeerReview.released -> PeerFeedbackSummary recompute.
  *
  * @implements IEventListener<Event>
- * @spec       openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-identity-is-hidden-from-the-submission-author-via-a-server-enforced-feedback-projection
+ * @spec       openspec/changes/archive/2026-07-16-peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-identity-is-hidden-from-the-submission-author-via-a-server-enforced-feedback-projection
  */
 class PeerFeedbackAggregator implements IEventListener {
 
@@ -89,7 +89,7 @@ class PeerFeedbackAggregator implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-teacher-releases-a-submitted-peerreview
+	 * @spec openspec/specs/assignments/spec.md#scenario-a-teacher-releases-a-submitted-peerreview
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -126,8 +126,8 @@ class PeerFeedbackAggregator implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
+	 * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
+	 * @spec openspec/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
 	 */
 	private function recomputeSummary(string $submissionId, string $assignmentId): void {
 		$anonymity = $this->fetchAnonymityMode(assignmentId: $assignmentId);

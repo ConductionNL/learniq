@@ -32,8 +32,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
- * @spec openspec/changes/competency-framework/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+ * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+ * @spec openspec/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
  */
 
 declare(strict_types=1);
@@ -130,7 +130,7 @@ class CompetencyAttainmentRollup {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/competency-framework/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+	 * @spec openspec/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
 	 */
 	private function resolveWerkprocesCompetencyId(array $data): void {
 		// Defensive no-op: competencyId is never client-settable (not in the
@@ -197,7 +197,7 @@ class CompetencyAttainmentRollup {
 	 *
 	 * @return array<string,mixed>|null The matching Competency data, or null when none or several match.
 	 *
-	 * @spec openspec/changes/competency-framework/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+	 * @spec openspec/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
 	 * @spec openspec/specs/bpv/spec.md#requirement-a-werkproces-code-resolves-inside-the-assessments-own-kwalificatiedossier
 	 */
 	private function findCompetencyByCode(string $code, string $dossierCode, string $tenantId): ?array {
@@ -320,7 +320,7 @@ class CompetencyAttainmentRollup {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/competency-framework/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+	 * @spec openspec/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
 	 */
 	private function handleWerkprocesConfirmed(array $assessment): void {
 		$competencyId = $assessment['competencyId'] ?? null;

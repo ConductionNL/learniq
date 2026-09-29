@@ -33,7 +33,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+ * @spec openspec/specs/assessment/spec.md
  */
 
 declare(strict_types=1);

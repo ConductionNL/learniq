@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+ * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
  */
 
 declare(strict_types=1);
@@ -144,7 +144,7 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+	 * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
 	 */
 	public function testMandatoryIntakeBlocksCompleteIntakeWhenNotRecorded(): void {
 		$this->wireRound(['kind' => 'generic', 'mandatoryIntake' => true]);
@@ -189,7 +189,7 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-timely-intake-complete-mbo-application-cannot-be-rejected-without-a-named-reason
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-timely-intake-complete-mbo-application-cannot-be-rejected-without-a-named-reason
 	 */
 	public function testToelatingsrechtBlocksRejectionWithoutNamedReason(): void {
 		$this->wireRound(
@@ -219,7 +219,7 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-named-prerequisite-failure-still-allows-rejection
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-named-prerequisite-failure-still-allows-rejection
 	 */
 	public function testToelatingsrechtAllowsRejectionWithNamedReason(): void {
 		$this->wireRound(
@@ -278,7 +278,7 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-higher-doorstroomtoets-score-without-an-adjustment-or-motivation-blocks-the-decision
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-higher-doorstroomtoets-score-without-an-adjustment-or-motivation-blocks-the-decision
 	 */
 	public function testSchooladviesAdjustmentRequiredBlocksDecision(): void {
 		$this->wireRound(['kind' => 'vo-schooladvies-doorstroomtoets']);
@@ -304,7 +304,7 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-the-pro-vmbo-bb-exemption-allows-the-decision-without-adjustment
+	 * @spec openspec/specs/enrolment/spec.md#scenario-the-pro-vmbo-bb-exemption-allows-the-decision-without-adjustment
 	 */
 	public function testProVmboBbExemptionAllowsDecision(): void {
 		$this->wireRound(['kind' => 'vo-schooladvies-doorstroomtoets']);
@@ -378,7 +378,7 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-full-round-routes-a-new-placement-to-the-waitlist
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-full-round-routes-a-new-placement-to-the-waitlist
 	 */
 	public function testCapacityReachedBlocksPlacement(): void {
 		$this->wireRound(['kind' => 'generic', 'capacity' => 2]);

@@ -16,8 +16,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
+ * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
+ * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
  */
 
 declare(strict_types=1);
@@ -73,7 +73,7 @@ class FraudCaseBlockGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
+	 * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
 	 */
 	public function testOpenFraudCaseBlocksPublish(): void {
 		foreach (['reported', 'hearing-scheduled', 'heard'] as $state) {
@@ -90,7 +90,7 @@ class FraudCaseBlockGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
+	 * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
 	 */
 	public function testDecidedFraudProvenBlocksPublishPermanently(): void {
 		$guard = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'decided', 'verdict' => 'fraud-proven']);
@@ -105,7 +105,7 @@ class FraudCaseBlockGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
+	 * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
 	 */
 	public function testDecidedUnfoundedAllowsPublish(): void {
 		$guard = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'decided', 'verdict' => 'unfounded']);

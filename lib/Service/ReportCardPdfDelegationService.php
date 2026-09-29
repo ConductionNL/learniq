@@ -49,8 +49,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-successful-render-records-the-docudesk-document-reference
+ * @spec openspec/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
+ * @spec openspec/specs/report-card/spec.md#scenario-a-successful-render-records-the-docudesk-document-reference
  * @spec openspec/specs/report-card/spec.md#scenario-a-report-card-with-an-assigned-template-sends-that-templates-slug-to-docudesk
  * @spec openspec/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
  */
@@ -81,7 +81,7 @@ use Throwable;
  * exception, non-2xx, malformed body) sets `docudeskRenderStatus=failed` +
  * `docudeskRenderError`, logs, and never throws. The guard always allows.
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-docudesk-pdf-rendering-is-fail-soft-non-blocking-and-its-contract-is-explicitly-proposed
+ * @spec openspec/specs/report-card/spec.md#requirement-docudesk-pdf-rendering-is-fail-soft-non-blocking-and-its-contract-is-explicitly-proposed
  */
 class ReportCardPdfDelegationService implements LifecycleGuardInterface {
 
@@ -171,7 +171,7 @@ class ReportCardPdfDelegationService implements LifecycleGuardInterface {
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		return GuardResult::allow();
@@ -188,8 +188,8 @@ class ReportCardPdfDelegationService implements LifecycleGuardInterface {
 	 *
 	 * @return array<string,mixed> The ReportCard with the render outcome applied.
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-successful-render-records-the-docudesk-document-reference
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-successful-render-records-the-docudesk-document-reference
 	 */
 	public function render(array $reportCard): array {
 		$reportId = (string)($reportCard['id'] ?? ($reportCard['uuid'] ?? ''));

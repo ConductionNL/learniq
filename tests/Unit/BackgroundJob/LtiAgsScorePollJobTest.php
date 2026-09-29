@@ -24,9 +24,9 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.7
- * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.8
- * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.9
+ * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.7
+ * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.8
+ * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.9
  */
 
 declare(strict_types=1);
@@ -234,7 +234,7 @@ class LtiAgsScorePollJobTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.7
+	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.7
 	 */
 	public function testCreatesConceptGradeEntryForConfiguredPlacement(): void {
 		$this->placementFixture = [
@@ -284,7 +284,7 @@ class LtiAgsScorePollJobTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.8
+	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.8
 	 */
 	public function testRedeliveredMessageDoesNotCreateDuplicate(): void {
 		$this->placementFixture = [
@@ -321,7 +321,7 @@ class LtiAgsScorePollJobTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.9
+	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.9
 	 */
 	public function testOrphanMessageIsSkippedWithoutThrowing(): void {
 		$this->placementFixture = null;

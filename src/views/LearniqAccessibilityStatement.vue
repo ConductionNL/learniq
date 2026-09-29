@@ -16,9 +16,9 @@
  generic AccessibilityFeedback create form (AccessibilityFeedbackCreate,
  route /accessibility/feedback/new) — no bespoke ticketing UI.
 
- @spec openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
- @spec openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
- @spec openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
+ @spec openspec/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
+ @spec openspec/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
+ @spec openspec/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
 -->
 
 <template>
@@ -173,7 +173,7 @@ export default {
 		 * Human-readable label for the statement's 3-value status.
 		 *
 		 * @return {string} The translated status label.
-		 * @spec openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
+		 * @spec openspec/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
 		 */
 		statusLabel() {
 			if (!this.statement || !this.statement.status) {
@@ -196,7 +196,7 @@ export default {
 		 * linked AccessibilityLimitation rows.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
+		 * @spec openspec/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
 		 */
 		async loadStatement() {
 			this.loading = true
@@ -252,7 +252,7 @@ export default {
 		 * course-evaluation's ImprovementActionCreate.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
+		 * @spec openspec/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
 		 */
 		openFeedbackForm() {
 			this.$router.push('/accessibility/feedback/new')

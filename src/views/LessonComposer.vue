@@ -45,9 +45,9 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
-  @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
-  @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-media-block-references-an-existing-material-rather-than-duplicating-file-metadata
+  @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+  @spec openspec/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
+  @spec openspec/specs/course-management/spec.md#scenario-a-media-block-references-an-existing-material-rather-than-duplicating-file-metadata
   @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
 -->
 
@@ -134,7 +134,7 @@
 								aria-hidden="true" />
 							<span class="lesson-composer__block-type">{{
 								/**
-								 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+								 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 								 */
 								blockTypeLabel(block.type)
 							}}</span>
@@ -557,14 +557,14 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		materialOptions() {
 			return this.materials.map((m) => ({ id: m.id, label: m.title }))
 		},
 
 		/**
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		assessmentOptions() {
 			return this.assessments.map((a) => ({ id: a.id, label: a.title }))
@@ -594,7 +594,7 @@ export default {
 		 * (quiz/assignment/ltiTool block pickers).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		async load() {
 			this.loading = true
@@ -778,7 +778,7 @@ export default {
 
 		/** @return {void} */
 		/**
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		goBack() {
 			if (this.$router) {
@@ -814,7 +814,7 @@ export default {
 		 *   which fetchList() then reports as an empty list.
 		 * @param {string} objId Object UUID.
 		 * @return {Promise<object>}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		async fetchObject(schema, objId) {
 			const url = generateUrl(
@@ -839,7 +839,7 @@ export default {
 		 *   which fetchList() then reports as an empty list.
 		 * @param {string} query Pre-built query string.
 		 * @return {Promise<Array<object>>}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		async fetchList(schema, query) {
 			const url = generateUrl(
@@ -864,7 +864,7 @@ export default {
 		 *   which fetchList() then reports as an empty list.
 		 * @param {object} body Payload.
 		 * @return {Promise<object>} The created object.
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		async createObject(schema, body) {
 			const url = generateUrl(
@@ -889,7 +889,7 @@ export default {
 		 * where available (mirrors TakeAssessmentView.vue's generateId()).
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		generateBlockId() {
 			if (
@@ -924,7 +924,7 @@ export default {
 		 * Append a new block of the selected type at the end of the list.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		addBlock() {
 			this.blocks.push({
@@ -949,7 +949,7 @@ export default {
 		 * @param {string} field Field name.
 		 * @param {*} value New value.
 		 * @return {void}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		onBlockFieldInput(block, field, value) {
 			block[field] = value
@@ -960,7 +960,7 @@ export default {
 		 *
 		 * @param {number} idx Index in `blocks`.
 		 * @return {void}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		removeBlock(idx) {
 			this.blocks.splice(idx, 1)
@@ -976,7 +976,7 @@ export default {
 		 * together via `save()` — so this only mutates local state.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		renumberBlocks() {
 			this.blocks.forEach((b, idx) => {
@@ -991,7 +991,7 @@ export default {
 		 * it also drops the local AI draft marker.
 		 *
 		 * @return {Array<object>} Blocks safe to persist.
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		serialisableBlocks() {
 			// Notes stay out of the lesson; the lesson blocks are renumbered
@@ -1090,7 +1090,7 @@ export default {
 		 * @param {number} fromIndex Current index.
 		 * @param {number} toIndex Target index.
 		 * @return {void}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
 		 */
 		reorderBlock(fromIndex, toIndex) {
 			if (
@@ -1115,7 +1115,7 @@ export default {
 
 		/** @param {number} idx Block index. @return {void} */
 		/**
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		moveBlockUp(idx) {
 			this.reorderBlock(idx, idx - 1)
@@ -1123,7 +1123,7 @@ export default {
 
 		/** @param {number} idx Block index. @return {void} */
 		/**
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		moveBlockDown(idx) {
 			this.reorderBlock(idx, idx + 1)
@@ -1134,7 +1134,7 @@ export default {
 		 * `v-model`; just renumber + announce.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
 		 */
 		onBlocksDragEnd() {
 			this.renumberBlocks()
@@ -1150,7 +1150,7 @@ export default {
 		 *
 		 * @param {object} block The media block being edited.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-media-block-references-an-existing-material-rather-than-duplicating-file-metadata
+		 * @spec openspec/specs/course-management/spec.md#scenario-a-media-block-references-an-existing-material-rather-than-duplicating-file-metadata
 		 */
 		async pickAndCreateMaterial(block) {
 			this.pickingFile = true
@@ -1199,7 +1199,7 @@ export default {
 		 * lesson text only after the teacher keeps it.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 * @spec openspec/specs/course-management/spec.md#scenario-a-pending-draft-blocks-the-save
 		 */
 		async save() {

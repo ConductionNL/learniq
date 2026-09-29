@@ -16,7 +16,7 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
+  @spec openspec/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
 -->
 
 <template>
@@ -86,7 +86,7 @@ export default {
 		 * The LearningRecordShare UUID from the route.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
+		 * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
 		 */
 		shareId() {
 			return this.$route?.params?.id ?? ''
@@ -96,7 +96,7 @@ export default {
 		 * Pretty-printed bundle JSON for the disclosure panel.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
+		 * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
 		 */
 		prettyBundle() {
 			return this.bundle ? JSON.stringify(this.bundle, null, 2) : ''
@@ -106,7 +106,7 @@ export default {
 		 * Human-readable label for the denial reason.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
+		 * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
 		 */
 		deniedReasonLabel() {
 			const labels = {
@@ -148,8 +148,8 @@ export default {
 		 * Call the public verification endpoint and render its result.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-valid-unexpired-share-resolves-to-the-shared-bundle
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-an-expired-share-is-denied-even-though-its-lifecycle-is-still-active
+		 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-valid-unexpired-share-resolves-to-the-shared-bundle
+		 * @spec openspec/specs/portable-learning-record/spec.md#scenario-an-expired-share-is-denied-even-though-its-lifecycle-is-still-active
 		 */
 		async verify() {
 			this.loading = true

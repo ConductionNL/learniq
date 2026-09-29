@@ -29,8 +29,8 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
-  @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-graded-course-bound-portfolio-flows-through-the-existing-gradeentry-pipeline-not-a-parallel-one
+  @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+  @spec openspec/specs/eportfolio/spec.md#requirement-a-graded-course-bound-portfolio-flows-through-the-existing-gradeentry-pipeline-not-a-parallel-one
 -->
 
 <template>
@@ -85,7 +85,7 @@
 						class="portfolio-review-view__entry-item">
 						<span class="portfolio-review-view__entry-kind">{{
 							/**
-							 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+							 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 							 */
 							evidenceKindLabel(entry.evidenceKind)
 						}}</span>
@@ -232,7 +232,7 @@ export default {
 		 * (`submitted -> graded` is the only transition it reacts to).
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		canGrade() {
 			return (
@@ -250,7 +250,7 @@ export default {
 			 *
 			 * @param {string} newId New portfolio UUID
 			 * @return {Promise<void>}
-			 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+			 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 			 */
 			async handler(newId) {
 				if (newId) {
@@ -267,7 +267,7 @@ export default {
 		 *
 		 * @param {string} portfolioId Portfolio UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadData(portfolioId) {
 			this.loading = true
@@ -311,7 +311,7 @@ export default {
 		 * @param {string} schema OR schema PascalCase key.
 		 * @param {string} objId  Object UUID.
 		 * @return {Promise<object>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async fetchObject(schema, objId) {
 			const url = generateUrl(
@@ -340,7 +340,7 @@ export default {
 		 * @param {string} schema OR schema PascalCase key.
 		 * @param {string} query  Pre-built query string (already URL-encoded).
 		 * @return {Promise<Array<object>>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async fetchList(schema, query) {
 			const url = generateUrl(
@@ -363,7 +363,7 @@ export default {
 		 * resolved reference unset.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async resolveEntryReferences() {
 			const resolved = {}
@@ -427,7 +427,7 @@ export default {
 		 * view computes no grade itself.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async gradePortfolio() {
 			if (!this.portfolio) {

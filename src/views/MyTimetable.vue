@@ -605,7 +605,7 @@ export default {
 		 * @param {object} session The session.
 		 *
 		 * @return {string} The status label.
-		 * @spec openspec/changes/timetabling-and-substitution/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
 		 */
 		statusLabel(session) {
 			if (session.lifecycle === 'cancelled') {
@@ -653,7 +653,7 @@ export default {
 		 * @param {object} session The session to manage.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-frontend-is-declarative-with-named-custom-views
+		 * @spec openspec/specs/timetabling/spec.md#requirement-frontend-is-declarative-with-named-custom-views
 		 */
 		manage(session) {
 			this.managingSession = session
@@ -663,7 +663,7 @@ export default {
 		 * Reload the timetable after a substitution/cancellation change.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-frontend-is-declarative-with-named-custom-views
+		 * @spec openspec/specs/timetabling/spec.md#requirement-frontend-is-declarative-with-named-custom-views
 		 */
 		async onChanged() {
 			await this.load()

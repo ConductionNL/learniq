@@ -9,7 +9,7 @@
  * scheduled, and the idempotent `regenerate` self-transition, scheduled →
  * scheduled). Runs the greedy, submission-order, earliest-fit conflict-free
  * slot-assignment algorithm described in
- * openspec/changes/parent-evening-planner/design.md over submitted/locked
+ * openspec/changes/archive/2026-07-13-parent-evening-planner/design.md over submitted/locked
  * TeacherAvailability and submitted/waitlisted ConferenceSignup rows for the
  * round, and writes ConferenceSlot objects via ObjectService::saveObject.
  *
@@ -52,7 +52,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
+ * @spec openspec/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
  */
 
 declare(strict_types=1);
@@ -111,7 +111,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
+	 * @spec openspec/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -137,8 +137,8 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
+	 * @spec openspec/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
+	 * @spec openspec/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
 	 */
 	private function generateForRound(array $round): void {
 		$roundId = $round['id'] ?? ($round['uuid'] ?? '');
@@ -248,7 +248,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 *               activeSlotKeys: array<string,true>,
 	 *               intervalsBySignup: array<string,array<int,array<string,mixed>>>}
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
+	 * @spec openspec/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
 	 */
 	private function indexExistingSlots(array $existingSlots, array $cancelledSignupIds): array {
 		// Confirmed slots are pinned — their minutes are excluded from re-slicing.
@@ -310,7 +310,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 *
 	 * @return array<string,array<int,array<string,mixed>>> Map of teacherId => ordered free slots.
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
+	 * @spec openspec/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
 	 */
 	private function buildTeacherQueues(
 		array $availabilities,
@@ -370,7 +370,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 *
 	 * @return array{newSlots: array<int,array<string,mixed>>, signupSaves: array<int,array<string,mixed>>, scheduledCount: int, waitlistedCount: int}
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
+	 * @spec openspec/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
 	 */
 	private function assignSignups(
 		array $signups,
@@ -445,7 +445,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 *
 	 * @return array{newSlots: array<int,array<string,mixed>>, unmetTeacherIds: array<int,string>}
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
+	 * @spec openspec/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
 	 */
 	private function assignSlotsForSignup(
 		array $signup,
@@ -514,7 +514,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 *
 	 * @return array<int,array{startsAt:string,endsAt:string}> Candidate slots, in chronological order.
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-a-conference-round-declares-its-scope-slot-duration-and-buffer-time
+	 * @spec openspec/specs/parent-conferences/spec.md#requirement-a-conference-round-declares-its-scope-slot-duration-and-buffer-time
 	 */
 	public static function sliceAvailability(array $blocks, int $slotDurationMinutes, int $bufferMinutes): array {
 		if ($slotDurationMinutes <= 0) {

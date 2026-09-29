@@ -193,7 +193,7 @@ class SchedulingListenerRegistrar {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+	 * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
 	 */
 	private function registerWalletOfferConcludedListener(IRegistrationContext $context): void {
 		// @stale-fleet-app-id exclude the class exists under NEITHER name. Re-verified

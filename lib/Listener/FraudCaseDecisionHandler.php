@@ -32,8 +32,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
- * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-fraud-proven-decision-invalidates-a-still-concept-contested-gradeentry
+ * @spec openspec/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
+ * @spec openspec/specs/exam-board/spec.md#requirement-a-fraud-proven-decision-invalidates-a-still-concept-contested-gradeentry
  */
 
 declare(strict_types=1);
@@ -51,7 +51,7 @@ use Psr\Log\LoggerInterface;
  * Bridges FraudCase.decided (verdict: fraud-proven) → GradeEntry.invalidate.
  *
  * @implements IEventListener<Event>
- * @spec       openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-fraud-proven-decision-invalidates-a-still-concept-contested-gradeentry
+ * @spec       openspec/specs/exam-board/spec.md#requirement-a-fraud-proven-decision-invalidates-a-still-concept-contested-gradeentry
  */
 class FraudCaseDecisionHandler implements IEventListener {
 
@@ -82,7 +82,7 @@ class FraudCaseDecisionHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-fraud-proven-decision-invalidates-a-still-concept-contested-gradeentry
+	 * @spec openspec/specs/exam-board/spec.md#requirement-a-fraud-proven-decision-invalidates-a-still-concept-contested-gradeentry
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -110,7 +110,7 @@ class FraudCaseDecisionHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-fraud-proven-decision-invalidates-a-still-concept-contested-gradeentry
+	 * @spec openspec/specs/exam-board/spec.md#requirement-a-fraud-proven-decision-invalidates-a-still-concept-contested-gradeentry
 	 */
 	private function invalidateContestedGradeEntry(ObjectTransitionedEvent $event): void {
 		$case = $event->getObject()->jsonSerialize();

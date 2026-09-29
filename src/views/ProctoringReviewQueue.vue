@@ -270,7 +270,7 @@ export default {
 		 *
 		 * @param {string} kind Flag kind value
 		 * @return {string}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		flagKindLabel(kind) {
 			const labels = {

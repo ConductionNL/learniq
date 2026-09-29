@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
+ * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
  */
 
 declare(strict_types=1);
@@ -139,7 +139,7 @@ class PeerFeedbackAggregatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
+	 * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
 	 */
 	public function testBlindAnonymityNullsReviewerId(): void {
 		$assignment = ['id' => 'assignment-1', 'peerReviewAnonymity' => 'blind'];
@@ -161,7 +161,7 @@ class PeerFeedbackAggregatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
+	 * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
 	 */
 	public function testDoubleBlindAnonymityNullsReviewerId(): void {
 		$assignment = ['id' => 'assignment-1', 'peerReviewAnonymity' => 'double-blind'];
@@ -181,7 +181,7 @@ class PeerFeedbackAggregatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
+	 * @spec openspec/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
 	 */
 	public function testOpenAnonymityPopulatesReviewerId(): void {
 		$assignment = ['id' => 'assignment-1', 'peerReviewAnonymity' => 'open'];
@@ -201,7 +201,7 @@ class PeerFeedbackAggregatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-teacher-releases-a-submitted-peerreview
+	 * @spec openspec/specs/assignments/spec.md#scenario-a-teacher-releases-a-submitted-peerreview
 	 */
 	public function testReviewCountAndAverageScoreRecomputeCorrectly(): void {
 		$assignment = ['id' => 'assignment-1', 'peerReviewAnonymity' => 'open'];

@@ -37,8 +37,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.3
- * @spec openspec/changes/zorgvraag-swv-tlv-chain/specs/learning-plan/spec.md#requirement-the-pupils-own-voice-hoorrecht-is-a-first-class-non-optional-field
+ * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-3.3
+ * @spec openspec/specs/learning-plan/spec.md#requirement-the-pupils-own-voice-hoorrecht-is-a-first-class-non-optional-field
  */
 
 declare(strict_types=1);
@@ -84,7 +84,7 @@ class PupilVoiceGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.3
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-3.3
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -104,7 +104,7 @@ class PupilVoiceGuard implements LifecycleGuardInterface {
 	 * @return bool True when pupilVoice.heard is true, or pupilVoice.waived is true
 	 *              with a non-empty waiverReason; false otherwise.
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.3
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-3.3
 	 */
 	private function allows(array $record): bool {
 		$recordId = $record['id'] ?? ($record['uuid'] ?? '?');

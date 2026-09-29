@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
+ * @spec openspec/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
  */
 
 declare(strict_types=1);
@@ -125,7 +125,7 @@ class CourseQualityScoreRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
 	 */
 	public function testFirstResponseCreatesQualityScoreRow(): void {
 		$responses = [['overallScore' => 4]];
@@ -159,7 +159,7 @@ class CourseQualityScoreRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
 	 */
 	public function testSubsequentResponseUpdatesExistingRow(): void {
 		$existing = [

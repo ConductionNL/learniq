@@ -22,7 +22,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/ai-feature-delegate-to-hermiq/specs/ai-surface/spec.md
- * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
+ * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
  */
 
 declare(strict_types=1);
@@ -102,7 +102,7 @@ class AssessmentPublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-manual-proctoring-is-unaffected
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-manual-proctoring-is-unaffected
 	 */
 	public function testManualProctoringSkipsDpoAndLocalityChecks(): void {
 		$appManager = $this->createMock(IAppManager::class);
@@ -201,7 +201,7 @@ class AssessmentPublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-publish-is-blocked-when-a-verified-third-country-provider-violates-an-on-premises-only-policy
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-publish-is-blocked-when-a-verified-third-country-provider-violates-an-on-premises-only-policy
 	 */
 	public function testAiAssistedProctoringBlockedByLocalityPolicy(): void {
 		$appManager = $this->createMock(IAppManager::class);
@@ -239,7 +239,7 @@ class AssessmentPublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-publish-is-blocked-when-locality-is-unverified-under-a-stricter-than-permissive-policy
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-publish-is-blocked-when-locality-is-unverified-under-a-stricter-than-permissive-policy
 	 */
 	public function testAiAssistedProctoringBlockedByUnverifiedLocality(): void {
 		$appManager = $this->createMock(IAppManager::class);
@@ -274,7 +274,7 @@ class AssessmentPublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-publish-succeeds-when-the-school-accepts-the-permissive-tier
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-publish-succeeds-when-the-school-accepts-the-permissive-tier
 	 */
 	public function testAiAssistedProctoringAllowedUnderThirdCountryAllowedPolicy(): void {
 		$appManager = $this->createMock(IAppManager::class);

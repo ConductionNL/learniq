@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/design.md#why-extraction-is-refactored-not-duplicated
+ * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#why-extraction-is-refactored-not-duplicated
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ use ZipArchive;
  * Extracts QTI / Common Cartridge ZIP archives with zip-slip and
  * decompression-bomb protection, and removes extraction directories again.
  *
- * @spec openspec/changes/course-package-import-export/design.md#why-extraction-is-refactored-not-duplicated
+ * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#why-extraction-is-refactored-not-duplicated
  */
 class QtiPackageExtractor {
 
@@ -74,7 +74,7 @@ class QtiPackageExtractor {
 	 *
 	 * @throws \RuntimeException When the ZIP cannot be opened or a security violation is detected.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#why-extraction-is-refactored-not-duplicated
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#why-extraction-is-refactored-not-duplicated
 	 */
 	public function extractZip(string $zipPath, string $targetDir): void {
 		$zip = new ZipArchive();

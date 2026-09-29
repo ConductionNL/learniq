@@ -30,7 +30,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-6.3
+ * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-6.3
  */
 
 declare(strict_types=1);

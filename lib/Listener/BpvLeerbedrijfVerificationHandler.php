@@ -41,7 +41,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+ * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
  */
 
 declare(strict_types=1);
@@ -65,7 +65,7 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+ * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
  */
 class BpvLeerbedrijfVerificationHandler implements IEventListener {
 
@@ -97,7 +97,7 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+	 * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -127,7 +127,7 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+	 * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
 	 */
 	private function runVerification(ObjectTransitionedEvent $event): void {
 		$placement = $event->getObject()->jsonSerialize();
@@ -211,7 +211,7 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 	 *
 	 * @return ProvidesLeerbedrijfVerification|null The resolved adapter, or null.
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+	 * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
 	 */
 	private function resolveProvider(mixed $providerClass): ?ProvidesLeerbedrijfVerification {
 		if (is_string($providerClass) === false || $providerClass === '') {

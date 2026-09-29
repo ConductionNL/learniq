@@ -17,7 +17,7 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-frontend-is-declarative-with-one-named-custom-view-for-the-risk-dashboard
+  @spec openspec/specs/study-progress/spec.md#requirement-frontend-is-declarative-with-one-named-custom-view-for-the-risk-dashboard
 -->
 
 <template>
@@ -125,7 +125,7 @@ export default {
 		 * longer "currently at risk and unactioned".
 		 *
 		 * @return {object[]}
-		 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
+		 * @spec openspec/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
 		 */
 		openFlags() {
 			return this.flags.filter((f) => f.lifecycle === 'open')
@@ -141,7 +141,7 @@ export default {
 		 * Fetch all BsaProgressFlag objects.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
+		 * @spec openspec/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
 		 */
 		async loadFlags() {
 			this.loading = true
@@ -179,7 +179,7 @@ export default {
 		 *
 		 * @param {object} flag BsaProgressFlag object
 		 * @return {string}
-		 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
+		 * @spec openspec/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
 		 */
 		draftWarningHref(flag) {
 			const params = new URLSearchParams({
@@ -196,7 +196,7 @@ export default {
 		 *
 		 * @param {number|null} value EC value
 		 * @return {string}
-		 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
+		 * @spec openspec/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
 		 */
 		formatEcts(value) {
 			if (value === null || value === undefined) return '-'
@@ -208,7 +208,7 @@ export default {
 		 *
 		 * @param {string} dt ISO datetime string
 		 * @return {string}
-		 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
+		 * @spec openspec/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
 		 */
 		formatDate(dt) {
 			if (!dt) return ''

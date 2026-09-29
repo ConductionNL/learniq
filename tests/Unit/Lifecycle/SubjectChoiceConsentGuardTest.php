@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-guardian-consent-gates-a-minor-s-subject-choice-submission
+ * @spec openspec/specs/school-structure/spec.md#requirement-guardian-consent-gates-a-minor-s-subject-choice-submission
  */
 
 declare(strict_types=1);
@@ -122,7 +122,7 @@ class SubjectChoiceConsentGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-linked-guardian-can-submit-a-subject-choice-for-their-own-child
+	 * @spec openspec/specs/school-structure/spec.md#scenario-a-linked-guardian-can-submit-a-subject-choice-for-their-own-child
 	 */
 	public function testLinkedGuardianCanSubmit(): void {
 		$this->signInAs('parent-1');
@@ -139,7 +139,7 @@ class SubjectChoiceConsentGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-an-unrelated-user-cannot-submit-a-subject-choice-for-someone-elses-child
+	 * @spec openspec/specs/school-structure/spec.md#scenario-an-unrelated-user-cannot-submit-a-subject-choice-for-someone-elses-child
 	 */
 	public function testUnrelatedUserCannotSubmit(): void {
 		$this->signInAs('stranger-1');

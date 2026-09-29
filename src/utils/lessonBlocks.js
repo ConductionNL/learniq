@@ -10,7 +10,7 @@
  * draft is a richText block with a local `assistDraft` marker that the
  * serialiser never writes.
  *
- * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+ * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
  */
 
 /**
@@ -63,7 +63,7 @@ export const TEACHER_NOTE_SCHEMA = 'lesson-teacher-note'
  *
  * @param {Array<object>} blocks The composer's blocks.
  * @return {Array<object>} Blocks safe to persist.
- * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+ * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
  * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
  * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-a-learner-can-read-cannot-hold-a-teacher-note
  */

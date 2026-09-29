@@ -23,8 +23,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-successful-render-records-the-docudesk-document-reference
+ * @spec openspec/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
+ * @spec openspec/specs/report-card/spec.md#scenario-a-successful-render-records-the-docudesk-document-reference
  * @spec openspec/specs/report-card/spec.md#scenario-a-report-card-with-an-assigned-template-sends-that-templates-slug-to-docudesk
  * @spec openspec/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
  */
@@ -139,7 +139,7 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-successful-render-records-the-docudesk-document-reference
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-successful-render-records-the-docudesk-document-reference
 	 */
 	public function testSuccessfulRenderRecordsDocumentReference(): void {
 		$this->appConfig->method('getValueString')->willReturn('token-abc');
@@ -201,7 +201,7 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
 	 */
 	public function testMissingTokenIsFailSoft(): void {
 		$this->appConfig->method('getValueString')->willReturn('');
@@ -222,7 +222,7 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
 	 */
 	public function testUnreachableDocudeskIsFailSoft(): void {
 		$this->appConfig->method('getValueString')->willReturn('token-abc');

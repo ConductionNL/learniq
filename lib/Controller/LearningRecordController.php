@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
+ * @spec openspec/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
  */
 
 declare(strict_types=1);
@@ -48,7 +48,7 @@ use OCP\IUserSession;
 /**
  * Serves the calling user's own composed learning-record trajectory.
  *
- * @spec openspec/changes/portable-learning-record/tasks.md#task-2-2
+ * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-2
  */
 class LearningRecordController extends Controller {
 	/**
@@ -73,7 +73,7 @@ class LearningRecordController extends Controller {
 	 *
 	 * @return JSONResponse `{learnerRef, ...composition}` or an error response.
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-learner-opens-their-aggregate-record-and-sees-composed-read-only-data
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-learner-opens-their-aggregate-record-and-sees-composed-read-only-data
 	 */
 	#[NoAdminRequired]
 	public function mine(): JSONResponse {

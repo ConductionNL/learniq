@@ -36,7 +36,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-substitution-and-cancellation-require-a-reason-and-are-gated-by-sessionchangeguard
+ * @spec openspec/specs/timetabling/spec.md#requirement-substitution-and-cancellation-require-a-reason-and-are-gated-by-sessionchangeguard
  */
 
 declare(strict_types=1);
@@ -53,7 +53,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Guards the Session `cancel` / `substitute-teacher` / `substitute-teacher-in-progress` transitions.
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-substitution-and-cancellation-require-a-reason-and-are-gated-by-sessionchangeguard
+ * @spec openspec/specs/timetabling/spec.md#requirement-substitution-and-cancellation-require-a-reason-and-are-gated-by-sessionchangeguard
  */
 class SessionChangeGuard implements LifecycleGuardInterface {
 
@@ -111,9 +111,9 @@ class SessionChangeGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-cancelling-without-a-reason-is-refused
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-teacher-outside-the-cohort-cannot-substitute-or-cancel
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
+	 * @spec openspec/specs/timetabling/spec.md#scenario-cancelling-without-a-reason-is-refused
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-teacher-outside-the-cohort-cannot-substitute-or-cancel
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		if ($this->allows(object: $object, action: $action, userId: $userId) === true) {
@@ -132,9 +132,9 @@ class SessionChangeGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when the transition is allowed; false blocks it.
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-cancelling-without-a-reason-is-refused
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-teacher-outside-the-cohort-cannot-substitute-or-cancel
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
+	 * @spec openspec/specs/timetabling/spec.md#scenario-cancelling-without-a-reason-is-refused
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-teacher-outside-the-cohort-cannot-substitute-or-cancel
 	 */
 	private function allows(array $object, string $action, string $userId): bool {
 		$actor = $userId;

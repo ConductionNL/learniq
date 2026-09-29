@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-substitution-and-cancellation-require-a-reason-and-are-gated-by-sessionchangeguard
+ * @spec openspec/specs/timetabling/spec.md#requirement-substitution-and-cancellation-require-a-reason-and-are-gated-by-sessionchangeguard
  */
 
 declare(strict_types=1);
@@ -81,7 +81,7 @@ class SessionChangeGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
 	 */
 	public function testCohortTeacherCancelsWithReasonIsAllowed(): void {
 		$guard = $this->makeGuard([], ['id' => 'cohort-1', 'teacherIds' => ['actor-1']]);
@@ -96,7 +96,7 @@ class SessionChangeGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-cancelling-without-a-reason-is-refused
+	 * @spec openspec/specs/timetabling/spec.md#scenario-cancelling-without-a-reason-is-refused
 	 */
 	public function testCancelWithoutReasonIsRefused(): void {
 		$guard = $this->makeGuard([], ['id' => 'cohort-1', 'teacherIds' => ['actor-1']]);
@@ -111,7 +111,7 @@ class SessionChangeGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-teacher-outside-the-cohort-cannot-substitute-or-cancel
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-teacher-outside-the-cohort-cannot-substitute-or-cancel
 	 */
 	public function testOutsideTeacherCannotCancel(): void {
 		$guard = $this->makeGuard([], ['id' => 'cohort-1', 'teacherIds' => ['someone-else']]);

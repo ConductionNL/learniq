@@ -21,8 +21,8 @@
  Storage/lifecycle/notifications are OpenRegister's; this view only creates
  the choice and drives its submit transition through the OR object API.
 
- @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
- @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-guardian-consent-gates-a-minor-s-subject-choice-submission
+ @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+ @spec openspec/specs/school-structure/spec.md#requirement-guardian-consent-gates-a-minor-s-subject-choice-submission
 -->
 <template>
 	<div class="subject-choice-picker">
@@ -196,7 +196,7 @@ export default {
 		 * at least one elective course.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+		 * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		planOptions() {
 			return this.plans
@@ -215,7 +215,7 @@ export default {
 		 * The currently selected CurriculumPlan object, or null.
 		 *
 		 * @return {object|null}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+		 * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		selectedPlan() {
 			return (
@@ -228,7 +228,7 @@ export default {
 		 * The selected plan's declared electiveRules, or an empty object when unset.
 		 *
 		 * @return {object}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+		 * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		electiveRules() {
 			return (this.selectedPlan && this.selectedPlan.electiveRules) || {}
@@ -238,7 +238,7 @@ export default {
 		 * Elective options scoped to the selected plan's electiveCourseIds.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+		 * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		electiveOptions() {
 			if (!this.selectedPlan) return []
@@ -252,7 +252,7 @@ export default {
 		 * Learner options: the caller's linked children plus themselves (18+ self-choice).
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+		 * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		learnerOptions() {
 			return this.learners.map((l) => ({
@@ -266,7 +266,7 @@ export default {
 		 * only, the authoritative check is SubjectChoiceValidator server-side.
 		 *
 		 * @return {string[]}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-learner-picks-electives-with-live-rule-feedback
+		 * @spec openspec/specs/school-structure/spec.md#scenario-a-learner-picks-electives-with-live-rule-feedback
 		 */
 		feedback() {
 			const messages = []
@@ -330,7 +330,7 @@ export default {
 		 * Whether the form has enough input to submit.
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+		 * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		canSubmit() {
 			return (
@@ -352,7 +352,7 @@ export default {
 		 * Load CurriculumPlans and Courses (for elective display labels).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+		 * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		async loadPlansAndCourses() {
 			this.loading = true
@@ -394,7 +394,7 @@ export default {
 		 * self via ncUserId for an 18+ self-choice).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+		 * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		async loadLearners() {
 			this.loadingLearners = true
@@ -443,7 +443,7 @@ export default {
 		 * Reset the elective selection when the plan changes.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+		 * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		onPlanChange() {
 			this.selectedCourseIds = []
@@ -455,7 +455,7 @@ export default {
 		 * user-facing error rather than a silent failure.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-linked-guardian-can-submit-a-subject-choice-for-their-own-child
+		 * @spec openspec/specs/school-structure/spec.md#scenario-a-linked-guardian-can-submit-a-subject-choice-for-their-own-child
 		 */
 		async submitChoice() {
 			if (!this.canSubmit) return

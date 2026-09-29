@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
+ * @spec openspec/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
  */
 
 declare(strict_types=1);
@@ -49,7 +49,7 @@ use OCP\IUserSession;
 /**
  * Reviewer-allocation endpoint for the peer-and-self-assessment feature.
  *
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
+ * @spec openspec/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
  */
 class PeerReviewController extends Controller {
 
@@ -84,7 +84,7 @@ class PeerReviewController extends Controller {
 	 *
 	 * @return JSONResponse The allocation summary, or an error/denial response.
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-round-robin-allocates-the-configured-reviewer-count-while-excluding-self
+	 * @spec openspec/specs/assignments/spec.md#scenario-round-robin-allocates-the-configured-reviewer-count-while-excluding-self
 	 */
 	#[NoAdminRequired]
 	public function allocate(string $assignmentId = ''): JSONResponse {
@@ -120,7 +120,7 @@ class PeerReviewController extends Controller {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
+	 * @spec openspec/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
 	 */
 	private function canAllocate(IUser $user, array $assignment): bool {
 		if ($this->groupManager->isAdmin($user->getUID()) === true) {

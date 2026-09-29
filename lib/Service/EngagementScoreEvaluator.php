@@ -45,7 +45,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#requirement-persist-engagementscore-domain-objects-in-openregister
+ * @spec openspec/specs/student-analytics/spec.md#requirement-persist-engagementscore-domain-objects-in-openregister
  */
 
 declare(strict_types=1);
@@ -97,7 +97,7 @@ class EngagementScoreEvaluator {
 	 *
 	 * @return array{timeOnTaskMinutes: float, lastActivityAt: string|null, score: int}
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
 	 */
 	public function evaluate(string $learnerId, string $courseId, ?string $previousActivityAt = null): array {
 		$statements = $this->fetchStatements(learnerId: $learnerId, courseId: $courseId);

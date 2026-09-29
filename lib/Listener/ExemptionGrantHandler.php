@@ -30,7 +30,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-granted-exemption-feeds-grading-through-the-existing-publish-path
+ * @spec openspec/specs/exam-board/spec.md#requirement-a-granted-exemption-feeds-grading-through-the-existing-publish-path
  */
 
 declare(strict_types=1);
@@ -49,7 +49,7 @@ use Psr\Log\LoggerInterface;
  * Bridges ExemptionCase.granted → GradeEntry (sourceKind: exemption) create + publish.
  *
  * @implements IEventListener<Event>
- * @spec       openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-granted-exemption-feeds-grading-through-the-existing-publish-path
+ * @spec       openspec/specs/exam-board/spec.md#requirement-a-granted-exemption-feeds-grading-through-the-existing-publish-path
  */
 class ExemptionGrantHandler implements IEventListener {
 
@@ -80,7 +80,7 @@ class ExemptionGrantHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-granted-exemption-feeds-grading-through-the-existing-publish-path
+	 * @spec openspec/specs/exam-board/spec.md#requirement-a-granted-exemption-feeds-grading-through-the-existing-publish-path
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -108,7 +108,7 @@ class ExemptionGrantHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-granted-exemption-feeds-grading-through-the-existing-publish-path
+	 * @spec openspec/specs/exam-board/spec.md#requirement-a-granted-exemption-feeds-grading-through-the-existing-publish-path
 	 */
 	private function createAndPublishGradeEntry(ObjectTransitionedEvent $event): void {
 		$case = $event->getObject()->jsonSerialize();

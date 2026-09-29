@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
+ * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
  */
 
 declare(strict_types=1);
@@ -50,7 +50,7 @@ use Psr\Log\LoggerInterface;
  * Stores a prior-institution learning-record upload and creates the
  * `LearningRecordImport` object that tracks its parse.
  *
- * @spec openspec/changes/portable-learning-record/tasks.md#task-4-2
+ * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-4-2
  */
 class LearningRecordImportIntakeService {
 
@@ -115,7 +115,7 @@ class LearningRecordImportIntakeService {
 	 *
 	 * @return string|null The nc:files path (relative, no leading slash), or null on failure.
 	 *
-	 * @spec openspec/changes/portable-learning-record/tasks.md#task-4-2
+	 * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-4-2
 	 */
 	public function storeUpload(string $tmpPath, string $ownerUid, string $tenantId): ?string {
 		try {
@@ -178,7 +178,7 @@ class LearningRecordImportIntakeService {
 	 * @return array<string,mixed>|null The created (now `parsed`, or `uploaded`+errorMessage) record, or
 	 *                                  null when it could not be created.
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
 	 */
 	public function createImport(
 		string $applicationId,

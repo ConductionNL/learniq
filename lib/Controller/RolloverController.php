@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-year-rollover/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
 
 declare(strict_types=1);
@@ -48,7 +48,7 @@ use OCP\IUserSession;
 /**
  * Default-mapping proposal + side-effect-free preview for the rollover wizard.
  *
- * @spec openspec/changes/school-year-rollover/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
 class RolloverController extends Controller {
 	/**
@@ -83,7 +83,7 @@ class RolloverController extends Controller {
 	 *
 	 * @return JSONResponse The proposed mappings.
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
 	 */
 	#[NoAdminRequired]
@@ -139,7 +139,7 @@ class RolloverController extends Controller {
 	 *
 	 * @throws \Exception When OpenRegister refuses the plan save; it reaches the caller as before.
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
 	 */
 	#[NoAdminRequired]

@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
+ * @spec openspec/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
  */
 
 declare(strict_types=1);
@@ -67,7 +67,7 @@ class ReportCardFinaliseGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
+	 * @spec openspec/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
 	 */
 	public function testMissingMentorCommentBlocksFinalise(): void {
 		$guard = $this->makeGuard();
@@ -82,7 +82,7 @@ class ReportCardFinaliseGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
+	 * @spec openspec/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
 	 */
 	public function testBlankMentorCommentBlocksFinalise(): void {
 		$guard = $this->makeGuard();

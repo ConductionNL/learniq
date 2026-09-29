@@ -28,7 +28,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-9
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
+ * @spec openspec/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
  */
 
 declare(strict_types=1);
@@ -48,7 +48,7 @@ use Psr\Log\LoggerInterface;
  * or selfAssessmentEnabled is true, rubricId MUST be set.
  *
  * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-9
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
+ * @spec openspec/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
  */
 class AssignmentPublishGuard implements LifecycleGuardInterface {
 
@@ -80,7 +80,7 @@ class AssignmentPublishGuard implements LifecycleGuardInterface {
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-9
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
+	 * @spec openspec/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -106,7 +106,7 @@ class AssignmentPublishGuard implements LifecycleGuardInterface {
 	 *              assessment is enabled, a rubricId); false blocks the transition.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-9
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
+	 * @spec openspec/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
 	 */
 	private function allows(array $object): bool {
 		$courseId = $object['courseId'] ?? null;

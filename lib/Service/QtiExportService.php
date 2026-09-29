@@ -34,7 +34,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
+ * @spec openspec/changes/archive/2026-07-16-course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
  */
 
 declare(strict_types=1);
@@ -83,7 +83,7 @@ class QtiExportService {
 	 *
 	 * @throws \RuntimeException When the ItemBank does not exist.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/assessment/spec.md#scenario-exporting-an-itembank-produces-a-valid-qti-30-package
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/specs/assessment/spec.md#scenario-exporting-an-itembank-produces-a-valid-qti-30-package
 	 * @spec openspec/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-21-package
 	 */
 	public function export(string $itemBankId): string {
@@ -121,7 +121,7 @@ class QtiExportService {
 	 *
 	 * @return string Raw ZIP bytes.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/assessment/spec.md#scenario-export-fidelity-is-not-limited-by-the-import-side-parsing-gap
+	 * @spec openspec/specs/assessment/spec.md#scenario-export-fidelity-is-not-limited-by-the-import-side-parsing-gap
 	 * @spec openspec/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-21-package
 	 */
 	private function buildPackage(array $bankData, array $items): string {
@@ -185,7 +185,7 @@ class QtiExportService {
 	 *
 	 * @return string Raw ZIP bytes.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
 	 */
 	private function buildZip(array $files): string {
 		$tmpFile = tempnam(sys_get_temp_dir(), 'learniq_qti_export_');
@@ -218,7 +218,7 @@ class QtiExportService {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
 	 */
 	private function toArray(mixed $object): array {
 		if (is_array($object) === true) {

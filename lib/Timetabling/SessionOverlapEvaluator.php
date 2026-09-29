@@ -32,7 +32,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
+ * @spec openspec/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
  */
 
 declare(strict_types=1);
@@ -42,7 +42,7 @@ namespace OCA\Learniq\Timetabling;
 /**
  * Pure overlap and capacity rules over Session/Cohort/Room data arrays.
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
+ * @spec openspec/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
  */
 class SessionOverlapEvaluator {
 	/**
@@ -53,7 +53,7 @@ class SessionOverlapEvaluator {
 	 *
 	 * @return bool True when the intervals overlap.
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-two-sessions-imported-for-the-same-room-at-overlapping-times-are-flagged-not-auto-moved
+	 * @spec openspec/specs/timetabling/spec.md#scenario-two-sessions-imported-for-the-same-room-at-overlapping-times-are-flagged-not-auto-moved
 	 */
 	public function overlaps(array $sessionA, array $sessionB): bool {
 		$startA = strtotime((string)($sessionA['startsAt'] ?? ''));
@@ -82,7 +82,7 @@ class SessionOverlapEvaluator {
 	 *
 	 * @return array<string,string|null> Map of conflict kind => evidencing reference.
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-two-sessions-imported-for-the-same-room-at-overlapping-times-are-flagged-not-auto-moved
+	 * @spec openspec/specs/timetabling/spec.md#scenario-two-sessions-imported-for-the-same-room-at-overlapping-times-are-flagged-not-auto-moved
 	 */
 	public function overlapKinds(array $sessionA, array $sessionB, ?array $cohortA, ?array $cohortB): array {
 		$kinds = [];
@@ -135,7 +135,7 @@ class SessionOverlapEvaluator {
 	 *
 	 * @return bool True when the cohort's learner count exceeds the room capacity.
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-an-exam-session-exceeding-room-capacity-is-flagged-as-room-capacity-exceeded
+	 * @spec openspec/specs/timetabling/spec.md#scenario-an-exam-session-exceeding-room-capacity-is-flagged-as-room-capacity-exceeded
 	 */
 	public function exceedsCapacity(?array $cohort, ?array $room): bool {
 		$capacity = (int)($room['capacity'] ?? 0);

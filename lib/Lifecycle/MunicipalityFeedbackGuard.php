@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/verzuim-report-composer/tasks.md#task-2.2
+ * @spec openspec/changes/archive/2026-07-13-verzuim-report-composer/tasks.md#task-2.2
  */
 
 declare(strict_types=1);
@@ -60,7 +60,7 @@ use Psr\Log\LoggerInterface;
  * so today this check does not run (reported on learniq#983). It is kept as a
  * guard so it runs the day OpenRegister guards self-loops.
  *
- * @spec openspec/changes/verzuim-report-composer/tasks.md#task-2.2
+ * @spec openspec/changes/archive/2026-07-13-verzuim-report-composer/tasks.md#task-2.2
  */
 class MunicipalityFeedbackGuard implements LifecycleGuardInterface {
 
@@ -106,7 +106,7 @@ class MunicipalityFeedbackGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny when the caller or the flag does not qualify.
 	 *
-	 * @spec openspec/changes/verzuim-report-composer/tasks.md#task-2.2
+	 * @spec openspec/changes/archive/2026-07-13-verzuim-report-composer/tasks.md#task-2.2
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -146,7 +146,7 @@ class MunicipalityFeedbackGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when the user is in admin / coordinator.
 	 *
-	 * @spec openspec/changes/verzuim-report-composer/tasks.md#task-2.2
+	 * @spec openspec/changes/archive/2026-07-13-verzuim-report-composer/tasks.md#task-2.2
 	 */
 	private function actorIsAuthorised(string $actor): bool {
 		$user = $this->userManager->get($actor);

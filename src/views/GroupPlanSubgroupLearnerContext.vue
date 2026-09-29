@@ -37,8 +37,8 @@
  Uses Options API + direct fetch calls (no custom Pinia store modules),
  mirroring PupilDossierTimelineView.vue / BsaRiskDashboard.vue.
 
- @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#requirement-groupplansubgroup-differentiates-instructieniveau-and-links-to-without-duplicating-learningplan-and-supportrequest
- @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+ @spec openspec/specs/learning-plan/spec.md#requirement-groupplansubgroup-differentiates-instructieniveau-and-links-to-without-duplicating-learningplan-and-supportrequest
+ @spec openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 -->
 
 <template>
@@ -193,7 +193,7 @@ export default {
 		 * tile).
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+		 * @spec openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		subgroupId() {
 			return (
@@ -208,7 +208,7 @@ export default {
 		 * LearningPlans, never from a stored field on the subgroup itself.
 		 *
 		 * @return {Array<{learnerId: string, learningPlan: object|null}>}
-		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+		 * @spec openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		members() {
 			if (!this.subgroup) return []
@@ -228,7 +228,7 @@ export default {
 		subgroupId: {
 			immediate: true,
 			/**
-			 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+			 * @spec openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 			 */
 			handler() {
 				if (this.subgroupId) this.loadAll()
@@ -243,7 +243,7 @@ export default {
 		 * navigation without a pre-selected subgroup).
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+		 * @spec openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		openSubgroup() {
 			const id = this.subgroupIdInput.trim()
@@ -262,7 +262,7 @@ export default {
 		 * @param {string} schema OpenRegister schema title (e.g. "GroupPlanSubgroup").
 		 * @param {string} id Object UUID.
 		 * @return {Promise<object|null>}
-		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+		 * @spec openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		async fetchObject(schema, id) {
 			const url = generateUrl(
@@ -282,7 +282,7 @@ export default {
 		 * @param {string} query Query string, WITHOUT the leading "?" (already
 		 *   `encodeURIComponent`-escaped by the caller).
 		 * @return {Promise<Array<object>>}
-		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+		 * @spec openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		async fetchSchema(schema, query) {
 			const url = generateUrl(
@@ -305,7 +305,7 @@ export default {
 		 * DeliberationRecord join).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+		 * @spec openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		async loadAll() {
 			this.loading = true

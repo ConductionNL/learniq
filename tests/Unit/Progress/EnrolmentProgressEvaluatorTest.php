@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
+ * @spec openspec/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
  */
 
 declare(strict_types=1);
@@ -66,7 +66,7 @@ class EnrolmentProgressEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
+	 * @spec openspec/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
 	 */
 	public function testNormalRatio(): void {
 		$evaluator = $this->makeEvaluator(completedCount: 4, publishedCount: 10);
@@ -84,7 +84,7 @@ class EnrolmentProgressEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-is-null-safe-before-any-lesson-completes
+	 * @spec openspec/specs/enrolment/spec.md#scenario-progress-percentage-is-null-safe-before-any-lesson-completes
 	 */
 	public function testZeroCompletions(): void {
 		$evaluator = $this->makeEvaluator(completedCount: 0, publishedCount: 10);
@@ -100,7 +100,7 @@ class EnrolmentProgressEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-is-null-safe-before-any-lesson-completes
+	 * @spec openspec/specs/enrolment/spec.md#scenario-progress-percentage-is-null-safe-before-any-lesson-completes
 	 */
 	public function testZeroPublishedLessons(): void {
 		$evaluator = $this->makeEvaluator(completedCount: 0, publishedCount: 0);

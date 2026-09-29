@@ -31,7 +31,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
+ * @spec openspec/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
  */
 
 declare(strict_types=1);
@@ -41,7 +41,7 @@ namespace OCA\Learniq\Service;
 /**
  * Filters and variant-groups a candidate Item pool.
  *
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
+ * @spec openspec/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
  */
 class ItemPoolFilter {
 	/**
@@ -55,7 +55,7 @@ class ItemPoolFilter {
 	 *
 	 * @return array<string,array<int,string>> variantGroupId (or synthetic singleton key) => item UUIDs.
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
+	 * @spec openspec/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
 	 */
 	public function filterAndGroupByVariant(array $items, array $poolConfig): array {
 		$subjectTags = $poolConfig['subjectTags'] ?? [];

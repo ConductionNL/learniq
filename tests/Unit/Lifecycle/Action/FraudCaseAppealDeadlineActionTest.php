@@ -48,7 +48,7 @@ class FraudCaseAppealDeadlineActionTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#scenario-deciding-a-case-stamps-the-appeal-deadline
+	 * @spec openspec/specs/exam-board/spec.md#scenario-deciding-a-case-stamps-the-appeal-deadline
 	 */
 	public function testDecidedAtAndAppealDeadlineEndUpOnTheSavedObject(): void {
 		$object = [

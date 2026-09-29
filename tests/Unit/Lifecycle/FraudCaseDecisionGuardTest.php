@@ -20,8 +20,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
- * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-a-42-day-appeal-deadline
+ * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
+ * @spec openspec/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-a-42-day-appeal-deadline
  */
 
 declare(strict_types=1);
@@ -62,7 +62,7 @@ class FraudCaseDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#scenario-decide-blocked-without-a-verdict-and-rationale
+	 * @spec openspec/specs/exam-board/spec.md#scenario-decide-blocked-without-a-verdict-and-rationale
 	 */
 	public function testMissingVerdictOrRationaleBlocks(): void {
 		$object = ['id' => 'case-1', 'lifecycle' => 'decided'];
@@ -99,7 +99,7 @@ class FraudCaseDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#scenario-a-fraud-proven-verdict-requires-a-capped-sanction
+	 * @spec openspec/specs/exam-board/spec.md#scenario-a-fraud-proven-verdict-requires-a-capped-sanction
 	 */
 	public function testFraudProvenWithoutSanctionBlocks(): void {
 		$object = [
@@ -118,7 +118,7 @@ class FraudCaseDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#scenario-a-fraud-proven-verdict-requires-a-capped-sanction
+	 * @spec openspec/specs/exam-board/spec.md#scenario-a-fraud-proven-verdict-requires-a-capped-sanction
 	 */
 	public function testFraudProvenWithSanctionDurationOverCapBlocks(): void {
 		$object = [

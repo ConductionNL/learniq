@@ -76,7 +76,7 @@ class TenantSignatureAction implements LifecycleActionInterface {
 	 *
 	 * @throws RuntimeException When the tenant has no signing key: an unsigned record must not be saved.
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-the-formal-warning-captures-improvement-period-guidance-and-personal-circumstances-and-is-signed-evidence
+	 * @spec openspec/specs/study-progress/spec.md#requirement-the-formal-warning-captures-improvement-period-guidance-and-personal-circumstances-and-is-signed-evidence
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleActionInterface's.
 	 */

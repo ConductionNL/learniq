@@ -24,8 +24,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-an-exemption-entry-does-not-corrupt-the-weighted-average
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-an-exemption-satisfies-an-all-must-pass-component-without-a-numeric-check
+ * @spec openspec/specs/grading/spec.md#scenario-an-exemption-entry-does-not-corrupt-the-weighted-average
+ * @spec openspec/specs/grading/spec.md#scenario-an-exemption-satisfies-an-all-must-pass-component-without-a-numeric-check
  */
 
 declare(strict_types=1);
@@ -120,7 +120,7 @@ class GradeFormulaEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-an-exemption-entry-does-not-corrupt-the-weighted-average
+	 * @spec openspec/specs/grading/spec.md#scenario-an-exemption-entry-does-not-corrupt-the-weighted-average
 	 */
 	public function testExemptionEntryDoesNotCorruptWeightedAverage(): void {
 		$plan = [
@@ -173,7 +173,7 @@ class GradeFormulaEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/design.md#6-gradeformulaevaluator-extension--verified-against-the-current-implementation
+	 * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/design.md#6-gradeformulaevaluator-extension--verified-against-the-current-implementation
 	 */
 	public function testExemptionEntryWithHeavyWeightDoesNotDragDownAverage(): void {
 		$plan = [
@@ -210,7 +210,7 @@ class GradeFormulaEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-an-exemption-satisfies-an-all-must-pass-component-without-a-numeric-check
+	 * @spec openspec/specs/grading/spec.md#scenario-an-exemption-satisfies-an-all-must-pass-component-without-a-numeric-check
 	 */
 	public function testExemptionSatisfiesAllMustPassWithoutNumericCheck(): void {
 		$plan = [
@@ -246,7 +246,7 @@ class GradeFormulaEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-an-exemption-satisfies-an-all-must-pass-component-without-a-numeric-check
+	 * @spec openspec/specs/grading/spec.md#scenario-an-exemption-satisfies-an-all-must-pass-component-without-a-numeric-check
 	 */
 	public function testNonExemptComponentStillEnforcesThresholdAlongsideAnExemption(): void {
 		$plan = [

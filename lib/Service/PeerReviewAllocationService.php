@@ -44,7 +44,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
+ * @spec openspec/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
  */
 
 declare(strict_types=1);
@@ -57,7 +57,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Allocates PeerReview rows for an Assignment's Submissions.
  *
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
+ * @spec openspec/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
  * @spec openspec/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
  */
 class PeerReviewAllocationService {
@@ -103,9 +103,9 @@ class PeerReviewAllocationService {
 	 *
 	 * @return array{strategy: string, submissionsProcessed: int, createdCount: int}
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-round-robin-allocates-the-configured-reviewer-count-while-excluding-self
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-manual-strategy-performs-no-automatic-allocation
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-re-running-allocation-is-idempotent
+	 * @spec openspec/specs/assignments/spec.md#scenario-round-robin-allocates-the-configured-reviewer-count-while-excluding-self
+	 * @spec openspec/specs/assignments/spec.md#scenario-manual-strategy-performs-no-automatic-allocation
+	 * @spec openspec/specs/assignments/spec.md#scenario-re-running-allocation-is-idempotent
 	 */
 	public function allocate(string $assignmentId): array {
 		$assignment = $this->fetchObject(id: $assignmentId, schema: self::ASSIGNMENT_SCHEMA);
@@ -220,7 +220,7 @@ class PeerReviewAllocationService {
 	 *
 	 * @return array{created: int, cursor: int}
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-round-robin-allocates-the-configured-reviewer-count-while-excluding-self
+	 * @spec openspec/specs/assignments/spec.md#scenario-round-robin-allocates-the-configured-reviewer-count-while-excluding-self
 	 */
 	private function assignReviewersToSubmission(
 		string $assignmentId,
@@ -326,7 +326,7 @@ class PeerReviewAllocationService {
 	 *
 	 * @return array<int,array<string,mixed>>
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
+	 * @spec openspec/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
 	 * @spec openspec/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
 	 */
 	private function fetchOrderedSubmissions(string $assignmentId): array {
@@ -374,7 +374,7 @@ class PeerReviewAllocationService {
 	 *
 	 * @return array<int,string>
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
+	 * @spec openspec/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
 	 */
 	private function buildReviewerPool(array $submissions): array {
 		$pool = [];
@@ -423,7 +423,7 @@ class PeerReviewAllocationService {
 	 *
 	 * @return array<int,array<string,mixed>>
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-re-running-allocation-is-idempotent
+	 * @spec openspec/specs/assignments/spec.md#scenario-re-running-allocation-is-idempotent
 	 */
 	private function fetchExistingReviews(string $assignmentId): array {
 		$results = $this->objectService->findAll(

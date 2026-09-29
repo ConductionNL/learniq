@@ -577,7 +577,7 @@ class PortalContributionProviderTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-praktijkopleider-portal-access-is-a-direct-scope-portalcontributionprovider-audience
+	 * @spec openspec/specs/bpv/spec.md#requirement-praktijkopleider-portal-access-is-a-direct-scope-portalcontributionprovider-audience
 	 */
 	public function testPraktijkopleiderManifestShape(): void {
 		$manifest = $this->provider->getContribution(self::PRAKTIJKOPLEIDER_SUBJECT);
@@ -614,7 +614,7 @@ class PortalContributionProviderTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
+	 * @spec openspec/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
 	 */
 	public function testPraktijkopleiderGainsSharedPortfoliosCollection(): void {
 		$manifest = $this->provider->getContribution(self::PRAKTIJKOPLEIDER_SUBJECT);
@@ -640,7 +640,7 @@ class PortalContributionProviderTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
+	 * @spec openspec/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
 	 */
 	public function testExternalAssessorManifestShape(): void {
 		$manifest = $this->provider->getContribution(self::EXTERNAL_ASSESSOR_SUBJECT);
@@ -676,7 +676,7 @@ class PortalContributionProviderTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-praktijkopleider-portal-actions-never-trust-client-supplied-identity
+	 * @spec openspec/specs/bpv/spec.md#requirement-praktijkopleider-portal-actions-never-trust-client-supplied-identity
 	 */
 	public function testPraktijkopleiderActionsAreDirectScopeStampedAndWhitelisted(): void {
 		$manifest = $this->provider->getContribution(self::PRAKTIJKOPLEIDER_SUBJECT);

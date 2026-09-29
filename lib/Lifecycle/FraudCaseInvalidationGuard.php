@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
+ * @spec openspec/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
  */
 
 declare(strict_types=1);
@@ -47,7 +47,7 @@ use Psr\Log\LoggerInterface;
  * `fraudCaseId`, case not found, case not decided, or a non-fraud-proven
  * verdict).
  *
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
+ * @spec openspec/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
  */
 class FraudCaseInvalidationGuard implements LifecycleGuardInterface {
 
@@ -84,7 +84,7 @@ class FraudCaseInvalidationGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
+	 * @spec openspec/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -103,7 +103,7 @@ class FraudCaseInvalidationGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True if the transition is allowed; false blocks it (HTTP 422).
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
+	 * @spec openspec/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
 	 */
 	private function allows(array $entry): bool {
 		$entryId = $entry['id'] ?? ($entry['uuid'] ?? '');

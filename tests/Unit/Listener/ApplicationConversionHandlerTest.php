@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
+ * @spec openspec/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
  */
 
 declare(strict_types=1);
@@ -153,7 +153,7 @@ class ApplicationConversionHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
+	 * @spec openspec/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
 	 */
 	public function testPlacementCreatesLearnerProfileAndEnrolments(): void {
 		$programme = ['id' => 'programme-1', 'courseIds' => ['course-a', 'course-b', 'course-c']];
@@ -200,7 +200,7 @@ class ApplicationConversionHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
+	 * @spec openspec/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
 	 */
 	public function testNoUnexpectedSideEffectSchemasWritten(): void {
 		$programme = ['id' => 'programme-1', 'courseIds' => ['course-a']];

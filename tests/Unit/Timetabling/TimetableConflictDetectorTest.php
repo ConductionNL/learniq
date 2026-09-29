@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
+ * @spec openspec/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
  */
 
 declare(strict_types=1);
@@ -173,7 +173,7 @@ class TimetableConflictDetectorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-two-sessions-imported-for-the-same-room-at-overlapping-times-are-flagged-not-auto-moved
+	 * @spec openspec/specs/timetabling/spec.md#scenario-two-sessions-imported-for-the-same-room-at-overlapping-times-are-flagged-not-auto-moved
 	 */
 	public function testRoomDoubleBooking(): void {
 		[$a, $b] = $this->overlappingPair(['roomId' => 'room-1'], ['roomId' => 'room-1']);
@@ -270,7 +270,7 @@ class TimetableConflictDetectorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-an-exam-session-exceeding-room-capacity-is-flagged-as-room-capacity-exceeded
+	 * @spec openspec/specs/timetabling/spec.md#scenario-an-exam-session-exceeding-room-capacity-is-flagged-as-room-capacity-exceeded
 	 */
 	public function testRoomCapacityExceeded(): void {
 		$session = [
@@ -381,7 +381,7 @@ class TimetableConflictDetectorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-re-scanning-an-unchanged-window-does-not-create-duplicate-conflicts
+	 * @spec openspec/specs/timetabling/spec.md#scenario-re-scanning-an-unchanged-window-does-not-create-duplicate-conflicts
 	 */
 	public function testIdempotentRescanDoesNotDuplicate(): void {
 		[$a, $b] = $this->overlappingPair(['roomId' => 'room-1'], ['roomId' => 'room-1']);

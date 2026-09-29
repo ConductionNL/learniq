@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
+ * @spec openspec/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
  */
 
 declare(strict_types=1);
@@ -102,7 +102,7 @@ class WalletOfferDelegationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#scenario-pushing-an-issued-credential-to-the-wallet-records-the-offer
+	 * @spec openspec/specs/certification/spec.md#scenario-pushing-an-issued-credential-to-the-wallet-records-the-offer
 	 */
 	public function testHandledResponseRecordsOfferFields(): void {
 		$this->appConfig->method('getValueString')->willReturn('token-abc');
@@ -232,7 +232,7 @@ class WalletOfferDelegationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#scenario-openconnector-unreachable-blocks-the-offer-and-records-the-error
+	 * @spec openspec/specs/certification/spec.md#scenario-openconnector-unreachable-blocks-the-offer-and-records-the-error
 	 */
 	public function testMissingTokenFailsClosed(): void {
 		$this->appConfig->method('getValueString')->willReturn('');
@@ -258,7 +258,7 @@ class WalletOfferDelegationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#scenario-openconnector-unreachable-blocks-the-offer-and-records-the-error
+	 * @spec openspec/specs/certification/spec.md#scenario-openconnector-unreachable-blocks-the-offer-and-records-the-error
 	 */
 	public function testOpenConnectorUnreachableFailsClosed(): void {
 		$this->appConfig->method('getValueString')->willReturn('token-abc');

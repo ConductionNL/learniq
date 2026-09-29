@@ -58,7 +58,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/ai-feature-delegate-to-hermiq/specs/ai-surface/spec.md
- * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
+ * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
  */
 
 declare(strict_types=1);
@@ -89,8 +89,8 @@ use Psr\Log\LoggerInterface;
  *   ({@see AiLocalityClassifier}) MUST also comply with the school's
  *   {@see SovereigntyPolicyService} `SovereigntyPolicy` (sovereign-ai-guarantee).
  *
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-publishing-an-assessment-requires-a-resolvable-item-source
- * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
+ * @spec openspec/specs/assessment/spec.md#requirement-publishing-an-assessment-requires-a-resolvable-item-source
+ * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
  */
 class AssessmentPublishGuard implements LifecycleGuardInterface {
 
@@ -273,7 +273,7 @@ class AssessmentPublishGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-publishing-an-assessment-requires-a-resolvable-item-source
+	 * @spec openspec/specs/assessment/spec.md#requirement-publishing-an-assessment-requires-a-resolvable-item-source
 	 */
 	private function hasResolvableItemSource(array $assessment): bool {
 		$itemSelectionMode = $assessment['itemSelectionMode'] ?? 'fixed';

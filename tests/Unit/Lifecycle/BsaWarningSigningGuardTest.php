@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-the-formal-warning-captures-improvement-period-guidance-and-personal-circumstances-and-is-signed-evidence
+ * @spec openspec/specs/study-progress/spec.md#requirement-the-formal-warning-captures-improvement-period-guidance-and-personal-circumstances-and-is-signed-evidence
  */
 
 declare(strict_types=1);
@@ -83,7 +83,7 @@ class BsaWarningSigningGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-issued-warning-carries-a-verifiable-signature
+	 * @spec openspec/specs/study-progress/spec.md#scenario-issued-warning-carries-a-verifiable-signature
 	 */
 	public function testCompleteWarningMayBeIssued(): void {
 		$tenantKeyService = $this->createMock(TenantKeyService::class);
@@ -100,7 +100,7 @@ class BsaWarningSigningGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-warning-cannot-be-issued-without-offered-guidance
+	 * @spec openspec/specs/study-progress/spec.md#scenario-warning-cannot-be-issued-without-offered-guidance
 	 */
 	public function testMissingGuidanceBlocksIssue(): void {
 		$tenantKeyService = $this->createMock(TenantKeyService::class);

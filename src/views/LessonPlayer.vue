@@ -24,7 +24,7 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
+  @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
 -->
 
 <template>
@@ -503,7 +503,7 @@ export default {
 		 * (contentType === 'text' — course-authoring-ux).
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
 		 */
 		isTextLesson() {
 			return this.lesson?.contentType === 'text'
@@ -515,7 +515,7 @@ export default {
 		 * object still renders in the right sequence.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
 		 * @spec openspec/specs/course-management/spec.md#scenario-notes-stay-out-of-the-player
 		 */
 		sortedBlocks() {
@@ -562,7 +562,7 @@ export default {
 		 * posture (progress-tracking spec).
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/learning-progress-and-analytics/specs/progress-tracking/spec.md#requirement-learners-can-self-report-completion-of-non-xapi-content
+		 * @spec openspec/specs/progress-tracking/spec.md#requirement-learners-can-self-report-completion-of-non-xapi-content
 		 */
 		showManualCompleteAction() {
 			return MANUAL_COMPLETION_CONTENT_TYPES.includes(this.lesson?.contentType)
@@ -574,7 +574,7 @@ export default {
 		 * state instead of any content type (adaptive-release-and-prerequisites).
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
+		 * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
 		 */
 		isLocked() {
 			return this.releaseStatus.checked && !this.releaseStatus.available
@@ -586,7 +586,7 @@ export default {
 		 * drip delay.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-supports-drip-release-relative-to-each-learner-s-own-enrolment-date
+		 * @spec openspec/specs/course-management/spec.md#requirement-lesson-supports-drip-release-relative-to-each-learner-s-own-enrolment-date
 		 */
 		lockedDescription() {
 			if (this.releaseStatus.reason) {
@@ -722,7 +722,7 @@ export default {
 		 * block, never the whole lesson.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
 		 */
 		async loadBlockReferences() {
 			const materialIds = new Set()
@@ -776,7 +776,7 @@ export default {
 		 *
 		 * @param {string|null|undefined} text Markdown source.
 		 * @return {string}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
 		 */
 		renderBlockMarkdown(text) {
 			return cnRenderMarkdown(text || '')
@@ -788,7 +788,7 @@ export default {
 		 *
 		 * @param {object} block A media-type block.
 		 * @return {object|null}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
 		 */
 		materialFor(block) {
 			return this.materialsById[block.materialId] ?? null
@@ -799,7 +799,7 @@ export default {
 		 *
 		 * @param {object} block A quiz-type block.
 		 * @return {object|null}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
 		 */
 		assessmentFor(block) {
 			return this.assessmentsById[block.assessmentId] ?? null
@@ -810,7 +810,7 @@ export default {
 		 *
 		 * @param {object} block An assignment-type block.
 		 * @return {object|null}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
 		 */
 		assignmentFor(block) {
 			return this.assignmentsById[block.assignmentId] ?? null
@@ -821,7 +821,7 @@ export default {
 		 *
 		 * @param {string} kind Material.kind value.
 		 * @return {string}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
 		 */
 		materialKindLabel(kind) {
 			const labels = {
@@ -844,7 +844,7 @@ export default {
 		 *
 		 * @param {object} block A quiz-type block.
 		 * @return {void}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
 		 */
 		startQuiz(block) {
 			if (this.$router && block.assessmentId) {
@@ -863,7 +863,7 @@ export default {
 		 *
 		 * @param {object} block An assignment-type block.
 		 * @return {void}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
 		 */
 		openAssignment(block) {
 			if (this.$router && block.assignmentId) {
@@ -887,7 +887,7 @@ export default {
 		 *
 		 * @param {object} block An ltiTool-type block.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
 		 */
 		async launchLtiForBlock(block) {
 			const placementId = block.ltiToolPlacementId
@@ -955,7 +955,7 @@ export default {
 		 * rendering; the action simply defaults to "not completed".
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/learning-progress-and-analytics/specs/progress-tracking/spec.md#scenario-learner-marks-a-text-lesson-complete
+		 * @spec openspec/specs/progress-tracking/spec.md#scenario-learner-marks-a-text-lesson-complete
 		 */
 		async checkExistingManualCompletion() {
 			try {
@@ -1036,7 +1036,7 @@ export default {
 		 * be open.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
+		 * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
 		 */
 		async checkReleaseStatus() {
 			try {
@@ -1069,7 +1069,7 @@ export default {
 		 * create posture (progress-tracking spec).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/learning-progress-and-analytics/specs/progress-tracking/spec.md#scenario-learner-marks-a-text-lesson-complete
+		 * @spec openspec/specs/progress-tracking/spec.md#scenario-learner-marks-a-text-lesson-complete
 		 */
 		async markLessonComplete() {
 			if (this.manualCompletion.completed || this.manualCompletion.saving)

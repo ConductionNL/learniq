@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/external-training-recording/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
 
 declare(strict_types=1);
@@ -42,7 +42,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Coverage, bulk-entry, and credential-issuance logic for external training.
  *
- * @spec openspec/changes/external-training-recording/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
 class ExternalTrainingService {
 	/**
@@ -86,7 +86,7 @@ class ExternalTrainingService {
 	 *
 	 * @return bool True when the learner counts as covered.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 */
 	public function isLearnerCovered(
 		string $learnerId,
@@ -127,7 +127,7 @@ class ExternalTrainingService {
 	 *
 	 * @return string|null One of 'attestation'|'credential'|'external-training', or null.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 */
 	public function coveringEvidenceClass(
 		string $learnerId,
@@ -168,7 +168,7 @@ class ExternalTrainingService {
 	 *
 	 * @return string The generated batchId (empty when nothing was created).
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 */
 	public function bulkRecord(array $learnerIds, array $shared): string {
 		$learnerIds = array_values(array_unique(array_filter($learnerIds, static fn ($id): bool => $id !== '')));
@@ -236,7 +236,7 @@ class ExternalTrainingService {
 	 *
 	 * @return array<string,mixed> The Credential object payload to save.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 */
 	public function buildManualCredentialPayload(array $record, string $issuedBy): array {
 		return [

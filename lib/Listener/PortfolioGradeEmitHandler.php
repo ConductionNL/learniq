@@ -36,8 +36,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eportfolio/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
- * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-graded-course-bound-portfolio-flows-through-the-existing-gradeentry-pipeline-not-a-parallel-one
+ * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+ * @spec openspec/specs/eportfolio/spec.md#requirement-a-graded-course-bound-portfolio-flows-through-the-existing-gradeentry-pipeline-not-a-parallel-one
  */
 
 declare(strict_types=1);
@@ -56,7 +56,7 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/eportfolio/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+ * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
 class PortfolioGradeEmitHandler implements IEventListener {
 
@@ -86,7 +86,7 @@ class PortfolioGradeEmitHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eportfolio/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+	 * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -116,8 +116,8 @@ class PortfolioGradeEmitHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-transitioning-a-course-bound-portfolio-to-graded-emits-a-concept-gradeentry
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-re-triggering-the-graded-transition-does-not-create-a-duplicate-gradeentry
+	 * @spec openspec/specs/eportfolio/spec.md#scenario-transitioning-a-course-bound-portfolio-to-graded-emits-a-concept-gradeentry
+	 * @spec openspec/specs/eportfolio/spec.md#scenario-re-triggering-the-graded-transition-does-not-create-a-duplicate-gradeentry
 	 */
 	private function emitGradeEntry(ObjectTransitionedEvent $event): void {
 		$portfolio = $event->getObject()->jsonSerialize();
@@ -206,7 +206,7 @@ class PortfolioGradeEmitHandler implements IEventListener {
 	 *
 	 * @return array<string,mixed>|null The object data, or null when not found.
 	 *
-	 * @spec openspec/changes/eportfolio/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+	 * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
 	 */
 	private function loadObject(string $schema, string $id): ?array {
 		if ($id === '') {

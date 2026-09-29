@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portable-learning-record/tasks.md#task-6-2
+ * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-6-2
  */
 
 declare(strict_types=1);

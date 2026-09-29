@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.1
+ * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.1
  */
 
 declare(strict_types=1);
@@ -49,7 +49,7 @@ use Throwable;
  *
  * @psalm-api
  *
- * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.1
+ * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.1
  */
 class LtiAgsPullClient {
 
@@ -112,7 +112,7 @@ class LtiAgsPullClient {
 	 *
 	 * @return array{messages: array<int,mixed>, cursor: string|null}|null The pull result, or null on failure.
 	 *
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.1
+	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.1
 	 */
 	public function pull(string $subscriptionId, string $cursor): ?array {
 		$path = FleetAppId::path($this->appManager, 'integriq', sprintf(self::OPENCONNECTOR_PULL_PATH, rawurlencode($subscriptionId)));

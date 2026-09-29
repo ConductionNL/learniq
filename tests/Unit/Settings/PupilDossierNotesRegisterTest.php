@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md
+ * @spec openspec/specs/pupil-dossier/spec.md
  */
 
 declare(strict_types=1);
@@ -69,7 +69,7 @@ class PupilDossierNotesRegisterTest extends TestCase {
 	 * confidentiality field defaults to the safer care-team-only tier.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#requirement-persist-dossiernote-behaviourincident-and-wellbeingcheckin-domain-objects-in-openregister
+	 * @spec   openspec/specs/pupil-dossier/spec.md#requirement-persist-dossiernote-behaviourincident-and-wellbeingcheckin-domain-objects-in-openregister
 	 */
 	public function testDossierNoteIsAppendOnlyWithRequiredFieldsAndSafeDefault(): void {
 		$schema = $this->config['components']['schemas']['DossierNote'] ?? null;
@@ -114,8 +114,8 @@ class PupilDossierNotesRegisterTest extends TestCase {
 	 * — never a bare `team-visible` (loosest) fallback.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#requirement-dossiernote-confidentiality-is-enforced-server-side-at-the-object-level-per-tier-rbac-beyond-that-floor-is-a-named-platform-gap
-	 * @spec   openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#requirement-creation-is-role-restricted-wellbeingcheckin-is-learner-authored
+	 * @spec   openspec/specs/pupil-dossier/spec.md#requirement-dossiernote-confidentiality-is-enforced-server-side-at-the-object-level-per-tier-rbac-beyond-that-floor-is-a-named-platform-gap
+	 * @spec   openspec/specs/pupil-dossier/spec.md#requirement-creation-is-role-restricted-wellbeingcheckin-is-learner-authored
 	 */
 	public function testDossierNoteCreateAndReadFloorAreStaffOrAuthorOnly(): void {
 		$schema = $this->config['components']['schemas']['DossierNote'] ?? null;
@@ -159,7 +159,7 @@ class PupilDossierNotesRegisterTest extends TestCase {
 	 * AttendanceFlag.interventions' append-only entry shape.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#requirement-persist-dossiernote-behaviourincident-and-wellbeingcheckin-domain-objects-in-openregister
+	 * @spec   openspec/specs/pupil-dossier/spec.md#requirement-persist-dossiernote-behaviourincident-and-wellbeingcheckin-domain-objects-in-openregister
 	 */
 	public function testBehaviourIncidentLifecycleAndFollowUpShape(): void {
 		$schema = $this->config['components']['schemas']['BehaviourIncident'] ?? null;
@@ -216,7 +216,7 @@ class PupilDossierNotesRegisterTest extends TestCase {
 	 * DossierNote's (admin/mentor/coordinator + the reportedBy author).
 	 *
 	 * @return void
-	 * @spec   openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-a-learner-cannot-author-a-dossiernote-about-another-learner
+	 * @spec   openspec/specs/pupil-dossier/spec.md#scenario-a-learner-cannot-author-a-dossiernote-about-another-learner
 	 */
 	public function testBehaviourIncidentCreateAndReadFloorAreStaffOrAuthorOnly(): void {
 		$schema = $this->config['components']['schemas']['BehaviourIncident'] ?? null;
@@ -257,7 +257,7 @@ class PupilDossierNotesRegisterTest extends TestCase {
 	 * duplicated onto BehaviourIncident.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#requirement-a-behaviour-incident-escalates-by-referencing-supportrequest-never-duplicating-it
+	 * @spec   openspec/specs/pupil-dossier/spec.md#requirement-a-behaviour-incident-escalates-by-referencing-supportrequest-never-duplicating-it
 	 */
 	public function testBehaviourIncidentEscalatesByReferenceOnly(): void {
 		$schema = $this->config['components']['schemas']['BehaviourIncident'] ?? null;
@@ -292,7 +292,7 @@ class PupilDossierNotesRegisterTest extends TestCase {
 	 * same as SupportRequest.raisedBy, not a new one).
 	 *
 	 * @return void
-	 * @spec   openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#requirement-creation-is-role-restricted-wellbeingcheckin-is-learner-authored
+	 * @spec   openspec/specs/pupil-dossier/spec.md#requirement-creation-is-role-restricted-wellbeingcheckin-is-learner-authored
 	 */
 	public function testWellbeingCheckInIsLearnerAuthoredWithNoCreateRestriction(): void {
 		$schema = $this->config['components']['schemas']['WellbeingCheckIn'] ?? null;
@@ -328,7 +328,7 @@ class PupilDossierNotesRegisterTest extends TestCase {
 	 * BehaviourIncident, matched on learnerId instead of authorId/reportedBy.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#requirement-dossiernote-confidentiality-is-enforced-server-side-at-the-object-level-per-tier-rbac-beyond-that-floor-is-a-named-platform-gap
+	 * @spec   openspec/specs/pupil-dossier/spec.md#requirement-dossiernote-confidentiality-is-enforced-server-side-at-the-object-level-per-tier-rbac-beyond-that-floor-is-a-named-platform-gap
 	 */
 	public function testWellbeingCheckInReadFloorIsStaffOrSelf(): void {
 		$schema = $this->config['components']['schemas']['WellbeingCheckIn'] ?? null;
@@ -357,7 +357,7 @@ class PupilDossierNotesRegisterTest extends TestCase {
 	 * the platform-capability gap design.md Decision 1 documents.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-three-way-confidentiality-tier-is-a-documented-gap-not-a-fabricated-guarantee
+	 * @spec   openspec/specs/pupil-dossier/spec.md#scenario-the-three-way-confidentiality-tier-is-a-documented-gap-not-a-fabricated-guarantee
 	 */
 	public function testNoRowConditionalRbacIsFabricated(): void {
 		$schemas = $this->config['components']['schemas'] ?? [];

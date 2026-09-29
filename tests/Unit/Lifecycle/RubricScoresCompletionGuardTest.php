@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-submit-is-blocked-when-rubric-coverage-is-incomplete
+ * @spec openspec/specs/assignments/spec.md#scenario-submit-is-blocked-when-rubric-coverage-is-incomplete
  */
 
 declare(strict_types=1);
@@ -94,7 +94,7 @@ class RubricScoresCompletionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
+	 * @spec openspec/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 	 */
 	public function testCompleteCoverageAllowsSubmitForPeerReview(): void {
 		$guard = $this->makeGuard(['id' => self::ASSIGNMENT_ID, 'rubricId' => self::RUBRIC_ID], $this->rubric, null);
@@ -119,7 +119,7 @@ class RubricScoresCompletionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-submit-is-blocked-when-rubric-coverage-is-incomplete
+	 * @spec openspec/specs/assignments/spec.md#scenario-submit-is-blocked-when-rubric-coverage-is-incomplete
 	 */
 	public function testIncompleteCoverageBlocksSubmitForPeerReview(): void {
 		$guard = $this->makeGuard(['id' => self::ASSIGNMENT_ID, 'rubricId' => self::RUBRIC_ID], $this->rubric, null);
@@ -144,7 +144,7 @@ class RubricScoresCompletionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-after-submitting
+	 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-after-submitting
 	 */
 	public function testCompleteCoverageAndValidLearnerAllowsSubmitForSelfAssessment(): void {
 		$guard = $this->makeGuard(
@@ -175,7 +175,7 @@ class RubricScoresCompletionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-self-assessment-lets-a-learner-score-their-own-submission-against-the-assignments-rubric
+	 * @spec openspec/specs/assignments/spec.md#requirement-self-assessment-lets-a-learner-score-their-own-submission-against-the-assignments-rubric
 	 */
 	public function testLearnerNotOnSubmissionBlocksSubmitForSelfAssessment(): void {
 		$guard = $this->makeGuard(

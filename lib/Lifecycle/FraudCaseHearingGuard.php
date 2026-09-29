@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-persist-exam-board-domain-objects-in-openregister
+ * @spec openspec/specs/exam-board/spec.md#requirement-persist-exam-board-domain-objects-in-openregister
  */
 
 declare(strict_types=1);
@@ -46,7 +46,7 @@ use Psr\Log\LoggerInterface;
  * Passes only when `hearingDate` is a non-empty string on the transitioning
  * object. Fails closed otherwise.
  *
- * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-persist-exam-board-domain-objects-in-openregister
+ * @spec openspec/specs/exam-board/spec.md#requirement-persist-exam-board-domain-objects-in-openregister
  */
 class FraudCaseHearingGuard implements LifecycleGuardInterface {
 
@@ -85,7 +85,7 @@ class FraudCaseHearingGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-persist-exam-board-domain-objects-in-openregister
+	 * @spec openspec/specs/exam-board/spec.md#requirement-persist-exam-board-domain-objects-in-openregister
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -108,7 +108,7 @@ class FraudCaseHearingGuard implements LifecycleGuardInterface {
 	 * @return bool True when hearingDate is set; false blocks the transition
 	 *              (HTTP 422).
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-persist-exam-board-domain-objects-in-openregister
+	 * @spec openspec/specs/exam-board/spec.md#requirement-persist-exam-board-domain-objects-in-openregister
 	 */
 	private function allows(array $object): bool {
 		$caseId = $object['id'] ?? ($object['uuid'] ?? '');

@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+ * @spec openspec/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
  */
 
 declare(strict_types=1);
@@ -118,7 +118,7 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-learner-without-an-invitation-cannot-submit
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-learner-without-an-invitation-cannot-submit
 	 */
 	public function testNoInvitationBlocksSubmit(): void {
 		$this->signInAs('learner-1');
@@ -137,7 +137,7 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-learner-cannot-submit-a-second-response-for-the-same-campaign
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-learner-cannot-submit-a-second-response-for-the-same-campaign
 	 */
 	public function testAlreadyRespondedBlocksSecondSubmit(): void {
 		$this->signInAs('learner-1');
@@ -156,7 +156,7 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
 	 */
 	public function testEligibleInvitationAllowsSubmit(): void {
 		$this->signInAs('learner-1');
@@ -184,7 +184,7 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-response-is-anonymous-by-schema-shape-not-by-rbac
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-response-is-anonymous-by-schema-shape-not-by-rbac
 	 */
 	public function testGuardNeverMutatesResponsePayload(): void {
 		$this->signInAs('learner-1');

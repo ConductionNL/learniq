@@ -13,7 +13,7 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
  *
- * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
+ * @spec openspec/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
  */
 
 declare(strict_types=1);
@@ -107,7 +107,7 @@ class EngagementSignalJob extends ActorForwardedJob {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
 	 */
 	protected function runDeferred(DeferredListenerContext $context): void {
 		foreach ($context->getEntries() as $entry) {
@@ -158,7 +158,7 @@ class EngagementSignalJob extends ActorForwardedJob {
 	 *
 	 * @return array<string, mixed> The saved EngagementScore data.
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
 	 */
 	private function recomputeEngagementScore(string $learnerId, string $courseId, string $tenantId): array {
 		$existing = $this->findExistingEngagementScore(learnerId: $learnerId, courseId: $courseId);
@@ -279,7 +279,7 @@ class EngagementSignalJob extends ActorForwardedJob {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-a-resolved-flag-does-not-block-re-flagging-on-a-later-relapse
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-a-resolved-flag-does-not-block-re-flagging-on-a-later-relapse
 	 */
 	private function checkThreshold(
 		array $threshold,

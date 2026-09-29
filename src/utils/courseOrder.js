@@ -8,7 +8,7 @@
  * Plain ES module (not a .vue SFC) so it is directly importable from a
  * Node test runner without an SFC compile step.
  *
- * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-pre-existing-module-without-an-order-value-sorts-last-not-first
+ * @spec openspec/specs/course-management/spec.md#scenario-a-pre-existing-module-without-an-order-value-sorts-last-not-first
  *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V.

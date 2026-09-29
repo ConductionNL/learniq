@@ -40,7 +40,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-a-submitted-subject-choice-is-validated-against-the-plan-s-elective-rules-not-persisted-unchecked
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-submitted-subject-choice-is-validated-against-the-plan-s-elective-rules-not-persisted-unchecked
  */
 
 declare(strict_types=1);
@@ -58,7 +58,7 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-a-submitted-subject-choice-is-validated-against-the-plan-s-elective-rules-not-persisted-unchecked
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-submitted-subject-choice-is-validated-against-the-plan-s-elective-rules-not-persisted-unchecked
  */
 class SubjectChoiceValidator implements IEventListener {
 
@@ -94,7 +94,7 @@ class SubjectChoiceValidator implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-a-submitted-subject-choice-is-validated-against-the-plan-s-elective-rules-not-persisted-unchecked
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-submitted-subject-choice-is-validated-against-the-plan-s-elective-rules-not-persisted-unchecked
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -120,9 +120,9 @@ class SubjectChoiceValidator implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-choice-satisfying-every-rule-validates
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-choice-violating-a-mandatory-combination-is-sent-back-for-revision
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-choice-exceeding-a-course-s-capacity-is-sent-back-for-revision
+	 * @spec openspec/specs/school-structure/spec.md#scenario-a-choice-satisfying-every-rule-validates
+	 * @spec openspec/specs/school-structure/spec.md#scenario-a-choice-violating-a-mandatory-combination-is-sent-back-for-revision
+	 * @spec openspec/specs/school-structure/spec.md#scenario-a-choice-exceeding-a-course-s-capacity-is-sent-back-for-revision
 	 */
 	private function validate(array $choice): void {
 		$choiceId = (string)($choice['id'] ?? ($choice['uuid'] ?? ''));

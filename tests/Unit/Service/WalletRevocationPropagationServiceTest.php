@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
+ * @spec openspec/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
  */
 
 declare(strict_types=1);
@@ -121,7 +121,7 @@ class WalletRevocationPropagationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#scenario-revoking-a-credential-with-an-outstanding-wallet-offer-propagates-the-revocation
+	 * @spec openspec/specs/certification/spec.md#scenario-revoking-a-credential-with-an-outstanding-wallet-offer-propagates-the-revocation
 	 */
 	public function testPropagatesAndSetsRevokedOnSuccess(): void {
 		$this->appConfig->method('getValueString')->willReturn('token-abc');
@@ -187,7 +187,7 @@ class WalletRevocationPropagationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#scenario-revoking-a-credential-proceeds-even-when-the-wallet-rail-is-unavailable
+	 * @spec openspec/specs/certification/spec.md#scenario-revoking-a-credential-proceeds-even-when-the-wallet-rail-is-unavailable
 	 */
 	public function testThrowableIsCaughtAndTransitionStillProceeds(): void {
 		$this->appConfig->method('getValueString')->willReturn('token-abc');

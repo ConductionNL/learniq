@@ -366,7 +366,7 @@ scholiq/
 
 Learniq does **not** serve `/ooapi/v5/*` itself — `course-management`'s "Publish course catalog via OOAPI
 5.0" requirement and `data-exchange`'s "Delegate wire protocols to OpenConnector" requirement both name
-OOAPI as a protocol Learniq must not implement (see `openspec/changes/delegate-ooapi-to-opencatalogi/`,
+OOAPI as a protocol Learniq must not implement (see `openspec/changes/archive/2026-07-13-delegate-ooapi-to-opencatalogi/`,
 which resolved a prior self-contradiction between those two specs). Learniq's obligation stops at the
 **publication contract**: which objects are eligible, how they map to OOAPI 5.0 resources, and the
 `DataExchangeJob` that carries the sync request. The public endpoint and the wire-format adapter are owned
@@ -409,7 +409,7 @@ signing/verification, JWKS, or Assignment & Grade Services (AGS)/NRPS wire handl
 OpenConnector's `lti-13-platform` adapter (`openconnector/openspec/changes/lti-13-platform/`).
 Learniq's obligation is the **consuming-app contract** the adapter defines (REQ-LTI-010): model a
 placement inside a Course/Lesson, delegate the launch, and translate an AGS score CloudEvent into a
-`GradeEntry`. See `openspec/changes/lti-tool-placement/`.
+`GradeEntry`. See `openspec/changes/archive/2026-07-13-lti-tool-placement/`.
 
 **Who owns what:**
 
@@ -510,7 +510,7 @@ reality":
 - **Out of scope, tracked as cross-repo follow-ups**: the OpenConnector Zermelo/Untis/Xedule wire adapters
   themselves (`ConductionNL/openconnector`), and wiring `ExamAccommodation` into the `assessment` capability.
 
-See `openspec/changes/timetabling-and-substitution/` for the full proposal/design/specs.
+See `openspec/changes/archive/2026-07-16-timetabling-and-substitution/` for the full proposal/design/specs.
 
 ---
 
@@ -525,7 +525,7 @@ See `openspec/changes/timetabling-and-substitution/` for the full proposal/desig
 - Schema source: `lib/Settings/scholiq_register.json`
 - Manifest source: `src/manifest.json`
 - Applied specs: `openspec/changes/` (6 directories)
-- OOAPI 5.0 catalog-publication contract: `openspec/changes/delegate-ooapi-to-opencatalogi/` (this repo,
+- OOAPI 5.0 catalog-publication contract: `openspec/changes/archive/2026-07-13-delegate-ooapi-to-opencatalogi/` (this repo,
   spec-consistency only); `opencatalogi/openspec/changes/ooapi-catalog-publication/` (merged, opencatalogi
   side)
 - Specs summary: `docs/SPECS.md`

@@ -31,7 +31,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-learner-initiated-export-produces-a-signed-dual-shaped-bundle
+ * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-learner-initiated-export-produces-a-signed-dual-shaped-bundle
  */
 
 declare(strict_types=1);
@@ -47,7 +47,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Writes a signed learning-record export bundle into the owner's nc:files home.
  *
- * @spec openspec/changes/portable-learning-record/tasks.md#task-2-3
+ * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-3
  */
 class LearningRecordBundleWriter {
 	/**
@@ -76,7 +76,7 @@ class LearningRecordBundleWriter {
 	 *
 	 * @return string|null The nc:files path, or null on failure.
 	 *
-	 * @spec openspec/changes/portable-learning-record/tasks.md#task-2-3
+	 * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-3
 	 */
 	public function write(array $bundle, string $ownerUid, string $tenantId, string $exportId): ?string {
 		if ($ownerUid === '') {

@@ -35,7 +35,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
+ * @spec openspec/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
  */
 
 declare(strict_types=1);
@@ -54,7 +54,7 @@ use Psr\Log\LoggerInterface;
  * (`unverified`, `pending`, `rejected`, `expired`) or a missing verification
  * block fails closed.
  *
- * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
+ * @spec openspec/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
  */
 class BpvConfirmationGuard implements LifecycleGuardInterface {
 
@@ -91,7 +91,7 @@ class BpvConfirmationGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
+	 * @spec openspec/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -114,7 +114,7 @@ class BpvConfirmationGuard implements LifecycleGuardInterface {
 	 * @return bool True when leerbedrijfVerification.status is `verified`; false blocks the
 	 *              transition (HTTP 422).
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
+	 * @spec openspec/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
 	 */
 	private function allows(array $placement): bool {
 		$placementId = $placement['id'] ?? ($placement['uuid'] ?? '');

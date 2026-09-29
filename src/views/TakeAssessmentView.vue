@@ -20,7 +20,7 @@
   Copyright (C) 2026 Conduction B.V.
 
   @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
-  @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-every-assessmentresult-persists-a-frozen-server-resolved-snapshot-of-what-was-presented
+  @spec openspec/specs/assessment/spec.md#requirement-every-assessmentresult-persists-a-frozen-server-resolved-snapshot-of-what-was-presented
 -->
 
 <template>
@@ -446,7 +446,7 @@ export default {
 		 * disabled or the item has no discrete choice identifiers).
 		 *
 		 * @return {string[]|null}
-		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
+		 * @spec openspec/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
 		 */
 		currentItemOptionOrder() {
 			const item = this.currentItem
@@ -524,7 +524,7 @@ export default {
 	 * mid-attempt without a successful submit.
 	 *
 	 * @return {void}
-	 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+	 * @spec openspec/specs/assessment/spec.md
 	 */
 	beforeUnmount() {
 		this.clearTimer()
@@ -562,8 +562,8 @@ export default {
 		 * @param {string} id Assessment UUID
 		 * @return {Promise<void>}
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
-		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-every-assessmentresult-persists-a-frozen-server-resolved-snapshot-of-what-was-presented
+		 * @spec openspec/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md#requirement-every-assessmentresult-persists-a-frozen-server-resolved-snapshot-of-what-was-presented
 		 */
 		async init(id) {
 			this.loading = true
@@ -607,8 +607,8 @@ export default {
 		 *
 		 * @param {string} id Assessment UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
-		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-every-assessmentresult-persists-a-frozen-server-resolved-snapshot-of-what-was-presented
+		 * @spec openspec/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md#requirement-every-assessmentresult-persists-a-frozen-server-resolved-snapshot-of-what-was-presented
 		 */
 		async proceed(id) {
 			const proctoring = this.assessment?.proctoring ?? null
@@ -824,7 +824,7 @@ export default {
 		 * fixed list) — AssessmentDrawResolver populates it for EVERY attempt.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-every-assessmentresult-persists-a-frozen-server-resolved-snapshot-of-what-was-presented
+		 * @spec openspec/specs/assessment/spec.md#requirement-every-assessmentresult-persists-a-frozen-server-resolved-snapshot-of-what-was-presented
 		 */
 		async loadItems() {
 			const drawnItemRefs = this.result?.drawnItemRefs ?? []
@@ -914,7 +914,7 @@ export default {
 		 *
 		 * @param {string} resultId AssessmentResult UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
+		 * @spec openspec/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
 		 */
 		async fetchResult(resultId) {
 			const url = generateUrl(
@@ -944,7 +944,7 @@ export default {
 		 *
 		 * @param {string} assessmentId Assessment UUID
 		 * @return {Promise<object|null>} The existing in-progress result, or null.
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		async checkExistingAttempt(assessmentId) {
 			const currentUser = getCurrentUser()
@@ -975,8 +975,8 @@ export default {
 		 *
 		 * @param {string} assessmentId Assessment UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
-		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
+		 * @spec openspec/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
 		 */
 		async getOrCreateResult(assessmentId) {
 			const existing = await this.checkExistingAttempt(assessmentId)
@@ -995,7 +995,7 @@ export default {
 		 * where available.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		generateId() {
 			if (
@@ -1086,7 +1086,7 @@ export default {
 		 * and — if not blocked — create the ProctoringSession and attach hardening.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		async startNativeTestMode() {
 			this.loading = true
@@ -1130,7 +1130,7 @@ export default {
 		 *
 		 * @param {string} resultId AssessmentResult UUID
 		 * @return {boolean} True when this tab is blocked by a live lock elsewhere.
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		acquireTabLock(resultId) {
 			const key = `learniq-native-test-mode-lock-${resultId}`
@@ -1163,7 +1163,7 @@ export default {
 		 *
 		 * @param {string} key localStorage key for the current attempt's lock
 		 * @return {void}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		writeTabLock(key) {
 			try {
@@ -1180,7 +1180,7 @@ export default {
 		 * Stop the tab-lock heartbeat and release the held lock, if any.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		releaseTabLock() {
 			if (this.tabLockInterval !== null) {
@@ -1204,7 +1204,7 @@ export default {
 		 *
 		 * @param {string} resultId AssessmentResult UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		async flagConcurrentSessionForBlockedTab(resultId) {
 			try {
@@ -1241,7 +1241,7 @@ export default {
 		 * existing `activate` transition.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		async createProctoringSession() {
 			const currentUser = getCurrentUser()
@@ -1296,7 +1296,7 @@ export default {
 		 * in native mode; popstate/beforeunload are gated by `navigationLock`.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		attachNativeHardening() {
 			const proctoring = this.assessment?.proctoring ?? {}
@@ -1358,7 +1358,7 @@ export default {
 		 * Remove every listener attached by `attachNativeHardening()`.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		detachNativeHardening() {
 			const handlers = this.nativeHandlers ?? {}
@@ -1390,7 +1390,7 @@ export default {
 		 * @param {string} kind     Flag kind (see design §3.4 event table)
 		 * @param {string} severity 'low' | 'medium' | 'high'
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		async appendFlag(kind, severity) {
 			if (!this.proctoringSession?.uuid) return
@@ -1441,7 +1441,7 @@ export default {
 		 * fullscreen, and detach listeners.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		async teardownNativeTestMode() {
 			this.detachNativeHardening()
@@ -1688,7 +1688,7 @@ export default {
 		 * @param {string[]|null} [optionOrder] Server-resolved identifier order, or null.
 		 * @return {Array<{id: string, label: string}>}
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
-		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
+		 * @spec openspec/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
 		 */
 		extractChoices(qtiBody, optionOrder = null) {
 			if (!qtiBody) return []

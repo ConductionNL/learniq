@@ -41,7 +41,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
+ * @spec openspec/changes/archive/2026-07-13-bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
  * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
  */
 
@@ -62,7 +62,7 @@ use Psr\Log\LoggerInterface;
  * each of `student`, `school`, and `praktijkopleider` on the current
  * (subjectId, subjectVersion) pair.
  *
- * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
+ * @spec openspec/changes/archive/2026-07-13-bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
  */
 class PokActivationGuard implements LifecycleGuardInterface {
 
@@ -131,7 +131,7 @@ class PokActivationGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
+	 * @spec openspec/changes/archive/2026-07-13-bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -155,7 +155,7 @@ class PokActivationGuard implements LifecycleGuardInterface {
 	 *
 	 * @return string|null Null allows; a reason blocks the transition (HTTP 422).
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
+	 * @spec openspec/changes/archive/2026-07-13-bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
 	 * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
 	 */
 	private function denialReason(array $pok): ?string {
@@ -270,7 +270,7 @@ class PokActivationGuard implements LifecycleGuardInterface {
 	 *
 	 * @return array<int, array<string, mixed>> The matching PokSignature rows.
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
+	 * @spec openspec/changes/archive/2026-07-13-bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
 	 */
 	private function fetchSignatures(string $pokId, int $version, string $tenantId = ''): array {
 		$filters = ['subjectId' => $pokId, 'subjectVersion' => $version];

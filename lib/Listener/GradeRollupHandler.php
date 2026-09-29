@@ -57,7 +57,7 @@ use OCP\EventDispatcher\IEventListener;
  * Bridges GradeEntry.published → FinalGrade recompute and AssessmentResult.graded → GradeEntry creation.
  *
  * @implements IEventListener<Event>
- * @spec       openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+ * @spec       openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
 class GradeRollupHandler implements IEventListener {
 
@@ -128,7 +128,7 @@ class GradeRollupHandler implements IEventListener {
 	 * @return void
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
-	 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+	 * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
 	 */
 	private function handleGradeEntryPublished(ObjectTransitionedEvent $event): void {
 		$entry = $event->getObject()->jsonSerialize();
@@ -174,7 +174,7 @@ class GradeRollupHandler implements IEventListener {
 	 *
 	 * @return string ISO-8601 resolved `visibleFrom`.
 	 *
-	 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#scenario-curriculumplan-supplies-the-default-visibility-policy-when-a-teacher-does-not-override
+	 * @spec openspec/changes/archive/2026-07-13-grade-visibility-scheduling/specs/grading/spec.md#scenario-curriculumplan-supplies-the-default-visibility-policy-when-a-teacher-does-not-override
 	 */
 	private function resolveAndPersistVisibleFrom(string $curriculumPlanId, array $entry): string {
 		$policy = $this->fetchGradeVisibilityPolicy(curriculumPlanId: $curriculumPlanId);
@@ -208,7 +208,7 @@ class GradeRollupHandler implements IEventListener {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#scenario-curriculumplan-supplies-the-default-visibility-policy-when-a-teacher-does-not-override
+	 * @spec openspec/changes/archive/2026-07-13-grade-visibility-scheduling/specs/grading/spec.md#scenario-curriculumplan-supplies-the-default-visibility-policy-when-a-teacher-does-not-override
 	 */
 	private function fetchGradeVisibilityPolicy(string $curriculumPlanId): ?array {
 		$plan = $this->objectService->find(
@@ -367,7 +367,7 @@ class GradeRollupHandler implements IEventListener {
 	 * @return void
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-22
-	 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+	 * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
 	 */
 	private function fanOutParentNotifications(string $learnerId, array $gradeEntry, string $visibleFrom): void {
 		// LearnerProfile keys the pupil on ncUserId; it has no learnerId, and a

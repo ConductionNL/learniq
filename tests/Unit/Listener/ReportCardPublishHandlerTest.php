@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
+ * @spec openspec/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
  */
 
 declare(strict_types=1);
@@ -140,7 +140,7 @@ class ReportCardPublishHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
+	 * @spec openspec/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
 	 * @spec openspec/specs/report-card/spec.md#requirement-report-card-parent-notifications-find-the-learners-profile-on-ncuserid
 	 */
 	public function testTwoParentsYieldTwoNotificationsWithDistinctIdempotencyKeys(): void {
