@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\PageController;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CourseStore\StoreAccessService;
 use OCA\Learniq\Service\DashboardRoleService;
 use OCA\Learniq\Service\LoadedExampleSets;
@@ -50,10 +51,12 @@ class PageControllerTest extends TestCase {
 	 * @param IUser|null         $user         The signed-in user, or null for anonymous.
 	 * @param IInitialState|null $initialState The initial-state double, or a silent mock.
 	 * @param bool               $segmentFails Whether resolving SegmentService throws.
+	 * @param StoreAccessService|null   $storeAccess    The store-access double, or a silent mock.
+	 * @param CallerTenantResolver|null $tenantResolver The caller-tenant double, or a silent mock.
 	 *
 	 * @return PageController
 	 */
-	private function controller(?IUser $user, ?IInitialState $initialState = null, bool $segmentFails = false, ?StoreAccessService $storeAccess = null): PageController {
+	private function controller(?IUser $user, ?IInitialState $initialState = null, bool $segmentFails = false, ?StoreAccessService $storeAccess = null, ?CallerTenantResolver $tenantResolver = null): PageController {
 		$userSession = $this->createMock(IUserSession::class);
 		$userSession->method('getUser')->willReturn($user);
 
@@ -68,11 +71,16 @@ class PageControllerTest extends TestCase {
 		if ($segmentFails === true) {
 			$container->method('get')->willThrowException(new RuntimeException('OpenRegister is not installed'));
 		} else {
-			$storeAccess = ($storeAccess ?? $this->createMock(StoreAccessService::class));
+			$storeAccess    = ($storeAccess ?? $this->createMock(StoreAccessService::class));
+			$tenantResolver = ($tenantResolver ?? $this->createMock(CallerTenantResolver::class));
 			$container->method('get')->willReturnCallback(
-				static function (string $id) use ($segmentService, $storeAccess): object {
+				static function (string $id) use ($segmentService, $storeAccess, $tenantResolver): object {
 					if ($id === StoreAccessService::class) {
 						return $storeAccess;
+					}
+
+					if ($id === CallerTenantResolver::class) {
+						return $tenantResolver;
 					}
 
 					self::assertSame(SegmentService::class, $id);
@@ -388,4 +396,82 @@ class PageControllerTest extends TestCase {
 		self::assertSame('index', $response->getTemplateName());
 		self::assertSame(['install' => false, 'publish' => false], ($provided['storeAccess'] ?? null));
 	}//end testStoreAccessDegradesToNoneWhenItCannotBeResolved()
+
+	/**
+	 * Capture every initial-state value the controller provides.
+	 *
+	 * @param array<string,mixed> $provided Receives key => value.
+	 *
+	 * @return IInitialState
+	 */
+	private function recordingInitialState(array &$provided): IInitialState {
+		$initialState = $this->createMock(IInitialState::class);
+		$initialState->method('provideInitialState')
+			->willReturnCallback(
+				static function (string $key, mixed $value) use (&$provided): void {
+					$provided[$key] = $value;
+				}
+			);
+		return $initialState;
+	}//end recordingInitialState()
+
+	/**
+	 * The page carries the caller's tenant as CallerTenantResolver resolves
+	 * it, so nextcloud-vue's create dialog fills a hidden `tenant_id` with
+	 * the same value every learniq server-side write carries, not the
+	 * OpenRegister organisation.
+	 *
+	 * @return void
+	 */
+	public function testIndexProvidesTheCallerTenant(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('teacher-1');
+
+		$resolver = $this->createMock(CallerTenantResolver::class);
+		$resolver->expects(self::once())->method('resolve')->with($user)->willReturn('tenant-school-a');
+
+		$provided = [];
+		$this->controller($user, $this->recordingInitialState($provided), false, null, $resolver)->index();
+
+		self::assertSame('tenant-school-a', ($provided['callerTenant'] ?? null));
+	}//end testIndexProvidesTheCallerTenant()
+
+	/**
+	 * An unresolvable tenant (the resolver's OpenRegister dependency is
+	 * missing) degrades to null and the page still renders; the dialog then
+	 * leaves the key out instead of guessing.
+	 *
+	 * @return void
+	 */
+	public function testCallerTenantDegradesToNullWhenItCannotBeResolved(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('teacher-1');
+
+		$provided = [];
+		$response = $this->controller($user, $this->recordingInitialState($provided), true)->index();
+
+		self::assertSame('index', $response->getTemplateName());
+		self::assertArrayHasKey('callerTenant', $provided);
+		self::assertNull($provided['callerTenant']);
+	}//end testCallerTenantDegradesToNullWhenItCannotBeResolved()
+
+	/**
+	 * An empty resolution (no binding and no instance id) is provided as
+	 * null, never as an empty string a form would stamp.
+	 *
+	 * @return void
+	 */
+	public function testAnEmptyCallerTenantIsProvidedAsNull(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('teacher-1');
+
+		$resolver = $this->createMock(CallerTenantResolver::class);
+		$resolver->method('resolve')->willReturn('');
+
+		$provided = [];
+		$this->controller($user, $this->recordingInitialState($provided), false, null, $resolver)->index();
+
+		self::assertArrayHasKey('callerTenant', $provided);
+		self::assertNull($provided['callerTenant']);
+	}//end testAnEmptyCallerTenantIsProvidedAsNull()
 }//end class
