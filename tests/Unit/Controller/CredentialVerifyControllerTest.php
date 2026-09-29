@@ -27,6 +27,7 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Controller\CredentialVerifyController;
+use OCA\Learniq\Service\JwsProofVerifier;
 use OCA\Learniq\Service\KeyManagementService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http\JSONResponse;
@@ -111,7 +112,7 @@ class CredentialVerifyControllerTest extends TestCase {
 		$this->controller = new CredentialVerifyController(
 			request: $this->createMock(IRequest::class),
 			objectService: $this->objectService,
-			keyManagementService: $this->keyManagementService,
+			proofs: new JwsProofVerifier($this->keyManagementService),
 			throttler: $this->throttler,
 			logger: $this->createMock(LoggerInterface::class),
 		);
@@ -426,4 +427,87 @@ class CredentialVerifyControllerTest extends TestCase {
 		$data = $response->getData();
 		self::assertTrue($data['valid']);
 	}//end testVerifyAcceptsLegacyCredentialWithoutProof()
+	/**
+	 * The controller with a request whose body carries a Europass file.
+	 *
+	 * @param array<string,mixed>|null $file The file, or null for none.
+	 *
+	 * @return CredentialVerifyController
+	 */
+	private function europassController(?array $file): CredentialVerifyController {
+		$request = $this->createMock(IRequest::class);
+		$request->method('getParam')->willReturnCallback(static fn (string $key) => ($key === 'europass' ? $file : null));
+
+		return new CredentialVerifyController(
+			request: $request,
+			objectService: $this->objectService,
+			proofs: new JwsProofVerifier($this->keyManagementService),
+			throttler: $this->throttler,
+			logger: $this->createMock(LoggerInterface::class),
+		);
+	}//end europassController()
+
+	/**
+	 * A signed Europass form, and the stored credential that holds it.
+	 *
+	 * @return array{0: array<string,mixed>, 1: array<string,mixed>}
+	 */
+	private function signedEuropass(): array {
+		$kid = substr(hash('sha256', $this->publicKeyPem), 0, 32);
+		$payload = [
+			'@context' => ['https://www.w3.org/2018/credentials/v1', 'http://data.europa.eu/snb/model/context/edc-ap'],
+			'id' => 'urn:uuid:cred-eu',
+			'credentialSubject' => ['type' => 'Person', 'givenName' => ['en' => 'Priya']],
+		];
+		$file = $payload + ['proof' => ['type' => 'DataIntegrityProof', 'jws' => $this->buildValidJws(payloadToSign: $payload, kid: $kid)]];
+		$this->keyManagementService->method('resolvePublicKeyByFingerprint')->willReturn($this->publicKeyPem);
+
+		return [$file, ['lifecycle' => 'issued', 'isExpired' => false, 'issuedAt' => '2026-06-30T12:00:00+00:00', 'issuedBy' => 'Test School', 'tenant_id' => 'tenant-1', 'edciPayload' => $file]];
+	}//end signedEuropass()
+
+	/**
+	 * The downloaded file verifies, and the answer carries no personal data.
+	 *
+	 * @return void
+	 */
+	public function testAnUnchangedEuropassFileIsValidAndLeaksNothing(): void {
+		[$file, $stored] = $this->signedEuropass();
+		$this->objectService->method('find')->willReturn($this->stubEntity($stored));
+
+		$data = $this->europassController(file: $file)->verifyEuropass('cred-eu')->getData();
+
+		self::assertTrue($data['valid']);
+		self::assertSame(['valid', 'issuedAt', 'expiresAt', 'issuerName'], array_keys($data));
+		self::assertStringNotContainsString('Priya', (string)json_encode($data));
+	}//end testAnUnchangedEuropassFileIsValidAndLeaksNothing()
+
+	/**
+	 * A file changed after signing is not valid.
+	 *
+	 * @return void
+	 */
+	public function testATamperedEuropassFileFailsVerification(): void {
+		[$file, $stored] = $this->signedEuropass();
+		$this->objectService->method('find')->willReturn($this->stubEntity($stored));
+		$file['credentialSubject']['givenName']['en'] = 'Someone else';
+
+		$data = $this->europassController(file: $file)->verifyEuropass('cred-eu')->getData();
+
+		self::assertFalse($data['valid']);
+		self::assertSame('not_matching', $data['error']);
+	}//end testATamperedEuropassFileFailsVerification()
+
+	/**
+	 * A stored form whose signature does not verify is not valid either.
+	 *
+	 * @return void
+	 */
+	public function testAForgedSignatureFailsEvenWhenTheFileMatches(): void {
+		[$file, $stored] = $this->signedEuropass();
+		$file['proof']['jws'] = substr($file['proof']['jws'], 0, -6) . 'AAAAAA';
+		$stored['edciPayload'] = $file;
+		$this->objectService->method('find')->willReturn($this->stubEntity($stored));
+
+		self::assertSame('signature_invalid', $this->europassController(file: $file)->verifyEuropass('cred-eu')->getData()['error']);
+	}//end testAForgedSignatureFailsEvenWhenTheFileMatches()
 }//end class

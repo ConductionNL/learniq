@@ -41,6 +41,14 @@ return [
         // Public credential verification — no auth, per ADR-031 external-system contract.
         // Controller: CredentialVerifyController (slug: credentialVerify).
         ['name' => 'credentialVerify#verify', 'url' => '/api/credentials/{id}/verify', 'verb' => 'GET'],
+        // Europass file check (credentials-europass-edci-export): public like the
+        // GET, answers validity only, never the stored payload.
+        ['name' => 'credentialVerify#verifyEuropass', 'url' => '/api/credentials/{id}/verify', 'verb' => 'POST'],
+        // Europass download (learner or hr/compliance) and one-time backfill (hr/compliance).
+        // Controller: CredentialEuropassController (slug: credentialEuropass).
+        ['name' => 'credentialEuropass#download', 'url' => '/api/credentials/{id}/europass', 'verb' => 'GET'],
+        ['name' => 'credentialEuropass#download', 'url' => '/api/credentials/{id}/europass/download', 'verb' => 'POST', 'postfix' => 'post'],
+        ['name' => 'credentialEuropass#create', 'url' => '/api/credentials/{id}/europass', 'verb' => 'POST'],
 
         // Admin key management — admin-only via #[AuthorizedAdminSetting], cryptographic operation (ADR-031).
         // Controller: KeyAdminController (slug: keyAdmin).

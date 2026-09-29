@@ -2992,7 +2992,16 @@ OC.L10N.register(
         "This check-in has closed.": "Het aanmelden is gesloten.",
         "This code is not valid. Check the code on the board and try again.": "Deze code is niet geldig. Controleer de code op het bord en probeer het opnieuw.",
         "Your attendance is already recorded.": "Je aanwezigheid is al geregistreerd.",
-        "_%n learner checked in_::_%n learners checked in_": ["%n leerling aangemeld","%n leerlingen aangemeld"]
+        "_%n learner checked in_::_%n learners checked in_": ["%n leerling aangemeld","%n leerlingen aangemeld"],
+        "Europass version": "Europass-versie",
+        "The certificate as a European Digital Credential, signed with the same key as the Open Badges form. The learner downloads it for their Europass profile.": "Het certificaat als European Digital Credential, ondertekend met dezelfde sleutel als de Open Badges-vorm. De leerling downloadt het voor zijn Europass-profiel.",
+        "Download for Europass": "Downloaden voor Europass",
+        "Create Europass version": "Europass-versie maken",
+        "The Europass version could not be downloaded.": "De Europass-versie kon niet worden gedownload.",
+        "The Europass version was created.": "De Europass-versie is gemaakt.",
+        "The Europass version could not be created. Only HR and compliance officers can create it, for an issued certificate.": "De Europass-versie kon niet worden gemaakt. Alleen HR en compliance officers kunnen die maken, voor een uitgegeven certificaat.",
+        "This certificate has no Europass version yet, or you may not download it.": "Dit certificaat heeft nog geen Europass-versie, of je mag het niet downloaden.",
+        "The Europass version could not be created. It exists already, the certificate is not issued, or only HR and compliance officers can create it.": "De Europass-versie kon niet worden gemaakt. Die bestaat al, het certificaat is niet uitgegeven, of alleen HR en compliance officers kunnen die maken."
     },
     "nplurals=2; plural=(n != 1);"
 )

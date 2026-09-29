@@ -2529,7 +2529,16 @@ OC.L10N.register(
         "This check-in has closed.": "This check-in has closed.",
         "This code is not valid. Check the code on the board and try again.": "This code is not valid. Check the code on the board and try again.",
         "Your attendance is already recorded.": "Your attendance is already recorded.",
-        "_%n learner checked in_::_%n learners checked in_": ["%n learner checked in","%n learners checked in"]
+        "_%n learner checked in_::_%n learners checked in_": ["%n learner checked in","%n learners checked in"],
+        "Europass version": "Europass version",
+        "The certificate as a European Digital Credential, signed with the same key as the Open Badges form. The learner downloads it for their Europass profile.": "The certificate as a European Digital Credential, signed with the same key as the Open Badges form. The learner downloads it for their Europass profile.",
+        "Download for Europass": "Download for Europass",
+        "Create Europass version": "Create Europass version",
+        "The Europass version could not be downloaded.": "The Europass version could not be downloaded.",
+        "The Europass version was created.": "The Europass version was created.",
+        "The Europass version could not be created. Only HR and compliance officers can create it, for an issued certificate.": "The Europass version could not be created. Only HR and compliance officers can create it, for an issued certificate.",
+        "This certificate has no Europass version yet, or you may not download it.": "This certificate has no Europass version yet, or you may not download it.",
+        "The Europass version could not be created. It exists already, the certificate is not issued, or only HR and compliance officers can create it.": "The Europass version could not be created. It exists already, the certificate is not issued, or only HR and compliance officers can create it."
     },
     "nplurals=2; plural=(n != 1);"
 )
