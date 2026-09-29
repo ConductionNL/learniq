@@ -103,31 +103,48 @@ class ExamSittingPlacementCheck implements IEventListener {
 			return;
 		}
 
+		$outcome = $this->outcome(sitting: $sitting);
+		if (isset($outcome['refuse']) === true) {
+			$this->refuse(event: $event, errors: $outcome['refuse']);
+			return;
+		}
+
+		$event->setModifiedData(array_merge($event->getModifiedData(), ['clashWarnings' => $outcome['clashes']]));
+	}//end handle()
+
+	/**
+	 * The clashes to record, or the reason to refuse.
+	 *
+	 * @param array<string, mixed> $sitting The sitting being written.
+	 *
+	 * @return array{clashes: array<int, string>, refuse?: array<string, mixed>}
+	 */
+	private function outcome(array $sitting): array {
 		$start = strtotime((string)($sitting['startsAt'] ?? ''));
 		$end = strtotime((string)($sitting['endsAt'] ?? ''));
 		if ($start === false || $end === false || $end <= $start) {
-			$this->refuse(event: $event, errors: ['reason' => 'exam-times-invalid', 'message' => 'The end of an exam must be after its start.']);
-			return;
+			return ['clashes' => [], 'refuse' => ['reason' => 'exam-times-invalid', 'message' => 'The end of an exam must be after its start.']];
 		}
 
 		try {
 			$refusal = $this->capacityRefusal(sitting: $sitting);
-			$clashes = [];
-			if ($refusal === null) {
-				$clashes = $this->clashes(sitting: $sitting, start: $start, end: $end);
+			if ($refusal !== null) {
+				return ['clashes' => [], 'refuse' => $refusal];
 			}
+
+			$clashes = array_merge(
+				$this->sessionClashes(sitting: $sitting, start: $start, end: $end),
+				$this->sittingClashes(sitting: $sitting, start: $start, end: $end)
+			);
+
+			return ['clashes' => array_values($clashes)];
 		} catch (Throwable $exception) {
 			$this->logger->warning('[ExamSittingPlacementCheck] Could not check a placement: {msg}', ['msg' => $exception->getMessage()]);
-			$refusal = ['reason' => 'exam-check-failed', 'message' => 'The rooms and clashes for this exam could not be checked. Try again later.'];
-		}
+			$failed = ['reason' => 'exam-check-failed', 'message' => 'The rooms and clashes for this exam could not be checked. Try again later.'];
 
-		if ($refusal !== null) {
-			$this->refuse(event: $event, errors: $refusal);
-			return;
+			return ['clashes' => [], 'refuse' => $failed];
 		}
-
-		$event->setModifiedData(array_merge($event->getModifiedData(), ['clashWarnings' => $clashes]));
-	}//end handle()
+	}//end outcome()
 
 	/**
 	 * Why the rooms cannot take this exam, or null when they can.
@@ -161,51 +178,64 @@ class ExamSittingPlacementCheck implements IEventListener {
 	}//end capacityRefusal()
 
 	/**
-	 * Lessons and other exams that overlap this sitting in its rooms or classes.
+	 * Lessons in the sitting's rooms or classes that overlap it.
 	 *
 	 * @param array<string, mixed> $sitting The sitting being written.
 	 * @param int $start Its start, as a Unix time.
 	 * @param int $end Its end, as a Unix time.
 	 *
-	 * @return array<int, string> One line per clash: the title and the times.
+	 * @return array<string, string> One line per clash, keyed by the session id.
 	 */
-	private function clashes(array $sitting, int $start, int $end): array {
-		$rooms = $this->ids(value: ($sitting['roomIds'] ?? []));
-		$cohorts = $this->ids(value: ($sitting['cohortIds'] ?? []));
-		$found = [];
-
+	private function sessionClashes(array $sitting, int $start, int $end): array {
 		$sessions = [];
-		foreach ($rooms as $roomId) {
+		foreach ($this->ids(value: ($sitting['roomIds'] ?? [])) as $roomId) {
 			$sessions = array_merge($sessions, $this->rows(schema: 'session', filters: ['roomId' => $roomId]));
 		}
 
-		foreach ($cohorts as $cohortId) {
+		foreach ($this->ids(value: ($sitting['cohortIds'] ?? [])) as $cohortId) {
 			$sessions = array_merge($sessions, $this->rows(schema: 'session', filters: ['cohortId' => $cohortId]));
 		}
 
+		$found = [];
 		foreach ($sessions as $session) {
 			if (($session['lifecycle'] ?? '') !== 'cancelled' && $this->overlaps(row: $session, start: $start, end: $end) === true) {
-				$found[(string)($session['id'] ?? '')] = $this->line(title: (string)($session['title'] ?? ''), row: $session);
+				$found['session:' . (string)($session['id'] ?? '')] = $this->line(title: (string)($session['title'] ?? ''), row: $session);
 			}
 		}
 
-		$period = (string)($sitting['examPeriodId'] ?? '');
+		return $found;
+	}//end sessionClashes()
+
+	/**
+	 * Other planned sittings in the same test week that overlap and share a room or a class.
+	 *
+	 * @param array<string, mixed> $sitting The sitting being written.
+	 * @param int $start Its start, as a Unix time.
+	 * @param int $end Its end, as a Unix time.
+	 *
+	 * @return array<string, string> One line per clash, keyed by the sitting id.
+	 */
+	private function sittingClashes(array $sitting, int $start, int $end): array {
+		$rooms = $this->ids(value: ($sitting['roomIds'] ?? []));
+		$cohorts = $this->ids(value: ($sitting['cohortIds'] ?? []));
 		$self = (string)($sitting['id'] ?? '');
-		foreach ($this->rows(schema: self::SITTING_SCHEMA, filters: ['examPeriodId' => $period]) as $other) {
+		$found = [];
+
+		foreach ($this->rows(schema: self::SITTING_SCHEMA, filters: ['examPeriodId' => (string)($sitting['examPeriodId'] ?? '')]) as $other) {
 			$otherId = (string)($other['id'] ?? '');
 			if ($otherId === $self || ($other['lifecycle'] ?? 'planned') === 'cancelled' || $this->overlaps(row: $other, start: $start, end: $end) === false) {
 				continue;
 			}
 
-			$shared = array_intersect($rooms, $this->ids(value: ($other['roomIds'] ?? [])))
-				+ array_intersect($cohorts, $this->ids(value: ($other['cohortIds'] ?? [])));
-			if (count($shared) > 0) {
-				$found[$otherId] = $this->line(title: $this->examTitle(sitting: $other), row: $other);
+			$shared = count(array_intersect($rooms, $this->ids(value: ($other['roomIds'] ?? []))))
+				+ count(array_intersect($cohorts, $this->ids(value: ($other['cohortIds'] ?? []))));
+			if ($shared > 0) {
+				$found['sitting:' . $otherId] = $this->line(title: $this->examTitle(sitting: $other), row: $other);
 			}
 		}
 
-		return array_values($found);
-	}//end clashes()
+		return $found;
+	}//end sittingClashes()
 
 	/**
 	 * Rows of one schema matching the filters, as arrays.
@@ -223,10 +253,17 @@ class ExamSittingPlacementCheck implements IEventListener {
 			]
 		);
 
-		return array_map(
-			static fn (mixed $row): array => ($row instanceof ObjectEntity ? ($row->getObject() ?? []) : (array)$row),
-			$rows
-		);
+		$arrays = [];
+		foreach ($rows as $row) {
+			if ($row instanceof ObjectEntity) {
+				$arrays[] = ($row->getObject() ?? []);
+				continue;
+			}
+
+			$arrays[] = (array)$row;
+		}
+
+		return $arrays;
 	}//end rows()
 
 	/**

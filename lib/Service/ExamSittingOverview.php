@@ -310,9 +310,16 @@ class ExamSittingOverview {
 			]
 		);
 
-		return array_map(
-			static fn (mixed $row): array => ($row instanceof ObjectEntity ? ($row->getObject() ?? []) : (array)$row),
-			$rows
-		);
+		$arrays = [];
+		foreach ($rows as $row) {
+			if ($row instanceof ObjectEntity) {
+				$arrays[] = ($row->getObject() ?? []);
+				continue;
+			}
+
+			$arrays[] = (array)$row;
+		}
+
+		return $arrays;
 	}//end rows()
 }//end class

@@ -69,7 +69,7 @@ class InvigilatorResponseGuard implements LifecycleGuardInterface {
 
 		$this->logger->info(
 			'[InvigilatorResponseGuard] {actor} may not {action} an invigilation request for someone else.',
-			['actor' => ($userId === '' ? 'no session' : $userId), 'action' => $action]
+			['actor' => $userId, 'action' => $action]
 		);
 
 		return GuardResult::deny('Only the colleague who was asked can confirm or decline this invigilation.');
