@@ -35,6 +35,7 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\Cmi5LaunchTokenService;
+use OCA\Learniq\Service\Cmi5LaunchSessions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -43,12 +44,9 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\JSONResponse;
-use OCP\ICache;
-use OCP\ICacheFactory;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
-use OCP\Security\ISecureRandom;
 use Throwable;
 
 /**
@@ -59,28 +57,13 @@ use Throwable;
 class Cmi5LaunchController extends Controller {
 
 	/**
-	 * Seconds a fetch code stays redeemable.
-	 *
-	 * @var int
-	 */
-	private const FETCH_TTL_SECONDS = 300;
-
-	/**
-	 * The cache the fetch codes live in.
-	 *
-	 * @var ICache
-	 */
-	private readonly ICache $fetchCodes;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param IRequest               $request       The current request.
 	 * @param IUserSession           $userSession   The signed-in learner.
 	 * @param ObjectService          $objectService Reads the lesson with the caller's rights.
 	 * @param Cmi5LaunchTokenService $tokens        Mints the launch token.
-	 * @param ICacheFactory          $cacheFactory  Holds the one-time fetch codes.
-	 * @param ISecureRandom          $secureRandom  Generates fetch codes.
+	 * @param Cmi5LaunchSessions     $sessions      Writes LMS.LaunchData and holds the one-time fetch codes.
 	 * @param IURLGenerator          $urlGenerator  Builds the absolute endpoint URLs.
 	 */
 	public function __construct(
@@ -88,12 +71,10 @@ class Cmi5LaunchController extends Controller {
 		private readonly IUserSession $userSession,
 		private readonly ObjectService $objectService,
 		private readonly Cmi5LaunchTokenService $tokens,
-		ICacheFactory $cacheFactory,
-		private readonly ISecureRandom $secureRandom,
+		private readonly Cmi5LaunchSessions $sessions,
 		private readonly IURLGenerator $urlGenerator,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
-		$this->fetchCodes = $cacheFactory->createDistributed('learniq-cmi5-fetch');
 	}//end __construct()
 
 	/**
@@ -136,17 +117,28 @@ class Cmi5LaunchController extends Controller {
 			activityId: $activityId
 		);
 
-		$code = $this->secureRandom->generate(48, ISecureRandom::CHAR_ALPHANUMERIC);
-		$this->fetchCodes->set($code, $token, self::FETCH_TTL_SECONDS);
+		$actor = [
+			'objectType' => 'Agent',
+			'account'    => ['homePage' => $this->urlGenerator->getAbsoluteURL('/'), 'name' => $uid],
+		];
+
+		// The cmi5 spec (section 10.2.1): the LMS writes LMS.LaunchData before the AU
+		// launches, and an AU that cannot read it must abort. No fetch code without it.
+		$launch = ['actor' => $actor, 'lesson' => $lesson, 'lessonId' => $lessonId, 'activityId' => $activityId, 'registration' => $registration];
+		if ($this->sessions->writeLaunchData(learnerId: $uid, launch: $launch) === false) {
+			return new JSONResponse(
+				data: ['error' => 'cmi5_launch_data_failed', 'message' => 'The lesson could not be prepared for launch. Please try again later.'],
+				statusCode: Http::STATUS_SERVICE_UNAVAILABLE
+			);
+		}
+
+		$code = $this->sessions->issueFetchCode(token: $token);
 
 		return new JSONResponse(
 			data: [
 				'endpoint'     => $this->urlGenerator->getAbsoluteURL('/apps/learniq/api/lrs/'),
 				'fetchUrl'     => $this->urlGenerator->getAbsoluteURL('/apps/learniq/api/cmi5/fetch/' . $code),
-				'actor'        => [
-					'objectType' => 'Agent',
-					'account'    => ['homePage' => $this->urlGenerator->getAbsoluteURL('/'), 'name' => $uid],
-				],
+				'actor'        => $actor,
 				'activityId'   => $activityId,
 				'registration' => $registration,
 			]
@@ -169,15 +161,13 @@ class Cmi5LaunchController extends Controller {
 	#[NoCSRFRequired]
 	#[AnonRateLimit(limit: 60, period: 60)]
 	public function fetch(string $code): JSONResponse {
-		$token = $this->fetchCodes->get($code);
-		if (is_string($token) === false || $token === '') {
+		$token = $this->sessions->redeemFetchCode(code: $code);
+		if ($token === null) {
 			return new JSONResponse(
 				data: ['error-code' => '1', 'error-text' => 'This fetch URL was already used or has expired'],
 				statusCode: Http::STATUS_BAD_REQUEST
 			);
 		}
-
-		$this->fetchCodes->remove($code);
 
 		return new JSONResponse(data: ['auth-token' => $this->tokens->authToken(launchToken: $token)]);
 	}//end fetch()
