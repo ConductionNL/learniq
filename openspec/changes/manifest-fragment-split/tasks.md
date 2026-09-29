@@ -73,6 +73,7 @@
   - Not run: needs the app deployed on a live instance serving this ref; lane rules forbid touching the shared instance on :8080. The route smoke suite is `tests/e2e/pages.spec.ts`, unchanged.
 - [ ] Test
   - Not run, same reason as the box above.
+  - Throwaway instance, 2026-09-29, TC-2 run and FAILED, so both boxes stay open. Same backend, same data and the same 1440 px viewport as admin; only the frontend bundle changed, built from 4e49128f^ and from 4e49128f. Every group was opened and the full nav screenshotted (300 x 4304 px). Pre-split against a second pre-split run: 0 differing pixels. Pre-split against post-split: 29,345 of 1,291,200 pixels (2.27%), all in y 1182 to 2019. What moved: "My learning record" is above "BPV", and "Pupil dossier" and "Parent conferences" traded places around "Portfolios". Cause: those entries share an `order` (26, and 27 for three of them), so array position breaks the tie, and the split moved array positions. Task 5's comparison sorted by `order`, so it could not see this. Development still has such ties (ConductionNL/learniq#1476). Images: `docs/images/manifest-fragment-split/nav-before-split-4e49128f-parent.png`, `nav-after-split-4e49128f.png`, `nav-diff-highlight.png`.
 
 ## Quality checklist
 

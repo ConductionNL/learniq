@@ -141,9 +141,9 @@ boundary resolves at runtime.
 - **files**: e2e test targets updated from `/apps/scholiq/...` to `/apps/learniq/...`
 - **acceptance_criteria**:
   - GIVEN the full Playwright e2e suite retargeted to `/apps/learniq/...` WHEN run against the renamed, freshly-installed app THEN every previously-passing test still passes and `hydra-gate-route-reachability` reports zero unrouted or wrong-binding methods
-- [ ] Verify (e2e suite green + route-reachability gate clean per test-plan.md TC-6/TC-7)
+- [x] Verify (e2e suite green + route-reachability gate clean per test-plan.md TC-6/TC-7)
+  - Throwaway instance, 2026-09-29, on a clean install of learniq development (4168b357 with the LearnerProfile fix from #1466) and OpenRegister development with ConductionNL/openregister#4177. `tests/e2e/pages.spec.ts` and `tests/e2e/custom-pages-mount.spec.ts` against :8090 gave 69 passed and 0 failed in 11.4 min (24 routes plus 45 custom pages), all on `/apps/learniq/...`. `vendor/bin/hydra-gates` on development (45760341): `[gate-14] route-reachability: PASS`. The run's six other red gates (3, 7, 25, 49, 55, 60) are inherited and not about routes. Scope: the route smoke suite named for this check, not every spec in `tests/e2e/`.
   - r5-live, 2026-09-29, shared dev instance: partly. The e2e specs run in this pass are green (connection-registry, shell, integration-leaves, pages, custom-pages-mount, self-check-in, double-marking, menu-personas), but the full suite was not run as one.
-  - Not run: the Playwright suite needs a live instance serving this branch (same reason as task 11). The hydra route-reachability gate result is in the r5 part 1 PR body.
 
 ## 13. Cross-app coordination
 

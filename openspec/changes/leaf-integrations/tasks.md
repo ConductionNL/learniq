@@ -64,8 +64,8 @@
 
 ## Documentation (company-wide ADR-010)
 - [x] `docs/` records the leaf matrix and the OFF rationale (Task 4): `docs/Integrations/index.md`
-- [ ] Screenshots of SessionDetail and CohortDetail with the new widgets committed to `docs/images/` (not done: the lane has no instance with calendar, forms, contacts and deck installed; left for the docs screenshot run)
-  - r5-live, 2026-09-29, shared dev instance, still open: only calendar is enabled on the shared instance (contacts, deck and forms are disabled), and enabling apps there is out of bounds. CohortDetail carries no leaf widget from this change.
+- [x] Screenshots of the detail pages that carry the new widgets committed to `docs/images/`: SessionDetail (calendar), AssignmentDetail (calendar and forms), LearnerProfileDetail (contacts) and BpvPlacementDetail (deck). CohortDetail carries no leaf from this change.
+  - Throwaway instance, 2026-09-29, calendar 6.5.0, contacts 8.9.0, deck 1.18.5 and forms 5.3.1 enabled: `docs/images/integration-leaves/session-detail-calendar.png` (Agenda), `assignment-detail-calendar-forms.png` (Agenda and Intake form), `learner-profile-detail-contacts.png` and `bpv-placement-detail-deck.png` (Follow-ups). No page showed "{app} is not installed". One difference: on LearnerProfileDetail the contacts leaf renders with the heading "Contacts" and a count, not the manifest's title "Contact card". The deck, forms and calendar leaves show their manifest titles. The contacts leaf also sits on PraktijkopleiderDetail and the calendar leaf on CredentialDetail; those two were not screenshotted.
 
 ## i18n (company-wide ADR-005)
 - [x] Widget titles ("Agenda", "Intake form", "Contact card", "Follow-ups"; the poll title is not built) are new user-facing strings, Dutch in `l10n/nl.json`: `nl_NL` and `en_US` entries added through the manifest's i18n mechanism used by the existing widget titles
