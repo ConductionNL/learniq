@@ -52,6 +52,7 @@
   - r5-live, 2026-09-29, shared dev instance, still open. Works live: generating the launch key, a learner launch (200 with endpoint, fetchUrl, actor, registration), and redeeming the fetch code (200, auth-token). Blocked by two findings, each now with its own lane:
   - (1) OpenRegister: `POST /api/lrs/statements` with a valid token answers 500 `SCHEMA_APPEND_ONLY ... update operations are not permitted`. OR treats any save with a uuid on an append-only schema as an update, and the ingest passes the xAPI statement id. 0 statements stored.
   - (2) `Authorization: Basic <token>`, as cmi5 AUs send it, is refused with 401 by Nextcloud's auth layer before LrsController runs; `Bearer <token>` reaches it.
+  - (2) fixed by #1444 and proven live on 71a2c414: `Basic <auth-token>` gets past authentication (500 from storage, finding 1); a tampered auth-token gets LrsController's own 401. (1) waits on OpenRegister #4173 reaching the instance's openregister checkout; on 51c8b1ef the statement POST still answers 500 `The statements could not be stored`.
 - [x] 3.5 Security test: POST a statement with `payload.actor.account.name` set to a different learner's UUID
       → assert `verified_actor_id` is still the authenticated caller's own identity, not the payload claim.
 
@@ -119,3 +120,22 @@
 - [x] 8.6 Unit tests: `LrsDocumentControllerTest` (every verb on both resources, refusals, concurrency),
       `XapiDocumentStoreTest`, `XapiCallerResolverTest`, and `Cmi5LaunchControllerTest::testLaunchWritesLaunchData`,
       `::testLaunchDataDefaults`, `::testNoLaunchWithoutLaunchData`.
+- [ ] 8.7 Live check on the shared instance: launch, fetch-code redeem, read `LMS.LaunchData` with
+      `Authorization: Basic <auth-token>`, PUT and GET an own state document, ETag and If-Match.
+  - Round 1, 2026-09-29, served checkout 51c8b1ef (xapi-document 0.1.0 imported), throwaway cmi5 lesson:
+    - Works: launch 200 (LMS.LaunchData written), fetch 200 (base64 auth-token); `GET ...state?stateId=LMS.LaunchData`
+      with Basic 200 with `Content-Type: application/json`, an ETag and `X-Experience-API-Version: 1.0.3`; PUT of an own
+      state 204 with ETag `"025053693d40cee617c43cdc7718f2b1da59b94a"`, which is the SHA-1 of the body sent; stateId list
+      `["LMS.LaunchData","bookmark"]`; `If-Match: "stale"` 412; `If-None-Match: *` on an existing document 412; an agent
+      naming another learner 403; no credential 401.
+    - Finding A: every GET body read `Array`. OpenRegister decodes a string property that holds JSON into an object on
+      save (the stored `contents` was `{"page": 3}` as an object), so the document came back as a PHP array cast to a
+      string, both documents had the same ETag (the SHA-1 of `Array`), `If-Match` with the PUT's own ETag was refused
+      412, and POST merge answered 400. Fixed: `XapiDocumentCodec` always stores base64, and reads an old text row
+      back as JSON.
+    - Finding B: DELETE answered 500 `Object not found in magic table`. The store read with multitenancy off but deleted
+      with it on, and a document written without a user session is not found that way. Fixed: `deleteObject` runs
+      with `_multitenancy: false`, like the reads.
+    - Both findings are now copied into `tests/Support/XapiDocumentsInMemory.php` (a save decodes JSON strings; a
+      delete with multitenancy on throws), and 10 tests fail without the fix.
+    - Round 2, the same checks on a served checkout with this fix, ticks this box.

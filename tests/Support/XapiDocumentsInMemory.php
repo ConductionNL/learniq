@@ -5,7 +5,11 @@
  *
  * `find`, `findAll`, `saveObject` and `deleteObject` act on the same rows, with
  * OpenRegister's filter semantics, so a test reads back exactly what the code
- * wrote. The xapi-document schema is read from the register like every other.
+ * wrote. Two more live behaviours are copied, both found on 2026-09-29:
+ * - a save decodes a string value that holds a JSON object or list into an
+ *   array, as OpenRegister does;
+ * - a delete with multitenancy on does not find an object saved without a
+ *   user session ("Object not found in magic table"), so it throws. The xapi-document schema is read from the register like every other.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Support
@@ -28,6 +32,7 @@ namespace OCA\Learniq\Tests\Support;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\MockObject\MockObject;
+use RuntimeException;
 
 /**
  * Builds the ObjectService double; use from a TestCase.
@@ -47,7 +52,16 @@ trait XapiDocumentsInMemory {
 			static fn (array $config = [], bool $rbac = true, bool $multitenancy = true): array => $store->findAll($config, $rbac, $multitenancy)
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			static fn (array|ObjectEntity $object, ?array $extend = [], mixed $register = null, mixed $schema = null, ?string $uuid = null): ObjectEntity => $store->save((string)$schema, (array)$object, $uuid)
+			static function (array|ObjectEntity $object, ?array $extend = [], mixed $register = null, mixed $schema = null, ?string $uuid = null) use ($store): ObjectEntity {
+				$row = (array)$object;
+				foreach ($row as $name => $value) {
+					if (is_string($value) === true && is_array(json_decode($value, true)) === true) {
+						$row[$name] = json_decode($value, true);
+					}
+				}
+
+				return $store->save((string)$schema, $row, $uuid);
+			}
 		);
 		$objects->method('find')->willReturnCallback(
 			static function (int|string $id, ?array $extend = [], bool $files = false, mixed $register = null, mixed $schema = null) use ($store): ?ObjectEntity {
@@ -61,7 +75,11 @@ trait XapiDocumentsInMemory {
 			}
 		);
 		$objects->method('deleteObject')->willReturnCallback(
-			static function (string $uuid, mixed $register = null, mixed $schema = null) use ($store): bool {
+			static function (string $uuid, mixed $register = null, mixed $schema = null, bool $rbac = true, bool $multitenancy = true) use ($store): bool {
+				if ($multitenancy === true) {
+					throw new RuntimeException('Object not found in magic table');
+				}
+
 				foreach (($store->rows[(string)$schema] ?? []) as $index => $row) {
 					if (($row['id'] ?? null) === $uuid) {
 						unset($store->rows[(string)$schema][$index]);

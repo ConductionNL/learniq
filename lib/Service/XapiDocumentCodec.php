@@ -4,9 +4,14 @@
  * Learniq xAPI Document Codec
  *
  * How the bytes of an xAPI State or Agent Profile document are stored and
- * compared: text as is, anything that is not valid UTF-8 as base64, and the
- * ETag as the quoted SHA-1 of the original bytes (xAPI 1.0.3 Communication
- * 3.1). Also decides whether a body is a JSON object, which a POST merge needs.
+ * compared: always as base64, and the ETag as the quoted SHA-1 of the original
+ * bytes (xAPI 1.0.3 Communication 3.1). Also decides whether a body is a JSON
+ * object, which a POST merge needs.
+ *
+ * Always base64 because OpenRegister decodes a string property that holds
+ * JSON into an object on save: a stored `{"page":3}` came back as an array,
+ * read as "Array", and every JSON document shared one ETag (found live on
+ * 2026-09-29). Base64 never looks like JSON, so the bytes survive.
  *
  * @category Service
  * @package  OCA\Learniq\Service
@@ -49,7 +54,7 @@ class XapiDocumentCodec {
 	}//end etag()
 
 	/**
-	 * The stored form of a body.
+	 * The stored form of a body: base64, whatever the content type.
 	 *
 	 * @param string $contents The raw body.
 	 *
@@ -58,10 +63,6 @@ class XapiDocumentCodec {
 	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function encode(string $contents): array {
-		if (mb_check_encoding($contents, 'UTF-8') === true) {
-			return ['contents' => $contents, 'contentEncoding' => 'utf-8'];
-		}
-
 		return ['contents' => base64_encode($contents), 'contentEncoding' => 'base64'];
 	}//end encode()
 
@@ -75,12 +76,17 @@ class XapiDocumentCodec {
 	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function decode(array $row): string {
-		$contents = (string)($row['contents'] ?? '');
-		if (($row['contentEncoding'] ?? 'utf-8') !== 'base64') {
-			return $contents;
+		$contents = $row['contents'] ?? '';
+		if (is_array($contents) === true) {
+			// A row written as text before this fix, which OpenRegister decoded into an object.
+			return (string)json_encode($contents, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 		}
 
-		return (string)base64_decode($contents, true);
+		if (($row['contentEncoding'] ?? 'utf-8') !== 'base64') {
+			return (string)$contents;
+		}
+
+		return (string)base64_decode((string)$contents, true);
 	}//end decode()
 
 	/**

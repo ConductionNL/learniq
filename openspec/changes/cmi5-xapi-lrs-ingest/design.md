@@ -61,7 +61,7 @@ A cmi5 AU cannot start without the State resource: it reads `LMS.LaunchData`, wh
 - The key is kind, tenant, `verified_actor_id`, `activityId`, `registration` and `stateId` or `profileId`. The learner comes from the credential (`XapiCallerResolver`, shared with the statement POST), and the `agent` parameter must name that learner or the request is refused with 403.
 - The object id is a UUID derived from the SHA-256 of the full key, so reading or writing one document is a single lookup by id. Listing and bulk delete query the indexed fields and then check every key field in PHP, so an empty registration never matches a set one.
 - Key parameters are read from the query string only. Nextcloud decodes a JSON body into the request parameters, and a `stateId` or `registration` member inside a state document must never change which document is addressed.
-- A body that is not valid UTF-8 is stored base64 with `contentEncoding: base64` and returned as the original bytes.
+- Every body is stored base64 with `contentEncoding: base64` and returned as the original bytes. The first version stored text as is, and the live check showed why that fails: OpenRegister decodes a string property that holds JSON into an object on save, so a JSON document came back as `Array`. Base64 never looks like JSON.
 
 ### Concurrency
 

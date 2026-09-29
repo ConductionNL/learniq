@@ -223,7 +223,13 @@ class XapiDocumentStore {
 			return;
 		}
 
-		$this->objectService->deleteObject(uuid: $this->documentUuid(key: $key), register: self::REGISTER, schema: self::SCHEMA, _rbac: false);
+		$this->objectService->deleteObject(
+			uuid: $this->documentUuid(key: $key),
+			register: self::REGISTER,
+			schema: self::SCHEMA,
+			_rbac: false,
+			_multitenancy: false
+		);
 	}//end delete()
 
 	/**
@@ -270,7 +276,8 @@ class XapiDocumentStore {
 				uuid: $this->documentUuid(key: array_replace($key, ['documentId' => (string)$row['documentId']])),
 				register: self::REGISTER,
 				schema: self::SCHEMA,
-				_rbac: false
+				_rbac: false,
+				_multitenancy: false
 			);
 		}
 	}//end deleteAll()
