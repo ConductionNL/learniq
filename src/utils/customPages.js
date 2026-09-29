@@ -168,7 +168,7 @@ export function attendanceRecord(row, session, markedBy, markedAt) {
  *
  * @param {object[]} rows Rows from attendanceRows(), as edited.
  * @return {object[]} The rows to write.
- * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-self-check-in-never-overwrites-a-mark
+ * @spec openspec/specs/attendance/spec.md#requirement-a-self-check-in-never-overwrites-a-mark
  */
 export function registerRowsToSave(rows) {
 	return rows.filter(

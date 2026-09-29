@@ -34,7 +34,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+ * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
  */
 
 declare(strict_types=1);
@@ -55,7 +55,7 @@ use Throwable;
 /**
  * Checks and writes one self check-in.
  *
- * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+ * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
  */
 class CheckInService {
 
@@ -90,8 +90,8 @@ class CheckInService {
 	 *
 	 * @return PortalOutcome 200 `{status, sessionId}`, or 404 / 403 / 409 / 422 with a reason.
 	 *
-	 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#scenario-a-learner-scans-the-code-at-the-start-of-the-lesson
-	 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-self-check-in-never-overwrites-a-mark
+	 * @spec openspec/specs/attendance/spec.md#scenario-a-learner-scans-the-code-at-the-start-of-the-lesson
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-self-check-in-never-overwrites-a-mark
 	 */
 	public function checkIn(string $windowId, string $code, string $userId, ?string $learnerRef = null, ?IUser $runAs = null): PortalOutcome {
 		$context = $this->context(windowId: $windowId, userId: $userId);
@@ -149,7 +149,7 @@ class CheckInService {
 	 *
 	 * @return PortalOutcome As checkIn(); 422 `invalid_code` when no open window of the learner matches.
 	 *
-	 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
 	 */
 	public function checkInWithCode(string $code, string $userId, ?string $learnerRef = null, ?IUser $runAs = null): PortalOutcome {
 		foreach ($this->openWindows() as $window) {
@@ -170,7 +170,7 @@ class CheckInService {
 	 *
 	 * @return list<array<string, mixed>>
 	 *
-	 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
 	 */
 	public function openFor(string $userId): array {
 		$open = [];
@@ -222,7 +222,7 @@ class CheckInService {
 	 *
 	 * @return PortalOutcome 200 `{title, startsAt, endsAt, open}`, or a refusal.
 	 *
-	 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
 	 */
 	public function show(string $windowId, string $userId): PortalOutcome {
 		$context = $this->context(windowId: $windowId, userId: $userId);
@@ -311,7 +311,7 @@ class CheckInService {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#scenario-a-learner-checks-in-after-the-grace-period
+	 * @spec openspec/specs/attendance/spec.md#scenario-a-learner-checks-in-after-the-grace-period
 	 */
 	private function status(array $session, array $window): string {
 		$start = $this->date(value: ($session['startsAt'] ?? null));

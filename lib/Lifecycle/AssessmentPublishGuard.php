@@ -57,7 +57,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/ai-feature-delegate-to-hermiq/specs/ai-surface/spec.md
+ * @spec openspec/specs/ai-surface/spec.md
  * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
  */
 
@@ -161,7 +161,7 @@ class AssessmentPublishGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/ai-feature-delegate-to-hermiq/specs/ai-surface/spec.md
+	 * @spec openspec/specs/ai-surface/spec.md
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -183,7 +183,7 @@ class AssessmentPublishGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True if the Assessment may be published; false blocks the transition (HTTP 422).
 	 *
-	 * @spec openspec/changes/ai-feature-delegate-to-hermiq/specs/ai-surface/spec.md
+	 * @spec openspec/specs/ai-surface/spec.md
 	 */
 	private function allows(array $object): bool {
 
