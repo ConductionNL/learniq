@@ -22,6 +22,7 @@
 import type { APIRequestContext, Browser, Page } from '@playwright/test'
 
 import { request as playwrightRequest } from '@playwright/test'
+import { execFileSync } from 'child_process'
 import { randomBytes } from 'crypto'
 import { baseUrl } from './base-url.ts'
 
@@ -220,6 +221,40 @@ export class LiveFixtures {
 	}
 
 	/**
+	 * Make sure the tenant has a credential signing key, so issuing and
+	 * reissuing can sign. Generates one only when none is configured; an
+	 * existing key is never rotated. The key stays after the run: it is
+	 * instance configuration, not a test row.
+	 *
+	 * @return Whether this call generated the key.
+	 */
+	async ensureSigningKey(): Promise<boolean> {
+		const api = await this.api()
+		const tenantId = await this.tenant()
+		const status = await api.get(
+			`/index.php/apps/learniq/api/credentials/admin/key-status?tenantId=${tenantId}`,
+		)
+		if (!status.ok()) {
+			throw new Error(
+				`reading the signing key status: HTTP ${status.status()}`,
+			)
+		}
+		if ((await status.json()).configured === true) {
+			return false
+		}
+		const made = await api.post(
+			'/index.php/apps/learniq/api/credentials/admin/generate-key',
+			{ form: { tenantId } },
+		)
+		if (!made.ok()) {
+			throw new Error(
+				`generating the signing key was refused: HTTP ${made.status()} ${await made.text()}`,
+			)
+		}
+		return true
+	}
+
+	/**
 	 * Delete everything in the ledger, newest first. Never throws: a
 	 * teardown that throws hides the test's own failure.
 	 *
@@ -240,12 +275,15 @@ export class LiveFixtures {
 			}
 			// Archival schemas (attendance records, for one) refuse user deletes
 			// by design; OpenRegister's ArchivalRetentionTask removes them.
+			// Append-only schemas (credentials) refuse every delete with 405.
+			const answer = res.ok() ? '' : await res.text()
 			const archival =
-				res.status() === 403
-				&& (await res.text()).includes('ArchivalRetentionTask')
-			if (archival) {
+				res.status() === 403 && answer.includes('ArchivalRetentionTask')
+			const appendOnly =
+				res.status() === 405 && answer.includes('SCHEMA_APPEND_ONLY')
+			if (archival || appendOnly) {
 				console.warn(
-					`[live-fixtures] kept by archival retention: ${slug}/${id}`,
+					`[live-fixtures] kept by ${archival ? 'archival retention' : 'an append-only schema'}: ${slug}/${id}`,
 				)
 			} else if (!res.ok() && res.status() !== 404) {
 				left.push(`${slug}/${id}`)
@@ -308,8 +346,12 @@ export async function signInAs(browser: Browser, user: TempUser): Promise<Page> 
 		.locator('#submit, button[type="submit"], input[type="submit"]')
 		.first()
 		.click()
+	// Wait for the redirect only, not for the landing page to load: the
+	// dashboard a fresh account lands on pulls every app's widgets and can
+	// take longer than a minute to fire `load` on the shared instance.
 	await page.waitForURL((url) => !url.pathname.includes('/login'), {
 		timeout: 60_000,
+		waitUntil: 'commit',
 	})
 	await page.evaluate(() => {
 		try {
@@ -328,4 +370,56 @@ export async function signInAs(browser: Browser, user: TempUser): Promise<Page> 
 		}
 	})
 	return page
+}
+
+/**
+ * Run learniq background jobs of one class now, instead of waiting for cron.
+ *
+ * The shared instance runs no cron daemon, so a queued job (a certificate
+ * reissue run, for one) only runs when someone executes it. This runs each
+ * matching job once through `occ background-job:execute`, on the command
+ * prefix in `LEARNIQ_E2E_OCC` (default: the dev container). It only ever
+ * executes jobs of the learniq class it is given.
+ *
+ * @param jobClass The job class, e.g. `OCA\\Learniq\\BackgroundJob\\CredentialReissueJob`.
+ * @param match Picks the jobs to run by their argument.
+ * @return How many jobs ran.
+ */
+export function runLearniqJobs(
+	jobClass: string,
+	match: (argument: Record<string, unknown>) => boolean,
+): number {
+	if (!jobClass.startsWith('OCA\\Learniq\\')) {
+		throw new Error(`refusing to run a job that is not learniq's: ${jobClass}`)
+	}
+	const [command, ...prefix] = (
+		process.env.LEARNIQ_E2E_OCC ?? 'docker exec -u www-data nextcloud php occ'
+	)
+		.split(/\s+/)
+		.filter((part) => part !== '')
+	const listed = execFileSync(
+		command,
+		[...prefix, 'background-job:list', `--class=${jobClass}`, '--output=json'],
+		{ encoding: 'utf8', timeout: 60_000 },
+	)
+	const jobs = JSON.parse(listed) as Array<{ id: string; argument: string }>
+	let ran = 0
+	for (const job of jobs) {
+		let argument: Record<string, unknown>
+		try {
+			argument = JSON.parse(job.argument)
+		} catch {
+			continue
+		}
+		if (!match(argument)) {
+			continue
+		}
+		execFileSync(
+			command,
+			[...prefix, 'background-job:execute', '--force-execute', String(job.id)],
+			{ encoding: 'utf8', timeout: 300_000 },
+		)
+		ran++
+	}
+	return ran
 }
