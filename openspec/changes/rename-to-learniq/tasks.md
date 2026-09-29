@@ -130,6 +130,10 @@ boundary resolves at runtime.
 - **acceptance_criteria**:
   - GIVEN a clean Nextcloud instance with no prior `scholiq` install WHEN `learniq` is installed THEN install completes with zero errors in `nextcloud.log`, the register imports under slug `learniq`, and the app's start screen renders
 - [ ] Verify (clean-instance install per test-plan.md TC-1/TC-2)
+  - Throwaway instance, 2026-09-29, partly done; the box stays open. Clean install (fresh database, OpenRegister development, then `occ app:enable learniq`):
+    - On learniq development as shipped (4168b357) the install is RED. The register `learniq` imports with 146 of 147 schemas, and `learner-profile` is rejected (`Unknown property key(s) 'materialise, expression' at '/ageYears'`, then `PARTIAL IMPORT`).
+    - With this PR's LearnerProfile fix plus ConductionNL/openregister#4177, a second clean install imports all 147 schemas under slug `learniq`, with no `scholiq` register and no import error. The only error-level lines are OpenRegister's existence probes before the register and tables exist (`Register not found after filters`, `relation ... does not exist`); the objects those probes looked for were then created.
+    - Not done: the start-screen render and the TC-1 walk through the admin apps page. The lane stopped when C: fell under 10 GB free.
   - r5-live, 2026-09-29, shared dev instance: needs a throwaway instance; not run on the shared one.
   - Not run: a clean-instance install needs a fresh Nextcloud container, and the round 5 lane rules forbid touching containers or the shared instance on :8080. Needs an operator or a CI job with a fresh install.
 
