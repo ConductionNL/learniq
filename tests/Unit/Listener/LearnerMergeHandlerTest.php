@@ -90,6 +90,10 @@ class LearnerMergeHandlerTest extends TestCase {
 			'portfolio-entry' => [
 				['id' => 'pe-old', 'learnerId' => 'jan-old'],
 			],
+			'fraud-case' => [
+				['id' => 'fraud-old', 'accusedLearnerId' => self::MERGED_UUID, 'accusedLearnerUserId' => 'jan-old', 'reporterId' => 'teacher-1'],
+				['id' => 'fraud-other', 'accusedLearnerId' => '33333333-3333-4333-8333-333333333333', 'reporterId' => 'teacher-1'],
+			],
 			'assessment-result' => [
 				['id' => 'ar-other', 'learnerId' => 'someone-else'],
 			],
@@ -210,10 +214,13 @@ class LearnerMergeHandlerTest extends TestCase {
 		$this->assertSame('jan', $this->savedRecord('att-old')['learnerId'] ?? null);
 		$this->assertSame(self::SURVIVOR_UUID, $this->savedRecord('cred-old')['learnerId'] ?? null);
 		$this->assertSame('jan', $this->savedRecord('pe-old')['learnerId'] ?? null);
+		$this->assertSame(self::SURVIVOR_UUID, $this->savedRecord('fraud-old')['accusedLearnerId'] ?? null, 'a fraud case follows the accused learner to the surviving profile');
+		$this->assertSame('teacher-1', $this->savedRecord('fraud-old')['reporterId'] ?? null);
 
 		// Records of the surviving account and of other people stay untouched.
 		$this->assertNull($this->savedRecord('enr-new'));
 		$this->assertNull($this->savedRecord('ar-other'));
+		$this->assertNull($this->savedRecord('fraud-other'));
 
 	}//end testMergeMovesRecordsToTheSurvivingAccount()
 
