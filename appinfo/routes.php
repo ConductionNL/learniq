@@ -251,6 +251,12 @@ return [
         ['name' => 'submissionMark#allocate', 'url' => '/api/assignments/{assignmentId}/markers', 'verb' => 'POST'],
         ['name' => 'submissionMark#marks', 'url' => '/api/submissions/{submissionId}/marks', 'verb' => 'GET'],
 
+        // Bulk reissue of a course's certificates (credentials-bulk-reissue):
+        // preview and queue a run; hr, compliance officers or admin, checked
+        // in the method. Controller: CredentialReissueController (slug: credentialReissue).
+        ['name' => 'credentialReissue#preview', 'url' => '/api/courses/{courseId}/credentials/reissue', 'verb' => 'GET'],
+        ['name' => 'credentialReissue#start', 'url' => '/api/courses/{courseId}/credentials/reissue', 'verb' => 'POST'],
+
         // Peer review work projection (peer-review-projection-guard): what a
         // reviewer sees of the work under review, built by the server. The
         // authors are withheld for double-blind, the teacher's marking always.

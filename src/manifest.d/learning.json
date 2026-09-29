@@ -1160,8 +1160,25 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "reissue-certificates",
+						"label": "Reissue certificates",
+						"icon": "CertificateOutline",
+						"type": "navigate",
+						"target": "/courses/@objectId/reissue"
+					}
+				]
 			}
+		},
+		{
+			"id": "ReissueCertificates",
+			"route": "/courses/:courseId/reissue",
+			"type": "custom",
+			"title": "Reissue certificates",
+			"component": "ReissueCertificatesView",
+			"_note": "Mounts ReissueCertificatesView (credentials-bulk-reissue): the counts of issued, revoked and expired certificates, a required reason and the start of a queued run through learniq's own endpoint. Custom on purpose: a confirm-and-queue action against a learniq endpoint, not a list, record or dashboard of one schema."
 		},
 		{
 			"id": "CoursePackageImportReports",
