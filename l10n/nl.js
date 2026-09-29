@@ -3148,7 +3148,21 @@ OC.L10N.register(
         "placed": "geplaatst",
         "Place": "Plaatsen",
         "Sign-ups": "Inschrijvingen",
-        "_%n place free_::_%n places free_": ["%n plaats vrij","%n plaatsen vrij"]
+        "_%n place free_::_%n places free_": ["%n plaats vrij","%n plaatsen vrij"],
+        "To": "Tot en met",
+        "Export CSV": "CSV exporteren",
+        "This group has no active hour plan, so owed hours are missing.": "Deze groep heeft geen actieve urenplanning, dus de verschuldigde uren ontbreken.",
+        "Owed": "Verschuldigd",
+        "Given": "Gegeven",
+        "Difference": "Verschil",
+        "short": "tekort",
+        "Hide learners": "Leerlingen verbergen",
+        "Show learners": "Leerlingen tonen",
+        "Attended of given": "Aanwezig van gegeven",
+        "{attended} of {given} hours": "{attended} van {given} uur",
+        "below the margin": "onder de marge",
+        "The report could not be loaded.": "Het overzicht kon niet worden geladen.",
+        "Per group and course the contact hours owed by the hour plan, the hours given and the hours each learner attended.": "Per groep en vak de contacturen volgens de urenplanning, de gegeven uren en de uren die elke leerling aanwezig was."
     },
     "nplurals=2; plural=(n != 1);"
 )

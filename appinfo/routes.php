@@ -178,6 +178,10 @@ return [
         // (planninq when installed, else Session), after an RBAC read of the cohort
         // (sessions-from-planninq).
         ['name' => 'timetable#cohort', 'url' => '/api/timetable/cohort/{cohortId}', 'verb' => 'GET', 'requirements' => ['cohortId' => '[^/]+']],
+        // Contact hours (timetabling-contact-hours): owed by the hour plan, given by held
+        // lessons, attended per learner, for a window. #[NoAdminRequired] + the
+        // report.contact-hours action in the body.
+        ['name' => 'contactHours#index', 'url' => '/api/reports/contact-hours', 'verb' => 'GET'],
         // Other timetables within the school's visibility policy
         // (timetabling-visibility-rules). The policy check is in the body.
         ['name' => 'timetableVisibility#timetable', 'url' => '/api/timetable/of', 'verb' => 'GET'],

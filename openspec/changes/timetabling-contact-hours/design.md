@@ -35,3 +35,11 @@ A cohort without a hour plan shows given and attended only, with "no hour plan" 
 ## Seed data
 
 No schema changes. The MBO example set's cohort "MV2A" gets sessions for periods 1 and 2 with three cancelled lessons in "Engels", so the report shows a shortfall there, and attendance records where one learner attended 70 percent of "Marketing".
+
+## As built (2026-09-28)
+
+- Stacked on `timetabling-multi-year-hour-plan` (PR #1312): owed hours come from `HourPlanActivityService::forYear()`, which already resolves each group's active plan by programme and intake year.
+- Given hours are read through `TimetableSourceResolver` for the window, so with planninq installed the report counts planninq's lessons (`status: cancelled` maps to `lifecycle: cancelled`); a planninq lesson without a `courseId` is matched to a course by its subject name.
+- `ContactHoursReader` holds the register reads, `ContactHoursCalendar` the date arithmetic: a period line counts when its whole report period lies in the window; a line without a period counts by the share of teaching days (weekdays minus the report periods' holidays).
+- The margin is the app setting `contact_hours_margin_percent`, default 10.
+- The route opens on the ADR-023 action `report.contact-hours` (admin, instructors, team leads, compliance officers). The period picker is a from and to date; CSV export is built in the page.

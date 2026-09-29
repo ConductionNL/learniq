@@ -2724,7 +2724,21 @@
         "_%n place free_::_%n places free_": [
             "%n place free",
             "%n places free"
-        ]
+        ],
+        "To": "To",
+        "Export CSV": "Export CSV",
+        "This group has no active hour plan, so owed hours are missing.": "This group has no active hour plan, so owed hours are missing.",
+        "Owed": "Owed",
+        "Given": "Given",
+        "Difference": "Difference",
+        "short": "short",
+        "Hide learners": "Hide learners",
+        "Show learners": "Show learners",
+        "Attended of given": "Attended of given",
+        "{attended} of {given} hours": "{attended} of {given} hours",
+        "below the margin": "below the margin",
+        "The report could not be loaded.": "The report could not be loaded.",
+        "Per group and course the contact hours owed by the hour plan, the hours given and the hours each learner attended.": "Per group and course the contact hours owed by the hour plan, the hours given and the hours each learner attended."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

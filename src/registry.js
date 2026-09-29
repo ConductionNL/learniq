@@ -61,6 +61,7 @@ import CheckInPage from './views/CheckInPage.vue'
 import CohortGradebookView from './views/CohortGradebookView.vue'
 import CohortTimetableView from './views/CohortTimetableView.vue'
 import ConferenceScheduleBoard from './views/ConferenceScheduleBoard.vue'
+import ContactHoursReport from './views/ContactHoursReport.vue'
 // course-authoring-ux: the two genuine new custom views this change adds —
 // the Course/Module/Lesson tree editor and the per-lesson block composer.
 // Everything else (CourseTemplate index/detail) is a declarative manifest
@@ -268,6 +269,7 @@ export default {
 	BookConferenceSlotsView: page(BookConferenceSlotsView),
 	BsaRiskDashboard: page(BsaRiskDashboard),
 	ConferenceScheduleBoard: page(ConferenceScheduleBoard),
+	ContactHoursReport: page(ContactHoursReport),
 	CourseBuilder: page(CourseBuilder),
 	CoursePackageImportView: page(CoursePackageImportView),
 	DisplayScreenAddressView: page(DisplayScreenAddressView),
