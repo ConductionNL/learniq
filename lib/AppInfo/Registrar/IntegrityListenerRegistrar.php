@@ -31,6 +31,7 @@ namespace OCA\Learniq\AppInfo\Registrar;
 use OCA\Learniq\Listener\CompetencyAlignmentListener;
 use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
+use OCA\Learniq\Listener\LearnerUserIdStamp;
 use OCA\Learniq\Listener\LessonNoteAuthorGuard;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
@@ -109,6 +110,19 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: GradeEntryLearnerRefStamp::class
+		);
+
+		// learnerUserId on ExternalTrainingRecord, ExemptionCase and FraudCase:
+		// their learner field is a LearnerProfile uuid, so the server writes the
+		// learner's user id next to it on every write, whoever creates the row.
+		// Read rules and notifications match on it. A stamp, not a veto.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: LearnerUserIdStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: LearnerUserIdStamp::class
 		);
 
 		// Submission learnerRefs (learner-lookup-and-learnerrefs-fixes): the
