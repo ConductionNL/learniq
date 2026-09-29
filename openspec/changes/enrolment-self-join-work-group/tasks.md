@@ -23,15 +23,16 @@
 - **spec_ref**: `specs/enrolment/spec.md#requirement-a-teacher-sets-up-work-groups-with-a-maximum-size`
 - **files**: `src/components/widgets/WorkGroupsWidget.vue`, `src/manifest.d/*.json` (CohortDetail), `src/registry.js`
 - [x] Implement
-- [ ] Test: Playwright `tests/e2e/work-groups.spec.ts` (teacher makes five groups of four)
-- Blocked 2026-09-29: the teacher test is `test.fixme` in `work-groups.spec.ts`. The create dialog's Class picker (a `$ref: Cohort` field in nextcloud-vue CnFormDialog) shows no options, and the dialog asks for a required "Tenant". This waits on nextcloud-vue #1283 and learniq's tenant-context change. The live learner tests create their groups through the OpenRegister objects API as admin.
+- [x] Test: Playwright `tests/e2e/work-groups.spec.ts` (teacher makes five groups of four)
+- Live 2026-09-29 on localhost:8080 (served 51c8b1ef, nextcloud-vue 2.57.4): "a teacher adds a work group to a class". A temporary instructor opens Work groups, then Create. The Class picker lists and selects the class (#1263), and the dialog shows no Tenant field (#1283). The instructor enters maximum members 4, a name and a set. One work group is created with that name, maxMembers 4 and the set, and the class page's Work groups widget lists it. Groups are added one at a time; five in one action is not built (see below), and the sign-up date was not set in this test. The test stays red on one soft check: tenant_id is filled from learniq's CallerTenantResolver, which falls back to the Nextcloud instance id (`ocuhb9wy3beh`) because the account has no learniq `tenant_id` setting. The class it belongs to is in tenant `00000000-0000-0000-0000-000000000001`, so the group and its class sit in different tenants.
 - Built as a typed `object-list` widget on CohortDetail plus `WorkGroups` index and `WorkGroupDetail` detail pages (create, edit members to move a learner, close and reopen), not a custom widget, so no custom-widget ratchet step. "Make 8 groups of 4" in one action is not built: groups are added one by one. Playwright test not written: no live instance.
 
 ### Task 4: Learner page
 - **spec_ref**: `specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place`
 - **files**: `src/views/MyWorkGroups.vue`, `src/manifest.d/my-learning.json`, `src/registry.js`
 - [x] Implement
-- [ ] Test: Playwright `tests/e2e/work-groups.spec.ts` (learner joins, full group shows no button)
+- [x] Test: Playwright `tests/e2e/work-groups.spec.ts` (learner joins, full group shows no button)
+- Live 2026-09-29 on localhost:8080 (served 51c8b1ef): "a learner joins a group with a free place; a full group offers nothing" passed (1.9m). A temporary learner in the class opens My work groups. The full group (1 of 1) offers no button. "Join" on the free group shows "Leave", and afterwards the free group's memberIds are the learner and the full group's are unchanged.
 - `src/views/MyWorkGroups.vue` at `/my-work-groups` with a menu entry for learners. Playwright test not written.
 
 ### Task 5: Group hand-in uses the work group
