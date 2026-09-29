@@ -45,7 +45,8 @@
 ### Task 6: Credential page actions, seed data, translations
 - **files**: `src/manifest.d/people.json`, example set generators, `l10n/en.json`, `l10n/nl.json`, `l10n/*.js`
 - [x] Implement
-- [ ] Test: Playwright `tests/e2e/credential-europass.spec.ts` (learner downloads); gate 101; `npm run check:schema-l10n`
+- [x] Test: Playwright `tests/e2e/credential-europass.spec.ts` (learner downloads); gate 101; `npm run check:schema-l10n`
+- Live 2026-09-29 on localhost:8080 (#1460, served 71a2c414): `credential-europass.spec.ts` 2 passed (4.4m). A temporary HR officer chooses "Create Europass version" on a certificate issued 2026-03-03 with no edciPayload, and sees "The Europass version was created.". edciPayload is stored, issuedAt is unchanged, and "Download for Europass" is offered. The temporary learner (learnerId = their learner-profile uuid) downloads `europass-<code>-2026-03-03.jsonld`, which equals the stored edciPayload and carries a proof. The Task 1 live issue from a completed enrolment was not run in this lane.
 
 ## Verification
 - `openspec validate credentials-europass-edci-export --strict` passes
