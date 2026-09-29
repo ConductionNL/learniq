@@ -421,7 +421,7 @@ export default {
 		 * @param {string} outcome The server's outcome.
 		 * @return {string} The sentence.
 		 * @spec openspec/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
-		 * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-the-plane-decides-who-may-publish-before-a-package-is-built
+		 * @spec openspec/specs/course-management/spec.md#requirement-the-plane-decides-who-may-publish-before-a-package-is-built
 		 */
 		publishText(outcome) {
 			switch (outcome) {

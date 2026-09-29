@@ -309,7 +309,13 @@ class LtiAgsScorePollJob extends TimedJob {
 			return null;
 		}
 
-		$placement = $this->resolvePlacementByDeployment(deploymentUuid: $deploymentUuid);
+		// Integriq sets the line item to the placement id, so two placements on
+		// one deployment are told apart; the deployment lookup is the fallback.
+		$placement = $this->resolvePlacementByLineItem(lineItemId: (string)($data['lineItemId'] ?? ''), deploymentUuid: $deploymentUuid);
+		if ($placement === null) {
+			$placement = $this->resolvePlacementByDeployment(deploymentUuid: $deploymentUuid);
+		}
+
 		if ($placement === null) {
 			$this->logger->info(
 				'[LtiAgsScorePollJob] No LtiToolPlacement for deployment {dep} (message {id}) — skipping (orphan).',
@@ -373,6 +379,47 @@ class LtiAgsScorePollJob extends TimedJob {
 		];
 
 	}//end extractScore()
+
+	/**
+	 * Resolve the placement a score's line item names, when it belongs to the
+	 * score's deployment. A line item naming a placement on another deployment
+	 * is ignored, so one tool's score cannot land on another tool's placement.
+	 *
+	 * @param string $lineItemId     The score's line item (integriq sets it to the placement id).
+	 * @param string $deploymentUuid The score's deployment.
+	 *
+	 * @return array<string,mixed>|null The placement, or null.
+	 *
+	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-a-returned-grade-lands-on-the-placement-that-launched-it
+	 */
+	private function resolvePlacementByLineItem(string $lineItemId, string $deploymentUuid): ?array {
+		if ($lineItemId === '') {
+			return null;
+		}
+
+		try {
+			$object = $this->objectService->find(
+				id: $lineItemId,
+				register: self::LEARNIQ_REGISTER,
+				schema: self::PLACEMENT_SCHEMA,
+				_rbac: false,
+				_multitenancy: false
+			);
+		} catch (Throwable $e) {
+			return null;
+		}
+
+		if ($object === null) {
+			return null;
+		}
+
+		$placement = $this->toArray(row: $object);
+		if ((string)($placement['openconnectorDeploymentId'] ?? '') !== $deploymentUuid) {
+			return null;
+		}
+
+		return $placement;
+	}//end resolvePlacementByLineItem()
 
 	/**
 	 * Resolve an `LtiToolPlacement` by `openconnectorDeploymentId`.

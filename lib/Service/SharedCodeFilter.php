@@ -39,7 +39,7 @@ use Throwable;
  * 🔴 A READ FAILURE KEEPS EVERY ROW. Filtering is an improvement on a second
  * load, never a reason for a load to fail or lose rows.
  *
- * @spec openspec/changes/example-set-regulation-dedupe/specs/example-sets/spec.md#requirement-a-second-example-set-does-not-duplicate-a-regulation-code
+ * @spec openspec/specs/example-sets/spec.md#requirement-a-second-example-set-does-not-duplicate-a-regulation-code
  */
 class SharedCodeFilter {
 	/**
@@ -84,7 +84,7 @@ class SharedCodeFilter {
 	 *
 	 * @return array<string, mixed> The descriptor to import.
 	 *
-	 * @spec openspec/changes/example-set-regulation-dedupe/specs/example-sets/spec.md#requirement-a-second-example-set-does-not-duplicate-a-regulation-code
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-second-example-set-does-not-duplicate-a-regulation-code
 	 */
 	public function withoutCodesHeldElsewhere(array $data): array {
 		foreach (self::OWN_CODE_SCHEMAS as $schema) {

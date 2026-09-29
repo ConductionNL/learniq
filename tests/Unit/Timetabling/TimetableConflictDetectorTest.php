@@ -439,7 +439,7 @@ class TimetableConflictDetectorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004
 	 */
 	public function testScanWindowFlagsPlanninqLessonsForOneTeacher(): void {
 		$lesson = static fn (string $id, string $cohort, string $start, string $end, string $lifecycle = 'scheduled'): array => [

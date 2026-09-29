@@ -48,6 +48,10 @@ class OnboardingListenerRegistrar {
 	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
 	 */
 	public function register(IRegistrationContext $context): void {
+		// The in-process query listeners (ADR-041) live in their own
+		// registrar; EventListenerWiring is at its coupling limit.
+		(new QueryListenerRegistrar())->register(context: $context);
+
 		// ADR-031 legitimate exception: a Nextcloud Files event, not an object
 		// event, so no schema declaration can express it. The listener only
 		// records the file; the teacher confirms before anything is read (D17).

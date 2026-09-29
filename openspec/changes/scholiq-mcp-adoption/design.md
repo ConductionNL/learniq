@@ -1,5 +1,7 @@
 # Design: scholiq-mcp-adoption
 
+> Round 5 (2026-09-28): built for learniq with five schemas, not six. `session` is OFF because it now holds `affectedLearnerIds` and `substituteTeacherId`. The read rule keeps the staff groups that write each schema and matches everyone else on the live lifecycle. See tasks.md.
+
 ## Context
 
 Scholiq ships `lib/Mcp/ScholiqToolProvider.php` — an `IMcpToolProvider` implementation with 2 hard-coded read tools (`scholiq.listCourses`, `scholiq.getCourseDetails`), registered through `Bootstrap::register(..., ['mcpProvider' => ScholiqToolProvider::class])` in `lib/AppInfo/Application.php:118`, and specced in the canonical `openspec/specs/ai-companion-tools/spec.md` (REQ-001…REQ-005).

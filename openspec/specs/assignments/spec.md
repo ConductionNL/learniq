@@ -266,44 +266,6 @@ field, with lifecycle `draft → submitted`. `learnerId` MUST be one of the link
 - **WHEN** the learner scores their own Submission against the Rubric and submits the `SelfAssessment`
 - **THEN** it transitions to `submitted`, and the Submission's own lifecycle is unaffected
 
-### Requirement: Reviewer identity is hidden from the submission author via a server-enforced feedback projection
-`PeerReview.x-property-rbac.read` MUST be a fixed rule — `anyOf: [{role: admin}, {match: {field: reviewerId,
-operator: eq, value: $userId}}]` — independent of `Assignment.peerReviewAnonymity`, so a submission's author
-can never read a raw `PeerReview` row. The author MUST instead read peer feedback through
-`PeerFeedbackSummary`, computed by `PeerFeedbackAggregator` from `released` `PeerReview`s for that Submission:
-when `peerReviewAnonymity` is `blind` or `double-blind`, `feedbackItems[].reviewerId` MUST be computed as
-`null`; when `open`, it MUST be populated with the reviewer's identity. This is a server-enforced guarantee on
-the reviewer-identity axis via object-shape projection, not a UI convention. The reviewee-identity axis for
-`double-blind` (hiding whose work a reviewer is grading) is NOT a server-enforced guarantee at this register's
-current RBAC capability — `PeerReviewMarkingView` MUST withhold the author's identity from its own display as
-a UI convention, but a caller with direct object-level read access to the linked `Submission` is not blocked
-at the field level (documented, not silently assumed away).
-
-#### Scenario: The author cannot read a raw PeerReview
-- **GIVEN** a submission author who is neither `admin` nor the `reviewerId` of a given `PeerReview`
-- **WHEN** that author requests the `PeerReview` object directly
-- **THEN** the request is denied by `x-property-rbac.read` (fail-closed)
-
-#### Scenario: Blind and double-blind hide reviewer identity in the feedback summary
-- **GIVEN** an Assignment with `peerReviewAnonymity: blind` (or `double-blind`) and a `released` `PeerReview`
-  for one of its Submissions
-- **WHEN** `PeerFeedbackAggregator` computes the Submission's `PeerFeedbackSummary`
-- **THEN** the corresponding `feedbackItems[].reviewerId` is `null`
-
-#### Scenario: Open anonymity reveals reviewer identity in the feedback summary
-- **GIVEN** an Assignment with `peerReviewAnonymity: open` and a `released` `PeerReview` for one of its
-  Submissions
-- **WHEN** `PeerFeedbackAggregator` computes the Submission's `PeerFeedbackSummary`
-- **THEN** the corresponding `feedbackItems[].reviewerId` is populated with the reviewer's identity
-
-#### Scenario: Double-blind reviewee-identity hiding is UI-level only, and this is documented
-- **GIVEN** an Assignment with `peerReviewAnonymity: double-blind`
-- **WHEN** a reviewer opens `PeerReviewMarkingView` for their assigned `PeerReview`
-- **THEN** the view withholds the Submission's learner identity from its own display
-- **AND** this withholding does not change the reviewer's underlying object-level read grant on the linked
-  `Submission`, which remains unrestricted at the field level — consistent with the same documented limit
-  already stated for `FraudCase`'s `ExamCaseDossierView` (`openspec/specs/exam-board/spec.md:136-139`)
-
 ### Requirement: A learner hands in their own work and the teacher marks it
 The Submission authorization MUST let every signed-in user create a submission, MUST let a learner named in `learnerIds` update it while its lifecycle is `draft` (file upload, saving the references, the `submit` transition), and MUST let `instructors`, `compliance-officers` and `team-leads` read and update it for marking. Because create cannot be narrowed by a match, the `submit` guard MUST refuse a caller who is not in `learnerIds`, except administrators and system calls. Late hand-in MUST be its own transition, `submitLate` (draft to `late`), because a guard cannot change a transition's target state: `SubmissionWindowGuard` MUST allow `submit` only inside the window and `submitLate` only after the deadline of an assignment with `allowLateSubmission`, and the hand-in screen MUST pick the transition that fits the deadline.
 
@@ -456,6 +418,322 @@ Every Submission MUST carry `learnerRefs`: the LearnerProfile UUID of each learn
 - **GIVEN** the profile lookup fails
 - **WHEN** a Submission is created
 - **THEN** the write goes through with `learnerRefs: []`
+
+### Requirement: A teacher can ask for returned work to be handed in again
+
+`SubmissionDetail` MUST offer staff an "Ask to hand in again" action on a `returned` Submission. The
+action MUST fire the `reopen` transition (`returned` to `draft`) and MUST collect
+`resubmissionDueAt` as a required transition input. The `reopen` transition MUST be authorized for
+the `instructors`, `compliance-officers` and `team-leads` groups only. When `reopen` fires, the
+Submission's learners MUST receive a `resubmissionRequested` notification.
+
+#### Scenario: A teacher reopens returned work with a new date
+
+<!-- @e2e exclude Declarative manifest action plus register transition; covered by PHPUnit SubmissionResubmissionRegisterTest, and lanes do not run against the shared instance. -->
+
+- **GIVEN** a Submission in `returned`
+- **WHEN** a teacher chooses "Ask to hand in again" and enters a date
+- **THEN** the Submission moves to `draft` with `resubmissionDueAt` set to that date, and its
+  learners are notified
+
+#### Scenario: A pupil cannot reopen their own work
+
+<!-- @e2e exclude Register-level authorization; covered by PHPUnit SubmissionResubmissionRegisterTest. -->
+
+- **GIVEN** a Submission in `returned`
+- **WHEN** one of its learners, outside the staff groups, fires `reopen`
+- **THEN** the transition is refused
+
+### Requirement: A requested resubmission has its own deadline
+
+`SubmissionWindowGuard` MUST judge `submit` and `submitLate` against `Submission.resubmissionDueAt`
+when it is set, instead of `Assignment.dueAt`. Before that date `submit` MUST be allowed and
+`submitLate` refused; after it the existing late rules MUST apply with that date as the deadline.
+
+#### Scenario: Resubmission after the assignment deadline is on time
+
+<!-- @e2e exclude Lifecycle guard; covered by PHPUnit SubmissionWindowGuardTest. -->
+
+- **GIVEN** an assignment whose `dueAt` has passed and that does not accept late work, and a
+  reopened Submission with `resubmissionDueAt` in the future
+- **WHEN** the learner fires `submit`
+- **THEN** the guard allows it and no late penalty applies
+
+#### Scenario: The resubmission date has passed
+
+<!-- @e2e exclude PHPUnit SubmissionWindowGuardTest. -->
+
+- **GIVEN** a reopened Submission whose `resubmissionDueAt` has passed, on an assignment that accepts
+  late work
+- **WHEN** the learner fires `submit`
+- **THEN** the guard refuses it, and `submitLate` is allowed
+
+#### Scenario: Late hand-in is refused while the resubmission window is open
+
+<!-- @e2e exclude PHPUnit SubmissionWindowGuardTest. -->
+
+- **GIVEN** a reopened Submission with `resubmissionDueAt` in the future
+- **WHEN** the learner fires `submitLate`
+- **THEN** the guard refuses it
+
+### Requirement: Only staff set a resubmission date
+
+`SubmissionResubmissionDateListener` MUST keep `Submission.resubmissionDueAt` out of the hands of
+learners: on create by a caller outside `instructors`, `compliance-officers`, `team-leads` and
+admins the value MUST be dropped, and on update by such a caller the stored value MUST be kept.
+Staff, admins and system context MUST be able to write it.
+
+#### Scenario: A learner cannot give themselves a later date
+
+<!-- @e2e exclude Pre-write listener; covered by PHPUnit SubmissionResubmissionDateListenerTest. -->
+
+- **GIVEN** a learner's own Submission in `draft` with `resubmissionDueAt` set by their teacher
+- **WHEN** the learner updates it with a later `resubmissionDueAt`
+- **THEN** the stored date is kept
+
+#### Scenario: A learner cannot create work with a date of their own
+
+<!-- @e2e exclude PHPUnit SubmissionResubmissionDateListenerTest. -->
+
+- **GIVEN** a learner outside the staff groups
+- **WHEN** they create a Submission carrying `resubmissionDueAt`
+- **THEN** the Submission is stored without it
+
+#### Scenario: A teacher's reopen writes the date
+
+<!-- @e2e exclude PHPUnit SubmissionResubmissionDateListenerTest. -->
+
+- **GIVEN** a teacher in `instructors`
+- **WHEN** the reopen transition writes `resubmissionDueAt`
+- **THEN** the date is stored
+
+### Requirement: The server stamps who a submission belongs to
+
+`SubmissionOwnerStamp` MUST run on every create and update of a `submission` object, on
+OpenRegister's `ObjectCreatingEvent` and `ObjectUpdatingEvent`. It MUST treat a create as a portal
+hand-in when there is no Nextcloud session, `learnerIds` is empty and `learnerRef` is set (portaliq
+stamps the pupil's LearnerProfile UUID there). For a portal hand-in it MUST read that LearnerProfile
+and the Assignment without RBAC and set `learnerIds` to `[profile.ncUserId]`, `learnerRefs` to
+`[learnerRef]` and `tenant_id` to the Assignment's tenant (the profile's when the Assignment has
+none). It MUST refuse the create when the profile does not exist, is merged away or deleted, when the
+Assignment does not exist, or when the profile and the Assignment belong to different tenants. For
+every other write it MUST set `learnerRef` to the UUID of the LearnerProfile whose `ncUserId` is
+`learnerIds[0]`, preferring one that is not merged away, and MUST ignore a `learnerRef` the client
+sent. When no profile matches, `learnerRef` MUST be null. When that lookup fails on an update of a
+row whose `learnerIds` did not change, the stored `learnerRef` MUST be kept. After stamping, it MUST
+refuse any create or update that has no `learnerIds` or no `tenant_id`, whoever the caller is.
+`learnerIds` and `tenant_id` MUST NOT be in the schema's `required` list, because OpenRegister
+validates `required` before any listener runs.
+
+#### Scenario: A portal hand-in gets its learner and tenant from the pupil's profile
+
+<!-- @e2e exclude Server-side write listener fed by portaliq's server-to-server create; no DOM surface in learniq. Covered by PHPUnit SubmissionOwnerStampTest::testAPortalHandInIsStampedFromTheProfile. -->
+
+- **GIVEN** a LearnerProfile `lp-1` with `ncUserId: "pupil-1"` and an Assignment `as-1` in tenant `t-1`
+- **WHEN** portaliq creates a Submission with `assignmentId: "as-1"`, `learnerRef: "lp-1"` and no Nextcloud session
+- **THEN** the stored Submission carries `learnerIds: ["pupil-1"]`, `learnerRefs: ["lp-1"]` and `tenant_id: "t-1"`
+- **AND** the write is not stopped
+
+#### Scenario: A portal hand-in for an unknown or merged pupil is refused
+
+<!-- @e2e exclude PHPUnit SubmissionOwnerStampTest (unknown profile, merged profile, missing assignment, tenant mismatch). -->
+
+- **GIVEN** no active LearnerProfile `lp-9`
+- **WHEN** portaliq creates a Submission with `learnerRef: "lp-9"`
+- **THEN** the create is refused and no Submission is stored
+
+#### Scenario: A staff create without learners is still refused
+
+<!-- @e2e exclude PHPUnit SubmissionOwnerStampTest::testAStaffCreateWithoutLearnersIsRefused. -->
+
+- **GIVEN** a signed-in teacher
+- **WHEN** the teacher creates a Submission with `assignmentId` and `tenant_id` but no `learnerIds`
+- **THEN** the create is refused with a message that names the learners and the school
+
+#### Scenario: A forged learnerRef from the app is replaced
+
+<!-- @e2e exclude PHPUnit SubmissionOwnerStampTest::testAForgedLearnerRefIsReplaced. -->
+
+- **GIVEN** LearnerProfiles `lp-1` (`ncUserId: "pupil-1"`) and `lp-2` (`ncUserId: "pupil-2"`)
+- **WHEN** pupil-1 creates a Submission in the app with `learnerIds: ["pupil-1"]` and `learnerRef: "lp-2"`
+- **THEN** the stored Submission carries `learnerRef: "lp-1"`
+
+#### Scenario: An update keeps the stored learnerRef when the lookup fails
+
+<!-- @e2e exclude PHPUnit SubmissionOwnerStampTest::testAFailedLookupOnUpdateKeepsTheStoredRef. -->
+
+- **GIVEN** a Submission with `learnerIds: ["pupil-1"]` and `learnerRef: "lp-1"`
+- **WHEN** portaliq attaches a file to it and the profile lookup throws
+- **THEN** the stored Submission still carries `learnerRef: "lp-1"`
+
+### Requirement: A reviewer reads the work through a server-side projection
+
+`GET /api/peer-review/{peerReviewId}/work` MUST return, to the PeerReview's `reviewerId` or an
+admin and to no one else, a projection of the reviewed Submission with exactly these fields:
+`peerReviewId`, `submissionId`, `assignmentId`, `submittedAt`, `anonymity`, `authorIds` and `files`
+(`id`, `name`, `size`, `mimetype`). When the caller is the reviewer and the Assignment's
+`peerReviewAnonymity` is `double-blind`, `authorIds` MUST be null and every file name MUST be
+replaced by `file-N` with the original extension. An Assignment that cannot be read MUST count as
+`double-blind`; an unset value MUST count as the schema default `blind`. The projection MUST NOT
+contain `learnerIds`, `learnerRefs`, `feedbackText`, `rubricScores`, `proposedGrade` or
+`gradeEntryId`. `GET /api/peer-review/{peerReviewId}/work/files/{fileId}` MUST serve a file only
+when it belongs to the reviewed Submission, under the projected name. `PeerReviewMarkingView` MUST
+read the work from this projection and MUST NOT fetch the Submission.
+
+#### Scenario: A double-blind reviewer sees the work, not the author
+
+<!-- @e2e exclude Server-side projection; covered by PHPUnit PeerReviewWorkProjectionTest and PeerReviewWorkControllerTest. Lanes do not run against the shared instance. -->
+
+- **GIVEN** a double-blind Assignment and Bob's PeerReview of Alice's Submission with the file
+  `Alice_de_Vries_essay.pdf`
+- **WHEN** Bob requests the work
+- **THEN** `authorIds` is null, the file is listed as `file-N.pdf`, and nothing in the response names
+  Alice
+
+#### Scenario: Blind and open reviews name the author
+
+<!-- @e2e exclude PHPUnit PeerReviewWorkProjectionTest. -->
+
+- **GIVEN** a `blind` or `open` Assignment
+- **WHEN** the reviewer requests the work
+- **THEN** `authorIds` lists the Submission's learners and the files keep their names
+
+#### Scenario: Nobody else gets the work
+
+<!-- @e2e exclude PHPUnit PeerReviewWorkProjectionTest and PeerReviewWorkControllerTest. -->
+
+- **GIVEN** a PeerReview reviewed by Bob
+- **WHEN** Alice, or any user who is neither Bob nor an admin, requests its work or one of its files
+- **THEN** the request is refused with 403
+
+#### Scenario: The teacher's marking never reaches the reviewer
+
+<!-- @e2e exclude PHPUnit PeerReviewWorkProjectionTest. -->
+
+- **GIVEN** a Submission with feedback, rubric scores and a proposed grade
+- **WHEN** its reviewer requests the work
+- **THEN** none of those fields is in the response
+
+#### Scenario: Only the reviewed Submission's files are served
+
+<!-- @e2e exclude PHPUnit PeerReviewWorkProjectionTest and PeerReviewWorkControllerTest. -->
+
+- **GIVEN** a file id that does not belong to the reviewed Submission
+- **WHEN** the reviewer requests it through the file endpoint
+- **THEN** the response is 404
+
+### Requirement: Both sides of peer review anonymity are server-enforced projections
+`PeerReview.x-property-rbac.read` MUST be a fixed rule — `anyOf: [{role: admin}, {match: {field: reviewerId,
+operator: eq, value: $userId}}]` — independent of `Assignment.peerReviewAnonymity`, so a submission's author
+can never read a raw `PeerReview` row. The author MUST instead read peer feedback through
+`PeerFeedbackSummary`, computed by `PeerFeedbackAggregator` from `released` `PeerReview`s for that Submission:
+when `peerReviewAnonymity` is `blind` or `double-blind`, `feedbackItems[].reviewerId` MUST be computed as
+`null`; when `open`, it MUST be populated with the reviewer's identity. This is a server-enforced guarantee on
+the reviewer-identity axis via object-shape projection, not a UI convention. The reviewee-identity axis for
+`double-blind` (hiding whose work a reviewer is grading) MUST be enforced by the server on the reviewer's
+path: the reviewer reads the work only through the projection in "A reviewer reads the work through a
+server-side projection", which withholds the authors, and never needs read access to the Submission. Staff
+who are also a reviewer keep their object-level read on the Submission, which marking needs; that path is
+outside this guarantee and documented as such.
+
+#### Scenario: The author cannot read a raw PeerReview
+- **GIVEN** a submission author who is neither `admin` nor the `reviewerId` of a given `PeerReview`
+- **WHEN** that author requests the `PeerReview` object directly
+- **THEN** the request is denied by `x-property-rbac.read` (fail-closed)
+
+#### Scenario: Blind and double-blind hide reviewer identity in the feedback summary
+- **GIVEN** an Assignment with `peerReviewAnonymity: blind` (or `double-blind`) and a `released` `PeerReview`
+  for one of its Submissions
+- **WHEN** `PeerFeedbackAggregator` computes the Submission's `PeerFeedbackSummary`
+- **THEN** the corresponding `feedbackItems[].reviewerId` is `null`
+
+#### Scenario: Open anonymity reveals reviewer identity in the feedback summary
+- **GIVEN** an Assignment with `peerReviewAnonymity: open` and a `released` `PeerReview` for one of its
+  Submissions
+- **WHEN** `PeerFeedbackAggregator` computes the Submission's `PeerFeedbackSummary`
+- **THEN** the corresponding `feedbackItems[].reviewerId` is populated with the reviewer's identity
+
+#### Scenario: Double-blind reviewee-identity hiding is server-enforced on the reviewer's path
+
+<!-- @e2e exclude Server-side projection; covered by PHPUnit PeerReviewWorkProjectionTest. -->
+
+- **GIVEN** an Assignment with `peerReviewAnonymity: double-blind`
+- **WHEN** a reviewer opens `PeerReviewMarkingView` for their assigned `PeerReview`
+- **THEN** the view receives the work from the server's projection with `authorIds: null` and neutral file
+  names, and makes no request for the Submission itself
+
+### Requirement: Existing submissions are back-filled
+
+On upgrade, every existing Submission MUST get the values the write-path stamps store today: `learnerRefs`, the LearnerProfile uuid of each learner in `learnerIds` who has one, in order and without duplicates, and `learnerRef`, the profile of the first learner or null. The step MUST run after the register is imported, read and write without RBAC or tenant scoping, save only rows whose stored values differ, and never overwrite a stored value when a lookup fails.
+
+#### Scenario: An old group submission reaches the portal
+
+- **GIVEN** a Submission with `learnerIds: ["pupil-1", "pupil-2"]` and no `learnerRefs`, and profiles `lp-1` and `lp-2`
+- **WHEN** the repair step runs
+- **THEN** the Submission carries `learnerRefs: ["lp-1", "lp-2"]` and `learnerRef: "lp-1"`
+- **AND** its other fields are unchanged
+
+#### Scenario: A second run changes nothing
+
+- **GIVEN** the repair step has run
+- **WHEN** it runs again
+- **THEN** it saves nothing
+
+#### Scenario: A failed lookup leaves the row as it was
+
+- **GIVEN** a Submission with stored `learnerRefs`, and a profile lookup that fails
+- **WHEN** the repair step runs
+- **THEN** the Submission is not saved and the failure is counted
+
+### Requirement: A pupil hands in a portal draft through learniq's own endpoint
+
+`POST /api/portal/submissions/hand-in` (`PortalSubmissionController::handIn()`) MUST accept only
+portaliq's signed forward, in the order of `PortalAssessmentController`: a missing or invalid
+`X-Portal-Subject` assertion MUST get 401 and register a failed attempt for throttling; an audience
+other than `student`, or a body without `learnerRef`, MUST get 403; a `learnerRef` without an active
+LearnerProfile and Nextcloud account MUST get 403 `not_available`. The submission named by the body's
+`submissionId` MUST carry the pupil's `learnerRef` or list the pupil's Nextcloud id in `learnerIds`;
+otherwise, or when it does not exist, the answer MUST be one 404 `not_found`. A submission whose
+`lifecycle` is not `draft` MUST get 409 `already_handed_in`. The endpoint MUST ask
+`SubmissionWindowGuard` which hand-in applies for the pupil: `submit` when the guard allows it, else
+`submitLate` when the guard allows that; when the guard allows neither, the answer MUST be 422
+`late_not_accepted` when the deadline passed on an assignment that takes no late work, else 422
+`hand_in_refused`, each with the pupil-facing message, and nothing MUST be written. The chosen
+transition MUST run through OpenRegister's `TransitionEngine` as the pupil (`ObjectService::runAs()`),
+so the guard runs again on the write; a refusal there MUST be answered the same way. Success MUST be
+200 `{submissionId, lifecycle}` with `submitted` or `late`.
+
+#### Scenario: A draft inside the window is handed in
+
+<!-- @e2e exclude Server-to-server receiver with no DOM surface in learniq; the button is portaliq's. Covered by PHPUnit PortalSubmissionHandInTest::testADraftInsideTheWindowIsSubmittedAsThePupil. -->
+
+- **GIVEN** a pupil's draft submission on an assignment due tomorrow
+- **WHEN** portaliq forwards `handIn` for it
+- **THEN** `submit` runs as the pupil and the answer is 200 with `lifecycle: submitted`
+
+#### Scenario: After the deadline the late rule decides
+
+<!-- @e2e exclude PHPUnit PortalSubmissionHandInTest::testAfterTheDeadlineLateWorkIsHandedInLate and ::testAfterTheDeadlineWithoutLateWorkNothingIsWritten. -->
+
+- **GIVEN** a pupil's draft on an assignment whose deadline passed
+- **WHEN** the assignment accepts late work, and when it does not
+- **THEN** the first runs `submitLate` and answers `lifecycle: late`; the second answers 422 `late_not_accepted` with the message and fires no transition
+
+#### Scenario: Another pupil's submission is not reachable
+
+<!-- @e2e exclude PHPUnit PortalSubmissionHandInTest::testAnotherPupilsSubmissionIs404. -->
+
+- **GIVEN** a submission whose `learnerRef` and `learnerIds` name another pupil
+- **WHEN** a pupil forwards `handIn` with its id
+- **THEN** the answer is 404 `not_found`, the same as for an id that does not exist, and no transition runs
+
+#### Scenario: A handed-in submission is not handed in twice
+
+<!-- @e2e exclude PHPUnit PortalSubmissionHandInTest::testASubmissionThatIsNotADraftIs409. -->
+
+- **GIVEN** a pupil's submission that is already `submitted`
+- **WHEN** portaliq forwards `handIn` for it
+- **THEN** the answer is 409 `already_handed_in` and no transition runs
 
 ## Standards
 

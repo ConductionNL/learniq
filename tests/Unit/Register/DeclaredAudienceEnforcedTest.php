@@ -363,7 +363,11 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 	 * @return void
 	 */
 	public function testWritesKeepTheCascadeGrants(): void {
-		$learnerWrites = ['Portfolio', 'PortfolioEntry', 'LearningRecordExport', 'LearningRecordShare'];
+		// Enrolment adds one write after the staff grants: the learner's
+		// manager approves or declines a pending self sign-up of their own
+		// report (enrolment-catalogue-self-signup), pinned in
+		// CatalogueSignUpRegisterTest.
+		$learnerWrites = ['Portfolio', 'PortfolioEntry', 'LearningRecordExport', 'LearningRecordShare', 'Enrolment'];
 		$names = [
 			'LessonCompletion', 'Enrolment', 'RolloverPlan', 'TimetableConflict', 'ExamAccommodation',
 			'ItemStatistics', 'AssessmentReliability', 'ItemRevisionFlag', 'GradeEntry', 'FinalGrade',

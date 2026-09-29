@@ -322,7 +322,7 @@ class SeedProfileServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#scenario-removing-the-company-set
+	 * @spec openspec/specs/example-sets/spec.md#scenario-removing-the-company-set
 	 */
 	public function testRemoveSoftDeletesTheSetsRecordedImports(): void {
 		$this->writeProfile('po.json', 'po', 1);
@@ -398,7 +398,7 @@ class SeedProfileServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#scenario-an-openregister-without-the-method
+	 * @spec openspec/specs/example-sets/spec.md#scenario-an-openregister-without-the-method
 	 */
 	public function testRemoveIsDuckTypedAndRefusesAnUnknownSet(): void {
 		$this->writeProfile('po.json', 'po', 1);
@@ -432,7 +432,7 @@ class SeedProfileServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#scenario-removing-one-of-two-loaded-sets
+	 * @spec openspec/specs/example-sets/spec.md#scenario-removing-one-of-two-loaded-sets
 	 */
 	public function testLoadingAndRemovingKeepTheLoadedList(): void {
 		$this->writeProfile('po.json', 'po', 1);

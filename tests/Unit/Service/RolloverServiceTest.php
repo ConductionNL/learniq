@@ -223,6 +223,54 @@ class RolloverServiceTest extends TestCase {
 	}//end testExecuteCreatesCohortArchivesAndRecordsProgress()
 
 	/**
+	 * Moving a group up raises its year of the programme and keeps the programme.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#scenario-the-rollover-moves-a-group-into-its-second-year
+	 */
+	public function testExecuteRaisesTheProgrammeYear(): void {
+		$saved = [];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturn(
+			$this->cohortEntity(['id' => 'c1', 'name' => 'MV1A', 'programmeId' => 'p-mv', 'programmeYear' => 1, 'learnerIds' => ['l1'], 'lifecycle' => 'active'])
+		);
+		$objectService->method('findAll')->willReturn([]);
+		$objectService->method('saveObject')->willReturnCallback(
+			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
+				$saved[] = $object;
+				return OrEntityFactory::make($object, (string)$schema, (string)$register);
+			}
+		);
+
+		$this->makeExecutionService($objectService)->execute(
+			[
+				'toAcademicYear' => '2026-2027',
+				'tenant_id' => 'tenant-a',
+				'mappings' => [['fromCohortId' => 'c1', 'action' => 'promote', 'toCohortName' => 'MV2A']],
+			]
+		);
+
+		$created = array_values(array_filter($saved, static fn (array $o): bool => ($o['name'] ?? '') === 'MV2A'));
+		$this->assertSame(2, $created[0]['programmeYear']);
+		$this->assertSame('p-mv', $created[0]['programmeId']);
+	}//end testExecuteRaisesTheProgrammeYear()
+
+	/**
+	 * A group without a known year, or moving to another programme, gets no year.
+	 *
+	 * @return void
+	 */
+	public function testNextProgrammeYearNeedsTheSameProgramme(): void {
+		$svc = $this->makeExecutionService();
+
+		$this->assertSame(3, $svc->nextProgrammeYear(fromCohort: ['programmeId' => 'p', 'programmeYear' => 2], mapping: []));
+		$this->assertNull($svc->nextProgrammeYear(fromCohort: ['programmeId' => 'p'], mapping: []));
+		$this->assertNull($svc->nextProgrammeYear(fromCohort: ['programmeId' => 'p', 'programmeYear' => 2], mapping: ['toProgrammeId' => 'q']));
+		$this->assertSame(3, $svc->nextProgrammeYear(fromCohort: ['programmeId' => 'p', 'programmeYear' => 2], mapping: ['toProgrammeId' => 'p']));
+	}//end testNextProgrammeYearNeedsTheSameProgramme()
+
+	/**
 	 * A mapping already marked done is skipped on re-run (idempotency).
 	 *
 	 * @return void

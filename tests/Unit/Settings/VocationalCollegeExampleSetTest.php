@@ -536,7 +536,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+	 * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
 	 */
 	public function testEveryAgreementPassesTheActivationGuardAndCarriesTheRightParentFlag(): void {
 		$rows = [

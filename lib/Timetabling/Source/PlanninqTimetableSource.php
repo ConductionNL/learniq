@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-the-planninq-source-reads-through-planninqs-query-event-req-002
+ * @spec openspec/specs/timetable-source/spec.md#requirement-the-planninq-source-reads-through-planninqs-query-event-req-002
  */
 
 declare(strict_types=1);
@@ -41,7 +41,7 @@ use RuntimeException;
 /**
  * Reads timetable sessions from planninq.
  *
- * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-the-planninq-source-reads-through-planninqs-query-event-req-002
+ * @spec openspec/specs/timetable-source/spec.md#requirement-the-planninq-source-reads-through-planninqs-query-event-req-002
  */
 class PlanninqTimetableSource implements TimetableSource {
 
@@ -77,7 +77,7 @@ class PlanninqTimetableSource implements TimetableSource {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
 	 */
 	public function isAvailable(): bool {
 		return $this->appManager->isInstalled(self::PLANNINQ_APP) === true && class_exists($this->eventClass) === true;
@@ -88,7 +88,7 @@ class PlanninqTimetableSource implements TimetableSource {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-the-planninq-source-reads-through-planninqs-query-event-req-002
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-the-planninq-source-reads-through-planninqs-query-event-req-002
 	 */
 	public function name(): string {
 		return self::NAME;
@@ -105,7 +105,7 @@ class PlanninqTimetableSource implements TimetableSource {
 	 *
 	 * @throws RuntimeException When planninq is absent, silent or refuses.
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-the-planninq-source-reads-through-planninqs-query-event-req-002
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-the-planninq-source-reads-through-planninqs-query-event-req-002
 	 */
 	public function sessionsForCohorts(array $cohortIds, ?string $from, ?string $to): array {
 		$rows = [];
@@ -129,7 +129,7 @@ class PlanninqTimetableSource implements TimetableSource {
 	 *
 	 * @throws RuntimeException When planninq is absent, silent or refuses.
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-the-planninq-source-reads-through-planninqs-query-event-req-002
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-the-planninq-source-reads-through-planninqs-query-event-req-002
 	 */
 	public function sessionsForTeacher(string $userId, ?string $from, ?string $to): array {
 		if ($userId === '') {
@@ -220,6 +220,7 @@ class PlanninqTimetableSource implements TimetableSource {
 			'roomReference' => (string)($lesson['roomReference'] ?? ''),
 			'groupReference' => (string)($lesson['groupReference'] ?? ''),
 			'externalRef' => (string)($lesson['externalRef'] ?? ''),
+			'sourceSystem' => (string)($lesson['sourceSystem'] ?? ''),
 			'source' => self::NAME,
 		];
 	}//end toSession()

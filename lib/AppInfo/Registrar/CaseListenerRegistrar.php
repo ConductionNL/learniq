@@ -74,7 +74,7 @@ class CaseListenerRegistrar {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	private function registerDataExchangeListeners(IRegistrationContext $context): void {
 		// ADR-041: integriq asks learniq's gate before an exchange job owned by

@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  */
 
 declare(strict_types=1);
@@ -87,7 +87,7 @@ class PrimarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
 	 */
 	public function testTheSchoolHasItsPromisedShape(): void {
 		self::assertCount(1, self::of('school'));
@@ -129,7 +129,7 @@ class PrimarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
 	 */
 	public function testEveryMarkBelongsToThePupilsOwnClassAndTeacher(): void {
 		$sessions  = self::by(self::of('session'), 'uuid');
@@ -188,7 +188,7 @@ class PrimarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
 	 */
 	public function testReportCardsCountTheMarksOfTheirPeriod(): void {
 		$sessions = self::by(self::of('session'), 'uuid');
@@ -238,7 +238,7 @@ class PrimarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-loads-and-removes-cleanly
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-primary-school-set-loads-and-removes-cleanly
 	 */
 	public function testTheServiceOffersAndRemovesExactlyThisSet(): void {
 		$appManager = $this->createMock(IAppManager::class);
@@ -268,7 +268,7 @@ class PrimarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#scenario-the-file-is-reproducible
+	 * @spec openspec/specs/example-sets/spec.md#scenario-the-file-is-reproducible
 	 */
 	public function testTheFileIsWhatTheGeneratorProduces(): void {
 		$python = trim((string)shell_exec('command -v python3 2>/dev/null'));
@@ -289,7 +289,7 @@ class PrimarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-register-no-longer-carries-dark-primary-school-seeds
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-register-no-longer-carries-dark-primary-school-seeds
 	 */
 	public function testThePromotedSeedMovedOutOfTheRegister(): void {
 		self::assertContains('Voorbeeldschool De Wilgenboom', array_column(self::of('school'), 'name'));

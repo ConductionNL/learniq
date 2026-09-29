@@ -27,7 +27,7 @@ use OCP\IAppConfig;
 /**
  * Reads and writes the group code to cohort maps and the SWV receiver.
  *
- * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+ * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
  */
 class TimetableExchangeSettings {
 	/**
@@ -69,7 +69,7 @@ class TimetableExchangeSettings {
 	 *
 	 * @return array<string, array<string, string>> Source => group code => cohort id.
 	 *
-	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+	 * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 	 */
 	public function groupMaps(): array {
 		$decoded = json_decode($this->appConfig->getValueString(Application::APP_ID, self::GROUP_MAPS_KEY, ''), true);
@@ -88,7 +88,7 @@ class TimetableExchangeSettings {
 	 *
 	 * @return array<string, string> Group code => cohort id.
 	 *
-	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-import-without-a-posted-map-uses-the-kept-map
+	 * @spec openspec/specs/timetabling/spec.md#requirement-an-import-without-a-posted-map-uses-the-kept-map
 	 */
 	public function groupMapFor(string $source): array {
 		return ($this->groupMaps()[$source] ?? []);
@@ -99,7 +99,7 @@ class TimetableExchangeSettings {
 	 *
 	 * @return string The receiver id.
 	 *
-	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+	 * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 	 */
 	public function swvReceiverId(): string {
 		return $this->appConfig->getValueString(Application::APP_ID, SupportRequestSubmitHandler::RECEIVER_CONFIG_KEY, '');
@@ -113,7 +113,7 @@ class TimetableExchangeSettings {
 	 *
 	 * @return string|null The reason, in English (the controller translates it).
 	 *
-	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+	 * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 	 */
 	public function validate(mixed $groupMaps, string $receiverId): ?string {
 		if ($receiverId !== '' && preg_match(self::RECEIVER_PATTERN, $receiverId) !== 1) {
@@ -141,7 +141,7 @@ class TimetableExchangeSettings {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
+	 * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 	 */
 	public function save(array $groupMaps, string $receiverId): void {
 		$clean = [];

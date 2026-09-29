@@ -33,7 +33,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-imported-slide-notes-land-in-the-staff-store
+ * @spec openspec/specs/course-management/spec.md#requirement-imported-slide-notes-land-in-the-staff-store
  */
 
 declare(strict_types=1);
@@ -57,7 +57,7 @@ class TeacherNoteSplitter {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-an-upgrade-moves-the-notes-lessons-already-hold
+	 * @spec openspec/specs/course-management/spec.md#requirement-an-upgrade-moves-the-notes-lessons-already-hold
 	 */
 	public function hasNotes(array $blocks): bool {
 		foreach ($blocks as $block) {
@@ -82,7 +82,7 @@ class TeacherNoteSplitter {
 	 *
 	 * @return array{blocks: list<array<string, mixed>>, notes: list<array{blockId: string, afterBlockId: string, position: int, text: string}>}
 	 *
-	 * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-imported-slide-notes-land-in-the-staff-store
+	 * @spec openspec/specs/course-management/spec.md#requirement-imported-slide-notes-land-in-the-staff-store
 	 */
 	public function split(array $blocks): array {
 		$ordered = $this->ordered(blocks: $blocks);

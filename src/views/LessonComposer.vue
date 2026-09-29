@@ -1008,7 +1008,7 @@ export default {
 		 * Runs after the lesson itself was saved.
 		 *
 		 * @return {Promise<boolean>} True when every note write succeeded.
-		 * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-the-composer-shows-notes-inline-and-saves-them-to-the-staff-store
+		 * @spec openspec/specs/course-management/spec.md#requirement-the-composer-shows-notes-inline-and-saves-them-to-the-staff-store
 		 */
 		async saveTeacherNotes() {
 			const { notes } = splitTeacherNotes(this.blocks)

@@ -32,6 +32,27 @@
 					}
 				},
 				{
+					"id": "ImportedCoursesMenu",
+					"label": "Imported, not yet published",
+					"icon": "PackageDown",
+					"route": "Courses",
+					"query": {
+						"lifecycle": "draft",
+						"license": "all-rights-reserved"
+					},
+					"order": 11,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "CoursePackageImportMenu",
 					"label": "Import course package",
 					"icon": "DatabaseImportOutline",
@@ -551,6 +572,38 @@
 								"he",
 								"corporate",
 								"training"
+							]
+						}
+					}
+				},
+				{
+					"id": "StandbyPlanningMenu",
+					"label": "Standby hours",
+					"icon": "AccountClockOutline",
+					"route": "StandbyPlanning",
+					"order": 63,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "HourPlanActivitiesMenu",
+					"label": "Teaching activities",
+					"icon": "TableClock",
+					"route": "HourPlanActivities",
+					"order": 62,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"admin"
 							]
 						}
 					}
@@ -1125,8 +1178,25 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "reissue-certificates",
+						"label": "Reissue certificates",
+						"icon": "CertificateOutline",
+						"type": "navigate",
+						"target": "/courses/@objectId/reissue"
+					}
+				]
 			}
+		},
+		{
+			"id": "ReissueCertificates",
+			"route": "/courses/:courseId/reissue",
+			"type": "custom",
+			"title": "Reissue certificates",
+			"component": "ReissueCertificatesView",
+			"_note": "Mounts ReissueCertificatesView (credentials-bulk-reissue): the counts of issued, revoked and expired certificates, a required reason and the start of a queued run through learniq's own endpoint. Custom on purpose: a confirm-and-queue action against a learniq endpoint, not a list, record or dashboard of one schema."
 		},
 		{
 			"id": "CoursePackageImportReports",
@@ -1611,6 +1681,10 @@
 									"label": "Academic Year"
 								},
 								{
+									"key": "programmeYear",
+									"label": "Year of the programme"
+								},
+								{
 									"key": "period",
 									"label": "Period"
 								},
@@ -1676,6 +1750,47 @@
 						"type": "related",
 						"title": "Related",
 						"icon": "LinkVariant"
+					},
+					{
+						"id": "prog-hour-plans",
+						"type": "object-list",
+						"title": "Hour plans",
+						"icon": "TableClock",
+						"content": {
+							"register": "learniq",
+							"schema": "hour-plan",
+							"filter": {
+								"programmeId": "@objectId"
+							},
+							"sort": {
+								"field": "intakeYear",
+								"dir": "desc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "name",
+									"label": "Name"
+								},
+								{
+									"key": "intakeYear",
+									"label": "Intake year"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "HourPlanEditor",
+							"emptyText": "No hour plans yet.",
+							"formExcludeFields": [
+								"programmeId",
+								"lines",
+								"yearNorms",
+								"lifecycle",
+								"tenant_id"
+							]
+						}
 					}
 				],
 				"layout": [
@@ -1748,6 +1863,15 @@
 						"gridX": 6,
 						"gridY": 11,
 						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "7",
+						"widgetId": "prog-hour-plans",
+						"gridX": 0,
+						"gridY": 16,
+						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false
 					}
@@ -2348,6 +2472,52 @@
 						"icon": "AccountSchoolOutline"
 					},
 					{
+						"id": "coh-work-groups",
+						"type": "object-list",
+						"title": "Work groups",
+						"content": {
+							"register": "learniq",
+							"schema": "work-group",
+							"filter": {
+								"cohortId": "@objectId"
+							},
+							"sort": {
+								"field": "name",
+								"dir": "asc"
+							},
+							"limit": 50,
+							"columns": [
+								{
+									"key": "setName",
+									"label": "Set"
+								},
+								{
+									"key": "name",
+									"label": "Name"
+								},
+								{
+									"key": "maxMembers",
+									"label": "Maximum members"
+								},
+								{
+									"key": "selfJoinUntil",
+									"label": "Sign-up open until"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "WorkGroupDetail",
+							"viewAllRoute": "WorkGroups",
+							"viewAllQuery": {
+								"cohortId": "@objectId"
+							},
+							"emptyText": "No work groups yet."
+						},
+						"icon": "AccountGroup"
+					},
+					{
 						"id": "coh-related",
 						"type": "related",
 						"title": "Related",
@@ -2465,10 +2635,18 @@
 						"id": "8",
 						"widgetId": "cohort-talk",
 						"gridX": 0,
-						"gridY": 21,
+						"gridY": 32,
 						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false
+					},
+					{
+						"id": "work-groups",
+						"widgetId": "coh-work-groups",
+						"gridX": 0,
+						"gridY": 28,
+						"gridWidth": 12,
+						"gridHeight": 4
 					}
 				],
 				"sidebar": {
@@ -2488,6 +2666,30 @@
 					]
 				}
 			}
+		},
+		{
+			"id": "WorkGroups",
+			"route": "/work-groups",
+			"type": "index",
+			"title": "Work groups",
+			"config": {
+				"register": "learniq",
+				"schema": "work-group"
+			}
+		},
+		{
+			"id": "WorkGroupDetail",
+			"route": "/work-groups/:id",
+			"type": "detail",
+			"title": "Work group",
+			"config": {
+				"register": "learniq",
+				"schema": "work-group",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				}
+			},
+			"_note": "enrolment-self-join-work-group: a teacher sets the set, name, maximum size and sign-up date, moves a learner by editing the members, and closes or reopens sign-up. Learners never read this page; they use MyWorkGroups."
 		},
 		{
 			"id": "SubjectTeacherAssignmentDetail",
@@ -2747,6 +2949,47 @@
 						"icon": "ClipboardList"
 					},
 					{
+						"id": "sess-notes",
+						"type": "object-list",
+						"title": "Notes",
+						"icon": "NoteTextOutline",
+						"content": {
+							"register": "learniq",
+							"schema": "lesson-note",
+							"filter": {
+								"sessionId": "@objectId",
+								"cohortId": "@object.cohortId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "topic",
+									"label": "Topic"
+								},
+								{
+									"key": "text",
+									"label": "Note"
+								},
+								{
+									"key": "audience",
+									"label": "Audience"
+								}
+							],
+							"emptyText": "No notes on this lesson yet.",
+							"formExcludeFields": [
+								"sessionId",
+								"timetableSessionRef",
+								"cohortId",
+								"authorId",
+								"tenant_id"
+							]
+						}
+					},
+					{
 						"id": "sess-related",
 						"type": "related",
 						"title": "Related",
@@ -2765,6 +3008,13 @@
 						"integrationId": "talk",
 						"title": "Join call",
 						"icon": "Phone"
+					},
+					{
+						"id": "sess-calendar",
+						"type": "integration",
+						"integrationId": "calendar",
+						"title": "Agenda",
+						"icon": "CalendarClockOutline"
 					}
 				],
 				"layout": [
@@ -2814,10 +3064,19 @@
 						"showTitle": false
 					},
 					{
+						"id": "4-1",
+						"widgetId": "sess-notes",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
 						"id": "5",
 						"widgetId": "sess-related",
 						"gridX": 0,
-						"gridY": 10,
+						"gridY": 15,
 						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2826,7 +3085,7 @@
 						"id": "6",
 						"widgetId": "sess-files",
 						"gridX": 0,
-						"gridY": 15,
+						"gridY": 20,
 						"gridWidth": 12,
 						"gridHeight": 3,
 						"showTitle": false
@@ -2835,10 +3094,18 @@
 						"id": "7",
 						"widgetId": "session-talk",
 						"gridX": 0,
-						"gridY": 18,
+						"gridY": 23,
 						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false
+					},
+					{
+						"id": "8",
+						"widgetId": "sess-calendar",
+						"gridX": 0,
+						"gridY": 23,
+						"gridWidth": 12,
+						"gridHeight": 4
 					}
 				],
 				"sidebar": {
@@ -3620,6 +3887,20 @@
 						"integrationId": "files",
 						"title": "Briefing materials",
 						"icon": "FolderOutline"
+					},
+					{
+						"id": "asn-calendar",
+						"type": "integration",
+						"integrationId": "calendar",
+						"title": "Agenda",
+						"icon": "CalendarClockOutline"
+					},
+					{
+						"id": "asn-intake-form",
+						"type": "integration",
+						"integrationId": "forms",
+						"title": "Intake form",
+						"icon": "ClipboardEditOutline"
 					}
 				],
 				"layout": [
@@ -3667,6 +3948,22 @@
 						"gridWidth": 12,
 						"gridHeight": 3,
 						"showTitle": false
+					},
+					{
+						"id": "6",
+						"widgetId": "asn-calendar",
+						"gridX": 0,
+						"gridY": 13,
+						"gridWidth": 6,
+						"gridHeight": 4
+					},
+					{
+						"id": "7",
+						"widgetId": "asn-intake-form",
+						"gridX": 6,
+						"gridY": 13,
+						"gridWidth": 6,
+						"gridHeight": 4
 					}
 				],
 				"bodyWidgets": [
@@ -3704,7 +4001,21 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "allocate-markers",
+						"label": "Allocate markers",
+						"icon": "AccountCheckOutline",
+						"type": "navigate",
+						"target": "/assignments/@objectId/markers",
+						"visibleWhen": {
+							"field": "markersPerSubmission",
+							"op": "gt",
+							"value": 1
+						}
+					}
+				]
 			}
 		},
 		{
@@ -3834,6 +4145,14 @@
 			"title": "Mark submission",
 			"component": "MarkSubmissionView",
 			"_note": "Grading UI (rubric scores, inline feedback, attachments). Lib gap: grading workflow widget. peer-and-self-assessment: gains a read-only PeerFeedbackSummary/SelfAssessment context panel and, when peerReviewWeightPercent is set, an advisory-only blended-score suggestion — never pre-fills proposedGrade."
+		},
+		{
+			"id": "AllocateMarkers",
+			"route": "/assignments/:assignmentId/markers",
+			"type": "custom",
+			"title": "Allocate markers",
+			"component": "AllocateMarkersView",
+			"_note": "Mounts AllocateMarkersView (assignments-double-marking): the teacher in charge names up to markersPerSubmission markers for every handed-in submission or one; learniq's POST /api/assignments/{id}/markers does the allocation. Custom on purpose: it is an action form that picks Nextcloud accounts through the core autocomplete and posts to a learniq endpoint, not a list, record or widget grid of one OpenRegister schema, so no typed page archetype fits."
 		},
 		{
 			"id": "PeerReviews",
@@ -7691,6 +8010,46 @@
 				"register": "learniq"
 			},
 			"_note": "nav-restructure-dashboards: GroupLearning's navigable landing dashboard — a bespoke domain overview with no generic index/detail/dashboard analogue. The nav icon + group association live on the GroupLearning menu entry (base manifest + this fragment's menu route), not on the page (icon/group are not valid v2 page props)."
+		},
+		{
+			"id": "Timetables",
+			"route": "/timetables",
+			"type": "custom",
+			"title": "Timetables",
+			"component": "TimetableLookup",
+			"_note": "timetabling-visibility-rules: look up a group's, teacher's or room's timetable within the school's visibility policy (GET /api/timetable/of). Team leads and compliance officers edit the policy here."
+		},
+		{
+			"id": "StandbyPlanning",
+			"route": "/standby",
+			"type": "custom",
+			"title": "Standby hours",
+			"component": "StandbyPlanning",
+			"_note": "timetabling-standby-slots: the week's standby hours as a weekday by time grid; a coordinator adds or removes a teacher. The substitution dialog lists these teachers first."
+		},
+		{
+			"id": "HourPlanEditor",
+			"route": "/hour-plans/:id",
+			"type": "custom",
+			"title": "Hour plan",
+			"component": "HourPlanEditor",
+			"_note": "timetabling-multi-year-hour-plan: the hours per course, year of the programme and period as a grid, with totals per year against the norm. A matrix editor the generic form cannot render."
+		},
+		{
+			"id": "HourPlanActivities",
+			"route": "/teaching-activities",
+			"type": "custom",
+			"title": "Teaching activities",
+			"component": "HourPlanActivities",
+			"_note": "timetabling-multi-year-hour-plan: the teaching activities a school year needs, derived from the hour plans by GET /api/hour-plans/activities, with CSV export for the timetabling system."
+		},
+		{
+			"id": "RoomUtilisationReport",
+			"route": "/reports/room-use",
+			"type": "custom",
+			"title": "Room use",
+			"component": "RoomUtilisationReport",
+			"_note": "timetabling-room-utilisation: how well rooms are used over a period, computed by GET /api/reports/room-use. Reached from a Reports card (D8), no menu entry."
 		}
 	]
 }

@@ -52,6 +52,24 @@ The certificate is issued when: the row shows status *Issued* with a signature t
 | Verifier page shows *Signature does not match* | The key was rotated after the certificate was issued and the verifier is checking against the new key. The old key is kept by Learniq for verification, wait a minute for the cache, or contact the admin. |
 | You need to revoke a certificate (typo, wrong grade) | Open the credential row and click **Revoke**. The status changes to *Revoked* and the verifier returns *Revoked* with the reason you give. |
 
+## Europass version
+
+Every certificate, diploma or microcredential learniq issues also gets a Europass version: a European Digital Credential the learner can keep in their Europass profile. It carries the learner's name, the course, its credits and level where known, and your school or company as issuer, and it is signed with the same key as the certificate itself. It never carries a date of birth or a national identifier.
+
+- The learner, and HR and compliance officers, open the certificate and choose **Download for Europass**.
+- For a certificate issued before this feature, an HR or compliance officer chooses **Create Europass version** once. A revoked certificate gets none.
+- An employer or school can check a Europass file on learniq's verification address for the certificate: learniq answers valid or not valid, and never shows the file's content.
+- The issuer carries your KvK number when you set it in the app configuration (`europass_issuer_identifier`), otherwise the BRIN of your school record.
+
+## Reissue every certificate of a course
+
+When a certificate has to change for everyone who has it (a new wording a regulator asks for, a corrected course name, a new issuer name), an HR or compliance officer reissues them in one go.
+
+1. Open the course and choose **Reissue certificates** in the actions menu.
+2. You see how many issued certificates will be rebuilt, and how many revoked or expired ones are left as they are. Give a reason and confirm.
+3. learniq rebuilds and signs every issued certificate again in the background, the Europass version too. Each keeps its number, issue date and expiry, and its history shows when, by whom and why it was reissued.
+4. Every learner gets a notification. A certificate that was in a learner's EUDI wallet is marked so you can offer the new version.
+
 ## Reference
 
 - [Track learner progress](./08-track-progress.md), how the certificate fits into the learner's overall record.
