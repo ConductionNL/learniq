@@ -152,7 +152,7 @@
     "summary_nl": "Vraag de assistent naar een cursus; hij leest alleen, schrijft nooit.",
     "status": "beta",
     "providedBy": "openregister",
-    "docsUrl": "openspec/specs/ai-companion-tools/spec.md"
+    "docsUrl": "openspec/specs/mcp-tool-surface/spec.md"
   },
   {
     "slug": "nextcloud-app",

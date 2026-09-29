@@ -4,7 +4,7 @@ Extends the capability created by `scholiq-mcp-adoption` with governed write too
 
 ## MODIFIED Requirements
 
-### Requirement: No hand-written MCP tool code remains in Scholiq (REQ-006)
+### Requirement: No hand-written MCP tool code remains in Learniq (REQ-006)
 Learniq MUST NOT ship any `IMcpToolProvider` implementation and MUST NOT register an `mcpProvider` alias, because a hand-written provider tool takes precedence over a derived tool and would shadow the dialect surface. Learniq MAY ship curated `#[McpTool]` methods on services listed by an `IMcpScannableServices` implementation registered under `OCA\OpenRegister\Mcp\IMcpScannableServices::learniq`, and MUST do so only for what the derived surface cannot safely provide: governed write actions (REQ-007 to REQ-010) and field-minimised reads (REQ-011). Every curated tool id MUST be 2-segment (`learniq.{toolName}`) so it can never collide with a derived `learniq.{schema}.{verb}` id, and every curated tool MUST declare `scope`, `subject`, `action` and the three hints.
 
 #### Scenario: The derived tools are not shadowed
@@ -14,7 +14,7 @@ Learniq MUST NOT ship any `IMcpToolProvider` implementation and MUST NOT registe
 - AND `learniq.listCourses` and `learniq.getCourseDetails` are absent
 <!-- @e2e exclude Backend catalogue enumeration, no UI; pinned by tests/Unit/Register/McpDialectRegisterTest.php. -->
 
-#### Scenario: The app registers no tool provider but does register scannable services
+#### Scenario: The app registers no tool provider
 - GIVEN learniq is installed and enabled
 - WHEN the container is asked for `OCA\OpenRegister\Mcp\IMcpToolProvider::learniq`
 - THEN no service is registered under that alias

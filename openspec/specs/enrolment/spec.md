@@ -527,6 +527,139 @@ An account in the group `elective-integrations` MUST be able to create and withd
 - **THEN** the sign-up exists with `madeVia: integration`
 - **AND** the same post for a full lesson is refused
 
+### Requirement: A course or programme says whether learners may sign up
+
+`Course` and `Programme` MUST declare `selfEnrolment` with the values `closed`, `open` and `on-request`, default `closed`. Only a `published` course or programme whose `selfEnrolment` is not `closed` MUST appear in the learner catalogue. Every course and programme stored before this change MUST read as `closed`.
+
+#### Scenario: A training coordinator opens a course for sign-up
+
+- **GIVEN** the published course "Excel voor gevorderden"
+- **WHEN** a training coordinator sets sign-up to open on the course form and saves
+- **THEN** the course appears in the learner catalogue
+
+### Requirement: A learner signs up from the catalogue
+
+A signed-in learner MUST be able to browse and search the catalogue and sign up for a course that is open or on request. Signing up MUST create one `Enrolment` for the caller only, with `source: self`: active at once for an open course, pending for a course on request. A prerequisite that is not met MUST refuse the sign-up with the message of the prerequisite check. A closed or unpublished course MUST be refused.
+
+#### Scenario: A learner signs up for an open course
+
+- **GIVEN** learner p.ganpat and the open course "Excel voor gevorderden"
+- **WHEN** p.ganpat opens the catalogue, searches "Excel", opens the course and chooses "Sign up"
+- **THEN** the course shows "You are signed up"
+- **AND** p.ganpat has an active enrolment with source self
+
+#### Scenario: A prerequisite blocks a sign-up
+
+<!-- @e2e exclude Veto from EnrolmentPrerequisiteListener through the service; covered by CatalogueSignUpServiceTest::testPrerequisiteVetoIsReturned. -->
+
+- **GIVEN** a course that requires "Excel basis", which the learner has not completed
+- **WHEN** the learner posts to `POST /api/catalogue/courses/{id}/sign-up`
+- **THEN** the answer names "Excel basis" as the missing prerequisite and no enrolment is created
+
+### Requirement: A learner signs up for a whole programme
+
+Signing up for an open or on-request programme MUST create one enrolment per course of the programme that the learner is not already enrolled in, each with `programmeId` set, without bypassing the prerequisite check.
+
+#### Scenario: A learner signs up for a track
+
+- **GIVEN** the open programme "Basis projectmanagement" with three courses
+- **WHEN** a learner chooses "Sign up" on the programme in the catalogue
+- **THEN** the learner has three enrolments, one per course, each naming the programme
+
+### Requirement: A request waits for a teacher or manager
+
+A sign-up for a course on request MUST stay pending until a user in `instructors`, `hr` or `team-leads`, or the learner's manager, approves it with `activate` or declines it with a reason. The learner MUST be told either way.
+
+#### Scenario: A manager approves a request
+
+- **GIVEN** a pending sign-up by p.ganpat for "Leidinggeven aan hybride teams", with p.ganpat's manager as `managerId`
+- **WHEN** the manager opens "Sign-up requests" and chooses "Approve"
+- **THEN** the enrolment is active and p.ganpat gets a notification that the sign-up was approved
+
+### Requirement: A learner withdraws their own sign-up
+
+A learner MUST be able to withdraw an enrolment they signed up for themselves while it is pending or active with no progress. An enrolment made by staff, or one with progress, MUST NOT be withdrawn by the learner.
+
+#### Scenario: A learner changes their mind
+
+- **GIVEN** p.ganpat's active self sign-up for "Excel voor gevorderden" with no progress
+- **WHEN** p.ganpat chooses "Withdraw" on the course in the catalogue
+- **THEN** the enrolment is withdrawn and the course shows "Sign up" again
+
+### Requirement: Provider courses show their provider
+
+A course written by an outside provider's catalogue connector MUST show the provider's name on its catalogue card and MUST be filterable by provider. Staff MUST be able to list imported courses that are not yet published, to choose which ones the school offers.
+
+#### Scenario: An administrator publishes a provider course
+
+- **GIVEN** twenty draft courses written by the Go1 connector with `author` "Go1"
+- **WHEN** an administrator opens the course list with the filter "Imported, not yet published", opens one and publishes it with sign-up open
+- **THEN** that course appears in the learner catalogue with "Go1" as its provider
+- **AND** the other nineteen do not appear
+
+### Requirement: The learner is told in words that fit a chosen course
+
+When a self sign-up becomes active, the learner MUST get a notification that says they are signed up for the course. The notification for a mandatory enrolment MUST NOT be sent for a self sign-up.
+
+#### Scenario: No mandatory-course message for a chosen course
+
+<!-- @e2e exclude Notification condition in the register dialect; covered by CatalogueSignUpRegisterTest and gate 18. -->
+
+- **GIVEN** a learner signs up for an open course
+- **WHEN** the enrolment is activated
+- **THEN** the learner gets "You are signed up for Excel voor gevorderden"
+- **AND** not "You have been enrolled in a mandatory course"
+
+### Requirement: A teacher sets up work groups with a maximum size
+
+A user in `instructors`, `team-leads` or `compliance-officers` MUST be able to create work groups for a cohort, grouped in a named set, each with a name and a maximum number of members, and MUST be able to open them for self sign-up until a date, move a member, and close sign-up. Learners MUST NOT be able to create or edit a `WorkGroup` through the object API.
+
+#### Scenario: A teacher makes five groups of four
+
+- **GIVEN** a teacher on the cohort page of "MV2A marketing en communicatie"
+- **WHEN** the teacher opens "Work groups", adds a set "Project campagne periode 2" with five groups of four, open for sign-up until 14 November, and saves
+- **THEN** the tab shows five groups, each with four free places and the sign-up date
+
+### Requirement: A learner joins a work group with a free place
+
+A learner of the cohort MUST be able to see the cohort's open work groups with their free places and join a group that has a free place while sign-up is open. A group at its maximum MUST refuse a join with a reason, also when two learners try for the last place at the same moment. After the sign-up date a learner MUST NOT be able to join, move or leave.
+
+#### Scenario: A learner joins a group
+
+- **GIVEN** learner s.dekker in "MV2A marketing en communicatie" and "Groep 4" with two of four places taken
+- **WHEN** s.dekker opens "My work groups" and chooses "Join" on "Groep 4"
+- **THEN** s.dekker is listed as a member of "Groep 4"
+- **AND** "Groep 4" shows one free place
+
+#### Scenario: A full group takes nobody more
+
+<!-- @e2e exclude Race and cap rule in the service; covered by WorkGroupMembershipServiceTest::testLastPlaceGoesToOneLearnerOnly. -->
+
+- **GIVEN** "Groep 1" with four of four places taken
+- **WHEN** a learner of the cohort posts to `POST /api/work-groups/{id}/join`
+- **THEN** the answer says the group is full and the group still has four members
+
+### Requirement: A learner is in one work group per set
+
+A learner MUST be a member of at most one work group per set of a cohort. Joining another group of the same set while sign-up is open MUST move the learner in one step.
+
+#### Scenario: A learner switches groups
+
+- **GIVEN** s.dekker is in "Groep 4" and "Groep 5" has a free place
+- **WHEN** s.dekker chooses "Move here" on "Groep 5"
+- **THEN** s.dekker is a member of "Groep 5" only
+
+### Requirement: A group hand-in names the whole work group
+
+When an assignment has `groupSubmission` and names a work group set, the hand-in screen MUST list every member of the learner's work group in that set as the submission's learners.
+
+#### Scenario: One member hands in for the group
+
+- **GIVEN** the assignment "Campagneplan" set to group hand-in for the set "Project campagne periode 2", and s.dekker in "Groep 5" with three others
+- **WHEN** s.dekker hands in the plan on the hand-in screen
+- **THEN** the submission lists all four members of "Groep 5"
+- **AND** each of them sees the hand-in on their own assignment page
+
 ## Standards
 Studielink, Edukoppeling, OOAPI 5.0, IMS LIS (legacy), Schema.org `EducationEvent`, eduPersonAffiliation propagation.
 

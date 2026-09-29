@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/scholiq-mcp-adoption/specs/mcp-tool-surface/spec.md#requirement-exactly-five-curated-schemas-declare-the-mcp-dialect-req-001
+ * @spec openspec/specs/mcp-tool-surface/spec.md#requirement-exactly-five-curated-schemas-declare-the-mcp-dialect-req-001
  */
 
 declare(strict_types=1);
@@ -134,7 +134,7 @@ class McpDialectRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/scholiq-mcp-adoption/specs/mcp-tool-surface/spec.md#requirement-every-declared-search-filter-is-a-real-property-of-its-schema-req-004
+	 * @spec openspec/specs/mcp-tool-surface/spec.md#requirement-every-declared-search-filter-is-a-real-property-of-its-schema-req-004
 	 */
 	public function testTheSearchFiltersAreTheSpecifiedLists(): void {
 		$expected = [
@@ -154,7 +154,7 @@ class McpDialectRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/scholiq-mcp-adoption/specs/mcp-tool-surface/spec.md#requirement-draft-and-archived-content-is-not-readable-by-non-admin-callers-req-005
+	 * @spec openspec/specs/mcp-tool-surface/spec.md#requirement-draft-and-archived-content-is-not-readable-by-non-admin-callers-req-005
 	 */
 	public function testTheUnconditionalReadersAreTheSpecifiedStaff(): void {
 		$staff = ['instructors', 'hr', 'compliance-officers', 'team-leads'];

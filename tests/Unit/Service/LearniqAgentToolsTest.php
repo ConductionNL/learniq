@@ -375,7 +375,7 @@ class LearniqAgentToolsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/hermiq-ai-tooling/specs/mcp-tool-surface/spec.md#requirement-no-hand-written-mcp-tool-code-remains-in-scholiq-req-006
+	 * @spec openspec/changes/hermiq-ai-tooling/specs/mcp-tool-surface/spec.md#requirement-no-hand-written-mcp-tool-code-remains-in-learniq-req-006
 	 */
 	public function testTheAppRegistersScannableServicesAndNoToolProvider(): void {
 		$root        = dirname(__DIR__, 3);
