@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CourseStore\StoreAccessService;
 use OCA\Learniq\Service\DashboardRoleService;
 use OCA\Learniq\Service\LoadedExampleSets;
@@ -46,7 +47,13 @@ use Throwable;
  * blob unchanged (v0.1). A partial-override hook from IAppConfig is deferred
  * to v0.2 — the frontend loader's silent-fallback path is exercised in v0.1.
  *
- * @spec exclude framework glue — SPA shell + manifest passthrough + role, segment and store-access initial-state provider; no business behaviour
+ * @spec exclude framework glue — SPA shell, manifest passthrough and initial-state provider (role, segment, store access, tenant)
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) One over the threshold since
+ * the caller's tenant joined the initial state. This controller is where the
+ * page's per-user values are gathered, and each one comes from its own service,
+ * resolved lazily (segment, store access, tenant) so the default route stays
+ * up without OpenRegister.
  */
 class PageController extends Controller {
 	/**
@@ -102,6 +109,9 @@ class PageController extends Controller {
 			$this->initialState->provideInitialState('storeAccess', $this->resolveStoreAccess());
 			// One removal step per loaded example set in the setup wizard (D34).
 			$this->initialState->provideInitialState('loadedExampleSets', $this->loadedSets->all());
+			// The caller's tenant, for nextcloud-vue's tenant context: the
+			// shared create dialog fills a hidden `tenant_id` from it.
+			$this->initialState->provideInitialState('callerTenant', $this->resolveCallerTenant());
 		}
 
 		return new TemplateResponse(Application::APP_ID, 'index');
@@ -149,6 +159,39 @@ class PageController extends Controller {
 			return ['install' => false, 'publish' => false];
 		}
 	}//end resolveStoreAccess()
+
+	/**
+	 * The signed-in user's tenant, as CallerTenantResolver resolves it: the
+	 * per-user `tenant_id` binding, else the instance id. Every row learniq
+	 * writes server-side carries this value, so a record created through the
+	 * shared create dialog must carry it too; nextcloud-vue reads it from the
+	 * tenant context `src/main.js` feeds with this initial state.
+	 *
+	 * Resolved lazily and degraded to null on failure, for the same reason
+	 * as resolveWorkspace(): CallerTenantResolver takes OpenRegister's
+	 * ObjectService, and this is the app's default route. Null means no
+	 * tenant context, so the dialog leaves the key out rather than guess.
+	 *
+	 * @return string|null The tenant id, or null when it cannot be resolved.
+	 */
+	private function resolveCallerTenant(): ?string {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return null;
+		}
+
+		try {
+			$tenant = $this->container->get(CallerTenantResolver::class)->resolve(user: $user);
+		} catch (Throwable $e) {
+			return null;
+		}
+
+		if ($tenant === '') {
+			return null;
+		}
+
+		return $tenant;
+	}//end resolveCallerTenant()
 
 	/**
 	 * Serve the SPA for deep links (Vue history mode). Delegates to index().

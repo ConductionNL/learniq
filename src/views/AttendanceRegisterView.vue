@@ -222,7 +222,7 @@ export default {
 		 * without touching rows the teacher already has a saved mark for.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
 		 */
 		async mergeCheckIns() {
 			let records

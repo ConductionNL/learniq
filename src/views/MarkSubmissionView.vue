@@ -45,8 +45,8 @@
   and once every mark is in the final grade panel shows the marks side by side
   and a final grade field, prefilled only by the average or highest rule. The
   final grade is saved through the unchanged saveAndReturn() path.
-  @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-each-marker-scores-in-their-own-submissionmark
-  @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-one-person-sets-the-final-grade-once-every-mark-is-in
+  @spec openspec/specs/assignments/spec.md#requirement-each-marker-scores-in-their-own-submissionmark
+  @spec openspec/specs/assignments/spec.md#requirement-one-person-sets-the-final-grade-once-every-mark-is-in
 -->
 
 <template>
@@ -547,7 +547,7 @@ export default {
 		 * The marking mode: single, marker, waiting, final or not-allocated.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-each-marker-scores-in-their-own-submissionmark
+		 * @spec openspec/specs/assignments/spec.md#requirement-each-marker-scores-in-their-own-submissionmark
 		 */
 		mode() {
 			return markingMode(this.assignment, this.submission, this.marksView)
@@ -558,7 +558,7 @@ export default {
 		 * marking and for a marker scoring their own draft.
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-one-person-sets-the-final-grade-once-every-mark-is-in
+		 * @spec openspec/specs/assignments/spec.md#requirement-one-person-sets-the-final-grade-once-every-mark-is-in
 		 */
 		showsMarkingForm() {
 			return (
@@ -571,7 +571,7 @@ export default {
 		 * The assignment's final grade rule, from the marks answer.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-one-person-sets-the-final-grade-once-every-mark-is-in
+		 * @spec openspec/specs/assignments/spec.md#requirement-one-person-sets-the-final-grade-once-every-mark-is-in
 		 */
 		finalGradeRule() {
 			return (
@@ -840,7 +840,7 @@ export default {
 		 *
 		 * @param {string} submissionId Submission UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-a-marker-sees-other-marks-only-after-submitting-their-own
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-marker-sees-other-marks-only-after-submitting-their-own
 		 */
 		async loadMarks(submissionId) {
 			this.marksView = null
@@ -866,7 +866,7 @@ export default {
 		 * in. The Submission is neither changed nor returned.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#scenario-the-first-marker-hands-in-a-mark
+		 * @spec openspec/specs/assignments/spec.md#scenario-the-first-marker-hands-in-a-mark
 		 */
 		async saveOwnMark() {
 			const own = this.marksView?.ownMark

@@ -34,7 +34,8 @@
 - **acceptance_criteria**:
   - GIVEN an assignment with `markersPerSubmission` 1 WHEN the submissions list opens THEN the action is not shown
 - [x] Implement
-- [ ] Test: Playwright e2e `tests/e2e/double-marking.spec.ts` (allocate two markers)
+- [x] Test: Playwright e2e `tests/e2e/double-marking.spec.ts` (allocate two markers)
+  - r5-live, 2026-09-29, shared dev instance: `tests/e2e/double-marking.spec.ts` allocates two temporary markers through AllocateMarkersView ("2 marks allocated.", two SubmissionMark rows). 1 passed (#1436). The spec found that every hand-in failed with 400 (a partial PUT to OpenRegister), fixed in #1433.
 - Built as a custom page `src/views/AllocateMarkersView.vue` (route `/assignments/:assignmentId/markers`) reached from an AssignmentDetail header action with `visibleWhen markersPerSubmission gt 1`, instead of a modal. The Playwright test is not written: this lane has no live instance to run it against.
 
 ### Task 5: Marking and final grade in MarkSubmissionView
@@ -44,7 +45,8 @@
   - GIVEN double marking WHEN a marker saves THEN their `SubmissionMark` is submitted and the Submission is neither changed nor returned
   - GIVEN every mark submitted WHEN the teacher in charge saves the final grade THEN `saveAndReturn()` runs as today and `finalGradeSetBy` and `finalGradeRuleApplied` are written
 - [x] Implement
-- [ ] Test: `tests/unit-js` for the mode switch and the prefill rule; e2e `tests/e2e/double-marking.spec.ts` (two markers, agreed grade)
+- [x] Test: `tests/unit-js` for the mode switch and the prefill rule; e2e `tests/e2e/double-marking.spec.ts` (two markers, agreed grade)
+  - r5-live, 2026-09-29, shared dev instance: the same spec has each marker hand in their own mark (6 and 8), and the teacher in charge saves the average 7, with `finalGradeSetBy` admin and `finalGradeRuleApplied` average. 1 passed after #1433 (red before it). The unit-js half is `tests/unit-js/doubleMarking.test.mjs`.
 - `tests/unit-js/doubleMarking.test.mjs` covers the mode switch and the prefill rule (6 green). The e2e half of the test line is open: no live instance in this lane.
 
 ### Task 6: Seed data and translations
