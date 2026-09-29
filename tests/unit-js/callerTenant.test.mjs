@@ -23,7 +23,7 @@ test('anything that is not a non-empty string becomes null', () => {
 
 test('boot reads callerTenant from the initial state and hands it to App', () => {
 	const main = read('../../src/main.js')
-	assert.match(main, /normaliseCallerTenant\(loadState\('learniq', 'callerTenant', null\)\)/)
+	assert.match(main, /normaliseCallerTenant\(\s*loadState\('learniq', 'callerTenant', null\),?\s*\)/)
 	assert.match(main, /callerTenant,?\s*\n/)
 })
 

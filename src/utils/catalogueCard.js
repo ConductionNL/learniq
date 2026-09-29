@@ -41,7 +41,9 @@ export function isLive(entry) {
  */
 export function canWithdraw(entry) {
 	const e = entry?.enrolment
-	return Boolean(e && isLive(entry) && e.source === 'self' && !(e.progressPercent > 0))
+	return Boolean(
+		e && isLive(entry) && e.source === 'self' && !(e.progressPercent > 0),
+	)
 }
 
 /**
