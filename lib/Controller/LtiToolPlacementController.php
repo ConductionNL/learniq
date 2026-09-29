@@ -177,7 +177,7 @@ class LtiToolPlacementController extends Controller {
 			$messageType = 'LtiDeepLinkingRequest';
 		}
 
-		$courseId = (string)($placement['courseId'] ?? '');
+		$courseId = $this->contextCourseId(placement: $placement);
 		$course   = [];
 		if ($courseId !== '') {
 			$course = ($this->findObject(id: $courseId, schema: 'course') ?? []);
@@ -197,7 +197,7 @@ class LtiToolPlacementController extends Controller {
 				messageType: $messageType,
 				role: $this->roleFor(uid: $uid),
 				contextId: $courseId,
-				contextTitle: (string)($course['title'] ?? ''),
+				contextTitle: (string)($course['name'] ?? ''),
 				returnUrl: $this->urlGenerator->getAbsoluteURL($returnPath),
 			);
 			if (($event instanceof Event) === false) {
@@ -212,6 +212,31 @@ class LtiToolPlacementController extends Controller {
 
 		return $event;
 	}//end buildEvent()
+
+	/**
+	 * The course a launch runs in, for the LTI context claim.
+	 *
+	 * A course-level placement names its course. A lesson-level placement has no
+	 * `courseId` (the schema leaves it null), so the course is the lesson's own,
+	 * read with the caller's rights.
+	 *
+	 * @param array<string, mixed> $placement The placement.
+	 *
+	 * @return string The course UUID, or '' when neither names one.
+	 *
+	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 */
+	private function contextCourseId(array $placement): string {
+		$courseId = (string)($placement['courseId'] ?? '');
+		$lessonId = (string)($placement['lessonId'] ?? '');
+		if ($courseId !== '' || $lessonId === '') {
+			return $courseId;
+		}
+
+		$lesson = ($this->findObject(id: $lessonId, schema: 'lesson') ?? []);
+
+		return (string)($lesson['courseId'] ?? '');
+	}//end contextCourseId()
 
 	/**
 	 * Turn the answered event into the response.
