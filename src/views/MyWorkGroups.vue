@@ -11,7 +11,7 @@
  (class membership, the sign-up date, a free place under a lock, one group per
  set) and answers in plain words.
 
- @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+ @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
 -->
 <template>
 	<div class="my-work-groups">
@@ -122,7 +122,7 @@ export default {
 		 * Load the learner's work group sets.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
 		 */
 		async load() {
 			try {
@@ -142,7 +142,7 @@ export default {
 		/**
 		 * @param {object} set A work group set.
 		 * @return {boolean} Whether the learner is in one of its groups.
-		 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-is-in-one-work-group-per-set
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-is-in-one-work-group-per-set
 		 */
 		hasGroup(set) {
 			return set.groups.some((g) => g.mine)
@@ -151,7 +151,7 @@ export default {
 		/**
 		 * @param {string} value ISO date-time.
 		 * @return {string} A local date.
-		 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
 		 */
 		formatDate(value) {
 			return value ? new Date(value).toLocaleDateString() : ''
@@ -163,7 +163,7 @@ export default {
 		 * @param {string} action `join` or `leave`.
 		 * @param {object} group The group.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#scenario-a-learner-joins-a-group
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-learner-joins-a-group
 		 */
 		async act(action, group) {
 			this.busy = true

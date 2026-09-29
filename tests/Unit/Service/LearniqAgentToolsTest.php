@@ -32,6 +32,7 @@ namespace OCA\Learniq\Tests\Unit\Service;
 use OCA\Learniq\Mcp\LearniqScannableServices;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\AgentToolAnswer;
+use OCA\Learniq\Service\AssignmentGradePlan;
 use OCA\Learniq\Service\CredentialLearner;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\LearniqAgentTools;
@@ -163,7 +164,7 @@ class LearniqAgentToolsTest extends TestCase {
 		$users = $this->createMock(IUserManager::class);
 		$users->method('get')->willReturn($named);
 
-		return new LearniqAgentTools(objectService: $objects, userSession: $session, actionAuth: $auth, answer: new AgentToolAnswer(userManager: $users), learners: new CredentialLearner(profiles: new LearnerRefResolver(objectService: $objects)));
+		return new LearniqAgentTools(objectService: $objects, userSession: $session, actionAuth: $auth, answer: new AgentToolAnswer(userManager: $users), learners: new CredentialLearner(profiles: new LearnerRefResolver(objectService: $objects)), gradePlan: new AssignmentGradePlan(objectService: $objects));
 	}//end tools()
 
 	/**
@@ -273,12 +274,20 @@ class LearniqAgentToolsTest extends TestCase {
 	 */
 	public function testGradeIsAConceptAndGuardRefusalsPassThrough(): void {
 		$this->objects = [
-			'submission' => [['id' => 'sub1', 'assignmentId' => 'as1', 'learnerIds' => ['pupil1'], 'tenant_id' => 't1']],
-			'assignment' => [['id' => 'as1', 'curriculumPlanId' => 'p1', 'curriculumPlanComponentId' => 'comp1', 'gradeScaleId' => 'g1']],
+			'submission'      => [['id' => 'sub1', 'assignmentId' => 'as1', 'learnerIds' => ['pupil1'], 'tenant_id' => 't1']],
+			// The real Assignment shape: no curriculumPlanId or gradeScaleId (the
+			// schema declares neither and OpenRegister drops them); the plan
+			// hangs off the course.
+			'assignment'      => [['id' => 'as1', 'courseId' => 'c1', 'curriculumPlanComponentId' => 'comp1']],
+			'course'          => [['id' => 'c1', 'curriculumPlanId' => 'p1']],
+			'curriculum-plan' => [['id' => 'p1', 'gradeScaleId' => 'g1']],
 		];
 
 		$result = $this->tools()->gradeSubmission(submissionId: 'sub1', value: 7.5, comment: 'Good structure');
 		self::assertTrue($result['ok']);
+		self::assertSame('p1', $this->saves[0][1]['curriculumPlanId'], 'the plan comes from the course');
+		self::assertSame('g1', $this->saves[0][1]['gradeScaleId'], 'the scale comes from the plan');
+		self::assertSame('c1', $this->saves[0][1]['courseId']);
 		self::assertSame('concept', $this->saves[0][1]['lifecycle']);
 		self::assertSame('assignment-submission', $this->saves[0][1]['sourceKind']);
 		self::assertSame('pupil1', $this->saves[0][1]['learnerId']);
@@ -293,6 +302,29 @@ class LearniqAgentToolsTest extends TestCase {
 		self::assertSame(['ok' => false, 'error' => ['code' => 'refused', 'message' => 'The report period is locked']], $refused);
 		self::assertSame([], $this->saves);
 	}//end testGradeIsAConceptAndGuardRefusalsPassThrough()
+
+	/**
+	 * An assignment whose course has no curriculum plan is refused, and nothing is written.
+	 *
+	 * Found live on :8080 (2026-09-29): with the plan read off the assignment,
+	 * where the schema cannot hold it, every call was refused like this, even for
+	 * a fully linked assignment.
+	 *
+	 * @return void
+	 */
+	public function testGradeWithoutACoursePlanIsRefused(): void {
+		$this->objects = [
+			'submission' => [['id' => 'sub1', 'assignmentId' => 'as1', 'learnerIds' => ['pupil1']]],
+			'assignment' => [['id' => 'as1', 'courseId' => 'c1', 'curriculumPlanComponentId' => 'comp1']],
+			'course'     => [['id' => 'c1']],
+		];
+
+		$result = $this->tools()->gradeSubmission(submissionId: 'sub1', value: 7.5);
+
+		self::assertFalse($result['ok']);
+		self::assertSame('invalid', $result['error']['code']);
+		self::assertSame([], $this->saves);
+	}//end testGradeWithoutACoursePlanIsRefused()
 
 	/**
 	 * The credential read returns exactly the closed field list, only for credentials expiring before the date.
@@ -375,7 +407,7 @@ class LearniqAgentToolsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/hermiq-ai-tooling/specs/mcp-tool-surface/spec.md#requirement-no-hand-written-mcp-tool-code-remains-in-scholiq-req-006
+	 * @spec openspec/changes/hermiq-ai-tooling/specs/mcp-tool-surface/spec.md#requirement-no-hand-written-mcp-tool-code-remains-in-learniq-req-006
 	 */
 	public function testTheAppRegistersScannableServicesAndNoToolProvider(): void {
 		$root        = dirname(__DIR__, 3);

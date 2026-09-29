@@ -482,6 +482,7 @@
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import { resolveGradePlan } from '../utils/assignmentGradePlan.js'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 import { markingMode, prefillFinalGrade } from '../utils/doubleMarking.js'
 
@@ -760,6 +761,33 @@ export default {
 		},
 
 		/**
+		 * Read one learniq object with the current user's rights.
+		 *
+		 * @param {string} schema The schema slug.
+		 * @param {string} objectId The object UUID.
+		 * @return {Promise<object|null>} The object, or null when absent or not readable.
+		 * @spec openspec/changes/hermiq-ai-tooling/specs/mcp-tool-surface/spec.md#requirement-an-agent-grade-is-a-concept-a-teacher-publishes-req-009
+		 */
+		async fetchLearniqObject(schema, objectId) {
+			const resp = await fetch(
+				generateUrl(
+					`/apps/openregister/api/objects/learniq/${schema}/${objectId}`,
+				),
+				{
+					headers: {
+						'OCS-APIREQUEST': 'true',
+						Accept: 'application/json',
+					},
+				},
+			)
+			if (!resp.ok) {
+				return null
+			}
+			const json = await resp.json()
+			return json.object ?? json ?? null
+		},
+
+		/**
 		 * Fetch the Rubric from OR.
 		 *
 		 * @param {string} rubricId Rubric UUID
@@ -1030,9 +1058,17 @@ export default {
 				// 2. Create a concept GradeEntry (grading spec — sourceKind: assignment-submission).
 				// The teacher reviews and publishes it via the GradebookView; only then does
 				// the notification fire and the FinalGrade recompute trigger.
-				const componentId = this.assignment.curriculumPlanComponentId ?? null
-				const planId = this.assignment.curriculumPlanId ?? null
-				if (proposedGrade !== null && componentId && planId) {
+				// The plan hangs off the assignment's course and the scale off the
+				// plan: the Assignment schema holds neither (hermiq-ai-tooling).
+				const gradePlan =
+					proposedGrade === null
+						? null
+						: await resolveGradePlan(
+								this.assignment,
+								(schema, objectId) =>
+									this.fetchLearniqObject(schema, objectId),
+							)
+				if (gradePlan) {
 					const gradeEntryUrl = generateUrl(
 						'/apps/openregister/api/objects/learniq/grade-entry',
 					)
@@ -1045,12 +1081,13 @@ export default {
 						},
 						body: JSON.stringify({
 							learnerId: (this.submission.learnerIds ?? [])[0] ?? '',
-							curriculumPlanId: planId,
-							componentId,
+							curriculumPlanId: gradePlan.curriculumPlanId,
+							componentId: gradePlan.componentId,
+							courseId: gradePlan.courseId,
 							sourceKind: 'assignment-submission',
 							submissionId: this.id,
 							value: proposedGrade,
-							gradeScaleId: this.assignment.gradeScaleId ?? '',
+							gradeScaleId: gradePlan.gradeScaleId,
 							grader: '',
 							gradedAt: new Date().toISOString(),
 							lifecycle: 'concept',
