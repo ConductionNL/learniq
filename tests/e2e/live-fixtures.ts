@@ -124,25 +124,6 @@ export class LiveFixtures {
 				)
 			}
 		}
-		// A brand-new account gets Nextcloud's first-run welcome modal over its
-		// first pages, and it opens late enough to land on the page under test.
-		// Dismiss it for the account the way its own Close button does
-		// (firstrunwizard's DELETE /wizard, as the user), which writes only this
-		// temporary user's preference.
-		const asUser = await playwrightRequest.newContext({
-			baseURL: baseUrl(),
-			httpCredentials: { username: id, password, send: 'always' },
-			extraHTTPHeaders: { 'OCS-APIRequest': 'true' },
-		})
-		const dismissed = await asUser.delete(
-			'/index.php/apps/firstrunwizard/wizard',
-		)
-		await asUser.dispose()
-		if (!dismissed.ok() && dismissed.status() !== 404) {
-			throw new Error(
-				`dismissing the first-run wizard for ${id}: HTTP ${dismissed.status()}`,
-			)
-		}
 		return { id, password }
 	}
 
@@ -290,6 +271,23 @@ export async function signInAs(browser: Browser, user: TempUser): Promise<Page> 
 		storageState: { cookies: [], origins: [] },
 	})
 	const page = await context.newPage()
+	// A brand-new account gets Nextcloud's first-run welcome modal, and it
+	// opens late, on whatever page is under test by then. Dismissing it through
+	// firstrunwizard's DELETE /wizard answered 200 and did not stop it opening
+	// (measured 2026-09-29), so close it whenever it stands in the way.
+	await page.addLocatorHandler(
+		page.locator('div[role="dialog"]#firstrunwizard'),
+		async (dialog) => {
+			await dialog.getByRole('button', { name: /close/i }).first().click()
+		},
+	)
+	// nextcloud-vue's "Support <app>" dialog also greets a new account.
+	await page.addLocatorHandler(
+		page.locator('[data-testid-modal="cn-support-dialog"]'),
+		async (dialog) => {
+			await dialog.getByRole('button', { name: /close/i }).first().click()
+		},
+	)
 	await page.goto('/index.php/login', { waitUntil: 'domcontentloaded' })
 	await page.locator('input[name="user"]').fill(user.id)
 	await page.locator('input[name="password"]').fill(user.password)
@@ -303,6 +301,9 @@ export async function signInAs(browser: Browser, user: TempUser): Promise<Page> 
 	await page.evaluate(() => {
 		try {
 			window.localStorage.setItem('cn-walkthrough-seen:learniq', '999.0.0')
+			// nextcloud-vue's first-open "Support <app>" note (useSupportDialog):
+			// a local flag is authoritative and skips the server check.
+			window.localStorage.setItem('cn-support-dialog-shown:learniq', '1')
 			for (let v = 0; v <= 20; v++) {
 				window.localStorage.setItem(
 					`cn-setup-wizard-dismissed:learniq:${v}`,

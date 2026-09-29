@@ -60,7 +60,6 @@ test.describe('self check-in', () => {
 			.click({ timeout: 60_000 })
 		const codeCell = teacher.locator('.self-check-in__code')
 		await expect(codeCell).toHaveText(/\S+/, { timeout: 30_000 })
-		const code = (await codeCell.innerText()).trim()
 
 		const windows = await fx.find('check-in-window', { sessionId })
 		expect(windows, 'the register created no check-in window').toHaveLength(1)
@@ -77,7 +76,19 @@ test.describe('self check-in', () => {
 					hasText: title,
 				}),
 			).toBeVisible({ timeout: 60_000 })
-			await learnerPage.locator('#check-in-code').fill(code)
+			// The code rotates every thirty seconds and the current and previous
+			// step are accepted. Signing a fresh account in takes longer than that
+			// on a busy instance, so read the board's current code again, the way a
+			// learner reads it off the screen at the moment they type.
+			const api = await fx.api()
+			const board = await api.get(`${APP}/api/check-in/${windows[0].id}/code`)
+			expect(
+				board.ok(),
+				`reading the board code: HTTP ${board.status()}`,
+			).toBe(true)
+			const current = String((await board.json()).code)
+			expect(current).toMatch(/\S+/)
+			await learnerPage.locator('#check-in-code').fill(current)
 			await learnerPage
 				.getByRole('button', { name: 'Check in', exact: true })
 				.click()
