@@ -128,4 +128,47 @@ class McpDialectRegisterTest extends TestCase {
 			}
 		}
 	}//end testDraftsAreStaffOnly()
+
+	/**
+	 * The search filters are exactly the lists REQ-004 names.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/scholiq-mcp-adoption/specs/mcp-tool-surface/spec.md#requirement-every-declared-search-filter-is-a-real-property-of-its-schema-req-004
+	 */
+	public function testTheSearchFiltersAreTheSpecifiedLists(): void {
+		$expected = [
+			'Course'     => ['code', 'level', 'language', 'lifecycle', 'mandatoryTraining', 'regulationSlug'],
+			'Lesson'     => ['courseId', 'contentType', 'lifecycle', 'mandatoryTraining'],
+			'Programme'  => ['code', 'level', 'lifecycle'],
+			'Assignment' => ['courseId', 'sessionId', 'cohortId', 'lifecycle'],
+			'Regulation' => ['slug', 'active', 'audienceScope', 'requiresAnnualRenewal', 'lifecycle'],
+		];
+		foreach ($expected as $name => $filters) {
+			self::assertSame($filters, self::schemas()[$name]['configuration']['x-openregister-mcp']['tools']['search']['filters'], "$name filters");
+		}
+	}//end testTheSearchFiltersAreTheSpecifiedLists()
+
+	/**
+	 * The unconditional readers are exactly the staff groups REQ-005 names, and never `admin`.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/scholiq-mcp-adoption/specs/mcp-tool-surface/spec.md#requirement-draft-and-archived-content-is-not-readable-by-non-admin-callers-req-005
+	 */
+	public function testTheUnconditionalReadersAreTheSpecifiedStaff(): void {
+		$staff = ['instructors', 'hr', 'compliance-officers', 'team-leads'];
+		$expected = [
+			'Course'     => $staff,
+			'Lesson'     => $staff,
+			'Programme'  => $staff,
+			'Assignment' => $staff,
+			'Regulation' => ['compliance-officers', 'team-leads'],
+		];
+		foreach ($expected as $name => $groups) {
+			$read = self::schemas()[$name]['authorization']['read'];
+			self::assertSame($groups, array_values(array_filter($read, 'is_string')), "$name unconditional readers");
+			self::assertNotContains('admin', $read, "$name lists admin; OpenRegister's admin bypass covers it.");
+		}
+	}//end testTheUnconditionalReadersAreTheSpecifiedStaff()
 }//end class

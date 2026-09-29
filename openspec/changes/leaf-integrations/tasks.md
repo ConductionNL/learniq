@@ -53,7 +53,8 @@
 - [x] `openspec validate leaf-integrations --type change --strict` passes
 - [x] Manual testing against acceptance criteria (not done in this lane: no instance with the leaf apps; the e2e asserts both the installed and the absent state)
   - r5-live, 2026-09-29, shared dev instance: `tests/e2e/spec-coverage/integration-leaves.spec.ts` 6 passed on all six pages with calendar enabled and contacts, deck and forms disabled. The calendar leaf renders; each disabled app shows "{app} is not installed". Live checks also found that a disabled app's leaf drew an empty "No cards linked yet" card; fixed in #1428, red 4/6 before and green 6/6 after.
-- [ ] Code review against spec requirements
+- [x] Code review against spec requirements
+  - Review: openspec/changes/leaf-integrations/review.md, 6 requirements, 8 scenarios; all 14 rows MET. The static scenarios (enumerable surface, no leaf on catalogue definitions, no polls) had only a one-time acceptance grep; this PR pins them in `tests/Unit/Settings/IntegrationLeavesRegisterTest.php`.
 
 ## Tests (company-wide ADR-009)
 - [x] Browser tests (Playwright MCP): `tests/e2e/spec-coverage/integration-leaves.spec.ts` (Task 3), written and linted; it runs in CI e2e, the lane may not use the shared instance

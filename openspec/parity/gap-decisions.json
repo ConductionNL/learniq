@@ -718,5 +718,613 @@
     "reason": "All four timetabling competitors rate yes. Learniq renders the school timetable under D10, and no setting says whose timetable a role may see.",
     "change": "timetabling-visibility-rules",
     "decidedOn": "2026-09-27"
+  },
+  {
+    "row": "comp-external-bulk-upload",
+    "matrix": "learniq",
+    "decision": "build",
+    "reason": "Core area (compliance) and Totara rates yes; the spreadsheet half is missing.",
+    "change": "compliance-external-training-spreadsheet-upload",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "comp-all-rules-one-page",
+    "matrix": "learniq",
+    "decision": "build",
+    "reason": "Core area (compliance); the per-rule grouping is missing.",
+    "change": "compliance-rule-coverage-table",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "comp-record-exemption",
+    "matrix": "learniq",
+    "decision": "build",
+    "reason": "Tender demand row (TenderNed 411287, ProRail 84940) in the core area.",
+    "change": "compliance-exemption-record",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "enr-path-mandatory-per-person",
+    "matrix": "learniq",
+    "decision": "build",
+    "reason": "Tender demand row (TenderNed 411287, ProRail 84949) and ILIAS rates yes.",
+    "change": "enrolment-programme-mandatory-per-person",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "gov-four-eyes-on-approved-data",
+    "matrix": "learniq",
+    "decision": "build",
+    "reason": "Tender demand row (TenderNed 415112, GLR 206600).",
+    "change": "governance-four-eyes-on-approved-data",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "cont-adaptive-next-step",
+    "matrix": "learniq",
+    "decision": "build",
+    "reason": "Tender demand row (TenderNed 415112, GLR 206628) and five competitors rate yes.",
+    "change": "content-adaptive-next-step-and-preview",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "cont-preview-as-learner",
+    "matrix": "learniq",
+    "decision": "build",
+    "reason": "Tender demand row (TenderNed 415112, GLR 206630) and five competitors rate yes.",
+    "change": "content-adaptive-next-step-and-preview",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "ass-run-a-survey",
+    "matrix": "learniq",
+    "decision": "build",
+    "reason": "Tender demand row (TenderNed 415112, GLR 206641) and six competitors rate yes.",
+    "change": "assessment-course-evaluation-answer-page",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "gov-wcag-aa",
+    "matrix": "learniq",
+    "decision": "build",
+    "reason": "Tender demand row (TenderNed 415112, GLR 206617) and Totara rates yes.",
+    "change": "governance-wcag-evidence-report",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "att-timetable-in-my-calendar",
+    "matrix": "learniq",
+    "decision": "build",
+    "reason": "Five competitors rate yes; the export half is missing.",
+    "change": "attendance-timetable-calendar-feed",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "sib-learniq-att-timetable-in-my-calendar",
+    "matrix": "planninq",
+    "decision": "build",
+    "reason": "Three competitors rate yes; owned by learniq, same capability as att-timetable-in-my-calendar.",
+    "change": "attendance-timetable-calendar-feed",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-exam-schedule",
+    "matrix": "planninq",
+    "decision": "build",
+    "reason": "Tender demand row (TenderNed 271977) and four competitors rate yes.",
+    "change": "timetabling-exam-schedule",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-exam-accommodations",
+    "matrix": "planninq",
+    "decision": "build",
+    "reason": "Three competitors rate yes; part of the exam schedule (accommodations applied to a sitting).",
+    "change": "timetabling-exam-schedule",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-invigilator-assignment",
+    "matrix": "planninq",
+    "decision": "build",
+    "reason": "Single competitor, but the tender row tt-exam-schedule names invigilators, so it is built with it.",
+    "change": "timetabling-exam-schedule",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-student-choice",
+    "matrix": "planninq",
+    "decision": "build",
+    "reason": "Two competitors rate yes; the timetable half is missing.",
+    "change": "timetabling-student-choice-placement",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-online-lesson-link",
+    "matrix": "planninq",
+    "decision": "build",
+    "reason": "Three competitors rate yes; the timetable link is missing.",
+    "change": "timetabling-online-lesson-link",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "ass-proctor-an-exam",
+    "matrix": "learniq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand, outside the core area. Reversible: ProvidesProctoring is an interface and no provider ships",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "ass-review-proctoring-flags",
+    "matrix": "learniq",
+    "decision": "decided-no",
+    "reason": "No competitor rated yes, no demand, outside the core area. Reversible: the schema and queue page exist and no provider fills them",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "asg-plagiarism-check",
+    "matrix": "learniq",
+    "decision": "decided-no",
+    "reason": "No competitor rated yes, no demand, outside the core area. Reversible: ProvidesPlagiarismCheck is an interface and no provider ships",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "gov-hide-a-field-from-a-role",
+    "matrix": "learniq",
+    "decision": "decided-no",
+    "reason": "No competitor rated yes, no demand, outside the core area. Reversible: OpenRegister does not read property level rules yet (openregister#4064)",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "gov-see-why-a-record-was-rejected",
+    "matrix": "learniq",
+    "decision": "decided-no",
+    "reason": "No competitor rated yes, no demand, outside the core area. Reversible: the rejection objects are complete and no exchange job can run",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "gov-resend-just-the-failures",
+    "matrix": "learniq",
+    "decision": "decided-no",
+    "reason": "No competitor rated yes, no demand, outside the core area. Reversible: the resend rides a data exchange path that is unavailable",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "gov-guardian-approves-a-transfer",
+    "matrix": "learniq",
+    "decision": "decided-no",
+    "reason": "No competitor rated yes, no demand, outside the core area. Reversible: the review guard ships and the transfer it gates cannot run",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "sup-report-a-concern-confidentially",
+    "matrix": "learniq",
+    "decision": "decided-no",
+    "reason": "Roadmap demand row (Chamilo issue 8373) but no competitor rated yes and outside the core area, so the rule does not build it. Note: the confidential counsellor channel (archive 2026-09-28-confidential-counsellor-channel) is the counsellor side, not a learner report. See needs-Ruben",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-hard-soft-wishes",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Recorded non-goal: timetable generation and constraint solving are permanently outside learniq (openspec/changes/archive/2026-07-16-timetabling-and-substitution/design.md:25 and :59, reconsider only for a buyer with no optimiser). Reversible by Ruben, see needs-Ruben. Tender demand row TenderNed 191698",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-scenario-compare",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Recorded non-goal: timetable generation and constraint solving are permanently outside learniq (openspec/changes/archive/2026-07-16-timetabling-and-substitution/design.md:25 and :59, reconsider only for a buyer with no optimiser). Reversible by Ruben, see needs-Ruben. Tender demand row TenderNed 414807 (scenarios compare plans a generator produces)",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-lesson-relations",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Recorded non-goal: timetable generation and constraint solving are permanently outside learniq (openspec/changes/archive/2026-07-16-timetabling-and-substitution/design.md:25 and :59, reconsider only for a buyer with no optimiser). Reversible by Ruben, see needs-Ruben. Two competitors rate yes",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-travel-time",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Recorded non-goal: timetable generation and constraint solving are permanently outside learniq (openspec/changes/archive/2026-07-16-timetabling-and-substitution/design.md:25 and :59, reconsider only for a buyer with no optimiser). Reversible by Ruben, see needs-Ruben. Two competitors rate yes",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-self-service-booking",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-invigilation-fair-share",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-oral-exams",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-qualified-teaching-report",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-cancellation-report",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-break-duty",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-cover-counter",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-annual-hours",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-emergency-rollcall",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-booking-check-in",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-booking-rules",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-change-requests",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-requirements-forms",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-outlook-booking",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-group-swap",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-report-meetings",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-teacher-presence",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-coming-of-age",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-waitlist",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-allocation-history",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "Single competitor, no demand row",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-cover-request",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "No competitor rated yes, no demand",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-one-off-regroup",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "No competitor rated yes, no demand",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-absence-guardian-alert",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "No competitor rated yes, no demand",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-curriculum-design",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "No competitor rated yes, no demand",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-study-path-planner",
+    "matrix": "planninq",
+    "decision": "decided-no",
+    "reason": "No competitor rated yes, no demand",
+    "change": null,
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "asg-two-markers-agree-a-grade",
+    "matrix": "learniq",
+    "decision": "existing",
+    "reason": "Shipped and archived (12 of 12 tasks); matrix corrected.",
+    "change": "2026-09-29-assignments-double-marking",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "att-learner-checks-in-with-qr",
+    "matrix": "learniq",
+    "decision": "existing",
+    "reason": "Shipped and archived (10 of 10 tasks); matrix corrected.",
+    "change": "2026-09-29-attendance-self-check-in",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "cred-reissue-all-from-new-template",
+    "matrix": "learniq",
+    "decision": "existing",
+    "reason": "Shipped and archived on 2026-09-29; matrix corrected.",
+    "change": "2026-09-29-credentials-bulk-reissue",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "comp-refresher-on-expiry",
+    "matrix": "learniq",
+    "decision": "existing",
+    "reason": "Shipped and archived on 2026-09-29; the handler the row said was missing exists. Matrix corrected.",
+    "change": "2026-09-29-credential-renewal-listener",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "cred-europass-edci",
+    "matrix": "learniq",
+    "decision": "existing",
+    "reason": "Built, one task open; finish and archive.",
+    "change": "credentials-europass-edci-export",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "enr-self-join-group-with-cap",
+    "matrix": "learniq",
+    "decision": "existing",
+    "reason": "Built, e2e tasks open; finish and archive.",
+    "change": "enrolment-self-join-work-group",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "enr-sign-up-from-catalogue",
+    "matrix": "learniq",
+    "decision": "existing",
+    "reason": "Built, one e2e task open; finish and archive.",
+    "change": "enrolment-catalogue-self-signup",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "cont-launch-cmi5-au",
+    "matrix": "learniq",
+    "decision": "existing",
+    "reason": "Built, two tasks open; finish and archive.",
+    "change": "cmi5-xapi-lrs-ingest",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "cont-play-scorm-package",
+    "matrix": "learniq",
+    "decision": "existing",
+    "reason": "Built, two tasks open; finish and archive.",
+    "change": "cmi5-xapi-lrs-ingest",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "cont-store-xapi-statements",
+    "matrix": "learniq",
+    "decision": "existing",
+    "reason": "Built, two tasks open; finish and archive.",
+    "change": "cmi5-xapi-lrs-ingest",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-curriculum-to-activities",
+    "matrix": "planninq",
+    "decision": "existing",
+    "reason": "Shipped and archived on 2026-09-29 (all tasks ticked); the planninq matrix row is set built by the coordinator.",
+    "change": "2026-09-29-timetabling-multi-year-hour-plan",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-multi-year-plan",
+    "matrix": "planninq",
+    "decision": "existing",
+    "reason": "Shipped and archived on 2026-09-29 (all tasks ticked); the planninq matrix row is set built by the coordinator.",
+    "change": "2026-09-29-timetabling-multi-year-hour-plan",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-display-screens",
+    "matrix": "planninq",
+    "decision": "existing",
+    "reason": "Shipped and archived on 2026-09-29 (all tasks ticked); the planninq matrix row is set built by the coordinator.",
+    "change": "2026-09-29-timetabling-display-screens",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-room-utilisation",
+    "matrix": "planninq",
+    "decision": "existing",
+    "reason": "Shipped and archived on 2026-09-29 (all tasks ticked); the planninq matrix row is set built by the coordinator.",
+    "change": "2026-09-29-timetabling-room-utilisation",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-contact-hours",
+    "matrix": "planninq",
+    "decision": "existing",
+    "reason": "Shipped and archived on 2026-09-29 (all tasks ticked); the planninq matrix row is set built by the coordinator.",
+    "change": "2026-09-29-timetabling-contact-hours",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-lesson-note",
+    "matrix": "planninq",
+    "decision": "existing",
+    "reason": "Shipped and archived on 2026-09-29 (all tasks ticked); the planninq matrix row is set built by the coordinator.",
+    "change": "2026-09-29-timetabling-lesson-note",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-api-enrolment-write",
+    "matrix": "planninq",
+    "decision": "existing",
+    "reason": "Shipped and archived on 2026-09-29 (all tasks ticked); the planninq matrix row is set built by the coordinator.",
+    "change": "2026-09-29-timetabling-elective-lesson-signup",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-enrolment-deadline",
+    "matrix": "planninq",
+    "decision": "existing",
+    "reason": "Shipped and archived on 2026-09-29 (all tasks ticked); the planninq matrix row is set built by the coordinator.",
+    "change": "2026-09-29-timetabling-elective-lesson-signup",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-standby-slots",
+    "matrix": "planninq",
+    "decision": "existing",
+    "reason": "Shipped and archived on 2026-09-29 (all tasks ticked); the planninq matrix row is set built by the coordinator.",
+    "change": "2026-09-29-timetabling-standby-slots",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-bulk-change-weeks",
+    "matrix": "planninq",
+    "decision": "existing",
+    "reason": "Shipped and archived on 2026-09-29 (all tasks ticked); the planninq matrix row is set built by the coordinator.",
+    "change": "2026-09-29-timetabling-bulk-change-weeks",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-enrolment-forecast",
+    "matrix": "planninq",
+    "decision": "existing",
+    "reason": "Shipped and archived on 2026-09-29 (all tasks ticked); the planninq matrix row is set built by the coordinator.",
+    "change": "2026-09-29-timetabling-enrolment-forecast",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "tt-visibility-rules",
+    "matrix": "planninq",
+    "decision": "existing",
+    "reason": "Shipped and archived on 2026-09-29 (all tasks ticked); the planninq matrix row is set built by the coordinator.",
+    "change": "2026-09-29-timetabling-visibility-rules",
+    "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "sib-learniq-att-learner-checks-in-with-qr",
+    "matrix": "planninq",
+    "decision": "existing",
+    "reason": "Shipped and archived on 2026-09-29 (all tasks ticked); the planninq matrix row is set built by the coordinator.",
+    "change": "2026-09-29-attendance-self-check-in",
+    "decidedOn": "2026-09-29"
   }
 ]
