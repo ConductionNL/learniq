@@ -86,6 +86,7 @@
   - GIVEN `CHANGELOG.md` WHEN read THEN it records the new write surface and its governance
 - [x] Implement (docs/Technical/agent-tools.md records the tools, the gates and the chat scenarios; no CHANGELOG.md exists)
 - [ ] Test (the Playwright chat flows need hermiq driving an agent against an instance; not possible in this lane)
+  - 2026-09-29: the suite exists, `tests/e2e/spec-coverage/hermiq-ai-tooling.spec.ts` (opt-in, `LEARNIQ_E2E_HERMIQ_LIVE=1`). Its first live run on :8080 got as far as the chat, which hermiq's governed egress refused (brute-force throttle on the per-run token; hermiq fix pending). Not ticked until a run passes. The same first probe found that `gradeSubmission` and the marking screen read the curriculum plan off the Assignment, which cannot hold it; both now take it from the course (`lib/Service/AssignmentGradePlan.php`, `src/utils/assignmentGradePlan.js`).
   - r5-live, 2026-09-29, shared dev instance, still open: hermiq is installed, but nothing drives an agent on the shared instance.
 
 ## Verification
