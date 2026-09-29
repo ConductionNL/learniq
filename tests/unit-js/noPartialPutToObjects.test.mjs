@@ -69,5 +69,7 @@ test('the guard sees the shape it guards', () => {
 	]
 	const i = 2
 	assert.ok(/method:\s*'PUT'/.test(sample[i]))
-	assert.ok(sample.slice(0, i).join('\n').includes('/apps/openregister/api/objects/'))
+	assert.ok(
+		sample.slice(0, i).join('\n').includes('/apps/openregister/api/objects/'),
+	)
 })
