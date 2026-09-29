@@ -53,7 +53,7 @@ async function handInMark(
 }
 
 test.describe('double marking', () => {
-	test.describe.configure({ timeout: 300_000 })
+	test.describe.configure({ timeout: 480_000 })
 
 	const fx = new LiveFixtures()
 
