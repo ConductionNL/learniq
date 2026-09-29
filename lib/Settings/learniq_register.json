@@ -5140,15 +5140,18 @@
                     "ageYears": {
                         "type": "integer",
                         "nullable": true,
-                        "materialise": true,
                         "description": "Learner's current age in whole years, calculated from birthDate (finding 2.11). Null when birthDate is unset. Recalculated on read/write per OpenRegister's computed-fields materialisation, so it never goes stale the way a manually-set flag would the day after a birthday.",
-                        "expression": {
-                            "dateDiff": {
-                                "from": {
-                                    "prop": "@self.birthDate"
-                                },
-                                "to": "now",
-                                "unit": "years"
+                        "calculation": {
+                            "type": "integer",
+                            "materialise": true,
+                            "expression": {
+                                "dateDiff": {
+                                    "from": {
+                                        "prop": "birthDate"
+                                    },
+                                    "to": "now",
+                                    "unit": "years"
+                                }
                             }
                         },
                         "title": "Age (Years)"
@@ -5156,42 +5159,48 @@
                     "hasPartialSelfServiceRights": {
                         "type": "boolean",
                         "nullable": true,
-                        "materialise": true,
                         "description": "True once the learner has reached 12 years old (finding 2.11) — the age Dutch AVG practice treats as the start of a minor's own co-decision rights over their data. Null when birthDate/ageYears is unset. Data-model only: no portal action reads this yet (a separate, code-kind change's responsibility).",
-                        "expression": {
-                            "gte": [
-                                {
-                                    "dateDiff": {
-                                        "from": {
-                                            "prop": "@self.birthDate"
-                                        },
-                                        "to": "now",
-                                        "unit": "years"
-                                    }
-                                },
-                                12
-                            ]
+                        "calculation": {
+                            "type": "boolean",
+                            "materialise": true,
+                            "expression": {
+                                "gte": [
+                                    {
+                                        "dateDiff": {
+                                            "from": {
+                                                "prop": "birthDate"
+                                            },
+                                            "to": "now",
+                                            "unit": "years"
+                                        }
+                                    },
+                                    12
+                                ]
+                            }
                         },
                         "title": "Has Partial Self-Service Rights (12+)"
                     },
                     "hasFullSelfServiceRights": {
                         "type": "boolean",
                         "nullable": true,
-                        "materialise": true,
                         "description": "True once the learner has reached 16 years old (finding 2.11) — the age this finding's competitor evidence (osiris: \"Vanaf 18 jaar...\"; progress: majority-based) treats as full self-service autonomy in this domain. Null when birthDate/ageYears is unset. Data-model only: no portal action reads this yet.",
-                        "expression": {
-                            "gte": [
-                                {
-                                    "dateDiff": {
-                                        "from": {
-                                            "prop": "@self.birthDate"
-                                        },
-                                        "to": "now",
-                                        "unit": "years"
-                                    }
-                                },
-                                16
-                            ]
+                        "calculation": {
+                            "type": "boolean",
+                            "materialise": true,
+                            "expression": {
+                                "gte": [
+                                    {
+                                        "dateDiff": {
+                                            "from": {
+                                                "prop": "birthDate"
+                                            },
+                                            "to": "now",
+                                            "unit": "years"
+                                        }
+                                    },
+                                    16
+                                ]
+                            }
                         },
                         "title": "Has Full Self-Service Rights (16+)"
                     },
