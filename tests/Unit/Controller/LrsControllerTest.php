@@ -114,7 +114,7 @@ class LrsControllerTest extends TestCase {
 		$session->method('getUser')->willReturn($user);
 
 		$tokens = $this->createMock(Cmi5LaunchTokenService::class);
-		$tokens->method('verifyLaunchToken')->willReturn($claims);
+		$tokens->method('verifyAuthToken')->willReturn($claims);
 
 		$config = $this->createMock(IConfig::class);
 		$config->method('getUserValue')->willReturn('tenant-a');

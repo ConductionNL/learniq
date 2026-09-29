@@ -73,6 +73,7 @@ class Cmi5LaunchControllerTest extends TestCase {
 		$tokens = $this->createMock(Cmi5LaunchTokenService::class);
 		$tokens->method('isEnabled')->willReturn($enabled);
 		$tokens->method('mintLaunchToken')->willReturn('signed.jwt.token');
+		$tokens->method('authToken')->willReturnCallback(static fn (string $jwt): string => base64_encode($jwt));
 
 		$cache = $this->createMock(ICache::class);
 		$cache->method('set')->willReturnCallback(
@@ -151,7 +152,7 @@ class Cmi5LaunchControllerTest extends TestCase {
 		self::assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $data['registration']);
 		self::assertStringNotContainsString('signed.jwt.token', (string)json_encode($data), 'the token never travels in the launch URL');
 
-		self::assertSame(['auth-token' => 'signed.jwt.token'], $controller->fetch(code: 'fetchcode123')->getData());
+		self::assertSame(['auth-token' => base64_encode('signed.jwt.token')], $controller->fetch(code: 'fetchcode123')->getData(), 'the fetch URL hands out the wrapped auth-token');
 		$second = $controller->fetch(code: 'fetchcode123');
 		self::assertSame(Http::STATUS_BAD_REQUEST, $second->getStatus());
 	}//end testLaunchAndSingleUseFetch()
