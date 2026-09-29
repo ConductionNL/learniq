@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
  */
 
 declare(strict_types=1);
@@ -33,7 +33,7 @@ use OCP\L10N\IFactory;
 /**
  * Plain reasons for a refused sign-up or withdrawal.
  *
- * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
  */
 class CatalogueMessages {
 
@@ -69,7 +69,7 @@ class CatalogueMessages {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
 	 */
 	public function message(string $reason, ?IUser $user): string {
 		$l10n = $this->l10nFactory->get(Application::APP_ID, $this->l10nFactory->getUserLanguage($user));

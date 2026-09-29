@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-teacher-sets-up-work-groups-with-a-maximum-size
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-teacher-sets-up-work-groups-with-a-maximum-size
  */
 
 declare(strict_types=1);

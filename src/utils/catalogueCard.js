@@ -12,7 +12,7 @@
  * no `enrolment`, so after signing up it said "Done." and still offered
  * "Sign up".
  *
- * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
  */
 
 /** Enrolment states that count as "signed up" (CatalogueReader::LIVE_STATES). */
@@ -23,7 +23,7 @@ export const LIVE_STATES = ['pending', 'active']
  *
  * @param {object} entry A catalogue card.
  * @return {boolean} True when signed up.
- * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
  */
 export function isLive(entry) {
 	return LIVE_STATES.includes(entry?.enrolment?.lifecycle)
@@ -37,7 +37,7 @@ export function isLive(entry) {
  *
  * @param {object} entry A catalogue card.
  * @return {boolean} True when Withdraw is offered.
- * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-withdraws-their-own-sign-up
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-withdraws-their-own-sign-up
  */
 export function canWithdraw(entry) {
 	const e = entry?.enrolment
@@ -52,7 +52,7 @@ export function canWithdraw(entry) {
  *
  * @param {object} entry A catalogue card.
  * @return {string[]} Enrolment ids, empty when there is nothing to withdraw.
- * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#scenario-a-learner-changes-their-mind
+ * @spec openspec/specs/enrolment/spec.md#scenario-a-learner-changes-their-mind
  */
 export function withdrawIds(entry) {
 	const e = entry?.enrolment
