@@ -86,7 +86,14 @@ class LifecycleSchemasAreNotAppendOnlyTest extends TestCase {
 			return 'refused: not allowed from ' . $from;
 		}
 
-		if (($schema['appendOnly'] ?? false) === true) {
+		// A missing key is not "false": Open Register's Schema::hydrate() only
+		// sets the keys an import carries, so an instance that once stored
+		// appendOnly=true keeps it. Only an explicit false lets the update run.
+		if (array_key_exists('appendOnly', $schema) === false) {
+			return 'refused: appendOnly not declared, so an upgraded instance keeps its stored true';
+		}
+
+		if ($schema['appendOnly'] === true) {
 			return 'refused: AppendOnlyException (update on an appendOnly schema)';
 		}
 
@@ -135,6 +142,32 @@ class LifecycleSchemasAreNotAppendOnlyTest extends TestCase {
 	public function testTheTransitionRuns(string $schema, string $name, string $from, string $to): void {
 		$this->assertSame($to, self::runTransition(schema: self::schemas()[$schema], name: $name, from: $from));
 	}//end testTheTransitionRuns()
+
+	/**
+	 * Every schema that was ever appendOnly and no longer is declares
+	 * `"appendOnly": false` explicitly. #977 removed the key instead, and
+	 * upgraded instances kept refusing updates with SCHEMA_APPEND_ONLY
+	 * (credential reissue, revoke and the Europass backfill all failed).
+	 *
+	 * @return void
+	 */
+	public function testFormerlyAppendOnlySchemasDeclareFalseExplicitly(): void {
+		$names = [
+			'AssessmentResult', 'AttendanceFlag', 'Attestation', 'BehaviourIncident', 'BsaDecision',
+			'BsaProgressFlag', 'BsaWarning', 'ConferenceReport', 'CourseEvaluationResponse', 'Credential',
+			'DeliberationRecord', 'EngagementRiskFlag', 'FirstAidIncident', 'ItemRevisionFlag',
+			'LearningPlanEvaluation', 'LvsResult', 'PortfolioShare', 'ProctoringSession',
+		];
+		$schemas = self::schemas();
+		$missing = [];
+		foreach ($names as $name) {
+			if (array_key_exists('appendOnly', $schemas[$name]) === false || $schemas[$name]['appendOnly'] !== false) {
+				$missing[] = $name;
+			}
+		}
+
+		$this->assertSame([], $missing, 'These schemas must declare "appendOnly": false explicitly.');
+	}//end testFormerlyAppendOnlySchemasDeclareFalseExplicitly()
 
 	/**
 	 * No schema in the register declares transitions and appendOnly together,
