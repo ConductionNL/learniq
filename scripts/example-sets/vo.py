@@ -97,6 +97,7 @@ SCHEMAS = [
     "timetable-visibility-policy",
     # Appended, not inserted, so every earlier bucket keeps its uuid group.
     "session-change-batch",
+    "display-screen",
     "elective-offer",
     "elective-sign-up",
 ]
@@ -884,6 +885,13 @@ def build() -> dict:
         "madeBy": TEAMLEIDER_BB,
     })
     assert batch["uuid"] == batch_uuid
+
+    # --- the hall screen of the main building (timetabling-display-screens) --------------
+    # The address is created on first use from the screen's page, so no token is seeded.
+    b.add("display-screen", {
+        "name": "Aula gebouw A", "vestigingId": locations["hoofd"]["uuid"], "roomIds": [], "cohortIds": [],
+        "shows": "today", "showTeacherCodes": True, "status": "active",
+    })
 
     # --- keuzewerktijd wiskunde (timetabling-elective-lesson-signup) ---------------------
     # Four Thursday lessons for havo 4 and 5, 24 places, sign-up from 7 days to 12 hours

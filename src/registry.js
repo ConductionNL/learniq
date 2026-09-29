@@ -93,6 +93,7 @@ import CurriculumCoverageMatrixView from './views/CurriculumCoverageMatrixView.v
 import DashboardAdmin from './views/DashboardAdmin.vue'
 import DashboardStudent from './views/DashboardStudent.vue'
 import DashboardTeacher from './views/DashboardTeacher.vue'
+import DisplayScreenAddressView from './views/DisplayScreenAddressView.vue'
 import ElectiveRosterView from './views/ElectiveRosterView.vue'
 import ExamCaseDossierView from './views/ExamCaseDossierView.vue'
 import ExportRequestView from './views/ExportRequestView.vue'
@@ -269,6 +270,7 @@ export default {
 	ConferenceScheduleBoard: page(ConferenceScheduleBoard),
 	CourseBuilder: page(CourseBuilder),
 	CoursePackageImportView: page(CoursePackageImportView),
+	DisplayScreenAddressView: page(DisplayScreenAddressView),
 	ElectiveRosterView: page(ElectiveRosterView),
 	CourseQualityReport: page(CourseQualityReport),
 	CurriculumCoverageMatrixView: page(CurriculumCoverageMatrixView),
