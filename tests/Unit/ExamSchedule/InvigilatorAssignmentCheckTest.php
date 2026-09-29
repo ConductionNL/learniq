@@ -21,7 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\ExamSchedule;
 
-use OCA\Learniq\AppInfo\Registrar\ExamScheduleListenerRegistrar;
+use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\InvigilatorAssignmentCheck;
 use OCA\Learniq\Service\ExamSittingOverview;
 use OCA\Learniq\Service\ListenerSchemaResolver;
@@ -158,7 +158,7 @@ class InvigilatorAssignmentCheckTest extends TestCase {
 			}
 		);
 
-		(new ExamScheduleListenerRegistrar())->register(context: $context);
+		(new EventListenerWiring())->registerAll(context: $context);
 
 		self::assertContains(ObjectCreatingEvent::class . ' => ' . InvigilatorAssignmentCheck::class, $pairs);
 	}//end testTheCheckIsRegisteredOnCreate()

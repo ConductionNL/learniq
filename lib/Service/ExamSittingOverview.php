@@ -113,6 +113,8 @@ class ExamSittingOverview {
 	 * @param string $sittingId The ExamSitting uuid.
 	 *
 	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/specs/exam-schedule/spec.md#requirement-exam-periods-and-sittings
 	 */
 	public function sitting(string $sittingId): ?array {
 		if ($sittingId === '') {
@@ -133,6 +135,8 @@ class ExamSittingOverview {
 	 * @param string $sittingId The ExamSitting uuid.
 	 *
 	 * @return array<int, string>
+	 *
+	 * @spec openspec/specs/exam-schedule/spec.md#requirement-invigilator-assignment
 	 */
 	public function bookedInvigilators(string $sittingId): array {
 		$places = $this->assignmentsByState(sittingId: $sittingId);
@@ -146,6 +150,8 @@ class ExamSittingOverview {
 	 * @param array<string, mixed> $sitting The sitting.
 	 *
 	 * @return array<int, string>
+	 *
+	 * @spec openspec/specs/exam-schedule/spec.md#requirement-invigilator-assignment
 	 */
 	public function coveringAvailability(array $sitting): array {
 		$start = strtotime((string)($sitting['startsAt'] ?? ''));
