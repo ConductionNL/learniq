@@ -135,7 +135,7 @@
 						"title": "Exams in this week",
 						"content": {
 							"register": "learniq",
-							"schema": "ExamSitting",
+							"schema": "exam-sitting",
 							"filter": {
 								"examPeriodId": "@objectId"
 							},
@@ -238,7 +238,7 @@
 						"title": "Invigilators",
 						"content": {
 							"register": "learniq",
-							"schema": "InvigilatorAssignment",
+							"schema": "invigilator-assignment",
 							"filter": {
 								"examSittingId": "@objectId"
 							},
