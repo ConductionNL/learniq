@@ -28,6 +28,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\Cmi5LaunchController;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\Cmi5LaunchTokenService;
 use OCA\Learniq\Service\Cmi5LaunchSessions;
 use OCA\Learniq\Service\XapiDocumentCodec;
@@ -128,7 +129,7 @@ class Cmi5LaunchControllerTest extends TestCase {
 			$docObjects->method('saveObject')->willThrowException(new RuntimeException('storage down'));
 		}
 
-		$documents = new XapiDocumentStore(objectService: $docObjects, config: $config, codec: new XapiDocumentCodec());
+		$documents = new XapiDocumentStore(objectService: $docObjects, tenants: new CallerTenantResolver($config, $this->createMock(ObjectService::class)), codec: new XapiDocumentCodec());
 
 		$urls = $this->createMock(IURLGenerator::class);
 		$urls->method('getAbsoluteURL')->willReturnCallback(static fn (string $path): string => 'https://school.example' . $path);

@@ -28,6 +28,7 @@ use OCA\Learniq\Controller\PageController;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CourseStore\StoreAccessService;
 use OCA\Learniq\Service\DashboardRoleService;
+use OCA\Learniq\Service\LineManagerCheck;
 use OCA\Learniq\Service\LoadedExampleSets;
 use OCA\Learniq\Service\SegmentService;
 use OCP\AppFramework\Http;
@@ -56,7 +57,7 @@ class PageControllerTest extends TestCase {
 	 *
 	 * @return PageController
 	 */
-	private function controller(?IUser $user, ?IInitialState $initialState = null, bool $segmentFails = false, ?StoreAccessService $storeAccess = null, ?CallerTenantResolver $tenantResolver = null): PageController {
+	private function controller(?IUser $user, ?IInitialState $initialState = null, bool $segmentFails = false, ?StoreAccessService $storeAccess = null, ?CallerTenantResolver $tenantResolver = null, ?LineManagerCheck $lineManager = null): PageController {
 		$userSession = $this->createMock(IUserSession::class);
 		$userSession->method('getUser')->willReturn($user);
 
@@ -73,8 +74,13 @@ class PageControllerTest extends TestCase {
 		} else {
 			$storeAccess    = ($storeAccess ?? $this->createMock(StoreAccessService::class));
 			$tenantResolver = ($tenantResolver ?? $this->createMock(CallerTenantResolver::class));
+			$lineManager    = ($lineManager ?? $this->createMock(LineManagerCheck::class));
 			$container->method('get')->willReturnCallback(
-				static function (string $id) use ($segmentService, $storeAccess, $tenantResolver): object {
+				static function (string $id) use ($segmentService, $storeAccess, $tenantResolver, $lineManager): object {
+					if ($id === LineManagerCheck::class) {
+						return $lineManager;
+					}
+
 					if ($id === StoreAccessService::class) {
 						return $storeAccess;
 					}
@@ -474,4 +480,43 @@ class PageControllerTest extends TestCase {
 		self::assertArrayHasKey('callerTenant', $provided);
 		self::assertNull($provided['callerTenant']);
 	}//end testAnEmptyCallerTenantIsProvidedAsNull()
+
+	/**
+	 * A line manager gets `managesLearners`, so the Sign-up requests entry
+	 * reaches them although their primary role is `learner`.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-request-waits-for-a-teacher-or-manager
+	 */
+	public function testIndexProvidesTheLineManagerFlag(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('manager-1');
+
+		$check = $this->createMock(LineManagerCheck::class);
+		$check->expects(self::once())->method('managesLearners')->with($user)->willReturn(true);
+
+		$provided = [];
+		$this->controller($user, $this->recordingInitialState($provided), false, null, null, $check)->index();
+
+		self::assertTrue($provided['managesLearners'] ?? null);
+	}//end testIndexProvidesTheLineManagerFlag()
+
+	/**
+	 * Without OpenRegister the flag degrades to false and the page still renders.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-request-waits-for-a-teacher-or-manager
+	 */
+	public function testTheLineManagerFlagDegradesToFalse(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('manager-1');
+
+		$provided = [];
+		$response = $this->controller($user, $this->recordingInitialState($provided), true)->index();
+
+		self::assertSame('index', $response->getTemplateName());
+		self::assertFalse($provided['managesLearners'] ?? null);
+	}//end testTheLineManagerFlagDegradesToFalse()
 }//end class

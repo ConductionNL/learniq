@@ -31,6 +31,7 @@ namespace OCA\Learniq\Service\LessonOnboarding;
 
 use InvalidArgumentException;
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
@@ -51,12 +52,14 @@ class OnboardingFolderSetting {
 	/**
 	 * Constructor.
 	 *
-	 * @param IConfig $config Per-user settings and the tenant binding.
+	 * @param IConfig $config Per-user settings.
 	 * @param IRootFolder $rootFolder Resolves a user's own files.
+	 * @param CallerTenantResolver $tenants Resolves the teacher's tenant.
 	 */
 	public function __construct(
 		private readonly IConfig $config,
 		private readonly IRootFolder $rootFolder,
+		private readonly CallerTenantResolver $tenants,
 	) {
 	}//end __construct()
 
@@ -147,8 +150,7 @@ class OnboardingFolderSetting {
 
 	/**
 	 * The tenant a teacher's objects belong to: their per-user binding, else
-	 * the instance id. The same resolution CoursePackageImportController and
-	 * QtiImportController use.
+	 * the default tenant (CallerTenantResolver, which every learniq path uses).
 	 *
 	 * @param string $userId The teacher.
 	 *
@@ -157,11 +159,6 @@ class OnboardingFolderSetting {
 	 * @spec openspec/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
 	 */
 	public function tenantOf(string $userId): string {
-		$tenantId = $this->config->getUserValue($userId, Application::APP_ID, 'tenant_id', '');
-		if ($tenantId !== '') {
-			return $tenantId;
-		}
-
-		return (string)$this->config->getSystemValue('instanceid', '');
+		return $this->tenants->forUserId(userId: $userId);
 	}//end tenantOf()
 }//end class

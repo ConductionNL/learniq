@@ -34,14 +34,45 @@ use PHPUnit\Framework\TestCase;
  */
 class CallerTenantResolverTest extends TestCase {
 	/**
-	 * A bound user resolves to their binding; an unbound one to the instance id.
+	 * A bound user resolves to their binding; an unbound one to the default
+	 * tenant, never to the instance id (not a UUID, and no seeded row carries it).
 	 *
 	 * @return void
 	 */
-	public function testResolveUsesTheBindingThenTheInstanceId(): void {
+	public function testResolveUsesTheBindingThenTheDefaultTenant(): void {
 		self::assertSame('tenant-a', $this->resolver(binding: 'tenant-a')->resolve(user: $this->user()));
-		self::assertSame('instance-x', $this->resolver(binding: '')->resolve(user: $this->user()));
-	}//end testResolveUsesTheBindingThenTheInstanceId()
+		self::assertSame(CallerTenantResolver::DEFAULT_TENANT, $this->resolver(binding: '')->resolve(user: $this->user()));
+		self::assertSame(CallerTenantResolver::DEFAULT_TENANT, $this->resolver(binding: '   ')->resolve(user: $this->user()));
+		self::assertNotSame('instance-x', $this->resolver(binding: '')->resolve(user: $this->user()));
+	}//end testResolveUsesTheBindingThenTheDefaultTenant()
+
+	/**
+	 * The default tenant is the one the example sets carry, and it passes the
+	 * `format: uuid` check OpenRegister applies (opis: 8-4-4-4-12 hex).
+	 *
+	 * @return void
+	 */
+	public function testTheDefaultTenantIsTheExampleSetTenantAndAUuid(): void {
+		self::assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', CallerTenantResolver::DEFAULT_TENANT);
+
+		$root = dirname(__DIR__, 3);
+		foreach (glob($root . '/lib/Settings/profiles/*.json') as $profile) {
+			$tenants = [];
+			preg_match_all('/"tenant_id":\s*"([^"]*)"/', (string)file_get_contents($profile), $tenants);
+			self::assertSame([CallerTenantResolver::DEFAULT_TENANT], array_values(array_unique($tenants[1])), basename($profile));
+		}
+	}//end testTheDefaultTenantIsTheExampleSetTenantAndAUuid()
+
+	/**
+	 * forUserId() resolves the same way for paths that hold only a uid.
+	 *
+	 * @return void
+	 */
+	public function testForUserIdMatchesResolve(): void {
+		self::assertSame('tenant-a', $this->resolver(binding: 'tenant-a')->forUserId(userId: 'teacher-1'));
+		self::assertSame(CallerTenantResolver::DEFAULT_TENANT, $this->resolver(binding: '')->forUserId(userId: 'teacher-1'));
+		self::assertSame(CallerTenantResolver::DEFAULT_TENANT, $this->resolver(binding: 'tenant-a')->forUserId(userId: ''));
+	}//end testForUserIdMatchesResolve()
 
 	/**
 	 * A row matches only when its tenant equals the caller's.

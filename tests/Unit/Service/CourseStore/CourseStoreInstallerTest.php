@@ -22,8 +22,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\CourseStore;
 
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CoursePackageImportService;
 use OCA\Learniq\Service\CourseStore\CourseStoreInstaller;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\IConfig;
 use PHPUnit\Framework\TestCase;
 
@@ -78,7 +80,7 @@ class CourseStoreInstallerTest extends TestCase {
 		);
 
 		$package = ['course' => ['name' => 'Betoog'], 'lessons' => []];
-		$report  = (new CourseStoreInstaller($importService, $this->config()))->install(
+		$report  = (new CourseStoreInstaller($importService, new CallerTenantResolver($this->config(), $this->createMock(ObjectService::class))))->install(
 			['slug' => 'course-package-betoog-1a2b3c4d', 'package' => $package],
 			'docent-07'
 		);
@@ -111,7 +113,7 @@ class CourseStoreInstallerTest extends TestCase {
 		$importService = $this->createMock(CoursePackageImportService::class);
 		$importService->expects(self::never())->method('import');
 
-		$report = (new CourseStoreInstaller($importService, $this->config()))->install(['slug' => 'course-package-x-1'], 'docent-07');
+		$report = (new CourseStoreInstaller($importService, new CallerTenantResolver($this->config(), $this->createMock(ObjectService::class))))->install(['slug' => 'course-package-x-1'], 'docent-07');
 
 		self::assertFalse($report['success']);
 		self::assertSame([], $report['components']);
@@ -133,13 +135,14 @@ class CourseStoreInstallerTest extends TestCase {
 			}
 		);
 
-		$report = (new CourseStoreInstaller($importService, $this->config()))->install(
+		$report = (new CourseStoreInstaller($importService, new CallerTenantResolver($this->config(), $this->createMock(ObjectService::class))))->install(
 			['slug' => 'course-package-x-1', 'package' => json_encode(['course' => ['name' => 'X']])],
 			'someone-else'
 		);
 
 		self::assertFalse($report['success']);
 		self::assertSame('Not a package.', $report['message']);
-		self::assertSame('instance-1', $tenant);
+		// An unbound installer lands in the default tenant, not the instance id.
+		self::assertSame(CallerTenantResolver::DEFAULT_TENANT, $tenant);
 	}//end testAFailedImportIsAFailure()
 }//end class

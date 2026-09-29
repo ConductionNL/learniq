@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\LrsController;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\Cmi5LaunchTokenService;
 use OCA\Learniq\Service\XapiCallerResolver;
 use OCA\Learniq\Service\XapiStatementIngest;
@@ -125,7 +126,7 @@ class LrsControllerTest extends TestCase {
 			userSession: $session,
 			groupManager: $this->createMock(IGroupManager::class),
 			callers: new XapiCallerResolver(userSession: $session, tokens: $tokens),
-			ingest: new XapiStatementIngest(objectService: $this->objectService, config: $config),
+			ingest: new XapiStatementIngest(objectService: $this->objectService, tenants: new CallerTenantResolver($config, $this->createMock(ObjectService::class))),
 			logger: new NullLogger()
 		);
 	}//end controller()
