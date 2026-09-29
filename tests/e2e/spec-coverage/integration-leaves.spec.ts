@@ -32,8 +32,8 @@
  */
 import type { Page } from '@playwright/test'
 
-import { expect, test } from '../fixtures.ts'
 import { effectiveManifest } from '../effective-manifest.ts'
+import { expect, test } from '../fixtures.ts'
 import { firstObjectId } from '../or-api.ts'
 import { requireFixture } from '../seeded.ts'
 
@@ -55,10 +55,7 @@ const CASES: LeafCase[] = [
 		page: 'AssignmentDetail',
 		route: '/assignments',
 		slug: 'assignment',
-		leaves: [
-			{ requiredApp: 'calendar' },
-			{ requiredApp: 'forms' },
-		],
+		leaves: [{ requiredApp: 'calendar' }, { requiredApp: 'forms' }],
 	},
 	{
 		page: 'CredentialDetail',
@@ -124,8 +121,8 @@ async function scrollToEnd(page: Page): Promise<void> {
 		document.querySelectorAll('*').forEach((el) => {
 			const style = getComputedStyle(el)
 			if (
-				el.scrollHeight > el.clientHeight + 50 &&
-				(style.overflowY === 'auto' || style.overflowY === 'scroll')
+				el.scrollHeight > el.clientHeight + 50
+				&& (style.overflowY === 'auto' || style.overflowY === 'scroll')
 			) {
 				el.scrollTop = el.scrollHeight
 			}
