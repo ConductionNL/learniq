@@ -943,7 +943,8 @@
         "state": "building",
         "evidence": "src/views/ExternalTrainingBulkRecordView.vue records one training for many picked learners through lib/Controller/ExternalTrainingController.php bulkRecord(); no spreadsheet upload, so it stays partial (learniq#952)",
         "reachedOn": "/compliance/external-training (header action Record training for a group)",
-        "owner": "ConductionNL/learniq"
+        "owner": "ConductionNL/learniq",
+        "change": "openspec/changes/compliance-external-training-spreadsheet-upload"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1088,15 +1089,16 @@
       "area": "compliance",
       "name": "Sign a learner up for the refresher when their certificate lapses.",
       "built": {
-        "state": "building",
-        "evidence": "lib/Settings/learniq_register.json Course.properties.renewalCourseSlug and Credential.properties.renewalEnrolmentId exist, but no handler in lib/ creates the renewal enrolment",
-        "owner": "ConductionNL/learniq"
+        "state": "built",
+        "evidence": "lib/AppInfo/Registrar/TransitionBridgeListenerRegistrar.php:66-69 registers CredentialRenewalListener on ObjectTransitionedEvent -> lib/Listener/CredentialRenewalListener.php:89 handle creates the renewal Enrolment and writes Credential.renewalEnrolmentId (:171)",
+        "owner": "ConductionNL/learniq",
+        "change": "openspec/changes/archive/2026-09-29-credential-renewal-listener"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "compliance-coverage",
       "featureConfidence": "high",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "no",
       "moodle-workplace": "yes",
       "ilias": "yes",
@@ -1119,7 +1121,8 @@
       "built": {
         "state": "building",
         "evidence": "src/views/LearniqCompliance.vue renders three count tiles, not a per-rule coverage table",
-        "owner": "ConductionNL/learniq"
+        "owner": "ConductionNL/learniq",
+        "change": "openspec/changes/compliance-rule-coverage-table"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1556,9 +1559,10 @@
       "area": "credentials",
       "name": "Export a certificate in the European Europass credential format.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Settings/learniq_register.json Credential.properties.edciPayload is declared and marked Phase 3; nothing in lib/ writes it. Specified in openspec/changes/credentials-europass-edci-export/ (OpenSpec pass 2026-09-27).",
-        "owner": "ConductionNL/learniq"
+        "state": "building",
+        "evidence": "lib/Controller/CredentialEuropassController.php:111 serves Credential.edciPayload; appinfo/routes.php:44-48. One task open in the change (issuance handler test and one live issue)",
+        "owner": "ConductionNL/learniq",
+        "change": "openspec/changes/credentials-europass-edci-export"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1905,8 +1909,9 @@
       "name": "Upload a SCORM package and have it report its own completion.",
       "built": {
         "state": "building",
-        "evidence": "lib/Settings/learniq_register.json Material contentType accepts scorm; src/views/LessonPlayer.vue relies on the xAPI path, and no learner-facing LRS ingest route exists in appinfo/routes.php",
-        "owner": "ConductionNL/learniq"
+        "evidence": "appinfo/routes.php:67-68 LRS ingest routes now exist (lrs#postStatements); the change has two open tasks (live check 8.7, integration test 3.4)",
+        "owner": "ConductionNL/learniq",
+        "change": "openspec/changes/cmi5-xapi-lrs-ingest"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1933,10 +1938,11 @@
       "area": "content",
       "name": "Launch a cmi5 unit and have it send results back.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Service/Cmi5LaunchTokenService.php isEnabled() returns false and mintLaunchToken() returns an empty string. Covered by openspec/changes/cmi5-xapi-lrs-ingest/ (0 of 19 tasks ticked; OpenSpec pass 2026-09-27).",
+        "state": "building",
+        "evidence": "appinfo/routes.php:58-73 cmi5 launch and LRS routes (lrs#postStatements, lrs#getStatements, lrsDocument state); 27 of 29 tasks done in the change, live check 8.7 and integration test 3.4 open",
         "owner": "ConductionNL/learniq",
-        "readOn": "2026-09-26"
+        "readOn": "2026-09-26",
+        "change": "openspec/changes/cmi5-xapi-lrs-ingest"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1964,9 +1970,10 @@
       "name": "Keep a full xAPI record of what each learner did.",
       "built": {
         "state": "building",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.XapiStatement and src/manifest.json XapiStatements exist, but nothing outside the app can post a statement",
+        "evidence": "appinfo/routes.php:67-68 lrs#postStatements and lrs#getStatements let a tool post and read statements; the change has two open tasks (live check 8.7, integration test 3.4)",
         "owner": "ConductionNL/learniq",
-        "readOn": "2026-09-26"
+        "readOn": "2026-09-26",
+        "change": "openspec/changes/cmi5-xapi-lrs-ingest"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3008,8 +3015,8 @@
       "area": "assessment",
       "name": "Watch an exam with a proctoring service.",
       "built": {
-        "state": "none",
-        "evidence": "lib/Proctoring/ProvidesProctoring.php is an interface only; lib/Settings/connections.json states no provider ships and nothing calls it",
+        "state": "decided-no",
+        "evidence": "Decided no on 2026-09-29: Single competitor, no demand, outside the core area. Reversible: ProvidesProctoring is an interface and no provider ships. Before: lib/Proctoring/ProvidesProctoring.php is an interface only; lib/Settings/connections.json states no provider ships and nothing calls it",
         "owner": "ConductionNL/learniq"
       },
       "provider": "external",
@@ -3037,8 +3044,8 @@
       "area": "assessment",
       "name": "Review what a proctoring session flagged, in one queue.",
       "built": {
-        "state": "building",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.ProctoringSession and src/manifest.d/learning.json ProctoringReviewQueue exist, but no provider fills them",
+        "state": "decided-no",
+        "evidence": "Decided no on 2026-09-29: No competitor rated yes, no demand, outside the core area. Reversible: the schema and queue page exist and no provider fills them. Before: lib/Settings/learniq_register.json components.schemas.ProctoringSession and src/manifest.d/learning.json ProctoringReviewQueue exist, but no provider fills them",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -3472,8 +3479,8 @@
       "area": "assignments",
       "name": "Check a hand-in for plagiarism.",
       "built": {
-        "state": "none",
-        "evidence": "lib/Plagiarism/ProvidesPlagiarismCheck.php is an interface only; lib/Settings/connections.json states no provider ships and nothing calls it",
+        "state": "decided-no",
+        "evidence": "Decided no on 2026-09-29: No competitor rated yes, no demand, outside the core area. Reversible: ProvidesPlagiarismCheck is an interface and no provider ships. Before: lib/Plagiarism/ProvidesPlagiarismCheck.php is an interface only; lib/Settings/connections.json states no provider ships and nothing calls it",
         "owner": "ConductionNL/learniq"
       },
       "provider": "external",
@@ -4869,7 +4876,8 @@
       "built": {
         "state": "building",
         "evidence": "lib/Service/TimetableProjector.php projects sessions; lib/AppInfo/Registrar/SchedulingListenerRegistrar.php is the seam, with no CalDAV export route",
-        "owner": "ConductionNL/learniq"
+        "owner": "ConductionNL/learniq",
+        "change": "openspec/changes/attendance-timetable-calendar-feed"
       },
       "provider": "nextcloud",
       "providerHow": "read: the platform provides it and this repository consumes it",
@@ -5737,8 +5745,8 @@
       "area": "governance",
       "name": "Hide one sensitive field from a role that may see the rest.",
       "built": {
-        "state": "none",
-        "evidence": "lib/Settings/learniq_register.json declares no property-level authorization; x-property-rbac is row-level and OpenRegister does not read it (openregister#4064, learniq#972). OpenRegister can hide a property per group (lib/Service/PropertyRbacHandler.php) once a schema declares it. OpenRegister's half shipped (openregister change 2026-07-13-property-level-read-rbac); the missing half is learniq declaring a property-level read rule, so the owner moved to learniq and the row is deferred (OpenSpec pass 2026-09-27).",
+        "state": "decided-no",
+        "evidence": "Decided no on 2026-09-29: No competitor rated yes, no demand, outside the core area. Reversible: OpenRegister does not read property level rules yet (openregister#4064). Before: lib/Settings/learniq_register.json declares no property-level authorization; x-property-rbac is row-level and OpenRegister does not read it (openregister#4064, learniq#972). OpenRegister can hide a property per group (lib/Service/PropertyRbacHandler.php) once a schema declares it. OpenRegister's half shipped (openregister change 2026-07-13-property-level-read-rbac); the missing half is learniq declaring a property-level read rule, so the owner moved to learniq and the row is deferred (OpenSpec pass 2026-09-27).",
         "owner": "ConductionNL/learniq"
       },
       "provider": "openregister",
@@ -6172,8 +6180,8 @@
       "area": "governance",
       "name": "See exactly which records the other side rejected, and why.",
       "built": {
-        "state": "building",
-        "evidence": "lib/Settings/learniq_register.json ExchangeRejection and ExchangeErrorCode plus lib/Listener/RejectionMappingHandler.php are complete, but no exchange job can run today, so nothing fills them",
+        "state": "decided-no",
+        "evidence": "Decided no on 2026-09-29: No competitor rated yes, no demand, outside the core area. Reversible: the rejection objects are complete and no exchange job can run. Before: lib/Settings/learniq_register.json ExchangeRejection and ExchangeErrorCode plus lib/Listener/RejectionMappingHandler.php are complete, but no exchange job can run today, so nothing fills them",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -6201,8 +6209,8 @@
       "area": "governance",
       "name": "Fix the rejects and resend only those.",
       "built": {
-        "state": "building",
-        "evidence": "lib/Service/RejectionResubmissionResolver.php and lib/Lifecycle/RejectionResubmitGuard.php are complete, but the resend rides the data-exchange path that lib/Settings/connections.json marks unavailable",
+        "state": "decided-no",
+        "evidence": "Decided no on 2026-09-29: No competitor rated yes, no demand, outside the core area. Reversible: the resend rides a data exchange path that is unavailable. Before: lib/Service/RejectionResubmissionResolver.php and lib/Lifecycle/RejectionResubmitGuard.php are complete, but the resend rides the data-exchange path that lib/Settings/connections.json marks unavailable",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -6230,8 +6238,8 @@
       "area": "governance",
       "name": "Ask a guardian to approve a dossier transfer before it leaves.",
       "built": {
-        "state": "building",
-        "evidence": "lib/Lifecycle/OsoDossierReviewGuard.php and the review screen ship, but the transfer they gate cannot run: lib/Settings/connections.json marks data-exchange unavailable",
+        "state": "decided-no",
+        "evidence": "Decided no on 2026-09-29: No competitor rated yes, no demand, outside the core area. Reversible: the review guard ships and the transfer it gates cannot run. Before: lib/Lifecycle/OsoDossierReviewGuard.php and the review screen ship, but the transfer they gate cannot run: lib/Settings/connections.json marks data-exchange unavailable",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -6500,7 +6508,8 @@
         "state": "building",
         "evidence": "lib/Lifecycle/ExemptionDecisionGuard.php:49",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "/exam-board/exemptions"
+        "reachedOn": "/exam-board/exemptions",
+        "change": "openspec/changes/compliance-exemption-record"
       },
       "provider": "self",
       "providerHow": "learniq's ExemptionCase lifecycle and guard handle the school exemption; the compliance side has none.",
@@ -6655,7 +6664,8 @@
         "state": "building",
         "evidence": "lib/Settings/learniq_register.json:2414",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "/enrolments (enrolment form); learner home widget"
+        "reachedOn": "/enrolments (enrolment form); learner home widget",
+        "change": "openspec/changes/enrolment-programme-mandatory-per-person"
       },
       "provider": "self",
       "providerHow": "learniq's Enrolment schema carries the per-person flag; paths have no per-person layer.",
@@ -6779,7 +6789,8 @@
         "state": "building",
         "evidence": "lib/Lifecycle/ReportPeriodLockGuard.php:6",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "/report-periods, /report-cards, /grades/entries (lifecycle actions)"
+        "reachedOn": "/report-periods, /report-cards, /grades/entries (lifecycle actions)",
+        "change": "openspec/changes/governance-four-eyes-on-approved-data"
       },
       "provider": "self",
       "providerHow": "learniq's lifecycle guards enforce the lock; no dual control is built.",
@@ -6810,7 +6821,8 @@
         "state": "building",
         "evidence": "lib/Service/LessonReleaseEvaluator.php:357",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "/courses/:courseId/lessons/:lessonId/play"
+        "reachedOn": "/courses/:courseId/lessons/:lessonId/play",
+        "change": "openspec/changes/content-adaptive-next-step-and-preview"
       },
       "provider": "self",
       "providerHow": "learniq's LessonReleaseEvaluator and LessonReleaseController decide release per learner at request time.",
@@ -6841,7 +6853,8 @@
         "state": "building",
         "evidence": "src/views/LessonComposer.vue:483",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "/courses/:courseId/lessons/:lessonId/compose > Preview"
+        "reachedOn": "/courses/:courseId/lessons/:lessonId/compose > Preview",
+        "change": "openspec/changes/content-adaptive-next-step-and-preview"
       },
       "provider": "self",
       "providerHow": "learniq's own composer and player views.",
@@ -6869,10 +6882,11 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Settings/learniq_register.json:6339. Specified in openspec/changes/enrolment-self-join-work-group/ (OpenSpec pass 2026-09-27).",
+        "state": "building",
+        "evidence": "Built; two Playwright tasks open in the change (tests/e2e/work-groups.spec.ts)",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "nothing"
+        "reachedOn": "nothing",
+        "change": "openspec/changes/enrolment-self-join-work-group"
       },
       "provider": "self",
       "providerHow": "Would be a learniq group schema and flow; not built.",
@@ -6934,7 +6948,8 @@
         "state": "building",
         "evidence": "lib/Lifecycle/CourseEvaluationEligibilityGuard.php:110",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "/course-evaluation/campaigns (staff); no learner answer page"
+        "reachedOn": "/course-evaluation/campaigns (staff); no learner answer page",
+        "change": "openspec/changes/assessment-course-evaluation-answer-page"
       },
       "provider": "self",
       "providerHow": "learniq's evaluation schemas and handlers; Nextcloud Forms is only linked, not integrated.",
@@ -6996,7 +7011,8 @@
         "state": "building",
         "evidence": "lib/Lifecycle/AccessibilityStatementPublishGuard.php:134",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "/accessibility; /accessibility/limitations"
+        "reachedOn": "/accessibility; /accessibility/limitations",
+        "change": "openspec/changes/governance-wcag-evidence-report"
       },
       "provider": "self",
       "providerHow": "learniq's accessibility statement schemas and guard, with the nextcloud-vue components carrying most of the markup.",
@@ -7055,14 +7071,15 @@
       "origin": "changelog",
       "originUrl": "https://moodle.atlassian.net/browse/MDL-86006",
       "built": {
-        "state": "specified",
-        "evidence": "searched src/ and lib/ at fbeee384 for second marker, secondMarker, double mark, agreed grade, markers and moderat: no marking hits (only a table-prefix variable at lib/Repair/RenameDutchColumns.php:247 and a 'moderate' enum value at lib/Settings/learniq_register.json:22214), so nothing allocates a second marker or reconciles two marks. Specified in openspec/changes/assignments-double-marking/ (OpenSpec pass 2026-09-27).",
+        "state": "built",
+        "evidence": "src/manifest.d/learning.json:4269 AllocateMarkers page -> src/views/AllocateMarkersView.vue -> appinfo/routes.php:287-290 SubmissionMarkController -> lib/Service/SubmissionMarkAllocationService.php:86 allocate",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "nothing"
+        "reachedOn": "nothing",
+        "change": "openspec/changes/archive/2026-09-29-assignments-double-marking"
       },
       "provider": "self",
       "providerHow": "Would be a learniq marking workflow; not built.",
-      "learniq": "no",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/assign/mod_form.php:246-248 (number of markers, up to ASSIGN_MULTIMARKING_MAX_MARKERS) + :255-278 (final grade manual, highest or average) + public/mod/assign/batchsetallocatedmarkerform.php:63; new in 5.2. Needs marking workflow and allocation on and only works with simple direct grading, not rubrics (hidden at :250).",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Assignment_settings; \"Multiple markers can be assigned to a single assignment submission\", and the final grade is set by Manual (\"the teacher in charge sets the final grade manually\"), First, Maximum or Average. Workplace includes core per https://support.moodle.com/support/solutions/articles/80001074804-difference-between-moodle-workplace-and-moodle-lms: \"Moodle Workplace is built on Moodle LMS and contains all its features plus more\"; Workplace 5.2.3 is based on Moodle LMS 5.2.3 (https://docs.moodle.org/502/en/Moodle_Workplace_release_notes).",
@@ -7148,14 +7165,15 @@
       "origin": "changelog",
       "originUrl": "https://docs.moodle.org/501/en/Moodle_Workplace_release_notes",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Listener/CredentialIssuanceHandler.php:121. Specified in openspec/changes/credentials-bulk-reissue/ (OpenSpec pass 2026-09-27).",
+        "state": "built",
+        "evidence": "appinfo/routes.php:297-298 credentialReissue#preview and #start; src/manifest.d/learning.json:1201 reissue-certificates action",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "nothing"
+        "reachedOn": "nothing",
+        "change": "openspec/changes/archive/2026-09-29-credentials-bulk-reissue"
       },
       "provider": "self",
       "providerHow": "Would be a learniq bulk action over issued credentials; not built.",
-      "learniq": "no",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Core has no certificate module (searched for certif directories and reissue, regenerate in badges/: nothing). Badges lock once awarded, public/badges/classes/badge.php:464 sets BADGE_STATUS_ACTIVE_LOCKED, and there is no bulk reissue. mod_customcert and tool_certificate are marketplace or Workplace plugins.",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/501/en/Moodle_Workplace_release_notes; Workplace 5.1 \"Bulk Certificate Regeneration for Compliance\": administrators can \"regenerate all issued certificates based on a template\"; https://docs.moodle.org/502/en/Certificates_Configuration: \"Regenerating a certificate is useful when the certificate template has changed\".",
@@ -7179,14 +7197,15 @@
       "origin": "changelog",
       "originUrl": "https://totara.help/docs/digital-self-attendance",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Settings/learniq_register.json:13551. Specified in openspec/changes/attendance-self-check-in/ (OpenSpec pass 2026-09-27).",
+        "state": "built",
+        "evidence": "appinfo/routes.php:246-250 check-in routes -> lib/Controller/CheckInController.php:95 checkInWithCode -> lib/Service/CheckIn/CheckInService.php",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "nothing"
+        "reachedOn": "nothing",
+        "change": "openspec/changes/archive/2026-09-29-attendance-self-check-in"
       },
       "provider": "self",
       "providerHow": "Would be a learniq session check-in flow; not built.",
-      "learniq": "no",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Core has no attendance activity (public/mod lists no attendance). Nearest is public/mod/bigbluebuttonbn/classes/logger.php:42 (online meeting joins logged, with completion by minutes attended), for online sessions only, and the module ships hidden (public/mod/bigbluebuttonbn/db/install.php:32). Marketplace mod_attendance adds QR self-marking, not shipped.",
         "moodle-workplace": "read 2026-09-26: not documented: https://docs.moodle.org/502/en/Appointments_Configuration describes attendance taken by users with the take attendance capability and mentions no QR code or link self check-in.",
@@ -7241,8 +7260,8 @@
       "origin": "roadmap",
       "originUrl": "https://github.com/chamilo/chamilo-lms/issues/8373",
       "built": {
-        "state": "none",
-        "evidence": "src/manifest.d/pupil-record.json:230",
+        "state": "decided-no",
+        "evidence": "Decided no on 2026-09-29: Roadmap demand row (Chamilo issue 8373) but no competitor rated yes and outside the core area, so the rule does not build it. Note: the confidential counsellor channel (archive 2026-09-28-confidential-counsellor-channel) is the counsellor side, not a learner report. See needs-Ruben. Before: src/manifest.d/pupil-record.json:230",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing"
       },
@@ -7334,10 +7353,11 @@
       "origin": "changelog",
       "originUrl": "https://totara.com/articles/whats-new-totara-version-20/",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Settings/learniq_register.json:2427. Specified in openspec/changes/enrolment-catalogue-self-signup/ (OpenSpec pass 2026-09-27).",
+        "state": "building",
+        "evidence": "appinfo/routes.php:272 course catalogue routes; one Playwright task open in the change (tests/e2e/course-catalogue.spec.ts)",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "nothing"
+        "reachedOn": "nothing",
+        "change": "openspec/changes/enrolment-catalogue-self-signup"
       },
       "provider": "self",
       "providerHow": "Would be a learniq learner catalogue and enrol action; not built.",
