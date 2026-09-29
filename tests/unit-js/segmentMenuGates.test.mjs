@@ -69,6 +69,7 @@ function build(state) {
 			canTeachDashboard: true,
 			canLearnDashboard: true,
 			isConfidentialCounsellor: true,
+			managesLearners: true,
 		},
 		workspace: buildWorkspaceRuntime(undefined, state.segment, state.chosen),
 	}

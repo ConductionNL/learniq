@@ -182,6 +182,9 @@ bundledManifest.runtime = {
 		// primaryRole 'instructor' (confidential-counsellor-channel).
 		isConfidentialCounsellor:
 			loadState('learniq', 'confidentialCounsellor', false) === true,
+		// A line manager approves their reports' self sign-ups but has no
+		// staff role, so the Sign-up requests menu also gates on this.
+		managesLearners: loadState('learniq', 'managesLearners', false) === true,
 	},
 	workspace: buildWorkspaceRuntime(
 		bundledManifest.runtime?.workspace,

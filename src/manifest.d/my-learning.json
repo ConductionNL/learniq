@@ -15,6 +15,29 @@
 			"route": "LearnerHome"
 		},
 		{
+			"id": "ManagerSignUpRequestsMenu",
+			"label": "Sign-up requests",
+			"icon": "AccountGroup",
+			"route": "Enrolments",
+			"order": 29,
+			"_note": "A line manager approves their reports' pending self sign-ups (the Enrolment update rule matches managerId) but has no staff role, so SignUpRequestsMenu under People never reaches them. PageController publishes user.managesLearners; the notIn list is the roles that already reach SignUpRequestsMenu (GroupPeople's gate intersected with its own), so nobody sees the entry twice. The admin, who sees every surface, is left out of that list on purpose.",
+			"visibleIf": {
+				"user.managesLearners": true,
+				"user.primaryRole": {
+					"notIn": [
+						"instructor",
+						"coordinator",
+						"hr",
+						"administration-manager"
+					]
+				}
+			},
+			"query": {
+				"source": "self",
+				"lifecycle": "pending"
+			}
+		},
+		{
 			"id": "MyTimetableMenu",
 			"label": "My timetable",
 			"icon": "TableClock",
