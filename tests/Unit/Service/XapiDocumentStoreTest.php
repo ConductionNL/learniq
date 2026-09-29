@@ -23,7 +23,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
-use InvalidArgumentException;
+use OCA\Learniq\Exception\XapiRequestException;
+use OCA\Learniq\Service\XapiDocumentCodec;
 use OCA\Learniq\Service\XapiDocumentStore;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\Learniq\Tests\Support\XapiDocumentsInMemory;
@@ -72,7 +73,7 @@ class XapiDocumentStoreTest extends TestCase {
 		$this->rows = new RegisterFaithfulStore();
 		$config     = $this->createMock(IConfig::class);
 		$config->method('getUserValue')->willReturn('tenant-a');
-		$this->store = new XapiDocumentStore(objectService: $this->xapiObjectService(store: $this->rows), config: $config);
+		$this->store = new XapiDocumentStore(objectService: $this->xapiObjectService(store: $this->rows), config: $config, codec: new XapiDocumentCodec());
 	}//end setUp()
 
 	/**
@@ -147,14 +148,14 @@ class XapiDocumentStoreTest extends TestCase {
 		$refused = 0;
 		try {
 			$this->store->merge(key: $this->stateKey('progress'), contents: '[1,2]', context: []);
-		} catch (InvalidArgumentException $e) {
+		} catch (XapiRequestException $e) {
 			$refused++;
 		}
 
 		$this->store->put(key: $this->stateKey('text'), contents: 'plain text', contentType: 'text/plain', context: []);
 		try {
 			$this->store->merge(key: $this->stateKey('text'), contents: '{"a":1}', context: []);
-		} catch (InvalidArgumentException $e) {
+		} catch (XapiRequestException $e) {
 			$refused++;
 		}
 

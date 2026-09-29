@@ -29,6 +29,8 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\Cmi5LaunchController;
 use OCA\Learniq\Service\Cmi5LaunchTokenService;
+use OCA\Learniq\Service\Cmi5LaunchSessions;
+use OCA\Learniq\Service\XapiDocumentCodec;
 use OCA\Learniq\Service\XapiDocumentStore;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\Learniq\Tests\Support\XapiDocumentsInMemory;
@@ -126,7 +128,7 @@ class Cmi5LaunchControllerTest extends TestCase {
 			$docObjects->method('saveObject')->willThrowException(new RuntimeException('storage down'));
 		}
 
-		$documents = new XapiDocumentStore(objectService: $docObjects, config: $config);
+		$documents = new XapiDocumentStore(objectService: $docObjects, config: $config, codec: new XapiDocumentCodec());
 
 		$urls = $this->createMock(IURLGenerator::class);
 		$urls->method('getAbsoluteURL')->willReturnCallback(static fn (string $path): string => 'https://school.example' . $path);
@@ -136,11 +138,14 @@ class Cmi5LaunchControllerTest extends TestCase {
 			userSession: $session,
 			objectService: $objects,
 			tokens: $tokens,
-			cacheFactory: $factory,
-			secureRandom: $random,
-			urlGenerator: $urls,
-			documents: $documents,
-			logger: new NullLogger()
+			sessions: new Cmi5LaunchSessions(
+				documents: $documents,
+				cacheFactory: $factory,
+				secureRandom: $random,
+				urlGenerator: $urls,
+				logger: new NullLogger()
+			),
+			urlGenerator: $urls
 		);
 	}//end controller()
 
@@ -208,7 +213,7 @@ class Cmi5LaunchControllerTest extends TestCase {
 		self::assertCount(1, $this->documentRows->rows['xapi-document']);
 		$row = $this->documentRows->rows['xapi-document'][0];
 		self::assertSame('state', $row['kind']);
-		self::assertSame(Cmi5LaunchController::LAUNCH_DATA_STATE_ID, $row['documentId']);
+		self::assertSame(Cmi5LaunchSessions::LAUNCH_DATA_STATE_ID, $row['documentId']);
 		self::assertSame('pupil1', $row['verified_actor_id']);
 		self::assertSame($data['activityId'], $row['activityId']);
 		self::assertSame($data['registration'], $row['registration']);

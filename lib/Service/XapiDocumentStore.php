@@ -36,8 +36,9 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeInterface;
-use InvalidArgumentException;
+use OCA\Learniq\Exception\XapiRequestException;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\AppFramework\Http;
 use OCP\IConfig;
 use Throwable;
 
@@ -93,12 +94,14 @@ class XapiDocumentStore {
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param IConfig       $config        Reads the learner's tenant binding.
+	 * @param ObjectService     $objectService OpenRegister object access.
+	 * @param IConfig           $config        Reads the learner's tenant binding.
+	 * @param XapiDocumentCodec $codec         Encodes and fingerprints bodies.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly IConfig $config,
+		private readonly XapiDocumentCodec $codec,
 	) {
 	}//end __construct()
 
@@ -178,21 +181,21 @@ class XapiDocumentStore {
 	 *
 	 * @return string The new ETag.
 	 *
-	 * @throws InvalidArgumentException When the posted or the stored document is not a JSON object.
+	 * @throws XapiRequestException 400 when the posted or the stored document is not a JSON object.
 	 *
 	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function merge(array $key, string $contents, array $context): string {
-		$posted = $this->jsonObject(contents: $contents);
+		$posted = $this->codec->jsonObject(contents: $contents);
 		if ($posted === null) {
-			throw new InvalidArgumentException('A POST merges JSON objects: the body must be a JSON object');
+			throw new XapiRequestException(status: Http::STATUS_BAD_REQUEST, message: 'A POST merges JSON objects: the body must be a JSON object');
 		}
 
 		$existing = $this->get(key: $key);
 		if ($existing !== null) {
-			$stored = $this->jsonObject(contents: $existing['contents']);
+			$stored = $this->codec->jsonObject(contents: $existing['contents']);
 			if ($stored === null) {
-				throw new InvalidArgumentException('The stored document is not a JSON object, so it cannot be merged');
+				throw new XapiRequestException(status: Http::STATUS_BAD_REQUEST, message: 'The stored document is not a JSON object, so it cannot be merged');
 			}
 
 			$posted = array_replace($stored, $posted);
@@ -271,19 +274,6 @@ class XapiDocumentStore {
 			);
 		}
 	}//end deleteAll()
-
-	/**
-	 * The quoted xAPI ETag of a document body: the SHA-1 of its bytes.
-	 *
-	 * @param string $contents The raw body.
-	 *
-	 * @return string The ETag, with quotes.
-	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
-	 */
-	public static function etagOf(string $contents): string {
-		return '"' . sha1($contents) . '"';
-	}//end etagOf()
 
 	/**
 	 * The object id of a document: a UUID derived from its full key.
@@ -395,24 +385,18 @@ class XapiDocumentStore {
 	 * @return array{id: string, etag: string}&array<string, mixed> The row.
 	 */
 	private function row(array $key, string $contents, string $contentType, array $context): array {
-		$encoding = 'utf-8';
-		$stored   = $contents;
-		if (mb_check_encoding($contents, 'UTF-8') === false) {
-			$encoding = 'base64';
-			$stored   = base64_encode($contents);
-		}
-
+		$stored = $this->codec->encode(contents: $contents);
 		$row = [
 			'id'                => $this->documentUuid(key: $key),
 			'kind'              => $key['kind'],
 			'documentId'        => $key['documentId'],
 			'activityId'        => $key['activityId'],
 			'registration'      => $key['registration'],
-			'agent'             => is_array($context['agent'] ?? null) === true ? $context['agent'] : [],
-			'contents'          => $stored,
-			'contentEncoding'   => $encoding,
-			'contentType'       => $contentType === '' ? 'application/octet-stream' : $contentType,
-			'etag'              => self::etagOf(contents: $contents),
+			'agent'             => (array)($context['agent'] ?? []),
+			'contents'          => $stored['contents'],
+			'contentEncoding'   => $stored['contentEncoding'],
+			'contentType'       => $contentType,
+			'etag'              => $this->codec->etag(contents: $contents),
 			'updated'           => (new DateTimeImmutable())->format(DateTimeInterface::ATOM),
 			'verified_actor_id' => $key['actorId'],
 			'tenant_id'         => $key['tenantId'],
@@ -433,39 +417,15 @@ class XapiDocumentStore {
 	 * @return array{contents: string, contentType: string, etag: string, updated: string} The document.
 	 */
 	private function document(array $row): array {
-		$contents = (string)($row['contents'] ?? '');
-		if (($row['contentEncoding'] ?? 'utf-8') === 'base64') {
-			$contents = (string)base64_decode($contents, true);
-		}
+		$contents = $this->codec->decode(row: $row);
 
 		return [
 			'contents'    => $contents,
 			'contentType' => (string)($row['contentType'] ?? 'application/octet-stream'),
-			'etag'        => self::etagOf(contents: $contents),
+			'etag'        => $this->codec->etag(contents: $contents),
 			'updated'     => (string)($row['updated'] ?? ''),
 		];
 	}//end document()
-
-	/**
-	 * Decode a body as a JSON object, or null when it is anything else.
-	 *
-	 * @param string $contents The body.
-	 *
-	 * @return array<string, mixed>|null The object's members, or null.
-	 */
-	private function jsonObject(string $contents): ?array {
-		$trimmed = ltrim($contents);
-		if (str_starts_with($trimmed, '{') === false) {
-			return null;
-		}
-
-		$decoded = json_decode($trimmed, true);
-		if (is_array($decoded) === false) {
-			return null;
-		}
-
-		return $decoded;
-	}//end jsonObject()
 
 	/**
 	 * Parse an ISO 8601 timestamp.

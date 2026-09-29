@@ -25,15 +25,17 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\LrsDocumentController;
 use OCA\Learniq\Service\XapiCallerResolver;
+use OCA\Learniq\Service\XapiDocumentCodec;
+use OCA\Learniq\Service\XapiDocumentRequest;
 use OCA\Learniq\Service\XapiDocumentStore;
 use OCA\Learniq\Service\XapiRequestBody;
-use OCA\Learniq\Tests\Support\QueryRequest;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\Learniq\Tests\Support\XapiDocumentsInMemory;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataDisplayResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\IConfig;
+use OCP\IRequest;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ReflectionProperty;
@@ -84,8 +86,8 @@ class LrsDocumentControllerTest extends TestCase {
 	 * @return LrsDocumentController
 	 */
 	private function controller(array $query, string $body = '', array $headers = [], ?string $actorId = 'pupil1'): LrsDocumentController {
-		$request      = $this->createMock(QueryRequest::class);
-		$request->get = $query;
+		$request = $this->createMock(IRequest::class);
+		$request->method('getRequestUri')->willReturn('/apps/learniq/api/lrs/activities/state?' . http_build_query($query));
 		$request->method('getHeader')->willReturnCallback(static fn (string $name): string => $headers[$name] ?? '');
 		// A JSON body is decoded into the parameters by Nextcloud; it must never address a document.
 		$request->method('getParam')->willReturn('injected');
@@ -99,17 +101,18 @@ class LrsDocumentControllerTest extends TestCase {
 
 		$callers->method('resolve')->willReturn($identity);
 
-		$reader = $this->createMock(XapiRequestBody::class);
-		$reader->method('read')->willReturn($body);
+		$raw = $this->createMock(XapiRequestBody::class);
+		$raw->method('read')->willReturn($body);
 
 		$config = $this->createMock(IConfig::class);
 		$config->method('getUserValue')->willReturn('tenant-a');
+		$documents = new XapiDocumentStore(objectService: $this->xapiObjectService(store: $this->rows), config: $config, codec: new XapiDocumentCodec());
 
 		return new LrsDocumentController(
 			request: $request,
 			callers: $callers,
-			documents: new XapiDocumentStore(objectService: $this->xapiObjectService(store: $this->rows), config: $config),
-			body: $reader,
+			documents: $documents,
+			reader: new XapiDocumentRequest(documents: $documents, body: $raw),
 			logger: new NullLogger()
 		);
 	}//end controller()

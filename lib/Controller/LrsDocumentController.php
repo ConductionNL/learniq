@@ -43,12 +43,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use InvalidArgumentException;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Exception\XapiRequestException;
 use OCA\Learniq\Service\XapiCallerResolver;
 use OCA\Learniq\Service\XapiDocumentStore;
-use OCA\Learniq\Service\XapiRequestBody;
+use OCA\Learniq\Service\XapiDocumentRequest;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -81,14 +80,14 @@ class LrsDocumentController extends Controller {
 	 * @param IRequest           $request   The current request.
 	 * @param XapiCallerResolver $callers   Resolves the token or session caller.
 	 * @param XapiDocumentStore  $documents Stores the documents.
-	 * @param XapiRequestBody    $body      Reads the raw request body.
+	 * @param XapiDocumentRequest $reader   Reads the key, body and concurrency headers.
 	 * @param LoggerInterface    $logger    PSR logger.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly XapiCallerResolver $callers,
 		private readonly XapiDocumentStore $documents,
-		private readonly XapiRequestBody $body,
+		private readonly XapiDocumentRequest $reader,
 		private readonly LoggerInterface $logger,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
@@ -221,13 +220,11 @@ class LrsDocumentController extends Controller {
 		}
 
 		try {
-			$agent = $this->agentOf(actorId: $caller['actorId']);
-			$key   = $this->keyFor(kind: $kind, actorId: $caller['actorId'], needsId: $verb === 'PUT' || $verb === 'POST');
+			$agent = $this->reader->agent(request: $this->request, actorId: $caller['actorId']);
+			$key   = $this->reader->key(request: $this->request, kind: $kind, actorId: $caller['actorId'], needsId: in_array($verb, ['PUT', 'POST'], true));
 			return $this->run(verb: $verb, key: $key, context: ['agent' => $agent, 'lessonId' => $caller['launch']['lessonId'] ?? '']);
 		} catch (XapiRequestException $e) {
 			return $this->error(status: $e->getStatus(), message: $e->getMessage());
-		} catch (InvalidArgumentException $e) {
-			return $this->error(status: Http::STATUS_BAD_REQUEST, message: $e->getMessage());
 		} catch (Throwable $e) {
 			$this->logger->error('[LrsDocumentController] {verb} {kind} failed: {msg}', ['verb' => $verb, 'kind' => $kind, 'msg' => $e->getMessage()]);
 			return $this->error(status: Http::STATUS_INTERNAL_SERVER_ERROR, message: 'The document could not be processed');
@@ -243,201 +240,84 @@ class LrsDocumentController extends Controller {
 	 *
 	 * @return Response The answer.
 	 *
-	 * @throws XapiRequestException When a precondition fails or the body is too large.
+	 * @throws XapiRequestException On a failed precondition, a body that is too large, or a merge of a non-object.
 	 */
 	private function run(string $verb, array $key, array $context): Response {
 		if ($key['documentId'] === '') {
-			if ($verb === 'DELETE') {
-				$this->documents->deleteAll(key: $key);
-				return $this->noContent();
-			}
-
-			return $this->withVersion(response: new JSONResponse(data: $this->documents->listIds(key: $key, since: $this->since())));
+			return $this->runOnAll(verb: $verb, key: $key);
 		}
 
 		$existing = $this->documents->get(key: $key);
 		if ($verb === 'GET') {
-			if ($existing === null) {
-				return $this->error(status: Http::STATUS_NOT_FOUND, message: 'No such document');
-			}
-
-			return $this->withVersion(
-				response: new DataDisplayResponse(
-					data: $existing['contents'],
-					statusCode: Http::STATUS_OK,
-					headers: ['Content-Type' => $existing['contentType'], 'ETag' => $existing['etag']]
-				)
-			);
+			return $this->show(document: $existing);
 		}
 
-		$this->checkPreconditions(existing: $existing, strictPut: $verb === 'PUT' && $key['kind'] === XapiDocumentStore::KIND_AGENT_PROFILE);
+		$strictPut = $verb === 'PUT' && $key['kind'] === XapiDocumentStore::KIND_AGENT_PROFILE;
+		$this->reader->checkPreconditions(request: $this->request, current: $existing['etag'] ?? null, strictPut: $strictPut);
 		if ($verb === 'DELETE') {
 			$this->documents->delete(key: $key);
-			return $this->noContent();
+			return $this->noContent(etag: '');
 		}
 
-		$contents = $this->body->read(maxBytes: XapiDocumentStore::MAX_BYTES);
-		if (strlen($contents) > XapiDocumentStore::MAX_BYTES) {
-			throw new XapiRequestException(status: Http::STATUS_REQUEST_ENTITY_TOO_LARGE, message: 'The document is larger than ' . XapiDocumentStore::MAX_BYTES . ' bytes');
+		$contents = $this->reader->body();
+		if ($verb === 'PUT') {
+			$contentType = $this->reader->contentType(request: $this->request);
+			return $this->noContent(etag: $this->documents->put(key: $key, contents: $contents, contentType: $contentType, context: $context));
 		}
 
-		$etag = $verb === 'PUT'
-			? $this->documents->put(key: $key, contents: $contents, contentType: (string)$this->request->getHeader('Content-Type'), context: $context)
-			: $this->documents->merge(key: $key, contents: $contents, context: $context);
-
-		$response = $this->noContent();
-		$response->addHeader('ETag', $etag);
-		return $response;
+		return $this->noContent(etag: $this->documents->merge(key: $key, contents: $contents, context: $context));
 	}//end run()
 
 	/**
-	 * Enforce If-Match and If-None-Match (xAPI 1.0.3 Communication 3.1).
+	 * List the document ids under a key, or delete them all.
 	 *
-	 * @param array{etag: string}|array<string, string>|null $existing  The stored document, or null.
-	 * @param bool                                           $strictPut Whether a PUT without either header must not overwrite (agent profile).
+	 * @param string                $verb GET or DELETE (a write without an id never gets here).
+	 * @param array<string, string> $key  The key, documentId ''.
 	 *
-	 * @return void
+	 * @return Response The ids, or 204.
 	 *
-	 * @throws XapiRequestException 412 on a failed precondition, 409 on a blind overwrite.
+	 * @throws XapiRequestException 400 on a malformed `since`.
 	 */
-	private function checkPreconditions(?array $existing, bool $strictPut): void {
-		$ifMatch     = trim((string)$this->request->getHeader('If-Match'));
-		$ifNoneMatch = trim((string)$this->request->getHeader('If-None-Match'));
-		$current     = $existing['etag'] ?? null;
-
-		if ($ifMatch !== '' && ($current === null || $this->etagListHas(list: $ifMatch, etag: $current) === false)) {
-			throw new XapiRequestException(status: Http::STATUS_PRECONDITION_FAILED, message: 'If-Match does not match the current document');
+	private function runOnAll(string $verb, array $key): Response {
+		if ($verb === 'DELETE') {
+			$this->documents->deleteAll(key: $key);
+			return $this->noContent(etag: '');
 		}
 
-		if ($ifNoneMatch !== '' && $current !== null && $this->etagListHas(list: $ifNoneMatch, etag: $current) === true) {
-			throw new XapiRequestException(status: Http::STATUS_PRECONDITION_FAILED, message: 'If-None-Match matches the current document');
-		}
-
-		if ($strictPut === true && $current !== null && $ifMatch === '' && $ifNoneMatch === '') {
-			throw new XapiRequestException(
-				status: Http::STATUS_CONFLICT,
-				message: 'This document exists: send If-Match with its ETag to replace it, or If-None-Match: * to create it only when absent'
-			);
-		}
-	}//end checkPreconditions()
+		$ids = $this->documents->listIds(key: $key, since: $this->reader->since(request: $this->request));
+		return $this->withVersion(response: new JSONResponse(data: $ids));
+	}//end runOnAll()
 
 	/**
-	 * Whether a header's ETag list (or `*`) matches an ETag.
+	 * A stored document with its content type and ETag, or 404.
 	 *
-	 * @param string $list The header value.
-	 * @param string $etag The quoted ETag.
+	 * @param array{contents: string, contentType: string, etag: string, updated: string}|null $document The document.
 	 *
-	 * @return bool True on a match.
+	 * @return Response The answer.
 	 */
-	private function etagListHas(string $list, string $etag): bool {
-		foreach (explode(',', $list) as $candidate) {
-			$candidate = trim($candidate);
-			if ($candidate === '*' || $candidate === $etag || '"' . trim($candidate, '"') . '"' === $etag) {
-				return true;
-			}
+	private function show(?array $document): Response {
+		if ($document === null) {
+			return $this->error(status: Http::STATUS_NOT_FOUND, message: 'No such document');
 		}
 
-		return false;
-	}//end etagListHas()
+		$headers = ['Content-Type' => $document['contentType'], 'ETag' => $document['etag']];
+		return $this->withVersion(response: new DataDisplayResponse(data: $document['contents'], statusCode: Http::STATUS_OK, headers: $headers));
+	}//end show()
 
 	/**
-	 * The `agent` parameter, checked to be the authenticated learner.
+	 * A 204, with the new ETag after a write.
 	 *
-	 * @param string $actorId The authenticated uid.
-	 *
-	 * @return array<string, mixed> The agent as sent.
-	 *
-	 * @throws XapiRequestException 400 when absent or not JSON, 403 when it names someone else.
-	 */
-	private function agentOf(string $actorId): array {
-		$agent = json_decode($this->query(name: 'agent'), true);
-		if (is_array($agent) === false) {
-			throw new XapiRequestException(status: Http::STATUS_BAD_REQUEST, message: 'The agent parameter must be an xAPI Agent in JSON');
-		}
-
-		if ((string)($agent['account']['name'] ?? '') !== $actorId) {
-			throw new XapiRequestException(status: Http::STATUS_FORBIDDEN, message: 'The agent must be the authenticated learner');
-		}
-
-		return $agent;
-	}//end agentOf()
-
-	/**
-	 * Build the document key from the query string.
-	 *
-	 * @param string $kind    The document kind.
-	 * @param string $actorId The authenticated uid.
-	 * @param bool   $needsId Whether the verb needs a stateId or profileId.
-	 *
-	 * @return array<string, string> The key.
-	 *
-	 * @throws XapiRequestException 400 on a missing or malformed parameter.
-	 */
-	private function keyFor(string $kind, string $actorId, bool $needsId): array {
-		$activityId   = '';
-		$registration = '';
-		$documentId   = $this->query(name: 'profileId');
-		if ($kind === XapiDocumentStore::KIND_STATE) {
-			$activityId   = $this->query(name: 'activityId');
-			$registration = $this->query(name: 'registration');
-			$documentId   = $this->query(name: 'stateId');
-			if (preg_match('/^[a-z][a-z0-9+.-]*:\S+$/i', $activityId) !== 1) {
-				throw new XapiRequestException(status: Http::STATUS_BAD_REQUEST, message: 'activityId must be an IRI');
-			}
-
-			if ($registration !== '' && preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $registration) !== 1) {
-				throw new XapiRequestException(status: Http::STATUS_BAD_REQUEST, message: 'registration must be a UUID');
-			}
-		}
-
-		if ($needsId === true && $documentId === '') {
-			throw new XapiRequestException(status: Http::STATUS_BAD_REQUEST, message: 'A document id (stateId or profileId) is required');
-		}
-
-		return $this->documents->key(kind: $kind, actorId: $actorId, activityId: $activityId, registration: $registration, documentId: $documentId);
-	}//end keyFor()
-
-	/**
-	 * The `since` query parameter, validated.
-	 *
-	 * @return string The timestamp, or ''.
-	 *
-	 * @throws XapiRequestException 400 when it is not a timestamp.
-	 */
-	private function since(): string {
-		$since = $this->query(name: 'since');
-		if ($since !== '' && strtotime($since) === false) {
-			throw new XapiRequestException(status: Http::STATUS_BAD_REQUEST, message: 'since must be an ISO 8601 timestamp');
-		}
-
-		return $since;
-	}//end since()
-
-	/**
-	 * One query-string parameter. Read from the query only: a JSON document
-	 * body is decoded into the request parameters by Nextcloud, and a key in
-	 * the document must never change which document is addressed.
-	 *
-	 * @param string $name The parameter name.
-	 *
-	 * @return string The value, or ''.
-	 */
-	private function query(string $name): string {
-		$value = $this->request->get[$name] ?? '';
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return trim($value);
-	}//end query()
-
-	/**
-	 * A 204 with the xAPI version header.
+	 * @param string $etag The document's new ETag, or '' after a delete.
 	 *
 	 * @return Response The response.
 	 */
-	private function noContent(): Response {
-		return $this->withVersion(response: new Response(status: Http::STATUS_NO_CONTENT));
+	private function noContent(string $etag): Response {
+		$response = new Response(status: Http::STATUS_NO_CONTENT);
+		if ($etag !== '') {
+			$response->addHeader('ETag', $etag);
+		}
+
+		return $this->withVersion(response: $response);
 	}//end noContent()
 
 	/**

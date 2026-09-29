@@ -96,3 +96,23 @@
 - [x] 7.3 Unit tests: `Cmi5LaunchTokenServiceTest::testAuthTokenIsNotReadAsANextcloudLoginAndVerifies` and
       `::testInvalidAuthTokensAreRefused`; `Cmi5LaunchControllerTest::testLaunchAndSingleUseFetch` asserts the
       fetch URL hands out the wrapped token.
+
+## 8. xAPI State and Agent Profile
+
+- [x] 8.1 `LrsDocumentController`: xAPI 1.0.3 State resource (GET, PUT, POST as a JSON merge, DELETE on
+      `/api/lrs/activities/state`, keyed by `activityId`, `agent`, optional `registration` and `stateId`; GET and
+      DELETE without `stateId` list or delete the stateIds) and Agent Profile resource (the same verbs on
+      `/api/lrs/agents/profile`, keyed by `agent` and `profileId`).
+- [x] 8.2 Authenticate exactly as statements do (`XapiCallerResolver`, shared with `LrsController`); the `agent`
+      parameter must name the authenticated learner (403 otherwise) and the stored key uses the identity from
+      the credential. Key parameters are read from the query string only.
+- [x] 8.3 Concurrency: ETag (quoted SHA-1 of the bytes) on GET and on every write; `If-Match` and
+      `If-None-Match` honoured on writes and deletes (412); a PUT over an existing agent profile without
+      either header is 409. Every response carries `X-Experience-API-Version: 1.0.3`.
+- [x] 8.4 The launch writes `LMS.LaunchData` (cmi5 section 10.2.1) before it hands out a fetch code, and answers
+      503 without one when the write fails.
+- [ ] 8.5 Register: add the `xapi-document` schema (fragment in `design.md`). Until it ships, the tests declare it
+      through `RegisterFaithfulStore::declarePending()`, and a live launch answers 503 `cmi5_launch_data_failed`.
+- [x] 8.6 Unit tests: `LrsDocumentControllerTest` (every verb on both resources, refusals, concurrency),
+      `XapiDocumentStoreTest`, `XapiCallerResolverTest`, and `Cmi5LaunchControllerTest::testLaunchWritesLaunchData`,
+      `::testLaunchDataDefaults`, `::testNoLaunchWithoutLaunchData`.
