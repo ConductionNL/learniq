@@ -139,7 +139,7 @@ class CredentialSigningService {
 	 *
 	 * @return array<string,string>|null The proof, or null when the tenant cannot sign.
 	 *
-	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
+	 * @spec openspec/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
 	 */
 	public function proofFor(array $payload, string $tenantId, string $issuerDid): ?array {
 		$jws = $this->signPayload(payload: $payload, tenantId: $tenantId);
@@ -184,7 +184,7 @@ class CredentialSigningService {
 	 *                                  set, or null when it cannot be signed (no
 	 *                                  key for the tenant, or signing failed).
 	 *
-	 * @spec openspec/changes/credentials-europass-edci-export/tasks.md#task-1-prove-or-repair-the-signing-path
+	 * @spec openspec/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
 	 */
 	public function sign(array $credential): ?array {
 		if ((string)($credential['id'] ?? '') === '') {
@@ -204,7 +204,7 @@ class CredentialSigningService {
 	 *
 	 * @return string The UUID.
 	 *
-	 * @spec openspec/changes/credentials-europass-edci-export/tasks.md#task-1-prove-or-repair-the-signing-path
+	 * @spec openspec/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
 	 */
 	private function newCredentialId(): string {
 		$bytes = random_bytes(16);

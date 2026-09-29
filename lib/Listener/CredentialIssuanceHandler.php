@@ -246,7 +246,7 @@ class CredentialIssuanceHandler implements IEventListener {
 	 *
 	 * @return string The School name, or '' when the tenant has no School record.
 	 *
-	 * @spec openspec/changes/credentials-europass-edci-export/tasks.md#task-1-prove-or-repair-the-signing-path
+	 * @spec openspec/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
 	 */
 	private function resolveIssuerName(string $tenantId): string {
 		$schools = $this->objectService->findAll(

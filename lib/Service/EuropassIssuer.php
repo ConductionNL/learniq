@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
+ * @spec openspec/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
  */
 
 declare(strict_types=1);
@@ -42,7 +42,7 @@ use OCP\IAppConfig;
 /**
  * Builds and signs the Europass form of a credential.
  *
- * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
+ * @spec openspec/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
  */
 class EuropassIssuer {
 
@@ -89,7 +89,7 @@ class EuropassIssuer {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#scenario-a-training-certificate-gets-its-europass-form
+	 * @spec openspec/specs/certification/spec.md#scenario-a-training-certificate-gets-its-europass-form
 	 */
 	public function withEuropass(array $credential): array {
 		if (in_array(($credential['kind'] ?? ''), EdciPayloadBuilder::KINDS, true) === false) {
@@ -114,7 +114,7 @@ class EuropassIssuer {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
+	 * @spec openspec/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
 	 */
 	public function payloadFor(array $credential): ?array {
 		$course = $this->read(schema: 'course', id: (string)($credential['courseId'] ?? ''));
@@ -208,7 +208,7 @@ class EuropassIssuer {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
+	 * @spec openspec/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
 	 */
 	private function learner(string $learnerId): ?array {
 		if ($learnerId === '') {
