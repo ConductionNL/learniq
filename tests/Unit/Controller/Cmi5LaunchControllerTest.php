@@ -220,7 +220,8 @@ class Cmi5LaunchControllerTest extends TestCase {
 		self::assertSame($data['actor'], $row['agent']);
 		self::assertSame('application/json', $row['contentType']);
 
-		$launchData = json_decode($row['contents'], true);
+		self::assertSame('base64', $row['contentEncoding'], 'stored as base64, so OpenRegister cannot decode it into an object');
+		$launchData = json_decode((string)base64_decode($row['contents'], true), true);
 		self::assertSame('Normal', $launchData['launchMode']);
 		self::assertSame('Completed', $launchData['moveOn']);
 		self::assertSame(0.8, $launchData['masteryScore']);
@@ -244,7 +245,7 @@ class Cmi5LaunchControllerTest extends TestCase {
 
 		$this->controller(enabled: true, lesson: $lesson)->launch(lessonId: 'lesson-1');
 
-		$launchData = json_decode($this->documentRows->rows['xapi-document'][0]['contents'], true);
+		$launchData = json_decode((string)base64_decode($this->documentRows->rows['xapi-document'][0]['contents'], true), true);
 		self::assertSame('NotApplicable', $launchData['moveOn']);
 		self::assertArrayNotHasKey('masteryScore', $launchData);
 		self::assertArrayNotHasKey('launchParameters', $launchData);
