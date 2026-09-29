@@ -63,7 +63,8 @@
 - [x] `openspec validate scholiq-mcp-adoption --type change --strict` passes
 - [x] Manual testing against acceptance criteria (non-admin sees no drafts; admin does): not run, no instance in this lane
   - r5-live, 2026-09-29, shared dev instance, through OpenRegister MCP (`POST /apps/openregister/api/mcp`, tools/call `course_search`), with one draft and one published course: admin with filter lifecycle=draft gets the draft; a temporary user in `learners` gets 0 results for drafts and sees the published course; the learner's `course_get` on the draft id answers "not found".
-- [ ] Code review against spec requirements
+- [x] Code review against spec requirements
+  - Review: openspec/changes/scholiq-mcp-adoption/review.md, 11 requirements (6 added, 5 removed), 16 scenarios; all 27 rows MET, two removed-requirement clauses superseded by hermiq-ai-tooling REQ-006. This PR adds tests for the exact REQ-004 filter lists, the exact REQ-005 staff readers (no `admin`) and the REQ-006 no-provider registration.
 
 ## Tests (company-wide ADR-009)
 - [x] PHPUnit: the deleted `ScholiqToolProviderTest` is removed, not skipped; zero new failures vs a self-measured baseline (`composer test`)

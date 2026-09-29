@@ -391,7 +391,7 @@ class LearniqAgentTools {
 		return [
 			'credentialId'       => (string)($credential['id'] ?? ''),
 			'learnerId'          => $learnerId,
-			'learnerDisplayName' => $this->displayName(uid: $learnerId),
+			'learnerDisplayName' => $this->answer->displayName(uid: $learnerId),
 			'courseId'           => (string)($credential['courseId'] ?? ''),
 			'courseTitle'        => (string)($course['title'] ?? ''),
 			'expiresAt'          => (string)($credential['expiresAt'] ?? ''),
@@ -526,17 +526,6 @@ class LearniqAgentTools {
 
 		return $result;
 	}//end all()
-
-	/**
-	 * A user's display name, or the uid when unknown.
-	 *
-	 * @param string $uid The uid.
-	 *
-	 * @return string The name.
-	 */
-	private function displayName(string $uid): string {
-		return $this->answer->displayName(uid: $uid);
-	}//end displayName()
 
 	/**
 	 * The note every agent write carries, so the record says a tool made it.
