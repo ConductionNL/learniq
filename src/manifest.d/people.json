@@ -51,6 +51,29 @@
 					}
 				},
 				{
+					"id": "SignUpRequestsMenu",
+					"label": "Sign-up requests",
+					"icon": "AccountGroup",
+					"route": "Enrolments",
+					"order": 21,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"hr",
+								"team-lead",
+								"administration-manager",
+								"admin"
+							]
+						}
+					},
+					"query": {
+						"source": "self",
+						"lifecycle": "pending"
+					}
+				},
+				{
 					"id": "Attendance",
 					"label": "Attendance",
 					"icon": "Calendar",
@@ -622,7 +645,32 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "download-europass",
+						"label": "Download for Europass",
+						"icon": "FileCertificateOutline",
+						"type": "api-call",
+						"url": "/apps/learniq/api/credentials/@objectId/europass/download",
+						"method": "POST",
+						"download": true,
+						"filename": "europass.jsonld",
+						"refresh": false,
+						"errorMessage": "This certificate has no Europass version yet, or you may not download it."
+					},
+					{
+						"id": "create-europass",
+						"label": "Create Europass version",
+						"icon": "CertificateOutline",
+						"type": "api-call",
+						"url": "/apps/learniq/api/credentials/@objectId/europass",
+						"method": "POST",
+						"confirm": true,
+						"successMessage": "The Europass version was created.",
+						"errorMessage": "The Europass version could not be created. It exists already, the certificate is not issued, or only HR and compliance officers can create it."
+					}
+				]
 			}
 		},
 		{

@@ -22,6 +22,10 @@
 			<p class="attendance-register__session">
 				{{ session.title }} · {{ formatDate(session.startsAt) }}
 			</p>
+			<SelfCheckInPanel
+				v-if="rows.length > 0"
+				:session="session"
+				@checkedIn="mergeCheckIns" />
 
 			<NcEmptyContent
 				v-if="rows.length === 0"
@@ -54,6 +58,11 @@
 						<tr v-for="(row, index) in rows" :key="row.learnerId">
 							<th scope="row">
 								{{ learnerName(row.learnerId) }}
+								<span
+									v-if="row.markedVia === 'self-check-in'"
+									class="attendance-register__self">
+									{{ t('learniq', 'checked in') }}
+								</span>
 							</th>
 							<td>
 								<select
@@ -106,6 +115,7 @@ import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
+import SelfCheckInPanel from '../components/SelfCheckInPanel.vue'
 import {
 	ATTENDANCE_STATUSES,
 	attendanceRecord,
@@ -113,12 +123,19 @@ import {
 	listRows,
 	objectsUrl,
 	oneObject,
+	registerRowsToSave,
 } from '../utils/customPages.js'
 
 export default {
 	name: 'AttendanceRegisterView',
 
-	components: { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard },
+	components: {
+		NcButton,
+		NcEmptyContent,
+		NcLoadingIcon,
+		NcNoteCard,
+		SelfCheckInPanel,
+	},
 
 	props: {
 		/** Session UUID from the route. */
@@ -172,17 +189,7 @@ export default {
 					)
 					learnerIds = cohort.learnerIds ?? []
 				}
-				const records = listRows(
-					(
-						await axios.get(
-							generateUrl(objectsUrl('attendance-record')),
-							{
-								params: { sessionId: this.sessionId, _limit: 500 },
-							},
-						)
-					).data,
-				)
-				this.rows = attendanceRows(learnerIds, records)
+				this.rows = attendanceRows(learnerIds, await this.loadRecords())
 				await this.loadNames(learnerIds)
 			} catch {
 				this.loadError = this.t(
@@ -192,6 +199,45 @@ export default {
 			} finally {
 				this.loading = false
 			}
+		},
+
+		/**
+		 * The saved AttendanceRecords of this lesson.
+		 *
+		 * @return {Promise<object[]>}
+		 * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
+		 */
+		async loadRecords() {
+			return listRows(
+				(
+					await axios.get(generateUrl(objectsUrl('attendance-record')), {
+						params: { sessionId: this.sessionId, _limit: 500 },
+					})
+				).data,
+			)
+		},
+
+		/**
+		 * Bring in self check-ins that arrived while the register is open,
+		 * without touching rows the teacher already has a saved mark for.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+		 */
+		async mergeCheckIns() {
+			let records
+			try {
+				records = await this.loadRecords()
+			} catch {
+				return
+			}
+			const fresh = attendanceRows(
+				this.rows.map((r) => r.learnerId),
+				records,
+			)
+			this.rows = this.rows.map((row, index) =>
+				!row.recordId && fresh[index].recordId ? fresh[index] : row,
+			)
 		},
 
 		/**
@@ -283,7 +329,7 @@ export default {
 			const markedBy = getCurrentUser()?.uid ?? ''
 			const markedAt = new Date().toISOString()
 			const failed = []
-			for (const row of this.rows) {
+			for (const row of registerRowsToSave(this.rows)) {
 				const body = attendanceRecord(row, this.session, markedBy, markedAt)
 				try {
 					if (row.recordId) {
@@ -304,6 +350,9 @@ export default {
 						)
 						row.recordId = created.id ?? created.uuid ?? ''
 					}
+					row.markedVia = 'teacher'
+					row.savedStatus = row.status
+					row.savedReason = row.reason ?? ''
 				} catch {
 					failed.push(this.learnerName(row.learnerId))
 				}
@@ -322,6 +371,16 @@ export default {
 </script>
 
 <style scoped>
+.attendance-register__self {
+	margin-inline-start: var(--default-grid-baseline, 4px);
+	padding: 0 6px;
+	border-radius: var(--border-radius-pill, 12px);
+	background-color: var(--color-primary-element-light);
+	color: var(--color-primary-element-light-text);
+	font-size: 0.85em;
+	font-weight: normal;
+}
+
 .attendance-register {
 	padding: calc(var(--default-grid-baseline, 4px) * 4);
 	max-inline-size: 60rem;

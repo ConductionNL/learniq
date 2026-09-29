@@ -57,6 +57,7 @@ import BookConferenceSlotsView from './views/BookConferenceSlotsView.vue'
 // view below — both routes were unreachable at HEAD; fixed here alongside).
 import BsaRiskDashboard from './views/BsaRiskDashboard.vue'
 import BulkEnrolView from './views/BulkEnrolView.vue'
+import CheckInPage from './views/CheckInPage.vue'
 import CohortGradebookView from './views/CohortGradebookView.vue'
 import CohortTimetableView from './views/CohortTimetableView.vue'
 import ConferenceScheduleBoard from './views/ConferenceScheduleBoard.vue'
@@ -74,6 +75,7 @@ import ConferenceScheduleBoard from './views/ConferenceScheduleBoard.vue'
 // pre-existing gap ItemAuthorView/LessonPlayer/PortfolioBuilder already
 // ship with, not one this change introduces.
 import CourseBuilder from './views/CourseBuilder.vue'
+import CourseCatalogue from './views/CourseCatalogue.vue'
 // course-package-import-export: the one genuine new custom view this change
 // adds — uploads a Common Cartridge/Moodle course package and renders the
 // resulting CoursePackageImportReport's entries table. Course export reuses
@@ -149,6 +151,7 @@ import MarkSubmissionView from './views/MarkSubmissionView.vue'
 import MyLearningRecordView from './views/MyLearningRecordView.vue'
 // personal-timetable: the signed-in user's own week view over Session objects.
 import MyTimetable from './views/MyTimetable.vue'
+import MyWorkGroups from './views/MyWorkGroups.vue'
 import PeerReviewMarkingView from './views/PeerReviewMarkingView.vue'
 import PeopleDashboard from './views/PeopleDashboard.vue'
 // eportfolio: the learner's evidence-picker portfolio builder and the
@@ -243,6 +246,8 @@ export default {
 	// learniq#947
 	AttendanceRegisterView: page(AttendanceRegisterView),
 	BulkEnrolView: page(BulkEnrolView),
+	CheckInPage: page(CheckInPage),
+	CourseCatalogue: page(CourseCatalogue),
 	CohortGradebookView: page(CohortGradebookView),
 	CohortTimetableView: page(CohortTimetableView),
 	ExportRequestView: page(ExportRequestView),
@@ -283,6 +288,7 @@ export default {
 	LessonComposer: page(LessonComposer),
 	LessonPlayer: page(LessonPlayer),
 	MarkSubmissionView: page(MarkSubmissionView),
+	MyWorkGroups: page(MyWorkGroups),
 	AllocateMarkersView: page(AllocateMarkersView),
 	MyLearningRecordView: page(MyLearningRecordView),
 	MyTimetable: page(MyTimetable),

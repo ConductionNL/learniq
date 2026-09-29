@@ -36,7 +36,7 @@ namespace OCA\Learniq\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\KeyManagementService;
+use OCA\Learniq\Service\JwsProofVerifier;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
@@ -93,7 +93,7 @@ class CredentialVerifyController extends Controller {
 	 *
 	 * @param IRequest $request The HTTP request.
 	 * @param ObjectService $objectService OR object-read service.
-	 * @param KeyManagementService $keyManagementService Key resolution service for JWS verify.
+	 * @param JwsProofVerifier $proofs Verifies a payload's detached JWS against the tenant key.
 	 * @param IThrottler $throttler Brute-force throttler counting failed verifications.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
@@ -102,7 +102,7 @@ class CredentialVerifyController extends Controller {
 	public function __construct(
 		IRequest $request,
 		private readonly ObjectService $objectService,
-		private readonly KeyManagementService $keyManagementService,
+		private readonly JwsProofVerifier $proofs,
 		private readonly IThrottler $throttler,
 		private readonly LoggerInterface $logger,
 	) {
@@ -216,6 +216,85 @@ class CredentialVerifyController extends Controller {
 	}//end verify()
 
 	/**
+	 * Check a Europass file for a credential (credentials-europass-edci-export).
+	 *
+	 * Body: `europass`, the JSON-LD file the holder downloaded. The file's JWS
+	 * must verify against the tenant key and the file must equal the stored
+	 * `edciPayload`; the answer is validity only, never the stored payload,
+	 * so this public route leaks no name. Unknown ids are counted by the
+	 * brute-force throttler like the GET.
+	 *
+	 * @param string $id Credential UUID.
+	 *
+	 * @return JSONResponse {valid, issuedAt, expiresAt, issuerName} or {valid: false, error}.
+	 *
+	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-the-europass-form-is-checkable-on-the-verification-route
+	 */
+	#[NoCSRFRequired]
+	#[PublicPage]
+	#[AnonRateLimit(limit: 60, period: 60)]
+	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
+	public function verifyEuropass(string $id): JSONResponse {
+		$file = $this->request->getParam('europass');
+		if (is_array($file) === false) {
+			return new JSONResponse(['valid' => false, 'error' => 'no_file'], 400);
+		}
+
+		try {
+			$credentialObj = $this->objectService->find(id: $id, register: 'learniq', schema: 'credential');
+		} catch (DoesNotExistException | MultipleObjectsReturnedException) {
+			$credentialObj = null;
+		}
+
+		if ($credentialObj === null) {
+			$this->registerFailedVerification();
+			return new JSONResponse(['valid' => false, 'error' => 'not_found'], 404);
+		}
+
+		$data = $credentialObj->jsonSerialize();
+		$error = $this->europassError(file: $file, stored: $data['edciPayload'] ?? null, tenantId: (string)($data['tenant_id'] ?? ''));
+		if ($error !== null) {
+			return new JSONResponse(['valid' => false, 'error' => $error]);
+		}
+
+		$valid = (($data['lifecycle'] ?? 'issued') === 'issued') && (($data['isExpired'] ?? false) !== true);
+
+		return new JSONResponse(
+			[
+				'valid' => $valid,
+				'issuedAt' => $data['issuedAt'] ?? null,
+				'expiresAt' => $data['expiresAt'] ?? null,
+				'issuerName' => $data['issuedBy'] ?? null,
+			]
+		);
+	}//end verifyEuropass()
+
+	/**
+	 * Why a Europass file is not valid for the stored form, or null.
+	 *
+	 * @param array<string,mixed> $file     The file sent.
+	 * @param mixed               $stored   The stored `edciPayload`.
+	 * @param string              $tenantId The credential's tenant.
+	 *
+	 * @return string|null `no_europass`, `not_matching`, `signature_invalid`, or null.
+	 */
+	private function europassError(array $file, mixed $stored, string $tenantId): ?string {
+		if (is_array($stored) === false) {
+			return 'no_europass';
+		}
+
+		if ($this->proofs->canonical(payload: $file) !== $this->proofs->canonical(payload: $stored)) {
+			return 'not_matching';
+		}
+
+		if ($this->proofs->verify(payload: $file, tenantId: $tenantId) === false) {
+			return 'signature_invalid';
+		}
+
+		return null;
+	}//end europassError()
+
+	/**
 	 * Validate the RS256 JWS proof embedded in a credential's openbadges3Payload.
 	 *
 	 * Extracts the `kid` from the JWS protected header, resolves the matching
@@ -244,156 +323,6 @@ class CredentialVerifyController extends Controller {
 			return true;
 		}
 
-		$jws = $proof['jws'] ?? null;
-		if (is_string($jws) === false || $jws === '') {
-			// Proof block exists but has no jws field — treat as invalid.
-			return false;
-		}
-
-		// Parse kid from JWS protected header.
-		$kid = $this->extractKidFromJws(jws: $jws);
-		if ($kid === null) {
-			return false;
-		}
-
-		if ($tenantId === '') {
-			return false;
-		}
-
-		$publicKeyPem = $this->keyManagementService->resolvePublicKeyByFingerprint(
-			tenantId: $tenantId,
-			fingerprint: $kid
-		);
-		if ($publicKeyPem === null) {
-			return false;
-		}
-
-		return $this->verifyJwsSignature(jws: $jws, payload: $ob3Payload, publicKeyPem: $publicKeyPem);
+		return $this->proofs->verify(payload: $ob3Payload, tenantId: $tenantId);
 	}//end validateJwsProof()
-
-	/**
-	 * Extract the `kid` value from a compact JWS protected header.
-	 *
-	 * The JWS format produced by CredentialSigningService is:
-	 *   <base64url-header>..<base64url-signature>   (detached payload, b64:false)
-	 *
-	 * @param string $jws Compact JWS string.
-	 *
-	 * @return string|null The kid value, or null if unparseable.
-	 */
-	private function extractKidFromJws(string $jws): ?string {
-		// JWS with detached payload: "<header>..<signature>" — split on first '.'.
-		$dotPos = strpos($jws, '.');
-		if ($dotPos === false) {
-			return null;
-		}
-
-		$headerB64 = substr($jws, 0, $dotPos);
-		if ($headerB64 === '') {
-			return null;
-		}
-
-		// Decode base64url → JSON.
-		$padded = str_pad($headerB64, (int)ceil(strlen($headerB64) / 4) * 4, '=');
-		$headerJson = base64_decode(strtr($padded, '-_', '+/'), strict: true);
-		if ($headerJson === false) {
-			return null;
-		}
-
-		$header = json_decode($headerJson, associative: true);
-		if (is_array($header) === false) {
-			return null;
-		}
-
-		$kid = $header['kid'] ?? null;
-		if (is_string($kid) === false || $kid === '') {
-			return null;
-		}
-
-		return $kid;
-	}//end extractKidFromJws()
-
-	/**
-	 * Verify an RS256 JWS signature using the provided public key.
-	 *
-	 * Recomputes the signing input (<header>.<payload>) and calls openssl_verify.
-	 * The payload is the canonicalised (json_encode) OB3 payload WITHOUT the proof
-	 * block, matching what CredentialSigningService::signPayload signed.
-	 *
-	 * @param string $jws Compact JWS string (detached payload, b64:false).
-	 * @param array<string,mixed> $payload The full OB3 payload (proof block will be excluded).
-	 * @param string $publicKeyPem PEM-encoded RSA public key.
-	 *
-	 * @return bool True when openssl_verify returns 1 (valid).
-	 */
-	private function verifyJwsSignature(string $jws, array $payload, string $publicKeyPem): bool {
-		// Split: "<header>..<signature>" → header and signature parts.
-		$parts = explode('..', $jws, 2);
-		if (count($parts) !== 2) {
-			return false;
-		}
-
-		[$headerB64, $sigB64] = $parts;
-		if ($headerB64 === '' || $sigB64 === '') {
-			return false;
-		}
-
-		// The signing input is header + '.' + canonicalised payload WITHOUT proof.
-		// Remove the proof block to match what was signed.
-		$payloadToVerify = $payload;
-		unset($payloadToVerify['proof']);
-
-		// H6: RFC 8785 (JCS) — sort keys recursively before encoding so that the
-		// verify-side signing input matches the sign-side input exactly.
-		$payloadToVerify = $this->canonicalisePayload(payload: $payloadToVerify);
-
-		$canonicalised = json_encode($payloadToVerify, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-		if ($canonicalised === false) {
-			return false;
-		}
-
-		$signingInput = $headerB64 . '.' . $canonicalised;
-
-		// Decode base64url signature.
-		$padded = str_pad($sigB64, (int)ceil(strlen($sigB64) / 4) * 4, '=');
-		$signature = base64_decode(strtr($padded, '-_', '+/'), strict: true);
-		if ($signature === false) {
-			return false;
-		}
-
-		$pubKey = openssl_pkey_get_public($publicKeyPem);
-		if ($pubKey === false) {
-			return false;
-		}
-
-		$result = openssl_verify($signingInput, $signature, $pubKey, OPENSSL_ALGO_SHA256);
-
-		return $result === 1;
-	}//end verifyJwsSignature()
-
-	/**
-	 * Recursively sort an array's keys (RFC 8785 JCS) for deterministic JSON output.
-	 *
-	 * Mirrors CredentialSigningService::canonicalisePayload so that the verify-side
-	 * signing input is byte-for-byte identical to the sign-side input.
-	 *
-	 * @param array<string,mixed> $payload The payload to canonicalise.
-	 *
-	 * @return array<string,mixed> The same data with all object-level keys sorted.
-	 */
-	private function canonicalisePayload(array $payload): array {
-		$isObject = count(array_filter(array_keys($payload), 'is_string')) > 0;
-
-		if ($isObject === true) {
-			ksort($payload, SORT_STRING);
-		}
-
-		foreach ($payload as $key => $value) {
-			if (is_array($value) === true) {
-				$payload[$key] = $this->canonicalisePayload(payload: $value);
-			}
-		}
-
-		return $payload;
-	}//end canonicalisePayload()
 }//end class
