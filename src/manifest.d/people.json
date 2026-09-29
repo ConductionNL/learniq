@@ -589,6 +589,7 @@
 						"id": "cred-calendar",
 						"type": "integration",
 						"integrationId": "calendar",
+						"requiredApp": "calendar",
 						"title": "Agenda",
 						"icon": "CalendarClockOutline"
 					}
@@ -2043,6 +2044,7 @@
 						"id": "lp-contact",
 						"type": "integration",
 						"integrationId": "contacts",
+						"requiredApp": "contacts",
 						"title": "Contact card",
 						"icon": "AccountBoxOutline"
 					}
