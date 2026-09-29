@@ -1,9 +1,9 @@
+const webpackConfig = require('@nextcloud/webpack-vue-config')
+const fs = require('fs')
 // SPDX-License-Identifier: EUPL-1.2
 const path = require('path')
-const fs = require('fs')
-const webpack = require('webpack')
-const webpackConfig = require('@nextcloud/webpack-vue-config')
 const { VueLoaderPlugin } = require('vue-loader')
+const webpack = require('webpack')
 
 const buildMode = process.env.NODE_ENV
 const isDev = buildMode === 'development'
@@ -23,6 +23,11 @@ webpackConfig.entry = {
 	adminSettings: {
 		import: path.join(__dirname, 'src', 'settings.js'),
 		filename: appId + '-settings.js',
+	},
+	// The public hall-screen page (timetabling-display-screens): no app shell.
+	display: {
+		import: path.join(__dirname, 'src', 'display.js'),
+		filename: appId + '-display.js',
 	},
 }
 

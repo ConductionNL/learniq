@@ -81,12 +81,6 @@ if (is_dir($serverTestsLib)) {
 	$loader->register(true);
 }
 
-// IMcpToolProvider stub — loaded when the openregister runtime (PR #1466) is absent.
-// This lets LearniqToolProvider unit tests run in standalone CI environments.
-if (interface_exists(\OCA\OpenRegister\Mcp\IMcpToolProvider::class) === false) {
-	include_once __DIR__ . '/Stubs/Mcp/IMcpToolProvider.php';
-}
-
 // ObjectEntity stub — loaded when the openregister runtime is absent.
 // Required by CredentialVerifyControllerTest to mock ObjectService::find().
 if (class_exists(\OCA\OpenRegister\Db\ObjectEntity::class) === false) {
@@ -159,6 +153,11 @@ if (class_exists(\OCA\OpenRegister\Service\TalkLinkService::class) === false) {
 // interface hierarchy without this stub in a standalone `docker run php:8.3-cli` run.
 if (interface_exists(\OC\Hooks\Emitter::class) === false) {
 	include_once __DIR__ . '/Stubs/Hooks/Emitter.php';
+}
+
+// Symfony HeaderUtils stub, as in tests/bootstrap.php: DataDownloadResponse needs it.
+if (class_exists(\Symfony\Component\HttpFoundation\HeaderUtils::class) === false) {
+	include_once __DIR__ . '/Stubs/Symfony/HeaderUtils.php';
 }
 
 // Test-support helpers. Deliberately required rather than registered in

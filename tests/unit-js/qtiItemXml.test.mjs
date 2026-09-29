@@ -5,7 +5,7 @@
 // stamp the QTI 3.0 namespace on the same markup, which no QTI 3.0 tool can
 // read.
 //
-// @spec openspec/changes/grading-defects-from-example-sets/specs/assessment/spec.md#requirement-items-are-stored-as-qti-21-and-labelled-as-qti-21
+// @spec openspec/specs/assessment/spec.md#requirement-items-are-stored-as-qti-21-and-labelled-as-qti-21
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'

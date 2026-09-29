@@ -11,7 +11,7 @@
  this field starts empty and only a new value, or "remove the token", changes
  what is stored.
 
- @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
+ @spec openspec/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
 -->
 <template>
 	<NcSettingsSection
@@ -121,7 +121,7 @@ export default {
 		 * The token field's help: whether one is stored, never its value.
 		 *
 		 * @return {string} The help text.
-		 * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
+		 * @spec openspec/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
 		 */
 		tokenHelp() {
 			return this.tokenSet
@@ -145,7 +145,7 @@ export default {
 		 * Read the stored connection (without the token).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
+		 * @spec openspec/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
 		 */
 		async load() {
 			this.loading = true
@@ -167,7 +167,7 @@ export default {
 		 * Save the connection. The token travels only when a new one is typed.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
+		 * @spec openspec/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
 		 */
 		async save() {
 			this.saving = true
@@ -205,7 +205,7 @@ export default {
 		 *
 		 * @param {object} data `{url, register, tokenSet}` from the server.
 		 * @return {void}
-		 * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
+		 * @spec openspec/specs/course-management/spec.md#requirement-an-administrator-connects-the-course-registry-in-the-admin-settings
 		 */
 		apply(data) {
 			this.url = typeof data?.url === 'string' ? data.url : ''

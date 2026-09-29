@@ -7,7 +7,6 @@
 		"frontend (.js)": {
 			"strictGaps": {
 				"nl": [
-					"Address",
 					"Age (Years)",
 					"Allergies",
 					"Append-only log of the school's follow-up handling for this incident (a check-in the next day, a referral to a doctor, a return-to-play decision). Each addition MUST be a new audited version of the appendOnly incident (ADR-008) — never an in-place edit of a prior entry. Same shape as BehaviourIncident.followUpActions.",
@@ -19,6 +18,7 @@
 					"Emergency Contact Entry",
 					"Emergency Contacts",
 					"Emergency contacts to reach when no guardian in guardianRefs is reachable, e.g. a grandparent or neighbour with no Learniq identity of their own (finding G-new-12). Ordered by priority; the first entry is called first.",
+					"Emergency contacts to reach when no guardian in guardianRefs is reachable, e.g. a grandparent or neighbour with no Scholiq identity of their own (finding G-new-12). Ordered by priority; the first entry is called first.",
 					"First-aid-incident lifecycle state.",
 					"FirstAidIncident",
 					"Flag Kind",
@@ -119,7 +119,6 @@
 		"backend (.json)": {
 			"strictGaps": {
 				"nl": [
-					"Address",
 					"Age (Years)",
 					"Allergies",
 					"Append-only log of the school's follow-up handling for this incident (a check-in the next day, a referral to a doctor, a return-to-play decision). Each addition MUST be a new audited version of the appendOnly incident (ADR-008) — never an in-place edit of a prior entry. Same shape as BehaviourIncident.followUpActions.",
@@ -131,6 +130,7 @@
 					"Emergency Contact Entry",
 					"Emergency Contacts",
 					"Emergency contacts to reach when no guardian in guardianRefs is reachable, e.g. a grandparent or neighbour with no Learniq identity of their own (finding G-new-12). Ordered by priority; the first entry is called first.",
+					"Emergency contacts to reach when no guardian in guardianRefs is reachable, e.g. a grandparent or neighbour with no Scholiq identity of their own (finding G-new-12). Ordered by priority; the first entry is called first.",
 					"First-aid-incident lifecycle state.",
 					"FirstAidIncident",
 					"Flag Kind",

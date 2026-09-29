@@ -36,7 +36,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
+ * @spec openspec/changes/archive/2026-09-28-oso-inbound-contract/tasks.md#task-2
  */
 
 declare(strict_types=1);
@@ -57,7 +57,7 @@ use Psr\Log\LoggerInterface;
  * on the same transition: OpenRegister calls guards by value, so a guard can
  * not write onto the object (learniq#983).
  *
- * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
+ * @spec openspec/changes/archive/2026-09-28-oso-inbound-contract/tasks.md#task-2
  */
 class OsoImportAcceptGuard implements LifecycleGuardInterface {
 
@@ -98,7 +98,7 @@ class OsoImportAcceptGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny when the caller may not accept.
 	 *
-	 * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
+	 * @spec openspec/changes/archive/2026-09-28-oso-inbound-contract/tasks.md#task-2
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -126,7 +126,7 @@ class OsoImportAcceptGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when the user is in admin / coordinators.
 	 *
-	 * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
+	 * @spec openspec/changes/archive/2026-09-28-oso-inbound-contract/tasks.md#task-2
 	 */
 	private function actorIsAuthorised(string $actor): bool {
 		$user = $this->userManager->get($actor);

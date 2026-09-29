@@ -42,7 +42,7 @@ class CompetencyAttainmentRollupJobTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-rollup-followups/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
+	 * @spec openspec/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
 	 */
 	public function testRunsEachEntryAndSurvivesAFailure(): void {
 		$runs = [];

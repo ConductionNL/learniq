@@ -16,9 +16,9 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
  * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
- * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
  */
 
 declare(strict_types=1);
@@ -90,7 +90,7 @@ class SegmentServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#scenario-the-wizard-stored-company
+	 * @spec openspec/specs/nextcloud-app/spec.md#scenario-the-wizard-stored-company
 	 */
 	public function testARowSetByAnExistingUserIsAChoice(): void {
 		$rows = [self::row('corporate', '2026-09-27T10:00:00+00:00', 'admin')];
@@ -104,7 +104,7 @@ class SegmentServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#scenario-only-the-generated-demo-rows-exist
+	 * @spec openspec/specs/nextcloud-app/spec.md#scenario-only-the-generated-demo-rows-exist
 	 */
 	public function testTheGeneratedDemoRowsAreNotAChoice(): void {
 		$path = __DIR__ . '/../../../lib/Settings/learniq_mock_register.json';
@@ -176,7 +176,7 @@ class SegmentServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#scenario-no-settings-record-yet
+	 * @spec openspec/specs/nextcloud-app/spec.md#scenario-no-settings-record-yet
 	 */
 	public function testDefaultsToCorporateWithoutARow(): void {
 		self::assertSame('corporate', $this->service([])->currentSegment());
@@ -199,7 +199,7 @@ class SegmentServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#scenario-several-rows-the-newest-wins
+	 * @spec openspec/specs/nextcloud-app/spec.md#scenario-several-rows-the-newest-wins
 	 */
 	public function testTheNewestRowWins(): void {
 		$rows = [
@@ -251,7 +251,7 @@ class SegmentServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#scenario-a-failed-read-does-not-break-the-page
+	 * @spec openspec/specs/nextcloud-app/spec.md#scenario-a-failed-read-does-not-break-the-page
 	 */
 	public function testAFailedReadFallsBackAndLogs(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -291,7 +291,7 @@ class SegmentServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#scenario-the-code-lists-and-the-schema-agree
+	 * @spec openspec/specs/nextcloud-app/spec.md#scenario-the-code-lists-and-the-schema-agree
 	 */
 	public function testTheListMatchesTheSchemaEnum(): void {
 		$path     = __DIR__ . '/../../../lib/Settings/learniq_register.json';

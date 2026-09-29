@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-serves-its-gate-decision-over-http-for-people
+ * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-serves-its-gate-decision-over-http-for-people
  */
 
 declare(strict_types=1);
@@ -46,7 +46,7 @@ use Throwable;
  * The same decision the gate event gets, without the records. Integriq itself
  * never calls this route: a scheduled run has no session (ADR-041).
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-serves-its-gate-decision-over-http-for-people
+ * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-serves-its-gate-decision-over-http-for-people
  */
 class ExchangeGateController extends Controller {
 
@@ -80,7 +80,7 @@ class ExchangeGateController extends Controller {
 	 *
 	 * @return JSONResponse `{jobId, decision, code, reason, checkedAt}`, or 401/403/404.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-serves-its-gate-decision-over-http-for-people
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-serves-its-gate-decision-over-http-for-people
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

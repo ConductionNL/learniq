@@ -40,7 +40,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
- * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile
+ * @spec openspec/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile
  */
 
 declare(strict_types=1);
@@ -128,7 +128,7 @@ class LearnerRefResolver {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile
+	 * @spec openspec/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile
 	 */
 	public function resolveAcrossTenants(string $learnerId): ?string {
 		if ($learnerId === '') {
@@ -192,8 +192,8 @@ class LearnerRefResolver {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/assignment-portal-wiring/specs/assignments/spec.md#requirement-the-server-stamps-who-a-submission-belongs-to
-	 * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile
+	 * @spec openspec/specs/assignments/spec.md#requirement-the-server-stamps-who-a-submission-belongs-to
+	 * @spec openspec/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile
 	 */
 	public function byRef(string $learnerRef): ?array {
 		if ($learnerRef === '') {

@@ -1,5 +1,7 @@
 # Design: leaf-integrations
 
+> Round 5 (2026-09-28): polls and the Cohort calendar and forms leaves are dropped by decision D1 (communication lives in portaliq). The built surface is calendar on Session, Assignment and Credential; forms on Assignment; contacts on LearnerProfile and Praktijkopleider; deck on BpvPlacement. See tasks.md.
+
 ## Context
 
 OpenRegister ships a pluggable integration registry (`lib/Service/Integration/IntegrationRegistry.php`) with ~17 app-agnostic leaf providers under `lib/Service/Integration/Providers/` — verified ids include `calendar`, `contacts`, `forms`, `deck`, `polls`, `talk`, `files`, `email`, `maps`, `photos`, `shares`, `bookmarks`, `collectives`, `notes`, `activity`, `time-tracker`, `analytics`. Consumption is a three-stage filter (AD-5 of `pluggable-integration-registry`):

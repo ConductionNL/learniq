@@ -122,7 +122,7 @@ class EnrolmentStatutoryFieldsRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
 	 */
 	public function testSeedFixturesExerciseCombinationGroupLeerjaarSplit(): void {
 		$cohortId = self::poObject(schema: 'cohort', field: 'name', value: 'Groep 5/6')['uuid'];

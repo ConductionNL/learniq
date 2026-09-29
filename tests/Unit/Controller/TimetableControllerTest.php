@@ -33,6 +33,7 @@ if (class_exists('\\OCA\\Planninq\\Event\\TimetableSessionsQueryEvent') === fals
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Controller\TimetableController;
+use OCA\Learniq\Service\LessonNoteReader;
 use OCA\Learniq\Service\TimetableProjector;
 use OCA\Learniq\Timetabling\Source\LocalSessionTimetableSource;
 use OCA\Learniq\Timetabling\Source\PlanninqTimetableSource;
@@ -42,6 +43,7 @@ use OCP\App\IAppManager;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IAppConfig;
+use OCP\IGroupManager;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
@@ -150,7 +152,10 @@ class TimetableControllerTest extends TestCase {
 			request: $this->createMock(IRequest::class),
 			userSession: $this->userSession,
 			objectService: $this->objectService,
-			projector: new TimetableProjector(logger: $this->logger),
+			projector: new TimetableProjector(
+				logger: $this->logger,
+				noteReader: new LessonNoteReader($this->objectService, $this->groupManager(), $this->logger)
+			),
 			sources: new TimetableSourceResolver(
 				$config,
 				new LocalSessionTimetableSource($this->objectService),
@@ -159,6 +164,32 @@ class TimetableControllerTest extends TestCase {
 			logger: $this->logger,
 		);
 	}//end controller()
+
+	/**
+	 * Groups of the signed-in user, for the lesson note reader.
+	 *
+	 * @var array<int,string>
+	 */
+	private array $callerGroups = [];
+
+	/**
+	 * Lesson notes served for the `lesson-note` schema.
+	 *
+	 * @var array<int,array<string,mixed>>
+	 */
+	private array $notes = [];
+
+	/**
+	 * A group manager that answers from $callerGroups.
+	 *
+	 * @return IGroupManager
+	 */
+	private function groupManager(): IGroupManager {
+		$groups = $this->createMock(IGroupManager::class);
+		$groups->method('isAdmin')->willReturn(false);
+		$groups->method('isInGroup')->willReturnCallback(fn (string $uid, string $group): bool => in_array($group, $this->callerGroups, true));
+		return $groups;
+	}//end groupManager()
 
 	/**
 	 * Make IUserSession return a user with the given uid.
@@ -224,6 +255,11 @@ class TimetableControllerTest extends TestCase {
 							}
 						)
 					);
+				}
+
+				if ($schema === 'lesson-note') {
+					$cohort = $filters['cohortId'] ?? null;
+					return array_values(array_filter($this->notes, static fn (array $n): bool => ($n['cohortId'] ?? null) === $cohort));
 				}
 
 				if ($schema === 'room') {
@@ -600,7 +636,7 @@ class TimetableControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
 	 */
 	public function testMineReadsPlanninqByCohortAndTeacher(): void {
 		$this->signInAs('jan');
@@ -637,7 +673,7 @@ class TimetableControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
 	 */
 	public function testCohortTimetableReadsThroughTheSource(): void {
 		$this->signInAs('jan');
@@ -687,4 +723,94 @@ class TimetableControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
 		$this->assertSame([], $this->planninqQueries);
 	}//end testUnreadableCohortIsForbiddenAndReadsNothing()
+	/**
+	 * The lesson note fixtures: one for learners and one for the covering
+	 * teacher on s-1 (cohort-1), and one on another cohort's lesson.
+	 *
+	 * @return void
+	 */
+	private function seedNotes(): void {
+		$this->notes = [
+			['id' => 'n-1', 'sessionId' => 's-1', 'cohortId' => 'cohort-1', 'topic' => 'Hoofdstuk 4', 'text' => 'Neem je rekenmachine mee', 'audience' => 'learners', 'authorId' => 'tom'],
+			['id' => 'n-2', 'sessionId' => 's-1', 'cohortId' => 'cohort-1', 'topic' => null, 'text' => 'Opgave 12 tot 18', 'audience' => 'cover', 'authorId' => 'tom'],
+			['id' => 'n-3', 'sessionId' => 's-9', 'cohortId' => 'cohort-9', 'topic' => null, 'text' => 'Other', 'audience' => 'learners', 'authorId' => 'other'],
+		];
+	}//end seedNotes()
+
+	/**
+	 * The cohort and lessons the note tests share.
+	 *
+	 * @param array<string,mixed> $extra Extra fields on s-1.
+	 *
+	 * @return void
+	 */
+	private function wireNoteLessons(array $extra = []): void {
+		$cohorts = [
+			['id' => 'cohort-1', 'learnerIds' => ['alice'], 'teacherIds' => ['tom']],
+			['id' => 'cohort-9', 'learnerIds' => ['zoe'], 'teacherIds' => ['other']],
+		];
+		$sessions = [
+			array_merge(['id' => 's-1', 'cohortId' => 'cohort-1', 'title' => 'Wiskunde B', 'startsAt' => '2026-01-07T13:00:00+00:00', 'endsAt' => '2026-01-07T14:00:00+00:00'], $extra),
+			['id' => 's-9', 'cohortId' => 'cohort-9', 'title' => 'Other', 'startsAt' => '2026-01-07T15:00:00+00:00', 'endsAt' => '2026-01-07T16:00:00+00:00'],
+		];
+		$this->seedNotes();
+		$this->wireFindAll($cohorts, [], $sessions);
+	}//end wireNoteLessons()
+
+	/**
+	 * A learner sees the note for learners on their lesson, and never the cover note.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+	 */
+	public function testLearnerSeesLearnerNoteButNeverTheCoverNote(): void {
+		$this->signInAs('alice');
+		$this->wireNoteLessons();
+
+		$out = $this->body($this->controller()->mine(from: $this->from, to: $this->to));
+
+		$this->assertSame(['s-1'], array_column($out['sessions'], 'id'));
+		$notes = $out['sessions'][0]['notes'];
+		$this->assertSame(['n-1'], array_column($notes, 'id'));
+		$this->assertSame('Hoofdstuk 4', $notes[0]['topic']);
+		$this->assertNotContains('cover', array_column($notes, 'audience'));
+		// A learner may not add a note.
+		$this->assertFalse($out['sessions'][0]['canAddNote']);
+	}//end testLearnerSeesLearnerNoteButNeverTheCoverNote()
+
+	/**
+	 * The lesson's teacher sees both notes.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
+	 */
+	public function testTeacherSeesEveryNoteOfTheirLesson(): void {
+		$this->signInAs('tom');
+		$this->wireNoteLessons();
+
+		$out = $this->body($this->controller()->mine(from: $this->from, to: $this->to));
+
+		$this->assertSame(['n-1', 'n-2'], array_column($out['sessions'][0]['notes'], 'id'));
+		$this->assertTrue($out['sessions'][0]['canAddNote']);
+	}//end testTeacherSeesEveryNoteOfTheirLesson()
+
+	/**
+	 * A substitute gets the lesson they cover, marked cover, with the cover note.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
+	 */
+	public function testSubstituteSeesTheCoverNote(): void {
+		$this->signInAs('eva');
+		$this->wireNoteLessons(extra: ['substituteTeacherId' => 'eva']);
+
+		$out = $this->body($this->controller()->mine(from: $this->from, to: $this->to));
+
+		$this->assertSame(['s-1'], array_column($out['sessions'], 'id'));
+		$this->assertTrue($out['sessions'][0]['cover']);
+		$this->assertSame(['n-1', 'n-2'], array_column($out['sessions'][0]['notes'], 'id'));
+	}//end testSubstituteSeesTheCoverNote()
 }//end class

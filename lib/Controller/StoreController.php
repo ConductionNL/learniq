@@ -225,7 +225,7 @@ class StoreController extends Controller {
 	 * @return JSONResponse `{outcome, slug}`; 403 `forbidden`; 422 with `blockers`; 501 `publish_not_supported`; see PUBLISH_STATUS for the rest.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
-	 * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-the-plane-decides-who-may-publish-before-a-package-is-built
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-plane-decides-who-may-publish-before-a-package-is-built
 	 */
 	#[NoAdminRequired]
 	public function publish(string $courseId=''): JSONResponse {
@@ -283,7 +283,7 @@ class StoreController extends Controller {
 	 *
 	 * @return JSONResponse|null 501 when OpenRegister has no publish path, 403 when the plane refuses the user.
 	 *
-	 * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-the-plane-decides-who-may-publish-before-a-package-is-built
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-plane-decides-who-may-publish-before-a-package-is-built
 	 */
 	private function publishRefusal(IUser $user): ?JSONResponse {
 		if ($this->publisher->supportsPublish() === false) {

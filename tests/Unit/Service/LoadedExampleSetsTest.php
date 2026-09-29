@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  */
 
 declare(strict_types=1);
@@ -72,7 +72,7 @@ class LoadedExampleSetsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#scenario-two-sets-were-loaded
+	 * @spec openspec/specs/example-sets/spec.md#scenario-two-sets-were-loaded
 	 */
 	public function testRecordKeepsOneEntryAndForgetDropsIt(): void {
 		$written = new \ArrayObject();
@@ -91,7 +91,7 @@ class LoadedExampleSetsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
 	 */
 	public function testRemovalStepsAndActionIds(): void {
 		$sets = $this->sets(value: '');
@@ -111,7 +111,7 @@ class LoadedExampleSetsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#scenario-removing-one-of-two-loaded-sets
+	 * @spec openspec/specs/example-sets/spec.md#scenario-removing-one-of-two-loaded-sets
 	 */
 	public function testOnlyACleanRemovalForgetsTheSet(): void {
 		$written = new \ArrayObject();

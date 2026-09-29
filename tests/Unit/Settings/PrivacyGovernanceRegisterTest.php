@@ -139,7 +139,7 @@ class PrivacyGovernanceRegisterTest extends TestCase {
 	 * approve and reject lifecycle, and its seed never blocks a real exchange.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+	 * @spec   openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
 	public function testPartnerApprovalIsAStandingRecordPerTarget(): void {
 		$schema = $this->config['components']['schemas']['ExchangePartnerApproval'] ?? null;

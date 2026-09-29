@@ -323,6 +323,36 @@
             }
           },
           {
+            "id": "ContactHoursReport",
+            "label": "Contact hours",
+            "description": "Per group and course the contact hours owed by the hour plan, the hours given and the hours each learner attended.",
+            "icon": "CalendarClockOutline",
+            "category": "attendance",
+            "route": "ContactHoursReport",
+            "visibleIf": {
+              "workspace.chosenSegment": {
+                "notIn": [
+                  "corporate"
+                ]
+              }
+            }
+          },
+          {
+            "id": "EnrolmentForecast",
+            "label": "Enrolment forecast",
+            "description": "Next year's learners and groups per programme year and subject, from this year's groups, progression rates and subject choices.",
+            "icon": "TrendingUp",
+            "category": "progress",
+            "route": "EnrolmentForecast",
+            "visibleIf": {
+              "workspace.chosenSegment": {
+                "notIn": [
+                  "corporate"
+                ]
+              }
+            }
+          },
+          {
             "id": "FinalGrades",
             "label": "Final grades",
             "description": "The final grade per pupil and subject, as it was decided.",
@@ -418,6 +448,29 @@
               "workspace.chosenSegment": {
                 "notIn": [
                   "corporate"
+                ]
+              }
+            }
+          },
+          {
+            "id": "RoomUtilisationReport",
+            "label": "Room use",
+            "description": "How many of the open hours each room is used, and how full it is.",
+            "icon": "OfficeBuilding",
+            "category": "quality",
+            "route": "RoomUtilisationReport",
+            "visibleIf": {
+              "workspace.chosenSegment": {
+                "notIn": [
+                  "corporate"
+                ]
+              },
+              "user.primaryRole": {
+                "in": [
+                  "instructor",
+                  "coordinator",
+                  "administration-manager",
+                  "admin"
                 ]
               }
             }

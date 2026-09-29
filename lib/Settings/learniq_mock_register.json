@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.30",
+    "version": "1.1.42",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -21016,7 +21016,9 @@
         "peerReviewersPerSubmission": 2,
         "peerReviewAnonymity": "open",
         "peerReviewAllocationStrategy": "round-robin",
-        "peerReviewDueAt": "2026-03-01T09:00:00+00:00"
+        "peerReviewDueAt": "2026-03-01T09:00:00+00:00",
+        "markersPerSubmission": 2,
+        "finalGradeRule": "manual"
       },
       {
         "@self": {
@@ -21039,7 +21041,7 @@
         "allowLateSubmission": false,
         "latePenaltyPercent": 0,
         "rubricId": "00000000-0000-4000-8000-000000000001",
-        "groupSubmission": false,
+        "groupSubmission": true,
         "visibleFrom": "2026-03-02T09:00:00+00:00",
         "visibleUntil": "2026-03-02T09:00:00+00:00",
         "plagiarismProvider": "Voorbeeld Plagiarismprovider 2",
@@ -21049,7 +21051,8 @@
         "peerReviewersPerSubmission": 2,
         "peerReviewAnonymity": "blind",
         "peerReviewAllocationStrategy": "random",
-        "peerReviewDueAt": "2026-03-02T09:00:00+00:00"
+        "peerReviewDueAt": "2026-03-02T09:00:00+00:00",
+        "workGroupSetName": "Project campagne periode 2"
       },
       {
         "@self": {
@@ -21157,7 +21160,8 @@
         "cohortId": "00000000-0000-4000-8000-000000000000",
         "minutesAttended": 1,
         "reason": "Voorbeeld Reason 1",
-        "excuseRequestId": "00000000-0000-4000-8000-000000000000"
+        "excuseRequestId": "00000000-0000-4000-8000-000000000000",
+        "markedVia": "self-check-in"
       },
       {
         "@self": {
@@ -21175,7 +21179,8 @@
         "cohortId": "00000000-0000-4000-8000-000000000001",
         "minutesAttended": 2,
         "reason": "Voorbeeld Reason 2",
-        "excuseRequestId": "00000000-0000-4000-8000-000000000001"
+        "excuseRequestId": "00000000-0000-4000-8000-000000000001",
+        "markedVia": "self-check-in"
       },
       {
         "@self": {
@@ -21193,7 +21198,53 @@
         "cohortId": "00000000-0000-4000-8000-000000000002",
         "minutesAttended": 3,
         "reason": "Voorbeeld Reason 3",
-        "excuseRequestId": "00000000-0000-4000-8000-000000000002"
+        "excuseRequestId": "00000000-0000-4000-8000-000000000002",
+        "markedVia": "teacher"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "CheckInWindow",
+          "slug": "checkinwindow-wiskunde-b-1"
+        },
+        "sessionId": "00000000-0000-4000-8000-000000000000",
+        "openedBy": "j.devries",
+        "opensAt": "2026-09-22T08:30:00+00:00",
+        "closesAt": "2026-09-22T08:45:00+00:00",
+        "lateAfterMinutes": 5,
+        "mode": "rotating-qr",
+        "lifecycle": "closed",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "CheckInWindow",
+          "slug": "checkinwindow-wiskunde-b-2"
+        },
+        "sessionId": "00000000-0000-4000-8000-000000000001",
+        "openedBy": "j.devries",
+        "opensAt": "2026-09-23T08:30:00+00:00",
+        "closesAt": "2026-09-23T08:45:00+00:00",
+        "lateAfterMinutes": 5,
+        "mode": "link",
+        "lifecycle": "closed",
+        "tenant_id": "00000000-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "CheckInWindow",
+          "slug": "checkinwindow-wiskunde-b-3"
+        },
+        "sessionId": "00000000-0000-4000-8000-000000000002",
+        "openedBy": "j.devries",
+        "opensAt": "2026-09-29T08:30:00+00:00",
+        "closesAt": "2026-09-29T08:45:00+00:00",
+        "lateAfterMinutes": 5,
+        "mode": "rotating-qr",
+        "lifecycle": "open",
+        "tenant_id": "00000000-0000-4000-8000-000000000002"
       },
       {
         "@self": {
@@ -22328,13 +22379,14 @@
         "ectsCredits": 0.0,
         "competencyIds": [],
         "prerequisiteCourseIds": [],
-        "license": "CC-BY-SA-4.0",
-        "author": "Voorbeeldschool, sectie Nederlands",
+        "license": "all-rights-reserved",
         "subject": "Nederlandse taal",
         "educationalLevels": [
           "havo",
           "vwo"
-        ]
+        ],
+        "selfEnrolment": "on-request",
+        "author": "Go1"
       },
       {
         "@self": {
@@ -22378,7 +22430,8 @@
             "depth": null
           }
         ],
-        "prerequisiteCourseIds": []
+        "prerequisiteCourseIds": [],
+        "selfEnrolment": "on-request"
       },
       {
         "@self": {
@@ -22409,7 +22462,9 @@
         ],
         "ectsCredits": 1.0,
         "competencyIds": [],
-        "prerequisiteCourseIds": []
+        "prerequisiteCourseIds": [],
+        "selfEnrolment": "open",
+        "author": "Go1"
       },
       {
         "@self": {
@@ -23261,8 +23316,9 @@
         "reason": "Voorbeeld Reason 1",
         "regulationSlug": "Voorbeeld Regulationslug 1",
         "cohortId": "00000000-0000-4000-8000-000000000000",
-        "lifecycle": "pending",
-        "progressPercent": 1.0
+        "lifecycle": "active",
+        "progressPercent": 1.0,
+        "requestedAt": "2026-09-20T10:00:00+00:00"
       },
       {
         "@self": {
@@ -23273,7 +23329,7 @@
         "learnerId": "Voorbeeld Learnerid 2",
         "courseId": "00000000-0000-4000-8000-000000000001",
         "tenant_id": "00000000-0000-4000-8000-000000000001",
-        "source": "manager",
+        "source": "self",
         "learnerRef": "00000000-0000-4000-8000-000000000001",
         "mandatory": false,
         "dueDate": "2026-03-02",
@@ -23282,8 +23338,9 @@
         "reason": "Voorbeeld Reason 2",
         "regulationSlug": "Voorbeeld Regulationslug 2",
         "cohortId": "00000000-0000-4000-8000-000000000001",
-        "lifecycle": "active",
-        "progressPercent": 2.0
+        "lifecycle": "pending",
+        "progressPercent": 2.0,
+        "requestedAt": "2026-09-20T10:00:00+00:00"
       },
       {
         "@self": {
@@ -23294,7 +23351,7 @@
         "learnerId": "Voorbeeld Learnerid 3",
         "courseId": "00000000-0000-4000-8000-000000000002",
         "tenant_id": "00000000-0000-4000-8000-000000000002",
-        "source": "hr",
+        "source": "self",
         "learnerRef": "00000000-0000-4000-8000-000000000002",
         "mandatory": false,
         "dueDate": "2026-03-03",
@@ -23303,8 +23360,10 @@
         "reason": "Voorbeeld Reason 3",
         "regulationSlug": "Voorbeeld Regulationslug 3",
         "cohortId": "00000000-0000-4000-8000-000000000002",
-        "lifecycle": "completed",
-        "progressPercent": 3.0
+        "lifecycle": "withdrawn",
+        "progressPercent": 3.0,
+        "requestedAt": "2026-09-20T10:00:00+00:00",
+        "declineReason": "Deze cursus start pas in het voorjaar."
       },
       {
         "@self": {
@@ -26448,7 +26507,8 @@
         ],
         "credentialTemplateId": "00000000-0000-4000-8000-000000000000",
         "requiredCompetencyIds": [],
-        "lifecycle": "draft"
+        "lifecycle": "draft",
+        "selfEnrolment": "open"
       },
       {
         "@self": {
@@ -26467,7 +26527,8 @@
         ],
         "credentialTemplateId": "00000000-0000-4000-8000-000000000001",
         "requiredCompetencyIds": [],
-        "lifecycle": "published"
+        "lifecycle": "published",
+        "selfEnrolment": "closed"
       },
       {
         "@self": {
@@ -26486,7 +26547,8 @@
         ],
         "credentialTemplateId": "00000000-0000-4000-8000-000000000002",
         "requiredCompetencyIds": [],
-        "lifecycle": "archived"
+        "lifecycle": "archived",
+        "selfEnrolment": "closed"
       },
       {
         "@self": {
@@ -27292,7 +27354,11 @@
           }
         ],
         "proposedGrade": 1.0,
-        "lifecycle": "draft"
+        "lifecycle": "draft",
+        "markerIds": [
+          "j.devries",
+          "a.bakker"
+        ]
       },
       {
         "@self": {
@@ -27323,7 +27389,11 @@
           }
         ],
         "proposedGrade": 2.0,
-        "lifecycle": "submitted"
+        "lifecycle": "submitted",
+        "markerIds": [
+          "j.devries",
+          "a.bakker"
+        ]
       },
       {
         "@self": {
@@ -27355,6 +27425,57 @@
         ],
         "proposedGrade": 3.0,
         "lifecycle": "late"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "SubmissionMark",
+          "slug": "submissionmark-afstudeerverslag-devries"
+        },
+        "submissionId": "00000000-0000-4000-8000-000000000000",
+        "assignmentId": "00000000-0000-4000-8000-000000000000",
+        "markerId": "j.devries",
+        "rubricScores": [],
+        "proposedGrade": 7.5,
+        "feedbackText": "Sterke analyse, conclusie te kort.",
+        "submittedAt": "2026-06-20T14:00:00+00:00",
+        "submittedBy": "j.devries",
+        "lifecycle": "submitted",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "SubmissionMark",
+          "slug": "submissionmark-afstudeerverslag-bakker"
+        },
+        "submissionId": "00000000-0000-4000-8000-000000000000",
+        "assignmentId": "00000000-0000-4000-8000-000000000000",
+        "markerId": "a.bakker",
+        "rubricScores": [],
+        "proposedGrade": 6.8,
+        "feedbackText": "Methode onvoldoende verantwoord.",
+        "submittedAt": "2026-06-21T09:30:00+00:00",
+        "submittedBy": "a.bakker",
+        "lifecycle": "submitted",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "SubmissionMark",
+          "slug": "submissionmark-afstudeerverslag-wachtend"
+        },
+        "submissionId": "00000000-0000-4000-8000-000000000001",
+        "assignmentId": "00000000-0000-4000-8000-000000000000",
+        "markerId": "a.bakker",
+        "rubricScores": [],
+        "proposedGrade": null,
+        "feedbackText": null,
+        "submittedAt": null,
+        "submittedBy": null,
+        "lifecycle": "draft",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
       },
       {
         "@self": {
@@ -28034,6 +28155,99 @@
         "ncGroupId": "Voorbeeld Ncgroupid 1",
         "lifecycle": "planned",
         "reportCardTemplateId": "00000000-0000-4000-8000-0000000000f1"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "WorkGroup",
+          "slug": "workgroup-campagne-groep-1"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "setName": "Project campagne periode 2",
+        "name": "Groep 1",
+        "maxMembers": 4,
+        "memberIds": [
+          "s.ahmed",
+          "l.devries",
+          "t.jansen",
+          "m.bakker"
+        ],
+        "selfJoinUntil": "2026-11-16T23:59:00+00:00",
+        "lifecycle": "open",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "WorkGroup",
+          "slug": "workgroup-campagne-groep-2"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "setName": "Project campagne periode 2",
+        "name": "Groep 2",
+        "maxMembers": 4,
+        "memberIds": [
+          "k.visser",
+          "n.smit",
+          "r.mulder",
+          "e.bos"
+        ],
+        "selfJoinUntil": "2026-11-16T23:59:00+00:00",
+        "lifecycle": "open",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "WorkGroup",
+          "slug": "workgroup-campagne-groep-3"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "setName": "Project campagne periode 2",
+        "name": "Groep 3",
+        "maxMembers": 4,
+        "memberIds": [
+          "j.dekker",
+          "a.peters",
+          "f.hendriks",
+          "d.vos"
+        ],
+        "selfJoinUntil": "2026-11-16T23:59:00+00:00",
+        "lifecycle": "open",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "WorkGroup",
+          "slug": "workgroup-campagne-groep-4"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "setName": "Project campagne periode 2",
+        "name": "Groep 4",
+        "maxMembers": 4,
+        "memberIds": [
+          "y.koster",
+          "b.meijer"
+        ],
+        "selfJoinUntil": "2026-11-16T23:59:00+00:00",
+        "lifecycle": "open",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "WorkGroup",
+          "slug": "workgroup-campagne-groep-5"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "setName": "Project campagne periode 2",
+        "name": "Groep 5",
+        "maxMembers": 4,
+        "memberIds": [],
+        "selfJoinUntil": "2026-11-16T23:59:00+00:00",
+        "lifecycle": "open",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
       },
       {
         "@self": {
@@ -29085,6 +29299,465 @@
         "confirmedAt": "2026-03-03T09:00:00+00:00",
         "note": "Voorbeeld Note 3",
         "tenant_id": "00000000-0000-4000-8000-000000000002"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "timetable-visibility-policy",
+          "slug": "timetable-visibility-policy-timetablevisibilitypolicy-1-1"
+        },
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "learnerSeesGroups": "own",
+        "learnerSeesTeachers": "none",
+        "learnerSeesRooms": "none",
+        "instructorSeesGroups": "own",
+        "instructorSeesTeachers": "own",
+        "instructorSeesRooms": "all"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "timetable-visibility-policy",
+          "slug": "timetable-visibility-policy-timetablevisibilitypolicy-2-2"
+        },
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "learnerSeesGroups": "all",
+        "learnerSeesTeachers": "related",
+        "learnerSeesRooms": "related",
+        "instructorSeesGroups": "all",
+        "instructorSeesTeachers": "all",
+        "instructorSeesRooms": "all"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "timetable-visibility-policy",
+          "slug": "timetable-visibility-policy-timetablevisibilitypolicy-3-3"
+        },
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "learnerSeesGroups": "own",
+        "learnerSeesTeachers": "all",
+        "learnerSeesRooms": "all",
+        "instructorSeesGroups": "own",
+        "instructorSeesTeachers": "own",
+        "instructorSeesRooms": "all"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "standby-slot",
+          "slug": "standby-slot-standbyslot-1-1"
+        },
+        "teacherId": "Voorbeeld Teacherid 1",
+        "startsAt": "00:00",
+        "endsAt": "00:00",
+        "validFrom": "2026-03-01",
+        "validUntil": "2026-03-01",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "weekday": "monday",
+        "date": "2026-03-01",
+        "vestigingId": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "standby-slot",
+          "slug": "standby-slot-standbyslot-2-2"
+        },
+        "teacherId": "Voorbeeld Teacherid 2",
+        "startsAt": "11:11",
+        "endsAt": "11:11",
+        "validFrom": "2026-03-02",
+        "validUntil": "2026-03-02",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "weekday": "tuesday",
+        "date": "2026-03-02",
+        "vestigingId": "00000000-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "standby-slot",
+          "slug": "standby-slot-standbyslot-3-3"
+        },
+        "teacherId": "Voorbeeld Teacherid 3",
+        "startsAt": "02:22",
+        "endsAt": "02:22",
+        "validFrom": "2026-03-03",
+        "validUntil": "2026-03-03",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "weekday": "wednesday",
+        "date": "2026-03-03",
+        "vestigingId": "00000000-0000-4000-8000-000000000002"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "hour-plan",
+          "slug": "hour-plan-voorbeeld-name-1-1"
+        },
+        "programmeId": "00000000-0000-4000-8000-000000000000",
+        "intakeYear": "0123-0123",
+        "durationYears": 1,
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "name": "Voorbeeld Name 1",
+        "periodsPerYear": [],
+        "lines": [],
+        "yearNorms": [],
+        "lifecycle": "draft"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "hour-plan",
+          "slug": "hour-plan-voorbeeld-name-2-2"
+        },
+        "programmeId": "00000000-0000-4000-8000-000000000001",
+        "intakeYear": "1234-1234",
+        "durationYears": 2,
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "name": "Voorbeeld Name 2",
+        "periodsPerYear": [],
+        "lines": [],
+        "yearNorms": [],
+        "lifecycle": "active"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "hour-plan",
+          "slug": "hour-plan-voorbeeld-name-3-3"
+        },
+        "programmeId": "00000000-0000-4000-8000-000000000002",
+        "intakeYear": "2345-2345",
+        "durationYears": 3,
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "name": "Voorbeeld Name 3",
+        "periodsPerYear": [],
+        "lines": [],
+        "yearNorms": [],
+        "lifecycle": "archived"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lesson-note",
+          "slug": "lesson-note-lessonnote-1-1"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "text": "Voorbeeld Text 1",
+        "audience": "learners",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "sessionId": "00000000-0000-4000-8000-000000000000",
+        "timetableSessionRef": {
+          "sourceSystem": "Voorbeeld Sourcesystem 1",
+          "externalRef": "Voorbeeld Externalref 1"
+        },
+        "topic": "Voorbeeld Topic 1",
+        "authorId": "Voorbeeld Authorid 1"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lesson-note",
+          "slug": "lesson-note-lessonnote-2-2"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000001",
+        "text": "Voorbeeld Text 2",
+        "audience": "cover",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "sessionId": "00000000-0000-4000-8000-000000000001",
+        "timetableSessionRef": {
+          "sourceSystem": "Voorbeeld Sourcesystem 2",
+          "externalRef": "Voorbeeld Externalref 2"
+        },
+        "topic": "Voorbeeld Topic 2",
+        "authorId": "Voorbeeld Authorid 2"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lesson-note",
+          "slug": "lesson-note-lessonnote-3-3"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000002",
+        "text": "Voorbeeld Text 3",
+        "audience": "learners",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "sessionId": "00000000-0000-4000-8000-000000000002",
+        "timetableSessionRef": {
+          "sourceSystem": "Voorbeeld Sourcesystem 3",
+          "externalRef": "Voorbeeld Externalref 3"
+        },
+        "topic": "Voorbeeld Topic 3",
+        "authorId": "Voorbeeld Authorid 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "session-change-batch",
+          "slug": "session-change-batch-sessionchangebatch-1-1"
+        },
+        "kind": "cancel",
+        "sessionIds": [],
+        "changeReasonKind": "teacher-absence",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "substituteTeacherId": null,
+        "roomId": null,
+        "changeReason": null,
+        "results": [],
+        "appliedCount": 3,
+        "lessonDates": "3-3-2026, 10-3-2026, 17-3-2026",
+        "affectedLearnerIds": [],
+        "affectedParentIds": [],
+        "madeBy": "coordinator"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "session-change-batch",
+          "slug": "session-change-batch-sessionchangebatch-2-2"
+        },
+        "kind": "substitute",
+        "sessionIds": [],
+        "changeReasonKind": "teacher-absence",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "substituteTeacherId": "docent-vervanger",
+        "roomId": null,
+        "changeReason": null,
+        "results": [],
+        "appliedCount": 2,
+        "lessonDates": "5-3-2026, 12-3-2026",
+        "affectedLearnerIds": [],
+        "affectedParentIds": [],
+        "madeBy": "coordinator"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "session-change-batch",
+          "slug": "session-change-batch-sessionchangebatch-3-3"
+        },
+        "kind": "room",
+        "sessionIds": [],
+        "changeReasonKind": "room-unavailable",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "substituteTeacherId": null,
+        "roomId": "00000000-0000-4000-8000-000000000000",
+        "changeReason": null,
+        "results": [],
+        "appliedCount": 4,
+        "lessonDates": "6-3-2026, 13-3-2026, 20-3-2026, 27-3-2026",
+        "affectedLearnerIds": [],
+        "affectedParentIds": [],
+        "madeBy": "coordinator"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "display-screen",
+          "slug": "display-screen-aula-gebouw-a"
+        },
+        "name": "Aula gebouw A",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "roomIds": [],
+        "cohortIds": [],
+        "shows": "today",
+        "showTeacherCodes": true,
+        "tokenHash": null,
+        "tokenCreatedAt": null,
+        "status": "active"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "display-screen",
+          "slug": "display-screen-hal-onderbouw"
+        },
+        "name": "Hal onderbouw",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "roomIds": [],
+        "cohortIds": [],
+        "shows": "today-and-tomorrow",
+        "showTeacherCodes": true,
+        "tokenHash": null,
+        "tokenCreatedAt": null,
+        "status": "active"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "display-screen",
+          "slug": "display-screen-personeelskamer"
+        },
+        "name": "Personeelskamer",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "roomIds": [],
+        "cohortIds": [],
+        "shows": "changes-only",
+        "showTeacherCodes": true,
+        "tokenHash": null,
+        "tokenCreatedAt": null,
+        "status": "active"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "elective-offer",
+          "slug": "elective-offer-keuzewerktijd-wiskunde"
+        },
+        "name": "Keuzewerktijd wiskunde",
+        "capacityPerLesson": 24,
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "description": null,
+        "sessionIds": [],
+        "timetableSessionRefs": [],
+        "eligibleCohortIds": [],
+        "windowMode": "relative",
+        "opensAt": null,
+        "closesAt": null,
+        "opensDaysBefore": 7,
+        "closesHoursBefore": 12,
+        "lifecycle": "open"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "elective-offer",
+          "slug": "elective-offer-flexuur-engels"
+        },
+        "name": "Flexuur Engels",
+        "capacityPerLesson": 20,
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "description": null,
+        "sessionIds": [],
+        "timetableSessionRefs": [],
+        "eligibleCohortIds": [],
+        "windowMode": "fixed",
+        "opensAt": "2026-10-01T08:00:00+02:00",
+        "closesAt": "2026-10-05T17:00:00+02:00",
+        "opensDaysBefore": null,
+        "closesHoursBefore": null,
+        "lifecycle": "draft"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "elective-offer",
+          "slug": "elective-offer-extra-ondersteuning-nederlands"
+        },
+        "name": "Extra ondersteuning Nederlands",
+        "capacityPerLesson": 12,
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "description": null,
+        "sessionIds": [],
+        "timetableSessionRefs": [],
+        "eligibleCohortIds": [],
+        "windowMode": "relative",
+        "opensAt": null,
+        "closesAt": null,
+        "opensDaysBefore": 5,
+        "closesHoursBefore": 24,
+        "lifecycle": "closed"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "elective-sign-up",
+          "slug": "elective-sign-up-1"
+        },
+        "offerId": "00000000-0000-4000-8000-000000000000",
+        "learnerId": "voorbeeld-leerling-1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "sessionId": null,
+        "timetableSessionRef": {
+          "sourceSystem": "planninq",
+          "externalRef": "voorbeeld-les-1"
+        },
+        "status": "signed-up",
+        "madeBy": "voorbeeld-leerling-1",
+        "madeVia": "learner"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "elective-sign-up",
+          "slug": "elective-sign-up-2"
+        },
+        "offerId": "00000000-0000-4000-8000-000000000001",
+        "learnerId": "voorbeeld-leerling-2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "sessionId": null,
+        "timetableSessionRef": {
+          "sourceSystem": "planninq",
+          "externalRef": "voorbeeld-les-2"
+        },
+        "status": "placed",
+        "madeBy": "coordinator",
+        "madeVia": "coordinator"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "elective-sign-up",
+          "slug": "elective-sign-up-3"
+        },
+        "offerId": "00000000-0000-4000-8000-000000000002",
+        "learnerId": "voorbeeld-leerling-3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "sessionId": null,
+        "timetableSessionRef": {
+          "sourceSystem": "planninq",
+          "externalRef": "voorbeeld-les-3"
+        },
+        "status": "withdrawn",
+        "madeBy": "voorbeeld-leerling-3",
+        "madeVia": "learner"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "enrolment-forecast",
+          "slug": "enrolment-forecast-basis"
+        },
+        "name": "Voorjaarsprognose basis",
+        "targetYear": "2027-2028",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "rates": [],
+        "intake": [],
+        "targetGroupSize": 28,
+        "result": null,
+        "lifecycle": "final"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "enrolment-forecast",
+          "slug": "enrolment-forecast-krimp"
+        },
+        "name": "Voorjaarsprognose krimp",
+        "targetYear": "2027-2028",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "rates": [],
+        "intake": [],
+        "targetGroupSize": 26,
+        "result": null,
+        "lifecycle": "draft"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "enrolment-forecast",
+          "slug": "enrolment-forecast-groei"
+        },
+        "name": "Voorjaarsprognose groei",
+        "targetYear": "2027-2028",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "rates": [],
+        "intake": [],
+        "targetGroupSize": 30,
+        "result": null,
+        "lifecycle": "draft"
       }
     ]
   }

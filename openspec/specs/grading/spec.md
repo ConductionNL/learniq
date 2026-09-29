@@ -319,6 +319,86 @@ Publishing a GradeEntry MUST notify every parent in the learner's `LearnerProfil
 - **WHEN** a grade for `leerling-001` is published
 - **THEN** grade notifications are written for `ouder-001` and `ouder-002` only
 
+### Requirement: Pass rules apply their declared minimum
+
+For an `all-must-pass` CurriculumPlan, the pass verdict MUST compare each `passRules[]` entry's `minValue`, the property the register declares, and MUST NOT read any other key for the minimum. A rule with a `componentId` MUST be met by the learner's best published entry for that component. A rule with `componentId: null` MUST be met by the final value. A component whose best entry is an exemption MUST satisfy its rule without a numeric comparison.
+
+#### Scenario: A component below its minimum fails the plan
+
+- **GIVEN** an `all-must-pass` plan with rules `{componentId: "comp-a", minValue: 5.5}` and `{componentId: "comp-b", minValue: 5.5}`
+- **AND** published entries `comp-a: 8.0` and `comp-b: 4.0`, so the average 6.0 clears a GradeScale threshold of 5.5
+- **WHEN** the final grade is evaluated
+- **THEN** `passed` is `false`
+
+#### Scenario: Every component at or above its minimum passes
+
+- **GIVEN** the same plan with entries `comp-a: 6.0` and `comp-b: 5.5`
+- **WHEN** the final grade is evaluated
+- **THEN** `passed` is `true`
+
+#### Scenario: A final-grade rule compares the final value
+
+- **GIVEN** an `all-must-pass` plan with the single rule `{componentId: null, minValue: 5.5}` and entries on components `comp-a: 7.0` and `comp-b: 6.0`
+- **WHEN** the final grade is evaluated
+- **THEN** `passed` is `true`, because the final value 6.5 meets 5.5
+- **AND** with entries `comp-a: 5.0` and `comp-b: 5.0` and no GradeScale threshold, `passed` is `false`
+
+### Requirement: A plan satisfied entirely by exemptions passes
+
+When a learner's published entries on a plan are all exemptions, the final value MUST stay `null` and `passed` MUST be `true`, provided an exemption covers every component the plan declares. A plan that declares no components MUST pass on its exemption entries alone. A declared component without an exemption or a graded entry MUST keep `passed: null`.
+
+#### Scenario: An exempted unit passes
+
+- **GIVEN** a plan with the single component `unit-1` and one published entry for `unit-1` with `sourceKind: exemption`
+- **WHEN** the final grade is evaluated
+- **THEN** the FinalGrade has `value: null` and `passed: true`
+
+#### Scenario: A partial exemption with a missing component stays open
+
+- **GIVEN** a plan with components `unit-1` and `unit-2`, and only an exemption entry for `unit-1`
+- **WHEN** the final grade is evaluated
+- **THEN** `passed` is `null`
+
+### Requirement: The final grade roll-up writes only declared properties
+
+`GradeRollupHandler` MUST write only properties the `FinalGrade` schema declares. It MUST NOT write `cohortId`, which the schema does not declare and no reader uses. When it merges an existing FinalGrade that still carries `cohortId`, the saved object MUST NOT carry it either.
+
+#### Scenario: A recomputed final grade carries no cohortId
+
+- **GIVEN** a published GradeEntry with `cohortId: "cohort-1"`
+- **AND** an existing FinalGrade for that learner and plan that still carries `cohortId`
+- **WHEN** the roll-up recomputes the FinalGrade
+- **THEN** the saved FinalGrade has no `cohortId` key
+- **AND** it keeps `courseId`, `gradeScaleId` and `tenant_id`
+
+### Requirement: One resolver finds a learner's profile
+
+`LearnerRefResolver` MUST be the one class that turns a Nextcloud user id into the uuid of that learner's LearnerProfile, and a `learnerRef` into the active profile row, for the grade, submission and portal stamps. A signed-in caller MUST keep OpenRegister's tenant scoping (`resolve()`); a caller without a session MUST read across tenants (`resolveAcrossTenants()`, `byRef()`). `byRef()` MUST return null for a profile that is merged away, deleted, or names no user, and MUST let a read error propagate.
+
+#### Scenario: A portal stamp and a teacher-side stamp find the same profile
+
+- **GIVEN** pupil `pupil-1` with active profile `lp-1`
+- **WHEN** a portal attempt is stamped (no session) and a teacher's grade is stamped (signed in)
+- **THEN** both get `lp-1` from `LearnerRefResolver`
+- **AND** only the portal lookup drops tenant scoping
+
+#### Scenario: A merged-away profile is not a learner to act for
+
+- **GIVEN** profile `lp-old` merged into `lp-new`
+- **WHEN** a portal request names `lp-old`
+- **THEN** `byRef()` returns null
+
+### Requirement: The final grade roll-up writes the programme it belongs to
+
+When the roll-up writes a `FinalGrade`, it MUST set `programmeId` to the id of the `Programme` whose `curriculumPlanId` is the grade's `curriculumPlanId`. When no programme uses that plan, `programmeId` MUST keep the value the row had, null for a new row.
+
+#### Scenario: A final grade names the programme of its plan
+@e2e exclude Listener write with no UI step of its own; pinned by tests/Unit/Listener/GradeRollupHandlerTest.php::testAFinalGradeNamesTheProgrammeOfItsPlan.
+- **GIVEN** a programme with curriculum plan P
+- **WHEN** a grade entry under plan P is published
+- **THEN** the learner's final grade for P carries that programme's id as `programmeId`
+- **AND** the programme page counts it
+
 ## Standards
 
 Schema.org `Grade`; NL VO PTA/SE convention as a `CurriculumPlan` profile + `GradeScale` 1.0–10.0; ECTS A–F; AVG-Onderwijs (parent vs 18+-learner notification rights); Open Onderwijs API `results` endpoint shape for HE result publication (follow-up, out of scope here).

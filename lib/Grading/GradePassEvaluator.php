@@ -70,7 +70,7 @@ class GradePassEvaluator {
 	 * @return bool|null Null if insufficient data.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#requirement-a-plan-satisfied-entirely-by-exemptions-passes
+	 * @spec openspec/specs/grading/spec.md#requirement-a-plan-satisfied-entirely-by-exemptions-passes
 	 */
 	public function evaluatePassed(
 		string $formula,
@@ -112,7 +112,7 @@ class GradePassEvaluator {
 	 *
 	 * @return true|null
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#requirement-a-plan-satisfied-entirely-by-exemptions-passes
+	 * @spec openspec/specs/grading/spec.md#requirement-a-plan-satisfied-entirely-by-exemptions-passes
 	 */
 	private function exemptionsCoverThePlan(array $entries, array $passRules, array $components): ?bool {
 		if ($entries === []) {
@@ -165,7 +165,7 @@ class GradePassEvaluator {
 	 * @return bool True when every rule is met.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#requirement-pass-rules-apply-their-declared-minimum
+	 * @spec openspec/specs/grading/spec.md#requirement-pass-rules-apply-their-declared-minimum
 	 */
 	private function everyRuleMet(float $value, array $entries, array $passRules): bool {
 		$bestMap = $this->indexBestByComponent(entries: $entries);
@@ -198,7 +198,7 @@ class GradePassEvaluator {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#requirement-pass-rules-apply-their-declared-minimum
+	 * @spec openspec/specs/grading/spec.md#requirement-pass-rules-apply-their-declared-minimum
 	 */
 	private function componentMeets(?array $bestEntry, float $minValue): bool {
 		if ($bestEntry === null) {
