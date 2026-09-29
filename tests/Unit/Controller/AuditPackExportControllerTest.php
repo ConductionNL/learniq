@@ -270,6 +270,8 @@ class AuditPackExportControllerTest extends TestCase {
 	 * it is left out and counted in the manifest.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/specs/compliance-audit/spec.md#scenario-unattributable-audit-trail-entries-are-excluded-and-counted
 	 */
 	public function testAnEntryForADeletedObjectIsLeftOutAndCounted(): void {
 		$this->auditRows[] = $this->auditRow(id: 13, objectUuid: 'deleted-object');
@@ -287,6 +289,8 @@ class AuditPackExportControllerTest extends TestCase {
 	 * tenant, or without an object at all, are left out and counted.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/specs/compliance-audit/spec.md#scenario-unattributable-audit-trail-entries-are-excluded-and-counted
 	 */
 	public function testUnattributableEntriesAreLeftOut(): void {
 		$this->objects['other-app-object'] = $this->object(uuid: 'other-app-object', tenant: self::CALLER_TENANT, schema: self::FOREIGN_SCHEMA);
@@ -309,6 +313,8 @@ class AuditPackExportControllerTest extends TestCase {
 	 * records (OpenRegister stores `changed` as `{field: {old, new}}`).
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/specs/compliance-audit/spec.md#scenario-the-regulation-comes-from-the-object-or-the-change
 	 */
 	public function testTheRegulationComesFromTheObjectOrTheChange(): void {
 		$this->objects['object-of-a']['regulationSlug'] = '';
