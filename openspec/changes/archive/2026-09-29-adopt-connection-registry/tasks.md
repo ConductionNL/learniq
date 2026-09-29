@@ -27,5 +27,6 @@
 
 - [x] 4.1 Write `tests/e2e/connection-registry.spec.ts`.
 - [x] 4.2 Install integriq in the CI `additional-apps`.
-- [ ] 4.3 Run the e2e spec against an instance with learniq and integriq, then archive this change.
+- [x] 4.3 Run the e2e spec against an instance with learniq and integriq, then archive this change.
+  - r5-live, 2026-09-29, shared dev instance: `tests/e2e/connection-registry.spec.ts` 4 passed with learniq and integriq enabled (#1427, merged be135985). The spec was stale against the declaration (payment title, data exchange now available) and fixed there. Archiving is left to the archive lane.
   - Not run (r5-structure, 2026-09-28): `tests/e2e/connection-registry.spec.ts` exists, but it needs a live instance with learniq and integriq serving this code. Lane rules forbid touching the shared instance on :8080, and the Code Quality workflow (which carries integriq in `additional-apps`) was skipped on development. Archive only after a run.

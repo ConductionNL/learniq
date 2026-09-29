@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-teacher-opens-a-self-check-in-window-for-a-lesson
+ * @spec openspec/specs/attendance/spec.md#requirement-a-teacher-opens-a-self-check-in-window-for-a-lesson
  */
 
 declare(strict_types=1);
@@ -44,7 +44,7 @@ use OCP\IUserSession;
 /**
  * The code for the board.
  *
- * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-teacher-opens-a-self-check-in-window-for-a-lesson
+ * @spec openspec/specs/attendance/spec.md#requirement-a-teacher-opens-a-self-check-in-window-for-a-lesson
  */
 class CheckInCodeController extends Controller {
 
@@ -84,7 +84,7 @@ class CheckInCodeController extends Controller {
 	 *
 	 * @return JSONResponse 200 `{code, url, mode, secondsLeft, checkInCount}`, or 401 / 403 / 404.
 	 *
-	 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#scenario-a-teacher-shows-the-check-in-code-on-the-board
+	 * @spec openspec/specs/attendance/spec.md#scenario-a-teacher-shows-the-check-in-code-on-the-board
 	 */
 	#[NoAdminRequired]
 	public function code(string $windowId): JSONResponse {

@@ -308,8 +308,11 @@ export async function signInAs(browser: Browser, user: TempUser): Promise<Page> 
 		.locator('#submit, button[type="submit"], input[type="submit"]')
 		.first()
 		.click()
+	// The post-login landing page is Nextcloud's dashboard, which loads every
+	// app's widgets; on the shared instance that took over 60 s under load.
 	await page.waitForURL((url) => !url.pathname.includes('/login'), {
-		timeout: 60_000,
+		timeout: 120_000,
+		waitUntil: 'commit',
 	})
 	await page.evaluate(() => {
 		try {

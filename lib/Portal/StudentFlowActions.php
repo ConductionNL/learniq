@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+ * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
  */
 
 declare(strict_types=1);
@@ -35,7 +35,7 @@ namespace OCA\Learniq\Portal;
 /**
  * Student portal actions for the learner flows.
  *
- * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+ * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
  */
 class StudentFlowActions {
 
@@ -44,7 +44,7 @@ class StudentFlowActions {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
 	 */
 	public function actions(): array {
 		return [$this->checkIn()];
