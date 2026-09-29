@@ -53,7 +53,8 @@
 - [x] `openspec validate leaf-integrations --type change --strict` passes
 - [x] Manual testing against acceptance criteria (not done in this lane: no instance with the leaf apps; the e2e asserts both the installed and the absent state)
   - r5-live, 2026-09-29, shared dev instance: `tests/e2e/spec-coverage/integration-leaves.spec.ts` 6 passed on all six pages with calendar enabled and contacts, deck and forms disabled. The calendar leaf renders; each disabled app shows "{app} is not installed". Live checks also found that a disabled app's leaf drew an empty "No cards linked yet" card; fixed in #1428, red 4/6 before and green 6/6 after.
-- [ ] Code review against spec requirements
+- [x] Code review against spec requirements
+  - Review: openspec/changes/leaf-integrations/review.md, 6 requirements, 8 scenarios; all 14 rows MET. The static scenarios (enumerable surface, no leaf on catalogue definitions, no polls) had only a one-time acceptance grep; this PR pins them in `tests/Unit/Settings/IntegrationLeavesRegisterTest.php`.
 
 ## Tests (company-wide ADR-009)
 - [x] Browser tests (Playwright MCP): `tests/e2e/spec-coverage/integration-leaves.spec.ts` (Task 3), written and linted; it runs in CI e2e, the lane may not use the shared instance
@@ -64,8 +65,8 @@
 
 ## Documentation (company-wide ADR-010)
 - [x] `docs/` records the leaf matrix and the OFF rationale (Task 4): `docs/Integrations/index.md`
-- [ ] Screenshots of SessionDetail and CohortDetail with the new widgets committed to `docs/images/` (not done: the lane has no instance with calendar, forms, contacts and deck installed; left for the docs screenshot run)
-  - r5-live, 2026-09-29, shared dev instance, still open: only calendar is enabled on the shared instance (contacts, deck and forms are disabled), and enabling apps there is out of bounds. CohortDetail carries no leaf widget from this change.
+- [x] Screenshots of the detail pages that carry the new widgets committed to `docs/images/`: SessionDetail (calendar), AssignmentDetail (calendar and forms), LearnerProfileDetail (contacts) and BpvPlacementDetail (deck). CohortDetail carries no leaf from this change.
+  - Throwaway instance, 2026-09-29, calendar 6.5.0, contacts 8.9.0, deck 1.18.5 and forms 5.3.1 enabled: `docs/images/integration-leaves/session-detail-calendar.png` (Agenda), `assignment-detail-calendar-forms.png` (Agenda and Intake form), `learner-profile-detail-contacts.png` and `bpv-placement-detail-deck.png` (Follow-ups). No page showed "{app} is not installed". One difference: on LearnerProfileDetail the contacts leaf renders with the heading "Contacts" and a count, not the manifest's title "Contact card". The deck, forms and calendar leaves show their manifest titles. The contacts leaf also sits on PraktijkopleiderDetail and the calendar leaf on CredentialDetail; those two were not screenshotted.
 
 ## i18n (company-wide ADR-005)
 - [x] Widget titles ("Agenda", "Intake form", "Contact card", "Follow-ups"; the poll title is not built) are new user-facing strings, Dutch in `l10n/nl.json`: `nl_NL` and `en_US` entries added through the manifest's i18n mechanism used by the existing widget titles

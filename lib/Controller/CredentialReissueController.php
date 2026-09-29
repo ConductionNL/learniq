@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/credentials-bulk-reissue/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
+ * @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ use OCP\Security\ISecureRandom;
 /**
  * Preview and start a bulk reissue.
  *
- * @spec openspec/changes/credentials-bulk-reissue/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
+ * @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
  */
 class CredentialReissueController extends Controller {
 
@@ -91,7 +91,7 @@ class CredentialReissueController extends Controller {
 	 *
 	 * @return JSONResponse 200 `{issued, revoked, expired, lastRun}`, or 403.
 	 *
-	 * @spec openspec/changes/credentials-bulk-reissue/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
+	 * @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
 	 */
 	#[NoAdminRequired]
 	public function preview(string $courseId): JSONResponse {
@@ -115,7 +115,7 @@ class CredentialReissueController extends Controller {
 	 *
 	 * @return JSONResponse 202 `{runId}`, or 403 / 422.
 	 *
-	 * @spec openspec/changes/credentials-bulk-reissue/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
+	 * @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
 	 */
 	#[NoAdminRequired]
 	public function start(string $courseId): JSONResponse {

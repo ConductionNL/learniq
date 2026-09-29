@@ -73,11 +73,25 @@ class LearniqAgentTools {
 	public const EXPIRING_FIELDS = ['credentialId', 'learnerId', 'learnerDisplayName', 'courseId', 'courseTitle', 'expiresAt', 'renewalCourseSlug'];
 
 	/**
-	 * Largest page the expiring-credentials read returns.
+	 * Largest number of rows the expiring-credentials read returns.
 	 *
 	 * @var int
 	 */
 	private const MAX_EXPIRING = 200;
+
+	/**
+	 * Page size when scanning issued credentials for the expiring read.
+	 *
+	 * @var int
+	 */
+	private const SCAN_PAGE = 200;
+
+	/**
+	 * Most pages the expiring read scans before it says the answer is truncated.
+	 *
+	 * @var int
+	 */
+	private const SCAN_PAGES = 25;
 
 	/**
 	 * Constructor.
@@ -277,7 +291,8 @@ class LearniqAgentTools {
 		subject: 'credential',
 		action: 'list',
 		description: 'List certificates that expire before a date (YYYY-MM-DD), with only: credentialId, learnerId, '
-			. 'learnerDisplayName, courseId, courseTitle, expiresAt, renewalCourseSlug. Feed learnerId and the renewal course to enrolLearner.',
+			. 'learnerDisplayName, courseId, courseTitle, expiresAt, renewalCourseSlug. Feed learnerId and the renewal course to enrolLearner. '
+			. 'When truncated is true the list is not complete: narrow it with courseId or an earlier date.',
 		readOnlyHint: true,
 		destructiveHint: false,
 		idempotentHint: true,
@@ -293,7 +308,7 @@ class LearniqAgentTools {
 	 * @param string $before   The cut-off date (YYYY-MM-DD or ISO 8601).
 	 * @param string $courseId Optional course filter.
 	 *
-	 * @return array<string, mixed> `{ok: true, credentials: [...]}` or an error envelope.
+	 * @return array<string, mixed> `{ok: true, credentials: [...], truncated}` or an error envelope.
 	 *
 	 * @spec openspec/changes/hermiq-ai-tooling/specs/mcp-tool-surface/spec.md#requirement-the-expiring-credentials-read-is-a-closed-minimised-projection-req-011
 	 */
@@ -308,18 +323,57 @@ class LearniqAgentTools {
 			$filters['courseId'] = $courseId;
 		}
 
-		$rows = [];
-		foreach ($this->all(schema: 'credential', filters: $filters) as $credential) {
-			$expiresAt = strtotime((string)($credential['expiresAt'] ?? ''));
-			if ($expiresAt === false || $expiresAt >= $cutOff) {
-				continue;
-			}
+		[$rows, $truncated] = $this->expiring(filters: $filters, cutOff: $cutOff);
 
-			$rows[] = $this->project(credential: $credential);
+		return $this->answer->success(data: ['credentials' => $rows, 'truncated' => $truncated]);
+	}//end listExpiringCredentials()
+
+	/**
+	 * Scan the issued credentials page by page and project the ones expiring before the cut-off.
+	 *
+	 * Expiry is not the order the rows come back in, and a credential without
+	 * an expiry date is issued too, so one page of issued credentials is not
+	 * the set that expires: a single page silently dropped every expiring
+	 * certificate past row 200. The scan pages on until the rows run out, and
+	 * says so when it stops early instead of passing a partial list as whole.
+	 *
+	 * @param array<string, mixed> $filters The credential filters.
+	 * @param int                  $cutOff  The cut-off as a Unix timestamp.
+	 *
+	 * @return array{0: array<int, array<string, string>>, 1: bool} The rows, and whether the answer is truncated.
+	 */
+	private function expiring(array $filters, int $cutOff): array {
+		$due = [];
+		for ($page = 0; $page < self::SCAN_PAGES; $page++) {
+			$batch = $this->all(schema: 'credential', filters: $filters, limit: self::SCAN_PAGE, offset: ($page * self::SCAN_PAGE));
+			$due   = array_merge(
+				$due,
+				array_filter($batch, static fn (array $credential): bool => self::expiresBefore(credential: $credential, cutOff: $cutOff))
+			);
+			if (count($due) > self::MAX_EXPIRING || count($batch) < self::SCAN_PAGE) {
+				break;
+			}
 		}
 
-		return $this->answer->success(data: ['credentials' => $rows]);
-	}//end listExpiringCredentials()
+		$truncated = (count($due) > self::MAX_EXPIRING || $page === self::SCAN_PAGES);
+		$rows      = array_map(fn (array $credential): array => $this->project(credential: $credential), array_slice($due, 0, self::MAX_EXPIRING));
+
+		return [$rows, $truncated];
+	}//end expiring()
+
+	/**
+	 * Whether a credential expires before the cut-off; one without an expiry date never does.
+	 *
+	 * @param array<string, mixed> $credential The credential.
+	 * @param int                  $cutOff     The cut-off as a Unix timestamp.
+	 *
+	 * @return bool
+	 */
+	private static function expiresBefore(array $credential, int $cutOff): bool {
+		$expiresAt = strtotime((string)($credential['expiresAt'] ?? ''));
+
+		return ($expiresAt !== false && $expiresAt < $cutOff);
+	}//end expiresBefore()
 
 	/**
 	 * The closed projection of one credential.
@@ -337,7 +391,7 @@ class LearniqAgentTools {
 		return [
 			'credentialId'       => (string)($credential['id'] ?? ''),
 			'learnerId'          => $learnerId,
-			'learnerDisplayName' => $this->displayName(uid: $learnerId),
+			'learnerDisplayName' => $this->answer->displayName(uid: $learnerId),
 			'courseId'           => (string)($credential['courseId'] ?? ''),
 			'courseTitle'        => (string)($course['title'] ?? ''),
 			'expiresAt'          => (string)($credential['expiresAt'] ?? ''),
@@ -444,13 +498,18 @@ class LearniqAgentTools {
 	 * @param string               $schema  The schema slug.
 	 * @param array<string, mixed> $filters The filters.
 	 * @param int                  $limit   Page size.
+	 * @param int                  $offset  Rows to skip.
 	 *
 	 * @return array<int, array<string, mixed>> The objects.
 	 */
-	private function all(string $schema, array $filters, int $limit = self::MAX_EXPIRING): array {
+	private function all(string $schema, array $filters, int $limit = self::SCAN_PAGE, int $offset = 0): array {
 		try {
 			$rows = $this->objectService->findAll(
-				config: ['filters' => array_merge(['register' => self::REGISTER, 'schema' => $schema], $filters), 'limit' => $limit]
+				config: [
+					'filters' => array_merge(['register' => self::REGISTER, 'schema' => $schema], $filters),
+					'limit'   => $limit,
+					'offset'  => $offset,
+				]
 			);
 		} catch (Throwable $e) {
 			return [];
@@ -467,17 +526,6 @@ class LearniqAgentTools {
 
 		return $result;
 	}//end all()
-
-	/**
-	 * A user's display name, or the uid when unknown.
-	 *
-	 * @param string $uid The uid.
-	 *
-	 * @return string The name.
-	 */
-	private function displayName(string $uid): string {
-		return $this->answer->displayName(uid: $uid);
-	}//end displayName()
 
 	/**
 	 * The note every agent write carries, so the record says a tool made it.
