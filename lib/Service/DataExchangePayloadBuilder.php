@@ -26,7 +26,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
- * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
+ * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-4.5
  */
 
 declare(strict_types=1);
@@ -40,7 +40,7 @@ use RuntimeException;
  * Builds the records a job may hand to integriq.
  *
  * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
- * @spec openspec/changes/verzuim-report-composer/tasks.md#task-3.1
+ * @spec openspec/changes/archive/2026-07-13-verzuim-report-composer/tasks.md#task-3.1
  */
 class DataExchangePayloadBuilder {
 	private const LEARNIQ_REGISTER = 'learniq';
@@ -56,7 +56,7 @@ class DataExchangePayloadBuilder {
 	 * Target that composes the SWV care-request file from the support
 	 * request's learner and (optional) learning plan.
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-4.5
 	 */
 	private const SWV_TARGET = 'swv';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
@@ -274,7 +274,7 @@ class DataExchangePayloadBuilder {
 	 *
 	 * @return array<string,mixed> The composed record.
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-4.5
 	 */
 	private function composeFile(array $record, array $source, string $target): array {
 		return match ($target) {
@@ -308,7 +308,7 @@ class DataExchangePayloadBuilder {
 	 *
 	 * @return array<string,mixed> $record with breachingRecords + interventions appended.
 	 *
-	 * @spec openspec/changes/verzuim-report-composer/tasks.md#task-3.1
+	 * @spec openspec/changes/archive/2026-07-13-verzuim-report-composer/tasks.md#task-3.1
 	 */
 	private function composeLeerplichtFile(array $record, array $flag): array {
 		$breachingRecordIds = $flag['breachingRecordIds'] ?? [];
@@ -342,7 +342,7 @@ class DataExchangePayloadBuilder {
 	 * mechanism can express (it has no facility to resolve a $ref into a
 	 * nested payload section).
 	 *
-	 * Minimal disclosure (openspec/changes/zorgvraag-swv-tlv-chain/design.md
+	 * Minimal disclosure (openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/design.md
 	 * "Minimal disclosure via DataMappingProfile whitelist, not object-level
 	 * ACLs"): both the `learner` and `learningPlanContext` sections below are
 	 * built from an EXPLICIT field whitelist, never a full-object dump —
@@ -361,8 +361,8 @@ class DataExchangePayloadBuilder {
 	 *
 	 * @return array<string,mixed> $record with learner + learningPlanContext appended.
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/specs/learning-plan/spec.md#requirement-minimal-disclosure-to-the-swv-via-a-field-whitelisting-datamappingprofile
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-4.5
+	 * @spec openspec/specs/learning-plan/spec.md#requirement-minimal-disclosure-to-the-swv-via-a-field-whitelisting-datamappingprofile
 	 */
 	private function composeSwvFile(array $record, array $supportRequest): array {
 		$learnerId = (string)($supportRequest['learnerId'] ?? '');
@@ -395,7 +395,7 @@ class DataExchangePayloadBuilder {
 	 *
 	 * @return array<string,mixed>|null Whitelisted learner fields, or null when unresolvable.
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-4.5
 	 */
 	private function resolveLearnerWhitelist(string $learnerId, string $tenantId): ?array {
 		if ($learnerId === '') {
@@ -451,7 +451,7 @@ class DataExchangePayloadBuilder {
 	 *
 	 * @return array<string,mixed>|null Whitelisted plan context, or null when unresolvable.
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-4.5
 	 */
 	private function resolveLearningPlanWhitelist(string $learningPlanId, string $tenantId): ?array {
 		$filters = [];
@@ -499,7 +499,7 @@ class DataExchangePayloadBuilder {
 	 *
 	 * @return array<int,array<string,mixed>> Resolved AttendanceRecord objects, PII-stripped.
 	 *
-	 * @spec openspec/changes/verzuim-report-composer/tasks.md#task-3.1
+	 * @spec openspec/changes/archive/2026-07-13-verzuim-report-composer/tasks.md#task-3.1
 	 */
 	private function resolveAttendanceRecords(array $ids, string $tenantId): array {
 		$records = [];

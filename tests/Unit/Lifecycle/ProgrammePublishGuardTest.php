@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
+ * @spec openspec/changes/archive/2026-07-13-delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
  */
 
 declare(strict_types=1);
@@ -52,7 +52,7 @@ class ProgrammePublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
+	 * @spec openspec/changes/archive/2026-07-13-delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
 	 */
 	public function testProgrammeWithPublishedPlanAndRequiredCoursesIsAllowedToPublish(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -78,7 +78,7 @@ class ProgrammePublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
+	 * @spec openspec/changes/archive/2026-07-13-delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
 	 */
 	public function testProgrammeWithoutCurriculumPlanIsBlocked(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -113,7 +113,7 @@ class ProgrammePublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
+	 * @spec openspec/changes/archive/2026-07-13-delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
 	 */
 	public function testProgrammeWithPublishedPlanButNoRequiredCoursesIsBlocked(): void {
 		$objectService = $this->createMock(ObjectService::class);

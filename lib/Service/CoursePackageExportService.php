@@ -38,7 +38,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+ * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
  */
 
 declare(strict_types=1);
@@ -88,7 +88,7 @@ class CoursePackageExportService {
 	 *
 	 * @throws \RuntimeException When the Course does not exist.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-portable-common-cartridge-package
+	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-portable-common-cartridge-package
 	 */
 	public function exportCommonCartridge(string $courseId, string $exportingUser): string {
 		$tree = $this->gatherCourseTree(courseId: $courseId, exportingUser: $exportingUser);
@@ -140,7 +140,7 @@ class CoursePackageExportService {
 	 *
 	 * @throws \RuntimeException When the Course does not exist.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
 	public function exportScholiqJson(string $courseId, string $exportingUser): string {
 		$tree = $this->gatherCourseTree(courseId: $courseId, exportingUser: $exportingUser);
@@ -207,7 +207,7 @@ class CoursePackageExportService {
 	 *
 	 * @throws \RuntimeException When the Course does not exist.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#data-model
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
 	 */
 	public function gatherCourseTree(string $courseId, string $exportingUser): array {
 		$course = $this->objectService->find(id: $courseId, register: self::LEARNIQ_REGISTER, schema: 'course');
@@ -254,7 +254,7 @@ class CoursePackageExportService {
 	 *
 	 * @return array<int,array<string,mixed>> Materials with a `content` key added.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
 	private function resolveMaterialContents(array $rawMaterials, string $exportingUser): array {
 		$materials = [];
@@ -280,7 +280,7 @@ class CoursePackageExportService {
 	 *
 	 * @return array<int,array<string,mixed>> The resolved Rubrics.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
 	private function resolveRubrics(array $assignments): array {
 		$rubrics = [];
@@ -306,7 +306,7 @@ class CoursePackageExportService {
 	 *
 	 * @return array<int,string> Distinct ItemBank UUIDs.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
 	private function collectItemBankIds(array $assessments): array {
 		$itemBankIds = [];
@@ -342,7 +342,7 @@ class CoursePackageExportService {
 	 *
 	 * @return array<string,mixed> Map of ItemBank UUID => QTI package.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
 	private function exportItemBanks(array $itemBankIds): array {
 		$itemBankPackages = [];
@@ -373,7 +373,7 @@ class CoursePackageExportService {
 	 *
 	 * @return string|null The raw file bytes, or null when unresolvable.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+	 * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
 	 */
 	private function resolveFileBytes(string $fileRef, string $exportingUser): ?string {
 		if ($fileRef === '') {
@@ -407,7 +407,7 @@ class CoursePackageExportService {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#data-model
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
 	 */
 	private function findAllArrays(string $schema, array $filters): array {
 		$rows = $this->objectService->findAll(
@@ -432,7 +432,7 @@ class CoursePackageExportService {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#data-model
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
 	 */
 	private function toArray(mixed $object): array {
 		if (is_array($object) === true) {
@@ -453,7 +453,7 @@ class CoursePackageExportService {
 	 *
 	 * @return string Raw ZIP bytes.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+	 * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
 	 */
 	private function buildZip(array $files): string {
 		$tmpFile = tempnam(sys_get_temp_dir(), 'learniq_course_export_');

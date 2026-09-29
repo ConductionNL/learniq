@@ -16,8 +16,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publish-is-blocked-while-a-contributing-grades-visibility-window-has-not-opened
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publish-succeeds-once-every-contributing-grades-window-has-opened
+ * @spec openspec/specs/report-card/spec.md#scenario-publish-is-blocked-while-a-contributing-grades-visibility-window-has-not-opened
+ * @spec openspec/specs/report-card/spec.md#scenario-publish-succeeds-once-every-contributing-grades-window-has-opened
  */
 
 declare(strict_types=1);
@@ -78,7 +78,7 @@ class ReportCardVisibilityGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publish-succeeds-once-every-contributing-grades-window-has-opened
+	 * @spec openspec/specs/report-card/spec.md#scenario-publish-succeeds-once-every-contributing-grades-window-has-opened
 	 */
 	public function testAllVisibleFromPassedAllowsPublish(): void {
 		$now = new DateTime('2026-07-13T12:00:00+00:00');
@@ -105,7 +105,7 @@ class ReportCardVisibilityGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publish-is-blocked-while-a-contributing-grades-visibility-window-has-not-opened
+	 * @spec openspec/specs/report-card/spec.md#scenario-publish-is-blocked-while-a-contributing-grades-visibility-window-has-not-opened
 	 */
 	public function testFutureVisibleFromBlocksPublish(): void {
 		$now = new DateTime('2026-07-13T12:00:00+00:00');

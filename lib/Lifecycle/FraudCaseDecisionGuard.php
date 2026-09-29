@@ -30,8 +30,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
- * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-a-42-day-appeal-deadline
+ * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
+ * @spec openspec/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-a-42-day-appeal-deadline
  */
 
 declare(strict_types=1);
@@ -52,7 +52,7 @@ use Psr\Log\LoggerInterface;
  * declared on the same transition: OpenRegister calls guards by value, so a
  * guard can not write onto the object (learniq#983).
  *
- * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
+ * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
  */
 class FraudCaseDecisionGuard implements LifecycleGuardInterface {
 
@@ -105,7 +105,7 @@ class FraudCaseDecisionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with what is missing.
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
+	 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -143,7 +143,7 @@ class FraudCaseDecisionGuard implements LifecycleGuardInterface {
 	 * @return bool True when sanctionType, sanctionScope, and a sanctionDurationMonths
 	 *              of at most 12 are all set.
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
+	 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
 	 */
 	private function hasValidSanction(array $object): bool {
 		$sanctionType = $object['sanctionType'] ?? '';

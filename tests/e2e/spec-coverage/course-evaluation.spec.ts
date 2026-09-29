@@ -4,8 +4,8 @@
  * Gate-19 e2e coverage — course-evaluation spec UI scenarios.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
- *   @e2e openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-reviewer-records-an-improvement-action-against-a-campaigns-results
+ *   @e2e openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
+ *   @e2e openspec/specs/course-evaluation/spec.md#scenario-a-reviewer-records-an-improvement-action-against-a-campaigns-results
  *
  * The anonymity mechanism (guard/handler identity split), the eligibility/
  * duplicate-submission guard, the reminder dispatch, and the quality-score
@@ -50,7 +50,7 @@ function collectFatalErrors(errors: string[]): string[] {
 }
 
 test.describe('course-evaluation — quality report and improvement actions', () => {
-	// @e2e openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
+	// @e2e openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 	test('course quality report page renders the course picker without a fatal error', async ({
 		loggedInPage: page,
 	}) => {
@@ -81,7 +81,7 @@ test.describe('course-evaluation — quality report and improvement actions', ()
 		)
 	})
 
-	// @e2e openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-reviewer-records-an-improvement-action-against-a-campaigns-results
+	// @e2e openspec/specs/course-evaluation/spec.md#scenario-a-reviewer-records-an-improvement-action-against-a-campaigns-results
 	test('improvement actions index page renders the declarative manifest list without a fatal error', async ({
 		loggedInPage: page,
 	}) => {

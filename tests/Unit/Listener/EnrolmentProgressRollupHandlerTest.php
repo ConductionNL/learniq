@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
+ * @spec openspec/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
  */
 
 declare(strict_types=1);
@@ -142,7 +142,7 @@ class EnrolmentProgressRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
+	 * @spec openspec/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
 	 */
 	public function testNewCompletionTriggersRecompute(): void {
 		$enrolment = ['id' => 'enrolment-1', 'learnerId' => 'learner-1', 'courseId' => 'course-1', 'lifecycle' => 'active'];
@@ -178,7 +178,7 @@ class EnrolmentProgressRollupHandlerTest extends TestCase {
 	 * recompute, not ten identical ones.
 	 *
 	 * @return void
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
+	 * @spec openspec/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
 	 */
 	public function testTheDedupeKeyIsLearnerAndCourse(): void {
 		$handler = $this->makeHandler(enrolments: [], evaluated: ['progressPercent' => 0, 'completedLessonCount' => 0, 'totalPublishedLessonCount' => 0]);
@@ -199,7 +199,7 @@ class EnrolmentProgressRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
+	 * @spec openspec/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
 	 */
 	public function testNoActiveEnrolmentIsSkipped(): void {
 		// The listener no longer knows whether an Enrolment exists — it defers

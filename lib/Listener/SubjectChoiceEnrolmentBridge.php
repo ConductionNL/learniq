@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
+ * @spec openspec/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
+ * @spec openspec/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
  */
 class SubjectChoiceEnrolmentBridge implements IEventListener {
 
@@ -74,7 +74,7 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
+	 * @spec openspec/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -103,7 +103,7 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-locking-a-subject-choice-enrols-the-learner-in-the-chosen-electives
+	 * @spec openspec/specs/school-structure/spec.md#scenario-locking-a-subject-choice-enrols-the-learner-in-the-chosen-electives
 	 */
 	private function bridge(array $choice): void {
 		$learnerId = (string)($choice['learnerId'] ?? '');

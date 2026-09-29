@@ -37,7 +37,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+ * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
  */
 
 declare(strict_types=1);
@@ -70,7 +70,7 @@ class WalletClaimSyncService implements LifecycleGuardInterface {
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+	 * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		return GuardResult::allow();
@@ -83,7 +83,7 @@ class WalletClaimSyncService implements LifecycleGuardInterface {
 	 *
 	 * @return array<string,mixed> The Credential with `walletOfferStatus=claimed` and `walletClaimedAt=now`.
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+	 * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
 	 */
 	public function claim(array $credential): array {
 		$credential['walletOfferStatus'] = 'claimed';

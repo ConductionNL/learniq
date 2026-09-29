@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+ * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
  */
 
 declare(strict_types=1);
@@ -81,7 +81,7 @@ class MoodleActivityRouter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	public function routeActivity(array $activity, string $dir, string $courseId, string $importedBy, string $tenantId, array &$entries): void {
 		$classification = $activity['classification'];
@@ -127,7 +127,7 @@ class MoodleActivityRouter {
 	 *
 	 * @return array<string, mixed> The report entry for this activity.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function buildActivityEntry(array $activity, string $dir, string $courseId, string $importedBy, string $tenantId): array {
 		$unsupportedReason = "No Learniq schema represents Moodle's {$activity['moduleType']} module — migrate manually.";
@@ -166,7 +166,7 @@ class MoodleActivityRouter {
 	 *
 	 * @return array<string, mixed> The report entry for this activity.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function importResourceActivity(array $activity, string $dir, string $courseId, string $importedBy, string $tenantId): array {
 		$contentHref = null;
@@ -212,7 +212,7 @@ class MoodleActivityRouter {
 	 *
 	 * @return array<string, mixed> The report entry for this activity.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function importUrlActivity(array $activity, string $dir, string $courseId, string $tenantId): array {
 		$materialId = $this->objectWriter->createMaterial(
@@ -244,7 +244,7 @@ class MoodleActivityRouter {
 	 *
 	 * @return array<string, mixed> The report entry for this activity.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function importAssignActivity(array $activity, string $courseId, string $tenantId): array {
 		$assignmentId = $this->objectWriter->create(
@@ -281,7 +281,7 @@ class MoodleActivityRouter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function routeMoodleQuiz(array $activity, string $dir, string $tenantId, array &$entries): void {
 		$questionsPath = null;
@@ -324,7 +324,7 @@ class MoodleActivityRouter {
 	 *
 	 * @return array<string, mixed> The report entry for this question.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function quizQuestionEntry(array $activity, array $question, int $index): array {
 		$resourceIdentifier = $activity['identifier'] . '-q' . $index;
@@ -363,7 +363,7 @@ class MoodleActivityRouter {
 	 *
 	 * @return array<string, mixed> The report entry for this activity.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function droppedEntry(array $activity, ?string $reason): array {
 		return $this->reporter->entry(
@@ -389,7 +389,7 @@ class MoodleActivityRouter {
 	 *
 	 * @return string The resolved URL, or `$fallback`.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function resolveMoodleUrlModuleTarget(string $dir, ?string $directory, string $fallback): string {
 		if ($directory === null) {

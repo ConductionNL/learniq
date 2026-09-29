@@ -33,8 +33,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
- * @spec openspec/changes/competency-framework/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+ * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+ * @spec openspec/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
  */
 
 declare(strict_types=1);
@@ -77,7 +77,7 @@ class CompetencyLevelResolver {
 	 *
 	 * @return string|null The resolved levelId, or null when no threshold is met.
 	 *
-	 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
 	 */
 	public function resolveLevelByPercent(string $frameworkId, float $percent): ?string {
 		$framework = $this->reader->load(schema: self::FRAMEWORK_SCHEMA, id: $frameworkId);
@@ -118,7 +118,7 @@ class CompetencyLevelResolver {
 	 *
 	 * @return bool True when the level declares a threshold the evidence meets.
 	 *
-	 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
 	 */
 	private function meetsThreshold(mixed $level, float $percent): bool {
 		$minPercent = $level['minPercent'] ?? null;
@@ -141,7 +141,7 @@ class CompetencyLevelResolver {
 	 *
 	 * @return string|null The resolved levelId, or null when unresolvable.
 	 *
-	 * @spec openspec/changes/competency-framework/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+	 * @spec openspec/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
 	 */
 	public function resolveLevelByLabel(string $competencyId, string $assessment): ?string {
 		if (in_array($assessment, self::BEOORDELING_VALUES, true) === false) {
@@ -174,7 +174,7 @@ class CompetencyLevelResolver {
 	 *
 	 * @return array<int,mixed> The framework's proficiency levels, or [] when unresolvable.
 	 *
-	 * @spec openspec/changes/competency-framework/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+	 * @spec openspec/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
 	 */
 	private function levelsForCompetency(string $competencyId): array {
 		$competency = $this->reader->load(schema: self::COMPETENCY_SCHEMA, id: $competencyId);
@@ -205,7 +205,7 @@ class CompetencyLevelResolver {
 	 *
 	 * @return array{lowest: mixed, highest: mixed} The extremes by `order`.
 	 *
-	 * @spec openspec/changes/competency-framework/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+	 * @spec openspec/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
 	 */
 	private function extremeLevelsByOrder(array $levels): array {
 		$lowest = null;

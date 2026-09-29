@@ -16,7 +16,7 @@
  Mirrors ProctoringReviewQueue's Options API + direct fetch/axios shape (no
  custom Pinia store module).
 
- @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+ @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
 -->
 
 <template>
@@ -90,7 +90,7 @@
 				<div class="timetable-conflict-queue__info">
 					<span class="timetable-conflict-queue__kind">{{
 						/**
-						 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+						 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
 						 */
 						kindLabel(conflict.kind)
 					}}</span>
@@ -106,7 +106,7 @@
 					</span>
 					<span class="timetable-conflict-queue__detected">{{
 						/**
-						 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+						 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
 						 */
 						formatDate(conflict.detectedAt)
 					}}</span>
@@ -175,7 +175,7 @@ export default {
 		 * Open + acknowledged conflicts, ordered newest-first.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+		 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
 		 */
 		visibleConflicts() {
 			return this.conflicts
@@ -194,7 +194,7 @@ export default {
 	/**
 	 * Load the queue, and whether this user may import a timetable.
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+	 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
 	 * @spec openspec/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
 	 */
 	created() {
@@ -226,7 +226,7 @@ export default {
 		 * Fetch every TimetableConflict object.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+		 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
 		 */
 		async load() {
 			this.loading = true
@@ -283,7 +283,7 @@ export default {
 		 * @param {object} conflict The TimetableConflict object.
 		 * @param {string} lifecycle Target lifecycle value.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-coordinator-sees-a-newly-detected-conflict-in-their-review-queue
+		 * @spec openspec/specs/timetabling/spec.md#scenario-a-coordinator-sees-a-newly-detected-conflict-in-their-review-queue
 		 */
 		async transition(conflict, lifecycle) {
 			this.savingId = conflict.id

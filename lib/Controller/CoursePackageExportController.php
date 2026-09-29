@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+ * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
  */
 
 declare(strict_types=1);
@@ -76,7 +76,7 @@ class CoursePackageExportController extends Controller {
 	 *
 	 * @return DataDownloadResponse|JSONResponse The download, or a JSON error.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+	 * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
 	 */
 	#[NoAdminRequired]
 	public function export(string $courseId = '', string $format = ''): DataDownloadResponse|JSONResponse {
@@ -128,7 +128,7 @@ class CoursePackageExportController extends Controller {
 	 *
 	 * @return array{content: string, filename: string, contentType: string} The download payload.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+	 * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
 	 */
 	private function buildDownload(string $format, string $courseId, string $exportingUser): array {
 		if ($format === 'common-cartridge') {

@@ -33,7 +33,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
+ * @spec openspec/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
  */
 
 declare(strict_types=1);
@@ -55,7 +55,7 @@ use Psr\Log\LoggerInterface;
  * - Every section has >=1 matching PortfolioEntry (by sectionId) → allow.
  * - Any section has zero matching entries → block.
  *
- * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
+ * @spec openspec/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
  */
 class PortfolioSubmissionGuard implements LifecycleGuardInterface {
 
@@ -123,7 +123,7 @@ class PortfolioSubmissionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True to allow the transition; false blocks it.
 	 *
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
+	 * @spec openspec/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
 	 */
 	private function allows(array $portfolio): bool {
 		$portfolioId = $portfolio['id'] ?? ($portfolio['uuid'] ?? '');
@@ -192,7 +192,7 @@ class PortfolioSubmissionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return array<int,string> Required section ids, in template order.
 	 *
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
+	 * @spec openspec/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
 	 */
 	private function requiredSectionIds(array $sections): array {
 		$requiredSectionIds = [];
@@ -213,7 +213,7 @@ class PortfolioSubmissionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return array<string,true> Set of covered section ids (keys).
 	 *
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
+	 * @spec openspec/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
 	 */
 	private function coveredSectionIds(string $portfolioId): array {
 		$entries = $this->objectService->findAll(
@@ -250,7 +250,7 @@ class PortfolioSubmissionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return array<string,mixed>|null The object data, or null when not found.
 	 *
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
+	 * @spec openspec/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
 	 */
 	private function loadObject(string $schema, string $id): ?array {
 		if ($id === '') {

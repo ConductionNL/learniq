@@ -32,8 +32,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-authoring-ux/tasks.md#task-7.1
- * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md
+ * @spec openspec/changes/archive/2026-07-16-course-authoring-ux/tasks.md#task-7.1
+ * @spec openspec/specs/course-management/spec.md
  */
 
 declare(strict_types=1);
@@ -77,7 +77,7 @@ class CourseAuthoringRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lessons-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-lessons-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 	 */
 	public function testLessonBlocksShapeAndPropertyMeta(): void {
 		$lesson = $this->config['components']['schemas']['Lesson'] ?? null;
@@ -122,7 +122,7 @@ class CourseAuthoringRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lessons-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-lessons-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 	 */
 	public function testContentRefConditionalShapeMirrorsGradeEntryPrecedent(): void {
 		$lesson = $this->config['components']['schemas']['Lesson'] ?? null;
@@ -172,9 +172,9 @@ class CourseAuthoringRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-authoring-ux/tasks.md#task-7.1
-	 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-an-instructional-designer-composes-a-lesson-from-mixed-blocks
-	 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-packaged-content-lessons-are-unaffected
+	 * @spec openspec/changes/archive/2026-07-16-course-authoring-ux/tasks.md#task-7.1
+	 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-composes-a-lesson-from-mixed-blocks
+	 * @spec openspec/specs/course-management/spec.md#scenario-packaged-content-lessons-are-unaffected
 	 */
 	public function testContentRefConditionalRequirednessMatchesDesignD2Behaviour(): void {
 		$lesson = $this->config['components']['schemas']['Lesson'] ?? [];
@@ -249,7 +249,7 @@ class CourseAuthoringRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-course-declares-its-display-order-among-sibling-modules
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-declares-its-display-order-among-sibling-modules
 	 */
 	public function testCourseOrderIsNullableAdditive(): void {
 		$course = $this->config['components']['schemas']['Course'] ?? null;
@@ -277,7 +277,7 @@ class CourseAuthoringRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-course-structure-can-be-saved-as-a-reusable-template-and-instantiated
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-structure-can-be-saved-as-a-reusable-template-and-instantiated
 	 */
 	public function testCourseTemplateSchemaShapeAndNoLearnerData(): void {
 		$schema = $this->config['components']['schemas']['CourseTemplate'] ?? null;

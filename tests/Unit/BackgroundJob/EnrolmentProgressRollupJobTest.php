@@ -31,7 +31,7 @@ use Psr\Log\NullLogger;
  * them behind on the listener would have meant asserting behaviour at a layer
  * that no longer has it.
  *
- * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
+ * @spec openspec/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
  */
 class EnrolmentProgressRollupJobTest extends TestCase {
 

@@ -443,7 +443,7 @@ class TimetableControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
 	 */
 	public function testProjectsRoomAndSubstitutionFields(): void {
 		$this->signInAs('alice');
@@ -496,7 +496,7 @@ class TimetableControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/personal-timetable/spec.md#scenario-today-s-cancellation-surfaces-in-the-dagrooster-changes-list-even-for-a-future-session
+	 * @spec openspec/specs/personal-timetable/spec.md#scenario-today-s-cancellation-surfaces-in-the-dagrooster-changes-list-even-for-a-future-session
 	 */
 	public function testTodaysCancellationSurfacesInChangesRegardlessOfWindow(): void {
 		$this->signInAs('alice');

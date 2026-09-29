@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
+ * @spec openspec/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
  */
 
 declare(strict_types=1);
@@ -208,7 +208,7 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
+	 * @spec openspec/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
 	 */
 	public function testConflictFreeGenerationAcrossTeachersAndSignups(): void {
 		$this->fixtures['teacher-availability'] = [
@@ -274,7 +274,7 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
+	 * @spec openspec/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
 	 */
 	public function testRegenerateAfterCancellationFreesExactlyThatSignupsMinutes(): void {
 		$this->fixtures['teacher-availability'] = [
@@ -334,7 +334,7 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
+	 * @spec openspec/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
 	 */
 	public function testRegenerateAfterAddingAvailabilitySchedulesWaitlistedSignup(): void {
 		$this->fixtures['teacher-availability'] = [

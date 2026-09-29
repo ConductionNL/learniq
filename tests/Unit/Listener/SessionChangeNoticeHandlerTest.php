@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-cancellation-or-substitution-notifies-affected-learners-and-parents
+ * @spec openspec/specs/timetabling/spec.md#requirement-cancellation-or-substitution-notifies-affected-learners-and-parents
  */
 
 declare(strict_types=1);
@@ -132,7 +132,7 @@ class SessionChangeNoticeHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-cancelling-a-session-notifies-every-affected-learner-and-parent
+	 * @spec openspec/specs/timetabling/spec.md#scenario-cancelling-a-session-notifies-every-affected-learner-and-parent
 	 */
 	public function testCancelMaterialisesAffectedLearnersAndParents(): void {
 		$this->wire(

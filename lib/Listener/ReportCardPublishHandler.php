@@ -31,8 +31,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-publication-fans-out-a-learner-parent-notification-mirroring-gradenotifications-reason
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
+ * @spec openspec/specs/report-card/spec.md#requirement-publication-fans-out-a-learner-parent-notification-mirroring-gradenotifications-reason
+ * @spec openspec/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
  */
 
 declare(strict_types=1);
@@ -52,7 +52,7 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-publication-fans-out-a-learner-parent-notification-mirroring-gradenotifications-reason
+ * @spec openspec/specs/report-card/spec.md#requirement-publication-fans-out-a-learner-parent-notification-mirroring-gradenotifications-reason
  */
 class ReportCardPublishHandler implements IEventListener {
 
@@ -84,7 +84,7 @@ class ReportCardPublishHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
+	 * @spec openspec/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -111,7 +111,7 @@ class ReportCardPublishHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
+	 * @spec openspec/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
 	 */
 	private function fanOutParentNotifications(array $reportCard): void {
 		$reportCardId = (string)($reportCard['id'] ?? ($reportCard['uuid'] ?? ''));

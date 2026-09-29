@@ -36,7 +36,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
+ * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
  */
 
 declare(strict_types=1);
@@ -53,7 +53,7 @@ use RuntimeException;
  * Guards `LearningRecordImport`'s `parse` transition and parses the
  * uploaded bundle into an evidence-only coverage report.
  *
- * @spec openspec/changes/portable-learning-record/tasks.md#task-4-1
+ * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-4-1
  */
 class LearningRecordImportService implements LifecycleGuardInterface {
 
@@ -117,7 +117,7 @@ class LearningRecordImportService implements LifecycleGuardInterface {
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-an-unrecognisable-file-fails-closed-without-partial-data
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-an-unrecognisable-file-fails-closed-without-partial-data
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$decoded = $this->readBundle(import: $object);
@@ -138,8 +138,8 @@ class LearningRecordImportService implements LifecycleGuardInterface {
 	 *
 	 * @throws RuntimeException When the bundle can not be read, decoded or recognised.
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-an-unrecognisable-file-fails-closed-without-partial-data
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-an-unrecognisable-file-fails-closed-without-partial-data
 	 */
 	public function parse(array $import): array {
 		$decoded = $this->readBundle(import: $import);
@@ -164,7 +164,7 @@ class LearningRecordImportService implements LifecycleGuardInterface {
 	 *
 	 * @return array<mixed>|string The decoded bundle, or the reason it can not be parsed.
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-an-unrecognisable-file-fails-closed-without-partial-data
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-an-unrecognisable-file-fails-closed-without-partial-data
 	 */
 	private function readBundle(array $import): array|string {
 		$sourceFormat = (string)($import['sourceFormat'] ?? '');

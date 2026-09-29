@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/external-training-recording/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
 
 declare(strict_types=1);
@@ -52,7 +52,7 @@ use OCP\IUserSession;
 /**
  * Multi-object operations for external-training records.
  *
- * @spec openspec/changes/external-training-recording/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
 class ExternalTrainingController extends Controller {
 	/**
@@ -92,7 +92,7 @@ class ExternalTrainingController extends Controller {
 	 *
 	 * @return JSONResponse The created batchId + count, or an error.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 */
 	#[NoAdminRequired]
 	public function bulkRecord(array $learnerIds = [], array $training = []): JSONResponse {
@@ -138,7 +138,7 @@ class ExternalTrainingController extends Controller {
 	 *
 	 * @return JSONResponse The new credentialId, or an error.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-2
 	 */
 	#[NoAdminRequired]
@@ -202,7 +202,7 @@ class ExternalTrainingController extends Controller {
 	 *
 	 * @throws \Exception When OpenRegister refuses the credential or the record save; it reaches the caller as before.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 */
 	private function saveSignedCredential(array $payload, array $record): ?string {
 		$signed = $this->signingService->sign(credential: $payload);
@@ -253,7 +253,7 @@ class ExternalTrainingController extends Controller {
 	 *
 	 * @return JSONResponse { covered: bool, evidenceClass: string|null }.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-2
 	 */
 	#[NoAdminRequired]

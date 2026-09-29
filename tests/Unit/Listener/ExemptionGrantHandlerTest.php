@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-granted-exemption-feeds-grading-through-the-existing-publish-path
+ * @spec openspec/specs/exam-board/spec.md#requirement-a-granted-exemption-feeds-grading-through-the-existing-publish-path
  */
 
 declare(strict_types=1);
@@ -140,7 +140,7 @@ class ExemptionGrantHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#scenario-granting-an-exemption-creates-and-publishes-a-gradeentry
+	 * @spec openspec/specs/exam-board/spec.md#scenario-granting-an-exemption-creates-and-publishes-a-gradeentry
 	 */
 	public function testGrantedCaseCreatesAndPublishesGradeEntry(): void {
 		$handler = $this->makeHandler(savedGradeEntry: ['id' => 'entry-1', 'sourceKind' => 'exemption']);

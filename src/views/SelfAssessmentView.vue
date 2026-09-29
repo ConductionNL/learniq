@@ -32,8 +32,8 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
-  @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-after-submitting
+  @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+  @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-after-submitting
 -->
 
 <template>
@@ -229,7 +229,7 @@ export default {
 		 * Sum of points for all selected criterion levels.
 		 *
 		 * @return {number}
-		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		computedScore() {
 			return Object.values(this.selectedLevels).reduce(
@@ -243,7 +243,7 @@ export default {
 		 * the server enforces this via RubricScoresCompletionGuard regardless).
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		canSubmit() {
 			if (
@@ -263,7 +263,7 @@ export default {
 		 * Submission has already been submitted.
 		 *
 		 * @return {string} 'before-submission' or 'after-submission'
-		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		timing() {
 			return this.submission && this.submission.lifecycle === 'draft'
@@ -280,7 +280,7 @@ export default {
 			 *
 			 * @param {string} newId New Submission UUID
 			 * @return {void}
-			 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+			 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 			 */
 			handler(newId) {
 				if (newId) {
@@ -297,7 +297,7 @@ export default {
 		 *
 		 * @param {string} submissionId Submission UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		async loadData(submissionId) {
 			this.loading = true
@@ -342,7 +342,7 @@ export default {
 		 *
 		 * @param {string} submissionId Submission UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		async loadSubmission(submissionId) {
 			const url = generateUrl(
@@ -363,7 +363,7 @@ export default {
 		 *
 		 * @param {string} assignmentId Assignment UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		async loadAssignment(assignmentId) {
 			const url = generateUrl(
@@ -384,7 +384,7 @@ export default {
 		 *
 		 * @param {string} rubricId Rubric UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		async loadRubric(rubricId) {
 			const url = generateUrl(
@@ -407,7 +407,7 @@ export default {
 		 *
 		 * @param {string} submissionId Submission UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		async loadExistingSelfAssessment(submissionId) {
 			const uid = getCurrentUser()?.uid ?? ''
@@ -442,7 +442,7 @@ export default {
 		 * @param {object} criterion Rubric criterion object
 		 * @param {object} level     Selected level object
 		 * @return {void}
-		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		selectLevel(criterion, level) {
 			this.selectedLevels = {
@@ -458,7 +458,7 @@ export default {
 		 * Build the rubricScores array from current selections.
 		 *
 		 * @return {Array<{criterionId: string, levelId: string, points: number}>}
-		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		buildRubricScores() {
 			return Object.entries(this.selectedLevels).map(([criterionId, sel]) => ({
@@ -474,7 +474,7 @@ export default {
 		 * GradeEntry — grade authority stays with the teacher.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		async saveAndSubmit() {
 			if (!this.submission) {

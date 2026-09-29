@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+ * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
  */
 
 declare(strict_types=1);
@@ -73,7 +73,7 @@ class CommonCartridgeResourceRouter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	public function routeResource(
 		array $resource,
@@ -128,7 +128,7 @@ class CommonCartridgeResourceRouter {
 	 *
 	 * @return array<string, mixed> The report entry for this resource.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function buildResourceEntry(
 		array $resource,
@@ -193,7 +193,7 @@ class CommonCartridgeResourceRouter {
 	 *
 	 * @return array<string, mixed> The placeholder report entry for this resource.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function pendingQtiEntry(array $resource): array {
 		return $this->reporter->entry(
@@ -220,7 +220,7 @@ class CommonCartridgeResourceRouter {
 	 *
 	 * @return array<string, mixed> The report entry for this resource.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function importWebContent(
 		array $resource,
@@ -270,7 +270,7 @@ class CommonCartridgeResourceRouter {
 	 *
 	 * @return array<string, mixed> The report entry for this resource.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function importWebLink(array $resource, string $dir, ?string $courseId, ?string $lessonTitle, string $tenantId): array {
 		$materialId = $this->objectWriter->createMaterial(
@@ -302,7 +302,7 @@ class CommonCartridgeResourceRouter {
 	 *
 	 * @return array<string, mixed> The report entry for this resource.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-lti-resource-becomes-a-placement-not-an-inline-link
+	 * @spec openspec/specs/course-management/spec.md#scenario-an-lti-resource-becomes-a-placement-not-an-inline-link
 	 */
 	private function importBasicLti(array $resource, ?string $courseId, string $tenantId): array {
 		$placementId = $this->objectWriter->createLtiPlacement(courseId: $courseId, tenantId: $tenantId);
@@ -327,7 +327,7 @@ class CommonCartridgeResourceRouter {
 	 *
 	 * @return array<string, mixed> The report entry for this resource.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function droppedEntry(array $resource, ?string $reason): array {
 		return $this->reporter->entry(
@@ -353,7 +353,7 @@ class CommonCartridgeResourceRouter {
 	 *
 	 * @return string|null The resolved target URL, or null when nothing could be resolved.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function resolveWeblinkUrl(string $dir, ?string $href): ?string {
 		if ($href === null) {

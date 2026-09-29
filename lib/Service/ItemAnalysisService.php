@@ -45,8 +45,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-assessment-reliability-cronbachs-alpha-is-computed-with-a-minimum-sample-size
+ * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
+ * @spec openspec/specs/assessment/spec.md#requirement-per-assessment-reliability-cronbachs-alpha-is-computed-with-a-minimum-sample-size
  */
 
 declare(strict_types=1);
@@ -74,7 +74,7 @@ use OCA\OpenRegister\Service\ObjectService;
  * precedent for @SuppressWarnings(PHPMD.CyclomaticComplexity) on a
  * similarly irreducible domain algorithm).
  *
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
+ * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
  *
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
@@ -123,7 +123,7 @@ class ItemAnalysisService {
 	 * @return array{sampleSize: int, pValue: float|null, itemTotalCorrelation: float|null,
 	 *               distractorAnalysis: array|null, insufficientData: bool, computedAt: string}
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
+	 * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
 	 */
 	public function computeItemStatistics(string $itemId, string $assessmentId): array {
 		$assessment = $this->fetchOne(schema: self::ASSESSMENT_SCHEMA, uuid: $assessmentId);
@@ -188,7 +188,7 @@ class ItemAnalysisService {
 	 * @return array{sampleSize: int, itemCount: int, cronbachAlpha: float|null,
 	 *               insufficientData: bool, computedAt: string}
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-assessment-reliability-cronbachs-alpha-is-computed-with-a-minimum-sample-size
+	 * @spec openspec/specs/assessment/spec.md#requirement-per-assessment-reliability-cronbachs-alpha-is-computed-with-a-minimum-sample-size
 	 */
 	public function computeReliability(string $assessmentId): array {
 		$assessment = $this->fetchOne(schema: self::ASSESSMENT_SCHEMA, uuid: $assessmentId);
@@ -341,7 +341,7 @@ class ItemAnalysisService {
 	 * @return array{minSampleSize: int, reliabilityMinSampleSize: int, tooDifficultyBelow: float,
 	 *               tooEasyAbove: float, lowDiscriminationBelow: float}
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
+	 * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
 	 */
 	public function resolveConfig(?array $assessment): array {
 		$raw = null;

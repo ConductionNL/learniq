@@ -7,7 +7,7 @@
  * does not live in this repository. What this suite verifies is the
  * declared SHAPE, mirroring SchoolAndLocationRegisterTest. It deliberately
  * does NOT test any visibleIf/menu-gating behaviour on `segment`, because
- * this change does not add any (see openspec/changes/segment-feature-flags/
+ * this change does not add any (see openspec/changes/archive/2026-09-28-segment-feature-flags/
  * proposal.md Out of Scope and design.md Discovery: manifest.runtime has no
  * generic settings-to-runtime bridge, so declaring that gating now would
  * ship broken).

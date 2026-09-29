@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
+ * @spec openspec/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ use DOMNodeList;
 /**
  * Resolves a permuted QTI simpleChoice order, respecting `fixed` choices.
  *
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
+ * @spec openspec/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
  */
 class QtiChoiceOrderResolver {
 	/**
@@ -54,7 +54,7 @@ class QtiChoiceOrderResolver {
 	 * @return array<int,string>|null Permuted identifier list, or null for
 	 *                                non-choice items or an unparseable/empty body.
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
+	 * @spec openspec/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
 	 */
 	public function resolveOrder(array $item): ?array {
 		if (($item['interactionType'] ?? null) !== 'choice') {

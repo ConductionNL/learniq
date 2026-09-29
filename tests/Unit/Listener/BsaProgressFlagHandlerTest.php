@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+ * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
  */
 
 declare(strict_types=1);
@@ -153,7 +153,7 @@ class BsaProgressFlagHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-falling-behind-pace-ahead-of-the-interim-check-raises-a-flag
+	 * @spec openspec/specs/study-progress/spec.md#scenario-falling-behind-pace-ahead-of-the-interim-check-raises-a-flag
 	 */
 	public function testFlagCreatedOnFirstAtRiskCrossing(): void {
 		$now = new DateTime('2026-02-05 10:00:00', new DateTimeZone('Europe/Amsterdam'));
@@ -201,7 +201,7 @@ class BsaProgressFlagHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	public function testNoDuplicateFlagWhenOneAlreadyOpen(): void {
 		$now = new DateTime('2026-02-05 10:00:00', new DateTimeZone('Europe/Amsterdam'));

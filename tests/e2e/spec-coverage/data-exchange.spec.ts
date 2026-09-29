@@ -6,8 +6,8 @@
  * learniq, next to the pages of the exchange gate's own records.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#scenario-an-administrator-opens-the-panel
- *   @e2e openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#scenario-a-parent-approves
+ *   @e2e openspec/specs/data-exchange/spec.md#scenario-an-administrator-opens-the-panel
+ *   @e2e openspec/specs/data-exchange/spec.md#scenario-a-parent-approves
  *
  * The panel pages declare `requiresApp: integriq`; on an instance without
  * integriq they render the app-required notice, which is also a non-fatal
@@ -44,7 +44,7 @@ function collectFatalErrors(page: Page): string[] {
 
 test.describe('data-exchange-to-integriq: status panel and gate pages', () => {
 	for (const url of PAGES) {
-		// @e2e openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#scenario-an-administrator-opens-the-panel
+		// @e2e openspec/specs/data-exchange/spec.md#scenario-an-administrator-opens-the-panel
 		test(`${url} renders without a fatal error`, async ({
 			loggedInPage: page,
 		}) => {
@@ -71,7 +71,7 @@ test.describe('data-exchange-to-integriq: status panel and gate pages', () => {
 		})
 	}
 
-	// @e2e openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#scenario-a-parent-approves
+	// @e2e openspec/specs/data-exchange/spec.md#scenario-a-parent-approves
 	test('the exchange jobs page offers no add action', async ({
 		loggedInPage: page,
 	}) => {

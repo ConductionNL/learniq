@@ -13,7 +13,7 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
  *
- * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
+ * @spec openspec/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
  */
 
 declare(strict_types=1);
@@ -105,7 +105,7 @@ class EnrolmentProgressRollupJob extends ActorForwardedJob {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
+	 * @spec openspec/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
 	 */
 	protected function runDeferred(DeferredListenerContext $context): void {
 		foreach ($context->getEntries() as $entry) {
@@ -189,7 +189,7 @@ class EnrolmentProgressRollupJob extends ActorForwardedJob {
 	 *
 	 * @return array<string, mixed>|null The enrolment, or null when none is active.
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
+	 * @spec openspec/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
 	 */
 	private function findActiveEnrolment(string $learnerId, string $courseId): ?array {
 		$results = $this->objectService->findAll(

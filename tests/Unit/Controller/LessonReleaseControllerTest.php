@@ -23,8 +23,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
+ * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
+ * @spec openspec/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
  */
 
 declare(strict_types=1);

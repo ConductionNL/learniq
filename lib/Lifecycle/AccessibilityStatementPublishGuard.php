@@ -37,7 +37,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-a-statement-must-not-publish-without-evaluation-evidence
+ * @spec openspec/specs/accessibility-conformance/spec.md#requirement-a-statement-must-not-publish-without-evaluation-evidence
  */
 
 declare(strict_types=1);
@@ -126,8 +126,8 @@ class AccessibilityStatementPublishGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-a-statement-must-not-publish-without-evaluation-evidence
-	 * @spec openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
+	 * @spec openspec/specs/accessibility-conformance/spec.md#requirement-a-statement-must-not-publish-without-evaluation-evidence
+	 * @spec openspec/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -151,8 +151,8 @@ class AccessibilityStatementPublishGuard implements LifecycleGuardInterface {
 	 *              fully-compliant status) no open/mitigated limitation
 	 *              references this statement; false blocks the transition.
 	 *
-	 * @spec openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-a-statement-must-not-publish-without-evaluation-evidence
-	 * @spec openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
+	 * @spec openspec/specs/accessibility-conformance/spec.md#requirement-a-statement-must-not-publish-without-evaluation-evidence
+	 * @spec openspec/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
 	 */
 	private function allows(array $object): bool {
 		$status = $object['status'] ?? null;
@@ -192,7 +192,7 @@ class AccessibilityStatementPublishGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when all four evidence fields are present and valid.
 	 *
-	 * @spec openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-a-statement-must-not-publish-without-evaluation-evidence
+	 * @spec openspec/specs/accessibility-conformance/spec.md#requirement-a-statement-must-not-publish-without-evaluation-evidence
 	 */
 	private function hasCompleteEvaluationEvidence(array $object): bool {
 		$status = $object['status'] ?? null;
@@ -228,7 +228,7 @@ class AccessibilityStatementPublishGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when at least one blocking limitation exists.
 	 *
-	 * @spec openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
+	 * @spec openspec/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
 	 */
 	private function hasBlockingLimitation(string $statementId, string $tenantId): bool {
 		$filters = ['accessibilityStatementId' => $statementId];

@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
+ * @spec openspec/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
  */
 
 declare(strict_types=1);
@@ -130,7 +130,7 @@ class CourseEvaluationResponseSubmittedHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-submitting-flips-the-caller-s-own-invitation-not-anyone-else-s
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-submitting-flips-the-caller-s-own-invitation-not-anyone-else-s
 	 */
 	public function testFlipsCallersOwnInvitationOnly(): void {
 		$invitations = [
@@ -166,7 +166,7 @@ class CourseEvaluationResponseSubmittedHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-submitting-flips-the-caller-s-own-invitation-not-anyone-else-s
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-submitting-flips-the-caller-s-own-invitation-not-anyone-else-s
 	 */
 	public function testUpdatedInvitationGainsNoResponseReference(): void {
 		$invitations = [

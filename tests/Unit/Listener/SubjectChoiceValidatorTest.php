@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-a-submitted-subject-choice-is-validated-against-the-plan-s-elective-rules-not-persisted-unchecked
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-submitted-subject-choice-is-validated-against-the-plan-s-elective-rules-not-persisted-unchecked
  */
 
 declare(strict_types=1);
@@ -127,7 +127,7 @@ class SubjectChoiceValidatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-choice-satisfying-every-rule-validates
+	 * @spec openspec/specs/school-structure/spec.md#scenario-a-choice-satisfying-every-rule-validates
 	 */
 	public function testValidChoiceMovesToValidated(): void {
 		$plan = [
@@ -159,7 +159,7 @@ class SubjectChoiceValidatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-choice-violating-a-mandatory-combination-is-sent-back-for-revision
+	 * @spec openspec/specs/school-structure/spec.md#scenario-a-choice-violating-a-mandatory-combination-is-sent-back-for-revision
 	 */
 	public function testMandatoryCombinationViolationMovesToNeedsRevision(): void {
 		$plan = [
@@ -190,7 +190,7 @@ class SubjectChoiceValidatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-choice-exceeding-a-course-s-capacity-is-sent-back-for-revision
+	 * @spec openspec/specs/school-structure/spec.md#scenario-a-choice-exceeding-a-course-s-capacity-is-sent-back-for-revision
 	 */
 	public function testCapacityExceededMovesToNeedsRevision(): void {
 		$plan = [

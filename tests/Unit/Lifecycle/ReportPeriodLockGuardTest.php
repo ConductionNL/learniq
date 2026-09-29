@@ -22,9 +22,9 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
- * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
- * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-a-mentor-override-publishes-a-grade-for-a-locked-report-period
+ * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
+ * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
+ * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-a-mentor-override-publishes-a-grade-for-a-locked-report-period
  */
 
 declare(strict_types=1);
@@ -124,7 +124,7 @@ class ReportPeriodLockGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
+	 * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
 	 */
 	public function testNoGoverningReportPeriodAllowsUnconditionally(): void {
 		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: []);
@@ -153,7 +153,7 @@ class ReportPeriodLockGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
+	 * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
 	 */
 	public function testMatchingLockedReportPeriodBlocksOrdinaryTeacher(): void {
 		$period = ['id' => 'period-1', 'periodCode' => '1', 'curriculumPlanIds' => ['plan-1'], 'isLocked' => true];
@@ -169,7 +169,7 @@ class ReportPeriodLockGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-a-mentor-override-publishes-a-grade-for-a-locked-report-period
+	 * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-a-mentor-override-publishes-a-grade-for-a-locked-report-period
 	 */
 	public function testMentorOverrideAllowsPublishOnLockedPeriod(): void {
 		$period = ['id' => 'period-1', 'periodCode' => '1', 'curriculumPlanIds' => ['plan-1'], 'isLocked' => true];

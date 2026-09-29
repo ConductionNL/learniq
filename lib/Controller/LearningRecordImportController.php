@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
+ * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
  */
 
 declare(strict_types=1);
@@ -53,7 +53,7 @@ use OCP\IUserSession;
  *   - file         : the uploaded JSON bundle (required)
  *   - sourceFormat : `scholiq-learning-record` | `elm-europass` (required)
  *
- * @spec openspec/changes/portable-learning-record/tasks.md#task-4-2
+ * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-4-2
  */
 class LearningRecordImportController extends Controller {
 	/**
@@ -82,7 +82,7 @@ class LearningRecordImportController extends Controller {
 	 *
 	 * @return JSONResponse The created (now `parsed`, or `uploaded`+errorMessage) LearningRecordImport, or an error.
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
 	 */
 	#[NoAdminRequired]
 	public function upload(string $applicationId): JSONResponse {

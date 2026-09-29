@@ -48,9 +48,9 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
+ * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
+ * @spec openspec/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
  */
 
 declare(strict_types=1);
@@ -65,7 +65,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Guards the Application completeIntake / place / waitlist / reject / promote transitions.
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+ * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
  */
 class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 
@@ -125,7 +125,7 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+	 * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -147,7 +147,7 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when pre-conditions are satisfied; false blocks the transition.
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+	 * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
 	 */
 	private function allows(array $object): bool {
 		$to = (string)($object['lifecycle'] ?? '');
@@ -192,7 +192,7 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when the decision may proceed; false blocks the transition.
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
 	 */
 	private function checkDecision(array $round, array $object, string $roundId, string $to): bool {
 		$kind = (string)($round['kind'] ?? 'generic');
@@ -234,7 +234,7 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when the transition may proceed.
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+	 * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
 	 */
 	private function checkMandatoryIntake(array $round, array $object): bool {
 		$mandatory = ($round['mandatoryIntake'] ?? true) === true;
@@ -262,7 +262,7 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when rejection MUST be blocked (conditions met, no named reason).
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+	 * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
 	 */
 	private function toelatingsrechtBlocksRejection(array $round, array $object): bool {
 		$deadline = $round['applicationDeadline'] ?? null;
@@ -288,7 +288,7 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when the rule is satisfied (decision may proceed).
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
 	 */
 	private function schooladviesAdjustmentSatisfied(array $object): bool {
 		$schooladvies = $object['schoolAdviceLevel'] ?? null;
@@ -333,7 +333,7 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True only when both levels are comparable and the toets scored higher.
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
 	 */
 	private function doorstroomOutranks(mixed $schooladvies, mixed $doorstroom): bool {
 		if (is_string($schooladvies) === false || is_string($doorstroom) === false) {
@@ -359,7 +359,7 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when capacity has been reached (placement must be blocked).
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
+	 * @spec openspec/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
 	 */
 	private function capacityReached(array $round, string $roundId, string $tenantId): bool {
 		$capacity = $round['capacity'] ?? null;

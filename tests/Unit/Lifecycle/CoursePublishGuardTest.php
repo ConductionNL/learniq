@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
+ * @spec openspec/changes/archive/2026-07-13-delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
  */
 
 declare(strict_types=1);
@@ -51,7 +51,7 @@ class CoursePublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
+	 * @spec openspec/changes/archive/2026-07-13-delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
 	 */
 	public function testCourseWithPublishedLessonIsAllowedToPublish(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -70,7 +70,7 @@ class CoursePublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
+	 * @spec openspec/changes/archive/2026-07-13-delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
 	 */
 	public function testCourseWithoutPublishedLessonIsBlocked(): void {
 		$objectService = $this->createMock(ObjectService::class);

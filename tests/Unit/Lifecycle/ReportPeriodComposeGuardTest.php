@@ -16,8 +16,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
+ * @spec openspec/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
+ * @spec openspec/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
  */
 
 declare(strict_types=1);
@@ -50,7 +50,7 @@ class ReportPeriodComposeGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
+	 * @spec openspec/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 	 */
 	public function testMaterialisedIsLockedTrueAllowsCompose(): void {
 		$guard = $this->makeGuard();
@@ -65,7 +65,7 @@ class ReportPeriodComposeGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
+	 * @spec openspec/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
 	 */
 	public function testMaterialisedIsLockedFalseBlocksCompose(): void {
 		$guard = $this->makeGuard();

@@ -38,8 +38,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
+ * @spec openspec/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
+ * @spec openspec/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
  */
 
 declare(strict_types=1);
@@ -56,7 +56,7 @@ use Psr\Log\LoggerInterface;
  * Allows the transition only when the period's `isLocked` calculation is
  * `true`. Blocks otherwise.
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-lock-date-is-enforced-by-a-materialised-calculation-and-guards-not-an-automatic-transition
+ * @spec openspec/specs/report-card/spec.md#requirement-lock-date-is-enforced-by-a-materialised-calculation-and-guards-not-an-automatic-transition
  */
 class ReportPeriodComposeGuard implements LifecycleGuardInterface {
 
@@ -87,8 +87,8 @@ class ReportPeriodComposeGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
+	 * @spec openspec/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
+	 * @spec openspec/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -111,8 +111,8 @@ class ReportPeriodComposeGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when the period is locked; false blocks the transition.
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
+	 * @spec openspec/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
+	 * @spec openspec/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 	 */
 	private function allows(array $object): bool {
 		$periodId = $object['id'] ?? ($object['uuid'] ?? '');

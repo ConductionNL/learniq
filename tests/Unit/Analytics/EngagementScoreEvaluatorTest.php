@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#requirement-persist-engagementscore-domain-objects-in-openregister
+ * @spec openspec/specs/student-analytics/spec.md#requirement-persist-engagementscore-domain-objects-in-openregister
  */
 
 declare(strict_types=1);
@@ -66,7 +66,7 @@ class EngagementScoreEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
 	 */
 	public function testMultipleStatementsSumDurations(): void {
 		$statements = [
@@ -108,7 +108,7 @@ class EngagementScoreEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-engagementscore-objects-persist-and-recompute-from-xapi-activity
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-engagementscore-objects-persist-and-recompute-from-xapi-activity
 	 */
 	public function testLastActivityAtResolvesToLatest(): void {
 		$statements = [
@@ -130,7 +130,7 @@ class EngagementScoreEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-engagementscore-objects-persist-and-recompute-from-xapi-activity
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-engagementscore-objects-persist-and-recompute-from-xapi-activity
 	 */
 	public function testScoreBoundedToRange(): void {
 		$statements = [

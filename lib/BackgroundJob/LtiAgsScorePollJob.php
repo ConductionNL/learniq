@@ -53,9 +53,9 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.1
- * @spec openspec/changes/lti-tool-placement/specs/grading/spec.md#scenario-an-lti-ags-score-creates-a-traceable-concept-gradeentry
- * @spec openspec/changes/lti-tool-placement/specs/grading/spec.md#scenario-a-redelivered-ags-message-does-not-create-a-duplicate-gradeentry
+ * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.1
+ * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/specs/grading/spec.md#scenario-an-lti-ags-score-creates-a-traceable-concept-gradeentry
+ * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/specs/grading/spec.md#scenario-a-redelivered-ags-message-does-not-create-a-duplicate-gradeentry
  */
 
 declare(strict_types=1);
@@ -79,7 +79,7 @@ use Throwable;
  *
  * @psalm-api
  *
- * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.1
+ * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.1
  */
 class LtiAgsScorePollJob extends TimedJob {
 
@@ -147,7 +147,7 @@ class LtiAgsScorePollJob extends TimedJob {
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 *
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.1
+	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.1
 	 */
 	public function run(mixed $argument): void {
 		$subscriptionId = $this->appConfig->getValueString(app: Application::APP_ID, key: self::SUBSCRIPTION_ID_KEY, default: '');
@@ -211,9 +211,9 @@ class LtiAgsScorePollJob extends TimedJob {
 	 *
 	 * @return bool True when a GradeEntry was created; false when the message was skipped.
 	 *
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.2
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.3
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.4
+	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.2
+	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.3
+	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.4
 	 */
 	private function processMessage(array $message): bool {
 		$resultId = (string)($message['id'] ?? ($message['uuid'] ?? ''));
@@ -300,7 +300,7 @@ class LtiAgsScorePollJob extends TimedJob {
 	 *
 	 * @return array{placement: array<string,mixed>, placementId: string}|null The placement, or null when unresolvable.
 	 *
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.2
+	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.2
 	 */
 	private function resolvePlacementForMessage(array $data, string $resultId): ?array {
 		$deploymentUuid = (string)($data['deploymentUuid'] ?? '');
@@ -348,7 +348,7 @@ class LtiAgsScorePollJob extends TimedJob {
 	 *
 	 * @return array{learnerId: string, scoreGiven: float, scoreMaximum: float|null}|null The score, or null when insufficient.
 	 *
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.2
+	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.2
 	 */
 	private function extractScore(array $data, string $resultId): ?array {
 		$score = [];
@@ -455,7 +455,7 @@ class LtiAgsScorePollJob extends TimedJob {
 	 *
 	 * @return bool True when a matching GradeEntry already exists.
 	 *
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.3
+	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.3
 	 */
 	private function gradeEntryAlreadyExists(string $placementId, string $resultId): bool {
 		$results = $this->objectService->findAll(

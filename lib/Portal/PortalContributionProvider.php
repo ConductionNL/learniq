@@ -59,9 +59,9 @@ namespace OCA\Learniq\Portal;
  * comments on grades, the teacher's marking internals on submissions, the
  * marker and internal links on attendance, the staff decision fields on excuse
  * requests). Whitelist tables + the claim-names contract:
- * openspec/changes/portal-contribution/design.md. The parent reverse /
+ * openspec/changes/archive/2026-09-28-portal-contribution/design.md. The parent reverse /
  * scope-value join (`match: 'scopeField'`) + its minTrust story:
- * openspec/changes/portal-parent/design.md.
+ * openspec/changes/archive/2026-09-28-portal-parent/design.md.
  *
  * @spec openspec/specs/portal-contribution/spec.md
  */
@@ -82,8 +82,8 @@ class PortalContributionProvider {
 	 * @return array<int, string> The audience identifiers.
 	 *
 	 * @spec openspec/specs/portal-contribution/spec.md
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-praktijkopleider-portal-access-is-a-direct-scope-portalcontributionprovider-audience
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
+	 * @spec openspec/specs/bpv/spec.md#requirement-praktijkopleider-portal-access-is-a-direct-scope-portalcontributionprovider-audience
+	 * @spec openspec/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
 	 */
 	public function getAudiences(): array {
 		return ['student', 'parent', 'praktijkopleider', 'external-assessor'];
@@ -557,7 +557,7 @@ class PortalContributionProvider {
 	 * into `submittedByRef` (never `learnerRef`, which is the child) and is
 	 * likewise `substantial`. Field projection is identical to the student
 	 * surface (same staff-only columns dropped). Reverse-join semantics, the
-	 * minTrust story and a worked example: openspec/changes/portal-parent/design.md.
+	 * minTrust story and a worked example: openspec/changes/archive/2026-09-28-portal-parent/design.md.
 	 *
 	 * @return array<string, mixed> The parent manifest.
 	 *
@@ -838,7 +838,7 @@ class PortalContributionProvider {
 	 * referenced `Portfolio`/`PortfolioEntry` content is downstream of this manifest (this
 	 * class stays a pure, I/O-free declaration per its own class docblock); it does not
 	 * declare a second `via`-joined collection here because the documented `via` contract
-	 * (`openspec/changes/portal-parent/design.md`'s `isValidVia()` key set — exactly
+	 * (`openspec/changes/archive/2026-09-28-portal-parent/design.md`'s `isValidVia()` key set — exactly
 	 * `{register, schema, scopeField, targetField, match}`) has no hook to filter the
 	 * *joined* schema by its own lifecycle, so a `via`-based `portfolio`/`portfolio-entry`
 	 * collection could not honour "a revoked share resolves no rows". Resolving
@@ -849,9 +849,9 @@ class PortalContributionProvider {
 	 *
 	 * @return array<string, mixed> The praktijkopleider manifest.
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-praktijkopleider-portal-access-is-a-direct-scope-portalcontributionprovider-audience
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-praktijkopleider-portal-actions-never-trust-client-supplied-identity
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
+	 * @spec openspec/specs/bpv/spec.md#requirement-praktijkopleider-portal-access-is-a-direct-scope-portalcontributionprovider-audience
+	 * @spec openspec/specs/bpv/spec.md#requirement-praktijkopleider-portal-actions-never-trust-client-supplied-identity
+	 * @spec openspec/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
 	 */
 	private function practicalTrainerContribution(): array {
 		return [
@@ -958,7 +958,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<string, mixed> The external-assessor manifest.
 	 *
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
+	 * @spec openspec/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
 	 */
 	private function externalAssessorContribution(): array {
 		return [

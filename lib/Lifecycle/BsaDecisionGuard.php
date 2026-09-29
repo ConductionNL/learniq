@@ -35,7 +35,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
+ * @spec openspec/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
  */
 
 declare(strict_types=1);
@@ -103,7 +103,7 @@ class BsaDecisionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny naming the missing requirement.
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
+	 * @spec openspec/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -162,7 +162,7 @@ class BsaDecisionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when at least one matching issued warning exists.
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
+	 * @spec openspec/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
 	 */
 	private function hasIssuedWarning(string $learnerId, string $programmeId, string $academicYear, string $tenantId): bool {
 		if ($learnerId === '' || $programmeId === '' || $academicYear === '') {

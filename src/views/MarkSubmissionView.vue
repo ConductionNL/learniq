@@ -36,8 +36,8 @@
   Copyright (C) 2026 Conduction B.V.
 
   @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-28
-  @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-marksubmissionview-shows-peer-and-self-assessment-as-read-only-context
-  @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-configured-peer-review-weight-only-suggests-never-writes-a-blended-score
+  @spec openspec/specs/assignments/spec.md#scenario-marksubmissionview-shows-peer-and-self-assessment-as-read-only-context
+  @spec openspec/specs/assignments/spec.md#scenario-a-configured-peer-review-weight-only-suggests-never-writes-a-blended-score
 
   assignments-double-marking: when Assignment.markersPerSubmission is above 1
   and markers are allocated, a marker scores into their own SubmissionMark
@@ -615,7 +615,7 @@ export default {
 		 * exists.
 		 *
 		 * @return {number|null}
-		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-configured-peer-review-weight-only-suggests-never-writes-a-blended-score
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-configured-peer-review-weight-only-suggests-never-writes-a-blended-score
 		 */
 		blendedSuggestion() {
 			const weightPercent = this.assignment.peerReviewWeightPercent
@@ -789,7 +789,7 @@ export default {
 		 *
 		 * @param {string} submissionId Submission UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-marksubmissionview-shows-peer-and-self-assessment-as-read-only-context
+		 * @spec openspec/specs/assignments/spec.md#scenario-marksubmissionview-shows-peer-and-self-assessment-as-read-only-context
 		 */
 		async loadPeerFeedbackSummary(submissionId) {
 			const url = generateUrl(
@@ -814,7 +814,7 @@ export default {
 		 *
 		 * @param {string} submissionId Submission UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-marksubmissionview-shows-peer-and-self-assessment-as-read-only-context
+		 * @spec openspec/specs/assignments/spec.md#scenario-marksubmissionview-shows-peer-and-self-assessment-as-read-only-context
 		 */
 		async loadSelfAssessment(submissionId) {
 			const url = generateUrl(

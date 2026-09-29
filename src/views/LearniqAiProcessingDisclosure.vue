@@ -21,8 +21,8 @@
  policy tier is permissive enough that the feature is allowed to run — an
  unverifiable claim must never look like a green tick.
 
- @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
- @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-compose-an-ai-processing-disclosure-a-school-can-hand-to-its-dpo
+ @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
+ @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-compose-an-ai-processing-disclosure-a-school-can-hand-to-its-dpo
 -->
 
 <template>
@@ -192,7 +192,7 @@ export default {
 		 * NcSelect options for the three-tier locality policy, strictest first.
 		 *
 		 * @return {Array<{value: string, label: string}>} Options.
-		 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
+		 * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
 		 */
 		policyOptions() {
 			return [
@@ -213,7 +213,7 @@ export default {
 	},
 
 	/**
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
 	 */
 	async mounted() {
 		await Promise.all([this.loadPolicy(), this.loadDisclosure()])
@@ -226,7 +226,7 @@ export default {
 		 * schema default) into both the display and edit-form state.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
+		 * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
 		 */
 		async loadPolicy() {
 			const store = useObjectStore()
@@ -270,7 +270,7 @@ export default {
 		 * carrier + locality verdicts) from AiProcessingDisclosureController.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-compose-an-ai-processing-disclosure-a-school-can-hand-to-its-dpo
+		 * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-compose-an-ai-processing-disclosure-a-school-can-hand-to-its-dpo
 		 */
 		async loadDisclosure() {
 			try {
@@ -303,7 +303,7 @@ export default {
 		 * object-create/update endpoint — no bespoke write controller.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-a-school-sets-its-locality-policy
+		 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-a-school-sets-its-locality-policy
 		 */
 		async savePolicy() {
 			this.saving = true
@@ -358,7 +358,7 @@ export default {
 		 * @param {object} feature A disclosure row.
 		 * @return {string} One of `ai-processing-disclosure__badge--compliant`,
 		 *                  `--violates`, or `--unverified`.
-		 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-an-unverified-locality-never-renders-as-compliant
+		 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-an-unverified-locality-never-renders-as-compliant
 		 */
 		badgeClass(feature) {
 			if (feature.verified !== true) {
@@ -374,7 +374,7 @@ export default {
 		 *
 		 * @param {object} feature A disclosure row.
 		 * @return {string} Translated label.
-		 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
+		 * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
 		 */
 		badgeLabel(feature) {
 			if (feature.verified !== true) {

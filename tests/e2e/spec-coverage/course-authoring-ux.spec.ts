@@ -4,15 +4,15 @@
  * Gate-19 e2e coverage — course-authoring-ux spec UI scenarios.
  *
  * Covers (UI-observable surface), matching the spec's own `@e2e` tags:
- *   @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-an-instructional-designer-composes-a-lesson-from-mixed-blocks
- *   @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-media-block-references-an-existing-material-rather-than-duplicating-file-metadata
- *   @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-teacher-reorders-lessons-within-a-course-by-drag-and-drop
- *   @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-teacher-reorders-lessons-within-a-course-using-only-the-keyboard
- *   @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-teacher-reorders-blocks-within-a-lesson-using-only-the-keyboard
- *   @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-designer-sets-module-order-in-the-course-builder
- *   @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-an-instructional-designer-saves-a-published-course-as-a-template
- *   @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-instantiating-a-template-creates-a-fresh-independent-course-tree
- *   @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-learner-opens-a-native-lesson-and-sees-its-composed-blocks-in-order
+ *   @e2e openspec/specs/course-management/spec.md#scenario-an-instructional-designer-composes-a-lesson-from-mixed-blocks
+ *   @e2e openspec/specs/course-management/spec.md#scenario-a-media-block-references-an-existing-material-rather-than-duplicating-file-metadata
+ *   @e2e openspec/specs/course-management/spec.md#scenario-a-teacher-reorders-lessons-within-a-course-by-drag-and-drop
+ *   @e2e openspec/specs/course-management/spec.md#scenario-a-teacher-reorders-lessons-within-a-course-using-only-the-keyboard
+ *   @e2e openspec/specs/course-management/spec.md#scenario-a-teacher-reorders-blocks-within-a-lesson-using-only-the-keyboard
+ *   @e2e openspec/specs/course-management/spec.md#scenario-a-designer-sets-module-order-in-the-course-builder
+ *   @e2e openspec/specs/course-management/spec.md#scenario-an-instructional-designer-saves-a-published-course-as-a-template
+ *   @e2e openspec/specs/course-management/spec.md#scenario-instantiating-a-template-creates-a-fresh-independent-course-tree
+ *   @e2e openspec/specs/course-management/spec.md#scenario-a-learner-opens-a-native-lesson-and-sees-its-composed-blocks-in-order
  *
  * The conditional contentRef requiredness (allOf/if/then) is a schema-level
  * regression covered by PHPUnit (CourseAuthoringRegisterTest) — it carries
@@ -144,7 +144,7 @@ async function openCourseBuilder(page: Page, courseId: string) {
 }
 
 test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPlayer', () => {
-	// @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-designer-sets-module-order-in-the-course-builder
+	// @e2e openspec/specs/course-management/spec.md#scenario-a-designer-sets-module-order-in-the-course-builder
 	test('course-builder-add-and-reorder-modules', async ({
 		loggedInPage: page,
 	}) => {
@@ -174,8 +174,8 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		)
 	})
 
-	// @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-teacher-reorders-lessons-within-a-course-by-drag-and-drop
-	// @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-teacher-reorders-lessons-within-a-course-using-only-the-keyboard
+	// @e2e openspec/specs/course-management/spec.md#scenario-a-teacher-reorders-lessons-within-a-course-by-drag-and-drop
+	// @e2e openspec/specs/course-management/spec.md#scenario-a-teacher-reorders-lessons-within-a-course-using-only-the-keyboard
 	test('course-builder-reorders-lessons-by-drag-and-drop-and-by-keyboard', async ({
 		loggedInPage: page,
 	}) => {
@@ -245,9 +245,9 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		)
 	})
 
-	// @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-an-instructional-designer-composes-a-lesson-from-mixed-blocks
-	// @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-teacher-reorders-blocks-within-a-lesson-using-only-the-keyboard
-	// @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-learner-opens-a-native-lesson-and-sees-its-composed-blocks-in-order
+	// @e2e openspec/specs/course-management/spec.md#scenario-an-instructional-designer-composes-a-lesson-from-mixed-blocks
+	// @e2e openspec/specs/course-management/spec.md#scenario-a-teacher-reorders-blocks-within-a-lesson-using-only-the-keyboard
+	// @e2e openspec/specs/course-management/spec.md#scenario-a-learner-opens-a-native-lesson-and-sees-its-composed-blocks-in-order
 	test('lesson-composer-adds-blocks-reorders-by-keyboard-and-lesson-player-renders-them', async ({
 		loggedInPage: page,
 	}) => {
@@ -324,8 +324,8 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		)
 	})
 
-	// @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-an-instructional-designer-saves-a-published-course-as-a-template
-	// @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-instantiating-a-template-creates-a-fresh-independent-course-tree
+	// @e2e openspec/specs/course-management/spec.md#scenario-an-instructional-designer-saves-a-published-course-as-a-template
+	// @e2e openspec/specs/course-management/spec.md#scenario-instantiating-a-template-creates-a-fresh-independent-course-tree
 	test('save-course-as-template-and-instantiate-a-new-course-from-it', async ({
 		loggedInPage: page,
 	}) => {

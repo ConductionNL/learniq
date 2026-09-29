@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+ * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
  */
 
 declare(strict_types=1);
@@ -66,7 +66,7 @@ class BsaProgressEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-falling-behind-pace-ahead-of-the-interim-check-raises-a-flag
+	 * @spec openspec/specs/study-progress/spec.md#scenario-falling-behind-pace-ahead-of-the-interim-check-raises-a-flag
 	 */
 	public function testMultiplePassedCoursesSumCorrectly(): void {
 		$courses = [
@@ -93,7 +93,7 @@ class BsaProgressEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-a-course-with-no-declared-credit-value-contributes-zero-not-an-error
+	 * @spec openspec/specs/study-progress/spec.md#scenario-a-course-with-no-declared-credit-value-contributes-zero-not-an-error
 	 */
 	public function testNullEctsCreditsContributesZero(): void {
 		$courses = [
@@ -119,7 +119,7 @@ class BsaProgressEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	public function testZeroPassedCoursesReturnsZero(): void {
 		$courses = [

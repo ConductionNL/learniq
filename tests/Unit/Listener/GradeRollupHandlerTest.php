@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+ * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
 
 declare(strict_types=1);
@@ -182,7 +182,7 @@ class GradeRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#scenario-night-publish-defers-notification-to-the-resolved-visiblefrom
+	 * @spec openspec/specs/grading/spec.md#scenario-night-publish-defers-notification-to-the-resolved-visiblefrom
 	 */
 	public function testNightPublishUnderNextSchoolDayPolicyResolvesAndStampsVisibleFrom(): void {
 		// Monday 2026-07-13, 23:40 Europe/Amsterdam — after the 10:00 cutoff.
@@ -274,7 +274,7 @@ class GradeRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#scenario-teacher-overrides-the-default-visibility-window
+	 * @spec openspec/specs/grading/spec.md#scenario-teacher-overrides-the-default-visibility-window
 	 */
 	public function testExplicitOverridePropagatesToGradeEntryAndNotifications(): void {
 		$now = new DateTime('2026-07-13 23:40:00', new DateTimeZone('Europe/Amsterdam'));
@@ -316,7 +316,7 @@ class GradeRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#scenario-roll-up-re-fires-on-publish-without-a-timedjob
+	 * @spec openspec/specs/grading/spec.md#scenario-roll-up-re-fires-on-publish-without-a-timedjob
 	 */
 	public function testFinalGradeRecomputeIsUnaffectedByVisibleFromResolution(): void {
 		// A far-future nextSchoolDay resolution (policy defers visibility significantly).
@@ -358,7 +358,7 @@ class GradeRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#scenario-gradeentry-schema-carries-a-scheduled-visibility-window
+	 * @spec openspec/changes/archive/2026-07-13-grade-visibility-scheduling/specs/grading/spec.md#scenario-gradeentry-schema-carries-a-scheduled-visibility-window
 	 */
 	public function testNullPolicyResolvesVisibleFromToPublishMoment(): void {
 		$now = new DateTime('2026-07-13 14:00:00', new DateTimeZone('Europe/Amsterdam'));

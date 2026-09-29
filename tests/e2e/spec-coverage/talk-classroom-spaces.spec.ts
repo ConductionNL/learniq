@@ -4,10 +4,10 @@
  * Gate-19 e2e coverage — talk-classroom-spaces spec UI scenarios.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-coordinator-links-a-talk-conversation-to-a-cohort-as-its-persistent-class-space
- *   @e2e openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-teacher-links-a-sessions-call-to-the-parent-cohorts-existing-conversation
- *   @e2e openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-an-enrolled-learner-sees-and-can-use-the-join-call-action-on-a-session
- *   @e2e openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-a-session-without-a-linked-conversation-shows-no-dead-action
+ *   @e2e openspec/specs/school-structure/spec.md#scenario-coordinator-links-a-talk-conversation-to-a-cohort-as-its-persistent-class-space
+ *   @e2e openspec/specs/school-structure/spec.md#scenario-teacher-links-a-sessions-call-to-the-parent-cohorts-existing-conversation
+ *   @e2e openspec/specs/school-structure/spec.md#scenario-an-enrolled-learner-sees-and-can-use-the-join-call-action-on-a-session
+ *   @e2e openspec/specs/school-structure/spec.md#scenario-a-session-without-a-linked-conversation-shows-no-dead-action
  *
  * The membership-sync bridge (CohortTalkMembershipHandler) and the
  * "Talk not installed degrades gracefully" scenario are backend/platform
@@ -238,7 +238,7 @@ async function expectTalkWidget(page: Page, talkInstalled: boolean) {
 }
 
 test.describe('talk-classroom-spaces — Cohort class-space widget', () => {
-	// @e2e openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-coordinator-links-a-talk-conversation-to-a-cohort-as-its-persistent-class-space
+	// @e2e openspec/specs/school-structure/spec.md#scenario-coordinator-links-a-talk-conversation-to-a-cohort-as-its-persistent-class-space
 	test('cohort detail renders the "Class space" talk widget', async ({
 		loggedInPage: page,
 	}) => {
@@ -268,8 +268,8 @@ test.describe('talk-classroom-spaces — Cohort class-space widget', () => {
 })
 
 test.describe('talk-classroom-spaces — Session join-call widget', () => {
-	// @e2e openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-teacher-links-a-sessions-call-to-the-parent-cohorts-existing-conversation
-	// @e2e openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-a-session-without-a-linked-conversation-shows-no-dead-action
+	// @e2e openspec/specs/school-structure/spec.md#scenario-teacher-links-a-sessions-call-to-the-parent-cohorts-existing-conversation
+	// @e2e openspec/specs/school-structure/spec.md#scenario-a-session-without-a-linked-conversation-shows-no-dead-action
 	test('session detail renders the "Join call" talk widget', async ({
 		loggedInPage: page,
 	}) => {
@@ -295,7 +295,7 @@ test.describe('talk-classroom-spaces — Session join-call widget', () => {
 		)
 	})
 
-	// @e2e openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-an-enrolled-learner-sees-and-can-use-the-join-call-action-on-a-session
+	// @e2e openspec/specs/school-structure/spec.md#scenario-an-enrolled-learner-sees-and-can-use-the-join-call-action-on-a-session
 	test('a session tied to a cohort with active enrolments still renders the join-call widget', async ({
 		loggedInPage: page,
 	}) => {

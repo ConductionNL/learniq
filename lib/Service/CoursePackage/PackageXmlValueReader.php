@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+ * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ class PackageXmlValueReader {
 	 *
 	 * @return string|null The attribute value, or null when it could not be resolved.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	public function readAttribute(string $path, string $tagName, string $attribute): ?string {
 		$document = $this->loadDocument(path: $path);
@@ -74,7 +74,7 @@ class PackageXmlValueReader {
 	 *
 	 * @return string|null The text content, or null when it could not be resolved.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	public function readTextContent(string $path, string $tagName): ?string {
 		$document = $this->loadDocument(path: $path);
@@ -106,7 +106,7 @@ class PackageXmlValueReader {
 	 *
 	 * @return DOMDocument|null The loaded document, or null when it is missing or unparseable.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function loadDocument(string $path): ?DOMDocument {
 		if (file_exists($path) === false) {

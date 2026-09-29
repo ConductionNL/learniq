@@ -37,10 +37,10 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-supports-drip-release-relative-to-each-learners-own-enrolment-date
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#requirement-assessment-supports-drip-release-relative-to-each-learners-own-enrolment-date
+ * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
+ * @spec openspec/specs/course-management/spec.md#requirement-lesson-supports-drip-release-relative-to-each-learners-own-enrolment-date
+ * @spec openspec/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
+ * @spec openspec/specs/assessment/spec.md#requirement-assessment-supports-drip-release-relative-to-each-learners-own-enrolment-date
  */
 
 declare(strict_types=1);
@@ -56,7 +56,7 @@ use OCA\OpenRegister\Service\ObjectService;
 /**
  * Evaluates release-gating for a single (Lesson|Assessment, learner) pair.
  *
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
+ * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
  */
 class LessonReleaseEvaluator {
 
@@ -126,8 +126,8 @@ class LessonReleaseEvaluator {
 	 *
 	 * @return array{available: bool, reason: string|null, availableAt: string|null}
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-is-unavailable-until-its-prerequisite-lesson-is-completed
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-is-locked-until-n-days-after-the-learners-own-enrolment-date
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-lesson-is-unavailable-until-its-prerequisite-lesson-is-completed
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-lesson-is-locked-until-n-days-after-the-learners-own-enrolment-date
 	 */
 	public function evaluate(array $item, string $itemSchema, string $learnerId, array $enrolment): array {
 		$tenantId = (string)($item['tenant_id'] ?? '');
@@ -295,7 +295,7 @@ class LessonReleaseEvaluator {
 	 *
 	 * @return array{blocked: bool, reason: string|null}
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
+	 * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
 	 */
 	private function evaluateLessonCompletedCondition(array $condition, string $learnerId, string $tenantId): array {
 		$lessonId = (string)($condition['lessonId'] ?? '');
@@ -355,7 +355,7 @@ class LessonReleaseEvaluator {
 	 *
 	 * @return array{blocked: bool, reason: string|null}
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
+	 * @spec openspec/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
 	 */
 	private function evaluateAssessmentMinScoreCondition(array $condition, string $learnerId, string $tenantId): array {
 		$assessmentId = (string)($condition['assessmentId'] ?? '');

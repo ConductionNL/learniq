@@ -14,8 +14,8 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-course-package-frontend-is-declarative-with-one-named-custom-view-for-the-import-report
-  @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
+  @spec openspec/specs/course-management/spec.md#requirement-course-package-frontend-is-declarative-with-one-named-custom-view-for-the-import-report
+  @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
   @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
 -->
 
@@ -201,7 +201,7 @@ export default {
 		 * Human-readable lifecycle summary line.
 		 *
 		 * @return {string} Localised summary text.
-		 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
+		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		lifecycleLabel() {
 			if (!this.report) return ''
@@ -226,7 +226,7 @@ export default {
 		 * Report entries filtered by the selected outcome.
 		 *
 		 * @return {Array<object>} Filtered entries.
-		 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
+		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		filteredEntries() {
 			const entries = this.report?.entries ?? []
@@ -241,7 +241,7 @@ export default {
 		 *
 		 * @param {Event} event The change event.
 		 * @return {void}
-		 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
+		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		onFileSelected(event) {
 			const file = event.target.files?.[0] ?? null
@@ -254,7 +254,7 @@ export default {
 		 * Upload the selected package and render the resulting report.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
+		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		async uploadPackage() {
 			if (!this.selectedFile) return
@@ -300,7 +300,7 @@ export default {
 		 * Reset the view to upload another package.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
+		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		reset() {
 			this.report = null

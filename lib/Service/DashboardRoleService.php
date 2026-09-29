@@ -174,7 +174,7 @@ class DashboardRoleService {
 	 *
 	 * @return string One of: admin, teacher, student.
 	 *
-	 * @spec openspec/changes/fix-dashboards-settings-notifications/specs/dashboard/spec.md#requirement-per-resolved-role-default-dashboard
+	 * @spec openspec/changes/archive/2026-06-15-fix-dashboards-settings-notifications/specs/dashboard/spec.md#requirement-per-resolved-role-default-dashboard
 	 */
 	public function resolveDefaultView(IUser $user): string {
 		$views = $this->resolveViews(user: $user);

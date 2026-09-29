@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portable-learning-record/tasks.md#task-4-4
+ * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-4-4
  */
 
 declare(strict_types=1);

@@ -4,8 +4,8 @@
  * Gate-19 e2e coverage — progress-tracking spec UI scenarios.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/learning-progress-and-analytics/specs/progress-tracking/spec.md#scenario-learner-marks-a-text-lesson-complete
- *   @e2e openspec/changes/learning-progress-and-analytics/specs/progress-tracking/spec.md#scenario-manual-completion-is-not-available-for-xapi-instrumented-content
+ *   @e2e openspec/specs/progress-tracking/spec.md#scenario-learner-marks-a-text-lesson-complete
+ *   @e2e openspec/specs/progress-tracking/spec.md#scenario-manual-completion-is-not-available-for-xapi-instrumented-content
  *
  * LessonCompletion persistence/RBAC, the xAPI-sourced LessonProgressHandler
  * wiring, and the duplicate-statement upsert behaviour are all backend
@@ -66,7 +66,7 @@ function courseIdOf(lesson: any): string | null {
 }
 
 test.describe('learning-progress-and-analytics — Lesson manual-completion action', () => {
-	// @e2e openspec/changes/learning-progress-and-analytics/specs/progress-tracking/spec.md#scenario-learner-marks-a-text-lesson-complete
+	// @e2e openspec/specs/progress-tracking/spec.md#scenario-learner-marks-a-text-lesson-complete
 	test('a text lesson shows the "Mark lesson complete" action and it can be used', async ({
 		loggedInPage: page,
 	}) => {
@@ -149,7 +149,7 @@ test.describe('learning-progress-and-analytics — Lesson manual-completion acti
 		)
 	})
 
-	// @e2e openspec/changes/learning-progress-and-analytics/specs/progress-tracking/spec.md#scenario-manual-completion-is-not-available-for-xapi-instrumented-content
+	// @e2e openspec/specs/progress-tracking/spec.md#scenario-manual-completion-is-not-available-for-xapi-instrumented-content
 	test('a cmi5 lesson does not show the "Mark lesson complete" action', async ({
 		loggedInPage: page,
 	}) => {

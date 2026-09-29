@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-a-quality-threshold-breach-opens-an-itemrevisionflag-routed-to-the-exam-board
+ * @spec openspec/specs/assessment/spec.md#requirement-a-quality-threshold-breach-opens-an-itemrevisionflag-routed-to-the-exam-board
  */
 
 declare(strict_types=1);
@@ -328,7 +328,7 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#scenario-a-low-discrimination-item-opens-a-flag-for-the-exam-board-without-altering-the-item
+	 * @spec openspec/specs/assessment/spec.md#scenario-a-low-discrimination-item-opens-a-flag-for-the-exam-board-without-altering-the-item
 	 */
 	public function testTooDifficultyOpensDedupedFlagWithoutMutatingItem(): void {
 		$this->seed('exam', ['id' => 'assessment-1', 'uuid' => 'assessment-1', 'tenant_id' => 'tenant-a']);

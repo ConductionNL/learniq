@@ -21,9 +21,9 @@
 
  Opened from MyTimetable.vue for a Session the caller may manage.
 
- @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-frontend-is-declarative-with-named-custom-views
- @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
- @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-cancelling-without-a-reason-is-refused
+ @spec openspec/specs/timetabling/spec.md#requirement-frontend-is-declarative-with-named-custom-views
+ @spec openspec/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
+ @spec openspec/specs/timetabling/spec.md#scenario-cancelling-without-a-reason-is-refused
  "Apply to more weeks" lists the lessons of the same weekly slot and sends
  one batch to POST /api/session-change-batches; the server runs each lesson
  through the same transition and guard, and the dialog shows the outcome per
@@ -267,7 +267,7 @@ export default {
 		 * Dialog title.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
+		 * @spec openspec/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
 		 */
 		dialogTitle() {
 			return t('learniq', 'Manage "{title}"', {
@@ -279,7 +279,7 @@ export default {
 		 * Reason-kind options, matching Session.changeReasonKind's declared enum.
 		 *
 		 * @return {Array<{value:string,label:string}>}
-		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
+		 * @spec openspec/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
 		 */
 		reasonOptions() {
 			return [
@@ -300,7 +300,7 @@ export default {
 		 * Submit button label for the current mode.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
+		 * @spec openspec/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
 		 */
 		submitLabel() {
 			if (this.mode === 'cancel') return t('learniq', 'Cancel session')
@@ -325,7 +325,7 @@ export default {
 		 * Whether the form has the minimum required fields for the current mode.
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
+		 * @spec openspec/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
 		 */
 		canSubmit() {
 			if (!this.changeReasonKind) return false
@@ -399,7 +399,7 @@ export default {
 		 * substitute mode — never a client-chosen action name.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
+		 * @spec openspec/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
 		 */
 		async submit() {
 			if (!this.canSubmit) return

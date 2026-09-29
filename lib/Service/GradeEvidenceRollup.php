@@ -32,8 +32,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
- * @spec openspec/changes/competency-framework/specs/assignments/spec.md#requirement-assignment-declares-which-competencies-it-assesses
+ * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+ * @spec openspec/specs/assignments/spec.md#requirement-assignment-declares-which-competencies-it-assesses
  */
 
 declare(strict_types=1);
@@ -71,7 +71,7 @@ class GradeEvidenceRollup {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
 	 */
 	public function rollupPublishedGradeEntry(array $entry): void {
 		$sourceKind = $entry['sourceKind'] ?? '';
@@ -96,7 +96,7 @@ class GradeEvidenceRollup {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/competency-framework/specs/assignments/spec.md#requirement-assignment-declares-which-competencies-it-assesses
+	 * @spec openspec/specs/assignments/spec.md#requirement-assignment-declares-which-competencies-it-assesses
 	 */
 	private function rollupFromAssignmentSubmission(array $entry): void {
 		$submissionId = $entry['submissionId'] ?? '';
@@ -135,7 +135,7 @@ class GradeEvidenceRollup {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/competency-framework/specs/assessment/spec.md#requirement-assessment-declares-which-competencies-it-assesses-and-item-carries-competency-tags-for-authoring
+	 * @spec openspec/specs/assessment/spec.md#requirement-assessment-declares-which-competencies-it-assesses-and-item-carries-competency-tags-for-authoring
 	 */
 	private function rollupFromAssessmentResult(array $entry): void {
 		$assessmentResultId = $entry['assessmentResultId'] ?? '';
@@ -184,7 +184,7 @@ class GradeEvidenceRollup {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
 	 */
 	private function appendToEach(mixed $competencyIds, array $entry, array $evidenceAppend, ?float $percent): void {
 		if (is_array($competencyIds) === false) {
@@ -211,7 +211,7 @@ class GradeEvidenceRollup {
 	 *
 	 * @return float|null The percentage (0-100), or null when not computable.
 	 *
-	 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
 	 */
 	private function percentageFor(mixed $value, mixed $maxPoints): ?float {
 		if ($value === null || $maxPoints === null) {
@@ -233,7 +233,7 @@ class GradeEvidenceRollup {
 	 *
 	 * @return float|null The summed max points, or null when itemRefs is empty/unset.
 	 *
-	 * @spec openspec/changes/competency-framework/specs/assessment/spec.md#requirement-assessment-declares-which-competencies-it-assesses-and-item-carries-competency-tags-for-authoring
+	 * @spec openspec/specs/assessment/spec.md#requirement-assessment-declares-which-competencies-it-assesses-and-item-carries-competency-tags-for-authoring
 	 */
 	private function assessmentMaxPoints(array $assessment): ?float {
 		$itemRefs = $assessment['itemRefs'] ?? [];

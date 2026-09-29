@@ -49,7 +49,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
+ * @spec openspec/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
  */
 
 declare(strict_types=1);
@@ -74,7 +74,7 @@ use Psr\Log\LoggerInterface;
  * within this app's PHPMD budget.
  *
  * @implements IEventListener<Event>
- * @spec       openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
+ * @spec       openspec/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
  */
 class AssessmentDrawResolver implements IEventListener {
 
@@ -120,7 +120,7 @@ class AssessmentDrawResolver implements IEventListener {
 	 * AssessmentResult and reads it straight back. The work is also bounded: one
 	 * ItemBank read plus a Fisher-Yates permutation over drawCount items.
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
+	 * @spec openspec/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectCreatedEvent) === false) {
@@ -196,7 +196,7 @@ class AssessmentDrawResolver implements IEventListener {
 	 *
 	 * @return array{itemIds: array<int,string>, pointsOverride: array<string,mixed>}|null
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
+	 * @spec openspec/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
 	 */
 	private function resolveItemSequence(array $assessment, string $tenantId): ?array {
 		$shuffleItemOrder = (($assessment['shuffleItemOrder'] ?? false) === true);
@@ -283,7 +283,7 @@ class AssessmentDrawResolver implements IEventListener {
 	 *                                when the pool cannot supply drawCount
 	 *                                distinct variant groups (fail-closed).
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
+	 * @spec openspec/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
 	 */
 	private function resolveRandomDraw(array $assessment, string $tenantId): ?array {
 		$poolConfig = $assessment['itemPoolConfig'] ?? null;

@@ -8,7 +8,7 @@
  * coverage rows per year label (plus all years) and per subject (plus all
  * subjects and no subject). No I/O, so every rule is unit-tested directly.
  *
- * Rules (openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md):
+ * Rules (openspec/changes/archive/2026-09-28-curriculum-coverage-rollup/specs/competency/spec.md):
  *   - only leaf goals count; archived goals are left out;
  *   - planned = a non-retired Lesson or non-archived Course aligns to the goal,
  *     assessed = a non-archived Assignment or Assessment does, both read

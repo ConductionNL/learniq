@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
+ * @spec openspec/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
  */
 
 declare(strict_types=1);
@@ -41,8 +41,8 @@ use Psr\Log\LoggerInterface;
  * Tests for PortfolioShareGrantHandler — both its `check()` self-grant guard and its
  * `handle()` IEventListener half (native NC Files share creation for sharedWithKind=teacher).
  *
- * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
- * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
+ * @spec openspec/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
+ * @spec openspec/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
  */
 class PortfolioShareGrantHandlerTest extends TestCase {
 

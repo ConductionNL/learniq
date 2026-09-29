@@ -42,7 +42,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
+ * @spec openspec/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
  */
 
 declare(strict_types=1);
@@ -61,7 +61,7 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
+ * @spec openspec/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
  */
 class ApplicationConversionHandler implements IEventListener {
 
@@ -94,7 +94,7 @@ class ApplicationConversionHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
+	 * @spec openspec/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -120,7 +120,7 @@ class ApplicationConversionHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
+	 * @spec openspec/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
 	 */
 	private function convert(array $application): void {
 		$applicationId = (string)($application['id'] ?? ($application['uuid'] ?? ''));
@@ -171,7 +171,7 @@ class ApplicationConversionHandler implements IEventListener {
 	 *
 	 * @return mixed The created LearnerProfile's id, or null when unavailable.
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
+	 * @spec openspec/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
 	 */
 	private function createLearnerProfile(array $application, string $ncUserId, string $tenantId): mixed {
 		$guardianRef = $application['guardianRef'] ?? null;
@@ -206,7 +206,7 @@ class ApplicationConversionHandler implements IEventListener {
 	 *
 	 * @return array<int,mixed> The created Enrolment ids.
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
+	 * @spec openspec/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
 	 */
 	private function createEnrolments(string $programmeId, string $ncUserId, string $tenantId): array {
 		$courseIds = $this->fetchProgrammeCourseIds(programmeId: $programmeId);

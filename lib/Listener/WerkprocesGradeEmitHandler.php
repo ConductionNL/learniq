@@ -39,7 +39,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+ * @spec openspec/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
  */
 
 declare(strict_types=1);
@@ -58,7 +58,7 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+ * @spec openspec/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
  */
 class WerkprocesGradeEmitHandler implements IEventListener {
 
@@ -99,7 +99,7 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+	 * @spec openspec/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -129,7 +129,7 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+	 * @spec openspec/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
 	 */
 	private function emitGradeEntry(ObjectTransitionedEvent $event): void {
 		$assessment = $event->getObject()->jsonSerialize();
@@ -234,7 +234,7 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 	 *
 	 * @return array<string,mixed>|null The object data, or null when not found.
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+	 * @spec openspec/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
 	 */
 	private function loadObject(string $schema, string $id): ?array {
 		if ($id === '') {
@@ -273,7 +273,7 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 	 *
 	 * @return array<string,mixed>|null The existing GradeEntry data, or null when none exists.
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+	 * @spec openspec/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
 	 */
 	private function findExistingGradeEntry(
 		string $learnerId,

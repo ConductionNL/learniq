@@ -31,7 +31,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-the-export-bundle-is-cryptographically-signed-and-its-artefact-retained
+ * @spec openspec/specs/portable-learning-record/spec.md#requirement-the-export-bundle-is-cryptographically-signed-and-its-artefact-retained
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ use OCP\Security\ICrypto;
  * Signs and verifies a LearningRecordExport bundle with the tenant's
  * existing RS256 keypair.
  *
- * @spec openspec/changes/portable-learning-record/tasks.md#task-2-4
+ * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-4
  */
 class LearningRecordExportSigningService {
 
@@ -74,7 +74,7 @@ class LearningRecordExportSigningService {
 	 *
 	 * @return string|null DID string, or null when no key has been generated yet.
 	 *
-	 * @spec openspec/changes/portable-learning-record/tasks.md#task-2-4
+	 * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-4
 	 */
 	public function resolveIssuerDid(string $tenantId): ?string {
 		$publicKey = $this->appConfig->getValueString(
@@ -103,7 +103,7 @@ class LearningRecordExportSigningService {
 	 *
 	 * @return string|null Compact JWS string, or null when the key is absent / signing fails.
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-the-signature-verifies-against-the-tenant-s-existing-public-key
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-the-signature-verifies-against-the-tenant-s-existing-public-key
 	 */
 	public function sign(array $bundle, string $tenantId): ?string {
 		$encryptedPrivateKey = $this->appConfig->getValueString(
@@ -163,7 +163,7 @@ class LearningRecordExportSigningService {
 	 *
 	 * @return bool True when the signature is cryptographically valid.
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
+	 * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
 	 */
 	public function verify(string $jws, array $bundle, string $tenantId): bool {
 		$parts = explode('..', $jws, 2);

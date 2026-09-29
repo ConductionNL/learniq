@@ -36,7 +36,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-learner-initiated-export-produces-a-signed-dual-shaped-bundle
+ * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-learner-initiated-export-produces-a-signed-dual-shaped-bundle
  */
 
 declare(strict_types=1);
@@ -55,7 +55,7 @@ use RuntimeException;
  * Guards `LearningRecordExport`'s `generate` transition and assembles the
  * signed dual-shaped bundle.
  *
- * @spec openspec/changes/portable-learning-record/tasks.md#task-2-3
+ * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-3
  */
 class LearningRecordExportService implements LifecycleGuardInterface {
 
@@ -139,7 +139,7 @@ class LearningRecordExportService implements LifecycleGuardInterface {
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-generation-fails-closed-and-blocks-the-transition-on-error
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-generation-fails-closed-and-blocks-the-transition-on-error
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$tenantId = (string)($object['tenant_id'] ?? '');
@@ -164,8 +164,8 @@ class LearningRecordExportService implements LifecycleGuardInterface {
 	 *
 	 * @throws RuntimeException When the bundle can not be composed, signed or stored.
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-generation-fails-closed-and-blocks-the-transition-on-error
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-generation-fails-closed-and-blocks-the-transition-on-error
 	 */
 	public function generate(array $export): array {
 		$learnerRef = (string)($export['learnerRef'] ?? '');
@@ -272,7 +272,7 @@ class LearningRecordExportService implements LifecycleGuardInterface {
 	 *
 	 * @return array{coverageReport: array<int,array<string,mixed>>, scholiqNative: array<string,array<int,array<string,mixed>>>}
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
 	 */
 	private function walkComposition(array $composition, mixed $periodFrom, mixed $periodTo): array {
 		$coverageReport = [];
@@ -325,7 +325,7 @@ class LearningRecordExportService implements LifecycleGuardInterface {
 	 *
 	 * @return array<string,mixed> Coverage-report entry.
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
 	 */
 	private function lessonCompletionCoverageEntry(array $row): array {
 		return [
@@ -346,7 +346,7 @@ class LearningRecordExportService implements LifecycleGuardInterface {
 	 *
 	 * @return array<string,mixed> Coverage-report entry.
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
 	 */
 	private function rowCoverageEntry(string $schema, array $row, bool $included): array {
 		$outcome = 'omitted';
@@ -486,7 +486,7 @@ class LearningRecordExportService implements LifecycleGuardInterface {
 	 *
 	 * @return array<int,array<string,mixed>>
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-export-never-bypasses-or-duplicates-the-eudi-wallet-push
+	 * @spec openspec/specs/portable-learning-record/spec.md#requirement-export-never-bypasses-or-duplicates-the-eudi-wallet-push
 	 */
 	private function buildElmSection(array $credentials): array {
 		$elm = [];

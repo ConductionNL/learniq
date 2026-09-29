@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learning-progress-and-analytics/specs/progress-tracking/spec.md#requirement-xapi-completion-statements-are-wired-into-per-lesson-completion-not-duplicated
+ * @spec openspec/specs/progress-tracking/spec.md#requirement-xapi-completion-statements-are-wired-into-per-lesson-completion-not-duplicated
  */
 
 declare(strict_types=1);
@@ -270,7 +270,7 @@ class LessonProgressHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/progress-tracking/spec.md#scenario-a-non-final-non-mandatory-lessons-completion-statement-is-recorded
+	 * @spec openspec/specs/progress-tracking/spec.md#scenario-a-non-final-non-mandatory-lessons-completion-statement-is-recorded
 	 */
 	public function testNonMandatoryNonLastLessonCreatesCompletion(): void {
 		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
@@ -317,7 +317,7 @@ class LessonProgressHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/progress-tracking/spec.md#scenario-a-duplicate-completion-statement-for-the-same-lesson-updates-not-duplicates
+	 * @spec openspec/specs/progress-tracking/spec.md#scenario-a-duplicate-completion-statement-for-the-same-lesson-updates-not-duplicates
 	 */
 	public function testDuplicateStatementUpdatesNotDuplicates(): void {
 		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
@@ -452,7 +452,7 @@ class LessonProgressHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/progress-tracking/spec.md#requirement-xapi-completion-statements-are-wired-into-per-lesson-completion-not-duplicated
+	 * @spec openspec/specs/progress-tracking/spec.md#requirement-xapi-completion-statements-are-wired-into-per-lesson-completion-not-duplicated
 	 */
 	public function testUnresolvableLessonIsSkippedWithoutError(): void {
 		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));

@@ -37,9 +37,9 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-course-declares-its-display-order-among-sibling-modules
-  @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
-  @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-course-structure-can-be-saved-as-a-reusable-template-and-instantiated
+  @spec openspec/specs/course-management/spec.md#requirement-a-course-declares-its-display-order-among-sibling-modules
+  @spec openspec/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
+  @spec openspec/specs/course-management/spec.md#requirement-a-course-structure-can-be-saved-as-a-reusable-template-and-instantiated
   @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 -->
 
@@ -445,7 +445,7 @@ export default {
 		 * "A pre-existing module without an order value sorts last" scenarios).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-course-declares-its-display-order-among-sibling-modules
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-course-declares-its-display-order-among-sibling-modules
 		 */
 		async load() {
 			this.loading = true
@@ -678,7 +678,7 @@ export default {
 		 * @param {Array<object>} list Modules or lessons array, already in its final order.
 		 * @param {string} schema 'Course' (modules) or 'Lesson' (lessons).
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
 		 */
 		async persistOrder(list, schema) {
 			const updates = []
@@ -934,7 +934,7 @@ export default {
 		 * its Lessons are left unchanged.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-course-structure-can-be-saved-as-a-reusable-template-and-instantiated
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-course-structure-can-be-saved-as-a-reusable-template-and-instantiated
 		 */
 		async saveAsTemplate() {
 			if (!this.course || !this.saveTemplateForm.name) return
@@ -1024,7 +1024,7 @@ export default {
 		 * new Course starts lifecycle draft with zero enrolments.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-course-structure-can-be-saved-as-a-reusable-template-and-instantiated
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-course-structure-can-be-saved-as-a-reusable-template-and-instantiated
 		 */
 		async instantiateTemplate() {
 			if (!this.instantiateForm.templateId || !this.instantiateForm.name)

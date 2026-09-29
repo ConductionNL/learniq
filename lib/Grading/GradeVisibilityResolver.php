@@ -37,7 +37,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+ * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
 
 declare(strict_types=1);
@@ -52,7 +52,7 @@ use Exception;
 /**
  * Resolves the effective `visibleFrom` for a publishing GradeEntry.
  *
- * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+ * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
 class GradeVisibilityResolver {
 
@@ -74,7 +74,7 @@ class GradeVisibilityResolver {
 	 *
 	 * @return DateTimeImmutable The resolved visibleFrom.
 	 *
-	 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+	 * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
 	 */
 	public function resolve(
 		?string $override,
@@ -132,7 +132,7 @@ class GradeVisibilityResolver {
 	 *
 	 * @return DateTimeImmutable
 	 *
-	 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#scenario-curriculumplan-supplies-the-default-visibility-policy-when-a-teacher-does-not-override
+	 * @spec openspec/changes/archive/2026-07-13-grade-visibility-scheduling/specs/grading/spec.md#scenario-curriculumplan-supplies-the-default-visibility-policy-when-a-teacher-does-not-override
 	 */
 	private function resolveNextSchoolDay(array $policy, DateTimeImmutable $publishedAt): DateTimeImmutable {
 		$timezone = $this->resolveTimezone(raw: ($policy['timezone'] ?? null));

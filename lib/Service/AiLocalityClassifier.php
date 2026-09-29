@@ -41,7 +41,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-derive-an-ai-feature-s-processing-locality-from-real-code-enforced-configuration-never-a-hand-typed-field
+ * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-derive-an-ai-feature-s-processing-locality-from-real-code-enforced-configuration-never-a-hand-typed-field
  */
 
 declare(strict_types=1);
@@ -59,7 +59,7 @@ use Throwable;
  * active Hermiq chat provider, or for an explicit (chatProvider, credentialId)
  * pair.
  *
- * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-derive-an-ai-feature-s-processing-locality-from-real-code-enforced-configuration-never-a-hand-typed-field
+ * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-derive-an-ai-feature-s-processing-locality-from-real-code-enforced-configuration-never-a-hand-typed-field
  */
 class AiLocalityClassifier {
 
@@ -142,7 +142,7 @@ class AiLocalityClassifier {
 	 *
 	 * @return array{locality: string, verified: bool, evidence: string}
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-derive-an-ai-feature-s-processing-locality-from-real-code-enforced-configuration-never-a-hand-typed-field
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-derive-an-ai-feature-s-processing-locality-from-real-code-enforced-configuration-never-a-hand-typed-field
 	 */
 	public function classifyActiveProvider(): array {
 		if ($this->appManager->isInstalled(self::HERMIQ_APP_ID) === false) {
@@ -195,7 +195,7 @@ class AiLocalityClassifier {
 	 *
 	 * @return array{locality: string, verified: bool, evidence: string}
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-derive-an-ai-feature-s-processing-locality-from-real-code-enforced-configuration-never-a-hand-typed-field
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-derive-an-ai-feature-s-processing-locality-from-real-code-enforced-configuration-never-a-hand-typed-field
 	 */
 	public function classify(string $chatProvider, ?string $credentialId): array {
 		$chatProvider = trim($chatProvider);

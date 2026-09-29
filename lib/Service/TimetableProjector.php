@@ -199,7 +199,7 @@ class TimetableProjector {
 	 *
 	 * @return array<int,array<string,mixed>> The projected same-day changes, ordered by changedAt.
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/personal-timetable/spec.md#scenario-today-s-cancellation-surfaces-in-the-dagrooster-changes-list-even-for-a-future-session
+	 * @spec openspec/specs/personal-timetable/spec.md#scenario-today-s-cancellation-surfaces-in-the-dagrooster-changes-list-even-for-a-future-session
 	 */
 	public function todaysChanges(array $rawSessions, array $roomCache): array {
 		$today = gmdate('Y-m-d');

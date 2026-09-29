@@ -84,7 +84,7 @@ class MunicipalityFeedbackStampListener implements IEventListener {
 	 *
 	 * @throws RuntimeException When the transition has no acting user.
 	 *
-	 * @spec openspec/changes/verzuim-report-composer/tasks.md#task-2.2
+	 * @spec openspec/changes/archive/2026-07-13-verzuim-report-composer/tasks.md#task-2.2
 	 * @spec openspec/specs/attendance/spec.md#requirement-the-municipalitys-feedback-on-a-leerplicht-report-is-recorded-on-the-attendance-flag
 	 */
 	public function handle(Event $event): void {

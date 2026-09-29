@@ -42,9 +42,9 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-subject-with-no-matching-period-component-contributes-no-row-not-an-error
+ * @spec openspec/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
+ * @spec openspec/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
+ * @spec openspec/specs/report-card/spec.md#scenario-a-subject-with-no-matching-period-component-contributes-no-row-not-an-error
  * @spec openspec/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
  * @spec openspec/specs/report-card/spec.md#scenario-an-untemplated-cohort-composes-exactly-as-before-this-change
  * @spec openspec/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
@@ -70,7 +70,7 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
+ * @spec openspec/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
  */
 class ReportCardComposer implements IEventListener {
 
@@ -113,7 +113,7 @@ class ReportCardComposer implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
+	 * @spec openspec/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -144,7 +144,7 @@ class ReportCardComposer implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
+	 * @spec openspec/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
 	 */
 	private function composeForPeriod(array $period): void {
 		$periodId = (string)($period['id'] ?? ($period['uuid'] ?? ''));
@@ -231,7 +231,7 @@ class ReportCardComposer implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
+	 * @spec openspec/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
 	 */
 	private function recomposeCard(array $card): void {
 		$cardId = (string)($card['id'] ?? ($card['uuid'] ?? ''));
@@ -299,7 +299,7 @@ class ReportCardComposer implements IEventListener {
 	 *
 	 * @return array<int,string> The subset that qualifies.
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-subject-with-no-matching-period-component-contributes-no-row-not-an-error
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-subject-with-no-matching-period-component-contributes-no-row-not-an-error
 	 */
 	private function qualifyingCurriculumPlanIds(array $curriculumPlanIds, string $periodCode): array {
 		$qualifying = [];

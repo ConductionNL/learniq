@@ -31,7 +31,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/groepsplan/tasks.md#1-schema-learning-plan-delta
+ * @spec openspec/changes/archive/2026-07-16-groepsplan/tasks.md#1-schema-learning-plan-delta
  */
 
 declare(strict_types=1);

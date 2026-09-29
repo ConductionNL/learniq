@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
+ * @spec openspec/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
  */
 
 declare(strict_types=1);
@@ -87,7 +87,7 @@ class BsaDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-negative-decision-without-a-warning-is-refused
+	 * @spec openspec/specs/study-progress/spec.md#scenario-negative-decision-without-a-warning-is-refused
 	 */
 	public function testNegativeWithoutWarningRefused(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -107,7 +107,7 @@ class BsaDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-negative-decision-with-a-logged-warning-is-allowed
+	 * @spec openspec/specs/study-progress/spec.md#scenario-negative-decision-with-a-logged-warning-is-allowed
 	 */
 	public function testNegativeWithIssuedWarningAllowed(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -144,7 +144,7 @@ class BsaDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-negative-decision-without-rationale-is-refused
+	 * @spec openspec/specs/study-progress/spec.md#scenario-negative-decision-without-rationale-is-refused
 	 */
 	public function testNegativeWithoutRationaleRefused(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -164,7 +164,7 @@ class BsaDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
+	 * @spec openspec/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
 	 */
 	public function testPositiveDecisionUnaffectedByWarningCheck(): void {
 		$objectService = $this->createMock(ObjectService::class);

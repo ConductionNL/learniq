@@ -161,7 +161,7 @@ class QtiImportService {
 	 *
 	 * @return string[] Array of created Item UUIDs.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#why-extraction-is-refactored-not-duplicated
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#why-extraction-is-refactored-not-duplicated
 	 */
 	public function importFromDirectory(string $dir, string $itemBankId, string $tenantId = ''): array {
 		$packageType = $this->manifestScanner->detectPackageType(dir: $dir);
@@ -201,7 +201,7 @@ class QtiImportService {
 	 *
 	 * @throws \RuntimeException When the ZIP cannot be opened or a security violation is detected.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#why-extraction-is-refactored-not-duplicated
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#why-extraction-is-refactored-not-duplicated
 	 */
 	public function extractZip(string $zipPath, string $targetDir): void {
 		$this->packageExtractor->extractZip(zipPath: $zipPath, targetDir: $targetDir);

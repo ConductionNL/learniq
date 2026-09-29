@@ -22,8 +22,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.4
- * @spec openspec/changes/zorgvraag-swv-tlv-chain/specs/learning-plan/spec.md#requirement-the-pupils-own-voice-hoorrecht-is-a-first-class-non-optional-field
+ * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-3.4
+ * @spec openspec/specs/learning-plan/spec.md#requirement-the-pupils-own-voice-hoorrecht-is-a-first-class-non-optional-field
  */
 
 declare(strict_types=1);
@@ -56,7 +56,7 @@ class PupilVoiceGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.4
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-3.4
 	 */
 	public function testBlocksWhenNeitherHeardNorWaivedIsSet(): void {
 		$object = [
@@ -80,7 +80,7 @@ class PupilVoiceGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.4
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-3.4
 	 */
 	public function testBlocksWhenWaivedWithEmptyWaiverReason(): void {
 		$object = [
@@ -102,7 +102,7 @@ class PupilVoiceGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.4
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-3.4
 	 */
 	public function testBlocksWhenWaiverReasonIsOnlyWhitespace(): void {
 		$object = [
@@ -124,7 +124,7 @@ class PupilVoiceGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.4
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-3.4
 	 */
 	public function testAllowsWhenHeardIsTrue(): void {
 		$object = [
@@ -147,7 +147,7 @@ class PupilVoiceGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.4
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-3.4
 	 */
 	public function testAllowsWhenWaivedWithNonEmptyWaiverReason(): void {
 		$object = [
@@ -170,7 +170,7 @@ class PupilVoiceGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.4
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-3.4
 	 */
 	public function testBlocksWhenPupilVoiceIsMissing(): void {
 		$object = [

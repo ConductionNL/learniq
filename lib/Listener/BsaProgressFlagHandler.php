@@ -38,7 +38,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+ * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
  */
 
 declare(strict_types=1);
@@ -98,7 +98,7 @@ class BsaProgressFlagHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -173,7 +173,7 @@ class BsaProgressFlagHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	private function checkProgramme(string $programmeId, string $learnerId, string $tenantId): void {
 		$trajectories = $this->objectService->findAll(
@@ -206,7 +206,7 @@ class BsaProgressFlagHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	private function checkTrajectory(array $trajectory, string $learnerId, string $tenantId): void {
 		$interimNormEcts = $trajectory['interimNormEcts'] ?? null;
@@ -274,7 +274,7 @@ class BsaProgressFlagHandler implements IEventListener {
 	 *
 	 * @return bool True when the window has opened and the check may proceed.
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	private function windowHasOpened(array $trajectory, DateTimeImmutable $now): bool {
 		$windowOpensAt = $trajectory['windowOpensAt'] ?? null;
@@ -300,7 +300,7 @@ class BsaProgressFlagHandler implements IEventListener {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	private function hasOpenFlag(string $learnerId, string $bsaTrajectoryId): bool {
 		foreach (self::OPEN_FLAG_STATES as $state) {

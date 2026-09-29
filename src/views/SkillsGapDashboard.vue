@@ -20,7 +20,7 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
+  @spec openspec/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
 -->
 
 <template>
@@ -163,7 +163,7 @@ export default {
 		 * target level is a documented follow-up, not built here).
 		 *
 		 * @return {Set<string>}
-		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
+		 * @spec openspec/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
 		 */
 		attainedCompetencyIds() {
 			return new Set(
@@ -181,7 +181,7 @@ export default {
 		 * Programme-required competencies with no attainment row at/above met status.
 		 *
 		 * @return {object[]}
-		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#scenario-a-learner-sees-an-unmet-programme-required-competency-as-a-gap
+		 * @spec openspec/specs/competency/spec.md#scenario-a-learner-sees-an-unmet-programme-required-competency-as-a-gap
 		 */
 		programmeGaps() {
 			return this.requiredProgrammeCompetencies.filter(
@@ -194,7 +194,7 @@ export default {
 		 * surfaced independent of any Programme enrolment.
 		 *
 		 * @return {object[]}
-		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#scenario-a-role-required-competency-surfaces-even-without-a-programme-link
+		 * @spec openspec/specs/competency/spec.md#scenario-a-role-required-competency-surfaces-even-without-a-programme-link
 		 */
 		roleGaps() {
 			return this.requiredRoleCompetencies.filter(
@@ -236,7 +236,7 @@ export default {
 		 * enforces who may actually read another learner's data).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
+		 * @spec openspec/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
 		 */
 		async loadSkillsGap() {
 			this.loading = true
@@ -321,7 +321,7 @@ export default {
 		 *
 		 * @param {string} ncUserId Nextcloud user id.
 		 * @return {Promise<object|null>}
-		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
+		 * @spec openspec/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
 		 */
 		async fetchLearnerProfile(ncUserId) {
 			// Declared slug, verbatim (see above).
@@ -338,7 +338,7 @@ export default {
 		 * @param {string} schema Schema name/slug as used in the OR object API path.
 		 * @param {object} params Query filter params.
 		 * @return {Promise<object[]>}
-		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
+		 * @spec openspec/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
 		 */
 		async fetchCollection(schema, params) {
 			const query = new URLSearchParams(
@@ -360,7 +360,7 @@ export default {
 		 * @param {string} schema Schema name/slug.
 		 * @param {string} id     Object UUID.
 		 * @return {Promise<object|null>}
-		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
+		 * @spec openspec/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
 		 */
 		async fetchObject(schema, id) {
 			if (!id) return null

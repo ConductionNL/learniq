@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
+ * @spec openspec/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
  */
 
 declare(strict_types=1);
@@ -86,7 +86,7 @@ class AssignmentPublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
+	 * @spec openspec/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
 	 */
 	public function testPeerReviewEnabledWithoutRubricBlocksPublish(): void {
 		$guard = $this->guard();
@@ -106,7 +106,7 @@ class AssignmentPublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
+	 * @spec openspec/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
 	 */
 	public function testSelfAssessmentEnabledWithoutRubricBlocksPublish(): void {
 		$guard = $this->guard();
@@ -126,7 +126,7 @@ class AssignmentPublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
+	 * @spec openspec/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
 	 */
 	public function testPeerReviewEnabledWithRubricAllowsPublish(): void {
 		$guard = $this->guard();
@@ -147,7 +147,7 @@ class AssignmentPublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
+	 * @spec openspec/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
 	 */
 	public function testBothDisabledAllowsPublishWithoutRubric(): void {
 		$guard = $this->guard();

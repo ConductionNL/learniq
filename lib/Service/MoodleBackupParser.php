@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
+ * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
  */
 
 declare(strict_types=1);
@@ -65,7 +65,7 @@ class MoodleBackupParser {
 	 *
 	 * @throws \RuntimeException When `moodle_backup.xml` is missing or not parseable XML.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
+	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
 	public function parseManifest(string $dir): array {
 		$manifestPath = $dir . '/moodle_backup.xml';
@@ -137,7 +137,7 @@ class MoodleBackupParser {
 	 *
 	 * @return string One of `resource`, `page`, `url`, `quiz`, `assign`, `forum`, `wiki`, `glossary`, `other`.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function classify(string $moduleType): string {
 		$lower = strtolower($moduleType);
@@ -167,7 +167,7 @@ class MoodleBackupParser {
 	 *
 	 * @return string|null Trimmed text content, or null when no such child exists / it is empty.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
+	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
 	private function childText(DOMElement $element, string $tagName): ?string {
 		foreach ($element->childNodes as $child) {

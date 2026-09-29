@@ -32,7 +32,7 @@
  * "room linked" event to hook into. The coordinator adds that initial batch
  * once via Talk's own participant UI; every Enrolment change after that
  * point stays in sync automatically. See
- * openspec/changes/talk-classroom-spaces/design.md Decision 3.
+ * openspec/changes/archive/2026-07-16-talk-classroom-spaces/design.md Decision 3.
  *
  * @category Listener
  * @package  OCA\Learniq\Listener
@@ -47,7 +47,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#requirement-enrolled-learners-sync-as-talk-room-participants-on-cohort-membership-changes
+ * @spec openspec/specs/school-structure/spec.md#requirement-enrolled-learners-sync-as-talk-room-participants-on-cohort-membership-changes
  */
 
 declare(strict_types=1);
@@ -68,7 +68,7 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#requirement-enrolled-learners-sync-as-talk-room-participants-on-cohort-membership-changes
+ * @spec openspec/specs/school-structure/spec.md#requirement-enrolled-learners-sync-as-talk-room-participants-on-cohort-membership-changes
  */
 class CohortTalkMembershipHandler implements IEventListener {
 
@@ -120,8 +120,8 @@ class CohortTalkMembershipHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-activating-an-enrolment-adds-the-learner-to-the-cohorts-linked-conversation
-	 * @spec openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-withdrawing-an-enrolment-removes-the-learner-from-the-cohorts-linked-conversation
+	 * @spec openspec/specs/school-structure/spec.md#scenario-activating-an-enrolment-adds-the-learner-to-the-cohorts-linked-conversation
+	 * @spec openspec/specs/school-structure/spec.md#scenario-withdrawing-an-enrolment-removes-the-learner-from-the-cohorts-linked-conversation
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -167,8 +167,8 @@ class CohortTalkMembershipHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-no-conversation-linked-yet-is-a-no-op-not-an-error
-	 * @spec openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-talk-unavailable-is-a-no-op-not-an-error
+	 * @spec openspec/specs/school-structure/spec.md#scenario-no-conversation-linked-yet-is-a-no-op-not-an-error
+	 * @spec openspec/specs/school-structure/spec.md#scenario-talk-unavailable-is-a-no-op-not-an-error
 	 */
 	private function syncParticipant(string $cohortId, string $learnerId, bool $add): void {
 		if ($this->talkLinkService->isTalkAvailable() === false) {

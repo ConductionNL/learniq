@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
+ * @spec openspec/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
  */
 
 declare(strict_types=1);
@@ -116,7 +116,7 @@ class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-locking-a-subject-choice-enrols-the-learner-in-the-chosen-electives
+	 * @spec openspec/specs/school-structure/spec.md#scenario-locking-a-subject-choice-enrols-the-learner-in-the-chosen-electives
 	 */
 	public function testLockCreatesEnrolments(): void {
 		$handler = $this->makeHandler(existingEnrolments: []);
@@ -148,7 +148,7 @@ class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
+	 * @spec openspec/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
 	 */
 	public function testNoDuplicateEnrolmentForAlreadyEnrolledCourse(): void {
 		$handler = $this->makeHandler(existingEnrolments: [['courseId' => 'course-a']]);

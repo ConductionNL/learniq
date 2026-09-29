@@ -49,7 +49,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
+ * @spec openspec/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
  */
 
 declare(strict_types=1);
@@ -71,7 +71,7 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
+ * @spec openspec/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
  */
 class EnrolmentPrerequisiteListener implements IEventListener {
 
@@ -111,7 +111,7 @@ class EnrolmentPrerequisiteListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
+	 * @spec openspec/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatingEvent === false) {
@@ -141,7 +141,7 @@ class EnrolmentPrerequisiteListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
+	 * @spec openspec/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
 	 */
 	private function evaluate(ObjectCreatingEvent $event): void {
 		$entity = $event->getObject();
@@ -252,7 +252,7 @@ class EnrolmentPrerequisiteListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#scenario-block-enrolment-when-prerequisites-are-unmet
+	 * @spec openspec/specs/enrolment/spec.md#scenario-block-enrolment-when-prerequisites-are-unmet
 	 */
 	private function rejectForUnmetPrerequisite(ObjectCreatingEvent $event, string $prereqCourseId): void {
 		$prereqCourseName = $prereqCourseId;

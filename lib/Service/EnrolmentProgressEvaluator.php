@@ -30,7 +30,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
+ * @spec openspec/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
  */
 
 declare(strict_types=1);
@@ -80,7 +80,7 @@ class EnrolmentProgressEvaluator {
 	 *
 	 * @return array{progressPercent: int, completedLessonCount: int, totalPublishedLessonCount: int}
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-is-null-safe-before-any-lesson-completes
+	 * @spec openspec/specs/enrolment/spec.md#scenario-progress-percentage-is-null-safe-before-any-lesson-completes
 	 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
 	 */
 	public function evaluate(string $learnerId, string $courseId, array $enrolment = []): array {

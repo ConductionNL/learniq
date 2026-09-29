@@ -26,7 +26,7 @@ import { expect, test } from './fixtures.ts'
  * automated-scan` cites (spec.md "Automated accessibility scans MUST be
  * wired into the Playwright suite as citable evidence").
  *
- * @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-automated-accessibility-scans-must-be-wired-into-the-playwright-suite-as-citable-evidence
+ * @e2e openspec/specs/accessibility-conformance/spec.md#requirement-automated-accessibility-scans-must-be-wired-into-the-playwright-suite-as-citable-evidence
  */
 
 const APP_BASE = '/index.php/apps/learniq'

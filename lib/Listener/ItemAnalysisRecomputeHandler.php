@@ -43,7 +43,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-a-quality-threshold-breach-opens-an-itemrevisionflag-routed-to-the-exam-board
+ * @spec openspec/specs/assessment/spec.md#requirement-a-quality-threshold-breach-opens-an-itemrevisionflag-routed-to-the-exam-board
  */
 
 declare(strict_types=1);
@@ -63,7 +63,7 @@ use OCP\EventDispatcher\IEventListener;
  * whenever an AssessmentResult reaches `graded`.
  *
  * @implements IEventListener<Event>
- * @spec       openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-a-quality-threshold-breach-opens-an-itemrevisionflag-routed-to-the-exam-board
+ * @spec       openspec/specs/assessment/spec.md#requirement-a-quality-threshold-breach-opens-an-itemrevisionflag-routed-to-the-exam-board
  */
 class ItemAnalysisRecomputeHandler implements IEventListener {
 
@@ -105,7 +105,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
+	 * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -308,7 +308,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-a-quality-threshold-breach-opens-an-itemrevisionflag-routed-to-the-exam-board
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-quality-threshold-breach-opens-an-itemrevisionflag-routed-to-the-exam-board
 	 */
 	private function evaluateThresholds(
 		string $itemId,

@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/verzuim-report-composer/tasks.md#task-5.2
+ * @spec openspec/changes/archive/2026-07-13-verzuim-report-composer/tasks.md#task-5.2
  */
 
 declare(strict_types=1);

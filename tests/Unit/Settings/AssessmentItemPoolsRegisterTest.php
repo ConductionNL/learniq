@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md
+ * @spec openspec/specs/assessment/spec.md
  */
 
 declare(strict_types=1);

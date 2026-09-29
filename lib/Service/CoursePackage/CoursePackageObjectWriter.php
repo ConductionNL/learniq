@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/design.md#data-model
+ * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
  */
 
 declare(strict_types=1);
@@ -66,7 +66,7 @@ class CoursePackageObjectWriter {
 	 *
 	 * @return string|null Created Course UUID.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#data-model
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
 	 * @spec openspec/specs/course-management/spec.md#requirement-installing-a-shared-course-creates-an-independent-copy-that-keeps-the-credit
 	 */
 	public function createCourse(string $title, ?string $parentCourseId, string $tenantId, array $metadata=[]): ?string {
@@ -98,7 +98,7 @@ class CoursePackageObjectWriter {
 	 *
 	 * @return string|null Created Lesson UUID.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#data-model
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
 	 */
 	public function createLesson(
 		?string $courseId,
@@ -134,7 +134,7 @@ class CoursePackageObjectWriter {
 	 *
 	 * @return string|null Created Material UUID.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	public function createMaterial(string $title, string $kind, ?string $fileRef, ?string $url, ?string $courseId, string $tenantId): ?string {
 		return $this->create(
@@ -158,7 +158,7 @@ class CoursePackageObjectWriter {
 	 *
 	 * @return string|null Created LtiToolPlacement UUID.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-lti-resource-becomes-a-placement-not-an-inline-link
+	 * @spec openspec/specs/course-management/spec.md#scenario-an-lti-resource-becomes-a-placement-not-an-inline-link
 	 */
 	public function createLtiPlacement(?string $courseId, string $tenantId): ?string {
 		return $this->create(
@@ -184,7 +184,7 @@ class CoursePackageObjectWriter {
 	 *
 	 * @return string|null Created ItemBank UUID.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#data-model
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
 	 */
 	public function createItemBank(string $name, string $tenantId): ?string {
 		return $this->create(
@@ -201,7 +201,7 @@ class CoursePackageObjectWriter {
 	 *
 	 * @return string|null Created object UUID.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#data-model
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
 	 */
 	public function create(string $schema, array $object): ?string {
 		$saved = $this->objectService->saveObject(
@@ -220,7 +220,7 @@ class CoursePackageObjectWriter {
 	 *
 	 * @return string|null The UUID, or null if it could not be resolved.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#data-model
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
 	 */
 	private function extractUuid(mixed $saved): ?string {
 		if (is_array($saved) === true) {

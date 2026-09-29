@@ -30,7 +30,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
+ * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
  */
 
 declare(strict_types=1);
@@ -86,7 +86,7 @@ class CoursePackageImportService {
 	 *
 	 * @return array<string, mixed> The persisted `CoursePackageImportReport` (includes `uuid`).
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-every-course-package-import-produces-a-coursepackageimportreport-naming-every-resources-outcome
+	 * @spec openspec/specs/course-management/spec.md#requirement-every-course-package-import-produces-a-coursepackageimportreport-naming-every-resources-outcome
 	 */
 	public function import(string $packagePath, string $sourceFilename, string $importedBy, string $tenantId = ''): array {
 		$importedAt = $this->reporter->now();
@@ -152,7 +152,7 @@ class CoursePackageImportService {
 	 *
 	 * @return array<string, mixed> The persisted `CoursePackageImportReport`.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
+	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
 	private function importArchive(
 		string $format,
@@ -212,7 +212,7 @@ class CoursePackageImportService {
 	 *
 	 * @return array<string, mixed> The parsed manifest.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-a-corrupt-or-unrecognised-archive-fails-loudly-not-silently
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-corrupt-or-unrecognised-archive-fails-loudly-not-silently
 	 */
 	private function parseArchive(string $format, string $packagePath, string $tmpDir): array {
 		if ($format === self::FORMAT_COMMON_CARTRIDGE) {
@@ -234,7 +234,7 @@ class CoursePackageImportService {
 	 *
 	 * @return string|null UUID of the top-level Course, or null if none was created.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
+	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
 	private function materialise(
 		string $format,
@@ -273,7 +273,7 @@ class CoursePackageImportService {
 	 *
 	 * @return string|null `'common-cartridge-1.3'`, `'moodle-backup'`, `'scholiq-json'`, or null when unrecognised.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-a-corrupt-or-unrecognised-archive-fails-loudly-not-silently
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-corrupt-or-unrecognised-archive-fails-loudly-not-silently
 	 */
 	private function detectFormat(string $packagePath, string $sourceFilename): ?string {
 		$handle = fopen($packagePath, 'rb');
@@ -305,7 +305,7 @@ class CoursePackageImportService {
 	 *
 	 * @return string|null The detected format, or null when unrecognised.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-a-corrupt-or-unrecognised-archive-fails-loudly-not-silently
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-corrupt-or-unrecognised-archive-fails-loudly-not-silently
 	 */
 	private function detectFormatFromMagic(string $magic): ?string {
 		// ZIP local-file-header signature: 'PK' (0x50 0x4B).

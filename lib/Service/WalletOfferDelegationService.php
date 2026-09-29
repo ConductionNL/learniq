@@ -9,7 +9,7 @@
  * ConductionNL/openconnector) over REST.
  *
  * DEVIATION FROM THE ORIGINAL DESIGN — read before touching this file:
- * `openspec/changes/eudi-wallet-credential-push/proposal.md` and `tasks.md`
+ * `openspec/changes/archive/2026-07-13-eudi-wallet-credential-push/proposal.md` and `tasks.md`
  * specify an ADR-041 typed-event contract (`WalletOfferRequestedEvent`
  * dispatched via IEventDispatcher, consumed by an openconnector listener).
  * That mechanism does not exist and was never built: openconnector's merged
@@ -62,7 +62,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
+ * @spec openspec/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
  */
 
 declare(strict_types=1);
@@ -167,7 +167,7 @@ class WalletOfferDelegationService implements LifecycleGuardInterface {
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
+	 * @spec openspec/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		if ($this->buildOfferRequest(credential: $object) === null) {
@@ -189,7 +189,7 @@ class WalletOfferDelegationService implements LifecycleGuardInterface {
 	 *
 	 * @return array<string,mixed> The Credential with the offer outcome applied.
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
+	 * @spec openspec/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
 	 */
 	public function offer(array $credential): array {
 		$requestBody = $this->buildOfferRequest(credential: $credential);

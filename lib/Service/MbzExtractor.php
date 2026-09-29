@@ -66,7 +66,7 @@ class MbzExtractor {
 	 * @throws \RuntimeException When the archive cannot be opened, is not a valid gzipped tar,
 	 *                           or a security violation is detected (oversize / path traversal).
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#security--privacy-posture
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#security--privacy-posture
 	 */
 	public function extract(string $mbzPath, string $targetDir): void {
 		if (is_dir($targetDir) === false) {
@@ -112,7 +112,7 @@ class MbzExtractor {
 	 *
 	 * @throws RuntimeException When the archive cannot be read, opened or decompressed.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#security--privacy-posture
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#security--privacy-posture
 	 */
 	private function openDecompressedTar(string $mbzPath, string $tarGzPath): PharData {
 		if (copy($mbzPath, $tarGzPath) === false) {
@@ -148,7 +148,7 @@ class MbzExtractor {
 	 *
 	 * @throws RuntimeException When any entry, or the archive as a whole, exceeds its cap.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#security--privacy-posture
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#security--privacy-posture
 	 */
 	private function assertWithinSizeLimits(PharData $tar): void {
 		$totalUncompressed = 0;
@@ -188,7 +188,7 @@ class MbzExtractor {
 	 *
 	 * @throws RuntimeException When an entry would extract outside the target directory.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#security--privacy-posture
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#security--privacy-posture
 	 */
 	private function extractEntries(PharData $tar, string $targetDirReal): void {
 		$iterator = new RecursiveIteratorIterator($tar, RecursiveIteratorIterator::LEAVES_ONLY);
@@ -221,7 +221,7 @@ class MbzExtractor {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#security--privacy-posture
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#security--privacy-posture
 	 */
 	private function removeDirectory(string $dir): void {
 		if (is_dir($dir) === false) {

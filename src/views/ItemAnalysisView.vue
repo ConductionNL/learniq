@@ -26,7 +26,7 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-and-assessment-statistics-are-read-restricted-to-staff-roles
+  @spec openspec/specs/assessment/spec.md#requirement-item-and-assessment-statistics-are-read-restricted-to-staff-roles
 -->
 
 <template>
@@ -235,7 +235,7 @@ export default {
 		itemId: {
 			immediate: true,
 			/**
-			 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
+			 * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
 			 */
 			handler() {
 				this.load()
@@ -255,7 +255,7 @@ export default {
 		 * assessmentId is set — the AssessmentReliability row.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
+		 * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
 		 */
 		async load() {
 			if (!this.isStaff) return
@@ -289,7 +289,7 @@ export default {
 		 * Fetch the Item's title for the page heading.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
+		 * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
 		 */
 		async loadItemTitle() {
 			const url = generateUrl(
@@ -310,7 +310,7 @@ export default {
 		 * field-filter query parameter is assumed to exist server-side).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
+		 * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
 		 */
 		async loadItemStatistics() {
 			const url = generateUrl(
@@ -332,7 +332,7 @@ export default {
 		 * (fetch-all-then-filter, same convention as loadItemStatistics()).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-assessment-reliability-cronbachs-alpha-is-computed-with-a-minimum-sample-size
+		 * @spec openspec/specs/assessment/spec.md#requirement-per-assessment-reliability-cronbachs-alpha-is-computed-with-a-minimum-sample-size
 		 */
 		async loadReliability() {
 			const url = generateUrl(
@@ -355,7 +355,7 @@ export default {
 		 *
 		 * @param {number|null} value Value to format
 		 * @return {string}
-		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
+		 * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
 		 */
 		formatNumber(value) {
 			if (value === null || value === undefined) return '—'

@@ -19,8 +19,8 @@
  this view only reads waitlisted signups, writes a manual ConferenceSlot, and
  triggers the round's `regenerate` transition through the OR object API.
 
- @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
- @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
+ @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+ @spec openspec/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
 -->
 <template>
 	<div class="conference-schedule-board">
@@ -167,7 +167,7 @@ export default {
 		 * where waitlist resolution happens).
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		roundOptions() {
 			return this.rounds.map((r) => ({
@@ -199,7 +199,7 @@ export default {
 		 * Load ConferenceRounds in `scheduled` (a generate pass has already run).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadRounds() {
 			this.loadingRounds = true
@@ -226,7 +226,7 @@ export default {
 		 *
 		 * @param {object} _signup Reserved for future per-signup narrowing (unused today).
 		 * @return {Array<object>}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		teacherOptions(_signup) {
 			if (!this.selectedRound) return []
@@ -240,7 +240,7 @@ export default {
 		 * Load waitlisted ConferenceSignups for the selected round.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
+		 * @spec openspec/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
 		 */
 		async loadWaitlisted() {
 			this.waitlisted = []
@@ -282,7 +282,7 @@ export default {
 		 *
 		 * @param {object} signup The waitlisted ConferenceSignup being resolved.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async createManualSlot(signup) {
 			const signupId = signup.id || signup.uuid
@@ -322,7 +322,7 @@ export default {
 		 * from availability freed by cancellations or newly submitted availability.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
+		 * @spec openspec/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
 		 */
 		async regenerate() {
 			if (!this.selectedRoundId) return

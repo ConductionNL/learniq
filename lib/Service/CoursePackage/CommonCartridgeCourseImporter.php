@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
+ * @spec openspec/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
  */
 
 declare(strict_types=1);
@@ -66,7 +66,7 @@ class CommonCartridgeCourseImporter {
 	 *
 	 * @return array<string, mixed> `CommonCartridgeParser::parseManifest()` result.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
 	 */
 	public function extractAndParse(string $packagePath, string $targetDir): array {
 		$this->qtiImportService->extractZip(zipPath: $packagePath, targetDir: $targetDir);
@@ -85,7 +85,7 @@ class CommonCartridgeCourseImporter {
 	 *
 	 * @return string|null UUID of the top-level Course, or null if none was created.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
 	 */
 	public function importManifest(string $dir, array $manifest, string $importedBy, string $tenantId, array &$entries): ?string {
 		$resourcesById = $this->indexResources(resources: $manifest['resources']);
@@ -127,7 +127,7 @@ class CommonCartridgeCourseImporter {
 	 *
 	 * @return array<string, array<string, mixed>> Resources keyed by identifier.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
 	 */
 	private function indexResources(array $resources): array {
 		$resourcesById = [];
@@ -153,7 +153,7 @@ class CommonCartridgeCourseImporter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
 	 */
 	private function importOrganizationNode(
 		array $node,
@@ -213,7 +213,7 @@ class CommonCartridgeCourseImporter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
 	 */
 	private function importFolderNode(
 		array $node,
@@ -259,7 +259,7 @@ class CommonCartridgeCourseImporter {
 	 *
 	 * @return string|null The enclosing Course UUID.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
 	 */
 	private function resolveParentCourseId(array $node, array $courseIdByOrgId, ?string &$topCourseId, string $tenantId): ?string {
 		$parentCourseId = $topCourseId;
@@ -290,7 +290,7 @@ class CommonCartridgeCourseImporter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function routeUnreferencedResources(
 		array $resources,
@@ -336,7 +336,7 @@ class CommonCartridgeCourseImporter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
+	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
 	private function importQtiResources(string $dir, string $tenantId, array &$entries): void {
 		$pendingIndexes = [];

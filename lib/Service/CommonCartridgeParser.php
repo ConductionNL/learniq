@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
+ * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
  */
 
 declare(strict_types=1);
@@ -64,7 +64,7 @@ class CommonCartridgeParser {
 	 *
 	 * @throws \RuntimeException When `imsmanifest.xml` is missing or not parseable XML.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
+	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
 	public function parseManifest(string $dir): array {
 		$manifestPath = $dir . '/imsmanifest.xml';
@@ -129,7 +129,7 @@ class CommonCartridgeParser {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
+	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
 	private function walkItems(DOMElement $parent, ?string $parentIdentifier, int &$order, array &$out): void {
 		foreach ($parent->childNodes as $child) {
@@ -177,7 +177,7 @@ class CommonCartridgeParser {
 	 *
 	 * @return array<int, array<string, mixed>> One row per resource: `{identifier, type, classification, href, title}`.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
+	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
 	private function parseResources(DOMXPath $xpath): array {
 		$resourceNodes = $xpath->query('//imscp:resources/imscp:resource');
@@ -232,7 +232,7 @@ class CommonCartridgeParser {
 	 *
 	 * @return string One of `imsqti_item`, `imsqti_test`, `basiclti`, `weblink`, `webcontent`, `discussion`, `other`.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function classify(string $type): string {
 		$lower = strtolower($type);
@@ -272,7 +272,7 @@ class CommonCartridgeParser {
 	 *
 	 * @return string|null Trimmed text content, or null when no such child exists.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
+	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
 	private function firstChildText(DOMElement $element, string $tagName): ?string {
 		foreach ($element->childNodes as $child) {
