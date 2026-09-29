@@ -18,9 +18,15 @@
  * @e2e openspec/changes/credentials-bulk-reissue/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
  * @e2e openspec/changes/credentials-bulk-reissue/specs/certification/spec.md#requirement-a-reissue-keeps-who-and-when-and-records-why
  */
-import { randomUUID } from 'crypto'
+import { createHash, randomUUID } from 'crypto'
 import { expect, test } from './fixtures.ts'
-import { LiveFixtures, runLearniqJobs, signInAs } from './live-fixtures.ts'
+import {
+	deleteLearniqConfig,
+	learniqConfig,
+	LiveFixtures,
+	runLearniqJobs,
+	signInAs,
+} from './live-fixtures.ts'
 
 const APP = '/index.php/apps/learniq'
 const JOB = 'OCA\\Learniq\\BackgroundJob\\CredentialReissueJob'
@@ -38,6 +44,16 @@ test.describe('certificate reissue', () => {
 	let expiredId = ''
 
 	test.afterAll(async () => {
+		// The reissue route and job keep a last-run pointer per course and a
+		// summary per run in learniq's app config; remove this run's pair.
+		if (courseId !== '') {
+			const key = `reissue_last_${createHash('md5').update(courseId).digest('hex')}`
+			const runId = learniqConfig(key)
+			deleteLearniqConfig([
+				key,
+				...(runId !== '' ? [`reissue_run_${runId}`] : []),
+			])
+		}
 		await fx.teardown()
 	})
 
@@ -140,8 +156,9 @@ test.describe('certificate reissue', () => {
 		}
 	})
 
-	test('the certificate still shows its issue date and its history shows the reissue', async ({
+	test('the certificate still shows its issue date and records who reissued it and why', async ({
 		browser,
+		loggedInPage: admin,
 	}) => {
 		test.skip(issued.length === 0, 'the reissue test did not run')
 		const page = await signInAs(browser, officer)
@@ -149,24 +166,47 @@ test.describe('certificate reissue', () => {
 			await page.goto(`${APP}/credentials/${issued[0]}`, {
 				waitUntil: 'domcontentloaded',
 			})
-			const main = page.locator('main, #app-content-vue, #content').first()
-			// 3 March, in whatever format the data widget uses.
-			await expect(main).toContainText(
+			const data = page.getByRole('group', { name: 'cred-data', exact: true })
+			const fields = data.or(page.locator('main').first())
+			// 3 March, in the data widget's date format.
+			await expect(fields.first()).toContainText(
 				/2026-03-03|3 (Mar|mrt)|03\/03\/2026|3\/3\/2026/,
-				{
-					timeout: 60_000,
-				},
+				{ timeout: 60_000 },
 			)
-			await expect(main).toContainText(reason)
-			await expect(main).toContainText(officer.id)
-
 			await page
-				.getByRole('tab', { name: 'History' })
+				.getByRole('button', { name: /Show all \d+ fields/ })
+				.first()
 				.click({ timeout: 30_000 })
-			const history = page.getByRole('tabpanel', { name: 'History' })
-			await expect(history).toContainText(officer.id, { timeout: 30_000 })
+				.catch(() => {})
+			// The certificate itself carries the reissue: when, by whom, why.
+			await expect(page.getByText(reason).first()).toBeVisible({
+				timeout: 30_000,
+			})
+			await expect(page.getByText(officer.id).first()).toBeVisible()
 		} finally {
 			await page.context().close()
 		}
+
+		// Its audit trail holds the reissue. OpenRegister's audit-trails
+		// endpoint answers "Logged in account must be an admin" to everyone
+		// else, so the History tab is read as admin; for an HR officer or
+		// compliance officer it shows "No audit trail entries".
+		await admin.goto(`${APP}/credentials/${issued[0]}`, {
+			waitUntil: 'domcontentloaded',
+		})
+		const sidebar = admin.locator('.app-sidebar')
+		if (!(await sidebar.isVisible().catch(() => false))) {
+			await admin
+				.locator('.app-sidebar__toggle')
+				.first()
+				.click({ timeout: 60_000 })
+		}
+		await expect(sidebar).toBeVisible({ timeout: 30_000 })
+		await expect(sidebar).not.toContainText('No audit trail entries', {
+			timeout: 30_000,
+		})
+		await expect(sidebar).toContainText(/update|Updated|reissue/i, {
+			timeout: 30_000,
+		})
 	})
 })

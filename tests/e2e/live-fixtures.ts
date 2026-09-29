@@ -373,6 +373,59 @@ export async function signInAs(browser: Browser, user: TempUser): Promise<Page> 
 }
 
 /**
+ * The occ command, split into the executable and its leading arguments.
+ *
+ * @return [command, ...prefix]
+ */
+function occCommand(): string[] {
+	return (
+		process.env.LEARNIQ_E2E_OCC ?? 'docker exec -u www-data nextcloud php occ'
+	)
+		.split(/\s+/)
+		.filter((part) => part !== '')
+}
+
+/**
+ * Read one learniq app-config value.
+ *
+ * @param key The key.
+ * @return The value, or '' when it is not set.
+ */
+export function learniqConfig(key: string): string {
+	const [command, ...prefix] = occCommand()
+	try {
+		return execFileSync(command, [...prefix, 'config:app:get', 'learniq', key], {
+			encoding: 'utf8',
+			timeout: 60_000,
+			stdio: 'pipe',
+		}).trim()
+	} catch {
+		return ''
+	}
+}
+
+/**
+ * Delete learniq app-config keys a run wrote. Never throws: it runs in
+ * teardown, where a throw hides the test's own failure.
+ *
+ * @param keys The keys.
+ */
+export function deleteLearniqConfig(keys: string[]): void {
+	const [command, ...prefix] = occCommand()
+	for (const key of keys) {
+		try {
+			execFileSync(command, [...prefix, 'config:app:delete', 'learniq', key], {
+				encoding: 'utf8',
+				timeout: 60_000,
+				stdio: 'pipe',
+			})
+		} catch {
+			console.warn(`[live-fixtures] could not delete learniq config ${key}`)
+		}
+	}
+}
+
+/**
  * Run learniq background jobs of one class now, instead of waiting for cron.
  *
  * The shared instance runs no cron daemon, so a queued job (a certificate
@@ -392,11 +445,7 @@ export function runLearniqJobs(
 	if (!jobClass.startsWith('OCA\\Learniq\\')) {
 		throw new Error(`refusing to run a job that is not learniq's: ${jobClass}`)
 	}
-	const [command, ...prefix] = (
-		process.env.LEARNIQ_E2E_OCC ?? 'docker exec -u www-data nextcloud php occ'
-	)
-		.split(/\s+/)
-		.filter((part) => part !== '')
+	const [command, ...prefix] = occCommand()
 	const listed = execFileSync(
 		command,
 		[...prefix, 'background-job:list', `--class=${jobClass}`, '--output=json'],
@@ -414,11 +463,23 @@ export function runLearniqJobs(
 		if (!match(argument)) {
 			continue
 		}
-		execFileSync(
-			command,
-			[...prefix, 'background-job:execute', '--force-execute', String(job.id)],
-			{ encoding: 'utf8', timeout: 300_000 },
-		)
+		try {
+			execFileSync(
+				command,
+				[
+					...prefix,
+					'background-job:execute',
+					'--force-execute',
+					String(job.id),
+				],
+				{ encoding: 'utf8', timeout: 300_000, stdio: 'pipe' },
+			)
+		} catch (error: any) {
+			throw new Error(
+				`occ background-job:execute ${job.id} failed (exit ${error?.status}): ${String(error?.stdout ?? '')} ${String(error?.stderr ?? '')}`.trim(),
+				{ cause: error },
+			)
+		}
 		ran++
 	}
 	return ran

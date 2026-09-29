@@ -94,11 +94,9 @@ test.describe('certificate for Europass', () => {
 			).click({
 				timeout: 30_000,
 			})
-			const confirm = page
-				.getByRole('dialog')
-				.getByRole('button', {
-					name: /Confirm|Create Europass version|OK|Yes/,
-				})
+			const confirm = page.getByRole('dialog').getByRole('button', {
+				name: /Confirm|Create Europass version|OK|Yes/,
+			})
 			if (await confirm.isVisible({ timeout: 10_000 }).catch(() => false)) {
 				await confirm.click()
 			}
