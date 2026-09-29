@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
  */
 
 declare(strict_types=1);
@@ -38,7 +38,7 @@ use OCP\IUserManager;
 /**
  * Work group reads.
  *
- * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
  */
 class WorkGroupReader {
 
@@ -66,7 +66,7 @@ class WorkGroupReader {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
 	 */
 	public function group(string $id): ?array {
 		return $this->read(schema: self::SCHEMA, id: $id);
@@ -79,7 +79,7 @@ class WorkGroupReader {
 	 *
 	 * @return list<string>
 	 *
-	 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
 	 */
 	public function cohortLearners(string $cohortId): array {
 		$cohort = $this->read(schema: 'cohort', id: $cohortId);
@@ -95,7 +95,7 @@ class WorkGroupReader {
 	 *
 	 * @return list<array<string, mixed>>
 	 *
-	 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-is-in-one-work-group-per-set
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-is-in-one-work-group-per-set
 	 */
 	public function set(string $cohortId, string $setName): array {
 		return $this->groups(filters: ['cohortId' => $cohortId, 'setName' => $setName]);
@@ -110,7 +110,7 @@ class WorkGroupReader {
 	 *
 	 * @return list<array<string, mixed>>
 	 *
-	 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
 	 */
 	public function mine(string $userId, callable $isOpen): array {
 		$sets = [];

@@ -8,7 +8,8 @@
 - **acceptance_criteria**:
   - GIVEN a completed enrolment on a course with a certificate template WHEN issuance runs on a live instance THEN a Credential exists with `signature`, `openbadges3Payload` and `issuerDid`
 - [x] Implement
-- [ ] Test: `tests/Unit/Listener/CredentialIssuanceHandlerTest.php` asserts the signed fields are sent; one live issue recorded in the PR body
+- [x] Test: `tests/Unit/Listener/CredentialIssuanceHandlerTest.php` asserts the signed fields are sent; one live issue recorded in the PR body
+- Live issue, 2026-09-29 on the shared instance (learniq at development 21c17a01): a throwaway course with a `certificateTemplate` and an active enrolment for `anna`; `CredentialIssuanceHandler::handle()` given a real `ObjectTransitionedEvent` (register `learniq`, schema `enrolment`, to `completed`) saved credential `1da62a41` in state issued with `signature`, `openbadges3Payload` and `issuerDid` filled. The same completion through `POST /api/objects/{id}/transition` issued nothing: the instance has OpenRegister's `transition_event_slug_contract` off (the default), so the event carries numeric ids and every learniq transition listener that compares slugs stays silent. That is the platform switch in OpenRegister `docs/transition-event-slug-contract.md`, not this change; it is listed for Ruben. The three test objects were deleted afterwards.
 - Repaired by #1178 (merged 2026-09-28, "sign a credential before it is saved"): `CredentialIssuanceHandler::saveSignedCredential()` calls `CredentialSigningService::sign()` before the save, and `CredentialIssuanceHandlerTest::testACompletedEnrolmentSavesACredentialWithEveryRequiredProperty` asserts every required signed field. The live issue on an instance is not run in this lane (no instance), so the test line stays open for that half.
 
 ### Task 2: EDCI payload builder

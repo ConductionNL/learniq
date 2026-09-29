@@ -1559,16 +1559,17 @@
       "area": "credentials",
       "name": "Export a certificate in the European Europass credential format.",
       "built": {
-        "state": "building",
-        "evidence": "lib/Controller/CredentialEuropassController.php:111 serves Credential.edciPayload; appinfo/routes.php:44-48. One task open in the change (issuance handler test and one live issue)",
+        "state": "built",
+        "evidence": "lib/Controller/CredentialEuropassController.php:111 serves Credential.edciPayload (appinfo/routes.php:44-48); CredentialIssuanceHandler signs before save (#1178). Live issue 2026-09-29 recorded in the archived tasks.md.",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/credentials-europass-edci-export"
+        "change": "openspec/changes/archive/2026-09-29-credentials-europass-edci-export",
+        "reachedOn": "nothing"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "credentials",
       "featureConfidence": "high",
-      "learniq": "no",
+      "learniq": "yes",
       "moodle": "no",
       "moodle-workplace": "unknown",
       "ilias": "no",
@@ -6882,15 +6883,15 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "building",
-        "evidence": "Built; two Playwright tasks open in the change (tests/e2e/work-groups.spec.ts)",
+        "state": "built",
+        "evidence": "Built and covered end to end by tests/e2e/work-groups.spec.ts (#1487).",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing",
-        "change": "openspec/changes/enrolment-self-join-work-group"
+        "change": "openspec/changes/archive/2026-09-29-enrolment-self-join-work-group"
       },
       "provider": "self",
       "providerHow": "Would be a learniq group schema and flow; not built.",
-      "learniq": "no",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/group/group_form.php:68 (group enrolment key places a self-enrolling learner in that group) + public/mod/choice/mod_form.php:67 (choice with limited answers per option); self-enrolment into a group works without a size limit, and a capped choice can stand in for sign-up but does not create group membership. Searched group/ and enrol/self for selfselect, maxmembers, groupsize: nothing. Marketplace mod_groupselect adds it, not shipped.",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Appointments_Configuration; \"Capacity (default 10): The maximum number of participants who can sign up for the appointment\" and learners book via the Book button. Self-joining course groups is not documented.",
@@ -7353,15 +7354,15 @@
       "origin": "changelog",
       "originUrl": "https://totara.com/articles/whats-new-totara-version-20/",
       "built": {
-        "state": "building",
-        "evidence": "appinfo/routes.php:272 course catalogue routes; one Playwright task open in the change (tests/e2e/course-catalogue.spec.ts)",
+        "state": "built",
+        "evidence": "appinfo/routes.php:272 course catalogue routes; end to end in tests/e2e/course-catalogue.spec.ts (#1487).",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing",
-        "change": "openspec/changes/enrolment-catalogue-self-signup"
+        "change": "openspec/changes/archive/2026-09-29-enrolment-catalogue-self-signup"
       },
       "provider": "self",
       "providerHow": "Would be a learniq learner catalogue and enrol action; not built.",
-      "learniq": "no",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/course/index.php:19 (course category catalogue) + public/enrol/self/lib.php:211 enrol_page_hook and :174 enrol_self + public/enrol/index.php:103; learners browse categories and sign up for a course themselves where self enrolment is on. There is no track or program to sign up for as a whole (programs and certifications are Moodle Workplace, not core).",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/500/en/Moodle_Workplace_release_notes; Workplace 5.0: \"Learners can now self-enrol in programs through a cleaner, more intuitive interface in the Learning Catalogue\"; programs can be \"shown in the catalogue\" (https://docs.moodle.org/502/en/Programs_Configuration).",

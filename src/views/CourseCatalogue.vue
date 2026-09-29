@@ -12,7 +12,7 @@
  learner is signed up or waiting. The writes go through learniq's own
  endpoints, which check every rule and write for the caller only.
 
- @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+ @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
 -->
 <template>
 	<div class="course-catalogue">
@@ -158,7 +158,7 @@ export default {
 	computed: {
 		/**
 		 * @return {Array<object>} Programmes first, then courses.
-		 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
 		 */
 		entries() {
 			return [...this.programmes, ...this.courses]
@@ -174,7 +174,7 @@ export default {
 		 * Load the catalogue with the current search and filters.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-provider-courses-show-their-provider
+		 * @spec openspec/specs/enrolment/spec.md#requirement-provider-courses-show-their-provider
 		 */
 		async load() {
 			this.loading = true
@@ -213,7 +213,7 @@ export default {
 		/**
 		 * @param {object} entry A catalogue card.
 		 * @return {boolean} Whether the learner has a pending or active enrolment.
-		 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
 		 */
 		isLive(entry) {
 			return isLive(entry)
@@ -222,7 +222,7 @@ export default {
 		/**
 		 * @param {object} entry A catalogue card.
 		 * @return {boolean} Whether the learner may withdraw their sign-up.
-		 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-withdraws-their-own-sign-up
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-withdraws-their-own-sign-up
 		 */
 		canWithdraw(entry) {
 			return canWithdraw(entry)
@@ -231,7 +231,7 @@ export default {
 		/**
 		 * @param {string} text A description.
 		 * @return {string} At most 220 characters.
-		 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
 		 */
 		shorten(text) {
 			const value = text || ''
@@ -243,7 +243,7 @@ export default {
 		 *
 		 * @param {object} entry A catalogue card.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-an-open-course
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-an-open-course
 		 */
 		async signUp(entry) {
 			this.busy = entry.id
@@ -289,7 +289,7 @@ export default {
 		 *
 		 * @param {object} entry A catalogue card.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#scenario-a-learner-changes-their-mind
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-learner-changes-their-mind
 		 */
 		async withdraw(entry) {
 			this.busy = entry.id

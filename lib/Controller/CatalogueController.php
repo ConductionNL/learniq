@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
  */
 
 declare(strict_types=1);
@@ -47,7 +47,7 @@ use OCP\IUserSession;
 /**
  * Catalogue list, sign-up and withdraw for the signed-in learner.
  *
- * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
  */
 class CatalogueController extends Controller {
 
@@ -80,7 +80,7 @@ class CatalogueController extends Controller {
 	 *
 	 * @return JSONResponse 200 `{courses, programmes}`, or 401.
 	 *
-	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-provider-courses-show-their-provider
+	 * @spec openspec/specs/enrolment/spec.md#requirement-provider-courses-show-their-provider
 	 */
 	#[NoAdminRequired]
 	public function index(): JSONResponse {
@@ -106,7 +106,7 @@ class CatalogueController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-an-open-course
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-an-open-course
 	 */
 	#[NoAdminRequired]
 	public function signUpCourse(string $id): JSONResponse {
@@ -135,7 +135,7 @@ class CatalogueController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-a-track
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-a-track
 	 */
 	#[NoAdminRequired]
 	public function signUpProgramme(string $id): JSONResponse {
@@ -164,7 +164,7 @@ class CatalogueController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#scenario-a-learner-changes-their-mind
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-learner-changes-their-mind
 	 */
 	#[NoAdminRequired]
 	public function withdraw(string $id): JSONResponse {
@@ -242,7 +242,7 @@ class CatalogueController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
 	 */
 	private function notALearner(PortalLearner $learner): JSONResponse {
 		$outcome = new PortalOutcome(status: Http::STATUS_FORBIDDEN, body: ['error' => 'not_a_learner'], reason: 'not-a-learner');

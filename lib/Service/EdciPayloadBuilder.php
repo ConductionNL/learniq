@@ -33,7 +33,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
+ * @spec openspec/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ namespace OCA\Learniq\Service;
 /**
  * Builds the ELM European Digital Credential for one learniq credential.
  *
- * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
+ * @spec openspec/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
  */
 class EdciPayloadBuilder {
 
@@ -93,7 +93,7 @@ class EdciPayloadBuilder {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#scenario-a-training-certificate-gets-its-europass-form
+	 * @spec openspec/specs/certification/spec.md#scenario-a-training-certificate-gets-its-europass-form
 	 */
 	public function build(array $credential, ?array $course, ?array $learner, array $issuer, array $competences = []): array {
 		$credentialId = 'urn:uuid:' . (string)($credential['id'] ?? '');

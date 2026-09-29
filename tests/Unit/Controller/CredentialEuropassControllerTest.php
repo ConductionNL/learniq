@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-a-learner-downloads-their-certificate-for-europass
+ * @spec openspec/specs/certification/spec.md#requirement-a-learner-downloads-their-certificate-for-europass
  */
 
 declare(strict_types=1);
