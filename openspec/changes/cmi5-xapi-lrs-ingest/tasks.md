@@ -53,6 +53,15 @@
   - (1) OpenRegister: `POST /api/lrs/statements` with a valid token answers 500 `SCHEMA_APPEND_ONLY ... update operations are not permitted`. OR treats any save with a uuid on an append-only schema as an update, and the ingest passes the xAPI statement id. 0 statements stored.
   - (2) `Authorization: Basic <token>`, as cmi5 AUs send it, is refused with 401 by Nextcloud's auth layer before LrsController runs; `Bearer <token>` reaches it.
   - (2) fixed by #1444 and proven live on 71a2c414: `Basic <auth-token>` gets past authentication (500 from storage, finding 1); a tampered auth-token gets LrsController's own 401. (1) waits on OpenRegister #4173 reaching the instance's openregister checkout; on 51c8b1ef the statement POST still answers 500 `The statements could not be stored`.
+  - Throwaway instance, 2026-09-29 (`localhost:8090`, clean install, learniq f99b1a57, OpenRegister development with #4173
+    and #4177, Company example set), a temp non-admin learner and a published cmi5 lesson: launch 200 and redeem 200 as
+    that learner, but every statement POST with `Basic <auth-token>` still answers 500. It now gets past the append-only
+    check (finding 1 is fixed by #4173) and fails validation instead: `Property 'tenant_id' should match format 'uuid' but
+    'ocz8xvgzd7is' does not`. `XapiStatementIngest::tenantFor()` falls back to the instance id when the learner has no
+    `learniq`/`tenant_id` user preference, and the `xapi-statement` schema requires a UUID. Nothing in learniq sets that
+    preference and Nextcloud refuses it over the preferences API (400), so on this instance no learner can store a
+    statement. 0 statements stored; GET statements as admin returns 0. Finding (3), open, needs a decision on how a
+    learner's tenant is resolved (see the lane report). This box stays open.
 - [x] 3.5 Security test: POST a statement with `payload.actor.account.name` set to a different learner's UUID
       → assert `verified_actor_id` is still the authenticated caller's own identity, not the payload claim.
 
@@ -154,4 +163,10 @@
       finds no row and throws (`lib/Db/MagicMapper.php:5731`). #1479's `_multitenancy: false` reaches only the delete
       handler, after that lookup. The fix belongs in OpenRegister: forward `_rbac` and `_multitenancy` to that
       `find()`. Until it lands, xAPI DELETE of a state or agent profile answers 500 and the document stays.
+  - Throwaway instance, 2026-09-29 (`localhost:8090`, as above), a temp non-admin learner, `Basic <auth-token>`:
+    `LMS.LaunchData` 200 as the JSON object (`launchMode: Normal`, `moveOn: NotApplicable`) with an ETag equal to the
+    SHA-1 of the body; own PUT 204 and GET `{"page":3}`; `If-Match: "stale"` 412; `If-Match` with the current ETag
+    204; POST merge 204, then `{"page":4,"score":0.9}`; stateId list `["LMS.LaunchData","bookmark"]`; an agent naming
+    another user 403. DELETE 500 `Object not found in magic table`, the same OpenRegister `deleteObject()` lookup
+    as in round 2, so the documents also store and read correctly for a non-admin learner.
     - This box is ticked once DELETE answers 204 live.
