@@ -116,7 +116,7 @@ export function objectId(object) {
  *
  * @param {string[]} learnerIds Cohort.learnerIds (Nextcloud user ids).
  * @param {object[]} records Existing AttendanceRecords for the session.
- * @return {Array<{learnerId: string, status: string, reason: string, recordId: string}>} Rows.
+ * @return {Array<{learnerId: string, status: string, reason: string, recordId: string, markedVia: string, savedStatus: (string|null), savedReason: string}>} Rows.
  * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
  */
 export function attendanceRows(learnerIds, records) {
@@ -128,6 +128,9 @@ export function attendanceRows(learnerIds, records) {
 			status: saved?.status ?? 'present',
 			reason: saved?.reason ?? '',
 			recordId: saved ? objectId(saved) : '',
+			markedVia: saved?.markedVia ?? 'teacher',
+			savedStatus: saved?.status ?? null,
+			savedReason: saved?.reason ?? '',
 		}
 	})
 }
@@ -150,10 +153,33 @@ export function attendanceRecord(row, session, markedBy, markedAt) {
 		status: row.status,
 		markedBy,
 		markedAt,
+		markedVia: 'teacher',
 		tenant_id: session.tenant_id ?? '',
 	}
 	if (row.reason) body.reason = row.reason
 	return body
+}
+
+/**
+ * The register rows a save writes: every row, except a learner's own self
+ * check-in the teacher left as it was, so saving the register never turns a
+ * self check-in into a teacher mark by accident (attendance-self-check-in).
+ * A self check-in the teacher changed is written, and becomes a teacher mark.
+ *
+ * @param {object[]} rows Rows from attendanceRows(), as edited.
+ * @return {object[]} The rows to write.
+ * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-self-check-in-never-overwrites-a-mark
+ */
+export function registerRowsToSave(rows) {
+	return rows.filter(
+		(row) =>
+			!(
+				row.recordId
+				&& row.markedVia === 'self-check-in'
+				&& row.status === row.savedStatus
+				&& (row.reason ?? '') === (row.savedReason ?? '')
+			),
+	)
 }
 
 /**

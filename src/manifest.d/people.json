@@ -51,6 +51,29 @@
 					}
 				},
 				{
+					"id": "SignUpRequestsMenu",
+					"label": "Sign-up requests",
+					"icon": "AccountGroup",
+					"route": "Enrolments",
+					"order": 21,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"hr",
+								"team-lead",
+								"administration-manager",
+								"admin"
+							]
+						}
+					},
+					"query": {
+						"source": "self",
+						"lifecycle": "pending"
+					}
+				},
+				{
 					"id": "Attendance",
 					"label": "Attendance",
 					"icon": "Calendar",

@@ -54,6 +54,7 @@ import {
 	oneObject,
 	transitionUrl,
 } from '../utils/customPages.js'
+import { handInLearners } from '../utils/workGroups.js'
 
 export default {
 	name: 'SubmitWorkView',
@@ -122,11 +123,12 @@ export default {
 		async submit({ files }) {
 			try {
 				const learnerId = getCurrentUser()?.uid ?? ''
+				const learnerIds = await this.handInLearnerIds(learnerId)
 				const created = oneObject(
 					(
 						await axios.post(generateUrl(objectsUrl('submission')), {
 							assignmentId: this.assignmentId,
-							learnerIds: [learnerId],
+							learnerIds,
 							tenant_id: this.assignment.tenant_id ?? '',
 						})
 					).data,
@@ -147,6 +149,35 @@ export default {
 						e?.response?.data?.error
 						|| this.t('learniq', 'Your work could not be handed in.'),
 				})
+			}
+		},
+
+		/**
+		 * The learners of this hand-in: the caller's whole work group when
+		 * the assignment is a group hand-in that names a work group set,
+		 * else only the caller (enrolment-self-join-work-group).
+		 *
+		 * @param {string} learnerId The caller's user id.
+		 * @return {Promise<string[]>} The learnerIds.
+		 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-group-hand-in-names-the-whole-work-group
+		 */
+		async handInLearnerIds(learnerId) {
+			if (
+				!this.assignment.groupSubmission
+				|| !this.assignment.workGroupSetName
+			) {
+				return [learnerId]
+			}
+			try {
+				const sets =
+					(
+						await axios.get(
+							generateUrl('/apps/learniq/api/my/work-groups'),
+						)
+					).data.sets ?? []
+				return handInLearners(this.assignment, sets, learnerId)
+			} catch {
+				return [learnerId]
 			}
 		},
 

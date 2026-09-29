@@ -92,6 +92,9 @@ SCHEMAS = [
     "report-card",
     "support-request",
     "dossier-note",
+    "standby-slot",
+    "lesson-note",
+    "timetable-visibility-policy",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -1293,6 +1296,52 @@ def build() -> dict:
     for p, author, date, category, body, confidentiality in notes:
         b.add("dossier-note", {"learnerId": p["nc"], "authorId": author, "date": date, "category": category, "body": body,
                                "confidentiality": confidentiality, "careTeamUserIds": [ZORG, mentor_of(p)]})
+
+    # --- standby hours (timetabling-standby-slots) ------------------------------------------------------
+    # Two teachers on standby in the second hour of every weekday and one in two
+    # afternoon hours, at the main location, for the school year. Each is a
+    # teacher who works that day; the class day blocks mean some also teach then,
+    # which the substitution dialog shows as "has a lesson then".
+    def hhmm(t: tuple[int, int]) -> str:
+        return f"{t[0]:02d}:{t[1]:02d}"
+
+    standby_plan = [(wd, 1) for wd in range(5) for _ in range(2)] + [(2, 4), (3, 5)]
+    used: set[tuple[int, int, str]] = set()
+    pool = [t for t in TEACHERS if t[0] not in MENTORS.values()] + [t for t in TEACHERS if t[0] in MENTORS.values()]
+    for wd, hour in standby_plan:
+        teacher = next(t for t in pool if WEEKDAYS[wd] in t[4] and (wd, hour, t[0]) not in used)
+        used.add((wd, hour, teacher[0]))
+        pool.append(pool.pop(pool.index(teacher)))
+        b.add("standby-slot", {
+            "teacherId": teacher[0], "weekday": WEEKDAYS[wd], "date": None,
+            "startsAt": hhmm(BELL[hour][0]), "endsAt": hhmm(BELL[hour][1]),
+            "vestigingId": locations["hoofd"]["uuid"],
+            "validFrom": FIRST_DAY.isoformat(), "validUntil": LAST_DAY.isoformat(),
+        })
+
+    # --- lesson notes (timetabling-lesson-note): Wiskunde B in havo 4 ------------------------------------
+    wb_teacher = SUBJECT_TEACHER["WB"][1]
+    tuesdays = [d for d in class_days("4H1") if d.weekday() == 1 and d >= dt.date(2026, 3, 3)][:5]
+    lesson_notes = [
+        (tuesdays[0], "Hoofdstuk 4: kansrekening", "Neem je rekenmachine mee.", "learners"),
+        (tuesdays[1], "Hoofdstuk 4: oefentoets", "Maak thuis opgave 1 tot en met 11; we bespreken ze in de les.", "learners"),
+        (tuesdays[2], "Hoofdstuk 4: oefentoets", "Maak thuis opgave 1 tot en met 11; we bespreken ze in de les.", "learners"),
+        (tuesdays[3], "Hoofdstuk 4: oefentoets", "Maak thuis opgave 1 tot en met 11; we bespreken ze in de les.", "learners"),
+        (tuesdays[4], None, "Laat ze opgave 12 tot en met 18 maken. Eén leerling mag om 10:00 weg voor de tandarts.", "cover"),
+    ]
+    for day, topic, text, audience in lesson_notes:
+        b.add("lesson-note", {
+            "sessionId": sessions[("4H1", day)]["uuid"], "cohortId": cohorts["4H1"]["uuid"],
+            "topic": topic, "text": text, "audience": audience, "authorId": wb_teacher,
+        })
+
+    # --- timetable visibility (timetabling-visibility-rules) ------------------------------------------
+    # Pupils see their own class, the teachers of their own lessons and every
+    # room; teachers see everything.
+    b.add("timetable-visibility-policy", {
+        "learnerSeesGroups": "own", "learnerSeesTeachers": "related", "learnerSeesRooms": "all",
+        "instructorSeesGroups": "all", "instructorSeesTeachers": "all", "instructorSeesRooms": "all",
+    })
 
     # --- assemble ------------------------------------------------------------------------------------
     for rows in b.buckets.values():

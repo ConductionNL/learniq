@@ -23,8 +23,9 @@
             "title": "LTI tools",
             "description": "Opening an external learning tool from a course, and pulling its grades back.",
             "order": 30,
-            "available": false,
-            "unavailableMessage": "A launch calls api/lti/deployments/[id]/launch on integriq. Integriq has no such endpoint, so no tool opens. Grades only come back from a tool that opened."
+            "settingsUrl": "/settings/admin/learniq#section-lti",
+            "reportedOnly": true,
+            "unconfiguredMessage": "Learniq has not reported yet whether integriq can open LTI tools. It reports once a day, and when you save the admin settings. Grades come back once you enter the grade subscription in the LTI section."
         },
         {
             "key": "eudi-wallet",
