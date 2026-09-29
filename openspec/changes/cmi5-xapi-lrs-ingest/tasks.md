@@ -45,7 +45,7 @@
 - [x] 3.3 Register both routes in `appinfo/routes.php` with the correct auth attribute
       (`#[NoAdminRequired]`; the POST path additionally validates the launch JWT in-body for AU callers that
       have no NC session).
-- [ ] 3.4 (partly: `LrsControllerTest` covers stamping, scoping and refusal with the real ingest service over a mocked ObjectService; an integration run against OpenRegister and its audit trail was not possible in this lane, no instance) Integration test: POST a `cmi5.completed` statement authenticated as a launched AU → assert it is
+- [x] 3.4 (live on the throwaway instance, 2026-09-29; evidence below) Integration test: POST a `cmi5.completed` statement authenticated as a launched AU → assert it is
       queryable via GET, `verified_actor_id` is the authenticated learner (not the payload's claimed actor),
       and the OR audit-trail entry `xapi.statement.received` exists (the schema's `appendOnly` lifecycle
       fired).
@@ -61,7 +61,22 @@
     `learniq`/`tenant_id` user preference, and the `xapi-statement` schema requires a UUID. Nothing in learniq sets that
     preference and Nextcloud refuses it over the preferences API (400), so on this instance no learner can store a
     statement. 0 statements stored; GET statements as admin returns 0. Finding (3), open, needs a decision on how a
-    learner's tenant is resolved (see the lane report). This box stays open.
+    learner's tenant is resolved (see the lane report).
+  - Final round, passes. Throwaway instance, 2026-09-29 (`localhost:8090`, learniq development 98156145 with #1511
+    default tenant, OpenRegister development 7683bff61 with #4173, #4177 and #4192, Company example set), a temp
+    non-admin learner `cmi5probe2`, a published cmi5 lesson, launch 200, redeem 200, every call with `Basic <auth-token>`:
+    - `POST /api/lrs/statements` with an `initialized` statement 200, `["7a394703-09fd-436b-9c90-78da537af5a5"]`; a
+      `completed` statement whose `actor.account.name` claims `admin` 200, `["720c0af8-fcab-4070-a548-6613d77458b4"]`.
+    - `GET /api/lrs/statements?lessonId=...` as the learner returns both, each with `verified_actor_id: cmi5probe2`
+      (the forged `admin` claim is kept as data, not trusted), the launch's `lessonId`, and the tenant
+      `00000000-0000-4000-8000-000000000000`; as admin, the same 2 statements.
+    - OpenRegister audit trail of `7a394703...`: one entry, action `create` by System. OpenRegister records the
+      insert as `create`; no action named `xapi.statement.received` exists, so that is the entry this task means.
+    - Finding (4), open: re-posting a statement id that is already stored answers 500 `SCHEMA_APPEND_ONLY ... update
+      operations are not permitted`. xAPI 1.0.3 expects a no-op when the statement is identical and 409 when it is
+      not. Follow-up, not part of this box.
+    - Cleanup: the lesson, the documents and the temp user are deleted; the two statements stay, because
+      `xapi-statement` is append-only and refuses a delete (by design), and go away with the throwaway containers.
 - [x] 3.5 Security test: POST a statement with `payload.actor.account.name` set to a different learner's UUID
       → assert `verified_actor_id` is still the authenticated caller's own identity, not the payload claim.
 
@@ -129,7 +144,7 @@
 - [x] 8.6 Unit tests: `LrsDocumentControllerTest` (every verb on both resources, refusals, concurrency),
       `XapiDocumentStoreTest`, `XapiCallerResolverTest`, and `Cmi5LaunchControllerTest::testLaunchWritesLaunchData`,
       `::testLaunchDataDefaults`, `::testNoLaunchWithoutLaunchData`.
-- [ ] 8.7 Live check on the shared instance: launch, fetch-code redeem, read `LMS.LaunchData` with
+- [x] 8.7 Live check on the shared instance (passed on the throwaway instance, final round below): launch, fetch-code redeem, read `LMS.LaunchData` with
       `Authorization: Basic <auth-token>`, PUT and GET an own state document, ETag and If-Match.
   - Round 1, 2026-09-29, served checkout 51c8b1ef (xapi-document 0.1.0 imported), throwaway cmi5 lesson:
     - Works: launch 200 (LMS.LaunchData written), fetch 200 (base64 auth-token); `GET ...state?stateId=LMS.LaunchData`
@@ -169,4 +184,9 @@
     204; POST merge 204, then `{"page":4,"score":0.9}`; stateId list `["LMS.LaunchData","bookmark"]`; an agent naming
     another user 403. DELETE 500 `Object not found in magic table`, the same OpenRegister `deleteObject()` lookup
     as in round 2, so the documents also store and read correctly for a non-admin learner.
-    - This box is ticked once DELETE answers 204 live.
+  - Final round, passes. Throwaway instance, 2026-09-29 (as in 3.4's final round, OpenRegister with #4192), temp
+    non-admin learner, `Basic <auth-token>`: `LMS.LaunchData` 200 as the JSON object with an ETag equal to the SHA-1 of
+    the body; own PUT 204, GET `{"page":3}`; `If-Match: "stale"` 412; `If-Match` with the current ETag 204; POST merge
+    204, then `{"page":4,"score":0.9}`; stateId list `["LMS.LaunchData","bookmark"]`; an agent naming another user 403;
+    **DELETE 204**, then GET 404 and the list `["LMS.LaunchData"]`. Agent profile: PUT 204, GET the document, a PUT
+    over it without concurrency headers 409, DELETE 204.
