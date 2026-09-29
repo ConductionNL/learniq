@@ -263,6 +263,27 @@ class LearnerRefResolver {
 	}//end byRef()
 
 	/**
+	 * The Nextcloud user id of the active profile a `learnerRef` names, or
+	 * null when byRef() finds none. The other way round from resolve(): for a
+	 * record that names its learner by profile uuid and must be compared with
+	 * the signed-in user.
+	 *
+	 * @param string $learnerRef LearnerProfile uuid.
+	 *
+	 * @return string|null
+	 *
+	 * @spec openspec/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile
+	 */
+	public function userIdOf(string $learnerRef): ?string {
+		$ncUserId = ($this->byRef(learnerRef: $learnerRef)['ncUserId'] ?? null);
+		if (is_string($ncUserId) === false || $ncUserId === '') {
+			return null;
+		}
+
+		return $ncUserId;
+	}//end userIdOf()
+
+	/**
 	 * Whether a profile row can act: active (or pre-lifecycle), not merged
 	 * into another profile, and naming a Nextcloud user.
 	 *

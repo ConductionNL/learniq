@@ -333,13 +333,13 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 		$this->assertReadAudience(
 			[
 				'Credential'             => ['hr', 'compliance-officers', self::self('learnerUserId')],
-				'ExternalTrainingRecord' => ['hr', 'compliance-officers', self::self('learnerId'), self::self('submittedBy')],
+				'ExternalTrainingRecord' => ['hr', 'compliance-officers', self::self('learnerUserId'), self::self('submittedBy')],
 				'LearnerProfile'         => ['instructors', 'hr', 'compliance-officers', self::self('ncUserId')],
 				'Submission'             => ['instructors', ...$staff, ['group' => 'authenticated', 'match' => ['learnerIds' => ['$contains' => '$userId']]]],
 				'PeerReview'             => [...$staff, self::self('reviewerId')],
 				'SelfAssessment'         => [...$staff, self::self('learnerId')],
-				'ExemptionCase'          => ['instructors', 'compliance-officers', self::self('learnerId')],
-				'FraudCase'              => ['instructors', 'compliance-officers', self::self('accusedLearnerId'), self::self('reporterId')],
+				'ExemptionCase'          => ['instructors', 'compliance-officers', self::self('learnerUserId')],
+				'FraudCase'              => ['instructors', 'compliance-officers', self::self('accusedLearnerUserId'), self::self('reporterId')],
 				'DossierNote'            => [
 					'instructors',
 					'compliance-officers',

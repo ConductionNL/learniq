@@ -1095,7 +1095,7 @@ def build() -> dict:
     sd3_exempt = by_class["SD4-3A"][5]
     exemption_rows = {}
     exemption_rows[sd2_exempt["nc"]] = b.add("exemption-case", {
-        "learnerId": sd2_exempt["profile"]["uuid"], "curriculumPlanId": plans["SD-2.3"]["uuid"], "componentId": "SD-2.3-ENG",
+        "learnerId": sd2_exempt["profile"]["uuid"], "learnerUserId": sd2_exempt["profile"]["ncUserId"], "curriculumPlanId": plans["SD-2.3"]["uuid"], "componentId": "SD-2.3-ENG",
         "groundsKind": "prior-diploma",
         "groundsDescription": "Havodiploma 2024 met Engels op havoniveau, hoger dan het niveau dat de opleiding vraagt.",
         "submittedAt": stamp(dt.date(2025, 9, 15), 10, 12),
@@ -1104,7 +1104,7 @@ def build() -> dict:
         "decidedAt": stamp(dt.date(2025, 10, 6), 16, 0), "lifecycle": "granted",
     })
     exemption_rows[sd3_exempt["nc"]] = b.add("exemption-case", {
-        "learnerId": sd3_exempt["profile"]["uuid"], "curriculumPlanId": plans["SD-3.3"]["uuid"], "componentId": "SD-3.3-ENG",
+        "learnerId": sd3_exempt["profile"]["uuid"], "learnerUserId": sd3_exempt["profile"]["ncUserId"], "curriculumPlanId": plans["SD-3.3"]["uuid"], "componentId": "SD-3.3-ENG",
         "groundsKind": "certificate", "groundsDescription": "Certificaat Engels op niveau B2 van het Europees referentiekader, behaald in 2025.",
         "submittedAt": stamp(dt.date(2025, 9, 22), 9, 40),
         "decisionRationale": "Het certificaat is recent en ligt boven het vereiste niveau; vrijstelling voor het onderdeel Engels.",
@@ -1113,7 +1113,7 @@ def build() -> dict:
     })
     log_request = by_class["LOG2-2A"][7]
     b.add("exemption-case", {
-        "learnerId": log_request["profile"]["uuid"], "curriculumPlanId": plans["LOG-BPV"]["uuid"], "componentId": "LOG-BPV-PVB-B1-K1",
+        "learnerId": log_request["profile"]["uuid"], "learnerUserId": log_request["profile"]["ncUserId"], "curriculumPlanId": plans["LOG-BPV"]["uuid"], "componentId": "LOG-BPV-PVB-B1-K1",
         "groundsKind": "work-experience", "groundsDescription": "Twee zomers vakantiewerk in een distributiecentrum.",
         "submittedAt": stamp(dt.date(2025, 9, 29), 14, 3),
         "decisionRationale": "De werkervaring dekt het opslaan van goederen, maar niet het ontvangen en controleren of het voorraadbeheer. De proeve blijft nodig.",
@@ -1122,7 +1122,7 @@ def build() -> dict:
     })
     vig_request = by_class["VIG3-2A"][9]
     b.add("exemption-case", {
-        "learnerId": vig_request["profile"]["uuid"], "curriculumPlanId": plans["VIG-2.3"]["uuid"], "componentId": "VIG-2.3-EB",
+        "learnerId": vig_request["profile"]["uuid"], "learnerUserId": vig_request["profile"]["ncUserId"], "curriculumPlanId": plans["VIG-2.3"]["uuid"], "componentId": "VIG-2.3-EB",
         "groundsKind": "prior-diploma", "groundsDescription": "Diploma Helpende zorg en welzijn (niveau 2), behaald in 2024.",
         "submittedAt": stamp(dt.date(2025, 9, 8), 11, 20),
         "decisionRationale": "Het diploma dekt Nederlands op het vereiste niveau, maar niet het burgerschapsdeel van deze eenheid. Geen vrijstelling.",
@@ -1243,7 +1243,7 @@ def build() -> dict:
 
     # --- exam board: fraud cases (after the result they contest) -------------
     fraud = b.add("fraud-case", {
-        "reporterId": "mbo-docent-08", "accusedLearnerId": fraud_student["profile"]["uuid"], "sourceKind": "manual",
+        "reporterId": "mbo-docent-08", "accusedLearnerId": fraud_student["profile"]["uuid"], "accusedLearnerUserId": fraud_student["profile"]["ncUserId"], "sourceKind": "manual",
         "contestedGradeEntryId": fraud_entry["uuid"],
         "allegation": "De ingeleverde webapplicatie is voor een groot deel gelijk aan de code van een andere student, inclusief dezelfde fouten.",
         "reportedAt": stamp(dt.date.fromisoformat(fraud_entry["gradedAt"][:10]), 17, 30),
@@ -1262,7 +1262,7 @@ def build() -> dict:
     suspect = next(s for s in by_class["VIG3-2A"] if s is not terminated_student and s is not vig_request)
     contested = entries_by[(suspect["nc"], "VIG-2.1")][0]
     b.add("fraud-case", {
-        "reporterId": "mbo-docent-03", "accusedLearnerId": suspect["profile"]["uuid"], "sourceKind": "manual",
+        "reporterId": "mbo-docent-03", "accusedLearnerId": suspect["profile"]["uuid"], "accusedLearnerUserId": suspect["profile"]["ncUserId"], "sourceKind": "manual",
         "sessionId": contested["sessionId"], "contestedGradeEntryId": contested["uuid"],
         "allegation": "Tijdens de kennistoets lag een telefoon op tafel onder een etui.",
         "reportedAt": stamp(dt.date.fromisoformat(sessions_by_uuid_date(sessions, contested["sessionId"])), 13, 0),
