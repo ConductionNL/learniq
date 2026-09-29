@@ -195,6 +195,8 @@ test.describe('work groups', () => {
 			groupSubmission: true,
 			workGroupSetName: setName,
 			dueAt: nextWeek,
+			// A learner reads published and closed assignments only.
+			lifecycle: 'published',
 		})
 
 		const page = await signInAs(browser, learner)
@@ -214,7 +216,8 @@ test.describe('work groups', () => {
 				five.getByRole('button', { name: 'Leave', exact: true }),
 			).toBeVisible({ timeout: 30_000 })
 
-			expect((await fx.read('work-group', fourId)).memberIds).toEqual([])
+			// OpenRegister leaves an emptied list out of the object.
+			expect((await fx.read('work-group', fourId)).memberIds ?? []).toEqual([])
 			expect(
 				[...(await fx.read('work-group', fiveId)).memberIds].sort(),
 			).toEqual([...others, learner.id].sort())
