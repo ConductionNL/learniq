@@ -15,8 +15,8 @@
  *
  * Credentials are append-only: teardown cannot delete them and says so.
  *
- * @e2e openspec/changes/credentials-bulk-reissue/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
- * @e2e openspec/changes/credentials-bulk-reissue/specs/certification/spec.md#requirement-a-reissue-keeps-who-and-when-and-records-why
+ * @e2e openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
+ * @e2e openspec/specs/certification/spec.md#requirement-a-reissue-keeps-who-and-when-and-records-why
  */
 import { createHash, randomUUID } from 'crypto'
 import { expect, test } from './fixtures.ts'
