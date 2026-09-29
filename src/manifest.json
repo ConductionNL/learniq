@@ -338,6 +338,21 @@
             }
           },
           {
+            "id": "EnrolmentForecast",
+            "label": "Enrolment forecast",
+            "description": "Next year's learners and groups per programme year and subject, from this year's groups, progression rates and subject choices.",
+            "icon": "TrendingUp",
+            "category": "progress",
+            "route": "EnrolmentForecast",
+            "visibleIf": {
+              "workspace.chosenSegment": {
+                "notIn": [
+                  "corporate"
+                ]
+              }
+            }
+          },
+          {
             "id": "FinalGrades",
             "label": "Final grades",
             "description": "The final grade per pupil and subject, as it was decided.",

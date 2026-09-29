@@ -96,6 +96,7 @@ import DashboardStudent from './views/DashboardStudent.vue'
 import DashboardTeacher from './views/DashboardTeacher.vue'
 import DisplayScreenAddressView from './views/DisplayScreenAddressView.vue'
 import ElectiveRosterView from './views/ElectiveRosterView.vue'
+import EnrolmentForecastView from './views/EnrolmentForecastView.vue'
 import ExamCaseDossierView from './views/ExamCaseDossierView.vue'
 import ExportRequestView from './views/ExportRequestView.vue'
 // learniq#952: record one external training for many learners at once, the
@@ -274,6 +275,7 @@ export default {
 	CoursePackageImportView: page(CoursePackageImportView),
 	DisplayScreenAddressView: page(DisplayScreenAddressView),
 	ElectiveRosterView: page(ElectiveRosterView),
+	EnrolmentForecastView: page(EnrolmentForecastView),
 	CourseQualityReport: page(CourseQualityReport),
 	CurriculumCoverageMatrixView: page(CurriculumCoverageMatrixView),
 	DashboardAdmin: page(DashboardAdmin),

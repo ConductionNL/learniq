@@ -182,6 +182,9 @@ return [
         // lessons, attended per learner, for a window. #[NoAdminRequired] + the
         // report.contact-hours action in the body.
         ['name' => 'contactHours#index', 'url' => '/api/reports/contact-hours', 'verb' => 'GET'],
+        // Enrolment forecast (timetabling-enrolment-forecast): compute a scenario and store
+        // its result on it. #[NoAdminRequired] + report.enrolment-forecast in the body.
+        ['name' => 'enrolmentForecast#compute', 'url' => '/api/enrolment-forecasts/{id}/compute', 'verb' => 'POST', 'requirements' => ['id' => '[^/]+']],
         // Other timetables within the school's visibility policy
         // (timetabling-visibility-rules). The policy check is in the body.
         ['name' => 'timetableVisibility#timetable', 'url' => '/api/timetable/of', 'verb' => 'GET'],
