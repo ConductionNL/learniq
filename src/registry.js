@@ -172,6 +172,7 @@ import QtiImportView from './views/QtiImportView.vue'
 // as procest's src/dialogs/*.vue shape, not a routed page).
 import RapportvergaderingReviewView from './views/RapportvergaderingReviewView.vue'
 import RegulationDetailPage from './views/RegulationDetailPage.vue'
+import ReissueCertificatesView from './views/ReissueCertificatesView.vue'
 import RolloverWizard from './views/RolloverWizard.vue'
 // timetabling-room-utilisation: the room use report under Reports.
 import RoomUtilisationReport from './views/RoomUtilisationReport.vue'
@@ -288,6 +289,7 @@ export default {
 	LessonComposer: page(LessonComposer),
 	LessonPlayer: page(LessonPlayer),
 	MarkSubmissionView: page(MarkSubmissionView),
+	ReissueCertificatesView: page(ReissueCertificatesView),
 	MyWorkGroups: page(MyWorkGroups),
 	AllocateMarkersView: page(AllocateMarkersView),
 	MyLearningRecordView: page(MyLearningRecordView),
