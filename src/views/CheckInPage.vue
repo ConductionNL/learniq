@@ -10,7 +10,7 @@
  ?window=<id>&code=<code> and fills both in. Every rule is checked by learniq;
  the page shows the answer in plain words.
 
- @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+ @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
 -->
 <template>
 	<div class="check-in-page">
@@ -80,7 +80,7 @@ export default {
 	 * Load the open check-ins of the learner's lessons.
 	 *
 	 * @return {Promise<void>}
-	 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
 	 */
 	async mounted() {
 		try {
@@ -98,7 +98,7 @@ export default {
 		/**
 		 * @param {string} value ISO date-time.
 		 * @return {string} The local time.
-		 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
 		 */
 		formatTime(value) {
 			return value
@@ -113,7 +113,7 @@ export default {
 		 * Send the code; learniq answers present, late or a plain reason.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#scenario-a-learner-scans-the-code-at-the-start-of-the-lesson
+		 * @spec openspec/specs/attendance/spec.md#scenario-a-learner-scans-the-code-at-the-start-of-the-lesson
 		 */
 		async checkIn() {
 			this.busy = true

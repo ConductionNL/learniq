@@ -86,12 +86,14 @@ class LearniqAgentTools {
 	 * @param IUserSession      $userSession   The calling user.
 	 * @param ActionAuthService $actionAuth    The ADR-023 action matrix.
 	 * @param AgentToolAnswer   $answer        Shapes success and error envelopes.
+	 * @param CredentialLearner $learners      A credential's learner as a Nextcloud user id.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
 		private readonly AgentToolAnswer $answer,
+		private readonly CredentialLearner $learners,
 	) {
 	}//end __construct()
 
@@ -327,7 +329,9 @@ class LearniqAgentTools {
 	 * @return array<string, string> Exactly EXPIRING_FIELDS.
 	 */
 	private function project(array $credential): array {
-		$learnerId = (string)($credential['learnerId'] ?? '');
+		// Credential.learnerId is the LearnerProfile uuid; this projection's
+		// learnerId is the Nextcloud user id enrolLearner and displayName take.
+		$learnerId = (string)($this->learners->userIdOf(credential: $credential) ?? '');
 		$course    = $this->read(schema: 'course', id: (string)($credential['courseId'] ?? '')) ?? [];
 
 		return [

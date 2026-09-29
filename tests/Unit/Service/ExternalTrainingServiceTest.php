@@ -278,4 +278,26 @@ class ExternalTrainingServiceTest extends TestCase {
 		$this->assertSame('2026-06-10T10:00:00Z', $payload['issuedAt']);
 		$this->assertSame('NIS2', $payload['regulationSlug']);
 	}//end testBuildManualCredentialPayload()
+
+	/**
+	 * The manual credential names the record's LearnerProfile uuid and carries
+	 * that profile's Nextcloud user id as learnerUserId.
+	 *
+	 * @return void
+	 */
+	public function testTheManualCredentialCarriesTheProfilesUserId(): void {
+		$profileId = '3c9e1f2a-4b5d-4e6f-8a7b-0c1d2e3f4a5b';
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturnCallback(
+			static fn (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) => ($schema === 'learner-profile' && $id === $profileId)
+				? OrEntityFactory::make(['id' => $profileId, 'ncUserId' => 'r.devries'], 'learner-profile')
+				: null
+		);
+		$svc = new ExternalTrainingService($objectService, $this->createMock(LoggerInterface::class));
+
+		$payload = $svc->buildManualCredentialPayload(['learnerId' => $profileId, 'completedAt' => '2026-06-10T10:00:00Z', 'tenant_id' => 'tenant-a'], 'officer-1');
+
+		$this->assertSame($profileId, $payload['learnerId']);
+		$this->assertSame('r.devries', $payload['learnerUserId']);
+	}//end testTheManualCredentialCarriesTheProfilesUserId()
 }//end class

@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+ * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
  */
 
 declare(strict_types=1);
@@ -44,7 +44,7 @@ use OCP\IUserSession;
 /**
  * The learner's check-in and the teacher's code.
  *
- * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+ * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
  */
 class CheckInController extends Controller {
 
@@ -72,7 +72,7 @@ class CheckInController extends Controller {
 	 *
 	 * @return JSONResponse 200 `{checkIns: [...]}`, or 401.
 	 *
-	 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
 	 */
 	#[NoAdminRequired]
 	public function mine(): JSONResponse {
@@ -89,7 +89,7 @@ class CheckInController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#scenario-a-learner-scans-the-code-at-the-start-of-the-lesson
+	 * @spec openspec/specs/attendance/spec.md#scenario-a-learner-scans-the-code-at-the-start-of-the-lesson
 	 */
 	#[NoAdminRequired]
 	public function checkInWithCode(): JSONResponse {
@@ -110,7 +110,7 @@ class CheckInController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
 	 */
 	#[NoAdminRequired]
 	public function show(string $windowId): JSONResponse {
@@ -129,7 +129,7 @@ class CheckInController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#scenario-a-learner-scans-the-code-at-the-start-of-the-lesson
+	 * @spec openspec/specs/attendance/spec.md#scenario-a-learner-scans-the-code-at-the-start-of-the-lesson
 	 */
 	#[NoAdminRequired]
 	public function checkIn(string $windowId): JSONResponse {

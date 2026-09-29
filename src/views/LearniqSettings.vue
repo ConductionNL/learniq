@@ -410,7 +410,7 @@ export default {
 		 * enabled on this instance. Drives the delegated "AI Features" section:
 		 * link to Hermiq's register when present, otherwise an install notice.
 		 *
-		 * @spec openspec/changes/ai-feature-delegate-to-hermiq/specs/ai-surface/spec.md#requirement-req-sai-004-the-system-shall-surface-ai-feature-governance-from-settings-via-hermiq
+		 * @spec openspec/specs/ai-surface/spec.md#requirement-req-sai-004-the-system-shall-surface-ai-feature-governance-from-settings-via-hermiq
 		 * @return {boolean} True when Hermiq is enabled.
 		 */
 		hermiqInstalled() {
@@ -694,7 +694,7 @@ export default {
 		 * Nextcloud app, so no in-app router). Only shown when Hermiq is enabled.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/ai-feature-delegate-to-hermiq/specs/ai-surface/spec.md
+		 * @spec openspec/specs/ai-surface/spec.md
 		 */
 		openHermiqAiFeatures() {
 			window.location.href = generateUrl('/apps/hermiq') + '/ai-features'

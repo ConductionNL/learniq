@@ -332,7 +332,7 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 		$staff = ['compliance-officers', 'team-leads'];
 		$this->assertReadAudience(
 			[
-				'Credential'             => ['hr', 'compliance-officers', self::self('learnerId')],
+				'Credential'             => ['hr', 'compliance-officers', self::self('learnerUserId')],
 				'ExternalTrainingRecord' => ['hr', 'compliance-officers', self::self('learnerId'), self::self('submittedBy')],
 				'LearnerProfile'         => ['instructors', 'hr', 'compliance-officers', self::self('ncUserId')],
 				'Submission'             => ['instructors', ...$staff, ['group' => 'authenticated', 'match' => ['learnerIds' => ['$contains' => '$userId']]]],

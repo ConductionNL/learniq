@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
+ * @spec openspec/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
  */
 
 declare(strict_types=1);
@@ -40,7 +40,7 @@ use OCA\OpenRegister\Service\ObjectService;
 /**
  * Allocates SubmissionMark rows for an assignment's handed-in submissions.
  *
- * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
+ * @spec openspec/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
  */
 class SubmissionMarkAllocationService {
 
@@ -80,8 +80,8 @@ class SubmissionMarkAllocationService {
 	 *
 	 * @return array{error: string|null, submissionsProcessed: int, createdCount: int, refused: list<array<string, string>>}
 	 *
-	 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#scenario-a-coordinator-allocates-two-markers-to-every-hand-in
-	 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#scenario-a-learner-cannot-mark-their-own-group-work
+	 * @spec openspec/specs/assignments/spec.md#scenario-a-coordinator-allocates-two-markers-to-every-hand-in
+	 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-cannot-mark-their-own-group-work
 	 */
 	public function allocate(array $assignment, array $markerIds, string $submissionId = ''): array {
 		$markerIds = $this->cleanMarkers(markerIds: $markerIds);

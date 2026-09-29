@@ -103,7 +103,7 @@ class SettingsController extends Controller {
 	 * @return JSONResponse The `{success, config}` envelope carrying the refreshed settings map.
 	 *
 	 * @spec openspec/specs/apphost-adoption/spec.md#scenario-settings-endpoints-parity
-	 * @spec openspec/changes/adopt-connection-registry/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
+	 * @spec openspec/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
 	 */
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function update(): JSONResponse {

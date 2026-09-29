@@ -27,6 +27,7 @@ import bundledManifest from './manifest.json'
 import menuLayout from './menu-layout.json'
 import pinia from './pinia.js'
 import registry from './registry.js'
+import { normaliseCallerTenant } from './utils/callerTenant.js'
 import { applyExampleSetRemovalSteps } from './utils/exampleSetSteps.js'
 import { applyReportCardGates } from './utils/reportCardGates.js'
 import { applyStoreAccess } from './utils/storeAccess.js'
@@ -266,12 +267,20 @@ tryLoadTranslations()
 const pageTypesProp = { ...defaultPageTypes }
 const registryProp = { ...registry }
 
+// The caller's tenant (CallerTenantResolver, via PageController) becomes
+// nextcloud-vue's tenant context, so the shared create dialog fills a hidden
+// `tenant_id` with the value every learniq write carries.
+const callerTenant = normaliseCallerTenant(
+	loadState('learniq', 'callerTenant', null),
+)
+
 const app = createApp({
 	render: () =>
 		h(App, {
 			manifest: mergedManifest,
 			registry: registryProp,
 			pageTypes: pageTypesProp,
+			callerTenant,
 		}),
 })
 
