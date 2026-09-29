@@ -98,6 +98,8 @@ SCHEMAS = [
     # Appended, not inserted, so every earlier bucket keeps its uuid group.
     "session-change-batch",
     "display-screen",
+    "elective-offer",
+    "elective-sign-up",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -890,6 +892,31 @@ def build() -> dict:
         "name": "Aula gebouw A", "vestigingId": locations["hoofd"]["uuid"], "roomIds": [], "cohortIds": [],
         "shows": "today", "showTeacherCodes": True, "status": "active",
     })
+
+    # --- keuzewerktijd wiskunde (timetabling-elective-lesson-signup) ---------------------
+    # Four Thursday lessons for havo 4 and 5, 24 places, sign-up from 7 days to 12 hours
+    # before each lesson. Eleven pupils signed up for the first; one more was placed by
+    # the teamleider after the deadline and one withdrew. The school year is over, so
+    # the offer is closed.
+    thursdays = [d for d in class_days("4H1") if d.weekday() == 3 and d.month == 2][:4]
+    offer = b.add("elective-offer", {
+        "name": "Keuzewerktijd wiskunde", "description": "Extra wiskunde op donderdag voor havo 4 en 5, met een docent erbij.",
+        "sessionIds": [sessions[("4H1", d)]["uuid"] for d in thursdays], "timetableSessionRefs": [],
+        "capacityPerLesson": 24, "eligibleCohortIds": [cohorts["4H1"]["uuid"], cohorts["5H1"]["uuid"]],
+        "windowMode": "relative", "opensDaysBefore": 7, "closesHoursBefore": 12, "lifecycle": "closed",
+    })
+    first = sessions[("4H1", thursdays[0])]["uuid"]
+    havo_upper = [p for p in pupils if p["class"] in ("4H1", "5H1")]
+    for i, p in enumerate(havo_upper[:13]):
+        status, made_by, via = "signed-up", p["nc"], "learner"
+        if i == 11:
+            status, made_by, via = "placed", TEAMLEIDER_BB, "coordinator"
+        elif i == 12:
+            status = "withdrawn"
+        b.add("elective-sign-up", {
+            "offerId": offer["uuid"], "sessionId": first, "timetableSessionRef": None, "learnerId": p["nc"],
+            "status": status, "madeBy": made_by, "madeVia": via,
+        })
 
     # First-hour teacher per class per weekday: a teacher of that class who works that day.
     first_hour: dict[tuple[str, int], list[str]] = {}

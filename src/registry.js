@@ -94,6 +94,7 @@ import DashboardAdmin from './views/DashboardAdmin.vue'
 import DashboardStudent from './views/DashboardStudent.vue'
 import DashboardTeacher from './views/DashboardTeacher.vue'
 import DisplayScreenAddressView from './views/DisplayScreenAddressView.vue'
+import ElectiveRosterView from './views/ElectiveRosterView.vue'
 import ExamCaseDossierView from './views/ExamCaseDossierView.vue'
 import ExportRequestView from './views/ExportRequestView.vue'
 // learniq#952: record one external training for many learners at once, the
@@ -143,6 +144,8 @@ import LearniqLearnerHome from './views/LearniqLearnerHome.vue'
 import LessonComposer from './views/LessonComposer.vue'
 import LessonPlayer from './views/LessonPlayer.vue'
 import MarkSubmissionView from './views/MarkSubmissionView.vue'
+// personal-timetable: the signed-in user's own week view over Session objects.
+import MyElectives from './views/MyElectives.vue'
 // portable-learning-record: the three genuine new custom views this change
 // adds — the learner's aggregate dashboard + export/share actions, the
 // coordinator's prior-record upload + live coverage report, and the public
@@ -150,7 +153,6 @@ import MarkSubmissionView from './views/MarkSubmissionView.vue'
 // LearningRecordExport/LearningRecordShare/LearningRecordImport screen is a
 // declarative manifest index/detail page.
 import MyLearningRecordView from './views/MyLearningRecordView.vue'
-// personal-timetable: the signed-in user's own week view over Session objects.
 import MyTimetable from './views/MyTimetable.vue'
 import MyWorkGroups from './views/MyWorkGroups.vue'
 import PeerReviewMarkingView from './views/PeerReviewMarkingView.vue'
@@ -269,6 +271,7 @@ export default {
 	CourseBuilder: page(CourseBuilder),
 	CoursePackageImportView: page(CoursePackageImportView),
 	DisplayScreenAddressView: page(DisplayScreenAddressView),
+	ElectiveRosterView: page(ElectiveRosterView),
 	CourseQualityReport: page(CourseQualityReport),
 	CurriculumCoverageMatrixView: page(CurriculumCoverageMatrixView),
 	DashboardAdmin: page(DashboardAdmin),
@@ -295,6 +298,7 @@ export default {
 	MyWorkGroups: page(MyWorkGroups),
 	AllocateMarkersView: page(AllocateMarkersView),
 	MyLearningRecordView: page(MyLearningRecordView),
+	MyElectives: page(MyElectives),
 	MyTimetable: page(MyTimetable),
 	PeerReviewMarkingView: page(PeerReviewMarkingView),
 	PeopleDashboard: page(PeopleDashboard),
