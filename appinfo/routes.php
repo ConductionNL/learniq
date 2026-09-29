@@ -212,6 +212,15 @@ return [
         ['name' => 'displayScreen#revoke', 'url' => '/api/display-screens/{id}/revoke', 'verb' => 'POST', 'requirements' => ['id' => '[^/]+']],
         ['name' => 'displayScreenPublic#data', 'url' => '/api/public/display/{token}', 'verb' => 'GET', 'requirements' => ['token' => '[^/]+']],
         ['name' => 'displayScreenPublic#page', 'url' => '/display/{token}', 'verb' => 'GET', 'requirements' => ['token' => '[^/]+']],
+        // Optional lessons (timetabling-elective-lesson-signup): a learner's open offers,
+        // sign-up and withdrawal in the caller's own name (the learner is the session
+        // user, never a body value); the roster and placing behind elective.manage.
+        // Every write passes ElectiveSignUpRules. #[NoAdminRequired], checks in the body.
+        ['name' => 'elective#mine', 'url' => '/api/electives', 'verb' => 'GET'],
+        ['name' => 'elective#signUp', 'url' => '/api/electives/{offerId}/sign-up', 'verb' => 'POST', 'requirements' => ['offerId' => '[^/]+']],
+        ['name' => 'elective#roster', 'url' => '/api/electives/{offerId}/roster', 'verb' => 'GET', 'requirements' => ['offerId' => '[^/]+']],
+        ['name' => 'elective#place', 'url' => '/api/electives/{offerId}/place', 'verb' => 'POST', 'requirements' => ['offerId' => '[^/]+']],
+        ['name' => 'elective#withdraw', 'url' => '/api/elective-sign-ups/{id}/withdraw', 'verb' => 'POST', 'requirements' => ['id' => '[^/]+']],
 
         // Peer review reviewer allocation — genuine batch-matching business logic
         // (peer-and-self-assessment), authorized by an explicit per-object check

@@ -22,6 +22,21 @@
 			"order": 25
 		},
 		{
+			"id": "MyElectivesMenu",
+			"label": "Optional lessons",
+			"icon": "CalendarCheckOutline",
+			"route": "MyElectives",
+			"order": 26,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"admin"
+					]
+				}
+			}
+		},
+		{
 			"id": "MyLearningRecordMenu",
 			"label": "My learning record",
 			"icon": "SchoolOutline",
@@ -415,6 +430,14 @@
 			"title": "Course catalogue",
 			"component": "CourseCatalogue",
 			"_note": "Mounts CourseCatalogue (enrolment-catalogue-self-signup): cards with search and filters from learniq's GET /api/catalogue, and Sign up, Request a place or Withdraw through learniq's own endpoints, because the object API lets no learner create an enrolment. Custom on purpose: a combined course and programme catalogue with per-card actions against learniq endpoints, not an index of one schema."
+		},
+		{
+			"id": "MyElectives",
+			"route": "/my-electives",
+			"type": "custom",
+			"title": "Optional lessons",
+			"component": "MyElectives",
+			"_note": "timetabling-elective-lesson-signup: open offers the learner may sign up for, through GET /api/electives; sign-up and withdrawal go through learniq's own endpoints so ElectiveSignUpRules decides."
 		}
 	]
 }

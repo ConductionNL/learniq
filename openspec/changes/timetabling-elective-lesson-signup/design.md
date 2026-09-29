@@ -75,3 +75,12 @@ A withdrawal (status to `withdrawn`) is allowed for the learner inside the windo
 ## Seed data
 
 VO example set: offer "Keuzewerktijd wiskunde" for all havo 4 and 5 cohorts, `relative` window (opens 7 days before, closes 12 hours before), capacity 24, four Thursday lessons; eleven sign-ups on the first lesson, one `placed` by a coordinator after the deadline, one `withdrawn`.
+
+## As built (2026-09-28)
+
+- `ElectiveService` reads offers, lessons, windows and places as the system; `ElectiveBoard` builds the learner's page and the coordinator's roster; `ElectiveSignUpRules` enforces the rules on the creating and updating events, registered through `ElectiveListenerRegistrar`.
+- `signUpCountBySession` is computed by `ElectiveBoard` instead of an `x-openregister-aggregations` block: the count is per lesson key, which covers both learniq sessions and planninq references.
+- A planninq lesson on an offer carries its own `startsAt`, `endsAt` and `title` in `timetableSessionRefs`, so a relative window can be counted from it without a timetable read per sign-up.
+- An admin, and a write with no user, bypass the rules: break-glass, and the way an example set or demo data is imported.
+- The coordinator's roster and "Place" are `GET /api/electives/{offerId}/roster` and `POST /api/electives/{offerId}/place`, behind the ADR-023 action `elective.manage`; the roster page opens from the offer's detail page ("Sign-ups").
+- The VO example set's offer is `closed` (the school year is over), with eleven sign-ups, one placement by the teamleider and one withdrawal on the first of four Thursdays in February.

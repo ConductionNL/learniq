@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.40",
+    "version": "1.1.41",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -29599,6 +29599,120 @@
         "tokenHash": null,
         "tokenCreatedAt": null,
         "status": "active"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "elective-offer",
+          "slug": "elective-offer-keuzewerktijd-wiskunde"
+        },
+        "name": "Keuzewerktijd wiskunde",
+        "capacityPerLesson": 24,
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "description": null,
+        "sessionIds": [],
+        "timetableSessionRefs": [],
+        "eligibleCohortIds": [],
+        "windowMode": "relative",
+        "opensAt": null,
+        "closesAt": null,
+        "opensDaysBefore": 7,
+        "closesHoursBefore": 12,
+        "lifecycle": "open"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "elective-offer",
+          "slug": "elective-offer-flexuur-engels"
+        },
+        "name": "Flexuur Engels",
+        "capacityPerLesson": 20,
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "description": null,
+        "sessionIds": [],
+        "timetableSessionRefs": [],
+        "eligibleCohortIds": [],
+        "windowMode": "fixed",
+        "opensAt": "2026-10-01T08:00:00+02:00",
+        "closesAt": "2026-10-05T17:00:00+02:00",
+        "opensDaysBefore": null,
+        "closesHoursBefore": null,
+        "lifecycle": "draft"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "elective-offer",
+          "slug": "elective-offer-extra-ondersteuning-nederlands"
+        },
+        "name": "Extra ondersteuning Nederlands",
+        "capacityPerLesson": 12,
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "description": null,
+        "sessionIds": [],
+        "timetableSessionRefs": [],
+        "eligibleCohortIds": [],
+        "windowMode": "relative",
+        "opensAt": null,
+        "closesAt": null,
+        "opensDaysBefore": 5,
+        "closesHoursBefore": 24,
+        "lifecycle": "closed"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "elective-sign-up",
+          "slug": "elective-sign-up-1"
+        },
+        "offerId": "00000000-0000-4000-8000-000000000000",
+        "learnerId": "voorbeeld-leerling-1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "sessionId": null,
+        "timetableSessionRef": {
+          "sourceSystem": "planninq",
+          "externalRef": "voorbeeld-les-1"
+        },
+        "status": "signed-up",
+        "madeBy": "voorbeeld-leerling-1",
+        "madeVia": "learner"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "elective-sign-up",
+          "slug": "elective-sign-up-2"
+        },
+        "offerId": "00000000-0000-4000-8000-000000000001",
+        "learnerId": "voorbeeld-leerling-2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "sessionId": null,
+        "timetableSessionRef": {
+          "sourceSystem": "planninq",
+          "externalRef": "voorbeeld-les-2"
+        },
+        "status": "placed",
+        "madeBy": "coordinator",
+        "madeVia": "coordinator"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "elective-sign-up",
+          "slug": "elective-sign-up-3"
+        },
+        "offerId": "00000000-0000-4000-8000-000000000002",
+        "learnerId": "voorbeeld-leerling-3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "sessionId": null,
+        "timetableSessionRef": {
+          "sourceSystem": "planninq",
+          "externalRef": "voorbeeld-les-3"
+        },
+        "status": "withdrawn",
+        "madeBy": "voorbeeld-leerling-3",
+        "madeVia": "learner"
       }
     ]
   }
