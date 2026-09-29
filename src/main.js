@@ -29,6 +29,7 @@ import pinia from './pinia.js'
 import registry from './registry.js'
 import { normaliseCallerTenant } from './utils/callerTenant.js'
 import { applyExampleSetRemovalSteps } from './utils/exampleSetSteps.js'
+import { applyIntegrationTitles } from './utils/integrationTitles.js'
 import { applyReportCardGates } from './utils/reportCardGates.js'
 import { applyStoreAccess } from './utils/storeAccess.js'
 import { buildWorkspaceRuntime, DEFAULT_SEGMENT } from './utils/workspaceRuntime.js'
@@ -215,6 +216,11 @@ const mergedManifest = applyReportCardGates(
 // manifest cannot express a per-user value, so boot writes it into the store
 // page's config, which CnPageRenderer hands to CnStorePage as props.
 applyStoreAccess(mergedManifest, loadState('learniq', 'storeAccess', null))
+
+// An integration card that reads its heading from `titleLabel` (Contacts,
+// Contact moments) gets its manifest title there too: the host passes only
+// `title`, so LearnerProfileDetail's "Contact card" rendered as "Contacts".
+applyIntegrationTitles(mergedManifest)
 
 // The setup wizard gets one removal step per loaded example set, each with
 // its own button (D34). The shared wizard's run-action step posts no body,
