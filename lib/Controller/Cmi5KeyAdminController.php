@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#1-key-provisioning
+ * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#1-key-provisioning
  */
 
 declare(strict_types=1);
@@ -81,7 +81,7 @@ class Cmi5KeyAdminController extends Controller {
 	 *
 	 * @return JSONResponse `{fingerprint, publicKey}` (201), or an error.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#1-key-provisioning
+	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#1-key-provisioning
 	 */
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function generateKey(): JSONResponse {
@@ -108,7 +108,7 @@ class Cmi5KeyAdminController extends Controller {
 	 *
 	 * @return JSONResponse `{configured: bool, fingerprint?, publicKey?}`.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#1-key-provisioning
+	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#1-key-provisioning
 	 */
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function keyStatus(): JSONResponse {

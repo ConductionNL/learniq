@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
+ * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
  */
 
 declare(strict_types=1);

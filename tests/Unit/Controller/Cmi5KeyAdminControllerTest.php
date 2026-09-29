@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#1-key-provisioning
+ * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#1-key-provisioning
  */
 
 declare(strict_types=1);

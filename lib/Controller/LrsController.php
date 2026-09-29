@@ -34,7 +34,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
+ * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
  */
 
 declare(strict_types=1);
@@ -96,7 +96,7 @@ class LrsController extends Controller {
 	 *
 	 * @return JSONResponse The stored statement ids, or an error.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
+	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
@@ -132,7 +132,7 @@ class LrsController extends Controller {
 	 *
 	 * @return JSONResponse `{statements: [...]}`.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
+	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
 	 */
 	#[NoAdminRequired]
 	public function getStatements(string $lessonId = '', string $courseId = '', int $limit = 50): JSONResponse {

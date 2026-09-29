@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#5-launch-endpoint-wiring
+ * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#5-launch-endpoint-wiring
  */
 
 declare(strict_types=1);
@@ -201,7 +201,7 @@ class Cmi5LaunchControllerTest extends TestCase {
 	/**
 	 * The launch writes the cmi5 LMS.LaunchData state document for the learner, registration and AU.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 *
 	 * @return void
 	 */

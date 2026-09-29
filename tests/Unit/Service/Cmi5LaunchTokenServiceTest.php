@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#2-cmi5launchtokenservice
+ * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#2-cmi5launchtokenservice
  */
 
 declare(strict_types=1);
@@ -154,7 +154,7 @@ class Cmi5LaunchTokenServiceTest extends TestCase {
 	 * splits on a colon (`OC::handleAuthHeaders()`, `Session::tryBasicAuthLogin()`),
 	 * answering 401 before the LRS runs. A bare JWT splits; the auth-token must not.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#7-basic-auth-reachability
+	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#7-basic-auth-reachability
 	 *
 	 * @return void
 	 */
@@ -177,7 +177,7 @@ class Cmi5LaunchTokenServiceTest extends TestCase {
 	/**
 	 * Credentials that are neither a valid auth-token nor a valid JWT are refused.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#7-basic-auth-reachability
+	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#7-basic-auth-reachability
 	 *
 	 * @return void
 	 */

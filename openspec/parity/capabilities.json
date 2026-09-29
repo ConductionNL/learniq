@@ -1910,9 +1910,9 @@
       "name": "Upload a SCORM package and have it report its own completion.",
       "built": {
         "state": "building",
-        "evidence": "appinfo/routes.php:67-68 LRS ingest routes now exist (lrs#postStatements); the change has two open tasks (live check 8.7, integration test 3.4)",
+        "evidence": "The SCORM 1.2 runtime (src/utils/scorm12Runtime.js) reports completion to POST /api/lrs/statements (archived cmi5-xapi-lrs-ingest). Not built: unpacking an uploaded SCORM zip; the player serves one lesson file by contentRef. SCORM 2004 is a follow-up.",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/cmi5-xapi-lrs-ingest"
+        "change": "openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1939,17 +1939,17 @@
       "area": "content",
       "name": "Launch a cmi5 unit and have it send results back.",
       "built": {
-        "state": "building",
-        "evidence": "appinfo/routes.php:58-73 cmi5 launch and LRS routes (lrs#postStatements, lrs#getStatements, lrsDocument state); 27 of 29 tasks done in the change, live check 8.7 and integration test 3.4 open",
+        "state": "built",
+        "evidence": "appinfo/routes.php:58-73 cmi5 launch (Cmi5LaunchController, token only through a single-use fetch URL) and the LRS statements and State routes; live statement POST and State round trip 2026-09-29 (#1519).",
         "owner": "ConductionNL/learniq",
         "readOn": "2026-09-26",
-        "change": "openspec/changes/cmi5-xapi-lrs-ingest"
+        "change": "openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "content-standards",
       "featureConfidence": "high",
-      "learniq": "no",
+      "learniq": "yes",
       "moodle": "no",
       "moodle-workplace": "unknown",
       "ilias": "partial",
@@ -1970,17 +1970,17 @@
       "area": "content",
       "name": "Keep a full xAPI record of what each learner did.",
       "built": {
-        "state": "building",
-        "evidence": "appinfo/routes.php:67-68 lrs#postStatements and lrs#getStatements let a tool post and read statements; the change has two open tasks (live check 8.7, integration test 3.4)",
+        "state": "built",
+        "evidence": "appinfo/routes.php:67-68 lrs#postStatements and lrs#getStatements store every statement as an XapiStatement with a server-stamped verified_actor_id; live 2026-09-29 (#1519).",
         "owner": "ConductionNL/learniq",
         "readOn": "2026-09-26",
-        "change": "openspec/changes/cmi5-xapi-lrs-ingest"
+        "change": "openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "content-standards",
       "featureConfidence": "high",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "partial",
