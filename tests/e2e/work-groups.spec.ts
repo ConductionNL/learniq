@@ -32,14 +32,12 @@ test.describe('work groups', () => {
 		await fx.teardown()
 	})
 
-	// Blocked 2026-09-29: the create dialog's Class picker (a `$ref: Cohort`
-	// field in nextcloud-vue CnFormDialog) shows no options and requests no
-	// Cohort objects, so no class can be chosen; Session's Cohort picker does
-	// the same. The dialog also asks users for a required "Tenant". Reported to
-	// the orchestrator; re-enable once the picker lists classes.
-	test.fixme('a teacher adds a work group to a class', async ({
-		loggedInPage: teacher,
-	}) => {
+	// Unblocked by nextcloud-vue 2.57.4: the Class picker (a `$ref: Cohort`
+	// field in CnFormDialog) lists classes (#1263), and the dialog no longer
+	// asks for a Tenant; it is filled from learniq's caller tenant (#1283,
+	// learniq #1447). The teacher is a temporary instructor.
+	test('a teacher adds a work group to a class', async ({ browser }) => {
+		const instructor = await fx.user('instructor', ['instructors'])
 		const cohortName = `r5 work groups class ${fx.run}`
 		const cohortId = await fx.object('cohort', {
 			name: cohortName,
@@ -48,54 +46,71 @@ test.describe('work groups', () => {
 			learnerIds: [],
 		})
 		const groupName = `r5 Groep 1 ${fx.run}`
+		const setName = `r5 Project campagne periode 2 ${fx.run}`
 
-		await teacher.goto(`${APP}/work-groups`, { waitUntil: 'domcontentloaded' })
-		await teacher
-			.locator('[data-testid="cn-cta-primary"]')
-			.first()
-			.click({ timeout: 60_000 })
-		const form = teacher.getByRole('dialog', { name: 'Create Work group' })
-		await expect(form).toBeVisible({ timeout: 30_000 })
+		const teacher = await signInAs(browser, instructor)
+		try {
+			await teacher.goto(`${APP}/work-groups`, {
+				waitUntil: 'domcontentloaded',
+			})
+			await teacher
+				.locator('[data-testid="cn-cta-primary"]')
+				.first()
+				.click({ timeout: 60_000 })
+			const form = teacher.getByRole('dialog', { name: 'Create Work group' })
+			await expect(form).toBeVisible({ timeout: 30_000 })
 
-		const classBox = form.getByRole('combobox', { name: /Class/ })
-		await classBox.click()
-		await classBox.pressSequentially(cohortName)
-		await teacher
-			.locator('.vs__dropdown-option', { hasText: cohortName })
-			.first()
-			.click({ timeout: 30_000 })
-		await form.getByLabel(/Maximum members/).fill('4')
-		await form.getByLabel(/^Name/).fill(groupName)
-		await form.getByLabel(/^Set/).fill(`r5 set ${fx.run}`)
-		const tenant = form.getByLabel(/^Tenant/)
-		if (await tenant.isVisible().catch(() => false)) {
-			await tenant.fill(await fx.tenant())
+			const classBox = form.getByRole('combobox', { name: /Class/ })
+			await classBox.click()
+			await classBox.pressSequentially(cohortName)
+			await teacher
+				.locator('.vs__dropdown-option', { hasText: cohortName })
+				.first()
+				.click({ timeout: 30_000 })
+			await form.getByLabel(/Maximum members/).fill('4')
+			await form.getByLabel(/^Name/).fill(groupName)
+			await form.getByLabel(/^Set/).fill(setName)
+			// The tenant comes from the caller, not from the user.
+			await expect(form.getByLabel(/^Tenant/)).toHaveCount(0)
+			await form.getByRole('button', { name: 'Create' }).click()
+			await expect(form).toBeHidden({ timeout: 30_000 })
+
+			const created = await fx.find('work-group', { cohortId })
+			for (const g of created) fx.adopt('work-group', String(g.id))
+			expect(created.map((g) => g.name)).toEqual([groupName])
+			expect(Number(created[0].maxMembers)).toBe(4)
+			expect(created[0].setName).toBe(setName)
+			// The dialog fills tenant_id from learniq's caller tenant
+			// (CallerTenantResolver): the user's learniq `tenant_id` setting, else
+			// the instance id. It must not be empty.
+			expect(String(created[0].tenant_id ?? '')).not.toBe('')
+			// Soft: the class the teacher picked lives in the instance's data
+			// tenant. A group in another tenant is a split the learner side may
+			// not see.
+			expect
+				.soft(created[0].tenant_id, 'work group tenant vs the class tenant')
+				.toBe((await fx.read('cohort', cohortId)).tenant_id)
+
+			// The class page lists it in its Work groups widget.
+			await teacher.goto(`${APP}/cohorts/${cohortId}`, {
+				waitUntil: 'domcontentloaded',
+			})
+			const widget = teacher.getByRole('group', {
+				name: 'coh-work-groups',
+				exact: true,
+			})
+			await expect
+				.poll(
+					async () => {
+						await teacher.mouse.wheel(0, 4000)
+						return widget.getByText(groupName).count()
+					},
+					{ timeout: 60_000 },
+				)
+				.toBeGreaterThan(0)
+		} finally {
+			await teacher.context().close()
 		}
-		await form.getByRole('button', { name: 'Create' }).click()
-		await expect(form).toBeHidden({ timeout: 30_000 })
-
-		const created = await fx.find('work-group', { cohortId })
-		for (const g of created) fx.adopt('work-group', String(g.id))
-		expect(created.map((g) => g.name)).toEqual([groupName])
-		expect(Number(created[0].maxMembers)).toBe(4)
-
-		// The class page lists it in its Work groups widget.
-		await teacher.goto(`${APP}/cohorts/${cohortId}`, {
-			waitUntil: 'domcontentloaded',
-		})
-		const widget = teacher.getByRole('group', {
-			name: 'coh-work-groups',
-			exact: true,
-		})
-		await expect
-			.poll(
-				async () => {
-					await teacher.mouse.wheel(0, 4000)
-					return widget.getByText(groupName).count()
-				},
-				{ timeout: 60_000 },
-			)
-			.toBeGreaterThan(0)
 	})
 
 	test('a learner joins a group with a free place; a full group offers nothing', async ({
