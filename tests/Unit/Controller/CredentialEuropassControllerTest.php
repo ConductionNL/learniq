@@ -24,7 +24,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\CredentialEuropassController;
+use OCA\Learniq\Service\CredentialLearner;
 use OCA\Learniq\Service\EuropassIssuer;
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
@@ -40,6 +42,11 @@ use PHPUnit\Framework\TestCase;
  * Who may download, and the one-time backfill.
  */
 class CredentialEuropassControllerTest extends TestCase {
+
+	/**
+	 * P. Ganpat's LearnerProfile uuid: what Credential.learnerId holds.
+	 */
+	private const GANPAT_PROFILE = '6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b';
 
 	/**
 	 * Stored credentials by id.
@@ -65,15 +72,20 @@ class CredentialEuropassControllerTest extends TestCase {
 	 */
 	private function controller(string $userId, array $groups = []): CredentialEuropassController {
 		$this->credentials = [
-			'cred-1' => ['id' => 'cred-1', 'learnerId' => 'p.ganpat', 'courseId' => 'c-1', 'issuedAt' => '2026-06-30T12:00:00+00:00', 'lifecycle' => 'issued', 'edciPayload' => ['id' => 'urn:uuid:cred-1', 'proof' => ['jws' => 'x..y']]],
-			'cred-old' => ['id' => 'cred-old', 'learnerId' => 'p.ganpat', 'kind' => 'certificate', 'lifecycle' => 'issued', 'edciPayload' => null],
-			'cred-revoked' => ['id' => 'cred-revoked', 'learnerId' => 'p.ganpat', 'lifecycle' => 'revoked', 'edciPayload' => null],
+			'cred-1' => ['id' => 'cred-1', 'learnerId' => self::GANPAT_PROFILE, 'learnerUserId' => 'p.ganpat', 'courseId' => 'c-1', 'issuedAt' => '2026-06-30T12:00:00+00:00', 'lifecycle' => 'issued', 'edciPayload' => ['id' => 'urn:uuid:cred-1', 'proof' => ['jws' => 'x..y']]],
+			'cred-legacy' => ['id' => 'cred-legacy', 'learnerId' => self::GANPAT_PROFILE, 'courseId' => 'c-1', 'issuedAt' => '2026-05-01T12:00:00+00:00', 'lifecycle' => 'issued', 'edciPayload' => ['id' => 'urn:uuid:cred-legacy', 'proof' => ['jws' => 'x..y']]],
+			'cred-old' => ['id' => 'cred-old', 'learnerId' => self::GANPAT_PROFILE, 'learnerUserId' => 'p.ganpat', 'kind' => 'certificate', 'lifecycle' => 'issued', 'edciPayload' => null],
+			'cred-revoked' => ['id' => 'cred-revoked', 'learnerId' => self::GANPAT_PROFILE, 'learnerUserId' => 'p.ganpat', 'lifecycle' => 'revoked', 'edciPayload' => null],
 		];
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
 			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ObjectEntity {
 				if ($schema === 'course' && $id === 'c-1') {
 					return OrEntityFactory::make(['id' => 'c-1', 'code' => 'MDB 2026'], 'course');
+				}
+
+				if ($schema === 'learner-profile' && $id === self::GANPAT_PROFILE) {
+					return OrEntityFactory::make(['id' => self::GANPAT_PROFILE, 'ncUserId' => 'p.ganpat', 'lifecycle' => 'active'], 'learner-profile');
 				}
 
 				if ($schema === 'credential' && isset($this->credentials[(string)$id]) === true) {
@@ -105,7 +117,8 @@ class CredentialEuropassControllerTest extends TestCase {
 			userSession: $session,
 			groupManager: $groupManager,
 			objects: $objects,
-			europass: $europass
+			europass: $europass,
+			learners: new CredentialLearner(profiles: new LearnerRefResolver(objectService: $objects))
 		);
 	}//end controller()
 
@@ -125,6 +138,31 @@ class CredentialEuropassControllerTest extends TestCase {
 		self::assertSame('urn:uuid:cred-1', json_decode($response->render(), true)['id']);
 		self::assertInstanceOf(DataDownloadResponse::class, $this->controller(userId: 'hr-1', groups: ['hr'])->download(id: 'cred-1'));
 	}//end testTheLearnerAndStaffDownload()
+
+	/**
+	 * A learner downloads their own credential: its learnerId is their
+	 * LearnerProfile uuid and learnerUserId their user id. Red on development,
+	 * which compared learnerId with the user id and so refused every learner.
+	 *
+	 * @return void
+	 */
+	public function testALearnerDownloadsTheirOwnCredential(): void {
+		$response = $this->controller(userId: 'p.ganpat')->download(id: 'cred-1');
+
+		self::assertInstanceOf(DataDownloadResponse::class, $response);
+		self::assertSame('urn:uuid:cred-1', json_decode($response->render(), true)['id']);
+	}//end testALearnerDownloadsTheirOwnCredential()
+
+	/**
+	 * A row written before learnerUserId existed is matched through the
+	 * profile its learnerId names; another learner is still refused.
+	 *
+	 * @return void
+	 */
+	public function testALegacyRowIsMatchedThroughTheProfile(): void {
+		self::assertInstanceOf(DataDownloadResponse::class, $this->controller(userId: 'p.ganpat')->download(id: 'cred-legacy'));
+		self::assertSame(404, $this->controller(userId: 's.jansen')->download(id: 'cred-legacy')->getStatus());
+	}//end testALegacyRowIsMatchedThroughTheProfile()
 
 	/**
 	 * Another learner, and a credential without a form, get 404.

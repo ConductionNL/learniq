@@ -1223,7 +1223,9 @@ def build() -> dict:
     def credential(p: dict, course_key: str, issued: dt.datetime | dt.date, fields: dict) -> dict:
         spec = BY_KEY[course_key]
         obj = b.add("credential", {
-            "learnerId": p["profile"]["uuid"], "courseId": courses[course_key]["uuid"], "kind": spec["credential"],
+            # learnerId is the LearnerProfile uuid; learnerUserId its Nextcloud user id, the read rule's key.
+            "learnerId": p["profile"]["uuid"], "learnerUserId": p["profile"]["ncUserId"],
+            "courseId": courses[course_key]["uuid"], "kind": spec["credential"],
             "issuedAt": issued, "issuerDid": ISSUER_DID, "signature": "", "openbadges3Payload": {}, "issuedBy": INSTITUTE,
             **fields,
         })

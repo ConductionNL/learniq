@@ -154,4 +154,24 @@ class LearnerRefResolverTest extends TestCase {
 		self::assertNull($resolver->resolve(learnerId: ''));
 		self::assertCount(1, $this->store->reads);
 	}//end testNoProfileOrNoUserIsNull()
+
+	/**
+	 * Within a tenant, only that tenant's profile answers, and the read
+	 * drops the session's tenant scoping to narrow on `tenant_id` itself.
+	 *
+	 * @return void
+	 */
+	public function testTheTenantLookupFindsOnlyThatTenantsProfile(): void {
+		$resolver = $this->makeResolver();
+		$this->store->rows['learner-profile'] = [
+			['id' => 'lp-a', 'ncUserId' => 'pupil-1', 'tenant_id' => 'tenant-a'],
+			['id' => 'lp-b', 'ncUserId' => 'pupil-1', 'tenant_id' => 'tenant-b'],
+		];
+
+		self::assertSame('lp-b', $resolver->resolveInTenant(learnerId: 'pupil-1', tenantId: 'tenant-b'));
+		self::assertNull($resolver->resolveInTenant(learnerId: 'pupil-1', tenantId: 'tenant-c'));
+		self::assertNull($resolver->resolveInTenant(learnerId: 'pupil-1', tenantId: ''));
+		self::assertCount(2, $this->store->reads);
+		self::assertFalse($this->store->reads[0]['multitenancy']);
+	}//end testTheTenantLookupFindsOnlyThatTenantsProfile()
 }//end class

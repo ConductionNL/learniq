@@ -118,7 +118,7 @@ class CatalogueController extends Controller {
 		if ($learner->profileRef === '') {
 			// Only a learner signs up or withdraws, and only for themselves:
 			// the service writes this caller's own id and checks ownership.
-			return new JSONResponse(data: ['error' => 'not_a_learner'], statusCode: Http::STATUS_FORBIDDEN);
+			return $this->notALearner(learner: $learner);
 		}
 
 		if ($this->signUps->requireOpenForSignUp(schema: 'course', id: $id) === false) {
@@ -147,7 +147,7 @@ class CatalogueController extends Controller {
 		if ($learner->profileRef === '') {
 			// Only a learner signs up or withdraws, and only for themselves:
 			// the service writes this caller's own id and checks ownership.
-			return new JSONResponse(data: ['error' => 'not_a_learner'], statusCode: Http::STATUS_FORBIDDEN);
+			return $this->notALearner(learner: $learner);
 		}
 
 		if ($this->signUps->requireOpenForSignUp(schema: 'programme', id: $id) === false) {
@@ -176,7 +176,7 @@ class CatalogueController extends Controller {
 		if ($learner->profileRef === '') {
 			// Only a learner signs up or withdraws, and only for themselves:
 			// the service writes this caller's own id and checks ownership.
-			return new JSONResponse(data: ['error' => 'not_a_learner'], statusCode: Http::STATUS_FORBIDDEN);
+			return $this->notALearner(learner: $learner);
 		}
 
 		if ($this->signUps->requireOwnEnrolment(learner: $learner, enrolmentId: $id) === false) {
@@ -233,6 +233,22 @@ class CatalogueController extends Controller {
 
 		return $this->answer(outcome: $outcome, learner: $learner);
 	}//end notFound()
+
+	/**
+	 * The answer for an account without a learner profile, with a message
+	 * that says what to do instead of a bare error code.
+	 *
+	 * @param PortalLearner $learner The signed-in user.
+	 *
+	 * @return JSONResponse
+	 *
+	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+	 */
+	private function notALearner(PortalLearner $learner): JSONResponse {
+		$outcome = new PortalOutcome(status: Http::STATUS_FORBIDDEN, body: ['error' => 'not_a_learner'], reason: 'not-a-learner');
+
+		return $this->answer(outcome: $outcome, learner: $learner);
+	}//end notALearner()
 
 	/**
 	 * An outcome as a response, with the reason in the learner's words.

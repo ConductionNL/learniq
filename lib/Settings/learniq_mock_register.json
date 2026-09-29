@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.42",
+    "version": "1.1.44",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -24,7 +24,7 @@
       "AccessibilityFeedback": {
         "slug": "accessibility-feedback",
         "icon": "MessageAlertOutline",
-        "version": "0.1.0",
+        "version": "0.1.2",
         "title": "AccessibilityFeedback",
         "description": "A user-reported accessibility barrier — the BDTO's required feedback mechanism, reachable by any authenticated user (the opposite RBAC posture from AccessibilityStatement/AccessibilityLimitation, deliberately: restricting who may report a barrier would defeat the requirement's own purpose). Lifecycle: submitted → acknowledged → resolved.",
         "type": "object",
@@ -137,7 +137,7 @@
       "AccessibilityLimitation": {
         "slug": "accessibility-limitation",
         "icon": "AlertCircleOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "AccessibilityLimitation",
         "description": "The known-limitations register — one row per known accessibility issue disclosed under an AccessibilityStatement, the honest evidence core of the accessibility-conformance capability. Lifecycle: open → mitigated → fixed.",
         "type": "object",
@@ -253,7 +253,7 @@
       "AccessibilityStatement": {
         "slug": "accessibility-statement",
         "icon": "Human",
-        "version": "0.1.2",
+        "version": "0.1.3",
         "title": "AccessibilityStatement",
         "description": "The toegankelijkheidsverklaring (accessibility statement) record required by the Tijdelijk besluit digitale toegankelijkheid overheid (BDTO, BWBR0040936). Fields mirror the toegankelijkheidsverklaring.nl invulassistent's field order. Lifecycle: draft → published → archived; the publish transition requires AccessibilityStatementPublishGuard, which refuses to publish an unsubstantiated claim (missing evaluation evidence, or a fully-compliant status while a known limitation is still open).",
         "type": "object",
@@ -6801,7 +6801,7 @@
         },
         "slug": "credential",
         "icon": "CertificateOutline",
-        "version": "0.2.0",
+        "version": "0.2.1",
         "title": "Credential",
         "description": "Verifiable Credential (W3C VC + Open Badges 3.0). Append-only compliance evidence; issued on enrolment completion; supports expiry detection with tiered reminders.",
         "type": "object",
@@ -6826,6 +6826,11 @@
             "$ref": "LearnerProfile",
             "description": "Opaque learner UUID. Never BSN.",
             "title": "Learner ID"
+          },
+          "learnerUserId": {
+            "type": "string",
+            "title": "Learner account",
+            "description": "The learner's Nextcloud user id, written at issuance next to learnerId (the LearnerProfile uuid). The learner's read rule matches on it."
           },
           "courseId": {
             "type": "string",
@@ -7267,7 +7272,7 @@
             "recipients": [
               {
                 "kind": "field",
-                "field": "learnerId"
+                "field": "learnerUserId"
               }
             ],
             "subject": {
@@ -7293,7 +7298,7 @@
             "recipients": [
               {
                 "kind": "field",
-                "field": "learnerId"
+                "field": "learnerUserId"
               }
             ],
             "subject": {
@@ -7313,7 +7318,7 @@
             "recipients": [
               {
                 "kind": "field",
-                "field": "learnerId"
+                "field": "learnerUserId"
               }
             ],
             "subject": {
@@ -7333,7 +7338,7 @@
             "recipients": [
               {
                 "kind": "field",
-                "field": "learnerId"
+                "field": "learnerUserId"
               }
             ],
             "subject": {
@@ -7351,7 +7356,7 @@
               },
               {
                 "match": {
-                  "field": "learnerId",
+                  "field": "learnerUserId",
                   "operator": "eq",
                   "value": "$userId"
                 }
@@ -7957,7 +7962,7 @@
         },
         "slug": "dossier-note",
         "icon": "NotebookOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "DossierNote",
         "description": "The everyday pupil-dossier note a mentor/coordinator keeps day to day — an observation, a conversation, a phone call home, a concern, or a positive note — distinct from the formal OPP/zorgvraag track (LearningPlan/SupportRequest/DeliberationRecord). appendOnly: true (ADR-008) — a correction is a new record, never an in-place edit of prior evidence about a named minor. Server-side x-property-rbac restricts every row to admin/mentor/coordinator/the note's own author; the confidentiality field's finer three-way tiering beyond that floor is a named OpenRegister platform-capability gap, NOT enforced per-row today.",
         "type": "object",
@@ -8131,7 +8136,7 @@
       "EngagementRiskFlag": {
         "slug": "engagement-risk-flag",
         "icon": "FlagOutline",
-        "version": "0.1.0",
+        "version": "0.1.3",
         "title": "EngagementRiskFlag",
         "description": "Created when a learner's EngagementScore crosses an active EngagementRiskThreshold. appendOnly: true per ADR-008 (immutable audit evidence). Tracks the mentor/coordinator's intervention via its lifecycle. It NEVER auto-acts against the learner — human-in-the-loop throughout, mirroring AttendanceFlag/BsaProgressFlag. Idempotency-keyed by EngagementSignalHandler: no duplicate flag is created while one is already open/in-handling for the same learner+threshold; a resolved flag does not block a later relapse.",
         "type": "object",
@@ -8275,7 +8280,7 @@
       "EngagementRiskThreshold": {
         "slug": "engagement-risk-threshold",
         "icon": "AlertCircleOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "EngagementRiskThreshold",
         "description": "Configurable threshold rule that watches a learner's or cohort's EngagementScore and fires when the metric crosses the limit. Structural mirror of AttendanceThreshold and BsaTrajectory (config: name/kind/scope/metric/limit/onAtRisk/lifecycle) — deliberately NOT scoped to HE/MBO or to Course.ectsCredits, applying to any Course/Cohort, closing the at-risk gap BsaTrajectory leaves for po/vo/corporate learners and for HE/MBO learners disengaging before any grade reflects it. Detection is a plain arithmetic/threshold comparison, evaluated by EngagementSignalHandler off the same XapiStatement event EngagementScoreEvaluator reacts to — NOT a TimedJob (ADR-022), and NOT an AI/ML inference call of any kind.",
         "type": "object",
@@ -8422,7 +8427,7 @@
       "EngagementScore": {
         "slug": "engagement-score",
         "icon": "ChartLineVariant",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "EngagementScore",
         "description": "Calculated per-learner, per-Course engagement roll-up — activityCount (declarative aggregate-ref count of XapiStatement rows), timeOnTaskMinutes and score (PHP-computed by EngagementScoreEvaluator; summing nested XapiStatement.result duration data has no declarative sum operator anywhere in this register's calculation DSL), lastActivityAt (PHP-set) and recencyDays (a genuinely declarative materialise:true dateDiff, byte-for-byte the same idiom Enrolment.daysRemaining already uses). Recomputed by EngagementSignalHandler whenever a matching XapiStatement is received. No lifecycle — it is fully derived, mirroring FinalGrade. Read-only from the frontend.",
         "type": "object",
@@ -8985,7 +8990,7 @@
       "Entitlement": {
         "slug": "entitlement",
         "icon": "CheckDecagramOutline",
-        "version": "0.2.0",
+        "version": "0.2.1",
         "title": "Entitlement",
         "description": "What a paid, non-voluntary fee grants (e.g. access to a paid Course). A school charges through shillinq: learniq raises the fee's contribution there (the FeeItem is the chargeable, the learner the beneficiary), shillinq books the receipt, and the pay screen is portaliq's. The grant transition (pending -> active) requires BOTH FeeItemVoluntaryEntitlementGuard (refuses if the referenced FeeItem.voluntary is true, per the Wet vrijwillige ouderbijdrage) AND EntitlementPaymentSettledGuard (refuses unless shillinq reports the PaymentRequest named in paymentRequestRef settled, for this fee and this learner; fails closed without shillinq). Nothing gates access on a pending Entitlement, so a voluntary fee can never become an access gate.",
         "type": "object",
@@ -9120,7 +9125,7 @@
       "EvaluationCampaign": {
         "slug": "evaluation-campaign",
         "icon": "ClipboardTextOutline",
-        "version": "0.1.1",
+        "version": "0.1.2",
         "title": "EvaluationCampaign",
         "description": "A course/module evaluation cycle (vakevaluatie): which Course(s)/Cohort(s) it covers, the academic period, the survey instrument, and a fixed anonymity policy. Opening a campaign provisions one EvaluationInvitation per learner in scope (EvaluationInvitationProvisioningHandler). Lifecycle: draft -> open -> closed -> archived. No existing course-management schema is modified -- courseIds/cohortIds reference Course/Cohort by $ref only.",
         "type": "object",
@@ -14796,7 +14801,7 @@
       "LessonCompletion": {
         "slug": "lesson-completion",
         "icon": "CheckCircleOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "LessonCompletion",
         "description": "Per-learner, per-Lesson completion state — one row per (learnerId, lessonId), an upsert target (not an append-only log; XapiStatement itself is already the append-only source of truth for the xAPI half — mirrors the relationship FinalGrade has to GradeEntry). Written by the new LessonProgressHandler for every resolvable completed/passed xAPI statement (no mandatoryTraining or last-lesson gate, unlike XapiCompletionHandler's Enrolment-completion path — a sibling listener on the same ObjectCreatedEvent<XapiStatement>, not an edit to that handler), or self-reported (source: manual) by the learner for content types that do not emit xAPI statements, mirroring AssessmentResult's unrestricted self-serve create posture. No x-openregister-lifecycle — a completion fact has no workflow states to move through.",
         "type": "object",
@@ -18858,7 +18863,7 @@
       "SovereigntyPolicy": {
         "slug": "sovereignty-policy",
         "icon": "Earth",
-        "version": "0.1.1",
+        "version": "0.1.2",
         "title": "SovereigntyPolicy",
         "description": "The school-wide AI-processing locality policy (sovereign-ai-guarantee): declares the strictest locality tier the school will accept for AI-assisted processing. A flat, un-lifecycled, singleton policy record — mirrors Hermiq's own TenantControl/ModelPolicy/GuardrailPolicy precedent for a policy record that needs no state machine. One Learniq instance is one school — no organisation/tenant_id scoping, unlike Hermiq's multi-tenant policy records. Read by AiLocalityClassifier/SovereigntyPolicyService and enforced by AssessmentPublishGuard's locality check on ai-assisted proctoring.",
         "type": "object",
