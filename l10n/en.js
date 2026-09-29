@@ -2454,6 +2454,7 @@ OC.L10N.register(
         "You are already signed up for this course.": "You are already signed up for this course.",
         "You cannot withdraw from this course. Ask your teacher.": "You cannot withdraw from this course. Ask your teacher.",
         "Your school account is not ready for this yet. Ask your school.": "Your school account is not ready for this yet. Ask your school.",
+        "Your account has no learner profile yet. Ask your school or administrator to add one.": "Your account has no learner profile yet. Ask your school or administrator to add one.",
         "Sign up for a course": "Sign up for a course",
         "Class": "Class",
         "Groups made together form a set, for example a project. A learner is in at most one group per set.": "Groups made together form a set, for example a project. A learner is in at most one group per set.",
