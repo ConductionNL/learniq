@@ -31,6 +31,24 @@
  *   0  every required locale is at full parity for every existing source set
  *   1  one or more locales are missing keys, missing files, or empty values
  *
+ * RATCHET MODE (`--ratchet`, what `npm run check:l10n` runs)
+ *
+ * Full parity is the goal, not today's state: most locales translate under a
+ * quarter of the catalogue, so the full gate above would be red on every PR.
+ * The ratchet holds the line instead, against l10n/.l10n-parity-baseline.json:
+ *   • STRICT locales (L10N_STRICT_LOCALES, default `nl`) may gain no new gap.
+ *     A new English key without its Dutch value fails, naming the key.
+ *   • Every other required locale may not LOSE a translation: its count of
+ *     translated English keys may not drop below the baseline.
+ *   • The down path fails too. A strict gap that closed, or a locale that
+ *     gained translations, fails until `--update` records the tighter
+ *     baseline, so the margin cannot be spent quietly by the next change.
+ * `--update` rewrites the baseline from the current tree.
+ *
+ * Ratchet exit codes: 0 at the baseline; 1 worse, better, or no baseline.
+ *
+ * @spec openspec/changes/wire-l10n-parity-ci-gate/tasks.md#task-3
+ *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  */
@@ -116,14 +134,20 @@ const sets = [
 const failures = []
 let checkedSets = 0
 
+// Per set, per locale: the English keys with no usable translation.
+// A missing or unparseable file has every key as a gap.
+const observed = {}
+
 for (const set of sets) {
 	if (!fs.existsSync(set.enFile)) {
 		continue // this app does not ship this translation set
 	}
 	checkedSets++
 	const enKeys = Object.keys(set.load(set.enFile))
+	observed[set.kind] = { total: enKeys.length, gaps: {} }
 	for (const loc of REQUIRED) {
 		const locFile = set.file(loc)
+		observed[set.kind].gaps[loc] = enKeys
 		if (!fs.existsSync(locFile)) {
 			failures.push({ set: set.kind, loc, kind: 'MISSING FILE', detail: path.relative(ROOT, locFile) })
 			continue
@@ -137,6 +161,7 @@ for (const set of sets) {
 		}
 		const missing = enKeys.filter((k) => !Object.hasOwn(locObj, k))
 		const empty = enKeys.filter((k) => Object.hasOwn(locObj, k) && isEmpty(locObj[k]))
+		observed[set.kind].gaps[loc] = missing.concat(empty)
 		if (missing.length || empty.length) {
 			failures.push({ set: set.kind, loc, kind: 'INCOMPLETE', missing, empty, total: enKeys.length })
 		}
@@ -149,6 +174,10 @@ console.log(`l10n-parity ${label}: ${REQUIRED.length} required locales; checked 
 if (checkedSets === 0) {
 	console.log('l10n-parity: no en.js / en.json source set found — nothing to check')
 	process.exit(0)
+}
+
+if (process.argv.includes('--ratchet') || process.argv.includes('--update')) {
+	process.exit(ratchet(observed))
 }
 
 if (failures.length === 0) {
@@ -179,3 +208,94 @@ for (const f of failures) {
 console.error('\nEvery required locale must translate every English source key. '
 	+ 'Add the missing/empty translations to the locale file(s) above.')
 process.exit(1)
+
+/**
+ * Compare today's gaps with the committed baseline, or rewrite it.
+ *
+ * @param {object} current Per set: { total, gaps: { locale: string[] } }.
+ * @return {number} The exit code.
+ */
+function ratchet (current) {
+	const baselineFile = path.join(L10N_DIR, '.l10n-parity-baseline.json')
+	const strict = (process.env.L10N_STRICT_LOCALES || 'nl')
+		.split(',').map((s) => s.trim()).filter(Boolean)
+	const snapshot = { strict, sets: {} }
+	for (const [kind, set] of Object.entries(current)) {
+		const entry = { strictGaps: {}, translated: {} }
+		for (const [loc, gaps] of Object.entries(set.gaps)) {
+			if (strict.includes(loc)) {
+				entry.strictGaps[loc] = [...new Set(gaps)].sort()
+			} else {
+				entry.translated[loc] = set.total - new Set(gaps).size
+			}
+		}
+		snapshot.sets[kind] = entry
+	}
+
+	if (process.argv.includes('--update')) {
+		const doc = {
+			$comment: 'l10n parity ratchet (tests/l10n/check-l10n-parity.js --ratchet). Strict locales list every English key they lack; other locales record how many English keys they translate. Rewrite with: node tests/l10n/check-l10n-parity.js --update',
+			...snapshot,
+		}
+		fs.writeFileSync(baselineFile, JSON.stringify(doc, null, '\t') + '\n')
+		console.log(`l10n-parity: baseline written to ${path.relative(ROOT, baselineFile)}`)
+		return 0
+	}
+
+	if (!fs.existsSync(baselineFile)) {
+		console.error('l10n-parity: no baseline. Run `node tests/l10n/check-l10n-parity.js --update` and commit it.')
+		return 1
+	}
+
+	const baseline = readJson(baselineFile)
+	const worse = []
+	const better = []
+	for (const [kind, entry] of Object.entries(snapshot.sets)) {
+		const base = (baseline.sets || {})[kind]
+		if (!base) {
+			worse.push(`${kind}: no baseline for this translation set`)
+			continue
+		}
+		for (const [loc, gaps] of Object.entries(entry.strictGaps)) {
+			const known = new Set((base.strictGaps || {})[loc] || [])
+			const added = gaps.filter((k) => !known.has(k))
+			const closed = [...known].filter((k) => !gaps.includes(k))
+			if (added.length) {
+				worse.push(`${kind} ${loc}: ${added.length} English key(s) with no ${loc} translation:`
+					+ added.slice(0, 20).map((k) => `\n      ${JSON.stringify(k)}`).join('')
+					+ (added.length > 20 ? `\n      … +${added.length - 20} more` : ''))
+			}
+			if (closed.length) {
+				better.push(`${kind} ${loc}: ${closed.length} gap(s) closed`)
+			}
+		}
+		for (const [loc, count] of Object.entries(entry.translated)) {
+			const was = (base.translated || {})[loc]
+			if (was === undefined) {
+				worse.push(`${kind} ${loc}: no baseline for this locale`)
+			} else if (count < was) {
+				worse.push(`${kind} ${loc}: translates ${count} English key(s), baseline ${was} (${was - count} lost)`)
+			} else if (count > was) {
+				better.push(`${kind} ${loc}: translates ${count}, baseline ${was}`)
+			}
+		}
+	}
+
+	if (worse.length) {
+		console.error('\nl10n-parity: FAIL — language support went backwards:')
+		worse.forEach((w) => console.error(`  • ${w}`))
+		console.error(`\nAdd the ${strict.join('/')} value for every new English key, and do not drop existing translations.`
+			+ '\nIf a key was removed from English on purpose, record it with: node tests/l10n/check-l10n-parity.js --update')
+		return 1
+	}
+
+	if (better.length) {
+		console.error('\nl10n-parity: FAIL — better than the baseline; lock it in:')
+		better.forEach((b) => console.error(`  • ${b}`))
+		console.error('\nRun `node tests/l10n/check-l10n-parity.js --update` and commit l10n/.l10n-parity-baseline.json.')
+		return 1
+	}
+
+	console.log(`l10n-parity: OK — at the baseline (strict: ${strict.join(', ')}; no locale lost a translation)`)
+	return 0
+}
