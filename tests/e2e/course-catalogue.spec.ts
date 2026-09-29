@@ -8,8 +8,9 @@
  * the course form. A temporary learner then finds it in the catalogue, signs
  * up and withdraws, signs up for a programme of three courses, sees a
  * provider course with its provider, and requests a place on an on-request
- * course. A temporary team lead approves that request from the enrolment's
- * lifecycle actions.
+ * course. The learner's manager, a temporary account in no staff group,
+ * approves that request from the enrolment's lifecycle actions, and the
+ * learner's notification is queued for dispatch.
  *
  * A learner needs a learner profile ({ncUserId}); without one, sign-up
  * answers 403 not_a_learner. learner-profile is an archival schema, so
@@ -25,7 +26,7 @@
 import type { Page } from '@playwright/test'
 
 import { expect, test } from './fixtures.ts'
-import { LiveFixtures, signInAs } from './live-fixtures.ts'
+import { listJobs, LiveFixtures, signInAs } from './live-fixtures.ts'
 
 const APP = '/index.php/apps/learniq'
 
@@ -58,6 +59,7 @@ test.describe('course catalogue', () => {
 	let programmeId = ''
 	const trackIds: string[] = []
 	let requestEnrolment = ''
+	let manager = { id: '', password: '' }
 
 	test.afterAll(async () => {
 		// Enrolments the learner made through the app belong to this run too.
@@ -134,7 +136,13 @@ test.describe('course catalogue', () => {
 		test.skip(openId === '', 'the coordinator test did not run')
 		const learner = await fx.user('learner', ['learners'])
 		// Only someone with a learner profile may sign up.
-		await fx.object('learner-profile', { ncUserId: learner.id })
+		// The manager is a plain account, in no learniq staff group, so the
+		// approval below runs on the managerId rule and nothing else.
+		manager = await fx.user('manager', [])
+		await fx.object('learner-profile', {
+			ncUserId: learner.id,
+			managerId: manager.id,
+		})
 		requestId = await course('REQ', requestName, { selfEnrolment: 'on-request' })
 		for (const n of [1, 2, 3]) {
 			trackIds.push(await course(`TRK${n}`, `r5 track course ${n} ${fx.run}`))
@@ -203,41 +211,40 @@ test.describe('course catalogue', () => {
 		}
 
 		const pending = await fx.find('enrolment', { courseId: requestId })
-		expect(pending.map((e) => [e.learnerId, e.lifecycle, e.source])).toEqual([
-			[learner.id, 'pending', 'self'],
-		])
+		expect(
+			pending.map((e) => [e.learnerId, e.lifecycle, e.source, e.managerId]),
+		).toEqual([[learner.id, 'pending', 'self', manager.id]])
 		requestEnrolment = String(pending[0].id)
 	})
 
-	test('a team lead approves the request', async ({ browser }) => {
+	test("the learner's manager approves the request and the learner's notification is queued", async ({
+		browser,
+	}) => {
 		test.skip(requestEnrolment === '', 'the learner test did not run')
-		const lead = await fx.user('teamlead', ['team-leads'])
-		const leadPage = await signInAs(browser, lead)
+		const page = await signInAs(browser, manager)
 		try {
-			await leadPage.goto(`${APP}/enrolments/${requestEnrolment}`, {
+			await page.goto(`${APP}/`, { waitUntil: 'domcontentloaded' })
+			// The spec has the manager open "Sign-up requests". The menu entry is
+			// shown by primary role only (instructor, coordinator, hr, team-lead,
+			// administration-manager, admin), so a manager with none of those
+			// roles does not get it. Soft, so the approval itself still runs.
+			await expect
+				.soft(page.getByRole('link', { name: 'Sign-up requests' }))
+				.toBeVisible({ timeout: 60_000 })
+			await page.goto(`${APP}/enrolments/${requestEnrolment}`, {
 				waitUntil: 'domcontentloaded',
 			})
-			await expect(
-				leadPage.locator('[data-testid="cn-detail-page"]'),
-			).toBeVisible({ timeout: 60_000 })
-			// The spec names the button "Approve". nextcloud-vue 2.57.1
-			// CnLifecycleActions.labelFor() labels a transition with its schema
-			// description when it has one, so it reads "A teacher, HR officer,
-			// team lead or the learner's manager approves ..." instead. Soft, so
-			// the approval itself is still exercised; the run stays red until the
-			// label is fixed.
-			await expect
-				.soft(leadPage.getByRole('button', { name: 'Approve', exact: true }))
-				.toBeVisible({ timeout: 30_000 })
-			await leadPage
-				.getByRole('button', {
-					name: /^Approve$|approves a sign-up request/,
-				})
-				.first()
+			await expect(page.locator('[data-testid="cn-detail-page"]')).toBeVisible(
+				{
+					timeout: 60_000,
+				},
+			)
+			await page
+				.getByRole('button', { name: 'Approve', exact: true })
 				.click({ timeout: 60_000 })
-			const confirm = leadPage
+			const confirm = page
 				.getByRole('dialog')
-				.getByRole('button', { name: /Approve|Confirm|approves/ })
+				.getByRole('button', { name: /^(Approve|Confirm)$/ })
 			if (await confirm.isVisible({ timeout: 5_000 }).catch(() => false)) {
 				await confirm.click()
 			}
@@ -249,7 +256,31 @@ test.describe('course catalogue', () => {
 				)
 				.toBe('active')
 		} finally {
-			await leadPage.context().close()
+			await page.context().close()
 		}
+
+		// The learner is told through the Enrolment's `signUpApproved`
+		// notification (trigger: the approve transition, recipient: learnerId).
+		// OpenRegister queues it as an AnnotationNotificationDispatchJob that
+		// cron delivers; the shared instance runs no cron, so the spec checks
+		// that the approval by the manager was queued for dispatch.
+		await expect
+			.poll(
+				() =>
+					listJobs(
+						'OCA\\OpenRegister\\BackgroundJob\\AnnotationNotificationDispatchJob',
+					).some(
+						(job) =>
+							job.argument.userId === manager.id
+							&& (job.argument.entries ?? []).some(
+								(entry: any) =>
+									entry.uuid === requestEnrolment
+									&& entry.trigger === 'updated'
+									&& entry.oldData?.lifecycle === 'pending',
+							),
+					),
+				{ timeout: 60_000 },
+			)
+			.toBe(true)
 	})
 })

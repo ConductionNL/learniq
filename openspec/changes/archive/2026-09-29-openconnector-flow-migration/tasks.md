@@ -5,8 +5,8 @@
 > live in integriq's own schemas, and the rostering import delivers into planninq (D10). No learniq code
 > posts to `/apps/openconnector/api/sources/{name}/run` any more (`git grep 'api/sources' lib/` finds only a
 > comment in `lib/Support/FleetAppId.php`). Any move from a classic source run to an OpenRegister Flow is
-> integriq's work now, not learniq's. The remaining boxes stay unticked on purpose; the archive lane
-> archives this change as superseded.
+> integriq's work now, not learniq's. Ruben closed this change as superseded on 2026-09-29: every box that was
+> still open is ticked as superseded, not as built, and the archive lane archives it.
 
 ## 1. Audit the two classic-dialect call sites (done this pass)
 
@@ -37,11 +37,11 @@
 
 ## 2. Identify the provisional Flow-native equivalent (provisional — re-verify once flow-sync-decomposition merges)
 
-- [ ] 2.1 Once `flow-sync-decomposition` lands real nodes, re-read its final `design.md`/spec deltas (not
+- [x] 2.1 Superseded: #1157 removed both call sites; Ruben closed this change on 2026-09-29, and later flow-sync-decomposition work gets its own change. Original task: Once `flow-sync-decomposition` lands real nodes, re-read its final `design.md`/spec deltas (not
       just today's `proposal.md`) to confirm whether the decomposed set targets `Synchronization`-shaped
       config only, or also produces something addressable from a `Source`-shaped config the way scholiq's
       `target` field names it today (e.g. `bron-rod`, `oso`, `swv`, `timetable-import`).
-- [ ] 2.2 Determine the concrete OpenRegister call `DataExchangeRunHandler::callOpenConnector()` and
+- [x] 2.2 Superseded: #1157 removed both call sites; Ruben closed this change on 2026-09-29, and later flow-sync-decomposition work gets its own change. Original task: Determine the concrete OpenRegister call `DataExchangeRunHandler::callOpenConnector()` and
       `TimetableImportHandler::callOpenConnector()` should make instead of the classic REST POST. Leading
       candidate, **not confirmed**: `POST /apps/openregister/api/flows/{id}/run` (`flow#run`,
       `TriggerManualNode`) against a Flow that wraps the decomposed
@@ -53,23 +53,23 @@
       (`DataExchangeRunHandler`) and the externalRef-keyed upsert case (`TimetableImportHandler`) — today
       the latter does its own upsert in PHP after the pull returns, which may or may not still be the right
       split once writes can happen inside the Flow itself.
-- [ ] 2.3 Re-verify the "does the classic endpoint exist" finding (task 1.3) is still true immediately before
+- [x] 2.3 Superseded: #1157 removed both call sites; Ruben closed this change on 2026-09-29, and later flow-sync-decomposition work gets its own change. Original task: Re-verify the "does the classic endpoint exist" finding (task 1.3) is still true immediately before
       starting the actual code change — OpenConnector's routes could change independently of this migration
       before the migration itself starts.
 
 ## 3. Blocked — do not start until flow-sync-decomposition provides real primitives
 
-- [ ] 3.1 **BLOCKED on `openregister/openspec/changes/flow-sync-decomposition/` landing a real
+- [x] 3.1 Superseded: #1157 removed both call sites; Ruben closed this change on 2026-09-29, and later flow-sync-decomposition work gets its own change. Original task: **BLOCKED on `openregister/openspec/changes/flow-sync-decomposition/` landing a real
       implementation** (as of this pass: proposal + design only, on branch
       `feat/flow-sync-decomposition-tasks`, not merged). No code in `DataExchangeRunHandler.php` or
       `TimetableImportHandler.php` should change before then — there is nothing to point either handler's
       `callOpenConnector()` at yet.
-- [ ] 3.2 **BLOCKED on the fleet dialect-retirement ADR landing** (tracked as
+- [x] 3.2 Superseded: #1157 removed both call sites; Ruben closed this change on 2026-09-29, and later flow-sync-decomposition work gets its own change. Original task: **BLOCKED on the fleet dialect-retirement ADR landing** (tracked as
       `hydra/openspec/changes/adr-092-openconnector-dialect-retirement/`, currently an empty scaffold with
       no proposal content). Even once the OpenRegister primitives exist, the actual cutover in scholiq
       should wait for that ADR's accepted decision, since it may set a fleet-wide sequencing or compatibility
       requirement (e.g. a transition window where both dialects must work) not yet known.
-- [ ] 3.3 When unblocked, split the real implementation into its own change (this one stays scope/staging
+- [x] 3.3 Superseded: #1157 removed both call sites; Ruben closed this change on 2026-09-29, and later flow-sync-decomposition work gets its own change. Original task: When unblocked, split the real implementation into its own change (this one stays scope/staging
       only) covering, at minimum: swap `DataExchangeRunHandler::callOpenConnector()` and
       `TimetableImportHandler::callOpenConnector()` to the confirmed Flow-native trigger; resolve
       target→Flow mapping; preserve the existing `succeed`/`partial`/`fail` outcome semantics and the SWV
@@ -95,5 +95,5 @@
 ## Verification
 
 - [x] Both call sites confirmed present, read in full, and behaviour documented accurately (Section 1).
-- [ ] Section 2's provisional Flow-trigger identification re-confirmed once `flow-sync-decomposition` merges.
-- [ ] Section 3 remains blocked / unchecked until its two named dependencies land.
+- [x] Superseded: #1157 removed both call sites; Ruben closed this change on 2026-09-29, and later flow-sync-decomposition work gets its own change. Original task: Section 2's provisional Flow-trigger identification re-confirmed once `flow-sync-decomposition` merges.
+- [x] Superseded: #1157 removed both call sites; Ruben closed this change on 2026-09-29, and later flow-sync-decomposition work gets its own change. Original task: Section 3 remains blocked / unchecked until its two named dependencies land.

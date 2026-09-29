@@ -138,4 +138,20 @@
       with `_multitenancy: false`, like the reads.
     - Both findings are now copied into `tests/Support/XapiDocumentsInMemory.php` (a save decodes JSON strings; a
       delete with multitenancy on throws), and 10 tests fail without the fix.
-    - Round 2, the same checks on a served checkout with this fix, ticks this box.
+  - Round 2, 2026-09-29, served checkout 8bccc8f5 (#1479), throwaway cmi5 lesson, every call with `Basic <auth-token>`:
+    - Finding A is fixed live. `GET ...state?stateId=LMS.LaunchData` 200, `Content-Type: application/json`,
+      `X-Experience-API-Version: 1.0.3`; the body is the JSON object `{contextTemplate, launchMode: Normal,
+      moveOn: NotApplicable, returnURL}` with a cmi5 sessionid, and its ETag `"23166e31..."` is the SHA-1 of that body.
+    - Own PUT `{"page":3}` 204, ETag `"025053693d40cee617c43cdc7718f2b1da59b94a"`; GET returns `{"page":3}` with the
+      same ETag. `If-Match: "stale"` 412. `If-Match` with the current ETag 204 (new ETag). POST merge `{"score":0.9}`
+      204, GET then returns `{"page":4,"score":0.9}`. stateId list `["LMS.LaunchData","bookmark"]`. An agent naming
+      another learner 403.
+    - Finding B is not fixed, and not by learniq: DELETE still answers 500 `Object not found in magic table`.
+      OpenRegister's `ObjectService::deleteObject()` looks the object up with
+      `objectMapper->find(identifier, register, schema, includeDeleted: true)` (`lib/Service/ObjectService.php:2978-2983`
+      on openregister `development`) and does not pass the caller's `_rbac` and `_multitenancy`. `MagicMapper::find()`
+      then applies access control for the session user, and a sessionless AU call has none, so the scoped lookup
+      finds no row and throws (`lib/Db/MagicMapper.php:5731`). #1479's `_multitenancy: false` reaches only the delete
+      handler, after that lookup. The fix belongs in OpenRegister: forward `_rbac` and `_multitenancy` to that
+      `find()`. Until it lands, xAPI DELETE of a state or agent profile answers 500 and the document stays.
+    - This box is ticked once DELETE answers 204 live.

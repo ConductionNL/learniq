@@ -57,7 +57,10 @@ class LearnerMergeService {
 	/**
 	 * Every learner-owned schema and the fields on it that name the learner.
 	 * Generated from lib/Settings/learniq_register.json: each schema carrying a
-	 * `learnerId` or `learnerRef` property.
+	 * `learnerId` or `learnerRef` property, plus FraudCase, which names its
+	 * learner in `accusedLearnerId` (a LearnerProfile uuid). Its
+	 * `accusedLearnerUserId` is not listed: LearnerUserIdStamp derives it again
+	 * from the moved uuid when the record is saved.
 	 */
 	private const LEARNER_OWNED = [
 		'credential' => ['learnerId', 'learnerUserId'],
@@ -76,6 +79,7 @@ class LearnerMergeService {
 		'report-card-parent-notification' => ['learnerId', 'learnerRef'],
 		'competency-attainment' => ['learnerId', 'learnerRef'],
 		'exemption-case' => ['learnerId'],
+		'fraud-case' => ['accusedLearnerId'],
 		'learning-plan' => ['learnerId'],
 		'support-request' => ['learnerId'],
 		'dossier-note' => ['learnerId'],
