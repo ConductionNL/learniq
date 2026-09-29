@@ -23,6 +23,7 @@ namespace OCA\Learniq\Tests\Unit\ExamSchedule;
 
 use OCA\Learniq\AppInfo\Registrar\ExamScheduleListenerRegistrar;
 use OCA\Learniq\Listener\InvigilatorAssignmentCheck;
+use OCA\Learniq\Service\ExamSittingOverview;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\ExamScheduleFixture;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -66,7 +67,7 @@ class InvigilatorAssignmentCheckTest extends TestCase {
 
 		return new InvigilatorAssignmentCheck(
 			schemaResolver: $resolver,
-			objectService: $this->fx->wire($this->createMock(ObjectService::class)),
+			overview: new ExamSittingOverview(objectService: $this->fx->wire($this->createMock(ObjectService::class))),
 			logger: new NullLogger(),
 		);
 	}//end check()

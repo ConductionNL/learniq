@@ -62,6 +62,7 @@ class EventListenerWiring {
 		(new LifecycleWriteListenerRegistrar())->register(context: $context);
 		(new TransitionBridgeListenerRegistrar())->register(context: $context);
 		(new OnboardingListenerRegistrar())->register(context: $context);
+		(new ExamScheduleListenerRegistrar())->register(context: $context);
 
 	}//end registerAll()
 

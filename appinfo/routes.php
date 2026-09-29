@@ -291,6 +291,11 @@ return [
         ['name' => 'submissionMark#allocate', 'url' => '/api/assignments/{assignmentId}/markers', 'verb' => 'POST'],
         ['name' => 'submissionMark#marks', 'url' => '/api/submissions/{submissionId}/marks', 'verb' => 'GET'],
 
+        // Exam schedule (timetabling-exam-schedule): a sitting's accommodations and
+        // invigilator places, and who is available to invigilate it. Planner groups only.
+        ['name' => 'examSchedule#overview', 'url' => '/api/exam-sittings/{id}/overview', 'verb' => 'GET'],
+        ['name' => 'examSchedule#availableInvigilators', 'url' => '/api/exam-sittings/{id}/available-invigilators', 'verb' => 'GET'],
+
         // Bulk reissue of a course's certificates (credentials-bulk-reissue):
         // preview and queue a run; hr, compliance officers or admin, checked
         // in the method. Controller: CredentialReissueController (slug: credentialReissue).
