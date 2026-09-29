@@ -1005,7 +1005,9 @@ def build() -> dict:
                  evidence: str | None, regulation: str | None = None, valid_months: int | None = None, batch: str | None = None,
                  lifecycle: str = "verified", rejection: str | None = None) -> None:
         completed = moment(day, 17, 0)
-        fields = {"learnerId": p["profile"]["uuid"], "learnerRef": p["profile"]["uuid"], "title": title, "provider": provider, "kind": kind}
+        # learnerId is the LearnerProfile uuid; learnerUserId its Nextcloud user id, the read rule's key.
+        fields = {"learnerId": p["profile"]["uuid"], "learnerUserId": p["profile"]["ncUserId"], "learnerRef": p["profile"]["uuid"],
+                  "title": title, "provider": provider, "kind": kind}
         if regulation is not None:
             fields["regulationSlug"] = regulation
         fields["completedAt"] = iso(completed)

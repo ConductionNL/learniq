@@ -33,6 +33,7 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Listener\ExemptionGrantHandler;
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
@@ -42,6 +43,9 @@ use Psr\Log\NullLogger;
  * Tests for ExemptionGrantHandler::handle() on ExemptionCase → granted.
  */
 class ExemptionGrantHandlerTest extends TestCase {
+
+	private const PROFILE_1 = '7c7c7c7c-0000-4000-8000-000000000001';
+	private const PROFILE_2 = '7c7c7c7c-0000-4000-8000-000000000002';
 
 	/**
 	 * Recorded saveObject() calls.
@@ -109,7 +113,12 @@ class ExemptionGrantHandlerTest extends TestCase {
 			}
 		);
 
-		return new ExemptionGrantHandler($objectService, $transitionEngine, new NullLogger());
+		$profiles = $this->createMock(LearnerRefResolver::class);
+		$profiles->method('userIdOf')->willReturnCallback(
+			static fn (string $learnerRef): ?string => $learnerRef === self::PROFILE_2 ? 'learner-2' : null
+		);
+
+		return new ExemptionGrantHandler($objectService, $transitionEngine, new NullLogger(), $profiles);
 	}//end makeHandler()
 
 	/**
@@ -147,7 +156,8 @@ class ExemptionGrantHandlerTest extends TestCase {
 
 		$case = [
 			'id' => 'case-1',
-			'learnerId' => 'learner-1',
+			'learnerId' => self::PROFILE_1,
+			'learnerUserId' => 'learner-1',
 			'curriculumPlanId' => 'plan-1',
 			'componentId' => 'comp-a',
 			'tenant_id' => 'tenant-a',
@@ -162,7 +172,7 @@ class ExemptionGrantHandlerTest extends TestCase {
 		self::assertSame('exemption', $gradeEntrySaves[0]['object']['sourceKind']);
 		self::assertNull($gradeEntrySaves[0]['object']['value']);
 		self::assertSame('case-1', $gradeEntrySaves[0]['object']['exemptionCaseId']);
-		self::assertSame('learner-1', $gradeEntrySaves[0]['object']['learnerId']);
+		self::assertSame('learner-1', $gradeEntrySaves[0]['object']['learnerId'], 'GradeEntry.learnerId is the user id, not the profile uuid.');
 		self::assertSame('plan-1', $gradeEntrySaves[0]['object']['curriculumPlanId']);
 		self::assertSame('comp-a', $gradeEntrySaves[0]['object']['componentId']);
 		// Newly-created concept entry — the *existing* publish transition drives it forward.
@@ -190,7 +200,7 @@ class ExemptionGrantHandlerTest extends TestCase {
 
 		$case = [
 			'id' => 'case-2',
-			'learnerId' => 'learner-2',
+			'learnerId' => self::PROFILE_2,
 			'curriculumPlanId' => 'plan-2',
 			'componentId' => 'comp-b',
 			'tenant_id' => 'tenant-a',
@@ -199,11 +209,27 @@ class ExemptionGrantHandlerTest extends TestCase {
 
 		$handler->handle($this->makeEvent($case));
 
+		$gradeEntrySaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'grade-entry'));
+		self::assertSame('learner-2', $gradeEntrySaves[0]['object']['learnerId'], 'Without learnerUserId the profile names the user.');
 		self::assertCount(1, $this->transitions);
 		self::assertSame('entry-2', $this->transitions[0]['objectId']);
 		self::assertSame('publish', $this->transitions[0]['action']);
 
 	}//end testHandlesObjectEntityReturnFromSaveObject()
+
+	/**
+	 * A case without a user id for its learner's profile creates no GradeEntry.
+	 *
+	 * @return void
+	 */
+	public function testALearnerWithoutAUserGetsNoGradeEntry(): void {
+		$handler = $this->makeHandler(savedGradeEntry: ['id' => 'entry-9']);
+
+		$handler->handle($this->makeEvent(['id' => 'case-9', 'learnerId' => '7c7c7c7c-0000-4000-8000-000000000099', 'curriculumPlanId' => 'plan-1', 'componentId' => 'comp-a', 'tenant_id' => 'tenant-a']));
+
+		self::assertSame([], $this->savedObjects);
+		self::assertSame([], $this->transitions);
+	}//end testALearnerWithoutAUserGetsNoGradeEntry()
 
 	/**
 	 * Missing learnerId/curriculumPlanId/componentId is skipped — no GradeEntry created.
