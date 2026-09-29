@@ -234,7 +234,20 @@ export class LiveFixtures {
 					`/index.php/apps/openregister/api/objects/learniq/${slug}/${id}`,
 				)
 				.catch(() => null)
-			if (res === null || (!res.ok() && res.status() !== 404)) {
+			if (res === null) {
+				left.push(`${slug}/${id}`)
+				continue
+			}
+			// Archival schemas (attendance records, for one) refuse user deletes
+			// by design; OpenRegister's ArchivalRetentionTask removes them.
+			const archival =
+				res.status() === 403
+				&& (await res.text()).includes('ArchivalRetentionTask')
+			if (archival) {
+				console.warn(
+					`[live-fixtures] kept by archival retention: ${slug}/${id}`,
+				)
+			} else if (!res.ok() && res.status() !== 404) {
 				left.push(`${slug}/${id}`)
 			}
 		}
