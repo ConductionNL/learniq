@@ -25,7 +25,7 @@ Learniq SHALL declare its outside connections in `lib/Settings/connections.json`
 - **AND** every key SHALL be unique
 
 #### Scenario: A connection to a missing endpoint reads Not available and names the path
-@e2e tests/e2e/connection-registry.spec.ts
+@e2e exclude Superseded by #1157: integriq carries the exchanges and data-exchange is declared available, so no declared row names a missing endpoint on a live instance; tests/Unit/Settings/ConnectionsDeclarationTest.php guards that any unavailable message names the path the code calls.
 
 - **GIVEN** integriq has synced learniq's declaration
 - **WHEN** an admin reads the Data exchange row
