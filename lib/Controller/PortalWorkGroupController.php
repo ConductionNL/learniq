@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
  */
 
 declare(strict_types=1);
@@ -56,7 +56,7 @@ use Throwable;
 /**
  * Receives portaliq's work group forwards for one pupil.
  *
- * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
  */
 class PortalWorkGroupController extends Controller {
 
@@ -98,7 +98,7 @@ class PortalWorkGroupController extends Controller {
 	 *
 	 * @return JSONResponse 200 `{sets}`, or 401 / 403 / 502.
 	 *
-	 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
@@ -115,7 +115,7 @@ class PortalWorkGroupController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
@@ -132,7 +132,7 @@ class PortalWorkGroupController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
