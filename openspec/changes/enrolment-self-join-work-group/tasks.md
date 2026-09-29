@@ -24,6 +24,7 @@
 - **files**: `src/components/widgets/WorkGroupsWidget.vue`, `src/manifest.d/*.json` (CohortDetail), `src/registry.js`
 - [x] Implement
 - [ ] Test: Playwright `tests/e2e/work-groups.spec.ts` (teacher makes five groups of four)
+- Blocked 2026-09-29: the teacher test is `test.fixme` in `work-groups.spec.ts`. The create dialog's Class picker (a `$ref: Cohort` field in nextcloud-vue CnFormDialog) shows no options, and the dialog asks for a required "Tenant". This waits on nextcloud-vue #1283 and learniq's tenant-context change. The live learner tests create their groups through the OpenRegister objects API as admin.
 - Built as a typed `object-list` widget on CohortDetail plus `WorkGroups` index and `WorkGroupDetail` detail pages (create, edit members to move a learner, close and reopen), not a custom widget, so no custom-widget ratchet step. "Make 8 groups of 4" in one action is not built: groups are added one by one. Playwright test not written: no live instance.
 
 ### Task 4: Learner page
@@ -37,7 +38,8 @@
 - **spec_ref**: `specs/enrolment/spec.md#requirement-a-group-hand-in-names-the-whole-work-group`
 - **files**: `src/views/SubmitWorkView.vue`
 - [x] Implement
-- [ ] Test: `tests/unit-js` for the member lookup; e2e hand-in by one member lists all four
+- [x] Test: `tests/unit-js` for the member lookup; e2e hand-in by one member lists all four
+- Live 2026-09-29 on localhost:8080 (#1460, served 839bbbc6): `work-groups.spec.ts` "a learner moves to another group of the set and hands in for the whole group" passed (2.6m). "Move here" on Groep 5 leaves Groep 4 empty and puts the learner in Groep 5 with the three others (the one-group-per-set requirement). The learner then hands in a file on the group assignment (groupSubmission, workGroupSetName), and the single submission's learnerIds are all four members. Not covered: each member seeing the hand-in on their own page.
 - `src/utils/workGroups.js` `handInLearners` (caller first, so learnerRef stays the caller's), used by `SubmitWorkView`; `tests/unit-js/workGroups.test.mjs` green. The e2e half is open.
 
 ### Task 6: Seed data and translations
