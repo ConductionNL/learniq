@@ -374,6 +374,7 @@
 						"id": "bpv-deck",
 						"type": "integration",
 						"integrationId": "deck",
+						"requiredApp": "deck",
 						"title": "Follow-ups",
 						"icon": "ClipboardListOutline"
 					}
@@ -523,6 +524,7 @@
 						"id": "po-contact",
 						"type": "integration",
 						"integrationId": "contacts",
+						"requiredApp": "contacts",
 						"title": "Contact card",
 						"icon": "AccountBoxOutline"
 					}
