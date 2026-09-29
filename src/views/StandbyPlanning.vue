@@ -8,7 +8,7 @@
  weekday, the teachers on standby in each cell. A coordinator adds a teacher
  to a cell or removes one. The substitution dialog lists these teachers first.
 
- @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+ @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
 -->
 <template>
 	<div class="standby-planning">
@@ -135,7 +135,7 @@ export default {
 		 * The planning grid.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+		 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
 		 */
 		rows() {
 			return planningGrid(this.slots)
@@ -145,7 +145,7 @@ export default {
 		 * The weekday columns.
 		 *
 		 * @return {Array<{value: string, label: string}>}
-		 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+		 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
 		 */
 		weekdays() {
 			return WEEKDAYS.map((value, index) => ({
@@ -160,7 +160,7 @@ export default {
 		 * The teachers to choose from.
 		 *
 		 * @return {Array<{value: string, label: string}>}
-		 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+		 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
 		 */
 		teacherOptions() {
 			return this.staff
@@ -173,7 +173,7 @@ export default {
 	 * Load the slots and the staff.
 	 *
 	 * @return {Promise<void>}
-	 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+	 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
 	 */
 	async mounted() {
 		await this.load()
@@ -186,7 +186,7 @@ export default {
 		 * Load the slots and the staff.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+		 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
 		 */
 		async load() {
 			this.loading = true
@@ -217,7 +217,7 @@ export default {
 		 *
 		 * @param {string} uid The teacher.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+		 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
 		 */
 		nameOf(uid) {
 			return uid
@@ -230,7 +230,7 @@ export default {
 		 * @param {string} startsAt The window start.
 		 * @param {string} endsAt The window end.
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+		 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
 		 */
 		openDialog(weekday, startsAt, endsAt) {
 			this.dialog = { weekday, startsAt, endsAt }
@@ -241,7 +241,7 @@ export default {
 		 *
 		 * @param {object} slot The slot.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+		 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
 		 */
 		async remove(slot) {
 			try {

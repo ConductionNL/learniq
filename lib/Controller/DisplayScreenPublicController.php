@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
  */
 
 declare(strict_types=1);
@@ -48,7 +48,7 @@ use Throwable;
 /**
  * A screen's page and data, public, addressed by its secret token.
  *
- * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-a-display-screen-never-shows-personal-data
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-never-shows-personal-data
  */
 class DisplayScreenPublicController extends Controller {
 
@@ -82,7 +82,7 @@ class DisplayScreenPublicController extends Controller {
 	 *
 	 * @return JSONResponse `{name, updatedAt, lessons}` or 404.
 	 *
-	 * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-a-display-screen-never-shows-personal-data
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-never-shows-personal-data
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
@@ -112,7 +112,7 @@ class DisplayScreenPublicController extends Controller {
 	 *
 	 * @return TemplateResponse|JSONResponse The page, or 404.
 	 *
-	 * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]

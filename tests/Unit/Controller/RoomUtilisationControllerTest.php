@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  */
 
 declare(strict_types=1);

@@ -5,7 +5,7 @@
  and which eligible learners did not, with "Place" for the latter
  (timetabling-elective-lesson-signup). Placing is allowed after the window
  but never beyond the places; the server decides.
- @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
+ @spec openspec/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
 -->
 <template>
 	<div class="elective-roster">
@@ -93,7 +93,7 @@ export default {
 		 * The offer's uuid from the route.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
 		 */
 		offerId() {
 			return String(this.$route?.params?.id || '')
@@ -112,7 +112,7 @@ export default {
 		 * Load the roster.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
 		 */
 		async load() {
 			this.loading = true
@@ -136,7 +136,7 @@ export default {
 		 * @param {object} lesson The lesson.
 		 * @param {string} learnerId The learner.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
 		 */
 		async place(lesson, learnerId) {
 			this.busy = true
@@ -164,7 +164,7 @@ export default {
 		 *
 		 * @param {string} iso A date-time.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
 		 */
 		formatDate(iso) {
 			const date = new Date(iso)
@@ -183,7 +183,7 @@ export default {
 		 *
 		 * @param {Error} e The failure.
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
 		 */
 		reason(e) {
 			return (

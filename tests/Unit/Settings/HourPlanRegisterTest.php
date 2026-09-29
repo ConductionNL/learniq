@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
  */
 
 declare(strict_types=1);
@@ -98,7 +98,7 @@ class HourPlanRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-cohort-knows-which-year-of-its-programme-it-is-in
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-cohort-knows-which-year-of-its-programme-it-is-in
 	 */
 	public function testCohortProgrammeYear(): void {
 		$cohort = $this->schemas['Cohort'];

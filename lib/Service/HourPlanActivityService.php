@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+ * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ use Throwable;
 /**
  * Derives the teaching activities of a school year from the hour plans.
  *
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+ * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
  */
 class HourPlanActivityService {
 
@@ -73,7 +73,7 @@ class HourPlanActivityService {
 	 *
 	 * @return string|null The intake year, or null for an unreadable school year.
 	 *
-	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+	 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 	 */
 	public function intakeYearOf(string $academicYear, int $programmeYear): ?string {
 		if (preg_match('/^(\d{4})-(\d{4})$/', $academicYear, $match) !== 1 || $programmeYear < 1) {
@@ -91,7 +91,7 @@ class HourPlanActivityService {
 	 *
 	 * @return array{academicYear:string,activities:array<int,array<string,mixed>>,cohortsWithoutPlan:array<int,array<string,mixed>>}
 	 *
-	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+	 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 	 */
 	public function forYear(string $academicYear): array {
 		$activities = [];

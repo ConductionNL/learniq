@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+ * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ use Throwable;
 /**
  * Compute a forecast scenario.
  *
- * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+ * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
  */
 class EnrolmentForecastController extends Controller {
 
@@ -79,7 +79,7 @@ class EnrolmentForecastController extends Controller {
 	 *
 	 * @return JSONResponse The result, or 400/401/403/404.
 	 *
-	 * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+	 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 	 */
 	#[NoAdminRequired]
 	public function compute(string $id): JSONResponse {

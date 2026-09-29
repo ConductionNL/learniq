@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-a-display-screen-never-shows-personal-data
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-never-shows-personal-data
  */
 
 declare(strict_types=1);
@@ -41,7 +41,7 @@ use Throwable;
 /**
  * The lessons one screen shows.
  *
- * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
  */
 class DisplayScreenBoard {
 
@@ -71,7 +71,7 @@ class DisplayScreenBoard {
 	 *
 	 * @return array{name: string, updatedAt: string, lessons: array<int, array<string, mixed>>}
 	 *
-	 * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
 	 */
 	public function forScreen(array $screen): array {
 		$cache = $this->cacheFactory->createDistributed('learniq-display');
@@ -94,7 +94,7 @@ class DisplayScreenBoard {
 	 *
 	 * @return array{name: string, updatedAt: string, lessons: array<int, array<string, mixed>>}
 	 *
-	 * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-a-display-screen-never-shows-personal-data
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-never-shows-personal-data
 	 */
 	public function build(array $screen): array {
 		$tz = new DateTimeZone(self::TIMEZONE);

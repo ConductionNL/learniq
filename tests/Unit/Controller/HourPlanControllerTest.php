@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#scenario-a-learner-cannot-read-the-activity-list
+ * @spec openspec/specs/school-structure/spec.md#scenario-a-learner-cannot-read-the-activity-list
  */
 
 declare(strict_types=1);

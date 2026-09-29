@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-the-api-follows-the-same-line
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-the-api-follows-the-same-line
  */
 
 declare(strict_types=1);
@@ -53,7 +53,7 @@ class TimetableVisibilityRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
 	 */
 	public function testPolicy(): void {
 		$policy = $this->schemas['TimetableVisibilityPolicy'];
@@ -74,7 +74,7 @@ class TimetableVisibilityRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#scenario-a-learner-cannot-list-all-lessons
+	 * @spec openspec/specs/personal-timetable/spec.md#scenario-a-learner-cannot-list-all-lessons
 	 */
 	public function testSessionReadIsStaffOnly(): void {
 		$session = $this->schemas['Session'];

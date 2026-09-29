@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ use Throwable;
 /**
  * The secret address of a display screen.
  *
- * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
  */
 class DisplayScreenService {
 
@@ -70,7 +70,7 @@ class DisplayScreenService {
 	 *
 	 * @return string|null The new token, shown once, or null when the caller cannot see the screen.
 	 *
-	 * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
 	 */
 	public function issueToken(string $screenId): ?string {
 		$screen = $this->loadAsCaller(screenId: $screenId);
@@ -94,7 +94,7 @@ class DisplayScreenService {
 	 *
 	 * @return bool False when the caller cannot see the screen.
 	 *
-	 * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
 	 */
 	public function revoke(string $screenId): bool {
 		$screen = $this->loadAsCaller(screenId: $screenId);
@@ -117,7 +117,7 @@ class DisplayScreenService {
 	 *
 	 * @return array<string, mixed>|null The screen.
 	 *
-	 * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
 	 */
 	public function screenForToken(string $token): ?array {
 		$parts = explode('.', $token, 2);

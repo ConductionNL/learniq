@@ -8,7 +8,7 @@
  time window and the school year it applies to. The register lets only team
  leads and compliance officers write a StandbySlot.
 
- @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+ @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
 -->
 <template>
 	<NcDialog
@@ -115,7 +115,7 @@ export default {
 		 * The weekday options.
 		 *
 		 * @return {Array<{value: string, label: string}>}
-		 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+		 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
 		 */
 		weekdayOptions() {
 			return WEEKDAYS.map((value, index) => ({
@@ -130,7 +130,7 @@ export default {
 		 * Whether the slot is complete.
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+		 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
 		 */
 		canSave() {
 			return Boolean(
@@ -152,7 +152,7 @@ export default {
 		 * Save the slot.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+		 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
 		 */
 		async save() {
 			this.saving = true

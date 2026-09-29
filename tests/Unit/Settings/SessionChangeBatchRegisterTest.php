@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-affected-people-get-one-message-per-batch
+ * @spec openspec/specs/timetabling/spec.md#requirement-affected-people-get-one-message-per-batch
  */
 
 declare(strict_types=1);

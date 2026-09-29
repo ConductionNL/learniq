@@ -4,7 +4,7 @@
  DisplayScreenAddressView: create, renew or revoke a display screen's secret
  address (timetabling-display-screens). A new address is shown once; the
  server keeps only its hash.
- @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
+ @spec openspec/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
 -->
 <template>
 	<div class="screen-address">
@@ -81,7 +81,7 @@ export default {
 		 * The screen's uuid from the route.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
 		 */
 		screenId() {
 			return String(this.$route?.params?.id || '')
@@ -95,7 +95,7 @@ export default {
 		 * Create or renew the address and show it once.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
 		 */
 		async create() {
 			await this.post('token', (data) => {
@@ -108,7 +108,7 @@ export default {
 		 * Revoke the address.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
 		 */
 		async revoke() {
 			await this.post('revoke', () => {
@@ -123,7 +123,7 @@ export default {
 		 * @param {string} verb `token` or `revoke`.
 		 * @param {function(object): void} onDone Called with the answer.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
 		 */
 		async post(verb, onDone) {
 			this.busy = true

@@ -120,7 +120,7 @@ export function isLearniqSession(session) {
  * @param {string} [to]   Exclusive ISO 8601 window end.
  *
  * @return {Promise<{sessions: Array<object>, from: string, to: string, source: string}>} The lessons.
- * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
  */
 export async function fetchTimetableOf(kind, id, from, to) {
 	const params = { kind, id }
@@ -152,7 +152,7 @@ export async function fetchTimetableOf(kind, id, from, to) {
  * @param {string} to   Exclusive ISO 8601 window end.
  *
  * @return {Promise<Array<{slotId: string, date: string, startsAt: string, endsAt: string}>>} The blocks.
- * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+ * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
  */
 export async function fetchMyStandby(from, to) {
 	try {

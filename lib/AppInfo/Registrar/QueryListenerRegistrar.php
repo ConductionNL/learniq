@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+ * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
  */
 
 declare(strict_types=1);
@@ -35,7 +35,7 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 /**
  * Wires the in-process query listeners.
  *
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+ * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
  */
 class QueryListenerRegistrar {
 	/**
@@ -45,7 +45,7 @@ class QueryListenerRegistrar {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+	 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 	 */
 	public function register(IRegistrationContext $context): void {
 		// Teaching activities of a school year (timetabling-multi-year-hour-plan),

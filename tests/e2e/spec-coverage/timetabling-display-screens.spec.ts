@@ -6,8 +6,8 @@
  * page in a signed-out browser context.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#scenario-a-team-lead-puts-the-hall-screen-live
- *   @e2e openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#scenario-the-hall-screen-shows-a-cancelled-lesson
+ *   @e2e openspec/specs/personal-timetable/spec.md#scenario-a-team-lead-puts-the-hall-screen-live
+ *   @e2e openspec/specs/personal-timetable/spec.md#scenario-the-hall-screen-shows-a-cancelled-lesson
  *
  * The 404 for a revoked token and the pinned output shape are covered at the
  * unit level (DisplayScreenPublicControllerTest, DisplayScreenServiceTest).
@@ -15,8 +15,8 @@
 import { expect, test } from '../fixtures.ts'
 
 test.describe('timetabling-display-screens: hall screen', () => {
-	// @e2e openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#scenario-a-team-lead-puts-the-hall-screen-live
-	// @e2e openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#scenario-the-hall-screen-shows-a-cancelled-lesson
+	// @e2e openspec/specs/personal-timetable/spec.md#scenario-a-team-lead-puts-the-hall-screen-live
+	// @e2e openspec/specs/personal-timetable/spec.md#scenario-the-hall-screen-shows-a-cancelled-lesson
 	test('the address is shown once and opens the screen without a session', async ({
 		loggedInPage: page,
 		browser,

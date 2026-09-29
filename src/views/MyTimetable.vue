@@ -625,7 +625,7 @@ export default {
 		 * @param {object} session The session.
 		 *
 		 * @return {string} The topic, or ''.
-		 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
 		 */
 		noteTopic(session) {
 			const note = (session.notes || []).find((n) => n.topic)
@@ -638,7 +638,7 @@ export default {
 		 * @param {object} session The session.
 		 *
 		 * @return {string} The label.
-		 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
 		 */
 		notesSummary(session) {
 			const count = (session.notes || []).length

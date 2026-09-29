@@ -131,7 +131,7 @@ class SessionChangeNoticeHandler implements IEventListener {
 	 *
 	 * @return array{learnerIds: array<int,string>, parentIds: array<int,string>}
 	 *
-	 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-affected-people-get-one-message-per-batch
+	 * @spec openspec/specs/timetabling/spec.md#requirement-affected-people-get-one-message-per-batch
 	 */
 	public function affectedPeople(array $session): array {
 		$tenantId = (string)($session['tenant_id'] ?? '');

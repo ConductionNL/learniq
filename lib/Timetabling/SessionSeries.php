@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
+ * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
  */
 
 declare(strict_types=1);
@@ -37,7 +37,7 @@ use Throwable;
 /**
  * Finds the lessons of a weekly slot.
  *
- * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
+ * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
  */
 class SessionSeries {
 
@@ -65,7 +65,7 @@ class SessionSeries {
 	 *
 	 * @return array<int, array<string, mixed>>|null The lessons, oldest first, or null when the lesson is not readable.
 	 *
-	 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
+	 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
 	 */
 	public function series(string $sessionId, ?string $until=null): ?array {
 		$anchor = $this->loadSession(sessionId: $sessionId);
@@ -152,7 +152,7 @@ class SessionSeries {
 	 *
 	 * @return DateTimeImmutable|null
 	 *
-	 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
+	 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
 	 */
 	public function localTime(string $value, DateTimeZone $tz): ?DateTimeImmutable {
 		if ($value === '') {
@@ -174,7 +174,7 @@ class SessionSeries {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
+	 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
 	 */
 	public function loadSession(string $sessionId): ?array {
 		try {
@@ -203,7 +203,7 @@ class SessionSeries {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
+	 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
 	 */
 	public function toArray(mixed $row): array {
 		if (is_array($row) === true) {

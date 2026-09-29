@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
+ * @spec openspec/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
  */
 
 declare(strict_types=1);

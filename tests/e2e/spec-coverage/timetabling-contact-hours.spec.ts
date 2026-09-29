@@ -6,8 +6,8 @@
  * course, and drills down to learners.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#scenario-a-coordinator-finds-a-group-short-on-english
- *   @e2e openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#scenario-a-mentor-sees-a-learner-at-seventy-percent
+ *   @e2e openspec/specs/attendance/spec.md#scenario-a-coordinator-finds-a-group-short-on-english
+ *   @e2e openspec/specs/attendance/spec.md#scenario-a-mentor-sees-a-learner-at-seventy-percent
  *
  * The numbers themselves (three cancelled lessons leave a group three hours
  * short, a learner at 28 of 40 hours is marked) are covered by
@@ -16,8 +16,8 @@
 import { expect, test } from '../fixtures.ts'
 
 test.describe('timetabling-contact-hours', () => {
-	// @e2e openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#scenario-a-coordinator-finds-a-group-short-on-english
-	// @e2e openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#scenario-a-mentor-sees-a-learner-at-seventy-percent
+	// @e2e openspec/specs/attendance/spec.md#scenario-a-coordinator-finds-a-group-short-on-english
+	// @e2e openspec/specs/attendance/spec.md#scenario-a-mentor-sees-a-learner-at-seventy-percent
 	test('the report shows groups and opens a learner view', async ({
 		loggedInPage: page,
 	}) => {

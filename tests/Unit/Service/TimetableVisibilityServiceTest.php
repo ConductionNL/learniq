@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
  */
 
 declare(strict_types=1);
@@ -132,7 +132,7 @@ class TimetableVisibilityServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#scenario-a-learner-cannot-open-another-group
+	 * @spec openspec/specs/personal-timetable/spec.md#scenario-a-learner-cannot-open-another-group
 	 */
 	public function testLearnerOwnGroupsOnly(): void {
 		$service = $this->service();
@@ -147,7 +147,7 @@ class TimetableVisibilityServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#scenario-a-learner-looks-up-their-maths-teacher
+	 * @spec openspec/specs/personal-timetable/spec.md#scenario-a-learner-looks-up-their-maths-teacher
 	 */
 	public function testLearnerRelatedTeachersAndRooms(): void {
 		$service = $this->service();
@@ -166,7 +166,7 @@ class TimetableVisibilityServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#scenario-a-school-lets-learners-see-every-room
+	 * @spec openspec/specs/personal-timetable/spec.md#scenario-a-school-lets-learners-see-every-room
 	 */
 	public function testSchoolPolicyOverridesTheDefaults(): void {
 		$this->store['timetable-visibility-policy'] = [['id' => 'p-1', 'learnerSeesRooms' => 'all', 'learnerSeesTeachers' => 'none', 'instructorSeesGroups' => 'own']];

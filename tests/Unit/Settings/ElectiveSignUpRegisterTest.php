@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-school-offers-optional-lessons-with-a-window-and-a-capacity
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-school-offers-optional-lessons-with-a-window-and-a-capacity
  */
 
 declare(strict_types=1);

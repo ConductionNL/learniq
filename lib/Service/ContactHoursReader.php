@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+ * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
  */
 
 declare(strict_types=1);
@@ -35,7 +35,7 @@ use Throwable;
 /**
  * Cohorts, courses, report periods and attendance for the report.
  *
- * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+ * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
  */
 class ContactHoursReader {
 
@@ -60,7 +60,7 @@ class ContactHoursReader {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
 	 */
 	public function cohorts(string $from, string $to, ?string $cohortId): array {
 		if ($cohortId !== null && $cohortId !== '') {
@@ -87,7 +87,7 @@ class ContactHoursReader {
 	 *
 	 * @return array<string, string>
 	 *
-	 * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
 	 */
 	public function courseNames(): array {
 		$names = [];
@@ -107,7 +107,7 @@ class ContactHoursReader {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
 	 */
 	public function reportPeriods(string $academicYear): array {
 		return array_values(
@@ -125,7 +125,7 @@ class ContactHoursReader {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-learner-who-attended-too-little-is-marked
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-learner-who-attended-too-little-is-marked
 	 */
 	public function attendance(string $cohortId): array {
 		return array_values(

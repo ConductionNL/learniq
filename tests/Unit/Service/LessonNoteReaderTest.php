@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
  */
 
 declare(strict_types=1);

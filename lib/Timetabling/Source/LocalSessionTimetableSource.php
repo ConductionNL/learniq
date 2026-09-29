@@ -135,7 +135,7 @@ class LocalSessionTimetableSource implements TimetableSource {
 	 *
 	 * @return array<int,array<string,mixed>>
 	 *
-	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
 	 */
 	public function sessionsForTeacher(string $userId, ?string $from, ?string $to): array {
 		unset($from, $to);

@@ -4,7 +4,7 @@
  *
  * Pure functions, tested in tests/unit-js/roomUse.test.mjs.
  *
- * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
@@ -15,7 +15,7 @@
  *
  * @param {number|null} ratio A ratio between 0 and 1 (or more).
  * @return {string} For example `92%`.
- * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  */
 export function percent(ratio) {
 	if (ratio === null || ratio === undefined || Number.isNaN(Number(ratio))) {
@@ -29,7 +29,7 @@ export function percent(ratio) {
  *
  * @param {Date} date Any day of the week.
  * @return {{from: string, to: string}} The window, both days inclusive.
- * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  */
 export function workWeekOf(date) {
 	const monday = new Date(date.getFullYear(), date.getMonth(), date.getDate())
@@ -46,7 +46,7 @@ export function workWeekOf(date) {
  *
  * @param {number} share The share of rooms in use.
  * @return {number} The level.
- * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  */
 export function heatLevel(share) {
 	const value = Number(share) || 0
@@ -63,7 +63,7 @@ export function heatLevel(share) {
  * @param {Array<object>} rooms Rows from `GET /api/reports/room-use`.
  * @param {object} headers Column titles by key.
  * @return {string} The CSV text.
- * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  */
 export function roomsCsv(rooms, headers) {
 	const keys = [

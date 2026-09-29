@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  */
 
 declare(strict_types=1);
@@ -151,7 +151,7 @@ class RoomUtilisationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#scenario-a-deputy-head-checks-the-gyms
+	 * @spec openspec/specs/school-structure/spec.md#scenario-a-deputy-head-checks-the-gyms
 	 */
 	public function testOpenHoursAndHoursInUse(): void {
 		$out = $this->service()->forPeriod(from: '2026-04-20', to: '2026-04-25');
@@ -174,7 +174,7 @@ class RoomUtilisationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-room-utilisation/specs/school-structure/spec.md#scenario-unassigned-lessons-are-named
+	 * @spec openspec/specs/school-structure/spec.md#scenario-unassigned-lessons-are-named
 	 */
 	public function testLessonsWithoutARoomAreCounted(): void {
 		$out = $this->service()->forPeriod(from: '2026-04-20', to: '2026-04-25');

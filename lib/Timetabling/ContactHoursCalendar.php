@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+ * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
  */
 
 declare(strict_types=1);
@@ -36,7 +36,7 @@ use Throwable;
 /**
  * Proration and lesson length.
  *
- * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+ * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
  */
 class ContactHoursCalendar {
 
@@ -51,7 +51,7 @@ class ContactHoursCalendar {
 	 *
 	 * @return float
 	 *
-	 * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
 	 */
 	public function share(?string $periodCode, array $periods, string $academicYear, string $from, string $to): float {
 		if ($periodCode !== null && $periodCode !== '') {
@@ -84,7 +84,7 @@ class ContactHoursCalendar {
 	 *
 	 * @return float
 	 *
-	 * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
 	 */
 	public function hours(string $startsAt, string $endsAt): float {
 		$start = strtotime($startsAt);
@@ -105,7 +105,7 @@ class ContactHoursCalendar {
 	 *
 	 * @return int
 	 *
-	 * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
 	 */
 	public function teachingDays(string $from, string $to, array $holidays): int {
 		try {

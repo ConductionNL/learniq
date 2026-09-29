@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+ * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
  */
 
 declare(strict_types=1);
@@ -37,7 +37,7 @@ use OCP\EventDispatcher\IEventListener;
  *
  * @template-implements IEventListener<Event>
  *
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+ * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
  */
 class HourPlanActivitiesQueryListener implements IEventListener {
 
@@ -60,7 +60,7 @@ class HourPlanActivitiesQueryListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+	 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof HourPlanActivitiesQueryEvent === false || $event->isHandled() === true) {

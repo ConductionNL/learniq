@@ -6,7 +6,7 @@
  * slot, and after applying shows the outcome per lesson.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#scenario-a-coordinator-cancels-three-weeks-of-a-lesson
+ *   @e2e openspec/specs/timetabling/spec.md#scenario-a-coordinator-cancels-three-weeks-of-a-lesson
  *
  * The guard outcome inside a batch and the one message per batch are covered
  * at the unit level (SessionChangeBatchServiceTest, SessionChangeBatchRegisterTest,
@@ -17,7 +17,7 @@
 import { expect, test } from '../fixtures.ts'
 
 test.describe('timetabling-bulk-change-weeks: apply to more weeks', () => {
-	// @e2e openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#scenario-a-coordinator-cancels-three-weeks-of-a-lesson
+	// @e2e openspec/specs/timetabling/spec.md#scenario-a-coordinator-cancels-three-weeks-of-a-lesson
 	test('the substitution dialog lists the weekly slot and applies one batch', async ({
 		loggedInPage: page,
 	}) => {

@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
  */
 
 declare(strict_types=1);
@@ -42,7 +42,7 @@ use OCP\IUserSession;
 /**
  * Create, renew and revoke a screen's address.
  *
- * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
  */
 class DisplayScreenController extends Controller {
 
@@ -75,7 +75,7 @@ class DisplayScreenController extends Controller {
 	 *
 	 * @return JSONResponse `{address, note}`, or 401/403/404.
 	 *
-	 * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
 	 */
 	#[NoAdminRequired]
 	public function token(string $id): JSONResponse {
@@ -106,7 +106,7 @@ class DisplayScreenController extends Controller {
 	 *
 	 * @return JSONResponse `{status: revoked}`, or 401/403/404.
 	 *
-	 * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
 	 */
 	#[NoAdminRequired]
 	public function revoke(string $id): JSONResponse {

@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+ * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ use RuntimeException;
 /**
  * The contact hours report.
  *
- * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+ * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
  */
 class ContactHoursController extends Controller {
 
@@ -75,7 +75,7 @@ class ContactHoursController extends Controller {
 	 *
 	 * @return JSONResponse The report, or 400/401/403/503.
 	 *
-	 * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

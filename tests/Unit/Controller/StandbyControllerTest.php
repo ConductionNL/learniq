@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
+ * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
  */
 
 declare(strict_types=1);

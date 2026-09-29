@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+ * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
  */
 
 declare(strict_types=1);
@@ -38,7 +38,7 @@ use OCP\EventDispatcher\Event;
 /**
  * Asks learniq for the teaching activities of a school year.
  *
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+ * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
  */
 class HourPlanActivitiesQueryEvent extends Event {
 
@@ -78,7 +78,7 @@ class HourPlanActivitiesQueryEvent extends Event {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+	 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 	 */
 	public function getSourceApp(): string {
 		return $this->sourceApp;
@@ -89,7 +89,7 @@ class HourPlanActivitiesQueryEvent extends Event {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+	 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 	 */
 	public function getAcademicYear(): string {
 		return $this->academicYear;
@@ -102,7 +102,7 @@ class HourPlanActivitiesQueryEvent extends Event {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+	 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 	 */
 	public function setResult(array $result): void {
 		$this->result = $result;
@@ -116,7 +116,7 @@ class HourPlanActivitiesQueryEvent extends Event {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+	 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 	 */
 	public function setError(string $error): void {
 		$this->error = $error;
@@ -128,7 +128,7 @@ class HourPlanActivitiesQueryEvent extends Event {
 	 *
 	 * @return array<string,mixed>|null
 	 *
-	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+	 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 	 */
 	public function getResult(): ?array {
 		return $this->result;
@@ -139,7 +139,7 @@ class HourPlanActivitiesQueryEvent extends Event {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+	 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 	 */
 	public function getError(): ?string {
 		return $this->error;
@@ -150,7 +150,7 @@ class HourPlanActivitiesQueryEvent extends Event {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+	 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 	 */
 	public function isHandled(): bool {
 		return $this->result !== null || $this->error !== null;

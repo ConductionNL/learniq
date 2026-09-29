@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+ * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ use RuntimeException;
 /**
  * Owed, given and attended contact hours over a window.
  *
- * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+ * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
  */
 class ContactHoursService {
 
@@ -75,7 +75,7 @@ class ContactHoursService {
 	 *
 	 * @throws RuntimeException When the timetable source cannot be read.
 	 *
-	 * @spec openspec/changes/timetabling-contact-hours/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
 	 */
 	public function forPeriod(string $from, string $to, ?string $cohortId=null): array {
 		$margin = max(0, min(100, $this->appConfig->getValueInt('learniq', self::MARGIN_KEY, 10)));

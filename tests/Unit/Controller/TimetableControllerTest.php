@@ -390,7 +390,7 @@ class TimetableControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
 	 */
 	public function testASubstituteSeesTheLessonTheyCoverAndNothingElseOfThatCohort(): void {
 		$this->signInAs('e.devries');
@@ -419,7 +419,7 @@ class TimetableControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
 	 */
 	public function testASubstituteWithNoCohortSeesTheLessonTheyCover(): void {
 		$this->signInAs('pool.invaller');
@@ -762,7 +762,7 @@ class TimetableControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
 	 */
 	public function testLearnerSeesLearnerNoteButNeverTheCoverNote(): void {
 		$this->signInAs('alice');
@@ -784,7 +784,7 @@ class TimetableControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
 	 */
 	public function testTeacherSeesEveryNoteOfTheirLesson(): void {
 		$this->signInAs('tom');
@@ -801,7 +801,7 @@ class TimetableControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
 	 */
 	public function testSubstituteSeesTheCoverNote(): void {
 		$this->signInAs('eva');

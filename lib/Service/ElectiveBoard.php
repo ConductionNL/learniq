@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ use DateTimeInterface;
 /**
  * The learner's offers and the coordinator's roster.
  *
- * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
  */
 class ElectiveBoard {
 
@@ -56,7 +56,7 @@ class ElectiveBoard {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 	 */
 	public function forLearner(string $learnerId, ?DateTimeImmutable $now=null): array {
 		$now = ($now ?? new DateTimeImmutable('now'));
@@ -95,7 +95,7 @@ class ElectiveBoard {
 	 *
 	 * @return array<string, mixed>|null The roster, or null for an unknown offer.
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
 	 */
 	public function roster(string $offerId, ?DateTimeImmutable $now=null): ?array {
 		$now = ($now ?? new DateTimeImmutable('now'));

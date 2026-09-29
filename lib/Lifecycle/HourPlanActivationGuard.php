@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ use Throwable;
 /**
  * Refuses a second active hour plan for the same programme and intake year.
  *
- * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
  */
 class HourPlanActivationGuard implements LifecycleGuardInterface {
 
@@ -71,7 +71,7 @@ class HourPlanActivationGuard implements LifecycleGuardInterface {
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 *
-	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$programmeId = (string)($object['programmeId'] ?? '');

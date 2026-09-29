@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-display-screens/specs/personal-timetable/spec.md#requirement-a-display-screen-never-shows-personal-data
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-never-shows-personal-data
  */
 
 declare(strict_types=1);

@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
+ * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
  */
 
 declare(strict_types=1);
@@ -49,7 +49,7 @@ use Throwable;
 /**
  * Serves the substitution candidates of a lesson and the caller's standby blocks.
  *
- * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
+ * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
  */
 class StandbyController extends Controller {
 
@@ -88,7 +88,7 @@ class StandbyController extends Controller {
 	 *
 	 * @return JSONResponse 200 with `candidates`; 401 without a user; 403 for a caller who may not assign a substitute; 404 for an unknown lesson.
 	 *
-	 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
+	 * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -122,7 +122,7 @@ class StandbyController extends Controller {
 	 *
 	 * @return JSONResponse 200 with `standby`; 400 for a missing window; 401 without a user.
 	 *
-	 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+	 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

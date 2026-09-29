@@ -32,7 +32,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ use OCP\IUserManager;
 /**
  * Decides and serves which group, teacher and room timetables a caller may open.
  *
- * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
  */
 class TimetableVisibilityService {
 
@@ -89,7 +89,7 @@ class TimetableVisibilityService {
 	 *
 	 * @return array<string,string>
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
 	 */
 	public function policy(): array {
 		$rows = $this->directory->policyRows();
@@ -109,7 +109,7 @@ class TimetableVisibilityService {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
 	 */
 	public function policyId(): ?string {
 		$rows = $this->directory->policyRows();
@@ -128,7 +128,7 @@ class TimetableVisibilityService {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
 	 */
 	public function role(string $uid): string {
 		if ($this->groupManager->isAdmin($uid) === true) {
@@ -156,7 +156,7 @@ class TimetableVisibilityService {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
 	 */
 	public function scope(string $uid, string $kind): string {
 		$role = $this->role(uid: $uid);
@@ -176,7 +176,7 @@ class TimetableVisibilityService {
 	 *
 	 * @return array<int,string>|null
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 	 */
 	public function allowedIds(string $uid, string $kind): ?array {
 		$scope = $this->scope(uid: $uid, kind: $kind);
@@ -222,7 +222,7 @@ class TimetableVisibilityService {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 	 */
 	public function mayOpen(string $uid, string $kind, string $id): bool {
 		if (in_array($kind, self::KINDS, true) === false || $id === '') {
@@ -241,7 +241,7 @@ class TimetableVisibilityService {
 	 *
 	 * @return array<int,array{id:string,label:string}> Sorted by label.
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 	 */
 	public function options(string $uid, string $kind): array {
 		$ids = $this->allowedIds(uid: $uid, kind: $kind);

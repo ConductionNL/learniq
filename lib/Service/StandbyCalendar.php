@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+ * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ use Throwable;
 /**
  * Expands a teacher's standby slots into the blocks of a window.
  *
- * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+ * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
  */
 class StandbyCalendar {
 
@@ -61,7 +61,7 @@ class StandbyCalendar {
 	 *
 	 * @return array<int,array{slotId:string,date:string,startsAt:string,endsAt:string,vestigingId:string|null}>
 	 *
-	 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+	 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
 	 */
 	public function blocksFor(string $uid, string $from, string $to): array {
 		try {
@@ -110,7 +110,7 @@ class StandbyCalendar {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
+	 * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
 	 */
 	public function covers(array $slot, array $lesson): bool {
 		$overlaps = (string)($slot['startsAt'] ?? '') < $lesson['to'] && $lesson['from'] < (string)($slot['endsAt'] ?? '');

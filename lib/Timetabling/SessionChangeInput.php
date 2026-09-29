@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-every-lesson-in-a-batch-passes-the-same-checks
+ * @spec openspec/specs/timetabling/spec.md#requirement-every-lesson-in-a-batch-passes-the-same-checks
  */
 
 declare(strict_types=1);
@@ -31,7 +31,7 @@ use InvalidArgumentException;
 /**
  * The input of one change on several lessons.
  *
- * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-every-lesson-in-a-batch-passes-the-same-checks
+ * @spec openspec/specs/timetabling/spec.md#requirement-every-lesson-in-a-batch-passes-the-same-checks
  */
 class SessionChangeInput {
 
@@ -49,7 +49,7 @@ class SessionChangeInput {
 	 *
 	 * @throws InvalidArgumentException When something required is missing.
 	 *
-	 * @spec openspec/changes/timetabling-bulk-change-weeks/specs/timetabling/spec.md#requirement-every-lesson-in-a-batch-passes-the-same-checks
+	 * @spec openspec/specs/timetabling/spec.md#requirement-every-lesson-in-a-batch-passes-the-same-checks
 	 */
 	public function validated(array $input): array {
 		$kind = $this->oneOf(value: ($input['kind'] ?? ''), allowed: self::KINDS, message: 'Choose cancel, substitute or room.');

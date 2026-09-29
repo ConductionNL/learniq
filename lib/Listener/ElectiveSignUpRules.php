@@ -34,7 +34,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
+ * @spec openspec/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
  */
 
 declare(strict_types=1);
@@ -58,7 +58,7 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
+ * @spec openspec/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
  */
 class ElectiveSignUpRules implements IEventListener {
 
@@ -98,7 +98,7 @@ class ElectiveSignUpRules implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
+	 * @spec openspec/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
@@ -175,7 +175,7 @@ class ElectiveSignUpRules implements IEventListener {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/timetabling-elective-lesson-signup/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
+	 * @spec openspec/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
 	 */
 	public function refusal(array $signUp, array $caller, DateTimeImmutable $now): ?string {
 		// Admins may always write (break-glass, and how an example set or

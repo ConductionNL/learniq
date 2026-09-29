@@ -17,7 +17,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-enrolment-forecast/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+ * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
  */
 
 declare(strict_types=1);

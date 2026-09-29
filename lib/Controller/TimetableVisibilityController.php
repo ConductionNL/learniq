@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
  */
 
 declare(strict_types=1);
@@ -47,7 +47,7 @@ use RuntimeException;
 /**
  * Serves other timetables within the school's visibility policy.
  *
- * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
  */
 class TimetableVisibilityController extends Controller {
 
@@ -82,7 +82,7 @@ class TimetableVisibilityController extends Controller {
 	 *
 	 * @return JSONResponse 200 with `sessions` as the personal timetable; 401 or 403 when refused; 503 when the timetable cannot be read.
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -127,7 +127,7 @@ class TimetableVisibilityController extends Controller {
 	 *
 	 * @return JSONResponse 200 with `options` and the policy `scope`; 400 for an unknown kind; 401 without a user.
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -152,7 +152,7 @@ class TimetableVisibilityController extends Controller {
 	 *
 	 * @return JSONResponse 200 with `policy`, `policyId` (or null) and `canEdit`; 401 without a user.
 	 *
-	 * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

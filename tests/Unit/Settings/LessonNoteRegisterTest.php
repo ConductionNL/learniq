@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
  */
 
 declare(strict_types=1);
@@ -101,7 +101,7 @@ class LessonNoteRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
 	 */
 	public function testLearnersHaveNoDirectRead(): void {
 		$auth = $this->schema['authorization'];

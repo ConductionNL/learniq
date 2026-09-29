@@ -11,7 +11,7 @@
  is the server-side check that the writer teaches or covers the lesson; this
  dialog is only offered where the timetable says the caller may add a note.
 
- @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
+ @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
 -->
 <template>
 	<NcDialog
@@ -141,7 +141,7 @@ export default {
 		 * The lesson the note is for, as one line.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
 		 */
 		lessonLabel() {
 			const ts = Date.parse(this.session.startsAt || '')
@@ -163,7 +163,7 @@ export default {
 		 * Choices for the series: this lesson only, or up to ten weeks more.
 		 *
 		 * @return {Array<{value:number,label:string}>}
-		 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
 		 */
 		weekOptions() {
 			const options = [{ value: 0, label: t('learniq', 'Only this lesson') }]
@@ -185,7 +185,7 @@ export default {
 		 * Whether the note can be saved.
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
 		 */
 		canSubmit() {
 			return this.text.trim() !== '' && Boolean(this.session.cohortId)
@@ -200,7 +200,7 @@ export default {
 		 * chosen weeks, read from the cohort's timetable.
 		 *
 		 * @return {Promise<Array<object>>}
-		 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
 		 */
 		async targets() {
 			if (!this.weeks) {
@@ -220,7 +220,7 @@ export default {
 		 * Save the note on every target lesson.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
 		 */
 		async submit() {
 			if (!this.canSubmit) return
