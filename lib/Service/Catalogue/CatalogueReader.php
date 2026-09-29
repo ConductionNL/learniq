@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
  */
 
 declare(strict_types=1);
@@ -37,7 +37,7 @@ use OCA\OpenRegister\Service\ObjectService;
 /**
  * Lists what a learner may sign up for.
  *
- * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
  */
 class CatalogueReader {
 
@@ -79,7 +79,7 @@ class CatalogueReader {
 	 *
 	 * @return array{courses: list<array<string, mixed>>, programmes: list<array<string, mixed>>}
 	 *
-	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-provider-courses-show-their-provider
+	 * @spec openspec/specs/enrolment/spec.md#requirement-provider-courses-show-their-provider
 	 */
 	public function entries(string $userId, string $search = '', array $filters = []): array {
 		$rows = $this->enrolmentRows(userId: $userId);
@@ -112,7 +112,7 @@ class CatalogueReader {
 	 *
 	 * @return array<string, array{id: string, lifecycle: string, source: string, progressPercent: float}>
 	 *
-	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
 	 */
 	public function enrolmentsByCourse(string $userId): array {
 		return $this->byCourse(rows: $this->enrolmentRows(userId: $userId));
@@ -184,7 +184,7 @@ class CatalogueReader {
 	 *
 	 * @return array{id: string, ids: list<string>, lifecycle: string, source: string, progressPercent: float}|null
 	 *
-	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-a-track
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-a-track
 	 */
 	private function programmeEnrolment(string $programmeId, array $rows): ?array {
 		$live = array_values(

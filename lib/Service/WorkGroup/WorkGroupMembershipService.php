@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
  */
 
 declare(strict_types=1);
@@ -48,7 +48,7 @@ use Throwable;
 /**
  * Join, move and leave for one learner.
  *
- * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
  */
 class WorkGroupMembershipService {
 
@@ -80,7 +80,7 @@ class WorkGroupMembershipService {
 	 *
 	 * @return PortalOutcome 200 `{sets}`.
 	 *
-	 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
 	 */
 	public function mine(PortalLearner $learner): PortalOutcome {
 		return new PortalOutcome(status: Http::STATUS_OK, body: ['sets' => $this->reader->mine(userId: $learner->ncUserId, isOpen: $this->isOpen(...))]);
@@ -94,8 +94,8 @@ class WorkGroupMembershipService {
 	 *
 	 * @return PortalOutcome 200 `{groupId, left}`, or 403 / 404 / 409 / 422 with a reason.
 	 *
-	 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#scenario-a-full-group-takes-nobody-more
-	 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-is-in-one-work-group-per-set
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-full-group-takes-nobody-more
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-is-in-one-work-group-per-set
 	 */
 	public function join(PortalLearner $learner, string $groupId): PortalOutcome {
 		$key = 'learniq-work-group-' . $groupId;
@@ -115,7 +115,7 @@ class WorkGroupMembershipService {
 	 *
 	 * @return PortalOutcome 200 `{groupId}`, or a refusal.
 	 *
-	 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
 	 */
 	public function leave(PortalLearner $learner, string $groupId): PortalOutcome {
 		$group = $this->openGroupFor(learner: $learner, groupId: $groupId);
@@ -202,7 +202,7 @@ class WorkGroupMembershipService {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
 	 */
 	public function isOpen(array $group): bool {
 		if (($group['lifecycle'] ?? 'open') !== 'open') {

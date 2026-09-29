@@ -159,7 +159,7 @@ export default {
 		 *
 		 * @param {string} learnerId The caller's user id.
 		 * @return {Promise<string[]>} The learnerIds.
-		 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-group-hand-in-names-the-whole-work-group
+		 * @spec openspec/specs/enrolment/spec.md#requirement-a-group-hand-in-names-the-whole-work-group
 		 */
 		async handInLearnerIds(learnerId) {
 			if (

@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
  */
 
 declare(strict_types=1);
@@ -275,7 +275,7 @@ class CatalogueSignUpServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-a-track
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-a-track
 	 */
 	public function testAProgrammeCardCarriesTheSignUpAfterSigningUp(): void {
 		$service = $this->service();
@@ -300,7 +300,7 @@ class CatalogueSignUpServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-a-track
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-a-track
 	 */
 	public function testAProgrammeCardCountsOnlyLiveEnrolmentsNamingIt(): void {
 		$this->service();

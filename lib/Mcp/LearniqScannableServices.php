@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/hermiq-ai-tooling/specs/mcp-tool-surface/spec.md#requirement-no-hand-written-mcp-tool-code-remains-in-scholiq-req-006
+ * @spec openspec/changes/hermiq-ai-tooling/specs/mcp-tool-surface/spec.md#requirement-no-hand-written-mcp-tool-code-remains-in-learniq-req-006
  */
 
 declare(strict_types=1);
@@ -42,7 +42,7 @@ class LearniqScannableServices implements IMcpScannableServices {
 	 *
 	 * @return array<int, class-string> The service classes.
 	 *
-	 * @spec openspec/changes/hermiq-ai-tooling/specs/mcp-tool-surface/spec.md#requirement-no-hand-written-mcp-tool-code-remains-in-scholiq-req-006
+	 * @spec openspec/changes/hermiq-ai-tooling/specs/mcp-tool-surface/spec.md#requirement-no-hand-written-mcp-tool-code-remains-in-learniq-req-006
 	 */
 	public function getScannableServiceClasses(): array {
 		return [LearniqAgentTools::class];

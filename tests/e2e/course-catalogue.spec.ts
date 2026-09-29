@@ -16,12 +16,12 @@
  * answers 403 not_a_learner. learner-profile is an archival schema, so
  * teardown keeps it (reported as retained).
  *
- * @e2e openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-course-or-programme-says-whether-learners-may-sign-up
- * @e2e openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
- * @e2e openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-a-whole-programme
- * @e2e openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-withdraws-their-own-sign-up
- * @e2e openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-provider-courses-show-their-provider
- * @e2e openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-request-waits-for-a-teacher-or-manager
+ * @e2e openspec/specs/enrolment/spec.md#requirement-a-course-or-programme-says-whether-learners-may-sign-up
+ * @e2e openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
+ * @e2e openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-a-whole-programme
+ * @e2e openspec/specs/enrolment/spec.md#requirement-a-learner-withdraws-their-own-sign-up
+ * @e2e openspec/specs/enrolment/spec.md#requirement-provider-courses-show-their-provider
+ * @e2e openspec/specs/enrolment/spec.md#requirement-a-request-waits-for-a-teacher-or-manager
  */
 import type { Page } from '@playwright/test'
 
