@@ -83,6 +83,6 @@ class CredentialReissueRegisterTest extends TestCase {
 		$notification = $this->credential()['x-openregister-notifications']['reissued'];
 
 		self::assertSame(['type' => 'transition', 'action' => 'reissue'], $notification['trigger']);
-		self::assertSame([['kind' => 'field', 'field' => 'learnerId']], $notification['recipients']);
+		self::assertSame([['kind' => 'field', 'field' => 'learnerUserId']], $notification['recipients']);
 	}//end testTheLearnerIsNotified()
 }//end class

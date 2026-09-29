@@ -2736,7 +2736,8 @@ OC.L10N.register(
         "Groups needed": "Groups needed",
         "estimated": "estimated",
         "{name} (copy)": "{name} (copy)",
-        "Next year's learners and groups per programme year and subject, from this year's groups, progression rates and subject choices.": "Next year's learners and groups per programme year and subject, from this year's groups, progression rates and subject choices."
+        "Next year's learners and groups per programme year and subject, from this year's groups, progression rates and subject choices.": "Next year's learners and groups per programme year and subject, from this year's groups, progression rates and subject choices.",
+        "The learner's Nextcloud user id, written at issuance next to learnerId (the LearnerProfile uuid). The learner's read rule matches on it.": "The learner's Nextcloud user id, written at issuance next to learnerId (the LearnerProfile uuid). The learner's read rule matches on it."
     },
     "nplurals=2; plural=(n != 1);"
 )

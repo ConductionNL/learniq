@@ -3198,7 +3198,8 @@ OC.L10N.register(
         "Groups needed": "Benodigde groepen",
         "estimated": "geschat",
         "{name} (copy)": "{name} (kopie)",
-        "Next year's learners and groups per programme year and subject, from this year's groups, progression rates and subject choices.": "Leerlingen en groepen van volgend jaar per leerjaar en vak, uit de groepen van dit jaar, de doorstroom en de vakkenkeuzes."
+        "Next year's learners and groups per programme year and subject, from this year's groups, progression rates and subject choices.": "Leerlingen en groepen van volgend jaar per leerjaar en vak, uit de groepen van dit jaar, de doorstroom en de vakkenkeuzes.",
+        "The learner's Nextcloud user id, written at issuance next to learnerId (the LearnerProfile uuid). The learner's read rule matches on it.": "Het Nextcloud-gebruikers-ID van de leerling, bij uitgifte naast learnerId (de uuid van het leerlingprofiel) vastgelegd. De leesregel voor de leerling kijkt hiernaar."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -1298,6 +1298,7 @@
         "The last day of this plan's period.",
         "The last day the slot applies, usually the end of the school year.",
         "The learner the file is about.",
+        "The learner's Nextcloud user id, written at issuance next to learnerId (the LearnerProfile uuid). The learner's read rule matches on it.",
         "The learner's account id, used to find the parents who may decide.",
         "The learners in the group.",
         "The learning goals the lessons cover, as one line for the store card.",
