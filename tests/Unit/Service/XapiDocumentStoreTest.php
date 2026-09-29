@@ -105,6 +105,7 @@ class XapiDocumentStoreTest extends TestCase {
 		self::assertSame($etag, $doc['etag']);
 
 		$row = $this->rows->rows['xapi-document'][0];
+		self::assertSame(base64_encode('{"page":3}'), $row['contents'], 'a JSON body is stored as base64, never as a JSON string OpenRegister would decode');
 		self::assertSame('pupil1', $row['verified_actor_id']);
 		self::assertSame('tenant-a', $row['tenant_id']);
 		self::assertSame('lesson-1', $row['lessonId']);
