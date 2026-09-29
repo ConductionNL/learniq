@@ -36,7 +36,6 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IRequest;
-use OCP\IUser;
 use OCP\IUserSession;
 use Psr\Container\ContainerInterface;
 use Throwable;
@@ -48,7 +47,13 @@ use Throwable;
  * blob unchanged (v0.1). A partial-override hook from IAppConfig is deferred
  * to v0.2 — the frontend loader's silent-fallback path is exercised in v0.1.
  *
- * @spec exclude framework glue — SPA shell + manifest passthrough + role, segment, store-access and caller-tenant initial-state provider; no business behaviour
+ * @spec exclude framework glue — SPA shell, manifest passthrough and initial-state provider (role, segment, store access, tenant)
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) One over the threshold since
+ * the caller's tenant joined the initial state. This controller is where the
+ * page's per-user values are gathered, and each one comes from its own service,
+ * resolved lazily (segment, store access, tenant) so the default route stays
+ * up without OpenRegister.
  */
 class PageController extends Controller {
 	/**
@@ -106,7 +111,7 @@ class PageController extends Controller {
 			$this->initialState->provideInitialState('loadedExampleSets', $this->loadedSets->all());
 			// The caller's tenant, for nextcloud-vue's tenant context: the
 			// shared create dialog fills a hidden `tenant_id` from it.
-			$this->initialState->provideInitialState('callerTenant', $this->resolveCallerTenant(user: $user));
+			$this->initialState->provideInitialState('callerTenant', $this->resolveCallerTenant());
 		}
 
 		return new TemplateResponse(Application::APP_ID, 'index');
@@ -167,11 +172,14 @@ class PageController extends Controller {
 	 * ObjectService, and this is the app's default route. Null means no
 	 * tenant context, so the dialog leaves the key out rather than guess.
 	 *
-	 * @param IUser $user The signed-in user.
-	 *
 	 * @return string|null The tenant id, or null when it cannot be resolved.
 	 */
-	private function resolveCallerTenant(IUser $user): ?string {
+	private function resolveCallerTenant(): ?string {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return null;
+		}
+
 		try {
 			$tenant = $this->container->get(CallerTenantResolver::class)->resolve(user: $user);
 		} catch (Throwable $e) {
