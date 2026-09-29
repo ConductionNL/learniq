@@ -11,7 +11,7 @@
  count of check-ins so far. Learners type the code on their check-in page or
  in the portal. Close ends the window at once.
 
- @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-teacher-opens-a-self-check-in-window-for-a-lesson
+ @spec openspec/specs/attendance/spec.md#requirement-a-teacher-opens-a-self-check-in-window-for-a-lesson
 -->
 <template>
 	<section class="self-check-in" :aria-label="t('learniq', 'Self check-in')">
@@ -109,7 +109,7 @@ export default {
 		 *
 		 * @param {string} mode `rotating-qr` or `link`.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#scenario-a-teacher-shows-the-check-in-code-on-the-board
+		 * @spec openspec/specs/attendance/spec.md#scenario-a-teacher-shows-the-check-in-code-on-the-board
 		 */
 		async open(mode) {
 			this.busy = true
@@ -148,7 +148,7 @@ export default {
 		 * Read the current code and count, and schedule the next read.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-the-check-in-code-changes-every-thirty-seconds-in-the-room
+		 * @spec openspec/specs/attendance/spec.md#requirement-the-check-in-code-changes-every-thirty-seconds-in-the-room
 		 */
 		async refresh() {
 			if (!this.window) return
@@ -176,7 +176,7 @@ export default {
 		 * Close the window at once.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-teacher-opens-a-self-check-in-window-for-a-lesson
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-teacher-opens-a-self-check-in-window-for-a-lesson
 		 */
 		async close() {
 			this.busy = true

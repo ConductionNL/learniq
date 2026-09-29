@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+ * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
  */
 
 declare(strict_types=1);
@@ -33,7 +33,7 @@ use OCP\L10N\IFactory;
 /**
  * Plain reasons for a refused check-in.
  *
- * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+ * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
  */
 class CheckInMessages {
 
@@ -69,7 +69,7 @@ class CheckInMessages {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/attendance-self-check-in/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
 	 */
 	public function message(string $reason, ?IUser $user): string {
 		$l10n = $this->l10nFactory->get(Application::APP_ID, $this->l10nFactory->getUserLanguage($user));

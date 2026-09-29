@@ -38,9 +38,19 @@
 		:pageTypes="pageTypes"
 		:customComponents="headerActionHandlers"
 		appId="learniq"
-		:translate="translateForApp">
+		:translate="translateForApp"
+		:initialOrganisationUuid="callerTenant">
 		<template #user-settings>
 			<LearniqNotificationSettings />
+		</template>
+		<!-- The tenant context carries learniq's tenant id, not an organisation
+		     name, so the library's tenant badge would print a raw id. Keep it
+		     hidden, as it was before the context was fed. The slot needs a real
+		     element: Vue 3 renders a slot's fallback (the badge) when the slot
+		     content is empty, so `<template #tenant-badge />` alone would not
+		     suppress it. -->
+		<template #tenant-badge>
+			<span hidden />
 		</template>
 	</CnAppRoot>
 </template>
@@ -88,6 +98,16 @@ export default {
 		 */
 		pageTypes: {
 			type: Object,
+			default: null,
+		},
+
+		/**
+		 * The caller's tenant id (CallerTenantResolver, via the `callerTenant`
+		 * initial state), or null. Fed to CnAppRoot as the tenant context so
+		 * nextcloud-vue's create dialog fills a hidden `tenant_id` with it.
+		 */
+		callerTenant: {
+			type: String,
 			default: null,
 		},
 	},

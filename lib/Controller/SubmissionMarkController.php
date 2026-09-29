@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
+ * @spec openspec/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
  */
 
 declare(strict_types=1);
@@ -47,7 +47,7 @@ use OCP\IUserSession;
 /**
  * Allocation of markers and the marks read of one submission.
  *
- * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
+ * @spec openspec/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
  */
 class SubmissionMarkController extends Controller {
 
@@ -95,7 +95,7 @@ class SubmissionMarkController extends Controller {
 	 *
 	 * @return JSONResponse 200 with the summary, or 401 / 403 / 404 / 422.
 	 *
-	 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#scenario-a-coordinator-allocates-two-markers-to-every-hand-in
+	 * @spec openspec/specs/assignments/spec.md#scenario-a-coordinator-allocates-two-markers-to-every-hand-in
 	 */
 	#[NoAdminRequired]
 	public function allocate(string $assignmentId): JSONResponse {
@@ -146,7 +146,7 @@ class SubmissionMarkController extends Controller {
 	 *
 	 * @return JSONResponse 200 `{marks, ownMark, complete, summary, finalGradeRule}`, or 401 / 404.
 	 *
-	 * @spec openspec/changes/assignments-double-marking/specs/assignments/spec.md#scenario-the-second-marker-cannot-peek
+	 * @spec openspec/specs/assignments/spec.md#scenario-the-second-marker-cannot-peek
 	 */
 	#[NoAdminRequired]
 	public function marks(string $submissionId): JSONResponse {

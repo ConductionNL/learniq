@@ -7,9 +7,12 @@
  * POST and GET on `/api/lrs/statements`.
  *
  * Two callers authenticate differently:
- * - a launched cmi5 AU sends its launch token as `Authorization: Basic <token>`
+ * - a launched cmi5 AU sends its auth-token as `Authorization: Basic <token>`
  *   (or `Bearer <token>`); it has no Nextcloud session, so the POST route is a
- *   public page and the token is the credential;
+ *   public page and the token is the credential. The auth-token is the base64
+ *   of the launch JWT, so Nextcloud does not read it as a `user:password` login
+ *   and reject it before this controller runs
+ *   ({@see Cmi5LaunchTokenService::authToken()});
  * - the lesson player of a signed-in learner (the SCORM 1.2 shim) posts with its
  *   session and request token, which is checked here because the route itself
  *   cannot demand CSRF for the token caller.
@@ -156,7 +159,7 @@ class LrsController extends Controller {
 	private function authenticate(): ?array {
 		$header = trim((string)$this->request->getHeader('Authorization'));
 		if (preg_match('/^(Basic|Bearer)\s+(\S+)$/i', $header, $match) === 1) {
-			$claims = $this->tokens->verifyLaunchToken(token: $match[2]);
+			$claims = $this->tokens->verifyAuthToken(credential: $match[2]);
 			if ($claims === null) {
 				return null;
 			}

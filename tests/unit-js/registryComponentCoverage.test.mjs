@@ -20,8 +20,8 @@
 // CnPageRenderer looks up at runtime (the `registry` prop's own keys), so
 // the check is faithful to the real resolution path, not an approximation of it.
 //
-// @spec openspec/changes/registry-component-fix/specs/component-registry/spec.md#requirement-every-type-custom-manifest-pages-component-must-be-registered
-// @spec openspec/changes/registry-component-fix/specs/component-registry/spec.md#requirement-a-regression-test-must-fail-when-a-custom-page-names-an-unregistered-component
+// @spec openspec/specs/component-registry/spec.md#requirement-every-type-custom-manifest-pages-component-must-be-registered
+// @spec openspec/specs/component-registry/spec.md#requirement-a-regression-test-must-fail-when-a-custom-page-names-an-unregistered-component
 
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
