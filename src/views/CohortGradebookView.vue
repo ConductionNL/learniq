@@ -420,7 +420,10 @@ export default {
 			try {
 				if (existing) {
 					const id = objectId(existing)
-					await axios.put(generateUrl(objectsUrl('grade-entry', id)), body)
+					await axios.patch(
+						generateUrl(objectsUrl('grade-entry', id)),
+						body,
+					)
 					Object.assign(existing, body)
 				} else {
 					const created = oneObject(

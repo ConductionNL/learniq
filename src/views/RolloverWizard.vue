@@ -240,7 +240,7 @@ export default {
 					'/apps/openregister/api/objects/learniq/rollover-plan/{id}',
 					{ id: this.planId },
 				)
-				await axios.put(url, { lifecycle: 'executing' })
+				await axios.patch(url, { lifecycle: 'executing' })
 			} catch (e) {
 				console.error('[RolloverWizard] execute failed', e)
 			} finally {
@@ -266,7 +266,7 @@ export default {
 						'/apps/openregister/api/objects/learniq/rollover-plan/{id}',
 						{ id: this.planId },
 					)
-					const r = await axios.put(url, body)
+					const r = await axios.patch(url, body)
 					return (r.data && (r.data.id || r.data.uuid)) || this.planId
 				}
 				const url = generateUrl(

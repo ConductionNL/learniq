@@ -475,7 +475,7 @@ export default {
 
 			try {
 				const resp = await fetch(url, {
-					method: isEdit ? 'PUT' : 'POST',
+					method: isEdit ? 'PATCH' : 'POST',
 					headers: {
 						'OCS-APIREQUEST': 'true',
 						Accept: 'application/json',
