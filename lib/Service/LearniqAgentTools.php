@@ -101,6 +101,7 @@ class LearniqAgentTools {
 	 * @param ActionAuthService $actionAuth    The ADR-023 action matrix.
 	 * @param AgentToolAnswer   $answer        Shapes success and error envelopes.
 	 * @param CredentialLearner $learners      A credential's learner as a Nextcloud user id.
+	 * @param AssignmentGradePlan $gradePlan Finds an assignment's curriculum plan through its course.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
@@ -108,6 +109,7 @@ class LearniqAgentTools {
 		private readonly ActionAuthService $actionAuth,
 		private readonly AgentToolAnswer $answer,
 		private readonly CredentialLearner $learners,
+		private readonly AssignmentGradePlan $gradePlan,
 	) {
 	}//end __construct()
 
@@ -260,19 +262,23 @@ class LearniqAgentTools {
 		}
 
 		$learnerId = (string)(($submission['learnerIds'] ?? [])[0] ?? '');
-		$planId    = (string)($assignment['curriculumPlanId'] ?? '');
 		$component = (string)($assignment['curriculumPlanComponentId'] ?? '');
-		if ($learnerId === '' || $planId === '' || $component === '') {
-			return $this->answer->error(code: 'invalid', message: 'This assignment is not linked to a curriculum plan component, so it cannot carry a grade.');
+		$plan      = $this->gradePlan->planOf(assignment: $assignment);
+		if ($learnerId === '' || $plan === null || $component === '') {
+			return $this->answer->error(
+				code: 'invalid',
+				message: 'This assignment is not linked to a curriculum plan component (through its course), so it cannot carry a grade.'
+			);
 		}
 
 		return $this->write(
 			schema: 'grade-entry',
 			object: [
 				'learnerId'        => $learnerId,
-				'curriculumPlanId' => $planId,
+				'curriculumPlanId' => $plan['id'],
 				'componentId'      => $component,
-				'gradeScaleId'     => (string)($assignment['gradeScaleId'] ?? ''),
+				'courseId'         => (string)($assignment['courseId'] ?? ''),
+				'gradeScaleId'     => $plan['gradeScaleId'],
 				'sourceKind'       => 'assignment-submission',
 				'submissionId'     => $submissionId,
 				'value'            => $value,
