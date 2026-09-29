@@ -29781,6 +29781,177 @@
         "targetGroupSize": 30,
         "result": null,
         "lifecycle": "draft"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "exam-period",
+          "slug": "exam-period-voorbeeld-name-1-1"
+        },
+        "name": "Voorbeeld Name 1",
+        "startsOn": "2026-03-01",
+        "endsOn": "2026-03-01",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "cohortIds": [],
+        "courseIds": [],
+        "lifecycle": "planning"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "exam-period",
+          "slug": "exam-period-voorbeeld-name-2-2"
+        },
+        "name": "Voorbeeld Name 2",
+        "startsOn": "2026-03-02",
+        "endsOn": "2026-03-02",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "cohortIds": [],
+        "courseIds": [],
+        "lifecycle": "published"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "exam-period",
+          "slug": "exam-period-voorbeeld-name-3-3"
+        },
+        "name": "Voorbeeld Name 3",
+        "startsOn": "2026-03-03",
+        "endsOn": "2026-03-03",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "cohortIds": [],
+        "courseIds": [],
+        "lifecycle": "closed"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "exam-sitting",
+          "slug": "exam-sitting-examsitting-1-1"
+        },
+        "examPeriodId": "00000000-0000-4000-8000-000000000000",
+        "assessmentId": "00000000-0000-4000-8000-000000000000",
+        "startsAt": "2026-03-01T09:00:00+00:00",
+        "endsAt": "2026-03-01T10:30:00+00:00",
+        "roomIds": [
+          "00000000-0000-4000-8000-000000000000"
+        ],
+        "headcount": 20,
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "cohortIds": [],
+        "invigilatorsNeeded": 1,
+        "clashWarnings": [],
+        "lifecycle": "cancelled"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "exam-sitting",
+          "slug": "exam-sitting-examsitting-2-2"
+        },
+        "examPeriodId": "00000000-0000-4000-8000-000000000001",
+        "assessmentId": "00000000-0000-4000-8000-000000000001",
+        "startsAt": "2026-03-02T09:00:00+00:00",
+        "endsAt": "2026-03-02T10:30:00+00:00",
+        "roomIds": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "headcount": 20,
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "cohortIds": [],
+        "invigilatorsNeeded": 1,
+        "clashWarnings": [],
+        "lifecycle": "cancelled"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "exam-sitting",
+          "slug": "exam-sitting-examsitting-3-3"
+        },
+        "examPeriodId": "00000000-0000-4000-8000-000000000002",
+        "assessmentId": "00000000-0000-4000-8000-000000000002",
+        "startsAt": "2026-03-03T09:00:00+00:00",
+        "endsAt": "2026-03-03T10:30:00+00:00",
+        "roomIds": [
+          "00000000-0000-4000-8000-000000000002"
+        ],
+        "headcount": 20,
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "cohortIds": [],
+        "invigilatorsNeeded": 1,
+        "clashWarnings": [],
+        "lifecycle": "cancelled"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "invigilator-assignment",
+          "slug": "invigilator-assignment-invigilatorassignment-1-1"
+        },
+        "examSittingId": "00000000-0000-4000-8000-000000000000",
+        "invigilatorId": "Voorbeeld Invigilatorid 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "lifecycle": "pending"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "invigilator-assignment",
+          "slug": "invigilator-assignment-invigilatorassignment-2-2"
+        },
+        "examSittingId": "00000000-0000-4000-8000-000000000001",
+        "invigilatorId": "Voorbeeld Invigilatorid 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "lifecycle": "confirmed"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "invigilator-assignment",
+          "slug": "invigilator-assignment-invigilatorassignment-3-3"
+        },
+        "examSittingId": "00000000-0000-4000-8000-000000000002",
+        "invigilatorId": "Voorbeeld Invigilatorid 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "lifecycle": "declined"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "invigilator-availability",
+          "slug": "invigilator-availability-invigilatoravailability-1-1"
+        },
+        "invigilatorId": "Voorbeeld Invigilatorid 1",
+        "examPeriodId": "00000000-0000-4000-8000-000000000000",
+        "availableFrom": "2026-03-01T09:00:00+00:00",
+        "availableUntil": "2026-03-01T17:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "invigilator-availability",
+          "slug": "invigilator-availability-invigilatoravailability-2-2"
+        },
+        "invigilatorId": "Voorbeeld Invigilatorid 2",
+        "examPeriodId": "00000000-0000-4000-8000-000000000001",
+        "availableFrom": "2026-03-02T09:00:00+00:00",
+        "availableUntil": "2026-03-02T17:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "invigilator-availability",
+          "slug": "invigilator-availability-invigilatoravailability-3-3"
+        },
+        "invigilatorId": "Voorbeeld Invigilatorid 3",
+        "examPeriodId": "00000000-0000-4000-8000-000000000002",
+        "availableFrom": "2026-03-03T09:00:00+00:00",
+        "availableUntil": "2026-03-03T17:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000002"
       }
     ]
   }
