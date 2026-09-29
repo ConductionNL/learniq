@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.39",
+    "version": "1.1.40",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -29491,6 +29491,66 @@
         },
         "topic": "Voorbeeld Topic 3",
         "authorId": "Voorbeeld Authorid 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "session-change-batch",
+          "slug": "session-change-batch-sessionchangebatch-1-1"
+        },
+        "kind": "cancel",
+        "sessionIds": [],
+        "changeReasonKind": "teacher-absence",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "substituteTeacherId": null,
+        "roomId": null,
+        "changeReason": null,
+        "results": [],
+        "appliedCount": 3,
+        "lessonDates": "3-3-2026, 10-3-2026, 17-3-2026",
+        "affectedLearnerIds": [],
+        "affectedParentIds": [],
+        "madeBy": "coordinator"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "session-change-batch",
+          "slug": "session-change-batch-sessionchangebatch-2-2"
+        },
+        "kind": "substitute",
+        "sessionIds": [],
+        "changeReasonKind": "teacher-absence",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "substituteTeacherId": "docent-vervanger",
+        "roomId": null,
+        "changeReason": null,
+        "results": [],
+        "appliedCount": 2,
+        "lessonDates": "5-3-2026, 12-3-2026",
+        "affectedLearnerIds": [],
+        "affectedParentIds": [],
+        "madeBy": "coordinator"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "session-change-batch",
+          "slug": "session-change-batch-sessionchangebatch-3-3"
+        },
+        "kind": "room",
+        "sessionIds": [],
+        "changeReasonKind": "room-unavailable",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "substituteTeacherId": null,
+        "roomId": "00000000-0000-4000-8000-000000000000",
+        "changeReason": null,
+        "results": [],
+        "appliedCount": 4,
+        "lessonDates": "6-3-2026, 13-3-2026, 20-3-2026, 27-3-2026",
+        "affectedLearnerIds": [],
+        "affectedParentIds": [],
+        "madeBy": "coordinator"
       },
       {
         "@self": {

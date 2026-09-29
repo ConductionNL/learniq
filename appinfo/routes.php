@@ -195,6 +195,11 @@ return [
         ['name' => 'roomUtilisation#report', 'url' => '/api/reports/room-use', 'verb' => 'GET'],
         ['name' => 'roomUtilisation#openingHours', 'url' => '/api/reports/room-use/opening-hours', 'verb' => 'GET'],
         ['name' => 'roomUtilisation#saveOpeningHours', 'url' => '/api/reports/room-use/opening-hours', 'verb' => 'PUT'],
+        // One change on several weeks (timetabling-bulk-change-weeks): the lessons of a
+        // weekly slot, and a batch that runs each lesson through SessionChangeGuard as
+        // the caller. #[NoAdminRequired] + the timetable.bulk-change action in the body.
+        ['name' => 'sessionChangeBatch#series', 'url' => '/api/sessions/{id}/series', 'verb' => 'GET', 'requirements' => ['id' => '[^/]+']],
+        ['name' => 'sessionChangeBatch#create', 'url' => '/api/session-change-batches', 'verb' => 'POST'],
         // Hall screens (timetabling-display-screens): staff create, renew and revoke a
         // screen's secret address (#[NoAdminRequired] + display-screen.manage in the body);
         // the screen itself opens a #[PublicPage] page and its data with that token,
