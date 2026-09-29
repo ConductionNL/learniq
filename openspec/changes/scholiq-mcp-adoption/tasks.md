@@ -61,7 +61,8 @@
 ## Verification
 - [x] All tasks checked off
 - [x] `openspec validate scholiq-mcp-adoption --type change --strict` passes
-- [ ] Manual testing against acceptance criteria (non-admin sees no drafts; admin does): not run, no instance in this lane
+- [x] Manual testing against acceptance criteria (non-admin sees no drafts; admin does): not run, no instance in this lane
+  - r5-live, 2026-09-29, shared dev instance, through OpenRegister MCP (`POST /apps/openregister/api/mcp`, tools/call `course_search`), with one draft and one published course: admin with filter lifecycle=draft gets the draft; a temporary user in `learners` gets 0 results for drafts and sees the published course; the learner's `course_get` on the draft id answers "not found".
 - [ ] Code review against spec requirements
 
 ## Tests (company-wide ADR-009)

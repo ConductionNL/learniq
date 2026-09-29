@@ -35,7 +35,8 @@
 - **acceptance_criteria**:
   - GIVEN a self check-in row WHEN the teacher changes its status and saves THEN the teacher's status is stored and `markedVia` becomes `teacher`
 - [x] Implement
-- [ ] Test: Playwright `tests/e2e/self-check-in.spec.ts` (open window, learner checks in, teacher sees the row)
+- [x] Test: Playwright `tests/e2e/self-check-in.spec.ts` (open window, learner checks in, teacher sees the row)
+  - r5-live, 2026-09-29, shared dev instance: `tests/e2e/self-check-in.spec.ts`. The teacher opens self check-in on the register; a temporary learner in the class checks in with the board code on /check-in; the AttendanceRecord has `markedVia: self-check-in` and status `present`, and the register row shows "checked in". 1 passed (#1436).
 - The board shows the code in large letters and, for an online lesson, the link. No QR image: that needs a new frontend dependency and this lane changes no lockfile. `CheckInPage` is at `/check-in` (the link carries `?window=&code=`). Saving the register leaves an untouched self check-in alone (`registerRowsToSave`, unit-js test). Playwright test not written: no live instance in this lane.
 
 ### Task 5: Seed data and translations
