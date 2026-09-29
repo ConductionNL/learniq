@@ -10,7 +10,7 @@
  the timetable conflict queue by someone the server says holds
  exchange.request. The endpoint checks the same right.
 
- @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
+ @spec openspec/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
 -->
 <template>
 	<NcDialog
@@ -88,7 +88,7 @@ export default {
 	computed: {
 		/**
 		 * @return {Array<{id: string, label: string}>} The rostering systems.
-		 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
+		 * @spec openspec/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
 		 */
 		sourceOptions() {
 			return Object.entries(SOURCE_LABELS).map(([id, label]) => ({
@@ -103,7 +103,7 @@ export default {
 		 * Ask for the delivery and show what came back.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
+		 * @spec openspec/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
 		 */
 		async submit() {
 			this.busy = true

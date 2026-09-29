@@ -42,6 +42,7 @@ namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use OCA\Learniq\Service\CredentialSigningService;
+use OCA\Learniq\Service\EuropassIssuer;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -64,6 +65,7 @@ class CredentialIssuanceHandler implements IEventListener {
 	 * @param ObjectService $objectService Reads Course and School, writes Credential via OpenRegister.
 	 * @param CredentialSigningService $signingService Signs the credential before it is saved.
 	 * @param LoggerInterface $logger Records a credential that could not be signed.
+	 * @param EuropassIssuer $europass Adds the signed Europass form.
 	 *
 	 * @return void
 	 */
@@ -71,6 +73,7 @@ class CredentialIssuanceHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly CredentialSigningService $signingService,
 		private readonly LoggerInterface $logger,
+		private readonly EuropassIssuer $europass,
 	) {
 	}//end __construct()
 
@@ -178,6 +181,9 @@ class CredentialIssuanceHandler implements IEventListener {
 			return;
 		}
 
+		// The Europass form (credentials-europass-edci-export), signed with the
+		// same key, for a certificate, diploma or microcredential.
+		$signed = $this->europass->withEuropass(credential: $signed);
 		$credentialId = (string)$signed['id'];
 		unset($signed['id']);
 

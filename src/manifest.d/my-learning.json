@@ -22,11 +22,97 @@
 			"order": 25
 		},
 		{
+			"id": "MyElectivesMenu",
+			"label": "Optional lessons",
+			"icon": "CalendarCheckOutline",
+			"route": "MyElectives",
+			"order": 26,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"admin"
+					]
+				}
+			}
+		},
+		{
 			"id": "MyLearningRecordMenu",
 			"label": "My learning record",
 			"icon": "SchoolOutline",
 			"route": "MyLearningRecordView",
 			"order": 26
+		},
+		{
+			"id": "CheckInMenu",
+			"label": "Check in",
+			"icon": "CalendarCheckOutline",
+			"route": "CheckIn",
+			"order": 27,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"admin"
+					]
+				}
+			}
+		},
+		{
+			"id": "MyWorkGroupsMenu",
+			"label": "My work groups",
+			"icon": "AccountGroup",
+			"route": "MyWorkGroups",
+			"order": 28,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"admin"
+					]
+				}
+			}
+		},
+		{
+			"id": "CatalogueMenu",
+			"label": "Course catalogue",
+			"icon": "BookOpenPageVariantOutline",
+			"route": "CourseCatalogue",
+			"order": 24,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"instructor",
+						"coordinator",
+						"hr",
+						"team-lead",
+						"compliance-officer",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
+		},
+		{
+			"id": "TimetablesMenu",
+			"label": "Timetables",
+			"icon": "TableClock",
+			"route": "Timetables",
+			"order": 27,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"instructor",
+						"coordinator",
+						"team-lead",
+						"compliance-officer",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
 		}
 	],
 	"pages": [
@@ -320,6 +406,38 @@
 			"title": "My timetable",
 			"component": "MyTimetable",
 			"_note": "personal-timetable: the signed-in user's own week view. A bespoke component (no generic lib index/detail analogue) rendering the caller's OWN Session objects for a window, resolved server-side from cohort membership (teacher/learner) and RBAC-scoped via ObjectService. Read-only — clicking a session deep-links to SessionDetail; no create/edit here."
+		},
+		{
+			"id": "CheckIn",
+			"route": "/check-in",
+			"type": "custom",
+			"title": "Check in",
+			"component": "CheckInPage",
+			"_note": "Mounts CheckInPage (attendance-self-check-in): the learner types the code on the board and learniq's POST /api/check-in checks every rule and writes the attendance record. Custom on purpose: a code entry flow against a learniq endpoint, not a list, record or dashboard of one schema; learners cannot read CheckInWindow at all."
+		},
+		{
+			"id": "MyWorkGroups",
+			"route": "/my-work-groups",
+			"type": "custom",
+			"title": "My work groups",
+			"component": "MyWorkGroups",
+			"_note": "Mounts MyWorkGroups (enrolment-self-join-work-group): the work group sets of the learner's classes from learniq's GET /api/my/work-groups with Join, Move and Leave through learniq's own endpoints, because learners cannot read WorkGroup through the object API. Custom on purpose: grouped sets with per-group actions against learniq endpoints, not an index of one schema."
+		},
+		{
+			"id": "CourseCatalogue",
+			"route": "/catalogue",
+			"type": "custom",
+			"title": "Course catalogue",
+			"component": "CourseCatalogue",
+			"_note": "Mounts CourseCatalogue (enrolment-catalogue-self-signup): cards with search and filters from learniq's GET /api/catalogue, and Sign up, Request a place or Withdraw through learniq's own endpoints, because the object API lets no learner create an enrolment. Custom on purpose: a combined course and programme catalogue with per-card actions against learniq endpoints, not an index of one schema."
+		},
+		{
+			"id": "MyElectives",
+			"route": "/my-electives",
+			"type": "custom",
+			"title": "Optional lessons",
+			"component": "MyElectives",
+			"_note": "timetabling-elective-lesson-signup: open offers the learner may sign up for, through GET /api/electives; sign-up and withdrawal go through learniq's own endpoints so ElectiveSignUpRules decides."
 		}
 	]
 }

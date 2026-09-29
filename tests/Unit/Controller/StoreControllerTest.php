@@ -15,7 +15,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lesson-sharing-via-store-plane/tasks.md#task-4-storecontroller-and-routes
+ * @spec openspec/changes/archive/2026-09-28-lesson-sharing-via-store-plane/tasks.md#task-4-storecontroller-and-routes
  */
 
 declare(strict_types=1);

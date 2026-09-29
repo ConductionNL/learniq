@@ -23,7 +23,7 @@ and shows that pupil's grades. Hand-editing that is how sets drift. The script
 is deterministic (fixed seed), so running it again produces the same file byte
 for byte, and a reviewer reads the rules here rather than megabytes of JSON.
 
-THE CONTRACT. openspec/changes/segment-wizard-choice/contract.md. Every rule is
+THE CONTRACT. openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md. Every rule is
 checked by tests/Unit/Settings/ExampleSetDescriptorContractTest.php, and the
 story by tests/Unit/Settings/SecondarySchoolExampleSetTest.php; run both after
 regenerating.
@@ -92,7 +92,14 @@ SCHEMAS = [
     "report-card",
     "support-request",
     "dossier-note",
+    "standby-slot",
+    "lesson-note",
+    "timetable-visibility-policy",
     # Appended, not inserted, so every earlier bucket keeps its uuid group.
+    "session-change-batch",
+    "display-screen",
+    "elective-offer",
+    "elective-sign-up",
     "enrolment-forecast",
 ]
 
@@ -855,6 +862,63 @@ def build() -> dict:
                 "location": room["name"], "roomId": room["uuid"], "lifecycle": "completed",
             })
 
+    # --- one change applied to several weeks (timetabling-bulk-change-weeks) -------------
+    # Lokaal H1.03 gets a new digibord on three Tuesdays in March, so 4H1 moves to the
+    # mediatheek for those days in one batch: one message to the class and its parents.
+    moved_days = [d for d in class_days("4H1") if d.weekday() == 1 and d.month == 3][:3]
+    batch_uuid = f"ee{SET_NUMBER}{SCHEMAS.index('session-change-batch') + 1:04x}-0000-4000-8000-{1:012d}"
+    mediatheek = rooms["H1.20"]
+    for day in moved_days:
+        sessions[("4H1", day)].update({
+            "roomId": mediatheek["uuid"], "location": mediatheek["name"], "changeBatchId": batch_uuid,
+            "changeReasonKind": "room-unavailable", "changeReason": "Nieuw digibord in H1.03",
+        })
+    class_4h1 = [p for p in pupils if p["class"] == "4H1"]
+    batch = b.add("session-change-batch", {
+        "kind": "room", "sessionIds": [sessions[("4H1", d)]["uuid"] for d in moved_days], "roomId": mediatheek["uuid"],
+        "changeReasonKind": "room-unavailable", "changeReason": "Nieuw digibord in H1.03",
+        "results": [{"sessionId": sessions[("4H1", d)]["uuid"], "startsAt": sessions[("4H1", d)]["startsAt"],
+                     "outcome": "applied", "reason": None} for d in moved_days],
+        "appliedCount": len(moved_days),
+        "lessonDates": ", ".join(f"{d.day}-{d.month}-{d.year}" for d in moved_days),
+        "affectedLearnerIds": [p["nc"] for p in class_4h1],
+        "affectedParentIds": sorted({g["ncUserId"] for p in class_4h1 for g in p["guardians"]}),
+        "madeBy": TEAMLEIDER_BB,
+    })
+    assert batch["uuid"] == batch_uuid
+
+    # --- the hall screen of the main building (timetabling-display-screens) --------------
+    # The address is created on first use from the screen's page, so no token is seeded.
+    b.add("display-screen", {
+        "name": "Aula gebouw A", "vestigingId": locations["hoofd"]["uuid"], "roomIds": [], "cohortIds": [],
+        "shows": "today", "showTeacherCodes": True, "status": "active",
+    })
+
+    # --- keuzewerktijd wiskunde (timetabling-elective-lesson-signup) ---------------------
+    # Four Thursday lessons for havo 4 and 5, 24 places, sign-up from 7 days to 12 hours
+    # before each lesson. Eleven pupils signed up for the first; one more was placed by
+    # the teamleider after the deadline and one withdrew. The school year is over, so
+    # the offer is closed.
+    thursdays = [d for d in class_days("4H1") if d.weekday() == 3 and d.month == 2][:4]
+    offer = b.add("elective-offer", {
+        "name": "Keuzewerktijd wiskunde", "description": "Extra wiskunde op donderdag voor havo 4 en 5, met een docent erbij.",
+        "sessionIds": [sessions[("4H1", d)]["uuid"] for d in thursdays], "timetableSessionRefs": [],
+        "capacityPerLesson": 24, "eligibleCohortIds": [cohorts["4H1"]["uuid"], cohorts["5H1"]["uuid"]],
+        "windowMode": "relative", "opensDaysBefore": 7, "closesHoursBefore": 12, "lifecycle": "closed",
+    })
+    first = sessions[("4H1", thursdays[0])]["uuid"]
+    havo_upper = [p for p in pupils if p["class"] in ("4H1", "5H1")]
+    for i, p in enumerate(havo_upper[:13]):
+        status, made_by, via = "signed-up", p["nc"], "learner"
+        if i == 11:
+            status, made_by, via = "placed", TEAMLEIDER_BB, "coordinator"
+        elif i == 12:
+            status = "withdrawn"
+        b.add("elective-sign-up", {
+            "offerId": offer["uuid"], "sessionId": first, "timetableSessionRef": None, "learnerId": p["nc"],
+            "status": status, "madeBy": made_by, "madeVia": via,
+        })
+
     # --- next year's forecast (timetabling-enrolment-forecast) ----------------------------
     # A spring scenario for 2026-2027: progression rates for havo 3 to 5 and vwo 3 to 6,
     # and 140 expected in the brugklas. The subject choices of havo 3 above give the
@@ -1313,6 +1377,52 @@ def build() -> dict:
         b.add("dossier-note", {"learnerId": p["nc"], "authorId": author, "date": date, "category": category, "body": body,
                                "confidentiality": confidentiality, "careTeamUserIds": [ZORG, mentor_of(p)]})
 
+    # --- standby hours (timetabling-standby-slots) ------------------------------------------------------
+    # Two teachers on standby in the second hour of every weekday and one in two
+    # afternoon hours, at the main location, for the school year. Each is a
+    # teacher who works that day; the class day blocks mean some also teach then,
+    # which the substitution dialog shows as "has a lesson then".
+    def hhmm(t: tuple[int, int]) -> str:
+        return f"{t[0]:02d}:{t[1]:02d}"
+
+    standby_plan = [(wd, 1) for wd in range(5) for _ in range(2)] + [(2, 4), (3, 5)]
+    used: set[tuple[int, int, str]] = set()
+    pool = [t for t in TEACHERS if t[0] not in MENTORS.values()] + [t for t in TEACHERS if t[0] in MENTORS.values()]
+    for wd, hour in standby_plan:
+        teacher = next(t for t in pool if WEEKDAYS[wd] in t[4] and (wd, hour, t[0]) not in used)
+        used.add((wd, hour, teacher[0]))
+        pool.append(pool.pop(pool.index(teacher)))
+        b.add("standby-slot", {
+            "teacherId": teacher[0], "weekday": WEEKDAYS[wd], "date": None,
+            "startsAt": hhmm(BELL[hour][0]), "endsAt": hhmm(BELL[hour][1]),
+            "vestigingId": locations["hoofd"]["uuid"],
+            "validFrom": FIRST_DAY.isoformat(), "validUntil": LAST_DAY.isoformat(),
+        })
+
+    # --- lesson notes (timetabling-lesson-note): Wiskunde B in havo 4 ------------------------------------
+    wb_teacher = SUBJECT_TEACHER["WB"][1]
+    tuesdays = [d for d in class_days("4H1") if d.weekday() == 1 and d >= dt.date(2026, 3, 3)][:5]
+    lesson_notes = [
+        (tuesdays[0], "Hoofdstuk 4: kansrekening", "Neem je rekenmachine mee.", "learners"),
+        (tuesdays[1], "Hoofdstuk 4: oefentoets", "Maak thuis opgave 1 tot en met 11; we bespreken ze in de les.", "learners"),
+        (tuesdays[2], "Hoofdstuk 4: oefentoets", "Maak thuis opgave 1 tot en met 11; we bespreken ze in de les.", "learners"),
+        (tuesdays[3], "Hoofdstuk 4: oefentoets", "Maak thuis opgave 1 tot en met 11; we bespreken ze in de les.", "learners"),
+        (tuesdays[4], None, "Laat ze opgave 12 tot en met 18 maken. Eén leerling mag om 10:00 weg voor de tandarts.", "cover"),
+    ]
+    for day, topic, text, audience in lesson_notes:
+        b.add("lesson-note", {
+            "sessionId": sessions[("4H1", day)]["uuid"], "cohortId": cohorts["4H1"]["uuid"],
+            "topic": topic, "text": text, "audience": audience, "authorId": wb_teacher,
+        })
+
+    # --- timetable visibility (timetabling-visibility-rules) ------------------------------------------
+    # Pupils see their own class, the teachers of their own lessons and every
+    # room; teachers see everything.
+    b.add("timetable-visibility-policy", {
+        "learnerSeesGroups": "own", "learnerSeesTeachers": "related", "learnerSeesRooms": "all",
+        "instructorSeesGroups": "all", "instructorSeesTeachers": "all", "instructorSeesRooms": "all",
+    })
+
     # --- assemble ------------------------------------------------------------------------------------
     for rows in b.buckets.values():
         for row in rows:
@@ -1345,7 +1455,7 @@ def build() -> dict:
                 "the live learniq register without this descriptor declaring components.registers (which would re-point the register at "
                 "this profile config id and overwrite its authorization block), a second load adds nothing, and occ "
                 "learniq:example-set:remove vo removes exactly these objects. Generated by scripts/example-sets/vo.py; the contract is "
-                "openspec/changes/segment-wizard-choice/contract.md. Every person, address, school and code in it is fictional."
+                "openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md. Every person, address, school and code in it is fictional."
             ),
             "seedData": {
                 "description": (

@@ -1,5 +1,7 @@
 # Proposal: scholiq-mcp-adoption
 
+> Round 5 (2026-09-28): built for learniq with five schemas, not six. `session` is OFF because it now holds `affectedLearnerIds` and `substituteTeacherId`. The read rule keeps the staff groups that write each schema and matches everyone else on the live lifecycle. See tasks.md.
+
 ## Summary
 
 Adopt ADR-063 (hydra #102) in Scholiq: replace the hand-written `ScholiqToolProvider` with OpenRegister's declarative MCP surface. A curated set of **6 of Scholiq's 66 schemas** declares the `x-openregister-mcp` dialect, from which OpenRegister derives `scholiq.{schema}.{verb}` tools automatically. The surface is **read-only** (`search` + `get` only), and every schema carrying learner personal data — grades, attendance, enrolments, learner profiles, BSA decisions, fraud cases — is deliberately left OFF for AVG reasons. The provider class is deleted in the same change, because a hand-written tool takes precedence over a derived tool and would otherwise permanently shadow it.

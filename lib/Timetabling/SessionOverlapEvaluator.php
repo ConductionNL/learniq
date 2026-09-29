@@ -191,7 +191,7 @@ class SessionOverlapEvaluator {
 	 *
 	 * @return string|null The shared room id or code, or null.
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004
 	 */
 	private function sharedRoomRef(array $sessionA, array $sessionB): ?string {
 		$roomA = (string)($sessionA['roomId'] ?? '');

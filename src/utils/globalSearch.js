@@ -22,7 +22,7 @@
  * test runner without an SFC compile step, same pattern as
  * `src/utils/courseOrder.js`.
  *
- * @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-query-builder-splits-one-search-term-into-per-kind-openregister-requests
+ * @spec openspec/specs/dashboard/spec.md#requirement-a-fast-finder-query-builder-splits-one-search-term-into-per-kind-openregister-requests
  *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
@@ -49,7 +49,7 @@ export const STAFF_ROLES = Object.freeze([
  * @param {string} term Raw, un-trimmed user input.
  * @param {{limit?: number}} [options] `limit` per request (default 8).
  * @return {Array<{kind: 'people'|'cohorts', register: string, schema: string, params: object}>}
- * @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-query-builder-splits-one-search-term-into-per-kind-openregister-requests
+ * @spec openspec/specs/dashboard/spec.md#requirement-a-fast-finder-query-builder-splits-one-search-term-into-per-kind-openregister-requests
  */
 export function buildGlobalSearchRequests(term, options = {}) {
 	const trimmed = typeof term === 'string' ? term.trim() : ''
@@ -82,7 +82,7 @@ export function buildGlobalSearchRequests(term, options = {}) {
  *
  * @param {string[]|null|undefined} roles The profile's `roles` array.
  * @return {'learner'|'staff'}
- * @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-query-builder-splits-one-search-term-into-per-kind-openregister-requests
+ * @spec openspec/specs/dashboard/spec.md#requirement-a-fast-finder-query-builder-splits-one-search-term-into-per-kind-openregister-requests
  */
 export function classifyPersonKind(roles) {
 	if (!Array.isArray(roles) || roles.length === 0) {
@@ -113,7 +113,7 @@ export function personResultLabel(item) {
  * @param {object[]} learnerProfileResults Raw `learner-profile` search hits.
  * @param {object[]} cohortResults Raw `cohort` search hits.
  * @return {{learners: object[], staff: object[], cohorts: object[]}}
- * @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-query-builder-splits-one-search-term-into-per-kind-openregister-requests
+ * @spec openspec/specs/dashboard/spec.md#requirement-a-fast-finder-query-builder-splits-one-search-term-into-per-kind-openregister-requests
  */
 export function groupGlobalSearchResults(
 	learnerProfileResults = [],

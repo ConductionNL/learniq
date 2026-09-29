@@ -56,3 +56,12 @@ VO example set: screen "Aula gebouw A" for the main location, `shows: today`, te
 ## Open points
 
 - Whether screens should show the next hour only on very large schools; the page scrolls by time today.
+
+## As built (2026-09-28)
+
+- The address is `<screen uuid>.<secret>`, so the public door reads one row by id as the system (`_render: false`, the raw row) and compares `sha256(secret)` with `tokenHash` in constant time. `tokenHash` is `writeOnly`, the platform's own marker for a field no read returns, instead of a property read rule.
+- The screen has a plain `status` (`active`, `revoked`) rather than a lifecycle: revoking is a write by `DisplayScreenService`, and a revoked screen answers 404 on the next request.
+- `lastSeenAt` is left out: stamping it would turn every public read into a write.
+- The lessons come from `TimetableSourceResolver`, so with planninq installed the screen shows planninq's lessons, with `subject` and `teacherReference` (the school's teacher code) now carried on its rows. Learniq's own sessions have no teacher code, so the column stays empty for them; a substitute's user id never reaches the screen.
+- The page is its own small bundle (`learniq-display.js`, `templates/display.php`), with the token handed over through initial state.
+- Staff open the address page from the screen's detail page ("Address"), because an `api-call` action cannot show the answer it gets back.

@@ -24,7 +24,7 @@
  *
  * @link https://www.Integriq.nl
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
+ * @spec openspec/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ use OCP\EventDispatcher\Event;
  * ADR-041 concluded event. A listener MUST filter on getOwnerApp() and keep
  * its side effect idempotent: an administrator can re-run a job.
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
+ * @spec openspec/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
  */
 class ExchangeJobConcludedEvent extends Event {
 
@@ -76,7 +76,7 @@ class ExchangeJobConcludedEvent extends Event {
 	 *
 	 * @return string The app id.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function getOwnerApp(): string {
 		return $this->ownerApp;
@@ -88,7 +88,7 @@ class ExchangeJobConcludedEvent extends Event {
 	 *
 	 * @return string The job uuid.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function getJobId(): string {
 		return $this->jobId;
@@ -100,7 +100,7 @@ class ExchangeJobConcludedEvent extends Event {
 	 *
 	 * @return string The target id.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function getTarget(): string {
 		return $this->target;
@@ -112,7 +112,7 @@ class ExchangeJobConcludedEvent extends Event {
 	 *
 	 * @return string export, import or sync.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function getDirection(): string {
 		return $this->direction;
@@ -124,7 +124,7 @@ class ExchangeJobConcludedEvent extends Event {
 	 *
 	 * @return string The reference.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function getOwnerRef(): string {
 		return $this->ownerRef;
@@ -136,7 +136,7 @@ class ExchangeJobConcludedEvent extends Event {
 	 *
 	 * @return string succeeded, partial, failed or refused.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function getStatus(): string {
 		return $this->status;
@@ -148,7 +148,7 @@ class ExchangeJobConcludedEvent extends Event {
 	 *
 	 * @return array<string,mixed> {recordsProcessed, recordsAccepted, recordsRejected, runId, artefactRef}.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function getResult(): array {
 		return $this->result;
@@ -160,7 +160,7 @@ class ExchangeJobConcludedEvent extends Event {
 	 *
 	 * @return array<string,mixed>|null The decision, or null when the gate was not asked.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function getGateDecision(): ?array {
 		return $this->gateDecision;
@@ -172,7 +172,7 @@ class ExchangeJobConcludedEvent extends Event {
 	 *
 	 * @return string|null The message, or null.
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-succeeded-swv-exchange-routes-its-support-request
 	 */
 	public function getErrorMessage(): ?string {
 		return $this->errorMessage;

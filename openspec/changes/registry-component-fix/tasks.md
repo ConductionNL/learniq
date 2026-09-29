@@ -37,19 +37,24 @@
 ## Tests (company-wide ADR-009)
 - [x] PHPUnit unit tests for new/changed business logic (`tests/Unit/`) — N/A, no
   PHP changed in this fix
-- [ ] Newman/Postman tests for new/changed API endpoints — N/A, no API changed
+- [x] Newman/Postman tests for new/changed API endpoints — N/A, no API changed
+  - N/A, confirmed in r5-structure: 955c1f56 (#907) changes only `src/registry.js` and a JS unit test; no API.
 - [ ] Browser tests (Playwright MCP) for UI changes — deferred to the nightly
   Playwright matrix per the fleet's verification order; not run per-PR
+  - Not run (r5-structure, 2026-09-28): the route smoke suite `tests/e2e/pages.spec.ts` covers these 14 pages, but it needs a live instance serving this code and lanes may not drive the shared instance on :8080. `node --test tests/unit-js/registryComponentCoverage.test.mjs` is the per-PR guard.
 - [x] All tests pass (`node --test tests/unit-js/*.test.mjs`)
 
 ## Documentation (company-wide ADR-010)
-- [ ] Feature documentation updated in `docs/` — N/A, no user-facing behaviour
+- [x] Feature documentation updated in `docs/` — N/A, no user-facing behaviour
   description changes (the pages already appeared in the manifest/docs as
   planned; this fix makes them actually render)
-- [ ] Screenshot captured and committed to `docs/images/` — N/A, no visual design
+  - N/A, confirmed in r5-structure: only `src/registry.js` changed; the pages were already documented.
+- [x] Screenshot captured and committed to `docs/images/` — N/A, no visual design
   change, only a previously-blank page now rendering its already-documented
   content
+  - N/A, confirmed in r5-structure: no design change, the pages now render the content already planned.
 
 ## i18n (company-wide ADR-005)
-- [ ] Dutch (`nl_NL`) and English (`en_US`) translation strings added — N/A, no
+- [x] Dutch (`nl_NL`) and English (`en_US`) translation strings added — N/A, no
   new user-facing strings; the manifest labels already existed
+  - N/A, confirmed in r5-structure: 955c1f56 adds no catalogue key; the manifest labels already existed.

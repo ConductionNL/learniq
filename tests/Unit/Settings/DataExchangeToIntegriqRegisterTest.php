@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-data-exchange-menu-is-a-read-only-status-panel-beside-the-gate-pages
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-data-exchange-menu-is-a-read-only-status-panel-beside-the-gate-pages
  */
 
 declare(strict_types=1);
