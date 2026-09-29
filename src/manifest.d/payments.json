@@ -26,7 +26,7 @@
 			"label": "Entitlements",
 			"icon": "Check",
 			"route": "Entitlements",
-			"order": 50,
+			"order": 49,
 			"visibleIf": {
 				"user.primaryRole": {
 					"in": [

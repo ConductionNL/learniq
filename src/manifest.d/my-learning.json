@@ -99,7 +99,7 @@
 			"label": "Timetables",
 			"icon": "TableClock",
 			"route": "Timetables",
-			"order": 27,
+			"order": 28,
 			"visibleIf": {
 				"user.primaryRole": {
 					"in": [

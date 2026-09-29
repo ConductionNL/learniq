@@ -37,7 +37,7 @@
 					"label": "Enrolments",
 					"icon": "AccountGroup",
 					"route": "Enrolments",
-					"order": 20,
+					"order": 19,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
@@ -114,7 +114,7 @@
 					"label": "Staff",
 					"icon": "AccountTieOutline",
 					"route": "Staff",
-					"order": 50,
+					"order": 47,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
@@ -130,7 +130,7 @@
 					"label": "Schools",
 					"icon": "OfficeBuilding",
 					"route": "Schools",
-					"order": 50,
+					"order": 48,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
@@ -146,7 +146,7 @@
 					"label": "Locations",
 					"icon": "MapMarker",
 					"route": "Locations",
-					"order": 60,
+					"order": 59,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
