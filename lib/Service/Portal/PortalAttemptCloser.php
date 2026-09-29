@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+ * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
 
 declare(strict_types=1);
@@ -37,7 +37,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Finds the open attempt, closes the ones out of time, hands attempts in.
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+ * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
 class PortalAttemptCloser {
 
@@ -68,7 +68,7 @@ class PortalAttemptCloser {
 	 *
 	 * @return DateTimeImmutable
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function now(): DateTimeImmutable {
 		return new DateTimeImmutable($this->time->getDateTime()->format(DateTimeInterface::ATOM));
@@ -82,7 +82,7 @@ class PortalAttemptCloser {
 	 *
 	 * @return float
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function extraFor(PortalLearner $learner, string $examId): float {
 		return $this->clock->extraTimePercentage(
@@ -102,7 +102,7 @@ class PortalAttemptCloser {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function openAttempt(PortalLearner $learner, array $exam, array $attempts, float $extra): ?array {
 		foreach ($attempts as $attempt) {
@@ -132,7 +132,7 @@ class PortalAttemptCloser {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function closeIfDue(PortalLearner $learner, array $attempt): bool {
 		if (($attempt['lifecycle'] ?? '') !== self::IN_PROGRESS) {
@@ -166,7 +166,7 @@ class PortalAttemptCloser {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function handIn(PortalLearner $learner, array $attempt): void {
 		$id = (string)$attempt['id'];

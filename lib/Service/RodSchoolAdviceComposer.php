@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-a-school-advice-goes-to-rod-with-duos-aanleverenadviesvo-field-set
+ * @spec openspec/specs/data-exchange/spec.md#requirement-a-school-advice-goes-to-rod-with-duos-aanleverenadviesvo-field-set
  */
 
 declare(strict_types=1);
@@ -38,7 +38,7 @@ use Throwable;
  * format is null, so the gate's completeness check refuses the job naming the
  * field instead of DUO rejecting the message.
  *
- * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-a-school-advice-goes-to-rod-with-duos-aanleverenadviesvo-field-set
+ * @spec openspec/specs/data-exchange/spec.md#requirement-a-school-advice-goes-to-rod-with-duos-aanleverenadviesvo-field-set
  */
 class RodSchoolAdviceComposer {
 
@@ -80,7 +80,7 @@ class RodSchoolAdviceComposer {
 	 *
 	 * @return array<string, mixed> Exactly ExchangeDisclosure::ROD_SCHOOL_ADVICE_FIELDS.
 	 *
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-a-school-advice-goes-to-rod-with-duos-aanleverenadviesvo-field-set
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-school-advice-goes-to-rod-with-duos-aanleverenadviesvo-field-set
 	 */
 	public function compose(array $advice, string $tenantId): array {
 		$vestiging = $this->vestigingOf(advice: $advice, tenantId: $tenantId);

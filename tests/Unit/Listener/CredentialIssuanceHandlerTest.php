@@ -31,6 +31,8 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\CredentialIssuanceHandler;
+use OCA\Learniq\Service\EdciPayloadBuilder;
+use OCA\Learniq\Service\EuropassIssuer;
 use OCA\Learniq\Service\CredentialSigningService;
 use OCA\Learniq\Service\SigningKeyConfigKey;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -125,6 +127,27 @@ class CredentialIssuanceHandlerTest extends TestCase {
 		self::assertIsArray($credential['openbadges3Payload']);
 		self::assertArrayHasKey('proof', $credential['openbadges3Payload']);
 	}//end testACompletedEnrolmentSavesACredentialWithEveryRequiredProperty()
+
+	/**
+	 * A certificate is saved with its Europass form, signed with the same key
+	 * and key id as the Open Badges payload, naming the school as issuer.
+	 *
+	 * @return void
+	 */
+	public function testACertificateIsIssuedWithASignedEuropassForm(): void {
+		$handler = $this->buildHandler(tenantHasKey: true);
+		$handler->handle($this->completionEvent());
+
+		$credential = $this->saved[0]['object'];
+		self::assertIsArray($credential['edciPayload']);
+		$edci = $credential['edciPayload'];
+		self::assertSame(EdciPayloadBuilder::ELM_CONTEXT, $edci['@context'][1]);
+		self::assertSame('urn:uuid:' . $this->saved[0]['uuid'], $edci['id']);
+		self::assertSame(self::SCHOOL_NAME, $edci['issuer']['legalName']['en']);
+		self::assertSame('00X6', $edci['issuer']['registration']['notation']);
+		self::assertSame($credential['openbadges3Payload']['proof']['verificationMethod'], $edci['proof']['verificationMethod']);
+		self::assertSame('BHV basisopleiding', $edci['credentialSubject']['hasClaim'][0]['title']['en']);
+	}//end testACertificateIsIssuedWithASignedEuropassForm()
 
 	/**
 	 * The signature verifies against the tenant's public key, and the payload
@@ -252,6 +275,12 @@ class CredentialIssuanceHandlerTest extends TestCase {
 			$arguments[$parameter->getName()] = match ($type->getName()) {
 				ObjectService::class => $this->objectService(),
 				CredentialSigningService::class => $this->signingService(tenantHasKey: $tenantHasKey),
+				EuropassIssuer::class => new EuropassIssuer(
+					objects: $this->objectService(),
+					builder: new EdciPayloadBuilder(),
+					signer: $this->signingService(tenantHasKey: $tenantHasKey),
+					config: $this->createStub(IAppConfig::class)
+				),
 				LoggerInterface::class => $this->createStub(LoggerInterface::class),
 				default => $this->createStub($type->getName()),
 			};

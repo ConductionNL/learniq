@@ -311,7 +311,7 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#scenario-a-second-attempt-on-a-one-attempt-test-is-refused
+	 * @spec openspec/specs/assessment/spec.md#scenario-a-second-attempt-on-a-one-attempt-test-is-refused
 	 */
 	public function testASecondAttemptOnAOneAttemptTestIsRefused(): void {
 		$this->assessments['a1'] = ['title' => 'Exam', 'maxAttempts' => 1];
@@ -330,7 +330,7 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#scenario-a-second-attempt-on-a-one-attempt-test-is-refused
+	 * @spec openspec/specs/assessment/spec.md#scenario-a-second-attempt-on-a-one-attempt-test-is-refused
 	 */
 	public function testOnlyTheLearnersOwnAttemptsOnThisTestCount(): void {
 		$this->assessments['a1'] = ['title' => 'Exam', 'maxAttempts' => 1];
@@ -352,7 +352,7 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#scenario-the-server-starts-the-clock
+	 * @spec openspec/specs/assessment/spec.md#scenario-the-server-starts-the-clock
 	 */
 	public function testTheServerStartsTheClockAndNumbersTheAttempt(): void {
 		$this->assessments['a1'] = ['title' => 'Exam', 'maxAttempts' => 3, 'timeLimitMinutes' => 30];

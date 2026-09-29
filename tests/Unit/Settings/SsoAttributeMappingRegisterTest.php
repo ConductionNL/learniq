@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/entree-surfconext-sso-contract/tasks.md#task-3
+ * @spec openspec/changes/archive/2026-09-28-entree-surfconext-sso-contract/tasks.md#task-3
  */
 
 declare(strict_types=1);
@@ -74,7 +74,7 @@ class SsoAttributeMappingRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/entree-surfconext-sso-contract/specs/identity-federation/spec.md#scenario-a-role-mapping-names-both-the-external-value-and-the-target-role
+	 * @spec openspec/specs/identity-federation/spec.md#scenario-a-role-mapping-names-both-the-external-value-and-the-target-role
 	 */
 	public function testRoleMappingCarriesRoleValue(): void {
 		$props = $this->config['components']['schemas']['SsoAttributeMapping']['properties'];

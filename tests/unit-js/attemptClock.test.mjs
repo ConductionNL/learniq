@@ -5,7 +5,7 @@
 // deadline, corrected for a wrong browser clock, and the saved rows carry no
 // scores.
 //
-// @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#requirement-the-in-app-test-screen-shows-the-servers-deadline-and-saves-answers-as-the-learner-works
+// @spec openspec/specs/assessment/spec.md#requirement-the-in-app-test-screen-shows-the-servers-deadline-and-saves-answers-as-the-learner-works
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'

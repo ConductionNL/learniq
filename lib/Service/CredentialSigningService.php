@@ -112,9 +112,39 @@ class CredentialSigningService {
 			verificationUrl: $verificationUrl,
 		);
 
+		$proof = $this->proofFor(payload: $payload, tenantId: $tenantId, issuerDid: $issuerDid);
+		if ($proof === null) {
+			return false;
+		}
+
+		$payload['proof'] = $proof;
+		$jws = $proof['jws'];
+
+		$object['openbadges3Payload'] = $payload;
+		$object['signature'] = $jws;
+		$object['issuerDid'] = $issuerDid;
+		$object['verificationUrl'] = $verificationUrl;
+
+		return true;
+	}//end check()
+
+	/**
+	 * The DataIntegrityProof block for a payload: an RS256 JWS with the
+	 * tenant key and its `kid`, the same for the Open Badges payload and the
+	 * Europass form (credentials-europass-edci-export).
+	 *
+	 * @param array<string,mixed> $payload   The payload, without a proof.
+	 * @param string              $tenantId  The tenant whose key signs.
+	 * @param string              $issuerDid The issuer DID, for the verification method.
+	 *
+	 * @return array<string,string>|null The proof, or null when the tenant cannot sign.
+	 *
+	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
+	 */
+	public function proofFor(array $payload, string $tenantId, string $issuerDid): ?array {
 		$jws = $this->signPayload(payload: $payload, tenantId: $tenantId);
 		if ($jws === null) {
-			return false;
+			return null;
 		}
 
 		$publicKey = $this->appConfig->getValueString(
@@ -129,7 +159,7 @@ class CredentialSigningService {
 			$kid = substr(hash('sha256', $publicKey), 0, 32);
 		}
 
-		$payload['proof'] = [
+		return [
 			'type' => 'DataIntegrityProof',
 			'cryptosuite' => 'rsa-signature-2025',
 			'created' => (new DateTimeImmutable())->format(\DATE_ATOM),
@@ -137,14 +167,7 @@ class CredentialSigningService {
 			'proofPurpose' => 'assertionMethod',
 			'jws' => $jws,
 		];
-
-		$object['openbadges3Payload'] = $payload;
-		$object['signature'] = $jws;
-		$object['issuerDid'] = $issuerDid;
-		$object['verificationUrl'] = $verificationUrl;
-
-		return true;
-	}//end check()
+	}//end proofFor()
 
 	/**
 	 * Sign a Credential before it is saved.
