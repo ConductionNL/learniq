@@ -146,4 +146,48 @@ class Cmi5LaunchTokenServiceTest extends TestCase {
 		self::assertNull($service->verifyLaunchToken(token: $token), 'signed by the previous key');
 		self::assertNull($service->verifyLaunchToken(token: 'not.a.jwt'));
 	}//end testTamperedOrForeignTokensAreRefused()
+
+	/**
+	 * The auth-token survives Nextcloud's Basic handling, and verifies.
+	 *
+	 * Nextcloud decodes every Basic header and attempts a login when the result
+	 * splits on a colon (`OC::handleAuthHeaders()`, `Session::tryBasicAuthLogin()`),
+	 * answering 401 before the LRS runs. A bare JWT splits; the auth-token must not.
+	 *
+	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#7-basic-auth-reachability
+	 *
+	 * @return void
+	 */
+	public function testAuthTokenIsNotReadAsANextcloudLoginAndVerifies(): void {
+		$service = $this->service();
+		$service->generateKeyPair();
+		$jwt       = $service->mintLaunchToken(learnerId: 'pupil1', lessonId: 'lesson-1', registrationId: 'reg-1', activityId: 'a1');
+		$authToken = $service->authToken(launchToken: $jwt);
+
+		// The same split Nextcloud applies to `Authorization: Basic <credential>`.
+		$asLogin = static fn (string $credential): int => count(explode(':', (string)base64_decode($credential), 2));
+		self::assertSame(2, $asLogin($jwt), 'a bare JWT reads as user:password, which is the bug');
+		self::assertSame(1, $asLogin($authToken), 'the auth-token carries no user:password pair');
+		self::assertStringNotContainsString(':', (string)base64_decode($authToken, true));
+
+		self::assertSame('pupil1', $service->verifyAuthToken(credential: $authToken)['sub'] ?? null, 'Basic auth-token');
+		self::assertSame('pupil1', $service->verifyAuthToken(credential: $jwt)['sub'] ?? null, 'Bearer bare JWT');
+	}//end testAuthTokenIsNotReadAsANextcloudLoginAndVerifies()
+
+	/**
+	 * Credentials that are neither a valid auth-token nor a valid JWT are refused.
+	 *
+	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#7-basic-auth-reachability
+	 *
+	 * @return void
+	 */
+	public function testInvalidAuthTokensAreRefused(): void {
+		$service = $this->service();
+		$service->generateKeyPair();
+
+		self::assertNull($service->verifyAuthToken(credential: 'not base64 at all!'), 'not base64');
+		self::assertNull($service->verifyAuthToken(credential: base64_encode('pupil1:secret')), 'a Nextcloud login pair');
+		self::assertNull($service->verifyAuthToken(credential: base64_encode('not.a.jwt')), 'a wrapped non-JWT');
+		self::assertNull($service->verifyAuthToken(credential: ''), 'empty');
+	}//end testInvalidAuthTokensAreRefused()
 }//end class
