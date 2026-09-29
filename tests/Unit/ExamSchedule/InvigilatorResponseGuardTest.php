@@ -28,7 +28,7 @@ use Psr\Log\NullLogger;
 /**
  * Only the invigilator asked may confirm or decline, and the register names the guard on both transitions.
  *
- * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-invigilator-assignment
+ * @spec openspec/specs/exam-schedule/spec.md#requirement-invigilator-assignment
  */
 class InvigilatorResponseGuardTest extends TestCase {
 

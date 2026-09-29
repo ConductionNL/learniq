@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-exam-periods-and-sittings
+ * @spec openspec/specs/exam-schedule/spec.md#requirement-exam-periods-and-sittings
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ class ExamScheduleListenerRegistrar {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-exam-periods-and-sittings
+	 * @spec openspec/specs/exam-schedule/spec.md#requirement-exam-periods-and-sittings
 	 */
 	public function register(IRegistrationContext $context): void {
 		$context->registerEventListener(event: ObjectCreatingEvent::class, listener: ExamSittingPlacementCheck::class);

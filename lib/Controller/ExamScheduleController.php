@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
+ * @spec openspec/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ use OCP\IUserSession;
 /**
  * Sitting overview and available invigilators.
  *
- * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
+ * @spec openspec/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
  */
 class ExamScheduleController extends Controller {
 
@@ -78,7 +78,7 @@ class ExamScheduleController extends Controller {
 	 *
 	 * @return JSONResponse 200 `{sitting, accommodations, invigilators}`, 403 or 404.
 	 *
-	 * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
+	 * @spec openspec/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
 	 */
 	#[NoAdminRequired]
 	public function overview(string $id): JSONResponse {
@@ -101,7 +101,7 @@ class ExamScheduleController extends Controller {
 	 *
 	 * @return JSONResponse 200 `{invigilators}`, 403 or 404.
 	 *
-	 * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-invigilator-assignment
+	 * @spec openspec/specs/exam-schedule/spec.md#requirement-invigilator-assignment
 	 */
 	#[NoAdminRequired]
 	public function availableInvigilators(string $id): JSONResponse {

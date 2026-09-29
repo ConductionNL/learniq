@@ -36,7 +36,7 @@ use Psr\Log\NullLogger;
 /**
  * An invigilator can only be asked for a sitting their availability covers.
  *
- * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-invigilator-assignment
+ * @spec openspec/specs/exam-schedule/spec.md#requirement-invigilator-assignment
  */
 class InvigilatorAssignmentCheckTest extends TestCase {
 

@@ -10,9 +10,9 @@
  * invigilator who stated availability is asked, confirms their own request,
  * and a decline leaves an open place. Someone without availability is refused.
  *
- * @e2e openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-exam-periods-and-sittings
- * @e2e openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
- * @e2e openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-invigilator-assignment
+ * @e2e openspec/specs/exam-schedule/spec.md#requirement-exam-periods-and-sittings
+ * @e2e openspec/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
+ * @e2e openspec/specs/exam-schedule/spec.md#requirement-invigilator-assignment
  */
 import { request as playwrightRequest } from '@playwright/test'
 import type { APIRequestContext } from '@playwright/test'

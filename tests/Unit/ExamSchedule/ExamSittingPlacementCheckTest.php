@@ -36,7 +36,7 @@ use Psr\Log\NullLogger;
 /**
  * Capacity refusal and clash recording for an ExamSitting write.
  *
- * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-exam-periods-and-sittings
+ * @spec openspec/specs/exam-schedule/spec.md#requirement-exam-periods-and-sittings
  */
 class ExamSittingPlacementCheckTest extends TestCase {
 

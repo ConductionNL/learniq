@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
+ * @spec openspec/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ use OCA\OpenRegister\Service\ObjectService;
 /**
  * Accommodations, invigilator places and available invigilators for a sitting.
  *
- * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
+ * @spec openspec/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
  */
 class ExamSittingOverview {
 
@@ -74,7 +74,7 @@ class ExamSittingOverview {
 	 *
 	 * @return array{sitting: string, accommodations: array<int, array<string, mixed>>, invigilators: array<string, mixed>}|null
 	 *
-	 * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
+	 * @spec openspec/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
 	 */
 	public function overview(string $sittingId): ?array {
 		$sitting = $this->sitting(sittingId: $sittingId);
@@ -96,7 +96,7 @@ class ExamSittingOverview {
 	 *
 	 * @return array<int, string>|null
 	 *
-	 * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-invigilator-assignment
+	 * @spec openspec/specs/exam-schedule/spec.md#requirement-invigilator-assignment
 	 */
 	public function availableInvigilators(string $sittingId): ?array {
 		$sitting = $this->sitting(sittingId: $sittingId);

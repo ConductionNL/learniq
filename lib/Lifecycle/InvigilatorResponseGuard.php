@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-invigilator-assignment
+ * @spec openspec/specs/exam-schedule/spec.md#requirement-invigilator-assignment
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Allows confirm and decline for the invigilator named on the request only.
  *
- * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-invigilator-assignment
+ * @spec openspec/specs/exam-schedule/spec.md#requirement-invigilator-assignment
  */
 class InvigilatorResponseGuard implements LifecycleGuardInterface {
 
@@ -59,7 +59,7 @@ class InvigilatorResponseGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult
 	 *
-	 * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-invigilator-assignment
+	 * @spec openspec/specs/exam-schedule/spec.md#requirement-invigilator-assignment
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$invigilator = (string)($object['invigilatorId'] ?? '');

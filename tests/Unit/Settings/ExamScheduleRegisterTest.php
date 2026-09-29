@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * The exam schedule schemas: who reads and writes, relations, and the notification.
  *
- * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-exam-periods-and-sittings
+ * @spec openspec/specs/exam-schedule/spec.md#requirement-exam-periods-and-sittings
  */
 class ExamScheduleRegisterTest extends TestCase {
 

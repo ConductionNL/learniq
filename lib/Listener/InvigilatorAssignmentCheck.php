@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-invigilator-assignment
+ * @spec openspec/specs/exam-schedule/spec.md#requirement-invigilator-assignment
  */
 
 declare(strict_types=1);
@@ -42,7 +42,7 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-invigilator-assignment
+ * @spec openspec/specs/exam-schedule/spec.md#requirement-invigilator-assignment
  */
 class InvigilatorAssignmentCheck implements IEventListener {
 
@@ -81,7 +81,7 @@ class InvigilatorAssignmentCheck implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-invigilator-assignment
+	 * @spec openspec/specs/exam-schedule/spec.md#requirement-invigilator-assignment
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatingEvent === false || $event->isPropagationStopped() === true) {

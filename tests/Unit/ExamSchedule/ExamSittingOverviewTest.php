@@ -34,7 +34,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Accommodations and invigilator places on a sitting, and who may read them.
  *
- * @spec openspec/changes/timetabling-exam-schedule/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
+ * @spec openspec/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
  */
 class ExamSittingOverviewTest extends TestCase {
 

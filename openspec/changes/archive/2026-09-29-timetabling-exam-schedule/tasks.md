@@ -26,5 +26,6 @@
 
 - [x] 5.1 Add strings to every shipped locale. Verify: `npm run test:l10n`.
   - English and Dutch (the strict locales of `check:l10n`); the other locales fall back to English under the ratchet.
-- [ ] 5.2 Archive the change; list rows `tt-exam-schedule`, `tt-exam-accommodations`, `tt-invigilator-assignment` for the coordinator to set built in the planninq matrix. Verify: parity_verify --strict on learniq.
+- [x] 5.2 Archive the change; list rows `tt-exam-schedule`, `tt-exam-accommodations`, `tt-invigilator-assignment` for the coordinator to set built in the planninq matrix. Verify: parity_verify --strict on learniq.
+  - Archived in the same PR; the three planninq rows are listed in the lane's STATE.md for the coordinator. learniq's own matrix carries none of them.
 
