@@ -96,23 +96,41 @@ test('staff who also manage someone see one entry, not two', () => {
 	}
 })
 
-// The admin sees every surface (segmentMenuGates.test.mjs relies on it), so
-// an admin who is also a line manager gets both entries.
-test('an admin who manages someone sees both entries', () => {
-	assert.deepEqual(
-		signUpEntries({ primaryRole: 'admin', managesLearners: true }).sort(),
-		['ManagerSignUpRequestsMenu', 'SignUpRequestsMenu'],
-	)
+test('an admin sees only the People entry, manager or not', () => {
+	for (const managesLearners of [true, false]) {
+		assert.deepEqual(signUpEntries({ primaryRole: 'admin', managesLearners }), [
+			'SignUpRequestsMenu',
+		])
+	}
 })
 
 // GroupPeople's gate leaves team-lead out, so SignUpRequestsMenu never
-// reaches a team lead even though it lists the role. A team lead who manages
-// someone gets the My learning entry instead.
-test('a team lead who manages someone gets the My learning entry', () => {
-	assert.deepEqual(
-		signUpEntries({ primaryRole: 'team-lead', managesLearners: true }),
-		['ManagerSignUpRequestsMenu'],
+// reaches a team lead even though it lists the role. Team leads get their own
+// entry under My learning instead, without the rest of the People group
+// (Ruben, 2026-09-29).
+test('a team lead gets exactly one entry, manager or not', () => {
+	for (const managesLearners of [true, false]) {
+		assert.deepEqual(
+			signUpEntries({ primaryRole: 'team-lead', managesLearners }),
+			['TeamLeadSignUpRequestsMenu'],
+		)
+	}
+})
+
+test('a team lead still does not see the People group', () => {
+	const base = structuredClone(BASE)
+	const runtime = {
+		user: { primaryRole: 'team-lead', managesLearners: false },
+		workspace: buildWorkspaceRuntime(undefined, 'corporate', null),
+	}
+	base.runtime = runtime
+	const manifest = buildManifest(
+		base,
+		structuredClone(FRAGMENTS),
+		structuredClone(LAYOUT),
 	)
+	const people = manifest.menu.find((n) => n.id === 'GroupPeople')
+	assert.equal(passesContextPredicates(people.visibleIf, runtime), false)
 })
 
 test('main.js publishes the flag PageController provides', () => {

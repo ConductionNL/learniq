@@ -32,6 +32,7 @@
 		"CatalogueMenu": "GroupMyLearning",
 		"MyLearningRecordMenu": "GroupMyLearning",
 		"ManagerSignUpRequestsMenu": "GroupMyLearning",
+		"TeamLeadSignUpRequestsMenu": "GroupMyLearning",
 		"FeeItemsMenu": "GroupPeople",
 		"EntitlementsMenu": "GroupPeople"
 	},

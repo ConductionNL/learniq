@@ -69,7 +69,6 @@ function build(state) {
 			canTeachDashboard: true,
 			canLearnDashboard: true,
 			isConfidentialCounsellor: true,
-			managesLearners: true,
 		},
 		workspace: buildWorkspaceRuntime(undefined, state.segment, state.chosen),
 	}
@@ -124,10 +123,20 @@ function surfaces(state, all = false) {
 	return out
 }
 
+// Entries the admin deliberately does not get, because the admin reaches the
+// same page elsewhere: the Sign-up requests entries for line managers and team
+// leads under My learning duplicate the admin's People entry. They are role
+// gates, not segment gates, so they are left out of what this test compares.
+const ADMIN_REACHES_ELSEWHERE = new Set([
+	'menu:ManagerSignUpRequestsMenu',
+	'menu:TeamLeadSignUpRequestsMenu',
+])
 const ALL = surfaces(NEVER, true)
 function hiddenIn(state) {
 	const shown = surfaces(state)
-	return [...ALL].filter((id) => !shown.has(id)).sort()
+	return [...ALL]
+		.filter((id) => !shown.has(id) && !ADMIN_REACHES_ELSEWHERE.has(id))
+		.sort()
 }
 
 const BPV_CARDS = [
