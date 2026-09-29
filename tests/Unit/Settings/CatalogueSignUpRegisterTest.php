@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-the-learner-is-told-in-words-that-fit-a-chosen-course
+ * @spec openspec/specs/enrolment/spec.md#requirement-the-learner-is-told-in-words-that-fit-a-chosen-course
  */
 
 declare(strict_types=1);

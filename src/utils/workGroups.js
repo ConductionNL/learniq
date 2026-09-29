@@ -14,7 +14,7 @@
  * @param {object[]} sets The `sets` of GET /api/my/work-groups.
  * @param {string} learnerId The caller's user id.
  * @return {string[]} The learnerIds for the Submission.
- * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-group-hand-in-names-the-whole-work-group
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-group-hand-in-names-the-whole-work-group
  */
 export function handInLearners(assignment, sets, learnerId) {
 	if (!assignment?.groupSubmission || !assignment.workGroupSetName) {
