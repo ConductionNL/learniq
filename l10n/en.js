@@ -2738,7 +2738,11 @@ OC.L10N.register(
         "estimated": "estimated",
         "{name} (copy)": "{name} (copy)",
         "Next year's learners and groups per programme year and subject, from this year's groups, progression rates and subject choices.": "Next year's learners and groups per programme year and subject, from this year's groups, progression rates and subject choices.",
-        "The learner's Nextcloud user id, written at issuance next to learnerId (the LearnerProfile uuid). The learner's read rule matches on it.": "The learner's Nextcloud user id, written at issuance next to learnerId (the LearnerProfile uuid). The learner's read rule matches on it."
+        "The learner's Nextcloud user id, written at issuance next to learnerId (the LearnerProfile uuid). The learner's read rule matches on it.": "The learner's Nextcloud user id, written at issuance next to learnerId (the LearnerProfile uuid). The learner's read rule matches on it.",
+        "The learner's Nextcloud user id, written by the server from the LearnerProfile that learnerId names. The learner's read rule matches on it.": "The learner's Nextcloud user id, written by the server from the LearnerProfile that learnerId names. The learner's read rule matches on it.",
+        "The learner's Nextcloud user id, written by the server from the LearnerProfile that learnerId names. The learner's read rule and notifications match on it.": "The learner's Nextcloud user id, written by the server from the LearnerProfile that learnerId names. The learner's read rule and notifications match on it.",
+        "Accused learner account": "Accused learner account",
+        "The accused learner's Nextcloud user id, written by the server from the LearnerProfile that accusedLearnerId names. The accused learner's read rule and notification match on it.": "The accused learner's Nextcloud user id, written by the server from the LearnerProfile that accusedLearnerId names. The accused learner's read rule and notification match on it."
     },
     "nplurals=2; plural=(n != 1);"
 )
