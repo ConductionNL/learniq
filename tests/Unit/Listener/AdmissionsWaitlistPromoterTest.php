@@ -83,7 +83,7 @@ class AdmissionsWaitlistPromoterTest extends TestCase {
 			}
 		);
 
-		return new AdmissionsWaitlistPromoter($objectService, $transitionEngine, new NullLogger());
+		return new AdmissionsWaitlistPromoter($objectService, $transitionEngine, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**

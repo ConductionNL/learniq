@@ -47,6 +47,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -73,12 +74,14 @@ class PeerFeedbackAggregator implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly ITimeFactory $timeFactory,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -96,11 +99,11 @@ class PeerFeedbackAggregator implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() !== self::PEER_REVIEW_SCHEMA || $event->getTo() !== 'released') {
+		if ($this->schemas->eventSchema(event: $event) !== self::PEER_REVIEW_SCHEMA || $event->getTo() !== 'released') {
 			return;
 		}
 

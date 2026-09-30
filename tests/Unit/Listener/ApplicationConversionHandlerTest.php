@@ -123,7 +123,7 @@ class ApplicationConversionHandlerTest extends TestCase {
 			}
 		);
 
-		return new ApplicationConversionHandler($objectService, $transitionEngine, new NullLogger());
+		return new ApplicationConversionHandler($objectService, $transitionEngine, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**

@@ -65,7 +65,7 @@ class SessionChangeNoticeHandlerTest extends TestCase {
 	 * @return SessionChangeNoticeHandler
 	 */
 	private function handler(): SessionChangeNoticeHandler {
-		return new SessionChangeNoticeHandler($this->objectService, new NullLogger());
+		return new SessionChangeNoticeHandler($this->objectService, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end handler()
 
 	/**

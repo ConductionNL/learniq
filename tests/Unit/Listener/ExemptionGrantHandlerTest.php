@@ -118,7 +118,7 @@ class ExemptionGrantHandlerTest extends TestCase {
 			static fn (string $learnerRef): ?string => $learnerRef === self::PROFILE_2 ? 'learner-2' : null
 		);
 
-		return new ExemptionGrantHandler($objectService, $transitionEngine, new NullLogger(), $profiles);
+		return new ExemptionGrantHandler($objectService, $transitionEngine, new NullLogger(), $profiles, \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**

@@ -150,7 +150,8 @@ class GradeRollupHandlerTest extends TestCase {
 			$objectService,
 			$evaluator,
 			new GradeVisibilityResolver(),
-			$timeFactory
+			$timeFactory,
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 	}//end makeHandler()

@@ -39,6 +39,7 @@ namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use OCA\Learniq\Service\LearnerRefResolver;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
@@ -65,6 +66,7 @@ class ExemptionGrantHandler implements IEventListener {
 	 * @param TransitionEngine $transitionEngine OR lifecycle engine used to dispatch the `publish` transition.
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param LearnerRefResolver $profiles The learner's user id from the case's LearnerProfile.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -73,6 +75,7 @@ class ExemptionGrantHandler implements IEventListener {
 		private readonly TransitionEngine $transitionEngine,
 		private readonly LoggerInterface $logger,
 		private readonly LearnerRefResolver $profiles,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -90,11 +93,11 @@ class ExemptionGrantHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() !== self::EXEMPTION_CASE_SCHEMA
+		if ($this->schemas->eventSchema(event: $event) !== self::EXEMPTION_CASE_SCHEMA
 			|| $event->getTo() !== 'granted'
 		) {
 			return;

@@ -87,7 +87,7 @@ class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 			}
 		);
 
-		return new SubjectChoiceEnrolmentBridge($objectService, new NullLogger());
+		return new SubjectChoiceEnrolmentBridge($objectService, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**

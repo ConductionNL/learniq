@@ -163,7 +163,8 @@ class ReportCardComposerTest extends TestCase {
 			new NullLogger(),
 			new AttendanceWindowAggregator($objectService),
 			new ReportCardTemplateSectionResolver($objectService, new NullLogger()),
-			new LearnerRefResolver($objectService)
+			new LearnerRefResolver($objectService),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 	}//end makeComposer()
@@ -470,7 +471,8 @@ class ReportCardComposerTest extends TestCase {
 			new NullLogger(),
 			new AttendanceWindowAggregator($objectService),
 			new ReportCardTemplateSectionResolver($objectService, new NullLogger()),
-			new LearnerRefResolver($objectService)
+			new LearnerRefResolver($objectService),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 		$card = [
@@ -567,7 +569,8 @@ class ReportCardComposerTest extends TestCase {
 			new NullLogger(),
 			new AttendanceWindowAggregator($objectService),
 			new ReportCardTemplateSectionResolver($objectService, new NullLogger()),
-			new LearnerRefResolver($objectService)
+			new LearnerRefResolver($objectService),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 	}//end makeTemplateAwareRecomposer()
