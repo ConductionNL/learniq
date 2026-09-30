@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\Learniq\Listener\CompetencyAlignmentListener;
+use OCA\Learniq\Listener\ConferenceSignupPortalStamp;
 use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
 use OCA\Learniq\Listener\LessonNoteAuthorGuard;
@@ -173,6 +174,15 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: ExcuseRequestOwnerStamp::class
+		);
+
+		// ConferenceSignup from the parent portal (portal-parent-conference-
+		// booking): the child must list the guardian and the round must be
+		// open to the child; learnerId, guardianId, tenant and `submitted` are
+		// stamped so the scheduling generator considers the signup.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: ConferenceSignupPortalStamp::class
 		);
 	}//end registerOwnerStamps()
 }//end class

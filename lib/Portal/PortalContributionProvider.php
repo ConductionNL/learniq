@@ -581,7 +581,8 @@ class PortalContributionProvider {
 			'collections' => array_merge(
 				[$this->parentChildrenCollection()],
 				$this->parentResultCollections(childJoin: $childJoin),
-				$this->parentWelfareCollections(childJoin: $childJoin)
+				$this->parentWelfareCollections(childJoin: $childJoin),
+				$this->parentConferenceCollections(childJoin: $childJoin)
 			),
 			// Portal-contribution-guardian-audiences: portaliq's writer
 			// cross-reference guard (portaliq#607, merged 2026-09-18) now
@@ -592,7 +593,10 @@ class PortalContributionProvider {
 			// guardian-supplied `learnerRef` in the create body names WHICH
 			// child, validated against $childJoin the same way every parent
 			// read collection above already is.
-			'actions' => $this->parentActions(childJoin: $childJoin),
+			'actions' => array_merge(
+				$this->parentActions(childJoin: $childJoin),
+				[$this->parentConferenceSignupAction()]
+			),
 			'notifications' => [],
 		];
 
@@ -631,6 +635,10 @@ class PortalContributionProvider {
 				'guardianRefs',
 				'beeldmateriaalConsent',
 				'beeldmateriaalConsentReviewDueAt',
+			],
+			'columns' => [
+				['field' => 'givenName', 'label' => 'First name'],
+				['field' => 'familyName', 'label' => 'Last name'],
 			],
 		];
 
@@ -674,10 +682,205 @@ class PortalContributionProvider {
 					'reasonKind',
 					'attachmentRef',
 				],
+				// The child is picked from the guardian's own children, and portaliq
+				// refuses any other value before the write (portal-parent-conference-
+				// booking); ExcuseRequestOwnerStamp checks it again.
+				'crossRefs' => ['learnerRef' => self::childCrossRef()],
+				'optionsProviders' => ['learnerRef' => self::childOptions()],
+				'fieldConfigs' => [
+					'learnerRef' => ['label' => 'Child', 'required' => true],
+					'dateFrom' => ['label' => 'First day absent', 'required' => true],
+					'dateTo' => ['label' => 'Last day absent', 'required' => true],
+					'reason' => ['label' => 'Reason', 'required' => true],
+					'reasonKind' => ['label' => 'Kind of absence', 'required' => true],
+					'attachmentRef' => ['label' => 'Attachment'],
+				],
+				'submitLabel' => 'Report the absence',
+				'successMessage' => "The school has your report. You see the teacher's decision in the list of absence reports.",
 			],
 		];
 
 	}//end parentActions()
+
+	/**
+	 * The guardian's parent-teacher conference collections: the rounds open
+	 * to one of their children, their bookings and the scheduled times.
+	 *
+	 * All three go through the same reverse `via` join as every parent read.
+	 * A round is matched on `invitedLearnerRefs`, which the round's
+	 * `send-invitations` transition fills (ConferenceInvitationAction), and
+	 * only a round in `booking-open` is listed.
+	 *
+	 * @param array<string, mixed> $childJoin The shared reverse `via` join descriptor.
+	 *
+	 * @return array<int, array<string, mixed>> Parent conference collections.
+	 *
+	 * @spec openspec/changes/portal-parent-conference-booking/specs/parent-conferences/spec.md
+	 */
+	private function parentConferenceCollections(array $childJoin): array {
+		return [
+			[
+				'id' => 'parentConferenceRounds',
+				'register' => self::REGISTER,
+				'schema' => 'conference-round',
+				'scopeField' => 'invitedLearnerRefs',
+				'scopeClaim' => 'guardianRef',
+				'via' => $childJoin,
+				'filter' => ['lifecycle' => 'booking-open'],
+				'label' => 'Parent-teacher conferences you can book',
+				'listable' => true,
+				'minTrust' => 'substantial',
+				'fields' => [
+					'name',
+					'bookingOpensAt',
+					'bookingClosesAt',
+					'slotDurationMinutes',
+				],
+				'columns' => [
+					['field' => 'name', 'label' => 'Conference'],
+					['field' => 'bookingClosesAt', 'label' => 'Book before'],
+					['field' => 'slotDurationMinutes', 'label' => 'Minutes per conversation'],
+				],
+			],
+			[
+				'id' => 'parentConferenceSignups',
+				'register' => self::REGISTER,
+				'schema' => 'conference-signup',
+				'scopeField' => 'learnerRef',
+				'scopeClaim' => 'guardianRef',
+				'via' => $childJoin,
+				'groupByField' => 'learnerRef',
+				'label' => 'Your conference bookings',
+				'listable' => true,
+				'minTrust' => 'substantial',
+				'fields' => [
+					'conferenceRoundId',
+					'learnerRef',
+					'requestedTeacherIds',
+					'notes',
+					'lifecycle',
+				],
+				'columns' => [
+					['field' => 'requestedTeacherIds', 'label' => 'With'],
+					['field' => 'notes', 'label' => 'Your note'],
+					['field' => 'lifecycle', 'label' => 'Status'],
+				],
+			],
+			[
+				'id' => 'parentConferenceSlots',
+				'register' => self::REGISTER,
+				'schema' => 'conference-slot',
+				'scopeField' => 'learnerRef',
+				'scopeClaim' => 'guardianRef',
+				'via' => $childJoin,
+				'groupByField' => 'learnerRef',
+				'label' => 'Your conference times',
+				'listable' => true,
+				'minTrust' => 'substantial',
+				'fields' => [
+					'learnerRef',
+					'teacherId',
+					'startsAt',
+					'endsAt',
+					'location',
+					'lifecycle',
+				],
+				'columns' => [
+					['field' => 'startsAt', 'label' => 'Starts'],
+					['field' => 'endsAt', 'label' => 'Ends'],
+					['field' => 'teacherId', 'label' => 'With'],
+					['field' => 'location', 'label' => 'Where'],
+					['field' => 'lifecycle', 'label' => 'Status'],
+				],
+			],
+		];
+
+	}//end parentConferenceCollections()
+
+	/**
+	 * The guardian books a parent-teacher conversation for their child.
+	 *
+	 * Portaliq stamps the guardian's own learniq reference into `guardianRef`
+	 * (the scope claim) and refuses a child that is not the guardian's
+	 * (`crossRefs`). ConferenceSignupPortalStamp then checks the round is open
+	 * to that child, stamps the child's user id, the tenant and `submitted`,
+	 * and fills the requested teachers from the child's group when the
+	 * guardian names none.
+	 *
+	 * @return array<string, mixed> The create action.
+	 *
+	 * @spec openspec/changes/portal-parent-conference-booking/specs/parent-conferences/spec.md
+	 */
+	private function parentConferenceSignupAction(): array {
+		return [
+			'id' => 'createConferenceSignup',
+			'type' => 'create',
+			'label' => 'Book a parent-teacher conversation',
+			'register' => self::REGISTER,
+			'schema' => 'conference-signup',
+			'scopeField' => 'guardianRef',
+			'scopeClaim' => 'guardianRef',
+			'minTrust' => 'substantial',
+			'fields' => [
+				'conferenceRoundId',
+				'learnerRef',
+				'notes',
+			],
+			'crossRefs' => ['learnerRef' => self::childCrossRef()],
+			'optionsProviders' => [
+				'learnerRef' => self::childOptions(),
+				'conferenceRoundId' => [
+					'type' => 'collection',
+					'register' => self::REGISTER,
+					'schema' => 'conference-round',
+					'labelField' => 'name',
+					'valueField' => 'id',
+				],
+			],
+			'fieldConfigs' => [
+				'conferenceRoundId' => ['label' => 'Conference', 'required' => true],
+				'learnerRef' => ['label' => 'Child', 'required' => true],
+				'notes' => ['label' => 'Anything the teacher should know beforehand'],
+			],
+			'submitLabel' => 'Book',
+			'successMessage' => 'Your booking is in. The school plans the times, and you see yours under your conference times.',
+		];
+
+	}//end parentConferenceSignupAction()
+
+	/**
+	 * The cross reference that proves a `learnerRef` names one of the
+	 * guardian's own children: a direct read of `learner-profile` whose
+	 * `guardianRefs` list holds the guardian's claim.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function childCrossRef(): array {
+		return [
+			'register' => self::REGISTER,
+			'schema' => 'learner-profile',
+			'scopeField' => 'guardianRefs',
+			'scopeClaim' => 'guardianRef',
+			'required' => true,
+		];
+
+	}//end childCrossRef()
+
+	/**
+	 * A child picker over the guardian's own children.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function childOptions(): array {
+		return [
+			'type' => 'collection',
+			'register' => self::REGISTER,
+			'schema' => 'learner-profile',
+			'labelField' => 'givenName',
+			'valueField' => 'id',
+		];
+
+	}//end childOptions()
 
 	/**
 	 * The guardian's result collections — the child's grades and attendance.
@@ -715,6 +918,11 @@ class PortalContributionProvider {
 					'period',
 					'gradedAt',
 				],
+				'columns' => [
+					['field' => 'value', 'label' => 'Grade'],
+					['field' => 'period', 'label' => 'Period'],
+					['field' => 'gradedAt', 'label' => 'Given on'],
+				],
 			],
 			[
 				'id' => 'parentAttendance',
@@ -734,6 +942,11 @@ class PortalContributionProvider {
 					'status',
 					'minutesAttended',
 					'markedAt',
+				],
+				'columns' => [
+					['field' => 'markedAt', 'label' => 'Date'],
+					['field' => 'status', 'label' => 'Attendance'],
+					['field' => 'minutesAttended', 'label' => 'Minutes present'],
 				],
 			],
 		];
@@ -777,6 +990,13 @@ class PortalContributionProvider {
 					'lifecycle',
 					'decidedAt',
 				],
+				'columns' => [
+					['field' => 'dateFrom', 'label' => 'From'],
+					['field' => 'dateTo', 'label' => 'To'],
+					['field' => 'reason', 'label' => 'Reason'],
+					['field' => 'lifecycle', 'label' => 'Status'],
+					['field' => 'decidedAt', 'label' => 'Decided on'],
+				],
 			],
 			[
 				'id' => 'parentReportCards',
@@ -805,6 +1025,10 @@ class PortalContributionProvider {
 					'attendanceSummary',
 					'mentorComment',
 					'docudeskDocumentRef',
+				],
+				'columns' => [
+					['field' => 'mentorComment', 'label' => "Teacher's comment"],
+					['field' => 'subjectGrades', 'label' => 'Grades'],
 				],
 			],
 		];
