@@ -364,4 +364,25 @@ class ApplicationConversionHandlerTest extends TestCase {
 			self::assertTrue($write['rbac'], 'admission is written with _rbac: true');
 		}
 	}//end testLearnerProfileAndEnrolmentsAreWrittenAsTheSystem()
+
+	/**
+	 * Placement into a programme that is gone, or whose course list is not a
+	 * list, still creates the learner profile but no enrolment.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
+	 */
+	public function testAMissingOrMalformedProgrammeCreatesNoEnrolments(): void {
+		foreach ([null, ['id' => 'programme-1', 'courseIds' => 'course-a']] as $programme) {
+			$this->savedObjects = [];
+			$handler = $this->makeHandler(programme: $programme);
+
+			$handler->handle($this->makeEvent(['id' => 'app-9', 'programmeId' => 'programme-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'placed']));
+
+			$schemas = array_column($this->savedObjects, 'schema');
+			self::assertContains('learner-profile', $schemas);
+			self::assertNotContains('enrolment', $schemas);
+		}
+	}//end testAMissingOrMalformedProgrammeCreatesNoEnrolments()
 }//end class
