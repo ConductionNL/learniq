@@ -288,7 +288,7 @@ class ListenerSchemaResolver {
 	 *
 	 * @return string The register slug, or the raw value when it cannot be resolved.
 	 *
-	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
+	 * @spec openspec/changes/archive/2026-09-29-credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
 	 */
 	public function eventRegisterSlug(string $register): string {
 		if (strcasecmp($register, self::REGISTER_SLUG) === 0) {
@@ -317,7 +317,7 @@ class ListenerSchemaResolver {
 	 *
 	 * @return string The schema slug, or the raw value when it is not Learniq's or cannot be resolved.
 	 *
-	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
+	 * @spec openspec/changes/archive/2026-09-29-credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
 	 */
 	public function eventSchemaSlug(string $register, string $schema): string {
 		if (ctype_digit($schema) === false) {
@@ -343,7 +343,7 @@ class ListenerSchemaResolver {
 	 *
 	 * @return string The register slug, or the raw value when it cannot be resolved.
 	 *
-	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
+	 * @spec openspec/changes/archive/2026-09-29-credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
 	 */
 	public function eventRegister(ObjectTransitionedEvent $event): string {
 		return $this->eventRegisterSlug(register: $event->getRegister());
@@ -356,7 +356,7 @@ class ListenerSchemaResolver {
 	 *
 	 * @return string The schema slug, or the raw value when it is not Learniq's or cannot be resolved.
 	 *
-	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
+	 * @spec openspec/changes/archive/2026-09-29-credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
 	 */
 	public function eventSchema(ObjectTransitionedEvent $event): string {
 		return $this->eventSchemaSlug(register: $event->getRegister(), schema: $event->getSchema());

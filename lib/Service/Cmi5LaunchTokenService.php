@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#2-cmi5launchtokenservice
+ * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#2-cmi5launchtokenservice
  */
 
 declare(strict_types=1);
@@ -100,7 +100,7 @@ class Cmi5LaunchTokenService {
 	 *
 	 * @return bool True once both halves of the key-pair are stored.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#2-cmi5launchtokenservice
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#2-cmi5launchtokenservice
 	 */
 	public function isEnabled(): bool {
 		return $this->storedPrivateKey() !== '' && $this->publicKeyPem() !== '';
@@ -113,7 +113,7 @@ class Cmi5LaunchTokenService {
 	 *
 	 * @throws RuntimeException When openssl cannot generate or export the key.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#1-key-provisioning
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#1-key-provisioning
 	 */
 	public function generateKeyPair(): array {
 		$resource = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
@@ -148,7 +148,7 @@ class Cmi5LaunchTokenService {
 	 *
 	 * @return array{fingerprint: string, publicKey: string}|null The key status.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#1-key-provisioning
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#1-key-provisioning
 	 */
 	public function keyStatus(): ?array {
 		$publicPem = $this->publicKeyPem();
@@ -173,7 +173,7 @@ class Cmi5LaunchTokenService {
 	 *
 	 * @throws RuntimeException When no key is stored or signing fails.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#2-cmi5launchtokenservice
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#2-cmi5launchtokenservice
 	 */
 	public function mintLaunchToken(
 		string $learnerId,
@@ -214,7 +214,7 @@ class Cmi5LaunchTokenService {
 	 *
 	 * @return array<string, mixed>|null The claims, or null.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
 	 */
 	public function verifyLaunchToken(string $token): ?array {
 		$parts     = explode('.', $token);
@@ -262,7 +262,7 @@ class Cmi5LaunchTokenService {
 	 *
 	 * @return string The auth-token handed out by the fetch URL.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#7-basic-auth-reachability
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#7-basic-auth-reachability
 	 */
 	public function authToken(string $launchToken): string {
 		return base64_encode($launchToken);
@@ -279,7 +279,7 @@ class Cmi5LaunchTokenService {
 	 *
 	 * @return array<string, mixed>|null The claims, or null.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#7-basic-auth-reachability
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#7-basic-auth-reachability
 	 */
 	public function verifyAuthToken(string $credential): ?array {
 		$launchToken = $credential;

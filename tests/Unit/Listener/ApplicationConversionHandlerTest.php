@@ -41,6 +41,13 @@ class ApplicationConversionHandlerTest extends TestCase {
 	use RegisterSchemaPayloads;
 
 	/**
+	 * The `_rbac` argument of every saveObject() call, per schema.
+	 *
+	 * @var array<int, array{schema: string, rbac: bool}>
+	 */
+	private array $rbacWrites = [];
+
+	/**
 	 * Recorded saveObject() calls.
 	 *
 	 * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
@@ -88,7 +95,8 @@ class ApplicationConversionHandlerTest extends TestCase {
 
 		$counter = ['learner-profile' => 0, 'enrolment' => 0];
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) use (&$counter): ObjectEntity {
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true) use (&$counter): ObjectEntity {
+				$this->rbacWrites[] = ['schema' => (string)$schema, 'rbac' => $_rbac];
 				$this->savedObjects[] = [
 					'register' => (string)$register,
 					'schema' => (string)$schema,
@@ -327,4 +335,33 @@ class ApplicationConversionHandlerTest extends TestCase {
 		self::assertCount(0, $this->transitions);
 
 	}//end testNonMatchingEventTypeIgnored()
+
+	/**
+	 * Admissions staff place the applicant; they may not create a LearnerProfile or an
+	 * Enrolment, so those are written as the system. The Admission itself stays under the
+	 * caller's rights.
+	 *
+	 * @return void
+	 */
+	public function testLearnerProfileAndEnrolmentsAreWrittenAsTheSystem(): void {
+		$this->testPlacementCreatesLearnerProfileAndEnrolments();
+
+		$writes = array_values(array_filter($this->rbacWrites, static fn (array $w): bool => $w['schema'] === 'learner-profile'));
+		self::assertNotEmpty($writes, 'no learner-profile write');
+		foreach ($writes as $write) {
+			self::assertFalse($write['rbac'], 'learner-profile is written with _rbac: false');
+		}
+
+		$writes = array_values(array_filter($this->rbacWrites, static fn (array $w): bool => $w['schema'] === 'enrolment'));
+		self::assertNotEmpty($writes, 'no enrolment write');
+		foreach ($writes as $write) {
+			self::assertFalse($write['rbac'], 'enrolment is written with _rbac: false');
+		}
+
+		$writes = array_values(array_filter($this->rbacWrites, static fn (array $w): bool => $w['schema'] === 'admission'));
+		self::assertNotEmpty($writes, 'no admission write');
+		foreach ($writes as $write) {
+			self::assertTrue($write['rbac'], 'admission is written with _rbac: true');
+		}
+	}//end testLearnerProfileAndEnrolmentsAreWrittenAsTheSystem()
 }//end class

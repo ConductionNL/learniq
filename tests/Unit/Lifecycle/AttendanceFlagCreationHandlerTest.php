@@ -45,6 +45,13 @@ use Psr\Log\NullLogger;
 class AttendanceFlagCreationHandlerTest extends TestCase {
 
 	/**
+	 * The `_rbac` argument of every saveObject() call, per schema.
+	 *
+	 * @var array<int, array{schema: string, rbac: bool}>
+	 */
+	private array $rbacWrites = [];
+
+	/**
 	 * Recorded saveObject() calls.
 	 *
 	 * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
@@ -85,7 +92,8 @@ class AttendanceFlagCreationHandlerTest extends TestCase {
 	private function makeHandler(): AttendanceFlagCreationHandler {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true): ObjectEntity {
+				$this->rbacWrites[] = ['schema' => (string)$schema, 'rbac' => $_rbac];
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->savedObjects[] = [
 					'register' => (string)$register,
@@ -395,4 +403,20 @@ class AttendanceFlagCreationHandlerTest extends TestCase {
 		self::assertCount(0, $this->savedObjects);
 
 	}//end testNonMatchingEventTypeIgnored()
+
+	/**
+	 * A learner's self check-in or a coordinator's register may cross the threshold; neither may
+	 * write an AttendanceFlag, so the flag is written as the system.
+	 *
+	 * @return void
+	 */
+	public function testAttendanceFlagIsWrittenAsTheSystem(): void {
+		$this->testAnAttendanceFlagAsksForALeerplichtReport();
+
+		$writes = array_values(array_filter($this->rbacWrites, static fn (array $w): bool => $w['schema'] === 'attendance-flag'));
+		self::assertNotEmpty($writes, 'no attendance-flag write');
+		foreach ($writes as $write) {
+			self::assertFalse($write['rbac'], 'attendance-flag is written with _rbac: false');
+		}
+	}//end testAttendanceFlagIsWrittenAsTheSystem()
 }//end class

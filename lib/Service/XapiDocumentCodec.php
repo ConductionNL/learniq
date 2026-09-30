@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+ * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
  */
 
 declare(strict_types=1);
@@ -47,7 +47,7 @@ class XapiDocumentCodec {
 	 *
 	 * @return string The ETag, with quotes.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function etag(string $contents): string {
 		return '"' . sha1($contents) . '"';
@@ -60,7 +60,7 @@ class XapiDocumentCodec {
 	 *
 	 * @return array{contents: string, contentEncoding: string} The stored string and how it is encoded.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function encode(string $contents): array {
 		return ['contents' => base64_encode($contents), 'contentEncoding' => 'base64'];
@@ -73,7 +73,7 @@ class XapiDocumentCodec {
 	 *
 	 * @return string The body.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function decode(array $row): string {
 		$contents = $row['contents'] ?? '';
@@ -96,7 +96,7 @@ class XapiDocumentCodec {
 	 *
 	 * @return array<string, mixed>|null The object's members, or null.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function jsonObject(string $contents): ?array {
 		$trimmed = ltrim($contents);

@@ -205,10 +205,14 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 			]
 		);
 
+		// System context (grade-entry): coordinators and praktijkopleiders confirm a werkproces
+		// assessment, and GradeEntry create is instructors, hr, compliance officers and team leads
+		// only.
 		$this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::GRADE_ENTRY_SCHEMA,
-			object: $data
+			object: $data,
+			_rbac: false
 		);
 
 		$kind = 'created';

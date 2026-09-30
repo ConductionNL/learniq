@@ -170,6 +170,9 @@ class SupportRequestSubmitHandler implements IEventListener {
 			uuid: $supportRequestId
 		);
 
+		// System context (dossier-review): hr, compliance officers and team leads may submit a
+		// support request, and DossierReview create is administration managers, coordinators and
+		// instructors only.
 		$this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::DOSSIER_REVIEW_SCHEMA,
@@ -179,7 +182,8 @@ class SupportRequestSubmitHandler implements IEventListener {
 				'learnerUserId' => $learnerId,
 				'status' => 'pending',
 				'tenant_id' => $tenantId,
-			]
+			],
+			_rbac: false
 		);
 
 	}//end requestSwvJob()
