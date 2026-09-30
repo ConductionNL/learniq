@@ -368,4 +368,22 @@ class CatalogueSignUpServiceTest extends TestCase {
 
 		return $objects;
 	}//end createConfiguredStoreDouble()
+
+	/**
+	 * A programme that does not exist is refused as not found, and nothing is
+	 * written.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-a-track
+	 */
+	public function testAnUnknownProgrammeIsNotFound(): void {
+		$service = $this->service();
+
+		$outcome = $service->signUpProgramme(learner: $this->learner(), programmeId: 'p-nope');
+
+		self::assertSame(404, $outcome->status);
+		self::assertSame('not-found', $outcome->reason);
+		self::assertSame([], $this->enrolments());
+	}//end testAnUnknownProgrammeIsNotFound()
 }//end class
