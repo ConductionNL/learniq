@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
+ * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
  */
 
 declare(strict_types=1);
@@ -188,7 +188,7 @@ class LrsControllerTest extends TestCase {
 	/**
 	 * A statement id already held by a different statement answers 409 and stores nothing.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#9-statement-id-conflicts
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#9-statement-id-conflicts
 	 *
 	 * @return void
 	 */

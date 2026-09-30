@@ -229,6 +229,8 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 			$existingData = $this->toArrayData(object: $existing[0]);
 		}
 
+		// System context (item-statistics): the grade transition is granted by the teacherIds match,
+		// not the instructors group, and ItemStatistics is written by staff groups only.
 		$saved = $this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::ITEM_STATISTICS_SCHEMA,
@@ -245,7 +247,8 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 					'computedAt' => $statistics['computedAt'],
 					'tenant_id' => $tenantId,
 				]
-			)
+			),
+			_rbac: false
 		);
 
 		$savedData = $this->toArrayData(object: $saved);
@@ -279,6 +282,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 			$existingData = $this->toArrayData(object: $existing[0]);
 		}
 
+		// System context (assessment-reliability): as above.
 		$this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::ASSESSMENT_RELIABILITY_SCHEMA,
@@ -293,7 +297,8 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 					'computedAt' => $reliability['computedAt'],
 					'tenant_id' => $tenantId,
 				]
-			)
+			),
+			_rbac: false
 		);
 
 	}//end upsertAssessmentReliability()
@@ -394,6 +399,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 			return;
 		}
 
+		// System context (item-revision-flag): as above.
 		$this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::ITEM_REVISION_FLAG_SCHEMA,
@@ -406,7 +412,8 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 				'flaggedAt' => DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime())->format(\DATE_ATOM),
 				'lifecycle' => 'open',
 				'tenant_id' => $tenantId,
-			]
+			],
+			_rbac: false
 		);
 
 	}//end createFlagIfNotOpen()

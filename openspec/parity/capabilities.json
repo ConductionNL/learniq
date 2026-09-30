@@ -1560,7 +1560,7 @@
       "name": "Export a certificate in the European Europass credential format.",
       "built": {
         "state": "built",
-        "evidence": "lib/Controller/CredentialEuropassController.php:111 serves Credential.edciPayload (appinfo/routes.php:44-48); CredentialIssuanceHandler signs before save (#1178). Live issue 2026-09-29 recorded in the archived tasks.md.",
+        "evidence": "lib/Controller/CredentialEuropassController.php:111 serves Credential.edciPayload (appinfo/routes.php:44-48); CredentialIssuanceHandler signs before save (#1178). Live issue 2026-09-30 (tests/e2e/credential-issuance.spec.ts, #1535) recorded in the archived tasks.md.",
         "owner": "ConductionNL/learniq",
         "change": "openspec/changes/archive/2026-09-29-credentials-europass-edci-export",
         "reachedOn": "nothing"
@@ -1912,7 +1912,7 @@
         "state": "building",
         "evidence": "The SCORM 1.2 runtime (src/utils/scorm12Runtime.js) reports completion to POST /api/lrs/statements (archived cmi5-xapi-lrs-ingest). Not built: unpacking an uploaded SCORM zip; the player serves one lesson file by contentRef. SCORM 2004 is a follow-up.",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest"
+        "change": "openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1943,7 +1943,7 @@
         "evidence": "appinfo/routes.php:58-73 cmi5 launch (Cmi5LaunchController, token only through a single-use fetch URL) and the LRS statements and State routes; live statement POST and State round trip 2026-09-29 (#1519).",
         "owner": "ConductionNL/learniq",
         "readOn": "2026-09-26",
-        "change": "openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest"
+        "change": "openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1974,7 +1974,7 @@
         "evidence": "appinfo/routes.php:67-68 lrs#postStatements and lrs#getStatements store every statement as an XapiStatement with a server-stamped verified_actor_id; live 2026-09-29 (#1519).",
         "owner": "ConductionNL/learniq",
         "readOn": "2026-09-26",
-        "change": "openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest"
+        "change": "openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",

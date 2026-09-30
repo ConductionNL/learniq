@@ -46,6 +46,13 @@ use Psr\Log\NullLogger;
 class SupportRequestSubmitHandlerTest extends TestCase {
 
 	/**
+	 * The `_rbac` argument of every saveObject() call, per schema.
+	 *
+	 * @var array<int, array{schema: string, rbac: bool}>
+	 */
+	private array $rbacWrites = [];
+
+	/**
 	 * Recorded saveObject() calls.
 	 *
 	 * @var array<int, array{schema: string, object: array<string, mixed>, uuid: mixed}>
@@ -68,7 +75,8 @@ class SupportRequestSubmitHandlerTest extends TestCase {
 		$this->saved = [];
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null): ObjectEntity {
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true): ObjectEntity {
+				$this->rbacWrites[] = ['schema' => (string)$schema, 'rbac' => $_rbac];
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->saved[] = ['schema' => (string)$schema, 'object' => $data, 'uuid' => $uuid];
 				return OrEntityFactory::make($data, (string)$schema);
@@ -154,4 +162,27 @@ class SupportRequestSubmitHandlerTest extends TestCase {
 
 		self::assertSame([], $this->saved);
 	}//end testIgnoresEverythingElse()
+
+	/**
+	 * Hr, compliance officers and team leads may submit a support request but not create a
+	 * DossierReview, so the review is written as the system; the SupportRequest itself stays
+	 * under the caller's rights.
+	 *
+	 * @return void
+	 */
+	public function testDossierReviewIsWrittenAsTheSystem(): void {
+		$this->testASubmittedRequestAsksIntegriqAndOpensTheParentReview();
+
+		$writes = array_values(array_filter($this->rbacWrites, static fn (array $w): bool => $w['schema'] === 'dossier-review'));
+		self::assertNotEmpty($writes, 'no dossier-review write');
+		foreach ($writes as $write) {
+			self::assertFalse($write['rbac'], 'dossier-review is written with _rbac: false');
+		}
+
+		$writes = array_values(array_filter($this->rbacWrites, static fn (array $w): bool => $w['schema'] === 'support-request'));
+		self::assertNotEmpty($writes, 'no support-request write');
+		foreach ($writes as $write) {
+			self::assertTrue($write['rbac'], 'support-request is written with _rbac: true');
+		}
+	}//end testDossierReviewIsWrittenAsTheSystem()
 }//end class

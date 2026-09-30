@@ -109,17 +109,18 @@ same endpoint; the SCORM 2004 shim and a cmi5 package importer remain follow-ups
 - **WHEN** the package calls `LMSSetValue('cmi.core.lesson_status', 'completed')` (or `'passed'`)
 - **THEN** an xAPI statement is built with `verb.id` equal to `http://adlnet.gov/expapi/verbs/completed` or
   `.../passed`, the same IRIs `XapiCompletionHandler` already recognises
-- **AND** the statement is posted to `POST /api/lrs/statements`, which stamps `verified_actor_id` from the session
+- **AND** the statement is POSTed to learniq's LRS endpoint `POST /api/lrs/statements`, which stamps the
+  signed-in learner as `verified_actor_id`
 
 #### Scenario: A cmi5 lesson gracefully degrades until the sibling ingest change ships
 
-- **GIVEN** a `Lesson` with `contentType: "cmi5"` and no cmi5 launch signing key is provisioned
-  (`Cmi5LaunchTokenService::isEnabled()` is false, so the launch endpoint answers 503)
+- **GIVEN** a `Lesson` with `contentType: "cmi5"` and the launch endpoint answers 503 (no cmi5 launch key
+  provisioned yet) or 404
 - **WHEN** a learner opens the lesson
 - **THEN** `LessonPlayer.vue` shows a clear "cmi5 playback is not yet available for this lesson" empty state
 - **AND** no unhandled error or infinite loading spinner is shown
 
-<!-- @e2e exclude Depends on instance key state, which a shared instance cannot toggle per test; the 503 half is pinned by tests/Unit/Controller/Cmi5LaunchControllerTest.php, the empty state is the `!cmi5.available` branch of src/views/LessonPlayer.vue. -->
+<!-- @e2e exclude Depends on the instance's cmi5 key state; the 503 answer is pinned by tests/Unit/Controller/Cmi5LaunchControllerTest.php, and the empty state itself has no automated test yet. -->
 
 #### Scenario: A learner's completed AU produces a queryable xAPI statement
 
