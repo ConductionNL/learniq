@@ -2968,7 +2968,9 @@
         "The rule applies when the best score is this or higher.": "The rule applies when the best score is this or higher.",
         "The rule applies when the best score is lower than this.": "The rule applies when the best score is lower than this.",
         "The condition that sends the learner to the rule's lesson.": "The condition that sends the learner to the rule's lesson.",
-        "The lesson of the same course the learner goes to next.": "The lesson of the same course the learner goes to next."
+        "The lesson of the same course the learner goes to next.": "The lesson of the same course the learner goes to next.",
+        "Invited learner references": "Invited learner references",
+        "LearnerProfile uuids of the invited learners, computed with invitedLearnerIds by the send-invitations transition. The parent portal scopes a round by it.": "LearnerProfile uuids of the invited learners, computed with invitedLearnerIds by the send-invitations transition. The parent portal scopes a round by it."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

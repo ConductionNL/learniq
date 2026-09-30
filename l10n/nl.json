@@ -3443,7 +3443,9 @@
         "The rule applies when the best score is this or higher.": "De regel geldt als de beste score dit of hoger is.",
         "The rule applies when the best score is lower than this.": "De regel geldt als de beste score lager is dan dit.",
         "The condition that sends the learner to the rule's lesson.": "De voorwaarde die de lerende naar de les van de regel stuurt.",
-        "The lesson of the same course the learner goes to next.": "De les uit dezelfde cursus waar de lerende daarna naartoe gaat."
+        "The lesson of the same course the learner goes to next.": "De les uit dezelfde cursus waar de lerende daarna naartoe gaat.",
+        "Invited learner references": "Referenties van de uitgenodigde leerlingen",
+        "LearnerProfile uuids of the invited learners, computed with invitedLearnerIds by the send-invitations transition. The parent portal scopes a round by it.": "De uuids van de LearnerProfiles van de uitgenodigde leerlingen, samen met invitedLearnerIds berekend door de overgang send-invitations. Het ouderportaal bepaalt hiermee welke rondes een ouder ziet."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
