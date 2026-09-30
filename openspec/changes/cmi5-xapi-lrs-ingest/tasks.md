@@ -205,4 +205,19 @@
 - [x] 9.3 Tests: `XapiStatementIngestTest` (7 tests, red on development) over an OpenRegister double that refuses an
       update on the append-only schema with the live message, throws for a missing id, and returns an absent
       property as null; `LrsControllerTest::testKnownIdWithADifferentStatementAnswers409`.
-- [ ] 9.4 Live: re-post a stored statement (expect 200 and no new row) and a changed one with the same id (expect 409).
+- [x] 9.4 Live: re-post a stored statement (expect 200 and no new row) and a changed one with the same id (expect 409).
+  - Throwaway instance, 2026-09-30 (`localhost:8090`, learniq ed8e8e4a with #1524, OpenRegister development 574a0f35
+    with #4173, #4192 and #4216, Company example set), a temp non-admin learner, a published cmi5 lesson, launch and
+    redeem 200, every POST with `Basic <auth-token>`; the row count is the xapi-statement rows for the lesson:
+    - Store `completed` `6ca55742-...` 200 `["6ca55742-1c9e-4ca6-a764-63b4762f9da5"]`, 1 row.
+    - Identical re-post 200 with the same id, still 1 row.
+    - Re-post with the id in upper case, the timestamp as `+02:00`, a renamed Activity Definition and an `authority`
+      200 with the same id, still 1 row.
+    - Same id with verb `failed` 409 `A different statement is already stored with id ...`; same id with an added
+      `result` 409; still 1 row.
+    - Batch [the known identical statement, a new `initialized`] 200 with both ids in order, 2 rows.
+    - Batch [a new statement, the known id with verb `failed`] 409, still 2 rows: the new one was not stored.
+    - The same id twice in one batch 400.
+    - GET statements as the learner returns the 2 statements, both with `verified_actor_id` of the learner.
+    - Cleanup: the lesson, the LaunchData document and the temp user are deleted; the 2 statements stay
+      (append-only) and go with the throwaway containers.
