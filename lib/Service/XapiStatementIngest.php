@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
+ * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
  */
 
 declare(strict_types=1);
@@ -107,7 +107,7 @@ class XapiStatementIngest {
 	 *
 	 * @throws InvalidArgumentException When the batch is empty, too large, or a statement is malformed.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
 	 */
 	public function ingest(array $statements, string $actorId, array $launch = []): array {
 		if ($statements === [] || count($statements) > self::MAX_BATCH) {
@@ -155,7 +155,7 @@ class XapiStatementIngest {
 	 *
 	 * @return array<int, mixed> The matching statements.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
 	 */
 	public function query(string $callerId, bool $isAdmin, array $filters, int $limit): array {
 		$where = ['register' => self::REGISTER, 'schema' => self::SCHEMA];

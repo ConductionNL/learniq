@@ -26,6 +26,30 @@ same endpoint; the SCORM 2004 shim and a cmi5 package importer remain follow-ups
 
 <!-- @e2e exclude Carried over from the canonical requirement; the launch paths are covered by tests/e2e/spec-coverage/progress-tracking.spec.ts and tests/Unit/Controller/Cmi5LaunchControllerTest.php. -->
 
+#### Scenario: A SCORM 1.2 package's completion status produces a recognised xAPI statement
+
+<!-- @e2e exclude no local Nextcloud instance was exercised for this change (see proposal Open Questions);
+     the SCORM 1.2 API shim's completion-to-xAPI mapping is covered by
+     tests/unit-js/scorm12Runtime.test.mjs. A live browser verification pass against a real SCORM 1.2
+     package is a named follow-up, not silently skipped. -->
+
+- **GIVEN** a `Lesson` with `contentType: "scorm12"` and a learner has launched it
+- **WHEN** the package calls `LMSSetValue('cmi.core.lesson_status', 'completed')` (or `'passed'`)
+- **THEN** an xAPI statement is built with `verb.id` equal to `http://adlnet.gov/expapi/verbs/completed` or
+  `.../passed`, the same IRIs `XapiCompletionHandler` already recognises
+- **AND** the statement is POSTed to learniq's LRS endpoint `POST /api/lrs/statements`, which stamps the
+  signed-in learner as `verified_actor_id`
+
+#### Scenario: A cmi5 lesson gracefully degrades until the sibling ingest change ships
+
+- **GIVEN** a `Lesson` with `contentType: "cmi5"` and the launch endpoint answers 503 (no cmi5 launch key
+  provisioned yet) or 404
+- **WHEN** a learner opens the lesson
+- **THEN** `LessonPlayer.vue` shows a clear "cmi5 playback is not yet available for this lesson" empty state
+- **AND** no unhandled error or infinite loading spinner is shown
+
+<!-- @e2e exclude Depends on the instance's cmi5 key state; the 503 answer is pinned by tests/Unit/Controller/Cmi5LaunchControllerTest.php, and the empty state itself has no automated test yet. -->
+
 #### Scenario: A learner's completed AU produces a queryable xAPI statement
 
 - **GIVEN** a Lesson with `contentType: cmi5` and a learner with a valid, unexpired launch JWT

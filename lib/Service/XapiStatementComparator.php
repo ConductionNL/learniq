@@ -34,7 +34,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#9-statement-id-conflicts
+ * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#9-statement-id-conflicts
  */
 
 declare(strict_types=1);
@@ -73,7 +73,7 @@ class XapiStatementComparator {
 	 *
 	 * @return bool True when they are equivalent.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#9-statement-id-conflicts
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#9-statement-id-conflicts
 	 */
 	public function equivalent(array $incoming, array $stored): bool {
 		return $this->canonical(statement: $incoming) === $this->canonical(statement: $stored);
