@@ -110,7 +110,7 @@ class ReportCardPublishHandlerTest extends TestCase {
 		$timeFactory = $this->createMock(ITimeFactory::class);
 		$timeFactory->method('getDateTime')->willReturn($now);
 
-		return new ReportCardPublishHandler($objectService, $timeFactory, new NullLogger());
+		return new ReportCardPublishHandler($objectService, $timeFactory, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**

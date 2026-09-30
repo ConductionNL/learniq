@@ -100,7 +100,7 @@ class CourseEvaluationResponseSubmittedHandlerTest extends TestCase {
 			}
 		);
 
-		return new CourseEvaluationResponseSubmittedHandler($userSession, $objectService, $this->createMock(LoggerInterface::class));
+		return new CourseEvaluationResponseSubmittedHandler($userSession, $objectService, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**
@@ -240,7 +240,7 @@ class CourseEvaluationResponseSubmittedHandlerTest extends TestCase {
 		$objectService->expects(self::never())->method('findAll');
 		$objectService->expects(self::never())->method('saveObject');
 
-		$handler = new CourseEvaluationResponseSubmittedHandler($userSession, $objectService, $this->createMock(LoggerInterface::class));
+		$handler = new CourseEvaluationResponseSubmittedHandler($userSession, $objectService, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 
 		$response = ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a'];
 		$handler->handle($this->makeEvent($response));

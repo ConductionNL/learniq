@@ -43,6 +43,7 @@ namespace OCA\Learniq\Controller;
 
 use InvalidArgumentException;
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Exception\XapiRequestException;
 use OCA\Learniq\Service\Cmi5LaunchTokenService;
 use OCA\Learniq\Service\XapiCallerResolver;
 use OCA\Learniq\Service\XapiStatementIngest;
@@ -113,6 +114,8 @@ class LrsController extends Controller {
 				actorId: $identity['actorId'],
 				launch: $identity['launch']
 			);
+		} catch (XapiRequestException $e) {
+			return new JSONResponse(data: ['error' => $e->getMessage()], statusCode: $e->getStatus());
 		} catch (InvalidArgumentException $e) {
 			return new JSONResponse(data: ['error' => $e->getMessage()], statusCode: Http::STATUS_BAD_REQUEST);
 		} catch (Throwable $e) {

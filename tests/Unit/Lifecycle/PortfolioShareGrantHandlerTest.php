@@ -124,7 +124,8 @@ class PortfolioShareGrantHandlerTest extends TestCase {
 			$objectService,
 			$shareManager,
 			$rootFolder,
-			$this->createMock(LoggerInterface::class)
+			$this->createMock(LoggerInterface::class),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 	}//end makeHandler()

@@ -197,7 +197,7 @@ class LearnerMergeHandlerTest extends TestCase {
 	 */
 	public function testMergeMovesRecordsToTheSurvivingAccount(): void {
 		$objectService = $this->makeObjectService();
-		$handler = new LearnerMergeHandler(new LearnerMergeService($objectService, new NullLogger()), new NullLogger());
+		$handler = new LearnerMergeHandler(new LearnerMergeService($objectService, new NullLogger()), new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 
 		$handler->handle($this->makeEvent($this->store['learner-profile'][0]));
 
@@ -233,7 +233,7 @@ class LearnerMergeHandlerTest extends TestCase {
 	 * @spec openspec/parity/capabilities.json#gov-merge-duplicate-accounts
 	 */
 	public function testMergeKeepsMergedIntoSet(): void {
-		$handler = new LearnerMergeHandler(new LearnerMergeService($this->makeObjectService(), new NullLogger()), new NullLogger());
+		$handler = new LearnerMergeHandler(new LearnerMergeService($this->makeObjectService(), new NullLogger()), new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 
 		$handler->handle($this->makeEvent($this->store['learner-profile'][0]));
 
@@ -253,7 +253,7 @@ class LearnerMergeHandlerTest extends TestCase {
 	 * @spec openspec/parity/capabilities.json#gov-merge-duplicate-accounts
 	 */
 	public function testOtherTransitionsAreIgnored(): void {
-		$handler = new LearnerMergeHandler(new LearnerMergeService($this->makeObjectService(), new NullLogger()), new NullLogger());
+		$handler = new LearnerMergeHandler(new LearnerMergeService($this->makeObjectService(), new NullLogger()), new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn(OrEntityFactory::make($this->store['learner-profile'][0], 'learner-profile'));

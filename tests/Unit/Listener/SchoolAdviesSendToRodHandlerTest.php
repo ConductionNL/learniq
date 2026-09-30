@@ -74,7 +74,7 @@ class SchoolAdviesSendToRodHandlerTest extends TestCase {
 		);
 		$this->integriq = $this->createMock(IntegriqExchangeClient::class);
 
-		return new SchoolAdviesSendToRodHandler($objectService, $this->integriq, new NullLogger());
+		return new SchoolAdviesSendToRodHandler($objectService, $this->integriq, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**

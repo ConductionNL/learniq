@@ -54,6 +54,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\AttendanceWindowAggregator;
@@ -71,6 +72,11 @@ use Psr\Log\LoggerInterface;
  * @implements IEventListener<Event>
  *
  * @spec openspec/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) The thirteenth collaborator is ListenerSchemaResolver,
+ *                                                 which every transition listener needs to read the ids
+ *                                                 OpenRegister sends; splitting the class for it would hide
+ *                                                 the listener's one job across two files.
  */
 class ReportCardComposer implements IEventListener {
 
@@ -93,6 +99,7 @@ class ReportCardComposer implements IEventListener {
 	 *                                                            sections and gates population by
 	 *                                                            them (report-card-templates change).
 	 * @param LearnerRefResolver $learnerRefs Nextcloud user id to LearnerProfile UUID, the card's learnerRef.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -103,6 +110,7 @@ class ReportCardComposer implements IEventListener {
 		private readonly AttendanceWindowAggregator $attendance,
 		private readonly ReportCardTemplateSectionResolver $templateSections,
 		private readonly LearnerRefResolver $learnerRefs,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -120,16 +128,16 @@ class ReportCardComposer implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() === self::REPORT_PERIOD_SCHEMA && $event->getAction() === 'compose') {
+		if ($this->schemas->eventSchema(event: $event) === self::REPORT_PERIOD_SCHEMA && $event->getAction() === 'compose') {
 			$this->composeForPeriod(period: $event->getObject()->jsonSerialize());
 			return;
 		}
 
-		if ($event->getSchema() === self::REPORT_CARD_SCHEMA && $event->getAction() === 'recompose') {
+		if ($this->schemas->eventSchema(event: $event) === self::REPORT_CARD_SCHEMA && $event->getAction() === 'recompose') {
 			$this->recomposeCard(card: $event->getObject()->jsonSerialize());
 		}
 

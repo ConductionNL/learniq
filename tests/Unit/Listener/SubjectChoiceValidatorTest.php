@@ -98,7 +98,7 @@ class SubjectChoiceValidatorTest extends TestCase {
 			}
 		);
 
-		return new SubjectChoiceValidator($objectService, new NullLogger());
+		return new SubjectChoiceValidator($objectService, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**
