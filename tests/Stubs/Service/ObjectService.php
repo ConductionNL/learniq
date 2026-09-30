@@ -92,6 +92,7 @@ abstract class ObjectService {
 	 * @param array<string,mixed>|null $uploadedFiles Uploaded files.
 	 * @param IUser|null $currentUser Acting user.
 	 * @param bool $failIfExists Fail on conflict.
+	 * @param bool $_unowned     Stamp the system identity as owner even with a session (OR 3de558cc7d).
 	 *
 	 * @return ObjectEntity
 	 */
@@ -107,6 +108,7 @@ abstract class ObjectService {
 		?array $uploadedFiles = null,
 		?IUser $currentUser = null,
 		bool $failIfExists = false,
+		bool $_unowned = false,
 	): ObjectEntity;
 
 	/**

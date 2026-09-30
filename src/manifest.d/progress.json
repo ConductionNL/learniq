@@ -2383,7 +2383,16 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "campaign-results",
+						"label": "Results",
+						"icon": "ChartBar",
+						"type": "navigate",
+						"target": "/course-evaluation/campaigns/@objectId/results"
+					}
+				]
 			}
 		},
 		{
@@ -3068,6 +3077,14 @@
 			"title": "Enrolment forecast",
 			"component": "EnrolmentForecastView",
 			"_note": "timetabling-enrolment-forecast: scenarios on the enrolment-forecast schema; POST /api/enrolment-forecasts/{id}/compute behind report.enrolment-forecast; opened from the Reports page card (category progress)."
+		},
+		{
+			"id": "EvaluationCampaignResults",
+			"route": "/course-evaluation/campaigns/:campaignId/results",
+			"type": "custom",
+			"title": "Evaluation results",
+			"component": "EvaluationCampaignResultsView",
+			"_note": "Mounts EvaluationCampaignResultsView (assessment-course-evaluation-answer-page): invitations, responses and the mean overall score of one campaign from learniq's staff-only GET /api/evaluations/campaigns/{campaignId}/results, with the mean withheld under five responses. Custom on purpose: three computed figures, not a list or record page of one schema."
 		}
 	]
 }
