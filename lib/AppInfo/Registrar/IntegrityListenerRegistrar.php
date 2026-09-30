@@ -29,7 +29,6 @@ declare(strict_types=1);
 namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\Learniq\Listener\CompetencyAlignmentListener;
-use OCA\Learniq\Listener\ConcernReportReporterStamp;
 use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
 use OCA\Learniq\Listener\LessonNoteAuthorGuard;
@@ -174,18 +173,6 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: ExcuseRequestOwnerStamp::class
-		);
-
-		// ConcernReport reporter (support-confidential-concern-report): the
-		// server decides who filed a confidential report and keeps it on
-		// every update, because the reporter is who may read it.
-		$context->registerEventListener(
-			event: ObjectCreatingEvent::class,
-			listener: ConcernReportReporterStamp::class
-		);
-		$context->registerEventListener(
-			event: ObjectUpdatingEvent::class,
-			listener: ConcernReportReporterStamp::class
 		);
 	}//end registerOwnerStamps()
 }//end class

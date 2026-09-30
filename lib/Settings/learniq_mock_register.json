@@ -29009,6 +29009,20 @@
       {
         "@self": {
           "register": "learniq",
+          "schema": "concern-report",
+          "slug": "concern-report-voorbeeld-3"
+        },
+        "topic": "discrimination",
+        "description": "Voorbeeld: er worden in de klas grappen gemaakt over mijn achtergrond.",
+        "happenedOn": "2026-03-03",
+        "wantsConversation": true,
+        "status": "closed",
+        "reporterId": "Voorbeeld Reporterid 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
           "schema": "CurriculumCoverage",
           "slug": "curriculum-coverage-groep-5-all"
         },

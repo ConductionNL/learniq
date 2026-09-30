@@ -40,6 +40,7 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\EventDispatcher\Event;
@@ -103,8 +104,7 @@ class ConcernReportReporterStamp implements IEventListener {
 			return;
 		}
 
-		// An update carries the new state in getNewObject(); only a create has getObject().
-		$entity = ($event instanceof ObjectUpdatingEvent) ? $event->getNewObject() : $event->getObject();
+		$entity = $this->entityOf(event: $event);
 
 		try {
 			$slug = $this->schemaResolver->guardSchemaSlug(entity: $entity);
@@ -140,6 +140,22 @@ class ConcernReportReporterStamp implements IEventListener {
 			)
 		);
 	}//end handle()
+
+	/**
+	 * The object being written: an update carries it in getNewObject(), only
+	 * a create has getObject().
+	 *
+	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The write event.
+	 *
+	 * @return ObjectEntity
+	 */
+	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
+		if ($event instanceof ObjectUpdatingEvent === true) {
+			return $event->getNewObject();
+		}
+
+		return $event->getObject();
+	}//end entityOf()
 
 	/**
 	 * Put the stored reporter and tenant back over whatever the update sends.
