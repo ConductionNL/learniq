@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-a-learner-downloads-their-certificate-for-europass
+ * @spec openspec/specs/certification/spec.md#requirement-a-learner-downloads-their-certificate-for-europass
  */
 
 declare(strict_types=1);
@@ -49,7 +49,7 @@ use Throwable;
 /**
  * Europass download and backfill.
  *
- * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-a-learner-downloads-their-certificate-for-europass
+ * @spec openspec/specs/certification/spec.md#requirement-a-learner-downloads-their-certificate-for-europass
  */
 class CredentialEuropassController extends Controller {
 
@@ -91,8 +91,8 @@ class CredentialEuropassController extends Controller {
 	 *
 	 * @return DataDownloadResponse|JSONResponse
 	 *
-	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#scenario-a-learner-saves-a-certificate-to-their-europass-profile
-	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#scenario-another-learner-cannot-download-it
+	 * @spec openspec/specs/certification/spec.md#scenario-a-learner-saves-a-certificate-to-their-europass-profile
+	 * @spec openspec/specs/certification/spec.md#scenario-another-learner-cannot-download-it
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -128,7 +128,7 @@ class CredentialEuropassController extends Controller {
 	 *
 	 * @return JSONResponse 200 `{created: true}`, or 401 / 404 / 409 / 422.
 	 *
-	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#scenario-an-hr-officer-backfills-an-old-certificate
+	 * @spec openspec/specs/certification/spec.md#scenario-an-hr-officer-backfills-an-old-certificate
 	 */
 	#[NoAdminRequired]
 	public function create(string $id): JSONResponse {

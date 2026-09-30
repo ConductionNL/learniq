@@ -228,7 +228,7 @@ class CredentialVerifyController extends Controller {
 	 *
 	 * @return JSONResponse {valid, issuedAt, expiresAt, issuerName} or {valid: false, error}.
 	 *
-	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-the-europass-form-is-checkable-on-the-verification-route
+	 * @spec openspec/specs/certification/spec.md#requirement-the-europass-form-is-checkable-on-the-verification-route
 	 */
 	#[NoCSRFRequired]
 	#[PublicPage]

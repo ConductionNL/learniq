@@ -183,6 +183,8 @@ class ApplicationConversionHandler implements IEventListener {
 			$guardianRefs[] = $guardianRef;
 		}
 
+		// System context (learner-profile): admissions staff (coordinators, administration managers)
+		// place the applicant, and LearnerProfile create is hr and compliance officers only.
 		$saved = $this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::LEARNER_PROFILE_SCHEMA,
@@ -194,7 +196,8 @@ class ApplicationConversionHandler implements IEventListener {
 				'roles' => ['learner'],
 				'guardianRefs' => $guardianRefs,
 				'tenant_id' => $tenantId,
-			]
+			],
+			_rbac: false
 		);
 
 		return $this->extractId(row: $saved);
@@ -216,6 +219,8 @@ class ApplicationConversionHandler implements IEventListener {
 
 		$enrolmentIds = [];
 		foreach ($courseIds as $courseId) {
+			// System context (enrolment): admissions staff place the applicant, and Enrolment create is
+			// instructors, hr, compliance officers and team leads only.
 			$saved = $this->objectService->saveObject(
 				register: self::LEARNIQ_REGISTER,
 				schema: self::ENROLMENT_SCHEMA,
@@ -224,7 +229,8 @@ class ApplicationConversionHandler implements IEventListener {
 					'courseId' => $courseId,
 					'source' => 'admission',
 					'tenant_id' => $tenantId,
-				]
+				],
+				_rbac: false
 			);
 
 			$enrolmentId = $this->extractId(row: $saved);
