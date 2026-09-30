@@ -7,7 +7,9 @@
  * ObjectTransitionedEvent with register=learniq, schema=application,
  * to=placed). Creates a LearnerProfile (guardianRefs stamped from
  * Application.guardianRef when set), bulk-creates one Enrolment
- * (source: "admission") per course in the chosen Programme.courseIds, stamps
+ * (source: "admission", naming the programme, `mandatory` from the part's
+ * default in Programme.mandatoryCourseIds) per course in the chosen
+ * Programme.courseIds, stamps
  * Application.convertedLearnerProfileId/convertedEnrolmentIds, and drives the
  * Application through its existing `convert` transition to `converted`.
  *
@@ -50,6 +52,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Service\Programme\ProgrammeRequirements;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
@@ -79,6 +82,7 @@ class ApplicationConversionHandler implements IEventListener {
 	 * @param TransitionEngine $transitionEngine OR lifecycle engine used to dispatch the `convert` transition.
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ProgrammeRequirements $requirements Which programme parts are mandatory by default.
 	 *
 	 * @return void
 	 */
@@ -87,6 +91,7 @@ class ApplicationConversionHandler implements IEventListener {
 		private readonly TransitionEngine $transitionEngine,
 		private readonly LoggerInterface $logger,
 		private readonly ListenerSchemaResolver $schemas,
+		private readonly ProgrammeRequirements $requirements,
 	) {
 	}//end __construct()
 
@@ -204,7 +209,8 @@ class ApplicationConversionHandler implements IEventListener {
 	}//end createLearnerProfile()
 
 	/**
-	 * Bulk-create one Enrolment (source: admission) per Programme.courseIds entry.
+	 * Bulk-create one Enrolment (source: admission) per Programme.courseIds
+	 * entry, naming the programme and carrying the part's mandatory default.
 	 *
 	 * @param string $programmeId The Programme UUID applied for.
 	 * @param string $ncUserId The learner's (placeholder) Nextcloud user id.
@@ -213,9 +219,14 @@ class ApplicationConversionHandler implements IEventListener {
 	 * @return array<int,mixed> The created Enrolment ids.
 	 *
 	 * @spec openspec/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
+	 * @spec openspec/changes/enrolment-programme-mandatory-per-person/specs/programme-mandatory-parts/spec.md#scenario-an-author-marks-a-part-optional
 	 */
 	private function createEnrolments(string $programmeId, string $ncUserId, string $tenantId): array {
-		$courseIds = $this->fetchProgrammeCourseIds(programmeId: $programmeId);
+		$programme = $this->fetchProgramme(programmeId: $programmeId);
+		$courseIds = $programme['courseIds'] ?? [];
+		if (is_array($courseIds) === false) {
+			$courseIds = [];
+		}
 
 		$enrolmentIds = [];
 		foreach ($courseIds as $courseId) {
@@ -227,6 +238,8 @@ class ApplicationConversionHandler implements IEventListener {
 				object: [
 					'learnerId' => $ncUserId,
 					'courseId' => $courseId,
+					'programmeId' => $programmeId,
+					'mandatory' => $this->requirements->mandatoryFor(programme: $programme, courseId: (string)$courseId),
 					'source' => 'admission',
 					'tenant_id' => $tenantId,
 				],
@@ -243,13 +256,13 @@ class ApplicationConversionHandler implements IEventListener {
 	}//end createEnrolments()
 
 	/**
-	 * Fetch a Programme's courseIds.
+	 * Fetch a Programme as an array; empty when there is none.
 	 *
 	 * @param string $programmeId Programme UUID.
 	 *
-	 * @return array<int,mixed>
+	 * @return array<string,mixed>
 	 */
-	private function fetchProgrammeCourseIds(string $programmeId): array {
+	private function fetchProgramme(string $programmeId): array {
 		if ($programmeId === '') {
 			return [];
 		}
@@ -264,16 +277,8 @@ class ApplicationConversionHandler implements IEventListener {
 			return [];
 		}
 
-		$data = $programme->jsonSerialize();
-
-		$courseIds = $data['courseIds'] ?? [];
-
-		if (is_array($courseIds) === false) {
-			return [];
-		}
-
-		return $courseIds;
-	}//end fetchProgrammeCourseIds()
+		return $programme->jsonSerialize();
+	}//end fetchProgramme()
 
 	/**
 	 * Extract the `id` (or `uuid`) from a saveObject() return value.

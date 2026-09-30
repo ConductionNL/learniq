@@ -79,6 +79,9 @@ const UNIVERSAL = new Set([
 	'GroupMyLearning',
 	'MyTimetableMenu',
 	'MyLearningRecordMenu',
+	// support-confidential-concern-report design D5: anyone can be bullied or
+	// harassed, staff included, so everyone can reach the counsellors.
+	'ReportConcernMenu',
 ])
 
 /**

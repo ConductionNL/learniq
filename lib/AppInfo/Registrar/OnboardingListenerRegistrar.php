@@ -64,5 +64,9 @@ class OnboardingListenerRegistrar {
 		// are both at phpmd's coupling limit.
 		(new ElectiveListenerRegistrar())->register(context: $context);
 
+		// The confidential concern report's reporter stamp
+		// (support-confidential-concern-report), chained for the same reason.
+		(new SafeguardingListenerRegistrar())->register(context: $context);
+
 	}//end register()
 }//end class

@@ -16,7 +16,8 @@
  *   is never sent for a chosen course). EnrolmentPrerequisiteListener still
  *   runs on the create and its refusal is returned in its own words.
  * - programme: one enrolment per course of the programme the learner is not
- *   already on, each with `programmeId`; a course the prerequisite check
+ *   already on, each with `programmeId` and `mandatory` from the programme's
+ *   default for that part (ProgrammeRequirements); a course the prerequisite check
  *   refuses is reported, the others are created.
  * - withdraw: the enrolment is the learner's own, `source: self`, `pending`
  *   or `active`, and has no progress.
@@ -51,6 +52,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalOutcome;
+use OCA\Learniq\Service\Programme\ProgrammeRequirements;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -69,14 +71,16 @@ class CatalogueSignUpService {
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService   $objects OpenRegister object access.
-	 * @param CatalogueReader $reader  The learner's enrolments per course.
+	 * @param ObjectService         $objects      OpenRegister object access.
+	 * @param CatalogueReader       $reader       The learner's enrolments per course.
+	 * @param ProgrammeRequirements $requirements Which programme parts are mandatory.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objects,
 		private readonly CatalogueReader $reader,
+		private readonly ProgrammeRequirements $requirements,
 	) {
 	}//end __construct()
 
@@ -121,6 +125,7 @@ class CatalogueSignUpService {
 			courseId: $courseId,
 			mode: (string)$course['selfEnrolment'],
 			programmeId: null,
+			mandatory: false,
 			tenantId: (string)($course['tenant_id'] ?? '')
 		);
 	}//end signUpCourse()
@@ -154,6 +159,7 @@ class CatalogueSignUpService {
 				courseId: $courseId,
 				mode: (string)$programme['selfEnrolment'],
 				programmeId: $programmeId,
+				mandatory: $this->requirements->mandatoryFor(programme: $programme, courseId: $courseId),
 				tenantId: (string)($programme['tenant_id'] ?? '')
 			);
 			if ($outcome->status === Http::STATUS_OK) {
@@ -241,11 +247,19 @@ class CatalogueSignUpService {
 	 * @param string        $courseId    The course uuid.
 	 * @param string        $mode        `open` or `on-request`.
 	 * @param string|null   $programmeId The programme it came from, if any.
+	 * @param bool          $mandatory   The part's default from the programme; false for a single course.
 	 * @param string        $tenantId    The tenant of the course or programme.
 	 *
 	 * @return PortalOutcome
 	 */
-	private function create(PortalLearner $learner, string $courseId, string $mode, ?string $programmeId, string $tenantId): PortalOutcome {
+	private function create(
+		PortalLearner $learner,
+		string $courseId,
+		string $mode,
+		?string $programmeId,
+		bool $mandatory,
+		string $tenantId
+	): PortalOutcome {
 		$lifecycle = 'pending';
 		if ($mode === 'open') {
 			$lifecycle = 'active';
@@ -263,7 +277,7 @@ class CatalogueSignUpService {
 				'courseId' => $courseId,
 				'programmeId' => $programmeId,
 				'source' => 'self',
-				'mandatory' => false,
+				'mandatory' => $mandatory,
 				'managerId' => $profile['managerId'] ?? null,
 				'requestedAt' => (new DateTimeImmutable())->format(DateTimeInterface::ATOM),
 				'lifecycle' => $lifecycle,

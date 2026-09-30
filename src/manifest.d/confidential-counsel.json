@@ -4,7 +4,7 @@
 		"spdx-copyright": "2026 Conduction B.V.",
 		"change": "confidential-counsellor-channel",
 		"adr": "ADR-037 modular manifest fragment, never edit src/manifest.json",
-		"description": "ConfidentialNotesMenu: the vertrouwenspersoon's own notes. Gated on user.isConfidentialCounsellor (group membership), not on primaryRole, so a teacher who is also the vertrouwenspersoon sees it next to the teacher menus. Access to the rows is enforced by ConfidentialNote.authorization in the register; this gate only hides the entry from everyone else."
+		"description": "ConfidentialNotesMenu: the vertrouwenspersoon's own notes. Gated on user.isConfidentialCounsellor (group membership), not on primaryRole, so a teacher who is also the vertrouwenspersoon sees it next to the teacher menus. Access to the rows is enforced by ConfidentialNote.authorization in the register; this gate only hides the entry from everyone else. ConcernReportsMenu (support-confidential-concern-report): every counsellor's inbox of learner reports, gated the same way. ReportConcernMenu: every signed-in user files a report and follows its status; the list shows only the user's own reports because ConcernReport.authorization matches reporterId."
 	},
 	"menu": [
 		{
@@ -18,6 +18,25 @@
 					"eq": true
 				}
 			}
+		},
+		{
+			"id": "ConcernReportsMenu",
+			"label": "Concern reports",
+			"icon": "ShieldAlertOutline",
+			"route": "ConcernReports",
+			"order": 36,
+			"visibleIf": {
+				"user.isConfidentialCounsellor": {
+					"eq": true
+				}
+			}
+		},
+		{
+			"id": "ReportConcernMenu",
+			"label": "Report a concern",
+			"icon": "ShieldAlertOutline",
+			"route": "ReportConcern",
+			"order": 89
 		}
 	],
 	"pages": [
@@ -55,6 +74,75 @@
 					{
 						"id": "1",
 						"widgetId": "cn-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "ReportConcern",
+			"route": "/report-a-concern",
+			"type": "index",
+			"title": "Report a concern",
+			"config": {
+				"register": "learniq",
+				"schema": "concern-report"
+			}
+		},
+		{
+			"id": "ConcernReports",
+			"route": "/concern-reports",
+			"type": "index",
+			"title": "Concern reports",
+			"config": {
+				"register": "learniq",
+				"schema": "concern-report"
+			}
+		},
+		{
+			"id": "ConcernReportDetail",
+			"route": "/concern-reports/:id",
+			"type": "detail",
+			"title": "Concern report",
+			"config": {
+				"register": "learniq",
+				"schema": "concern-report",
+				"_note": "support-confidential-concern-report: one learner's report. Data only, full width: the schema references nothing and nothing references it, so no related panel, email, calendar or files leaves. The history tab shows the counsellor's status changes, which the reporter may see.",
+				"widgets": [
+					{
+						"id": "cr-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "NoteTextOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "cr-data",
 						"gridX": 0,
 						"gridY": 0,
 						"gridWidth": 12,

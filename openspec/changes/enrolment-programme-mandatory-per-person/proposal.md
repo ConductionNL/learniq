@@ -26,7 +26,7 @@ One row, one change.
 
 ## What Changes
 
-- Add `courseRequirements` to `Programme`: for each course a default of `mandatory` or `optional`.
+- Add `mandatoryCourseIds` to `Programme`: the courses that are mandatory by default; the others are optional (design D3 replaces the `courseRequirements` map named here first).
 - When a person is enrolled in a programme, create each course enrolment with `mandatory` from the default, and let the manager change it per person in the enrolment form.
 - Programme progress and the learner home widget count mandatory parts for completion and list optional parts separately.
 
@@ -42,7 +42,7 @@ One row, one change.
 
 ## Impact
 
-- **Register**: `Programme.courseRequirements`; a migration note for existing programmes (all `mandatory` false, so nothing changes until an author sets it).
-- **Backend**: the programme enrolment path and the progress calculation.
+- **Register**: `Programme.mandatoryCourseIds`; no migration: an existing programme has no list, so nothing changes until an author sets it.
+- **Backend**: both programme enrolment paths (catalogue sign-up, admission placement) and a new progress calculation with its endpoint.
 - **Frontend**: programme form, enrolment form at /enrolments, learner home widget.
 - **Cross-row**: none.

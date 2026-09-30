@@ -59,6 +59,7 @@ class ComplianceRollupService {
 	 * @param ObjectService              $objectService   OR object access.
 	 * @param RegulationAudienceResolver $audience        Audience-scope predicate.
 	 * @param ExternalTrainingService    $trainingService Coverage predicate.
+	 * @param RunningExemptions          $runningExemptions The exemptions that run on a day.
 	 *
 	 * @return void
 	 */
@@ -66,6 +67,7 @@ class ComplianceRollupService {
 		private readonly ObjectService $objectService,
 		private readonly RegulationAudienceResolver $audience,
 		private readonly ExternalTrainingService $trainingService,
+		private readonly RunningExemptions $runningExemptions=new RunningExemptions(),
 	) {
 	}//end __construct()
 
@@ -90,6 +92,7 @@ class ComplianceRollupService {
 		);
 		$enrolments = $this->rows(schema: 'enrolment', filters: ['mandatory' => true]);
 		$credentials = $this->rows(schema: 'credential');
+		$exemptions = $this->rows(schema: 'regulation-exemption', filters: ['lifecycle' => 'granted']);
 
 		$nodes = [];
 		foreach ($this->rows(schema: 'learner-profile') as $profile) {
@@ -102,6 +105,7 @@ class ComplianceRollupService {
 				regulations: $regulations,
 				enrolments: $enrolments,
 				credentials: $credentials,
+				exemptions: $exemptions,
 				now: $now,
 				horizon: $horizon
 			);
@@ -123,6 +127,7 @@ class ComplianceRollupService {
 	 * @param array<int,array<string,mixed>> $regulations Published regulations.
 	 * @param array<int,array<string,mixed>> $enrolments  Mandatory enrolments.
 	 * @param array<int,array<string,mixed>> $credentials All credentials.
+	 * @param array<int,array<string,mixed>> $exemptions  Granted regulation exemptions.
 	 * @param DateTimeImmutable              $now         Evaluation instant.
 	 * @param DateTimeImmutable              $horizon     End of the upcoming window.
 	 *
@@ -133,11 +138,13 @@ class ComplianceRollupService {
 		array $regulations,
 		array $enrolments,
 		array $credentials,
+		array $exemptions,
 		DateTimeImmutable $now,
 		DateTimeImmutable $horizon,
 	): array {
 		$keys = $this->learnerKeys(profile: $profile);
-		$regulationFigures = $this->regulationFigures(profile: $profile, keys: $keys, regulations: $regulations, now: $now);
+		$excusedFrom = $this->runningExemptions->regulationsFor(keys: $keys, exemptions: $exemptions, now: $now);
+		$regulationFigures = $this->regulationFigures(profile: $profile, keys: $keys, regulations: $regulations, excusedFrom: $excusedFrom, now: $now);
 		$deadlineFigures = $this->deadlineFigures(keys: $keys, enrolments: $enrolments, now: $now, horizon: $horizon);
 
 		$expired = 0;
@@ -153,19 +160,29 @@ class ComplianceRollupService {
 	}//end learnerFigures()
 
 	/**
-	 * Obligations and covered obligations for one learner.
+	 * Obligations, covered obligations and excused rules for one learner. A
+	 * rule the learner holds a running exemption from is not an obligation:
+	 * it is counted as excused, so an auditor sees it.
 	 *
 	 * @param array<string,mixed>            $profile     The learner.
 	 * @param array<int,string>              $keys        The learner's keys.
 	 * @param array<int,array<string,mixed>> $regulations Published regulations.
+	 * @param array<string,true>             $excusedFrom Regulation slugs the learner is exempt from today.
 	 * @param DateTimeImmutable              $now         Evaluation instant.
 	 *
-	 * @return array{obligations: int, covered: int}
+	 * @return array{obligations: int, covered: int, excused: int}
+	 *
+	 * @spec openspec/changes/compliance-exemption-record/specs/compliance-exemptions/spec.md#requirement-exemptions-in-the-roll-up
 	 */
-	private function regulationFigures(array $profile, array $keys, array $regulations, DateTimeImmutable $now): array {
-		$figures = ['obligations' => 0, 'covered' => 0];
+	private function regulationFigures(array $profile, array $keys, array $regulations, array $excusedFrom, DateTimeImmutable $now): array {
+		$figures = ['obligations' => 0, 'covered' => 0, 'excused' => 0];
 		foreach ($regulations as $regulation) {
 			if ($this->audience->covers(regulation: $regulation, profile: $profile) === false) {
+				continue;
+			}
+
+			if (isset($excusedFrom[(string)($regulation['slug'] ?? '')]) === true) {
+				$figures['excused']++;
 				continue;
 			}
 
@@ -323,6 +340,7 @@ class ComplianceRollupService {
 			'learners' => 0,
 			'obligations' => 0,
 			'covered' => 0,
+			'excused' => 0,
 			'upcomingDeadlines' => 0,
 			'overdue' => 0,
 			'expiredCredentials' => 0,
