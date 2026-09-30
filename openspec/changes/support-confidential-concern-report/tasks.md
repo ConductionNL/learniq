@@ -15,5 +15,6 @@
 
 ## 4. Close out
 
-- [ ] 4.1 Live check: a learner files a report, a counsellor sees it and gets the notification, a teacher lists concern reports and gets none.
+- [x] 4.1a Live check of the read rule (30 Sep, OpenRegister 2.1.33-unstable.20260928180000): the shipped ConcernReport authorization block on a scratch register; the reporter reads the report by id and in the list, a confidential counsellor too, a teacher and another learner get 404 by id and an empty list. Unit proof: `ConcernReportReadAccessTest` evaluates the same block with OpenRegister's own ConditionMatcher.
+- [ ] 4.1b Live check with this branch deployed: a learner files a report with someone else's `reporterId` and the stored row names the learner, the counsellors get the anonymous notification, a teacher sees "Report a concern" but not "Concern reports".
 - [ ] 4.2 Set row `sup-report-a-concern-confidentially` to built and archive the change. Verify: parity_verify --strict.
