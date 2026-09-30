@@ -278,6 +278,8 @@ return [
         ['name' => 'catalogue#signUpCourse', 'url' => '/api/catalogue/courses/{id}/sign-up', 'verb' => 'POST'],
         ['name' => 'catalogue#signUpProgramme', 'url' => '/api/catalogue/programmes/{id}/sign-up', 'verb' => 'POST'],
         ['name' => 'catalogue#withdraw', 'url' => '/api/enrolments/{id}/withdraw', 'verb' => 'POST'],
+        // Programme progress of the signed-in learner (enrolment-programme-mandatory-per-person).
+        ['name' => 'programmeProgress#mine', 'url' => '/api/programmes/progress', 'verb' => 'GET'],
         // Portal catalogue receivers (pattern of #1096 and #1142): assertion
         // only, learnerRef from portaliq. Controller: PortalCatalogueController.
         ['name' => 'portalCatalogue#catalogue', 'url' => '/api/portal/catalogue', 'verb' => 'POST'],
