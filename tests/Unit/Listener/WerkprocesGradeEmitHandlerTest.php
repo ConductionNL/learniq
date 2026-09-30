@@ -38,6 +38,13 @@ use Psr\Log\LoggerInterface;
 class WerkprocesGradeEmitHandlerTest extends TestCase {
 
 	/**
+	 * The `_rbac` argument of every saveObject() call, per schema.
+	 *
+	 * @var array<int, array{schema: string, rbac: bool}>
+	 */
+	private array $rbacWrites = [];
+
+	/**
 	 * Recorded saveObject() calls, captured by the ObjectService stub used per test.
 	 *
 	 * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
@@ -88,7 +95,8 @@ class WerkprocesGradeEmitHandlerTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true): ObjectEntity {
+				$this->rbacWrites[] = ['schema' => (string)$schema, 'rbac' => $_rbac];
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->savedObjects[] = [
 					'register' => (string)$register,
@@ -266,4 +274,20 @@ class WerkprocesGradeEmitHandlerTest extends TestCase {
 		$this->assertCount(0, $this->savedObjects);
 
 	}//end testIgnoresUnrelatedEvents()
+
+	/**
+	 * Coordinators and praktijkopleiders confirm a werkproces assessment and may not create a
+	 * GradeEntry, so it is written as the system.
+	 *
+	 * @return void
+	 */
+	public function testGradeEntryIsWrittenAsTheSystem(): void {
+		$this->testCompetentAssessmentCreatesGradeEntry();
+
+		$writes = array_values(array_filter($this->rbacWrites, static fn (array $w): bool => $w['schema'] === 'grade-entry'));
+		self::assertNotEmpty($writes, 'no grade-entry write');
+		foreach ($writes as $write) {
+			self::assertFalse($write['rbac'], 'grade-entry is written with _rbac: false');
+		}
+	}//end testGradeEntryIsWrittenAsTheSystem()
 }//end class
