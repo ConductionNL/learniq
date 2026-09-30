@@ -18,6 +18,7 @@ While in the parent contribution: the portal showed raw property names, uuids an
 - `ConferenceSignupPortalStamp` checks a portal booking (the child lists the guardian, the round is open and invited the child), stamps `learnerId`, `guardianId`, `tenant_id` and `submitted`, and requests the child's group teacher when the guardian names none. `ConferenceSignup.required` keeps only `conferenceRoundId`; the listener and the guard enforce the rest.
 - `ConferenceReport` authorization adds `instructors`.
 - The absence form gets a child picker, labels and the same cross reference. Every parent collection declares readable `columns`.
+- The contribution declares `guardianAudience` (children from `parentChildren`, school from `schoolId`, groups from the new `parentGroupMemberships`) so portaliq's news, which matches items to a guardian's school and groups, reaches the school's guardians (portaliq `feat/news-audience-from-the-school-app`).
 
 ## Depends on
 

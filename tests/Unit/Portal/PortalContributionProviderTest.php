@@ -394,9 +394,9 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(8, $collections);
+		$this->assertCount(9, $collections);
 		$this->assertSame(
-			['parentChildren', 'parentGrades', 'parentAttendance', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceSignups', 'parentConferenceSlots'],
+			['parentChildren', 'parentGrades', 'parentAttendance', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships'],
 			array_column($collections, 'id')
 		);
 
@@ -876,4 +876,21 @@ class PortalContributionProviderTest extends TestCase {
 		$rounds = array_column($manifest['collections'], null, 'id')['parentConferenceRounds'];
 		$this->assertSame(['lifecycle' => 'booking-open'], $rounds['filter']);
 	}//end testParentBooksAConferenceForTheirOwnChildOnly()
+	/**
+	 * The parent contribution tells portaliq which collections give the
+	 * guardian's news audience, and each named collection exists.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-parent-conference-booking/specs/portal-contribution/spec.md
+	 */
+	public function testParentDeclaresTheNewsAudience(): void {
+		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
+		$ids = array_column($manifest['collections'], 'id');
+
+		$this->assertSame('parentChildren', $manifest['guardianAudience']['children']);
+		$this->assertSame('schoolId', $manifest['guardianAudience']['schoolField']);
+		$this->assertContains($manifest['guardianAudience']['children'], $ids);
+		$this->assertContains($manifest['guardianAudience']['groups']['collection'], $ids);
+	}//end testParentDeclaresTheNewsAudience()
 }//end class

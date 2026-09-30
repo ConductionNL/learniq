@@ -582,7 +582,8 @@ class PortalContributionProvider {
 				[$this->parentChildrenCollection()],
 				$this->parentResultCollections(childJoin: $childJoin),
 				$this->parentWelfareCollections(childJoin: $childJoin),
-				$this->parentConferenceCollections(childJoin: $childJoin)
+				$this->parentConferenceCollections(childJoin: $childJoin),
+				[$this->parentGroupMembershipsCollection(childJoin: $childJoin)]
 			),
 			// Portal-contribution-guardian-audiences: portaliq's writer
 			// cross-reference guard (portaliq#607, merged 2026-09-18) now
@@ -598,6 +599,17 @@ class PortalContributionProvider {
 				[$this->parentConferenceSignupAction()]
 			),
 			'notifications' => [],
+			// portaliq news-audience-from-the-school-app: which of the collections
+			// above name the guardian's children, their school and their groups,
+			// so a news item for the school or a group reaches the guardian.
+			'guardianAudience' => [
+				'children' => 'parentChildren',
+				'schoolField' => 'schoolId',
+				'groups' => [
+					'collection' => 'parentGroupMemberships',
+					'field' => 'cohortId',
+				],
+			],
 		];
 
 	}//end parentContribution()
@@ -701,6 +713,40 @@ class PortalContributionProvider {
 		];
 
 	}//end parentActions()
+
+	/**
+	 * The groups the guardian's children are enrolled in, not listed in the
+	 * portal menu. Portaliq reads it to know which group news reaches the
+	 * guardian (`guardianAudience.groups`).
+	 *
+	 * @param array<string, mixed> $childJoin The shared reverse `via` join descriptor.
+	 *
+	 * @return array<string, mixed> The collection.
+	 *
+	 * @spec openspec/changes/portal-parent-conference-booking/specs/portal-contribution/spec.md
+	 */
+	private function parentGroupMembershipsCollection(array $childJoin): array {
+		return [
+			'id' => 'parentGroupMemberships',
+			'register' => self::REGISTER,
+			'schema' => 'enrolment',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'guardianRef',
+			'via' => $childJoin,
+			'groupByField' => 'learnerRef',
+			'label' => "Your child's group",
+			'listable' => false,
+			'minTrust' => 'substantial',
+			'fields' => [
+				'learnerRef',
+				'cohortId',
+			],
+			'columns' => [
+				['field' => 'cohortId', 'label' => 'Group'],
+			],
+		];
+
+	}//end parentGroupMembershipsCollection()
 
 	/**
 	 * The guardian's parent-teacher conference collections: the rounds open
