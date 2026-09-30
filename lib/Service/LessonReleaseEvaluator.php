@@ -303,32 +303,8 @@ class LessonReleaseEvaluator {
 			return ['blocked' => false, 'reason' => null];
 		}
 
-		$filters = [
-			'lessonId' => $lessonId,
-			'verified_actor_id' => $learnerId,
-		];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$statements = $this->objectService->findAll(
-			[
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::XAPI_SCHEMA,
-					]
-				),
-			]
-		);
-
-		foreach ($statements as $statement) {
-			$data = $this->toArray(object: $statement);
-			$verbId = $data['verb']['id'] ?? '';
-			if (in_array($verbId, self::COMPLETION_VERBS, true) === true) {
-				return ['blocked' => false, 'reason' => null];
-			}
+		if ($this->hasCompleted(lessonId: $lessonId, learnerId: $learnerId, tenantId: $tenantId) === true) {
+			return ['blocked' => false, 'reason' => null];
 		}
 
 		$lessonName = ($this->resolveName(id: $lessonId, schema: self::LESSON_SCHEMA) ?? $lessonId);
@@ -364,6 +340,80 @@ class LessonReleaseEvaluator {
 			return ['blocked' => false, 'reason' => null];
 		}
 
+		$bestScore = $this->bestScore(assessmentId: $assessmentId, learnerId: $learnerId, tenantId: $tenantId);
+		if ($bestScore !== null && $bestScore >= (float)$minScore) {
+			return ['blocked' => false, 'reason' => null];
+		}
+
+		$assessmentName = ($this->resolveName(id: $assessmentId, schema: self::ASSESSMENT_SCHEMA) ?? $assessmentId);
+
+		return [
+			'blocked' => true,
+			'reason' => sprintf('Score at least %s on "%s" first.', $minScore, $assessmentName),
+		];
+
+	}//end evaluateAssessmentMinScoreCondition()
+
+	/**
+	 * Whether the learner has an xAPI statement completing or passing the
+	 * lesson: read for that learner only (`verified_actor_id`).
+	 *
+	 * @param string $lessonId  UUID of the lesson.
+	 * @param string $learnerId NC user ID of the learner.
+	 * @param string $tenantId  Tenant scope for the lookup ('' when unknown).
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
+	 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
+	 */
+	public function hasCompleted(string $lessonId, string $learnerId, string $tenantId): bool {
+		$filters = [
+			'lessonId' => $lessonId,
+			'verified_actor_id' => $learnerId,
+		];
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
+
+		$statements = $this->objectService->findAll(
+			[
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::XAPI_SCHEMA,
+					]
+				),
+			]
+		);
+
+		foreach ($statements as $statement) {
+			$data = $this->toArray(object: $statement);
+			$verbId = ($data['verb']['id'] ?? '');
+			if (in_array($verbId, self::COMPLETION_VERBS, true) === true) {
+				return true;
+			}
+		}
+
+		return false;
+	}//end hasCompleted()
+
+	/**
+	 * The learner's best summed score over their graded attempts on the
+	 * assessment, or null without a graded attempt: read for that learner
+	 * only (`learnerId`).
+	 *
+	 * @param string $assessmentId UUID of the assessment.
+	 * @param string $learnerId    NC user ID of the learner.
+	 * @param string $tenantId     Tenant scope for the lookup ('' when unknown).
+	 *
+	 * @return float|null
+	 *
+	 * @spec openspec/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
+	 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
+	 */
+	public function bestScore(string $assessmentId, string $learnerId, string $tenantId): ?float {
 		$filters = [
 			'assessmentId' => $assessmentId,
 			'learnerId' => $learnerId,
@@ -394,18 +444,8 @@ class LessonReleaseEvaluator {
 			}
 		}
 
-		if ($bestScore !== null && $bestScore >= (float)$minScore) {
-			return ['blocked' => false, 'reason' => null];
-		}
-
-		$assessmentName = ($this->resolveName(id: $assessmentId, schema: self::ASSESSMENT_SCHEMA) ?? $assessmentId);
-
-		return [
-			'blocked' => true,
-			'reason' => sprintf('Score at least %s on "%s" first.', $minScore, $assessmentName),
-		];
-
-	}//end evaluateAssessmentMinScoreCondition()
+		return $bestScore;
+	}//end bestScore()
 
 	/**
 	 * Sum an AssessmentResult's per-item scores, preferring `autoScore` and

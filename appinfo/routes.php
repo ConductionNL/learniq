@@ -165,6 +165,9 @@ return [
         // Controller: LessonReleaseController (slug: lessonRelease).
         ['name' => 'lessonRelease#status',           'url' => '/api/lessons/{lessonId}/release-status',         'verb' => 'GET'],
         ['name' => 'lessonRelease#assessmentStatus', 'url' => '/api/assessments/{assessmentId}/release-status', 'verb' => 'GET'],
+        // Controller: LessonNextStepController (slug: lessonNextStep), content-adaptive-next-step-and-preview.
+        ['name' => 'lessonNextStep#nextStep',        'url' => '/api/lessons/{lessonId}/next-step',              'verb' => 'GET'],
+        ['name' => 'lessonNextStep#coursePreview',   'url' => '/api/courses/{courseId}/preview',                'verb' => 'GET'],
 
         // Portal test taking (assessment-portal-endpoints): the five steps of
         // portaliq's timed task, forwarded server-to-server. #[PublicPage]
