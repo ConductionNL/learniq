@@ -142,9 +142,17 @@ class LtiAgsScorePollJobTest extends TestCase {
 			static fn (string $path): string => 'https://learniq.example' . $path
 		);
 
+		// The job runs without a user, as cron does. OpenRegister refuses such a
+		// caller: measured live on 2026-09-30, the job's GradeScale read failed
+		// with "User 'Anonymous' does not have permission to 'read' objects in
+		// schema 'GradeScale'". This store answers only a system-context call.
 		$this->objectService->method('findAll')->willReturnCallback(
-			function (array $config): array {
+			function (array $config, bool $_rbac = true, bool $_multitenancy = true): array {
 				$schema = $config['filters']['schema'] ?? '';
+				if ($this->refusesCaller(action: 'read', schema: (string)$schema, rbac: $_rbac, multitenancy: $_multitenancy) === true) {
+					return [];
+				}
+
 				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 
 				if ($schema === 'lti-tool-placement') {
@@ -183,13 +191,36 @@ class LtiAgsScorePollJobTest extends TestCase {
 		// willReturnCallback() hands the closure the mock's arguments
 		// POSITIONALLY, so the closure must mirror that order.
 		$this->objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null, bool $_rbac = true, bool $_multitenancy = true): ObjectEntity {
+				$this->refusesCaller(action: 'create', schema: (string)$schema, rbac: $_rbac, multitenancy: $_multitenancy);
 				$this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
 				$object['id'] = 'grade-entry-new';
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
 			}
 		);
 	}//end setUp()
+
+	/**
+	 * Refuse a call made in the caller's (user-less) context, the way the live
+	 * instance did: RBAC on throws OpenRegister's permission error; tenant
+	 * scope on hides every row (the caller has no organisation).
+	 *
+	 * @param string $action       'read' or 'create'.
+	 * @param string $schema       The schema slug.
+	 * @param bool   $rbac         Whether RBAC applies.
+	 * @param bool   $multitenancy Whether the tenant scope applies.
+	 *
+	 * @return bool True when the rows must be hidden.
+	 *
+	 * @throws \RuntimeException When RBAC applies.
+	 */
+	private function refusesCaller(string $action, string $schema, bool $rbac, bool $multitenancy): bool {
+		if ($rbac === true) {
+			throw new \RuntimeException("User 'Anonymous' does not have permission to '" . $action . "' objects in schema '" . $schema . "'");
+		}
+
+		return $multitenancy === true;
+	}//end refusesCaller()
 
 	/**
 	 * A pulled message in the shape integriq's pull endpoint really returns.
@@ -377,6 +408,59 @@ class LtiAgsScorePollJobTest extends TestCase {
 	}//end testReadsTheScoreFromTheCloudEventDataOfARealMessage()
 
 	/**
+	 * A user-less run (cron) normalises the score on the placement's grade scale
+	 * and writes the grade for the right learner, placement, plan and component.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-a-returned-grade-lands-on-the-placement-that-launched-it
+	 */
+	public function testAUserlessRunWritesTheGradeOnTheScale(): void {
+		$this->placementFixture = [
+			'id' => 'placement-1',
+			'openconnectorDeploymentId' => 'deployment-1',
+			'curriculumPlanId' => 'plan-1',
+			'gradeEntryComponentId' => 'component-1',
+			'gradeScaleId' => 'scale-1',
+			'tenant_id' => 'tenant-1',
+		];
+		$this->objectService->method('find')->willReturnCallback(
+			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true, bool $_multitenancy = true): ?ObjectEntity {
+				if ($this->refusesCaller(action: 'read', schema: (string)$schema, rbac: $_rbac, multitenancy: $_multitenancy) === true) {
+					return null;
+				}
+
+				if ((string)$schema === 'grade-scale' && (string)$id === 'scale-1') {
+					return OrEntityFactory::make(['id' => 'scale-1', 'kind' => 'numeric', 'min' => 1, 'max' => 10], 'grade-scale');
+				}
+
+				return null;
+			}
+		);
+
+		$this->job(
+			messages: [
+				$this->integriqMessage(
+					messageUuid: 'msg-cron',
+					deploymentUuid: 'deployment-1',
+					lineItemId: 'placement-1',
+					score: ['userId' => 'learner-9', 'scoreGiven' => 8, 'scoreMaximum' => 10]
+				),
+			]
+		)->run(null);
+
+		self::assertCount(1, $this->savedObjects);
+		$grade = $this->savedObjects[0]['object'];
+		self::assertSame('learner-9', $grade['learnerId']);
+		self::assertSame('placement-1', $grade['ltiToolPlacementId']);
+		self::assertSame('plan-1', $grade['curriculumPlanId']);
+		self::assertSame('component-1', $grade['componentId']);
+		self::assertSame('msg-cron', $grade['ltiAgsResultId']);
+		self::assertEqualsWithDelta(8.2, $grade['value'], 0.0001, '8 of 10 on a 1-10 scale is 1 + 0.8 * 9');
+		self::assertSame('concept', $grade['lifecycle']);
+	}//end testAUserlessRunWritesTheGradeOnTheScale()
+
+	/**
 	 * Pulling the same message twice (simulating a redelivery) creates
 	 * exactly one GradeEntry, not two.
 	 *
@@ -492,7 +576,11 @@ class LtiAgsScorePollJobTest extends TestCase {
 			'placement-x' => array_merge($this->placementFixture, ['id' => 'placement-x', 'openconnectorDeploymentId' => 'deployment-9']),
 		];
 		$this->objectService->method('find')->willReturnCallback(
-			static function (int|string $id) use ($byId): ?ObjectEntity {
+			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true, bool $_multitenancy = true) use ($byId): ?ObjectEntity {
+				if ($this->refusesCaller(action: 'read', schema: (string)$schema, rbac: $_rbac, multitenancy: $_multitenancy) === true) {
+					return null;
+				}
+
 				if (isset($byId[(string)$id]) === false) {
 					return null;
 				}
@@ -514,4 +602,21 @@ class LtiAgsScorePollJobTest extends TestCase {
 		self::assertSame('component-2', $this->savedObjects[0]['object']['componentId']);
 		self::assertSame('placement-1', $this->savedObjects[1]['object']['ltiToolPlacementId'], 'a line item on another deployment falls back to the deployment');
 	}//end testLineItemPicksThePlacement()
+
+	/**
+	 * The job is declared in appinfo/info.xml. Nextcloud adds every declared job
+	 * on a fresh install (Installer::installApp) and on every app upgrade
+	 * (AppManager::upgradeApp); a row lost in between comes back with the next
+	 * version bump.
+	 *
+	 * @return void
+	 */
+	public function testTheJobIsDeclaredInInfoXml(): void {
+		// String parse, not simplexml_load_file(): see ConnectionReportJobTest.
+		$infoXml = simplexml_load_string((string)file_get_contents(dirname(__DIR__, 3) . '/appinfo/info.xml'));
+		self::assertNotFalse($infoXml);
+
+		$jobs = array_map('strval', $infoXml->xpath('/info/background-jobs/job'));
+		self::assertContains(LtiAgsScorePollJob::class, $jobs);
+	}//end testTheJobIsDeclaredInInfoXml()
 }//end class

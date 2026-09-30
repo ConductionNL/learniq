@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+ * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
  */
 
 declare(strict_types=1);
@@ -72,7 +72,7 @@ class XapiDocumentRequest {
 	 *
 	 * @throws XapiRequestException 400 when absent or not JSON, 403 when it names someone else.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function agent(IRequest $request, string $actorId): array {
 		$agent = json_decode($this->query(request: $request, name: 'agent'), true);
@@ -99,7 +99,7 @@ class XapiDocumentRequest {
 	 *
 	 * @throws XapiRequestException 400 on a missing or malformed parameter.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function key(IRequest $request, string $kind, string $actorId, bool $needsId): array {
 		$activityId   = '';
@@ -128,7 +128,7 @@ class XapiDocumentRequest {
 	 *
 	 * @throws XapiRequestException 400 when it is not a timestamp.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function since(IRequest $request): string {
 		$since = $this->query(request: $request, name: 'since');
@@ -146,7 +146,7 @@ class XapiDocumentRequest {
 	 *
 	 * @throws XapiRequestException 413 when the body is too large.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function body(): string {
 		$contents = $this->body->read(maxBytes: XapiDocumentStore::MAX_BYTES);
@@ -167,7 +167,7 @@ class XapiDocumentRequest {
 	 *
 	 * @return string The content type.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function contentType(IRequest $request): string {
 		$type = trim((string)$request->getHeader('Content-Type'));
@@ -189,7 +189,7 @@ class XapiDocumentRequest {
 	 *
 	 * @throws XapiRequestException 412 on a failed precondition, 409 on a blind overwrite.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function checkPreconditions(IRequest $request, ?string $current, bool $strictPut): void {
 		$ifMatch     = trim((string)$request->getHeader('If-Match'));
