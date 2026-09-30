@@ -132,6 +132,10 @@ class DataCorrectionRequestStampTest extends TestCase {
 		$this->makeStamp(userId: 'teacher-a')->handle($unknown);
 		self::assertSame('correction-no-entry', $unknown->getErrors()['reason']);
 
+		$unnamed = new ObjectCreatingEvent(OrEntityFactory::make(array_merge(self::POSTED, ['gradeEntryId' => '']), 'data-correction-request'));
+		$this->makeStamp(userId: 'teacher-a')->handle($unnamed);
+		self::assertSame('correction-no-entry', $unnamed->getErrors()['reason']);
+
 		$concept = new ObjectCreatingEvent(OrEntityFactory::make(self::POSTED, 'data-correction-request'));
 		$this->makeStamp(userId: 'teacher-a', entryLifecycle: 'concept')->handle($concept);
 		self::assertSame('correction-not-published', $concept->getErrors()['reason']);

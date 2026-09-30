@@ -78,21 +78,25 @@ class CorrectionAppliedHandlerTest extends TestCase {
 	 *
 	 * @return CorrectionAppliedHandler
 	 */
-	private function handler(array $corrections): CorrectionAppliedHandler {
+	private function handler(array $corrections, bool $saveFails = false): CorrectionAppliedHandler {
 		$this->saved = [];
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(
-			static fn (array $config): array => array_values(
+			static fn (array $config): array => OrEntityFactory::makeMany(array_values(
 				array_filter(
 					$corrections,
 					static fn (array $row): bool => $config['filters']['schema'] === 'data-correction-request'
 						&& $row['gradeEntryId'] === $config['filters']['gradeEntryId']
 						&& $row['lifecycle'] === $config['filters']['lifecycle']
 				)
-			)
+			), 'data-correction-request')
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true): ObjectEntity {
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true) use ($saveFails): ObjectEntity {
+				if ($saveFails === true) {
+					throw new \RuntimeException('database gone');
+				}
+
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->saved[] = ['schema' => (string)$schema, 'object' => $data, 'uuid' => $uuid, 'rbac' => $_rbac];
 				return OrEntityFactory::make($data, (string)$schema);
@@ -167,5 +171,8 @@ class CorrectionAppliedHandlerTest extends TestCase {
 		$other = new ObjectTransitionedEvent(OrEntityFactory::make(self::ENTRY, 'final-grade'), 'publish', 'concept', 'published', 'teacher-a', 'learniq', 'final-grade');
 		$this->handler(corrections: [self::APPROVED])->handle($other);
 		self::assertSame([], $this->saved, 'another schema');
+
+		$this->handler(corrections: [self::APPROVED], saveFails: true)->handle(self::published());
+		self::assertSame([], $this->saved, 'a failed save is logged, the publish stands');
 	}//end testNothingIsWrittenWithoutACoveringApproval()
 }//end class

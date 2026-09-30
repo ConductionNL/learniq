@@ -121,5 +121,6 @@ class DataCorrectionDecisionGuardTest extends TestCase {
 		self::assertDenied($this->guard(entry: array_merge($published, ['lifecycle' => 'revised']))->check(self::REQUEST, 'apply', 'teacher-a'));
 		self::assertDenied($this->guard(entry: array_merge($published, ['value' => 7.0]))->check(self::REQUEST, 'apply', 'teacher-a'));
 		self::assertDenied($this->guard(entry: null)->check(self::REQUEST, 'apply', 'teacher-a'));
+		self::assertDenied($this->guard(entry: $published)->check(array_merge(self::REQUEST, ['gradeEntryId' => '']), 'apply', 'teacher-a'), 'no grade entry named');
 	}//end testApplyWaitsForThePublishedApprovedValue()
 }//end class

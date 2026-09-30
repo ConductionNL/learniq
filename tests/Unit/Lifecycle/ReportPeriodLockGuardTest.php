@@ -239,6 +239,7 @@ class ReportPeriodLockGuardTest extends TestCase {
 			'the request is still requested' => [array_merge(self::APPROVED, ['lifecycle' => 'requested', 'decidedBy' => null]), self::ENTRY, 'teacher-a'],
 			'another value is published'     => [self::APPROVED, array_merge(self::ENTRY, ['value' => 8.0]), 'teacher-a'],
 			'another grade entry'            => [array_merge(self::APPROVED, ['gradeEntryId' => 'entry-2']), self::ENTRY, 'teacher-a'],
+			'a grade entry without an id'    => [self::APPROVED, array_diff_key(self::ENTRY, ['id' => true]), 'teacher-a'],
 		];
 		foreach ($cases as $label => [$request, $entry, $publisher]) {
 			$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: [self::LOCKED], corrections: [$request]);
