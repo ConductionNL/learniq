@@ -1326,5 +1326,13 @@
     "reason": "Shipped and archived on 2026-09-29 (all tasks ticked); the planninq matrix row is set built by the coordinator.",
     "change": "2026-09-29-attendance-self-check-in",
     "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "sup-report-a-concern-confidentially",
+    "matrix": "learniq",
+    "decision": "build",
+    "reason": "Reversed by Ruben on 2026-09-29 (build-all DECISIONS row 18): build a learner-side confidential report that lands in the existing counsellor channel. Supersedes the decided-no of the same day.",
+    "change": "support-confidential-concern-report",
+    "decidedOn": "2026-09-29"
   }
 ]

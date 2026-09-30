@@ -6511,9 +6511,9 @@
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
         "state": "building",
-        "evidence": "lib/Lifecycle/ExemptionDecisionGuard.php:49",
+        "evidence": "lib/Lifecycle/RegulationExemptionDecisionGuard.php:43",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "/exam-board/exemptions",
+        "reachedOn": "/compliance/exemptions",
         "change": "openspec/changes/compliance-exemption-record"
       },
       "provider": "self",
@@ -7265,10 +7265,10 @@
       "origin": "roadmap",
       "originUrl": "https://github.com/chamilo/chamilo-lms/issues/8373",
       "built": {
-        "state": "decided-no",
-        "evidence": "Decided no on 2026-09-29: Roadmap demand row (Chamilo issue 8373) but no competitor rated yes and outside the core area, so the rule does not build it. Note: the confidential counsellor channel (archive 2026-09-28-confidential-counsellor-channel) is the counsellor side, not a learner report. See needs-Ruben. Before: src/manifest.d/pupil-record.json:230",
+        "state": "building",
+        "evidence": "ConcernReport in lib/Settings/learniq_register.json (counsellors and the reporter read, anyone signed in creates, anonymous counsellor notification), lib/Listener/ConcernReportReporterStamp.php stamps the reporter, src/manifest.d/confidential-counsel.json menus. Open: the live check (task 4.1).",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "nothing"
+        "change": "openspec/changes/support-confidential-concern-report"
       },
       "provider": "self",
       "providerHow": "Would be a learniq reporting flow; the pupil dossier is staff-facing.",
