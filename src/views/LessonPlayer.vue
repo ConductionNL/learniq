@@ -695,6 +695,7 @@ export default {
 		 * to another lesson of the course: start over for the new lesson.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
 		 */
 		async lessonId() {
 			this.clearScormApi()
