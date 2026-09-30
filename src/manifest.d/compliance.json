@@ -44,6 +44,52 @@
 					]
 				}
 			}
+		},
+		{
+			"id": "RegulationExemptionsMenu",
+			"label": "Exemptions",
+			"icon": "ShieldOffOutline",
+			"route": "RegulationExemptions",
+			"order": 53,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"compliance-officer",
+						"hr",
+						"admin"
+					]
+				},
+				"workspace.segment": {
+					"in": [
+						"corporate",
+						"training"
+					]
+				}
+			}
+		},
+		{
+			"id": "RequestExemptionMenu",
+			"label": "Request an exemption",
+			"icon": "ShieldOffOutline",
+			"route": "RegulationExemptions",
+			"order": 54,
+			"_note": "A line manager (user.managesLearners) asks for an exemption for a direct report. The read rule narrows the list to the requests they made; RegulationExemptionRequestStamp refuses a person who does not report to them. The notIn list is the roles that already reach RegulationExemptionsMenu, so nobody sees the entry twice.",
+			"visibleIf": {
+				"user.managesLearners": true,
+				"user.primaryRole": {
+					"notIn": [
+						"compliance-officer",
+						"hr",
+						"admin"
+					]
+				},
+				"workspace.segment": {
+					"in": [
+						"corporate",
+						"training"
+					]
+				}
+			}
 		}
 	],
 	"pages": [
@@ -416,6 +462,68 @@
 						"gridHeight": 8
 					}
 				]
+			}
+		},
+		{
+			"id": "RegulationExemptions",
+			"route": "/compliance/exemptions",
+			"type": "index",
+			"title": "Exemptions",
+			"config": {
+				"register": "learniq",
+				"schema": "regulation-exemption"
+			}
+		},
+		{
+			"id": "RegulationExemptionDetail",
+			"route": "/compliance/exemptions/:id",
+			"type": "detail",
+			"title": "Exemptions",
+			"config": {
+				"register": "learniq",
+				"schema": "regulation-exemption",
+				"_note": "A regulation exemption is a request and its decision. The body is the record; grant and reject run as lifecycle actions (RegulationExemptionDecisionGuard asks for the rationale, the policy reference and the end date). History is the audit of who asked and who decided.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "exemption-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ShieldOffOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "exemption-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
 			}
 		}
 	]

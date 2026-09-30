@@ -6507,9 +6507,9 @@
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
         "state": "building",
-        "evidence": "lib/Lifecycle/ExemptionDecisionGuard.php:49",
+        "evidence": "lib/Lifecycle/RegulationExemptionDecisionGuard.php:43",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "/exam-board/exemptions",
+        "reachedOn": "/compliance/exemptions",
         "change": "openspec/changes/compliance-exemption-record"
       },
       "provider": "self",

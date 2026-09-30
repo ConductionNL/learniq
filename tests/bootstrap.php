@@ -54,6 +54,7 @@ require_once __DIR__ . '/Support/XapiDocumentsInMemory.php';
 require_once __DIR__ . '/Support/ExamScheduleFixture.php';
 require_once __DIR__ . '/Support/SlugMapper.php';
 require_once __DIR__ . '/Support/TransitionScope.php';
+require_once __DIR__ . '/Support/OrReadVerdict.php';
 
 // Shared guard: base.php exits() rather than throwing on a bad NC instance, so
 // loading it unconditionally silently truncates the suite to zero tests while

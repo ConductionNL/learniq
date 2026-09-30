@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.45",
+    "version": "1.1.46",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -29019,6 +29019,66 @@
         "status": "closed",
         "reporterId": "Voorbeeld Reporterid 3",
         "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "regulation-exemption",
+          "slug": "regulation-exemption-voorbeeld-1"
+        },
+        "learnerId": "00000000-0000-4000-8000-000000000001",
+        "regulationSlug": "voorbeeld-werken-op-hoogte",
+        "reasonKind": "medical",
+        "reasonText": "Voorbeeld: er is een verklaring van de bedrijfsarts.",
+        "requestedBy": "Voorbeeld Requestedby 1",
+        "decisionRationale": null,
+        "policyReference": null,
+        "validFrom": null,
+        "validUntil": null,
+        "decidedBy": null,
+        "decidedAt": null,
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "lifecycle": "requested"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "regulation-exemption",
+          "slug": "regulation-exemption-voorbeeld-2"
+        },
+        "learnerId": "00000000-0000-4000-8000-000000000002",
+        "regulationSlug": "voorbeeld-bhv",
+        "reasonKind": "role-change",
+        "reasonText": "Voorbeeld: werkt sinds maart op kantoor, niet meer op de werkplaats.",
+        "requestedBy": "Voorbeeld Requestedby 2",
+        "decisionRationale": "Voorbeeld: de functie valt buiten de doelgroep van de regel.",
+        "policyReference": "Voorbeeld: veiligheidsbeleid artikel 4.2",
+        "validFrom": "2026-03-01",
+        "validUntil": "2027-02-28",
+        "decidedBy": "Voorbeeld Decidedby 2",
+        "decidedAt": "2026-03-02T09:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "lifecycle": "granted"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "regulation-exemption",
+          "slug": "regulation-exemption-voorbeeld-3"
+        },
+        "learnerId": "00000000-0000-4000-8000-000000000000",
+        "regulationSlug": "voorbeeld-vca",
+        "reasonKind": "equivalent-qualification",
+        "reasonText": "Voorbeeld: heeft een gelijkwaardig buitenlands certificaat.",
+        "requestedBy": "Voorbeeld Requestedby 3",
+        "decisionRationale": "Voorbeeld: het certificaat dekt de regel niet volledig.",
+        "policyReference": "Voorbeeld: opleidingsbeleid paragraaf 2",
+        "validFrom": null,
+        "validUntil": null,
+        "decidedBy": "Voorbeeld Decidedby 3",
+        "decidedAt": "2026-03-03T09:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "lifecycle": "rejected"
       },
       {
         "@self": {

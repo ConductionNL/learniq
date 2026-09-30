@@ -7,6 +7,9 @@
  * the other registrars are at phpmd's coupling limit. This one wires the confidential concern report
  * (support-confidential-concern-report): the server decides who filed a
  * report and keeps it on every update, because the reporter is who may read it.
+ * It also wires the regulation exemption request (compliance-exemption-record):
+ * the server decides who asked, because the requester may not grant it, and
+ * scopes a line manager's request to their direct reports.
  *
  * @category AppInfo
  * @package  OCA\Learniq\AppInfo\Registrar
@@ -22,6 +25,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/support-confidential-concern-report/specs/confidential-counsel/spec.md#requirement-the-server-decides-who-filed-a-report
+ * @spec openspec/changes/compliance-exemption-record/specs/compliance-exemptions/spec.md#requirement-regulation-exemption-records
  */
 
 declare(strict_types=1);
@@ -29,6 +33,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\Learniq\Listener\ConcernReportReporterStamp;
+use OCA\Learniq\Listener\RegulationExemptionRequestStamp;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
@@ -59,6 +64,14 @@ class SafeguardingListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: ConcernReportReporterStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: RegulationExemptionRequestStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: RegulationExemptionRequestStamp::class
 		);
 	}//end register()
 }//end class
