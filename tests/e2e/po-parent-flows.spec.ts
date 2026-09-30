@@ -314,19 +314,34 @@ test.describe('po: teacher and parent flows', () => {
 		expect(await transition(round.id, 'close-booking')).toBe('booking-closed')
 		expect(await transition(round.id, 'generate')).toBe('scheduled')
 
-		// The new slot is the only proposed one: earlier runs completed theirs.
+		// This round's slot, read as the teacher and filtered by the round: the
+		// parent's rows carry no round id, so taking her first proposed slot
+		// picked up a slot an earlier run had left behind and still passed.
 		let slot: Record<string, string> | undefined
 		await expect
 			.poll(
 				async () => {
-					slot = (
-						await portalRows('conference-slot', 'parentConferenceSlots')
-					).find(
-						(row) =>
+					const res = await teacher.get(
+						`/apps/openregister/api/objects/learniq/conference-slot?conferenceRoundId=${round.id}`,
+					)
+					slot = ((await res.json()).results ?? []).find(
+						(row: Record<string, string>) =>
 							row.teacherId === TEACHER.user
 							&& row.lifecycle === 'proposed',
 					)
-					return slot?.startsAt?.slice(0, 10)
+					if (!slot) {
+						return undefined
+					}
+					// The parent sees that same slot through her own scoped read.
+					const hers = (
+						await portalRows('conference-slot', 'parentConferenceSlots')
+					).some(
+						(row) =>
+							(row.id ?? row['@self']?.id) === slot!.id
+							|| (row.startsAt === slot!.startsAt
+								&& row.lifecycle === 'proposed'),
+					)
+					return hers ? slot.startsAt?.slice(0, 10) : 'not in her rows'
 				},
 				{ timeout: 15_000 },
 			)
