@@ -53,6 +53,42 @@ function objectIdOf(body: Record<string, any> | null): string | null {
 	return typeof id === 'string' ? id : null
 }
 
+/**
+ * An API context signed in as one persona, and ONLY as that persona.
+ *
+ * 🔴 `request.newContext()` inside the test runner inherits the config's `use`
+ * block, including the admin `storageState`. Nextcloud tries Basic auth only
+ * when no session is logged in, so a persona context that carried admin's
+ * session cookie ran every request AS ADMIN, while Apache's access log printed
+ * the Basic user and made it look right (found 2026-09-29 by the hermiq-ai-tooling
+ * live run: every "teacher" and "coordinator" write was admin's). This starts
+ * from an empty cookie jar and checks who Nextcloud thinks the caller is.
+ *
+ * @param uid      The persona's user id.
+ * @param password The persona's password.
+ * @return The context, verified to act as `uid`.
+ */
+export async function apiAs(
+	uid: string,
+	password: string,
+): Promise<APIRequestContext> {
+	const context = await playwrightRequest.newContext({
+		baseURL: baseUrl(),
+		storageState: { cookies: [], origins: [] },
+		httpCredentials: { username: uid, password, send: 'always' },
+		extraHTTPHeaders: { 'OCS-APIRequest': 'true', Accept: 'application/json' },
+	})
+	const whoami = await context.get('/ocs/v2.php/cloud/user?format=json')
+	const actual = (await whoami.json().catch(() => null))?.ocs?.data?.id
+	if (actual !== uid) {
+		throw new Error(
+			`apiAs(${uid}): Nextcloud answers as '${String(actual)}' (HTTP ${whoami.status()}), not as the persona.`,
+		)
+	}
+
+	return context
+}
+
 export class LiveFixtures {
 	readonly run = Date.now().toString(36)
 
