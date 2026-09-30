@@ -46,6 +46,13 @@ use PHPUnit\Framework\TestCase;
 class ItemAnalysisRecomputeHandlerTest extends TestCase {
 
 	/**
+	 * The `_rbac` argument of every saveObject() call, per schema.
+	 *
+	 * @var array<int, array{schema: string, rbac: bool}>
+	 */
+	private array $rbacWrites = [];
+
+	/**
 	 * In-memory fake OR datastore, keyed by schema slug.
 	 *
 	 * @var array<string, array<int, array<string,mixed>>>
@@ -113,7 +120,8 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true): ObjectEntity {
+				$this->rbacWrites[] = ['schema' => (string)$schema, 'rbac' => $_rbac];
 				$schema = (string)$schema;
 				$object = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 
@@ -443,4 +451,26 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 		self::assertSame([], $this->savedObjects);
 
 	}//end testUnrelatedEventIsIgnored()
+
+	/**
+	 * The grade transition is granted through the teacherIds match, not the instructors group,
+	 * so the analysis rows are written as the system.
+	 *
+	 * @return void
+	 */
+	public function testAnalysisRowsAreWrittenAsTheSystem(): void {
+		$this->testTooDifficultyOpensDedupedFlagWithoutMutatingItem();
+
+		$writes = array_values(array_filter($this->rbacWrites, static fn (array $w): bool => $w['schema'] === 'item-statistics'));
+		self::assertNotEmpty($writes, 'no item-statistics write');
+		foreach ($writes as $write) {
+			self::assertFalse($write['rbac'], 'item-statistics is written with _rbac: false');
+		}
+
+		$writes = array_values(array_filter($this->rbacWrites, static fn (array $w): bool => $w['schema'] === 'item-revision-flag'));
+		self::assertNotEmpty($writes, 'no item-revision-flag write');
+		foreach ($writes as $write) {
+			self::assertFalse($write['rbac'], 'item-revision-flag is written with _rbac: false');
+		}
+	}//end testAnalysisRowsAreWrittenAsTheSystem()
 }//end class

@@ -38,6 +38,13 @@ use Psr\Log\NullLogger;
 class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 
 	/**
+	 * The `_rbac` argument of every saveObject() call, per schema.
+	 *
+	 * @var array<int, array{schema: string, rbac: bool}>
+	 */
+	private array $rbacWrites = [];
+
+	/**
 	 * Recorded saveObject() calls.
 	 *
 	 * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
@@ -76,7 +83,8 @@ class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true): ObjectEntity {
+				$this->rbacWrites[] = ['schema' => (string)$schema, 'rbac' => $_rbac];
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->savedObjects[] = [
 					'register' => (string)$register,
@@ -252,4 +260,20 @@ class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 		self::assertCount(0, $this->savedObjects);
 
 	}//end testNonMatchingEventTypeIgnored()
+
+	/**
+	 * A coordinator locks the choice and may not create an Enrolment, so the enrolments are
+	 * written as the system.
+	 *
+	 * @return void
+	 */
+	public function testEnrolmentsAreWrittenAsTheSystem(): void {
+		$this->testLockCreatesEnrolments();
+
+		$writes = array_values(array_filter($this->rbacWrites, static fn (array $w): bool => $w['schema'] === 'enrolment'));
+		self::assertNotEmpty($writes, 'no enrolment write');
+		foreach ($writes as $write) {
+			self::assertFalse($write['rbac'], 'enrolment is written with _rbac: false');
+		}
+	}//end testEnrolmentsAreWrittenAsTheSystem()
 }//end class

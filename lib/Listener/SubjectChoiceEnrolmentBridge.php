@@ -126,6 +126,8 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 				continue;
 			}
 
+			// System context (enrolment): a coordinator or administration manager locks the choice, and
+			// Enrolment create is instructors, hr, compliance officers and team leads only.
 			$this->objectService->saveObject(
 				register: self::LEARNIQ_REGISTER,
 				schema: self::ENROLMENT_SCHEMA,
@@ -134,7 +136,8 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 					'courseId' => $courseId,
 					'source' => 'subject-choice',
 					'tenant_id' => $tenantId,
-				]
+				],
+				_rbac: false
 			);
 			$created++;
 		}

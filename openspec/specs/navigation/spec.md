@@ -294,3 +294,38 @@ Per ADR-044 §5, this change SHALL NOT remove any `pages[]` entry or make any pr
 - GIVEN the existing Gate-19 e2e route table (`tests/e2e/pages.spec.ts`)
 - WHEN it is run unmodified against the post-change build
 - THEN every route resolves with no 404 and no missing-component error
+
+### Requirement: Manifest Content Lives in Boundary-Scoped Fragments, Not the Monolith
+
+`src/manifest.json` MUST carry only `$schema`, `version`, `dependencies`, `observability`, `deepLinks`, and menu/page entries that do not belong to one of the fourteen named `src/manifest.d/*.json` fragment boundaries (`dashboard`, `learning`, `people`, `progress`, `compliance`, `my-learning`, `work-placement`, `guardian-meetings`, `admissions`, `pupil-record`, `assessment-board`, `progress-decisions`, `data-exchange`, `payments`). Every top-level `menu[]` entry that belongs to one of the fourteen boundaries, together with the full `pages[]` entries it (or its children) reference, MUST live in exactly one fragment file — a single node's `children[]` array MUST NOT be split across two fragment files, because `buildManifest`'s fragment merge order depends on `require.context`'s sorted filenames and a cross-file split of one node's children risks silently reordering the rendered menu.
+
+#### Scenario: A target-group fragment owns a full top-level subtree
+
+- GIVEN the `learning.json` fragment
+- WHEN it declares the `GroupLearning` menu entry
+- THEN it MUST include `GroupLearning`'s complete `children[]` array (all leaf entries, in their original order) in that single file, and no other fragment or the base manifest MAY also declare a `children` array for `GroupLearning`
+
+#### Scenario: A leaving-app module is isolated to one file
+
+- GIVEN the `data-exchange.json` fragment holding the `GroupDataExchange` menu entry and its associated pages
+- WHEN a future change deletes Scholiq's in-app data-exchange surface (per `openconnector-flow-migration`)
+- THEN deleting `src/manifest.d/data-exchange.json` alone MUST remove the group's menu entry and all its pages from the effective manifest, with no residual edits required in `src/manifest.json`, `src/menu-layout.json`, or any other fragment
+
+### Requirement: Splitting the Manifest Into Fragments Is a No-Behaviour-Change Refactor
+
+The effective manifest produced by `buildManifest(base, fragments, menuLayout)` after the fourteen-fragment split MUST be deep-equal to the effective manifest produced by the same function before the split — same top-level menu ids in the same order, same `children[]` order at every level, same `pages[]` entries (id, route, type, component, config) with no additions, removals, or reorderings. This MUST be verified by an actual computed diff of the two merged manifests, not by manual inspection or "the app still renders."
+
+#### Scenario: Pre/post split diff is empty
+
+- GIVEN the effective manifest computed from the pre-split tree (monolithic `manifest.json` + the 2 legacy fragments)
+- AND the effective manifest computed from the post-split tree (skeleton `manifest.json` + the 14 new fragments)
+- WHEN the two are deep-equal-compared (menu tree structure and order, full pages array)
+- THEN the diff MUST be empty
+- @e2e exclude Build-time/CI verification script, not a browser-observable behaviour — see test-plan.md
+
+#### Scenario: Live nav is visually unchanged
+
+- GIVEN an admin user viewing the Scholiq nav before this change ships
+- AND the same admin user viewing the Scholiq nav after this change ships
+- WHEN comparing the rendered top-level groups, their order, and each group's children
+- THEN the two views MUST be identical — no group, leaf, or route appears, disappears, or moves

@@ -25,6 +25,6 @@ The app serves four primary audiences: **primary-school teachers** (PO) running 
 - **Dutch market gatekeepers on the roadmap**, BRON/ROD (DUO), OSO transfer, UWLR, Edukoppeling, SchoolID/ECK iD pseudonymisation and SURFconext SSO are the design target for the `data-exchange` capability; none of them run end-to-end yet — see the note above
 - **EU AI Act ready**, AI-assisted feature governance (register, lifecycle, DPO acknowledgement) is delegated to Conduction's Hermiq app; proctoring is an interface only today, with no wired provider yet
 - **Open standards for what ships today**, IMS QTI 2.x/3.0 item-bank import and Common Cartridge import, Open Badges 3.0 verifiable credentials via a public verification endpoint
-- **Content runtime**, a built-in learning record store takes xAPI statements, state and agent profiles; cmi5 units launch with a single-use token once an admin provisions the signing key, and SCORM 1.2 lessons report completion to it
+- **cmi5 and xAPI content**, launch cmi5 lessons and keep their xAPI results in learniq's own learning record store
 - **Three markets, one codebase**, PO LVS (OPP, Handreiking, parent-signing), VO mentor tooling (PTA, leerplicht), HE coordination and corporate compliance (NIS2 board attestation, AVG refresher cycles, audit-pack export) share one register-backed data model today; DigiD, Studielink and OOAPI publishing are still roadmap items
 - **EUPL-1.2 licensed**, government-grade reciprocity, EU-recognised, compatible with the Forum Standaardisatie open-source guidance

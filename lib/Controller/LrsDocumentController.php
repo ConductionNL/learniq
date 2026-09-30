@@ -36,7 +36,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+ * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
  */
 
 declare(strict_types=1);
@@ -98,7 +98,7 @@ class LrsDocumentController extends Controller {
 	 *
 	 * @return Response The document, the stateIds, or an error.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
@@ -112,7 +112,7 @@ class LrsDocumentController extends Controller {
 	 *
 	 * @return Response 204, or an error.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
@@ -126,7 +126,7 @@ class LrsDocumentController extends Controller {
 	 *
 	 * @return Response 204, or an error.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
@@ -140,7 +140,7 @@ class LrsDocumentController extends Controller {
 	 *
 	 * @return Response 204, or an error.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
@@ -154,7 +154,7 @@ class LrsDocumentController extends Controller {
 	 *
 	 * @return Response The document, the profileIds, or an error.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
@@ -168,7 +168,7 @@ class LrsDocumentController extends Controller {
 	 *
 	 * @return Response 204, or an error.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
@@ -182,7 +182,7 @@ class LrsDocumentController extends Controller {
 	 *
 	 * @return Response 204, or an error.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
@@ -196,7 +196,7 @@ class LrsDocumentController extends Controller {
 	 *
 	 * @return Response 204, or an error.
 	 *
-	 * @spec openspec/changes/archive/2026-09-29-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]

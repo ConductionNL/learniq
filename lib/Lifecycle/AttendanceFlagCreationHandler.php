@@ -259,10 +259,14 @@ class AttendanceFlagCreationHandler implements IEventListener {
 			$flag['flagKind'] = $flagKind;
 		}
 
+		// System context (attendance-flag): the write that crosses the threshold may be a learner's
+		// self check-in or a coordinator's register, and AttendanceFlag create/update is instructors
+		// and compliance officers only.
 		$saved = $this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::ATTENDANCE_FLAG_SCHEMA,
-			object: $flag
+			object: $flag,
+			_rbac: false
 		);
 
 		$this->logger->info(
@@ -293,11 +297,13 @@ class AttendanceFlagCreationHandler implements IEventListener {
 			return;
 		}
 
+		// System context (attendance-flag): as above: the flag update runs in the same crossing.
 		$this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::ATTENDANCE_FLAG_SCHEMA,
 			object: array_merge($flag, ['dataExchangeJobId' => $jobId]),
-			uuid: $flagId
+			uuid: $flagId,
+			_rbac: false
 		);
 
 	}//end saveFlag()

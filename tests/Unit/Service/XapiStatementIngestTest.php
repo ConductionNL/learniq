@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#9-statement-id-conflicts
+ * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#9-statement-id-conflicts
  */
 
 declare(strict_types=1);
