@@ -20629,7 +20629,7 @@
             "ConferenceRound": {
                 "slug": "conference-round",
                 "icon": "CalendarMultiselectOutline",
-                "version": "0.1.1",
+                "version": "0.1.2",
                 "title": "Conference Round",
                 "description": "One oudergesprekken-cyclus (parent-teacher conference round) for a report period: scope (cohorts, teachers), slot duration/buffer, and a booking window. Drives invitations, guardian/self signup, and the ConferenceScheduleGenerator's greedy conflict-free slot generation.",
                 "type": "object",
@@ -20946,7 +20946,7 @@
             "ConferenceSignup": {
                 "slug": "conference-signup",
                 "icon": "AccountArrowRightOutline",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "Conference Signup",
                 "description": "A guardian's (or self, for an 18+ learner) request for conversation slots with one or more teachers in a ConferenceRound, in stated preference order. The submit transition is gated by ConferenceSignupGuardianGuard; a draft signup is never read by ConferenceScheduleGenerator.",
                 "type": "object",
@@ -21202,7 +21202,7 @@
                 "slug": "conference-report",
                 "appendOnly": false,
                 "icon": "NotebookOutline",
-                "version": "0.1.1",
+                "version": "0.1.2",
                 "title": "Conference Report",
                 "description": "A gespreksverslag (conversation report) recorded against a completed ConferenceSlot. Append-only — immutable audit evidence once recorded, mirroring LearningPlanEvaluation's shape so it joins the learner's queryable record set.",
                 "type": "object",
