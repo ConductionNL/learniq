@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#5-launch-endpoint-wiring
+ * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#5-launch-endpoint-wiring
  */
 
 declare(strict_types=1);
@@ -84,7 +84,7 @@ class Cmi5LaunchController extends Controller {
 	 *
 	 * @return JSONResponse The launch parameters, or 401/404/503.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#5-launch-endpoint-wiring
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#5-launch-endpoint-wiring
 	 */
 	#[NoAdminRequired]
 	public function launch(string $lessonId): JSONResponse {
@@ -155,7 +155,7 @@ class Cmi5LaunchController extends Controller {
 	 *
 	 * @return JSONResponse `{"auth-token": ...}` or a cmi5 error body.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#5-launch-endpoint-wiring
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#5-launch-endpoint-wiring
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]

@@ -288,10 +288,16 @@ class LtiAgsScorePollJob extends TimedJob {
 			'lifecycle' => 'concept',
 		];
 
+		// System context: the job runs without a user, as cron does, and a
+		// GradeEntry may only be created by teaching staff. Which grade is
+		// written is decided above (placement, line item, learner), not by the
+		// caller's rights.
 		$this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::GRADE_ENTRY_SCHEMA,
-			object: $gradeEntry
+			object: $gradeEntry,
+			_rbac: false,
+			_multitenancy: false
 		);
 
 		return true;
@@ -446,7 +452,10 @@ class LtiAgsScorePollJob extends TimedJob {
 					'openconnectorDeploymentId' => $deploymentUuid,
 				],
 				'limit' => 1,
-			]
+			],
+			// System context: see processMessage().
+			_rbac: false,
+			_multitenancy: false
 		);
 
 		if (empty($results) === true) {
@@ -476,7 +485,10 @@ class LtiAgsScorePollJob extends TimedJob {
 					'ltiAgsResultId' => $resultId,
 				],
 				'limit' => 1,
-			]
+			],
+			// System context: a duplicate the caller cannot see is still a duplicate.
+			_rbac: false,
+			_multitenancy: false
 		);
 
 		return (empty($results) === false);
@@ -502,7 +514,16 @@ class LtiAgsScorePollJob extends TimedJob {
 			return $scoreGiven;
 		}
 
-		$scale = $this->objectService->find(id: $gradeScaleId, register: self::LEARNIQ_REGISTER, schema: self::GRADE_SCALE_SCHEMA);
+		// System context: see processMessage(). Without it a user-less run was
+		// refused ("User 'Anonymous' does not have permission to 'read' objects
+		// in schema 'GradeScale'") and no grade was written.
+		$scale = $this->objectService->find(
+			id: $gradeScaleId,
+			register: self::LEARNIQ_REGISTER,
+			schema: self::GRADE_SCALE_SCHEMA,
+			_rbac: false,
+			_multitenancy: false
+		);
 		if ($scale === null) {
 			return $scoreGiven;
 		}

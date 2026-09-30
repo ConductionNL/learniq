@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+ * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
  */
 
 declare(strict_types=1);
@@ -115,7 +115,7 @@ class XapiDocumentStore {
 	 *
 	 * @return array{kind: string, actorId: string, tenantId: string, activityId: string, registration: string, documentId: string} The key.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function key(string $kind, string $actorId, string $activityId, string $registration, string $documentId): array {
 		return [
@@ -135,7 +135,7 @@ class XapiDocumentStore {
 	 *
 	 * @return array{contents: string, contentType: string, etag: string, updated: string}|null The document, or null.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function get(array $key): ?array {
 		$row = $this->findRow(key: $key);
@@ -156,7 +156,7 @@ class XapiDocumentStore {
 	 *
 	 * @return string The new ETag.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function put(array $key, string $contents, string $contentType, array $context): string {
 		$row = $this->row(key: $key, contents: $contents, contentType: $contentType, context: $context);
@@ -182,7 +182,7 @@ class XapiDocumentStore {
 	 *
 	 * @throws XapiRequestException 400 when the posted or the stored document is not a JSON object.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function merge(array $key, string $contents, array $context): string {
 		$posted = $this->codec->jsonObject(contents: $contents);
@@ -215,7 +215,7 @@ class XapiDocumentStore {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function delete(array $key): void {
 		if ($this->findRow(key: $key) === null) {
@@ -239,7 +239,7 @@ class XapiDocumentStore {
 	 *
 	 * @return array<int, string> The stateIds or profileIds.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function listIds(array $key, string $since): array {
 		$after = null;
@@ -267,7 +267,7 @@ class XapiDocumentStore {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function deleteAll(array $key): void {
 		foreach ($this->rowsUnder(key: $key) as $row) {
