@@ -109,4 +109,28 @@ class ExcuseRequestRegisterTest extends TestCase {
 			$this->schema()['properties']['submittedAuthLevel']['enum']
 		);
 	}//end testTheStampedFieldsAreDeclared()
+	/**
+	 * Approving or rejecting a report records who decided and when. Found on
+	 * a school's parent portal: the teacher approved a guardian's report,
+	 * the guardian saw "approved" but no decision date, and the record did
+	 * not say which teacher decided.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/excuse-decision-records-who-and-when/specs/attendance/spec.md
+	 */
+	public function testADecisionStampsTheDeciderAndTheTime(): void {
+		$transitions = $this->schema()['x-openregister-lifecycle']['transitions'];
+
+		foreach (['approve', 'reject'] as $name) {
+			$this->assertContains(
+				[
+					'action' => 'OCA\\Learniq\\Lifecycle\\Action\\StampTransitionActorAction',
+					'actionParameters' => ['actorField' => 'decidedBy', 'timeField' => 'decidedAt'],
+				],
+				($transitions[$name]['actions'] ?? []),
+				$name
+			);
+		}
+	}//end testADecisionStampsTheDeciderAndTheTime()
 }//end class
