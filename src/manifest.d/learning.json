@@ -371,6 +371,23 @@
 					}
 				},
 				{
+					"id": "GradeCorrectionsMenu",
+					"label": "Grade corrections",
+					"icon": "FileDocumentEditOutline",
+					"route": "DataCorrectionRequests",
+					"order": 67,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"team-lead",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "ReportPeriodsMenu",
 					"label": "Report periods",
 					"icon": "ChartBoxOutline",
@@ -5684,7 +5701,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "grade-entry",
-				"_note": "A Grade Entry is a single recorded score (value, scale, weight, period, grader, source submission/result) for a learner and curriculum component — a score record. Body leads with the entry data including value and comment (8-wide), a value KPI stat, and a Related panel resolving the learner, course, grade-scale and source submission/result. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail as the grade-change audit.",
+				"_note": "A Grade Entry is a single recorded score (value, scale, weight, period, grader, source submission/result) for a learner and curriculum component — a score record. Body leads with the entry data including value and comment (8-wide), a value KPI stat, and a Related panel resolving the learner, course, grade-scale and source submission/result. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail as the grade-change audit. Header action (governance-four-eyes): Ask for a correction opens /grades/corrections. It replaces nothing; no widget or sidebar tab on this page reaches the corrections, and a grade in a locked report period changes only through one.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
@@ -5718,6 +5735,93 @@
 					{
 						"id": "2",
 						"widgetId": "gentry-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				},
+				"headerActions": [
+					{
+						"id": "ask-correction",
+						"label": "Ask for a correction",
+						"icon": "FileDocumentEditOutline",
+						"handler": "navigate",
+						"route": "DataCorrectionRequests"
+					}
+				]
+			}
+		},
+		{
+			"id": "DataCorrectionRequests",
+			"route": "/grades/corrections",
+			"type": "index",
+			"title": "Grade corrections",
+			"config": {
+				"register": "learniq",
+				"schema": "data-correction-request",
+				"_note": "governance-four-eyes: a grade in a locked report period changes only on a correction a second person approved. A teacher asks here (the grade, the new value, the reason); team leads, administration managers and admins see every request and approve or reject it on the detail page. The read rule gives a teacher their own requests only. Reached from the Grades menu and from the Ask for a correction action on a grade entry."
+			}
+		},
+		{
+			"id": "DataCorrectionRequestDetail",
+			"route": "/grades/corrections/:id",
+			"type": "detail",
+			"title": "Grade correction",
+			"config": {
+				"register": "learniq",
+				"schema": "data-correction-request",
+				"_note": "A correction request and its decision. Approve and reject run as lifecycle actions for the approver groups; DataCorrectionDecisionGuard refuses the person who asked. Apply is done by the app when the grade is published with the approved value. History is the audit of who asked, who approved and when it was applied.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "correction-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "FileDocumentEditOutline"
+					},
+					{
+						"id": "correction-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "correction-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "correction-related",
 						"gridX": 8,
 						"gridY": 0,
 						"gridWidth": 4,
