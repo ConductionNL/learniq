@@ -34,6 +34,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -58,12 +59,14 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -81,11 +84,11 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() !== self::SUBJECT_CHOICE_SCHEMA
+		if ($this->schemas->eventSchema(event: $event) !== self::SUBJECT_CHOICE_SCHEMA
 			|| $event->getFrom() !== 'approved'
 			|| $event->getTo() !== 'locked'
 		) {

@@ -42,6 +42,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\IntegriqExchangeClient;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -75,6 +76,7 @@ class SupportRequestSubmitHandler implements IEventListener {
 	 * @param IntegriqExchangeClient $integriq      Asks integriq for the job.
 	 * @param IAppConfig             $appConfig     Reads the school's SWV receiver.
 	 * @param LoggerInterface        $logger        PSR logger.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -83,6 +85,7 @@ class SupportRequestSubmitHandler implements IEventListener {
 		private readonly IntegriqExchangeClient $integriq,
 		private readonly IAppConfig $appConfig,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -100,8 +103,8 @@ class SupportRequestSubmitHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER
-			|| $event->getSchema() !== self::SUPPORT_REQUEST_SCHEMA
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
+			|| $this->schemas->eventSchema(event: $event) !== self::SUPPORT_REQUEST_SCHEMA
 			|| $event->getTo() !== 'submitted'
 		) {
 			return;

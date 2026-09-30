@@ -17,10 +17,13 @@
  * the listeners were still constructed and invoked on every object write
  * instance-wide, they simply did nothing.
  *
- * Note this affects only the guards that read the schema off the **entity**
- * (`$event->getObject()->getSchema()`). The guards that read it off the
- * **event** (`ObjectTransitionedEvent::getSchema()`) are a separate defect with
- * its own gate and are deliberately untouched here.
+ * The guards that read the schema off the **entity**
+ * (`$event->getObject()->getSchema()`) go through schemaSlug() and the gate
+ * below. The guards that read it off an **ObjectTransitionedEvent** go through
+ * eventRegisterSlug() and eventSchemaSlug(), which are NOT gated: OpenRegister
+ * sends ids there unless its own `transition_event_slug_contract` is set, and
+ * the decision of 2026-09-30 is that Learniq's transition listeners fire on
+ * real transitions either way.
  *
  * This resolver turns the id back into a slug so the existing literals match.
  * Three properties matter:
@@ -59,6 +62,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -89,6 +93,14 @@ class ListenerSchemaResolver {
 	 * @var string
 	 */
 	private const REGISTER_MAPPER = 'OCA\\OpenRegister\\Db\\RegisterMapper';
+
+	/**
+	 * Slugs resolved in this request, keyed by container, mapper and id. A
+	 * transition fans out to dozens of listeners; each asks once.
+	 *
+	 * @var array<string, string>
+	 */
+	private static array $slugs = [];
 
 	/**
 	 * Constructor.
@@ -259,6 +271,98 @@ class ListenerSchemaResolver {
 	}//end isOwnRegister()
 
 	/**
+	 * The register slug an ObjectTransitionedEvent names, whatever form it
+	 * carries it in.
+	 *
+	 * OpenRegister's TransitionEngine hands the event the register and schema
+	 * slugs only when the instance opts into its `transition_event_slug_contract`
+	 * app config; by default the event carries their numeric ids. Every Learniq
+	 * transition listener compares against slug literals, so on a default
+	 * instance none of them ever fired: a completed enrolment issued no
+	 * certificate. This answers the slug in both cases, and deliberately does
+	 * NOT consult {@see ListenerSlugContract}: that gate covers the
+	 * entity-based guards above, and the decision (Ruben, 2026-09-30) is that
+	 * transition listeners fire on real transitions.
+	 *
+	 * @param string $register The event's register: a slug or a numeric id.
+	 *
+	 * @return string The register slug, or the raw value when it cannot be resolved.
+	 *
+	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
+	 */
+	public function eventRegisterSlug(string $register): string {
+		if (strcasecmp($register, self::REGISTER_SLUG) === 0) {
+			return self::REGISTER_SLUG;
+		}
+
+		if (ctype_digit($register) === false) {
+			return $register;
+		}
+
+		$slug = $this->resolveSlug(service: self::REGISTER_MAPPER, id: $register);
+		if ($slug === '') {
+			return $register;
+		}
+
+		return $slug;
+	}//end eventRegisterSlug()
+
+	/**
+	 * The schema slug an ObjectTransitionedEvent names, whatever form it
+	 * carries it in. Only a schema in Learniq's own register is resolved, so a
+	 * slug shared with another app's schema cannot match.
+	 *
+	 * @param string $register The event's register: a slug or a numeric id.
+	 * @param string $schema   The event's schema: a slug or a numeric id.
+	 *
+	 * @return string The schema slug, or the raw value when it is not Learniq's or cannot be resolved.
+	 *
+	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
+	 */
+	public function eventSchemaSlug(string $register, string $schema): string {
+		if (ctype_digit($schema) === false) {
+			return $schema;
+		}
+
+		if ($this->eventRegisterSlug(register: $register) !== self::REGISTER_SLUG) {
+			return $schema;
+		}
+
+		$slug = $this->resolveSlug(service: self::SCHEMA_MAPPER, id: $schema);
+		if ($slug === '') {
+			return $schema;
+		}
+
+		return $slug;
+	}//end eventSchemaSlug()
+
+	/**
+	 * The register slug of an ObjectTransitionedEvent; see eventRegisterSlug().
+	 *
+	 * @param ObjectTransitionedEvent $event The event.
+	 *
+	 * @return string The register slug, or the raw value when it cannot be resolved.
+	 *
+	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
+	 */
+	public function eventRegister(ObjectTransitionedEvent $event): string {
+		return $this->eventRegisterSlug(register: $event->getRegister());
+	}//end eventRegister()
+
+	/**
+	 * The schema slug of an ObjectTransitionedEvent; see eventSchemaSlug().
+	 *
+	 * @param ObjectTransitionedEvent $event The event.
+	 *
+	 * @return string The schema slug, or the raw value when it is not Learniq's or cannot be resolved.
+	 *
+	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
+	 */
+	public function eventSchema(ObjectTransitionedEvent $event): string {
+		return $this->eventSchemaSlug(register: $event->getRegister(), schema: $event->getSchema());
+	}//end eventSchema()
+
+	/**
 	 * Look an OpenRegister entity's slug up by id through a mapper FQCN.
 	 *
 	 * @param string $service The mapper FQCN (SchemaMapper or RegisterMapper).
@@ -267,6 +371,26 @@ class ListenerSchemaResolver {
 	 * @return string The slug, or '' when unresolvable / OpenRegister absent.
 	 */
 	private function resolveSlug(string $service, string $id): string {
+		$key = spl_object_id($this->container) . '|' . $service . '|' . $id;
+		if (array_key_exists($key, self::$slugs) === true) {
+			return self::$slugs[$key];
+		}
+
+		$slug = $this->lookUpSlug(service: $service, id: $id);
+		self::$slugs[$key] = $slug;
+
+		return $slug;
+	}//end resolveSlug()
+
+	/**
+	 * Ask the mapper for an entity's slug; the uncached half of resolveSlug().
+	 *
+	 * @param string $service The mapper FQCN (SchemaMapper or RegisterMapper).
+	 * @param string $id The id to resolve.
+	 *
+	 * @return string The slug, or '' when unresolvable / OpenRegister absent.
+	 */
+	private function lookUpSlug(string $service, string $id): string {
 		try {
 			$entity = $this->container->get($service)->find($id);
 			// `is_callable()`, NOT `method_exists()` — the same trap schemaSlug()
@@ -292,5 +416,5 @@ class ListenerSchemaResolver {
 		}//end try
 
 		return '';
-	}//end resolveSlug()
+	}//end lookUpSlug()
 }//end class

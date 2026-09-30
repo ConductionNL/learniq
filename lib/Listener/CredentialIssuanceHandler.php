@@ -44,6 +44,7 @@ use DateTimeImmutable;
 use OCA\Learniq\Service\CredentialSigningService;
 use OCA\Learniq\Service\EuropassIssuer;
 use OCA\Learniq\Service\LearnerRefResolver;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -68,6 +69,7 @@ class CredentialIssuanceHandler implements IEventListener {
 	 * @param LoggerInterface $logger Records a credential that could not be signed.
 	 * @param EuropassIssuer $europass Adds the signed Europass form.
 	 * @param LearnerRefResolver $profiles Finds the learner's LearnerProfile in the enrolment's tenant.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -77,6 +79,7 @@ class CredentialIssuanceHandler implements IEventListener {
 		private readonly LoggerInterface $logger,
 		private readonly EuropassIssuer $europass,
 		private readonly LearnerRefResolver $profiles,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -282,11 +285,11 @@ class CredentialIssuanceHandler implements IEventListener {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-11
 	 */
 	private function isEnrolmentCompletion(ObjectTransitionedEvent $event): bool {
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return false;
 		}
 
-		if ($event->getSchema() !== self::ENROLMENT_SCHEMA) {
+		if ($this->schemas->eventSchema(event: $event) !== self::ENROLMENT_SCHEMA) {
 			return false;
 		}
 

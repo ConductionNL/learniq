@@ -99,6 +99,9 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 		$this->queued = [];
 		$this->runQueued = true;
 		$this->schemaResolver = $this->createMock(ListenerSchemaResolver::class);
+		// Transition events pass through the resolver as the real one does for slugs.
+		$this->schemaResolver->method('eventRegister')->willReturnCallback(static fn (ObjectTransitionedEvent $event): string => $event->getRegister());
+		$this->schemaResolver->method('eventSchema')->willReturnCallback(static fn (ObjectTransitionedEvent $event): string => $event->getSchema());
 
 	}//end setUp()
 

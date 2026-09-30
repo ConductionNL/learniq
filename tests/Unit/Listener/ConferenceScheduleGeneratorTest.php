@@ -111,7 +111,7 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 			}
 		);
 
-		return new ConferenceScheduleGenerator($objectService, $this->createMock(LoggerInterface::class));
+		return new ConferenceScheduleGenerator($objectService, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeGenerator()
 
 	/**
@@ -392,7 +392,7 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 		$objectService->expects(self::never())->method('findAll');
 		$objectService->expects(self::never())->method('saveObject');
 
-		$generator = new ConferenceScheduleGenerator($objectService, $this->createMock(LoggerInterface::class));
+		$generator = new ConferenceScheduleGenerator($objectService, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 
 		$objectEntity = $this->createMock(ObjectEntity::class);
 		$objectEntity->method('jsonSerialize')->willReturn(['id' => 'round-x']);

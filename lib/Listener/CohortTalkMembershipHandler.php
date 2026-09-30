@@ -54,6 +54,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\TalkLinkService;
 use OCP\EventDispatcher\Event;
@@ -102,6 +103,7 @@ class CohortTalkMembershipHandler implements IEventListener {
 	 *                                  `ParticipantService::removeUser()`. Always
 	 *                                  available (core NC service, not Talk-gated).
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -110,6 +112,7 @@ class CohortTalkMembershipHandler implements IEventListener {
 		private readonly ContainerInterface $container,
 		private readonly IUserManager $userManager,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -128,8 +131,8 @@ class CohortTalkMembershipHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER
-			|| $event->getSchema() !== self::ENROLMENT_SCHEMA
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
+			|| $this->schemas->eventSchema(event: $event) !== self::ENROLMENT_SCHEMA
 		) {
 			return;
 		}

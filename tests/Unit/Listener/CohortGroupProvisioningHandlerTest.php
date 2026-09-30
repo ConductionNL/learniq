@@ -186,7 +186,7 @@ class CohortGroupProvisioningHandlerTest extends TestCase {
 			}
 		);
 
-		return new CohortGroupProvisioningHandler($objectService, $groupManager, $userManager, new NullLogger());
+		return new CohortGroupProvisioningHandler($objectService, $groupManager, $userManager, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 
 	}//end makeHandler()
 

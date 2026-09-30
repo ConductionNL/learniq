@@ -45,6 +45,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Grading\GradeFormulaEvaluator;
@@ -76,6 +77,7 @@ class GradeRollupHandler implements IEventListener {
 	 * @param GradeFormulaEvaluator $evaluator Formula evaluation engine.
 	 * @param GradeVisibilityResolver $visibilityResolver Scheduled-visibility-window resolver.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -84,6 +86,7 @@ class GradeRollupHandler implements IEventListener {
 		private readonly GradeFormulaEvaluator $evaluator,
 		private readonly GradeVisibilityResolver $visibilityResolver,
 		private readonly ITimeFactory $timeFactory,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -101,18 +104,18 @@ class GradeRollupHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() === self::GRADE_ENTRY_SCHEMA
+		if ($this->schemas->eventSchema(event: $event) === self::GRADE_ENTRY_SCHEMA
 			&& $event->getTo() === 'published'
 		) {
 			$this->handleGradeEntryPublished(event: $event);
 			return;
 		}
 
-		if ($event->getSchema() === self::ASSESSMENT_RESULT_SCHEMA
+		if ($this->schemas->eventSchema(event: $event) === self::ASSESSMENT_RESULT_SCHEMA
 			&& $event->getTo() === 'graded'
 		) {
 			$this->handleAssessmentResultGraded(event: $event);

@@ -54,6 +54,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
@@ -74,6 +75,11 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
  * @spec openspec/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) The thirteenth collaborator is ListenerSchemaResolver,
+ *                                                 which every transition listener needs to read the ids
+ *                                                 OpenRegister sends; splitting the class for it would hide
+ *                                                 the listener's one job across two files.
  */
 class PortfolioShareGrantHandler implements IEventListener, LifecycleGuardInterface {
 
@@ -96,6 +102,7 @@ class PortfolioShareGrantHandler implements IEventListener, LifecycleGuardInterf
 	 * @param IManager $shareManager NC share manager for the teacher-kind NC Files share.
 	 * @param IRootFolder $rootFolder NC root folder for resolving attachmentRef paths to Nodes.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -104,6 +111,7 @@ class PortfolioShareGrantHandler implements IEventListener, LifecycleGuardInterf
 		private readonly IManager $shareManager,
 		private readonly IRootFolder $rootFolder,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -171,11 +179,11 @@ class PortfolioShareGrantHandler implements IEventListener, LifecycleGuardInterf
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() !== self::SHARE_SCHEMA) {
+		if ($this->schemas->eventSchema(event: $event) !== self::SHARE_SCHEMA) {
 			return;
 		}
 

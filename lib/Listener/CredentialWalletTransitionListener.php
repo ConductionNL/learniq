@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Service\WalletClaimSyncService;
 use OCA\Learniq\Service\WalletOfferDelegationService;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
@@ -63,6 +64,7 @@ class CredentialWalletTransitionListener implements IEventListener {
 	 * @param WalletClaimSyncService $claimService Writes the wallet claim.
 	 * @param WalletOfferDelegationService $offerService Pushes the wallet offer.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -71,6 +73,7 @@ class CredentialWalletTransitionListener implements IEventListener {
 		private readonly WalletClaimSyncService $claimService,
 		private readonly WalletOfferDelegationService $offerService,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -86,8 +89,8 @@ class CredentialWalletTransitionListener implements IEventListener {
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false
-			|| $event->getRegister() !== self::LEARNIQ_REGISTER
-			|| $event->getSchema() !== self::CREDENTIAL_SCHEMA
+			|| $this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
+			|| $this->schemas->eventSchema(event: $event) !== self::CREDENTIAL_SCHEMA
 		) {
 			return;
 		}

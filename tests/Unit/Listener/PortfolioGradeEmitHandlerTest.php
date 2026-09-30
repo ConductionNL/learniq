@@ -95,7 +95,7 @@ class PortfolioGradeEmitHandlerTest extends TestCase {
 			}
 		);
 
-		return new PortfolioGradeEmitHandler($objectService, $this->createMock(LoggerInterface::class));
+		return new PortfolioGradeEmitHandler($objectService, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**

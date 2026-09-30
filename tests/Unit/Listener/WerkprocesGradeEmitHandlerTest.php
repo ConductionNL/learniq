@@ -99,7 +99,7 @@ class WerkprocesGradeEmitHandlerTest extends TestCase {
 			}
 		);
 
-		return new WerkprocesGradeEmitHandler($objectService, $this->createMock(LoggerInterface::class));
+		return new WerkprocesGradeEmitHandler($objectService, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**

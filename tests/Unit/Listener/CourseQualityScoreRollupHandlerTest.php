@@ -96,7 +96,7 @@ class CourseQualityScoreRollupHandlerTest extends TestCase {
 			}
 		);
 
-		return new CourseQualityScoreRollupHandler($objectService, new CourseQualityScoreEvaluator($objectService));
+		return new CourseQualityScoreRollupHandler($objectService, new CourseQualityScoreEvaluator($objectService), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**

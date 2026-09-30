@@ -64,6 +64,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Grading\GradeFormulaEvaluator;
@@ -93,6 +94,7 @@ class PointAwardTriggerHandler implements IEventListener {
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param GradeFormulaEvaluator $evaluator Pass/fail evaluation engine.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -100,6 +102,7 @@ class PointAwardTriggerHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly GradeFormulaEvaluator $evaluator,
 		private readonly ITimeFactory $timeFactory,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -117,21 +120,21 @@ class PointAwardTriggerHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() === self::ENROLMENT_SCHEMA && $event->getTo() === 'completed') {
+		if ($this->schemas->eventSchema(event: $event) === self::ENROLMENT_SCHEMA && $event->getTo() === 'completed') {
 			$this->handleEnrolmentCompleted(event: $event);
 			return;
 		}
 
-		if ($event->getSchema() === self::SUBMISSION_SCHEMA && $event->getTo() === 'submitted') {
+		if ($this->schemas->eventSchema(event: $event) === self::SUBMISSION_SCHEMA && $event->getTo() === 'submitted') {
 			$this->handleSubmissionSubmitted(event: $event);
 			return;
 		}
 
-		if ($event->getSchema() === self::GRADE_ENTRY_SCHEMA && $event->getTo() === 'published') {
+		if ($this->schemas->eventSchema(event: $event) === self::GRADE_ENTRY_SCHEMA && $event->getTo() === 'published') {
 			$this->handleGradeEntryPublished(event: $event);
 		}
 

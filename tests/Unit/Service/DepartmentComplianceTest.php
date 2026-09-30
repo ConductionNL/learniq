@@ -243,7 +243,7 @@ class DepartmentComplianceTest extends TestCase {
 	 */
 	public function testPublishAssignsOnlyTheAudience(): void {
 		$service = new RegulationAssignmentService($this->makeObjectService(), new RegulationAudienceResolver(), new NullLogger());
-		$handler = new RegulationAssignmentHandler($service);
+		$handler = new RegulationAssignmentHandler($service, \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn(OrEntityFactory::make($this->store['regulation'][0], 'regulation'));
