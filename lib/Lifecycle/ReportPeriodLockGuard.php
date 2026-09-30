@@ -5,10 +5,11 @@
  *
  * Lifecycle guard for the GradeEntry schema's `publish` and `republish`
  * transitions (grading spec, report-card-composer delta). Blocks ordinary
- * teacher grade-publishing once a matching `ReportPeriod` is locked
- * (`isLocked` true), unless the acting user holds admin/mentor/principal —
- * an explicit override, e.g. a genuine post-lock correction agreed at the
- * rapportvergadering.
+ * grade-publishing once a matching `ReportPeriod` is locked (`isLocked`
+ * true), unless a DataCorrectionRequest for the entry was approved by a
+ * second person (governance-four-eyes). The former lone override for
+ * admin, team leads and administration managers is gone: those groups now
+ * approve a correction, and the publish itself needs the approved request.
  *
  * DEVIATION FROM THE ORIGINAL DESIGN — this class REPLACES
  * {@see FraudCaseBlockGuard} as the `requires` value on `publish`/`republish`
@@ -56,19 +57,18 @@
  *
  * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
- * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-a-mentor-override-publishes-a-grade-for-a-locked-report-period
  * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
+ * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Service\Grading\CorrectionApprovals;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\IGroupManager;
-use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -81,8 +81,8 @@ use Psr\Log\LoggerInterface;
  * such `ReportPeriod` exists, allows unconditionally (fail-open — a school
  * not using report cards, or a GradeEntry outside any declared
  * ReportPeriod's scope, is completely unaffected). If a matching, locked
- * ReportPeriod exists, blocks unless the acting user holds
- * admin/mentor/principal.
+ * ReportPeriod exists, blocks unless an approved correction request covers
+ * this publish (CorrectionApprovals).
  *
  * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
@@ -93,27 +93,18 @@ class ReportPeriodLockGuard implements LifecycleGuardInterface {
 	 *
 	 * @var string
 	 */
-	private const DENIAL = 'This grade falls in a locked report period, and only an administrator, a team lead'
-		. ' or an administration manager can publish it now.';
+	private const DENIAL = 'This grade is in a locked report period. A change needs a correction that a second person'
+		. ' approved. Publish the grade with the approved value.';
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const REPORT_PERIOD_SCHEMA = 'report-period';
-
-	/**
-	 * Roles whose members may override a locked report period and publish
-	 * anyway (an explicit, logged correction).
-	 *
-	 * @var string[]
-	 */
-	private const OVERRIDE_GROUPS = ['admin', 'team-leads', 'administration-managers'];
 
 	/**
 	 * Constructor.
 	 *
 	 * @param FraudCaseBlockGuard $fraudCaseBlockGuard The original guard this class composes (unchanged behaviour, called first).
 	 * @param ObjectService $objectService OR object access service.
-	 * @param IGroupManager $groupManager OR/NC group manager to resolve the acting user's role groups.
-	 * @param IUserManager $userManager User manager to resolve the acting user object for membership checks.
+	 * @param CorrectionApprovals $corrections The approved correction for a grade entry, if any.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -121,8 +112,7 @@ class ReportPeriodLockGuard implements LifecycleGuardInterface {
 	public function __construct(
 		private readonly FraudCaseBlockGuard $fraudCaseBlockGuard,
 		private readonly ObjectService $objectService,
-		private readonly IGroupManager $groupManager,
-		private readonly IUserManager $userManager,
+		private readonly CorrectionApprovals $corrections,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -137,7 +127,6 @@ class ReportPeriodLockGuard implements LifecycleGuardInterface {
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
 	 * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
-	 * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-a-mentor-override-publishes-a-grade-for-a-locked-report-period
 	 * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
@@ -166,7 +155,6 @@ class ReportPeriodLockGuard implements LifecycleGuardInterface {
 	 * @return bool True if the transition is allowed; false blocks it.
 	 *
 	 * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
-	 * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-a-mentor-override-publishes-a-grade-for-a-locked-report-period
 	 * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
 	 */
 	private function allows(array $entry, string $userId): bool {
@@ -199,19 +187,26 @@ class ReportPeriodLockGuard implements LifecycleGuardInterface {
 			return true;
 		}
 
-		$actor = $userId;
-
-		if ($this->actorMayOverride(actor: $actor) === true) {
+		$request = $this->corrections->approvedFor(entry: $entry, publisher: $userId);
+		if ($request !== null) {
 			$this->logger->info(
-				'[ReportPeriodLockGuard] GradeEntry {id} publish allowed — actor {actor} overrides locked ReportPeriod {period}.',
-				['id' => $entryId, 'actor' => $actor, 'period' => $reportPeriod['id'] ?? ($reportPeriod['uuid'] ?? '')]
+				'[ReportPeriodLockGuard] GradeEntry {id} published in locked ReportPeriod {period} on correction {request}'
+				. ' (asked by {requester}, approved by {approver}, published by {actor}).',
+				[
+					'id'        => $entryId,
+					'period'    => $reportPeriod['id'] ?? ($reportPeriod['uuid'] ?? ''),
+					'request'   => $request['id'] ?? '',
+					'requester' => $request['requestedBy'] ?? '',
+					'approver'  => $request['decidedBy'] ?? '',
+					'actor'     => $userId,
+				]
 			);
 			return true;
 		}
 
 		$this->logger->info(
-			'[ReportPeriodLockGuard] GradeEntry {id} blocked — governing ReportPeriod {period} is locked and actor {actor} holds no override role.',
-			['id' => $entryId, 'period' => $reportPeriod['id'] ?? ($reportPeriod['uuid'] ?? ''), 'actor' => $actor]
+			'[ReportPeriodLockGuard] GradeEntry {id} blocked: ReportPeriod {period} is locked and no correction approved by a second person covers {actor}.',
+			['id' => $entryId, 'period' => $reportPeriod['id'] ?? ($reportPeriod['uuid'] ?? ''), 'actor' => $userId]
 		);
 
 		return false;
@@ -264,26 +259,4 @@ class ReportPeriodLockGuard implements LifecycleGuardInterface {
 
 		return null;
 	}//end findGoverningReportPeriod()
-
-	/**
-	 * Whether the acting user holds an override role (admin/mentor/principal).
-	 *
-	 * @param string $actor NC user ID of the requester.
-	 *
-	 * @return bool True when the user is in one of the override groups.
-	 */
-	private function actorMayOverride(string $actor): bool {
-		if ($actor === '') {
-			return false;
-		}
-
-		$user = $this->userManager->get($actor);
-		if ($user === null) {
-			return false;
-		}
-
-		$actorGroups = $this->groupManager->getUserGroupIds($user);
-
-		return count(array_intersect($actorGroups, self::OVERRIDE_GROUPS)) > 0;
-	}//end actorMayOverride()
 }//end class
