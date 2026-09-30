@@ -17,24 +17,16 @@ import type { TempUser } from './live-fixtures.ts'
  * @e2e openspec/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
  * @e2e openspec/specs/exam-schedule/spec.md#requirement-invigilator-assignment
  */
-import { request as playwrightRequest } from '@playwright/test'
-import { baseUrl } from './base-url.ts'
 import { expect, test } from './fixtures.ts'
-import { LiveFixtures } from './live-fixtures.ts'
+import { apiAs, LiveFixtures } from './live-fixtures.ts'
 
 const OR = '/index.php/apps/openregister/api/objects'
 const APP = '/index.php/apps/learniq'
 
 async function as(user: TempUser): Promise<APIRequestContext> {
-	return playwrightRequest.newContext({
-		baseURL: baseUrl(),
-		httpCredentials: {
-			username: user.id,
-			password: user.password,
-			send: 'always',
-		},
-		extraHTTPHeaders: { 'OCS-APIRequest': 'true', Accept: 'application/json' },
-	})
+	// Own cookie jar and a whoami check: a context inheriting the admin
+	// storageState acts as admin whatever Basic credentials it sends.
+	return apiAs(user.id, user.password)
 }
 
 test.describe('exam schedule', () => {

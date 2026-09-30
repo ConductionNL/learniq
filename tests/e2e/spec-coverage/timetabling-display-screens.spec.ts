@@ -35,7 +35,11 @@ test.describe('timetabling-display-screens: hall screen', () => {
 		await expect(address).toBeVisible({ timeout: 15_000 })
 		const url = (await address.locator('code').innerText()).trim()
 
-		const anonymous = await browser.newContext()
+		// An empty cookie jar: browser.newContext() otherwise inherits the admin
+		// storageState, and the screen would be opened as admin, not anonymously.
+		const anonymous = await browser.newContext({
+			storageState: { cookies: [], origins: [] },
+		})
 		const screenPage = await anonymous.newPage()
 		const response = await screenPage.goto(url)
 		expect(response?.status()).toBe(200)
