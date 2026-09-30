@@ -78,6 +78,8 @@ class ConferenceInvitationAction implements LifecycleActionInterface {
 	 *
 	 * @return array<string, mixed> The round with its invited learners.
 	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleActionInterface's.
+	 *
 	 * @spec openspec/specs/parent-conferences/spec.md#requirement-digital-invitations-are-a-declared-transition-notification-to-the-rounds-invited-learners
 	 */
 	public function execute(array $objectData, array $previousData, array $parameters, string $actionName): array {
@@ -132,10 +134,8 @@ class ConferenceInvitationAction implements LifecycleActionInterface {
 		}
 
 		$row = [];
-		if (is_object($cohort) === true && method_exists($cohort, 'jsonSerialize') === true) {
-			$row = (array)$cohort->jsonSerialize();
-		} elseif (is_array($cohort) === true) {
-			$row = $cohort;
+		if ($cohort !== null) {
+			$row = $cohort->jsonSerialize();
 		}
 
 		return array_values(

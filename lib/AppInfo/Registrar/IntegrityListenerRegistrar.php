@@ -44,6 +44,12 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 /**
  * Wires the evidence-integrity vetoes.
  *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) This class exists to name
+ * every integrity listener in one place, the same reason BootListenerRegistrar
+ * carries this suppression. Each listener is one more class by construction;
+ * splitting the registrar to dodge the metric would move the same coupling
+ * around without reducing it.
+ *
  * @spec openspec/specs/assessment/spec.md#requirement-a-teacher-scores-open-answers-question-by-question-and-a-finished-attempt-stays-immutable
  */
 class IntegrityListenerRegistrar {

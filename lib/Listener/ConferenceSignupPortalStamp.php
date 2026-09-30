@@ -261,11 +261,7 @@ class ConferenceSignupPortalStamp implements IEventListener {
 			return null;
 		}
 
-		if (is_array($object) === true) {
-			return $object;
-		}
-
-		return (array)$object->jsonSerialize();
+		return $object->jsonSerialize();
 	}//end row()
 
 	/**
