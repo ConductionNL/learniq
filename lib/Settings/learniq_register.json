@@ -30064,7 +30064,7 @@
                 "icon": "FileDocumentEditOutline",
                 "version": "0.1.0",
                 "title": "Correction request",
-                "description": "A request to change a grade after its report period was locked. A teacher asks, with the new value and the reason; a second person (an administrator, team lead or administration manager, never the one who asked) approves or rejects it. The grade can then be published again with the approved value, and the request is marked applied. governance-four-eyes.",
+                "description": "A request to change a grade after its report period was locked. A teacher asks, with the new value and the reason. A second person approves or rejects it: an administrator, team lead or administration manager, never the person who asked. Then the grade can be published again with the approved value, and the request is marked applied. governance-four-eyes.",
                 "type": "object",
                 "x-openregister": {
                     "active": true,

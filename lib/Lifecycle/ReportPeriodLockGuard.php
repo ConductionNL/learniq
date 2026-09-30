@@ -93,8 +93,8 @@ class ReportPeriodLockGuard implements LifecycleGuardInterface {
 	 *
 	 * @var string
 	 */
-	private const DENIAL = 'This grade falls in a locked report period. Changing it needs a correction request'
-		. ' approved by a second person, and the grade must carry the approved value.';
+	private const DENIAL = 'This grade is in a locked report period. A change needs a correction that a second person'
+		. ' approved. Publish the grade with the approved value.';
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const REPORT_PERIOD_SCHEMA = 'report-period';

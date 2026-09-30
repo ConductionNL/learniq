@@ -6792,9 +6792,9 @@
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
         "state": "building",
-        "evidence": "lib/Lifecycle/ReportPeriodLockGuard.php:6",
+        "evidence": "lib/Lifecycle/ReportPeriodLockGuard.php asks lib/Service/Grading/CorrectionApprovals.php: a grade in a locked report period is published only on a DataCorrectionRequest approved by someone other than the requester and the publisher, carrying the approved value; the lone role override is gone. DataCorrectionDecisionGuard, DataCorrectionRequestStamp, CorrectionAppliedHandler. Open: the Playwright flow (task 2.1b).",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "/report-periods, /report-cards, /grades/entries (lifecycle actions)",
+        "reachedOn": "/report-periods, /report-cards, /grades/entries (lifecycle actions), /grades/corrections",
         "change": "openspec/changes/governance-four-eyes-on-approved-data"
       },
       "provider": "self",
