@@ -165,6 +165,10 @@ return [
         // Controller: LessonReleaseController (slug: lessonRelease).
         ['name' => 'lessonRelease#status',           'url' => '/api/lessons/{lessonId}/release-status',         'verb' => 'GET'],
         ['name' => 'lessonRelease#assessmentStatus', 'url' => '/api/assessments/{assessmentId}/release-status', 'verb' => 'GET'],
+        // Controller: CourseEvaluationAnswerController (slug: courseEvaluationAnswer), assessment-course-evaluation-answer-page.
+        ['name' => 'courseEvaluationAnswer#mine',    'url' => '/api/evaluations/mine',                         'verb' => 'GET'],
+        ['name' => 'courseEvaluationAnswer#answer',  'url' => '/api/evaluations/{invitationId}/answer',        'verb' => 'POST'],
+        ['name' => 'courseEvaluationAnswer#results', 'url' => '/api/evaluations/campaigns/{campaignId}/results', 'verb' => 'GET'],
 
         // Portal test taking (assessment-portal-endpoints): the five steps of
         // portaliq's timed task, forwarded server-to-server. #[PublicPage]

@@ -157,6 +157,21 @@
 					]
 				}
 			}
+		},
+		{
+			"id": "MyEvaluationsMenu",
+			"label": "My evaluations",
+			"icon": "ClipboardTextOutline",
+			"route": "MyEvaluations",
+			"order": 28,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"admin"
+					]
+				}
+			}
 		}
 	],
 	"pages": [
@@ -482,6 +497,14 @@
 			"title": "Optional lessons",
 			"component": "MyElectives",
 			"_note": "timetabling-elective-lesson-signup: open offers the learner may sign up for, through GET /api/electives; sign-up and withdrawal go through learniq's own endpoints so ElectiveSignUpRules decides."
+		},
+		{
+			"id": "MyEvaluations",
+			"route": "/my-evaluations",
+			"type": "custom",
+			"title": "My evaluations",
+			"component": "MyEvaluationsView",
+			"_note": "Mounts MyEvaluationsView (assessment-course-evaluation-answer-page): the learner's open course evaluation invitations from learniq's GET /api/evaluations/mine and an answer form that posts to POST /api/evaluations/{invitationId}/answer, which stores the response without an owner and submits it through the guarded transition. Custom on purpose: a form built from another object's questions against learniq endpoints, not a list or record page of one schema."
 		}
 	]
 }
