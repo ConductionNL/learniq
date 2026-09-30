@@ -169,6 +169,9 @@ return [
         ['name' => 'courseEvaluationAnswer#mine',    'url' => '/api/evaluations/mine',                         'verb' => 'GET'],
         ['name' => 'courseEvaluationAnswer#answer',  'url' => '/api/evaluations/{invitationId}/answer',        'verb' => 'POST'],
         ['name' => 'courseEvaluationAnswer#results', 'url' => '/api/evaluations/campaigns/{campaignId}/results', 'verb' => 'GET'],
+        // Controller: LessonNextStepController (slug: lessonNextStep), content-adaptive-next-step-and-preview.
+        ['name' => 'lessonNextStep#nextStep',        'url' => '/api/lessons/{lessonId}/next-step',              'verb' => 'GET'],
+        ['name' => 'lessonNextStep#coursePreview',   'url' => '/api/courses/{courseId}/preview',                'verb' => 'GET'],
 
         // Portal test taking (assessment-portal-endpoints): the five steps of
         // portaliq's timed task, forwarded server-to-server. #[PublicPage]

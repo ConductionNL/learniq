@@ -44,7 +44,10 @@
 			</NcEmptyContent>
 		</div>
 
-		<div v-else-if="isLocked" class="lesson-player__locked" role="alert">
+		<div
+			v-else-if="isLocked && !preview.active"
+			class="lesson-player__locked"
+			role="alert">
 			<NcEmptyContent
 				:name="t('learniq', 'This lesson is not available yet')"
 				:description="lockedDescription">
@@ -69,7 +72,44 @@
 				</h1>
 			</header>
 
-			<section v-if="isLtiLesson" class="lesson-player__lti">
+			<NcNoteCard
+				v-if="preview.active"
+				type="info"
+				class="lesson-player__preview">
+				<p>
+					{{ t('learniq', 'Preview: nothing you do here is recorded.') }}
+				</p>
+				<p v-if="isLocked">
+					{{
+						t('learniq', 'A learner sees this lesson locked: {reason}', {
+							reason: lockedDescription,
+						})
+					}}
+				</p>
+				<NcTextField
+					:modelValue="preview.score === null ? '' : String(preview.score)"
+					type="number"
+					:label="t('learniq', 'Simulated score')"
+					@update:modelValue="setSimulatedScore" />
+			</NcNoteCard>
+
+			<section
+				v-if="preview.active && (isLtiLesson || isCmi5Lesson)"
+				class="lesson-player__placeholder">
+				<NcEmptyContent
+					:name="
+						t(
+							'learniq',
+							'This content does not run in a preview, because it would record results.',
+						)
+					">
+					<template #icon>
+						<ApplicationOutline />
+					</template>
+				</NcEmptyContent>
+			</section>
+
+			<section v-else-if="isLtiLesson" class="lesson-player__lti">
 				<div
 					v-if="ltiLaunching"
 					class="lesson-player__loading"
@@ -177,7 +217,10 @@
 									: t('learniq', 'Quiz')
 							}}
 						</p>
-						<NcButton variant="primary" @click="startQuiz(block)">
+						<NcButton
+							variant="primary"
+							:disabled="preview.active"
+							@click="startQuiz(block)">
 							{{ t('learniq', 'Start quiz') }}
 						</NcButton>
 					</div>
@@ -349,6 +392,24 @@
 					role="alert">
 					{{ manualCompletion.error }}
 				</p>
+				<div
+					v-if="nextStep.checked"
+					class="lesson-player__next-step"
+					aria-live="polite">
+					<NcButton
+						v-if="nextStep.lessonId"
+						variant="primary"
+						@click="goToNextStep">
+						{{
+							t('learniq', 'Go to {lesson}', {
+								lesson: nextStep.name || t('learniq', 'Next step'),
+							})
+						}}
+					</NcButton>
+					<p v-else>
+						{{ t('learniq', 'This is the last lesson of the course.') }}
+					</p>
+				</div>
 				<NcButton variant="secondary" @click="goBack">
 					{{ t('learniq', 'Back to course') }}
 				</NcButton>
@@ -363,7 +424,7 @@ import { getCurrentUser } from '@nextcloud/auth'
 // SPDX-License-Identifier: EUPL-1.2
 // Copyright (C) 2026 Conduction B.V.
 import { generateUrl } from '@nextcloud/router'
-import { NcButton, NcEmptyContent } from '@nextcloud/vue'
+import { NcButton, NcEmptyContent, NcNoteCard, NcTextField } from '@nextcloud/vue'
 import AlertCircleOutline from 'vue-material-design-icons/AlertCircleOutline.vue'
 import ApplicationOutline from 'vue-material-design-icons/ApplicationOutline.vue'
 import BookOpenPageVariantOutline from 'vue-material-design-icons/BookOpenPageVariantOutline.vue'
@@ -371,6 +432,12 @@ import LockOutline from 'vue-material-design-icons/LockOutline.vue'
 import { buildCmi5LaunchUrl } from '../utils/cmi5Launch.js'
 import { playerVisibleBlocks } from '../utils/lessonBlocks.js'
 import { completionBelongsTo, currentEnrolment } from '../utils/lessonCompletion.js'
+import {
+	nextStepPath,
+	previewFromQuery,
+	previewQuery,
+	writeHeaders,
+} from '../utils/lessonPreview.js'
 import { buildLtiLaunchForm, isLaunchForm } from '../utils/ltiLaunchForm.js'
 import { createScorm12Api } from '../utils/scorm12Runtime.js'
 
@@ -393,6 +460,8 @@ export default {
 		ApplicationOutline,
 		BookOpenPageVariantOutline,
 		LockOutline,
+		NcNoteCard,
+		NcTextField,
 	},
 
 	props: {
@@ -402,7 +471,11 @@ export default {
 			required: true,
 		},
 
-		/** Lesson UUID injected by CnAppRoot from the route :lessonId param. */
+		/**
+		 * Lesson UUID injected by CnAppRoot from the route :lessonId param.
+		 *
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-preview-as-learner/spec.md#requirement-preview-as-learner
+		 */
 		lessonId: {
 			type: String,
 			required: true,
@@ -444,6 +517,15 @@ export default {
 				available: true,
 				reason: '',
 				availableAt: null,
+			},
+
+			// content-adaptive-next-step-and-preview: the lesson the next step
+			// rules send this learner (or this preview) to, from
+			// GET /api/lessons/{id}/next-step. Null lessonId: the last lesson.
+			nextStep: {
+				checked: false,
+				lessonId: null,
+				name: null,
 			},
 
 			// course-authoring-ux: referenced-object caches for block
@@ -488,6 +570,17 @@ export default {
 	},
 
 	computed: {
+		/**
+		 * The preview state from the route query (design D2): a preview is a
+		 * mode of this player, `?preview=1&score=N`.
+		 *
+		 * @return {{active: boolean, score: number|null}}
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-preview-as-learner/spec.md#scenario-a-teacher-walks-the-course-as-a-learner
+		 */
+		preview() {
+			return previewFromQuery(this.$route?.query)
+		},
+
 		/**
 		 * UUID of the learner's current Enrolment, or null (learniq#945).
 		 *
@@ -596,6 +689,21 @@ export default {
 		},
 	},
 
+	watch: {
+		/**
+		 * The router reuses this component when the next step button moves
+		 * to another lesson of the course: start over for the new lesson.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
+		 */
+		async lessonId() {
+			this.clearScormApi()
+			Object.assign(this.$data, this.$options.data.call(this))
+			await this.loadLesson()
+		},
+	},
+
 	/**
 	 * Load the Course + Lesson pair on mount for xAPI-instrumented playback.
 	 *
@@ -603,80 +711,7 @@ export default {
 	 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 	 */
 	async mounted() {
-		try {
-			const [courseRes, lessonRes] = await Promise.all([
-				fetch(
-					generateUrl(
-						'/apps/openregister/api/objects/learniq/Course/'
-							+ this.courseId,
-					),
-				),
-				fetch(
-					generateUrl(
-						'/apps/openregister/api/objects/learniq/Lesson/'
-							+ this.lessonId,
-					),
-				),
-			])
-			if (!courseRes.ok)
-				throw new Error(
-					this.t('learniq', 'Failed to load course (HTTP {status})', {
-						status: courseRes.status,
-					}),
-				)
-			if (!lessonRes.ok)
-				throw new Error(
-					this.t('learniq', 'Failed to load lesson (HTTP {status})', {
-						status: lessonRes.status,
-					}),
-				)
-			this.course = await courseRes.json()
-			this.lesson = await lessonRes.json()
-		} catch (e) {
-			this.error = e?.message ?? String(e)
-		} finally {
-			this.loading = false
-		}
-
-		if (this.lesson && !this.error) {
-			// adaptive-release-and-prerequisites: MUST resolve before
-			// rendering any contentType — checkReleaseStatus() itself never
-			// throws (best-effort, see its own doc).
-			await this.checkReleaseStatus()
-		}
-
-		if (this.isLocked) {
-			// Locked: do not initiate the manual-completion check or the LTI
-			// launch delegation call — the locked state renders instead of
-			// any content-type renderer.
-			return
-		}
-
-		if (this.showManualCompleteAction) {
-			// Best-effort — checkExistingManualCompletion() catches its own
-			// errors internally so a failed lookup never blocks the lesson
-			// from rendering (the action simply defaults to "not completed").
-			await this.checkExistingManualCompletion()
-		}
-
-		if (this.isLtiLesson) {
-			await this.launchLti()
-		}
-
-		if (this.isTextLesson) {
-			// Best-effort — a failed reference fetch degrades that one
-			// block to its "unavailable" state rather than blocking the
-			// whole lesson from rendering.
-			await this.loadBlockReferences()
-		}
-
-		if (this.isScorm12Lesson) {
-			this.initScorm12()
-		}
-
-		if (this.isCmi5Lesson) {
-			await this.launchCmi5()
-		}
+		await this.loadLesson()
 	},
 
 	/**
@@ -688,16 +723,180 @@ export default {
 	 * @spec openspec/changes/archive/2026-09-28-lesson-player-runtime/design.md#decision-1-scorm12runtimejs-is-a-factory-returning-a-plain-object-not-a-class-instance-mutating-window-itself
 	 */
 	beforeUnmount() {
-		if (
-			this.scorm12Api
-			&& typeof window !== 'undefined'
-			&& window.API === this.scorm12Api
-		) {
-			delete window.API
-		}
+		this.clearScormApi()
 	},
 
 	methods: {
+		/**
+		 * Load the Course + Lesson pair for xAPI-instrumented playback, then
+		 * the release gate, the content-type runtime and the next step.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
+		 */
+		async loadLesson() {
+			try {
+				const [courseRes, lessonRes] = await Promise.all([
+					fetch(
+						generateUrl(
+							'/apps/openregister/api/objects/learniq/Course/'
+								+ this.courseId,
+						),
+					),
+					fetch(
+						generateUrl(
+							'/apps/openregister/api/objects/learniq/Lesson/'
+								+ this.lessonId,
+						),
+					),
+				])
+				if (!courseRes.ok)
+					throw new Error(
+						this.t('learniq', 'Failed to load course (HTTP {status})', {
+							status: courseRes.status,
+						}),
+					)
+				if (!lessonRes.ok)
+					throw new Error(
+						this.t('learniq', 'Failed to load lesson (HTTP {status})', {
+							status: lessonRes.status,
+						}),
+					)
+				this.course = await courseRes.json()
+				this.lesson = await lessonRes.json()
+			} catch (e) {
+				this.error = e?.message ?? String(e)
+			} finally {
+				this.loading = false
+			}
+
+			if (this.lesson && !this.error) {
+				// adaptive-release-and-prerequisites: MUST resolve before
+				// rendering any contentType — checkReleaseStatus() itself never
+				// throws (best-effort, see its own doc).
+				await this.checkReleaseStatus()
+			}
+
+			if (this.isLocked && !this.preview.active) {
+				// Locked: do not initiate the manual-completion check or the LTI
+				// launch delegation call — the locked state renders instead of
+				// any content-type renderer. A preview plays on (design D6).
+				return
+			}
+
+			if (this.lesson && !this.error) {
+				await this.loadNextStep()
+			}
+
+			if (this.showManualCompleteAction && !this.preview.active) {
+				// Best-effort — checkExistingManualCompletion() catches its own
+				// errors internally so a failed lookup never blocks the lesson
+				// from rendering (the action simply defaults to "not completed").
+				await this.checkExistingManualCompletion()
+			}
+
+			if (this.isLtiLesson && !this.preview.active) {
+				await this.launchLti()
+			}
+
+			if (this.isTextLesson) {
+				// Best-effort — a failed reference fetch degrades that one
+				// block to its "unavailable" state rather than blocking the
+				// whole lesson from rendering.
+				await this.loadBlockReferences()
+			}
+
+			if (this.isScorm12Lesson) {
+				this.initScorm12()
+			}
+
+			if (this.isCmi5Lesson && !this.preview.active) {
+				await this.launchCmi5()
+			}
+		},
+
+		/**
+		 * Remove this player's SCORM API shim from `window`.
+		 *
+		 * @return {void}
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-preview-as-learner/spec.md#requirement-preview-as-learner
+		 */
+		clearScormApi() {
+			if (
+				this.scorm12Api
+				&& typeof window !== 'undefined'
+				&& window.API === this.scorm12Api
+			) {
+				delete window.API
+			}
+		},
+
+		/**
+		 * Ask the server which lesson comes next for this learner, or for the
+		 * preview's simulated score. Best-effort: a failed lookup shows no
+		 * next step rather than blocking the lesson.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#scenario-a-learner-who-fails-is-sent-to-a-refresher
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#scenario-a-learner-who-passes-continues
+		 */
+		async loadNextStep() {
+			try {
+				const resp = await fetch(
+					generateUrl(nextStepPath(this.lessonId, this.preview)),
+					{
+						headers: {
+							'OCS-APIREQUEST': 'true',
+							Accept: 'application/json',
+						},
+					},
+				)
+				if (!resp.ok) return
+				const body = await resp.json()
+				this.nextStep.lessonId = body?.nextLessonId ?? null
+				this.nextStep.name = body?.nextLessonName ?? null
+				this.nextStep.checked = true
+			} catch {
+				// Best-effort: no next step shown.
+			}
+		},
+
+		/**
+		 * Open the next lesson, keeping a preview a preview.
+		 *
+		 * @return {void}
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-preview-as-learner/spec.md#scenario-a-teacher-walks-the-course-as-a-learner
+		 */
+		goToNextStep() {
+			if (!this.nextStep.lessonId || !this.$router) return
+			this.$router
+				.push({
+					name: 'LessonPlayer',
+					params: {
+						courseId: this.courseId,
+						lessonId: this.nextStep.lessonId,
+					},
+					query: previewQuery(this.preview),
+				})
+				.catch(() => {})
+		},
+
+		/**
+		 * Change the preview's simulated score and resolve the next step again.
+		 *
+		 * @param {string} value The score as typed.
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-preview-as-learner/spec.md#requirement-preview-as-learner
+		 */
+		async setSimulatedScore(value) {
+			const score =
+				value === '' || Number.isNaN(Number(value)) ? null : Number(value)
+			await this.$router
+				?.replace({ query: previewQuery({ active: true, score }) })
+				.catch(() => {})
+			await this.loadNextStep()
+		},
+
 		/**
 		 * Navigate back to the parent course detail view.
 		 *
@@ -847,7 +1046,7 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
 		 */
 		startQuiz(block) {
-			if (this.$router && block.assessmentId) {
+			if (this.$router && block.assessmentId && !this.preview.active) {
 				this.$router
 					.push({
 						name: 'TakeAssessmentView',
@@ -913,7 +1112,9 @@ export default {
 					),
 					{
 						method: 'POST',
-						headers: { requesttoken: window.OC?.requestToken ?? '' },
+						headers: writeHeaders(this.preview, {
+							requesttoken: window.OC?.requestToken ?? '',
+						}),
 					},
 				)
 				const body = await res.json().catch(() => ({}))
@@ -1075,6 +1276,12 @@ export default {
 			if (this.manualCompletion.completed || this.manualCompletion.saving)
 				return
 
+			if (this.preview.active) {
+				// A preview records nothing (design D6): the screen changes only.
+				this.manualCompletion.completed = true
+				return
+			}
+
 			this.manualCompletion.saving = true
 			this.manualCompletion.error = ''
 
@@ -1087,11 +1294,11 @@ export default {
 				)
 				const resp = await fetch(url, {
 					method: 'POST',
-					headers: {
+					headers: writeHeaders(this.preview, {
 						'OCS-APIREQUEST': 'true',
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
-					},
+					}),
 					body: JSON.stringify({
 						learnerId,
 						lessonId: this.lessonId,
@@ -1155,7 +1362,9 @@ export default {
 					),
 					{
 						method: 'POST',
-						headers: { requesttoken: window.OC?.requestToken ?? '' },
+						headers: writeHeaders(this.preview, {
+							requesttoken: window.OC?.requestToken ?? '',
+						}),
 					},
 				)
 				const body = await res.json().catch(() => ({}))
@@ -1256,15 +1465,20 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#scenario-a-scorm-12-packages-completion-status-produces-a-recognised-xapi-statement
 		 */
 		async postXapiStatement(statement) {
+			if (this.preview.active) {
+				// A preview records nothing (design D6).
+				return
+			}
+
 			try {
 				const res = await fetch(
 					generateUrl('/apps/learniq/api/lrs/statements'),
 					{
 						method: 'POST',
-						headers: {
+						headers: writeHeaders(this.preview, {
 							'Content-Type': 'application/json',
 							requesttoken: window.OC?.requestToken ?? '',
-						},
+						}),
 						body: JSON.stringify({
 							...statement,
 							lessonId: this.lessonId,
@@ -1312,7 +1526,9 @@ export default {
 					),
 					{
 						method: 'POST',
-						headers: { requesttoken: window.OC?.requestToken ?? '' },
+						headers: writeHeaders(this.preview, {
+							requesttoken: window.OC?.requestToken ?? '',
+						}),
 					},
 				)
 				if (res.status === 404 || res.status === 503) {
