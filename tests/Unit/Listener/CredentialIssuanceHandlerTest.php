@@ -31,6 +31,8 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\CredentialIssuanceHandler;
+use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\Learniq\Service\EdciPayloadBuilder;
 use OCA\Learniq\Service\EuropassIssuer;
 use OCA\Learniq\Service\CredentialSigningService;
@@ -363,6 +365,7 @@ class CredentialIssuanceHandlerTest extends TestCase {
 				),
 				LoggerInterface::class => $this->logger(),
 				LearnerRefResolver::class => new LearnerRefResolver(objectService: $this->objectService()),
+				ListenerSchemaResolver::class => TransitionScope::resolver(),
 				default => $this->createStub($type->getName()),
 			};
 		}

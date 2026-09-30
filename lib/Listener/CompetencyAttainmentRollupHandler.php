@@ -124,16 +124,16 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 	 * @spec openspec/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
 	 */
 	private function handleObjectTransitioned(ObjectTransitionedEvent $event): void {
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemaResolver->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() === self::GRADE_ENTRY_SCHEMA && $event->getTo() === 'published') {
+		if ($this->schemaResolver->eventSchema(event: $event) === self::GRADE_ENTRY_SCHEMA && $event->getTo() === 'published') {
 			$this->queue(kind: CompetencyAttainmentRollup::GRADE_ENTRY_PUBLISHED, object: $event->getObject()->jsonSerialize());
 			return;
 		}
 
-		if ($event->getSchema() === self::WERKPROCES_SCHEMA && $event->getTo() === 'confirmed') {
+		if ($this->schemaResolver->eventSchema(event: $event) === self::WERKPROCES_SCHEMA && $event->getTo() === 'confirmed') {
 			$this->queue(kind: CompetencyAttainmentRollup::WERKPROCES_CONFIRMED, object: $event->getObject()->jsonSerialize());
 		}
 	}//end handleObjectTransitioned()

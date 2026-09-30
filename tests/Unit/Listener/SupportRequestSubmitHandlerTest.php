@@ -79,7 +79,7 @@ class SupportRequestSubmitHandlerTest extends TestCase {
 		$config = $this->createMock(IAppConfig::class);
 		$config->method('getValueString')->willReturn('swv-kindkans');
 
-		return new SupportRequestSubmitHandler($objectService, $this->integriq, $config, new NullLogger());
+		return new SupportRequestSubmitHandler($objectService, $this->integriq, $config, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**

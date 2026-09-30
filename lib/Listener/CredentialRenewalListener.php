@@ -40,6 +40,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\CredentialLearner;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -67,6 +68,7 @@ class CredentialRenewalListener implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param CredentialLearner $learners The credential's learner as a Nextcloud user id.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -74,6 +76,7 @@ class CredentialRenewalListener implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
 		private readonly CredentialLearner $learners,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -91,8 +94,8 @@ class CredentialRenewalListener implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER
-			|| $event->getSchema() !== self::CREDENTIAL_SCHEMA
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
+			|| $this->schemas->eventSchema(event: $event) !== self::CREDENTIAL_SCHEMA
 			|| $event->getAction() !== self::ACTION_EXPIRE
 		) {
 			return;

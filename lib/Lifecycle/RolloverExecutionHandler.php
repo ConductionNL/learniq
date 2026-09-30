@@ -39,6 +39,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\RolloverExecutionService;
@@ -71,12 +72,14 @@ class RolloverExecutionHandler implements IEventListener {
 	 * @param RolloverService $rolloverService Rollover preview logic (the dry-run gate).
 	 * @param RolloverExecutionService $executionService Rollover execution logic (the writes).
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly RolloverService $rolloverService,
 		private readonly RolloverExecutionService $executionService,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -94,8 +97,8 @@ class RolloverExecutionHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER
-			|| $event->getSchema() !== self::SCHEMA
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
+			|| $this->schemas->eventSchema(event: $event) !== self::SCHEMA
 			|| $event->getTo() !== 'executing'
 		) {
 			return;

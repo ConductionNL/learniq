@@ -190,3 +190,19 @@
     204, then `{"page":4,"score":0.9}`; stateId list `["LMS.LaunchData","bookmark"]`; an agent naming another user 403;
     **DELETE 204**, then GET 404 and the list `["LMS.LaunchData"]`. Agent profile: PUT 204, GET the document, a PUT
     over it without concurrency headers 409, DELETE 204.
+
+## 9. Statement id conflicts
+
+- [x] 9.1 A statement that sends an id already stored (finding 4 under 3.4) is no longer a 500 from the append-only
+      schema. `XapiStatementIngest` looks the id up before saving (xAPI 1.0.3 Communication 2.1.3): a stored
+      statement of the same learner that matches is a no-op answered with its id; a different statement, or one held
+      by another learner, is 409 Conflict. The whole batch is classified before anything is written, so a batch with
+      a conflict stores nothing, and the same id twice in one batch is 400.
+- [x] 9.2 Matching follows the statement comparison rules of xAPI 1.0.3 Data 2.3.1 (`XapiStatementComparator`):
+      `id`, `authority`, `stored` and `version` are ignored, as are an Activity Definition, the serialisation of a
+      timestamp (compared as an instant), the case of a UUID, the order of Group members and of object members, and
+      a member that is null against one that is absent.
+- [x] 9.3 Tests: `XapiStatementIngestTest` (7 tests, red on development) over an OpenRegister double that refuses an
+      update on the append-only schema with the live message, throws for a missing id, and returns an absent
+      property as null; `LrsControllerTest::testKnownIdWithADifferentStatementAnswers409`.
+- [ ] 9.4 Live: re-post a stored statement (expect 200 and no new row) and a changed one with the same id (expect 409).
