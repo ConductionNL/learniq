@@ -106,26 +106,13 @@ class LessonNextStepController extends Controller {
 		}
 
 		$isPreview = $preview === '1';
-		$isStaff = $this->callerIsStaff(user: $user);
-		if ($isPreview === true && $isStaff === false) {
-			return new JSONResponse(data: ['error' => 'Only course authors can preview a course.'], statusCode: Http::STATUS_FORBIDDEN);
-		}
-
 		$lesson = $this->read(schema: 'lesson', id: $lessonId);
-		if ($lesson === null) {
-			return new JSONResponse(data: ['error' => 'Lesson not found'], statusCode: Http::STATUS_NOT_FOUND);
+		$refusal = $this->refusal(user: $user, isPreview: $isPreview, lesson: $lesson);
+		if ($refusal !== null) {
+			return $refusal;
 		}
 
-		if ($isStaff === false && $this->isEnrolled(learnerId: $user->getUID(), courseId: (string)($lesson['courseId'] ?? '')) === false) {
-			return new JSONResponse(data: ['error' => 'Not enrolled in the course this lesson belongs to'], statusCode: Http::STATUS_FORBIDDEN);
-		}
-
-		$simulated = null;
-		if ($isPreview === true && is_numeric($score) === true) {
-			$simulated = (float)$score;
-		}
-
-		$next = $this->resolver->resolve(lesson: $lesson, learnerId: $user->getUID(), simulatedScore: $simulated, preview: $isPreview);
+		$next = $this->next(lesson: (array)$lesson, learnerId: $user->getUID(), isPreview: $isPreview, score: $score);
 		$name = null;
 		if ($next['nextLessonId'] !== null) {
 			$name = ($this->read(schema: 'lesson', id: $next['nextLessonId'])['name'] ?? null);
@@ -183,6 +170,62 @@ class LessonNextStepController extends Controller {
 
 		return new JSONResponse(data: ['courseId' => $courseId, 'name' => (string)($course['name'] ?? ''), 'lessons' => $lessons]);
 	}//end coursePreview()
+
+	/**
+	 * Why the caller may not ask for this next step, or null when they may:
+	 * a preview is for authors only (403), the lesson must exist (404), and a
+	 * learner must be enrolled in its course (403).
+	 *
+	 * @param IUser      $user      The caller.
+	 * @param bool       $isPreview Whether a preview was asked for.
+	 * @param array|null $lesson    The lesson, or null when it is not there.
+	 *
+	 * @return JSONResponse|null
+	 *
+	 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-preview-as-learner/spec.md#scenario-a-learner-cannot-preview
+	 */
+	private function refusal(IUser $user, bool $isPreview, ?array $lesson): ?JSONResponse {
+		$isStaff = $this->callerIsStaff(user: $user);
+		if ($isPreview === true && $isStaff === false) {
+			return new JSONResponse(data: ['error' => 'Only course authors can preview a course.'], statusCode: Http::STATUS_FORBIDDEN);
+		}
+
+		if ($lesson === null) {
+			return new JSONResponse(data: ['error' => 'Lesson not found'], statusCode: Http::STATUS_NOT_FOUND);
+		}
+
+		if ($isStaff === false && $this->isEnrolled(learnerId: $user->getUID(), courseId: (string)($lesson['courseId'] ?? '')) === false) {
+			return new JSONResponse(data: ['error' => 'Not enrolled in the course this lesson belongs to'], statusCode: Http::STATUS_FORBIDDEN);
+		}
+
+		return null;
+	}//end refusal()
+
+	/**
+	 * Resolve the next step: from the caller's own results, or in a preview
+	 * from the simulated score (a non-numeric score counts as none).
+	 *
+	 * @param array  $lesson    The lesson.
+	 * @param string $learnerId The caller.
+	 * @param bool   $isPreview Whether a preview was asked for.
+	 * @param string $score     The simulated score as sent.
+	 *
+	 * @return array{nextLessonId: string|null, rule: int|null}
+	 *
+	 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-preview-as-learner/spec.md#scenario-a-teacher-walks-the-course-as-a-learner
+	 */
+	private function next(array $lesson, string $learnerId, bool $isPreview, string $score): array {
+		if ($isPreview === false) {
+			return $this->resolver->resolve(lesson: $lesson, learnerId: $learnerId);
+		}
+
+		$simulated = null;
+		if (is_numeric($score) === true) {
+			$simulated = (float)$score;
+		}
+
+		return $this->resolver->resolvePreview(lesson: $lesson, simulatedScore: $simulated);
+	}//end next()
 
 	/**
 	 * Whether the caller holds a Learniq staff view.

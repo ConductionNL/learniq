@@ -1891,40 +1891,47 @@
                                                 "assessment-min-score",
                                                 "lesson-completed"
                                             ],
-                                            "title": "Condition"
+                                            "title": "Condition",
+                                            "description": "What the learner must have done for this rule to apply."
                                         },
                                         "lessonId": {
                                             "type": "string",
                                             "nullable": true,
                                             "format": "uuid",
                                             "$ref": "Lesson",
-                                            "title": "Lesson"
+                                            "title": "Lesson",
+                                            "description": "The lesson the learner must have completed, for a lesson-completed rule."
                                         },
                                         "assessmentId": {
                                             "type": "string",
                                             "nullable": true,
                                             "format": "uuid",
                                             "$ref": "Assessment",
-                                            "title": "Assessment"
+                                            "title": "Assessment",
+                                            "description": "The test whose best score the rule reads."
                                         },
                                         "minScore": {
                                             "type": "number",
                                             "nullable": true,
-                                            "title": "Score at least"
+                                            "title": "Score at least",
+                                            "description": "The rule applies when the best score is this or higher."
                                         },
                                         "belowScore": {
                                             "type": "number",
                                             "nullable": true,
-                                            "title": "Score below"
+                                            "title": "Score below",
+                                            "description": "The rule applies when the best score is lower than this."
                                         }
                                     },
-                                    "title": "When"
+                                    "title": "When",
+                                    "description": "The condition that sends the learner to the rule's lesson."
                                 },
                                 "goToLessonId": {
                                     "type": "string",
                                     "format": "uuid",
                                     "$ref": "Lesson",
-                                    "title": "Go to lesson"
+                                    "title": "Go to lesson",
+                                    "description": "The lesson of the same course the learner goes to next."
                                 }
                             }
                         },

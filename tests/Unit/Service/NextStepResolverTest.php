@@ -183,12 +183,12 @@ class NextStepResolverTest extends TestCase {
 		$resolver = $this->resolver();
 		$lesson = self::quizLesson();
 
-		self::assertSame('l-refresher', $resolver->resolve(lesson: $lesson, learnerId: 'author', simulatedScore: 45.0, preview: true)['nextLessonId']);
-		self::assertSame('l-module-2', $resolver->resolve(lesson: $lesson, learnerId: 'author', simulatedScore: 80.0, preview: true)['nextLessonId']);
-		self::assertSame('l-module-2', $resolver->resolve(lesson: $lesson, learnerId: 'author', simulatedScore: null, preview: true)['nextLessonId']);
+		self::assertSame('l-refresher', $resolver->resolvePreview(lesson: $lesson, simulatedScore: 45.0)['nextLessonId']);
+		self::assertSame('l-module-2', $resolver->resolvePreview(lesson: $lesson, simulatedScore: 80.0)['nextLessonId']);
+		self::assertSame('l-module-2', $resolver->resolvePreview(lesson: $lesson, simulatedScore: null)['nextLessonId']);
 
 		$lesson['nextStepRules'][] = ['when' => ['kind' => 'lesson-completed', 'lessonId' => 'l-intro'], 'goToLessonId' => 'l-practice'];
-		self::assertSame(['nextLessonId' => 'l-practice', 'rule' => 1], $resolver->resolve(lesson: $lesson, learnerId: 'author', simulatedScore: 80.0, preview: true));
+		self::assertSame(['nextLessonId' => 'l-practice', 'rule' => 1], $resolver->resolvePreview(lesson: $lesson, simulatedScore: 80.0));
 		self::assertSame([], $this->store->reads);
 	}//end testAPreviewUsesTheSimulatedScore()
 

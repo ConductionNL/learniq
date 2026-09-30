@@ -63,20 +63,47 @@ class NextStepResolver {
 	}//end __construct()
 
 	/**
-	 * The next lesson for this learner after the given lesson.
+	 * The next lesson for this learner after the given lesson, from the
+	 * learner's own results.
 	 *
-	 * @param array<string, mixed> $lesson         The Lesson row.
-	 * @param string               $learnerId      The learner whose results count (the caller).
-	 * @param float|null           $simulatedScore In a preview, the score the author chose; null outside a preview.
-	 * @param bool                 $preview        Whether this is a preview.
+	 * @param array<string, mixed> $lesson    The Lesson row.
+	 * @param string               $learnerId The learner whose results count (the caller).
 	 *
 	 * @return array{nextLessonId: string|null, rule: int|null}
 	 *
 	 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#scenario-a-learner-who-fails-is-sent-to-a-refresher
 	 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#scenario-a-learner-who-passes-continues
 	 */
-	public function resolve(array $lesson, string $learnerId, ?float $simulatedScore = null, bool $preview = false): array {
-		$tenantId = (string)($lesson['tenant_id'] ?? '');
+	public function resolve(array $lesson, string $learnerId): array {
+		$context = ['learnerId' => $learnerId, 'tenantId' => (string)($lesson['tenant_id'] ?? ''), 'score' => null, 'preview' => false];
+
+		return $this->pick(lesson: $lesson, context: $context);
+	}//end resolve()
+
+	/**
+	 * The next lesson in a preview: every score rule sees the simulated
+	 * score, every completion rule holds, and nobody's results are read.
+	 *
+	 * @param array<string, mixed> $lesson         The Lesson row.
+	 * @param float|null           $simulatedScore The score the author chose, or null for none.
+	 *
+	 * @return array{nextLessonId: string|null, rule: int|null}
+	 *
+	 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-preview-as-learner/spec.md#scenario-a-teacher-walks-the-course-as-a-learner
+	 */
+	public function resolvePreview(array $lesson, ?float $simulatedScore): array {
+		return $this->pick(lesson: $lesson, context: ['learnerId' => '', 'tenantId' => '', 'score' => $simulatedScore, 'preview' => true]);
+	}//end resolvePreview()
+
+	/**
+	 * The first rule whose condition holds, else the default next lesson.
+	 *
+	 * @param array<string, mixed>                                                        $lesson  The Lesson row.
+	 * @param array{learnerId: string, tenantId: string, score: float|null, preview: bool} $context Who asks, and the preview facts.
+	 *
+	 * @return array{nextLessonId: string|null, rule: int|null}
+	 */
+	private function pick(array $lesson, array $context): array {
 		$rules = ($lesson['nextStepRules'] ?? []);
 		if (is_array($rules) === false) {
 			$rules = [];
@@ -90,12 +117,7 @@ class NextStepResolver {
 				$when = ($rule['when'] ?? null);
 			}
 
-			if ($target === '' || is_array($when) === false) {
-				continue;
-			}
-
-			$context = ['learnerId' => $learnerId, 'tenantId' => $tenantId, 'score' => $simulatedScore, 'preview' => $preview];
-			if ($this->holds(when: $when, context: $context) === true) {
+			if ($target !== '' && is_array($when) === true && $this->holds(when: $when, context: $context) === true) {
 				return ['nextLessonId' => $target, 'rule' => $index];
 			}
 		}
@@ -106,7 +128,7 @@ class NextStepResolver {
 		}
 
 		return ['nextLessonId' => $default, 'rule' => null];
-	}//end resolve()
+	}//end pick()
 
 	/**
 	 * Whether one rule's condition holds.
@@ -120,16 +142,7 @@ class NextStepResolver {
 		$kind = (string)($when['kind'] ?? '');
 
 		if ($kind === self::KIND_LESSON_COMPLETED) {
-			$lessonId = (string)($when['lessonId'] ?? '');
-			if ($lessonId === '') {
-				return false;
-			}
-
-			if ($context['preview'] === true) {
-				return true;
-			}
-
-			return $this->evaluator->hasCompleted(lessonId: $lessonId, learnerId: $context['learnerId'], tenantId: $context['tenantId']);
+			return $this->completed(lessonId: (string)($when['lessonId'] ?? ''), context: $context);
 		}
 
 		if ($kind !== self::KIND_MIN_SCORE && $kind !== self::KIND_SCORE_BELOW) {
@@ -154,6 +167,27 @@ class NextStepResolver {
 
 		return $score < (float)$threshold;
 	}//end holds()
+
+	/**
+	 * Whether a lesson-completed condition holds: always in a preview,
+	 * else when the learner completed the lesson.
+	 *
+	 * @param string                                                                      $lessonId The lesson the rule names.
+	 * @param array{learnerId: string, tenantId: string, score: float|null, preview: bool} $context  Who asks, and the preview facts.
+	 *
+	 * @return bool
+	 */
+	private function completed(string $lessonId, array $context): bool {
+		if ($lessonId === '') {
+			return false;
+		}
+
+		if ($context['preview'] === true) {
+			return true;
+		}
+
+		return $this->evaluator->hasCompleted(lessonId: $lessonId, learnerId: $context['learnerId'], tenantId: $context['tenantId']);
+	}//end completed()
 
 	/**
 	 * The score a rule compares: the simulated one in a preview, else the

@@ -439,9 +439,7 @@ class LessonReleaseEvaluator {
 		foreach ($results as $result) {
 			$data = $this->toArray(object: $result);
 			$sumScore = $this->sumResponses(responses: ($data['responses'] ?? []));
-			if ($bestScore === null || $sumScore > $bestScore) {
-				$bestScore = $sumScore;
-			}
+			$bestScore = max(($bestScore ?? $sumScore), $sumScore);
 		}
 
 		return $bestScore;

@@ -46,6 +46,7 @@ export function previewFromQuery(query) {
  *
  * @param {{active: boolean, score: number|null}} preview The preview state.
  * @return {object} The query, empty outside a preview.
+ * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-preview-as-learner/spec.md#requirement-preview-as-learner
  */
 export function previewQuery(preview) {
 	if (!preview?.active) return {}
@@ -74,6 +75,7 @@ export function writeHeaders(preview, headers = {}) {
  * @param {string} lessonId The lesson.
  * @param {{active: boolean, score: number|null}} preview The preview state.
  * @return {string} The app-relative path with its query.
+ * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
  */
 export function nextStepPath(lessonId, preview) {
 	const query = new URLSearchParams(previewQuery(preview)).toString()
@@ -86,6 +88,7 @@ export function nextStepPath(lessonId, preview) {
  * A new, empty rule for the editor.
  *
  * @return {object} The rule.
+ * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
  */
 export function emptyRule() {
 	return {
@@ -100,6 +103,7 @@ export function emptyRule() {
  *
  * @param {Array<object>|undefined} rules The stored rules.
  * @return {Array<object>} A working copy.
+ * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
  */
 export function editableRules(rules) {
 	return (Array.isArray(rules) ? rules : []).map((rule) => ({

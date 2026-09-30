@@ -1142,6 +1142,7 @@ export default {
 		 *
 		 * @param {string|null} lessonId The lesson, or null for none.
 		 * @return {void}
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
 		 */
 		onDefaultNextLesson(lessonId) {
 			this.defaultNextLessonId = lessonId

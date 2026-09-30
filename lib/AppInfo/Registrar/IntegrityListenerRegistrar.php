@@ -31,10 +31,8 @@ namespace OCA\Learniq\AppInfo\Registrar;
 use OCA\Learniq\Listener\CompetencyAlignmentListener;
 use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
-use OCA\Learniq\Listener\LessonNextStepGuard;
 use OCA\Learniq\Listener\LessonNoteAuthorGuard;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
-use OCA\Learniq\Listener\PreviewWriteGuard;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
 use OCA\Learniq\Listener\SubmissionOwnerStamp;
 use OCA\Learniq\Listener\SubmissionResubmissionDateListener;
@@ -86,25 +84,6 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: LessonNoteAuthorGuard::class
-		);
-
-		// Next step rules (content-adaptive-next-step-and-preview): a rule and
-		// the default next lesson stay inside the lesson's course. Reads the
-		// target lessons, so a pre-write veto.
-		$context->registerEventListener(
-			event: ObjectCreatingEvent::class,
-			listener: LessonNextStepGuard::class
-		);
-		$context->registerEventListener(
-			event: ObjectUpdatingEvent::class,
-			listener: LessonNextStepGuard::class
-		);
-
-		// Preview as learner: a completion, result or xAPI statement created
-		// in a request the player marked as a preview is refused.
-		$context->registerEventListener(
-			event: ObjectCreatingEvent::class,
-			listener: PreviewWriteGuard::class
 		);
 
 		// Competency alignments (goal-alignment-depth): keeps competencyIds

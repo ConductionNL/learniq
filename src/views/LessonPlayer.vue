@@ -471,7 +471,11 @@ export default {
 			required: true,
 		},
 
-		/** Lesson UUID injected by CnAppRoot from the route :lessonId param. */
+		/**
+		 * Lesson UUID injected by CnAppRoot from the route :lessonId param.
+		 *
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-preview-as-learner/spec.md#requirement-preview-as-learner
+		 */
 		lessonId: {
 			type: String,
 			required: true,
@@ -814,6 +818,7 @@ export default {
 		 * Remove this player's SCORM API shim from `window`.
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-preview-as-learner/spec.md#requirement-preview-as-learner
 		 */
 		clearScormApi() {
 			if (
@@ -880,6 +885,7 @@ export default {
 		 *
 		 * @param {string} value The score as typed.
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-preview-as-learner/spec.md#requirement-preview-as-learner
 		 */
 		async setSimulatedScore(value) {
 			const score =

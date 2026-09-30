@@ -2923,7 +2923,14 @@ OC.L10N.register(
         "Default next lesson": "Default next lesson",
         "The lesson that comes next when no next step rule applies. Empty: this is the last lesson.": "The lesson that comes next when no next step rule applies. Empty: this is the last lesson.",
         "A learner sees this lesson locked: {reason}": "A learner sees this lesson locked: {reason}",
-        "Condition": "Condition"
+        "Condition": "Condition",
+        "What the learner must have done for this rule to apply.": "What the learner must have done for this rule to apply.",
+        "The lesson the learner must have completed, for a lesson-completed rule.": "The lesson the learner must have completed, for a lesson-completed rule.",
+        "The test whose best score the rule reads.": "The test whose best score the rule reads.",
+        "The rule applies when the best score is this or higher.": "The rule applies when the best score is this or higher.",
+        "The rule applies when the best score is lower than this.": "The rule applies when the best score is lower than this.",
+        "The condition that sends the learner to the rule's lesson.": "The condition that sends the learner to the rule's lesson.",
+        "The lesson of the same course the learner goes to next.": "The lesson of the same course the learner goes to next."
     },
     "nplurals=2; plural=(n != 1);"
 )

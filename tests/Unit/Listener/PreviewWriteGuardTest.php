@@ -23,7 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
+use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\PreviewWriteGuard;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -117,7 +117,7 @@ class PreviewWriteGuardTest extends TestCase {
 			}
 		);
 
-		(new IntegrityListenerRegistrar())->register(context: $context);
+		(new EventListenerWiring())->registerAll(context: $context);
 
 		self::assertContains([ObjectCreatingEvent::class, PreviewWriteGuard::class], $wired);
 	}//end testTheGuardIsRegisteredOnCreate()

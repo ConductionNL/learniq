@@ -165,10 +165,22 @@ export default {
 	},
 
 	computed: {
+		/**
+		 * The lessons a rule can go to, as select options.
+		 *
+		 * @return {Array<object>}
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
+		 */
 		lessonOptions() {
 			return this.lessons.map((l) => ({ id: l.id, label: l.name || l.id }))
 		},
 
+		/**
+		 * The course tests a rule can read, as select options.
+		 *
+		 * @return {Array<object>}
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
+		 */
 		assessmentOptions() {
 			return this.assessments.map((a) => ({
 				id: a.id,
@@ -183,16 +195,30 @@ export default {
 		 *
 		 * @param {object} rule The rule.
 		 * @return {string} belowScore or minScore.
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
 		 */
 		scoreField(rule) {
 			return rule.when.kind === 'score-below' ? 'belowScore' : 'minScore'
 		},
 
+		/**
+		 * Add an empty rule at the end.
+		 *
+		 * @return {void}
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
+		 */
 		addRule() {
 			this.local.push(emptyRule())
 			this.changed()
 		},
 
+		/**
+		 * Remove one rule.
+		 *
+		 * @param {number} index The rule index.
+		 * @return {void}
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
+		 */
 		removeRule(index) {
 			this.local.splice(index, 1)
 			this.changed()
@@ -202,6 +228,12 @@ export default {
 			this.$emit('update:defaultNextLessonId', value ?? null)
 		},
 
+		/**
+		 * Tell the composer the rules changed.
+		 *
+		 * @return {void}
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
+		 */
 		changed() {
 			this.$emit('update:rules', serialiseRules(this.local))
 		},

@@ -3436,7 +3436,14 @@
         "Default next lesson": "Standaard volgende les",
         "The lesson that comes next when no next step rule applies. Empty: this is the last lesson.": "De les die volgt als geen regel voor de volgende stap van toepassing is. Leeg: dit is de laatste les.",
         "A learner sees this lesson locked: {reason}": "Een deelnemer ziet deze les op slot: {reason}",
-        "Condition": "Voorwaarde"
+        "Condition": "Voorwaarde",
+        "What the learner must have done for this rule to apply.": "Wat de lerende gedaan moet hebben om deze regel te laten gelden.",
+        "The lesson the learner must have completed, for a lesson-completed rule.": "De les die de lerende afgerond moet hebben, bij een regel op een afgeronde les.",
+        "The test whose best score the rule reads.": "De toets waarvan de regel de beste score leest.",
+        "The rule applies when the best score is this or higher.": "De regel geldt als de beste score dit of hoger is.",
+        "The rule applies when the best score is lower than this.": "De regel geldt als de beste score lager is dan dit.",
+        "The condition that sends the learner to the rule's lesson.": "De voorwaarde die de lerende naar de les van de regel stuurt.",
+        "The lesson of the same course the learner goes to next.": "De les uit dezelfde cursus waar de lerende daarna naartoe gaat."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

@@ -57,5 +57,9 @@ class ElectiveListenerRegistrar {
 		// The exam schedule checks (timetabling-exam-schedule): pre-write, like the
 		// sign-up rules above, in a registrar of their own.
 		(new ExamScheduleListenerRegistrar())->register(context: $context);
+
+		// The next step and preview checks (content-adaptive-next-step-and-preview):
+		// pre-write as well, in a registrar of their own.
+		(new ContentPathListenerRegistrar())->register(context: $context);
 	}//end register()
 }//end class
