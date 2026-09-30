@@ -189,4 +189,48 @@ class ProgrammeProgressTest extends TestCase {
 		self::assertSame([], $service->forLearner(userId: 'jan'));
 		self::assertSame([], $service->forLearner(userId: ''));
 	}//end testOnlyTheLearnersProgrammeEnrolmentsCount()
+
+	/**
+	 * A part whose course or programme was deleted still counts: the course
+	 * shows by its id and the programme without a name; a part with no
+	 * course id shows no name.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/enrolment-programme-mandatory-per-person/specs/programme-mandatory-parts/spec.md#scenario-optional-parts-do-not-block-completion
+	 */
+	public function testMissingCoursesAndProgrammesStillCount(): void {
+		$service = $this->service();
+
+		$gone = self::enrolment('e-gone', 'anna', 'c-gone', true, 'completed');
+		$gone['programmeId'] = 'p-gone';
+		$this->store->rows['enrolment'] = [$gone, self::enrolment('e-empty', 'anna', '', true, 'active')];
+
+		$summaries = $service->forLearner(userId: 'anna');
+		$byId = array_column($summaries, null, 'programmeId');
+		self::assertSame('', $byId['p-gone']['name']);
+		self::assertSame('c-gone', $byId['p-gone']['mandatory'][0]['courseName']);
+		self::assertSame(100, $byId['p-gone']['percent']);
+		self::assertSame('', $byId['p-safety']['mandatory'][0]['courseName']);
+		self::assertSame(0, $byId['p-safety']['percent']);
+	}//end testMissingCoursesAndProgrammesStillCount()
+
+	/**
+	 * A result row that is neither an object nor an array is skipped, not
+	 * read as a part.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/enrolment-programme-mandatory-per-person/specs/programme-mandatory-parts/spec.md#scenario-optional-parts-do-not-block-completion
+	 */
+	public function testARowThatIsNoObjectIsSkipped(): void {
+		$objects = $this->createMock(ObjectService::class);
+		$objects->method('findAll')->willReturn(['not a row', self::enrolment('e1', 'jan', '', true, 'completed')]);
+		$objects->method('find')->willThrowException(new DoesNotExistException('gone'));
+
+		$progress = (new ProgrammeProgress(objects: $objects))->forLearner(userId: 'jan');
+
+		self::assertCount(1, $progress);
+		self::assertSame([1, 1, 100, true], [$progress[0]['mandatoryTotal'], $progress[0]['mandatoryCompleted'], $progress[0]['percent'], $progress[0]['complete']]);
+	}//end testARowThatIsNoObjectIsSkipped()
 }//end class
