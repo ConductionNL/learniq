@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+ * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
  */
 
 declare(strict_types=1);
@@ -53,7 +53,7 @@ use Throwable;
 /**
  * Raises integriq's LTI launch event for a placement and returns its login form.
  *
- * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+ * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
  */
 class LtiToolPlacementController extends Controller {
 
@@ -121,7 +121,7 @@ class LtiToolPlacementController extends Controller {
 	 *
 	 * @return JSONResponse `{formActionUrl, method, fields, launchMode}`, or an error.
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -224,7 +224,7 @@ class LtiToolPlacementController extends Controller {
 	 *
 	 * @return string The course UUID, or '' when neither names one.
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	private function contextCourseId(array $placement): string {
 		$courseId = (string)($placement['courseId'] ?? '');

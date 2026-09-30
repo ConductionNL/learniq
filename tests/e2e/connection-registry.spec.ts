@@ -21,7 +21,7 @@
  *
  * @e2e openspec/specs/integrations/spec.md#the-page-lists-only-learniqs-rows
  * @e2e openspec/specs/integrations/spec.md#add-integration-goes-to-integriq
- * @e2e openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#scenario-an-administrator-sees-lti-as-working
+ * @e2e openspec/specs/course-management/spec.md#scenario-an-administrator-sees-lti-as-working
  */
 import type { APIRequestContext, Page } from '@playwright/test'
 

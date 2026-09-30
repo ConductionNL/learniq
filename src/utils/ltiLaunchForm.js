@@ -9,7 +9,7 @@
  *
  * Plain ES module so it runs under `node --test` without an SFC compile step.
  *
- * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+ * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
  *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
@@ -20,7 +20,7 @@
  *
  * @param {object} body The launch response.
  * @return {boolean} True when `formActionUrl` and a `fields` object are present.
- * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+ * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
  */
 export function isLaunchForm(body) {
 	return Boolean(
@@ -40,7 +40,7 @@ export function isLaunchForm(body) {
  * @param {{formActionUrl: string, method?: string, fields: object, launchMode?: string}} launch The launch response.
  * @param {string} frameName The name of the lesson frame, the target for deep linking.
  * @return {HTMLFormElement} The form, not yet attached or submitted.
- * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+ * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
  */
 export function buildLtiLaunchForm(doc, launch, frameName) {
 	const form = doc.createElement('form')

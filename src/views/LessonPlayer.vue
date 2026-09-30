@@ -1130,7 +1130,7 @@ export default {
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/course-management/spec.md#requirement-place-an-lti-1-3-tool-inside-a-lesson-via-a-dedicated-placement-object
-		 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 		 */
 		async launchLti() {
 			const placementId = this.lesson?.contentRef
@@ -1351,7 +1351,7 @@ export default {
 		 *
 		 * @param {object} launch The {formActionUrl, method, fields, launchMode} response.
 		 * @return {void}
-		 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 		 */
 		submitLtiLaunchForm(launch) {
 			const form = buildLtiLaunchForm(document, launch, this.ltiFrameName)

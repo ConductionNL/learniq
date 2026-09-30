@@ -371,7 +371,7 @@ class LtiAgsScorePollJobTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-a-returned-grade-lands-on-the-placement-that-launched-it
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-returned-grade-lands-on-the-placement-that-launched-it
 	 */
 	public function testReadsTheScoreFromTheCloudEventDataOfARealMessage(): void {
 		$this->placementFixture = [
@@ -413,7 +413,7 @@ class LtiAgsScorePollJobTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-a-returned-grade-lands-on-the-placement-that-launched-it
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-returned-grade-lands-on-the-placement-that-launched-it
 	 */
 	public function testAUserlessRunWritesTheGradeOnTheScale(): void {
 		$this->placementFixture = [
@@ -559,7 +559,7 @@ class LtiAgsScorePollJobTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-a-returned-grade-lands-on-the-placement-that-launched-it
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-returned-grade-lands-on-the-placement-that-launched-it
 	 */
 	public function testLineItemPicksThePlacement(): void {
 		// The deployment lookup would answer placement-1 (the fixture).
