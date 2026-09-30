@@ -38,6 +38,17 @@ use OCP\AppFramework\Db\DoesNotExistException;
 
 /**
  * Programme progress per learner, counting mandatory parts only.
+ *
+ * @psalm-type ProgrammePart = array{courseId: string, courseName: string, lifecycle: string}
+ * @psalm-type ProgrammeProgressRow = array{
+ *     programmeId: string, name: string, mandatoryTotal: int, mandatoryCompleted: int, percent: int,
+ *     complete: bool, mandatory: list<ProgrammePart>, optional: list<ProgrammePart>
+ * }
+ * @phpstan-type ProgrammePart array{courseId: string, courseName: string, lifecycle: string}
+ * @phpstan-type ProgrammeProgressRow array{
+ *     programmeId: string, name: string, mandatoryTotal: int, mandatoryCompleted: int, percent: int,
+ *     complete: bool, mandatory: list<ProgrammePart>, optional: list<ProgrammePart>
+ * }
  */
 class ProgrammeProgress {
 
@@ -72,7 +83,7 @@ class ProgrammeProgress {
 	 *
 	 * @param string $userId The learner's Nextcloud user id.
 	 *
-	 * @return list<array{programmeId: string, name: string, mandatoryTotal: int, mandatoryCompleted: int, percent: int, complete: bool, mandatory: list<array{courseId: string, courseName: string, lifecycle: string}>, optional: list<array{courseId: string, courseName: string, lifecycle: string}>}>
+	 * @return list<ProgrammeProgressRow>
 	 *
 	 * @spec openspec/changes/enrolment-programme-mandatory-per-person/specs/programme-mandatory-parts/spec.md#scenario-optional-parts-do-not-block-completion
 	 */
@@ -115,7 +126,7 @@ class ProgrammeProgress {
 	 * @param string                     $name        The programme name.
 	 * @param list<array<string, mixed>> $enrolments  The learner's counted part enrolments.
 	 *
-	 * @return array{programmeId: string, name: string, mandatoryTotal: int, mandatoryCompleted: int, percent: int, complete: bool, mandatory: list<array{courseId: string, courseName: string, lifecycle: string}>, optional: list<array{courseId: string, courseName: string, lifecycle: string}>}
+	 * @return ProgrammeProgressRow
 	 */
 	private function summarise(string $programmeId, string $name, array $enrolments): array {
 		$anyMandatory = in_array(true, array_map(static fn (array $e): bool => ($e['mandatory'] ?? false) === true, $enrolments), true);

@@ -252,7 +252,14 @@ class CatalogueSignUpService {
 	 *
 	 * @return PortalOutcome
 	 */
-	private function create(PortalLearner $learner, string $courseId, string $mode, ?string $programmeId, bool $mandatory, string $tenantId): PortalOutcome {
+	private function create(
+		PortalLearner $learner,
+		string $courseId,
+		string $mode,
+		?string $programmeId,
+		bool $mandatory,
+		string $tenantId
+	): PortalOutcome {
 		$lifecycle = 'pending';
 		if ($mode === 'open') {
 			$lifecycle = 'active';
