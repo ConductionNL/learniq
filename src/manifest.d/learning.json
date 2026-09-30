@@ -1220,9 +1220,24 @@
 						"icon": "CertificateOutline",
 						"type": "navigate",
 						"target": "/courses/@objectId/reissue"
+					},
+					{
+						"id": "preview-as-learner",
+						"label": "Preview as learner",
+						"icon": "EyeOutline",
+						"type": "navigate",
+						"target": "/courses/@objectId/preview"
 					}
 				]
 			}
+		},
+		{
+			"id": "CoursePreview",
+			"route": "/courses/:courseId/preview",
+			"type": "custom",
+			"title": "Preview as learner",
+			"component": "CoursePreviewView",
+			"_note": "Mounts CoursePreviewView (content-adaptive-next-step-and-preview): a course author picks a simulated score and walks the course in the real lesson player in preview mode, which records nothing. Custom on purpose: it lists lessons from learniq's authors-only preview endpoint and hands off to the player, not a list or record page of one schema."
 		},
 		{
 			"id": "ReissueCertificates",

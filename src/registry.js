@@ -82,6 +82,8 @@ import CourseCatalogue from './views/CourseCatalogue.vue'
 // resulting CoursePackageImportReport's entries table. Course export reuses
 // the existing CnExportWizard shared component (no new Vue file for export).
 import CoursePackageImportView from './views/CoursePackageImportView.vue'
+// content-adaptive-next-step-and-preview: Preview as learner from the course page.
+import CoursePreviewView from './views/CoursePreviewView.vue'
 // course-evaluation: the one genuine new custom view this change adds — a
 // coordinator/opleidingscommissie view of a course's CourseQualityScore
 // trend over time, response rate, and raw free-text answers.
@@ -299,6 +301,7 @@ export default {
 	LessonPlayer: page(LessonPlayer),
 	MarkSubmissionView: page(MarkSubmissionView),
 	ReissueCertificatesView: page(ReissueCertificatesView),
+	CoursePreviewView: page(CoursePreviewView),
 	MyWorkGroups: page(MyWorkGroups),
 	AllocateMarkersView: page(AllocateMarkersView),
 	MyLearningRecordView: page(MyLearningRecordView),
