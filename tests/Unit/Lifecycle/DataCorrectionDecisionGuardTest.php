@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\Learniq\Lifecycle\DataCorrectionDecisionGuard;
+use OCA\Learniq\Service\Grading\CorrectionApprovals;
 use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
@@ -76,7 +77,7 @@ class DataCorrectionDecisionGuardTest extends TestCase {
 			}
 		);
 
-		return new DataCorrectionDecisionGuard(objects: $objects);
+		return new DataCorrectionDecisionGuard(objects: $objects, approvals: new CorrectionApprovals(objects: $objects));
 	}//end guard()
 
 	/**

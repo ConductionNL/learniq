@@ -30073,6 +30073,44 @@
         "appliedAt": null,
         "tenant_id": "00000000-0000-4000-8000-000000000001",
         "lifecycle": "requested"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "data-correction-request",
+          "slug": "data-correction-request-voorbeeld-2"
+        },
+        "gradeEntryId": "00000000-0000-4000-8000-000000000002",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "proposedValue": 7.0,
+        "reason": "Voorbeeld: de toets is opnieuw nagekeken.",
+        "currentValue": 6.0,
+        "requestedBy": "Voorbeeld Requestedby 2",
+        "decisionNote": "Voorbeeld: het nagekeken werk is gecontroleerd.",
+        "decidedBy": "Voorbeeld Decidedby 2",
+        "decidedAt": "2026-06-15T09:00:00+00:00",
+        "appliedBy": null,
+        "appliedAt": null,
+        "lifecycle": "approved"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "data-correction-request",
+          "slug": "data-correction-request-voorbeeld-3"
+        },
+        "gradeEntryId": "00000000-0000-4000-8000-000000000003",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "proposedValue": 8.0,
+        "reason": "Voorbeeld: een telfout in de optelling van de punten.",
+        "currentValue": 7.5,
+        "requestedBy": "Voorbeeld Requestedby 3",
+        "decisionNote": "Voorbeeld: de optelling klopt nu.",
+        "decidedBy": "Voorbeeld Decidedby 3",
+        "decidedAt": "2026-06-16T09:00:00+00:00",
+        "appliedBy": "Voorbeeld Requestedby 3",
+        "appliedAt": "2026-06-16T10:00:00+00:00",
+        "lifecycle": "applied"
       }
     ]
   }

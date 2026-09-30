@@ -375,7 +375,7 @@
 					"label": "Grade corrections",
 					"icon": "FileDocumentEditOutline",
 					"route": "DataCorrectionRequests",
-					"order": 59,
+					"order": 67,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
@@ -5701,7 +5701,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "grade-entry",
-				"_note": "A Grade Entry is a single recorded score (value, scale, weight, period, grader, source submission/result) for a learner and curriculum component — a score record. Body leads with the entry data including value and comment (8-wide), a value KPI stat, and a Related panel resolving the learner, course, grade-scale and source submission/result. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail as the grade-change audit.",
+				"_note": "A Grade Entry is a single recorded score (value, scale, weight, period, grader, source submission/result) for a learner and curriculum component — a score record. Body leads with the entry data including value and comment (8-wide), a value KPI stat, and a Related panel resolving the learner, course, grade-scale and source submission/result. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail as the grade-change audit. Header action (governance-four-eyes): Ask for a correction opens /grades/corrections. It replaces nothing; no widget or sidebar tab on this page reaches the corrections, and a grade in a locked report period changes only through one.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},

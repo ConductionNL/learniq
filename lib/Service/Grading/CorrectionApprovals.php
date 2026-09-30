@@ -94,7 +94,7 @@ class CorrectionApprovals {
 				$request = $row->jsonSerialize();
 			}
 
-			if (self::covers(request: $request, entry: $entry, entryId: $entryId, publisher: $publisher) === true) {
+			if ($this->covers(request: $request, entry: $entry, entryId: $entryId, publisher: $publisher) === true) {
 				return $request;
 			}
 		}
@@ -112,7 +112,7 @@ class CorrectionApprovals {
 	 *
 	 * @return bool
 	 */
-	private static function covers(array $request, array $entry, string $entryId, string $publisher): bool {
+	private function covers(array $request, array $entry, string $entryId, string $publisher): bool {
 		$requester = (string)($request['requestedBy'] ?? '');
 		$approver  = (string)($request['decidedBy'] ?? '');
 
@@ -122,7 +122,7 @@ class CorrectionApprovals {
 			&& $approver !== ''
 			&& $approver !== $requester
 			&& $approver !== $publisher
-			&& self::sameValue(approved: ($request['proposedValue'] ?? null), current: ($entry['value'] ?? null)) === true;
+			&& $this->sameValue(approved: ($request['proposedValue'] ?? null), current: ($entry['value'] ?? null)) === true;
 	}//end covers()
 
 	/**
@@ -133,8 +133,10 @@ class CorrectionApprovals {
 	 * @param mixed $current  The grade entry's value.
 	 *
 	 * @return bool
+	 *
+	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
 	 */
-	public static function sameValue(mixed $approved, mixed $current): bool {
+	public function sameValue(mixed $approved, mixed $current): bool {
 		if ($approved === null || $approved === '') {
 			return $current === null || $current === '';
 		}

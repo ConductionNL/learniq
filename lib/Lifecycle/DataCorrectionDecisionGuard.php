@@ -46,12 +46,14 @@ class DataCorrectionDecisionGuard implements LifecycleGuardInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService $objects OpenRegister object access, to read the grade entry on apply.
+	 * @param ObjectService       $objects   OpenRegister object access, to read the grade entry on apply.
+	 * @param CorrectionApprovals $approvals Whether a grade carries the approved value.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objects,
+		private readonly CorrectionApprovals $approvals,
 	) {
 	}//end __construct()
 
@@ -104,7 +106,7 @@ class DataCorrectionDecisionGuard implements LifecycleGuardInterface {
 
 		$entry = $entity?->jsonSerialize() ?? [];
 		if (($entry['lifecycle'] ?? null) !== 'published'
-			|| CorrectionApprovals::sameValue(approved: ($request['proposedValue'] ?? null), current: ($entry['value'] ?? null)) === false
+			|| $this->approvals->sameValue(approved: ($request['proposedValue'] ?? null), current: ($entry['value'] ?? null)) === false
 		) {
 			return GuardResult::deny('A correction is applied when its grade is published again with the approved value.');
 		}
