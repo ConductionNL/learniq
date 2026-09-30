@@ -3378,7 +3378,9 @@ OC.L10N.register(
         "A grade correction is waiting for a second approval": "Een correctie van een cijfer wacht op een tweede akkoord",
         "Grade corrections": "Cijfercorrecties",
         "Grade correction": "Cijfercorrectie",
-        "Ask for a correction": "Vraag een correctie aan"
+        "Ask for a correction": "Vraag een correctie aan",
+        "Invited learner references": "Referenties van de uitgenodigde leerlingen",
+        "LearnerProfile uuids of the invited learners, computed with invitedLearnerIds by the send-invitations transition. The parent portal scopes a round by it.": "De uuids van de LearnerProfiles van de uitgenodigde leerlingen, samen met invitedLearnerIds berekend door de overgang send-invitations. Het ouderportaal bepaalt hiermee welke rondes een ouder ziet."
     },
     "nplurals=2; plural=(n != 1);"
 )

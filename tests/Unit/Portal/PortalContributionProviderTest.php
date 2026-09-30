@@ -394,9 +394,9 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(5, $collections);
+		$this->assertCount(9, $collections);
 		$this->assertSame(
-			['parentChildren', 'parentGrades', 'parentAttendance', 'parentExcuseRequests', 'parentReportCards'],
+			['parentChildren', 'parentGrades', 'parentAttendance', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships'],
 			array_column($collections, 'id')
 		);
 
@@ -405,7 +405,10 @@ class PortalContributionProviderTest extends TestCase {
 		// parentChildren is a direct match (no via — see
 		// testParentChildrenCollectionMatchesDirectly), so it is excluded from
 		// this reverse-join-shaped assertion loop.
-		$reverseJoinedCollections = array_filter($collections, static fn ($c) => $c['id'] !== 'parentChildren');
+		// parentConferenceRounds matches a round on its list of invited
+		// children and is asserted in
+		// testParentBooksAConferenceForTheirOwnChildOnly.
+		$reverseJoinedCollections = array_filter($collections, static fn ($c) => in_array($c['id'], ['parentChildren', 'parentConferenceRounds'], true) === false);
 		foreach ($reverseJoinedCollections as $collection) {
 			$this->assertSame('learniq', $collection['register']);
 			// Parent scope key is the guardian claim; the outer record scope
@@ -524,8 +527,15 @@ class PortalContributionProviderTest extends TestCase {
 			// Reverse mode: keep outer rows whose OWN scopeField is in the set.
 			$this->assertSame('scopeField', $via['match']);
 
-			// The outer collection's own scope field the reverse match reads.
-			$this->assertSame('learnerRef', $collection['scopeField']);
+			// The outer collection's own scope field the reverse match reads:
+			// the child's learnerRef, or for a conference round the list of
+			// invited children (portal-parent-conference-booking).
+			$expected = 'learnerRef';
+			if ($collection['id'] === 'parentConferenceRounds') {
+				$expected = 'invitedLearnerRefs';
+			}
+
+			$this->assertSame($expected, $collection['scopeField']);
 		}
 
 	}//end testParentCollectionsUseReverseScopeValueVia()
@@ -549,7 +559,7 @@ class PortalContributionProviderTest extends TestCase {
 	public function testParentShipsCreateExcuseRequestValidatedAgainstOwnChildren(): void {
 		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
 
-		$this->assertCount(1, $manifest['actions']);
+		$this->assertCount(2, $manifest['actions']);
 		$action = $manifest['actions'][0];
 
 		$this->assertSame('createExcuseRequest', $action['id']);
@@ -837,4 +847,50 @@ class PortalContributionProviderTest extends TestCase {
 		}
 
 	}//end testManifestMatchesRegisterSchemas()
+	/**
+	 * A guardian books a parent-teacher conversation: the booking is scoped
+	 * to the guardian's own claim, names only their own child (portaliq
+	 * cross reference over learner-profile.guardianRefs) and whitelists only
+	 * the round, the child and a note.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-parent-conference-booking/specs/parent-conferences/spec.md
+	 */
+	public function testParentBooksAConferenceForTheirOwnChildOnly(): void {
+		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
+		$actions = array_column($manifest['actions'], null, 'id');
+		$booking = $actions['createConferenceSignup'];
+
+		$this->assertSame('conference-signup', $booking['schema']);
+		$this->assertSame('guardianRef', $booking['scopeField']);
+		$this->assertSame('guardianRef', $booking['scopeClaim']);
+		$this->assertSame('substantial', $booking['minTrust']);
+		$this->assertSame(['conferenceRoundId', 'learnerRef', 'notes'], $booking['fields']);
+		$this->assertSame(
+			['register' => 'learniq', 'schema' => 'learner-profile', 'scopeField' => 'guardianRefs', 'scopeClaim' => 'guardianRef', 'required' => true],
+			$booking['crossRefs']['learnerRef']
+		);
+		$this->assertSame($booking['crossRefs'], $actions['createExcuseRequest']['crossRefs']);
+
+		$rounds = array_column($manifest['collections'], null, 'id')['parentConferenceRounds'];
+		$this->assertSame(['lifecycle' => 'booking-open'], $rounds['filter']);
+	}//end testParentBooksAConferenceForTheirOwnChildOnly()
+	/**
+	 * The parent contribution tells portaliq which collections give the
+	 * guardian's news audience, and each named collection exists.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-parent-conference-booking/specs/portal-contribution/spec.md
+	 */
+	public function testParentDeclaresTheNewsAudience(): void {
+		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
+		$ids = array_column($manifest['collections'], 'id');
+
+		$this->assertSame('parentChildren', $manifest['guardianAudience']['children']);
+		$this->assertSame('schoolId', $manifest['guardianAudience']['schoolField']);
+		$this->assertContains($manifest['guardianAudience']['children'], $ids);
+		$this->assertContains($manifest['guardianAudience']['groups']['collection'], $ids);
+	}//end testParentDeclaresTheNewsAudience()
 }//end class
