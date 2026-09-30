@@ -5390,7 +5390,7 @@
             "Programme": {
                 "slug": "programme",
                 "icon": "SchoolOutline",
-                "version": "0.3.0",
+                "version": "0.4.0",
                 "title": "Programme",
                 "description": "A named educational or training track (HBO-V bachelor, NIS2 board certification, vmbo-tl examenjaar). Aggregates courses, declares a credential to issue on completion, and points at one CurriculumPlan.",
                 "type": "object",
@@ -5455,6 +5455,17 @@
                             "$ref": "Course"
                         },
                         "title": "Course IDs"
+                    },
+                    "mandatoryCourseIds": {
+                        "type": "array",
+                        "default": [],
+                        "description": "The courses everyone in this programme must complete. The other courses are optional. Each new enrolment starts from this list. A manager can change it for one person. Leave empty to keep every course optional.",
+                        "items": {
+                            "type": "string",
+                            "format": "uuid",
+                            "$ref": "Course"
+                        },
+                        "title": "Mandatory courses"
                     },
                     "credentialTemplateId": {
                         "type": "string",

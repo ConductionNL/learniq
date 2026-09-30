@@ -26,8 +26,10 @@ namespace OCA\Learniq\Tests\Unit\Service\Catalogue;
 use OCA\Learniq\Service\Catalogue\CatalogueReader;
 use OCA\Learniq\Service\Catalogue\CatalogueSignUpService;
 use OCA\Learniq\Service\Portal\PortalLearner;
+use OCA\Learniq\Service\Programme\ProgrammeRequirements;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
+use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -40,6 +42,7 @@ use RuntimeException;
  * prerequisite listener is played by a create that throws its veto.
  */
 class CatalogueSignUpServiceTest extends TestCase {
+	use RegisterSchemaPayloads;
 
 	/**
 	 * The in-memory register.
@@ -121,7 +124,7 @@ class CatalogueSignUpServiceTest extends TestCase {
 			}
 		);
 
-		return new CatalogueSignUpService(objects: $objects, reader: new CatalogueReader(objects: $objects));
+		return new CatalogueSignUpService(objects: $objects, reader: new CatalogueReader(objects: $objects), requirements: new ProgrammeRequirements());
 	}//end service()
 
 	/**
@@ -219,6 +222,35 @@ class CatalogueSignUpServiceTest extends TestCase {
 		self::assertCount(1, $fromProgramme);
 		self::assertSame('active', $fromProgramme[0]['lifecycle']);
 	}//end testAProgrammeEnrolsEveryCourseNamingTheProgramme()
+
+	/**
+	 * A programme whose author marked parts mandatory: each course enrolment
+	 * takes its part's default, and a programme without marks keeps every
+	 * enrolment optional as before.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/enrolment-programme-mandatory-per-person/specs/programme-mandatory-parts/spec.md#scenario-an-author-marks-a-part-optional
+	 */
+	public function testAProgrammeSignUpTakesEachPartsDefault(): void {
+		$service = $this->service();
+		$this->store->rows['programme'][0]['mandatoryCourseIds'] = ['c-excel', 'c-pm2'];
+
+		$service->signUpProgramme(learner: $this->learner(), programmeId: 'p-pm');
+
+		$mandatory = array_column($this->enrolments(), 'mandatory', 'courseId');
+		self::assertSame(['c-excel' => true, 'c-lead' => false, 'c-pm2' => true], $mandatory);
+		foreach ($this->store->saves as $save) {
+			// The fixture ids are short names; the register wants uuids there.
+			$payload = array_merge($save['object'], array_fill_keys(array_intersect(['courseId', 'programmeId', 'learnerRef', 'tenant_id'], array_keys($save['object'])), '00000000-0000-4000-8000-00000000000a'));
+			self::assertNull(self::schemaError(slug: 'enrolment', payload: $payload), 'the written enrolment fits the Enrolment schema');
+		}
+
+		$this->store->rows['enrolment'] = [];
+		unset($this->store->rows['programme'][0]['mandatoryCourseIds']);
+		$service->signUpProgramme(learner: $this->learner(), programmeId: 'p-pm');
+		self::assertSame(['c-excel' => false, 'c-lead' => false, 'c-pm2' => false], array_column($this->enrolments(), 'mandatory', 'courseId'));
+	}//end testAProgrammeSignUpTakesEachPartsDefault()
 
 	/**
 	 * A learner withdraws their own self sign-up without progress; not one

@@ -30,6 +30,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Listener\ApplicationConversionHandler;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
+use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -37,6 +38,7 @@ use Psr\Log\NullLogger;
  * Tests for ApplicationConversionHandler::handle() on Application -> placed.
  */
 class ApplicationConversionHandlerTest extends TestCase {
+	use RegisterSchemaPayloads;
 
 	/**
 	 * The `_rbac` argument of every saveObject() call, per schema.
@@ -131,7 +133,7 @@ class ApplicationConversionHandlerTest extends TestCase {
 			}
 		);
 
-		return new ApplicationConversionHandler($objectService, $transitionEngine, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
+		return new ApplicationConversionHandler($objectService, $transitionEngine, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver(), new \OCA\Learniq\Service\Programme\ProgrammeRequirements());
 	}//end makeHandler()
 
 	/**
@@ -201,6 +203,28 @@ class ApplicationConversionHandlerTest extends TestCase {
 		self::assertSame('convert', $this->transitions[0]['action']);
 
 	}//end testPlacementCreatesLearnerProfileAndEnrolments()
+
+	/**
+	 * Placement enrols each part with the programme's default and names the
+	 * programme, so the learner's programme progress can find the parts.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/enrolment-programme-mandatory-per-person/specs/programme-mandatory-parts/spec.md#scenario-an-author-marks-a-part-optional
+	 */
+	public function testPlacementEnrolsEachPartWithTheProgrammeDefault(): void {
+		$programme = ['id' => 'programme-1', 'courseIds' => ['course-a', 'course-b', 'course-c'], 'mandatoryCourseIds' => ['course-a', 'course-b']];
+		$handler = $this->makeHandler(programme: $programme);
+
+		$handler->handle($this->makeEvent(['id' => 'app-1', 'programmeId' => 'programme-1', 'applicantGivenName' => 'Kim', 'tenant_id' => 'tenant-a', 'lifecycle' => 'placed']));
+
+		$enrolments = array_column(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'enrolment'), 'object');
+		self::assertSame(['course-a' => true, 'course-b' => true, 'course-c' => false], array_column($enrolments, 'mandatory', 'courseId'));
+		self::assertSame(['programme-1'], array_values(array_unique(array_column($enrolments, 'programmeId'))));
+		foreach ($enrolments as $enrolment) {
+			self::assertNull(self::schemaError(slug: 'enrolment', payload: array_merge($enrolment, ['programmeId' => '00000000-0000-4000-8000-00000000000a', 'courseId' => '00000000-0000-4000-8000-00000000000b', 'tenant_id' => '00000000-0000-4000-8000-00000000000c'])), 'the written enrolment fits the Enrolment schema');
+		}
+	}//end testPlacementEnrolsEachPartWithTheProgrammeDefault()
 
 	/**
 	 * No NC user account or LMS provisioning side effect — only OpenRegister writes happen

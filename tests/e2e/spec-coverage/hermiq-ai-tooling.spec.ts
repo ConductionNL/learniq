@@ -24,9 +24,9 @@
  */
 import type { APIRequestContext, APIResponse } from '@playwright/test'
 
-import { expect, request, test } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { baseUrl } from '../base-url.ts'
+import { apiAs } from '../live-fixtures.ts'
 
 const LIVE = process.env.LEARNIQ_E2E_HERMIQ_LIVE === '1'
 const ADMIN_USER = process.env.NC_ADMIN_USER ?? 'admin'
@@ -66,18 +66,19 @@ let pupil: APIRequestContext
 let savedMatrix: Record<string, string[]> | null = null
 
 /**
- * A request context signed in as one user.
+ * A request context signed in as one user, with its own cookie jar.
+ *
+ * Goes through `apiAs()`, which starts without the config's admin storageState
+ * and asserts via /ocs/v2.php/cloud/user that Nextcloud answers as this user.
+ * The first live run did not: every persona request carried admin's session
+ * cookie, so every tool call ran as admin.
  *
  * @param user The uid.
  * @param pass The password.
  * @return The context.
  */
 async function as(user: string, pass: string): Promise<APIRequestContext> {
-	return request.newContext({
-		baseURL: baseUrl(),
-		httpCredentials: { username: user, password: pass, send: 'always' },
-		extraHTTPHeaders: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-	})
+	return apiAs(user, pass)
 }
 
 /**
@@ -142,13 +143,22 @@ async function find(
  * @param ctx     Who chats.
  * @param agentId The agent uuid.
  * @param message The message.
+ * @param persona The uid the chat must run as, checked before sending.
  * @return hermiq's answer (message, toolCalls, conversation).
  */
 async function chat(
 	ctx: APIRequestContext,
 	agentId: string,
 	message: string,
+	persona: string,
 ): Promise<any> {
+	const whoami = await okJson(
+		await ctx.get('/ocs/v2.php/cloud/user?format=json'),
+		'whoami',
+	)
+	expect(whoami?.ocs?.data?.id, 'the chat would not run as the persona').toBe(
+		persona,
+	)
 	const resp = await ctx.post(`${HERMIQ}/chat/send`, {
 		data: {
 			agentUuid: agentId,
@@ -265,7 +275,9 @@ test.describe('hermiq-ai-tooling: an agent calls learniq tools (live, opt-in)', 
 		// leave one behind. The credential names the learner by learnerUserId, which
 		// is what the expiring-credentials projection reads first.
 		ids.profile = randomUUID()
-		ids.scale = await createObject(teacher, 'grade-scale', {
+		// Fixtures are created as admin: they are the world the tools act on, not
+		// the acts under test. Only the chats run as the personas.
+		ids.scale = await createObject(admin, 'grade-scale', {
 			name: `lq-r5-e2e scale ${runId}`,
 			kind: 'numeric',
 			min: 1,
@@ -274,7 +286,7 @@ test.describe('hermiq-ai-tooling: an agent calls learniq tools (live, opt-in)', 
 			lifecycle: 'active',
 		})
 		ids.component = `lq-r5-e2e-comp-${runId}`
-		ids.plan = await createObject(teacher, 'curriculum-plan', {
+		ids.plan = await createObject(admin, 'curriculum-plan', {
 			name: `lq-r5-e2e plan ${runId}`,
 			kind: 'generic',
 			formula: 'weighted-average',
@@ -289,7 +301,7 @@ test.describe('hermiq-ai-tooling: an agent calls learniq tools (live, opt-in)', 
 				},
 			],
 		})
-		ids.expiringCourse = await createObject(teacher, 'course', {
+		ids.expiringCourse = await createObject(admin, 'course', {
 			code: `LQR5-A-${runId}`,
 			name: `lq-r5-e2e BHV ${runId}`,
 			level: 'mbo',
@@ -297,14 +309,14 @@ test.describe('hermiq-ai-tooling: an agent calls learniq tools (live, opt-in)', 
 			lifecycle: 'published',
 			renewalCourseSlug: `lq-r5-e2e-renewal-${runId}`,
 		})
-		ids.renewalCourse = await createObject(teacher, 'course', {
+		ids.renewalCourse = await createObject(admin, 'course', {
 			code: `LQR5-R-${runId}`,
 			name: `lq-r5-e2e BHV herhaling ${runId}`,
 			level: 'mbo',
 			language: 'nl',
 			lifecycle: 'published',
 		})
-		ids.gradedCourse = await createObject(teacher, 'course', {
+		ids.gradedCourse = await createObject(admin, 'course', {
 			code: `LQR5-G-${runId}`,
 			name: `lq-r5-e2e Nederlands ${runId}`,
 			level: 'mbo',
@@ -313,7 +325,7 @@ test.describe('hermiq-ai-tooling: an agent calls learniq tools (live, opt-in)', 
 			curriculumPlanId: ids.plan,
 		})
 		const now = Date.now()
-		ids.credential = await createObject(teacher, 'credential', {
+		ids.credential = await createObject(admin, 'credential', {
 			learnerId: ids.profile,
 			learnerUserId: users.pupil,
 			courseId: ids.expiringCourse,
@@ -325,32 +337,32 @@ test.describe('hermiq-ai-tooling: an agent calls learniq tools (live, opt-in)', 
 			openbadges3Payload: { note: 'lq-r5-e2e throwaway' },
 			lifecycle: 'issued',
 		})
-		ids.cohort = await createObject(teacher, 'cohort', {
+		ids.cohort = await createObject(admin, 'cohort', {
 			name: `lq-r5-e2e klas ${runId}`,
 			period: '2026-2027',
 			academicYear: '2026-2027',
 			lifecycle: 'active',
 			learnerIds: [users.pupil, users.pupil2],
 		})
-		ids.session = await createObject(teacher, 'session', {
+		ids.session = await createObject(admin, 'session', {
 			cohortId: ids.cohort,
 			title: `lq-r5-e2e les ${runId}`,
 			startsAt: new Date(now).toISOString(),
 			endsAt: new Date(now + 3600_000).toISOString(),
 			lifecycle: 'scheduled',
 		})
-		ids.assignment = await createObject(teacher, 'assignment', {
+		ids.assignment = await createObject(admin, 'assignment', {
 			title: `lq-r5-e2e opdracht ${runId}`,
 			maxPoints: 10,
 			courseId: ids.gradedCourse,
 			curriculumPlanComponentId: ids.component,
 			lifecycle: 'published',
 		})
-		ids.submission1 = await createObject(teacher, 'submission', {
+		ids.submission1 = await createObject(admin, 'submission', {
 			assignmentId: ids.assignment,
 			learnerIds: [users.pupil],
 		})
-		ids.submission2 = await createObject(teacher, 'submission', {
+		ids.submission2 = await createObject(admin, 'submission', {
 			assignmentId: ids.assignment,
 			learnerIds: [users.pupil2],
 		})
@@ -431,6 +443,7 @@ test.describe('hermiq-ai-tooling: an agent calls learniq tools (live, opt-in)', 
 			coordinator,
 			ids.coordinatorAgent,
 			`Call learniq_enrolLearner with learnerId "${users.pupil}" and courseId "${ids.renewalCourse}". Report the tool result.`,
+			users.coordinator,
 		)
 
 		expect(
@@ -448,6 +461,7 @@ test.describe('hermiq-ai-tooling: an agent calls learniq tools (live, opt-in)', 
 			teacher,
 			ids.teacherAgent,
 			`Call learniq_listExpiringCredentials with before "${before}" and courseId "${ids.expiringCourse}". Then, for every credential in the result, call learniq_enrolLearner with that credential's learnerId, courseId "${ids.renewalCourse}" and reason "renewal". Report both results.`,
+			users.teacher,
 		)
 
 		const enrolments = await find('enrolment', { courseId: ids.renewalCourse })
@@ -466,6 +480,7 @@ test.describe('hermiq-ai-tooling: an agent calls learniq tools (live, opt-in)', 
 			teacher,
 			ids.teacherAgent,
 			`Call learniq_recordAttendance with sessionId "${ids.session}", learnerId "${users.pupil}", status "absent-excused" and reason "Sick". Report the tool result.`,
+			users.teacher,
 		)
 
 		const records = await find('attendance-record', { sessionId: ids.session })
@@ -481,6 +496,7 @@ test.describe('hermiq-ai-tooling: an agent calls learniq tools (live, opt-in)', 
 			teacher,
 			ids.teacherAgent,
 			`Call learniq_gradeSubmission with submissionId "${ids.submission1}" and value 7.5, then call learniq_gradeSubmission with submissionId "${ids.submission2}" and value 6. Report both results.`,
+			users.teacher,
 		)
 
 		const first = await find('grade-entry', { submissionId: ids.submission1 })

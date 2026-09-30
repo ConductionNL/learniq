@@ -6667,9 +6667,9 @@
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
         "state": "building",
-        "evidence": "lib/Settings/learniq_register.json:2414",
+        "evidence": "lib/Service/Programme/ProgrammeRequirements.php:50",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "/enrolments (enrolment form); learner home widget",
+        "reachedOn": "/curriculum/programmes (programme form), /enrolments (enrolment form), learner home My programmes widget",
         "change": "openspec/changes/enrolment-programme-mandatory-per-person"
       },
       "provider": "self",
