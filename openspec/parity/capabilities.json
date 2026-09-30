@@ -7261,10 +7261,10 @@
       "origin": "roadmap",
       "originUrl": "https://github.com/chamilo/chamilo-lms/issues/8373",
       "built": {
-        "state": "decided-no",
-        "evidence": "Decided no on 2026-09-29: Roadmap demand row (Chamilo issue 8373) but no competitor rated yes and outside the core area, so the rule does not build it. Note: the confidential counsellor channel (archive 2026-09-28-confidential-counsellor-channel) is the counsellor side, not a learner report. See needs-Ruben. Before: src/manifest.d/pupil-record.json:230",
+        "state": "specified",
+        "evidence": "Reversed from decided-no by Ruben on 2026-09-29 (build-all DECISIONS row 18): a learner-side confidential report that lands in the existing counsellor channel (archive 2026-09-28-confidential-counsellor-channel). Specified in openspec/changes/support-confidential-concern-report/.",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "nothing"
+        "change": "openspec/changes/support-confidential-concern-report"
       },
       "provider": "self",
       "providerHow": "Would be a learniq reporting flow; the pupil dossier is staff-facing.",
