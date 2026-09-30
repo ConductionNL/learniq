@@ -1560,9 +1560,9 @@
       "name": "Export a certificate in the European Europass credential format.",
       "built": {
         "state": "built",
-        "evidence": "lib/Controller/CredentialEuropassController.php:111 serves Credential.edciPayload (appinfo/routes.php:44-48); CredentialIssuanceHandler signs before save (#1178). Live issue 2026-09-30 (tests/e2e/credential-issuance.spec.ts, #1535) recorded in the archived tasks.md.",
+        "evidence": "lib/Controller/CredentialEuropassController.php:111 serves Credential.edciPayload (appinfo/routes.php:44-48); CredentialIssuanceHandler signs before save (#1178). Live issue 2026-09-29 recorded in the archived tasks.md.",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-09-29-credentials-europass-edci-export",
+        "change": "openspec/changes/archive/2026-09-30-credentials-europass-edci-export",
         "reachedOn": "nothing"
       },
       "provider": "self",

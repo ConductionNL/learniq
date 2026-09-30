@@ -15,8 +15,8 @@
  * through a queued AnnotationNotificationDispatchJob, which cron delivers; the
  * shared instance runs no cron, so the spec checks the job is queued.
  *
- * @e2e openspec/changes/archive/2026-09-29-credentials-europass-edci-export/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
- * @e2e openspec/changes/archive/2026-09-29-credentials-europass-edci-export/specs/certification/spec.md#requirement-a-learner-downloads-their-certificate-for-europass
+ * @e2e openspec/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
+ * @e2e openspec/specs/certification/spec.md#requirement-a-learner-downloads-their-certificate-for-europass
  */
 import { readFileSync } from 'fs'
 import { expect, test } from './fixtures.ts'

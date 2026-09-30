@@ -103,7 +103,10 @@ same endpoint; the SCORM 2004 shim and a cmi5 package importer remain follow-ups
 
 #### Scenario: A SCORM 1.2 package's completion status produces a recognised xAPI statement
 
-<!-- @e2e exclude The SCORM 1.2 API shim's completion-to-xAPI mapping is covered by tests/unit-js/scorm12Runtime.test.mjs; the POST target by LessonPlayer.vue postXapiStatement and tests/Unit/Controller/LrsControllerTest.php. -->
+<!-- @e2e exclude no local Nextcloud instance was exercised for this change (see proposal Open Questions);
+     the SCORM 1.2 API shim's completion-to-xAPI mapping is covered by
+     tests/unit-js/scorm12Runtime.test.mjs. A live browser verification pass against a real SCORM 1.2
+     package is a named follow-up, not silently skipped. -->
 
 - **GIVEN** a `Lesson` with `contentType: "scorm12"` and a learner has launched it
 - **WHEN** the package calls `LMSSetValue('cmi.core.lesson_status', 'completed')` (or `'passed'`)
