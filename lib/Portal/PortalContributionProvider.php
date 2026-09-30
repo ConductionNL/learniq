@@ -575,13 +575,16 @@ class PortalContributionProvider {
 			'targetField' => 'id',
 			'match' => 'scopeField',
 		];
+		$extras = new ParentPortalCollections();
 
 		return [
 			'label' => 'Learniq',
 			'collections' => array_merge(
 				[$this->parentChildrenCollection()],
 				$this->parentResultCollections(childJoin: $childJoin),
-				$this->parentWelfareCollections(childJoin: $childJoin)
+				$this->parentWelfareCollections(childJoin: $childJoin),
+				$extras->conferenceCollections(childJoin: $childJoin),
+				[$extras->groupMembershipsCollection(childJoin: $childJoin)]
 			),
 			// Portal-contribution-guardian-audiences: portaliq's writer
 			// cross-reference guard (portaliq#607, merged 2026-09-18) now
@@ -592,8 +595,22 @@ class PortalContributionProvider {
 			// guardian-supplied `learnerRef` in the create body names WHICH
 			// child, validated against $childJoin the same way every parent
 			// read collection above already is.
-			'actions' => $this->parentActions(childJoin: $childJoin),
+			'actions' => array_merge(
+				$this->parentActions(childJoin: $childJoin),
+				[$extras->conferenceSignupAction()]
+			),
 			'notifications' => [],
+			// Portaliq news-audience-from-the-school-app: which of the collections
+			// above name the guardian's children, their school and their groups,
+			// so a news item for the school or a group reaches the guardian.
+			'guardianAudience' => [
+				'children' => 'parentChildren',
+				'schoolField' => 'schoolId',
+				'groups' => [
+					'collection' => 'parentGroupMemberships',
+					'field' => 'cohortId',
+				],
+			],
 		];
 
 	}//end parentContribution()
@@ -631,6 +648,10 @@ class PortalContributionProvider {
 				'guardianRefs',
 				'beeldmateriaalConsent',
 				'beeldmateriaalConsentReviewDueAt',
+			],
+			'columns' => [
+				['field' => 'givenName', 'label' => 'First name'],
+				['field' => 'familyName', 'label' => 'Last name'],
 			],
 		];
 
@@ -674,6 +695,21 @@ class PortalContributionProvider {
 					'reasonKind',
 					'attachmentRef',
 				],
+				// The child is picked from the guardian's own children, and portaliq
+				// refuses any other value before the write (portal-parent-conference-
+				// booking); ExcuseRequestOwnerStamp checks it again.
+				'crossRefs' => ['learnerRef' => (new ParentPortalCollections())->childCrossRef()],
+				'optionsProviders' => ['learnerRef' => (new ParentPortalCollections())->childOptions()],
+				'fieldConfigs' => [
+					'learnerRef' => ['label' => 'Child', 'required' => true],
+					'dateFrom' => ['label' => 'First day absent', 'required' => true],
+					'dateTo' => ['label' => 'Last day absent', 'required' => true],
+					'reason' => ['label' => 'Reason', 'required' => true],
+					'reasonKind' => ['label' => 'Kind of absence', 'required' => true],
+					'attachmentRef' => ['label' => 'Attachment'],
+				],
+				'submitLabel' => 'Report the absence',
+				'successMessage' => "The school has your report. You see the teacher's decision in the list of absence reports.",
 			],
 		];
 
@@ -715,6 +751,11 @@ class PortalContributionProvider {
 					'period',
 					'gradedAt',
 				],
+				'columns' => [
+					['field' => 'value', 'label' => 'Grade'],
+					['field' => 'period', 'label' => 'Period'],
+					['field' => 'gradedAt', 'label' => 'Given on'],
+				],
 			],
 			[
 				'id' => 'parentAttendance',
@@ -734,6 +775,11 @@ class PortalContributionProvider {
 					'status',
 					'minutesAttended',
 					'markedAt',
+				],
+				'columns' => [
+					['field' => 'markedAt', 'label' => 'Date'],
+					['field' => 'status', 'label' => 'Attendance'],
+					['field' => 'minutesAttended', 'label' => 'Minutes present'],
 				],
 			],
 		];
@@ -777,6 +823,13 @@ class PortalContributionProvider {
 					'lifecycle',
 					'decidedAt',
 				],
+				'columns' => [
+					['field' => 'dateFrom', 'label' => 'From'],
+					['field' => 'dateTo', 'label' => 'To'],
+					['field' => 'reason', 'label' => 'Reason'],
+					['field' => 'lifecycle', 'label' => 'Status'],
+					['field' => 'decidedAt', 'label' => 'Decided on'],
+				],
 			],
 			[
 				'id' => 'parentReportCards',
@@ -805,6 +858,10 @@ class PortalContributionProvider {
 					'attendanceSummary',
 					'mentorComment',
 					'docudeskDocumentRef',
+				],
+				'columns' => [
+					['field' => 'mentorComment', 'label' => "Teacher's comment"],
+					['field' => 'subjectGrades', 'label' => 'Grades'],
 				],
 			],
 		];

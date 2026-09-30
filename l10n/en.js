@@ -2894,7 +2894,9 @@ OC.L10N.register(
         "A grade correction is waiting for a second approval": "A grade correction is waiting for a second approval",
         "Grade corrections": "Grade corrections",
         "Grade correction": "Grade correction",
-        "Ask for a correction": "Ask for a correction"
+        "Ask for a correction": "Ask for a correction",
+        "Invited learner references": "Invited learner references",
+        "LearnerProfile uuids of the invited learners, computed with invitedLearnerIds by the send-invitations transition. The parent portal scopes a round by it.": "LearnerProfile uuids of the invited learners, computed with invitedLearnerIds by the send-invitations transition. The parent portal scopes a round by it."
     },
     "nplurals=2; plural=(n != 1);"
 )
