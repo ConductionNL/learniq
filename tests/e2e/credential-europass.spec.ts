@@ -15,8 +15,8 @@
  * Admin creates the course and a certificate issued last spring with no
  * `edciPayload`, the state of a certificate issued before this change.
  *
- * @e2e openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-staff-create-the-europass-form-for-an-earlier-certificate
- * @e2e openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-a-learner-downloads-their-certificate-for-europass
+ * @e2e openspec/specs/certification/spec.md#requirement-staff-create-the-europass-form-for-an-earlier-certificate
+ * @e2e openspec/specs/certification/spec.md#requirement-a-learner-downloads-their-certificate-for-europass
  */
 import type { Page } from '@playwright/test'
 

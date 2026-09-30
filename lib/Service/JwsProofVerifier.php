@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-the-europass-form-is-checkable-on-the-verification-route
+ * @spec openspec/specs/certification/spec.md#requirement-the-europass-form-is-checkable-on-the-verification-route
  */
 
 declare(strict_types=1);
@@ -32,7 +32,7 @@ namespace OCA\Learniq\Service;
 /**
  * Checks a payload's detached JWS proof.
  *
- * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-the-europass-form-is-checkable-on-the-verification-route
+ * @spec openspec/specs/certification/spec.md#requirement-the-europass-form-is-checkable-on-the-verification-route
  */
 class JwsProofVerifier {
 
@@ -57,7 +57,7 @@ class JwsProofVerifier {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-the-europass-form-is-checkable-on-the-verification-route
+	 * @spec openspec/specs/certification/spec.md#requirement-the-europass-form-is-checkable-on-the-verification-route
 	 */
 	public function verify(array $payload, string $tenantId): bool {
 		$jws = $payload['proof']['jws'] ?? null;
@@ -188,7 +188,7 @@ class JwsProofVerifier {
 	 *
 	 * @return array<string,mixed> The same data with all object-level keys sorted.
 	 *
-	 * @spec openspec/changes/credentials-europass-edci-export/specs/certification/spec.md#requirement-the-europass-form-is-checkable-on-the-verification-route
+	 * @spec openspec/specs/certification/spec.md#requirement-the-europass-form-is-checkable-on-the-verification-route
 	 */
 	public function canonical(array $payload): array {
 		$isObject = count(array_filter(array_keys($payload), 'is_string')) > 0;
