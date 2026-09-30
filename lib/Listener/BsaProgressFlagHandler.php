@@ -46,6 +46,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\BsaProgressEvaluator;
@@ -81,6 +82,7 @@ class BsaProgressFlagHandler implements IEventListener {
 	 * @param ObjectService $objectService OR object access.
 	 * @param BsaProgressEvaluator $evaluator ectsEarned calculation engine.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -88,6 +90,7 @@ class BsaProgressFlagHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly BsaProgressEvaluator $evaluator,
 		private readonly ITimeFactory $timeFactory,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -105,11 +108,11 @@ class BsaProgressFlagHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() !== self::GRADE_ENTRY_SCHEMA || $event->getTo() !== 'published') {
+		if ($this->schemas->eventSchema(event: $event) !== self::GRADE_ENTRY_SCHEMA || $event->getTo() !== 'published') {
 			return;
 		}
 

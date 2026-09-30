@@ -88,7 +88,8 @@ class CredentialWalletTransitionListenerTest extends TestCase {
 				appManager: $this->createMock(IAppManager::class),
 				logger: new NullLogger()
 			),
-			logger: new NullLogger()
+			logger: new NullLogger(),
+			schemas: \OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 	}//end listener()
 

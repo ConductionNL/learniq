@@ -34,6 +34,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Service\ReportCardPdfDelegationService;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -60,6 +61,7 @@ class ReportCardPdfTransitionListener implements IEventListener {
 	 * @param ObjectService $objectService OR object service, to save the ReportCard.
 	 * @param ReportCardPdfDelegationService $pdfService The docudesk render bridge.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -67,6 +69,7 @@ class ReportCardPdfTransitionListener implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly ReportCardPdfDelegationService $pdfService,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -81,8 +84,8 @@ class ReportCardPdfTransitionListener implements IEventListener {
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false
-			|| $event->getRegister() !== self::LEARNIQ_REGISTER
-			|| $event->getSchema() !== self::REPORT_CARD_SCHEMA
+			|| $this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
+			|| $this->schemas->eventSchema(event: $event) !== self::REPORT_CARD_SCHEMA
 			|| in_array($event->getAction(), self::RENDER_ACTIONS, true) === false
 		) {
 			return;

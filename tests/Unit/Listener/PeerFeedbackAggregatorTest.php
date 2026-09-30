@@ -110,7 +110,7 @@ class PeerFeedbackAggregatorTest extends TestCase {
 		$timeFactory = $this->createMock(ITimeFactory::class);
 		$timeFactory->method('getDateTime')->willReturn(new DateTime('2026-07-14T10:00:00+00:00'));
 
-		return new PeerFeedbackAggregator($objectService, $timeFactory);
+		return new PeerFeedbackAggregator($objectService, $timeFactory, \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeAggregator()
 
 	/**

@@ -83,7 +83,7 @@ class FraudCaseDecisionHandlerTest extends TestCase {
 			}
 		);
 
-		return new FraudCaseDecisionHandler($objectService, $transitionEngine, new NullLogger());
+		return new FraudCaseDecisionHandler($objectService, $transitionEngine, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**

@@ -123,7 +123,7 @@ class BsaProgressFlagHandlerTest extends TestCase {
 		$timeFactory->method('getDateTime')->willReturn($now);
 		$timeFactory->method('now')->willReturn(DateTimeImmutable::createFromMutable($now));
 
-		return new BsaProgressFlagHandler($objectService, $evaluator, $timeFactory);
+		return new BsaProgressFlagHandler($objectService, $evaluator, $timeFactory, \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**

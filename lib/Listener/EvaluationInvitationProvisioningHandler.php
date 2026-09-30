@@ -37,6 +37,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -60,12 +61,14 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -127,8 +130,8 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 	 * @spec openspec/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
 	 */
 	private function isCampaignOpening(ObjectTransitionedEvent $event): bool {
-		return $event->getRegister() === self::LEARNIQ_REGISTER
-			&& $event->getSchema() === self::EVALUATION_CAMPAIGN_SCHEMA
+		return $this->schemas->eventRegister(event: $event) === self::LEARNIQ_REGISTER
+			&& $this->schemas->eventSchema(event: $event) === self::EVALUATION_CAMPAIGN_SCHEMA
 			&& $event->getTo() === 'open';
 
 	}//end isCampaignOpening()

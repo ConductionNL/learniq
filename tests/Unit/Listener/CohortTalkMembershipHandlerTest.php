@@ -146,7 +146,8 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 			$talkLinkService,
 			$this->makeContainer($manager, $participantService),
 			$this->createMock(IUserManager::class),
-			$this->createMock(LoggerInterface::class)
+			$this->createMock(LoggerInterface::class),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 		$handler->handle($this->makeEvent('activate', ['cohortId' => 'cohort-1', 'learnerId' => 'learner-1']));
@@ -187,7 +188,8 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 			$talkLinkService,
 			$this->makeContainer($manager, $participantService),
 			$userManager,
-			$this->createMock(LoggerInterface::class)
+			$this->createMock(LoggerInterface::class),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 		$handler->handle($this->makeEvent('withdraw', ['cohortId' => 'cohort-1', 'learnerId' => 'learner-1']));
@@ -215,7 +217,8 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 			$talkLinkService,
 			$container,
 			$this->createMock(IUserManager::class),
-			$this->createMock(LoggerInterface::class)
+			$this->createMock(LoggerInterface::class),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 		$handler->handle($this->makeEvent('activate', ['cohortId' => 'cohort-1', 'learnerId' => 'learner-1']));
@@ -246,7 +249,8 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 			$talkLinkService,
 			$container,
 			$this->createMock(IUserManager::class),
-			$this->createMock(LoggerInterface::class)
+			$this->createMock(LoggerInterface::class),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 		$handler->handle($this->makeEvent('activate', ['cohortId' => 'cohort-1', 'learnerId' => 'learner-1']));
@@ -268,7 +272,8 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 			$talkLinkService,
 			$this->createMock(ContainerInterface::class),
 			$this->createMock(IUserManager::class),
-			$this->createMock(LoggerInterface::class)
+			$this->createMock(LoggerInterface::class),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 		$handler->handle($this->makeEvent('activate', ['cohortId' => null, 'learnerId' => 'learner-1']));
@@ -289,7 +294,8 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 			$talkLinkService,
 			$this->createMock(ContainerInterface::class),
 			$this->createMock(IUserManager::class),
-			$this->createMock(LoggerInterface::class)
+			$this->createMock(LoggerInterface::class),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 		$handler->handle($this->makeEvent('complete', ['cohortId' => 'cohort-1', 'learnerId' => 'learner-1']));

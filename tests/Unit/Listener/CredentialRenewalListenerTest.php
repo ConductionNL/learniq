@@ -97,7 +97,7 @@ class CredentialRenewalListenerTest extends TestCase {
 			static fn (string $learnerRef): ?array => $learnerRef === self::PROFILE ? ['id' => self::PROFILE, 'ncUserId' => 'learner-1'] : null
 		);
 
-		return new CredentialRenewalListener($objectService, new NullLogger(), new CredentialLearner(profiles: $profiles));
+		return new CredentialRenewalListener($objectService, new NullLogger(), new CredentialLearner(profiles: $profiles), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 
 	}//end makeListener()
 

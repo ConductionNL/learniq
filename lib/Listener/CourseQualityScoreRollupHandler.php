@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\CourseQualityScoreEvaluator;
@@ -57,12 +58,14 @@ class CourseQualityScoreRollupHandler implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param CourseQualityScoreEvaluator $evaluator Calculation engine.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly CourseQualityScoreEvaluator $evaluator,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -80,8 +83,8 @@ class CourseQualityScoreRollupHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER
-			|| $event->getSchema() !== self::COURSE_EVALUATION_RESPONSE_SCHEMA
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
+			|| $this->schemas->eventSchema(event: $event) !== self::COURSE_EVALUATION_RESPONSE_SCHEMA
 			|| $event->getTo() !== 'submitted'
 		) {
 			return;
