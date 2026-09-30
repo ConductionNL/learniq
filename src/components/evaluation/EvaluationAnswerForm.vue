@@ -111,6 +111,7 @@ export default {
 		 * The questions to render.
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 		 */
 		questions() {
 			return formQuestions(this.campaignQuestions)
@@ -120,6 +121,7 @@ export default {
 		 * Required questions still unanswered.
 		 *
 		 * @return {string[]}
+		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 		 */
 		missing() {
 			return missingRequired(this.campaignQuestions, this.answers)
@@ -132,6 +134,7 @@ export default {
 		 *
 		 * @param {object} question The question.
 		 * @return {string}
+		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 		 */
 		textOf(question) {
 			return questionText(question, getLanguage())

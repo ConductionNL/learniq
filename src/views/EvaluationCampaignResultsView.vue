@@ -72,6 +72,7 @@ export default {
 		 * The figures to show.
 		 *
 		 * @return {object}
+		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
 		 */
 		figures() {
 			return resultFigures(this.results)

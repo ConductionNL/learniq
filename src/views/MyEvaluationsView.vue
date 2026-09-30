@@ -15,12 +15,7 @@
 	<div class="my-evaluations">
 		<h2>{{ t('learniq', 'My evaluations') }}</h2>
 		<p class="my-evaluations__intro">
-			{{
-				t(
-					'learniq',
-					'Your answers are stored without your name.',
-				)
-			}}
+			{{ t('learniq', 'Your answers are stored without your name.') }}
 		</p>
 		<NcNoteCard v-if="sent" type="success">
 			{{ t('learniq', 'Thank you. Your answers are in.') }}
@@ -146,6 +141,7 @@ export default {
 		 *
 		 * @param {object} invitation The invitation.
 		 * @return {void}
+		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 		 */
 		start(invitation) {
 			this.sent = false
@@ -211,6 +207,7 @@ export default {
 		 *
 		 * @param {string} value An ISO date-time.
 		 * @return {string}
+		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 		 */
 		formatDate(value) {
 			const date = new Date(value)

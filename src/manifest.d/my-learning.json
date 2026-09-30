@@ -163,7 +163,7 @@
 			"label": "My evaluations",
 			"icon": "ClipboardTextOutline",
 			"route": "MyEvaluations",
-			"order": 28,
+			"order": 31,
 			"visibleIf": {
 				"user.primaryRole": {
 					"in": [

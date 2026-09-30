@@ -18,6 +18,7 @@ export const QUESTION_KINDS = ['likert-5', 'free-text']
  *
  * @param {Array<object>|undefined} questions The campaign questions.
  * @return {Array<object>} The questions to render.
+ * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
  */
 export function formQuestions(questions) {
 	if (!Array.isArray(questions)) {
@@ -39,6 +40,7 @@ export function formQuestions(questions) {
  * @param {object} question A campaign question.
  * @param {string} language The reader's language code, such as 'nl' or 'en-GB'.
  * @return {string} The text to show.
+ * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
  */
 export function questionText(question, language) {
 	const text = question?.text ?? {}
@@ -52,6 +54,7 @@ export function questionText(question, language) {
  * @param {string} kind The question kind.
  * @param {*} value The value in the form.
  * @return {boolean} True when it counts as an answer.
+ * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
  */
 export function isAnswered(kind, value) {
 	if (kind === 'likert-5') {
@@ -73,6 +76,7 @@ export function isAnswered(kind, value) {
  * @param {Array<object>} questions The campaign questions.
  * @param {object} answers Map of questionId to value.
  * @return {string[]} The unanswered required question ids.
+ * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
  */
 export function missingRequired(questions, answers) {
 	return formQuestions(questions)
@@ -90,6 +94,7 @@ export function missingRequired(questions, answers) {
  * @param {Array<object>} questions The campaign questions.
  * @param {object} answers Map of questionId to value.
  * @return {{answers: object}} The request body.
+ * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
  */
 export function answerBody(questions, answers) {
 	const body = {}
@@ -109,6 +114,7 @@ export function answerBody(questions, answers) {
  *
  * @param {object|null} results The server's campaign results.
  * @return {{responses: number, invitations: number, mean: (number|null), hidden: boolean}} The figures.
+ * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
  */
 export function resultFigures(results) {
 	const responses = Number(results?.responseCount ?? 0)
