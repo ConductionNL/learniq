@@ -17,7 +17,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+ * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
  */
 
 declare(strict_types=1);
@@ -37,7 +37,7 @@ use OCP\EventDispatcher\Event;
  * tool's launch URL, because an LTI 1.3 tool starts every launch at its own
  * login endpoint (design.md D2).
  *
- * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+ * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
  */
 class LtiLaunchRequestedEvent extends Event {
 
@@ -68,7 +68,7 @@ class LtiLaunchRequestedEvent extends Event {
 	 * @param string $contextTitle The course title.
 	 * @param string $returnUrl Where the tool sends the user back.
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	public function __construct(
 		private readonly string $sourceApp,
@@ -90,7 +90,7 @@ class LtiLaunchRequestedEvent extends Event {
 	 *
 	 * @return string The app id.
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	public function getSourceApp(): string {
 		return $this->sourceApp;
@@ -102,7 +102,7 @@ class LtiLaunchRequestedEvent extends Event {
 	 *
 	 * @return string The placement id.
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	public function getPlacementId(): string {
 		return $this->placementId;
@@ -114,7 +114,7 @@ class LtiLaunchRequestedEvent extends Event {
 	 *
 	 * @return string The `lti_deployment` uuid.
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	public function getDeploymentUuid(): string {
 		return $this->deploymentUuid;
@@ -126,7 +126,7 @@ class LtiLaunchRequestedEvent extends Event {
 	 *
 	 * @return string The Nextcloud uid.
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	public function getUserId(): string {
 		return $this->userId;
@@ -138,7 +138,7 @@ class LtiLaunchRequestedEvent extends Event {
 	 *
 	 * @return string The message type.
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	public function getMessageType(): string {
 		return $this->messageType;
@@ -150,7 +150,7 @@ class LtiLaunchRequestedEvent extends Event {
 	 *
 	 * @return string `Learner` or `Instructor`.
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	public function getRole(): string {
 		return $this->role;
@@ -162,7 +162,7 @@ class LtiLaunchRequestedEvent extends Event {
 	 *
 	 * @return string The context id.
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	public function getContextId(): string {
 		return $this->contextId;
@@ -174,7 +174,7 @@ class LtiLaunchRequestedEvent extends Event {
 	 *
 	 * @return string The context title.
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	public function getContextTitle(): string {
 		return $this->contextTitle;
@@ -186,7 +186,7 @@ class LtiLaunchRequestedEvent extends Event {
 	 *
 	 * @return string The return URL.
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	public function getReturnUrl(): string {
 		return $this->returnUrl;
@@ -200,7 +200,7 @@ class LtiLaunchRequestedEvent extends Event {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	public function setLoginInitiation(array $loginInitiation): void {
 		$this->loginInitiation = $loginInitiation;
@@ -212,7 +212,7 @@ class LtiLaunchRequestedEvent extends Event {
 	 *
 	 * @return array{formActionUrl: string, method: string, fields: array<string, string>}|null The form.
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	public function getLoginInitiation(): ?array {
 		return $this->loginInitiation;
@@ -227,7 +227,7 @@ class LtiLaunchRequestedEvent extends Event {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	public function refuse(string $code, string $reason): void {
 		$this->refusal = ['code' => $code, 'reason' => $reason];
@@ -239,7 +239,7 @@ class LtiLaunchRequestedEvent extends Event {
 	 *
 	 * @return array{code: string, reason: string}|null The refusal.
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	public function getRefusal(): ?array {
 		return $this->refusal;
@@ -251,7 +251,7 @@ class LtiLaunchRequestedEvent extends Event {
 	 *
 	 * @return bool True once either slot is set.
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	public function isHandled(): bool {
 		return $this->loginInitiation !== null || $this->refusal !== null;

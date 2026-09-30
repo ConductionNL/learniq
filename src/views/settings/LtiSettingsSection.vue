@@ -7,7 +7,7 @@
  (content-lti-launch-through-integriq). Integriq creates the subscription; this
  field only stores its id as lti_ags_subscription_id.
 
- @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-the-connection-registry-says-whether-lti-works
+ @spec openspec/specs/course-management/spec.md#requirement-the-connection-registry-says-whether-lti-works
 -->
 <template>
 	<NcSettingsSection
@@ -74,7 +74,7 @@ export default {
 
 	/**
 	 * @return {void}
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-the-connection-registry-says-whether-lti-works
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-connection-registry-says-whether-lti-works
 	 */
 	mounted() {
 		this.load()
@@ -83,7 +83,7 @@ export default {
 	methods: {
 		/**
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-the-connection-registry-says-whether-lti-works
+		 * @spec openspec/specs/course-management/spec.md#requirement-the-connection-registry-says-whether-lti-works
 		 */
 		async load() {
 			this.loading = true
@@ -103,7 +103,7 @@ export default {
 
 		/**
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-the-connection-registry-says-whether-lti-works
+		 * @spec openspec/specs/course-management/spec.md#requirement-the-connection-registry-says-whether-lti-works
 		 */
 		async save() {
 			this.saving = true
