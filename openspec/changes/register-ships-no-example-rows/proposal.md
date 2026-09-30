@@ -9,7 +9,7 @@ These twelve rows sit in `lib/Settings/learniq_register.json` under `components.
 ## What changes
 
 - `components.objects` keeps only the `AVG` regulation, which the sets reference by code.
-- `info.version` moves to 0.34.18.
+- `info.version` moves up one patch version.
 - A register test fails when the register seeds anything other than a reference row.
 
 ## Not changed
