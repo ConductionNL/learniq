@@ -143,6 +143,7 @@ import SchoolOutline from 'vue-material-design-icons/SchoolOutline.vue'
 import ShareVariant from 'vue-material-design-icons/ShareVariant.vue'
 import ShareVariantOutline from 'vue-material-design-icons/ShareVariantOutline.vue'
 import ShieldAccountOutline from 'vue-material-design-icons/ShieldAccountOutline.vue'
+import ShieldAlertOutline from 'vue-material-design-icons/ShieldAlertOutline.vue'
 import ShieldCheckOutline from 'vue-material-design-icons/ShieldCheckOutline.vue'
 import SignDirection from 'vue-material-design-icons/SignDirection.vue'
 import Sitemap from 'vue-material-design-icons/Sitemap.vue'
@@ -299,6 +300,7 @@ export default {
 	ShareVariant,
 	ShareVariantOutline,
 	ShieldAccountOutline,
+	ShieldAlertOutline,
 	ShieldCheckOutline,
 	SignDirection,
 	Sitemap,

@@ -28981,6 +28981,34 @@
       {
         "@self": {
           "register": "learniq",
+          "schema": "concern-report",
+          "slug": "concern-report-voorbeeld-1"
+        },
+        "topic": "bullying",
+        "description": "Voorbeeld: in de pauze wordt mijn tas steeds afgepakt.",
+        "happenedOn": "2026-03-02",
+        "wantsConversation": true,
+        "status": "received",
+        "reporterId": "Voorbeeld Reporterid 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "concern-report",
+          "slug": "concern-report-voorbeeld-2"
+        },
+        "topic": "harassment",
+        "description": "Voorbeeld: ik krijg steeds berichten die ik niet wil.",
+        "happenedOn": null,
+        "wantsConversation": false,
+        "status": "in-progress",
+        "reporterId": "Voorbeeld Reporterid 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000002"
+      },
+      {
+        "@self": {
+          "register": "learniq",
           "schema": "CurriculumCoverage",
           "slug": "curriculum-coverage-groep-5-all"
         },
