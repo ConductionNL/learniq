@@ -17302,7 +17302,7 @@
             "ExcuseRequest": {
                 "slug": "excuse-request",
                 "icon": "FileDocumentEditOutline",
-                "version": "0.3.0",
+                "version": "0.3.1",
                 "title": "ExcuseRequest",
                 "description": "Absence excuse submitted by a learner, parent, or 18+ learner-self for a date range. On approval, matching AttendanceRecords are flipped to absent-excused by ExcuseApprovalHandler.",
                 "type": "object",
