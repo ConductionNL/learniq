@@ -230,11 +230,16 @@ class CredentialIssuanceHandler implements IEventListener {
 		$credentialId = (string)$signed['id'];
 		unset($signed['id']);
 
+		// Issuance is the system's act, not the act of the teacher whose
+		// transition completed the enrolment: Credential `create` is granted to
+		// hr and compliance officers only, so saving under the caller's rights
+		// refused every live issue (NotAuthorizedException, 2026-09-30).
 		$this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: 'credential',
 			object: $signed,
-			uuid: $credentialId
+			uuid: $credentialId,
+			_rbac: false
 		);
 	}//end saveSignedCredential()
 
