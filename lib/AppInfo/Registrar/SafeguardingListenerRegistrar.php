@@ -73,5 +73,9 @@ class SafeguardingListenerRegistrar {
 			event: ObjectUpdatingEvent::class,
 			listener: RegulationExemptionRequestStamp::class
 		);
+
+		// The four-eyes correction listeners (governance-four-eyes-on-approved-data),
+		// chained here for the same coupling reason this registrar is chained.
+		(new GovernanceListenerRegistrar())->register(context: $context);
 	}//end register()
 }//end class

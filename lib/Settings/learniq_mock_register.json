@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.46",
+    "version": "1.1.47",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -30054,6 +30054,25 @@
         "availableFrom": "2026-03-03T09:00:00+00:00",
         "availableUntil": "2026-03-03T17:00:00+00:00",
         "tenant_id": "00000000-0000-4000-8000-000000000002"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "data-correction-request",
+          "slug": "data-correction-request-voorbeeld-1"
+        },
+        "gradeEntryId": "00000000-0000-4000-8000-000000000001",
+        "proposedValue": 6.5,
+        "reason": "Voorbeeld: een bladzijde van de toets is niet meegeteld.",
+        "currentValue": 5.5,
+        "requestedBy": "Voorbeeld Requestedby 1",
+        "decisionNote": null,
+        "decidedBy": null,
+        "decidedAt": null,
+        "appliedBy": null,
+        "appliedAt": null,
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "lifecycle": "requested"
       }
     ]
   }
