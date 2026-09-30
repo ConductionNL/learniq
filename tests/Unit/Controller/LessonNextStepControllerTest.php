@@ -201,4 +201,35 @@ class LessonNextStepControllerTest extends TestCase {
 		$end = $this->controller(uid: 'jan')->nextStep(lessonId: 'l-module-2');
 		self::assertSame(['nextLessonId' => null, 'nextLessonName' => null, 'rule' => null], $end->getData());
 	}//end testMissingCallerAndObjects()
+
+	/**
+	 * A lesson without a course enrols nobody, and the course preview keeps
+	 * only well-formed lessons of the asked course.
+	 *
+	 * @return void
+	 */
+	public function testALessonWithoutACourseAndStrayRows(): void {
+		$controller = $this->controller(uid: 'jan');
+		$this->store->rows['lesson'][] = ['id' => 'l-loose', 'name' => 'Loose'];
+		self::assertSame(Http::STATUS_FORBIDDEN, $controller->nextStep(lessonId: 'l-loose')->getStatus());
+
+		$objects = $this->createMock(ObjectService::class);
+		$objects->method('find')->willReturn(OrEntityFactory::make(['id' => 'c-1', 'name' => 'Safe lifting'], 'course'));
+		$objects->method('findAll')->willReturn(
+			['not an object', ['id' => 'l-x', 'courseId' => 'c-2', 'name' => 'Stray'], ['id' => 'l-y', 'courseId' => 'c-1', 'name' => 'Kept']]
+		);
+		$session = $this->createMock(IUserSession::class);
+		$session->method('getUser')->willReturn($this->createMock(IUser::class));
+		$roles = $this->createMock(DashboardRoleService::class);
+		$roles->method('resolveViews')->willReturn(['teacher']);
+		$preview = new LessonNextStepController(
+			request: $this->createMock(IRequest::class),
+			userSession: $session,
+			objectService: $objects,
+			resolver: new NextStepResolver(evaluator: new LessonReleaseEvaluator(objectService: $objects)),
+			dashboardRoleService: $roles,
+		);
+
+		self::assertSame(['Kept'], array_column($preview->coursePreview(courseId: 'c-1')->getData()['lessons'], 'name'));
+	}//end testALessonWithoutACourseAndStrayRows()
 }//end class
