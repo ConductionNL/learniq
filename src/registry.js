@@ -77,6 +77,8 @@ import ContactHoursReport from './views/ContactHoursReport.vue'
 // ship with, not one this change introduces.
 import CourseBuilder from './views/CourseBuilder.vue'
 import CourseCatalogue from './views/CourseCatalogue.vue'
+// content-adaptive-next-step-and-preview: Preview as learner from the course page.
+import CoursePreviewView from './views/CoursePreviewView.vue'
 // course-package-import-export: the one genuine new custom view this change
 // adds — uploads a Common Cartridge/Moodle course package and renders the
 // resulting CoursePackageImportReport's entries table. Course export reuses
@@ -299,6 +301,7 @@ export default {
 	LessonPlayer: page(LessonPlayer),
 	MarkSubmissionView: page(MarkSubmissionView),
 	ReissueCertificatesView: page(ReissueCertificatesView),
+	CoursePreviewView: page(CoursePreviewView),
 	MyWorkGroups: page(MyWorkGroups),
 	AllocateMarkersView: page(AllocateMarkersView),
 	MyLearningRecordView: page(MyLearningRecordView),

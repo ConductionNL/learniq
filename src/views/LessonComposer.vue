@@ -417,6 +417,15 @@
 				</button>
 			</section>
 
+			<LessonNextStepEditor
+				v-if="lesson"
+				:rules="nextStepRules"
+				:defaultNextLessonId="defaultNextLessonId"
+				:lessons="courseLessons"
+				:assessments="assessments"
+				@update:rules="onNextStepRules"
+				@update:defaultNextLessonId="onDefaultNextLesson" />
+
 			<LessonAssistPanel
 				v-if="assistEnabled"
 				ref="assistPanel"
@@ -443,6 +452,7 @@ import ChevronUp from 'vue-material-design-icons/ChevronUp.vue'
 import DeleteOutline from 'vue-material-design-icons/DeleteOutline.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import LessonAssistPanel from '../components/lesson/LessonAssistPanel.vue'
+import LessonNextStepEditor from '../components/lesson/LessonNextStepEditor.vue'
 import { GOAL_COUNT_MAX, isHermiqEnabled } from '../utils/lessonAssist.js'
 import {
 	countPendingDrafts,
@@ -454,6 +464,7 @@ import {
 	splitTeacherNotes,
 	TEACHER_NOTE_SCHEMA,
 } from '../utils/lessonBlocks.js'
+import { isNextStepRefusal } from '../utils/lessonPreview.js'
 
 /**
  * Material.kind inferred from a picked file's MIME type (design.md D3 task 4.4).
@@ -479,6 +490,7 @@ export default {
 		CnMarkdownEditor,
 		Draggable: draggable,
 		LessonAssistPanel,
+		LessonNextStepEditor,
 		AutoFix,
 		ChevronUp,
 		ChevronDown,
@@ -541,6 +553,13 @@ export default {
 			competencyIds: [],
 			/** A goal suggestion was added since the last save. */
 			competencyIdsDirty: false,
+			// content-adaptive-next-step-and-preview: the next step rules and
+			// default as edited, saved with the blocks when changed.
+			nextStepRules: [],
+			defaultNextLessonId: null,
+			nextStepDirty: false,
+			/** The course's other lessons, the targets a rule can pick. */
+			courseLessons: [],
 		}
 	},
 
@@ -617,29 +636,46 @@ export default {
 					await this.loadAssistGoals()
 				}
 
-				const [materials, assessments, assignments, ltiToolPlacements] =
-					await Promise.all([
-						this.fetchList(
-							'Material',
-							`filters[lessonId]=${this.lessonId}&_limit=200`,
-						),
-						this.fetchList(
-							'exam',
-							`filters[courseId]=${this.courseId}&_limit=200`,
-						),
-						this.fetchList(
-							'Assignment',
-							`filters[courseId]=${this.courseId}&_limit=200`,
-						),
-						this.fetchList(
-							'lti-tool-placement',
-							`filters[courseId]=${this.courseId}&_limit=200`,
-						),
-					])
+				this.nextStepRules = Array.isArray(this.lesson.nextStepRules)
+					? this.lesson.nextStepRules
+					: []
+				this.defaultNextLessonId = this.lesson.defaultNextLessonId ?? null
+				this.nextStepDirty = false
+				const [
+					materials,
+					assessments,
+					assignments,
+					ltiToolPlacements,
+					courseLessons,
+				] = await Promise.all([
+					this.fetchList(
+						'Material',
+						`filters[lessonId]=${this.lessonId}&_limit=200`,
+					),
+					this.fetchList(
+						'exam',
+						`filters[courseId]=${this.courseId}&_limit=200`,
+					),
+					this.fetchList(
+						'Assignment',
+						`filters[courseId]=${this.courseId}&_limit=200`,
+					),
+					this.fetchList(
+						'lti-tool-placement',
+						`filters[courseId]=${this.courseId}&_limit=200`,
+					),
+					this.fetchList(
+						'Lesson',
+						`filters[courseId]=${this.courseId}&_limit=500`,
+					),
+				])
 				this.materials = materials
 				this.assessments = assessments
 				this.assignments = assignments
 				this.ltiToolPlacements = ltiToolPlacements
+				this.courseLessons = courseLessons.filter(
+					(l) => l.id !== this.lessonId,
+				)
 			} catch (err) {
 				this.error = this.t(
 					'learniq',
@@ -1081,7 +1117,36 @@ export default {
 			if (this.competencyIdsDirty) {
 				body.competencyIds = this.competencyIds.slice()
 			}
+			if (this.nextStepDirty) {
+				body.nextStepRules = this.nextStepRules
+				body.defaultNextLessonId = this.defaultNextLessonId
+			}
 			return body
+		},
+
+		/**
+		 * The next step editor changed its rules.
+		 *
+		 * @param {Array<object>} rules The rules as they will be saved.
+		 * @return {void}
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
+		 */
+		onNextStepRules(rules) {
+			this.nextStepRules = rules
+			this.nextStepDirty = true
+			this.saveDone = false
+		},
+
+		/**
+		 * The next step editor changed the default next lesson.
+		 *
+		 * @param {string|null} lessonId The lesson, or null for none.
+		 * @return {void}
+		 */
+		onDefaultNextLesson(lessonId) {
+			this.defaultNextLessonId = lessonId
+			this.nextStepDirty = true
+			this.saveDone = false
 		},
 
 		/**
@@ -1237,8 +1302,19 @@ export default {
 					body: JSON.stringify(this.saveBody()),
 				})
 				if (!resp.ok) {
+					const refused = await resp.json().catch(() => ({}))
+					if (isNextStepRefusal(refused)) {
+						// The server's reason, in the author's language
+						// (LessonNextStepGuard).
+						this.saveError = this.t(
+							'learniq',
+							'A next step can only go to a lesson of the same course.',
+						)
+						return
+					}
 					throw new Error(`Lesson blocks save failed: ${resp.status}`)
 				}
+				this.nextStepDirty = false
 				this.lesson.blocks = splitTeacherNotes(this.blocks).blocks
 				if (!(await this.saveTeacherNotes())) {
 					this.saveError = this.t(
