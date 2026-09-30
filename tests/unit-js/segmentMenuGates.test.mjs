@@ -125,11 +125,14 @@ function surfaces(state, all = false) {
 
 // Entries the admin deliberately does not get, because the admin reaches the
 // same page elsewhere: the Sign-up requests entries for line managers and team
-// leads under My learning duplicate the admin's People entry. They are role
-// gates, not segment gates, so they are left out of what this test compares.
+// leads under My learning duplicate the admin's People entry, and the line
+// manager's Request an exemption entry duplicates the admin's Exemptions entry
+// under Compliance. They are role gates, not segment gates, so they are left
+// out of what this test compares.
 const ADMIN_REACHES_ELSEWHERE = new Set([
 	'menu:ManagerSignUpRequestsMenu',
 	'menu:TeamLeadSignUpRequestsMenu',
+	'menu:RequestExemptionMenu',
 ])
 const ALL = surfaces(NEVER, true)
 function hiddenIn(state) {

@@ -73,7 +73,6 @@
 			"icon": "ShieldOffOutline",
 			"route": "RegulationExemptions",
 			"order": 54,
-			"_note": "A line manager (user.managesLearners) asks for an exemption for a direct report. The read rule narrows the list to the requests they made; RegulationExemptionRequestStamp refuses a person who does not report to them. The notIn list is the roles that already reach RegulationExemptionsMenu, so nobody sees the entry twice.",
 			"visibleIf": {
 				"user.managesLearners": true,
 				"user.primaryRole": {
@@ -471,7 +470,8 @@
 			"title": "Exemptions",
 			"config": {
 				"register": "learniq",
-				"schema": "regulation-exemption"
+				"schema": "regulation-exemption",
+				"_note": "Reached by compliance officers, hr and admin through RegulationExemptionsMenu, and by a line manager through RequestExemptionMenu (user.managesLearners; its notIn list is the roles that already reach RegulationExemptionsMenu, so nobody sees the entry twice). The read rule narrows a line manager's list to the requests they made; RegulationExemptionRequestStamp refuses a person who does not report to them."
 			}
 		},
 		{

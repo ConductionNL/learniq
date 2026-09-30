@@ -125,6 +125,19 @@ class RegulationExemptionRequestStamp implements IEventListener {
 			return;
 		}
 
+		$this->stampRequest(event: $event);
+	}//end handle()
+
+	/**
+	 * Stamp a new request: the requester is the session user, the state is
+	 * requested, no decision comes in with it, and a caller who is not an
+	 * officer may only ask for a direct report.
+	 *
+	 * @param ObjectCreatingEvent $event The create event.
+	 *
+	 * @return void
+	 */
+	private function stampRequest(ObjectCreatingEvent $event): void {
 		$userId = (string)($this->userSession->getUser()?->getUID() ?? '');
 		if ($userId === '') {
 			$this->refuse(event: $event, reason: 'exemption-no-session');
@@ -144,7 +157,7 @@ class RegulationExemptionRequestStamp implements IEventListener {
 				['requestedBy' => $userId, 'lifecycle' => 'requested']
 			)
 		);
-	}//end handle()
+	}//end stampRequest()
 
 	/**
 	 * The object being written: an update carries it in getNewObject(), only

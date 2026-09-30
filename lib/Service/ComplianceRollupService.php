@@ -59,6 +59,7 @@ class ComplianceRollupService {
 	 * @param ObjectService              $objectService   OR object access.
 	 * @param RegulationAudienceResolver $audience        Audience-scope predicate.
 	 * @param ExternalTrainingService    $trainingService Coverage predicate.
+	 * @param RunningExemptions          $runningExemptions The exemptions that run on a day.
 	 *
 	 * @return void
 	 */
@@ -66,6 +67,7 @@ class ComplianceRollupService {
 		private readonly ObjectService $objectService,
 		private readonly RegulationAudienceResolver $audience,
 		private readonly ExternalTrainingService $trainingService,
+		private readonly RunningExemptions $runningExemptions=new RunningExemptions(),
 	) {
 	}//end __construct()
 
@@ -141,7 +143,7 @@ class ComplianceRollupService {
 		DateTimeImmutable $horizon,
 	): array {
 		$keys = $this->learnerKeys(profile: $profile);
-		$excusedFrom = $this->excusedFrom(keys: $keys, exemptions: $exemptions, now: $now);
+		$excusedFrom = $this->runningExemptions->regulationsFor(keys: $keys, exemptions: $exemptions, now: $now);
 		$regulationFigures = $this->regulationFigures(profile: $profile, keys: $keys, regulations: $regulations, excusedFrom: $excusedFrom, now: $now);
 		$deadlineFigures = $this->deadlineFigures(keys: $keys, enrolments: $enrolments, now: $now, horizon: $horizon);
 
@@ -192,38 +194,6 @@ class ComplianceRollupService {
 
 		return $figures;
 	}//end regulationFigures()
-
-	/**
-	 * The regulations a learner holds a granted exemption from on this day:
-	 * started (no start date, or on or before today) and not ended (its last
-	 * day is today or later).
-	 *
-	 * @param array<int,string>              $keys       The learner's keys.
-	 * @param array<int,array<string,mixed>> $exemptions Granted regulation exemptions.
-	 * @param DateTimeImmutable              $now        Evaluation instant.
-	 *
-	 * @return array<string,true> Regulation slugs.
-	 *
-	 * @spec openspec/changes/compliance-exemption-record/specs/compliance-exemptions/spec.md#scenario-the-exemption-lapses
-	 */
-	private function excusedFrom(array $keys, array $exemptions, DateTimeImmutable $now): array {
-		$today = $now->format('Y-m-d');
-		$slugs = [];
-		foreach ($exemptions as $exemption) {
-			$learner = (string)($exemption['learnerId'] ?? '');
-			$from    = substr((string)($exemption['validFrom'] ?? ''), 0, 10);
-			$until   = substr((string)($exemption['validUntil'] ?? ''), 0, 10);
-			if (($exemption['lifecycle'] ?? '') !== 'granted' || $learner === '' || in_array($learner, $keys, true) === false
-				|| $until === '' || $until < $today || ($from !== '' && $from > $today)
-			) {
-				continue;
-			}
-
-			$slugs[(string)($exemption['regulationSlug'] ?? '')] = true;
-		}
-
-		return $slugs;
-	}//end excusedFrom()
 
 	/**
 	 * Upcoming and overdue open mandatory enrolments for one learner.
