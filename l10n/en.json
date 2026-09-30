@@ -2899,7 +2899,16 @@
         "Exemptions": "Exemptions",
         "Request an exemption": "Request an exemption",
         "Excused": "Excused",
-        "A decision that one person does not have to follow one mandatory training rule for a while, with the reason. A line manager asks for a person who reports to them (the person's profile names them as manager), or a compliance officer asks for anyone; another compliance officer decides. A granted exemption takes the person out of that rule's coverage figures until its end date and counts them as excused. compliance-exemptions.": "A decision that one person does not have to follow one mandatory training rule for a while, with the reason. A line manager asks for a person who reports to them (the person's profile names them as manager), or a compliance officer asks for anyone; another compliance officer decides. A granted exemption takes the person out of that rule's coverage figures until its end date and counts them as excused. compliance-exemptions."
+        "A decision that one person does not have to follow one mandatory training rule for a while, with the reason. A line manager asks for a person who reports to them (the person's profile names them as manager), or a compliance officer asks for anyone; another compliance officer decides. A granted exemption takes the person out of that rule's coverage figures until its end date and counts them as excused. compliance-exemptions.": "A decision that one person does not have to follow one mandatory training rule for a while, with the reason. A line manager asks for a person who reports to them (the person's profile names them as manager), or a compliance officer asks for anyone; another compliance officer decides. A granted exemption takes the person out of that rule's coverage figures until its end date and counts them as excused. compliance-exemptions.",
+        "Mandatory courses": "Mandatory courses",
+        "The courses everyone in this programme must complete. The other courses are optional. Each new enrolment starts from this list. A manager can change it for one person. Leave empty to keep every course optional.": "The courses everyone in this programme must complete. The other courses are optional. Each new enrolment starts from this list. A manager can change it for one person. Leave empty to keep every course optional.",
+        "You are not enrolled in a programme": "You are not enrolled in a programme",
+        "Mandatory courses done: {percent}%": "Mandatory courses done: {percent}%",
+        "{done} of {total} mandatory courses done": "{done} of {total} mandatory courses done",
+        "Optional courses": "Optional courses",
+        "Started": "Started",
+        "Done": "Done",
+        "My programmes": "My programmes"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
