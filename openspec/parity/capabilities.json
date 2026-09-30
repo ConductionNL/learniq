@@ -2001,15 +2001,17 @@
       "area": "content",
       "name": "Drop an external tool into a lesson over LTI 1.3.",
       "built": {
-        "state": "specified",
-        "evidence": "The placement model and lib/Controller/LtiToolPlacementController.php exist, but lib/Settings/connections.json marks lti unavailable: a launch calls api/lti/deployments/[id]/launch on integriq, which has no such endpoint, so no tool opens. Specified in ConductionNL/integriq openspec/changes/connectors-lti-platform-launch/ (integriq#2207, 413357ec). Learniq's half: openspec/changes/content-lti-launch-through-integriq/. (OpenSpec pass 2026-09-27)",
-        "owner": "ConductionNL/integriq"
+        "state": "built",
+        "evidence": "lib/Controller/LtiToolPlacementController.php launches through integriq with a typed LtiLaunchRequestedEvent (appinfo/routes.php:158); integriq signs the id_token. Live 2026-09-30 on the shared instance with the 1EdTech-derived packbackbooks/lti-1p3-tool 6.4.4 in conformant mode: launch, OIDC login and id_token checks (state, nonce, RS256 against integriq's JWKS, deployment, message) passed, claims carried resource_link, roles, context and the AGS endpoint (#1546).",
+        "owner": "ConductionNL/integriq",
+        "change": "openspec/changes/archive/2026-09-30-content-lti-launch-through-integriq",
+        "reachedOn": "/courses/:courseId/lessons/:lessonId/play"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
       "feature": "content-standards",
       "featureConfidence": "medium",
-      "learniq": "no",
+      "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
       "ilias": "yes",
@@ -2030,15 +2032,17 @@
       "area": "content",
       "name": "Let an external tool send its grade back into your gradebook.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/BackgroundJob/LtiAgsScorePollJob.php no-ops without a subscription id, and lib/Settings/connections.json notes grades only come back from a tool that opened, which none does. Specified in ConductionNL/integriq openspec/changes/connectors-lti-platform-launch/ (integriq#2207, 413357ec). Learniq's half: openspec/changes/content-lti-launch-through-integriq/. (OpenSpec pass 2026-09-27)",
-        "owner": "ConductionNL/integriq"
+        "state": "built",
+        "evidence": "The tool posts a score to integriq's AGS scores endpoint (HTTP 200, messagesCreated 1) and lib/BackgroundJob/LtiAgsScorePollJob.php pulls it in system context (#1534) into a GradeEntry on the placement that launched it: 8/10 on a 1-10 scale saved as 8.2 for the right learner, placement, plan and component. Live 2026-09-30 (#1546).",
+        "owner": "ConductionNL/integriq",
+        "change": "openspec/changes/archive/2026-09-30-content-lti-launch-through-integriq",
+        "reachedOn": "/grades/entries"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
       "feature": "content-standards",
       "featureConfidence": "medium",
-      "learniq": "no",
+      "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
       "ilias": "partial",

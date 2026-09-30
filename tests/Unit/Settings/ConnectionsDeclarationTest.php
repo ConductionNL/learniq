@@ -286,7 +286,7 @@ class ConnectionsDeclarationTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-the-connection-registry-says-whether-lti-works
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-connection-registry-says-whether-lti-works
 	 */
 	public function testLtiLaunchesThroughIntegriqsEventAndIsReported(): void {
 		$byKey = $this->connectionsByKey();

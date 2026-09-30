@@ -214,7 +214,7 @@ class LtiAgsScorePollJob extends TimedJob {
 	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.2
 	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.3
 	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.4
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-a-returned-grade-lands-on-the-placement-that-launched-it
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-returned-grade-lands-on-the-placement-that-launched-it
 	 */
 	private function processMessage(array $message): bool {
 		$resultId = (string)($message['id'] ?? ($message['uuid'] ?? ''));
@@ -405,7 +405,7 @@ class LtiAgsScorePollJob extends TimedJob {
 	 *
 	 * @return array<string,mixed>|null The placement, or null.
 	 *
-	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-a-returned-grade-lands-on-the-placement-that-launched-it
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-returned-grade-lands-on-the-placement-that-launched-it
 	 */
 	private function resolvePlacementByLineItem(string $lineItemId, string $deploymentUuid): ?array {
 		if ($lineItemId === '') {
