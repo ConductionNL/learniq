@@ -100,7 +100,7 @@ class CredentialIssuanceHandlerTest extends TestCase {
 	/**
 	 * Every saveObject() call the handler made, as [object, schema, uuid].
 	 *
-	 * @var array<int, array{object: array<string,mixed>, schema: mixed, uuid: ?string}>
+	 * @var array<int, array{object: array<string,mixed>, schema: mixed, uuid: ?string, rbac: bool}>
 	 */
 	private array $saved = [];
 
@@ -261,6 +261,22 @@ class CredentialIssuanceHandlerTest extends TestCase {
 		self::assertSame('urn:learniq:learner:' . self::LEARNER_PROFILE, $credential['openbadges3Payload']['credentialSubject']['id']);
 		self::assertStringNotContainsString(self::LEARNER_UID, (string)json_encode($credential['openbadges3Payload']), 'The user id never enters the signed payload.');
 	}//end testTheCredentialNamesTheProfileAndCarriesTheUserId()
+
+	/**
+	 * The credential is saved as the system, not under the rights of the
+	 * teacher whose transition completed the enrolment. Credential `create`
+	 * belongs to hr and compliance officers only; saving with RBAC made
+	 * OpenRegister refuse every live issue.
+	 *
+	 * @return void
+	 */
+	public function testTheCredentialIsSavedAsTheSystemNotAsTheTeacher(): void {
+		$handler = $this->buildHandler(tenantHasKey: true);
+		$handler->handle($this->completionEvent());
+
+		self::assertCount(1, $this->saved);
+		self::assertFalse($this->saved[0]['rbac'], 'saveObject() must run with _rbac: false');
+	}//end testTheCredentialIsSavedAsTheSystemNotAsTheTeacher()
 
 	/**
 	 * A learner without a LearnerProfile in the tenant gets no credential,
@@ -424,13 +440,13 @@ class CredentialIssuanceHandlerTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], mixed $register = null, mixed $schema = null, ?string $uuid = null): ObjectEntity {
+			function (array|ObjectEntity $object, ?array $extend = [], mixed $register = null, mixed $schema = null, ?string $uuid = null, bool $_rbac = true): ObjectEntity {
 				$data = $object;
 				if ($object instanceof ObjectEntity) {
 					$data = (array)$object->getObject();
 				}
 
-				$this->saved[] = ['object' => $data, 'schema' => $schema, 'uuid' => $uuid];
+				$this->saved[] = ['object' => $data, 'schema' => $schema, 'uuid' => $uuid, 'rbac' => $_rbac];
 				return OrEntityFactory::make($data, (string)$schema, 'learniq', $uuid);
 			}
 		);
