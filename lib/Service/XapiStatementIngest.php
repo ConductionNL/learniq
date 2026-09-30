@@ -35,7 +35,10 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use InvalidArgumentException;
+use OCA\Learniq\Exception\XapiRequestException;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Http;
 
 /**
  * Stamps and stores xAPI statements, and reads them back scoped to a learner.
@@ -84,10 +87,12 @@ class XapiStatementIngest {
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param CallerTenantResolver $tenants Resolves the tenant: the per-user binding, else the default tenant.
+	 * @param XapiStatementComparator $comparator Decides whether a re-sent statement matches the stored one.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly CallerTenantResolver $tenants,
+		private readonly XapiStatementComparator $comparator = new XapiStatementComparator(),
 	) {
 	}//end __construct()
 
@@ -109,10 +114,25 @@ class XapiStatementIngest {
 			throw new InvalidArgumentException('Send between 1 and ' . self::MAX_BATCH . ' statements');
 		}
 
+		// Classify the whole batch before writing any of it: a known id with a
+		// matching statement is a no-op, a known id with a different statement
+		// is a 409 for the batch, and nothing is stored when one conflicts.
 		$tenantId = $this->tenantFor(userId: $actorId);
 		$ids      = [];
+		$toStore  = [];
 		foreach ($statements as $statement) {
 			$row = $this->stamp(statement: $statement, actorId: $actorId, tenantId: $tenantId, launch: $launch);
+			if (in_array($row['id'], $ids, true) === true) {
+				throw new InvalidArgumentException('A batch may not carry the same statement id twice');
+			}
+
+			$ids[] = $row['id'];
+			if ($this->alreadyStored(row: $row, statement: $statement, actorId: $actorId) === false) {
+				$toStore[] = $row;
+			}
+		}
+
+		foreach ($toStore as $row) {
 			$this->objectService->saveObject(
 				object: $row,
 				register: self::REGISTER,
@@ -120,7 +140,6 @@ class XapiStatementIngest {
 				uuid: $row['id'],
 				_rbac: false
 			);
-			$ids[] = $row['id'];
 		}
 
 		return $ids;
@@ -190,6 +209,62 @@ class XapiStatementIngest {
 
 		return $row;
 	}//end stamp()
+
+	/**
+	 * Whether a statement with this id is already stored and matches (xAPI 1.0.3 Communication 2.1.3).
+	 *
+	 * Only a statement that sent its own id can be known. The stored one must
+	 * belong to the same authenticated learner and be equivalent; anything else
+	 * is a conflict, answered without saying whose statement holds the id.
+	 *
+	 * @param array<string, mixed> $row       The stamped row.
+	 * @param array<string, mixed> $statement The statement as sent.
+	 * @param string               $actorId   The authenticated uid.
+	 *
+	 * @return bool True when the statement is a no-op re-send.
+	 *
+	 * @throws XapiRequestException 409 when a different statement holds the id.
+	 */
+	private function alreadyStored(array $row, array $statement, string $actorId): bool {
+		if (strtolower((string)($statement['id'] ?? '')) !== $row['id']) {
+			return false;
+		}
+
+		$stored = $this->storedStatement(id: $row['id']);
+		if ($stored === null) {
+			return false;
+		}
+
+		if ((string)($stored['verified_actor_id'] ?? '') !== $actorId || $this->comparator->equivalent(incoming: $statement, stored: $stored) === false) {
+			throw new XapiRequestException(
+				status: Http::STATUS_CONFLICT,
+				message: 'A different statement is already stored with id ' . $row['id']
+			);
+		}
+
+		return true;
+	}//end alreadyStored()
+
+	/**
+	 * The stored statement with this id, or null.
+	 *
+	 * @param string $id The statement id.
+	 *
+	 * @return array<string, mixed>|null The stored statement.
+	 */
+	private function storedStatement(string $id): ?array {
+		try {
+			$entity = $this->objectService->find(id: $id, register: self::REGISTER, schema: self::SCHEMA, _rbac: false, _multitenancy: false);
+		} catch (DoesNotExistException $e) {
+			return null;
+		}
+
+		if ($entity === null) {
+			return null;
+		}
+
+		return $entity->jsonSerialize();
+	}//end storedStatement()
 
 	/**
 	 * The statement's own UUID when it sent a valid one, else a fresh v4 UUID.

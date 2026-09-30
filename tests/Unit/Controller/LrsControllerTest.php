@@ -186,6 +186,31 @@ class LrsControllerTest extends TestCase {
 	}//end testUnauthenticatedCallersStoreNothing()
 
 	/**
+	 * A statement id already held by a different statement answers 409 and stores nothing.
+	 *
+	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#9-statement-id-conflicts
+	 *
+	 * @return void
+	 */
+	public function testKnownIdWithADifferentStatementAnswers409(): void {
+		$id     = '7a394703-09fd-436b-9c90-78da537af5a5';
+		$stored = $this->createMock(ObjectEntity::class);
+		$stored->method('jsonSerialize')->willReturn(self::SPOOFED + ['id' => $id, 'verified_actor_id' => 'pupil1', 'result' => ['success' => false]]);
+		$this->objectService->method('find')->willReturn($stored);
+
+		$response = $this->controller(
+			params: self::SPOOFED + ['id' => $id],
+			auth: 'Basic signed.jwt.token',
+			sessionUid: null,
+			csrfOk: false,
+			claims: ['sub' => 'pupil1', 'aud' => 'lesson-1']
+		)->postStatements();
+
+		self::assertSame(Http::STATUS_CONFLICT, $response->getStatus());
+		self::assertSame([], $this->saved);
+	}//end testKnownIdWithADifferentStatementAnswers409()
+
+	/**
 	 * A statement without a verb id is refused with 400.
 	 *
 	 * @return void
