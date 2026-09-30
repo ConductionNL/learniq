@@ -31,7 +31,7 @@ No competitor rated yes. Moodle and Chamilo are partial (an anonymous survey or 
 - Every signed-in user can create one. Only members of `confidential-counsellors` and the reporter can read it. Only counsellors can change or delete it.
 - A listener stamps the reporter from the session on create and keeps it unchanged on every update, so nobody can file a report in another person's name or point it at someone else.
 - On create the counsellors get a Nextcloud notification that names no one.
-- The learner gets a "Report a concern" menu entry with a form and a list of their own reports and their status. The counsellor gets a "Reports" entry next to "Confidential notes".
+- The learner gets a "Report a concern" menu entry with a form and a list of their own reports and their status. The counsellor gets a "Concern reports" entry next to "Confidential notes".
 
 ## Capabilities
 

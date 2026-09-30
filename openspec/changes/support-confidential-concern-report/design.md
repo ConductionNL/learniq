@@ -18,14 +18,14 @@
 No other group appears. OpenRegister's owner bypass lets the creator through, which is the reporter: no new reader.
 
 ### D3: The reporter is stamped, never taken from the client
-`ConcernReportReporterStamp` on create sets `reporterId` to the session user and `tenant_id` to the reporter's profile tenant when there is one; with no session it refuses (`concern-no-session`). On update it restores `reporterId` from `getOldObject()`, so a counsellor or a crafted request cannot move a report to another person. `reporterId` is therefore not in `required` (OpenRegister checks `required` before listeners run); the listener enforces it. Without this stamp, a learner could set `reporterId` to a classmate, who would then be able to read the report.
+`ConcernReportReporterStamp` on create sets `reporterId` to the session user, `status` to `received`, and `tenant_id` to the reporter's profile tenant when there is one; with no session it refuses (`concern-no-session`). On update it restores `reporterId` from `getOldObject()`, so a counsellor or a crafted request cannot move a report to another person. `reporterId` is therefore not in `required` (OpenRegister checks `required` before listeners run); the listener enforces it. Without this stamp, a learner could set `reporterId` to a classmate, who would then be able to read the report.
 
 ### D4: The notification names no one
 `x-openregister-notifications.reportReceived`: trigger `created`, channel `nc-notification`, recipients `{"kind": "groups", "groups": ["confidential-counsellors"]}`, subject without placeholders ("A new confidential report has arrived" / "Er is een nieuwe vertrouwelijke melding binnengekomen"). The subject never carries the reporter, the topic or the text.
 
 ### D5: Menu
 - Learner: "Report a concern" (index of `concern-report`, which the read rule narrows to the learner's own rows, plus the create form). Visible to every signed-in user: staff can be harassed too.
-- Counsellor: "Reports", gated on `user.isConfidentialCounsellor` like "Confidential notes"; index and detail, detail with data and history only.
+- Counsellor: "Concern reports", gated on `user.isConfidentialCounsellor` like "Confidential notes"; index and detail, detail with data and history only.
 
 ### Declarative versus imperative
 | Behaviour | Path | Why |

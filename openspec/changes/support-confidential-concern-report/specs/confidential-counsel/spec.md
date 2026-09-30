@@ -20,7 +20,7 @@ The register MUST declare `ConcernReport` (slug `concern-report`) with `topic`, 
 
 #### Scenario: A counsellor reads and updates the report
 - **GIVEN** a concern report filed by `lrn-12`
-- **WHEN** a member of `confidential-counsellors` opens "Reports" and sets the status to in-progress
+- **WHEN** a member of `confidential-counsellors` opens "Concern reports" and sets the status to in-progress
 - **THEN** the counsellor sees the report and who filed it, and the learner sees status in-progress
 
 ### Requirement: The server decides who filed a report
@@ -45,9 +45,9 @@ On create, `ConcernReport` MUST notify the `confidential-counsellors` group thro
 - **THEN** `vp-01` receives the notification "A new confidential report has arrived" and no one outside the group receives one
 
 ### Requirement: The reports menu is shown to confidential counsellors only
-The manifest MUST expose a "Reports" entry for `concern-report`, gated on `user.isConfidentialCounsellor`, and a "Report a concern" entry for every signed-in user.
+The manifest MUST expose a "Concern reports" entry for `concern-report`, gated on `user.isConfidentialCounsellor`, and a "Report a concern" entry for every signed-in user.
 
 #### Scenario: A mentor sees only the report form
 - **GIVEN** a user in `instructors` only
 - **WHEN** the app navigation renders
-- **THEN** there is a "Report a concern" entry and no "Reports" entry
+- **THEN** there is a "Report a concern" entry and no "Concern reports" entry
