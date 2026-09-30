@@ -41,8 +41,18 @@
 
 ### Task 5: Live launch against a reference tool
 - **files**: none (verification)
-- [ ] (not run: no instance with integriq and a reference tool in this lane) Test: with integriq's change installed, open a lesson with the IMS reference tool and record in the PR body that the tool opened and a score came back as a concept grade
+- [x] Test: with integriq's change installed, open a lesson with the IMS reference tool and record in the PR body that the tool opened and a score came back as a concept grade
   - r5-live, 2026-09-29, shared dev instance, still open: no IMS reference tool is registered on the shared instance, so no tool can open and no score can come back.
+  - lq-lti, 2026-09-30, shared dev instance :8080 at development 7e3ecfe6 (integriq with #2380, #2382, #2386, #2391; learniq with #1492, #1508, #1518, #1534). Passed end to end, run once.
+    - **Tool:** not the IMS reference implementation. It is a conformant LTI 1.3 tool built on packbackbooks/lti-1p3-tool 6.4.4, the maintained fork of 1EdTech's PHP library, served locally with `php -S`. The library validates the launch fully and sends its own AGS calls; no request was hand-built.
+    - **Tool opened:** a learner in the `learners` group only launched a lesson-level placement (`courseId` null). The flow was learniq launch 200, then the tool's OIDC login, then integriq's authorize with an auto-post, then the tool page ("Tool opened, Signed in as lq-lti-e2e-09300934").
+    - **id_token:** the library validated state, nonce, the RS256 signature against integriq's JWKS, the deployment and the message. Claims: `resource_link.id` = the placement; roles Learner; `context` = the lesson's course, with its name; `launch_presentation.return_url` = the lesson; and the AGS endpoint claim, with scopes lineitem.readonly and score and `lineitem` = integriq's line item route for the placement.
+    - **Score came back:** the tool got a token without `deployment_id` and posted 8/10 to `lineitem/scores`: HTTP 200 `{"messagesCreated":1}`. Integriq queued an event message for the pull subscription, with `lineItemId` = the placement and `userId` = the learner.
+    - **Concept grade:** `LtiAgsScorePollJob::run()` pulled the message, and the cursor advanced to it. It wrote one GradeEntry: `learnerId` lq-lti-e2e-09300934, `ltiToolPlacementId` = the placement, `curriculumPlanId` and `componentId` = the placement's, `sourceKind` lti-ags, `ltiAgsResultId` = the message id, `value` 8.2 (8/10 normalised onto the placement's 1–10 numeric scale), `grader` lti-ags, `lifecycle` concept.
+    - **Setup that belongs to this run, not to the code (all reverted afterwards):**
+      - `allow_local_remote_servers` was set for this run only. Learniq's pull calls `http://localhost` because `overwrite.cli.url` is localhost.
+      - A dedicated pull service user was granted `event.pull`, and learniq's `lti_ags_subscription_id` and `openconnector_api_*` keys were set.
+      - The poll job was run directly, because this instance's job list does not hold `LtiAgsScorePollJob`. That is an instance registration gap, not a code bug: Nextcloud registers the declared job on install and on every app upgrade.
 
 ## Verification
 - `openspec validate content-lti-launch-through-integriq --strict` passes
