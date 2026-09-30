@@ -16890,6 +16890,17 @@
             },
             "title": "Course IDs"
           },
+          "mandatoryCourseIds": {
+            "type": "array",
+            "default": [],
+            "description": "The courses everyone in this programme must complete. The other courses are optional. Each new enrolment starts from this list. A manager can change it for one person. Leave empty to keep every course optional.",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "$ref": "Course"
+            },
+            "title": "Mandatory courses"
+          },
           "credentialTemplateId": {
             "type": "string",
             "nullable": true,
