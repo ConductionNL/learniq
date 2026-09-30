@@ -110,6 +110,7 @@ class EvaluationInvitationProvisioningHandlerTest extends TestCase {
 		return new EvaluationInvitationProvisioningHandler(
 			$objectService,
 			$this->createMock(LoggerInterface::class),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver(),
 		);
 
 	}//end makeHandler()

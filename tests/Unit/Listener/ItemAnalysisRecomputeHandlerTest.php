@@ -148,7 +148,7 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 		$timeFactory = $this->createMock(ITimeFactory::class);
 		$timeFactory->method('getDateTime')->willReturn($now);
 
-		return new ItemAnalysisRecomputeHandler($objectService, $itemAnalysisService, $timeFactory);
+		return new ItemAnalysisRecomputeHandler($objectService, $itemAnalysisService, $timeFactory, \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**

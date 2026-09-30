@@ -78,7 +78,7 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 			}
 		);
 
-		return new BpvLeerbedrijfVerificationHandler($objectService, $container, $this->createMock(LoggerInterface::class));
+		return new BpvLeerbedrijfVerificationHandler($objectService, $container, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**

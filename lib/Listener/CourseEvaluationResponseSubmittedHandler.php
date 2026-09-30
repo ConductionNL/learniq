@@ -43,6 +43,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -67,6 +68,7 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 	 * @param IUserSession $userSession Current NC user session (server-resolved caller identity).
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -74,6 +76,7 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 		private readonly IUserSession $userSession,
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -164,11 +167,11 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
 	 */
 	private function isResponseSubmission(ObjectTransitionedEvent $event): bool {
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return false;
 		}
 
-		if ($event->getSchema() !== self::COURSE_EVALUATION_RESPONSE_SCHEMA) {
+		if ($this->schemas->eventSchema(event: $event) !== self::COURSE_EVALUATION_RESPONSE_SCHEMA) {
 			return false;
 		}
 
