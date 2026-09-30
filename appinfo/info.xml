@@ -295,6 +295,8 @@ Vrij en open source onder de EUPL-1.2-licentie.
         <!-- curriculum-coverage-rollup: fills CurriculumCoverage rows for data saved
              before the rollup existed; the listener keeps them current afterwards. -->
         <command>OCA\Learniq\Command\RecomputeCurriculumCoverage</command>
+        <!-- portal-guardian-invitation: links a guardian to the parent portal. -->
+        <command>OCA\Learniq\Command\PortalInviteGuardianCommand</command>
     </commands>
 
     <settings>
