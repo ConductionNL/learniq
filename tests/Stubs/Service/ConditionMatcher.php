@@ -1,6 +1,6 @@
 <?php
 // Test-only copy, verbatim, of ConductionNL/openregister lib/Service/ConditionMatcher.php at development 574a0f35 (30 Sep 2026).
-// Kept byte-identical below this line so a test that evaluates a shipped authorization block uses OpenRegister's own matcher.
+// Kept identical below this line, except that OpenRegister's spec-anchor tags are renamed to @or-spec: they name OpenRegister's specs, which this repo does not have.
 
 /**
  * Condition Matcher
@@ -24,7 +24,7 @@
  *
  * @since 2.0.0 Extracted from PropertyRbacHandler
  *
- * @spec openspec/specs/actions/spec.md
+ * @or-spec openspec/specs/actions/spec.md
  */
 
 declare(strict_types=1);
@@ -119,7 +119,7 @@ class ConditionMatcher {
 	 *
 	 * @return bool True if object matches all conditions
 	 *
-	 * @spec openspec/specs/rbac-scopes/spec.md#requirement-conditional-scopes-with-dynamic-variables
+	 * @or-spec openspec/specs/rbac-scopes/spec.md#requirement-conditional-scopes-with-dynamic-variables
 	 */
 	public function objectMatchesConditions(array $object, array $match): bool {
 		foreach ($match as $property => $value) {
@@ -141,7 +141,7 @@ class ConditionMatcher {
 	 *
 	 * @return array Filtered match conditions
 	 *
-	 * @spec openspec/specs/actions/spec.md
+	 * @or-spec openspec/specs/actions/spec.md
 	 */
 	public function filterOrganisationMatchForCreate(array $match): array {
 		$organisationKeys = ['_organisation', 'organisation'];
@@ -171,7 +171,7 @@ class ConditionMatcher {
 	 *
 	 * @return bool True if the condition is satisfied
 	 *
-	 * @spec openspec/specs/actions/spec.md
+	 * @or-spec openspec/specs/actions/spec.md
 	 */
 	private function singleConditionMatches(array $object, string $property, mixed $value): bool {
 		// Get object value, checking both direct property and @self.
@@ -294,7 +294,7 @@ class ConditionMatcher {
 	 * prevent. Callers MUST treat a null result as deny; the SQL emitter emits an
 	 * impossible predicate rather than dropping the condition.
 	 *
-	 * @spec openspec/changes/shared-credentials-and-flows/specs/flow-sharing/spec.md#requirement-the-single-object-and-list-access-decisions-agree
+	 * @or-spec openspec/changes/shared-credentials-and-flows/specs/flow-sharing/spec.md#requirement-the-single-object-and-list-access-decisions-agree
 	 */
 	public function resolveDynamicValue(mixed $value): mixed {
 		// For operator arrays, resolve dynamic values inside operands.
@@ -460,7 +460,7 @@ class ConditionMatcher {
 	 *
 	 * @return string|null The active organisation UUID or null
 	 *
-	 * @spec openspec/specs/actions/spec.md
+	 * @or-spec openspec/specs/actions/spec.md
 	 */
 	private function getActiveOrganisationUuid(): ?string {
 		// Keyed by the subject, because the subject can change within a request:

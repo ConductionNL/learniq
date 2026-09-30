@@ -1,6 +1,6 @@
 <?php
 // Test-only copy, verbatim, of ConductionNL/openregister lib/Service/OperatorEvaluator.php at development 574a0f35 (30 Sep 2026).
-// Kept byte-identical below this line so a test that evaluates a shipped authorization block uses OpenRegister's own matcher.
+// Kept identical below this line, except that OpenRegister's spec-anchor tags are renamed to @or-spec: they name OpenRegister's specs, which this repo does not have.
 
 /**
  * Operator Evaluator
@@ -56,7 +56,7 @@ class OperatorEvaluator {
 	 *
 	 * @return bool True if value matches all operators
 	 *
-	 * @spec openspec/specs/row-field-level-security/spec.md#the-condition-syntax-must-support-mongodb-style-operators-for-match-expressions
+	 * @or-spec openspec/specs/row-field-level-security/spec.md#the-condition-syntax-must-support-mongodb-style-operators-for-match-expressions
 	 *       (evaluates $eq/$ne/$in/$nin/$exists/$gt/$gte/$lt/$lte
 	 *       for RLS/FLS match conditions, fail-closed on unknown operators with null-handling that mirrors SQL
 	 *       three-valued logic so list and find verdicts stay aligned)
@@ -214,7 +214,7 @@ class OperatorEvaluator {
 	 *
 	 * @return bool True when the object's array contains the operand (or any of them).
 	 *
-	 * @spec openspec/changes/shared-credentials-and-flows/specs/flow-sharing/spec.md#requirement-the-single-object-and-list-access-decisions-agree
+	 * @or-spec openspec/changes/shared-credentials-and-flows/specs/flow-sharing/spec.md#requirement-the-single-object-and-list-access-decisions-agree
 	 */
 	private function operatorContains(mixed $value, mixed $operand): bool {
 		// A null or non-array property contains nothing — mirrors COALESCE(col, '[]').
