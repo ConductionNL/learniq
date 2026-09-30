@@ -26,10 +26,16 @@ The `send-invitations` transition MUST fill `invitedLearnerIds` (Nextcloud user 
 - @e2e exclude covered by PHPUnit `ConferenceInvitationActionTest`; exercised live by tests/e2e/po-parent-flows.spec.ts
 
 ### Requirement: The group teacher records the conversation report
-Members of `instructors` MUST be able to read, create and update a `ConferenceReport`.
+Members of `instructors` MUST be able to create a `ConferenceReport`, and MUST be able to read and update only the reports whose `teacherId` is their own user id. Another teacher's reports stay closed to them, because a report is part of the pupil's dossier.
 
 #### Scenario: The teacher records the gespreksverslag
 - **GIVEN** a completed slot
 - **WHEN** the group teacher records a report
 - **THEN** the report is stored and moves to `recorded`
 - @e2e tests/e2e/po-parent-flows.spec.ts
+
+#### Scenario: A teacher cannot read another teacher's report
+- **GIVEN** a report recorded by one group teacher
+- **WHEN** a teacher of another group asks for it
+- **THEN** it is not returned
+- @e2e exclude covered by PHPUnit `ConferenceReportAuthorizationTest`

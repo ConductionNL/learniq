@@ -21324,7 +21324,12 @@
                     "read": [
                         "compliance-officers",
                         "team-leads",
-                        "instructors"
+                        {
+                            "group": "instructors",
+                            "match": {
+                                "teacherId": "$userId"
+                            }
+                        }
                     ],
                     "create": [
                         "compliance-officers",
@@ -21334,7 +21339,12 @@
                     "update": [
                         "compliance-officers",
                         "team-leads",
-                        "instructors"
+                        {
+                            "group": "instructors",
+                            "match": {
+                                "teacherId": "$userId"
+                            }
+                        }
                     ]
                 }
             },

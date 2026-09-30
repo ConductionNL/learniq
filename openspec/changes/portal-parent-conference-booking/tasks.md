@@ -2,7 +2,7 @@
 
 ## 1. Register
 - [x] 1.1 `ConferenceRound.invitedLearnerRefs`; `ConferenceInvitationAction` on `send-invitations`. Verify: PHPUnit `ConferenceInvitationActionTest`.
-- [x] 1.2 `ConferenceSignup.required` = `conferenceRoundId`; `ConferenceReport` authorization adds `instructors`. Verify: live, the teacher records a report.
+- [x] 1.2 `ConferenceSignup.required` = `conferenceRoundId`; `ConferenceReport` authorization: `instructors` create, and read and update their own by `teacherId` match. Verify: live, the teacher records a report.
 
 ## 2. Portal booking
 - [x] 2.1 `ConferenceSignupPortalStamp`, wired on create. Verify: PHPUnit `ConferenceSignupPortalStampTest` (stamp, teacher defaulting, three refusals, signed-in write untouched, registrar wiring).
