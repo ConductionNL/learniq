@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+ * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
  */
 
 declare(strict_types=1);
@@ -103,7 +103,7 @@ class Cmi5LaunchSessions {
 	 *
 	 * @return bool True when the document is stored; false (and logged) when it is not.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#8-xapi-state-and-agent-profile
 	 */
 	public function writeLaunchData(string $learnerId, array $launch): bool {
 		$lessonId   = (string)($launch['lessonId'] ?? '');
@@ -139,7 +139,7 @@ class Cmi5LaunchSessions {
 	 *
 	 * @return string The fetch code.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#5-launch-endpoint-wiring
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#5-launch-endpoint-wiring
 	 */
 	public function issueFetchCode(string $token): string {
 		$code = $this->secureRandom->generate(48, ISecureRandom::CHAR_ALPHANUMERIC);
@@ -155,7 +155,7 @@ class Cmi5LaunchSessions {
 	 *
 	 * @return string|null The launch token, or null when the code was used or has expired.
 	 *
-	 * @spec openspec/changes/cmi5-xapi-lrs-ingest/tasks.md#5-launch-endpoint-wiring
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#5-launch-endpoint-wiring
 	 */
 	public function redeemFetchCode(string $code): ?string {
 		$token = $this->fetchCodes->get($code);
