@@ -205,10 +205,20 @@ class ConformanceEvidence {
 		$rows = [];
 		foreach ($this->catalogue->all() as $criterion) {
 			$record = $byCriterion[$criterion['criterion']] ?? [];
-			$result = in_array($record['result'] ?? null, self::RESULTS, true) === true ? $record['result'] : 'not-tested';
+			$result = 'not-tested';
+			if (in_array($record['result'] ?? null, self::RESULTS, true) === true) {
+				$result = $record['result'];
+			}
+
 			$summary[$result]++;
 
 			$limitation = $limitationsById[(string)($record['limitationId'] ?? '')] ?? null;
+			$limitationId = null;
+			$limitationText = null;
+			if ($limitation !== null) {
+				$limitationId = self::idOf(row: $limitation);
+				$limitationText = self::text(value: $limitation['description'] ?? null);
+			}
 
 			$rows[] = [
 				'criterion' => $criterion['criterion'],
@@ -218,8 +228,8 @@ class ConformanceEvidence {
 				'method' => self::text(value: $record['method'] ?? null),
 				'evidenceReference' => self::text(value: $record['evidenceReference'] ?? null),
 				'testedOn' => self::text(value: $record['testedOn'] ?? null),
-				'limitationId' => $limitation === null ? null : self::idOf(row: $limitation),
-				'limitation' => $limitation === null ? null : self::text(value: $limitation['description'] ?? null),
+				'limitationId' => $limitationId,
+				'limitation' => $limitationText,
 			];
 		}
 
@@ -279,7 +289,7 @@ class ConformanceEvidence {
 	private function latestByCriterion(array $records): array {
 		$latest = [];
 		foreach ($records as $record) {
-			$number = WcagCriteriaCatalogue::numberOf(reference: $record['wcagCriterion'] ?? null);
+			$number = $this->catalogue->numberOf(reference: $record['wcagCriterion'] ?? null);
 			if ($number === null) {
 				continue;
 			}
@@ -343,10 +353,16 @@ class ConformanceEvidence {
 	 * @return string The uuid, or '' when there is none.
 	 */
 	private static function idOf(array $row): string {
-		$self = is_array($row['@self'] ?? null) === true ? $row['@self'] : [];
-		$id = $row['id'] ?? $row['uuid'] ?? $self['id'] ?? '';
+		$id = $row['id'] ?? $row['uuid'] ?? null;
+		if ($id === null && is_array($row['@self'] ?? null) === true) {
+			$id = $row['@self']['id'] ?? null;
+		}
 
-		return is_string($id) === true ? $id : '';
+		if (is_string($id) === false) {
+			return '';
+		}
+
+		return $id;
 	}//end idOf()
 
 	/**
@@ -362,6 +378,10 @@ class ConformanceEvidence {
 		}
 
 		$text = trim((string)$value);
-		return $text === '' ? null : $text;
+		if ($text === '') {
+			return null;
+		}
+
+		return $text;
 	}//end text()
 }//end class

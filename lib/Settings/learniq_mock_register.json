@@ -30137,7 +30137,6 @@
         "evidenceReference": "https://example.org/toegankelijkheid/rapport-2026",
         "testedOn": "2026-09-01",
         "testedBy": "Voorbeeld Testedby 1",
-        "limitationId": null,
         "tenant_id": "00000000-0000-4000-8000-000000000001"
       },
       {
@@ -30168,10 +30167,8 @@
         "level": "AA",
         "result": "not-applicable",
         "method": "inventarisatie: er is geen live audio of video",
-        "evidenceReference": null,
         "testedOn": "2026-09-01",
         "testedBy": "Voorbeeld Testedby 3",
-        "limitationId": null,
         "tenant_id": "00000000-0000-4000-8000-000000000001"
       }
     ]

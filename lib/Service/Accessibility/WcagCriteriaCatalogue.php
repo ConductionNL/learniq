@@ -97,7 +97,7 @@ class WcagCriteriaCatalogue {
 	 *
 	 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-per-criterion-conformance-record
 	 */
-	public static function numberOf(mixed $reference): ?string {
+	public function numberOf(mixed $reference): ?string {
 		if (is_string($reference) === false) {
 			return null;
 		}

@@ -122,10 +122,12 @@ class AccessibilityStatementPublishGuard implements LifecycleGuardInterface {
 	 * @param ObjectService $objectService OR object query service for
 	 *                                     AccessibilityLimitation lookup.
 	 * @param LoggerInterface $logger PSR logger for guard rejections.
+	 * @param WcagCriteriaCatalogue $catalogue Reads criterion numbers.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly WcagCriteriaCatalogue $catalogue = new WcagCriteriaCatalogue(),
 	) {
 	}//end __construct()
 
@@ -356,12 +358,12 @@ class AccessibilityStatementPublishGuard implements LifecycleGuardInterface {
 
 		$unlinked = [];
 		foreach ($failures as $failure) {
-			$number = WcagCriteriaCatalogue::numberOf(reference: $failure['wcagCriterion'] ?? null) ?? '?';
+			$number = $this->catalogue->numberOf(reference: $failure['wcagCriterion'] ?? null) ?? '?';
 			$limitation = $limitations[(string)($failure['limitationId'] ?? '')] ?? null;
 
 			$covers = $limitation !== null
 				&& ($limitation['lifecycle'] ?? 'open') !== 'fixed'
-				&& WcagCriteriaCatalogue::numberOf(reference: $limitation['wcagCriterion'] ?? null) === $number;
+				&& $this->catalogue->numberOf(reference: $limitation['wcagCriterion'] ?? null) === $number;
 			if ($covers === false) {
 				$unlinked[] = $number;
 			}

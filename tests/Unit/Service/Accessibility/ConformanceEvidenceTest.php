@@ -121,9 +121,9 @@ class ConformanceEvidenceTest extends TestCase {
 		self::assertSame(['A' => 30, 'AA' => 20], array_count_values(array_column($criteria, 'level')));
 		self::assertSame('1.1.1', $criteria[0]['criterion']);
 		self::assertContains('4.1.3', array_column($criteria, 'criterion'));
-		self::assertSame('2.1.1', WcagCriteriaCatalogue::numberOf(reference: '2.1.1 Keyboard'));
-		self::assertNull(WcagCriteriaCatalogue::numberOf(reference: 'Keyboard'));
-		self::assertNull(WcagCriteriaCatalogue::numberOf(reference: null));
+		self::assertSame('2.1.1', (new WcagCriteriaCatalogue())->numberOf(reference: '2.1.1 Keyboard'));
+		self::assertNull((new WcagCriteriaCatalogue())->numberOf(reference: 'Keyboard'));
+		self::assertNull((new WcagCriteriaCatalogue())->numberOf(reference: null));
 	}//end testTheSeedHoldsFiftyUniqueCriteria()
 
 	/**

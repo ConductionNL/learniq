@@ -104,7 +104,12 @@ class AccessibilityEvidenceController extends Controller {
 			return new JSONResponse(data: ['error' => 'The evidence could not be read.'], statusCode: Http::STATUS_SERVICE_UNAVAILABLE);
 		}
 
-		$name = 'accessibility-evidence-' . ((string)($table['statement']['evaluationDate'] ?? '') !== '' ? $table['statement']['evaluationDate'] : 'current');
+		$date = (string)($table['statement']['evaluationDate'] ?? '');
+		if ($date === '') {
+			$date = 'current';
+		}
+
+		$name = 'accessibility-evidence-' . $date;
 		if ($format === 'csv') {
 			return new DataDownloadResponse($this->evidence->toCsv(evidence: $table), $name . '.csv', 'text/csv');
 		}
