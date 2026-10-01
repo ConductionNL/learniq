@@ -41,6 +41,7 @@ use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CredentialSigningService;
+use OCA\Learniq\Service\ExternalTrainingImport;
 use OCA\Learniq\Service\ExternalTrainingService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -65,6 +66,7 @@ class ExternalTrainingController extends Controller {
 	 * @param ObjectService $objectService OR object query/persistence.
 	 * @param CredentialSigningService $signingService Signs a credential before it is saved.
 	 * @param CallerTenantResolver $callerTenant Resolves the caller's tenant.
+	 * @param ExternalTrainingImport $trainingImport Checks and records an uploaded list.
 	 */
 	public function __construct(
 		IRequest $request,
@@ -74,6 +76,7 @@ class ExternalTrainingController extends Controller {
 		private readonly ObjectService $objectService,
 		private readonly CredentialSigningService $signingService,
 		private readonly CallerTenantResolver $callerTenant,
+		private readonly ExternalTrainingImport $trainingImport,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -125,6 +128,58 @@ class ExternalTrainingController extends Controller {
 			statusCode: Http::STATUS_CREATED
 		);
 	}//end bulkRecord()
+
+	/**
+	 * Check, and on confirm record, the rows of an uploaded attendance list.
+	 *
+	 * Authorized via the `external-training.bulk-record` action, the same as
+	 * the bulk entry. Learners are matched in the caller's tenant, which the
+	 * server resolves: a client-supplied tenant is ignored. `dryRun` (the
+	 * default) reports every row without writing, so the preview and the
+	 * import run the same checks.
+	 *
+	 * @param array<int,mixed> $rows The parsed rows (learner, title, provider, kind,
+	 *                               completedAt, validUntil, regulationSlug, evidenceNote).
+	 * @param bool $dryRun True for the preview, false to record the ready rows.
+	 *
+	 * @return JSONResponse The per-row report, or an error.
+	 *
+	 * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-spreadsheet-import-of-external-training
+	 * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-import-result-report
+	 *
+	 * @SuppressWarnings(PHPMD.BooleanArgumentFlag) `dryRun` is the request field design D2 chose over a second
+	 *                                             route, so preview and import share one code path.
+	 */
+	#[NoAdminRequired]
+	public function import(array $rows = [], bool $dryRun = true): JSONResponse {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
+
+		// ADR-023: throws OCSForbiddenException (HTTP 403) when not allowed.
+		$this->actionAuth->requireAction(user: $user, action: 'external-training.bulk-record');
+
+		if ($rows === []) {
+			return new JSONResponse(data: ['error' => 'The file has no rows.'], statusCode: Http::STATUS_BAD_REQUEST);
+		}
+
+		if (count($rows) > ExternalTrainingImport::MAX_ROWS) {
+			return new JSONResponse(
+				data: ['error' => 'A file can hold at most ' . ExternalTrainingImport::MAX_ROWS . ' rows. Split it and upload the parts.'],
+				statusCode: Http::STATUS_BAD_REQUEST
+			);
+		}
+
+		$report = $this->trainingImport->import(
+			rows: $rows,
+			tenantId: $this->callerTenant->resolve(user: $user),
+			submittedBy: $user->getUID(),
+			dryRun: $dryRun
+		);
+
+		return new JSONResponse(data: $report, statusCode: Http::STATUS_OK);
+	}//end import()
 
 	/**
 	 * Issue a linked manual Credential for a verified external-training record.

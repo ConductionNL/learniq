@@ -96,6 +96,7 @@ return [
         // (ADR-023: compliance.department-rollup, regulation.assign; learniq#951).
         // Controller: ComplianceRollupController (slug: complianceRollup).
         ['name' => 'complianceRollup#departments',      'url' => '/api/compliance/departments',        'verb' => 'GET'],
+        ['name' => 'complianceRollup#regulations',      'url' => '/api/compliance/coverage-by-regulation', 'verb' => 'GET'],
         ['name' => 'complianceRollup#assignRegulation', 'url' => '/api/compliance/regulations/{id}/assign', 'verb' => 'POST'],
 
         // QTI package import — user-invokable action (ADR-023: qti.import).
@@ -149,6 +150,7 @@ return [
         // action matrix (external-training.bulk-record / .issue-credential).
         // Controller: ExternalTrainingController (slug: externalTraining).
         ['name' => 'externalTraining#bulkRecord',      'url' => '/api/external-training/bulk',                  'verb' => 'POST'],
+        ['name' => 'externalTraining#import',          'url' => '/api/external-training/import',                'verb' => 'POST'],
         ['name' => 'externalTraining#issueCredential', 'url' => '/api/external-training/{recordId}/credential', 'verb' => 'POST'],
         ['name' => 'externalTraining#learnerCoverage', 'url' => '/api/external-training/coverage',              'verb' => 'GET'],
 

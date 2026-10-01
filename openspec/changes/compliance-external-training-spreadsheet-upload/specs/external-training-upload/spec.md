@@ -2,7 +2,7 @@
 
 ### Requirement: Spreadsheet import of external training
 
-The system MUST let a compliance officer upload a CSV or XLSX file of external training records and MUST show a preview of every row, marked ready, unmatched or invalid with the reason, before anything is stored. Confirming MUST create one `ExternalTrainingRecord` for each ready row and MUST leave the other rows untouched. Learners MUST be matched by learner reference or email within the caller's tenant only.
+The system MUST let a compliance officer upload a CSV file of external training records (a spreadsheet saved as CSV) and MUST show a preview of every row, marked ready, unmatched or invalid with the reason, before anything is stored. Confirming MUST create one `ExternalTrainingRecord` for each ready row and MUST leave the other rows untouched. Learners MUST be matched by learner reference or email within the caller's tenant only.
 
 #### Scenario: An officer uploads a provider's attendance list
 

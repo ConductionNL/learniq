@@ -28,6 +28,7 @@ use OCA\Learniq\Controller\ExternalTrainingController;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CredentialSigningService;
+use OCA\Learniq\Service\ExternalTrainingImport;
 use OCA\Learniq\Service\ExternalTrainingService;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
@@ -69,6 +70,7 @@ class ExternalTrainingControllerNotFoundTest extends TestCase {
 			objectService: $objectService,
 			signingService: $this->createMock(CredentialSigningService::class),
 			callerTenant: $this->createMock(CallerTenantResolver::class),
+			trainingImport: $this->createMock(ExternalTrainingImport::class),
 		);
 	}//end controllerWithThrowingFind()
 
@@ -138,6 +140,7 @@ class ExternalTrainingControllerNotFoundTest extends TestCase {
 			objectService: $objectService,
 			signingService: $this->createMock(CredentialSigningService::class),
 			callerTenant: $callerTenant,
+			trainingImport: $this->createMock(ExternalTrainingImport::class),
 		);
 
 		$response = $controller->learnerCoverage('learner-1', 'NIS2');

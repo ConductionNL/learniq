@@ -26,7 +26,7 @@ One row, one change.
 
 ## What Changes
 
-- Add an Upload spreadsheet action to the external training page: a CSV or XLSX with one row per person (learner id or email, title, provider, completed on, valid until, regulation, evidence note).
+- Add an Upload spreadsheet action to the external training page: a CSV (any spreadsheet saved as CSV; XLSX was dropped in design D3) with one row per person (learner id or email, title, provider, completed on, valid until, regulation, evidence note).
 - Show a dry-run preview that lists each row as ready, matched to a learner, or rejected with the reason, and record only the ready rows on confirm.
 - Add `POST /api/external-training/import` that accepts the parsed rows, validates each one with the same rules as a single record, and returns per-row results.
 
