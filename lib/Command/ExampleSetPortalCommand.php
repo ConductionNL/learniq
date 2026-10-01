@@ -1,0 +1,100 @@
+<?php
+
+/**
+ * Learniq occ command: give a loaded example set its themed portal.
+ *
+ * Loading a set through the wizard already does this. The command is for a
+ * set that was loaded before the step existed, so its portal gets the theme
+ * without importing thousands of objects again.
+ *
+ * @category Command
+ * @package  OCA\Learniq\Command
+ *
+ * @author    Conduction Development Team <info@conduction.nl>
+ * @copyright 2026 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
+ * @version GIT: <git-id>
+ *
+ * @link https://conduction.nl
+ *
+ * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md
+ */
+
+declare(strict_types=1);
+
+namespace OCA\Learniq\Command;
+
+use OCA\Learniq\Portal\ExamplePortalProvisioner;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
+/**
+ * `occ learniq:example-set:portal <set>`.
+ *
+ * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md
+ */
+class ExampleSetPortalCommand extends Command {
+
+	/**
+	 * The answers that mean nothing went wrong.
+	 */
+	private const SUCCESS_STATUSES = ['created', 'themed', 'kept', 'unchanged'];
+
+	/**
+	 * Constructor.
+	 *
+	 * @param ExamplePortalProvisioner $portals Creates or themes the portal.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ExamplePortalProvisioner $portals,
+	) {
+		parent::__construct();
+	}//end __construct()
+
+	/**
+	 * Name, description and arguments.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md#requirement-loading-an-example-set-gives-its-school-a-themed-portal
+	 */
+	protected function configure(): void {
+		$this->setName(name: 'learniq:example-set:portal')
+			->setDescription(description: 'Give a loaded example set its portal, themed with the matching thematiq example set')
+			->addArgument(name: 'set', mode: InputArgument::REQUIRED, description: 'The example set: ' . implode(', ', array_keys(ExamplePortalProvisioner::PORTALS)));
+	}//end configure()
+
+	/**
+	 * Create or theme the portal.
+	 *
+	 * @param InputInterface  $input  The input.
+	 * @param OutputInterface $output The output.
+	 *
+	 * @return int
+	 *
+	 * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md#requirement-loading-an-example-set-gives-its-school-a-themed-portal
+	 */
+	protected function execute(InputInterface $input, OutputInterface $output): int {
+		$result = $this->portals->provision(profileId: (string)$input->getArgument('set'));
+		$status = $result['status'];
+
+		$output->writeln(
+			'Portal ' . ($result['slug'] ?? '-') . ': ' . $status
+			. (isset($result['theme']) === true ? ' (example theme ' . $result['theme'] . ')' : '')
+		);
+
+		if (in_array($status, self::SUCCESS_STATUSES, true) === true) {
+			return self::SUCCESS;
+		}
+
+		return self::FAILURE;
+	}//end execute()
+}//end class
