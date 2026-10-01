@@ -117,8 +117,9 @@ class ExternalTrainingImport {
 			}
 
 			$checked = $this->check(row: $row, tenantId: $tenantId, now: $now);
-			$checked['row'] = ($index + 1);
-			$checked = $this->againstEarlier(checked: $checked, seen: $seen, tenantId: $tenantId);
+			$line = ($index + 1);
+			$checked['row'] = $line;
+			$checked = $this->againstEarlier(checked: $checked, line: $line, seen: $seen, tenantId: $tenantId);
 
 			if ($checked['status'] === 'ready' && $dryRun === false) {
 				$checked = $this->record(checked: $checked, batchId: (string)$batchId, tenantId: $tenantId, submittedBy: $submittedBy);
@@ -180,12 +181,13 @@ class ExternalTrainingImport {
 	 * Mark a ready row that repeats an earlier row of the file, or a record that already exists.
 	 *
 	 * @param array<string,mixed> $checked The checked row.
+	 * @param int $line The row number in the file.
 	 * @param array<string,int> $seen Learner, title and date of the ready rows so far, to their row number.
 	 * @param string $tenantId The caller's tenant.
 	 *
 	 * @return array<string,mixed> The row, still ready or now duplicate or skipped.
 	 */
-	private function againstEarlier(array $checked, array &$seen, string $tenantId): array {
+	private function againstEarlier(array $checked, int $line, array &$seen, string $tenantId): array {
 		if ($checked['status'] !== 'ready') {
 			return $checked;
 		}
@@ -200,7 +202,7 @@ class ExternalTrainingImport {
 			);
 		}
 
-		$seen[$key] = $checked['row'];
+		$seen[$key] = $line;
 		if ($this->alreadyRecorded(record: $checked['record'], tenantId: $tenantId) === true) {
 			return $this->outcome(checked: $checked, status: 'skipped', reason: 'This training is already recorded for this learner on this date.');
 		}
