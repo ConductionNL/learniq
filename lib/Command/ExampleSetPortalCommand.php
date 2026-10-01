@@ -69,7 +69,11 @@ class ExampleSetPortalCommand extends Command {
 	protected function configure(): void {
 		$this->setName(name: 'learniq:example-set:portal')
 			->setDescription(description: 'Give a loaded example set its portal, themed with the matching thematiq example set')
-			->addArgument(name: 'set', mode: InputArgument::REQUIRED, description: 'The example set: ' . implode(', ', array_keys(ExamplePortalProvisioner::PORTALS)));
+			->addArgument(
+				name: 'set',
+				mode: InputArgument::REQUIRED,
+				description: 'The example set: ' . implode(', ', array_keys(ExamplePortalProvisioner::PORTALS))
+			);
 	}//end configure()
 
 	/**
@@ -86,10 +90,12 @@ class ExampleSetPortalCommand extends Command {
 		$result = $this->portals->provision(profileId: (string)$input->getArgument('set'));
 		$status = $result['status'];
 
-		$output->writeln(
-			'Portal ' . ($result['slug'] ?? '-') . ': ' . $status
-			. (isset($result['theme']) === true ? ' (example theme ' . $result['theme'] . ')' : '')
-		);
+		$line = 'Portal ' . ($result['slug'] ?? '-') . ': ' . $status;
+		if (isset($result['theme']) === true) {
+			$line .= ' (example theme ' . $result['theme'] . ')';
+		}
+
+		$output->writeln($line);
 
 		if (in_array($status, self::SUCCESS_STATUSES, true) === true) {
 			return self::SUCCESS;
