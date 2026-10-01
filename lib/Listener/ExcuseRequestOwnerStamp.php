@@ -22,6 +22,12 @@
  * value is never kept, so nobody can point an excuse at another pupil's portal
  * list.
  *
+ * On every write it also stamps `teacherIds`, the teachers of the pupil's
+ * current groups (PupilGroupTeachers). The schema's read rule lets a teacher
+ * read only the reports that list them, because an OpenRegister `match` can
+ * only compare a field on the object itself with the caller. A client value
+ * is never kept, so nobody can add themselves to a report's audience.
+ *
  * @category Listener
  * @package  OCA\Learniq\Listener
  *
@@ -36,6 +42,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/specs/attendance/spec.md#requirement-the-server-stamps-who-an-excuse-request-is-about-and-who-filed-it
+ * @spec openspec/changes/excuse-reports-follow-the-pupils-group/specs/attendance/spec.md#requirement-an-absence-report-is-read-by-the-teachers-of-the-pupils-group-and-by-school-wide-staff
  */
 
 declare(strict_types=1);
@@ -44,6 +51,7 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Service\PupilGroupTeachers;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -95,6 +103,7 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 	 * @param LearnerRefResolver $profiles LearnerProfile by uuid, uuid by user.
 	 * @param IUserSession $userSession Tells a portal write (no session) from an app write.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param PupilGroupTeachers $groupTeachers The teachers of a pupil's current groups.
 	 *
 	 * @return void
 	 */
@@ -103,6 +112,7 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 		private readonly LearnerRefResolver $profiles,
 		private readonly IUserSession $userSession,
 		private readonly LoggerInterface $logger,
+		private readonly PupilGroupTeachers $groupTeachers,
 	) {
 	}//end __construct()
 
@@ -114,6 +124,7 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 	 * @return void
 	 *
 	 * @spec openspec/specs/attendance/spec.md#requirement-the-server-stamps-who-an-excuse-request-is-about-and-who-filed-it
+	 * @spec openspec/changes/excuse-reports-follow-the-pupils-group/specs/attendance/spec.md#requirement-an-absence-report-is-read-by-the-teachers-of-the-pupils-group-and-by-school-wide-staff
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
@@ -137,8 +148,63 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 			return;
 		}
 
-		$event->setModifiedData(array_merge($event->getModifiedData(), $outcome['stamp']));
+		$stamp = $outcome['stamp'];
+		$learnerId = $this->text(value: ($stamp['learnerId'] ?? ($payload['learnerId'] ?? null)));
+		$stamp['teacherIds'] = $this->teachersFor(event: $event, learnerId: $learnerId);
+
+		$event->setModifiedData(array_merge($event->getModifiedData(), $stamp));
 	}//end handle()
+
+	/**
+	 * The teachers of the pupil's current groups. On an update whose pupil did
+	 * not change, a failed lookup keeps the stored value; otherwise it stamps
+	 * nobody, which leaves the report to school-wide staff and never widens
+	 * who reads it.
+	 *
+	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The write event.
+	 * @param string $learnerId Nextcloud user id of the pupil, '' when unknown.
+	 *
+	 * @return array<int, string>
+	 */
+	private function teachersFor(ObjectCreatingEvent|ObjectUpdatingEvent $event, string $learnerId): array {
+		try {
+			return $this->groupTeachers->forLearner(learnerId: $learnerId);
+		} catch (Throwable $exception) {
+			$kept = [];
+			if ($event instanceof ObjectUpdatingEvent === true) {
+				$kept = $this->storedTeachers(event: $event, learnerId: $learnerId);
+			}
+
+			$this->logger->warning(
+				'[ExcuseRequestOwnerStamp] Could not resolve the group teachers, keeping {count}: {msg}',
+				['count' => count($kept), 'msg' => $exception->getMessage()]
+			);
+			return $kept;
+		}
+	}//end teachersFor()
+
+	/**
+	 * The teacherIds stored before this update, or none when the update
+	 * changes the pupil (the old teachers then teach someone else).
+	 *
+	 * @param ObjectUpdatingEvent $event The update event.
+	 * @param string $learnerId The pupil as it will be saved.
+	 *
+	 * @return array<int, string>
+	 */
+	private function storedTeachers(ObjectUpdatingEvent $event, string $learnerId): array {
+		$old = $event->getOldObject();
+		if ($old === null) {
+			return [];
+		}
+
+		$oldData = ($old->getObject() ?? []);
+		if ($this->text(value: ($oldData['learnerId'] ?? null)) !== $learnerId) {
+			return [];
+		}
+
+		return array_values(array_filter((array)($oldData['teacherIds'] ?? []), static fn ($id): bool => is_string($id) === true && $id !== ''));
+	}//end storedTeachers()
 
 	/**
 	 * What to stamp on this write, or why to refuse it.
