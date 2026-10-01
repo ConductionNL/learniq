@@ -53,6 +53,7 @@ class ComplianceRollupService {
 	private const UPCOMING_WINDOW_DAYS = 30;
 	private const PAGE_LIMIT = 10000;
 
+
 	/**
 	 * Constructor.
 	 *
@@ -84,22 +85,14 @@ class ComplianceRollupService {
 		$now = ($now ?? new DateTimeImmutable('now', new DateTimeZone('UTC')));
 		$horizon = $now->add(new DateInterval('P'.self::UPCOMING_WINDOW_DAYS.'D'));
 
-		$regulations = array_values(
-			array_filter(
-				$this->rows(schema: 'regulation'),
-				static fn (array $reg): bool => ($reg['lifecycle'] ?? '') === 'published' && ($reg['active'] ?? true) !== false
-			)
-		);
+		$population = $this->population();
+		$regulations = $population['regulations'];
+		$exemptions = $population['exemptions'];
 		$enrolments = $this->rows(schema: 'enrolment', filters: ['mandatory' => true]);
 		$credentials = $this->rows(schema: 'credential');
-		$exemptions = $this->rows(schema: 'regulation-exemption', filters: ['lifecycle' => 'granted']);
 
 		$nodes = [];
-		foreach ($this->rows(schema: 'learner-profile') as $profile) {
-			if (($profile['lifecycle'] ?? 'active') !== 'active') {
-				continue;
-			}
-
+		foreach ($population['learners'] as $profile) {
 			$figures = $this->learnerFigures(
 				profile: $profile,
 				regulations: $regulations,
@@ -119,6 +112,32 @@ class ComplianceRollupService {
 
 		return array_values(array_map(fn (array $node): array => $this->finishNode(node: $node), $nodes));
 	}//end byDepartment()
+
+	/**
+	 * Who and what a coverage count runs over: the published, enforced
+	 * regulations, the active learner profiles (not merged or archived) and
+	 * the granted exemptions (RunningExemptions decides which run on a day).
+	 *
+	 * @return array{regulations:array<int,array<string,mixed>>,learners:array<int,array<string,mixed>>,exemptions:array<int,array<string,mixed>>}
+	 * @spec openspec/changes/compliance-rule-coverage-table/specs/compliance-rule-coverage/spec.md#requirement-per-rule-coverage-table
+	 */
+	public function population(): array {
+		return [
+			'regulations' => array_values(
+				array_filter(
+					$this->rows(schema: 'regulation'),
+					static fn (array $reg): bool => ($reg['lifecycle'] ?? '') === 'published' && ($reg['active'] ?? true) !== false
+				)
+			),
+			'learners' => array_values(
+				array_filter(
+					$this->rows(schema: 'learner-profile'),
+					static fn (array $profile): bool => ($profile['lifecycle'] ?? 'active') === 'active'
+				)
+			),
+			'exemptions' => $this->rows(schema: 'regulation-exemption', filters: ['lifecycle' => 'granted']),
+		];
+	}//end population()
 
 	/**
 	 * One learner's contribution to every level of their department.
@@ -235,8 +254,9 @@ class ComplianceRollupService {
 	 * @param DateTimeImmutable $now            Evaluation instant.
 	 *
 	 * @return bool
+	 * @spec openspec/changes/compliance-rule-coverage-table/specs/compliance-rule-coverage/spec.md#requirement-per-rule-coverage-table
 	 */
-	private function isCovered(array $keys, string $regulationSlug, DateTimeImmutable $now): bool {
+	public function isCovered(array $keys, string $regulationSlug, DateTimeImmutable $now): bool {
 		foreach ($keys as $key) {
 			if ($this->trainingService->isLearnerCovered(learnerId: $key, regulationSlug: $regulationSlug, now: $now) === true) {
 				return true;
@@ -252,8 +272,9 @@ class ComplianceRollupService {
 	 * @param array<string,mixed> $profile The learner.
 	 *
 	 * @return array<int,string>
+	 * @spec openspec/changes/compliance-rule-coverage-table/specs/compliance-rule-coverage/spec.md#requirement-per-rule-coverage-table
 	 */
-	private function learnerKeys(array $profile): array {
+	public function learnerKeys(array $profile): array {
 		$keys = [(string)($profile['id'] ?? ($profile['uuid'] ?? '')), (string)($profile['ncUserId'] ?? '')];
 
 		return array_values(array_filter($keys, static fn (string $key): bool => $key !== ''));

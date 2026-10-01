@@ -13,7 +13,9 @@
      a verified one (POST /{recordId}/credential), and checks each learner's
      coverage for the regulation (GET /coverage).
  Reached from the External training index header action. Opening the page
- with ?batchId=<id> reloads an earlier batch.
+ with ?batchId=<id> reloads an earlier batch. Upload a spreadsheet opens
+ ExternalTrainingUploadDialog (compliance-external-training-spreadsheet-upload);
+ a finished upload shows its batch here.
 
  @spec openspec/specs/external-training-recording/spec.md
 -->
@@ -28,6 +30,19 @@
 				)
 			}}
 		</p>
+		<p class="external-training-bulk__upload">
+			{{ t('learniq', "Or upload a provider's attendance list.") }}
+			<NcButton
+				variant="secondary"
+				data-testid="external-training-upload-open"
+				@click="uploading = true">
+				{{ t('learniq', 'Upload a spreadsheet') }}
+			</NcButton>
+		</p>
+		<ExternalTrainingUploadDialog
+			v-if="uploading"
+			@close="uploading = false"
+			@imported="onImported" />
 
 		<form class="external-training-bulk__form" @submit.prevent="submit">
 			<NcSelect
@@ -174,6 +189,7 @@
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
+import ExternalTrainingUploadDialog from '../dialogs/ExternalTrainingUploadDialog.vue'
 import {
 	buildBulkPayload,
 	BULK_URL,
@@ -200,6 +216,7 @@ export default {
 	name: 'ExternalTrainingBulkRecordView',
 
 	components: {
+		ExternalTrainingUploadDialog,
 		NcButton,
 		NcLoadingIcon,
 		NcNoteCard,
@@ -232,6 +249,7 @@ export default {
 			issuing: '',
 			checkingCoverage: false,
 			coverage: {},
+			uploading: false,
 		}
 	},
 
@@ -278,6 +296,21 @@ export default {
 	},
 
 	methods: {
+		/**
+		 * An upload recorded rows: show its batch, as after a group entry.
+		 *
+		 * @param {string} batchId The upload's batch.
+		 * @param {number} created How many records it created.
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-import-result-report
+		 */
+		async onImported(batchId, created) {
+			this.batchId = batchId
+			this.createdCount = created
+			this.coverage = {}
+			await this.loadBatch()
+		},
+
 		/**
 		 * Show a learner by name.
 		 *
@@ -491,6 +524,12 @@ export default {
 </script>
 
 <style scoped>
+.external-training-bulk__upload {
+	display: flex;
+	align-items: center;
+	gap: calc(var(--default-grid-baseline) * 2);
+}
+
 .external-training-bulk {
 	padding: 1rem;
 	max-width: 48rem;
