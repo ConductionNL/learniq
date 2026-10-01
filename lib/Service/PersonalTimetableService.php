@@ -256,7 +256,24 @@ class PersonalTimetableService {
 			}
 		}
 
-		// Cohorts reached through the caller's own enrolments.
+		// Cohorts and elective courses reached through the caller's own enrolments.
+		$this->addEnrolments(uid: $uid, cohortIds: $cohortIds, electives: $electives);
+
+		return array_keys($cohortIds);
+	}//end resolveCallerCohortIds()
+
+	/**
+	 * Add what the caller's live enrolments reach: a cohort, or a course when
+	 * the enrolment has no cohort. A withdrawn, completed or failed enrolment
+	 * reaches nothing.
+	 *
+	 * @param string             $uid       The caller's Nextcloud user id.
+	 * @param array<string,bool> $cohortIds Cohort ids reached so far, keyed.
+	 * @param array<int,string>  $electives Courses reached without a cohort.
+	 *
+	 * @return void
+	 */
+	private function addEnrolments(string $uid, array &$cohortIds, array &$electives): void {
 		$enrolments = $this->objectService->findAll(
 			[
 				'filters' => [
@@ -287,9 +304,7 @@ class PersonalTimetableService {
 				$electives[] = $courseId;
 			}
 		}
-
-		return array_keys($cohortIds);
-	}//end resolveCallerCohortIds()
+	}//end addEnrolments()
 
 	/**
 	 * The caller's place in a cohort: `teacher`, `learner`, or null.
