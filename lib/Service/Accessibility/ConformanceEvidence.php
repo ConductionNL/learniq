@@ -125,9 +125,15 @@ class ConformanceEvidence {
 	 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-evidence-on-request
 	 */
 	public function publishedStatement(?string $statementId): ?array {
-		$statements = $this->read(
-			schema: self::STATEMENT_SCHEMA,
-			filters: ['lifecycle' => 'published']
+		// The filter narrows the read; the check on each row is what keeps a draft private.
+		$statements = array_values(
+			array_filter(
+				$this->read(
+					schema: self::STATEMENT_SCHEMA,
+					filters: ['lifecycle' => 'published']
+				),
+				static fn (array $row): bool => ($row['lifecycle'] ?? null) === 'published'
+			)
 		);
 
 		if ($statementId !== null && $statementId !== '') {

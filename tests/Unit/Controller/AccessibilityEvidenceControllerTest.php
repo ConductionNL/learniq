@@ -36,12 +36,14 @@ use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use ReflectionMethod;
+use ReflectionProperty;
 use RuntimeException;
 
 /**
@@ -95,6 +97,18 @@ class AccessibilityEvidenceControllerTest extends TestCase {
 	}//end controller()
 
 	/**
+	 * The headers the response set itself. Response::getHeaders() merges in
+	 * server defaults through \OCP\Server, which the unit environment lacks.
+	 *
+	 * @param Response $response The response.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function headersOf(Response $response): array {
+		return (array)(new ReflectionProperty(Response::class, 'headers'))->getValue($response);
+	}//end headersOf()
+
+	/**
 	 * A published statement.
 	 *
 	 * @return array<string,mixed>
@@ -114,8 +128,8 @@ class AccessibilityEvidenceControllerTest extends TestCase {
 		$response = $this->controller(statements: [self::published()])->evidence(format: 'csv');
 
 		self::assertInstanceOf(DataDownloadResponse::class, $response);
-		self::assertSame('text/csv', $response->getHeaders()['Content-Type']);
-		self::assertStringContainsString('accessibility-evidence-2026-09-01.csv', $response->getHeaders()['Content-Disposition']);
+		self::assertSame('text/csv', self::headersOf($response)['Content-Type']);
+		self::assertStringContainsString('accessibility-evidence-2026-09-01.csv', self::headersOf($response)['Content-Disposition']);
 		$csv = $response->render();
 		self::assertCount(51, array_filter(explode("\n", $csv)));
 		self::assertStringContainsString('1.4.3,AA,"Contrast (Minimum)",pass,axe,,2026-08-01,', $csv);

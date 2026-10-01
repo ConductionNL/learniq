@@ -156,9 +156,13 @@ class AccessibilityCriterionResultRegisterTest extends TestCase {
 		$wrongNumber = array_merge($pass, ['wcagCriterion' => '1.4.3 Contrast']);
 		self::assertFalse($validator->validate(json_decode((string)json_encode($wrongNumber)), $schema)->isValid(), 'control: the criterion is a number');
 
-		$noResult = $pass;
-		unset($noResult['result']);
-		self::assertFalse($validator->validate(json_decode((string)json_encode($noResult)), $schema)->isValid(), 'control: a record needs a result');
+		// A missing result takes the schema default (not-tested), so the control is a result outside the four.
+		$unknownResult = array_merge($pass, ['result' => 'passed']);
+		self::assertFalse($validator->validate(json_decode((string)json_encode($unknownResult)), $schema)->isValid(), 'control: the result is one of the four');
+
+		$noStatement = $pass;
+		unset($noStatement['accessibilityStatementId']);
+		self::assertFalse($validator->validate(json_decode((string)json_encode($noStatement)), $schema)->isValid(), 'control: a record belongs to a statement');
 	}//end testTheSavedPayloadsPassTheRealSchema()
 
 	/**

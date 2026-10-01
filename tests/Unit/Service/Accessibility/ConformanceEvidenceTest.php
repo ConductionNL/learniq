@@ -272,4 +272,27 @@ class ConformanceEvidenceTest extends TestCase {
 
 		self::assertNull($this->service(bySchema: [])->publishedStatement(statementId: null));
 	}//end testOnlyAPublishedStatementIsServed()
+
+	/**
+	 * A draft the store hands back anyway (a filter it did not apply) is still not served.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-evidence-on-request
+	 */
+	public function testADraftIsNeverServedEvenWhenTheFilterIsIgnored(): void {
+		$service = $this->service(
+			bySchema: [
+				'accessibility-statement' => [
+					self::entity('live', ['evaluationDate' => '2026-03-01', 'lifecycle' => 'published']),
+					self::entity('draft', ['evaluationDate' => '2026-09-30', 'lifecycle' => 'draft']),
+					self::entity('bare', ['evaluationDate' => '2026-10-01']),
+				],
+			]
+		);
+
+		self::assertSame('live', $service->publishedStatement(statementId: null)['id']);
+		self::assertNull($service->publishedStatement(statementId: 'draft'));
+		self::assertNull($service->publishedStatement(statementId: 'bare'));
+	}//end testADraftIsNeverServedEvenWhenTheFilterIsIgnored()
 }//end class
