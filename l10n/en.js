@@ -3075,7 +3075,10 @@ OC.L10N.register(
         "Your calendar address could not be read.": "Your calendar address could not be read.",
         "The calendar address could not be made.": "The calendar address could not be made.",
         "The calendar address could not be removed.": "The calendar address could not be removed.",
-        "Copying did not work. Select the address and copy it yourself.": "Copying did not work. Select the address and copy it yourself."
+        "Copying did not work. Select the address and copy it yourself.": "Copying did not work. Select the address and copy it yourself.",
+        "no lessons planned yet": "no lessons planned yet",
+        "{first} and {second} meet at the same time: {slot}.": "{first} and {second} meet at the same time: {slot}.",
+        "The lesson times of these electives could not be read.": "The lesson times of these electives could not be read."
     },
     "nplurals=2; plural=(n != 1);"
 )
