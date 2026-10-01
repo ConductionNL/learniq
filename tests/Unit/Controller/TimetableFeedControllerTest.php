@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Unit tests for TimetableFeedController.
+ * Unit tests for TimetableFeedController and TimetableFeedAddressController.
  *
  * The feed is built from the real sibling classes (PersonalTimetableService,
  * TimetableProjector, the timetable sources, TimetableVisibilityService over
@@ -33,11 +33,13 @@ if (class_exists('\\OCA\\Planninq\\Event\\TimetableSessionsQueryEvent') === fals
 }
 
 use Generator;
+use OCA\Learniq\Controller\TimetableFeedAddressController;
 use OCA\Learniq\Controller\TimetableFeedController;
 use OCA\Learniq\Service\LessonNoteReader;
 use OCA\Learniq\Service\PersonalTimetableService;
 use OCA\Learniq\Service\TimetableDirectory;
 use OCA\Learniq\Service\TimetableFeedEventBuilder;
+use OCA\Learniq\Service\TimetableFeedRenderer;
 use OCA\Learniq\Service\TimetableFeedTokenService;
 use OCA\Learniq\Service\TimetableIcsWriter;
 use OCA\Learniq\Service\TimetableProjector;
@@ -122,6 +124,13 @@ class TimetableFeedControllerTest extends TestCase {
 	 * @var array<string,bool>
 	 */
 	private array $users = ['alice' => true, 'sam' => true, 'tom' => true];
+
+	/**
+	 * The address controller, over the same token store as the feed.
+	 *
+	 * @var TimetableFeedAddressController
+	 */
+	private TimetableFeedAddressController $address;
 
 	/**
 	 * Counter for the token generator.
@@ -244,19 +253,28 @@ class TimetableFeedControllerTest extends TestCase {
 		$time = $this->createMock(ITimeFactory::class);
 		$time->method('getTime')->willReturn((int)strtotime('2026-01-07T08:00:00+00:00'));
 
+		$tokens = new TimetableFeedTokenService($this->userConfig(), $this->random());
+		$this->address = new TimetableFeedAddressController(
+			request: $this->createMock(IRequest::class),
+			userSession: $session,
+			tokens: $tokens,
+			urls: $urls,
+		);
+
 		return new TimetableFeedController(
 			request: $this->createMock(IRequest::class),
 			userSession: $session,
 			userManager: $userManager,
-			tokens: new TimetableFeedTokenService($this->userConfig(), $this->random()),
+			tokens: $tokens,
 			timetable: $timetable,
-			events: new TimetableFeedEventBuilder(
-				new TimetableVisibilityService(new TimetableDirectory($objects, $sources), $groups, $userManager),
-				$userManager
+			renderer: new TimetableFeedRenderer(
+				new TimetableFeedEventBuilder(
+					new TimetableVisibilityService(new TimetableDirectory($objects, $sources), $groups, $userManager),
+					$userManager
+				),
+				new TimetableIcsWriter(),
+				$factory
 			),
-			writer: new TimetableIcsWriter(),
-			urls: $urls,
-			l10nFactory: $factory,
 			time: $time,
 			logger: $logger,
 		);
@@ -335,7 +353,7 @@ class TimetableFeedControllerTest extends TestCase {
 	 */
 	private function subscribe(TimetableFeedController $controller, string $uid): string {
 		$this->active = $this->user($uid);
-		$response = $controller->create();
+		$response = $this->address->create();
 		$this->assertSame(Http::STATUS_CREATED, $response->getStatus());
 		$url = (string)$response->getData()['url'];
 		$this->assertMatchesRegularExpression('#/api/timetable/feed/[a-f0-9]{64}\.ics\#learniq\.timetableFeed\.feed$#', $url);
@@ -479,9 +497,9 @@ class TimetableFeedControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $controller->feed($new)->getStatus());
 
 		$this->active = $this->user('alice');
-		$this->assertSame(['exists' => true], $controller->status()->getData());
-		$this->assertSame(['exists' => false], $controller->revoke()->getData());
-		$this->assertSame(['exists' => false], $controller->status()->getData());
+		$this->assertSame(['exists' => true], $this->address->status()->getData());
+		$this->assertSame(['exists' => false], $this->address->revoke()->getData());
+		$this->assertSame(['exists' => false], $this->address->status()->getData());
 		$this->active = null;
 		$this->assertSame(Http::STATUS_NOT_FOUND, $controller->feed($new)->getStatus());
 	}//end testResetMakesTheOldAddressAnswer404()
@@ -559,9 +577,9 @@ class TimetableFeedControllerTest extends TestCase {
 	public function testAddressCallsNeedASignedInUser(): void {
 		$controller = $this->controller();
 
-		$this->assertSame(Http::STATUS_UNAUTHORIZED, $controller->status()->getStatus());
-		$this->assertSame(Http::STATUS_UNAUTHORIZED, $controller->create()->getStatus());
-		$this->assertSame(Http::STATUS_UNAUTHORIZED, $controller->revoke()->getStatus());
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->address->status()->getStatus());
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->address->create()->getStatus());
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->address->revoke()->getStatus());
 		$this->assertSame([], $this->prefs);
 	}//end testAddressCallsNeedASignedInUser()
 }//end class

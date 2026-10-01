@@ -72,7 +72,7 @@ class TimetableFeedEventBuilder {
 			$cancelled = (($session['lifecycle'] ?? '') === 'cancelled');
 			$summary = trim((string)($session['title'] ?? ''));
 			if ($summary === '') {
-				$summary = $l10n->t('Lesson');
+				$summary = $l10n->t('Untitled lesson');
 			}
 
 			if ($cancelled === true) {

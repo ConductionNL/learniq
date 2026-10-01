@@ -137,6 +137,11 @@ export default {
 		}
 	},
 
+	/**
+	 * Read whether the user already has an address.
+	 *
+	 * @spec openspec/changes/attendance-timetable-calendar-feed/specs/timetable-calendar-feed/spec.md#requirement-calendar-subscription-feed
+	 */
 	async mounted() {
 		try {
 			this.exists = await fetchCalendarFeedStatus()
