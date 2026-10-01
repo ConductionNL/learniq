@@ -305,6 +305,9 @@ Vrij en open source onder de EUPL-1.2-licentie.
         <command>OCA\Learniq\Command\RecomputeCurriculumCoverage</command>
         <!-- portal-guardian-invitation: links a guardian to the parent portal. -->
         <command>OCA\Learniq\Command\PortalInviteGuardianCommand</command>
+        <!-- example-sets-themed-portal: gives a loaded example set its themed portal
+             without importing the set again. -->
+        <command>OCA\Learniq\Command\ExampleSetPortalCommand</command>
     </commands>
 
     <settings>
