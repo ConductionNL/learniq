@@ -38,6 +38,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Portal\ExamplePortalProvisioner;
 use OCP\App\IAppManager;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -92,6 +93,7 @@ class SeedProfileService {
 	 * @param DemoDataService    $demoData   Lists and imports the generated set.
 	 * @param SharedCodeFilter   $sharedCodes Leaves out a regulation code another set already created.
 	 * @param LoadedExampleSets  $loadedSets Remembers which sets were loaded, for the wizard's removal steps.
+	 * @param ExamplePortalProvisioner $examplePortals Gives the set's school its themed portal when portaliq is installed.
 	 *
 	 * @return void
 	 */
@@ -102,6 +104,7 @@ class SeedProfileService {
 		private readonly DemoDataService $demoData,
 		private readonly SharedCodeFilter $sharedCodes,
 		private readonly LoadedExampleSets $loadedSets,
+		private readonly ExamplePortalProvisioner $examplePortals,
 	) {
 	}//end __construct()
 
@@ -196,7 +199,7 @@ class SeedProfileService {
 	 *
 	 * @param string $profileId The set to import.
 	 *
-	 * @return array{objects: int, profile: string} What was imported.
+	 * @return array{objects: int, profile: string, portal?: array{status: string, slug?: string, theme?: string}} What was imported.
 	 *
 	 * @throws RuntimeException When the id is unknown or OpenRegister is absent.
 	 *
@@ -227,6 +230,11 @@ class SeedProfileService {
 
 		$this->loadedSets->recordFromChoices(setId: $profileId, choices: [$data['x-openregister']['profile']]);
 
+		// The school's portal, themed with the matching thematiq example set.
+		// A no-op without portaliq, and it never throws, so the set itself
+		// stays imported whatever the portal answers.
+		$portal = $this->examplePortals->provision(profileId: $profileId);
+
 		$this->logger->info(
 			'[SeedProfileService] imported example set "' . $profileId . '": ' . $objects . ' object(s).',
 			['app' => Application::APP_ID]
@@ -235,6 +243,7 @@ class SeedProfileService {
 		return [
 			'objects' => $objects,
 			'profile' => $profileId,
+			'portal'  => $portal,
 		];
 	}//end install()
 

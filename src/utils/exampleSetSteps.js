@@ -10,7 +10,9 @@
  * during this visit can still be removed at the end of the wizard.
  *
  * The server reports every `remove-example-set-<id>` step as done
- * (LoadedExampleSets::removalSteps()), so none of them runs by itself.
+ * (LoadedExampleSets::removalSteps()), so none of them runs by itself. Each
+ * step is also `onDemand: true` (nextcloud-vue 2.58.0), so the wizard never
+ * auto-runs it and its summary ticks it only when it ran in this session.
  *
  * Plain ES module (not a .vue SFC) so it is directly importable from a Node
  * test runner without a build step.
@@ -64,6 +66,7 @@ export function applyExampleSetRemovalSteps(manifest, loadedSets, translate) {
 		type: 'run-action',
 		action: `${REMOVE_STEP_ID}-${set.id}`,
 		required: false,
+		onDemand: true,
 		title: translate('Remove the example set "{set}"', {
 			set: translate(set.label),
 		}),
