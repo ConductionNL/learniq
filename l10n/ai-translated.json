@@ -1956,6 +1956,7 @@
         "{planned} of {goals} goals are planned and {assessed} are assessed.",
         "{programme}, intake {year}, {status}",
         "{revoked} revoked and {expired} expired certificates are left as they are. Learners keep their certificate number, issue date and expiry.",
-        "{shown} of {total} strings"
+        "{shown} of {total} strings",
+        "UUID of the LearnerProfile this result belongs to, the domain reference to the pupil. The server derives it from learnerId on every write. Distinct from learnerId, which is the Nextcloud user id. Optional; null when the learner has no profile."
     ]
 }
