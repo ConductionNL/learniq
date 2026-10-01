@@ -825,4 +825,105 @@ class TimetableControllerTest extends TestCase {
 		$this->assertTrue($out['sessions'][0]['cover']);
 		$this->assertSame(['n-1', 'n-2'], array_column($out['sessions'][0]['notes'], 'id'));
 	}//end testSubstituteSeesTheCoverNote()
+
+	/**
+	 * A chosen elective appears: an enrolment in Drama with no cohort (as an
+	 * approved subject choice creates it) brings Drama's lessons, which belong
+	 * to another cohort, and nothing else of that cohort.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-elective-sessions-in-the-personal-timetable
+	 */
+	public function testAChosenElectiveAppears(): void {
+		$this->signInAs('alice');
+		$cohorts = [
+			['id' => 'cohort-1', 'learnerIds' => ['alice'], 'teacherIds' => ['tom']],
+			['id' => 'cohort-drama', 'learnerIds' => ['bob'], 'teacherIds' => ['dina']],
+		];
+		$enrolments = [
+			['learnerId' => 'alice', 'courseId' => 'course-drama', 'cohortId' => null, 'source' => 'subject-choice', 'lifecycle' => 'active'],
+		];
+		$sessions = [
+			['id' => 's-core', 'cohortId' => 'cohort-1', 'courseId' => 'course-maths', 'title' => 'Maths', 'startsAt' => '2026-01-06T09:00:00+00:00', 'endsAt' => '2026-01-06T10:00:00+00:00'],
+			['id' => 's-drama', 'cohortId' => 'cohort-drama', 'courseId' => 'course-drama', 'title' => 'Drama', 'startsAt' => '2026-01-06T10:00:00+00:00', 'endsAt' => '2026-01-06T11:00:00+00:00'],
+			['id' => 's-other', 'cohortId' => 'cohort-drama', 'courseId' => 'course-music', 'title' => 'Music', 'startsAt' => '2026-01-07T10:00:00+00:00', 'endsAt' => '2026-01-07T11:00:00+00:00'],
+		];
+		$this->wireFindAll($cohorts, $enrolments, $sessions);
+
+		$ids = array_column($this->body($this->controller()->mine(from: $this->from, to: $this->to))['sessions'], 'id');
+
+		$this->assertSame(['s-core', 's-drama'], $ids);
+	}//end testAChosenElectiveAppears()
+
+	/**
+	 * A withdrawn, completed or failed enrolment brings no lesson, by course or by cohort.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-elective-sessions-in-the-personal-timetable
+	 */
+	public function testAWithdrawnEnrolmentDisappears(): void {
+		$this->signInAs('alice');
+		$enrolments = [
+			['learnerId' => 'alice', 'courseId' => 'course-drama', 'cohortId' => null, 'lifecycle' => 'withdrawn'],
+			['learnerId' => 'alice', 'courseId' => 'course-art', 'cohortId' => 'cohort-art', 'lifecycle' => 'completed'],
+			['learnerId' => 'alice', 'courseId' => 'course-pe', 'cohortId' => null, 'lifecycle' => 'failed'],
+		];
+		$sessions = [
+			['id' => 's-drama', 'cohortId' => 'cohort-drama', 'courseId' => 'course-drama', 'startsAt' => '2026-01-06T10:00:00+00:00', 'endsAt' => '2026-01-06T11:00:00+00:00'],
+			['id' => 's-art', 'cohortId' => 'cohort-art', 'courseId' => 'course-art', 'startsAt' => '2026-01-07T10:00:00+00:00', 'endsAt' => '2026-01-07T11:00:00+00:00'],
+			['id' => 's-pe', 'cohortId' => 'cohort-pe', 'courseId' => 'course-pe', 'startsAt' => '2026-01-08T10:00:00+00:00', 'endsAt' => '2026-01-08T11:00:00+00:00'],
+		];
+		$this->wireFindAll([], $enrolments, $sessions);
+
+		$this->assertSame([], $this->body($this->controller()->mine(from: $this->from, to: $this->to))['sessions']);
+	}//end testAWithdrawnEnrolmentDisappears()
+
+	/**
+	 * A course the learner attends through their cohort and also through an
+	 * enrolment lists each lesson once.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-elective-sessions-in-the-personal-timetable
+	 */
+	public function testNoDuplicatesWhenCohortAndEnrolmentBothReachALesson(): void {
+		$this->signInAs('alice');
+		$cohorts = [['id' => 'cohort-1', 'learnerIds' => ['alice'], 'teacherIds' => []]];
+		$enrolments = [['learnerId' => 'alice', 'courseId' => 'course-drama', 'cohortId' => null]];
+		$sessions = [
+			['id' => 's-drama', 'cohortId' => 'cohort-1', 'courseId' => 'course-drama', 'startsAt' => '2026-01-06T10:00:00+00:00', 'endsAt' => '2026-01-06T11:00:00+00:00'],
+		];
+		$this->wireFindAll($cohorts, $enrolments, $sessions);
+
+		$ids = array_column($this->body($this->controller()->mine(from: $this->from, to: $this->to))['sessions'], 'id');
+
+		$this->assertSame(['s-drama'], $ids);
+	}//end testNoDuplicatesWhenCohortAndEnrolmentBothReachALesson()
+
+	/**
+	 * With planninq as the source an elective enrolment adds no query planninq
+	 * cannot answer: planninq lessons carry no course, so electives reach a
+	 * learner through the elective group's cohort.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-elective-sessions-in-the-personal-timetable
+	 */
+	public function testPlanninqIsNeverAskedByCourse(): void {
+		$this->signInAs('alice');
+		$this->wireFindAll(
+			[['id' => 'cohort-1', 'learnerIds' => ['alice'], 'teacherIds' => []]],
+			[['learnerId' => 'alice', 'courseId' => 'course-drama', 'cohortId' => null]],
+			[]
+		);
+
+		$response = $this->controller(planninqLessons: [])->mine(from: $this->from, to: $this->to);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		foreach ($this->planninqQueries as $criteria) {
+			$this->assertArrayNotHasKey('courseId', $criteria);
+		}
+	}//end testPlanninqIsNeverAskedByCourse()
 }//end class

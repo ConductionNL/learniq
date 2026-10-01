@@ -82,4 +82,21 @@ interface TimetableSource {
 	 * @spec openspec/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
 	 */
 	public function sessionsForTeacher(string $userId, ?string $from, ?string $to): array;
+
+	/**
+	 * The sessions of the given courses, for learners enrolled in a course
+	 * without a cohort (an elective from a subject choice), when the source
+	 * knows a lesson's course.
+	 *
+	 * @param array<int,string> $courseIds Course UUIDs.
+	 * @param string|null       $from      ISO 8601 window start, or null.
+	 * @param string|null       $to        ISO 8601 window end, or null.
+	 *
+	 * @return array<int,array<string,mixed>> Sessions in learniq's session shape.
+	 *
+	 * @throws RuntimeException When the source cannot answer.
+	 *
+	 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-elective-sessions-in-the-personal-timetable
+	 */
+	public function sessionsForCourses(array $courseIds, ?string $from, ?string $to): array;
 }//end interface

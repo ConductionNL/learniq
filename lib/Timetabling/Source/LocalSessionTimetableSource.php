@@ -173,6 +173,53 @@ class LocalSessionTimetableSource implements TimetableSource {
 	}//end sessionsForTeacher()
 
 	/**
+	 * The sessions of the given courses, from learniq's own `Session` objects.
+	 *
+	 * @param array<int,string> $courseIds Course UUIDs.
+	 * @param string|null       $from      ISO 8601 window start, or null (the projector windows).
+	 * @param string|null       $to        ISO 8601 window end, or null (the projector windows).
+	 *
+	 * @return array<int,array<string,mixed>>
+	 *
+	 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-elective-sessions-in-the-personal-timetable
+	 */
+	public function sessionsForCourses(array $courseIds, ?string $from, ?string $to): array {
+		unset($from, $to);
+
+		$rows = [];
+		foreach (array_unique($courseIds) as $courseId) {
+			if ($courseId === '') {
+				continue;
+			}
+
+			$results = $this->objectService->findAll(
+				[
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'session',
+						'courseId' => $courseId,
+					],
+					'sort' => ['startsAt' => 'ASC'],
+				],
+				_rbac: false
+			);
+
+			foreach ($results as $row) {
+				$data = $this->toArray(row: $row);
+				// Defensive: never let another course's lesson through.
+				if ((string)($data['courseId'] ?? '') !== $courseId) {
+					continue;
+				}
+
+				$data['source'] = self::NAME;
+				$rows[] = $data;
+			}
+		}//end foreach
+
+		return $rows;
+	}//end sessionsForCourses()
+
+	/**
 	 * Normalise an ObjectService row (entity or array) to a plain array.
 	 *
 	 * @param mixed $row The row returned by ObjectService::findAll.
