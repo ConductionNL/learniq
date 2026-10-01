@@ -30,5 +30,10 @@ export default defineConfig({
 		trace: 'retain-on-failure',
 		screenshot: 'only-on-failure',
 		headless: true,
+		// PO_FLOW_CHROME runs the flows in an installed Chrome instead of
+		// Playwright's own build, e.g. /opt/google/chrome/chrome.
+		...(process.env.PO_FLOW_CHROME
+			? { launchOptions: { executablePath: process.env.PO_FLOW_CHROME } }
+			: {}),
 	},
 })
