@@ -381,7 +381,7 @@ test.describe('po: teacher and parent flows', () => {
 		await staff.close()
 	})
 
-	test('e. the guardian reads the grades on her child\'s published report cards, never a draft', async () => {
+	test("e. the guardian reads the grades on her child's published report cards, never a draft", async () => {
 		// A primary school records no grade entries: the grades are on the
 		// report cards (portal-parent-report-card-grades). The teacher starts
 		// a new report card for Vera; it stays a draft.
