@@ -202,6 +202,13 @@ return [
         // (planninq when installed, else Session), after an RBAC read of the cohort
         // (sessions-from-planninq).
         ['name' => 'timetable#cohort', 'url' => '/api/timetable/cohort/{cohortId}', 'verb' => 'GET', 'requirements' => ['cohortId' => '[^/]+']],
+        // attendance-timetable-calendar-feed: the caller's own calendar address (status, make or
+        // reset, remove), and the feed a calendar app fetches by token with no session.
+        // Controllers: TimetableFeedAddressController, TimetableFeedController (#[PublicPage], rate limited).
+        ['name' => 'timetableFeedAddress#status', 'url' => '/api/timetable/feed', 'verb' => 'GET'],
+        ['name' => 'timetableFeedAddress#create', 'url' => '/api/timetable/feed', 'verb' => 'POST'],
+        ['name' => 'timetableFeedAddress#revoke', 'url' => '/api/timetable/feed', 'verb' => 'DELETE'],
+        ['name' => 'timetableFeed#feed', 'url' => '/api/timetable/feed/{token}.ics', 'verb' => 'GET', 'requirements' => ['token' => '[a-f0-9]{64}']],
         // Contact hours (timetabling-contact-hours): owed by the hour plan, given by held
         // lessons, attended per learner, for a window. #[NoAdminRequired] + the
         // report.contact-hours action in the body.
