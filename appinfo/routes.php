@@ -44,6 +44,10 @@ return [
         // Europass file check (credentials-europass-edci-export): public like the
         // GET, answers validity only, never the stored payload.
         ['name' => 'credentialVerify#verifyEuropass', 'url' => '/api/credentials/{id}/verify', 'verb' => 'POST'],
+        // Controller: AccessibilityEvidenceController (slug: accessibilityEvidence), governance-wcag-evidence-report.
+        // #[PublicPage] + #[AnonRateLimit]: the published accessibility statement and its evidence, no sign-in.
+        ['name' => 'accessibilityEvidence#page',     'url' => '/public/accessibility-statement', 'verb' => 'GET'],
+        ['name' => 'accessibilityEvidence#evidence', 'url' => '/api/accessibility/evidence',     'verb' => 'GET'],
         // Europass download (learner or hr/compliance) and one-time backfill (hr/compliance).
         // Controller: CredentialEuropassController (slug: credentialEuropass).
         ['name' => 'credentialEuropass#download', 'url' => '/api/credentials/{id}/europass', 'verb' => 'GET'],

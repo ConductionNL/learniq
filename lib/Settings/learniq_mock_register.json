@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.47",
+    "version": "1.1.48",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -30122,6 +30122,54 @@
         "appliedBy": "Voorbeeld Requestedby 3",
         "appliedAt": "2026-06-16T10:00:00+00:00",
         "lifecycle": "applied"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "accessibility-criterion-result",
+          "slug": "accessibility-criterion-result-voorbeeld-1"
+        },
+        "accessibilityStatementId": "00000000-0000-4000-8000-000000000001",
+        "wcagCriterion": "1.4.3",
+        "level": "AA",
+        "result": "pass",
+        "method": "axe en handmatige controle",
+        "evidenceReference": "https://example.org/toegankelijkheid/rapport-2026",
+        "testedOn": "2026-09-01",
+        "testedBy": "Voorbeeld Testedby 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "accessibility-criterion-result",
+          "slug": "accessibility-criterion-result-voorbeeld-2"
+        },
+        "accessibilityStatementId": "00000000-0000-4000-8000-000000000001",
+        "wcagCriterion": "2.1.1",
+        "level": "A",
+        "result": "fail",
+        "method": "handmatige toetsenbordtest",
+        "evidenceReference": "https://example.org/toegankelijkheid/rapport-2026#2.1.1",
+        "testedOn": "2026-09-01",
+        "testedBy": "Voorbeeld Testedby 2",
+        "limitationId": "00000000-0000-4000-8000-000000000002",
+        "tenant_id": "00000000-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "accessibility-criterion-result",
+          "slug": "accessibility-criterion-result-voorbeeld-3"
+        },
+        "accessibilityStatementId": "00000000-0000-4000-8000-000000000001",
+        "wcagCriterion": "1.2.4",
+        "level": "AA",
+        "result": "not-applicable",
+        "method": "inventarisatie: er is geen live audio of video",
+        "testedOn": "2026-09-01",
+        "testedBy": "Voorbeeld Testedby 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000001"
       }
     ]
   }

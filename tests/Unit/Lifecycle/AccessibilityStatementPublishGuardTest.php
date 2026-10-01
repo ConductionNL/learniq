@@ -104,8 +104,10 @@ class AccessibilityStatementPublishGuardTest extends TestCase {
 	 * @spec openspec/specs/accessibility-conformance/spec.md#requirement-a-statement-must-not-publish-without-evaluation-evidence
 	 */
 	public function testCompleteEvidenceAllowsPublish(): void {
+		// No limitation read: the status is not fully-compliant. The one read
+		// left is the conformance table's failures (governance-wcag-evidence-report).
 		$objectService = $this->createMock(ObjectService::class);
-		$objectService->expects($this->never())->method('findAll');
+		$objectService->expects($this->once())->method('findAll')->willReturn([]);
 
 		$guard = new AccessibilityStatementPublishGuard($objectService, $this->createMock(LoggerInterface::class));
 		$object = [
@@ -223,19 +225,16 @@ class AccessibilityStatementPublishGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testLimitationLookupIsScopedToTenant(): void {
+		$calls = [];
 		$objectService = $this->createMock(ObjectService::class);
-		$objectService->expects($this->once())
+		$objectService->expects($this->exactly(2))
 			->method('findAll')
-			->with(
-				self::callback(
-					function (array $params): bool {
-						return ($params['filters']['tenant_id'] ?? null) === 'tenant-b'
-							&& ($params['filters']['accessibilityStatementId'] ?? null) === 'statement-7'
-							&& ($params['filters']['schema'] ?? null) === 'accessibility-limitation';
-					}
-				)
-			)
-			->willReturn([]);
+			->willReturnCallback(
+				function (array $params) use (&$calls): array {
+					$calls[] = $params['filters'];
+					return [];
+				}
+			);
 
 		$guard = new AccessibilityStatementPublishGuard($objectService, $this->createMock(LoggerInterface::class));
 		$object = [
@@ -250,5 +249,11 @@ class AccessibilityStatementPublishGuardTest extends TestCase {
 
 		self::assertAllowed($guard->check($object, 'publish', ''));
 
+		// The limitation lookup and the criterion-result lookup both stay in the statement's tenant.
+		self::assertSame(['accessibility-limitation', 'accessibility-criterion-result'], array_column($calls, 'schema'));
+		foreach ($calls as $filters) {
+			self::assertSame('tenant-b', $filters['tenant_id'] ?? null);
+			self::assertSame('statement-7', $filters['accessibilityStatementId'] ?? null);
+		}
 	}//end testLimitationLookupIsScopedToTenant()
 }//end class
