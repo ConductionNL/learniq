@@ -103,3 +103,31 @@ test('both new strings have a Dutch catalogue value', () => {
 		assert.ok(catalogue[key], key)
 	}
 })
+
+// The server reports every removal step as done so the wizard never runs it
+// by itself, and the shared summary used to read that as "removed". The
+// steps are on demand (nextcloud-vue 2.58.0): never auto-run, and ticked in
+// the summary only when the removal actually ran in this session.
+test('the single removal step in the manifest is on demand', () => {
+	const step = manifest().setup.steps.find((s) => s.id === REMOVE_STEP_ID)
+	assert.equal(step.type, 'run-action')
+	assert.equal(step.onDemand, true)
+})
+
+test('every per-set removal step is on demand', () => {
+	const built = applyExampleSetRemovalSteps(
+		manifest(),
+		[
+			{ id: 'corporate', label: 'Company' },
+			{ id: 'training', label: 'Training institute' },
+		],
+		echo,
+	)
+	const removal = built.setup.steps.filter((s) =>
+		s.id.startsWith(`${REMOVE_STEP_ID}-`),
+	)
+	assert.equal(removal.length, 2)
+	for (const step of removal) {
+		assert.equal(step.onDemand, true, step.id)
+	}
+})
