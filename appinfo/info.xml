@@ -68,7 +68,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
 
 **Ondersteuning:** support@conduction.nl
     ]]></description>
-    <version>0.3.6-unstable.20260929001524</version>
+    <version>0.3.6-unstable.20261001054823</version>
     <licence>EUPL-1.2</licence>
     <author mail="info@conduction.nl" homepage="https://www.conduction.nl/">Conduction</author>
     <namespace>Learniq</namespace>
@@ -245,6 +245,14 @@ Vrij en open source onder de EUPL-1.2-licentie.
             -->
             <step>OCA\Learniq\Repair\BackfillGradeEntryLearnerRef</step>
             <!--
+                lvs-result-learner-ref: stamps the LearnerProfile UUID on LVS
+                results imported before the server did it on every write.
+                After InitializeSettings (the register must exist).
+                Idempotent; a row it cannot resolve is retried on the next
+                upgrade.
+            -->
+            <step>OCA\Learniq\Repair\BackfillLvsResultLearnerRef</step>
+            <!--
                 default-tenant fallback (Ruben, 2026-09-29, option A): an unbound
                 user's tenant used to be the instance id, which is not a UUID and
                 matched no seeded row. Moves rows that carry it to the default
@@ -306,6 +314,9 @@ Vrij en open source onder de EUPL-1.2-licentie.
         <command>OCA\Learniq\Command\RecomputeCurriculumCoverage</command>
         <!-- portal-guardian-invitation: links a guardian to the parent portal. -->
         <command>OCA\Learniq\Command\PortalInviteGuardianCommand</command>
+        <!-- example-sets-themed-portal: gives a loaded example set its themed portal
+             without importing the set again. -->
+        <command>OCA\Learniq\Command\ExampleSetPortalCommand</command>
     </commands>
 
     <settings>

@@ -3456,6 +3456,7 @@ OC.L10N.register(
         "What the test found for this criterion.": "Wat de test voor dit criterium vond.",
         "Where the evidence is: a link to the report or the test run.": "Waar het bewijs staat: een link naar het rapport of de testrun.",
         "Who tested the criterion. Kept in the register, never in the public export.": "Wie het criterium heeft getest. Staat in het register, nooit in de openbare export.",
+        "UUID of the LearnerProfile this result belongs to, the domain reference to the pupil. The server derives it from learnerId on every write. Distinct from learnerId, which is the Nextcloud user id. Optional; null when the learner has no profile.": "UUID van het leerlingprofiel waar dit resultaat bij hoort: de verwijzing naar de leerling. De server leidt deze bij elke opslag af van learnerId. Niet hetzelfde als learnerId, dat de Nextcloud-gebruikers-id is. Optioneel; leeg als de leerling geen profiel heeft.",
         "Group teachers": "Leerkrachten van de groep",
         "The teachers of the pupil's group. The school fills this in when the report is saved.": "De leerkrachten van de groep van de leerling. De school vult dit in als de melding wordt opgeslagen."
     },
