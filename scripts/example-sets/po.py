@@ -544,7 +544,7 @@ def build() -> dict:
                     "takenAt": (base_day + dt.timedelta(days=rng.randrange(10))).isoformat(),
                     "rawScore": None, "vaardigheidsscore": round(40 + months * 1.6 + z * 9, 1),
                     "niveau": level(z), "referentieniveau": None, "dle": round(max(1, months + z * 5)),
-                    "learnerId": p["nc"], "dataExchangeJobId": None, "lifecycle": "verified",
+                    "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "dataExchangeJobId": None, "lifecycle": "verified",
                 })
         if p["leerjaar"] == 8:
             z = max(-2.5, min(2.5, p["ability"] + rng.gauss(0, 0.3)))
@@ -552,7 +552,7 @@ def build() -> dict:
                 "provider": "iep", "instrument": "Doorstroomtoets", "moment": "februari 2026",
                 "takenAt": dt.date(2026, 2, 10).isoformat(), "rawScore": None, "vaardigheidsscore": round(80 + z * 7, 1),
                 "niveau": level(z), "referentieniveau": ("2F/1S" if z > 0.4 else "1F" if z > -1.2 else "onder 1F"),
-                "dle": None, "learnerId": p["nc"], "dataExchangeJobId": None, "lifecycle": "verified",
+                "dle": None, "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "dataExchangeJobId": None, "lifecycle": "verified",
             })
 
     # --- report cards -------------------------------------------------------

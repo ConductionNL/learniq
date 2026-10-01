@@ -33,6 +33,7 @@ use OCA\Learniq\Listener\ConferenceSignupPortalStamp;
 use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
 use OCA\Learniq\Listener\LessonNoteAuthorGuard;
+use OCA\Learniq\Listener\LvsResultLearnerRefStamp;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
 use OCA\Learniq\Listener\SubmissionOwnerStamp;
@@ -116,6 +117,19 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: GradeEntryLearnerRefStamp::class
+		);
+
+		// LvsResult learnerRef (lvs-result-learner-ref): a Cito, IEP, Boom or
+		// Dia result names its pupil by LearnerProfile, derived by the server
+		// from learnerId on every write, imported or entered by hand. A stamp,
+		// not a veto: it never stops the write.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: LvsResultLearnerRefStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: LvsResultLearnerRefStamp::class
 		);
 
 		// Submission learnerRefs (learner-lookup-and-learnerrefs-fixes): the
