@@ -170,12 +170,7 @@ class ExamplePortalProvisioner {
 		}
 
 		try {
-			$existing = $this->findBySlug(slug: $portal['slug']);
-			if ($existing === null) {
-				$status = $this->create(portal: $portal);
-			} else {
-				$status = $this->theme(existing: $existing, theme: $portal['theme']);
-			}
+			$status = $this->apply(portal: $portal);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
 				'[ExamplePortalProvisioner] could not provision portal "{slug}" for example set "{set}": {msg}',
@@ -195,6 +190,22 @@ class ExamplePortalProvisioner {
 			'theme'  => $portal['theme'],
 		];
 	}//end provision()
+
+	/**
+	 * Create the portal, or theme the one that already has its slug.
+	 *
+	 * @param array{slug: string, theme: string, title: string, tagline: string} $portal The portal.
+	 *
+	 * @return string `created`, `themed`, `kept` or `unchanged`.
+	 */
+	private function apply(array $portal): string {
+		$existing = $this->findBySlug(slug: $portal['slug']);
+		if ($existing === null) {
+			return $this->create(portal: $portal);
+		}
+
+		return $this->theme(existing: $existing, theme: $portal['theme']);
+	}//end apply()
 
 	/**
 	 * The portal with this slug, or null.
