@@ -112,5 +112,8 @@ test('the saved payload holds the schema fields only, and a limitation only for 
 		'limitation-1',
 	)
 	assert.equal(resultPayload({ result: 'bogus' }, context).result, 'not-tested')
-	assert.equal('method' in resultPayload({ result: 'pass', method: '  ' }, context), false)
+	assert.equal(
+		'method' in resultPayload({ result: 'pass', method: '  ' }, context),
+		false,
+	)
 })

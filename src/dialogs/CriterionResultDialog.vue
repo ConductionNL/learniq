@@ -15,7 +15,11 @@
 <template>
 	<NcDialog
 		:open="true"
-		:name="t('learniq', 'Record the result of {criterion}', { criterion: row.criterion })"
+		:name="
+			t('learniq', 'Record the result of {criterion}', {
+				criterion: row.criterion,
+			})
+		"
 		@update:open="
 			(v) => {
 				if (!v) $emit('close')
@@ -48,11 +52,13 @@
 				:maxlength="500" />
 
 			<div class="criterion-result-dialog__field">
-				<label for="criterion-result-tested-on">{{ t('learniq', 'Tested on') }}</label>
+				<label for="criterion-result-tested-on">{{
+					t('learniq', 'Tested on')
+				}}</label>
 				<input
 					id="criterion-result-tested-on"
 					v-model="testedOn"
-					type="date">
+					type="date" />
 			</div>
 
 			<template v-if="result === 'fail'">
@@ -62,7 +68,12 @@
 					:options="limitationOptions"
 					:reduce="(opt) => opt.value" />
 				<NcNoteCard v-if="blocksPublishing" type="warning">
-					{{ t('learniq', 'A failing criterion needs a known limitation before the statement can be published.') }}
+					{{
+						t(
+							'learniq',
+							'A failing criterion needs a known limitation before the statement can be published.',
+						)
+					}}
 				</NcNoteCard>
 			</template>
 		</div>
@@ -71,10 +82,7 @@
 			<NcButton @click="$emit('close')">
 				{{ t('learniq', 'Close') }}
 			</NcButton>
-			<NcButton
-				variant="primary"
-				:disabled="saving"
-				@click="submit">
+			<NcButton variant="primary" :disabled="saving" @click="submit">
 				{{ saving ? t('learniq', 'Saving…') : t('learniq', 'Save result') }}
 			</NcButton>
 		</template>
@@ -120,21 +128,25 @@ export default {
 			type: Object,
 			required: true,
 		},
+
 		/** The stored record for this criterion, or null. */
 		record: {
 			type: Object,
 			default: null,
 		},
+
 		/** The statement the result belongs to. */
 		statement: {
 			type: Object,
 			required: true,
 		},
+
 		/** The statement's limitations. */
 		limitations: {
 			type: Array,
 			default: () => [],
 		},
+
 		/** The object-store type the records are registered under. */
 		objectType: {
 			type: String,
@@ -231,8 +243,11 @@ export default {
 					throw new Error('not saved')
 				}
 				this.$emit('saved', saved)
-			} catch (err) {
-				this.error = this.t('learniq', 'The result could not be saved. Check that you may edit the accessibility statement.')
+			} catch {
+				this.error = this.t(
+					'learniq',
+					'The result could not be saved. Check that you may edit the accessibility statement.',
+				)
 			} finally {
 				this.saving = false
 			}

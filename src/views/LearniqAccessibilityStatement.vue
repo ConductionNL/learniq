@@ -143,9 +143,15 @@
 				}}
 			</p>
 			<p class="accessibility-statement__downloads">
-				<a :href="evidenceUrl('csv')" download>{{ t('learniq', 'Download evidence as CSV') }}</a>
-				<a :href="evidenceUrl('json')" download>{{ t('learniq', 'Download evidence as JSON') }}</a>
-				<a :href="publicPageUrl">{{ t('learniq', 'Public statement page') }}</a>
+				<a :href="evidenceUrl('csv')" download>{{
+					t('learniq', 'Download evidence as CSV')
+				}}</a>
+				<a :href="evidenceUrl('json')" download>{{
+					t('learniq', 'Download evidence as JSON')
+				}}</a>
+				<a :href="publicPageUrl">{{
+					t('learniq', 'Public statement page')
+				}}</a>
 			</p>
 			<table class="accessibility-statement__limitations">
 				<thead>
@@ -158,7 +164,9 @@
 						<th scope="col">{{ t('learniq', 'Tested on') }}</th>
 						<th scope="col">{{ t('learniq', 'Known limitation') }}</th>
 						<th v-if="canEdit" scope="col">
-							<span class="hidden-visually">{{ t('learniq', 'Actions') }}</span>
+							<span class="hidden-visually">{{
+								t('learniq', 'Actions')
+							}}</span>
 						</th>
 					</tr>
 				</thead>
@@ -173,7 +181,13 @@
 								v-if="isLink(row.evidenceReference)"
 								:href="row.evidenceReference"
 								rel="noopener noreferrer"
-								target="_blank">{{ t('learniq', 'Evidence for {criterion}', { criterion: row.criterion }) }}</a>
+								target="_blank"
+								>{{
+									t('learniq', 'Evidence for {criterion}', {
+										criterion: row.criterion,
+									})
+								}}</a
+							>
 							<span v-else>{{ row.evidenceReference }}</span>
 						</td>
 						<td>{{ row.testedOn }}</td>
@@ -181,7 +195,13 @@
 						<td v-if="canEdit">
 							<NcButton
 								variant="tertiary"
-								:aria-label="t('learniq', 'Record the result of {criterion}', { criterion: row.criterion })"
+								:aria-label="
+									t(
+										'learniq',
+										'Record the result of {criterion}',
+										{ criterion: row.criterion },
+									)
+								"
 								@click="editing = row">
 								{{ t('learniq', 'Record result') }}
 							</NcButton>
@@ -271,7 +291,10 @@ export default {
 			criteria: [],
 			records: [],
 			editing: null,
-			canEdit: EDITOR_ROLES.includes(loadState('learniq', 'primaryRole', 'learner')),
+			canEdit: EDITOR_ROLES.includes(
+				loadState('learniq', 'primaryRole', 'learner'),
+			),
+
 			RESULT_TYPE,
 		}
 	},
@@ -310,7 +333,10 @@ export default {
 		 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-evidence-on-request
 		 */
 		publicPageUrl() {
-			return generateUrl('/apps/learniq/public/accessibility-statement?statement={id}', { id: this.statementId })
+			return generateUrl(
+				'/apps/learniq/public/accessibility-statement?statement={id}',
+				{ id: this.statementId },
+			)
 		},
 
 		/**
@@ -413,7 +439,7 @@ export default {
 				this.criteria = Array.isArray(response.data?.criteria)
 					? response.data.criteria
 					: []
-			} catch (error) {
+			} catch {
 				this.criteria = []
 			}
 
@@ -457,7 +483,10 @@ export default {
 		 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-per-criterion-conformance-record
 		 */
 		resultLabel(result) {
-			return this.t('learniq', RESULT_LABELS[result] ?? RESULT_LABELS['not-tested'])
+			return this.t(
+				'learniq',
+				RESULT_LABELS[result] ?? RESULT_LABELS['not-tested'],
+			)
 		},
 
 		/**

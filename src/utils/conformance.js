@@ -16,7 +16,7 @@ export const RESULTS = ['pass', 'fail', 'not-applicable', 'not-tested']
 /**
  * The criterion number a free-text reference starts with ("2.1.1 Keyboard" gives "2.1.1").
  *
- * @param {*} reference The stored reference.
+ * @param {unknown} reference The stored reference.
  * @return {string|null} The number, or null when there is none.
  * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-per-criterion-conformance-record
  */
@@ -78,7 +78,10 @@ export function recordFor(criterion, records) {
 		if (!record || criterionNumber(record.wcagCriterion) !== criterion) {
 			continue
 		}
-		if (latest === null || String(record.testedOn ?? '') >= String(latest.testedOn ?? '')) {
+		if (
+			latest === null
+			|| String(record.testedOn ?? '') >= String(latest.testedOn ?? '')
+		) {
 			latest = record
 		}
 	}
@@ -93,7 +96,13 @@ export function recordFor(criterion, records) {
  * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#scenario-untested-criteria-are-visible
  */
 export function summarise(rows) {
-	const summary = { pass: 0, fail: 0, 'not-applicable': 0, 'not-tested': 0, total: 0 }
+	const summary = {
+		pass: 0,
+		fail: 0,
+		'not-applicable': 0,
+		'not-tested': 0,
+		total: 0,
+	}
 	for (const row of Array.isArray(rows) ? rows : []) {
 		const result = RESULTS.includes(row?.result) ? row.result : 'not-tested'
 		summary[result]++
