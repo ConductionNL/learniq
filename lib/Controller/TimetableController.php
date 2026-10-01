@@ -54,6 +54,7 @@ namespace OCA\Learniq\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\PersonalTimetableService;
 use OCA\Learniq\Service\TimetableProjector;
 use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
 use OCP\AppFramework\Controller;
@@ -87,6 +88,7 @@ class TimetableController extends Controller {
 	 * @param ObjectService $objectService OR object query service (RBAC-scoped).
 	 * @param TimetableProjector $projector Window resolution and Session projection.
 	 * @param TimetableSourceResolver $sources Where sessions are read from: planninq when installed, else Session.
+	 * @param PersonalTimetableService $timetable The caller's own lessons, shared with the calendar feed.
 	 * @param LoggerInterface $logger Application logger.
 	 */
 	public function __construct(
@@ -95,6 +97,7 @@ class TimetableController extends Controller {
 		private readonly ObjectService $objectService,
 		private readonly TimetableProjector $projector,
 		private readonly TimetableSourceResolver $sources,
+		private readonly PersonalTimetableService $timetable,
 		private readonly LoggerInterface $logger,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
@@ -124,55 +127,24 @@ class TimetableController extends Controller {
 			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
 		}
 
-		$uid = $user->getUID();
-
 		[$windowFrom, $windowTo] = $this->projector->resolveWindow(from: $from, to: $to);
 
-		$taughtCohortIds = [];
-		$cohortIds = $this->resolveCallerCohortIds(uid: $uid, taught: $taughtCohortIds);
-		$source = $this->sources->current();
-
-		// With planninq a teacher can have lessons of their own, and with
-		// learniq's own sessions a substitute has the lessons they cover
-		// (learniq#1134): both come from sessionsForTeacher(), so a caller
-		// without cohorts is still asked for them.
+		// The page and the calendar feed read through the same service, so the
+		// two cannot show different lessons (attendance-timetable-calendar-feed D2).
 		try {
-			$cohortSessions = $source->sessionsForCohorts(cohortIds: $cohortIds, from: $windowFrom, to: $windowTo);
-			$teacherSessions = $source->sessionsForTeacher(userId: $uid, from: $windowFrom, to: $windowTo);
+			$timetable = $this->timetable->forUser(uid: $user->getUID(), windowFrom: $windowFrom, windowTo: $windowTo);
 		} catch (RuntimeException $e) {
 			return $this->sourceUnavailable(message: $e->getMessage(), from: $windowFrom, to: $windowTo);
 		}
 
-		// A caller with no lessons at all gets an empty timetable, not an error.
-		if (empty($cohortSessions) === true && empty($teacherSessions) === true) {
-			$this->logger->debug(
-				'[TimetableController] No sessions resolved for {uid}; returning empty timetable.',
-				['uid' => $uid, 'from' => $windowFrom, 'to' => $windowTo]
-			);
-			return new JSONResponse(
-				data: ['sessions' => [], 'from' => $windowFrom, 'to' => $windowTo, 'changes' => [], 'source' => $source->name()],
-				statusCode: Http::STATUS_OK
-			);
-		}
-
-		$rawSessions = $this->mergeById(first: $cohortSessions, second: $teacherSessions);
-
-		$roomCache = $this->preloadRooms(sessions: $rawSessions);
-
-		// Each lesson carries the notes the caller may read, and whether the
-		// caller may add one (timetabling-lesson-note).
-		$sessions = $this->projector->personalSessions(
-			rawSessions: $rawSessions,
-			windowFrom: $windowFrom,
-			windowTo: $windowTo,
-			roomCache: $roomCache,
-			uid: $uid,
-			taughtCohortIds: $taughtCohortIds
-		);
-		$changes = $this->projector->todaysChanges(rawSessions: $rawSessions, roomCache: $roomCache);
-
 		return new JSONResponse(
-			data: ['sessions' => $sessions, 'from' => $windowFrom, 'to' => $windowTo, 'changes' => $changes, 'source' => $source->name()],
+			data: [
+				'sessions' => $timetable['sessions'],
+				'from' => $windowFrom,
+				'to' => $windowTo,
+				'changes' => $timetable['changes'],
+				'source' => $timetable['source'],
+			],
 			statusCode: Http::STATUS_OK
 		);
 	}//end mine()
@@ -225,7 +197,7 @@ class TimetableController extends Controller {
 			rawSessions: $rawSessions,
 			windowFrom: $windowFrom,
 			windowTo: $windowTo,
-			roomCache: $this->preloadRooms(sessions: $rawSessions)
+			roomCache: $this->timetable->preloadRooms(sessions: $rawSessions)
 		);
 
 		return new JSONResponse(
@@ -271,204 +243,4 @@ class TimetableController extends Controller {
 			statusCode: Http::STATUS_SERVICE_UNAVAILABLE
 		);
 	}//end sourceUnavailable()
-
-	/**
-	 * Merge two session lists, keeping the first occurrence of each id.
-	 *
-	 * @param array<int,array<string,mixed>> $first  Sessions read by cohort.
-	 * @param array<int,array<string,mixed>> $second Sessions read by teacher.
-	 *
-	 * @return array<int,array<string,mixed>>
-	 */
-	private function mergeById(array $first, array $second): array {
-		$merged = [];
-		foreach (array_merge($first, $second) as $index => $session) {
-			$key = (string)($session['id'] ?? ($session['uuid'] ?? ''));
-			if ($key === '') {
-				$key = '#' . $index;
-			}
-
-			if (isset($merged[$key]) === false) {
-				$merged[$key] = $session;
-				continue;
-			}
-
-			// A lesson of the caller's own cohort that they also cover keeps
-			// its cohort row and gains the cover mark (learniq#1134).
-			if (($session['cover'] ?? false) === true) {
-				$merged[$key]['cover'] = true;
-			}
-		}
-
-		return array_values($merged);
-	}//end mergeById()
-
-	/**
-	 * Resolve the set of cohort UUIDs the caller belongs to.
-	 *
-	 * Teacher membership: the caller's uid appears in `Cohort.teacherIds`.
-	 * Learner membership: the caller's uid appears in `Cohort.learnerIds`, or
-	 * the caller has an `Enrolment` whose `learnerId` is the caller and whose
-	 * `cohortId` is set. All reads are RBAC/multitenancy-scoped by ObjectService.
-	 *
-	 * @param string            $uid    The caller's Nextcloud user id.
-	 * @param array<int,string> $taught Filled with the cohorts the caller teaches, which read every note of their lessons.
-	 *
-	 * @return array<int,string> The unique cohort UUIDs (may be empty).
-	 */
-	private function resolveCallerCohortIds(string $uid, array &$taught): array {
-		$cohortIds = [];
-
-		// Cohorts where the caller is a teacher or a listed learner. teacherIds
-		// and learnerIds are arrays, so membership is filtered in PHP over the
-		// RBAC-scoped cohort set rather than via an equality filter.
-		$cohorts = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => 'cohort',
-				],
-			]
-		);
-
-		foreach ($cohorts as $row) {
-			$cohort = $this->toArray(row: $row);
-			$cohortId = (string)($cohort['id'] ?? ($cohort['uuid'] ?? ''));
-			$role = $this->membership(uid: $uid, cohort: $cohort);
-			if ($cohortId === '' || $role === null) {
-				continue;
-			}
-
-			$cohortIds[$cohortId] = true;
-			if ($role === 'teacher') {
-				$taught[] = $cohortId;
-			}
-		}
-
-		// Cohorts reached through the caller's own enrolments.
-		$enrolments = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => 'enrolment',
-					'learnerId' => $uid,
-				],
-			]
-		);
-
-		foreach ($enrolments as $row) {
-			$enrolment = $this->toArray(row: $row);
-			// Defensive: the RBAC-scoped filter should already guarantee this,
-			// but never trust a mismatched learnerId to reach another's cohort.
-			if ((string)($enrolment['learnerId'] ?? '') !== $uid) {
-				continue;
-			}
-
-			$cohortId = (string)($enrolment['cohortId'] ?? '');
-			if ($cohortId !== '') {
-				$cohortIds[$cohortId] = true;
-			}
-		}
-
-		return array_keys($cohortIds);
-	}//end resolveCallerCohortIds()
-
-	/**
-	 * The caller's place in a cohort: `teacher`, `learner`, or null.
-	 *
-	 * @param string              $uid    The caller's Nextcloud user id.
-	 * @param array<string,mixed> $cohort The cohort.
-	 *
-	 * @return string|null
-	 */
-	private function membership(string $uid, array $cohort): ?string {
-		if (in_array($uid, $this->toStringList(value: ($cohort['teacherIds'] ?? [])), true) === true) {
-			return 'teacher';
-		}
-
-		if (in_array($uid, $this->toStringList(value: ($cohort['learnerIds'] ?? [])), true) === true) {
-			return 'learner';
-		}
-
-		return null;
-	}//end membership()
-
-	/**
-	 * Pre-load every distinct Room referenced by `roomId` across the given
-	 * raw sessions, so the projection step never issues an N+1 query.
-	 *
-	 * @param array<int,array<string,mixed>> $sessions Raw session data arrays.
-	 *
-	 * @return array<string,array<string,mixed>> Room data keyed by room UUID.
-	 */
-	private function preloadRooms(array $sessions): array {
-		$roomIds = [];
-		foreach ($sessions as $session) {
-			$roomId = (string)($session['roomId'] ?? '');
-			if ($roomId !== '') {
-				$roomIds[$roomId] = true;
-			}
-		}
-
-		$rooms = [];
-		foreach (array_keys($roomIds) as $roomId) {
-			$results = $this->objectService->findAll(
-				[
-					'ids' => [$roomId],
-					'filters' => [
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => 'room',
-					],
-					'limit' => 1,
-				]
-			);
-
-			if (empty($results) === false) {
-				$rooms[$roomId] = $this->toArray(row: $results[0]);
-			}
-		}
-
-		return $rooms;
-	}//end preloadRooms()
-
-	/**
-	 * Normalise an ObjectService row (entity or array) to a plain array.
-	 *
-	 * @param mixed $row The row returned by ObjectService::findAll.
-	 *
-	 * @return array<string,mixed> The serialized object data.
-	 */
-	private function toArray(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			return (array)$row->jsonSerialize();
-		}
-
-		return [];
-	}//end toArray()
-
-	/**
-	 * Coerce a schema array-of-strings value into a list of strings.
-	 *
-	 * @param mixed $value The raw property value.
-	 *
-	 * @return array<int,string> The string list (empty when not an array).
-	 */
-	private function toStringList(mixed $value): array {
-		if (is_array($value) === false) {
-			return [];
-		}
-
-		$out = [];
-		foreach ($value as $item) {
-			if (is_string($item) === true || is_numeric($item) === true) {
-				$out[] = (string)$item;
-			}
-		}
-
-		return $out;
-	}//end toStringList()
 }//end class

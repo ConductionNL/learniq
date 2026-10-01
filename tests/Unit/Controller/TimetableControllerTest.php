@@ -34,6 +34,7 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Controller\TimetableController;
 use OCA\Learniq\Service\LessonNoteReader;
+use OCA\Learniq\Service\PersonalTimetableService;
 use OCA\Learniq\Service\TimetableProjector;
 use OCA\Learniq\Timetabling\Source\LocalSessionTimetableSource;
 use OCA\Learniq\Timetabling\Source\PlanninqTimetableSource;
@@ -148,18 +149,29 @@ class TimetableControllerTest extends TestCase {
 		$config = $this->createMock(IAppConfig::class);
 		$config->method('getValueString')->willReturn('auto');
 
+		$projector = new TimetableProjector(
+			logger: $this->logger,
+			noteReader: new LessonNoteReader($this->objectService, $this->groupManager(), $this->logger)
+		);
+		$sources = new TimetableSourceResolver(
+			$config,
+			new LocalSessionTimetableSource($this->objectService),
+			new PlanninqTimetableSource($appManager, $dispatcher)
+		);
+
+		// The real PersonalTimetableService: mine() delegates to it since the
+		// calendar feed shares it, and every test below proves its output unchanged.
 		return new TimetableController(
 			request: $this->createMock(IRequest::class),
 			userSession: $this->userSession,
 			objectService: $this->objectService,
-			projector: new TimetableProjector(
-				logger: $this->logger,
-				noteReader: new LessonNoteReader($this->objectService, $this->groupManager(), $this->logger)
-			),
-			sources: new TimetableSourceResolver(
-				$config,
-				new LocalSessionTimetableSource($this->objectService),
-				new PlanninqTimetableSource($appManager, $dispatcher)
+			projector: $projector,
+			sources: $sources,
+			timetable: new PersonalTimetableService(
+				objectService: $this->objectService,
+				projector: $projector,
+				sources: $sources,
+				logger: $this->logger
 			),
 			logger: $this->logger,
 		);
