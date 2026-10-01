@@ -34,6 +34,7 @@ use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
 use OCA\Learniq\Listener\LessonNoteAuthorGuard;
 use OCA\Learniq\Listener\LvsResultLearnerRefStamp;
+use OCA\Learniq\Listener\ReportCardGradeLinesStamp;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
 use OCA\Learniq\Listener\SubmissionOwnerStamp;
@@ -180,6 +181,18 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: SubmissionOwnerStamp::class
+		);
+
+		// ReportCard grade lines (portal-parent-report-card-grades): the
+		// period name and one readable line per subject, derived from
+		// subjectGrades on every write, so the parent portal can show them.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: ReportCardGradeLinesStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: ReportCardGradeLinesStamp::class
 		);
 
 		// ExcuseRequest owner (settings-and-excuse-authorization): a portal

@@ -3534,6 +3534,10 @@ OC.L10N.register(
         "no lessons planned yet": "nog geen lessen gepland",
         "{first} and {second} meet at the same time: {slot}.": "{first} en {second} vallen op hetzelfde moment: {slot}.",
         "The lesson times of these electives could not be read.": "De lestijden van deze keuzevakken konden niet worden gelezen.",
+        "Absence reports": "Verzuimmeldingen",
+        "My child's report card grades": "Rapportcijfers van mijn kind",
+        "The name of the report period, as a guardian reads it (for example Rapport 1). The server copies it from the ReportPeriod on every save; a value sent for it is replaced.": "De naam van de rapportperiode zoals een ouder die leest (bijvoorbeeld Rapport 1). De server neemt die bij elke opslag over van de rapportperiode; een meegestuurde waarde wordt vervangen.",
+        "The subject grades as a guardian reads them, one line per subject (for example Rekenen: 7,9). The server writes them from subjectGrades on every save, naming each subject by its course or curriculum plan; a value sent for them is replaced. The parent portal shows these lines.": "De cijfers per vak zoals een ouder die leest, één regel per vak (bijvoorbeeld Rekenen: 7,9). De server schrijft ze bij elke opslag uit subjectGrades en noemt elk vak naar zijn cursus of leerplan; meegestuurde waarden worden vervangen. Het ouderportaal toont deze regels.",
         "Join this lesson online (opens in a new tab)": "Online deelnemen aan deze les (opent in een nieuw tabblad)",
         "Online meeting link": "Link naar de online les",
         "The https link learners use to join this lesson online (Talk, Teams, Zoom or any other platform). Only https links are stored. Shown as a Join action on the timetable and in the calendar feed.": "De https-link waarmee leerlingen online aan deze les deelnemen (Talk, Teams, Zoom of een ander platform). Alleen https-links worden opgeslagen. Verschijnt als knop Deelnemen in het rooster en in de agendafeed."

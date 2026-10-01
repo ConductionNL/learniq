@@ -2,7 +2,7 @@
 
 ## 1. Register and write path
 
-- [x] 1.1 Add `onlineMeetingUrl` to `Session` with https validation (register 0.34.26). Verify: `SessionOnlineMeetingUrlRegisterTest` (the real fragment through Opis: https stored; javascript:, http, data:, relative refused), `TimetableControllerTest::testAnOnlineLessonCarriesItsHttpsLinkOnly`, `npm run check:specs`.
+- [x] 1.1 Add `onlineMeetingUrl` to `Session` with https validation (register 0.34.27). Verify: `SessionOnlineMeetingUrlRegisterTest` (the real fragment through Opis: https stored; javascript:, http, data:, relative refused), `TimetableControllerTest::testAnOnlineLessonCarriesItsHttpsLinkOnly`, `npm run check:specs`.
 
 ## 2. UI
 

@@ -29,13 +29,16 @@
  *   b. she reports her child absent, the group teacher approves it in learniq, she sees the outcome;
  *   c. the school posts news and she reads it (hermiq absent: no translation, no error);
  *   d. the teacher opens a conference round, she books, the schedule is generated,
- *      she sees her time, the teacher records the conversation report.
+ *      she sees her time, the teacher records the conversation report;
+ *   e. she reads the grades on her child's published report cards, and a draft
+ *      report card the teacher starts never reaches her.
  *
  * Screenshots of every step land in `test-results/po-flow/`.
  *
  * @spec openspec/changes/portal-guardian-invitation/specs/portal-identity/spec.md
  * @spec openspec/changes/portal-parent-conference-booking/specs/parent-conferences/spec.md
  * @spec openspec/changes/excuse-decision-records-who-and-when/specs/attendance/spec.md
+ * @spec openspec/changes/portal-parent-report-card-grades/specs/portal-contribution/spec.md
  */
 
 import type { APIRequestContext, Browser, Page } from '@playwright/test'
@@ -75,6 +78,7 @@ const CHILD = {
 }
 const OTHER_CHILD = 'ee010008-0000-4000-8000-000000000411'
 const GROUP_7 = 'ee010006-0000-4000-8000-000000000006'
+const REPORT_PERIOD_1 = 'ee01000b-0000-4000-8000-000000000001'
 const SCHOOL = 'ee010001-0000-4000-8000-000000000001'
 const TENANT = '00000000-0000-4000-8000-000000000000'
 
@@ -373,6 +377,37 @@ test.describe('po: teacher and parent flows', () => {
 		await dismissTour(staff)
 		await shot(staff, 'd6-teacher-report')
 		await staff.close()
+	})
+
+	test("e. the guardian reads the grades on her child's published report cards, never a draft", async () => {
+		// A primary school records no grade entries: the grades are on the
+		// report cards (portal-parent-report-card-grades). The teacher starts
+		// a new report card for Vera; it stays a draft.
+		const draft = await teacherCreate('report-card', {
+			learnerId: CHILD.userId,
+			reportPeriodId: REPORT_PERIOD_1,
+			cohortId: GROUP_7,
+			subjectGrades: [],
+			mentorComment: `Concept (${RUN})`,
+			tenant_id: TENANT,
+		})
+		expect(draft.lifecycle ?? 'draft').toBe('draft')
+
+		const rows = await portalRows('report-card', 'parentReportCardGrades')
+		// Vera's published report cards, and nothing of another child.
+		expect(new Set(rows.map((row) => row.learnerRef))).toEqual(
+			new Set([CHILD.ref]),
+		)
+		expect(rows.map((row) => row.periodName)).toEqual(
+			expect.arrayContaining(['Rapport 1', 'Rapport 2']),
+		)
+		const rapport1 = rows.find((row) => row.periodName === 'Rapport 1')
+		expect(rapport1?.gradeLines).toContain('Rekenen: 7,9')
+		expect(rapport1?.gradeLines).toHaveLength(6)
+		// Only the readable copies leave the server: no nested grades with
+		// their uuids, and the draft is not there.
+		expect(rows.every((row) => row.subjectGrades === undefined)).toBe(true)
+		expect(rows.map((row) => row.id)).not.toContain(draft.id)
 	})
 
 	/**

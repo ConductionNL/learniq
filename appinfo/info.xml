@@ -287,6 +287,15 @@ Vrij en open source onder de EUPL-1.2-licentie.
                 next upgrade.
             -->
             <step>OCA\Learniq\Repair\BackfillExcuseRequestTeachers</step>
+            <!--
+                portal-parent-report-card-grades: writes periodName and
+                gradeLines (the readable period and subject grades the parent
+                portal shows) on report cards composed before the server did.
+                After InitializeSettings (the register must declare the
+                fields). Idempotent; a row it cannot read is retried on the
+                next upgrade.
+            -->
+            <step>OCA\Learniq\Repair\BackfillReportCardGradeLines</step>
         </post-migration>
         <install>
             <!--
