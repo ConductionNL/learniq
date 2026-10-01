@@ -1678,7 +1678,7 @@ OC.L10N.register(
         "Type your full name": "Typ je volledige naam",
         "Typed signature": "Getypte handtekening",
         "Until": "Tot en met",
-        "Untitled lesson": "Naamloze les",
+        "Untitled lesson": "Les zonder titel",
         "Up": "Omhoog",
         "Version {version}": "Versie {version}",
         "Waiting for your review": "Wacht op jouw beoordeling",
