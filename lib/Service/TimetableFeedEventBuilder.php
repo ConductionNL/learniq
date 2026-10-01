@@ -87,6 +87,8 @@ class TimetableFeedEventBuilder {
 				'location' => $this->location(session: $session),
 				'description' => implode("\n", $this->notes(uid: $uid, session: $session, cancelled: $cancelled, l10n: $l10n)),
 				'cancelled' => $cancelled,
+				// timetabling-online-lesson-link: the projection already dropped a non-https value.
+				'url' => (string)($session['onlineMeetingUrl'] ?? ''),
 			];
 		}
 

@@ -3533,7 +3533,10 @@ OC.L10N.register(
         "Copying did not work. Select the address and copy it yourself.": "Kopiëren lukte niet. Selecteer het adres en kopieer het zelf.",
         "no lessons planned yet": "nog geen lessen gepland",
         "{first} and {second} meet at the same time: {slot}.": "{first} en {second} vallen op hetzelfde moment: {slot}.",
-        "The lesson times of these electives could not be read.": "De lestijden van deze keuzevakken konden niet worden gelezen."
+        "The lesson times of these electives could not be read.": "De lestijden van deze keuzevakken konden niet worden gelezen.",
+        "Join this lesson online (opens in a new tab)": "Online deelnemen aan deze les (opent in een nieuw tabblad)",
+        "Online meeting link": "Link naar de online les",
+        "The https link learners use to join this lesson online (Talk, Teams, Zoom or any other platform). Only https links are stored. Shown as a Join action on the timetable and in the calendar feed.": "De https-link waarmee leerlingen online aan deze les deelnemen (Talk, Teams, Zoom of een ander platform). Alleen https-links worden opgeslagen. Verschijnt als knop Deelnemen in het rooster en in de agendafeed."
     },
     "nplurals=2; plural=(n != 1);"
 )

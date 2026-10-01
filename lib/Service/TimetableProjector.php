@@ -282,8 +282,27 @@ class TimetableProjector {
 			// school timetable, sessions-from-planninq). A page opens only a
 			// learniq Session as a learniq Session.
 			'source' => (string)($session['source'] ?? 'learniq'),
+			// timetabling-online-lesson-link: only an https link reaches a page.
+			'onlineMeetingUrl' => $this->httpsOrNull(value: $session['onlineMeetingUrl'] ?? null),
 		];
 	}//end projectSession()
+
+	/**
+	 * An https link, or null for anything else (older data, another source).
+	 *
+	 * @param mixed $value The stored link.
+	 *
+	 * @return string|null
+	 *
+	 * @spec openspec/changes/timetabling-online-lesson-link/specs/timetable-online-lesson-link/spec.md#requirement-online-meeting-link-on-a-lesson
+	 */
+	public function httpsOrNull(mixed $value): ?string {
+		if (is_string($value) === false || preg_match('#^https://[^\s/?\#]+\S*$#', $value) !== 1) {
+			return null;
+		}
+
+		return $value;
+	}//end httpsOrNull()
 
 	/**
 	 * Decide whether a session overlaps the requested window.

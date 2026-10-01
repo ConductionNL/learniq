@@ -234,6 +234,24 @@
 							</ul>
 						</details>
 						<NcButton
+							v-if="
+								joinUrl(session) && session.lifecycle !== 'cancelled'
+							"
+							class="my-timetable__session-manage"
+							variant="secondary"
+							:href="joinUrl(session)"
+							target="_blank"
+							rel="noopener noreferrer"
+							:aria-label="
+								t(
+									'learniq',
+									'Join this lesson online (opens in a new tab)',
+								)
+							"
+							data-testid="session-join">
+							{{ t('learniq', 'Join') }}
+						</NcButton>
+						<NcButton
 							v-if="session.canAddNote"
 							class="my-timetable__session-manage"
 							variant="tertiary"
@@ -283,6 +301,7 @@ import {
 	fetchMyTimetable,
 	isLearniqSession,
 } from '../api/timetable.js'
+import { joinUrl } from '../utils/onlineLesson.js'
 
 /**
  * Compute the Monday (00:00, local) of the week containing `date`.
@@ -458,6 +477,8 @@ export default {
 	},
 
 	methods: {
+		joinUrl,
+
 		/**
 		 * Whether a session is a learniq Session (opens and can be managed).
 		 *

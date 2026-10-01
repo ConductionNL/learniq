@@ -3078,7 +3078,10 @@ OC.L10N.register(
         "Copying did not work. Select the address and copy it yourself.": "Copying did not work. Select the address and copy it yourself.",
         "no lessons planned yet": "no lessons planned yet",
         "{first} and {second} meet at the same time: {slot}.": "{first} and {second} meet at the same time: {slot}.",
-        "The lesson times of these electives could not be read.": "The lesson times of these electives could not be read."
+        "The lesson times of these electives could not be read.": "The lesson times of these electives could not be read.",
+        "Join this lesson online (opens in a new tab)": "Join this lesson online (opens in a new tab)",
+        "Online meeting link": "Online meeting link",
+        "The https link learners use to join this lesson online (Talk, Teams, Zoom or any other platform). Only https links are stored. Shown as a Join action on the timetable and in the calendar feed.": "The https link learners use to join this lesson online (Talk, Teams, Zoom or any other platform). Only https links are stored. Shown as a Join action on the timetable and in the calendar feed."
     },
     "nplurals=2; plural=(n != 1);"
 )
