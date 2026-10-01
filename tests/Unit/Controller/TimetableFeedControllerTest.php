@@ -153,7 +153,7 @@ class TimetableFeedControllerTest extends TestCase {
 			],
 			'enrolment' => [],
 			'session' => [
-				['id' => 's-maths', 'cohortId' => 'cohort-1', 'title' => 'Maths', 'startsAt' => '2026-01-08T09:00:00+00:00', 'endsAt' => '2026-01-08T10:00:00+00:00', 'roomId' => 'room-1', 'lifecycle' => 'scheduled'],
+				['id' => 's-maths', 'cohortId' => 'cohort-1', 'title' => 'Maths', 'startsAt' => '2026-01-08T09:00:00+00:00', 'endsAt' => '2026-01-08T10:00:00+00:00', 'roomId' => 'room-1', 'lifecycle' => 'scheduled', 'onlineMeetingUrl' => 'https://meet.example.org/maths'],
 				['id' => 's-bio', 'cohortId' => 'cohort-1', 'title' => 'Biology', 'startsAt' => '2026-01-09T09:00:00+00:00', 'endsAt' => '2026-01-09T10:00:00+00:00', 'location' => 'Lab', 'lifecycle' => 'cancelled', 'changeReasonKind' => 'teacher-absence', 'changeReason' => 'Mr Tom is ill'],
 				['id' => 's-art', 'cohortId' => 'cohort-1', 'title' => 'Art', 'startsAt' => '2026-01-12T13:00:00+00:00', 'endsAt' => '2026-01-12T14:00:00+00:00', 'location' => 'Studio', 'lifecycle' => 'scheduled', 'substituteTeacherId' => 'sam', 'changeReasonKind' => 'teacher-absence'],
 				['id' => 's-secret', 'cohortId' => 'cohort-2', 'title' => 'Secret', 'startsAt' => '2026-01-08T09:00:00+00:00', 'endsAt' => '2026-01-08T10:00:00+00:00', 'location' => 'Room 9', 'lifecycle' => 'scheduled'],
@@ -420,6 +420,9 @@ class TimetableFeedControllerTest extends TestCase {
 		$this->assertSame('CONFIRMED', (string)$maths->STATUS);
 		$this->assertSame('20260108T090000Z', $maths->DTSTART->getValue());
 		$this->assertSame('20260108T100000Z', $maths->DTEND->getValue());
+		// timetabling-online-lesson-link: the meeting link is the event's URL.
+		$this->assertSame('https://meet.example.org/maths', (string)$maths->URL);
+		$this->assertFalse(isset($events['s-bio@learniq']->URL));
 
 		$bio = $events['s-bio@learniq'];
 		$this->assertSame('CANCELLED', (string)$bio->STATUS);

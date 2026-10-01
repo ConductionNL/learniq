@@ -2,14 +2,15 @@
 
 ## 1. Register and write path
 
-- [ ] 1.1 Add `onlineMeetingUrl` to `Session` with https validation. Verify: `npm run check:register`, PHPUnit for https, http and javascript: values.
+- [x] 1.1 Add `onlineMeetingUrl` to `Session` with https validation (register 0.34.28). Verify: `SessionOnlineMeetingUrlRegisterTest` (the real fragment through Opis: https stored; javascript:, http, data:, relative refused), `TimetableControllerTest::testAnOnlineLessonCarriesItsHttpsLinkOnly`, `npm run check:specs`.
 
 ## 2. UI
 
-- [ ] 2.1 Add the Join action to `MyTimetable.vue` and the session detail, and the field to the session edit dialog. Verify: vitest for the action; Playwright flow set a link, join from the timetable.
+- [x] 2.1a Add the Join action to `MyTimetable.vue`; the session detail and edit form show the field from the schema (design D3); the feed event carries it as `URL`. Verify: node test `tests/unit-js/onlineLesson.test.mjs`, `TimetableFeedControllerTest`.
+- [ ] 2.1b Verify: Playwright flow set a link, join from the timetable.
 
 ## 3. Close out
 
-- [ ] 3.1 Add strings to every shipped locale. Verify: `npm run test:l10n`.
+- [x] 3.1 Add strings to every shipped locale (en, nl). Verify: `npm run check:l10n`, `check:l10n-js`, `check:schema-l10n`.
 - [ ] 3.2 Archive the change; list row `tt-online-lesson-link` for the coordinator. Verify: parity_verify --strict on learniq.
 
