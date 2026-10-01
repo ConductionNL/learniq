@@ -38,6 +38,7 @@ import datetime as dt
 import json
 import os
 import random
+from decimal import ROUND_HALF_UP, Decimal
 import sys
 from zoneinfo import ZoneInfo
 
@@ -176,6 +177,25 @@ class Builder:
         return obj
 
 
+def grade_lines(grades: list[dict], names_by_uuid: dict) -> list[str]:
+    """The readable grade lines the server writes from subjectGrades
+    (lib/Service/ReportCardGradeLines.php): the subject by its course name,
+    else its curriculum plan name, and the period average with one decimal
+    and a decimal comma, rounded half up as PHP's number_format() does."""
+    lines = []
+    for grade in grades:
+        name = names_by_uuid.get(grade.get("courseId")) or names_by_uuid.get(grade.get("curriculumPlanId"))
+        if not name:
+            continue
+        average = grade.get("periodAverage")
+        if average is None:
+            lines.append(name)
+            continue
+        rounded = Decimal(str(average)).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+        lines.append(f"{name}: {rounded}".replace(".", ","))
+    return lines
+
+
 def stamp(day: dt.date, hour: int, minute: int) -> str:
     """A local Amsterdam timestamp with its offset, e.g. 2025-09-01T08:30:00+02:00."""
     return dt.datetime(day.year, day.month, day.day, hour, minute, tzinfo=AMS).isoformat()
@@ -236,6 +256,7 @@ def build() -> dict:
 
     basis = course("PO-BAS", "Basisonderwijs", "Inschrijving in het basisonderwijs van groep 1 tot en met 8.")
     subject_courses = {code: course(code, name, "Vak in groep 3 tot en met 8.") for code, name, _o in REPORT_SUBJECTS}
+    names_by_uuid = {c["uuid"]: c["name"] for c in subject_courses.values()}
     english = course("PO-ENG", "Engels", "Engels in groep 7 en 8.")
     gym = course("PO-BEW", "Bewegingsonderwijs", "Gymles door de vakleerkracht, twee keer per week.")
     plans = {}
@@ -597,7 +618,11 @@ def build() -> dict:
                 ])
             b.add("report-card", {
                 "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "reportPeriodId": period["uuid"],
-                "cohortId": cohorts[p["class"]]["uuid"], "subjectGrades": grades, "attendanceSummary": summary,
+                "cohortId": cohorts[p["class"]]["uuid"], "subjectGrades": grades,
+                # The readable copies the server writes on every save
+                # (ReportCardGradeLines), so the parent portal shows them.
+                "periodName": period["name"], "gradeLines": grade_lines(grades, names_by_uuid),
+                "attendanceSummary": summary,
                 "mentorComment": comment, "composedAt": stamp(end + dt.timedelta(days=5), 16, 0),
                 "lifecycle": "published-to-parents",
             })

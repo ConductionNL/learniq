@@ -394,9 +394,9 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(9, $collections);
+		$this->assertCount(10, $collections);
 		$this->assertSame(
-			['parentChildren', 'parentGrades', 'parentAttendance', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships'],
+			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships'],
 			array_column($collections, 'id')
 		);
 
@@ -452,6 +452,46 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame(['lifecycle' => 'published-to-parents'], $byId['parentReportCards']['filter']);
 
 	}//end testParentManifestShape()
+
+	/**
+	 * A primary school records no grade entries, only report cards. The
+	 * guardian reads the grades on the child's report cards through the same
+	 * reverse join and behind the same lifecycle filter as parentReportCards,
+	 * so a draft or a card in review never reaches her. The columns are the
+	 * readable copies (period name, one line per subject), never the nested
+	 * subjectGrades with its uuids, and no pupil tracking (Cito) result.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-parent-report-card-grades/specs/portal-contribution/spec.md#requirement-the-parent-audience-reads-the-grades-on-the-childs-published-report-cards
+	 */
+	public function testParentReadsTheGradesOnPublishedReportCards(): void {
+		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
+		$byId = array_column($manifest['collections'], null, 'id');
+		$grades = $byId['parentReportCardGrades'] ?? null;
+
+		$this->assertIsArray($grades, 'parentReportCardGrades collection MUST exist');
+		$this->assertSame('report-card', $grades['schema']);
+		$this->assertSame(['lifecycle' => 'published-to-parents'], $grades['filter']);
+		$this->assertSame($byId['parentReportCards']['filter'], $grades['filter'], 'the same lifecycle filter as parentReportCards');
+		$this->assertSame($byId['parentReportCards']['via'], $grades['via'], 'the same reverse join as every parent read');
+		$this->assertSame('substantial', $grades['minTrust']);
+		$this->assertTrue($grades['listable']);
+		$this->assertSame(['learnerRef', 'periodName', 'gradeLines'], $grades['fields']);
+		$this->assertSame(
+			[
+				['field' => 'periodName', 'label' => 'Period'],
+				['field' => 'gradeLines', 'label' => 'Grades'],
+			],
+			$grades['columns']
+		);
+		$this->assertNotContains('subjectGrades', $grades['fields'], 'the nested grades read as uuids and bare numbers in the portal');
+
+		// Pupil tracking results are not report card grades: no parent
+		// collection reads lvs-result.
+		$this->assertNotContains('lvs-result', array_column($manifest['collections'], 'schema'));
+
+	}//end testParentReadsTheGradesOnPublishedReportCards()
 
 	/**
 	 * parentChildren matches `learner-profile` DIRECTLY — `guardianRefs`
