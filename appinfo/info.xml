@@ -270,6 +270,15 @@ Vrij en open source onder de EUPL-1.2-licentie.
                 next upgrade.
             -->
             <step>OCA\Learniq\Repair\BackfillSubmissionLearnerRefs</step>
+            <!--
+                excuse-reports-follow-the-pupils-group: stamps teacherIds (the
+                teachers of the pupil's current groups) on absence reports
+                written before the server did, so the group teacher can read
+                them. After InitializeSettings (the register must declare the
+                field). Idempotent; a row it cannot resolve is retried on the
+                next upgrade.
+            -->
+            <step>OCA\Learniq\Repair\BackfillExcuseRequestTeachers</step>
         </post-migration>
         <install>
             <!--

@@ -2997,7 +2997,9 @@ OC.L10N.register(
         "The known limitation that discloses this failure. Needed before the statement can be published when the result is fail.": "The known limitation that discloses this failure. Needed before the statement can be published when the result is fail.",
         "What the test found for this criterion.": "What the test found for this criterion.",
         "Where the evidence is: a link to the report or the test run.": "Where the evidence is: a link to the report or the test run.",
-        "Who tested the criterion. Kept in the register, never in the public export.": "Who tested the criterion. Kept in the register, never in the public export."
+        "Who tested the criterion. Kept in the register, never in the public export.": "Who tested the criterion. Kept in the register, never in the public export.",
+        "Group teachers": "Group teachers",
+        "The teachers of the pupil's group. The school fills this in when the report is saved.": "The teachers of the pupil's group. The school fills this in when the report is saved."
     },
     "nplurals=2; plural=(n != 1);"
 )
