@@ -110,7 +110,7 @@ class ParentPortalCollections {
 					'slotDurationMinutes',
 				],
 				'columns' => [
-					['field' => 'name', 'label' => 'Conference'],
+					['field' => 'name', 'label' => 'Conference round'],
 					['field' => 'bookingClosesAt', 'label' => 'Book before'],
 					['field' => 'slotDurationMinutes', 'label' => 'Minutes per conversation'],
 				],
@@ -211,7 +211,7 @@ class ParentPortalCollections {
 				],
 			],
 			'fieldConfigs' => [
-				'conferenceRoundId' => ['label' => 'Conference', 'required' => true],
+				'conferenceRoundId' => ['label' => 'Conference round', 'required' => true],
 				'learnerRef' => ['label' => 'Child', 'required' => true],
 				'notes' => ['label' => 'Anything the teacher should know beforehand'],
 			],

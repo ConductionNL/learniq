@@ -9,7 +9,8 @@
  * convention FQCN (`OCA\{Namespace}\Portal\PortalContributionProvider`) and
  * duck-types it via method_exists(), never instanceof. This class is therefore
  * deliberately PLAIN: no portaliq imports, no `implements` clause, no info.xml
- * dependency, no constructor dependencies. Without portaliq installed it is
+ * dependency, and only one optional constructor dependency (the l10n factory
+ * that puts the guardian's labels in her language). Without portaliq installed it is
  * inert and Learniq behaves exactly as before (amendment A1).
  *
  * It declares — for the `student` (the learner) and `parent` (a guardian)
@@ -43,6 +44,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCP\L10N\IFactory;
+
 /**
  * Declares what an external portal subject may see and do in Learniq.
  *
@@ -72,6 +75,22 @@ class PortalContributionProvider {
 	 * @var string
 	 */
 	private const REGISTER = 'learniq';
+
+	/**
+	 * Constructor.
+	 *
+	 * The one dependency is optional, so the provider stays constructible
+	 * with no arguments and inert without portaliq. Portaliq resolves this
+	 * class from the container, which hands in the l10n factory; the
+	 * guardian's labels then follow the language Nextcloud picks for the
+	 * request (the browser's Accept-Language for a portal visitor).
+	 *
+	 * @param IFactory|null $l10nFactory Nextcloud's l10n factory, or null to answer in English.
+	 */
+	public function __construct(
+		private readonly ?IFactory $l10nFactory=null,
+	) {
+	}//end __construct()
 
 	/**
 	 * The audiences this provider contributes to (contract v2, preferred).
@@ -125,7 +144,8 @@ class PortalContributionProvider {
 		}
 
 		if ($audience === 'parent') {
-			return $this->parentContribution();
+			$l10n = $this->l10nFactory?->get('learniq');
+			return (new PortalLabelTranslator(l10n: $l10n))->translate(manifest: $this->parentContribution());
 		}
 
 		if ($audience === 'praktijkopleider') {
