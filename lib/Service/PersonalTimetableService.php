@@ -50,6 +50,13 @@ class PersonalTimetableService {
 	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
+	 * Enrolment lifecycles that no longer put a learner in a lesson.
+	 *
+	 * @var array<int,string>
+	 */
+	private const ENDED_ENROLMENT = ['withdrawn', 'completed', 'failed'];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService           $objectService OR object query service (RBAC-scoped).
@@ -82,7 +89,8 @@ class PersonalTimetableService {
 	 */
 	public function forUser(string $uid, string $windowFrom, string $windowTo): array {
 		$taughtCohortIds = [];
-		$cohortIds = $this->resolveCallerCohortIds(uid: $uid, taught: $taughtCohortIds);
+		$electiveCourseIds = [];
+		$cohortIds = $this->resolveCallerCohortIds(uid: $uid, taught: $taughtCohortIds, electives: $electiveCourseIds);
 		$source = $this->sources->current();
 
 		// With planninq a teacher can have lessons of their own, and with
@@ -91,6 +99,16 @@ class PersonalTimetableService {
 		// without cohorts is still asked for them.
 		$cohortSessions = $source->sessionsForCohorts(cohortIds: $cohortIds, from: $windowFrom, to: $windowTo);
 		$teacherSessions = $source->sessionsForTeacher(userId: $uid, from: $windowFrom, to: $windowTo);
+
+		// Electives: a course the caller is enrolled in without a cohort (an
+		// approved subject choice) brings that course's lessons, whichever
+		// cohort holds them (timetabling-student-choice-placement D1, D3).
+		if ($electiveCourseIds !== []) {
+			$cohortSessions = array_merge(
+				$cohortSessions,
+				$source->sessionsForCourses(courseIds: $electiveCourseIds, from: $windowFrom, to: $windowTo)
+			);
+		}
 
 		if (empty($cohortSessions) === true && empty($teacherSessions) === true) {
 			$this->logger->debug(
@@ -200,12 +218,16 @@ class PersonalTimetableService {
 	 * the caller has an `Enrolment` whose `learnerId` is the caller and whose
 	 * `cohortId` is set. All reads are RBAC/multitenancy-scoped by ObjectService.
 	 *
-	 * @param string            $uid    The caller's Nextcloud user id.
-	 * @param array<int,string> $taught Filled with the cohorts the caller teaches, which read every note of their lessons.
+	 * An enrolment that is withdrawn, completed or failed reaches nothing. A
+	 * live enrolment with no cohort names its course in $electives.
+	 *
+	 * @param string            $uid       The caller's Nextcloud user id.
+	 * @param array<int,string> $taught    Filled with the cohorts the caller teaches, which read every note of their lessons.
+	 * @param array<int,string> $electives Filled with the courses the caller is enrolled in without a cohort.
 	 *
 	 * @return array<int,string> The unique cohort UUIDs (may be empty).
 	 */
-	private function resolveCallerCohortIds(string $uid, array &$taught): array {
+	private function resolveCallerCohortIds(string $uid, array &$taught, array &$electives): array {
 		$cohortIds = [];
 
 		// Cohorts where the caller is a teacher or a listed learner. teacherIds
@@ -234,7 +256,24 @@ class PersonalTimetableService {
 			}
 		}
 
-		// Cohorts reached through the caller's own enrolments.
+		// Cohorts and elective courses reached through the caller's own enrolments.
+		$this->addEnrolments(uid: $uid, cohortIds: $cohortIds, electives: $electives);
+
+		return array_keys($cohortIds);
+	}//end resolveCallerCohortIds()
+
+	/**
+	 * Add what the caller's live enrolments reach: a cohort, or a course when
+	 * the enrolment has no cohort. A withdrawn, completed or failed enrolment
+	 * reaches nothing.
+	 *
+	 * @param string             $uid       The caller's Nextcloud user id.
+	 * @param array<string,bool> $cohortIds Cohort ids reached so far, keyed.
+	 * @param array<int,string>  $electives Courses reached without a cohort.
+	 *
+	 * @return void
+	 */
+	private function addEnrolments(string $uid, array &$cohortIds, array &$electives): void {
 		$enrolments = $this->objectService->findAll(
 			[
 				'filters' => [
@@ -253,14 +292,19 @@ class PersonalTimetableService {
 				continue;
 			}
 
+			if (in_array((string)($enrolment['lifecycle'] ?? ''), self::ENDED_ENROLMENT, true) === true) {
+				continue;
+			}
+
 			$cohortId = (string)($enrolment['cohortId'] ?? '');
+			$courseId = (string)($enrolment['courseId'] ?? '');
 			if ($cohortId !== '') {
 				$cohortIds[$cohortId] = true;
+			} else if ($courseId !== '' && in_array($courseId, $electives, true) === false) {
+				$electives[] = $courseId;
 			}
 		}
-
-		return array_keys($cohortIds);
-	}//end resolveCallerCohortIds()
+	}//end addEnrolments()
 
 	/**
 	 * The caller's place in a cohort: `teacher`, `learner`, or null.
