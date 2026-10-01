@@ -3082,7 +3082,10 @@ OC.L10N.register(
         "Absence reports": "Absence reports",
         "My child's report card grades": "My child's report card grades",
         "The name of the report period, as a guardian reads it (for example Rapport 1). The server copies it from the ReportPeriod on every save; a value sent for it is replaced.": "The name of the report period, as a guardian reads it (for example Rapport 1). The server copies it from the ReportPeriod on every save; a value sent for it is replaced.",
-        "The subject grades as a guardian reads them, one line per subject (for example Rekenen: 7,9). The server writes them from subjectGrades on every save, naming each subject by its course or curriculum plan; a value sent for them is replaced. The parent portal shows these lines.": "The subject grades as a guardian reads them, one line per subject (for example Rekenen: 7,9). The server writes them from subjectGrades on every save, naming each subject by its course or curriculum plan; a value sent for them is replaced. The parent portal shows these lines."
+        "The subject grades as a guardian reads them, one line per subject (for example Rekenen: 7,9). The server writes them from subjectGrades on every save, naming each subject by its course or curriculum plan; a value sent for them is replaced. The parent portal shows these lines.": "The subject grades as a guardian reads them, one line per subject (for example Rekenen: 7,9). The server writes them from subjectGrades on every save, naming each subject by its course or curriculum plan; a value sent for them is replaced. The parent portal shows these lines.",
+        "Join this lesson online (opens in a new tab)": "Join this lesson online (opens in a new tab)",
+        "Online meeting link": "Online meeting link",
+        "The https link learners use to join this lesson online (Talk, Teams, Zoom or any other platform). Only https links are stored. Shown as a Join action on the timetable and in the calendar feed.": "The https link learners use to join this lesson online (Talk, Teams, Zoom or any other platform). Only https links are stored. Shown as a Join action on the timetable and in the calendar feed."
     },
     "nplurals=2; plural=(n != 1);"
 )

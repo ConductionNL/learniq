@@ -45,6 +45,7 @@ class TimetableIcsWriter {
 	 *
 	 * Each event: `uid`, `start` and `end` (ISO 8601; `end` may be empty),
 	 * `summary`, `location`, `description` (plain text, may hold new lines),
+ * `url` (an https link, optional),
 	 * `cancelled` (bool). An event whose start does not parse is left out.
 	 *
 	 * @param string                         $name   The calendar's name.
@@ -114,6 +115,12 @@ class TimetableIcsWriter {
 			if ($value !== '') {
 				$lines[] = $property . ':' . $this->text(value: $value);
 			}
+		}
+
+		$url = (string)($event['url'] ?? '');
+		if (preg_match('#^https://\S+$#', $url) === 1) {
+			// URI value: not TEXT-escaped (RFC 5545 section 3.8.4.6).
+			$lines[] = 'URL:' . $url;
 		}
 
 		$status = 'CONFIRMED';

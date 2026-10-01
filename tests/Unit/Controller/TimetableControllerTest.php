@@ -926,4 +926,27 @@ class TimetableControllerTest extends TestCase {
 			$this->assertArrayNotHasKey('courseId', $criteria);
 		}
 	}//end testPlanninqIsNeverAskedByCourse()
+
+	/**
+	 * An online lesson carries its https meeting link; a stored value that is
+	 * not https (older data, another source) is never handed to the page.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-online-lesson-link/specs/timetable-online-lesson-link/spec.md#requirement-online-meeting-link-on-a-lesson
+	 */
+	public function testAnOnlineLessonCarriesItsHttpsLinkOnly(): void {
+		$this->signInAs('alice');
+		$cohorts = [['id' => 'cohort-1', 'learnerIds' => ['alice'], 'teacherIds' => []]];
+		$sessions = [
+			['id' => 's-online', 'cohortId' => 'cohort-1', 'startsAt' => '2026-01-06T09:00:00+00:00', 'endsAt' => '2026-01-06T10:00:00+00:00', 'onlineMeetingUrl' => 'https://meet.example.org/les'],
+			['id' => 's-bad', 'cohortId' => 'cohort-1', 'startsAt' => '2026-01-07T09:00:00+00:00', 'endsAt' => '2026-01-07T10:00:00+00:00', 'onlineMeetingUrl' => 'javascript:alert(1)'],
+			['id' => 's-none', 'cohortId' => 'cohort-1', 'startsAt' => '2026-01-08T09:00:00+00:00', 'endsAt' => '2026-01-08T10:00:00+00:00'],
+		];
+		$this->wireFindAll($cohorts, [], $sessions);
+
+		$out = array_column($this->body($this->controller()->mine(from: $this->from, to: $this->to))['sessions'], 'onlineMeetingUrl', 'id');
+
+		$this->assertSame(['s-online' => 'https://meet.example.org/les', 's-bad' => null, 's-none' => null], $out);
+	}//end testAnOnlineLessonCarriesItsHttpsLinkOnly()
 }//end class
