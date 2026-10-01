@@ -19,6 +19,15 @@
  @spec openspec/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
  @spec openspec/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
  @spec openspec/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
+
+ governance-wcag-evidence-report: below the limitations sits the conformance
+ table, one row per WCAG 2.1 A and AA criterion, read from the same public
+ evidence endpoint an anonymous visitor downloads from, with the downloads
+ and a link to the public statement page. A compliance officer or admin
+ records a result per row in CriterionResultDialog.
+
+ @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-per-criterion-conformance-record
+ @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-evidence-on-request
 -->
 
 <template>
@@ -116,13 +125,92 @@
 					</tr>
 				</tbody>
 			</table>
+
+			<h3>{{ t('learniq', 'Conformance per WCAG criterion') }}</h3>
+			<p class="accessibility-statement__summary">
+				{{
+					t(
+						'learniq',
+						'{pass} pass, {fail} fail, {notApplicable} not applicable, {notTested} not tested, of {total} criteria.',
+						{
+							pass: summary.pass,
+							fail: summary.fail,
+							notApplicable: summary['not-applicable'],
+							notTested: summary['not-tested'],
+							total: summary.total,
+						},
+					)
+				}}
+			</p>
+			<p class="accessibility-statement__downloads">
+				<a :href="evidenceUrl('csv')" download>{{ t('learniq', 'Download evidence as CSV') }}</a>
+				<a :href="evidenceUrl('json')" download>{{ t('learniq', 'Download evidence as JSON') }}</a>
+				<a :href="publicPageUrl">{{ t('learniq', 'Public statement page') }}</a>
+			</p>
+			<table class="accessibility-statement__limitations">
+				<thead>
+					<tr>
+						<th scope="col">{{ t('learniq', 'WCAG criterion') }}</th>
+						<th scope="col">{{ t('learniq', 'Level') }}</th>
+						<th scope="col">{{ t('learniq', 'Result') }}</th>
+						<th scope="col">{{ t('learniq', 'Method') }}</th>
+						<th scope="col">{{ t('learniq', 'Evidence reference') }}</th>
+						<th scope="col">{{ t('learniq', 'Tested on') }}</th>
+						<th scope="col">{{ t('learniq', 'Known limitation') }}</th>
+						<th v-if="canEdit" scope="col">
+							<span class="hidden-visually">{{ t('learniq', 'Actions') }}</span>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="row in criteria" :key="row.criterion">
+						<td>{{ row.criterion }} {{ row.title }}</td>
+						<td>{{ row.level }}</td>
+						<td>{{ resultLabel(row.result) }}</td>
+						<td>{{ row.method }}</td>
+						<td>
+							<a
+								v-if="isLink(row.evidenceReference)"
+								:href="row.evidenceReference"
+								rel="noopener noreferrer"
+								target="_blank">{{ t('learniq', 'Evidence for {criterion}', { criterion: row.criterion }) }}</a>
+							<span v-else>{{ row.evidenceReference }}</span>
+						</td>
+						<td>{{ row.testedOn }}</td>
+						<td>{{ row.limitation }}</td>
+						<td v-if="canEdit">
+							<NcButton
+								variant="tertiary"
+								:aria-label="t('learniq', 'Record the result of {criterion}', { criterion: row.criterion })"
+								@click="editing = row">
+								{{ t('learniq', 'Record result') }}
+							</NcButton>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<CriterionResultDialog
+				v-if="editing"
+				:row="editing"
+				:record="recordOf(editing.criterion)"
+				:statement="statement"
+				:limitations="limitations"
+				:objectType="RESULT_TYPE"
+				@close="editing = null"
+				@saved="onSaved" />
 		</template>
 	</div>
 </template>
 
 <script>
 import { useObjectStore } from '@conduction/nextcloud-vue'
+import axios from '@nextcloud/axios'
+import { loadState } from '@nextcloud/initial-state'
+import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon } from '@nextcloud/vue'
+import CriterionResultDialog from '../dialogs/CriterionResultDialog.vue'
+import { recordFor, summarise } from '../utils/conformance.js'
 
 const REGISTER = 'learniq'
 // Address a schema by the SLUG it declares in lib/Settings/learniq_register.json,
@@ -144,6 +232,20 @@ const STATEMENT_SCHEMA = 'accessibility-statement'
 const LIMITATION_SCHEMA = 'accessibility-limitation'
 const STATEMENT_TYPE = `${REGISTER}-${STATEMENT_SCHEMA}`
 const LIMITATION_TYPE = `${REGISTER}-${LIMITATION_SCHEMA}`
+const RESULT_SCHEMA = 'accessibility-criterion-result'
+const RESULT_TYPE = `${REGISTER}-${RESULT_SCHEMA}`
+
+// The roles that may record results: the same gate as the Accessibility
+// limitations menu entry in src/manifest.d/dashboard.json. The register's
+// own authorization is what actually refuses a write.
+const EDITOR_ROLES = ['compliance-officer', 'admin']
+
+const RESULT_LABELS = {
+	pass: 'Pass',
+	fail: 'Fail',
+	'not-applicable': 'Not applicable',
+	'not-tested': 'Not tested',
+}
 
 const STATUS_LABELS = {
 	'fully-compliant': 'Fully compliant',
@@ -155,6 +257,7 @@ export default {
 	name: 'LearniqAccessibilityStatement',
 
 	components: {
+		CriterionResultDialog,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -165,6 +268,11 @@ export default {
 			loading: true,
 			statement: null,
 			limitations: [],
+			criteria: [],
+			records: [],
+			editing: null,
+			canEdit: EDITOR_ROLES.includes(loadState('learniq', 'primaryRole', 'learner')),
+			RESULT_TYPE,
 		}
 	},
 
@@ -183,6 +291,39 @@ export default {
 				'learniq',
 				STATUS_LABELS[this.statement.status] ?? this.statement.status,
 			)
+		},
+
+		/**
+		 * Counts per result over the conformance table.
+		 *
+		 * @return {object} `{ pass, fail, 'not-applicable', 'not-tested', total }`.
+		 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#scenario-untested-criteria-are-visible
+		 */
+		summary() {
+			return summarise(this.criteria)
+		},
+
+		/**
+		 * The public statement page a signed-out visitor can open.
+		 *
+		 * @return {string}
+		 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-evidence-on-request
+		 */
+		publicPageUrl() {
+			return generateUrl('/apps/learniq/public/accessibility-statement?statement={id}', { id: this.statementId })
+		},
+
+		/**
+		 * The uuid of the shown statement.
+		 *
+		 * @return {string}
+		 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-evidence-on-request
+		 */
+		statementId() {
+			if (!this.statement) {
+				return ''
+			}
+			return this.statement.id ?? this.statement['@self']?.id ?? ''
 		},
 	},
 
@@ -238,6 +379,7 @@ export default {
 				this.limitations = Array.isArray(limitationResults)
 					? limitationResults
 					: []
+				await this.loadConformance()
 			} else {
 				this.limitations = []
 			}
@@ -256,6 +398,99 @@ export default {
 		 */
 		openFeedbackForm() {
 			this.$router.push('/accessibility/feedback/new')
+		},
+
+		/**
+		 * Read the conformance table from the public evidence endpoint and,
+		 * for an editor, the stored result records the dialog updates.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-per-criterion-conformance-record
+		 */
+		async loadConformance() {
+			try {
+				const response = await axios.get(this.evidenceUrl('json'))
+				this.criteria = Array.isArray(response.data?.criteria)
+					? response.data.criteria
+					: []
+			} catch (error) {
+				this.criteria = []
+			}
+
+			if (!this.canEdit) {
+				return
+			}
+			const store = useObjectStore()
+			if (typeof store.registerObjectType === 'function') {
+				store.registerObjectType(RESULT_TYPE, RESULT_SCHEMA, REGISTER)
+			}
+			const records =
+				typeof store.fetchCollection === 'function'
+					? await store
+							.fetchCollection(RESULT_TYPE, {
+								accessibilityStatementId: this.statementId,
+							})
+							.catch(() => [])
+					: []
+			this.records = Array.isArray(records) ? records : []
+		},
+
+		/**
+		 * The evidence download of the shown statement.
+		 *
+		 * @param {string} format `csv` or `json`.
+		 * @return {string}
+		 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#scenario-a-procurement-officer-asks-for-evidence
+		 */
+		evidenceUrl(format) {
+			return generateUrl(
+				'/apps/learniq/api/accessibility/evidence?format={format}&statement={id}',
+				{ format, id: this.statementId },
+			)
+		},
+
+		/**
+		 * The label of a result.
+		 *
+		 * @param {string} result The stored result.
+		 * @return {string}
+		 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-per-criterion-conformance-record
+		 */
+		resultLabel(result) {
+			return this.t('learniq', RESULT_LABELS[result] ?? RESULT_LABELS['not-tested'])
+		},
+
+		/**
+		 * Whether an evidence reference is a web link to render as one.
+		 *
+		 * @param {string|null} reference The evidence reference.
+		 * @return {boolean}
+		 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#scenario-an-owner-records-results
+		 */
+		isLink(reference) {
+			return typeof reference === 'string' && /^https?:\/\//.test(reference)
+		},
+
+		/**
+		 * The stored record of a criterion, for the dialog to update.
+		 *
+		 * @param {string} criterion The criterion number.
+		 * @return {object|null}
+		 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-per-criterion-conformance-record
+		 */
+		recordOf(criterion) {
+			return recordFor(criterion, this.records)
+		},
+
+		/**
+		 * A result was saved: close the dialog and read the table again.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#scenario-an-owner-records-results
+		 */
+		async onSaved() {
+			this.editing = null
+			await this.loadConformance()
 		},
 	},
 }
@@ -306,8 +541,20 @@ export default {
 		}
 	}
 
-	&__no-limitations {
+	&__no-limitations,
+	&__summary {
 		color: var(--color-text-maxcontrast);
+	}
+
+	&__downloads {
+		display: flex;
+		flex-wrap: wrap;
+		gap: calc(var(--default-grid-baseline, 4px) * 4);
+		margin-bottom: calc(var(--default-grid-baseline, 4px) * 4);
+
+		a {
+			text-decoration: underline;
+		}
 	}
 }
 </style>

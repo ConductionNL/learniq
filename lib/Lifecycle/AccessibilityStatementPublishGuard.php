@@ -19,6 +19,11 @@
  *      mirroring BsaDecisionGuard's "no negative BSA without a logged
  *      warning" cross-object query shape. Legitimate PHP per ADR-031
  *      §"Lifecycle guards".
+ *   3. Every AccessibilityCriterionResult of this statement that records a
+ *      `fail` links a limitation of this statement for the same criterion
+ *      that is not fixed (governance-wcag-evidence-report). A failure with
+ *      no disclosed limitation is exactly the unverifiable claim check 2
+ *      exists to stop, so the denial names the criteria.
  *
  * Mirrors AttestationSigningGuard/CoursePublishGuard's `requires` pattern.
  * Referenced from AccessibilityStatement.x-openregister-lifecycle.transitions.
@@ -38,12 +43,14 @@
  * @link https://conduction.nl
  *
  * @spec openspec/specs/accessibility-conformance/spec.md#requirement-a-statement-must-not-publish-without-evaluation-evidence
+ * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-per-criterion-conformance-record
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Service\Accessibility\WcagCriteriaCatalogue;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -70,6 +77,11 @@ class AccessibilityStatementPublishGuard implements LifecycleGuardInterface {
 	 * OR schema slug for the AccessibilityLimitation register.
 	 */
 	private const LIMITATION_SCHEMA = 'accessibility-limitation';
+
+	/**
+	 * OR schema slug for the per-criterion conformance records.
+	 */
+	private const RESULT_SCHEMA = 'accessibility-criterion-result';
 
 	/**
 	 * Valid AccessibilityStatement.status values.
@@ -132,11 +144,32 @@ class AccessibilityStatementPublishGuard implements LifecycleGuardInterface {
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
-		if ($this->allows(object: $object) === true) {
+		if ($this->allows(object: $object) === false) {
+			return GuardResult::deny(self::DENIAL);
+		}
+
+		$statementId = $object['uuid'] ?? $object['id'] ?? null;
+		if (is_string($statementId) === false || $statementId === '') {
 			return GuardResult::allow();
 		}
 
-		return GuardResult::deny(self::DENIAL);
+		$unlinked = $this->failuresWithoutLimitation(
+			statementId: $statementId,
+			tenantId: (string)($object['tenant_id'] ?? '')
+		);
+		if ($unlinked !== []) {
+			$this->logger->info(
+				'AccessibilityStatementPublishGuard: failing criteria without a limitation on statement {id}: {criteria}.',
+				['id' => $statementId, 'criteria' => implode(', ', $unlinked)]
+			);
+			return GuardResult::deny(
+				'These criteria are recorded as failing but have no known limitation linked: '
+				. implode(', ', $unlinked)
+				. '. Link a limitation to each of them, or change the result, before publishing.'
+			);
+		}
+
+		return GuardResult::allow();
 	}//end check()
 
 	/**
@@ -249,7 +282,7 @@ class AccessibilityStatementPublishGuard implements LifecycleGuardInterface {
 			]
 		);
 
-		foreach ($results as $limitation) {
+		foreach (self::rows(objects: $results) as $limitation) {
 			$lifecycle = $limitation['lifecycle'] ?? null;
 			if (in_array($lifecycle, self::BLOCKING_LIMITATION_STATES, true) === true) {
 				return true;
@@ -258,4 +291,108 @@ class AccessibilityStatementPublishGuard implements LifecycleGuardInterface {
 
 		return false;
 	}//end hasBlockingLimitation()
+
+	/**
+	 * The criteria this statement records as failing with no usable limitation.
+	 *
+	 * A failure is covered when its `limitationId` names a limitation of the
+	 * same statement, for the same criterion number, that is not `fixed`: a
+	 * fixed limitation cannot explain a criterion that still fails.
+	 *
+	 * @param string $statementId UUID of the AccessibilityStatement being published.
+	 * @param string $tenantId Tenant ID to scope the query.
+	 *
+	 * @return string[] The uncovered criterion numbers, in record order.
+	 *
+	 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-per-criterion-conformance-record
+	 */
+	private function failuresWithoutLimitation(string $statementId, string $tenantId): array {
+		$filters = ['accessibilityStatementId' => $statementId];
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
+
+		$failures = self::rows(
+			objects: $this->objectService->findAll(
+				[
+					'filters' => array_merge(
+						$filters,
+						[
+							'result' => 'fail',
+							'register' => self::LEARNIQ_REGISTER,
+							'schema' => self::RESULT_SCHEMA,
+						]
+					),
+				]
+			)
+		);
+		$failures = array_values(
+			array_filter($failures, static fn (array $row): bool => ($row['result'] ?? null) === 'fail')
+		);
+		if ($failures === []) {
+			return [];
+		}
+
+		$limitations = [];
+		$limitationRows = self::rows(
+			objects: $this->objectService->findAll(
+				[
+					'filters' => array_merge(
+						$filters,
+						[
+							'register' => self::LEARNIQ_REGISTER,
+							'schema' => self::LIMITATION_SCHEMA,
+						]
+					),
+				]
+			)
+		);
+		foreach ($limitationRows as $limitation) {
+			$limitationId = $limitation['id'] ?? $limitation['uuid'] ?? null;
+			if (is_string($limitationId) === true) {
+				$limitations[$limitationId] = $limitation;
+			}
+		}
+
+		$unlinked = [];
+		foreach ($failures as $failure) {
+			$number = WcagCriteriaCatalogue::numberOf(reference: $failure['wcagCriterion'] ?? null) ?? '?';
+			$limitation = $limitations[(string)($failure['limitationId'] ?? '')] ?? null;
+
+			$covers = $limitation !== null
+				&& ($limitation['lifecycle'] ?? 'open') !== 'fixed'
+				&& WcagCriteriaCatalogue::numberOf(reference: $limitation['wcagCriterion'] ?? null) === $number;
+			if ($covers === false) {
+				$unlinked[] = $number;
+			}
+		}
+
+		return $unlinked;
+	}//end failuresWithoutLimitation()
+
+	/**
+	 * OpenRegister answers findAll() with ObjectEntity instances; read them as arrays.
+	 *
+	 * The limitation check used to index the entities as arrays, which only a
+	 * test double that returns plain arrays could satisfy.
+	 *
+	 * @param array<int,mixed> $objects The findAll() result.
+	 *
+	 * @return array<int,array<string,mixed>> The rows.
+	 */
+	private static function rows(array $objects): array {
+		$rows = [];
+		foreach ($objects as $object) {
+			if (is_array($object) === true) {
+				$rows[] = $object;
+				continue;
+			}
+
+			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
+				$rows[] = (array)$object->jsonSerialize();
+			}
+		}
+
+		return $rows;
+	}//end rows()
 }//end class

@@ -104,8 +104,10 @@ class AccessibilityStatementPublishGuardTest extends TestCase {
 	 * @spec openspec/specs/accessibility-conformance/spec.md#requirement-a-statement-must-not-publish-without-evaluation-evidence
 	 */
 	public function testCompleteEvidenceAllowsPublish(): void {
+		// No limitation read: the status is not fully-compliant. The one read
+		// left is the conformance table's failures (governance-wcag-evidence-report).
 		$objectService = $this->createMock(ObjectService::class);
-		$objectService->expects($this->never())->method('findAll');
+		$objectService->expects($this->once())->method('findAll')->willReturn([]);
 
 		$guard = new AccessibilityStatementPublishGuard($objectService, $this->createMock(LoggerInterface::class));
 		$object = [
