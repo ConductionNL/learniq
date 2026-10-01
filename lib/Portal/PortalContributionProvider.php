@@ -77,19 +77,13 @@ class PortalContributionProvider {
 	private const REGISTER = 'learniq';
 
 	/**
-	 * Constructor.
-	 *
-	 * The one dependency is optional, so the provider stays constructible
-	 * with no arguments and inert without portaliq. Portaliq resolves this
-	 * class from the container, which hands in the l10n factory; the
-	 * guardian's labels then follow the language Nextcloud picks for the
-	 * request (the browser's Accept-Language for a portal visitor).
+	 * Constructor. Optional, so `new` with no arguments still works; the
+	 * container hands in the factory and the guardian's labels follow the
+	 * request's language (a portal visitor's browser Accept-Language).
 	 *
 	 * @param IFactory|null $l10nFactory Nextcloud's l10n factory, or null to answer in English.
 	 */
-	public function __construct(
-		private readonly ?IFactory $l10nFactory=null,
-	) {
+	public function __construct(private readonly ?IFactory $l10nFactory=null) {
 	}//end __construct()
 
 	/**
@@ -144,8 +138,7 @@ class PortalContributionProvider {
 		}
 
 		if ($audience === 'parent') {
-			$l10n = $this->l10nFactory?->get('learniq');
-			return (new PortalLabelTranslator(l10n: $l10n))->translate(manifest: $this->parentContribution());
+			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: $this->parentContribution());
 		}
 
 		if ($audience === 'praktijkopleider') {
