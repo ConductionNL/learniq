@@ -99,6 +99,8 @@ import DashboardTeacher from './views/DashboardTeacher.vue'
 import DisplayScreenAddressView from './views/DisplayScreenAddressView.vue'
 import ElectiveRosterView from './views/ElectiveRosterView.vue'
 import EnrolmentForecastView from './views/EnrolmentForecastView.vue'
+// assessment-course-evaluation-answer-page: a campaign's figures for staff.
+import EvaluationCampaignResultsView from './views/EvaluationCampaignResultsView.vue'
 import ExamCaseDossierView from './views/ExamCaseDossierView.vue'
 import ExportRequestView from './views/ExportRequestView.vue'
 // learniq#952: record one external training for many learners at once, the
@@ -150,6 +152,8 @@ import LessonPlayer from './views/LessonPlayer.vue'
 import MarkSubmissionView from './views/MarkSubmissionView.vue'
 // personal-timetable: the signed-in user's own week view over Session objects.
 import MyElectives from './views/MyElectives.vue'
+// assessment-course-evaluation-answer-page: a learner answers their course evaluations.
+import MyEvaluationsView from './views/MyEvaluationsView.vue'
 // portable-learning-record: the three genuine new custom views this change
 // adds — the learner's aggregate dashboard + export/share actions, the
 // coordinator's prior-record upload + live coverage report, and the public
@@ -278,6 +282,8 @@ export default {
 	DisplayScreenAddressView: page(DisplayScreenAddressView),
 	ElectiveRosterView: page(ElectiveRosterView),
 	EnrolmentForecastView: page(EnrolmentForecastView),
+	EvaluationCampaignResultsView: page(EvaluationCampaignResultsView),
+	MyEvaluationsView: page(MyEvaluationsView),
 	CourseQualityReport: page(CourseQualityReport),
 	CurriculumCoverageMatrixView: page(CurriculumCoverageMatrixView),
 	DashboardAdmin: page(DashboardAdmin),

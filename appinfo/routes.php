@@ -169,6 +169,10 @@ return [
         // Controller: LessonReleaseController (slug: lessonRelease).
         ['name' => 'lessonRelease#status',           'url' => '/api/lessons/{lessonId}/release-status',         'verb' => 'GET'],
         ['name' => 'lessonRelease#assessmentStatus', 'url' => '/api/assessments/{assessmentId}/release-status', 'verb' => 'GET'],
+        // Controller: CourseEvaluationAnswerController (slug: courseEvaluationAnswer), assessment-course-evaluation-answer-page.
+        ['name' => 'courseEvaluationAnswer#mine',    'url' => '/api/evaluations/mine',                         'verb' => 'GET'],
+        ['name' => 'courseEvaluationAnswer#answer',  'url' => '/api/evaluations/{invitationId}/answer',        'verb' => 'POST'],
+        ['name' => 'courseEvaluationAnswer#results', 'url' => '/api/evaluations/campaigns/{campaignId}/results', 'verb' => 'GET'],
         // Controller: LessonNextStepController (slug: lessonNextStep), content-adaptive-next-step-and-preview.
         ['name' => 'lessonNextStep#nextStep',        'url' => '/api/lessons/{lessonId}/next-step',              'verb' => 'GET'],
         ['name' => 'lessonNextStep#coursePreview',   'url' => '/api/courses/{courseId}/preview',                'verb' => 'GET'],
