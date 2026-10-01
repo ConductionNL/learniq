@@ -441,8 +441,18 @@ class PortalContributionProviderTest extends TestCase {
 			$byId['parentExcuseRequests']['fields']
 		);
 		$this->assertSame(
-			['learnerRef', 'reportPeriodId', 'subjectGrades', 'attendanceSummary', 'mentorComment', 'docudeskDocumentRef'],
+			['learnerRef', 'reportPeriodId', 'periodName', 'gradeLines', 'attendanceSummary', 'mentorComment', 'docudeskDocumentRef'],
 			$byId['parentReportCards']['fields']
+		);
+		// The report cards show the readable period and grade lines, never the
+		// nested subjectGrades with its uuids.
+		$this->assertSame(
+			[
+				['field' => 'periodName', 'label' => 'Period'],
+				['field' => 'mentorComment', 'label' => "Teacher's comment"],
+				['field' => 'gradeLines', 'label' => 'Grades'],
+			],
+			$byId['parentReportCards']['columns']
 		);
 
 		// parentReportCards is server-side narrowed to published-to-parents only

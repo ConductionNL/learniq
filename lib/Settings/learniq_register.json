@@ -4826,7 +4826,7 @@
                 },
                 "slug": "learner-profile",
                 "icon": "AccountOutline",
-                "version": "0.3.3",
+                "version": "0.3.4",
                 "title": "LearnerProfile",
                 "description": "Learniq learner profile. Owns role assignment and is the actor reference for enrolments, credentials, and attestations.",
                 "type": "object",
@@ -4914,6 +4914,7 @@
                     "schoolId": {
                         "type": "string",
                         "nullable": true,
+                        "$ref": "School",
                         "description": "School or organisation identifier.",
                         "title": "School ID"
                     },
