@@ -14,7 +14,7 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
  *
- * @spec openspec/specs/data-exchange/spec.md#requirement-existing-lvsresults-are-back-filled-once
+ * @spec openspec/changes/lvs-result-learner-ref/specs/data-exchange/spec.md#requirement-existing-lvsresults-are-back-filled-once
  */
 
 declare(strict_types=1);
@@ -42,7 +42,7 @@ use Throwable;
  * Only `learnerRef` is added: the score fields of a verified result stay as
  * they are, so the write passes LvsResultFreezeListener.
  *
- * @spec openspec/specs/data-exchange/spec.md#requirement-existing-lvsresults-are-back-filled-once
+ * @spec openspec/changes/lvs-result-learner-ref/specs/data-exchange/spec.md#requirement-existing-lvsresults-are-back-filled-once
  */
 class BackfillLvsResultLearnerRef implements IRepairStep {
 
@@ -77,7 +77,7 @@ class BackfillLvsResultLearnerRef implements IRepairStep {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-lvsresults-are-back-filled-once
+	 * @spec openspec/changes/lvs-result-learner-ref/specs/data-exchange/spec.md#requirement-existing-lvsresults-are-back-filled-once
 	 */
 	public function getName(): string {
 		return 'Link existing LVS results to the learner profile of their pupil';
@@ -90,7 +90,7 @@ class BackfillLvsResultLearnerRef implements IRepairStep {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-lvsresults-are-back-filled-once
+	 * @spec openspec/changes/lvs-result-learner-ref/specs/data-exchange/spec.md#requirement-existing-lvsresults-are-back-filled-once
 	 */
 	public function run(IOutput $output): void {
 		$counts = ['scanned' => 0, 'stamped' => 0, 'noProfile' => 0, 'failed' => 0];

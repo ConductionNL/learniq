@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/specs/data-exchange/spec.md#requirement-existing-lvsresults-are-back-filled-once
+ * @spec openspec/changes/lvs-result-learner-ref/specs/data-exchange/spec.md#requirement-existing-lvsresults-are-back-filled-once
  */
 
 declare(strict_types=1);
