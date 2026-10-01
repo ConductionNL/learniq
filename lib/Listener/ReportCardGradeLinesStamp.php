@@ -107,10 +107,10 @@ class ReportCardGradeLinesStamp implements IEventListener {
 			$kept = ['periodName' => null, 'gradeLines' => []];
 			if ($event instanceof ObjectUpdatingEvent === true && $event->getOldObject() !== null) {
 				$old = ($event->getOldObject()->getObject() ?? []);
-				$kept = [
-					'periodName' => (is_string($old['periodName'] ?? null) === true ? $old['periodName'] : null),
-					'gradeLines' => array_values(array_filter((array)($old['gradeLines'] ?? []), 'is_string')),
-				];
+				$kept['gradeLines'] = array_values(array_filter((array)($old['gradeLines'] ?? []), 'is_string'));
+				if (is_string($old['periodName'] ?? null) === true) {
+					$kept['periodName'] = $old['periodName'];
+				}
 			}
 
 			$this->logger->warning(
