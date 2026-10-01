@@ -127,12 +127,15 @@ function surfaces(state, all = false) {
 // same page elsewhere: the Sign-up requests entries for line managers and team
 // leads under My learning duplicate the admin's People entry, and the line
 // manager's Request an exemption entry duplicates the admin's Exemptions entry
-// under Compliance. They are role gates, not segment gates, so they are left
-// out of what this test compares.
+// under Compliance. The compliance officer's Absence reports entry under
+// Compliance duplicates the admin's Absence reports entry under People. They
+// are role gates, not segment gates, so they are left out of what this test
+// compares.
 const ADMIN_REACHES_ELSEWHERE = new Set([
 	'menu:ManagerSignUpRequestsMenu',
 	'menu:TeamLeadSignUpRequestsMenu',
 	'menu:RequestExemptionMenu',
+	'menu:AbsenceReportsComplianceMenu',
 ])
 const ALL = surfaces(NEVER, true)
 function hiddenIn(state) {
@@ -188,6 +191,7 @@ const SCHOOL_ONLY_MENU = [
 	'TeacherAvailabilitiesMenu',
 	'ConferenceScheduleBoardMenu',
 	'ConferenceReportsMenu',
+	'AbsenceReportsMenu',
 ].map((id) => `menu:${id}`)
 
 test('the built structure has the surfaces this test reasons about', () => {

@@ -3076,6 +3076,10 @@ OC.L10N.register(
         "The calendar address could not be made.": "The calendar address could not be made.",
         "The calendar address could not be removed.": "The calendar address could not be removed.",
         "Copying did not work. Select the address and copy it yourself.": "Copying did not work. Select the address and copy it yourself.",
+        "no lessons planned yet": "no lessons planned yet",
+        "{first} and {second} meet at the same time: {slot}.": "{first} and {second} meet at the same time: {slot}.",
+        "The lesson times of these electives could not be read.": "The lesson times of these electives could not be read.",
+        "Absence reports": "Absence reports",
         "My child's report card grades": "My child's report card grades",
         "The name of the report period, as a guardian reads it (for example Rapport 1). The server copies it from the ReportPeriod on every save; a value sent for it is replaced.": "The name of the report period, as a guardian reads it (for example Rapport 1). The server copies it from the ReportPeriod on every save; a value sent for it is replaced.",
         "The subject grades as a guardian reads them, one line per subject (for example Rekenen: 7,9). The server writes them from subjectGrades on every save, naming each subject by its course or curriculum plan; a value sent for them is replaced. The parent portal shows these lines.": "The subject grades as a guardian reads them, one line per subject (for example Rekenen: 7,9). The server writes them from subjectGrades on every save, naming each subject by its course or curriculum plan; a value sent for them is replaced. The parent portal shows these lines."

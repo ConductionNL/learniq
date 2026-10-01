@@ -12607,7 +12607,7 @@
             "ReportCard": {
                 "slug": "report-card",
                 "icon": "FileChartOutline",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "ReportCard",
                 "description": "One composed periodic report (rapport) per (learner, ReportPeriod): a snapshot of each in-scope subject's period average and pass/fail state (from FinalGrade.breakdown.periods[periodCode]), a per-subject teacher comment, an attendance summary, an overall mentor comment, and a forward-compatible competencyAttainment section. Composed by ReportCardComposer on ReportPeriod.compose; reviewed at the rapportvergadering; published to parents only once every contributing grade's own visibleFrom has passed.",
                 "type": "object",

@@ -47,8 +47,9 @@ function idOf(row) {
  * @param {string} input.userId The teacher's Nextcloud user id.
  * @param {object[]} input.cohorts Cohorts from `?teacherIds=<userId>`.
  * @param {object[]} [input.programmes] The programmes those cohorts name.
- * @return {{cohortIds: string[], courseIds: string[], programmeIds: string[]}}
+ * @return {{cohortIds: string[], courseIds: string[], programmeIds: string[], learnerIds: string[]}}
  * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+ * @spec openspec/changes/teacher-dashboard-engagement-tiles/specs/dashboard/spec.md#requirement-the-engagement-tiles-of-a-group-teacher-count-only-their-own-groups
  */
 export function teacherScope({ userId, cohorts = [], programmes = [] }) {
 	const taught = cohorts.filter((cohort) =>
@@ -72,7 +73,47 @@ export function teacherScope({ userId, cohorts = [], programmes = [] }) {
 		}
 	}
 
-	return { cohortIds, courseIds: [...courseIds], programmeIds }
+	// The pupils of those cohorts (Nextcloud user ids, the same id the
+	// engagement rows carry in `learnerId`).
+	const learnerIds = [
+		...new Set(
+			taught.flatMap((cohort) => cohort.learnerIds || []).filter(Boolean),
+		),
+	]
+
+	return { cohortIds, courseIds: [...courseIds], programmeIds, learnerIds }
+}
+
+/**
+ * The aggregation source of a teacher-view stat tile. A group teacher's tile
+ * counts only the pupils of their own groups (`learnerId` in the scope's
+ * pupils); school-wide roles keep the declared source. Returns null while
+ * the scope is loading or when the teacher has no pupils: a tile without a
+ * source asks the server nothing and shows no number, where an empty `in`
+ * list would be dropped from the query string and count the whole school.
+ *
+ * @param {object} source The declared aggregation source.
+ * @param {{learnerIds?: string[]}|null} scope The teacher scope, or null for school-wide.
+ * @param {boolean} pending True while the scope is still loading.
+ * @return {object|null} The source to aggregate, or null for none.
+ * @spec openspec/changes/teacher-dashboard-engagement-tiles/specs/dashboard/spec.md#requirement-the-engagement-tiles-of-a-group-teacher-count-only-their-own-groups
+ */
+export function teacherTileSource(source, scope, pending) {
+	if (pending) {
+		return null
+	}
+	if (!scope) {
+		return source
+	}
+	const learnerIds = scope.learnerIds || []
+	if (learnerIds.length === 0) {
+		return null
+	}
+
+	return {
+		...source,
+		filter: { ...(source.filter || {}), learnerId: { in: learnerIds } },
+	}
 }
 
 /**

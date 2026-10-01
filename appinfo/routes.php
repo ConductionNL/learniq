@@ -209,6 +209,10 @@ return [
         ['name' => 'timetableFeedAddress#create', 'url' => '/api/timetable/feed', 'verb' => 'POST'],
         ['name' => 'timetableFeedAddress#revoke', 'url' => '/api/timetable/feed', 'verb' => 'DELETE'],
         ['name' => 'timetableFeed#feed', 'url' => '/api/timetable/feed/{token}.ics', 'verb' => 'GET', 'requirements' => ['token' => '[a-f0-9]{64}']],
+        // timetabling-student-choice-placement: weekly slots of the electives being chosen, and the
+        // caller's own core lessons, for the subject choice picker's overlap warning.
+        // Controller: ElectiveSlotsController (each course read with the caller's rights first).
+        ['name' => 'electiveSlots#slots', 'url' => '/api/timetable/course-slots', 'verb' => 'GET'],
         // Contact hours (timetabling-contact-hours): owed by the hour plan, given by held
         // lessons, attended per learner, for a window. #[NoAdminRequired] + the
         // report.contact-hours action in the body.
