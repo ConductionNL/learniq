@@ -3078,7 +3078,8 @@ OC.L10N.register(
         "Copying did not work. Select the address and copy it yourself.": "Copying did not work. Select the address and copy it yourself.",
         "no lessons planned yet": "no lessons planned yet",
         "{first} and {second} meet at the same time: {slot}.": "{first} and {second} meet at the same time: {slot}.",
-        "The lesson times of these electives could not be read.": "The lesson times of these electives could not be read."
+        "The lesson times of these electives could not be read.": "The lesson times of these electives could not be read.",
+        "Absence reports": "Absence reports"
     },
     "nplurals=2; plural=(n != 1);"
 )

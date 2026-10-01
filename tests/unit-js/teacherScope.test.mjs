@@ -14,6 +14,7 @@ import {
 	filterMatchesNothing,
 	isScopedTeacher,
 	teacherScope,
+	teacherTileSource,
 	teacherWidgetFilters,
 } from '../../src/utils/teacherScope.js'
 
@@ -175,4 +176,89 @@ test('every column of the teacher widgets is a field the schema has', () => {
 			`${schemaName}: no raw id column`,
 		)
 	}
+})
+
+// teacher-dashboard-engagement-tiles: the two engagement tiles at the top of
+// the teacher view counted the whole school for a group teacher. Engagement
+// rows carry `learnerId` (a Nextcloud user id) and no cohort, so the scope
+// is the pupils of the teacher's cohorts (Cohort.learnerIds).
+test('the scope holds the pupils of the cohorts the teacher teaches, and no others', () => {
+	const scope = teacherScope({
+		userId: 'juf-7',
+		cohorts: [
+			{ id: 'groep-7', teacherIds: ['juf-7'], learnerIds: ['vera', 'tim'] },
+			{ id: 'plusklas', teacherIds: ['juf-7'], learnerIds: ['tim', 'noor'] },
+			{ id: 'groep-8', teacherIds: ['meester-8'], learnerIds: ['sam'] },
+		],
+	})
+
+	assert.deepEqual([...scope.learnerIds].sort(), ['noor', 'tim', 'vera'])
+})
+
+test('an engagement tile of a group teacher counts only the pupils of their groups', () => {
+	const source = {
+		register: 'learniq',
+		schema: 'engagement-risk-flag',
+		metric: 'count',
+		filter: { lifecycle: 'open' },
+	}
+	const scoped = teacherTileSource(source, { learnerIds: ['vera', 'tim'] }, false)
+
+	assert.deepEqual(scoped, {
+		register: 'learniq',
+		schema: 'engagement-risk-flag',
+		metric: 'count',
+		filter: { lifecycle: 'open', learnerId: { in: ['vera', 'tim'] } },
+	})
+	assert.deepEqual(
+		source.filter,
+		{ lifecycle: 'open' },
+		'the declared source is not changed',
+	)
+})
+
+test('an engagement tile of a school-wide role keeps counting the whole school', () => {
+	const source = {
+		register: 'learniq',
+		schema: 'engagement-score',
+		metric: 'avg',
+		field: 'score',
+	}
+
+	assert.deepEqual(teacherTileSource(source, null, false), source)
+})
+
+test('an engagement tile never asks for the whole school while the scope loads or is empty', () => {
+	const source = {
+		register: 'learniq',
+		schema: 'engagement-score',
+		metric: 'avg',
+		field: 'score',
+	}
+
+	assert.equal(teacherTileSource(source, null, true), null, 'pending')
+	assert.equal(
+		teacherTileSource(source, { learnerIds: [] }, false),
+		null,
+		'no pupils',
+	)
+	assert.equal(teacherTileSource(source, {}, false), null, 'no learner list')
+})
+
+test('the teacher view feeds both engagement tiles through the teacher scope', () => {
+	const vue = readFileSync(
+		new URL('../../src/views/LearniqDashboards.vue', import.meta.url),
+		'utf8',
+	)
+	const teacher = vue.slice(
+		vue.indexOf('teacherConfig() {'),
+		vue.indexOf('studentConfig() {'),
+	)
+	const scoped = [...teacher.matchAll(/source: this\.teacherTile\(\{/g)]
+
+	assert.equal(scoped.length, 2, 'both engagement tiles go through teacherTile()')
+	assert.ok(
+		!/source: \{\s*register/.test(teacher),
+		'no tile declares an unscoped source',
+	)
 })

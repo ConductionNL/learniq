@@ -3533,7 +3533,8 @@ OC.L10N.register(
         "Copying did not work. Select the address and copy it yourself.": "Kopiëren lukte niet. Selecteer het adres en kopieer het zelf.",
         "no lessons planned yet": "nog geen lessen gepland",
         "{first} and {second} meet at the same time: {slot}.": "{first} en {second} vallen op hetzelfde moment: {slot}.",
-        "The lesson times of these electives could not be read.": "De lestijden van deze keuzevakken konden niet worden gelezen."
+        "The lesson times of these electives could not be read.": "De lestijden van deze keuzevakken konden niet worden gelezen.",
+        "Absence reports": "Verzuimmeldingen"
     },
     "nplurals=2; plural=(n != 1);"
 )
