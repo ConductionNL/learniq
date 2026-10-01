@@ -130,7 +130,8 @@ class TimetableFeedEventBuilder {
 			$lines[] = $this->substituteLine(uid: $uid, substitute: $substitute, l10n: $l10n);
 		}
 
-		if (($session['cover'] ?? false) === true) {
+		// The substitute line already says it when the reader is the substitute.
+		if (($session['cover'] ?? false) === true && $substitute !== $uid) {
 			$lines[] = $l10n->t('You cover this lesson.');
 		}
 
