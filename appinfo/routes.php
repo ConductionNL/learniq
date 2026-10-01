@@ -96,6 +96,7 @@ return [
         // (ADR-023: compliance.department-rollup, regulation.assign; learniq#951).
         // Controller: ComplianceRollupController (slug: complianceRollup).
         ['name' => 'complianceRollup#departments',      'url' => '/api/compliance/departments',        'verb' => 'GET'],
+        ['name' => 'complianceRollup#regulations',      'url' => '/api/compliance/coverage-by-regulation', 'verb' => 'GET'],
         ['name' => 'complianceRollup#assignRegulation', 'url' => '/api/compliance/regulations/{id}/assign', 'verb' => 'POST'],
 
         // QTI package import — user-invokable action (ADR-023: qti.import).

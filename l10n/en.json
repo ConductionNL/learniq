@@ -3069,7 +3069,22 @@
         "More than one learner matches; use the learner reference instead.": "More than one learner matches; use the learner reference instead.",
         "The same learner, training and date are on row {row}.": "The same learner, training and date are on row {row}.",
         "This training is already recorded for this learner on this date.": "This training is already recorded for this learner on this date.",
-        "The record could not be saved.": "The record could not be saved."
+        "The record could not be saved.": "The record could not be saved.",
+        "All departments": "All departments",
+        "Loading coverage per rule": "Loading coverage per rule",
+        "No active regulations": "No active regulations",
+        "Coverage per rule appears once a regulation is published.": "Coverage per rule appears once a regulation is published.",
+        "Coverage per rule": "Coverage per rule",
+        "Regulation": "Regulation",
+        "In scope": "In scope",
+        "Covered": "Covered",
+        "Percentage, lowest first": "Percentage, lowest first",
+        "Percentage, highest first": "Percentage, highest first",
+        "State": "State",
+        "Coverage per rule could not be loaded.": "Coverage per rule could not be loaded.",
+        "Red": "Red",
+        "Amber": "Amber",
+        "Green": "Green"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

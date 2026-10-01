@@ -3489,7 +3489,20 @@ OC.L10N.register(
         "More than one learner matches; use the learner reference instead.": "Meer dan één leerling past hierbij; gebruik de leerlingreferentie.",
         "The same learner, training and date are on row {row}.": "Dezelfde leerling, training en datum staan op regel {row}.",
         "This training is already recorded for this learner on this date.": "Deze training is al vastgelegd voor deze leerling op deze datum.",
-        "The record could not be saved.": "De registratie kon niet worden opgeslagen."
+        "The record could not be saved.": "De registratie kon niet worden opgeslagen.",
+        "All departments": "Alle afdelingen",
+        "Loading coverage per rule": "Dekking per regel laden",
+        "No active regulations": "Geen actieve regelingen",
+        "Coverage per rule appears once a regulation is published.": "De dekking per regel verschijnt zodra een regeling is gepubliceerd.",
+        "Coverage per rule": "Dekking per regel",
+        "In scope": "Valt eronder",
+        "Covered": "Gedekt",
+        "Percentage, lowest first": "Percentage, laagste eerst",
+        "Percentage, highest first": "Percentage, hoogste eerst",
+        "Coverage per rule could not be loaded.": "De dekking per regel kon niet worden geladen.",
+        "Red": "Rood",
+        "Amber": "Oranje",
+        "Green": "Groen"
     },
     "nplurals=2; plural=(n != 1);"
 )

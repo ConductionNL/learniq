@@ -36,8 +36,10 @@ use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\ComplianceRollupService;
 use OCA\Learniq\Service\RegulationAssignmentService;
+use OCA\Learniq\Service\RegulationCoverageService;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
@@ -57,6 +59,7 @@ class ComplianceRollupController extends Controller {
 	 * @param ComplianceRollupService     $rollup        Roll-up computation.
 	 * @param RegulationAssignmentService $assignment    Audience-scoped assignment.
 	 * @param ObjectService               $objectService OR object access.
+	 * @param RegulationCoverageService   $coverage      Coverage per regulation.
 	 */
 	public function __construct(
 		IRequest $request,
@@ -65,6 +68,7 @@ class ComplianceRollupController extends Controller {
 		private readonly ComplianceRollupService $rollup,
 		private readonly RegulationAssignmentService $assignment,
 		private readonly ObjectService $objectService,
+		private readonly RegulationCoverageService $coverage,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -90,6 +94,38 @@ class ComplianceRollupController extends Controller {
 	}//end departments()
 
 	/**
+	 * Coverage per active regulation, optionally for one department.
+	 *
+	 * The same audience as the department roll-up may read it: the
+	 * `compliance.department-rollup` action. OpenRegister scopes the learners
+	 * to the caller's tenant, as for byDepartment().
+	 *
+	 * @param string $department A department path; empty for all.
+	 *
+	 * @return JSONResponse { regulations: list of coverage rows }.
+	 *
+	 * @spec openspec/changes/compliance-rule-coverage-table/specs/compliance-rule-coverage/spec.md#requirement-per-rule-coverage-table
+	 * @spec openspec/changes/compliance-rule-coverage-table/specs/compliance-rule-coverage/spec.md#requirement-access
+	 */
+	#[NoAdminRequired]
+	public function regulations(string $department=''): JSONResponse {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
+
+		// ADR-023: throws OCSForbiddenException (HTTP 403) when not allowed.
+		$this->actionAuth->requireAction(user: $user, action: 'compliance.department-rollup');
+
+		$scope = trim($department);
+		if ($scope === '') {
+			$scope = null;
+		}
+
+		return new JSONResponse(data: ['regulations' => $this->coverage->byRegulation(department: $scope)]);
+	}//end regulations()
+
+	/**
 	 * Assign a published regulation's mandatory courses to its audience.
 	 *
 	 * @param string $id Regulation UUID.
@@ -110,7 +146,12 @@ class ComplianceRollupController extends Controller {
 
 		$regulation = null;
 		if ($id !== '') {
-			$regulation = $this->objectService->find(id: $id, register: 'learniq', schema: 'regulation');
+			// ObjectService::find() THROWS for an unknown id; that is a 404, not a 500.
+			try {
+				$regulation = $this->objectService->find(id: $id, register: 'learniq', schema: 'regulation');
+			} catch (DoesNotExistException) {
+				$regulation = null;
+			}
 		}
 
 		if ($regulation === null) {
