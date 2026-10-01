@@ -149,6 +149,7 @@ return [
         // action matrix (external-training.bulk-record / .issue-credential).
         // Controller: ExternalTrainingController (slug: externalTraining).
         ['name' => 'externalTraining#bulkRecord',      'url' => '/api/external-training/bulk',                  'verb' => 'POST'],
+        ['name' => 'externalTraining#import',          'url' => '/api/external-training/import',                'verb' => 'POST'],
         ['name' => 'externalTraining#issueCredential', 'url' => '/api/external-training/{recordId}/credential', 'verb' => 'POST'],
         ['name' => 'externalTraining#learnerCoverage', 'url' => '/api/external-training/coverage',              'verb' => 'GET'],
 
