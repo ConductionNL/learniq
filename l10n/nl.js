@@ -3506,9 +3506,6 @@ OC.L10N.register(
         "Red": "Rood",
         "Amber": "Oranje",
         "Green": "Groen",
-<<<<<<< HEAD
-        "Absence reports": "Verzuimmeldingen"
-=======
         "Cancelled: %s": "Vervallen: %s",
         "This lesson is cancelled.": "Deze les vervalt.",
         "You cover this lesson.": "Je neemt deze les waar.",
@@ -3533,8 +3530,8 @@ OC.L10N.register(
         "Your calendar address could not be read.": "Je agenda-adres kon niet worden gelezen.",
         "The calendar address could not be made.": "Het agenda-adres kon niet worden gemaakt.",
         "The calendar address could not be removed.": "Het agenda-adres kon niet worden verwijderd.",
-        "Copying did not work. Select the address and copy it yourself.": "Kopiëren lukte niet. Selecteer het adres en kopieer het zelf."
->>>>>>> origin/development
+        "Copying did not work. Select the address and copy it yourself.": "Kopiëren lukte niet. Selecteer het adres en kopieer het zelf.",
+        "Absence reports": "Verzuimmeldingen"
     },
     "nplurals=2; plural=(n != 1);"
 )

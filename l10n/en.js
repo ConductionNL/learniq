@@ -3050,9 +3050,6 @@ OC.L10N.register(
         "Red": "Red",
         "Amber": "Amber",
         "Green": "Green",
-<<<<<<< HEAD
-        "Absence reports": "Absence reports"
-=======
         "Cancelled: %s": "Cancelled: %s",
         "This lesson is cancelled.": "This lesson is cancelled.",
         "You cover this lesson.": "You cover this lesson.",
@@ -3078,8 +3075,8 @@ OC.L10N.register(
         "Your calendar address could not be read.": "Your calendar address could not be read.",
         "The calendar address could not be made.": "The calendar address could not be made.",
         "The calendar address could not be removed.": "The calendar address could not be removed.",
-        "Copying did not work. Select the address and copy it yourself.": "Copying did not work. Select the address and copy it yourself."
->>>>>>> origin/development
+        "Copying did not work. Select the address and copy it yourself.": "Copying did not work. Select the address and copy it yourself.",
+        "Absence reports": "Absence reports"
     },
     "nplurals=2; plural=(n != 1);"
 )
