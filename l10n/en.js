@@ -3049,7 +3049,10 @@ OC.L10N.register(
         "Coverage per rule could not be loaded.": "Coverage per rule could not be loaded.",
         "Red": "Red",
         "Amber": "Amber",
-        "Green": "Green"
+        "Green": "Green",
+        "My child's report card grades": "My child's report card grades",
+        "The name of the report period, as a guardian reads it (for example Rapport 1). The server copies it from the ReportPeriod on every save; a value sent for it is replaced.": "The name of the report period, as a guardian reads it (for example Rapport 1). The server copies it from the ReportPeriod on every save; a value sent for it is replaced.",
+        "The subject grades as a guardian reads them, one line per subject (for example Rekenen: 7,9). The server writes them from subjectGrades on every save, naming each subject by its course or curriculum plan; a value sent for them is replaced. The parent portal shows these lines.": "The subject grades as a guardian reads them, one line per subject (for example Rekenen: 7,9). The server writes them from subjectGrades on every save, naming each subject by its course or curriculum plan; a value sent for them is replaced. The parent portal shows these lines."
     },
     "nplurals=2; plural=(n != 1);"
 )

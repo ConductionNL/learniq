@@ -13,6 +13,7 @@
  * - A filter on a property the shipped schema does not declare matches
  *   nothing (`MagicSearchHandler` emits `1 = 0`). This store reads the
  *   declared properties from `lib/Settings/learniq_register.json`.
+ * - `config.ids` narrows the read to those object ids.
  *
  * Saves are applied, so a test can read back what a call site wrote.
  *
@@ -111,8 +112,19 @@ final class RegisterFaithfulStore {
 		}
 
 		$declared = (self::declaredProperties()[$schema] ?? []);
+		// `config.ids` (top level, not a filter) narrows the read to those
+		// object ids, the way ObjectService::findAll() hands it to the mapper.
+		$ids = null;
+		if (is_array($config['ids'] ?? null) === true) {
+			$ids = $config['ids'];
+		}
+
 		$matches = [];
 		foreach (($this->rows[$schema] ?? []) as $row) {
+			if ($ids !== null && in_array(($row['id'] ?? null), $ids, true) === false) {
+				continue;
+			}
+
 			if ($this->matches(row: $row, filters: $filters, declared: $declared) === true) {
 				$matches[] = $row;
 			}

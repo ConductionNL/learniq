@@ -582,6 +582,7 @@ class PortalContributionProvider {
 			'collections' => array_merge(
 				[$this->parentChildrenCollection()],
 				$this->parentResultCollections(childJoin: $childJoin),
+				[$extras->reportCardGradesCollection(childJoin: $childJoin)],
 				$this->parentWelfareCollections(childJoin: $childJoin),
 				$extras->conferenceCollections(childJoin: $childJoin),
 				[$extras->groupMembershipsCollection(childJoin: $childJoin)]
