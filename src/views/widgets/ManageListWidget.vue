@@ -14,7 +14,12 @@
    columns    — array of field names to display per item (first becomes item title)
    indexRoute — router path for the index page ("+ New" link + row-click base)
    limit      — max items to show (default 5)
-   filter     — optional extra filter params (e.g. { lifecycle: 'published' })
+   filter     — optional extra filter params (e.g. { lifecycle: 'published' }).
+                A list value is sent as key[]=a&key[]=b (an IN filter); an
+                empty list matches nothing, so the widget shows an empty list
+                without asking the server.
+   pending    — true while the caller is still working out the filter; the
+                widget shows its loading state and waits.
 -->
 <template>
 	<CnDataTable
@@ -45,6 +50,7 @@
 import { CnDataTable } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
+import { appendFilter, filterMatchesNothing } from '../../utils/teacherScope.js'
 
 export default {
 	name: 'ManageListWidget',
@@ -84,10 +90,16 @@ export default {
 			default: 5,
 		},
 
-		/** Additional OR filter params */
+		/** Additional OR filter params; a list value is an IN filter */
 		filter: {
 			type: Object,
 			default: () => ({}),
+		},
+
+		/** True while the caller is still working out the filter */
+		pending: {
+			type: Boolean,
+			default: false,
 		},
 
 		/**
@@ -166,24 +178,59 @@ export default {
 		},
 	},
 
+	watch: {
+		/**
+		 * Fetch once the caller has worked out the filter.
+		 *
+		 * @return {void}
+		 * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+		 */
+		pending() {
+			this.fetchItems()
+		},
+
+		filter: {
+			deep: true,
+			/**
+			 * Fetch again when the filter changes.
+			 *
+			 * @return {void}
+			 * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+			 */
+			handler() {
+				this.fetchItems()
+			},
+		},
+	},
+
 	created() {
 		this.fetchItems()
 	},
 
 	methods: {
 		/**
-		 * Fetch the top-N objects of this schema from OpenRegister.
+		 * Fetch the top-N objects of this schema from OpenRegister. Waits while
+		 * the filter is pending, and asks nothing when it can match no row.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-29
+		 * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
 		 */
 		async fetchItems() {
 			this.loading = true
+			if (this.pending) {
+				return
+			}
+			if (filterMatchesNothing(this.filter)) {
+				this.items = []
+				this.loading = false
+				return
+			}
 			try {
-				const params = new URLSearchParams({
-					_limit: String(this.limit),
-					...this.filter,
-				})
+				const params = appendFilter(
+					new URLSearchParams({ _limit: String(this.limit) }),
+					this.filter,
+				)
 				if (this.extend.length) {
 					params.set('_extend', this.extend.join(','))
 				}
