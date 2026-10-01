@@ -852,17 +852,23 @@ class PortalContributionProvider {
 				// filter, so it can only ever subset the guardian's own rows —
 				// mirrors pipelinq's PortalContributionProvider's own `filter` usage).
 				'filter' => ['lifecycle' => 'published-to-parents'],
+				// The readable copies (periodName, gradeLines) stand in for the
+				// nested subjectGrades: the portal writes a nested list into one
+				// cell and leaves its uuids out, so it read "7,9, Yes" without a
+				// subject or a period (portal-parent-report-card-grades).
 				'fields' => [
 					'learnerRef',
 					'reportPeriodId',
-					'subjectGrades',
+					'periodName',
+					'gradeLines',
 					'attendanceSummary',
 					'mentorComment',
 					'docudeskDocumentRef',
 				],
 				'columns' => [
+					['field' => 'periodName', 'label' => 'Period'],
 					['field' => 'mentorComment', 'label' => "Teacher's comment"],
-					['field' => 'subjectGrades', 'label' => 'Grades'],
+					['field' => 'gradeLines', 'label' => 'Grades'],
 				],
 			],
 		];
