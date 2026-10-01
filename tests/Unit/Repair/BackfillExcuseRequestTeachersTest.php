@@ -119,7 +119,7 @@ class BackfillExcuseRequestTeachersTest extends TestCase {
 	public function testStampsWhatTheServerWouldStampToday(): void {
 		$step = $this->makeStep();
 		$this->store->rows['excuse-request'] = [
-			['id' => 'er-old', 'learnerId' => 'pupil-1', 'reason' => 'Koorts'],
+			['id' => 'er-old', 'learnerId' => 'pupil-1', 'reason' => 'Koorts', '@self' => ['folder' => '208', 'owner' => '__system__']],
 			['id' => 'er-done', 'learnerId' => 'pupil-2', 'teacherIds' => ['duo-8', 'juf-8']],
 			['id' => 'er-stale', 'learnerId' => 'pupil-2', 'teacherIds' => ['juf-7']],
 			['id' => 'er-nogroup', 'learnerId' => 'pupil-9', 'teacherIds' => []],
@@ -131,6 +131,7 @@ class BackfillExcuseRequestTeachersTest extends TestCase {
 		self::assertEqualsCanonicalizing(['er-old', 'er-stale'], array_column($this->store->saves, 'uuid'));
 		self::assertSame(['juf-7'], $this->savedFor('er-old')['teacherIds']);
 		self::assertSame('Koorts', $this->savedFor('er-old')['reason'], 'the rest of the report is kept');
+		self::assertArrayNotHasKey('@self', $this->savedFor('er-old'), 'the metadata block is not written back');
 		self::assertSame(['juf-8', 'duo-8'], $this->savedFor('er-stale')['teacherIds']);
 		self::assertStringContainsString('2 stamped, 0 failed, of 5 scanned', $this->messages[0]);
 	}//end testStampsWhatTheServerWouldStampToday()

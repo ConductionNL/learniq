@@ -184,8 +184,16 @@ class BackfillExcuseRequestTeachers implements IRepairStep {
 				return null;
 			}
 
+			// The row as read carries OpenRegister's `@self` block. Saving it
+			// back makes OpenRegister check the acting user may use the row's
+			// folder, which a session-less step never may (a portal report
+			// with an attachment then fails with "Access to folder denied").
+			// The stored metadata stays on the object either way.
+			$object = array_merge($row, ['teacherIds' => $derived]);
+			unset($object['@self']);
+
 			$this->objectService->saveObject(
-				object: array_merge($row, ['teacherIds' => $derived]),
+				object: $object,
 				register: self::LEARNIQ_REGISTER,
 				schema: self::EXCUSE_SCHEMA,
 				uuid: $uuid,
