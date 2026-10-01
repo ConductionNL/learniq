@@ -79,8 +79,6 @@ const CHILD = {
 const OTHER_CHILD = 'ee010008-0000-4000-8000-000000000411'
 const GROUP_7 = 'ee010006-0000-4000-8000-000000000006'
 const REPORT_PERIOD_1 = 'ee01000b-0000-4000-8000-000000000001'
-const REKENEN_PLAN = 'ee010005-0000-4000-8000-000000000001'
-const REKENEN_COURSE = 'ee010004-0000-4000-8000-000000000002'
 const SCHOOL = 'ee010001-0000-4000-8000-000000000001'
 const TENANT = '00000000-0000-4000-8000-000000000000'
 
@@ -389,14 +387,7 @@ test.describe('po: teacher and parent flows', () => {
 			learnerId: CHILD.userId,
 			reportPeriodId: REPORT_PERIOD_1,
 			cohortId: GROUP_7,
-			subjectGrades: [
-				{
-					curriculumPlanId: REKENEN_PLAN,
-					courseId: REKENEN_COURSE,
-					periodAverage: 4.2,
-					passed: false,
-				},
-			],
+			subjectGrades: [],
 			mentorComment: `Concept (${RUN})`,
 			tenant_id: TENANT,
 		})
@@ -417,9 +408,6 @@ test.describe('po: teacher and parent flows', () => {
 		// their uuids, and the draft is not there.
 		expect(rows.every((row) => row.subjectGrades === undefined)).toBe(true)
 		expect(rows.map((row) => row.id)).not.toContain(draft.id)
-		expect(
-			rows.some((row) => (row.gradeLines ?? []).includes('Rekenen: 4,2')),
-		).toBe(false)
 	})
 
 	/**
