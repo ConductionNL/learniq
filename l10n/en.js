@@ -3050,7 +3050,36 @@ OC.L10N.register(
         "Red": "Red",
         "Amber": "Amber",
         "Green": "Green",
+<<<<<<< HEAD
         "Absence reports": "Absence reports"
+=======
+        "Cancelled: %s": "Cancelled: %s",
+        "This lesson is cancelled.": "This lesson is cancelled.",
+        "You cover this lesson.": "You cover this lesson.",
+        "Reason: %s": "Reason: %s",
+        "Substitute teacher: %s": "Substitute teacher: %s",
+        "A substitute teacher covers this lesson.": "A substitute teacher covers this lesson.",
+        "teacher absent": "teacher absent",
+        "room not available": "room not available",
+        "timetable change": "timetable change",
+        "other": "other",
+        "My timetable": "My timetable",
+        "Subscribe in your calendar": "Subscribe in your calendar",
+        "Add this address to your calendar app to see your lessons there. Your calendar app refreshes it, so cancelled lessons and substitutes show up by themselves.": "Add this address to your calendar app to see your lessons there. Your calendar app refreshes it, so cancelled lessons and substitutes show up by themselves.",
+        "Calendar address": "Calendar address",
+        "Anyone with this address can read your timetable. Keep it to yourself.": "Anyone with this address can read your timetable. Keep it to yourself.",
+        "Open in your calendar app": "Open in your calendar app",
+        "You already have a calendar address. If you lost it or shared it by mistake, reset it: the old address stops working.": "You already have a calendar address. If you lost it or shared it by mistake, reset it: the old address stops working.",
+        "The address is copied.": "The address is copied.",
+        "Remove address": "Remove address",
+        "Copy address": "Copy address",
+        "Reset link": "Reset link",
+        "Make an address": "Make an address",
+        "Your calendar address could not be read.": "Your calendar address could not be read.",
+        "The calendar address could not be made.": "The calendar address could not be made.",
+        "The calendar address could not be removed.": "The calendar address could not be removed.",
+        "Copying did not work. Select the address and copy it yourself.": "Copying did not work. Select the address and copy it yourself."
+>>>>>>> origin/development
     },
     "nplurals=2; plural=(n != 1);"
 )

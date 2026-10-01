@@ -167,3 +167,40 @@ export async function fetchMyStandby(from, to) {
 		return []
 	}
 }
+
+/**
+ * Whether the signed-in user has a calendar feed address.
+ *
+ * @return {Promise<boolean>} True when an address exists.
+ * @spec openspec/changes/attendance-timetable-calendar-feed/specs/timetable-calendar-feed/spec.md#requirement-calendar-subscription-feed
+ */
+export async function fetchCalendarFeedStatus() {
+	const response = await axios.get(generateUrl('/apps/learniq/api/timetable/feed'))
+	return response.data?.exists === true
+}
+
+/**
+ * Make a new calendar feed address; an earlier one stops working.
+ *
+ * @return {Promise<{url: string, webcalUrl: string}>} The new address, shown once.
+ * @spec openspec/changes/attendance-timetable-calendar-feed/specs/timetable-calendar-feed/spec.md#requirement-revoking-the-feed-address
+ */
+export async function createCalendarFeed() {
+	const response = await axios.post(
+		generateUrl('/apps/learniq/api/timetable/feed'),
+	)
+	return {
+		url: String(response.data?.url ?? ''),
+		webcalUrl: String(response.data?.webcalUrl ?? ''),
+	}
+}
+
+/**
+ * Remove the calendar feed address.
+ *
+ * @return {Promise<void>}
+ * @spec openspec/changes/attendance-timetable-calendar-feed/specs/timetable-calendar-feed/spec.md#requirement-revoking-the-feed-address
+ */
+export async function removeCalendarFeed() {
+	await axios.delete(generateUrl('/apps/learniq/api/timetable/feed'))
+}
