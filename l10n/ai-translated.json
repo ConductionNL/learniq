@@ -1647,6 +1647,7 @@
         "UUID of the Course the teacher imported the file into. Set by the import transition.",
         "UUID of the DataExchangeJob (target: lvs-results) that imported this result.",
         "UUID of the DataExchangeJob (target: oso, direction: import) that received this dossier.",
+        "UUID of the LearnerProfile this result belongs to, the domain reference to the pupil. The server derives it from learnerId on every write. Distinct from learnerId, which is the Nextcloud user id. Optional; null when the learner has no profile.",
         "UUID of the Location (vestiging/onderwijslocatie) this cohort/groep runs at. Single reference, never an array: enforces DUO's one-groep-per-location rule at the data-model level (legal-po-2026-09-25.md). Additive and nullable; existing cohorts default to null until backfilled.",
         "UUID of the School object this location belongs to.",
         "UUID of the SupportRequest this trajectory originates from, when one exists. Null when the placement was arranged without a prior zorgvraag.",
