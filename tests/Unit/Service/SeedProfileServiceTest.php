@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Portal\ExamplePortalProvisioner;
 use OCA\Learniq\Service\DemoDataService;
 use OCA\Learniq\Service\LoadedExampleSets;
 use OCA\Learniq\Service\SeedProfileService;
@@ -109,10 +110,11 @@ class SeedProfileServiceTest extends TestCase {
 	 * @param LoggerInterface|null    $logger    The logger double.
 	 * @param bool                    $generated Whether the generated set ships.
 	 * @param LoadedExampleSets|null  $loaded    The loaded-set list, when a test reads it.
+	 * @param ExamplePortalProvisioner|null $portals The portal provisioner, when a test asserts on it.
 	 *
 	 * @return SeedProfileService
 	 */
-	private function service(?ContainerInterface $container = null, ?LoggerInterface $logger = null, bool $generated = true, ?LoadedExampleSets $loaded = null): SeedProfileService {
+	private function service(?ContainerInterface $container = null, ?LoggerInterface $logger = null, bool $generated = true, ?LoadedExampleSets $loaded = null, ?ExamplePortalProvisioner $portals = null): SeedProfileService {
 		$demo = $this->createMock(DemoDataService::class);
 		$demo->method('isAvailable')->willReturn($generated);
 		$choices = [['id' => 'none', 'label' => 'None', 'description' => '', 'objectCount' => 0, 'icon' => 'CloseCircleOutline']];
@@ -129,7 +131,8 @@ class SeedProfileServiceTest extends TestCase {
 			($logger ?? $this->createMock(LoggerInterface::class)),
 			$demo,
 			$this->passThroughFilter(),
-			($loaded ?? $this->createMock(LoadedExampleSets::class))
+			($loaded ?? $this->createMock(LoadedExampleSets::class)),
+			($portals ?? $this->createMock(ExamplePortalProvisioner::class))
 		);
 	}//end service()
 
@@ -236,9 +239,16 @@ class SeedProfileServiceTest extends TestCase {
 		$container = $this->createMock(ContainerInterface::class);
 		$container->method('get')->with('OCA\OpenRegister\Service\ConfigurationService')->willReturn($importer);
 
-		$result = $this->service(container: $container)->install('po');
+		$portalAnswer = ['status' => 'created', 'slug' => 'wilgenboom', 'theme' => 'example-basisschool'];
+		$portals = $this->getMockBuilder(ExamplePortalProvisioner::class)
+			->disableOriginalConstructor()
+			->onlyMethods(['provision'])
+			->getMock();
+		$portals->expects(self::once())->method('provision')->with('po')->willReturn($portalAnswer);
 
-		self::assertSame(['objects' => 3, 'profile' => 'po'], $result);
+		$result = $this->service(container: $container, portals: $portals)->install('po');
+
+		self::assertSame(['objects' => 3, 'profile' => 'po', 'portal' => $portalAnswer], $result);
 		self::assertSame('learniq.profile.po', $importer->call['appId']);
 		self::assertSame('profile', $importer->call['data']['x-openregister']['type']);
 		self::assertTrue($importer->call['force']);
@@ -251,7 +261,12 @@ class SeedProfileServiceTest extends TestCase {
 	 * @return void
 	 */
 	public function testInstallDelegatesTheGeneratedSetAndRefusesTheRest(): void {
-		self::assertSame(['objects' => 405, 'profile' => 'demo'], $this->service()->install('demo'));
+		$portals = $this->getMockBuilder(ExamplePortalProvisioner::class)
+			->disableOriginalConstructor()
+			->onlyMethods(['provision'])
+			->getMock();
+		$portals->expects(self::never())->method('provision');
+		self::assertSame(['objects' => 405, 'profile' => 'demo'], $this->service(portals: $portals)->install('demo'));
 
 		try {
 			$this->service()->install('vo');
@@ -270,7 +285,8 @@ class SeedProfileServiceTest extends TestCase {
 			$this->createMock(LoggerInterface::class),
 			$this->createMock(DemoDataService::class),
 			$this->passThroughFilter(),
-			$this->createMock(LoadedExampleSets::class)
+			$this->createMock(LoadedExampleSets::class),
+			$this->createMock(ExamplePortalProvisioner::class)
 		);
 
 		$this->expectExceptionMessage('OpenRegister');

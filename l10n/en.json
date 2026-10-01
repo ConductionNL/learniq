@@ -3035,7 +3035,8 @@
         "The known limitation that discloses this failure. Needed before the statement can be published when the result is fail.": "The known limitation that discloses this failure. Needed before the statement can be published when the result is fail.",
         "What the test found for this criterion.": "What the test found for this criterion.",
         "Where the evidence is: a link to the report or the test run.": "Where the evidence is: a link to the report or the test run.",
-        "Who tested the criterion. Kept in the register, never in the public export.": "Who tested the criterion. Kept in the register, never in the public export."
+        "Who tested the criterion. Kept in the register, never in the public export.": "Who tested the criterion. Kept in the register, never in the public export.",
+        "UUID of the LearnerProfile this result belongs to, the domain reference to the pupil. The server derives it from learnerId on every write. Distinct from learnerId, which is the Nextcloud user id. Optional; null when the learner has no profile.": "UUID of the LearnerProfile this result belongs to, the domain reference to the pupil. The server derives it from learnerId on every write. Distinct from learnerId, which is the Nextcloud user id. Optional; null when the learner has no profile."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
