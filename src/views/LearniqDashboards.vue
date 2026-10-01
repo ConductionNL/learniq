@@ -103,6 +103,7 @@ import {
 	appendFilter,
 	isScopedTeacher,
 	teacherScope,
+	teacherTileSource,
 	teacherWidgetFilters,
 } from '../utils/teacherScope.js'
 
@@ -434,15 +435,17 @@ export default {
 						// replaces each did their own fetch and swallowed failure into a
 						// zero. `schema` is the OpenRegister SLUG.
 						type: 'stat',
+						// A group teacher's tile averages only the pupils of their
+						// own groups (teacher-dashboard-engagement-tiles).
 						content: {
 							label: this.t('learniq', 'Avg. engagement score'),
 							clickRoute: { path: '/progress/engagement-scores' },
-							source: {
+							source: this.teacherTile({
 								register: 'learniq',
 								schema: 'engagement-score',
 								metric: 'avg',
 								field: 'score',
-							},
+							}),
 						},
 					},
 					{
@@ -457,12 +460,12 @@ export default {
 							label: this.t('learniq', 'Open engagement flags'),
 							variant: 'warning',
 							clickRoute: { path: '/progress/engagement-flags' },
-							source: {
+							source: this.teacherTile({
 								register: 'learniq',
 								schema: 'engagement-risk-flag',
 								metric: 'count',
 								filter: { lifecycle: 'open' },
-							},
+							}),
 						},
 					},
 					{
@@ -631,6 +634,21 @@ export default {
 
 	methods: {
 		/**
+		 * The aggregation source of a teacher-view stat tile: scoped to the
+		 * pupils of a group teacher's own groups, school-wide for other roles.
+		 * A tile without a source (scope loading, or no pupils) asks nothing.
+		 *
+		 * @param {object} source The declared aggregation source.
+		 * @return {object|undefined} The source to aggregate, or none.
+		 * @spec openspec/changes/teacher-dashboard-engagement-tiles/specs/dashboard/spec.md#requirement-the-engagement-tiles-of-a-group-teacher-count-only-their-own-groups
+		 */
+		teacherTile(source) {
+			return (
+				teacherTileSource(source, this.scope, this.scopePending) ?? undefined
+			)
+		},
+
+		/**
 		 * Work out which cohorts and courses a group teacher's lists show:
 		 * the cohorts that list them in `teacherIds`, and the courses those
 		 * cohorts run. School-wide roles get no scope. A failed read leaves
@@ -661,7 +679,12 @@ export default {
 					: []
 				this.scope = teacherScope({ userId, cohorts, programmes })
 			} catch {
-				this.scope = { cohortIds: [], courseIds: [], programmeIds: [] }
+				this.scope = {
+					cohortIds: [],
+					courseIds: [],
+					programmeIds: [],
+					learnerIds: [],
+				}
 			} finally {
 				this.scopePending = false
 			}
