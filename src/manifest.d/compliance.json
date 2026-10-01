@@ -68,6 +68,26 @@
 			}
 		},
 		{
+			"id": "AbsenceReportsComplianceMenu",
+			"label": "Absence reports",
+			"icon": "CalendarRemoveOutline",
+			"route": "ExcuseRequests",
+			"order": 55,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"compliance-officer"
+					]
+				},
+				"workspace.chosenSegment": {
+					"notIn": [
+						"corporate"
+					]
+				}
+			},
+			"_note": "Compliance officers read every absence report (ExcuseRequest grants compliance-officers), but the People group that holds AbsenceReportsMenu does not reach them. menu-layout.json relocates this entry into GroupCompliance. Only compliance-officer: the admin reaches the page under People, and hr has no read on ExcuseRequest."
+		},
+		{
 			"id": "RequestExemptionMenu",
 			"label": "Request an exemption",
 			"icon": "ShieldOffOutline",

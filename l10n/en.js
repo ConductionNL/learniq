@@ -3000,7 +3000,8 @@ OC.L10N.register(
         "Who tested the criterion. Kept in the register, never in the public export.": "Who tested the criterion. Kept in the register, never in the public export.",
         "UUID of the LearnerProfile this result belongs to, the domain reference to the pupil. The server derives it from learnerId on every write. Distinct from learnerId, which is the Nextcloud user id. Optional; null when the learner has no profile.": "UUID of the LearnerProfile this result belongs to, the domain reference to the pupil. The server derives it from learnerId on every write. Distinct from learnerId, which is the Nextcloud user id. Optional; null when the learner has no profile.",
         "Group teachers": "Group teachers",
-        "The teachers of the pupil's group. The school fills this in when the report is saved.": "The teachers of the pupil's group. The school fills this in when the report is saved."
+        "The teachers of the pupil's group. The school fills this in when the report is saved.": "The teachers of the pupil's group. The school fills this in when the report is saved.",
+        "Absence reports": "Absence reports"
     },
     "nplurals=2; plural=(n != 1);"
 )

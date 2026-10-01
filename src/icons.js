@@ -48,6 +48,7 @@ import CalendarCheckOutline from 'vue-material-design-icons/CalendarCheckOutline
 import CalendarClockOutline from 'vue-material-design-icons/CalendarClockOutline.vue'
 import CalendarMultiselectOutline from 'vue-material-design-icons/CalendarMultiselectOutline.vue'
 import CalendarRangeOutline from 'vue-material-design-icons/CalendarRangeOutline.vue'
+import CalendarRemoveOutline from 'vue-material-design-icons/CalendarRemoveOutline.vue'
 import CalendarSyncOutline from 'vue-material-design-icons/CalendarSyncOutline.vue'
 import CartOutline from 'vue-material-design-icons/CartOutline.vue'
 import Cash from 'vue-material-design-icons/Cash.vue'
@@ -206,6 +207,7 @@ export default {
 	CalendarClockOutline,
 	CalendarMultiselectOutline,
 	CalendarRangeOutline,
+	CalendarRemoveOutline,
 	CalendarSyncOutline,
 	CartOutline,
 	Cash,

@@ -92,6 +92,29 @@
 					}
 				},
 				{
+					"id": "AbsenceReportsMenu",
+					"label": "Absence reports",
+					"icon": "CalendarRemoveOutline",
+					"route": "ExcuseRequests",
+					"order": 31,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
+						}
+					},
+					"_note": "The absence reports guardians and the school file (ExcuseRequest). The list reads only what the register lets the user read: a group teacher sees the reports of their own groups (teacherIds), coordinators and directors the whole school. hr is left out because ExcuseRequest does not grant it. Compliance officers can read the reports too, but GroupPeople does not reach them, so AbsenceReportsComplianceMenu gives them the same page under Compliance. School-only, like the AttendanceFlags report card."
+				},
+				{
 					"id": "Credentials",
 					"label": "Credentials",
 					"icon": "Check",
