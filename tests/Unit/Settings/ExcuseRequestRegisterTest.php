@@ -133,4 +133,48 @@ class ExcuseRequestRegisterTest extends TestCase {
 			);
 		}
 	}//end testADecisionStampsTheDeciderAndTheTime()
+
+	/**
+	 * A teacher reads and decides only the reports of pupils in a group they
+	 * teach; coordinators and directors read every report in the school and
+	 * coordinators decide them. Found on a clean primary-school install: a
+	 * group teacher saw the absence reports of the whole school.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/excuse-reports-follow-the-pupils-group/specs/attendance/spec.md#requirement-an-absence-report-is-read-by-the-teachers-of-the-pupils-group-and-by-school-wide-staff
+	 */
+	public function testATeacherReadsOnlyTheReportsOfTheirOwnGroups(): void {
+		$authorization = $this->schema()['authorization'];
+		$scoped = ['group' => 'instructors', 'match' => ['teacherIds' => ['$contains' => '$userId']]];
+
+		self::assertSame([$scoped, 'coordinators', 'administration-managers', 'compliance-officers'], $authorization['read']);
+		self::assertSame([$scoped, 'coordinators', 'compliance-officers'], $authorization['update']);
+		self::assertSame(['instructors', 'coordinators', 'compliance-officers'], $authorization['create']);
+
+		foreach (['read', 'update'] as $action) {
+			self::assertNotContains('instructors', $authorization[$action], $action . ': no school-wide grant for teachers');
+		}
+	}//end testATeacherReadsOnlyTheReportsOfTheirOwnGroups()
+
+	/**
+	 * The field the rules match on is declared as a list of user ids, with a
+	 * catalogue key for its label and its help text.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/excuse-reports-follow-the-pupils-group/specs/attendance/spec.md#requirement-an-absence-report-is-read-by-the-teachers-of-the-pupils-group-and-by-school-wide-staff
+	 */
+	public function testTheTeacherFieldIsDeclaredAndTranslated(): void {
+		$field = $this->schema()['properties']['teacherIds'];
+		self::assertSame('array', $field['type']);
+		self::assertSame(['type' => 'string'], $field['items']);
+		self::assertNotContains('teacherIds', $this->schema()['required'], 'stamped by the server, never sent by the portal');
+
+		$nl = json_decode((string)file_get_contents(__DIR__ . '/../../../l10n/nl.json'), true)['translations'];
+		foreach ([$field['title'], $field['description']] as $text) {
+			self::assertArrayHasKey($text, $nl);
+			self::assertNotSame($text, $nl[$text]);
+		}
+	}//end testTheTeacherFieldIsDeclaredAndTranslated()
 }//end class

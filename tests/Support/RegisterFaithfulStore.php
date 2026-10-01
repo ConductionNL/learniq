@@ -168,7 +168,18 @@ final class RegisterFaithfulStore {
 				return false;
 			}
 
-			if (($row[$key] ?? null) !== $value) {
+			// OpenRegister answers a scalar filter on an array property with
+			// "the array contains this value" (MagicSearchHandler's `@>`).
+			$stored = ($row[$key] ?? null);
+			if (is_array($stored) === true && is_scalar($value) === true) {
+				if (in_array($value, $stored, true) === false) {
+					return false;
+				}
+
+				continue;
+			}
+
+			if ($stored !== $value) {
 				return false;
 			}
 		}
