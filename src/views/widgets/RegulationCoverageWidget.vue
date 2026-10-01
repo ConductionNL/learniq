@@ -170,6 +170,11 @@ export default {
 		},
 	},
 
+	/**
+	 * Load the figures and the department choices.
+	 *
+	 * @spec openspec/changes/compliance-rule-coverage-table/specs/compliance-rule-coverage/spec.md#requirement-per-rule-coverage-table
+	 */
 	mounted() {
 		this.load()
 		this.loadDepartments()
