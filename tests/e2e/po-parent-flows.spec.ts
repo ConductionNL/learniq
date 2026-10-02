@@ -698,6 +698,16 @@ test.describe('po: teacher and parent flows', () => {
 		await openPage(parent, 'learniq/parentCalendar')
 		await expect(parent.getByTestId('calendar-block')).toBeVisible()
 		await shot(parent, 'f2-calendar')
+
+		// A teacher reads as a name, never as a Nextcloud user id
+		// (parent-portal-teacher-names, portaliq render: user).
+		const slots = await portalRows('conference-slot', 'parentConferenceSlots')
+		for (const slot of slots) {
+			expect(String(slot.teacherId ?? '')).not.toMatch(/^po-leerkracht-/)
+		}
+		await openPage(parent, 'learniq/parentConferenceSlots')
+		await expect(parent.locator('main')).not.toContainText('po-leerkracht-')
+		await shot(parent, 'f3-teacher-by-name')
 	})
 
 	/**
