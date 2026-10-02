@@ -86,6 +86,16 @@ class ActionForbiddenMiddlewareTest extends TestCase {
 	}//end testOtherExceptionsPassThrough()
 
 	/**
+	 * The app object without its constructor: App's constructor needs a live
+	 * Nextcloud server, and register() is what these tests read.
+	 *
+	 * @return Application
+	 */
+	private static function application(): Application {
+		return (new \ReflectionClass(Application::class))->newInstanceWithoutConstructor();
+	}//end application()
+
+	/**
 	 * The app registers the middleware, or no controller ever uses it.
 	 *
 	 * @return void
@@ -100,7 +110,7 @@ class ActionForbiddenMiddlewareTest extends TestCase {
 		);
 
 		try {
-			(new Application())->register($context);
+			self::application()->register($context);
 		} catch (\Throwable $e) {
 			// Bootstrap's own wiring may need a live server; the middleware
 			// registration is what this test reads.
@@ -147,7 +157,7 @@ class ActionForbiddenMiddlewareTest extends TestCase {
 			}
 		);
 		try {
-			(new Application())->register($context);
+			self::application()->register($context);
 		} catch (\Throwable $e) {
 			// See testTheAppRegistersIt().
 		}

@@ -85,6 +85,11 @@ class Application extends App implements IBootstrap {
 	 * published AppHost entry point in a sibling app.
 	 */
 	public function register(IRegistrationContext $context): void {
+		// An action-matrix refusal (OCSForbiddenException) from a plain
+		// controller is a 403, not Nextcloud's 500 page (live pass D1, D7).
+		// First, so nothing below that throws can leave it unregistered.
+		$context->registerMiddleware(ActionForbiddenMiddleware::class);
+
 		// ADR-040: adopt the OpenRegister AppHost. One call wires the generic
 		// SPA/settings/preferences/health/metrics controllers, the settings +
 		// action-auth services, the install repair steps, the admin settings
@@ -146,10 +151,6 @@ class Application extends App implements IBootstrap {
 		// Every cross-object write bridge (ADR-031 legitimate exceptions), wired
 		// by domain. See the individual registrars for the per-listener rationale.
 		(new EventListenerWiring())->registerAll(context: $context);
-
-		// An action-matrix refusal (OCSForbiddenException) from a plain
-		// controller is a 403, not Nextcloud's 500 page (live pass D1).
-		$context->registerMiddleware(ActionForbiddenMiddleware::class);
 
 	}//end register()
 

@@ -60,6 +60,8 @@ class ActionForbiddenMiddleware extends Middleware {
 	 * @spec openspec/parity/capabilities.json#comp-roll-up-by-department
 	 */
 	public function afterException(Controller $controller, string $methodName, Exception $exception): Response {
+		// Every method of a plain controller is answered the same way.
+		unset($methodName);
 		if ($exception instanceof OCSForbiddenException && $controller instanceof OCSController === false) {
 			return new JSONResponse(data: ['error' => $exception->getMessage()], statusCode: Http::STATUS_FORBIDDEN);
 		}
