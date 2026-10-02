@@ -40,7 +40,12 @@
 				@click.prevent="navigate"
 				@keydown.enter.prevent="navigate"
 				@keydown.space.prevent="navigate">
-				+ {{ t('learniq', 'New') }} {{ schemaLabel }}
+				<template v-if="footerLabel">
+					{{ footerLabel }}
+				</template>
+				<template v-else>
+					+ {{ t('learniq', 'New') }} {{ schemaLabel }}
+				</template>
 			</a>
 		</template>
 	</CnDataTable>
@@ -119,6 +124,28 @@ export default {
 		 */
 		nameResolver: {
 			type: Function,
+			default: null,
+		},
+
+		/**
+		 * Optional (row) => vue-router location for a row click; defaults to
+		 *  `{indexRoute}/{id}`. The teacher dashboard's "Sessions to mark"
+		 *  opens the roll-call of the lesson's group and day.
+		 */
+		rowRoute: {
+			type: Function,
+			default: null,
+		},
+
+		/** Optional footer link text, replacing "+ New {schemaLabel}". */
+		footerLabel: {
+			type: String,
+			default: '',
+		},
+
+		/** Optional footer link target, replacing indexRoute. */
+		footerRoute: {
+			type: [String, Object],
 			default: null,
 		},
 	},
@@ -258,6 +285,9 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-29
 		 */
 		rowClickRoute(row) {
+			if (this.rowRoute) {
+				return this.rowRoute(row)
+			}
 			return { path: `${this.indexRoute}/${row.id}` }
 		},
 
@@ -268,7 +298,7 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-29
 		 */
 		navigate() {
-			this.$router.push(this.indexRoute).catch(() => {})
+			this.$router.push(this.footerRoute || this.indexRoute).catch(() => {})
 		},
 	},
 }
