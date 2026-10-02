@@ -437,6 +437,8 @@ def build() -> dict:
         b.add("enrolment", {
             "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "courseId": basis["uuid"], "source": "admission",
             "cohortId": cohort["uuid"], "lifecycle": "active", "inschrijvingDate": p["enrolled"].isoformat(),
+            # The readable copy ReadableCopyStamp writes on a live save (site-guardian-portal-design).
+            "cohortName": cohort["name"],
             "volgnummer": p["volgnummer"], "locationId": cohort["locationId"], "leerjaar": p["leerjaar"],
         })
 
@@ -829,6 +831,8 @@ def build() -> dict:
                     "learnerRef": p["profile"]["uuid"], "submittedAt": stamp(handed, 19, 0), "lifecycle": "late" if late else "submitted",
                 })
 
+    add_sami(b, pupils, cohorts, sessions, days, periods, plans, subject_courses, names_by_uuid)
+
     # --- assemble -----------------------------------------------------------
     for cohort in cohorts.values():
         del cohort["_room"]
@@ -874,6 +878,76 @@ def build() -> dict:
         "paths": {},
         "components": {},
     }
+
+
+def add_sami(b: Builder, pupils: list[dict], cohorts: dict, sessions: dict, days: list[dt.date],
+             periods: list[dict], plans: dict, subject_courses: dict, names_by_uuid: dict) -> None:
+    """Vera Hulstkamp's younger brother Sami, in groep 3 (site-guardian-portal-design).
+
+    The guardian overview switches between children, and the seeded guardian
+    Fatima Hulstkamp had one. Sami is added after every other object and draws
+    no number from the main random stream, so no existing uuid or value moves:
+    the e2e pins Vera's profile uuid.
+    """
+    vera = next(p for p in pupils if p["given"] == "Vera" and p["surname"] == "Hulstkamp")
+    group = cohorts["Groep 3"]
+    nc = f"po-leerling-{len(pupils) + 1:03d}"
+    enrolled = dt.date(2023, 3, 14)
+    profile = b.add("learner-profile", {
+        "ncUserId": nc, "givenName": "Sami", "familyName": "Hulstkamp", "birthDate": "2019-03-14",
+        "schoolId": vera["profile"]["schoolId"], "roles": ["learner"],
+        "parentIds": list(vera["profile"]["parentIds"]), "guardianRefs": list(vera["profile"]["guardianRefs"]),
+        "address": vera["address"], "emergencyContacts": [], "allergies": None, "medicalConditions": None,
+        "beeldmateriaalConsent": {"website": True, "socialMedia": False, "schoolgids": True, "classPhoto": True, "video": True},
+        "lifecycle": "active",
+    })
+    group["learnerIds"].append(nc)
+    b.add("enrolment", {
+        "learnerId": nc, "learnerRef": profile["uuid"], "courseId": group["courseId"], "source": "admission",
+        "cohortId": group["uuid"], "cohortName": group["name"], "lifecycle": "active",
+        "inschrijvingDate": enrolled.isoformat(), "volgnummer": len(pupils) + 1, "locationId": group["locationId"], "leerjaar": 3,
+    })
+
+    # One day ill in January, reported and excused, so the figures are not all zero.
+    ill = next(d for d in days if d >= dt.date(2026, 1, 13))
+    teacher = TEACHERS["Groep 3"][0][0]
+    b.add("attendance-record", {
+        "sessionId": sessions[("Groep 3", ill)]["uuid"], "learnerId": nc, "learnerRef": profile["uuid"],
+        "cohortId": group["uuid"], "status": "absent-excused", "minutesAttended": 0, "markedBy": teacher,
+        "markedAt": stamp(ill, 8, 40), "reason": "Ziek gemeld door ouder", "excuseRequestId": None,
+        "lateMinutes": None, "absenceReasonKind": "illness",
+    })
+    b.add("attendance-summary", {
+        "learnerId": nc, "learnerRef": profile["uuid"], "schoolYear": YEAR,
+        "absentDays": 1, "absentAuthorisedDays": 1, "absentUnauthorisedDays": 0, "lateCount": 0, "lateMinutes": 0,
+        "updatedAt": stamp(LAST_DAY, 18, 0),
+        "teacherIds": sorted(set(group["teacherIds"]) | {a["teacherId"] for a in group["teacherAssignments"]}),
+    })
+
+    # His report cards: grades from their own random stream, attendance counted from his own marks.
+    sami_rng = random.Random(20261003)
+    for (code, _label, start, end), period in zip(PERIODS, periods):
+        own = [d for d in days if start <= d <= end]
+        excused = 1 if start <= ill <= end else 0
+        summary = {"absentExcusedCount": excused, "absentUnexcusedCount": 0, "lateCount": 0, "leftEarlyCount": 0,
+                   "presentCount": len(own) - excused, "attendancePercent": round(100 * (len(own) - excused) / len(own), 1)}
+        grades = []
+        for subject, _name, offset in REPORT_SUBJECTS:
+            avg = round(max(4.0, min(9.8, 7.4 + offset + sami_rng.gauss(0, 0.35) + (0.1 if code == "2" else 0))), 1)
+            grades.append({"curriculumPlanId": plans[subject]["uuid"], "courseId": subject_courses[subject]["uuid"],
+                           "periodAverage": avg, "passed": avg >= 5.5, "teacherComment": None, "sourceGradeEntryIds": []})
+        b.add("report-card", {
+            "learnerId": nc, "learnerRef": profile["uuid"], "reportPeriodId": period["uuid"], "cohortId": group["uuid"],
+            "subjectGrades": grades, "periodName": period["name"], "gradeLines": grade_lines(grades, names_by_uuid),
+            "attendanceSummary": summary,
+            "mentorComment": "Sami leest steeds vlotter en vertelt graag over wat hij heeft gelezen.",
+            "composedAt": stamp(end + dt.timedelta(days=5), 16, 0), "lifecycle": "published-to-parents",
+        })
+
+    # The homework of groep 3 names him, as AssignmentLearnerRefsStamp would.
+    for assignment in b.buckets["assignment"]:
+        if assignment["cohortId"] == group["uuid"]:
+            assignment["learnerRefs"].append(profile["uuid"])
 
 
 def render(data: dict) -> str:
