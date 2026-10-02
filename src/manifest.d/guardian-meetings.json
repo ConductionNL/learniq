@@ -187,8 +187,8 @@
 							"limit": 50,
 							"columns": [
 								{
-									"key": "startsAt",
-									"label": "Starts"
+									"key": "slotLabel",
+									"label": "Time"
 								},
 								{
 									"key": "teacherName",
