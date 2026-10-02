@@ -75,6 +75,8 @@ class BackfillAttendanceSummaries implements IRepairStep {
 	 * The step's name in the upgrade output.
 	 *
 	 * @return string
+	 *
+	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
 	 */
 	public function getName(): string {
 		return 'Count absences and late arrivals per learner per school year';
@@ -141,7 +143,10 @@ class BackfillAttendanceSummaries implements IRepairStep {
 			);
 
 			foreach ($rows as $row) {
-				$record = (array)(is_array($row) === true ? $row : $row->jsonSerialize());
+				$record = $row;
+				if (is_array($row) === false) {
+					$record = (array)$row->jsonSerialize();
+				}
 				$learnerId = (string)($record['learnerId'] ?? '');
 				if ($learnerId === '') {
 					continue;

@@ -178,22 +178,35 @@ class AttendanceSummaryCalculator {
 			$absences[$year][$day] = (($absences[$year][$day] ?? false) || $status === self::ABSENT_UNAUTHORISED);
 		}//end foreach
 
-		foreach ($absences as $year => $days) {
-			foreach ($days as $unauthorised) {
-				$years[$year]['absentDays']++;
-				if ($unauthorised === true) {
-					$years[$year]['absentUnauthorisedDays']++;
-					continue;
-				}
-
-				$years[$year]['absentAuthorisedDays']++;
-			}
-		}
-
+		$years = $this->addAbsentDays(years: $years, absences: $absences);
 		ksort($years);
 
 		return $years;
 	}//end summarise()
+
+	/**
+	 * Add the absent days to the counts of their school years.
+	 *
+	 * @param array<string, array<string, int>>  $years    Counts per school year.
+	 * @param array<string, array<string, bool>> $absences Per school year, per day: whether it is unauthorised.
+	 *
+	 * @return array<string, array<string, int>>
+	 */
+	private function addAbsentDays(array $years, array $absences): array {
+		foreach ($absences as $year => $days) {
+			foreach ($days as $unauthorised) {
+				$years[$year]['absentDays']++;
+				$field = 'absentAuthorisedDays';
+				if ($unauthorised === true) {
+					$field = 'absentUnauthorisedDays';
+				}
+
+				$years[$year][$field]++;
+			}
+		}
+
+		return $years;
+	}//end addAbsentDays()
 
 	/**
 	 * The day a record counts on: its lesson's date, else the date of markedAt.
@@ -251,4 +264,56 @@ class AttendanceSummaryCalculator {
 			return null;
 		}
 	}//end moment()
+	/**
+	 * Whether a stored row already holds these numbers, teachers and refs.
+	 *
+	 * @param array<string, mixed> $row  The stored row.
+	 * @param array<string, mixed> $data The recounted row.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+	 */
+	public function unchanged(array $row, array $data): bool {
+		foreach ($data as $field => $value) {
+			$stored = ($row[$field] ?? null);
+			if ($field === 'teacherIds') {
+				$left = array_values((array)$stored);
+				$right = $value;
+				sort($left);
+				sort($right);
+				if ($left !== $right) {
+					return false;
+				}
+
+				continue;
+			}
+
+			if (is_int($value) === true) {
+				$stored = $this->intOrNull(value: $stored);
+			}
+
+			if ($stored !== $value) {
+				return false;
+			}
+		}
+
+		return true;
+	}//end unchanged()
+
+	/**
+	 * An integer, or null.
+	 *
+	 * @param mixed $value The value.
+	 *
+	 * @return int|null
+	 */
+	private function intOrNull(mixed $value): ?int {
+		if (is_numeric($value) === false) {
+			return null;
+		}
+
+		return (int)$value;
+	}//end intOrNull()
+
 }//end class

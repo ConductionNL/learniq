@@ -33,6 +33,7 @@ namespace OCA\Learniq\Service\Attendance;
  * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
  */
 class RollCallMarks {
+	use RollCallRows;
 
 	public const STATUSES = ['present', 'late', 'absent-excused', 'absent-unexcused', 'left-early'];
 	public const ABSENCES = ['absent-excused', 'absent-unexcused'];
@@ -60,9 +61,14 @@ class RollCallMarks {
 	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-an-approved-absence-report-fills-in-the-register
 	 */
 	public function pupilRow(string $learnerId, string $name, ?array $profile, ?array $record, ?array $report): array {
+		$learnerRef = null;
+		if ($profile !== null) {
+			$learnerRef = $this->idOf(row: $profile);
+		}
+
 		$row = [
 			'learnerId' => $learnerId,
-			'learnerRef' => ($profile === null ? null : RollCallReader::idOf(row: $profile)),
+			'learnerRef' => $learnerRef,
 			'name' => $name,
 			'status' => 'present',
 			'lateMinutes' => null,
@@ -82,7 +88,7 @@ class RollCallMarks {
 					'lateMinutes' => $this->intOrNull(value: ($record['lateMinutes'] ?? null)),
 					'absenceReasonKind' => $this->kindOrNull(value: ($record['absenceReasonKind'] ?? null)),
 					'reason' => (string)($record['reason'] ?? ''),
-					'recordId' => RollCallReader::idOf(row: $record),
+					'recordId' => $this->idOf(row: $record),
 					'markedVia' => (string)($record['markedVia'] ?? 'teacher'),
 					'saved' => true,
 				]
@@ -122,24 +128,58 @@ class RollCallMarks {
 	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#scenario-a-late-mark-without-minutes-is-refused
 	 */
 	public function problemWith(array $mark, array $learnerIds): ?string {
-		$status = ($mark['status'] ?? null);
-		$problem = null;
 		if (in_array(($mark['learnerId'] ?? null), $learnerIds, true) === false) {
-			$problem = 'not-in-group';
-		} else if (in_array($status, self::STATUSES, true) === false) {
-			$problem = 'status';
-		} else if ($status === 'late' && $this->validMinutes(value: ($mark['lateMinutes'] ?? null)) === false) {
-			$problem = 'late-minutes';
-		} else if ($status === 'absent-excused' && in_array(($mark['absenceReasonKind'] ?? null), self::REASON_KINDS, true) === false) {
-			$problem = 'reason-kind';
-		} else if ($status === 'absent-unexcused' && ($mark['absenceReasonKind'] ?? null) !== null && in_array($mark['absenceReasonKind'], self::REASON_KINDS, true) === false) {
-			$problem = 'reason-kind';
-		} else if (isset($mark['reason']) === true && (is_string($mark['reason']) === false || mb_strlen($mark['reason']) > self::MAX_REASON_LENGTH)) {
-			$problem = 'reason';
+			return 'not-in-group';
 		}
 
-		return $problem;
+		if (in_array(($mark['status'] ?? null), self::STATUSES, true) === false) {
+			return 'status';
+		}
+
+		return ($this->detailProblem(mark: $mark) ?? $this->reasonProblem(mark: $mark));
 	}//end problemWith()
+
+	/**
+	 * Why a mark's minutes or reason for absence are wrong, or null.
+	 *
+	 * @param array<string, mixed> $mark The mark, with a valid status.
+	 *
+	 * @return string|null late-minutes or reason-kind.
+	 */
+	private function detailProblem(array $mark): ?string {
+		$status = $mark['status'];
+		if ($status === 'late' && $this->validMinutes(value: ($mark['lateMinutes'] ?? null)) === false) {
+			return 'late-minutes';
+		}
+
+		$kind = ($mark['absenceReasonKind'] ?? null);
+		$kindRequired = ($status === 'absent-excused');
+		$kindAllowed = in_array($status, self::ABSENCES, true);
+		if (($kindRequired === true || ($kindAllowed === true && $kind !== null)) && in_array($kind, self::REASON_KINDS, true) === false) {
+			return 'reason-kind';
+		}
+
+		return null;
+	}//end detailProblem()
+
+	/**
+	 * Why a mark's note is wrong, or null.
+	 *
+	 * @param array<string, mixed> $mark The mark.
+	 *
+	 * @return string|null reason.
+	 */
+	private function reasonProblem(array $mark): ?string {
+		if (isset($mark['reason']) === false) {
+			return null;
+		}
+
+		if (is_string($mark['reason']) === false || mb_strlen($mark['reason']) > self::MAX_REASON_LENGTH) {
+			return 'reason';
+		}
+
+		return null;
+	}//end reasonProblem()
 
 	/**
 	 * The fields a mark sets on a record, normalised.
@@ -147,17 +187,26 @@ class RollCallMarks {
 	 * @param array<string, mixed> $mark A valid mark.
 	 *
 	 * @return array{status: string, lateMinutes: int|null, absenceReasonKind: string|null, reason: string|null}
+	 *
+	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 */
 	public function normalise(array $mark): array {
 		$status = (string)$mark['status'];
-		$reason = trim((string)($mark['reason'] ?? ''));
-
-		return [
+		$normal = [
 			'status' => $status,
-			'lateMinutes' => ($status === 'late' ? (int)$mark['lateMinutes'] : null),
-			'absenceReasonKind' => (in_array($status, self::ABSENCES, true) === true ? $this->kindOrNull(value: ($mark['absenceReasonKind'] ?? null)) : null),
-			'reason' => ($reason === '' ? null : $reason),
+			'lateMinutes' => null,
+			'absenceReasonKind' => null,
+			'reason' => $this->textOrNull(value: ($mark['reason'] ?? null)),
 		];
+		if ($status === 'late') {
+			$normal['lateMinutes'] = (int)$mark['lateMinutes'];
+		}
+
+		if (in_array($status, self::ABSENCES, true) === true) {
+			$normal['absenceReasonKind'] = $this->kindOrNull(value: ($mark['absenceReasonKind'] ?? null));
+		}
+
+		return $normal;
 	}//end normalise()
 
 	/**
@@ -167,15 +216,30 @@ class RollCallMarks {
 	 * @param array{status: string, lateMinutes: int|null, absenceReasonKind: string|null, reason: string|null} $mark   A normalised mark.
 	 *
 	 * @return bool
+	 *
+	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 */
 	public function unchanged(array $record, array $mark): bool {
-		$reason = trim((string)($record['reason'] ?? ''));
-
 		return ($record['status'] ?? null) === $mark['status']
 			&& $this->intOrNull(value: ($record['lateMinutes'] ?? null)) === $mark['lateMinutes']
 			&& $this->kindOrNull(value: ($record['absenceReasonKind'] ?? null)) === $mark['absenceReasonKind']
-			&& ($reason === '' ? null : $reason) === $mark['reason'];
+			&& $this->textOrNull(value: ($record['reason'] ?? null)) === $mark['reason'];
 	}//end unchanged()
+
+	/**
+	 * A trimmed non-empty string, or null.
+	 *
+	 * @param mixed $value The value.
+	 *
+	 * @return string|null
+	 */
+	private function textOrNull(mixed $value): ?string {
+		if (is_string($value) === false || trim($value) === '') {
+			return null;
+		}
+
+		return trim($value);
+	}//end textOrNull()
 
 	/**
 	 * Minutes attended for a mark in a lesson of a length.
@@ -185,6 +249,8 @@ class RollCallMarks {
 	 * @param array<string, mixed>|null                      $record  The saved record.
 	 *
 	 * @return int|null
+	 *
+	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 */
 	public function minutesAttended(array $mark, ?int $minutes, ?array $record): ?int {
 		if (in_array($mark['status'], self::ABSENCES, true) === true) {
@@ -215,7 +281,7 @@ class RollCallMarks {
 		}
 
 		return [
-			'id' => RollCallReader::idOf(row: $report),
+			'id' => $this->idOf(row: $report),
 			'lifecycle' => (string)($report['lifecycle'] ?? ''),
 			'reasonKind' => (string)($report['reasonKind'] ?? ''),
 			'reason' => (string)($report['reason'] ?? ''),
