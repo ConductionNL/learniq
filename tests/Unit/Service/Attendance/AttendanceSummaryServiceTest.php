@@ -116,9 +116,20 @@ class AttendanceSummaryServiceTest extends TestCase {
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend=[], $register=null, $schema=null, ?string $uuid=null, bool $_rbac=true, bool $_multitenancy=true, bool $silent=false, ?array $uploadedFiles=null, $currentUser=null, bool $failIfExists=false, bool $_unowned=false): ObjectEntity {
-				$this->saved[] = ['object' => $object, 'schema' => $schema, 'uuid' => $uuid, 'rbac' => $_rbac, 'unowned' => $_unowned];
-				return OrEntityFactory::make((array)$object, (string)$schema);
+			// The double hands the arguments over by POSITION, and OpenRegister
+			// grows saveObject's list (development added `_validation` at
+			// position 9). Name them from the loaded class's own signature, so
+			// the test reads the same call on the stub and on OpenRegister.
+			function (mixed ...$args): ObjectEntity {
+				$named = self::saveObjectArguments($args);
+				$this->saved[] = [
+					'object'  => $named['object'],
+					'schema'  => ($named['schema'] ?? null),
+					'uuid'    => ($named['uuid'] ?? null),
+					'rbac'    => ($named['_rbac'] ?? true),
+					'unowned' => ($named['_unowned'] ?? false),
+				];
+				return OrEntityFactory::make((array)$named['object'], (string)($named['schema'] ?? ''));
 			}
 		);
 
@@ -158,6 +169,24 @@ class AttendanceSummaryServiceTest extends TestCase {
 	 *
 	 * @return array<string, mixed>
 	 */
+	/**
+	 * Name a saveObject call's positional arguments after the loaded ObjectService.
+	 *
+	 * @param array<int,mixed> $args The arguments as the double received them.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function saveObjectArguments(array $args): array {
+		$named = [];
+		foreach ((new \ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters() as $position => $parameter) {
+			if (array_key_exists($position, $args) === true) {
+				$named[$parameter->getName()] = $args[$position];
+			}
+		}
+
+		return $named;
+	}
+
 	private static function record(string $sessionId, string $status, array $extra=[]): array {
 		return array_merge(
 			['sessionId' => $sessionId, 'learnerId' => 'pupil-1', 'learnerRef' => self::PROFILE, 'status' => $status, 'markedAt' => '2026-03-02T08:40:00+01:00', 'tenant_id' => self::TENANT],
