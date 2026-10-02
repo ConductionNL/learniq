@@ -211,6 +211,12 @@ class PortalContributionProvider {
 				'fields' => [
 					'learnerRef',
 					'courseId',
+					// Readable copies and the weight (site-guardian-portal-design):
+					// the subject and test a grade is for, and how often it counts.
+					'courseName',
+					'methodName',
+					'methodBlock',
+					'weight',
 					'curriculumPlanId',
 					'componentId',
 					'value',
@@ -715,6 +721,12 @@ class PortalContributionProvider {
 				'fields' => [
 					'learnerRef',
 					'courseId',
+					// Readable copies and the weight (site-guardian-portal-design):
+					// the subject and test a grade is for, and how often it counts.
+					'courseName',
+					'methodName',
+					'methodBlock',
+					'weight',
 					'curriculumPlanId',
 					'componentId',
 					'value',

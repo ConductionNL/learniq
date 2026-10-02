@@ -3259,7 +3259,13 @@ OC.L10N.register(
         "The groups this event is for, when it is not for the whole school.": "The groups this event is for, when it is not for the whole school.",
         "The school whose holidays and study days this period holds. Parents see them in the portal calendar.": "The school whose holidays and study days this period holds. Parents see them in the portal calendar.",
         "The pupils of the assignment's group. Filled by the server, never by hand.": "The pupils of the assignment's group. Filled by the server, never by hand.",
-        "To do": "To do"
+        "To do": "To do",
+        "The name of the course, as a guardian or pupil reads it (for example Rekenen). The server copies it from the Course on every save; a value sent for it is replaced. The portal shows it beside the grade.": "The name of the course, as a guardian or pupil reads it (for example Rekenen). The server copies it from the Course on every save; a value sent for it is replaced. The portal shows it beside the grade.",
+        "The name of the group, as a guardian reads it (for example Groep 6). The server copies it from the Cohort on every save and again when the group is renamed; a value sent for it is replaced.": "The name of the group, as a guardian reads it (for example Groep 6). The server copies it from the Cohort on every save and again when the group is renamed; a value sent for it is replaced.",
+        "The title of the shared portfolio, as the person it is shared with reads it. The server copies it from the Portfolio when the share is written; a value sent for it is replaced.": "The title of the shared portfolio, as the person it is shared with reads it. The server copies it from the Portfolio when the share is written; a value sent for it is replaced.",
+        "The name of the learner whose portfolio is shared (given name and family name), as the person it is shared with reads it. The server copies it from the learner's profile when the share is written; a value sent for it is replaced.": "The name of the learner whose portfolio is shared (given name and family name), as the person it is shared with reads it. The server copies it from the learner's profile when the share is written; a value sent for it is replaced.",
+        "Portfolio title": "Portfolio title",
+        "Learner name": "Learner name"
     },
     "nplurals=2; plural=(n != 1);"
 )
