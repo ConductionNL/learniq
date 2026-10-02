@@ -38,7 +38,8 @@
  *      report card the teacher starts never reaches her;
  *   f. she opens her child and reads the attendance figures, report cards,
  *      homework, attendance, calendar and news on one page, and the calendar
- *      page holds her child's school events and holidays.
+ *      page holds her child's school events and holidays;
+ *   g. her child's teacher reads as a name, never as a Nextcloud user id.
  *
  * Every page the guardian sees is the Vue site (`/apps/portaliq/site`), on its
  * signed-in routes (`&route=/mijn/learniq/<collection>` and the shell's own
@@ -698,6 +699,25 @@ test.describe('po: teacher and parent flows', () => {
 		await openPage(parent, 'learniq/parentCalendar')
 		await expect(parent.getByTestId('calendar-block')).toBeVisible()
 		await shot(parent, 'f2-calendar')
+	})
+
+	test("g. the guardian reads her child's teacher by name", async () => {
+		// A teacher reads as a name, never as a Nextcloud user id
+		// (parent-portal-teacher-names, portaliq render: user).
+		const slots = [
+			...(await portalRows('conference-slot', 'parentConferenceSlots')),
+			...(await portalRows('conference-slot', 'parentConferenceFreeSlots')),
+		]
+		expect(slots.length).toBeGreaterThan(0)
+		for (const slot of slots) {
+			expect(String(slot.teacherId ?? '')).not.toBe('')
+			expect(String(slot.teacherId)).not.toMatch(/^po-leerkracht-/)
+		}
+		await openPage(parent, 'learniq/parentConferenceSlots')
+		await expect(parent.getByTestId('site-account')).not.toContainText(
+			'po-leerkracht-',
+		)
+		await shot(parent, 'g1-teacher-by-name')
 	})
 
 	/**

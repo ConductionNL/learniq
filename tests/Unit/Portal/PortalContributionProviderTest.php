@@ -449,7 +449,7 @@ class PortalContributionProviderTest extends TestCase {
 		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
 
 		$this->assertIsArray($manifest);
-		$this->assertSame('Learniq', $manifest['label']);
+		$this->assertSame('School', $manifest['label']);
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
@@ -483,7 +483,9 @@ class PortalContributionProviderTest extends TestCase {
 			// per child without a schema change.
 			$this->assertSame('learnerRef', $collection['groupByField']);
 			// Parent reads never expose staff-only columns (same drop as student).
-			foreach (['grader', 'comment', 'markedBy', 'submittedBy', 'submittedByRef', 'decidedBy', 'decisionNote'] as $forbidden) {
+			// Who decided an absence report is read only as a name
+			// (ParentTeacherNamesTest), never as a user id.
+			foreach (['grader', 'comment', 'markedBy', 'submittedBy', 'submittedByRef', 'decisionNote'] as $forbidden) {
 				$this->assertNotContains($forbidden, $collection['fields']);
 			}
 		}
@@ -498,7 +500,7 @@ class PortalContributionProviderTest extends TestCase {
 			$byId['parentAttendance']['fields']
 		);
 		$this->assertSame(
-			['learnerRef', 'dateFrom', 'dateTo', 'reason', 'reasonKind', 'attachmentRef', 'lifecycle', 'decidedAt'],
+			['learnerRef', 'dateFrom', 'dateTo', 'reason', 'reasonKind', 'attachmentRef', 'lifecycle', 'decidedAt', 'decidedBy'],
 			$byId['parentExcuseRequests']['fields']
 		);
 		$this->assertSame(
