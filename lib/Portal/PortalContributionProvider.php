@@ -77,11 +77,9 @@ class PortalContributionProvider {
 	private const REGISTER = 'learniq';
 
 	/**
-	 * Constructor. Optional, so `new` with no arguments still works; the
-	 * container hands in the factory and the guardian's labels follow the
-	 * request's language (a portal visitor's browser Accept-Language).
+	 * Constructor; the container hands in the factory, `new` with no arguments answers in English.
 	 *
-	 * @param IFactory|null $l10nFactory Nextcloud's l10n factory, or null to answer in English.
+	 * @param IFactory|null $l10nFactory Puts parent labels in the request's language (PortalLabelTranslator).
 	 */
 	public function __construct(private readonly ?IFactory $l10nFactory=null) {
 	}//end __construct()
