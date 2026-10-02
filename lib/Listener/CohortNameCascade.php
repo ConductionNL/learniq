@@ -3,12 +3,10 @@
 /**
  * Learniq CohortNameCascade
  *
- * When a group (Cohort) is renamed, writes the new name on every enrolment
- * in it, so `Enrolment.cohortName` never shows a guardian the old name
- * (site-guardian-portal-design). Runs after the cohort is stored. Each
- * enrolment save passes ReadableCopyStamp, which derives the same name from
- * the stored cohort. A failed read or save is logged and never undoes the
- * rename.
+ * When a group (Cohort) is renamed, queues CohortNameRestampJob, which
+ * writes the new name on every enrolment in it, so `Enrolment.cohortName`
+ * never shows a guardian the old name (site-guardian-portal-design). The
+ * writes run after the request (ADR-078), never inside the cohort's own save.
  *
  * @category Listener
  * @package  OCA\Learniq\Listener
@@ -30,16 +28,16 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\BackgroundJob\CohortNameRestampJob;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
-use OCA\OpenRegister\Service\ObjectService;
+use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
-use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * Re-stamps the group name on a renamed cohort's enrolments.
+ * Queues the group-name re-stamp of a renamed cohort's enrolments.
  *
  * @implements IEventListener<Event>
  *
@@ -47,35 +45,24 @@ use Throwable;
  */
 class CohortNameCascade implements IEventListener {
 
-	private const REGISTER = 'learniq';
-
 	private const COHORT_SCHEMA = 'cohort';
-
-	private const ENROLMENT_SCHEMA = 'enrolment';
-
-	/**
-	 * The most enrolments one rename re-stamps.
-	 */
-	private const MAX_ENROLMENTS = 1000;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param ObjectService          $objectService  Reads and writes the enrolments.
-	 * @param LoggerInterface        $logger         PSR logger.
+	 * @param ListenerSchemaResolver  $schemaResolver Entity schema id to slug.
+	 * @param ListenerDeferralService $deferral       Queues the re-stamp for after the request.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly ObjectService $objectService,
-		private readonly LoggerInterface $logger,
+		private readonly ListenerDeferralService $deferral,
 	) {
 	}//end __construct()
 
 	/**
-	 * Re-stamp the enrolments of a cohort whose name changed.
+	 * Queue the re-stamp of the enrolments of a cohort whose name changed.
 	 *
 	 * @param Event $event The dispatched event.
 	 *
@@ -106,84 +93,10 @@ class CohortNameCascade implements IEventListener {
 			return;
 		}
 
-		$this->restamp(cohortId: $cohortId, name: $name);
+		$this->deferral->defer(
+			jobClass: CohortNameRestampJob::class,
+			entry: ['cohortId' => $cohortId, 'name' => $name],
+			dedupeKey: 'cohort-name:' . $cohortId
+		);
 	}//end handle()
-
-	/**
-	 * Write the new name on each enrolment of the cohort that carries another.
-	 *
-	 * @param string $cohortId The cohort uuid.
-	 * @param string $name     The cohort's new name.
-	 *
-	 * @return void
-	 */
-	private function restamp(string $cohortId, string $name): void {
-		try {
-			$enrolments = $this->objectService->findAll(
-				config: [
-					'filters' => [
-						'register' => self::REGISTER,
-						'schema'   => self::ENROLMENT_SCHEMA,
-						'cohortId' => $cohortId,
-					],
-					'limit'   => self::MAX_ENROLMENTS,
-				],
-				_rbac: false,
-				_multitenancy: false
-			);
-		} catch (Throwable $exception) {
-			$this->logger->warning(
-				'[CohortNameCascade] The enrolments of group {group} could not be read: {msg}',
-				['group' => $cohortId, 'msg' => $exception->getMessage()]
-			);
-			return;
-		}
-
-		foreach ($enrolments as $enrolment) {
-			$row = $enrolment;
-			if (is_object($enrolment) === true && method_exists($enrolment, 'jsonSerialize') === true) {
-				$row = (array)$enrolment->jsonSerialize();
-			}
-
-			if (is_array($row) === true) {
-				$this->restampOne(row: $row, name: $name);
-			}
-		}
-	}//end restamp()
-
-	/**
-	 * Save one enrolment with the new name, unless it already has it.
-	 *
-	 * @param array<string, mixed> $row  The enrolment.
-	 * @param string               $name The cohort's new name.
-	 *
-	 * @return void
-	 */
-	private function restampOne(array $row, string $name): void {
-		$uuid = ($row['id'] ?? ($row['uuid'] ?? null));
-		if (is_string($uuid) === false || $uuid === '' || ($row['cohortName'] ?? null) === $name) {
-			return;
-		}
-
-		// The row as read carries OpenRegister's `@self` block; saving it back
-		// would make OpenRegister check the acting user's folder rights.
-		$object = array_merge($row, ['cohortName' => $name]);
-		unset($object['@self']);
-
-		try {
-			$this->objectService->saveObject(
-				object: $object,
-				register: self::REGISTER,
-				schema: self::ENROLMENT_SCHEMA,
-				uuid: $uuid,
-				_rbac: false,
-				_multitenancy: false
-			);
-		} catch (Throwable $exception) {
-			$this->logger->warning(
-				'[CohortNameCascade] Could not write the group name on enrolment {id}: {msg}',
-				['id' => $uuid, 'msg' => $exception->getMessage()]
-			);
-		}
-	}//end restampOne()
 }//end class
