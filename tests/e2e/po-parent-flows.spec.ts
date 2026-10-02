@@ -706,7 +706,7 @@ test.describe('po: teacher and parent flows', () => {
 			expect(String(slot.teacherId ?? '')).not.toMatch(/^po-leerkracht-/)
 		}
 		await openPage(parent, 'learniq/parentConferenceSlots')
-		await expect(parent.locator('main')).not.toContainText('po-leerkracht-')
+		await expect(parent.getByTestId('site-account')).not.toContainText('po-leerkracht-')
 		await shot(parent, 'f3-teacher-by-name')
 	})
 
