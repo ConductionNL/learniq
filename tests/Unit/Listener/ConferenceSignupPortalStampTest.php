@@ -147,6 +147,27 @@ class ConferenceSignupPortalStampTest extends TestCase {
 	}//end testASignedInWriteIsNotTouched()
 
 	/**
+	 * In a round with direct booking the parent picks a free time instead,
+	 * so a preference request is refused; a booking that names a time is
+	 * left to ConferenceSlotBookingStamp.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
+	 */
+	public function testADirectRoundRefusesAPreferenceRequestAndLeavesATimeBookingAlone(): void {
+		$this->objects['round-1']['bookingMode'] = 'direct';
+		$request = $this->portalCreate(['learnerRef' => 'child-1', 'guardianRef' => 'guardian-1', 'conferenceRoundId' => 'round-1']);
+		$this->stamp()->handle($request);
+		$this->assertSame('signup-round-direct', $request->getErrors()['reason']);
+
+		$booking = $this->portalCreate(['learnerRef' => 'child-1', 'guardianRef' => 'guardian-1', 'slotId' => 'slot-1']);
+		$this->stamp()->handle($booking);
+		$this->assertFalse($booking->isPropagationStopped());
+		$this->assertSame([], $booking->getModifiedData());
+	}//end testADirectRoundRefusesAPreferenceRequestAndLeavesATimeBookingAlone()
+
+	/**
 	 * The listener is wired for creates, asserted from the registrar.
 	 *
 	 * @return void

@@ -15,6 +15,8 @@
  * On a portal create (no session user, a `guardianRef`, no `learnerId`) it:
  * - refuses unless the child lists the guardian in `guardianRefs`;
  * - refuses unless the round is `booking-open` and invited the child;
+ * - refuses a round with direct booking, where the parent picks a free time
+ *   instead (ConferenceSlotBookingStamp);
  * - stamps `learnerId`, `guardianId`, `tenant_id` and the lifecycle
  *   `submitted`, so the generator considers the signup;
  * - keeps only requested teachers the round offers, and when none are left,
@@ -44,6 +46,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Service\ConferenceBookingMode;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Db\ObjectEntity;
@@ -79,6 +82,7 @@ class ConferenceSignupPortalStamp implements IEventListener {
 		'signup-guardian-unknown' => 'You can only book a conversation for your own child.',
 		'signup-round-closed' => 'Booking for this round is not open, or your child is not invited to it.',
 		'signup-lookup-failed' => 'The booking could not be checked. Try again later.',
+		'signup-round-direct' => 'In this round you pick a free time yourself. Choose one under "Book a time".',
 	];
 
 	/**
@@ -146,15 +150,19 @@ class ConferenceSignupPortalStamp implements IEventListener {
 	}//end handle()
 
 	/**
-	 * A portal signup: no session user, a guardianRef, a learnerRef and no
-	 * learnerId. A signed-in caller never takes this path.
+	 * A portal signup: no session user, a guardianRef, a learnerRef, no
+	 * learnerId and no slotId. A signed-in caller never takes this path, and
+	 * a booking of a free time (a slotId) is ConferenceSlotBookingStamp's.
 	 *
 	 * @param array<string, mixed> $payload The signup being created.
 	 *
 	 * @return bool
 	 */
 	private function isPortalSignup(array $payload): bool {
-		if ($this->userSession->getUser() !== null || self::text(value: ($payload['learnerId'] ?? null)) !== '') {
+		if ($this->userSession->getUser() !== null
+			|| self::text(value: ($payload['learnerId'] ?? null)) !== ''
+			|| self::text(value: ($payload['slotId'] ?? null)) !== ''
+		) {
 			return false;
 		}
 
@@ -182,6 +190,10 @@ class ConferenceSignupPortalStamp implements IEventListener {
 			|| in_array((string)$child['id'], (array)($round['invitedLearnerRefs'] ?? []), true) === false
 		) {
 			return ['refuse' => 'signup-round-closed'];
+		}
+
+		if ((new ConferenceBookingMode())->isDirect(round: $round) === true) {
+			return ['refuse' => 'signup-round-direct'];
 		}
 
 		$guardian = $this->profiles->byRef(learnerRef: $guardianRef);

@@ -589,7 +589,7 @@ class PortalContributionProvider {
 		];
 		$extras = new ParentPortalCollections();
 
-		return [
+		return $extras->withPages(contribution: [
 			'label' => 'Learniq',
 			'collections' => array_merge(
 				[$this->parentChildrenCollection()],
@@ -610,7 +610,7 @@ class PortalContributionProvider {
 			// read collection above already is.
 			'actions' => array_merge(
 				$this->parentActions(childJoin: $childJoin),
-				[$extras->conferenceSignupAction()]
+				$extras->conferenceActions()
 			),
 			'notifications' => [],
 			// Portaliq news-audience-from-the-school-app: which of the collections
@@ -624,7 +624,7 @@ class PortalContributionProvider {
 					'field' => 'cohortId',
 				],
 			],
-		];
+		]);
 
 	}//end parentContribution()
 

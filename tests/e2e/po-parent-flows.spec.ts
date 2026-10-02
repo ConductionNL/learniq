@@ -29,7 +29,11 @@
  *   b. she reports her child absent, the group teacher approves it in learniq, she sees the outcome;
  *   c. the school posts news and she reads it (hermiq absent: no translation, no error);
  *   d. the teacher opens a conference round, she books, the schedule is generated,
- *      she sees her time, the teacher records the conversation report;
+ *      she sees her time, the teacher records the conversation report (a round
+ *      the school plans: bookingMode preference);
+ *   d2. direct booking: the teacher creates free times, she picks one on the site,
+ *      a second booking of that time is refused, the teacher acknowledges it and
+ *      she sees "acknowledged";
  *   e. she reads the grades on her child's published report cards, and a draft
  *      report card the teacher starts never reaches her.
  *
@@ -46,6 +50,8 @@
  *
  * @spec openspec/changes/portal-guardian-invitation/specs/portal-identity/spec.md
  * @spec openspec/changes/portal-parent-conference-booking/specs/parent-conferences/spec.md
+ * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
+ * @spec openspec/changes/direct-conference-booking/specs/portal-contribution/spec.md
  * @spec openspec/changes/excuse-decision-records-who-and-when/specs/attendance/spec.md
  * @spec openspec/changes/portal-parent-report-card-grades/specs/portal-contribution/spec.md
  */
@@ -326,7 +332,7 @@ test.describe('po: teacher and parent flows', () => {
 		const note = `Graag over lezen praten (${RUN})`
 		const round = await openBookingRound(name)
 		await openPage(parent, 'learniq/parentConferenceSignups')
-		const form = parent.getByRole('form', { name: 'Oudergesprek boeken' })
+		const form = parent.getByRole('form', { name: 'Oudergesprek aanvragen' })
 		await form
 			.getByRole('combobox', { name: 'Oudergespreksronde' })
 			.selectOption({ label: name })
@@ -385,8 +391,10 @@ test.describe('po: teacher and parent flows', () => {
 
 		// The booking form on the site is d0's step; the same booking goes
 		// through the portal API here, with the guardian's own token.
+		// Two forms create a signup now (direct-conference-booking), so the
+		// request names its action, as the site does.
 		const booked = await parent.request.post(
-			'/apps/portaliq/portal/api/collections/learniq/conference-signup',
+			'/apps/portaliq/portal/api/collections/learniq/conference-signup?actionId=createConferenceSignup',
 			{
 				headers: bearer(),
 				data: {
@@ -478,6 +486,126 @@ test.describe('po: teacher and parent flows', () => {
 		await dismissTour(staff)
 		await shot(staff, 'd6-teacher-report')
 		await staff.close()
+	})
+
+	test('d2. the guardian picks a free time, and the teacher acknowledges it', async ({
+		browser,
+	}) => {
+		test.setTimeout(300_000)
+		// A run of its own evening, so the time picker's labels never match a
+		// time an earlier run left open.
+		const evening = new Date(Date.now() + (20 + (Date.now() % 150)) * 86_400_000)
+			.toISOString()
+			.slice(0, 10)
+		const note = `Graag over lezen praten (${RUN})`
+		// Created without a mode: on a primary school this round books directly.
+		// It allows two times per child, so the second booking below can only
+		// be refused because the time is taken.
+		const round = await openBookingRound(
+			`Oudergesprekken groep 7, direct (${RUN})`,
+			{ maxBookingsPerChild: 2 },
+			async (opened) => {
+				const availability = await teacherCreate('teacher-availability', {
+					conferenceRoundId: opened.id,
+					teacherId: TEACHER.user,
+					blocks: [
+						{
+							startsAt: `${evening}T18:00:00+02:00`,
+							endsAt: `${evening}T18:36:00+02:00`,
+						},
+					],
+					tenant_id: TENANT,
+				})
+				expect(await transition(availability.id, 'submit')).toBe('submitted')
+			},
+		)
+		const stored = await teacher.get(
+			`/apps/openregister/api/objects/learniq/conference-round/${round.id}`,
+		)
+		expect((await stored.json()).bookingMode).toBe('direct')
+
+		// The teacher's free times: three of 10 minutes, 2 minutes apart.
+		const freeTimes = async (): Promise<Array<Record<string, any>>> => {
+			const res = await teacher.get(
+				`/apps/openregister/api/objects/learniq/conference-slot?conferenceRoundId=${round.id}`,
+			)
+			return ((await res.json()).results ?? []).filter(
+				(row: Record<string, any>) => row.lifecycle === 'free',
+			)
+		}
+		await expect
+			.poll(async () => (await freeTimes()).length, { timeout: 15_000 })
+			.toBe(3)
+		const first = (await freeTimes()).sort((a, b) =>
+			String(a.startsAt).localeCompare(String(b.startsAt)),
+		)[0]
+
+		// The guardian sees the free times, and picks the first on the site.
+		await expect
+			.poll(
+				async () =>
+					(
+						await portalRows(
+							'conference-slot',
+							'parentConferenceFreeSlots',
+						)
+					).some((row) => (row.id ?? row['@self']?.id) === first.id),
+				{ timeout: 15_000 },
+			)
+			.toBe(true)
+		// The free times page carries the booking form.
+		await openPage(parent, 'learniq/parentConferenceFreeSlots')
+		await shot(parent, 'd2-free-times')
+		const form = parent.getByRole('form', { name: 'Tijd boeken' })
+		await form
+			.getByRole('combobox', { name: 'Kind', exact: true })
+			.selectOption({ label: CHILD.name })
+		await form
+			.getByRole('combobox', { name: 'Tijd', exact: true })
+			.selectOption({ label: first.slotLabel })
+		await form.getByLabel('Wat de leerkracht vooraf moet weten').fill(note)
+		await shot(parent, 'd2-booking-form')
+		await form
+			.getByRole('button', { name: 'Deze tijd boeken', exact: true })
+			.click()
+
+		const mine = async (): Promise<string | undefined> =>
+			(await portalRows('conference-slot', 'parentConferenceSlots')).find(
+				(row) => (row.id ?? row['@self']?.id) === first.id,
+			)?.lifecycle
+		await expect.poll(mine, { timeout: 15_000 }).toBe('booked')
+		await openPage(parent, 'learniq/parentConferenceSlots')
+		await shot(parent, 'd2-booked')
+
+		// A second booking of the same time is refused, and the time stays hers.
+		const again = await parent.request.post(
+			'/apps/portaliq/portal/api/collections/learniq/conference-signup?actionId=bookConferenceSlot',
+			{
+				headers: bearer(),
+				data: {
+					learnerRef: CHILD.ref,
+					slotId: first.id,
+					notes: 'Nog een keer',
+				},
+			},
+		)
+		expect(again.status(), await again.text()).toBeGreaterThanOrEqual(400)
+		expect(await mine()).toBe('booked')
+
+		// The teacher sees the booking on the round page and acknowledges it.
+		const staff = await signInToNextcloud(browser, TEACHER)
+		await staff.goto(`/index.php/apps/learniq/conferences/rounds/${round.id}`)
+		await dismissTour(staff)
+		await shot(staff, 'd2-teacher-bookings')
+		expect(await transition(first.id, 'acknowledge')).toBe('acknowledged')
+		await staff.close()
+
+		await expect.poll(mine, { timeout: 15_000 }).toBe('acknowledged')
+		await openPage(parent, 'learniq/parentConferenceSlots')
+		await shot(parent, 'd2-acknowledged')
+
+		// Close this round, so its free times do not stay open for the next run.
+		expect(await transition(round.id, 'close-booking')).toBe('booking-closed')
 	})
 
 	test("e. the guardian reads the grades on her child's published report cards, never a draft", async () => {
@@ -637,23 +765,36 @@ test.describe('po: teacher and parent flows', () => {
 	/**
 	 * A conference round for group 7 that the teacher opened for booking.
 	 *
+	 * Flows d0 and d plan the times after booking closes (`preference`);
+	 * flow d2 lets the guardian pick a free time (created without a mode,
+	 * so the primary school default is what it tests).
+	 *
 	 * @param {string} name The round's name.
+	 * @param {object} extra More round fields (`bookingMode`, `maxBookingsPerChild`).
+	 * @param {Function} beforeOpening Runs once invitations are out, before booking opens.
 	 * @return {Promise<Record<string, any>>} The round.
 	 */
-	async function openBookingRound(name: string): Promise<Record<string, any>> {
+	async function openBookingRound(
+		name: string,
+		extra: Record<string, unknown> = { bookingMode: 'preference' },
+		beforeOpening: (round: Record<string, any>) => Promise<void> = async () =>
+			undefined,
+	): Promise<Record<string, any>> {
 		const round = await teacherCreate('conference-round', {
 			name,
 			cohortIds: [GROUP_7],
 			teacherIds: [TEACHER.user],
 			slotDurationMinutes: 10,
 			bufferMinutes: 2,
-			bookingOpensAt: '2026-09-30T08:00:00+02:00',
-			bookingClosesAt: '2026-10-06T17:00:00+02:00',
+			bookingOpensAt: new Date(Date.now() - 86_400_000).toISOString(),
+			bookingClosesAt: new Date(Date.now() + 7 * 86_400_000).toISOString(),
 			tenant_id: TENANT,
+			...extra,
 		})
 		expect(await transition(round.id, 'send-invitations')).toBe(
 			'invitations-sent',
 		)
+		await beforeOpening(round)
 		expect(await transition(round.id, 'open-booking')).toBe('booking-open')
 		return round
 	}

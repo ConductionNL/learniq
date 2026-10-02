@@ -90,6 +90,9 @@ class PortalValueLabels {
 		'submitted'  => 'Submitted',
 		'scheduled'  => 'Scheduled',
 		'waitlisted' => 'On the waiting list',
+		'booked'       => 'Booked',
+		'acknowledged' => 'Acknowledged by the teacher',
+		'declined'     => 'Declined by the teacher',
 		'cancelled'  => 'Booking cancelled',
 	];
 
@@ -101,6 +104,10 @@ class PortalValueLabels {
 	public const SLOT_STATUS = [
 		'proposed'  => 'Proposed time',
 		'confirmed' => 'Confirmed',
+		'free'         => 'Free',
+		'booked'       => 'Booked',
+		'acknowledged' => 'Acknowledged by the teacher',
+		'declined'     => 'Declined by the teacher',
 		'completed' => 'Completed',
 		'no-show'   => 'Did not attend',
 		'cancelled' => 'Conversation cancelled',

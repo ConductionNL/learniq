@@ -447,9 +447,9 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(10, $collections);
+		$this->assertCount(11, $collections);
 		$this->assertSame(
-			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships'],
+			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships'],
 			array_column($collections, 'id')
 		);
 
@@ -460,8 +460,10 @@ class PortalContributionProviderTest extends TestCase {
 		// this reverse-join-shaped assertion loop.
 		// parentConferenceRounds matches a round on its list of invited
 		// children and is asserted in
-		// testParentBooksAConferenceForTheirOwnChildOnly.
-		$reverseJoinedCollections = array_filter($collections, static fn ($c) => in_array($c['id'], ['parentChildren', 'parentConferenceRounds'], true) === false);
+		// testParentBooksAConferenceForTheirOwnChildOnly; parentConferenceFreeSlots
+		// matches a free time on the pupils who may book it
+		// (ParentConferenceDirectBookingTest).
+		$reverseJoinedCollections = array_filter($collections, static fn ($c) => in_array($c['id'], ['parentChildren', 'parentConferenceRounds', 'parentConferenceFreeSlots'], true) === false);
 		foreach ($reverseJoinedCollections as $collection) {
 			$this->assertSame('learniq', $collection['register']);
 			// Parent scope key is the guardian claim; the outer record scope
@@ -638,6 +640,11 @@ class PortalContributionProviderTest extends TestCase {
 				$expected = 'invitedLearnerRefs';
 			}
 
+			// A free conference time: the pupils who may book it (direct-conference-booking).
+			if ($collection['id'] === 'parentConferenceFreeSlots') {
+				$expected = 'eligibleLearnerRefs';
+			}
+
 			$this->assertSame($expected, $collection['scopeField']);
 		}
 
@@ -662,7 +669,8 @@ class PortalContributionProviderTest extends TestCase {
 	public function testParentShipsCreateExcuseRequestValidatedAgainstOwnChildren(): void {
 		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
 
-		$this->assertCount(2, $manifest['actions']);
+		// The absence report, then the three conference actions (direct-conference-booking).
+		$this->assertCount(4, $manifest['actions']);
 		$action = $manifest['actions'][0];
 
 		$this->assertSame('createExcuseRequest', $action['id']);
