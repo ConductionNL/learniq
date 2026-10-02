@@ -31,7 +31,7 @@ If an AI wrote the Dutch value, add the key to `keys` in the same pull request. 
 
 Open **Administration settings > Learniq > AI-translated strings**. Each row shows the English source and the Dutch text. Fix a wrong value in `l10n/nl.json`, then press **Reviewed**: the key leaves the list.
 
-The button edits the list in the app's own folder. Review on a development checkout and commit `l10n/ai-translated.json`. On an installation from the app store the folder is read-only, so the button says so, and the list stays readable.
+The button edits the list in the app's own folder. Review on a development checkout and commit `l10n/ai-translated.json`. On an installation from a signed release the button says it cannot change the list, and the list stays readable. That holds even when the folder is writable, which it usually is: Nextcloud checks every file of a signed release, and a changed list would show as a code integrity warning.
 
 You can also remove a key by hand in a pull request.
 
