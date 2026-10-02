@@ -120,38 +120,24 @@ class ParentRecordPage {
 	}//end collections()
 
 	/**
-	 * The parent pages: one page per child first, the calendar, then the
-	 * page every other listable collection would get by default.
-	 *
-	 * Declaring pages turns portaliq's own default pages off, so the default
-	 * page (the collection's create action, its table and its detail) is
-	 * built here for every other listable collection, including ones another
-	 * change adds later.
+	 * The parent pages: one page per child first, the calendar, then the page
+	 * of every other listable collection as ParentPortalCollections::pages()
+	 * builds it (each with its own form; page ids are the collection ids).
 	 *
 	 * @param array<int, array<string, mixed>> $collections Every parent collection.
 	 * @param array<int, array<string, mixed>> $actions Every parent action.
+	 * @param ParentPortalCollections $sections Builds the other sections' pages.
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
 	 * @spec openspec/changes/portal-parent-child-record/specs/portal-contribution/spec.md#requirement-a-guardian-opens-one-child-and-sees-everything-about-them
 	 */
-	public function pages(array $collections, array $actions): array {
+	public function pages(array $collections, array $actions, ParentPortalCollections $sections): array {
 		$pages = [$this->recordPage(), $this->calendarPage()];
-		foreach ($collections as $collection) {
-			$id = (string)($collection['id'] ?? '');
-			if ($id === '' || $id === 'parentChildren' || ($collection['listable'] ?? true) !== true) {
-				continue;
+		foreach ($sections->pages(collections: $collections, actions: $actions) as $page) {
+			if (($page['id'] ?? '') !== 'parentChildren') {
+				$pages[] = $page;
 			}
-
-			$blocks = [];
-			$create = $this->createActionFor(schema: (string)($collection['schema'] ?? ''), actions: $actions);
-			if ($create !== null) {
-				$blocks[] = ['type' => 'action', 'action' => $create];
-			}
-
-			$blocks[] = ['type' => 'collection', 'collection' => $id];
-			$blocks[] = ['type' => 'detail', 'collection' => $id];
-			$pages[] = ['id' => $id, 'label' => (string)($collection['label'] ?? $id), 'blocks' => $blocks];
 		}
 
 		return $pages;
@@ -356,23 +342,4 @@ class ParentRecordPage {
 		];
 
 	}//end hidden()
-
-	/**
-	 * The id of the first create action on a schema, or null.
-	 *
-	 * @param string $schema The schema slug.
-	 * @param array<int, array<string, mixed>> $actions The actions.
-	 *
-	 * @return string|null
-	 */
-	private function createActionFor(string $schema, array $actions): ?string {
-		foreach ($actions as $action) {
-			if (($action['type'] ?? '') === 'create' && ($action['schema'] ?? '') === $schema && is_string($action['id'] ?? null) === true) {
-				return $action['id'];
-			}
-		}
-
-		return null;
-
-	}//end createActionFor()
 }//end class

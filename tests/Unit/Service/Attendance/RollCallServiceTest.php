@@ -24,7 +24,11 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service\Attendance;
 
 use DateTimeZone;
+use OCA\Learniq\Service\Attendance\RollCallAccess;
 use OCA\Learniq\Service\Attendance\RollCallException;
+use OCA\Learniq\Service\Attendance\RollCallLessons;
+use OCA\Learniq\Service\Attendance\RollCallMarks;
+use OCA\Learniq\Service\Attendance\RollCallReader;
 use OCA\Learniq\Service\Attendance\RollCallService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
@@ -151,7 +155,17 @@ class RollCallServiceTest extends TestCase {
 		$l10n->method('t')->willReturnCallback(static fn (string $text, $params=[]): string => vsprintf($text, (array)$params));
 		$l10n->method('l')->willReturnCallback(static fn (string $type, $data): string => $data->format('l j F Y'));
 
-		return new RollCallService(objectService: $objects, groupManager: $groups, timeZone: $zone, time: $time, l10n: $l10n, logger: new NullLogger());
+		$reader = new RollCallReader(objectService: $objects);
+
+		return new RollCallService(
+			reader: $reader,
+			access: new RollCallAccess(reader: $reader, groupManager: $groups, timeZone: $zone, time: $time, l10n: $l10n),
+			lessons: new RollCallLessons(objectService: $objects, l10n: $l10n, logger: new NullLogger()),
+			marks: new RollCallMarks(),
+			objectService: $objects,
+			time: $time,
+			l10n: $l10n
+		);
 	}//end service()
 
 	/**

@@ -34,6 +34,10 @@ use RuntimeException;
  */
 class RollCallException extends RuntimeException {
 
+	public const BAD_REQUEST = 400;
+	public const FORBIDDEN = 403;
+	public const UNPROCESSABLE = 422;
+
 	/**
 	 * Constructor.
 	 *
@@ -43,7 +47,7 @@ class RollCallException extends RuntimeException {
 	 * @return void
 	 */
 	public function __construct(string $message, private readonly int $status) {
-		parent::__construct($message);
+		parent::__construct(message: $message);
 	}//end __construct()
 
 	/**

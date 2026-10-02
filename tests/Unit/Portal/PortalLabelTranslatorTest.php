@@ -30,6 +30,7 @@ namespace OCA\Learniq\Tests\Unit\Portal;
 
 use OCA\Learniq\Portal\PortalContributionProvider;
 use OCA\Learniq\Portal\PortalLabelTranslator;
+use OCA\Learniq\Portal\PortalValueLabels;
 use OCP\IL10N;
 use OCP\L10N\IFactory;
 use PHPUnit\Framework\TestCase;
@@ -84,6 +85,14 @@ class PortalLabelTranslatorTest extends TestCase {
 		$found = [];
 		foreach ($manifest as $key => $value) {
 			$here = $path.'/'.$key;
+			if ($key === 'valueLabels' && is_array($value) === true) {
+				foreach ($value as $stored => $label) {
+					$found[$here.'/'.$stored] = $label;
+				}
+
+				continue;
+			}
+
 			if (is_array($value) === true) {
 				$found = array_merge($found, self::visibleStrings(manifest: $value, path: $here));
 				continue;
@@ -173,7 +182,9 @@ class PortalLabelTranslatorTest extends TestCase {
 
 		$strip = static function (array $manifest, string $path='') use (&$strip): array {
 			foreach ($manifest as $key => $value) {
-				if (is_array($value) === true) {
+				if ($key === 'valueLabels') {
+					$manifest[$key] = array_keys($value);
+				} else if (is_array($value) === true) {
 					$manifest[$key] = $strip($value, $path.'/'.$key);
 				} else if (self::isVisible(path: $path.'/'.$key) === true) {
 					unset($manifest[$key]);
@@ -187,6 +198,57 @@ class PortalLabelTranslatorTest extends TestCase {
 			self::assertStringStartsWith('NL:', $text, $path);
 		}
 	}//end testOnlyVisibleStringsAreTranslated()
+
+	/**
+	 * A guardian reads statuses and the kinds of absence in Dutch, while the
+	 * stored values they are keyed by stay exactly as the schema has them.
+	 *
+	 * @return void
+	 */
+	public function testStatusesAndAbsenceKindsArriveInDutch(): void {
+		$factory = $this->createMock(IFactory::class);
+		$factory->method('get')->with('learniq')->willReturn($this->dutchL10n());
+
+		$manifest    = (new PortalContributionProvider(l10nFactory: $factory))->getContribution(['audience' => 'parent']);
+		$collections = array_column($manifest['collections'], null, 'id');
+		$statusOf    = static function (array $collection, string $field): array {
+			return array_column($collection['columns'], 'valueLabels', 'field')[$field];
+		};
+
+		self::assertSame(
+			['submitted' => 'Ingediend', 'approved' => 'Goedgekeurd', 'rejected' => 'Afgewezen'],
+			$statusOf($collections['parentExcuseRequests'], 'lifecycle')
+		);
+		self::assertSame('Afwezig (geoorloofd)', $statusOf($collections['parentAttendance'], 'status')['absent-excused']);
+		self::assertSame('Op de wachtlijst', $statusOf($collections['parentConferenceSignups'], 'lifecycle')['waitlisted']);
+		self::assertSame('Niet verschenen', $statusOf($collections['parentConferenceSlots'], 'lifecycle')['no-show']);
+
+		$kinds = array_column($manifest['actions'], null, 'id')['createExcuseRequest']['fieldConfigs']['reasonKind']['valueLabels'];
+		self::assertSame('Ziekte', $kinds['illness']);
+		self::assertSame('Medische afspraak', $kinds['medical-appointment']);
+	}//end testStatusesAndAbsenceKindsArriveInDutch()
+
+	/**
+	 * Every labelled value is a value the schema stores, and every value the
+	 * schema stores has a label, so a renamed enum value cannot slip past.
+	 *
+	 * @return void
+	 */
+	public function testEveryValueLabelMatchesTheSchemaEnum(): void {
+		$register   = json_decode((string) file_get_contents(dirname(__DIR__, 3).'/lib/Settings/learniq_register.json'), true);
+		$schemas    = array_column($register['components']['schemas'], null, 'slug');
+		$enumOf     = static fn (string $schema, string $property): array => $schemas[$schema]['properties'][$property]['enum'];
+		$labelSets  = [
+			[PortalValueLabels::EXCUSE_STATUS, 'excuse-request', 'lifecycle'],
+			[PortalValueLabels::ABSENCE_KIND, 'excuse-request', 'reasonKind'],
+			[PortalValueLabels::ATTENDANCE_STATUS, 'attendance-record', 'status'],
+			[PortalValueLabels::SIGNUP_STATUS, 'conference-signup', 'lifecycle'],
+			[PortalValueLabels::SLOT_STATUS, 'conference-slot', 'lifecycle'],
+		];
+		foreach ($labelSets as [$labels, $schema, $property]) {
+			self::assertSame($enumOf($schema, $property), array_keys($labels), $schema.'.'.$property);
+		}
+	}//end testEveryValueLabelMatchesTheSchemaEnum()
 
 	/**
 	 * Without a translator the manifest is returned untouched.

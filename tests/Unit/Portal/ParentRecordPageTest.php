@@ -213,6 +213,12 @@ class ParentRecordPageTest extends TestCase {
 			[['type' => 'action', 'action' => 'createExcuseRequest'], ['type' => 'collection', 'collection' => 'parentExcuseRequests'], ['type' => 'detail', 'collection' => 'parentExcuseRequests']],
 			$pages['parentExcuseRequests']['blocks']
 		);
+
+		// The conference sections keep their own forms (direct-conference-booking).
+		self::assertSame(['type' => 'action', 'action' => 'bookConferenceSlot'], $pages['parentConferenceFreeSlots']['blocks'][0]);
+		self::assertSame(['type' => 'action', 'action' => 'createConferenceSignup'], $pages['parentConferenceSignups']['blocks'][0]);
+		self::assertSame(['parentChildren', 'parentCalendar'], array_slice(array_column($this->manifest['pages'], 'id'), 0, 2));
+		self::assertCount(1, array_filter($this->manifest['pages'], static fn (array $page): bool => $page['id'] === 'parentChildren'));
 	}//end testEveryOtherSectionKeepsItsPage()
 
 	/**

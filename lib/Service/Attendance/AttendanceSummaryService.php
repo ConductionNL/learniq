@@ -129,7 +129,8 @@ class AttendanceSummaryService {
 		$counts = $this->calculator->summarise(records: $records, sessions: $sessions);
 		$existing = $this->storedRows(learnerId: $learnerId);
 
-		$years = array_unique(array_merge(array_keys($counts), array_keys($existing), array_filter($schoolYears, [AttendanceSummaryCalculator::class, 'isSchoolYear'])));
+		$asked = array_filter($schoolYears, [AttendanceSummaryCalculator::class, 'isSchoolYear']);
+		$years = array_unique(array_merge(array_keys($counts), array_keys($existing), $asked));
 		sort($years);
 
 		$tenantId = ($this->firstText(rows: $records, field: 'tenant_id') ?? $tenantId);
@@ -145,14 +146,14 @@ class AttendanceSummaryService {
 					'learnerRef' => ($learnerRef ?? $this->text(value: ($row['learnerRef'] ?? null)) ?? $this->resolveRef(learnerId: $learnerId)),
 					'schoolYear' => $year,
 				],
-				($counts[$year] ?? AttendanceSummaryCalculator::emptyCounts()),
+				($counts[$year] ?? $this->calculator->emptyCounts()),
 				[
 					'teacherIds' => ($teachers ?? $this->storedTeachers(row: $row)),
 					'tenant_id' => ($this->text(value: ($row['tenant_id'] ?? null)) ?? $tenantId),
 				]
 			);
 
-			if ($data['tenant_id'] === '' || ($row !== null && $this->unchanged(row: $row, data: $data) === true)) {
+			if ($data['tenant_id'] === '' || ($row !== null && $this->calculator->unchanged(row: $row, data: $data) === true)) {
 				continue;
 			}
 
@@ -175,7 +176,7 @@ class AttendanceSummaryService {
 	public function schoolYearsOf(array $sessionIds): array {
 		$years = [];
 		foreach ($this->sessionDays(ids: $sessionIds) as $session) {
-			$year = AttendanceSummaryCalculator::schoolYearOf(date: $session['date']);
+			$year = $this->calculator->schoolYearOf(date: $session['date']);
 			if ($year !== null) {
 				$years[$year] = true;
 			}
@@ -208,7 +209,7 @@ class AttendanceSummaryService {
 				_rbac: false,
 				_multitenancy: false
 			);
-			$found = AttendanceSummaryCalculator::sessionDays(rows: array_map(fn ($row): array => $this->toRow(object: $row), $rows));
+			$found = $this->calculator->sessionDays(rows: array_map(fn ($row): array => $this->toRow(object: $row), $rows));
 			foreach ($chunk as $id) {
 				$this->sessionCache[$id] = ($found[$id] ?? null);
 			}
@@ -287,41 +288,6 @@ class AttendanceSummaryService {
 
 		return $byYear;
 	}//end storedRows()
-
-	/**
-	 * Whether a stored row already holds these numbers, teachers and refs.
-	 *
-	 * @param array<string, mixed> $row  The stored row.
-	 * @param array<string, mixed> $data The recounted row.
-	 *
-	 * @return bool
-	 */
-	private function unchanged(array $row, array $data): bool {
-		foreach ($data as $field => $value) {
-			$stored = ($row[$field] ?? null);
-			if ($field === 'teacherIds') {
-				$left = array_values((array)$stored);
-				$right = $value;
-				sort($left);
-				sort($right);
-				if ($left !== $right) {
-					return false;
-				}
-
-				continue;
-			}
-
-			if (is_int($value) === true) {
-				$stored = (is_numeric($stored) === true ? (int)$stored : null);
-			}
-
-			if ($stored !== $value) {
-				return false;
-			}
-		}
-
-		return true;
-	}//end unchanged()
 
 	/**
 	 * Save a recounted row: an update of the stored row, or a new row with a

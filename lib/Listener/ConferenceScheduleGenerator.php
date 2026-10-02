@@ -14,7 +14,7 @@
  * round, and writes ConferenceSlot objects via ObjectService::saveObject.
  *
  * Algorithm (design.md):
- *   1. sliceAvailability() cuts each teacher's declared free blocks into a
+ *   1. ConferenceSlotSlicer::slice() cuts each teacher's declared free blocks into a
  *      chronologically ordered FIFO queue of slotDurationMinutes candidates,
  *      bufferMinutes apart. Pure function, no side effects.
  *   2. Candidate slots overlapping an already-`confirmed` ConferenceSlot for
@@ -59,13 +59,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use DateTimeImmutable;
-use DateTimeZone;
+use OCA\Learniq\Service\ConferenceBookingMode;
+use OCA\Learniq\Service\ConferenceSlotSlicer;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -97,6 +98,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param IUserManager|null $users The teacher's display name for the parent portal (direct-conference-booking).
 	 *
 	 * @return void
 	 */
@@ -104,6 +106,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
 		private readonly ListenerSchemaResolver $schemas,
+		private readonly ?IUserManager $users=null,
 	) {
 	}//end __construct()
 
@@ -115,6 +118,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 * @return void
 	 *
 	 * @spec openspec/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
+	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -129,7 +133,14 @@ class ConferenceScheduleGenerator implements IEventListener {
 			return;
 		}
 
-		$this->generateForRound(round: $event->getObject()->jsonSerialize());
+		$round = $event->getObject()->jsonSerialize();
+		// A round with direct booking has no preferences to plan: parents
+		// picked their own free times (ConferenceSlotBookingStamp).
+		if ((new ConferenceBookingMode())->isDirect(round: $round) === true) {
+			return;
+		}
+
+		$this->generateForRound(round: $round);
 
 	}//end handle()
 
@@ -327,7 +338,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 			$availability = $this->normalise(row: $availability);
 			$teacherId = ($availability['teacherId'] ?? '');
 
-			$sliced = self::sliceAvailability(
+			$sliced = (new ConferenceSlotSlicer())->slice(
 				blocks: ($availability['blocks'] ?? []),
 				slotDurationMinutes: $slotDurationMinutes,
 				bufferMinutes: $bufferMinutes
@@ -484,6 +495,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 			$newSlots[] = [
 				'conferenceRoundId' => $roundId,
 				'teacherId' => $teacherId,
+				'teacherName' => ($this->users?->getDisplayName((string)$teacherId) ?? (string)$teacherId),
 				'learnerId' => ($signup['learnerId'] ?? ''),
 				'learnerRef' => ($signup['learnerRef'] ?? null),
 				'signupId' => $signupId,
@@ -504,60 +516,6 @@ class ConferenceScheduleGenerator implements IEventListener {
 		];
 
 	}//end assignSlotsForSignup()
-
-	/**
-	 * Step 1 — slice a teacher's declared free blocks into a chronologically
-	 * ordered list of candidate `{startsAt, endsAt}` slots, slotDurationMinutes
-	 * long with a bufferMinutes gap between consecutive slots. Pure function,
-	 * no side effects, deterministic for the same input (design.md "Step 1").
-	 *
-	 * @param array<int,array<string,mixed>> $blocks Free blocks: [{startsAt, endsAt}, ...].
-	 * @param int $slotDurationMinutes Length of one slot in minutes.
-	 * @param int $bufferMinutes Gap between consecutive slots in minutes.
-	 *
-	 * @return array<int,array{startsAt:string,endsAt:string}> Candidate slots, in chronological order.
-	 *
-	 * @spec openspec/specs/parent-conferences/spec.md#requirement-a-conference-round-declares-its-scope-slot-duration-and-buffer-time
-	 */
-	public static function sliceAvailability(array $blocks, int $slotDurationMinutes, int $bufferMinutes): array {
-		if ($slotDurationMinutes <= 0) {
-			return [];
-		}
-
-		$slots = [];
-
-		foreach ($blocks as $block) {
-			$startRaw = $block['startsAt'] ?? null;
-			$endRaw = $block['endsAt'] ?? null;
-
-			if ($startRaw === null || $endRaw === null) {
-				continue;
-			}
-
-			try {
-				$cursor = new DateTimeImmutable((string)$startRaw, new DateTimeZone('UTC'));
-				$blockEnds = new DateTimeImmutable((string)$endRaw, new DateTimeZone('UTC'));
-			} catch (\Exception) {
-				continue;
-			}
-
-			while (true) {
-				$slotEnd = $cursor->modify('+' . $slotDurationMinutes . ' minutes');
-				if ($slotEnd > $blockEnds) {
-					break;
-				}
-
-				$slots[] = [
-					'startsAt' => $cursor->format(DATE_ATOM),
-					'endsAt' => $slotEnd->format(DATE_ATOM),
-				];
-
-				$cursor = $slotEnd->modify('+' . $bufferMinutes . ' minutes');
-			}
-		}//end foreach
-
-		return $slots;
-	}//end sliceAvailability()
 
 	/**
 	 * Pop candidate slots from the front of a teacher's queue until one is

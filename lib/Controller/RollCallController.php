@@ -135,8 +135,12 @@ class RollCallController extends Controller {
 		} catch (RollCallException $exception) {
 			return new JSONResponse(data: ['error' => $exception->getMessage()], statusCode: $exception->getStatus());
 		} catch (Throwable $exception) {
-			$this->logger->error('[RollCallController] The register could not be read or saved: {msg}', ['msg' => $exception->getMessage(), 'exception' => $exception]);
-			return new JSONResponse(data: ['error' => $this->l10n->t('The register could not be read or saved. Try again.')], statusCode: Http::STATUS_SERVICE_UNAVAILABLE);
+			$this->logger->error(
+				'[RollCallController] The register could not be read or saved: {msg}',
+				['msg' => $exception->getMessage(), 'exception' => $exception]
+			);
+			$message = $this->l10n->t('The register could not be read or saved. Try again.');
+			return new JSONResponse(data: ['error' => $message], statusCode: Http::STATUS_SERVICE_UNAVAILABLE);
 		}
 	}//end answer()
 

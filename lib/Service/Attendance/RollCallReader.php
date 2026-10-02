@@ -40,6 +40,7 @@ use Throwable;
  * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
  */
 class RollCallReader {
+	use RollCallRows;
 
 	private const REGISTER = 'learniq';
 
@@ -78,9 +79,9 @@ class RollCallReader {
 			$this->rows(schema: 'cohort', filters: [], limit: self::MAX_GROUPS),
 			static fn (array $row): bool => in_array(($row['lifecycle'] ?? null), self::PAST_LIFECYCLES, true) === false
 		);
-		usort($cohorts, static fn (array $a, array $b): int => strnatcasecmp((string)($a['name'] ?? ''), (string)($b['name'] ?? '')));
+		usort($cohorts, static fn (array $left, array $right): int => strnatcasecmp((string)($left['name'] ?? ''), (string)($right['name'] ?? '')));
 
-		return array_values($cohorts);
+		return $cohorts;
 	}//end currentCohorts()
 
 	/**
@@ -92,7 +93,7 @@ class RollCallReader {
 	 *
 	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
 	 */
-	public static function teachersOf(array $cohort): array {
+	public function teachersOf(array $cohort): array {
 		$ids = (array)($cohort['teacherIds'] ?? []);
 		foreach ((array)($cohort['teacherAssignments'] ?? []) as $assignment) {
 			if (is_array($assignment) === true) {
@@ -134,50 +135,14 @@ class RollCallReader {
 
 		$sessions = array_filter(
 			$rows,
-			static fn (array $row): bool => ($row['cohortId'] ?? null) === $cohortId
+			fn (array $row): bool => ($row['cohortId'] ?? null) === $cohortId
 				&& ($row['lifecycle'] ?? null) !== 'cancelled'
-				&& self::localDate(value: ($row['startsAt'] ?? null), zone: $zone) === $date
+				&& $this->localDate(value: ($row['startsAt'] ?? null), zone: $zone) === $date
 		);
-		usort($sessions, static fn (array $a, array $b): int => strcmp((string)self::moment(value: $a['startsAt'])?->getTimestamp(), (string)self::moment(value: $b['startsAt'])?->getTimestamp()));
+		usort($sessions, fn (array $left, array $right): int => ($this->timestampOf(row: $left) <=> $this->timestampOf(row: $right)));
 
-		return array_values($sessions);
+		return $sessions;
 	}//end sessionsOn()
-
-	/**
-	 * The group's most recent lessons before a day, newest first.
-	 *
-	 * @param string       $cohortId The group.
-	 * @param string       $date     The day, `Y-m-d`.
-	 * @param DateTimeZone $zone     The caller's time zone.
-	 *
-	 * @return array<int, array<string, mixed>>
-	 */
-	public function lessonsBefore(string $cohortId, string $date, DateTimeZone $zone): array {
-		$start = new DateTimeImmutable($date . 'T00:00:00', $zone);
-		$rows = $this->objectService->findAll(
-			config: [
-				'filters' => [
-					'register' => self::REGISTER,
-					'schema' => 'session',
-					'cohortId' => $cohortId,
-					'startsAt' => ['lt' => $start->format(DATE_ATOM), 'gte' => $start->modify('-60 days')->format(DATE_ATOM)],
-				],
-				'sort' => ['startsAt' => 'DESC'],
-				'limit' => 20,
-			],
-			_rbac: false,
-			_multitenancy: false
-		);
-
-		$lessons = array_filter(
-			array_map(fn ($row): array => self::toRow(object: $row), $rows),
-			static fn (array $row): bool => ($row['cohortId'] ?? null) === $cohortId
-				&& (self::moment(value: ($row['startsAt'] ?? null))?->getTimestamp() ?? PHP_INT_MAX) < $start->getTimestamp()
-		);
-		usort($lessons, static fn (array $a, array $b): int => (self::moment(value: $b['startsAt'])?->getTimestamp() <=> self::moment(value: $a['startsAt'])?->getTimestamp()));
-
-		return array_values($lessons);
-	}//end lessonsBefore()
 
 	/**
 	 * The saved marks of a lesson, keyed by pupil.
@@ -185,6 +150,8 @@ class RollCallReader {
 	 * @param string|null $sessionId The lesson, or null when the day has none yet.
 	 *
 	 * @return array<string, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 */
 	public function recordsOf(?string $sessionId): array {
 		if ($sessionId === null) {
@@ -208,6 +175,8 @@ class RollCallReader {
 	 * @param array<int, string> $learnerIds The pupils.
 	 *
 	 * @return array<string, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 */
 	public function profilesOf(array $learnerIds): array {
 		if ($learnerIds === []) {
@@ -242,25 +211,51 @@ class RollCallReader {
 		}
 
 		$reports = [];
-		$rows = $this->rows(schema: 'excuse-request', filters: ['learnerId' => $learnerIds, 'lifecycle' => ['approved', 'submitted']], limit: self::MAX_ROWS);
+		$filters = ['learnerId' => $learnerIds, 'lifecycle' => ['approved', 'submitted']];
+		$rows = $this->rows(schema: 'excuse-request', filters: $filters, limit: self::MAX_ROWS);
 		foreach ($rows as $row) {
 			$learnerId = (string)($row['learnerId'] ?? '');
-			$from = substr((string)($row['dateFrom'] ?? ''), 0, 10);
-			$to = substr((string)($row['dateTo'] ?? ''), 0, 10);
-			if (in_array($learnerId, $learnerIds, true) === false || $from === '' || $to === '' || $date < $from || $date > $to) {
+			if (in_array($learnerId, $learnerIds, true) === false || $this->covers(report: $row, date: $date) === false) {
 				continue;
 			}
 
-			$lifecycle = (string)($row['lifecycle'] ?? '');
-			if (in_array($lifecycle, ['approved', 'submitted'], true) === false || (($reports[$learnerId]['lifecycle'] ?? '') === 'approved')) {
-				continue;
+			// An approved report wins over one still waiting for a decision.
+			if (($reports[$learnerId]['lifecycle'] ?? '') !== 'approved') {
+				$reports[$learnerId] = $row;
 			}
-
-			$reports[$learnerId] = $row;
 		}
 
 		return $reports;
 	}//end reportsOn()
+
+	/**
+	 * Whether an approved or open report covers a day.
+	 *
+	 * @param array<string, mixed> $report The report.
+	 * @param string               $date   The day, `Y-m-d`.
+	 *
+	 * @return bool
+	 */
+	private function covers(array $report, string $date): bool {
+		$from = substr((string)($report['dateFrom'] ?? ''), 0, 10);
+		$to = substr((string)($report['dateTo'] ?? ''), 0, 10);
+		if ($from === '' || $to === '' || $date < $from || $date > $to) {
+			return false;
+		}
+
+		return in_array(($report['lifecycle'] ?? null), ['approved', 'submitted'], true);
+	}//end covers()
+
+	/**
+	 * The start of a lesson as a Unix time, 0 when unknown.
+	 *
+	 * @param array<string, mixed> $row The lesson.
+	 *
+	 * @return int
+	 */
+	private function timestampOf(array $row): int {
+		return ($this->moment(value: ($row['startsAt'] ?? null))?->getTimestamp() ?? 0);
+	}//end timestampOf()
 
 	/**
 	 * The date of a timestamp in a time zone, or null.
@@ -270,39 +265,9 @@ class RollCallReader {
 	 *
 	 * @return string|null
 	 */
-	public static function localDate(mixed $value, DateTimeZone $zone): ?string {
-		return self::moment(value: $value)?->setTimezone($zone)->format('Y-m-d');
+	private function localDate(mixed $value, DateTimeZone $zone): ?string {
+		return $this->moment(value: $value)?->setTimezone($zone)->format('Y-m-d');
 	}//end localDate()
-
-	/**
-	 * A timestamp, or null.
-	 *
-	 * @param mixed $value An ISO 8601 date-time.
-	 *
-	 * @return DateTimeImmutable|null
-	 */
-	public static function moment(mixed $value): ?DateTimeImmutable {
-		if (is_string($value) === false || preg_match('/^\d{4}-\d{2}-\d{2}T/', $value) !== 1) {
-			return null;
-		}
-
-		try {
-			return new DateTimeImmutable($value);
-		} catch (Throwable) {
-			return null;
-		}
-	}//end moment()
-
-	/**
-	 * The id of an OpenRegister row.
-	 *
-	 * @param array<string, mixed> $row The row.
-	 *
-	 * @return string
-	 */
-	public static function idOf(array $row): string {
-		return (string)($row['id'] ?? ($row['uuid'] ?? ($row['@self']['id'] ?? '')));
-	}//end idOf()
 
 	/**
 	 * Rows of a learniq schema, as arrays.
@@ -323,7 +288,7 @@ class RollCallReader {
 			_multitenancy: false
 		);
 
-		return array_values(array_map(fn ($row): array => self::toRow(object: $row), $rows));
+		return array_map(fn ($row): array => $this->toRow(object: $row), array_values($rows));
 	}//end rows()
 
 	/**
@@ -333,7 +298,7 @@ class RollCallReader {
 	 *
 	 * @return array<string, mixed>
 	 */
-	private static function toRow(mixed $object): array {
+	private function toRow(mixed $object): array {
 		$row = [];
 		if (is_array($object) === true) {
 			$row = $object;
@@ -342,7 +307,7 @@ class RollCallReader {
 		}
 
 		if ($row !== [] && isset($row['id']) === false) {
-			$row['id'] = self::idOf(row: $row);
+			$row['id'] = $this->idOf(row: $row);
 		}
 
 		return $row;

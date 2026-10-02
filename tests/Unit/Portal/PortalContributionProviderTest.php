@@ -354,6 +354,50 @@ class PortalContributionProviderTest extends TestCase {
 	}//end testSubmissionHandInDeclaresAFileField()
 
 	/**
+	 * Both absence reports declare their attachment as portaliq's file field.
+	 * Without `type: file` portaliq renders `attachmentRef` as a text box and
+	 * the guardian can only type a name. The property is a string, so the
+	 * field takes one file, inside FileFieldConfigNormaliser's limits.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-parent-audience-can-report-a-childs-absence-validated-against-the-callers-own-children-req-pcon-007
+	 */
+	public function testAbsenceReportAttachmentIsAFileField(): void {
+		$byAudience = [
+			'parent'  => $this->provider->getContribution(self::PARENT_SUBJECT),
+			'student' => $this->provider->getContribution(self::STUDENT_SUBJECT),
+		];
+
+		foreach ($byAudience as $audience => $manifest) {
+			$excuse = array_values(
+				array_filter(
+					$manifest['actions'],
+					static fn (array $a): bool => ($a['id'] ?? '') === 'createExcuseRequest'
+				)
+			)[0];
+
+			$this->assertContains('attachmentRef', $excuse['fields'], $audience);
+			$file = $excuse['fieldConfigs']['attachmentRef'];
+			$this->assertSame('file', $file['type'], $audience.': attachmentRef must be a file field, not a text box');
+			$this->assertFalse($file['multiple'], $audience.': attachmentRef is a string property, one file');
+			$this->assertSame('Attachment', $file['label'], $audience);
+			$this->assertGreaterThanOrEqual(1, $file['maxSizeMb']);
+			$this->assertLessThanOrEqual(50, $file['maxSizeMb']);
+			$this->assertContains('.pdf', $file['accept']);
+			$this->assertLessThanOrEqual(20, count($file['accept']));
+			foreach ($file['accept'] as $accepted) {
+				$this->assertMatchesRegularExpression('/^\.[a-z0-9]+$/', $accepted);
+			}
+		}
+
+		// The parent form keeps its other field configs next to the file field.
+		$parent = $byAudience['parent']['actions'][0];
+		$this->assertTrue($parent['fieldConfigs']['learnerRef']['required']);
+
+	}//end testAbsenceReportAttachmentIsAFileField()
+
+	/**
 	 * studentTests is a timed task over the learner's own attempts: it names
 	 * five instance-local POST actions, each stamping learnerRef from the
 	 * server, and exposes no response or score.
@@ -409,9 +453,9 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(15, $collections);
+		$this->assertCount(16, $collections);
 		$this->assertSame(
-			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar'],
+			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar'],
 			array_column($collections, 'id')
 		);
 
@@ -422,8 +466,10 @@ class PortalContributionProviderTest extends TestCase {
 		// this reverse-join-shaped assertion loop.
 		// parentConferenceRounds matches a round on its list of invited
 		// children and is asserted in
-		// testParentBooksAConferenceForTheirOwnChildOnly.
-		$reverseJoinedCollections = array_filter($collections, static fn ($c) => in_array($c['id'], ['parentChildren', 'parentConferenceRounds', ...self::RECORD_PAGE_COLLECTIONS], true) === false);
+		// testParentBooksAConferenceForTheirOwnChildOnly; parentConferenceFreeSlots
+		// matches a free time on the pupils who may book it
+		// (ParentConferenceDirectBookingTest).
+		$reverseJoinedCollections = array_filter($collections, static fn ($c) => in_array($c['id'], ['parentChildren', 'parentConferenceRounds', 'parentConferenceFreeSlots', ...self::RECORD_PAGE_COLLECTIONS], true) === false);
 		foreach ($reverseJoinedCollections as $collection) {
 			$this->assertSame('learniq', $collection['register']);
 			// Parent scope key is the guardian claim; the outer record scope
@@ -605,6 +651,11 @@ class PortalContributionProviderTest extends TestCase {
 				'parentSchoolCalendar' => 'schoolId',
 			][$collection['id']] ?? 'learnerRef';
 
+			// A free conference time: the pupils who may book it (direct-conference-booking).
+			if ($collection['id'] === 'parentConferenceFreeSlots') {
+				$expected = 'eligibleLearnerRefs';
+			}
+
 			$this->assertSame($expected, $collection['scopeField']);
 		}
 
@@ -629,7 +680,8 @@ class PortalContributionProviderTest extends TestCase {
 	public function testParentShipsCreateExcuseRequestValidatedAgainstOwnChildren(): void {
 		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
 
-		$this->assertCount(2, $manifest['actions']);
+		// The absence report, then the three conference actions (direct-conference-booking).
+		$this->assertCount(4, $manifest['actions']);
 		$action = $manifest['actions'][0];
 
 		$this->assertSame('createExcuseRequest', $action['id']);
