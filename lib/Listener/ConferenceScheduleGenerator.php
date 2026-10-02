@@ -66,6 +66,7 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -97,6 +98,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param IUserManager|null $users The teacher's display name for the parent portal (direct-conference-booking).
 	 *
 	 * @return void
 	 */
@@ -104,6 +106,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
 		private readonly ListenerSchemaResolver $schemas,
+		private readonly ?IUserManager $users=null,
 	) {
 	}//end __construct()
 
@@ -492,6 +495,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 			$newSlots[] = [
 				'conferenceRoundId' => $roundId,
 				'teacherId' => $teacherId,
+				'teacherName' => ($this->users?->getDisplayName((string)$teacherId) ?? (string)$teacherId),
 				'learnerId' => ($signup['learnerId'] ?? ''),
 				'learnerRef' => ($signup['learnerRef'] ?? null),
 				'signupId' => $signupId,
