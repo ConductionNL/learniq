@@ -9,7 +9,7 @@
  * `create-free-slots` self-transition a teacher runs to add times later), it
  * cuts every submitted or locked TeacherAvailability of the round into
  * `slotDurationMinutes` slots with `bufferMinutes` between them (the same
- * slicing ConferenceScheduleGenerator uses) and writes each as a
+ * ConferenceSlotSlicer ConferenceScheduleGenerator uses) and writes each as a
  * ConferenceSlot in `free`.
  *
  * Each free slot carries who may book it (`eligibleLearnerRefs`: the invited
@@ -47,6 +47,7 @@ namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use OCA\Learniq\Service\ConferenceBookingMode;
+use OCA\Learniq\Service\ConferenceSlotSlicer;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
@@ -89,7 +90,7 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 	 * @param ListenerSchemaResolver $schemas Resolves the event's register and schema.
 	 * @param LearnerRefResolver $profiles Nextcloud user id to LearnerProfile uuid.
 	 * @param IUserManager $users The teacher's display name.
-	 * @param IDateTimeZone $timeZone The school's time zone for the label.
+	 * @param IDateTimeZone $timeZone The caller's or the instance's time zone, for a label of a UTC time.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -125,7 +126,7 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 		}
 
 		$round = $event->getObject()->jsonSerialize();
-		if (ConferenceBookingMode::isDirect(round: $round) === false) {
+		if ((new ConferenceBookingMode())->isDirect(round: $round) === false) {
 			return;
 		}
 
@@ -161,6 +162,7 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 		}
 
 		$held = $this->heldIntervals(roundId: $roundId);
+		$slicer = new ConferenceSlotSlicer();
 		$eligible = [];
 		$written = 0;
 		foreach ($this->availabilities(roundId: $roundId) as $availability) {
@@ -173,13 +175,13 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 				$eligible[$teacherId] = $this->eligibleRefs(round: $round, teacherId: $teacherId);
 			}
 
-			$candidates = ConferenceScheduleGenerator::sliceAvailability(
+			$candidates = $slicer->slice(
 				blocks: (array)($availability['blocks'] ?? []),
 				slotDurationMinutes: (int)($round['slotDurationMinutes'] ?? 10),
 				bufferMinutes: (int)($round['bufferMinutes'] ?? 0)
 			);
 			foreach ($candidates as $candidate) {
-				if (self::overlaps(candidate: $candidate, intervals: ($held[$teacherId] ?? [])) === true) {
+				if ($slicer->overlaps(candidate: $candidate, intervals: ($held[$teacherId] ?? [])) === true) {
 					continue;
 				}
 
@@ -235,16 +237,34 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 	 * @return string
 	 */
 	private function label(array $candidate, string $teacherName): string {
-		$zone = $this->timeZone->getDefaultTimeZone();
 		try {
-			$start = (new DateTimeImmutable($candidate['startsAt']))->setTimezone($zone);
-			$end = (new DateTimeImmutable($candidate['endsAt']))->setTimezone($zone);
+			$start = $this->local(moment: new DateTimeImmutable($candidate['startsAt']));
+			$end = $this->local(moment: new DateTimeImmutable($candidate['endsAt']));
 		} catch (Throwable $exception) {
 			return $teacherName;
 		}
 
 		return $start->format('d-m-Y H:i') . '-' . $end->format('H:i') . ', ' . $teacherName;
 	}//end label()
+
+	/**
+	 * A moment in the school's local time. A time the teacher entered with
+	 * its own offset (18:00+02:00) is kept as entered: OpenRegister stores
+	 * date-times in UTC, and an instance often has no default time zone, so
+	 * converting would print 16:00 for an 18:00 conversation. A UTC moment
+	 * is shown in the caller's time zone, else the instance default.
+	 *
+	 * @param DateTimeImmutable $moment The moment.
+	 *
+	 * @return DateTimeImmutable
+	 */
+	private function local(DateTimeImmutable $moment): DateTimeImmutable {
+		if ($moment->getOffset() !== 0) {
+			return $moment;
+		}
+
+		return $moment->setTimezone($this->timeZone->getTimeZone());
+	}//end local()
 
 	/**
 	 * The teacher's display name, or the uid when there is none.
@@ -336,31 +356,6 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 		return $held;
 	}//end heldIntervals()
 
-	/**
-	 * Whether a candidate overlaps any interval (half open).
-	 *
-	 * @param array{startsAt: string, endsAt: string} $candidate The candidate.
-	 * @param array<int, array{startsAt: string, endsAt: string}> $intervals The held intervals.
-	 *
-	 * @return bool
-	 */
-	private static function overlaps(array $candidate, array $intervals): bool {
-		$start = strtotime($candidate['startsAt']);
-		$end = strtotime($candidate['endsAt']);
-		foreach ($intervals as $interval) {
-			$otherStart = strtotime($interval['startsAt']);
-			$otherEnd = strtotime($interval['endsAt']);
-			if ($start === false || $end === false || $otherStart === false || $otherEnd === false) {
-				continue;
-			}
-
-			if ($start < $otherEnd && $otherStart < $end) {
-				return true;
-			}
-		}
-
-		return false;
-	}//end overlaps()
 
 	/**
 	 * Rows of a learniq schema as arrays.
@@ -380,10 +375,16 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 			_multitenancy: false
 		);
 
-		return array_map(
-			static fn ($row): array => is_array($row) === true ? $row : $row->jsonSerialize(),
-			$rows
-		);
+		$out = [];
+		foreach ($rows as $row) {
+			if (is_array($row) === false) {
+				$row = $row->jsonSerialize();
+			}
+
+			$out[] = $row;
+		}
+
+		return $out;
 	}//end rows()
 
 	/**

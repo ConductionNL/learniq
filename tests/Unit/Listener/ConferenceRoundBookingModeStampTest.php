@@ -79,9 +79,9 @@ class ConferenceRoundBookingModeStampTest extends TestCase {
 	 * @return void
 	 */
 	public function testAnOldRoundWithoutAModeKeepsThePreferenceFlow(): void {
-		$this->assertSame('preference', ConferenceBookingMode::of(['name' => 'Oudergesprekken 2025']));
-		$this->assertFalse(ConferenceBookingMode::isDirect(['bookingMode' => 'something-else']));
-		$this->assertSame(1, ConferenceBookingMode::maxBookingsPerChild([]));
+		$this->assertSame('preference', (new ConferenceBookingMode())->modeOf(['name' => 'Oudergesprekken 2025']));
+		$this->assertFalse((new ConferenceBookingMode())->isDirect(['bookingMode' => 'something-else']));
+		$this->assertSame(1, (new ConferenceBookingMode())->maxBookingsPerChild([]));
 	}//end testAnOldRoundWithoutAModeKeepsThePreferenceFlow()
 
 	/**

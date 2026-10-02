@@ -97,7 +97,17 @@ class ConferenceSlotBookingSync implements IEventListener {
 	/**
 	 * The fields a replacement free slot copies from the released one.
 	 */
-	private const FREE_COPY = ['conferenceRoundId', 'teacherId', 'teacherName', 'startsAt', 'endsAt', 'slotLabel', 'eligibleLearnerRefs', 'location', 'tenant_id'];
+	private const FREE_COPY = [
+		'conferenceRoundId',
+		'teacherId',
+		'teacherName',
+		'startsAt',
+		'endsAt',
+		'slotLabel',
+		'eligibleLearnerRefs',
+		'location',
+		'tenant_id',
+	];
 
 	/**
 	 * Constructor.
@@ -194,7 +204,7 @@ class ConferenceSlotBookingSync implements IEventListener {
 
 		try {
 			$round = $this->row(id: (string)($slot['conferenceRoundId'] ?? ''), schema: self::ROUND_SCHEMA);
-			if ($round === null || ConferenceBookingMode::isDirect(round: $round) === false) {
+			if ($round === null || (new ConferenceBookingMode())->isDirect(round: $round) === false) {
 				return;
 			}
 

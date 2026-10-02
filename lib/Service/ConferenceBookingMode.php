@@ -34,7 +34,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 /**
- * Reads a round's booking mode and booking allowance.
+ * Reads a round's booking mode and booking allowance. Stateless; call it on
+ * a fresh instance (`new ConferenceBookingMode()`).
  *
  * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
  */
@@ -53,13 +54,13 @@ final class ConferenceBookingMode {
 	 *
 	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
 	 */
-	public static function of(array $round): string {
+	public function modeOf(array $round): string {
 		if (($round['bookingMode'] ?? null) === self::DIRECT) {
 			return self::DIRECT;
 		}
 
 		return self::PREFERENCE;
-	}//end of()
+	}//end modeOf()
 
 	/**
 	 * Whether the round uses direct booking.
@@ -70,8 +71,8 @@ final class ConferenceBookingMode {
 	 *
 	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
 	 */
-	public static function isDirect(array $round): bool {
-		return self::of(round: $round) === self::DIRECT;
+	public function isDirect(array $round): bool {
+		return $this->modeOf(round: $round) === self::DIRECT;
 	}//end isDirect()
 
 	/**
@@ -84,7 +85,7 @@ final class ConferenceBookingMode {
 	 *
 	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
 	 */
-	public static function maxBookingsPerChild(array $round): int {
+	public function maxBookingsPerChild(array $round): int {
 		$value = ($round['maxBookingsPerChild'] ?? null);
 		if (is_int($value) === true && $value > 1) {
 			return $value;

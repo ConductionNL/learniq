@@ -123,6 +123,12 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 
 		$this->assertSame('08-10-2026 18:00-18:10, Anna de Vries', $slots[0]['slotLabel']);
 
+		// A block given in UTC is labelled in the school's time zone.
+		$this->store->rows['conference-slot'] = [];
+		$this->store->rows['teacher-availability'][0]['blocks'] = [['startsAt' => '2026-10-09T16:00:00+00:00', 'endsAt' => '2026-10-09T16:10:00+00:00']];
+		$this->generator()->handle($this->opened(round: $this->round()));
+		$this->assertSame('09-10-2026 18:00-18:10, Anna de Vries', $this->store->rows['conference-slot'][0]['slotLabel']);
+
 		foreach ($this->store->saves as $save) {
 			$this->assertNull(self::schemaError($save['schema'], $save['object']), 'the real conference-slot fragment accepts a free slot');
 		}
@@ -271,7 +277,7 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 		$users->method('getDisplayName')->willReturnCallback(static fn (string $uid): ?string => ($uid === 'po-leerkracht-09' ? 'Anna de Vries' : null));
 
 		$timeZone = $this->createMock(IDateTimeZone::class);
-		$timeZone->method('getDefaultTimeZone')->willReturn(new DateTimeZone('Europe/Amsterdam'));
+		$timeZone->method('getTimeZone')->willReturn(new DateTimeZone('Europe/Amsterdam'));
 
 		return new ConferenceFreeSlotGenerator(
 			$objectService,

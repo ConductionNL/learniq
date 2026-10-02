@@ -242,7 +242,7 @@ class ConferenceSlotBookingStamp implements IEventListener {
 	 * @return bool
 	 */
 	private function isBookable(array $round, string $childRef): bool {
-		if (ConferenceBookingMode::isDirect(round: $round) === false
+		if ((new ConferenceBookingMode())->isDirect(round: $round) === false
 			|| ($round['lifecycle'] ?? '') !== 'booking-open'
 			|| in_array($childRef, (array)($round['invitedLearnerRefs'] ?? []), true) === false
 		) {

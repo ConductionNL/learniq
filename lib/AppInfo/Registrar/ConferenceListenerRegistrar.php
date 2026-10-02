@@ -61,7 +61,7 @@ class ConferenceListenerRegistrar {
 		// preference elsewhere. Old rounds keep no value and so the old flow.
 		$context->registerEventListener(event: ObjectCreatingEvent::class, listener: ConferenceRoundBookingModeStamp::class);
 
-		// open-booking and create-free-slots: availability becomes free times.
+		// On open-booking and create-free-slots, availability becomes free times.
 		$context->registerEventListener(event: ObjectTransitionedEvent::class, listener: ConferenceFreeSlotGenerator::class);
 
 		// A portal booking of a free time claims the slot under a lock.

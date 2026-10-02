@@ -120,6 +120,8 @@ class ConferenceSlotClaim {
 	 * @param string $name What is locked.
 	 *
 	 * @return string At most 51 characters.
+	 *
+	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
 	 */
 	public static function lockKey(string $name): string {
 		return 'learniq/conference/' . md5($name);
@@ -152,7 +154,7 @@ class ConferenceSlotClaim {
 			return ['refuse' => 'slot-taken'];
 		}
 
-		if ($this->bookingsOf(roundId: $roundId, learnerRef: $booking['learnerRef']) >= ConferenceBookingMode::maxBookingsPerChild(round: $round)) {
+		if ($this->bookingsOf(roundId: $roundId, learnerRef: $booking['learnerRef']) >= (new ConferenceBookingMode())->maxBookingsPerChild(round: $round)) {
 			return ['refuse' => 'child-already-booked'];
 		}
 
@@ -205,7 +207,11 @@ class ConferenceSlotClaim {
 
 		$count = 0;
 		foreach ($rows as $row) {
-			$data = is_array($row) === true ? $row : $row->jsonSerialize();
+			$data = $row;
+			if (is_array($row) === false) {
+				$data = $row->jsonSerialize();
+			}
+
 			if (in_array(($data['lifecycle'] ?? ''), self::BOOKED_STATES, true) === true) {
 				$count++;
 			}

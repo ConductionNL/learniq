@@ -59,9 +59,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use DateTimeImmutable;
-use DateTimeZone;
 use OCA\Learniq\Service\ConferenceBookingMode;
+use OCA\Learniq\Service\ConferenceSlotSlicer;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -134,7 +133,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 		$round = $event->getObject()->jsonSerialize();
 		// A round with direct booking has no preferences to plan: parents
 		// picked their own free times (ConferenceSlotBookingStamp).
-		if (ConferenceBookingMode::isDirect(round: $round) === true) {
+		if ((new ConferenceBookingMode())->isDirect(round: $round) === true) {
 			return;
 		}
 
@@ -529,43 +528,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 * @spec openspec/specs/parent-conferences/spec.md#requirement-a-conference-round-declares-its-scope-slot-duration-and-buffer-time
 	 */
 	public static function sliceAvailability(array $blocks, int $slotDurationMinutes, int $bufferMinutes): array {
-		if ($slotDurationMinutes <= 0) {
-			return [];
-		}
-
-		$slots = [];
-
-		foreach ($blocks as $block) {
-			$startRaw = $block['startsAt'] ?? null;
-			$endRaw = $block['endsAt'] ?? null;
-
-			if ($startRaw === null || $endRaw === null) {
-				continue;
-			}
-
-			try {
-				$cursor = new DateTimeImmutable((string)$startRaw, new DateTimeZone('UTC'));
-				$blockEnds = new DateTimeImmutable((string)$endRaw, new DateTimeZone('UTC'));
-			} catch (\Exception) {
-				continue;
-			}
-
-			while (true) {
-				$slotEnd = $cursor->modify('+' . $slotDurationMinutes . ' minutes');
-				if ($slotEnd > $blockEnds) {
-					break;
-				}
-
-				$slots[] = [
-					'startsAt' => $cursor->format(DATE_ATOM),
-					'endsAt' => $slotEnd->format(DATE_ATOM),
-				];
-
-				$cursor = $slotEnd->modify('+' . $bufferMinutes . ' minutes');
-			}
-		}//end foreach
-
-		return $slots;
+		return (new ConferenceSlotSlicer())->slice(blocks: $blocks, slotDurationMinutes: $slotDurationMinutes, bufferMinutes: $bufferMinutes);
 	}//end sliceAvailability()
 
 	/**

@@ -192,7 +192,7 @@ class ConferenceSignupPortalStamp implements IEventListener {
 			return ['refuse' => 'signup-round-closed'];
 		}
 
-		if (ConferenceBookingMode::isDirect(round: $round) === true) {
+		if ((new ConferenceBookingMode())->isDirect(round: $round) === true) {
 			return ['refuse' => 'signup-round-direct'];
 		}
 

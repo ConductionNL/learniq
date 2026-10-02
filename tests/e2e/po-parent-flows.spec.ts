@@ -490,7 +490,11 @@ test.describe('po: teacher and parent flows', () => {
 		browser,
 	}) => {
 		test.setTimeout(300_000)
-		const evening = new Date(Date.now() + 10 * 86_400_000)
+		// A run of its own evening, so the time picker's labels never match a
+		// time an earlier run left open.
+		const evening = new Date(
+			Date.now() + (20 + (Date.now() % 150)) * 86_400_000,
+		)
 			.toISOString()
 			.slice(0, 10)
 		const note = `Graag over lezen praten (${RUN})`
