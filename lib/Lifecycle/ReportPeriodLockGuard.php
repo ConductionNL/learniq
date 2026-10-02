@@ -66,9 +66,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Lifecycle;
 
 use OCA\Learniq\Service\Grading\CorrectionApprovals;
+use OCA\Learniq\Service\Grading\ReportPeriodLocks;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
-use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -96,14 +96,11 @@ class ReportPeriodLockGuard implements LifecycleGuardInterface {
 	private const DENIAL = 'This grade is in a locked report period. A change needs a correction that a second person'
 		. ' approved. Publish the grade with the approved value.';
 
-	private const LEARNIQ_REGISTER = 'learniq';
-	private const REPORT_PERIOD_SCHEMA = 'report-period';
-
 	/**
 	 * Constructor.
 	 *
 	 * @param FraudCaseBlockGuard $fraudCaseBlockGuard The original guard this class composes (unchanged behaviour, called first).
-	 * @param ObjectService $objectService OR object access service.
+	 * @param ReportPeriodLocks $locks The report period over a grade entry, and whether it is locked.
 	 * @param CorrectionApprovals $corrections The approved correction for a grade entry, if any.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
@@ -111,7 +108,7 @@ class ReportPeriodLockGuard implements LifecycleGuardInterface {
 	 */
 	public function __construct(
 		private readonly FraudCaseBlockGuard $fraudCaseBlockGuard,
-		private readonly ObjectService $objectService,
+		private readonly ReportPeriodLocks $locks,
 		private readonly CorrectionApprovals $corrections,
 		private readonly LoggerInterface $logger,
 	) {
@@ -158,32 +155,14 @@ class ReportPeriodLockGuard implements LifecycleGuardInterface {
 	 * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
 	 */
 	private function allows(array $entry, string $userId): bool {
-		$period = (string)($entry['period'] ?? '');
-		$curriculumPlanId = (string)($entry['curriculumPlanId'] ?? '');
-		$tenantId = (string)($entry['tenant_id'] ?? '');
 		$entryId = $entry['id'] ?? ($entry['uuid'] ?? '');
 
-		if ($period === '' || $curriculumPlanId === '') {
-			// Nothing to match a ReportPeriod against.
-			return true;
-		}
-
-		$reportPeriod = $this->findGoverningReportPeriod(
-			period: $period,
-			curriculumPlanId: $curriculumPlanId,
-			tenantId: $tenantId
-		);
-
+		// No governing period (a school not using report cards, or an entry
+		// outside every period's scope) or a period before its lock date:
+		// allow. Locked is decided from lockDate, never from the stored
+		// isLocked alone, which OpenRegister does not keep (live pass D2).
+		$reportPeriod = $this->locks->lockedPeriodFor(entry: $entry);
 		if ($reportPeriod === null) {
-			// No ReportPeriod governs this entry — fail open, mirroring
-			// AttendanceFlagReportGuard's "no linked job -> allow
-			// unconditionally" posture.
-			return true;
-		}
-
-		$isLocked = $reportPeriod['isLocked'] ?? false;
-
-		if ($isLocked !== true) {
 			return true;
 		}
 
@@ -211,52 +190,4 @@ class ReportPeriodLockGuard implements LifecycleGuardInterface {
 
 		return false;
 	}//end allows()
-
-	/**
-	 * Resolve the ReportPeriod (if any) governing this GradeEntry's period +
-	 * curriculumPlanId, scoped to the same tenant.
-	 *
-	 * @param string $period GradeEntry.period value.
-	 * @param string $curriculumPlanId GradeEntry.curriculumPlanId value.
-	 * @param string $tenantId GradeEntry.tenant_id value.
-	 *
-	 * @return array<string,mixed>|null The governing ReportPeriod data array, or null when none matches.
-	 */
-	private function findGoverningReportPeriod(string $period, string $curriculumPlanId, string $tenantId): ?array {
-		$filters = ['periodCode' => $period];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$candidates = $this->objectService->findAll(
-			[
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::REPORT_PERIOD_SCHEMA,
-					]
-				),
-				'limit' => 500,
-			]
-		);
-
-		foreach ($candidates as $candidate) {
-			$candidateData = $candidate;
-			if (is_array($candidate) === false) {
-				$candidateData = $candidate->jsonSerialize();
-			}
-
-			$curriculumPlanIds = $candidateData['curriculumPlanIds'] ?? [];
-			if (is_array($curriculumPlanIds) === false) {
-				continue;
-			}
-
-			if (in_array($curriculumPlanId, $curriculumPlanIds, true) === true) {
-				return $candidateData;
-			}
-		}//end foreach
-
-		return null;
-	}//end findGoverningReportPeriod()
 }//end class
