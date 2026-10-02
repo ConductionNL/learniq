@@ -36,6 +36,7 @@ use OCA\Learniq\Listener\LessonNoteAuthorGuard;
 use OCA\Learniq\Listener\LvsResultLearnerRefStamp;
 use OCA\Learniq\Listener\ReportCardGradeLinesStamp;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
+use OCA\Learniq\Listener\AssignmentLearnerRefsStamp;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
 use OCA\Learniq\Listener\SubmissionOwnerStamp;
 use OCA\Learniq\Listener\SubmissionResubmissionDateListener;
@@ -143,6 +144,18 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: SubmissionLearnerRefsStamp::class
+		);
+
+		// Assignment learnerRefs (portal-parent-child-record): the guardian
+		// portal scopes homework on the pupils of the assignment's group, so
+		// the server derives them from the group's enrolments on every write.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: AssignmentLearnerRefsStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: AssignmentLearnerRefsStamp::class
 		);
 
 		// Submission resubmission date (submission-resubmission-action): the
