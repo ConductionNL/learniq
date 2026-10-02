@@ -2,12 +2,12 @@
 
 ### Requirement: An external assessor lands on what is shared with him and until when
 
-The `external-assessor` audience MUST declare pages. The first MUST be `eaOverview`, "Overzicht", showing an access notice, then one row per active share with the candidate's name, the portfolio title and the share's end date. The notice MUST give the latest `expiresAt` of his active shares, or say that the school ends the access when an active share has none. The audience MUST stay read-only: no action is added. Design of record: `LearniqAssessor.dc.html`, the access notice and the candidate column.
+The `external-assessor` audience MUST declare pages under `group: Mijn omgeving`, with `menu: false` on the default collection pages. The first MUST be `eaOverview`, "Overzicht", with `home: true`, showing a block "Uw toegang" with the end date of his latest-ending active share (a `collection` block over `eaSharedPortfolios`, `sort: { field: expiresAt, direction: desc }`, `limit: 1`), then one row per active share with the candidate's name, the portfolio title and the share's end date. A sentence for a share without an end date is not offered by portaliq's contract and is not declared. The audience MUST stay read-only: no action is added. Design of record: `LearniqAssessor.dc.html`, the access notice and the candidate column.
 
 #### Scenario: Ruud sees his access window
 - GIVEN assessor Ruud Jansen with two active shares ending 16 October and 9 October
 - WHEN he signs in on the examenportaal
-- THEN the notice reads that he has access up to and including 16 October
+- THEN "Uw toegang" shows 16 October
 - AND he sees one row per share with the candidate's name
 - @e2e exclude planned: written with the build in tests/e2e/mbo-assessor-flows.spec.ts (specs-only change)
 
@@ -35,7 +35,7 @@ The `external-assessor` audience MUST declare pages. The first MUST be `eaOvervi
 
 ### Requirement: NEW: An external assessor opens the shared entries, and only those
 
-The `external-assessor` audience MUST declare `eaSharedPortfolioEntries`, the `portfolio-entry` rows granted by his active, unexpired shares, projecting `portfolioId`, `title`, `evidenceKind`, `attachmentRef` and `reflectionText`. An entry outside a share's selection MUST NOT show. A revoked or expired share MUST grant no entry. The collection MUST NOT ship before portaliq can filter the joined share on `lifecycle` and `expiresAt`. This is new work: the shared content is a flagged follow-up today.
+The `external-assessor` audience MUST declare `eaSharedPortfolioEntries`, the `portfolio-entry` rows granted by his active, unexpired shares, projecting `portfolioId`, `title`, `evidenceKind`, `attachmentRef` and `reflectionText`. An entry outside a share's selection MUST NOT show. A revoked or expired share MUST grant no entry. The join MUST declare `via.when: { field: lifecycle, in: [active] }` and `via.validUntilField: expiresAt`. The collection MUST NOT ship before portaliq honours both (REQ-SMO-023). This is new work: the shared content is a flagged follow-up today.
 
 #### Scenario: Only the selected entries
 - GIVEN a share of three of Daan's five portfolio entries to Ruud
@@ -47,7 +47,7 @@ The `external-assessor` audience MUST declare `eaSharedPortfolioEntries`, the `p
 - GIVEN a share to Ruud whose `expiresAt` has passed
 - WHEN Ruud opens a link to one of its entries
 - THEN nothing opens
-- @e2e exclude needs portaliq's joined-schema filter on `via`; covered by a portaliq reader test
+- @e2e exclude enforced by portaliq's `via.validUntilField` (REQ-SMO-023); covered by a portaliq reader test and a PortalContributionProviderTest on the declared join
 
 ### Requirement: Every assessor label on the site reads in Dutch
 

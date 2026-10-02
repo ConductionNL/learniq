@@ -2,19 +2,19 @@
 
 ### Requirement: A guardian lands on an overview of one child at a time
 
-The parent audience MUST declare an overview page `parentOverview`, labelled "Overzicht", as the first page of its contribution. The page MUST take its child from `parentChildren` (`records`), one child at a time, so portaliq can draw a child switcher. With a child chosen the page MUST show, in this order: open tasks, four quick actions, the coming week, the attendance figures of the latest school year, the latest absence report, the three newest grades and the two newest inbox messages, all for that child only. Every block MUST read a collection that goes through the reverse join on the guardian's own children. Design of record: `Main.dc.html`.
+The parent audience MUST declare an overview page `parentOverview`, labelled "Overzicht", with `home: true`, so it opens on `/mijn`. The page MUST declare `records: { collection: parentChildren }`, one child at a time, so portaliq draws a child switcher. Below the open tasks (see the next requirement) the page MUST show, in this order: two quick actions, the coming week, the attendance figures of the latest school year, the latest absence report, and the three newest grades, each for the chosen child; then the two newest inbox messages about any of her children. Every block MUST read a collection that goes through the reverse join on the guardian's own children. Design of record: `Main.dc.html`.
 
 #### Scenario: The overview opens on the first child
 - GIVEN a guardian with two children, Vera and Sami, at De Wilgenboom
 - WHEN she signs in on the site
 - THEN she lands on "Overzicht" with Vera chosen and a switch to Sami
-- AND every block on the page is about Vera
+- AND every block below the tasks, except the messages, is about Vera
 - @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
 
 #### Scenario: Switching child changes every block
 - GIVEN the guardian on "Overzicht" with Vera chosen
 - WHEN she switches to Sami
-- THEN the tasks, the week, the figures, the grades and the messages are Sami's
+- THEN the week, the figures, the latest report and the grades are Sami's
 - @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
 
 #### Scenario: A guardian with one child sees no switcher
@@ -25,34 +25,34 @@ The parent audience MUST declare an overview page `parentOverview`, labelled "Ov
 
 ### Requirement: The overview puts open tasks first
 
-The overview MUST show, above every other block, each conference round in `booking-open` that invites the chosen child, as a task. A task MUST name what to do ("Kies een tijd voor het oudergesprek"), the teacher and the child, and the last day to book from `bookingClosesAt`. A task MUST link to the booking page of that child. A child without an open round MUST show no task block, not an empty one.
+The overview MUST be a home page (`home: true`) and MUST declare a `tasks` block over `parentConferenceRounds` with `dueField: bookingClosesAt`, so each conference round in `booking-open` that invites one of her children shows as a task in portaliq's "Dit moet u nog doen". A task MUST name what to do ("Kies een tijd voor het oudergesprek") and the last day to book. A task MUST link to the booking page. With no open round, no task block MUST show, not an empty one.
 
 #### Scenario: An open conference round is a task
 - GIVEN a conference round in `booking-open` that invites Vera and closes on 9 October
-- WHEN the guardian opens "Overzicht" for Vera
-- THEN the first block reads a task to pick a time, with the last day 9 October
-- AND the task opens the booking page for Vera
+- WHEN the guardian opens `/mijn`
+- THEN "Dit moet u nog doen" lists a task to pick a time, with the last day 9 October
+- AND the task opens the booking page
 - @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
 
 #### Scenario: No open round, no task block
-- GIVEN no conference round in `booking-open` for Sami
-- WHEN the guardian switches to Sami
+- GIVEN no conference round in `booking-open` for any of her children
+- WHEN the guardian opens `/mijn`
 - THEN no task block shows
 - @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
 
-### Requirement: The overview offers four quick actions
+### Requirement: The overview offers quick actions on existing actions
 
-The overview MUST declare four `cta` blocks, each on an action or page that exists: report the chosen child absent (`createExcuseRequest`, child preset), book a conversation (the page of `parentConferenceFreeSlots`), open grades and report cards (the record page of the child), and write to the teacher (portaliq's new conversation page). Each label MUST name the child where the mockup does ("Vera ziek of afwezig melden").
+The overview MUST declare two `cta` blocks on actions that exist: report a child absent (`createExcuseRequest`) and book a conversation (`bookConferenceSlot`). Tiles that open a page or a portaliq route ("Cijfers en rapport bekijken", "Bericht sturen aan de juf" in `Main.dc.html`) are not declared, because a `cta` names a contribution action only.
 
 #### Scenario: Report sick from the overview
-- GIVEN the guardian on "Overzicht" with Vera chosen
-- WHEN she taps "Vera ziek of afwezig melden"
-- THEN the absence form opens with Vera already chosen
+- GIVEN the guardian on "Overzicht"
+- WHEN she taps "Ziek of afwezig melden"
+- THEN the absence form opens and asks which child
 - @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
 
 ### Requirement: The guardian menu is grouped per child
 
-Every parent page MUST declare a menu group. The top group MUST hold "Overzicht", "Berichten" and "Agenda". Then one group per child MUST hold "Afwezigheid", "Cijfers en rapporten" and "Oudergesprekken" for that child. Then "Uw account". The pages `ParentPortalCollections::pages()` builds today MUST keep their ids and routes and MUST be hidden from the menu. Design of record: the side navigation of `Main.dc.html`.
+"Overzicht" and "Agenda" MUST declare `group: Mijn omgeving`. "Afwezigheid", "Cijfers en rapporten" and "Oudergesprekken" MUST each be a record page on `parentChildren` with `perRecord: parentChildren`, so the menu lists them once per child under that child's name. The pages `ParentPortalCollections::pages()` builds today MUST keep their ids and routes and MUST declare `menu: false`. Design of record: the side navigation of `Main.dc.html`.
 
 #### Scenario: The menu names each child
 - GIVEN a guardian with Vera and Sami
@@ -69,7 +69,7 @@ Every parent page MUST declare a menu group. The top group MUST hold "Overzicht"
 
 ### Requirement: The absence page shows the form and only the latest reports
 
-The parent audience MUST declare a page per child, "Afwezigheid", that shows the absence form for that child, then the three latest reports of that child by `dateFrom`, then a link to all reports. Each report MUST show the kind, the first day, the reason and the status in Dutch. The form MUST keep every rule of `createExcuseRequest`: the child from the guardian's own children only, a first and last day, a reason and a kind. Design of record: `LearniqAbsence.dc.html`.
+The parent audience MUST declare a record page on `parentChildren` with `perRecord: parentChildren`, "Afwezigheid", that shows the absence form for that child, then the three latest reports of that child by `dateFrom`, then a link to all reports. Each report MUST show the kind, the first day, the reason and the status in Dutch. The form MUST keep every rule of `createExcuseRequest`: the child from the guardian's own children only, a first and last day, a reason and a kind. Design of record: `LearniqAbsence.dc.html`.
 
 #### Scenario: Only the latest three
 - GIVEN Vera has seven earlier absence reports
@@ -79,9 +79,9 @@ The parent audience MUST declare a page per child, "Afwezigheid", that shows the
 
 #### Scenario: A sick report in under a minute
 - GIVEN the guardian on "Afwezigheid" for Vera on a phone
-- WHEN she picks "Ziek", "Vandaag" as first and last day, and sends
+- WHEN she picks the "Ziek" card, "Vandaag" as first and last day, and sends
 - THEN the report is saved for Vera with kind `illness`
-- AND she reads "De juf of meester heeft uw melding ontvangen."
+- AND the form is replaced by the confirmation "De juf of meester heeft uw melding ontvangen."
 - @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
 
 #### Scenario: A missing answer is named at the top

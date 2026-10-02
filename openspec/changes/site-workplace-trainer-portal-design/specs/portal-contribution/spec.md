@@ -2,7 +2,7 @@
 
 ### Requirement: A workplace trainer lands on what is waiting for her
 
-The `praktijkopleider` audience MUST declare pages. The first MUST be `poOverview`, "Overzicht", showing open steps first, then one card per student with an active or upcoming placement, each with the placement period and the next step. A next step MUST come from data the trainer can read: a POK to sign, an assessment to finish, or an assessment to write. Every block MUST read only her own placements, assessments and shares. Design of record: `LearniqTrainer.dc.html`.
+The `praktijkopleider` audience MUST declare pages under `group: Mijn omgeving`. The first MUST be `poOverview`, "Overzicht", with `home: true`, showing her students with an active or upcoming placement and each placement period. Learniq MUST raise a portal task for her when a step opens (a POK to sign, an assessment to write) and complete it when the step is done, so portaliq lists it first on `/mijn`. The default collection pages MUST declare `menu: false`. Every block MUST read only her own placements, assessments and shares. Design of record: `LearniqTrainer.dc.html`.
 
 #### Scenario: Karin sees her two students
 - GIVEN trainer Karin Smit with active placements for Daan and Lotte
@@ -12,8 +12,8 @@ The `praktijkopleider` audience MUST declare pages. The first MUST be `poOvervie
 
 #### Scenario: An assessment to write is a task
 - GIVEN Lotte's placement is active and Karin submitted no assessment for it
-- WHEN Karin opens "Overzicht"
-- THEN the open steps include "Vul een beoordeling in" for Lotte
+- WHEN Karin opens `/mijn`
+- THEN "Dit moet u nog doen" lists "Vul een beoordeling in" for Lotte
 - @e2e exclude planned: written with the build in tests/e2e/mbo-trainer-flows.spec.ts (specs-only change)
 
 #### Scenario: Another trainer's student never shows
@@ -24,7 +24,7 @@ The `praktijkopleider` audience MUST declare pages. The first MUST be `poOvervie
 
 ### Requirement: NEW: A trainer sees her students by name
 
-The `praktijkopleider` audience MUST declare `poLearners` over `learner-profile`, joined forward through her own placements, projecting `givenName` and `familyName` only. A learner whose placement with her is `terminated` MUST NOT show. This is new work: the placements carry only `learnerRef` today.
+The `praktijkopleider` audience MUST declare `poLearners` over `learner-profile`, joined forward through her own placements, projecting `givenName` and `familyName` only. The join MUST declare `via.when` on the placement's `lifecycle` with every state except `terminated`, so a learner whose placement with her is `terminated` does not show. This is new work: the placements carry only `learnerRef` today.
 
 #### Scenario: Names, nothing more
 - GIVEN Karin's placement for Daan Visser
@@ -34,23 +34,23 @@ The `praktijkopleider` audience MUST declare `poLearners` over `learner-profile`
 
 ### Requirement: NEW: A trainer reads the assessments she wrote
 
-The `praktijkopleider` audience MUST declare `poWerkprocesAssessments`, direct scope on `assessorId`, projecting the placement, the werkproces label, the judgement, the notes, `assessedAt` and `lifecycle`. She MUST see her drafts and her submitted assessments. She MUST NOT see another assessor's assessments.
+The `praktijkopleider` audience MUST declare `poWerkprocesAssessments`, direct scope on `assessorId`, projecting the placement, the werkproces label, the judgement, the notes, `assessedAt` and `lifecycle`. She MUST see her submitted and confirmed assessments. She MUST NOT see another assessor's assessments.
 
-#### Scenario: Karin finds her draft
-- GIVEN Karin saved a draft assessment for Lotte
+#### Scenario: Karin finds what she sent
+- GIVEN Karin sent an assessment for Lotte
 - WHEN she opens "Beoordelingen"
-- THEN the draft shows with "Maak de beoordeling af"
+- THEN the assessment shows with its werkproces, her judgement and "Verstuurd"
 - @e2e exclude planned: written with the build in tests/e2e/mbo-trainer-flows.spec.ts (specs-only change)
 
 ### Requirement: NEW: A trainer assesses a werkproces in plain words
 
-The assessment form MUST let the trainer pick the student by name from her own placements and the werkproces by its label from that placement's kwalificatiedossier. The codes MUST be filled by the server from that choice. The trainer MUST be able to save the form as a draft and finish it later through an update action on her own drafts. `assessorId` MUST stay stamped from her own claim. The school's confirmation MUST stay staff-only. `minTrust` MUST stay `substantial`.
+The assessment form MUST let the trainer pick the student by name from her own placements and the werkproces by its label from that placement's kwalificatiedossier. The codes MUST be filled by the server from that choice. The action MUST declare `steps` with a `description` per step, a last step with `review: true`, and `draft: { retentionDays: 30 }`, so portaliq keeps her answers and she can finish later. Learniq MUST NOT create a `draft` assessment from the portal; sending creates it as `submitted`. `assessorId` MUST stay stamped from her own claim. The school's confirmation MUST stay staff-only. `minTrust` MUST stay `substantial`.
 
 #### Scenario: Saving halfway
 - GIVEN Karin halfway through the assessment for Lotte
-- WHEN she saves and leaves
-- THEN a draft assessment exists with her answers, assessor Karin
-- AND opening it later continues where she stopped
+- WHEN she taps "Opslaan en later verdergaan" and leaves
+- THEN no assessment exists yet in learniq
+- AND opening the form later continues with her answers
 - @e2e exclude planned: written with the build in tests/e2e/mbo-trainer-flows.spec.ts (specs-only change)
 
 #### Scenario: A code sent by the client is ignored

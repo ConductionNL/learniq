@@ -32,17 +32,18 @@ They are copies for display. They are never read back as identity. A client cann
 ```
 eaSharedPortfolioEntries
   schema: portfolio-entry      scopeField: id      scopeClaim: externalAssessorId
-  via: { schema: portfolio-share, scopeField: sharedWithExternalAssessorId, targetField: entryIds }
+  via: { schema: portfolio-share, scopeField: sharedWithExternalAssessorId, targetField: entryIds,
+         when: { field: lifecycle, in: [active] }, validUntilField: expiresAt }
   fields: portfolioId, title, evidenceKind, attachmentRef, reflectionText
 ```
 
-The forward join keeps an entry whose own id is in the `entryIds` of one of his shares. A share that grants the whole portfolio (empty `entryIds`) needs a second collection joined on `portfolioId` with `match: scopeField`. Both need portaliq's joined-schema filter, so a `revoked` share or one past `expiresAt` grants nothing. Until portaliq has that filter this change does not ship the entries collection. The spec says so.
+The forward join keeps an entry whose own id is in the `entryIds` of one of his shares. A share that grants the whole portfolio (empty `entryIds`) needs a second collection joined on `portfolioId` with `match: scopeField`. Both declare `via.when: { field: lifecycle, in: [active] }` and `via.validUntilField: expiresAt` (portaliq REQ-SMO-023), so a `revoked` share or one past `expiresAt` grants nothing. An empty `expiresAt` grants, as the contract says. A malformed filter fails the join closed. The entries collection ships only after portaliq's wave 1 lands that filter.
 
 `submissionId`, `werkprocesAssessmentId`, `externalTrainingRecordId` and `credentialId` stay out. They point at records the assessor has no scope on.
 
 ## The access date
 
-`expiresAt` lives on each share, not on the assessor. The notice shows the latest end date among his active shares. If any active share has no end date, the notice says the school ends the access, and shows no date. The scope itself does not depend on the notice: an expired share must already resolve no rows (see above).
+`expiresAt` lives on each share, not on the assessor. The mockup's sentence "U heeft toegang tot en met <date>" needs a text with a value from data. Portaliq's contract has no block for that: a `richText` block is fixed text. The overview therefore shows "Uw toegang" as a `collection` block over `eaSharedPortfolios`, sorted on `expiresAt` descending, limit 1. Where a share without an end date sorts is portaliq's choice, so the mockup's "the school ends the access" sentence is not declared. Raised with lane pq. The scope itself does not depend on the notice: an expired share must already resolve no rows (see above).
 
 ## Proposed follow-up: mbo-practical-exam-assessment
 

@@ -1,14 +1,14 @@
 # Tasks: site-external-assessor-portal-design
 
-Specs only so far. Build starts after Ruben approves the specs. T3 waits on portaliq's joined-schema filter on `via`.
+Specs only so far. Build starts after Ruben approves the specs. T3 waits on portaliq's `via.when` and `via.validUntilField` (REQ-SMO-023, wave 1 of `site-mijn-omgeving-components`).
 
 - [ ] **T1**: register: `PortfolioShare.portfolioTitle`, `PortfolioShare.learnerName`, a server stamp on create, a back-fill for existing shares
   - PHPUnit for the stamp; `npm run check:register`
 - [ ] **T2**: `eaSharedPortfolios` projects both copies
   - PHPUnit `PortalContributionProviderTest`
-- [ ] **T3**: `eaSharedPortfolioEntries` through the share's `entryIds` (and `portfolioId` for a whole-portfolio share), only active and unexpired shares
+- [ ] **T3**: `eaSharedPortfolioEntries` through the share's `entryIds` (and `portfolioId` for a whole-portfolio share), with `via.when` and `via.validUntilField: expiresAt`
   - PHPUnit `PortalContributionProviderTest`; portaliq reader test for the joined filter
-- [ ] **T4**: `AssessorPortalPages`: overview with the access notice, "Gedeeld met mij", "Berichten"
+- [ ] **T4**: `AssessorPortalPages`: overview (`home: true`) with the access block, "Gedeeld met mij", under `group: Mijn omgeving`; default pages `menu: false`
   - PHPUnit for the new class
 - [ ] **T5**: the manifest through `PortalLabelTranslator`; Dutch "u" entries
   - PHPUnit `PortalLabelTranslatorTest`; `npm run check:l10n`

@@ -9,11 +9,12 @@
 | Mockup element | Learniq declares | Data today |
 |---|---|---|
 | "Hoi Noa. Je moet vandaag nog één ding inleveren." | page intro with a count of open hand-ins due today | `studentHomework` (NEW) |
-| "Inleveren": title, due date and time, "Vandaag", "Over 7 dagen" | `tasks` block over `studentHomework`, open only, sort `dueAt` | `assignment.title`, `dueAt` |
-| "Je rooster vandaag" with a cancelled lesson | calendar or timetable block over `studentSessions`, today | `session.startsAt`, `endsAt`, `title`, `location`, `lifecycle = cancelled` (NEW collection) |
-| "Werk inleveren", "Cijfers", "Toetsen", "Afwezig melden" | four `cta` blocks | `createSubmission` / `handIn`, the grades page, `studentTests`, `createExcuseRequest` |
+| "Inleveren": title, due date and time, "Vandaag", "Over 7 dagen" | `{ type: tasks, collection: studentHomework, dueField: dueAt, titleFields: [title] }` | `assignment.title`, `dueAt` |
+| "Je rooster vandaag" with a cancelled lesson | `{ type: calendar, range: week }` with two sources over `studentSessions` (see below) | `session.startsAt`, `endsAt`, `title`, `location`, `lifecycle` (NEW collection) |
+| "Werk inleveren", "Afwezig melden" | two `cta` blocks | `createSubmission`, `createExcuseRequest` |
+| "Cijfers", "Toetsen" tiles | not declared | not offered: a `cta` names an action id, not a page |
 | "Nieuwste cijfers" with "Telt 2 keer mee" | `collection` block, `limit: 3`, `sort: gradedAt desc` | `grade-entry.value`, `weight` (projection added), `courseName` (guardian change) |
-| "Berichten" | `inbox` block, `limit: 2` | `studentInbox` (grade notices), portaliq notices |
+| "Berichten" | `{ type: inbox, collection: studentInbox, limit: 2 }` | `studentInbox` (grade notices) |
 | "Vraag of probleem?" | `richText` block from the school's settings | none in learniq; portaliq page text |
 
 ## The timetable join (NEW)
@@ -23,17 +24,20 @@ A session belongs to a cohort, not to a pupil. The pupil's cohorts come from her
 ```
 studentSessions
   schema: session            scopeField: cohortId      scopeClaim: learnerRef
-  via: { schema: enrolment, scopeField: learnerRef, targetField: cohortId, match: scopeField }
+  via: { schema: enrolment, scopeField: learnerRef, targetField: cohortId, match: scopeField,
+         when: { field: lifecycle, in: [active] } }
   filter: lifecycle in [scheduled, in-progress, cancelled]
   fields: cohortId, courseId, title, startsAt, endsAt, location, lifecycle, onlineMeetingUrl
 ```
 
-This is the same reverse join the parent audience uses (portal-parent design), with the pupil's own `learnerRef` as the start instead of a guardian. An enrolment in `withdrawn` or `failed` should not count. `via` has no filter on the joined schema today (see the comment on `poSharedPortfolios`), so a withdrawn enrolment would still let the pupil see that group's sessions. Two ways out, to settle at build time:
+This is the same reverse join the parent audience uses (portal-parent design), with the pupil's own `learnerRef` as the start instead of a guardian. An enrolment in `withdrawn` or `failed` must not count. Portaliq's `via.when` (REQ-SMO-023) does that: the join declares `when: { field: lifecycle, in: [active] }`. Learniq's enrolment field is `lifecycle`; portaliq's example scenario says `status`, which is only an example. A malformed `when` fails the join closed, to zero rows.
 
-1. Portaliq adds a joined-schema filter to `via` (already flagged as a follow-up in `PortalContributionProvider`).
-2. Accept it: a withdrawn pupil sees the old group's lessons until the enrolment is removed. That leaks a timetable, not personal data.
+The calendar block shows the timetable with two sources over `studentSessions`, using the source grammar `ParentRecordPage::childSources()` already uses:
 
-The spec requires option 1 or an equivalent. It does not accept option 2 silently.
+- `only: { field: lifecycle, in: [scheduled, in-progress] }`, kind "Les".
+- `only: { field: lifecycle, in: [cancelled] }`, kind "Valt uit".
+
+The contract's `range` is `week` or `month`. The mockup heading "Je rooster vandaag" needs a single day, which the contract does not offer. This change declares `range: week` and the heading "Je rooster deze week". A day range is raised with lane pq.
 
 `affectedLearnerIds`, `affectedParentIds`, `substituteTeacherId` and `changeReason` are not projected. They name other people or carry staff notes.
 
@@ -49,7 +53,9 @@ studentHomework
   lookup: status from studentSubmissions by assignmentId (draft = Open, submitted, late, returned)
 ```
 
-`learnerRefs` is never projected, as on the parent side. `instructions` is projected on the detail only, so the pupil can read what to hand in.
+`learnerRefs` is never projected, as on the parent side.
+
+The `tasks` block lists every row of `studentHomework`. REQ-SMO-021 offers no way to leave out a row by a lookup value, so handed-in work stays in "Inleveren" on the overview until its assignment closes. The "Inleveren" page shows the status per row. Leaving out handed-in rows is raised with lane pq. `instructions` is projected on the detail only, so the pupil can read what to hand in.
 
 ## Labels
 

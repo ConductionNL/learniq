@@ -4,7 +4,7 @@ Specs only so far. Build starts after Ruben approves the specs, `site-guardian-p
 
 - [ ] **T1**: `studentSessions` over `session` through the enrolment join, projected fields only
   - PHPUnit `PortalContributionProviderTest`
-- [ ] **T2**: a withdrawn enrolment stops the timetable: portaliq's joined-schema filter on `via`, or an equivalent named at build time
+- [ ] **T2**: `via.when: { field: lifecycle, in: [active] }` on the enrolment join, so a withdrawn enrolment grants no session
   - portaliq reader test; PHPUnit `PortalContributionProviderTest`
 - [ ] **T3**: `studentHomework` over published assignments by `learnerRefs`, with the submission status lookup
   - PHPUnit `PortalContributionProviderTest`

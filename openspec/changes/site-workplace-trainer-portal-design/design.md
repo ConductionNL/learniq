@@ -23,24 +23,28 @@
 Derived from data the trainer can already read, in this order:
 
 1. The placement is `proposed` or `sbb-verification-pending` and she has no POK signature: "Onderteken de praktijkovereenkomst".
-2. The placement is `active` and she has a `draft` assessment: "Maak de beoordeling af".
-3. The placement is `active` and she has no `submitted` or `confirmed` assessment for it: "Vul een beoordeling in".
-4. Otherwise no step.
+2. The placement is `active` and she has no `submitted` or `confirmed` assessment for it: "Vul een beoordeling in".
+3. Otherwise no step.
 
-The deadline "Voor 16 oktober" in the mockup has no source. The task shows how long the step has been open where a date exists (the placement's `periodFrom`), and no deadline otherwise.
+The deadline "Voor 16 oktober" in the mockup has no source. A step carries no deadline.
 
-Where the derivation runs is a build decision. Portaliq has no computed-field hook in the manifest. The likely shape is a learniq endpoint-forward listing the trainer's open steps, the pattern the student flows already use (`StudentFlowActions`). It stays server-side and takes the trainer from the stamped claim only.
+## Open steps
+
+The mockup's "Dit moet u nog doen" is a derived list: no collection holds "an assessment to write". Portaliq's `tasks` block needs a collection with a `dueField` (REQ-SMO-021), so it cannot show a derived list. Portaliq's `/mijn` home does show open portal tasks first (`site-mijn-omgeving-components` D4), from OpenRegister's portal-task seam (`PortalTaskGateway`).
+
+So the open steps are portal tasks. Learniq raises a portal task for the trainer when a step opens (a placement moves to `active` without her assessment, a POK waits for her signature) and completes it when the step is done. That uses an existing seam, not a new key. Whether a praktijkopleider portal subject can be addressed by that seam is to be checked at build time. If it cannot, the overview shows the student cards without a task list, and this is named in the PR.
 
 ## Student names (NEW)
 
 ```
 poLearners
   schema: learner-profile     scopeField: id        scopeClaim: practicalTrainerId
-  via: { schema: bpv-placement, scopeField: practicalTrainerId, targetField: learnerRef }
+  via: { schema: bpv-placement, scopeField: practicalTrainerId, targetField: learnerRef,
+         when: { field: lifecycle, in: [proposed, sbb-verification-pending, confirmed, active, completed] } }
   fields: givenName, familyName
 ```
 
-The forward join (the default `match`) keeps a learner-profile whose own id is in the set of `learnerRef` values of her placements. A placement in `terminated` should not reveal the name. The `via` join has no filter on the joined schema today. Same open point as the pupil timetable: portaliq's joined-schema filter, or accept that a terminated placement still shows a first and last name. The spec requires the filter.
+The forward join (the default `match`) keeps a learner-profile whose own id is in the set of `learnerRef` values of her placements. A placement in `terminated` must not reveal the name. Portaliq's `via.when` (REQ-SMO-023) does that: the join lists every placement state except `terminated`. A malformed `when` fails the join closed.
 
 Only names leave learniq. Birth date, address, medical data and contacts stay out.
 
@@ -51,6 +55,9 @@ Only names leave learniq. Birth date, address, medical data and contacts stay ou
 - `werkprocesCode`, `coreTaskCode`, `kwalificatiedossierCode` and `werkprocesLabel` are filled from one choice. The choices are the werkprocessen of the placement's kwalificatiedossier, shown by label. The trainer never types a code.
 - `bpvPlacementId` is picked from her own placements by student name (`crossRefs`, as the guardian's child pick).
 - `assessment` reads "Nog niet competent" or "Competent", with one line of explanation each.
-- The form is in steps with save and resume (portaliq `site-multi-step-forms`). A saved form is a `draft` assessment. Sending moves it to `submitted`. The school's confirmation (`confirmed`) stays staff-only.
+- The form declares `steps`, each with a `description` in plain words: "Welke student en welk werkproces?", "Uw oordeel", "Toelichting", then a step with `review: true`.
+- `assessment` uses `widget: choices`: two cards, "Nog niet competent" and "Competent", with one line of explanation each.
+- `draft: { retentionDays: 30 }`: portaliq keeps her answers in its own `portalDraft`, scoped to her, until she sends or the draft expires. Learniq writes no `draft` assessment from the portal. Sending creates the assessment as `submitted`. The school's confirmation (`confirmed`) stays staff-only.
+- `confirmation: { title: "Uw beoordeling is verstuurd", body: "De begeleider van school ziet uw beoordeling nu." }`.
 
-Continuing a draft needs an update action on her own `draft` rows (`rowWhen lifecycle in [draft]`), the pattern `cancelConferenceTime` uses. That action is part of this change.
+A file answer is not kept in a portaliq draft. The assessment form has no file field, so that limit does not bite here.

@@ -2,33 +2,33 @@
 
 ### Requirement: A pupil lands on an overview of today
 
-The student audience MUST declare pages. The first MUST be `studentOverview`, "Overzicht", showing in this order: open work to hand in with the nearest deadline first, today's timetable, four quick actions, the three newest grades and the two newest inbox messages. Every block MUST read a collection scoped to the pupil's own `learnerRef`. Design of record: `LearniqPupil.dc.html`.
+The student audience MUST declare pages. The first MUST be `studentOverview`, "Overzicht", with `home: true`, showing in this order: work to hand in as a `tasks` block with `dueField: dueAt`, this week's timetable, two quick actions (hand in, report absent), the three newest grades and the two newest inbox messages. Every block MUST read a collection scoped to the pupil's own `learnerRef`. Design of record: `LearniqPupil.dc.html`.
 
 #### Scenario: Noa opens the portal between classes
 - GIVEN pupil Noa with one assignment due today at 23.59 and one due in 7 days
 - WHEN she signs in on her phone
-- THEN "Overzicht" shows both, today's first, each with its date and time
-- AND below it today's lessons and her three newest grades
+- THEN "Dit moet u nog doen" on `/mijn` shows both, today's first, each with its date and time
+- AND below it this week's lessons and her three newest grades
 - @e2e exclude planned: written with the build in tests/e2e/vo-pupil-flows.spec.ts (specs-only change)
 
 ### Requirement: The pupil menu is short
 
-The student pages MUST appear in the menu as: Overzicht, Rooster, Inleveren, Cijfers, Toetsen, Afwezig melden, Berichten. The default page of each student collection MUST keep its route and MUST NOT appear in the menu.
+The student pages MUST declare `group: Mijn omgeving` and appear in the menu as: Overzicht, Rooster, Inleveren, Cijfers, Toetsen, Afwezig melden. Berichten is portaliq's own inbox entry. The default page of each student collection MUST keep its route and MUST declare `menu: false`.
 
 #### Scenario: No collection names in the menu
 - GIVEN Noa signed in
 - WHEN she opens the menu
-- THEN she sees the seven entries and no "My submissions" or "My enrolments"
+- THEN she sees the six entries and Berichten, and no "My submissions" or "My enrolments"
 - @e2e exclude planned: written with the build in tests/e2e/vo-pupil-flows.spec.ts (specs-only change)
 
 ### Requirement: NEW: A pupil sees her own timetable
 
-The student audience MUST declare `studentSessions`, the `session` rows of the cohorts the pupil is actively enrolled in, joined through her own enrolments. It MUST project only `cohortId`, `courseId`, `title`, `startsAt`, `endsAt`, `location`, `lifecycle` and `onlineMeetingUrl`. A cancelled session MUST show as cancelled ("valt uit"), not disappear. A session of a cohort the pupil is not, or no longer, enrolled in MUST NOT show. This is new work: no student collection reads sessions today.
+The student audience MUST declare `studentSessions`, the `session` rows of the cohorts the pupil is actively enrolled in, joined through her own enrolments. It MUST project only `cohortId`, `courseId`, `title`, `startsAt`, `endsAt`, `location`, `lifecycle` and `onlineMeetingUrl`. A cancelled session MUST show as cancelled ("valt uit"), not disappear. A session of a cohort the pupil is not enrolled in MUST NOT show. The join MUST declare `via.when: { field: lifecycle, in: [active] }`, so a withdrawn or failed enrolment grants no session. The overview shows the timetable as a `calendar` block with `range: week`; a one-day range is not offered by portaliq's contract. This is new work: no student collection reads sessions today.
 
 #### Scenario: Today's lessons with a cancellation
-- GIVEN Noa's group has wiskunde at 8.30, engels at 10.15 and a cancelled geschiedenis at 12.30
+- GIVEN Noa's group has wiskunde at 8.30, engels at 10.15 and a cancelled geschiedenis at 12.30 today
 - WHEN she opens "Overzicht"
-- THEN "Je rooster vandaag" lists the three, the last marked "valt uit"
+- THEN the week's timetable lists the three under today, the last marked "valt uit"
 - @e2e exclude planned: written with the build in tests/e2e/vo-pupil-flows.spec.ts (specs-only change)
 
 #### Scenario: Another group's lessons stay hidden
@@ -41,7 +41,7 @@ The student audience MUST declare `studentSessions`, the `session` rows of the c
 - GIVEN Noa's enrolment in a cohort is `withdrawn`
 - WHEN she opens "Rooster"
 - THEN no session of that cohort shows
-- @e2e exclude needs portaliq's joined-schema filter on `via` (see design); covered by a portaliq reader test
+- @e2e exclude enforced by portaliq's `via.when` (REQ-SMO-023); covered by a portaliq reader test and a PortalContributionProviderTest on the declared `when`
 
 ### Requirement: NEW: A pupil sees the work she has to hand in
 
@@ -53,10 +53,10 @@ The student audience MUST declare `studentHomework`, the published assignments w
 - THEN the hand-in form opens for that assignment
 - @e2e exclude planned: written with the build in tests/e2e/vo-pupil-flows.spec.ts (specs-only change)
 
-#### Scenario: Handed-in work drops from the task list
+#### Scenario: Handed-in work shows its status
 - GIVEN Noa handed in "Verslag biologie"
-- WHEN she opens "Overzicht"
-- THEN it no longer shows under "Inleveren", and "Inleveren" lists it as "Ingeleverd"
+- WHEN she opens "Inleveren"
+- THEN the row reads "Ingeleverd"
 - @e2e exclude planned: written with the build in tests/e2e/vo-pupil-flows.spec.ts (specs-only change)
 
 ### Requirement: A pupil's grade shows its subject and weight

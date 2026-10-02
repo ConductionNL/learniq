@@ -25,9 +25,9 @@ So this change does two things. It designs the part of the mockup that today's d
 
 Existing data, new declarations:
 
-- **An overview** `eaOverview`, "Overzicht": the access notice and the candidates whose work is shared with him.
+- **An overview** `eaOverview`, "Overzicht", with `home: true`: the access notice and the candidates whose work is shared with him.
 - **The access notice**: "U heeft toegang tot en met <date>. U ziet alleen de kandidaten die u beoordeelt." The date is the latest `expiresAt` of his active shares. A share without an end date gives no date and a notice that the school ends the access.
-- **A short menu**: Overzicht, Gedeeld met mij, Berichten.
+- **A short menu** under `group: Mijn omgeving`: Overzicht, Gedeeld met mij. Berichten is portaliq's own inbox entry. The default collection pages get `menu: false`.
 - **Dutch labels** through `PortalLabelTranslator`, in the "u" form.
 
 New work, clearly marked in the specs:
@@ -39,8 +39,8 @@ New work, clearly marked in the specs:
 
 Portaliq (lane pq; referenced, not respecified):
 
-- `site-mijn-omgeving-components`: the notice banner, the candidate list, the file item with type and size, the menu keys.
-- A joined-schema filter on `via`, so a revoked or expired share resolves no entries. Already flagged as a follow-up in `PortalContributionProvider`.
+- `site-mijn-omgeving-components` (portaliq PR #1110): the page keys `group`, `menu: false` and `home: true`; the candidate list and the file item. And `via.when` with `via.validUntilField` (REQ-SMO-023, wave 1 of that change), so a revoked or expired share resolves no entries.
+- Not offered by that contract: a notice banner a contribution can fill from data. The access notice is a `richText` block whose date learniq cannot fill from `expiresAt`, so it is declared as a `collection` block over `eaSharedPortfolios` with `sort: { field: expiresAt, direction: desc }` and `limit: 1`, under the heading "Uw toegang". Raised with lane pq.
 
 Learniq:
 

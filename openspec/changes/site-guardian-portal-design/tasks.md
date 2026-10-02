@@ -8,11 +8,11 @@ Specs only so far. Build starts after Ruben approves the specs and portaliq's `s
   - PHPUnit `PortalContributionProviderTest`
 - [ ] **T3**: `parentInbox` (`kind: inbox`) over `report-card-parent-notification` and `grade-notification`, through the child join, `visibleFrom` passed
   - PHPUnit `PortalContributionProviderTest`, `ParentRecordPageTest`
-- [ ] **T4**: `parentOverview` page: records, tasks, four quick actions, week, figures, latest report, newest grades, newest messages
+- [ ] **T4**: `parentOverview` page (`home: true`, `records`): tasks, two quick actions, week, figures, latest report, newest grades, newest messages
   - PHPUnit `ParentRecordPageTest`
-- [ ] **T5**: menu groups on every parent page; the collection pages keep id and route and get `menu.hidden`
+- [ ] **T5**: `group` and `perRecord` on the parent pages; the collection pages keep id and route and get `menu: false`
   - PHPUnit `ParentRecordPageTest`
-- [ ] **T6**: per-child "Afwezigheid" page; widget hints and Dutch success text on `createExcuseRequest`
+- [ ] **T6**: per-child "Afwezigheid" and "Oudergesprekken" record pages; `widget: choices` and `dateChoices` and a `confirmation` on `createExcuseRequest`
   - PHPUnit `PortalContributionProviderTest`
 - [ ] **T7**: Dutch for every new label; translator covers task, quick action and menu group labels
   - PHPUnit `PortalLabelTranslatorTest`; `npm run check:l10n`

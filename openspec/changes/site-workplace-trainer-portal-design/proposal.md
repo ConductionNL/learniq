@@ -23,23 +23,24 @@ The mockup assumes more than that. It shows hours to approve, hours done against
 
 Existing data, new declarations:
 
-- **An overview** `poOverview`, "Overzicht": "Dit moet u nog doen", one card per student, and "Uw contact bij school".
-- **A short menu**: Overzicht, Mijn studenten, Beoordelingen, Berichten. "Gegevens van het bedrijf" waits (see "Not in this change").
+- **An overview** `poOverview`, "Overzicht", with `home: true`: one card per student. "Dit moet u nog doen" is portaliq's own list of open portal tasks on `/mijn` (see "Open steps" in the design). "Uw contact bij school" waits (see "Not in this change").
+- **A short menu** under `group: Mijn omgeving`: Overzicht, Mijn studenten, Beoordelingen. Berichten is portaliq's own inbox entry. The default collection pages get `menu: false`. "Gegevens van het bedrijf" waits (see "Not in this change").
 - **Student cards** show the placement period and the next step from data that exists: a POK to sign, or an assessment to write.
 - **Dutch labels** for the whole manifest, through `PortalLabelTranslator`, with a short explanation of each school term on first use ("praktijkovereenkomst (POK): de afspraken tussen u, de student en school").
 
 New work, clearly marked in the specs:
 
 - **NEW: student names.** `poLearners` over `learner-profile`, through a forward join on her own placements (`bpv-placement.practicalTrainerId` to `learnerRef`), projecting `givenName` and `familyName` only.
-- **NEW: her own assessments.** `poWerkprocesAssessments`, direct scope on `assessorId`, so she sees what she submitted and what is still a draft.
-- **NEW: an assessment form in plain words.** The werkproces is picked from the student's own kwalificatiedossier by its label, not typed as a code. The form saves as a draft and can be finished later.
+- **NEW: her own assessments.** `poWerkprocesAssessments`, direct scope on `assessorId`, so she sees what she submitted.
+- **NEW: an assessment form in plain words.** The werkproces is picked from the student's own kwalificatiedossier by its label, not typed as a code. The form runs in steps with a review step, and keeps her answers as a portaliq draft (`draft: { retentionDays: 30 }`) so she can finish later.
 
 ## Depends on
 
 Portaliq (lane pq; referenced, not respecified):
 
-- `site-mijn-omgeving-components`: task rows with "N dagen open", the student card with a progress figure, the contact card, the menu keys.
-- `site-multi-step-forms`: the assessment form in steps, save and resume, the summary before sending.
+- `site-mijn-omgeving-components` (portaliq PR #1110): the page keys `group`, `menu: false` and `home: true`; the `/mijn` home that lists open portal tasks first; `via.when`, so a terminated placement grants no name (REQ-SMO-023).
+- `site-multi-step-forms` (portaliq PR #1110): the action keys `steps` (with `description` per step), a step with `review: true`, `draft: { retentionDays }` and `confirmation: { title, body, next }`; `fieldConfigs.widget: choices` for the judgement.
+- Not offered by that contract, raised with lane pq: a student card block with a progress figure. The contract has no block for one card per record with derived values. The students show as a `collection` block over `poBpvPlacements`.
 
 Learniq:
 
