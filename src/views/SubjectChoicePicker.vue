@@ -89,11 +89,27 @@
 					multiple
 					:inputLabel="t('learniq', 'Electives')"
 					:aria-label-combobox="t('learniq', 'Electives')" />
+				<ul
+					v-if="chosenElectives.length > 0"
+					class="subject-choice-picker__slots"
+					data-testid="elective-slots">
+					<li v-for="elective in chosenElectives" :key="elective.id">
+						<strong>{{ elective.label }}</strong
+						>:
+						{{
+							elective.slots.length > 0
+								? elective.slots.map(slotText).join(', ')
+								: t('learniq', 'no lessons planned yet')
+						}}
+					</li>
+				</ul>
 			</div>
 
 			<!-- Live rule feedback -->
 			<div v-if="selectedPlan" class="subject-choice-picker__feedback">
-				<NcNoteCard v-if="feedback.length === 0" type="success">
+				<NcNoteCard
+					v-if="feedback.length === 0 && clashMessages.length === 0"
+					type="success">
 					{{
 						t(
 							'learniq',
@@ -103,6 +119,16 @@
 				</NcNoteCard>
 				<NcNoteCard v-for="(msg, idx) in feedback" :key="idx" type="warning">
 					{{ msg }}
+				</NcNoteCard>
+				<NcNoteCard
+					v-for="(msg, idx) in clashMessages"
+					:key="'clash-' + idx"
+					type="warning"
+					data-testid="elective-clash">
+					{{ msg }}
+				</NcNoteCard>
+				<NcNoteCard v-if="slotsError" type="error">
+					{{ slotsError }}
 				</NcNoteCard>
 			</div>
 
@@ -152,6 +178,7 @@
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
+import { getLanguage } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import {
 	NcButton,
@@ -160,6 +187,7 @@ import {
 	NcNoteCard,
 	NcSelect,
 } from '@nextcloud/vue'
+import { clashes, slotLabel } from '../utils/electiveSlots.js'
 
 export default {
 	name: 'SubjectChoicePicker',
@@ -187,6 +215,11 @@ export default {
 			submitting: false,
 			submitError: '',
 			submitSuccess: false,
+			// Weekly slots per elective and of the learner's own core lessons
+			// (timetabling-student-choice-placement).
+			electiveSlots: {},
+			coreSlots: [],
+			slotsError: '',
 		}
 	},
 
@@ -327,6 +360,43 @@ export default {
 		},
 
 		/**
+		 * The chosen electives with their weekly slots.
+		 *
+		 * @return {Array<{id: string, label: string, slots: Array<object>}>}
+		 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-clash-warning-when-choosing
+		 */
+		chosenElectives() {
+			return this.selectedCourseIds.map((id) => {
+				const option = this.electiveOptions.find((o) => o.id === id)
+				return {
+					id,
+					label: (option && option.label) || id,
+					slots: this.electiveSlots[id] || [],
+				}
+			})
+		},
+
+		/**
+		 * One warning per pair of chosen electives, or elective and core lesson, that meet at the same time.
+		 *
+		 * @return {Array<string>}
+		 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-clash-warning-when-choosing
+		 */
+		clashMessages() {
+			return clashes(this.chosenElectives, this.coreSlots).map((c) =>
+				this.t(
+					'learniq',
+					'{first} and {second} meet at the same time: {slot}.',
+					{
+						first: c.first,
+						second: c.second,
+						slot: this.slotText(c.slot),
+					},
+				),
+			)
+		},
+
+		/**
 		 * Whether the form has enough input to submit.
 		 *
 		 * @return {boolean}
@@ -342,12 +412,68 @@ export default {
 		},
 	},
 
+	watch: {
+		selectedCourseIds: 'loadSlots',
+		selectedLearnerId: 'loadSlots',
+	},
+
 	async mounted() {
 		await this.loadPlansAndCourses()
 		await this.loadLearners()
 	},
 
 	methods: {
+		/**
+		 * A slot as text in the reader's language.
+		 *
+		 * @param {object} slot The slot.
+		 * @return {string}
+		 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-clash-warning-when-choosing
+		 */
+		slotText(slot) {
+			return slotLabel(slot, getLanguage())
+		},
+
+		/**
+		 * Load the chosen electives' slots, and the learner's own core lessons
+		 * when the learner chooses for themselves (a guardian cannot read a
+		 * child's timetable here, so then only electives are compared).
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-clash-warning-when-choosing
+		 */
+		async loadSlots() {
+			this.slotsError = ''
+			if (this.selectedCourseIds.length === 0) {
+				this.electiveSlots = {}
+				this.coreSlots = []
+				return
+			}
+			const self =
+				this.selectedLearnerId !== ''
+				&& this.selectedLearnerId === getCurrentUser()?.uid
+			try {
+				const { data } = await axios.get(
+					generateUrl('/apps/learniq/api/timetable/course-slots'),
+					{
+						params: {
+							courseIds: this.selectedCourseIds.join(','),
+							withCore: self ? '1' : '0',
+						},
+					},
+				)
+				this.electiveSlots = data?.courses || {}
+				this.coreSlots = Array.isArray(data?.core) ? data.core : []
+			} catch {
+				this.electiveSlots = {}
+				this.coreSlots = []
+				this.slotsError = this.t(
+					'learniq',
+					'The lesson times of these electives could not be read.',
+				)
+			}
+		},
+
 		/**
 		 * Load CurriculumPlans and Courses (for elective display labels).
 		 *
@@ -531,6 +657,11 @@ export default {
 	flex-direction: row;
 	align-items: center;
 	gap: 0.5rem;
+}
+
+.subject-choice-picker__slots {
+	margin: 8px 0 0;
+	padding-inline-start: 20px;
 }
 
 .subject-choice-picker__feedback {

@@ -54,6 +54,12 @@
 						{{ t('learniq', 'Week') }}
 					</NcButton>
 				</div>
+				<NcButton
+					variant="secondary"
+					data-testid="calendar-feed-open"
+					@click="subscribing = true">
+					{{ t('learniq', 'Subscribe in your calendar') }}
+				</NcButton>
 			</div>
 		</div>
 
@@ -228,6 +234,24 @@
 							</ul>
 						</details>
 						<NcButton
+							v-if="
+								joinUrl(session) && session.lifecycle !== 'cancelled'
+							"
+							class="my-timetable__session-manage"
+							variant="secondary"
+							:href="joinUrl(session)"
+							target="_blank"
+							rel="noopener noreferrer"
+							:aria-label="
+								t(
+									'learniq',
+									'Join this lesson online (opens in a new tab)',
+								)
+							"
+							data-testid="session-join">
+							{{ t('learniq', 'Join') }}
+						</NcButton>
+						<NcButton
 							v-if="session.canAddNote"
 							class="my-timetable__session-manage"
 							variant="tertiary"
@@ -259,6 +283,10 @@
 			:session="notingSession"
 			@close="notingSession = null"
 			@saved="onChanged" />
+
+		<TimetableCalendarFeedDialog
+			v-if="subscribing"
+			@close="subscribing = false" />
 	</div>
 </template>
 
@@ -267,11 +295,13 @@ import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/
 import NoteTextOutline from 'vue-material-design-icons/NoteTextOutline.vue'
 import LessonNoteDialog from '../dialogs/LessonNoteDialog.vue'
 import SubstitutionModal from '../dialogs/SubstitutionModal.vue'
+import TimetableCalendarFeedDialog from '../dialogs/TimetableCalendarFeedDialog.vue'
 import {
 	fetchMyStandby,
 	fetchMyTimetable,
 	isLearniqSession,
 } from '../api/timetable.js'
+import { joinUrl } from '../utils/onlineLesson.js'
 
 /**
  * Compute the Monday (00:00, local) of the week containing `date`.
@@ -298,6 +328,7 @@ export default {
 		LessonNoteDialog,
 		NoteTextOutline,
 		SubstitutionModal,
+		TimetableCalendarFeedDialog,
 	},
 
 	data() {
@@ -315,6 +346,8 @@ export default {
 			managingSession: null,
 			// The lesson currently open in LessonNoteDialog, or null.
 			notingSession: null,
+			// Whether the calendar feed dialog is open (attendance-timetable-calendar-feed).
+			subscribing: false,
 			// Where the lessons come from: `learniq` Sessions, or planninq's
 			// school timetable (sessions-from-planninq).
 			source: 'learniq',
@@ -444,6 +477,8 @@ export default {
 	},
 
 	methods: {
+		joinUrl,
+
 		/**
 		 * Whether a session is a learniq Session (opens and can be managed).
 		 *

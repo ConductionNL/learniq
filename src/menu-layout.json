@@ -19,6 +19,7 @@
 		"GroupBpv": "GroupProgress",
 		"Compliance": "GroupCompliance",
 		"ExternalTraining": "GroupCompliance",
+		"AbsenceReportsComplianceMenu": "GroupCompliance",
 		"Accessibility": "GroupCompliance",
 		"AccessibilityLimitationsMenu": "GroupCompliance",
 		"AiProcessingDisclosureMenu": "GroupCompliance",

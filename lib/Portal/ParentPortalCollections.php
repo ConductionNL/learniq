@@ -76,6 +76,55 @@ class ParentPortalCollections {
 	}//end groupMembershipsCollection()
 
 	/**
+	 * The grades on the child's published report cards, for the guardian.
+	 *
+	 * A primary school records no grade entries, only report cards, so
+	 * `parentGrades` (over `grade-entry`) stays empty for its guardians. This
+	 * collection reads `report-card` through the same reverse `via` join as
+	 * every parent read, behind the same lifecycle filter as
+	 * `parentReportCards`: only a card in `published-to-parents` is ever
+	 * read, so a draft or a card still in review never reaches a guardian.
+	 *
+	 * Portaliq shows a nested list as one cell and leaves every uuid out, so
+	 * `subjectGrades` itself would read "7,9, Yes" without a subject or a
+	 * period. The collection shows the readable copies the server keeps
+	 * beside it instead (ReportCardGradeLines): `periodName` and
+	 * `gradeLines`, one line per subject. Pupil tracking results (Cito,
+	 * `lvs-result`) are not report card grades and are not read here.
+	 *
+	 * @param array<string, mixed> $childJoin The shared reverse `via` join descriptor.
+	 *
+	 * @return array<string, mixed> The collection.
+	 *
+	 * @spec openspec/changes/portal-parent-report-card-grades/specs/portal-contribution/spec.md#requirement-the-parent-audience-reads-the-grades-on-the-childs-published-report-cards
+	 */
+	public function reportCardGradesCollection(array $childJoin): array {
+		return [
+			'id' => 'parentReportCardGrades',
+			'register' => self::REGISTER,
+			'schema' => 'report-card',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'guardianRef',
+			'via' => $childJoin,
+			'groupByField' => 'learnerRef',
+			'filter' => ['lifecycle' => 'published-to-parents'],
+			'label' => "My child's report card grades",
+			'listable' => true,
+			'minTrust' => 'substantial',
+			'fields' => [
+				'learnerRef',
+				'periodName',
+				'gradeLines',
+			],
+			'columns' => [
+				['field' => 'periodName', 'label' => 'Period'],
+				['field' => 'gradeLines', 'label' => 'Grades'],
+			],
+		];
+
+	}//end reportCardGradesCollection()
+
+	/**
 	 * The guardian's parent-teacher conference collections: the rounds open
 	 * to one of their children, their bookings and the scheduled times.
 	 *

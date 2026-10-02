@@ -96,6 +96,7 @@ return [
         // (ADR-023: compliance.department-rollup, regulation.assign; learniq#951).
         // Controller: ComplianceRollupController (slug: complianceRollup).
         ['name' => 'complianceRollup#departments',      'url' => '/api/compliance/departments',        'verb' => 'GET'],
+        ['name' => 'complianceRollup#regulations',      'url' => '/api/compliance/coverage-by-regulation', 'verb' => 'GET'],
         ['name' => 'complianceRollup#assignRegulation', 'url' => '/api/compliance/regulations/{id}/assign', 'verb' => 'POST'],
 
         // QTI package import — user-invokable action (ADR-023: qti.import).
@@ -149,6 +150,7 @@ return [
         // action matrix (external-training.bulk-record / .issue-credential).
         // Controller: ExternalTrainingController (slug: externalTraining).
         ['name' => 'externalTraining#bulkRecord',      'url' => '/api/external-training/bulk',                  'verb' => 'POST'],
+        ['name' => 'externalTraining#import',          'url' => '/api/external-training/import',                'verb' => 'POST'],
         ['name' => 'externalTraining#issueCredential', 'url' => '/api/external-training/{recordId}/credential', 'verb' => 'POST'],
         ['name' => 'externalTraining#learnerCoverage', 'url' => '/api/external-training/coverage',              'verb' => 'GET'],
 
@@ -200,6 +202,17 @@ return [
         // (planninq when installed, else Session), after an RBAC read of the cohort
         // (sessions-from-planninq).
         ['name' => 'timetable#cohort', 'url' => '/api/timetable/cohort/{cohortId}', 'verb' => 'GET', 'requirements' => ['cohortId' => '[^/]+']],
+        // attendance-timetable-calendar-feed: the caller's own calendar address (status, make or
+        // reset, remove), and the feed a calendar app fetches by token with no session.
+        // Controllers: TimetableFeedAddressController, TimetableFeedController (#[PublicPage], rate limited).
+        ['name' => 'timetableFeedAddress#status', 'url' => '/api/timetable/feed', 'verb' => 'GET'],
+        ['name' => 'timetableFeedAddress#create', 'url' => '/api/timetable/feed', 'verb' => 'POST'],
+        ['name' => 'timetableFeedAddress#revoke', 'url' => '/api/timetable/feed', 'verb' => 'DELETE'],
+        ['name' => 'timetableFeed#feed', 'url' => '/api/timetable/feed/{token}.ics', 'verb' => 'GET', 'requirements' => ['token' => '[a-f0-9]{64}']],
+        // timetabling-student-choice-placement: weekly slots of the electives being chosen, and the
+        // caller's own core lessons, for the subject choice picker's overlap warning.
+        // Controller: ElectiveSlotsController (each course read with the caller's rights first).
+        ['name' => 'electiveSlots#slots', 'url' => '/api/timetable/course-slots', 'verb' => 'GET'],
         // Contact hours (timetabling-contact-hours): owed by the hour plan, given by held
         // lessons, attended per learner, for a window. #[NoAdminRequired] + the
         // report.contact-hours action in the body.

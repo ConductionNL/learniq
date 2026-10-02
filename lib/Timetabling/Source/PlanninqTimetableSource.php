@@ -140,6 +140,24 @@ class PlanninqTimetableSource implements TimetableSource {
 	}//end sessionsForTeacher()
 
 	/**
+	 * Planninq lessons carry no learniq course, and planninq's query takes no
+	 * course: an elective reaches a learner through the elective group's
+	 * cohort instead. So no course query is ever sent.
+	 *
+	 * @param array<int,string> $courseIds Course UUIDs.
+	 * @param string|null       $from      ISO 8601 window start, or null.
+	 * @param string|null       $to        ISO 8601 window end, or null.
+	 *
+	 * @return array<int,array<string,mixed>> Always empty.
+	 *
+	 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-elective-sessions-in-the-personal-timetable
+	 */
+	public function sessionsForCourses(array $courseIds, ?string $from, ?string $to): array {
+		unset($courseIds, $from, $to);
+		return [];
+	}//end sessionsForCourses()
+
+	/**
 	 * Dispatch one query and map planninq's lessons onto learniq's session shape.
 	 *
 	 * @param array<string,string> $identity The identity criterion.
