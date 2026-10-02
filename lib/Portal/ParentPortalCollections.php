@@ -203,7 +203,7 @@ class ParentPortalCollections {
 				'columns' => [
 					['field' => 'slotLabel', 'label' => 'Time'],
 					['field' => 'notes', 'label' => 'Your note'],
-					['field' => 'lifecycle', 'label' => 'Status'],
+					['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::SIGNUP_STATUS],
 					['field' => 'declineNote', 'label' => 'Reason for declining'],
 				],
 			],
@@ -235,7 +235,7 @@ class ParentPortalCollections {
 					['field' => 'endsAt', 'label' => 'Ends'],
 					['field' => 'teacherName', 'label' => 'With'],
 					['field' => 'location', 'label' => 'Where'],
-					['field' => 'lifecycle', 'label' => 'Status'],
+					['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::SLOT_STATUS],
 					['field' => 'declineNote', 'label' => 'Reason for declining'],
 				],
 				'rowActions' => ['cancelConferenceTime'],

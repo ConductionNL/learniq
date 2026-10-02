@@ -3571,6 +3571,12 @@ OC.L10N.register(
         "Anything the teacher should know beforehand": "Wat de leerkracht vooraf moet weten",
         "Book": "Boeken",
         "Your booking is in. The school plans the times, and you see yours under your conference times.": "Uw aanvraag is binnen. De school plant de tijden, en u ziet uw tijd onder uw gesprekstijden.",
+        "Scheduled": "Ingepland",
+        "On the waiting list": "Op de wachtlijst",
+        "Booking cancelled": "Boeking geannuleerd",
+        "Proposed time": "Voorgestelde tijd",
+        "Did not attend": "Niet verschenen",
+        "Conversation cancelled": "Gesprek geannuleerd",
         "Booking mode": "Manier van boeken",
         "How parents book. Direct: teachers publish free times and a parent picks one. Preference: parents ask, and the school plans the times when booking closes. A round without a value works as preference.": "Hoe ouders boeken. Direct: leerkrachten zetten vrije tijden klaar en een ouder kiest er een. Voorkeur: ouders geven een voorkeur op en de school plant de tijden als het boeken sluit. Een ronde zonder waarde werkt met voorkeur.",
         "Parents pick a free time": "Ouders kiezen een vrije tijd",
@@ -3601,7 +3607,6 @@ OC.L10N.register(
         "Booked time": "Geboekte tijd",
         "The booked date, time and teacher in one line.": "De geboekte datum, tijd en leerkracht op een regel.",
         "Why the teacher declined the booked time.": "Waarom de leerkracht de geboekte tijd afwees.",
-        "Scheduled": "Ingepland",
         "Waitlisted": "Op de wachtlijst",
         "Free times you can book": "Vrije tijden die u kunt boeken",
         "Book a time": "Tijd boeken",
@@ -3611,7 +3616,9 @@ OC.L10N.register(
         "The time is cancelled. You can book another free time while booking is open.": "De tijd is geannuleerd. Zolang het boeken open is, kunt u een andere vrije tijd kiezen.",
         "Ask for a parent-teacher conversation": "Oudergesprek aanvragen",
         "Bookings to answer": "Boekingen om te beantwoorden",
-        "No bookings waiting for an answer.": "Geen boekingen die op een antwoord wachten."
+        "No bookings waiting for an answer.": "Geen boekingen die op een antwoord wachten.",
+        "Acknowledged by the teacher": "Bevestigd door de leerkracht",
+        "Declined by the teacher": "Afgewezen door de leerkracht"
     },
     "nplurals=2; plural=(n != 1);"
 )

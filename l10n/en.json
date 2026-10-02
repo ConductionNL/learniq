@@ -3156,6 +3156,13 @@
         "Anything the teacher should know beforehand": "Anything the teacher should know beforehand",
         "Book": "Book",
         "Your booking is in. The school plans the times, and you see yours under your conference times.": "Your booking is in. The school plans the times, and you see yours under your conference times.",
+        "Submitted": "Submitted",
+        "Scheduled": "Scheduled",
+        "On the waiting list": "On the waiting list",
+        "Booking cancelled": "Booking cancelled",
+        "Proposed time": "Proposed time",
+        "Did not attend": "Did not attend",
+        "Conversation cancelled": "Conversation cancelled",
         "Booking mode": "Booking mode",
         "How parents book. Direct: teachers publish free times and a parent picks one. Preference: parents ask, and the school plans the times when booking closes. A round without a value works as preference.": "How parents book. Direct: teachers publish free times and a parent picks one. Preference: parents ask, and the school plans the times when booking closes. A round without a value works as preference.",
         "Parents pick a free time": "Parents pick a free time",
@@ -3186,8 +3193,6 @@
         "Booked time": "Booked time",
         "The booked date, time and teacher in one line.": "The booked date, time and teacher in one line.",
         "Why the teacher declined the booked time.": "Why the teacher declined the booked time.",
-        "Submitted": "Submitted",
-        "Scheduled": "Scheduled",
         "Waitlisted": "Waitlisted",
         "Free times you can book": "Free times you can book",
         "Book a time": "Book a time",
@@ -3197,7 +3202,9 @@
         "The time is cancelled. You can book another free time while booking is open.": "The time is cancelled. You can book another free time while booking is open.",
         "Ask for a parent-teacher conversation": "Ask for a parent-teacher conversation",
         "Bookings to answer": "Bookings to answer",
-        "No bookings waiting for an answer.": "No bookings waiting for an answer."
+        "No bookings waiting for an answer.": "No bookings waiting for an answer.",
+        "Acknowledged by the teacher": "Acknowledged by the teacher",
+        "Declined by the teacher": "Declined by the teacher"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
