@@ -10,9 +10,9 @@
 ## 2. UI
 
 - [x] 2.1a The programme form edits `mandatoryCourseIds` from the schema (title "Mandatory courses"); the enrolment form at /enrolments already edits `mandatory` per enrolment (D4); the learner home has a "My programmes" widget that lists optional parts under their own heading.
-- [ ] 2.1b Playwright flow: author marks a course optional, enrol, manager overrides, learner home shows it. Needs the branch deployed on the shared instance.
+- [x] 2.1b Live flow on the shared dev instance (2 Oct, learniq 1197793c, browser): the author marks one of two courses mandatory, the learner signs up for the programme (one mandatory, one optional enrolment), the manager switches the optional one to mandatory, and the learner home reads "0 of 2 mandatory courses done". Evidence: `~/memcap-work/build-all/livepass/learniq/enrolment-programme-mandatory-per-person/RESULT.md`.
 
 ## 3. Close out
 
 - [x] 3.1 Add strings to every shipped locale. Verify: `npm run check:l10n` and `check:schema-l10n` (en and nl added; the other locales stay at the ratchet baseline).
-- [ ] 3.2 Set row `enr-path-mandatory-per-person` to built and archive the change. Verify: parity_verify --strict. Waits on 2.1b.
+- [x] 3.2 Set row `enr-path-mandatory-per-person` to built and archive the change. Verify: parity_verify --strict.
