@@ -157,7 +157,6 @@ class CourseEvaluationEligibilityGuard implements LifecycleGuardInterface {
 		$filters = [
 			'campaignId' => $campaignId,
 			'learnerId' => $callerUid,
-			'hasResponded' => false,
 		];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
@@ -172,8 +171,25 @@ class CourseEvaluationEligibilityGuard implements LifecycleGuardInterface {
 						'schema' => self::EVALUATION_INVITATION_SCHEMA,
 					]
 				),
-				'limit' => 1,
+				'limit' => 50,
 			]
+		);
+
+		// Answered invitations are skipped here, not filtered in the query:
+		// OpenRegister binds a `hasResponded => false` filter as '' and
+		// PostgreSQL refuses that for a boolean column (live pass D5).
+		$invitations = array_values(
+			array_filter(
+				$invitations,
+				static function ($invitation): bool {
+					$data = $invitation;
+					if (is_array($invitation) === false) {
+						$data = $invitation->jsonSerialize();
+					}
+
+					return ($data['hasResponded'] ?? false) !== true;
+				}
+			)
 		);
 
 		if (empty($invitations) === true) {
