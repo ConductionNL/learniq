@@ -6510,15 +6510,15 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "building",
-        "evidence": "lib/Lifecycle/RegulationExemptionDecisionGuard.php:43",
+        "state": "built",
+        "evidence": "lib/Lifecycle/RegulationExemptionDecisionGuard.php:43. Live flow passed on the dev instance 2026-10-02, recorded in the archived tasks.md.",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/compliance/exemptions",
-        "change": "openspec/changes/compliance-exemption-record"
+        "change": "openspec/changes/archive/2026-10-02-compliance-exemption-record"
       },
       "provider": "self",
       "providerHow": "learniq's ExemptionCase lifecycle and guard handle the school exemption; the compliance side has none.",
-      "learniq": "partial",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/completion/criteria/completion_criteria_role.php:38 (course completion marked by a role) + public/completion/classes/external.php:149 override_activity_completion_status + public/grade/edit/tree/grade_form.php:88 (excluded grade); a teacher or manager can mark someone complete or exclude a grade, which stands in for an exemption. Searched public/ for exempt, exemption: only quiz access rule and data privacy strings. No exemption record and no reason field.",
         "moodle-workplace": "read 2026-09-26: not documented: https://docs.moodle.org/502/en/Certifications_Configuration offers manual \"Certify user\" with a past date but no exemption status or reason field; searched Certifications, Programs_Configuration and the Workplace release notes.",
@@ -6666,15 +6666,15 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "building",
-        "evidence": "lib/Service/Programme/ProgrammeRequirements.php:50",
+        "state": "built",
+        "evidence": "lib/Service/Programme/ProgrammeRequirements.php:50. Live flow passed on the dev instance 2026-10-02, recorded in the archived tasks.md.",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/curriculum/programmes (programme form), /enrolments (enrolment form), learner home My programmes widget",
-        "change": "openspec/changes/enrolment-programme-mandatory-per-person"
+        "change": "openspec/changes/archive/2026-10-02-enrolment-programme-mandatory-per-person"
       },
       "provider": "self",
       "providerHow": "learniq's Enrolment schema carries the per-person flag; paths have no per-person layer.",
-      "learniq": "partial",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/admin/tool/lp/editplan.php + public/competency/classes/api.php:2505 create_plan and :3353 add_competency_to_plan; each person can have an individual learning plan with its own set of competencies linked to courses. There is no learning path object with mandatory and optional parts, and course completion criteria are the same for everyone in the course. Programs are Moodle Workplace, not core.",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Programs_Configuration; sets complete \"All in order\", \"All in any order\" or \"At least #\", and managers can \"manually override the scheduling information\" per user. Overrides cover dates, not which parts are mandatory for one person.",
@@ -6823,15 +6823,15 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "building",
-        "evidence": "lib/Service/LessonReleaseEvaluator.php:357",
+        "state": "built",
+        "evidence": "lib/Service/LessonReleaseEvaluator.php:357. Live flow passed on the dev instance 2026-10-02, recorded in the archived tasks.md.",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/courses/:courseId/lessons/:lessonId/play",
-        "change": "openspec/changes/content-adaptive-next-step-and-preview"
+        "change": "openspec/changes/archive/2026-10-02-content-adaptive-next-step-and-preview"
       },
       "provider": "self",
       "providerHow": "learniq's LessonReleaseEvaluator and LessonReleaseController decide release per learner at request time.",
-      "learniq": "partial",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/lesson/pagetypes/multichoice.php:186 (jump depends on correct or wrong answer) + public/mod/lesson/locallib.php:2450 jumpto_is_correct; a lesson sends the learner to different pages per answer. Also public/availability/condition/grade/classes/condition.php:29 opens the next activity only when a grade range is reached.",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Restrict_access_settings; \"You can specify a condition on any grade in the course ... either a minimum value ... a maximum value\", e.g. \"one activity with a maximum of 7 and another with a minimum of 7\". Workplace includes core per https://support.moodle.com/support/solutions/articles/80001074804-difference-between-moodle-workplace-and-moodle-lms: \"Moodle Workplace is built on Moodle LMS and contains all its features plus more\"; Workplace 5.2.3 is based on Moodle LMS 5.2.3 (https://docs.moodle.org/502/en/Moodle_Workplace_release_notes).",
@@ -6855,15 +6855,15 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "building",
-        "evidence": "src/views/LessonComposer.vue:483",
+        "state": "built",
+        "evidence": "src/views/LessonComposer.vue:483. Live flow passed on the dev instance 2026-10-02, recorded in the archived tasks.md.",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/courses/:courseId/lessons/:lessonId/compose > Preview",
-        "change": "openspec/changes/content-adaptive-next-step-and-preview"
+        "change": "openspec/changes/archive/2026-10-02-content-adaptive-next-step-and-preview"
       },
       "provider": "self",
       "providerHow": "learniq's own composer and player views.",
-      "learniq": "partial",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/course/switchrole.php:58 role_switch (Switch role to Student) + public/course/loginas.php:43 (log in as a specific learner); the teacher sees the course with student rights, and an admin can see it exactly as one named learner.",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Switch_roles; switching role lets a teacher \"see what the course would look like to someone with that role\". Workplace includes core per https://support.moodle.com/support/solutions/articles/80001074804-difference-between-moodle-workplace-and-moodle-lms: \"Moodle Workplace is built on Moodle LMS and contains all its features plus more\"; Workplace 5.2.3 is based on Moodle LMS 5.2.3 (https://docs.moodle.org/502/en/Moodle_Workplace_release_notes).",
@@ -7013,15 +7013,15 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "building",
-        "evidence": "lib/Lifecycle/AccessibilityStatementPublishGuard.php:134",
+        "state": "built",
+        "evidence": "lib/Lifecycle/AccessibilityStatementPublishGuard.php:134. Live flow passed on the dev instance 2026-10-02, recorded in the archived tasks.md.",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/accessibility; /accessibility/limitations",
-        "change": "openspec/changes/governance-wcag-evidence-report"
+        "change": "openspec/changes/archive/2026-10-02-governance-wcag-evidence-report"
       },
       "provider": "self",
       "providerHow": "learniq's accessibility statement schemas and guard, with the nextcloud-vue components carrying most of the markup.",
-      "learniq": "partial",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/tests/behat/behat_accessibility.php:48 run_axe_validation_for_tags with wcag2aa, wcag21aa, wcag22aa tags at :248-250, used by 63 feature files; plus the shipped Brickfield accessibility toolkit (admin/tool/brickfield) that checks course content. The tree shows automated axe testing, not a conformance claim; the accessibility statement and VPAT live on moodle.org docs, outside the tree.",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Accessibility; \"the WCAG 2.2 guidelines are followed\" and \"An overview of Moodle's conformance with the WCAG 2.2 guidelines can be found in our accessibility conformance report\". This is the Moodle LMS statement; no Workplace-specific report was found and the page does not state the AA level for 2.2. Workplace includes core per https://support.moodle.com/support/solutions/articles/80001074804-difference-between-moodle-workplace-and-moodle-lms: \"Moodle Workplace is built on Moodle LMS and contains all its features plus more\"; Workplace 5.2.3 is based on Moodle LMS 5.2.3 (https://docs.moodle.org/502/en/Moodle_Workplace_release_notes).",
