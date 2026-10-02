@@ -427,6 +427,12 @@ class InMemoryLocks implements ILockingProvider {
 	 * {@inheritDoc}
 	 */
 	public function acquireLock(string $path, int $type, ?string $readablePath = null): void {
+		// Nextcloud's database locking provider keeps the key in a
+		// 64-character column; a longer key fails the query.
+		if (strlen($path) > 64) {
+			throw new \RuntimeException('SQLSTATE[22001]: value too long for the lock key: ' . $path);
+		}
+
 		if (isset($this->held[$path]) === true) {
 			throw new LockedException($path);
 		}

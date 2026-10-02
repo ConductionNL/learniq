@@ -19,7 +19,7 @@ A declined or cancelled slot keeps who booked it and the teacher's note, so the 
 
 ## Why the claim locks
 
-The check ("is the slot free, may this child book it, has the child no other time") and the write must not interleave between two requests. Both run under exclusive Nextcloud locks on `learniq/conference-slot/<slot>` and `learniq/conference-booking/<round>/<child>`. A held lock is a refusal, not a wait. The slot is read inside the locks from storage (`ObjectService::find` keeps no object data between calls). Nextcloud's locking provider is the database by default. With `filelocking.enabled` false it is a no-op, and only the re-read inside the claim remains.
+The check ("is the slot free, may this child book it, has the child no other time") and the write must not interleave between two requests. Both run under exclusive Nextcloud locks on `slot/<slot>` and `booking/<round>/<child>`, hashed into `learniq/conference/<md5>` because the database lock table keeps 64 characters. A held lock is a refusal, not a wait. The slot is read inside the locks from storage (`ObjectService::find` keeps no object data between calls). Nextcloud's locking provider is the database by default. With `filelocking.enabled` false it is a no-op, and only the re-read inside the claim remains.
 
 ## Migration
 

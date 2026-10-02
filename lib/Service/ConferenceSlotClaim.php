@@ -8,7 +8,8 @@
  * than the round allows.
  *
  * The check and the write happen under two exclusive Nextcloud locks: one on
- * the slot and one on the child in the round. The slot's state is read from
+ * the slot and one on the child in the round (keys hashed to fit the lock
+ * table, lockKey()). The slot's state is read from
  * storage INSIDE the locks (ObjectService::find keeps no copy of object data
  * between calls), so a second request always sees a booking the first one
  * wrote. A lock that is
@@ -91,8 +92,8 @@ class ConferenceSlotClaim {
 	 */
 	public function claim(string $slotId, array $round, array $booking): array {
 		$roundId = (string)($round['id'] ?? '');
-		$slotLock = 'learniq/conference-slot/' . $slotId;
-		$childLock = 'learniq/conference-booking/' . $roundId . '/' . $booking['learnerRef'];
+		$slotLock = self::lockKey(name: 'slot/' . $slotId);
+		$childLock = self::lockKey(name: 'booking/' . $roundId . '/' . $booking['learnerRef']);
 		$held = [];
 		try {
 			foreach ([$slotLock, $childLock] as $path) {
@@ -109,6 +110,20 @@ class ConferenceSlotClaim {
 			}
 		}
 	}//end claim()
+
+	/**
+	 * A lock key that fits Nextcloud's lock table: the database locking
+	 * provider stores the key in a 64-character column, so two uuids in one
+	 * plain path are refused by the database. Nextcloud hashes its own file
+	 * lock keys the same way.
+	 *
+	 * @param string $name What is locked.
+	 *
+	 * @return string At most 51 characters.
+	 */
+	public static function lockKey(string $name): string {
+		return 'learniq/conference/' . md5($name);
+	}//end lockKey()
 
 	/**
 	 * The check and the write, with both locks held.
