@@ -77,6 +77,12 @@ class PortalContributionProvider {
 	private const REGISTER = 'learniq';
 
 	/**
+	 * What an absence report's attachment may be: a doctor's note or a letter,
+	 * as a document or a photo of one.
+	 */
+	private const EXCUSE_ATTACHMENT_ACCEPT = ['.pdf', '.jpg', '.jpeg', '.png', '.heic', '.doc', '.docx', '.odt'];
+
+	/**
 	 * Constructor; the container hands in the factory, `new` with no arguments answers in English.
 	 *
 	 * @param IFactory|null $l10nFactory Puts parent labels in the request's language (PortalLabelTranslator).
@@ -533,10 +539,34 @@ class PortalContributionProvider {
 					'reasonKind',
 					'attachmentRef',
 				],
+				'fieldConfigs' => ['attachmentRef' => self::excuseAttachmentField()],
 			],
 		];
 
 	}//end studentActions()
+
+	/**
+	 * The attachment of an absence report as portaliq's file field.
+	 *
+	 * Without `type: file` portaliq renders a text box. With it, portaliq
+	 * creates the report first, then uploads the file into the report's folder
+	 * and writes the file id into `attachmentRef`. That property is a string,
+	 * so the field takes one file.
+	 *
+	 * @return array<string, mixed> The field config.
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-parent-audience-can-report-a-childs-absence-validated-against-the-callers-own-children-req-pcon-007
+	 */
+	private static function excuseAttachmentField(): array {
+		return [
+			'type' => 'file',
+			'label' => 'Attachment',
+			'multiple' => false,
+			'accept' => self::EXCUSE_ATTACHMENT_ACCEPT,
+			'maxSizeMb' => 10,
+		];
+
+	}//end excuseAttachmentField()
 
 	/**
 	 * Manifest for the `parent` audience (a guardian of the learner).
@@ -718,7 +748,7 @@ class PortalContributionProvider {
 					'dateTo' => ['label' => 'Last day absent', 'required' => true],
 					'reason' => ['label' => 'Reason', 'required' => true],
 					'reasonKind' => ['label' => 'Kind of absence', 'required' => true, 'valueLabels' => PortalValueLabels::ABSENCE_KIND],
-					'attachmentRef' => ['label' => 'Attachment'],
+					'attachmentRef' => self::excuseAttachmentField(),
 				],
 				'submitLabel' => 'Report the absence',
 				'successMessage' => "The school has your report. You see the teacher's decision in the list of absence reports.",
