@@ -433,6 +433,22 @@ class ParentPortalCollections {
 	}//end conferenceSignupAction()
 
 	/**
+	 * The parent contribution with its pages (see pages()).
+	 *
+	 * @param array<string, mixed> $contribution The contribution, with collections and actions.
+	 *
+	 * @return array<string, mixed> The same contribution with `pages`.
+	 *
+	 * @spec openspec/changes/direct-conference-booking/specs/portal-contribution/spec.md
+	 */
+	public function withPages(array $contribution): array {
+		$contribution['pages'] = $this->pages(collections: $contribution['collections'], actions: $contribution['actions']);
+
+		return $contribution;
+
+	}//end withPages()
+
+	/**
 	 * The parent pages: one per listable collection, built the way portaliq
 	 * builds its default pages (the collection's create form, the table, the
 	 * selected row), with one difference. Portaliq puts the FIRST create

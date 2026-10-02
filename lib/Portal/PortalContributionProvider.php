@@ -588,7 +588,7 @@ class PortalContributionProvider {
 		];
 		$extras = new ParentPortalCollections();
 
-		$contribution = [
+		return $extras->withPages(contribution: [
 			'label' => 'Learniq',
 			'collections' => array_merge(
 				[$this->parentChildrenCollection()],
@@ -623,15 +623,7 @@ class PortalContributionProvider {
 					'field' => 'cohortId',
 				],
 			],
-		];
-
-		// One page per collection, as portaliq would make them, except that
-		// the free conference times carry the booking form
-		// (direct-conference-booking): portaliq's own pages show one create
-		// form per schema, and both conference forms create a signup.
-		$contribution['pages'] = $extras->pages(collections: $contribution['collections'], actions: $contribution['actions']);
-
-		return $contribution;
+		]);
 
 	}//end parentContribution()
 
