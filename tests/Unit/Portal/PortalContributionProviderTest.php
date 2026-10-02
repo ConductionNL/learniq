@@ -113,7 +113,10 @@ class PortalContributionProviderTest extends TestCase {
 	}//end setUp()
 
 	/**
-	 * The class is plain: no interfaces, no parent, no constructor deps.
+	 * The class is plain: no interfaces, no parent, and no required
+	 * constructor deps. Its one optional dependency is Nextcloud's own l10n
+	 * factory (never a portaliq class), so `new` with no arguments still
+	 * builds an inert, English provider.
 	 *
 	 * @return void
 	 */
@@ -122,7 +125,13 @@ class PortalContributionProviderTest extends TestCase {
 
 		$this->assertSame([], $reflection->getInterfaceNames());
 		$this->assertFalse($reflection->getParentClass());
-		$this->assertNull($reflection->getConstructor());
+		$constructor = $reflection->getConstructor();
+		$this->assertNotNull($constructor);
+		$this->assertSame(0, $constructor->getNumberOfRequiredParameters());
+		foreach ($constructor->getParameters() as $parameter) {
+			$this->assertTrue($parameter->allowsNull());
+			$this->assertStringStartsWith('OCP\\', (string) $parameter->getType()?->getName());
+		}
 
 	}//end testClassIsPlainAndDependencyFree()
 

@@ -33,6 +33,14 @@
  *   e. she reads the grades on her child's published report cards, and a draft
  *      report card the teacher starts never reaches her.
  *
+ * Every page the guardian sees is the Vue site (`/apps/portaliq/site`), on its
+ * signed-in routes (`&route=/mijn/learniq/<collection>` and the shell's own
+ * sections such as `/mijn/news`). The portal API under
+ * `/apps/portaliq/portal/api/*` stays the data source the assertions read.
+ * The steps that fill a form on the site wait for portaliq's form slice
+ * (portaliq#1029); until it lands they are `test.fixme`, and the same writes
+ * go through the portal API so the teacher's half of each flow still runs.
+ *
  * Screenshots of every step land in `test-results/po-flow/`.
  *
  * @spec openspec/changes/portal-guardian-invitation/specs/portal-identity/spec.md
@@ -53,6 +61,8 @@ const ENABLED = process.env.PO_FLOW_E2E === '1'
 const SHOTS = path.resolve(__dirname, '..', '..', 'test-results', 'po-flow')
 
 const PORTAL = process.env.PO_FLOW_PORTAL ?? 'wilgenboom'
+const SITE_TOKEN_KEY = 'portaliq.session.token'
+const SITE = `/apps/portaliq/site?portal=${encodeURIComponent(PORTAL)}`
 const ORGANISATION = process.env.PO_FLOW_ORGANISATION ?? 'default-organisation'
 const ISSUER = process.env.PO_FLOW_OIDC_ISSUER ?? ''
 const CLIENT_ID = process.env.PO_FLOW_OIDC_CLIENT ?? 'wilgenboom-portal'
@@ -83,6 +93,7 @@ const SCHOOL = 'ee010001-0000-4000-8000-000000000001'
 const TENANT = '00000000-0000-4000-8000-000000000000'
 
 const RUN = Date.now().toString(36)
+const NEWS_TITLE = `Studiedag vrijdag 9 oktober (${RUN})`
 
 test.describe.configure({ mode: 'serial' })
 
@@ -129,14 +140,14 @@ test.describe('po: teacher and parent flows', () => {
 
 	test('a. the guardian sees her own child and nothing of another child', async () => {
 		await shot(parent, 'a1-portal-home')
-		await openTab(parent, 'My children')
+		await openPage(parent, 'learniq/parentChildren')
 		await expect(
 			parent.getByText(CHILD.name, { exact: true }).first(),
 		).toBeVisible()
 		await shot(parent, 'a2-my-children')
-		await openTab(parent, "My child's attendance")
+		await openPage(parent, 'learniq/parentAttendance')
 		await shot(parent, 'a3-attendance')
-		await openTab(parent, "My child's report cards")
+		await openPage(parent, 'learniq/parentReportCards')
 		await shot(parent, 'a4-report-cards')
 
 		const children = await portalRows('learner-profile', 'parentChildren')
@@ -161,11 +172,9 @@ test.describe('po: teacher and parent flows', () => {
 		expect(foreign.status()).toBe(404)
 	})
 
-	test('b. an absence report goes from the guardian to the teacher and back', async ({
-		browser,
-	}) => {
-		const reason = `Koorts (${RUN})`
-		await openTab(parent, "My child's absence excuses")
+	test.fixme('b0. the guardian reports the absence through the form on the site (waits for portaliq#1029/#1026 on /site)', async () => {
+		const reason = `Koorts, formulier (${RUN})`
+		await openPage(parent, 'learniq/parentExcuseRequests')
 		await parent
 			.locator('select#f-createExcuseRequest-learnerRef')
 			.selectOption(CHILD.ref)
@@ -180,6 +189,36 @@ test.describe('po: teacher and parent flows', () => {
 				timeout: 15_000,
 			})
 			.toBe('submitted')
+		await shot(parent, 'b2-absence-sent')
+	})
+
+	test('b. an absence report goes from the guardian to the teacher and back', async ({
+		browser,
+	}) => {
+		const reason = `Koorts (${RUN})`
+		// The form on the site is b0's step; the same report goes through the
+		// portal API here, with the guardian's own token.
+		const sent = await parent.request.post(
+			'/apps/portaliq/portal/api/collections/learniq/excuse-request',
+			{
+				headers: bearer(),
+				data: {
+					learnerRef: CHILD.ref,
+					dateFrom: '2026-10-01',
+					dateTo: '2026-10-01',
+					reason,
+					reasonKind: 'illness',
+				},
+			},
+		)
+		expect(sent.status(), await sent.text()).toBeLessThan(300)
+		await expect
+			.poll(async () => (await excuseFor(reason))?.lifecycle, {
+				timeout: 15_000,
+			})
+			.toBe('submitted')
+		await openPage(parent, 'learniq/parentExcuseRequests')
+		await expect(parent.getByText(reason).first()).toBeVisible()
 		await shot(parent, 'b2-absence-sent')
 
 		// A child that is not hers is refused by portaliq before it is stored.
@@ -213,13 +252,13 @@ test.describe('po: teacher and parent flows', () => {
 		const decided = await excuseFor(reason)
 		expect(decided?.lifecycle).toBe('approved')
 		expect(decided?.decidedAt).toBeTruthy()
-		await parent.reload()
-		await openTab(parent, "My child's absence excuses")
+		await openPage(parent, 'learniq/parentExcuseRequests')
+		await expect(parent.getByText(reason).first()).toBeVisible()
 		await shot(parent, 'b5-guardian-sees-outcome')
 	})
 
 	test('c. school news reaches the guardian, untranslated without hermiq', async () => {
-		const title = `Studiedag vrijdag 9 oktober (${RUN})`
+		const title = NEWS_TITLE
 		const created = await teacher.post('/apps/portaliq/api/news', {
 			data: {
 				title,
@@ -234,11 +273,6 @@ test.describe('po: teacher and parent flows', () => {
 		)
 		expect(published.status()).toBe(200)
 
-		await parent.reload()
-		await openTab(parent, 'News')
-		await expect(parent.getByText(title)).toBeVisible()
-		await shot(parent, 'c1-news')
-
 		const feed = await parent.request.get(
 			'/apps/portaliq/api/news/feed?language=en',
 			{ headers: bearer() },
@@ -251,23 +285,46 @@ test.describe('po: teacher and parent flows', () => {
 		expect(item.translation).toBeUndefined()
 	})
 
+	test.fixme('c1. the guardian reads the news on the site (waits for portaliq#1029/#1026 on /site)', async () => {
+		await openPage(parent, 'news')
+		await expect(parent.getByText(NEWS_TITLE)).toBeVisible()
+		await shot(parent, 'c1-news')
+	})
+
+	test.fixme('d0. the guardian books a conference through the form on the site (waits for portaliq#1029/#1026 on /site)', async () => {
+		const round = await openBookingRound(`Oudergesprekken, formulier (${RUN})`)
+		await openPage(parent, 'learniq/parentConferenceSignups')
+		await parent
+			.locator('select#f-createConferenceSignup-conferenceRoundId')
+			.selectOption(round.id)
+		await parent
+			.locator('select#f-createConferenceSignup-learnerRef')
+			.selectOption(CHILD.ref)
+		await parent
+			.locator('#f-createConferenceSignup-notes')
+			.fill('Graag over lezen praten')
+		await shot(parent, 'd2-booking-form')
+		await parent.getByRole('button', { name: 'Book', exact: true }).click()
+		await expect
+			.poll(
+				async () =>
+					(
+						await portalRows(
+							'conference-signup',
+							'parentConferenceSignups',
+						)
+					)
+						.filter((row) => row.conferenceRoundId === round.id)
+						.map((row) => row.lifecycle),
+				{ timeout: 15_000 },
+			)
+			.toEqual(['submitted'])
+	})
+
 	test('d. a parent-teacher conference is booked, planned and recorded', async ({
 		browser,
 	}) => {
-		const round = await teacherCreate('conference-round', {
-			name: `Oudergesprekken groep 7 (${RUN})`,
-			cohortIds: [GROUP_7],
-			teacherIds: [TEACHER.user],
-			slotDurationMinutes: 10,
-			bufferMinutes: 2,
-			bookingOpensAt: '2026-09-30T08:00:00+02:00',
-			bookingClosesAt: '2026-10-06T17:00:00+02:00',
-			tenant_id: TENANT,
-		})
-		expect(await transition(round.id, 'send-invitations')).toBe(
-			'invitations-sent',
-		)
-		expect(await transition(round.id, 'open-booking')).toBe('booking-open')
+		const round = await openBookingRound(`Oudergesprekken groep 7 (${RUN})`)
 		const availability = await teacherCreate('teacher-availability', {
 			conferenceRoundId: round.id,
 			teacherId: TEACHER.user,
@@ -286,19 +343,20 @@ test.describe('po: teacher and parent flows', () => {
 		await dismissTour(staff)
 		await shot(staff, 'd1-teacher-rounds')
 
-		await parent.reload()
-		await openTab(parent, 'Your conference bookings')
-		await parent
-			.locator('select#f-createConferenceSignup-conferenceRoundId')
-			.selectOption(round.id)
-		await parent
-			.locator('select#f-createConferenceSignup-learnerRef')
-			.selectOption(CHILD.ref)
-		await parent
-			.locator('#f-createConferenceSignup-notes')
-			.fill('Graag over rekenen praten')
-		await shot(parent, 'd2-booking-form')
-		await parent.getByRole('button', { name: 'Book', exact: true }).click()
+		// The booking form on the site is d0's step; the same booking goes
+		// through the portal API here, with the guardian's own token.
+		const booked = await parent.request.post(
+			'/apps/portaliq/portal/api/collections/learniq/conference-signup',
+			{
+				headers: bearer(),
+				data: {
+					conferenceRoundId: round.id,
+					learnerRef: CHILD.ref,
+					notes: 'Graag over rekenen praten',
+				},
+			},
+		)
+		expect(booked.status(), await booked.text()).toBeLessThan(300)
 		await expect
 			.poll(
 				async () =>
@@ -313,6 +371,10 @@ test.describe('po: teacher and parent flows', () => {
 				{ timeout: 15_000 },
 			)
 			.toEqual(['submitted'])
+		await openPage(parent, 'learniq/parentConferenceSignups')
+		await expect(
+			parent.getByText('Graag over rekenen praten').first(),
+		).toBeVisible()
 		await shot(parent, 'd3-booked')
 
 		expect(await transition(round.id, 'close-booking')).toBe('booking-closed')
@@ -350,8 +412,7 @@ test.describe('po: teacher and parent flows', () => {
 				{ timeout: 15_000 },
 			)
 			.toBe('2026-10-08')
-		await parent.reload()
-		await openTab(parent, 'Your conference times')
+		await openPage(parent, 'learniq/parentConferenceSlots')
 		await shot(parent, 'd4-guardian-sees-time')
 
 		await staff.goto('/index.php/apps/learniq/conferences/slots')
@@ -417,28 +478,49 @@ test.describe('po: teacher and parent flows', () => {
 	 * @return {Promise<Page>} The guardian's signed-in portal page.
 	 */
 	async function signInAsGuardian(browser: Browser): Promise<Page> {
-		stub.nextLogin({
-			sub: GUARDIAN.sub,
-			email: GUARDIAN.email,
-			acr: ACR_SUBSTANTIAL,
-		})
 		const page = await (
 			await browser.newContext({ storageState: undefined })
 		).newPage()
-		await page.goto(`/apps/portaliq/portal?portal=${PORTAL}`)
-		await shot(page, 'a0-portal-login')
-		await page.getByRole('button', { name: /DigiD/ }).click()
-		await expect
-			.poll(
-				async () =>
-					await page.evaluate(() =>
-						localStorage.getItem('portaliq_token'),
-					),
-				{ timeout: 20_000 },
-			)
-			.toBeTruthy()
-		token =
-			(await page.evaluate(() => localStorage.getItem('portaliq_token'))) ?? ''
+		// Docker Desktop forwards a port that just started listening on the
+		// WSL side only after a few seconds, so the instance's token request
+		// to a fresh stub can be refused and the callback answers
+		// `oidc_failed`. Measured on :8090 on 2026-10-01: refused right
+		// after listen(), answered 200 five seconds later. One more round
+		// trip covers that; a second failure is a real one.
+		for (let attempt = 1; ; attempt++) {
+			stub.nextLogin({
+				sub: GUARDIAN.sub,
+				email: GUARDIAN.email,
+				acr: ACR_SUBSTANTIAL,
+			})
+			await page.goto(SITE)
+			await page
+				.getByTestId('site-account-signin')
+				.waitFor({ timeout: 15_000 })
+			await shot(page, 'a0-portal-login')
+			await page.getByTestId('site-account-signin-route').first().click()
+			// The sign-in returns to the site by itself (portaliq#1028).
+			const landed = await page
+				.waitForURL(/\/apps\/portaliq\/site[^#]*route=%2Fmijn/, {
+					timeout: 30_000,
+				})
+				.then(() => true)
+				.catch(() => false)
+			if (landed) {
+				break
+			}
+			expect(
+				attempt,
+				`sign-in did not return to the site: ${page.url()}`,
+			).toBeLessThan(2)
+			await page.waitForTimeout(5_000)
+		}
+		await waitForAccountPage(page)
+		// The site keeps the bearer per tab, in sessionStorage.
+		const readToken = async () =>
+			await page.evaluate((key) => sessionStorage.getItem(key), SITE_TOKEN_KEY)
+		await expect.poll(readToken, { timeout: 20_000 }).toBeTruthy()
+		token = (await readToken()) ?? ''
 		const session = await page.request.get('/apps/portaliq/portal/api/session', {
 			headers: bearer(),
 		})
@@ -505,6 +587,30 @@ test.describe('po: teacher and parent flows', () => {
 		)
 		expect(res.status(), await res.text()).toBeLessThan(300)
 		return await res.json()
+	}
+
+	/**
+	 * A conference round for group 7 that the teacher opened for booking.
+	 *
+	 * @param {string} name The round's name.
+	 * @return {Promise<Record<string, any>>} The round.
+	 */
+	async function openBookingRound(name: string): Promise<Record<string, any>> {
+		const round = await teacherCreate('conference-round', {
+			name,
+			cohortIds: [GROUP_7],
+			teacherIds: [TEACHER.user],
+			slotDurationMinutes: 10,
+			bufferMinutes: 2,
+			bookingOpensAt: '2026-09-30T08:00:00+02:00',
+			bookingClosesAt: '2026-10-06T17:00:00+02:00',
+			tenant_id: TENANT,
+		})
+		expect(await transition(round.id, 'send-invitations')).toBe(
+			'invitations-sent',
+		)
+		expect(await transition(round.id, 'open-booking')).toBe('booking-open')
+		return round
 	}
 
 	/**
@@ -587,14 +693,28 @@ async function dismissTour(page: Page): Promise<void> {
 }
 
 /**
- * Open a portal navigation entry by its label.
+ * Open one of the guardian's pages on the site by its signed-in route.
  *
- * @param {Page} page The portal page.
- * @param {string} label The entry label.
+ * `learniq/parentChildren` is learniq's page for that collection; `news`,
+ * `inbox`, `account` and the other shell sections stand on their own.
+ *
+ * @param {Page} page The site page.
+ * @param {string} route The route below `/mijn/`.
  * @return {Promise<void>}
  */
-async function openTab(page: Page, label: string): Promise<void> {
-	await page.getByRole('button', { name: label, exact: true }).first().click()
+async function openPage(page: Page, route: string): Promise<void> {
+	await page.goto(`${SITE}&route=${encodeURIComponent(`/mijn/${route}`)}`)
+	await waitForAccountPage(page)
+}
+
+/**
+ * Wait until the signed-in area of the site shows its page title.
+ *
+ * @param {Page} page The site page.
+ * @return {Promise<void>}
+ */
+async function waitForAccountPage(page: Page): Promise<void> {
+	await page.getByTestId('site-account-title').first().waitFor({ timeout: 20_000 })
 	await page
 		.waitForLoadState('networkidle', { timeout: 10_000 })
 		.catch(() => undefined)

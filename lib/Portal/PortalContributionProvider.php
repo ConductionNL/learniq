@@ -9,7 +9,8 @@
  * convention FQCN (`OCA\{Namespace}\Portal\PortalContributionProvider`) and
  * duck-types it via method_exists(), never instanceof. This class is therefore
  * deliberately PLAIN: no portaliq imports, no `implements` clause, no info.xml
- * dependency, no constructor dependencies. Without portaliq installed it is
+ * dependency, and only one optional constructor dependency (the l10n factory
+ * that puts the guardian's labels in her language). Without portaliq installed it is
  * inert and Learniq behaves exactly as before (amendment A1).
  *
  * It declares — for the `student` (the learner) and `parent` (a guardian)
@@ -43,6 +44,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCP\L10N\IFactory;
+
 /**
  * Declares what an external portal subject may see and do in Learniq.
  *
@@ -72,6 +75,14 @@ class PortalContributionProvider {
 	 * @var string
 	 */
 	private const REGISTER = 'learniq';
+
+	/**
+	 * Constructor; the container hands in the factory, `new` with no arguments answers in English.
+	 *
+	 * @param IFactory|null $l10nFactory Puts parent labels in the request's language (PortalLabelTranslator).
+	 */
+	public function __construct(private readonly ?IFactory $l10nFactory=null) {
+	}//end __construct()
 
 	/**
 	 * The audiences this provider contributes to (contract v2, preferred).
@@ -125,7 +136,7 @@ class PortalContributionProvider {
 		}
 
 		if ($audience === 'parent') {
-			return $this->parentContribution();
+			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: $this->parentContribution());
 		}
 
 		if ($audience === 'praktijkopleider') {
