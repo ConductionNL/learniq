@@ -37,11 +37,9 @@ namespace OCA\Learniq\Tests\Unit\Service;
 use OCA\Learniq\Service\ExternalTrainingLearnerMatch;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
-use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 
 /**
  * Store, read back and match a personal number.
@@ -52,68 +50,13 @@ class PersonalNumberMatchTest extends TestCase {
 	private const TENANT = '11111111-1111-4111-8111-111111111111';
 
 	/**
-	 * A store that handles an `x-openregister-encrypted` property the way
-	 * OpenRegister does: no stored value (the instance) and no filter on it
-	 * (MagicSearchHandler).
+	 * The shared store; it handles an `x-openregister-encrypted` property the
+	 * way OpenRegister does (no stored value, no filter on it).
 	 *
 	 * @return RegisterFaithfulStore
 	 */
 	private static function store(): RegisterFaithfulStore {
-		$encrypted = [];
-		foreach ((self::shippedSchema('learner-profile')['properties'] ?? []) as $name => $property) {
-			if (($property['x-openregister-encrypted'] ?? false) === true) {
-				$encrypted[] = $name;
-			}
-		}
-
-		return new class ($encrypted) extends RegisterFaithfulStore {
-
-			/**
-			 * Constructor.
-			 *
-			 * @param array<int,string> $encrypted Encrypted learner-profile properties.
-			 */
-			public function __construct(
-				private readonly array $encrypted,
-			) {
-			}//end __construct()
-
-			/**
-			 * Refuse a filter on an encrypted property.
-			 *
-			 * @param array<string,mixed> $config The config.
-			 * @param bool $rbac The flag.
-			 * @param bool $multitenancy The flag.
-			 *
-			 * @return array<int,ObjectEntity>
-			 */
-			public function findAll(array $config, bool $rbac = true, bool $multitenancy = true): array {
-				foreach (array_keys($config['filters'] ?? []) as $key) {
-					if (in_array($key, $this->encrypted, true) === true) {
-						throw new RuntimeException('Filtering on encrypted property ' . $key . ' is not supported.');
-					}
-				}
-
-				return parent::findAll($config, $rbac, $multitenancy);
-			}//end findAll()
-
-			/**
-			 * Keep no value for an encrypted property.
-			 *
-			 * @param string $schema The schema.
-			 * @param array<string,mixed> $object The object.
-			 * @param string|null $uuid The uuid.
-			 *
-			 * @return ObjectEntity
-			 */
-			public function save(string $schema, array $object, ?string $uuid): ObjectEntity {
-				foreach ($this->encrypted as $name) {
-					unset($object[$name]);
-				}
-
-				return parent::save($schema, $object, $uuid);
-			}//end save()
-		};
+		return new RegisterFaithfulStore();
 	}//end store()
 
 	/**
