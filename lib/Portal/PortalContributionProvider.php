@@ -609,7 +609,7 @@ class PortalContributionProvider {
 			// read collection above already is.
 			'actions' => array_merge(
 				$this->parentActions(childJoin: $childJoin),
-				[$extras->conferenceSignupAction()]
+				$extras->conferenceActions()
 			),
 			'notifications' => [],
 			// Portaliq news-audience-from-the-school-app: which of the collections

@@ -126,18 +126,28 @@ class ParentPortalCollections {
 
 	/**
 	 * The guardian's parent-teacher conference collections: the rounds open
-	 * to one of their children, their bookings and the scheduled times.
+	 * to one of their children, the free times they can book, their bookings
+	 * and the conversation times.
 	 *
-	 * All three go through the same reverse `via` join as every parent read.
-	 * A round is matched on `invitedLearnerRefs`, which the round's
-	 * `send-invitations` transition fills (ConferenceInvitationAction), and
-	 * only a round in `booking-open` is listed.
+	 * All four go through the same reverse `via` join as every parent read. A round is matched on `invitedLearnerRefs`, which
+	 * the round's `send-invitations` transition fills
+	 * (ConferenceInvitationAction), and only a round in `booking-open` is
+	 * listed. A free time is matched on `eligibleLearnerRefs` (the invited
+	 * pupils of that teacher's groups, ConferenceFreeSlotGenerator) and only
+	 * a slot in `free` is listed. The free times come BEFORE the times:
+	 * portaliq fills the booking form's time picker from the first
+	 * collection over `conference-slot`.
+	 *
+	 * Field names here are read by the portal calendar (lane lq-record):
+	 * `startsAt`, `endsAt`, `teacherId`, `teacherName`, `location`,
+	 * `lifecycle`, `conferenceRoundId`, `slotLabel`. Add, never rename.
 	 *
 	 * @param array<string, mixed> $childJoin The shared reverse `via` join descriptor.
 	 *
 	 * @return array<int, array<string, mixed>> Parent conference collections.
 	 *
 	 * @spec openspec/changes/portal-parent-conference-booking/specs/parent-conferences/spec.md
+	 * @spec openspec/changes/direct-conference-booking/specs/portal-contribution/spec.md
 	 */
 	public function conferenceCollections(array $childJoin): array {
 		return [
@@ -157,6 +167,7 @@ class ParentPortalCollections {
 					'bookingOpensAt',
 					'bookingClosesAt',
 					'slotDurationMinutes',
+					'bookingMode',
 				],
 				'columns' => [
 					['field' => 'name', 'label' => 'Conference round'],
@@ -164,6 +175,7 @@ class ParentPortalCollections {
 					['field' => 'slotDurationMinutes', 'label' => 'Minutes per conversation'],
 				],
 			],
+			$this->freeSlotsCollection(childJoin: $childJoin),
 			[
 				'id' => 'parentConferenceSignups',
 				'register' => self::REGISTER,
@@ -181,11 +193,18 @@ class ParentPortalCollections {
 					'requestedTeacherIds',
 					'notes',
 					'lifecycle',
+					'slotId',
+					'slotLabel',
+					'teacherName',
+					'startsAt',
+					'endsAt',
+					'declineNote',
 				],
 				'columns' => [
-					['field' => 'requestedTeacherIds', 'label' => 'With'],
+					['field' => 'slotLabel', 'label' => 'Time'],
 					['field' => 'notes', 'label' => 'Your note'],
 					['field' => 'lifecycle', 'label' => 'Status'],
+					['field' => 'declineNote', 'label' => 'Reason for declining'],
 				],
 			],
 			[
@@ -206,21 +225,164 @@ class ParentPortalCollections {
 					'endsAt',
 					'location',
 					'lifecycle',
+					'conferenceRoundId',
+					'teacherName',
+					'slotLabel',
+					'declineNote',
 				],
 				'columns' => [
 					['field' => 'startsAt', 'label' => 'Starts'],
 					['field' => 'endsAt', 'label' => 'Ends'],
-					['field' => 'teacherId', 'label' => 'With'],
+					['field' => 'teacherName', 'label' => 'With'],
 					['field' => 'location', 'label' => 'Where'],
 					['field' => 'lifecycle', 'label' => 'Status'],
+					['field' => 'declineNote', 'label' => 'Reason for declining'],
 				],
+				'rowActions' => ['cancelConferenceTime'],
 			],
 		];
 
 	}//end conferenceCollections()
 
 	/**
-	 * The guardian books a parent-teacher conversation for their child.
+	 * The free times the guardian can book for one of their children.
+	 *
+	 * @param array<string, mixed> $childJoin The shared reverse `via` join descriptor.
+	 *
+	 * @return array<string, mixed> The collection.
+	 *
+	 * @spec openspec/changes/direct-conference-booking/specs/portal-contribution/spec.md
+	 */
+	private function freeSlotsCollection(array $childJoin): array {
+		return [
+			'id' => 'parentConferenceFreeSlots',
+			'register' => self::REGISTER,
+			'schema' => 'conference-slot',
+			'scopeField' => 'eligibleLearnerRefs',
+			'scopeClaim' => 'guardianRef',
+			'via' => $childJoin,
+			'filter' => ['lifecycle' => 'free'],
+			'label' => 'Free times you can book',
+			'listable' => true,
+			'minTrust' => 'substantial',
+			'fields' => [
+				'conferenceRoundId',
+				'teacherId',
+				'teacherName',
+				'startsAt',
+				'endsAt',
+				'location',
+				'slotLabel',
+				'lifecycle',
+			],
+			'columns' => [
+				['field' => 'startsAt', 'label' => 'Starts'],
+				['field' => 'endsAt', 'label' => 'Ends'],
+				['field' => 'teacherName', 'label' => 'With'],
+				['field' => 'location', 'label' => 'Where'],
+			],
+		];
+
+	}//end freeSlotsCollection()
+
+	/**
+	 * Every conference action of the guardian: book a free time, cancel it,
+	 * and ask for a conversation in a round the school plans.
+	 *
+	 * @return array<int, array<string, mixed>> The actions.
+	 *
+	 * @spec openspec/changes/direct-conference-booking/specs/portal-contribution/spec.md
+	 */
+	public function conferenceActions(): array {
+		return [
+			$this->bookSlotAction(),
+			$this->cancelTimeAction(),
+			$this->conferenceSignupAction(),
+		];
+
+	}//end conferenceActions()
+
+	/**
+	 * The guardian picks a free time for their child.
+	 *
+	 * A ConferenceSignup create naming the child and the slot. Portaliq
+	 * stamps the guardian's reference into `guardianRef` and refuses a child
+	 * that is not the guardian's (`crossRefs`). ConferenceSlotBookingStamp
+	 * then checks the slot may be booked for that child and claims it under
+	 * a lock, so two families never get the same time.
+	 *
+	 * @return array<string, mixed> The create action.
+	 *
+	 * @spec openspec/changes/direct-conference-booking/specs/portal-contribution/spec.md
+	 */
+	private function bookSlotAction(): array {
+		return [
+			'id' => 'bookConferenceSlot',
+			'type' => 'create',
+			'label' => 'Book a time',
+			'register' => self::REGISTER,
+			'schema' => 'conference-signup',
+			'scopeField' => 'guardianRef',
+			'scopeClaim' => 'guardianRef',
+			'minTrust' => 'substantial',
+			'fields' => [
+				'learnerRef',
+				'slotId',
+				'notes',
+			],
+			'crossRefs' => ['learnerRef' => $this->childCrossRef()],
+			'optionsProviders' => [
+				'learnerRef' => $this->childOptions(),
+				'slotId' => [
+					'type' => 'collection',
+					'register' => self::REGISTER,
+					'schema' => 'conference-slot',
+					'labelField' => 'slotLabel',
+					'valueField' => 'id',
+				],
+			],
+			'fieldConfigs' => [
+				'learnerRef' => ['label' => 'Child', 'required' => true],
+				'slotId' => ['label' => 'Time', 'required' => true],
+				'notes' => ['label' => 'Anything the teacher should know beforehand'],
+			],
+			'submitLabel' => 'Book this time',
+			'successMessage' => 'The time is yours. The teacher still acknowledges it; you see the status under your conference times.',
+		];
+
+	}//end bookSlotAction()
+
+	/**
+	 * The guardian cancels a time they booked, until the booking window
+	 * closes. The server sets the state; ConferenceSlotBookingSync refuses a
+	 * cancel after the window and offers the time to other families again.
+	 *
+	 * @return array<string, mixed> The update action.
+	 *
+	 * @spec openspec/changes/direct-conference-booking/specs/portal-contribution/spec.md
+	 */
+	private function cancelTimeAction(): array {
+		return [
+			'id' => 'cancelConferenceTime',
+			'type' => 'update',
+			'label' => 'Cancel this time',
+			'register' => self::REGISTER,
+			'schema' => 'conference-slot',
+			'scopeField' => 'guardianRef',
+			'scopeClaim' => 'guardianRef',
+			'minTrust' => 'substantial',
+			'fields' => ['lifecycle'],
+			'set' => ['lifecycle' => 'cancelled'],
+			'submitLabel' => 'Cancel this time',
+			'successMessage' => 'The time is cancelled. You can book another free time while booking is open.',
+		];
+
+	}//end cancelTimeAction()
+
+
+	/**
+	 * The guardian asks for a parent-teacher conversation for their child,
+	 * in a round where the school plans the times (preference booking).
 	 *
 	 * Portaliq stamps the guardian's own learniq reference into `guardianRef`
 	 * (the scope claim) and refuses a child that is not the guardian's
@@ -233,11 +395,11 @@ class ParentPortalCollections {
 	 *
 	 * @spec openspec/changes/portal-parent-conference-booking/specs/parent-conferences/spec.md
 	 */
-	public function conferenceSignupAction(): array {
+	private function conferenceSignupAction(): array {
 		return [
 			'id' => 'createConferenceSignup',
 			'type' => 'create',
-			'label' => 'Book a parent-teacher conversation',
+			'label' => 'Ask for a parent-teacher conversation',
 			'register' => self::REGISTER,
 			'schema' => 'conference-signup',
 			'scopeField' => 'guardianRef',
