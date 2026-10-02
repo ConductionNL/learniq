@@ -36,6 +36,7 @@ use OCA\Learniq\Listener\LessonNoteAuthorGuard;
 use OCA\Learniq\Listener\LvsResultLearnerRefStamp;
 use OCA\Learniq\Listener\ReportCardGradeLinesStamp;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
+use OCA\Learniq\Listener\AssignmentLearnerRefsStamp;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
 use OCA\Learniq\Listener\SubmissionOwnerStamp;
 use OCA\Learniq\Listener\SubmissionResubmissionDateListener;
@@ -145,6 +146,8 @@ class IntegrityListenerRegistrar {
 			listener: SubmissionLearnerRefsStamp::class
 		);
 
+		$this->registerHomeworkScope(context: $context);
+
 		// Submission resubmission date (submission-resubmission-action): the
 		// date moves the hand-in deadline, so only staff may write it. Drops
 		// or restores the value; never stops the write.
@@ -218,4 +221,24 @@ class IntegrityListenerRegistrar {
 			listener: ConferenceSignupPortalStamp::class
 		);
 	}//end registerOwnerStamps()
+
+	/**
+	 * Assignment learnerRefs (portal-parent-child-record): the guardian portal
+	 * scopes homework on the pupils of the assignment's group, so the server
+	 * derives them from the group's enrolments on every write.
+	 *
+	 * @param IRegistrationContext $context The registration context.
+	 *
+	 * @return void
+	 */
+	private function registerHomeworkScope(IRegistrationContext $context): void {
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: AssignmentLearnerRefsStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: AssignmentLearnerRefsStamp::class
+		);
+	}//end registerHomeworkScope()
 }//end class

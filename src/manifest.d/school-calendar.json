@@ -1,0 +1,86 @@
+{
+	"_meta": {
+		"spdx-license": "EUPL-1.2",
+		"spdx-copyright": "2026 Conduction B.V.",
+		"change": "portal-parent-child-record",
+		"adr": "ADR-037 modular manifest fragment, never edit src/manifest.json",
+		"description": "SchoolEventsMenu: the school's own calendar (study days, the sports day, trips, celebrations). Coordinators, the school office and the director keep it; parents read it in the portal calendar of their children. Writes are enforced by SchoolEvent.authorization in the register; this gate only hides the entry from everyone else."
+	},
+	"menu": [
+		{
+			"id": "SchoolEventsMenu",
+			"label": "School calendar",
+			"icon": "CalendarStar",
+			"route": "SchoolEvents",
+			"order": 74,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": ["coordinator", "administration-manager", "team-lead", "admin"]
+				},
+				"workspace.chosenSegment": {
+					"notIn": ["corporate"]
+				}
+			}
+		}
+	],
+	"pages": [
+		{
+			"id": "SchoolEvents",
+			"route": "/school-calendar",
+			"type": "index",
+			"title": "School calendar",
+			"config": {
+				"register": "learniq",
+				"schema": "school-event"
+			}
+		},
+		{
+			"id": "SchoolEventDetail",
+			"route": "/school-calendar/:id",
+			"type": "detail",
+			"title": "School event",
+			"config": {
+				"register": "learniq",
+				"schema": "school-event",
+				"widgets": [
+					{
+						"id": "se-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "CalendarStar"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "se-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		}
+	]
+}

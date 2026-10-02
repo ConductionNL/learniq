@@ -98,13 +98,28 @@ class PortalLabelTranslatorTest extends TestCase {
 				continue;
 			}
 
-			if (in_array($key, ['label', 'submitLabel', 'successMessage'], true) === true && is_string($value) === true) {
+			if (is_string($value) === true && self::isVisible(path: $here) === true) {
 				$found[$here] = $value;
 			}
 		}
 
 		return $found;
 	}//end visibleStrings()
+
+	/**
+	 * Whether the string at a path is one a reader sees: a label, button
+	 * text, message, unit or fallback anywhere; the kind and fixed title of a
+	 * calendar source; every label of a lookup's `values`.
+	 *
+	 * @param string $path The path.
+	 *
+	 * @return bool
+	 */
+	private static function isVisible(string $path): bool {
+		return preg_match('#/(label|submitLabel|successMessage|unit|fallback)$#', $path) === 1
+			|| preg_match('#/sources/\d+/(kind|title)$#', $path) === 1
+			|| preg_match('#/values/[^/]+$#', $path) === 1;
+	}//end isVisible()
 
 	/**
 	 * Every visible parent string has a Dutch entry, so no guardian on a
@@ -165,13 +180,13 @@ class PortalLabelTranslatorTest extends TestCase {
 
 		$translated = (new PortalLabelTranslator(l10n: $l10n))->translate(manifest: $english);
 
-		$strip = static function (array $manifest) use (&$strip): array {
+		$strip = static function (array $manifest, string $path='') use (&$strip): array {
 			foreach ($manifest as $key => $value) {
 				if ($key === 'valueLabels') {
 					$manifest[$key] = array_keys($value);
 				} else if (is_array($value) === true) {
-					$manifest[$key] = $strip($value);
-				} else if (in_array($key, ['label', 'submitLabel', 'successMessage'], true) === true) {
+					$manifest[$key] = $strip($value, $path.'/'.$key);
+				} else if (self::isVisible(path: $path.'/'.$key) === true) {
 					unset($manifest[$key]);
 				}
 			}

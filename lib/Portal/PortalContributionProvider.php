@@ -588,30 +588,28 @@ class PortalContributionProvider {
 			'match' => 'scopeField',
 		];
 		$extras = new ParentPortalCollections();
+		$record = new ParentRecordPage();
+		$collections = array_merge(
+			[$this->parentChildrenCollection()],
+			$this->parentResultCollections(childJoin: $childJoin),
+			[$extras->reportCardGradesCollection(childJoin: $childJoin)],
+			$this->parentWelfareCollections(childJoin: $childJoin),
+			$extras->conferenceCollections(childJoin: $childJoin),
+			[$extras->groupMembershipsCollection(childJoin: $childJoin)],
+			$record->collections(childJoin: $childJoin)
+		);
+		$actions = array_merge(
+			$this->parentActions(childJoin: $childJoin),
+			$extras->conferenceActions()
+		);
 
-		return $extras->withPages(contribution: [
+		return [
 			'label' => 'Learniq',
-			'collections' => array_merge(
-				[$this->parentChildrenCollection()],
-				$this->parentResultCollections(childJoin: $childJoin),
-				[$extras->reportCardGradesCollection(childJoin: $childJoin)],
-				$this->parentWelfareCollections(childJoin: $childJoin),
-				$extras->conferenceCollections(childJoin: $childJoin),
-				[$extras->groupMembershipsCollection(childJoin: $childJoin)]
-			),
-			// Portal-contribution-guardian-audiences: portaliq's writer
-			// cross-reference guard (portaliq#607, merged 2026-09-18) now
-			// validates that a client-supplied cross-reference declared via
-			// `via` resolves inside the subject's own scope — exactly the
-			// guard this action's create was waiting on. `submittedByRef`
-			// (never `learnerRef`) is the server-stamped scope field; the
-			// guardian-supplied `learnerRef` in the create body names WHICH
-			// child, validated against $childJoin the same way every parent
-			// read collection above already is.
-			'actions' => array_merge(
-				$this->parentActions(childJoin: $childJoin),
-				$extras->conferenceActions()
-			),
+			'collections' => $collections,
+			// One page per child, the calendar, then every other section.
+			'pages' => $record->pages(collections: $collections, actions: $actions, sections: $extras),
+			// Cross-references are checked against the guardian's children (portaliq#607).
+			'actions' => $actions,
 			'notifications' => [],
 			// Portaliq news-audience-from-the-school-app: which of the collections
 			// above name the guardian's children, their school and their groups,
@@ -624,7 +622,7 @@ class PortalContributionProvider {
 					'field' => 'cohortId',
 				],
 			],
-		]);
+		];
 
 	}//end parentContribution()
 
@@ -659,6 +657,8 @@ class PortalContributionProvider {
 				'givenName',
 				'familyName',
 				'guardianRefs',
+				// The record page joins the school's calendar and news on it.
+				'schoolId',
 				'beeldmateriaalConsent',
 				'beeldmateriaalConsentReviewDueAt',
 			],

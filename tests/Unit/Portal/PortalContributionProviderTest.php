@@ -47,6 +47,12 @@ use PHPUnit\Framework\TestCase;
 class PortalContributionProviderTest extends TestCase {
 
 	/**
+	 * The collections the parent record page adds (portal-parent-child-record),
+	 * asserted in ParentRecordPageTest.
+	 */
+	private const RECORD_PAGE_COLLECTIONS = ['parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar'];
+
+	/**
 	 * The provider under test.
 	 *
 	 * @var PortalContributionProvider
@@ -447,9 +453,9 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(11, $collections);
+		$this->assertCount(16, $collections);
 		$this->assertSame(
-			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships'],
+			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar'],
 			array_column($collections, 'id')
 		);
 
@@ -463,7 +469,7 @@ class PortalContributionProviderTest extends TestCase {
 		// testParentBooksAConferenceForTheirOwnChildOnly; parentConferenceFreeSlots
 		// matches a free time on the pupils who may book it
 		// (ParentConferenceDirectBookingTest).
-		$reverseJoinedCollections = array_filter($collections, static fn ($c) => in_array($c['id'], ['parentChildren', 'parentConferenceRounds', 'parentConferenceFreeSlots'], true) === false);
+		$reverseJoinedCollections = array_filter($collections, static fn ($c) => in_array($c['id'], ['parentChildren', 'parentConferenceRounds', 'parentConferenceFreeSlots', ...self::RECORD_PAGE_COLLECTIONS], true) === false);
 		foreach ($reverseJoinedCollections as $collection) {
 			$this->assertSame('learniq', $collection['register']);
 			// Parent scope key is the guardian claim; the outer record scope
@@ -581,7 +587,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('guardianRef', $children['scopeClaim']);
 		$this->assertSame('substantial', $children['minTrust']);
 		$this->assertSame(
-			['givenName', 'familyName', 'guardianRefs', 'beeldmateriaalConsent', 'beeldmateriaalConsentReviewDueAt'],
+			['givenName', 'familyName', 'guardianRefs', 'schoolId', 'beeldmateriaalConsent', 'beeldmateriaalConsentReviewDueAt'],
 			$children['fields']
 		);
 
@@ -628,17 +634,22 @@ class PortalContributionProviderTest extends TestCase {
 			// The child LearnerProfile's own object UUID — a normalised OR row
 			// exposes it at top-level `id` (ObjectEntity::jsonSerialize sets
 			// $object['id'] = $this->uuid), which is what learnerRef points at.
-			$this->assertSame('id', $via['targetField']);
+			// The school calendar joins on the child's school instead
+			// (portal-parent-child-record).
+			$school = in_array($collection['id'], ['parentSchoolEvents', 'parentSchoolCalendar'], true);
+			$this->assertSame($school === true ? 'schoolId' : 'id', $via['targetField']);
 			// Reverse mode: keep outer rows whose OWN scopeField is in the set.
 			$this->assertSame('scopeField', $via['match']);
 
 			// The outer collection's own scope field the reverse match reads:
 			// the child's learnerRef, or for a conference round the list of
 			// invited children (portal-parent-conference-booking).
-			$expected = 'learnerRef';
-			if ($collection['id'] === 'parentConferenceRounds') {
-				$expected = 'invitedLearnerRefs';
-			}
+			$expected = [
+				'parentConferenceRounds' => 'invitedLearnerRefs',
+				'parentHomework' => 'learnerRefs',
+				'parentSchoolEvents' => 'schoolId',
+				'parentSchoolCalendar' => 'schoolId',
+			][$collection['id']] ?? 'learnerRef';
 
 			// A free conference time: the pupils who may book it (direct-conference-booking).
 			if ($collection['id'] === 'parentConferenceFreeSlots') {

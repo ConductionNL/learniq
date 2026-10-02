@@ -87,6 +87,34 @@ SCHEMAS = [
     "conference-round",
     "teacher-availability",
     "conference-slot",
+    # Appended last for the same reason (portal-parent-child-record).
+    "school-event",
+    "assignment",
+    "submission",
+]
+
+# School events a parent sees in the portal calendar: (title, start, end, kind, groups or None for the whole
+# school, description). The first five fall in the set's own year; the rest in the next one, so a parent
+# opening the portal in autumn 2026 has something coming (portal-parent-child-record).
+SCHOOL_EVENTS = [
+    ("Kerstviering", "2025-12-18T17:30:00+01:00", "2025-12-18T19:00:00+01:00", "celebration", None, "Kerstdiner in de klas, daarna samen zingen op het plein."),
+    ("Koningsspelen", "2026-04-24", None, "sports-day", None, "Sport en spel op het veld achter de school. Gymkleren aan."),
+    ("Schoolreis", "2026-06-05", None, "trip", ["Groep 7"], "Met de bus naar het Openluchtmuseum. Neem een lunchpakket mee."),
+    ("Kamp groep 8", "2026-06-24", "2026-06-26", "trip", ["Groep 8"], "Drie dagen op kamp in de bossen."),
+    ("Sportdag", "2026-05-29", None, "sports-day", None, "De sportdag voor alle groepen."),
+    ("Opening Kinderboekenweek", "2026-10-07T08:30:00+02:00", "2026-10-07T09:15:00+02:00", "event", None, "Op het plein, ouders zijn welkom."),
+    ("Schoolfotograaf", "2026-10-21", None, "event", None, "Individuele foto's en groepsfoto's."),
+    ("Excursie Rijksmuseum", "2026-11-12T09:00:00+01:00", "2026-11-12T15:00:00+01:00", "trip", ["Groep 7", "Groep 8"], "Met de trein naar Amsterdam. Begeleiders gezocht."),
+    ("Sinterklaasviering", "2026-12-04", None, "celebration", None, "Sinterklaas komt op school. De leerlingen zijn om 12.00 uur vrij."),
+    ("Kerstdiner", "2026-12-17T17:30:00+01:00", "2026-12-17T19:00:00+01:00", "celebration", None, "Kerstdiner in de klas."),
+]
+
+# Homework per class from group 3: (subject course code, title, due date, instructions). The first is past
+# due and handed in by most pupils; the others are open in October 2026.
+HOMEWORK = [
+    ("PO-REK", "Rekenen: oefenblad breuken", "2026-09-25", "Maak het oefenblad af en lever het in."),
+    ("PO-TAAL", "Taal: woordenlijst week 41", "2026-10-09", "Leer de woorden van week 41 voor het dictee."),
+    ("PO-REK", "Rekenen: tafels oefenen", "2026-10-16", "Oefen de tafels van 6, 7 en 8 tien minuten per dag."),
 ]
 
 HOLIDAYS = [
@@ -434,6 +462,7 @@ def build() -> dict:
             "lockDate": stamp(end + dt.timedelta(days=7), 17, 0), "attendanceIncluded": True, "lifecycle": "composed",
             "holidays": [{"name": h[0], "startDate": h[1].isoformat(), "endDate": h[2].isoformat()} for h in HOLIDAYS if start <= h[1] <= end],
             "studyDays": [{"date": s[0].isoformat(), "description": s[1]} for s in STUDY_DAYS if start <= s[0] <= end],
+            "schoolId": school["uuid"],
         }))
 
     # --- sessions and attendance --------------------------------------------
@@ -768,6 +797,37 @@ def build() -> dict:
             "lifecycle": "free",
         })
         start = end + dt.timedelta(minutes=2)
+
+    # --- school calendar, homework and hand-ins (portal-parent-child-record) --
+    for title, starts, ends, kind, groups, description in SCHOOL_EVENTS:
+        b.add("school-event", {
+            "title": title, "description": description, "startsAt": starts, "endsAt": ends, "kind": kind,
+            "audience": "groups" if groups else "school", "schoolId": school["uuid"],
+            "cohortIds": [cohorts[g]["uuid"] for g in groups or []],
+        })
+    homework_rng = random.Random(20261002)
+    for name, leerjaren, *_rest in CLASSES:
+        if max(leerjaren) < 3:
+            continue
+        members = sorted((p for p in pupils if p["class"] == name), key=lambda p: p["nc"])
+        for index, (code, title, due, instructions) in enumerate(HOMEWORK):
+            assignment = b.add("assignment", {
+                "title": title, "instructions": instructions, "courseId": subject_courses[code]["uuid"],
+                "cohortId": cohorts[name]["uuid"], "dueAt": stamp(dt.date.fromisoformat(due), 8, 30), "maxPoints": 10,
+                "allowLateSubmission": True, "lifecycle": "published",
+                # What AssignmentLearnerRefsStamp writes on a live save: the group's pupils.
+                "learnerRefs": [p["profile"]["uuid"] for p in members],
+            })
+            share = 0.85 if index == 0 else 0.3
+            for p in members:
+                if homework_rng.random() >= share:
+                    continue
+                late = index == 0 and homework_rng.random() < 0.15
+                handed = dt.date.fromisoformat(due) + dt.timedelta(days=1 if late else -1)
+                b.add("submission", {
+                    "assignmentId": assignment["uuid"], "learnerIds": [p["nc"]], "learnerRefs": [p["profile"]["uuid"]],
+                    "learnerRef": p["profile"]["uuid"], "submittedAt": stamp(handed, 19, 0), "lifecycle": "late" if late else "submitted",
+                })
 
     # --- assemble -----------------------------------------------------------
     for cohort in cohorts.values():
