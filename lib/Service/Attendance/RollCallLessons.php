@@ -157,7 +157,7 @@ class RollCallLessons {
 	 * @return string
 	 */
 	private function dayName(DateTimeImmutable $day): string {
-		return (string)$this->l10n->l('date', DateTime::createFromImmutable($day), ['width' => 'full']);
+		return (string)$this->l10n->l('date', new DateTime($day->format(DATE_ATOM), $day->getTimezone()), ['width' => 'full']);
 	}//end dayName()
 
 	/**
