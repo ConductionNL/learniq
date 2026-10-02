@@ -54,7 +54,6 @@ use OCP\EventDispatcher\IEventListener;
  */
 class AttendanceSummaryListener implements IEventListener {
 
-	private const REGISTER = 'learniq';
 	private const RECORD_SCHEMA = 'attendance-record';
 
 	/**
@@ -146,15 +145,21 @@ class AttendanceSummaryListener implements IEventListener {
 	}//end deferFor()
 
 	/**
-	 * Whether the entity is a learniq AttendanceRecord.
+	 * Whether the entity is a learniq AttendanceRecord, by slug or by id.
+	 *
+	 * OpenRegister stamps the numeric register and schema ids on the entity.
+	 * guardSchemaSlug() turns them into the slug whatever the listener slug
+	 * contract says, and answers '' for an object outside Learniq's register,
+	 * so the summary follows every roll-call on a default instance too (the
+	 * gated schemaSlug()/registerSlug() pair returned the raw ids there and
+	 * this listener never fired).
 	 *
 	 * @param ObjectEntity $entity The written object.
 	 *
 	 * @return bool
 	 */
 	private function isRecord(ObjectEntity $entity): bool {
-		return $this->schemaResolver->registerSlug(entity: $entity) === self::REGISTER
-			&& $this->schemaResolver->schemaSlug(entity: $entity) === self::RECORD_SCHEMA;
+		return $this->schemaResolver->guardSchemaSlug(entity: $entity) === self::RECORD_SCHEMA;
 	}//end isRecord()
 
 	/**
