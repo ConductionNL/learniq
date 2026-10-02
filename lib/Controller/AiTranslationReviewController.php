@@ -88,7 +88,8 @@ class AiTranslationReviewController extends Controller {
 			return new JSONResponse(
 				[
 					'error'  => 'read-only',
-					'reason' => 'The app directory is read-only on this instance. Review on a development checkout and commit l10n/ai-translated.json.',
+					'reason' => 'This instance cannot change the list: the app directory is read-only, or it holds a signed release '
+						. 'that Nextcloud checks for changes. Review on a development checkout and commit l10n/ai-translated.json.',
 				],
 				Http::STATUS_CONFLICT
 			);

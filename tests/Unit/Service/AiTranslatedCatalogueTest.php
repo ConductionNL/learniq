@@ -134,6 +134,27 @@ class AiTranslatedCatalogueTest extends TestCase {
 		$this->assertSame($before, (string)file_get_contents($this->dir . '/ai-translated.json'));
 	}
 
+	public function testASignedReleaseIsRefusedEvenWhenItsFolderIsWritable(): void {
+		// An app-store install is written by the web server user, so its folder
+		// is writable; rewriting the signed list would fail the integrity check.
+		$root = sys_get_temp_dir() . '/learniq-signed-' . bin2hex(random_bytes(4));
+		mkdir($root . '/appinfo', 0777, true);
+		mkdir($root . '/l10n');
+		file_put_contents($root . '/appinfo/signature.json', '{"hashes":{}}');
+		copy($this->dir . '/ai-translated.json', $root . '/l10n/ai-translated.json');
+		$before = (string)file_get_contents($root . '/l10n/ai-translated.json');
+
+		$outcome = (new AiTranslatedCatalogue($root . '/l10n'))->markReviewed('Publish marks');
+		$after   = (string)file_get_contents($root . '/l10n/ai-translated.json');
+		$left    = glob($root . '/l10n/*');
+		exec('rm -rf ' . escapeshellarg($root));
+
+		$this->assertTrue(is_writable($this->dir), 'the folder itself was writable');
+		$this->assertSame(AiTranslatedCatalogue::READ_ONLY, $outcome);
+		$this->assertSame($before, $after, 'the signed file is unchanged');
+		$this->assertCount(1, $left, 'no temporary file is left beside it');
+	}
+
 	public function testAMissingOrBrokenSidecarListsNothing(): void {
 		unlink($this->dir . '/ai-translated.json');
 		$this->assertSame(0, (new AiTranslatedCatalogue($this->dir))->listing()['total']);
