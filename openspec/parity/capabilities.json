@@ -4879,16 +4879,17 @@
       "area": "attendance",
       "name": "Read your timetable in your normal calendar app.",
       "built": {
-        "state": "building",
-        "evidence": "lib/Service/TimetableProjector.php projects sessions; lib/AppInfo/Registrar/SchedulingListenerRegistrar.php is the seam, with no CalDAV export route",
+        "state": "built",
+        "evidence": "lib/Controller/TimetableFeedController.php:114 serves the personal iCalendar feed by token; src/dialogs/TimetableCalendarFeedDialog.vue makes, copies and resets the address. Live flow passed on the dev instance 2026-10-02, recorded in the archived tasks.md.",
+        "reachedOn": "/my-timetable",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/attendance-timetable-calendar-feed"
+        "change": "openspec/changes/archive/2026-10-02-attendance-timetable-calendar-feed"
       },
       "provider": "nextcloud",
       "providerHow": "read: the platform provides it and this repository consumes it",
       "feature": "personal-timetable",
       "featureConfidence": "medium",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
       "ilias": "yes",
@@ -7265,14 +7266,14 @@
       "origin": "roadmap",
       "originUrl": "https://github.com/chamilo/chamilo-lms/issues/8373",
       "built": {
-        "state": "building",
-        "evidence": "ConcernReport in lib/Settings/learniq_register.json (counsellors and the reporter read, anyone signed in creates, anonymous counsellor notification), lib/Listener/ConcernReportReporterStamp.php stamps the reporter, src/manifest.d/confidential-counsel.json menus. Open: the live check (task 4.1).",
+        "state": "built",
+        "evidence": "ConcernReport in lib/Settings/learniq_register.json (counsellors and the reporter read, anyone signed in creates, anonymous counsellor notification), lib/Listener/ConcernReportReporterStamp.php stamps the reporter, src/manifest.d/confidential-counsel.json menus. Live flow passed on the dev instance 2026-10-02, recorded in the archived tasks.md.",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/support-confidential-concern-report"
+        "change": "openspec/changes/archive/2026-10-02-support-confidential-concern-report"
       },
       "provider": "self",
       "providerHow": "Would be a learniq reporting flow; the pupil dossier is staff-facing.",
-      "learniq": "no",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Workaround only: public/mod/feedback/mod_form.php:64 (anonymous feedback) lets a school set up a standing anonymous form whose answers only teachers or managers see. Searched public/ for harass, bullying, report concern: none. There is no case record, no routing to a confidant and no follow-up, so a generic survey abused for this.",
         "moodle-workplace": "read 2026-09-26: not documented: searched the Workplace release notes and features page (https://moodle.com/solutions/workplace/workplace-features/) for harassment or confidential reporting.",
