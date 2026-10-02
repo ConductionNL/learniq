@@ -202,6 +202,7 @@ class ParentPortalCollections {
 				],
 				'columns' => [
 					['field' => 'slotLabel', 'label' => 'Time'],
+					['field' => 'requestedTeacherIds', 'label' => 'With', 'render' => 'user'],
 					['field' => 'notes', 'label' => 'Your note'],
 					['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::SIGNUP_STATUS],
 					['field' => 'declineNote', 'label' => 'Reason for declining'],
@@ -233,7 +234,7 @@ class ParentPortalCollections {
 				'columns' => [
 					['field' => 'startsAt', 'label' => 'Starts'],
 					['field' => 'endsAt', 'label' => 'Ends'],
-					['field' => 'teacherName', 'label' => 'With'],
+					['field' => 'teacherId', 'label' => 'With', 'render' => 'user'],
 					['field' => 'location', 'label' => 'Where'],
 					['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::SLOT_STATUS],
 					['field' => 'declineNote', 'label' => 'Reason for declining'],
@@ -278,7 +279,7 @@ class ParentPortalCollections {
 			'columns' => [
 				['field' => 'startsAt', 'label' => 'Starts'],
 				['field' => 'endsAt', 'label' => 'Ends'],
-				['field' => 'teacherName', 'label' => 'With'],
+				['field' => 'teacherId', 'label' => 'With', 'render' => 'user'],
 				['field' => 'location', 'label' => 'Where'],
 			],
 		];

@@ -604,7 +604,8 @@ class PortalContributionProvider {
 		);
 
 		return [
-			'label' => 'Learniq',
+			// A parent reads "School" over these sections, not the app's name.
+			'label' => 'School',
 			'collections' => $collections,
 			// One page per child, the calendar, then every other section.
 			'pages' => $record->pages(collections: $collections, actions: $actions, sections: $extras),
@@ -835,6 +836,8 @@ class PortalContributionProvider {
 					'attachmentRef',
 					'lifecycle',
 					'decidedAt',
+					// Read only as a name (render: user), never as the user id.
+					'decidedBy',
 				],
 				'columns' => [
 					['field' => 'dateFrom', 'label' => 'From'],
@@ -842,6 +845,7 @@ class PortalContributionProvider {
 					['field' => 'reason', 'label' => 'Reason'],
 					['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::EXCUSE_STATUS],
 					['field' => 'decidedAt', 'label' => 'Decided on'],
+					['field' => 'decidedBy', 'label' => 'Decided by', 'render' => 'user'],
 				],
 			],
 			[
