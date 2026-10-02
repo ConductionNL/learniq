@@ -28,6 +28,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\CourseEvaluationEligibilityGuard;
 use OCP\IUser;
 use OCP\IUserSession;
+use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -254,4 +255,32 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 		self::assertDenied($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testMissingCampaignIdFailsClosedWithoutQuerying()
+	/**
+	 * The guard over a store that binds filters the way OpenRegister does on
+	 * PostgreSQL (live pass D5): a `hasResponded => false` filter is refused
+	 * there, so the guard must not send one, and an answered invitation is
+	 * still not a second chance.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-learner-without-an-invitation-cannot-submit
+	 */
+	public function testTheGuardWorksOnAPostgresBoundStore(): void {
+		$store = new RegisterFaithfulStore();
+		$objects = $this->createMock(ObjectService::class);
+		$objects->method('findAll')->willReturnCallback(
+			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $store->findAll($config, $_rbac, $_multitenancy)
+		);
+		$this->signInAs('learner-1');
+		$guard = new CourseEvaluationEligibilityGuard($this->userSession, $objects, $this->createMock(LoggerInterface::class));
+		$object = ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
+
+		$store->rows['evaluation-invitation'] = [
+			['id' => 'inv-1', 'campaignId' => 'campaign-1', 'learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'hasResponded' => true],
+		];
+		self::assertDenied($guard->check($object, 'submit', ''));
+
+		$store->rows['evaluation-invitation'][] = ['id' => 'inv-2', 'campaignId' => 'campaign-1', 'learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'hasResponded' => false];
+		self::assertAllowed($guard->check($object, 'submit', ''));
+	}//end testTheGuardWorksOnAPostgresBoundStore()
 }//end class
