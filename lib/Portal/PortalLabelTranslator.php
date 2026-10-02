@@ -51,7 +51,15 @@ class PortalLabelTranslator {
 	 *
 	 * @var array<int, string>
 	 */
-	private const VISIBLE_KEYS = ['label', 'submitLabel', 'successMessage'];
+	private const VISIBLE_KEYS = ['label', 'submitLabel', 'successMessage', 'unit', 'fallback'];
+
+	/**
+	 * Keys a reader sees only inside a calendar source (portal-parent-child-record):
+	 * elsewhere `kind` is a machine value (`inbox`, `timedTask`).
+	 *
+	 * @var array<int, string>
+	 */
+	private const SOURCE_KEYS = ['kind', 'title'];
 
 	/**
 	 * Constructor.
@@ -67,29 +75,70 @@ class PortalLabelTranslator {
 	 * The manifest with every visible string in the reader's language.
 	 *
 	 * @param array<array-key, mixed> $manifest The manifest, in English.
+	 * @param string $context Where the manifest sits: '' at the top, `sources`, `source` or `values` below.
 	 *
 	 * @return array<array-key, mixed> The same manifest, its visible strings translated.
 	 *
 	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
-	public function translate(array $manifest): array {
+	public function translate(array $manifest, string $context=''): array {
 		if ($this->l10n === null) {
 			return $manifest;
 		}
 
 		foreach ($manifest as $key => $value) {
 			if (is_array($value) === true) {
-				$manifest[$key] = $this->translate(manifest: $value);
+				$manifest[$key] = $this->translate(manifest: $value, context: $this->contextOf(key: $key, context: $context));
 				continue;
 			}
 
-			if (is_string($key) === true && is_string($value) === true
-				&& in_array($key, self::VISIBLE_KEYS, true) === true
-			) {
+			if (is_string($value) === true && $this->isVisible(key: $key, context: $context) === true) {
 				$manifest[$key] = $this->l10n->t($value);
 			}
 		}
 
 		return $manifest;
 	}//end translate()
+
+	/**
+	 * The context the children of a key are read in: `sources` items are
+	 * calendar sources, `values` holds a lookup's labels by value.
+	 *
+	 * @param int|string $key The key of the nested array.
+	 * @param string $context The context of its parent.
+	 *
+	 * @return string
+	 */
+	private function contextOf(int|string $key, string $context): string {
+		if ($key === 'sources' || $key === 'values') {
+			return (string)$key;
+		}
+
+		if ($context === 'sources' && is_int($key) === true) {
+			return 'source';
+		}
+
+		return '';
+	}//end contextOf()
+
+	/**
+	 * Whether a string value under this key is one a reader sees.
+	 *
+	 * @param int|string $key The key.
+	 * @param string $context Where the key sits.
+	 *
+	 * @return bool
+	 */
+	private function isVisible(int|string $key, string $context): bool {
+		if ($context === 'values') {
+			return true;
+		}
+
+		if (is_string($key) === false) {
+			return false;
+		}
+
+		return in_array($key, self::VISIBLE_KEYS, true) === true
+			|| ($context === 'source' && in_array($key, self::SOURCE_KEYS, true) === true);
+	}//end isVisible()
 }//end class
