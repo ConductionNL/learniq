@@ -26,6 +26,8 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\Learniq\Lifecycle\ReportPeriodComposeGuard;
+use OCA\Learniq\Service\Grading\ReportPeriodLocks;
+use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -42,7 +44,7 @@ class ReportPeriodComposeGuardTest extends TestCase {
 	 * @return ReportPeriodComposeGuard
 	 */
 	private function makeGuard(): ReportPeriodComposeGuard {
-		return new ReportPeriodComposeGuard($this->createMock(LoggerInterface::class));
+		return new ReportPeriodComposeGuard(new ReportPeriodLocks(objects: $this->createMock(ObjectService::class)), $this->createMock(LoggerInterface::class));
 	}//end makeGuard()
 
 	/**

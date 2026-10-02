@@ -30,6 +30,7 @@ namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\Learniq\Listener\CorrectionAppliedHandler;
 use OCA\Learniq\Listener\DataCorrectionRequestStamp;
+use OCA\Learniq\Listener\PublishedGradeFreezeListener;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -59,6 +60,14 @@ class GovernanceListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: DataCorrectionRequestStamp::class
+		);
+
+		// A published grade in a locked report period changes only through
+		// revise + republish on an approved correction, never by a plain
+		// update (live pass D4).
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: PublishedGradeFreezeListener::class
 		);
 
 		// ADR-031 exception: GradeEntry published on an approved correction ->
