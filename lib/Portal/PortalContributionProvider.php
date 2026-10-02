@@ -533,6 +533,7 @@ class PortalContributionProvider {
 					'reasonKind',
 					'attachmentRef',
 				],
+				'fieldConfigs' => ['attachmentRef' => (new ExcuseAttachmentField())->config()],
 			],
 		];
 
@@ -717,8 +718,8 @@ class PortalContributionProvider {
 					'dateFrom' => ['label' => 'First day absent', 'required' => true],
 					'dateTo' => ['label' => 'Last day absent', 'required' => true],
 					'reason' => ['label' => 'Reason', 'required' => true],
-					'reasonKind' => ['label' => 'Kind of absence', 'required' => true],
-					'attachmentRef' => ['label' => 'Attachment'],
+					'reasonKind' => ['label' => 'Kind of absence', 'required' => true, 'valueLabels' => PortalValueLabels::ABSENCE_KIND],
+					'attachmentRef' => (new ExcuseAttachmentField())->config(),
 				],
 				'submitLabel' => 'Report the absence',
 				'successMessage' => "The school has your report. You see the teacher's decision in the list of absence reports.",
@@ -790,7 +791,7 @@ class PortalContributionProvider {
 				],
 				'columns' => [
 					['field' => 'markedAt', 'label' => 'Date'],
-					['field' => 'status', 'label' => 'Attendance'],
+					['field' => 'status', 'label' => 'Attendance', 'valueLabels' => PortalValueLabels::ATTENDANCE_STATUS],
 					['field' => 'minutesAttended', 'label' => 'Minutes present'],
 				],
 			],
@@ -839,7 +840,7 @@ class PortalContributionProvider {
 					['field' => 'dateFrom', 'label' => 'From'],
 					['field' => 'dateTo', 'label' => 'To'],
 					['field' => 'reason', 'label' => 'Reason'],
-					['field' => 'lifecycle', 'label' => 'Status'],
+					['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::EXCUSE_STATUS],
 					['field' => 'decidedAt', 'label' => 'Decided on'],
 				],
 			],

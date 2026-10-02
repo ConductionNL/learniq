@@ -54,6 +54,15 @@ class PortalLabelTranslator {
 	private const VISIBLE_KEYS = ['label', 'submitLabel', 'successMessage'];
 
 	/**
+	 * The manifest key whose map VALUES a reader sees: how a stored value
+	 * reads (portaliq contribution-value-labels). Its keys are stored values
+	 * and never move.
+	 *
+	 * @var string
+	 */
+	private const VALUE_LABELS_KEY = 'valueLabels';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IL10N|null $l10n Learniq's catalogue in the reader's language, or null to keep the English source.
@@ -78,6 +87,11 @@ class PortalLabelTranslator {
 		}
 
 		foreach ($manifest as $key => $value) {
+			if ($key === self::VALUE_LABELS_KEY && is_array($value) === true) {
+				$manifest[$key] = $this->translateValueLabels(labels: $value);
+				continue;
+			}
+
 			if (is_array($value) === true) {
 				$manifest[$key] = $this->translate(manifest: $value);
 				continue;
@@ -92,4 +106,24 @@ class PortalLabelTranslator {
 
 		return $manifest;
 	}//end translate()
+
+	/**
+	 * A `valueLabels` map with every string label in the reader's language;
+	 * the stored values it is keyed by stay as they are.
+	 *
+	 * @param array<array-key, mixed> $labels The map, in English.
+	 *
+	 * @return array<array-key, mixed> The same map, its labels translated.
+	 *
+	 * @spec openspec/changes/parent-portal-value-labels/specs/portal-contribution/spec.md
+	 */
+	private function translateValueLabels(array $labels): array {
+		foreach ($labels as $value => $label) {
+			if (is_string($label) === true && $this->l10n !== null) {
+				$labels[$value] = $this->l10n->t($label);
+			}
+		}
+
+		return $labels;
+	}//end translateValueLabels()
 }//end class
