@@ -53,6 +53,10 @@ use OCA\Learniq\Grading\GradeVisibilityResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\AppFramework\Db\DoesNotExistException;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+use Throwable;
 
 /**
  * Bridges GradeEntry.published → FinalGrade recompute and AssessmentResult.graded → GradeEntry creation.
@@ -78,6 +82,7 @@ class GradeRollupHandler implements IEventListener {
 	 * @param GradeVisibilityResolver $visibilityResolver Scheduled-visibility-window resolver.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
 	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param LoggerInterface        $logger  Logs a roll-up that failed.
 	 *
 	 * @return void
 	 */
@@ -87,6 +92,7 @@ class GradeRollupHandler implements IEventListener {
 		private readonly GradeVisibilityResolver $visibilityResolver,
 		private readonly ITimeFactory $timeFactory,
 		private readonly ListenerSchemaResolver $schemas,
+		private readonly LoggerInterface $logger=new NullLogger(),
 	) {
 	}//end __construct()
 
@@ -108,17 +114,28 @@ class GradeRollupHandler implements IEventListener {
 			return;
 		}
 
-		if ($this->schemas->eventSchema(event: $event) === self::GRADE_ENTRY_SCHEMA
-			&& $event->getTo() === 'published'
-		) {
-			$this->handleGradeEntryPublished(event: $event);
-			return;
-		}
+		// The transition is committed before this runs. A roll-up that fails
+		// must not throw: Nextcloud's dispatcher stops at a throwing listener,
+		// so the listeners after this one on the same event (the correction
+		// bookkeeping among them) would never run (live pass D9).
+		try {
+			if ($this->schemas->eventSchema(event: $event) === self::GRADE_ENTRY_SCHEMA
+				&& $event->getTo() === 'published'
+			) {
+				$this->handleGradeEntryPublished(event: $event);
+				return;
+			}
 
-		if ($this->schemas->eventSchema(event: $event) === self::ASSESSMENT_RESULT_SCHEMA
-			&& $event->getTo() === 'graded'
-		) {
-			$this->handleAssessmentResultGraded(event: $event);
+			if ($this->schemas->eventSchema(event: $event) === self::ASSESSMENT_RESULT_SCHEMA
+				&& $event->getTo() === 'graded'
+			) {
+				$this->handleAssessmentResultGraded(event: $event);
+			}
+		} catch (Throwable $exception) {
+			$this->logger->error(
+				'[GradeRollupHandler] The grade roll-up after a transition failed; the transition stands: {error}',
+				['error' => $exception->getMessage(), 'exception' => $exception]
+			);
 		}
 
 	}//end handle()
@@ -214,11 +231,17 @@ class GradeRollupHandler implements IEventListener {
 	 * @spec openspec/changes/archive/2026-07-13-grade-visibility-scheduling/specs/grading/spec.md#scenario-curriculumplan-supplies-the-default-visibility-policy-when-a-teacher-does-not-override
 	 */
 	private function fetchGradeVisibilityPolicy(string $curriculumPlanId): ?array {
-		$plan = $this->objectService->find(
-			id: $curriculumPlanId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::CURRICULUM_PLAN_SCHEMA
-		);
+		// A system read: the publishing teacher may not read the plan (D9).
+		try {
+			$plan = $this->objectService->find(
+				id: $curriculumPlanId,
+				register: self::LEARNIQ_REGISTER,
+				schema: self::CURRICULUM_PLAN_SCHEMA,
+				_rbac: false
+			);
+		} catch (DoesNotExistException) {
+			return null;
+		}
 
 		if ($plan === null) {
 			return null;
