@@ -450,7 +450,7 @@ class PortalContributionProviderTest extends TestCase {
 
 		$this->assertIsArray($manifest);
 		$this->assertSame('School', $manifest['label']);
-		$this->assertSame([], $manifest['notifications']);
+		$this->assertSame(['conference.answered'], array_column($manifest['notifications'], 'ruleKey'), 'one rule: the teacher answered a booking');
 
 		$collections = $manifest['collections'];
 		$this->assertCount(16, $collections);
