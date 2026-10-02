@@ -12,50 +12,61 @@ The mockups in the portal-design canvas (artifact `3Jy3r5e5f9v9ktCLxisNG6`, sour
 
 ## What learniq owns and what portaliq owns
 
-Learniq declares data, pages, menu groups, blocks and labels in the parent contribution. Portaliq renders them with its own components. The keys below are the ones portaliq's `site-mijn-omgeving-components` (REQ-SMO-020, REQ-SMO-021) and `site-multi-step-forms` specify (portaliq PR #1110). Where the contract offers nothing for a mockup element, the table says so.
+Learniq declares data, pages, menu groups, blocks and labels in the parent contribution. Portaliq renders them with its own components. The keys below are the ones portaliq's `site-mijn-omgeving-components` (REQ-SMO-020 to REQ-SMO-028) and `site-multi-step-forms` (REQ-SMF-005) specify (portaliq PR #1110, commit 87423edc). Where the contract offers nothing for a mockup element, the table says so.
 
 | Mockup element | Learniq declares | Portaliq supplies (change) |
 |---|---|---|
 | Overview on `/mijn` | page `parentOverview` with `home: true` | the `/mijn` home (`site-mijn-omgeving-components` D4) |
-| Child switcher (V Vera, S Sami) | `records: { collection: parentChildren, titleFields: [givenName] }` | `RecordSwitcher` (`site-mijn-omgeving-components`) |
-| "Dit moet u nog doen" | block `{ type: tasks, collection: parentConferenceRounds, dueField: bookingClosesAt, titleFields: [name] }` | `ActionRow` with deadline badge (`site-mijn-omgeving-components`) |
-| "Snel regelen" | two `cta` blocks: `createExcuseRequest`, `bookConferenceSlot` | quick-action tiles (`site-mijn-omgeving-components`) |
-| "Cijfers en rapport bekijken", "Bericht sturen aan de juf" tiles | not declared | not offered: a `cta` names an action id only |
+| Child switcher "Vera, Groep 6" | `records: { collection: parentChildren, titleFields: [givenName], subtitleLookup: { collection: parentGroupMemberships, matchField: learnerRef, valueField: cohortName } }` | `RecordSwitcher` (REQ-SMO-026) |
+| "Dit moet u nog doen" | `{ type: tasks, collection: parentConferenceRounds, dueField: bookingClosesAt, titleFields: [name] }` | `ActionRow` with deadline badge (REQ-SMO-021) |
+| "Vera ziek of afwezig melden" | `{ type: cta, action: createExcuseRequest, withRecord: true, label: "{title} ziek of afwezig melden" }` | quick-action tile (REQ-SMO-024) |
+| "Oudergesprek boeken" | `{ type: cta, page: parentConferences, withRecord: true }` | quick-action tile (REQ-SMO-024) |
+| "Cijfers en rapport bekijken" | `{ type: cta, page: parentChildren, withRecord: true }` | quick-action tile (REQ-SMO-024) |
+| "Bericht sturen aan de juf" | `{ type: cta, route: <portaliq conversations route> }` | quick-action tile (REQ-SMO-024); the route value is portaliq's, see below |
 | "Deze week voor Vera" | `calendar` block, `range: week` | calendar block (exists, `CalendarBlock`) |
 | "Afwezigheid dit schooljaar" | `kpi` block over `parentAttendanceSummary` | figure tiles (`site-mijn-omgeving-components`) |
-| "Nieuwste cijfers" | `collection` block, `limit: 3`, `sort: { field: gradedAt, direction: desc }` | list with "Bekijk alle ..." link (`site-mijn-omgeving-components`) |
-| "Berichten van school" | block `{ type: inbox, collection: parentInbox, limit: 2 }` | inbox rows with "Nieuw" (`site-mijn-omgeving-components`) |
-| Menu grouped per child | page keys `group`, `perRecord`, `menu: false` | side navigation groups (`site-mijn-omgeving-components`) |
-| Absence form | `fieldConfigs.<field>.widget` = `choices` or `dateChoices`, `confirmation` | `ChoiceCards`, `DateInputGroup`, error summary (`site-multi-step-forms`) |
+| "Nieuwste cijfers" | `collection` block, `recordField: learnerRef`, `limit: 3`, `sort: { field: gradedAt, direction: desc }` | list with "Bekijk alle ..." link (REQ-SMO-021) |
+| "Berichten van school" | `{ type: inbox, collection: parentInbox, recordField: learnerRef, limit: 2 }` | inbox rows with "Nieuw" (REQ-SMO-025) |
+| Menu grouped per child | page keys `group`, `perRecord`, `menu: false` | side navigation groups (REQ-SMO-020) |
+| Absence form | `fieldConfigs.<field>.widget` = `choices` or `dateChoices`, `confirmation` | `ChoiceCards`, `DateInputGroup`, error summary (REQ-SMF-005) |
 | Signed-out hero, cards, news | seeded page content | hero, card grid, news widgets (`site-nlds-widget-palette`) |
 
 ## The overview page
 
 ```
 id: parentOverview      label: Overzicht      group: Mijn omgeving      home: true
-records: { collection: parentChildren, titleFields: [givenName] }
+records: { collection: parentChildren, titleFields: [givenName],
+           subtitleLookup: { collection: parentGroupMemberships, matchField: learnerRef, valueField: cohortName } }
 blocks:
   { type: tasks, collection: parentConferenceRounds, dueField: bookingClosesAt, titleFields: [name] }
-  { type: cta, action: createExcuseRequest, label: "Ziek of afwezig melden" }
-  { type: cta, action: bookConferenceSlot, label: "Oudergesprek boeken" }
+  { type: cta, action: createExcuseRequest, withRecord: true, label: "{title} ziek of afwezig melden" }
+  { type: cta, page: parentConferences, withRecord: true, label: "Oudergesprek boeken" }
+  { type: cta, page: parentChildren, withRecord: true, label: "Cijfers en rapport bekijken" }
+  { type: cta, route: <portaliq conversations route>, label: "Bericht sturen aan de juf" }
   { type: calendar, range: week, sources: childSources() }
-  { type: kpi, collection: parentAttendanceSummary, ... }   (the three cards of portal-parent-child-record)
-  { type: collection, collection: parentExcuseRequests, limit: 1, sort: { field: dateFrom, direction: desc } }
-  { type: collection, collection: parentGrades, limit: 3, sort: { field: gradedAt, direction: desc } }
-  { type: inbox, collection: parentInbox, limit: 2 }
+  { type: kpi, collection: parentAttendanceSummary, recordField: learnerRef, ... }
+  { type: collection, collection: parentExcuseRequests, recordField: learnerRef, limit: 1, sort: { field: dateFrom, direction: desc } }
+  { type: collection, collection: parentGrades, recordField: learnerRef, limit: 3, sort: { field: gradedAt, direction: desc } }
+  { type: inbox, collection: parentInbox, recordField: learnerRef, limit: 2 }
 ```
 
 The overview reuses the child sources and the figure cards of `ParentRecordPage`. It adds no new scope. Every block reads a collection that already goes through the reverse join on the guardian's children, or the new inbox collection, which uses the same join.
 
 Portaliq's `/mijn` home (D4) lifts every `tasks` block of a home page into its own "Dit moet u nog doen" list at the top, and drops it from the page. That is the order the mockup wants.
 
-`parentConferenceRounds` has no `recordField`, so the `tasks` block is not narrowed to the chosen child by the record. It lists every open round of any of her children. The rounds carry `invitedLearnerRefs`; whether a `tasks` block on a `records` page honours a `recordField` is not in REQ-SMO-021. Until it is, the task names the round, not the child. Raised with lane pq.
+`withRecord: true` on the absence `cta` presets the field the action names in its `recordField` (REQ-SMO-024). So `createExcuseRequest` gains `recordField: learnerRef`. The child cross-check stays: portaliq still refuses a child who is not hers, and `ExcuseRequestOwnerStamp` checks it again.
 
-The `inbox` block takes `collection` and `limit` only (REQ-SMO-021 D6). It is not narrowed to the chosen child, so it shows the newest messages about any of her children. Each message names its child, so that reads correctly.
+### Tasks stay across all children
 
-The switcher shows the given name. The mockup also shows the group ("Groep 6"). `records.subtitleFields` takes fields of `parentChildren`, and the group name is not on `learner-profile`. The switcher shows the given name only.
+REQ-SMO-025 lets a `tasks` block narrow to the open record with `recordField`. The conference task cannot use it. The child of a round is in `ConferenceRound.invitedLearnerRefs`, which holds every invited pupil of the group. Record narrowing is presentation only, so the field would have to reach the browser. Projecting it would show the guardian other pupils' uuids, which `Assignment.learnerRefs` already rules out for the same reason. So the task lists every open round of any of her children, and names the round. A per-child task needs a server-side narrowing or a per-child row (a booking invitation per child). Neither is in this change.
 
-The quick-action labels name the action, not the child ("Ziek of afwezig melden", not "Vera ziek of afwezig melden"). A `cta` label is a fixed string in the contract; it has no placeholder for the chosen record.
+### The group name under the child (NEW)
+
+`subtitleLookup` is one hop (REQ-SMO-026). The child's group name is two hops away: `enrolment.cohortId`, then `cohort.name`. This change stamps a readable copy, `Enrolment.cohortName`, written by the server from the cohort on create and update, never by a client. `parentGroupMemberships` projects it. A cohort rename re-stamps its active enrolments. This is the same readable-copy pattern as `ReportCard.periodName` and `GradeEntry.courseName`.
+
+### The conversation tile
+
+The mockup's "Bericht sturen aan de juf" opens a conversation with the teacher. Portaliq's contract lets a `cta` open a `route` inside the portal. I did not find a route in portaliq that starts a conversation with a named teacher. Portaliq's resident menu has a `messages` section (`residentMenu.js`), which lists conversations. The exact route value is portaliq's to name. Until lane pq names it, the tile is specified with that placeholder and the build must not guess it. If portaliq has no compose route, the tile opens the conversations list.
 
 ## The menu
 
@@ -94,10 +105,10 @@ Both carry `learnerRef` and no grade values. A `parentInbox` collection over eac
 
 ## The absence form
 
-The action `createExcuseRequest` already has the fields and the child cross-check. This change adds presentation keys from `site-multi-step-forms` only:
+The action `createExcuseRequest` already has the fields and the child cross-check. This change adds presentation keys from `site-multi-step-forms` (REQ-SMF-005) only:
 
-- `learnerRef`: `widget: choices`, one card per child from the options provider, not a select.
-- `reasonKind`: `widget: choices`. Portaliq draws one card per option, so the guardian sees the six kinds of `PortalValueLabels::ABSENCE_KIND`. The mockup shows three ("Ziek", "Dokter of tandarts", "Een andere reden"). Folding six kinds into three cards is not offered by the contract. Narrowing the options is a learniq choice: the portal action could offer `illness`, `medical-appointment` and `other` only. That drops three kinds a guardian can choose today, so it is an open decision, not part of this change.
+- `learnerRef`: `widget: choices`, one card per child from the options provider, not a select. Preset by `withRecord` from the overview tile.
+- `reasonKind`: `widget: choices` with all six kinds of `PortalValueLabels::ABSENCE_KIND` as cards, for now. The mockup shows three cards. REQ-SMF-005 offers that: `choiceOptions: [illness, medical-appointment]` plus `otherLabel: "Een andere reden"`, which shows two cards and an "other" card that reveals the remaining four kinds in a select. Nothing a guardian can send changes. This option waits on Ruben's decision; it is not declared in this change.
 - `dateFrom`, `dateTo`: `widget: dateChoices` with `dateChoices: 2`, so the guardian sees today, the next school day and "Een andere dag".
 - `confirmation: { title: "Uw melding is verstuurd", body: "De juf of meester heeft uw melding ontvangen." }` replaces `successMessage`.
 
@@ -108,4 +119,5 @@ The action `createExcuseRequest` already has the fields and the child cross-chec
 1. Persona name. The persona file is `yasmina-hulstkamp`, to keep her apart from Fatima El-Amrani. The po example set and the e2e seed her as Fatima Hulstkamp. Rename the seed, or keep it?
 2. The teacher's comment on a grade. Keep it staff-only (this change), or show it to guardians?
 3. Permission slips. Write `school-trip-permission` as the next change?
-4. The absence kinds. Keep six cards, or offer three on the portal (see "The absence form")?
+4. The absence kinds. Keep six cards (declared now), or show "Ziek", "Dokter of tandarts" and "Een andere reden" through `choiceOptions` and `otherLabel` (see "The absence form")?
+5. The conference task per child. Accept a task that names the round across all children, or add a per-child booking invitation?

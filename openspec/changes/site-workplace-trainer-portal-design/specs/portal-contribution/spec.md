@@ -2,7 +2,7 @@
 
 ### Requirement: A workplace trainer lands on what is waiting for her
 
-The `praktijkopleider` audience MUST declare pages under `group: Mijn omgeving`. The first MUST be `poOverview`, "Overzicht", with `home: true`, showing her students with an active or upcoming placement and each placement period. Learniq MUST raise a portal task for her when a step opens (a POK to sign, an assessment to write) and complete it when the step is done, so portaliq lists it first on `/mijn`. The default collection pages MUST declare `menu: false`. Every block MUST read only her own placements, assessments and shares. Design of record: `LearniqTrainer.dc.html`.
+The `praktijkopleider` audience MUST declare pages under `group: Mijn omgeving`. The first MUST be `poOverview`, "Overzicht", with `home: true`, showing her students with an active or upcoming placement as cards (`display: cards` over `poLearners`), each with its placement period through lookups on `poBpvPlacements`, and no progress figure, because no hours fields exist. Learniq MUST raise a portal task for her when a step opens (a POK to sign, an assessment to write) and complete it when the step is done, so portaliq lists it first on `/mijn`. The default collection pages MUST declare `menu: false`. Every block MUST read only her own placements, assessments and shares. Design of record: `LearniqTrainer.dc.html`.
 
 #### Scenario: Karin sees her two students
 - GIVEN trainer Karin Smit with active placements for Daan and Lotte

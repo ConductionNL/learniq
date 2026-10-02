@@ -2,19 +2,19 @@
 
 ### Requirement: A guardian lands on an overview of one child at a time
 
-The parent audience MUST declare an overview page `parentOverview`, labelled "Overzicht", with `home: true`, so it opens on `/mijn`. The page MUST declare `records: { collection: parentChildren }`, one child at a time, so portaliq draws a child switcher. Below the open tasks (see the next requirement) the page MUST show, in this order: two quick actions, the coming week, the attendance figures of the latest school year, the latest absence report, and the three newest grades, each for the chosen child; then the two newest inbox messages about any of her children. Every block MUST read a collection that goes through the reverse join on the guardian's own children. Design of record: `Main.dc.html`.
+The parent audience MUST declare an overview page `parentOverview`, labelled "Overzicht", with `home: true`, so it opens on `/mijn`. The page MUST declare `records: { collection: parentChildren }`, one child at a time, so portaliq draws a child switcher. Below the open tasks (see the next requirement) the page MUST show, in this order: four quick actions, the coming week, the attendance figures of the latest school year, the latest absence report, the three newest grades and the two newest inbox messages, each for the chosen child (`recordField: learnerRef`). Every block MUST read a collection that goes through the reverse join on the guardian's own children. Design of record: `Main.dc.html`.
 
 #### Scenario: The overview opens on the first child
 - GIVEN a guardian with two children, Vera and Sami, at De Wilgenboom
 - WHEN she signs in on the site
 - THEN she lands on "Overzicht" with Vera chosen and a switch to Sami
-- AND every block below the tasks, except the messages, is about Vera
+- AND every block below the tasks is about Vera
 - @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
 
 #### Scenario: Switching child changes every block
 - GIVEN the guardian on "Overzicht" with Vera chosen
 - WHEN she switches to Sami
-- THEN the week, the figures, the latest report and the grades are Sami's
+- THEN the week, the figures, the latest report, the grades and the messages are Sami's
 - @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
 
 #### Scenario: A guardian with one child sees no switcher
@@ -25,7 +25,7 @@ The parent audience MUST declare an overview page `parentOverview`, labelled "Ov
 
 ### Requirement: The overview puts open tasks first
 
-The overview MUST be a home page (`home: true`) and MUST declare a `tasks` block over `parentConferenceRounds` with `dueField: bookingClosesAt`, so each conference round in `booking-open` that invites one of her children shows as a task in portaliq's "Dit moet u nog doen". A task MUST name what to do ("Kies een tijd voor het oudergesprek") and the last day to book. A task MUST link to the booking page. With no open round, no task block MUST show, not an empty one.
+The overview MUST be a home page (`home: true`) and MUST declare a `tasks` block over `parentConferenceRounds` with `dueField: bookingClosesAt`, so each conference round in `booking-open` that invites one of her children shows as a task in portaliq's "Dit moet u nog doen". A task MUST name what to do ("Kies een tijd voor het oudergesprek") and the last day to book. A task MUST link to the booking page. With no open round, no task block MUST show, not an empty one. The task MUST NOT be narrowed per child by projecting `invitedLearnerRefs`: that list names other pupils.
 
 #### Scenario: An open conference round is a task
 - GIVEN a conference round in `booking-open` that invites Vera and closes on 9 October
@@ -40,14 +40,30 @@ The overview MUST be a home page (`home: true`) and MUST declare a `tasks` block
 - THEN no task block shows
 - @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
 
-### Requirement: The overview offers quick actions on existing actions
+### Requirement: The overview offers four quick actions for the chosen child
 
-The overview MUST declare two `cta` blocks on actions that exist: report a child absent (`createExcuseRequest`) and book a conversation (`bookConferenceSlot`). Tiles that open a page or a portaliq route ("Cijfers en rapport bekijken", "Bericht sturen aan de juf" in `Main.dc.html`) are not declared, because a `cta` names a contribution action only.
+The overview MUST declare four `cta` blocks, as in `Main.dc.html`: "{title} ziek of afwezig melden" on `createExcuseRequest` with `withRecord: true`; "Oudergesprek boeken" on the page `parentConferences` with `withRecord: true`; "Cijfers en rapport bekijken" on the page `parentChildren` with `withRecord: true`; "Bericht sturen aan de juf" on portaliq's conversations `route`. `createExcuseRequest` MUST declare `recordField: learnerRef`, so the tile presets the chosen child. The child cross-check of the action MUST stay as it is.
 
-#### Scenario: Report sick from the overview
-- GIVEN the guardian on "Overzicht"
-- WHEN she taps "Ziek of afwezig melden"
-- THEN the absence form opens and asks which child
+#### Scenario: Report Vera sick from the overview
+- GIVEN the guardian on "Overzicht" with Vera chosen
+- WHEN she taps "Vera ziek of afwezig melden"
+- THEN the absence form opens with Vera already chosen
+- @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
+
+#### Scenario: Grades for the chosen child
+- GIVEN the guardian on "Overzicht" with Sami chosen
+- WHEN she taps "Cijfers en rapport bekijken"
+- THEN Sami's record page opens
+- @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
+
+### Requirement: NEW: The child switcher shows the child's group
+
+`Enrolment` MUST carry `cohortName`, a readable copy of its cohort's name, written by the server on create and update and when the cohort is renamed, never by a client. `parentGroupMemberships` MUST project it. The overview's `records` MUST declare `subtitleLookup: { collection: parentGroupMemberships, matchField: learnerRef, valueField: cohortName }`. This is new work: the group name is two hops from the child today.
+
+#### Scenario: Vera, Groep 6
+- GIVEN Vera enrolled in the cohort "Groep 6"
+- WHEN the guardian opens "Overzicht"
+- THEN the switcher reads "Vera" with "Groep 6" under it
 - @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
 
 ### Requirement: The guardian menu is grouped per child

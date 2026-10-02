@@ -8,7 +8,7 @@ Specs only so far. Build starts after Ruben approves the specs. T3 waits on port
   - PHPUnit `PortalContributionProviderTest`
 - [ ] **T3**: `eaSharedPortfolioEntries` through the share's `entryIds` (and `portfolioId` for a whole-portfolio share), with `via.when` and `via.validUntilField: expiresAt`
   - PHPUnit `PortalContributionProviderTest`; portaliq reader test for the joined filter
-- [ ] **T4**: `AssessorPortalPages`: overview (`home: true`) with the access block, "Gedeeld met mij", under `group: Mijn omgeving`; default pages `menu: false`
+- [ ] **T4**: `AssessorPortalPages`: overview (`home: true`) with the access block; a share record page with the `template` sentence and `whenEmpty`; "Gedeeld met mij", under `group: Mijn omgeving`; default pages `menu: false`
   - PHPUnit for the new class
 - [ ] **T5**: the manifest through `PortalLabelTranslator`; Dutch "u" entries
   - PHPUnit `PortalLabelTranslatorTest`; `npm run check:l10n`

@@ -10,7 +10,7 @@ Specs only so far. Build starts after Ruben approves the specs and portaliq name
   - PHPUnit for the werkproces options and the server fill
 - [ ] **T5**: the trainer's open steps as portal tasks through OpenRegister's portal-task seam, raised and completed server-side; check first that a praktijkopleider subject is addressable
   - PHPUnit for the step derivation
-- [ ] **T6**: `TrainerPortalPages`: overview (`home: true`), Mijn studenten, Beoordelingen, under `group: Mijn omgeving`; default pages `menu: false`
+- [ ] **T6**: `TrainerPortalPages`, with the student cards (`display: cards`, period lookups, no `progress`): overview (`home: true`), Mijn studenten, Beoordelingen, under `group: Mijn omgeving`; default pages `menu: false`
   - PHPUnit for the new class
 - [ ] **T7**: the manifest through `PortalLabelTranslator`; Dutch "u" entries with term explanations
   - PHPUnit `PortalLabelTranslatorTest`; `npm run check:l10n`

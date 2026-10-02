@@ -9,10 +9,10 @@
 | Mockup element | Learniq declares | Data today |
 |---|---|---|
 | "Hoi Noa. Je moet vandaag nog één ding inleveren." | page intro with a count of open hand-ins due today | `studentHomework` (NEW) |
-| "Inleveren": title, due date and time, "Vandaag", "Over 7 dagen" | `{ type: tasks, collection: studentHomework, dueField: dueAt, titleFields: [title] }` | `assignment.title`, `dueAt` |
-| "Je rooster vandaag" with a cancelled lesson | `{ type: calendar, range: week }` with two sources over `studentSessions` (see below) | `session.startsAt`, `endsAt`, `title`, `location`, `lifecycle` (NEW collection) |
-| "Werk inleveren", "Afwezig melden" | two `cta` blocks | `createSubmission`, `createExcuseRequest` |
-| "Cijfers", "Toetsen" tiles | not declared | not offered: a `cta` names an action id, not a page |
+| "Inleveren": title, due date and time, "Vandaag", "Over 7 dagen" | `{ type: tasks, collection: studentHomework, dueField: dueAt, titleFields: [title], lookups: [submission], excludeWhen: { lookup: submission, in: [submitted, late, returned] } }` | `assignment.title`, `dueAt` |
+| "Je rooster vandaag" with a cancelled lesson | `{ type: calendar, range: day }` with two sources over `studentSessions` (see below) | `session.startsAt`, `endsAt`, `title`, `location`, `lifecycle` (NEW collection) |
+| "Werk inleveren", "Afwezig melden" | two `cta` blocks on actions | `createSubmission`, `createExcuseRequest` |
+| "Cijfers", "Toetsen" | two `cta` blocks with `page: studentGrades` and `page: studentTests` (REQ-SMO-024) | the default pages of those collections |
 | "Nieuwste cijfers" with "Telt 2 keer mee" | `collection` block, `limit: 3`, `sort: gradedAt desc` | `grade-entry.value`, `weight` (projection added), `courseName` (guardian change) |
 | "Berichten" | `{ type: inbox, collection: studentInbox, limit: 2 }` | `studentInbox` (grade notices) |
 | "Vraag of probleem?" | `richText` block from the school's settings | none in learniq; portaliq page text |
@@ -37,7 +37,7 @@ The calendar block shows the timetable with two sources over `studentSessions`, 
 - `only: { field: lifecycle, in: [scheduled, in-progress] }`, kind "Les".
 - `only: { field: lifecycle, in: [cancelled] }`, kind "Valt uit".
 
-The contract's `range` is `week` or `month`. The mockup heading "Je rooster vandaag" needs a single day, which the contract does not offer. This change declares `range: week` and the heading "Je rooster deze week". A day range is raised with lane pq.
+The overview declares `range: day`, so "Je rooster vandaag" shows today only. The "Hele week" link is a `cta` with `page: studentSessions`, whose page shows the calendar with `range: week`.
 
 `affectedLearnerIds`, `affectedParentIds`, `substituteTeacherId` and `changeReason` are not projected. They name other people or carry staff notes.
 
@@ -55,7 +55,7 @@ studentHomework
 
 `learnerRefs` is never projected, as on the parent side.
 
-The `tasks` block lists every row of `studentHomework`. REQ-SMO-021 offers no way to leave out a row by a lookup value, so handed-in work stays in "Inleveren" on the overview until its assignment closes. The "Inleveren" page shows the status per row. Leaving out handed-in rows is raised with lane pq. `instructions` is projected on the detail only, so the pupil can read what to hand in.
+The `tasks` block declares the lookup `{ as: submission, collection: studentSubmissions, matchField: assignmentId, valueField: lifecycle }` and `excludeWhen: { lookup: submission, in: [submitted, late, returned] }` (REQ-SMO-025). Handed-in work leaves "Inleveren" on the overview; a `draft` submission or none keeps the row. The "Inleveren" page lists every published assignment with its status. `instructions` is projected on the detail only, so the pupil can read what to hand in.
 
 ## Labels
 

@@ -2,13 +2,19 @@
 
 ### Requirement: An external assessor lands on what is shared with him and until when
 
-The `external-assessor` audience MUST declare pages under `group: Mijn omgeving`, with `menu: false` on the default collection pages. The first MUST be `eaOverview`, "Overzicht", with `home: true`, showing a block "Uw toegang" with the end date of his latest-ending active share (a `collection` block over `eaSharedPortfolios`, `sort: { field: expiresAt, direction: desc }`, `limit: 1`), then one row per active share with the candidate's name, the portfolio title and the share's end date. A sentence for a share without an end date is not offered by portaliq's contract and is not declared. The audience MUST stay read-only: no action is added. Design of record: `LearniqAssessor.dc.html`, the access notice and the candidate column.
+The `external-assessor` audience MUST declare pages under `group: Mijn omgeving`, with `menu: false` on the default collection pages. The first MUST be `eaOverview`, "Overzicht", with `home: true`, showing a block "Uw toegang" with the end date of his latest-ending active share (a `collection` block over `eaSharedPortfolios`, `sort: { field: expiresAt, direction: desc }`, `limit: 1`), then one row per active share with the candidate's name, the portfolio title and the share's end date. Each share's record page MUST carry the sentence "U heeft toegang tot en met {expiresAt}." as a `richText` `template`, with `whenEmpty` "U heeft toegang zonder einddatum. De school beëindigt de toegang." for a share without an end date. The audience MUST stay read-only: no action is added. Design of record: `LearniqAssessor.dc.html`, the access notice and the candidate column.
 
 #### Scenario: Ruud sees his access window
 - GIVEN assessor Ruud Jansen with two active shares ending 16 October and 9 October
 - WHEN he signs in on the examenportaal
 - THEN "Uw toegang" shows 16 October
 - AND he sees one row per share with the candidate's name
+- @e2e exclude planned: written with the build in tests/e2e/mbo-assessor-flows.spec.ts (specs-only change)
+
+#### Scenario: A share without an end date
+- GIVEN a share to Ruud with no `expiresAt`
+- WHEN he opens that share
+- THEN he reads "U heeft toegang zonder einddatum. De school beëindigt de toegang."
 - @e2e exclude planned: written with the build in tests/e2e/mbo-assessor-flows.spec.ts (specs-only change)
 
 #### Scenario: A revoked share disappears

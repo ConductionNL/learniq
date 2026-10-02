@@ -26,7 +26,7 @@ So this change does two things. It designs the part of the mockup that today's d
 Existing data, new declarations:
 
 - **An overview** `eaOverview`, "Overzicht", with `home: true`: the access notice and the candidates whose work is shared with him.
-- **The access notice**: "U heeft toegang tot en met <date>. U ziet alleen de kandidaten die u beoordeelt." The date is the latest `expiresAt` of his active shares. A share without an end date gives no date and a notice that the school ends the access.
+- **The access sentence**, as in the mockup: "U heeft toegang tot en met {expiresAt}." with `whenEmpty: { expiresAt: "U heeft toegang zonder einddatum." }`, a `richText` `template` block (REQ-SMO-027) on each share's record page. The overview keeps a short "Uw toegang" list of his latest-ending share, plus the fixed line "U ziet alleen de kandidaten die u beoordeelt."
 - **A short menu** under `group: Mijn omgeving`: Overzicht, Gedeeld met mij. Berichten is portaliq's own inbox entry. The default collection pages get `menu: false`.
 - **Dutch labels** through `PortalLabelTranslator`, in the "u" form.
 
@@ -40,7 +40,7 @@ New work, clearly marked in the specs:
 Portaliq (lane pq; referenced, not respecified):
 
 - `site-mijn-omgeving-components` (portaliq PR #1110): the page keys `group`, `menu: false` and `home: true`; the candidate list and the file item. And `via.when` with `via.validUntilField` (REQ-SMO-023, wave 1 of that change), so a revoked or expired share resolves no entries.
-- Not offered by that contract: a notice banner a contribution can fill from data. The access notice is a `richText` block whose date learniq cannot fill from `expiresAt`, so it is declared as a `collection` block over `eaSharedPortfolios` with `sort: { field: expiresAt, direction: desc }` and `limit: 1`, under the heading "Uw toegang". Raised with lane pq.
+- Not offered by that contract: a `template` outside a record page. REQ-SMO-027 fills a template from the open record, so the mockup's single sentence on the overview, over all his shares, cannot be declared. The overview shows "Uw toegang" as a `collection` block over `eaSharedPortfolios` with `sort: { field: expiresAt, direction: desc }` and `limit: 1`; each share's page carries the sentence.
 
 Learniq:
 

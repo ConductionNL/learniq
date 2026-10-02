@@ -43,7 +43,17 @@ The forward join keeps an entry whose own id is in the `entryIds` of one of his 
 
 ## The access date
 
-`expiresAt` lives on each share, not on the assessor. The mockup's sentence "U heeft toegang tot en met <date>" needs a text with a value from data. Portaliq's contract has no block for that: a `richText` block is fixed text. The overview therefore shows "Uw toegang" as a `collection` block over `eaSharedPortfolios`, sorted on `expiresAt` descending, limit 1. Where a share without an end date sorts is portaliq's choice, so the mockup's "the school ends the access" sentence is not declared. Raised with lane pq. The scope itself does not depend on the notice: an expired share must already resolve no rows (see above).
+`expiresAt` lives on each share, not on the assessor. Each share's record page (`record: { collection: eaSharedPortfolios }`) carries the mockup's sentence as a `richText` block with a `template` (REQ-SMO-027):
+
+```
+{ type: richText,
+  template: "U heeft toegang tot en met {expiresAt}.",
+  whenEmpty: { expiresAt: "U heeft toegang zonder einddatum. De school beëindigt de toegang." } }
+```
+
+The value is inserted as plain text. `expiresAt` is projected, so the placeholder is kept.
+
+The overview is not a record page, so a template cannot read "the latest end date of all his shares". The overview shows "Uw toegang" as a `collection` block over `eaSharedPortfolios`, sorted on `expiresAt` descending, limit 1, plus the fixed line "U ziet alleen de kandidaten die u beoordeelt." in a plain `richText` block.
 
 ## Proposed follow-up: mbo-practical-exam-assessment
 

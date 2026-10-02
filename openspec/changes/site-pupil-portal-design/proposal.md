@@ -22,7 +22,7 @@ What the student audience offers today (`PortalContributionProvider::studentCont
 
 Existing data, new declarations:
 
-- **An overview page** `studentOverview`, "Overzicht", with `home: true`: "Inleveren" as a `tasks` block, the week's timetable, two quick actions, "Nieuwste cijfers" and "Berichten".
+- **An overview page** `studentOverview`, "Overzicht", with `home: true`: "Inleveren" as a `tasks` block without handed-in work, "Je rooster vandaag", four quick actions, "Nieuwste cijfers" and "Berichten".
 - **A short menu** under `group: Mijn omgeving`: Overzicht, Rooster, Inleveren, Cijfers, Toetsen, Afwezig melden. Berichten is portaliq's own inbox entry. The default collection pages get `menu: false` and keep their routes.
 - **Dutch labels** for the whole student manifest, through `PortalLabelTranslator`, in the "je" form.
 - **Weight on a grade**: `weight` joins the `studentGrades` projection ("Telt 2 keer mee"). The readable subject comes from `GradeEntry.courseName`, added by `site-guardian-portal-design`.
@@ -36,8 +36,7 @@ New work, clearly marked in the specs:
 
 Portaliq (lane pq of the portal-design programme; referenced, not respecified):
 
-- `site-mijn-omgeving-components` (portaliq PR #1110): the page keys `group`, `menu: false` and `home: true`; the `tasks` block with `dueField`; the `inbox` block; `limit` and `sort` on a `collection` block; `range: week` on a `calendar` block; `via.when`, so a withdrawn enrolment grants no timetable (REQ-SMO-023).
-- Not offered by that contract, raised with lane pq: a `range` of one day (the mockup shows "Je rooster vandaag"; the contract has `week` and `month`), a `tasks` block that leaves out rows by a lookup value (handed-in work), and a `cta` that opens a page ("Cijfers", "Toetsen").
+- `site-mijn-omgeving-components` (portaliq PR #1110): the page keys `group`, `menu: false` and `home: true`; the `tasks` block with `dueField`, `lookups` and `excludeWhen` (REQ-SMO-025); the `inbox` block; `limit` and `sort` on a `collection` block; `range: day` and `range: week` on a `calendar` block; `cta` with `page` (REQ-SMO-024); `via.when`, so a withdrawn enrolment grants no timetable (REQ-SMO-023).
 - `site-multi-step-forms`: the absence form on a phone.
 
 Learniq:
