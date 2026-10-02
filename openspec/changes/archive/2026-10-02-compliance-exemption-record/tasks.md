@@ -12,10 +12,10 @@
 ## 3. UI
 
 - [x] 3.1a Add the Exemptions index and detail pages, the officer menu and the line manager's "Request an exemption" menu, and an Excused column in the department compliance widget. The request is the index page's create form, no dialog file (design, Built). Verify: `npm run check:specs`, gate 53 and 60 unchanged.
-- [ ] 3.1b Playwright flow: request, grant, see excused. Not written: Playwright runs in CI and nightly only, and a spec nobody has run is not evidence.
+- [x] 3.1b Live flow on the shared dev instance (2 Oct, learniq 1197793c, register 0.34.25, browser): officer A requests, officer B grants, the department table shows Excused 1 and no obligation. Evidence: `~/memcap-work/build-all/livepass/learniq/compliance-exemption-record/RESULT.md` and its screenshots. Seen there, not part of this change: a compliance officer cannot load that table (action seed names `compliance-officer`), reported as live-pass D1.
 
 ## 4. Close out
 
 - [x] 4.1 Add strings to every shipped locale. Verify: `npm run test:l10n`.
-- [ ] 4.2 Set row `comp-record-exemption` to built and archive the change. Verify: parity_verify --strict.
+- [x] 4.2 Set row `comp-record-exemption` to built and archive the change. Verify: parity_verify --strict.
 
