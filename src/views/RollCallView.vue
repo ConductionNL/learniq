@@ -18,7 +18,7 @@
 <template>
 	<div class="roll-call">
 		<h2 class="roll-call__title">
-			{{ t('learniq', 'Register') }}
+			{{ t('learniq', 'Attendance register') }}
 			<span v-if="register.cohortName">· {{ register.cohortName }}</span>
 		</h2>
 
