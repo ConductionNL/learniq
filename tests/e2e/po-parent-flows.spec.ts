@@ -37,9 +37,10 @@
  * signed-in routes (`&route=/mijn/learniq/<collection>` and the shell's own
  * sections such as `/mijn/news`). The portal API under
  * `/apps/portaliq/portal/api/*` stays the data source the assertions read.
- * The steps that fill a form on the site wait for portaliq's form slice
- * (portaliq#1029); until it lands they are `test.fixme`, and the same writes
- * go through the portal API so the teacher's half of each flow still runs.
+ * The guardian fills the absence and booking forms on the site (b0, d0) and
+ * reads the news on the site's news page (c1). Flows b and d also write
+ * through the portal API, so the teacher's half of each flow runs on its own
+ * row.
  *
  * Screenshots of every step land in `test-results/po-flow/`.
  *
@@ -114,6 +115,8 @@ test.describe('po: teacher and parent flows', () => {
 	let teacher: APIRequestContext
 
 	test.beforeAll(async ({ browser }) => {
+		// Room for the sign-in's retries (see signInAsGuardian).
+		test.setTimeout(300_000)
 		stub = await startStubDigid(
 			ISSUER,
 			CLIENT_ID,
@@ -172,24 +175,41 @@ test.describe('po: teacher and parent flows', () => {
 		expect(foreign.status()).toBe(404)
 	})
 
-	test.fixme('b0. the guardian reports the absence through the form on the site (waits for portaliq#1029/#1026 on /site)', async () => {
+	test('b0. the guardian reports the absence through the form on the site', async () => {
 		const reason = `Koorts, formulier (${RUN})`
 		await openPage(parent, 'learniq/parentExcuseRequests')
-		await parent
-			.locator('select#f-createExcuseRequest-learnerRef')
-			.selectOption(CHILD.ref)
-		await parent.locator('#f-createExcuseRequest-dateFrom').fill('2026-10-01')
-		await parent.locator('#f-createExcuseRequest-dateTo').fill('2026-10-01')
-		await parent.locator('#f-createExcuseRequest-reason').fill(reason)
-		await parent.locator('#f-createExcuseRequest-reasonKind').fill('illness')
-		await shot(parent, 'b1-absence-form')
-		await parent.getByRole('button', { name: 'Report the absence' }).click()
+		await expect(
+			parent.getByRole('heading', {
+				level: 1,
+				name: 'Afwezigheidsmeldingen van mijn kind',
+			}),
+		).toBeVisible()
+		const form = parent.getByRole('form', {
+			name: 'Afwezigheid van uw kind melden',
+		})
+		await form
+			.getByRole('combobox', { name: 'Kind', exact: true })
+			.selectOption({ label: CHILD.name })
+		await form.getByLabel('Eerste dag afwezig').fill('2026-10-01')
+		await form.getByLabel('Laatste dag afwezig').fill('2026-10-01')
+		await form.getByRole('textbox', { name: 'Reden', exact: true }).fill(reason)
+		await form
+			.getByRole('combobox', { name: 'Soort afwezigheid' })
+			.selectOption('illness')
+		await shot(parent, 'b0-absence-form')
+		await form.getByRole('button', { name: 'Afwezigheid melden' }).click()
 		await expect
 			.poll(async () => (await excuseFor(reason))?.lifecycle, {
 				timeout: 15_000,
 			})
 			.toBe('submitted')
-		await shot(parent, 'b2-absence-sent')
+		const sent = await excuseFor(reason)
+		expect(sent?.learnerRef).toBe(CHILD.ref)
+		expect(sent?.reasonKind).toBe('illness')
+		await expect(
+			parent.getByRole('cell', { name: reason, exact: true }),
+		).toBeVisible({ timeout: 15_000 })
+		await shot(parent, 'b0-absence-form-sent')
 	})
 
 	test('b. an absence report goes from the guardian to the teacher and back', async ({
@@ -242,10 +262,15 @@ test.describe('po: teacher and parent flows', () => {
 		await staff.goto(`/index.php/apps/learniq/attendance/excuses/${excuse!.id}`)
 		await dismissTour(staff)
 		await shot(staff, 'b3-teacher-sees-report')
-		await staff.getByRole('button', { name: 'Approve' }).click()
-		await expect(staff.getByText('approved').first()).toBeVisible({
-			timeout: 15_000,
-		})
+		// The lifecycle actions sit in the page's Actions menu (learniq#1595).
+		await staff.getByRole('button', { name: 'Actions' }).first().click()
+		await staff.getByRole('menuitem', { name: 'Approve' }).click()
+		// The detail page no longer prints the lifecycle; the record says it.
+		await expect
+			.poll(async () => (await excuseFor(reason))?.lifecycle, {
+				timeout: 15_000,
+			})
+			.toBe('approved')
 		await shot(staff, 'b4-teacher-approved')
 		await staff.close()
 
@@ -285,26 +310,32 @@ test.describe('po: teacher and parent flows', () => {
 		expect(item.translation).toBeUndefined()
 	})
 
-	test.fixme('c1. the guardian reads the news on the site (waits for portaliq#1029/#1026 on /site)', async () => {
+	test('c1. the guardian reads the news on the site', async () => {
 		await openPage(parent, 'news')
-		await expect(parent.getByText(NEWS_TITLE)).toBeVisible()
+		await expect(
+			parent.getByRole('heading', { level: 1, name: 'Nieuws' }),
+		).toBeVisible()
+		await expect(
+			parent.getByRole('heading', { name: NEWS_TITLE, exact: true }),
+		).toBeVisible({ timeout: 15_000 })
 		await shot(parent, 'c1-news')
 	})
 
-	test.fixme('d0. the guardian books a conference through the form on the site (waits for portaliq#1029/#1026 on /site)', async () => {
-		const round = await openBookingRound(`Oudergesprekken, formulier (${RUN})`)
+	test('d0. the guardian books a conference through the form on the site', async () => {
+		const name = `Oudergesprekken, formulier (${RUN})`
+		const note = `Graag over lezen praten (${RUN})`
+		const round = await openBookingRound(name)
 		await openPage(parent, 'learniq/parentConferenceSignups')
-		await parent
-			.locator('select#f-createConferenceSignup-conferenceRoundId')
-			.selectOption(round.id)
-		await parent
-			.locator('select#f-createConferenceSignup-learnerRef')
-			.selectOption(CHILD.ref)
-		await parent
-			.locator('#f-createConferenceSignup-notes')
-			.fill('Graag over lezen praten')
-		await shot(parent, 'd2-booking-form')
-		await parent.getByRole('button', { name: 'Book', exact: true }).click()
+		const form = parent.getByRole('form', { name: 'Oudergesprek boeken' })
+		await form
+			.getByRole('combobox', { name: 'Oudergespreksronde' })
+			.selectOption({ label: name })
+		await form
+			.getByRole('combobox', { name: 'Kind', exact: true })
+			.selectOption({ label: CHILD.name })
+		await form.getByLabel('Wat de leerkracht vooraf moet weten').fill(note)
+		await shot(parent, 'd0-booking-form')
+		await form.getByRole('button', { name: 'Boeken', exact: true }).click()
 		await expect
 			.poll(
 				async () =>
@@ -319,11 +350,20 @@ test.describe('po: teacher and parent flows', () => {
 				{ timeout: 15_000 },
 			)
 			.toEqual(['submitted'])
+		await expect(
+			parent.getByRole('cell', { name: note, exact: true }),
+		).toBeVisible({ timeout: 15_000 })
+		await shot(parent, 'd0-booking-form-sent')
+		// Close this round, so it does not stay open for the next run.
+		expect(await transition(round.id, 'close-booking')).toBe('booking-closed')
 	})
 
 	test('d. a parent-teacher conference is booked, planned and recorded', async ({
 		browser,
 	}) => {
+		// Two teacher sessions and five staff pages: on a loaded instance this
+		// flow alone measured 3.1 minutes (2026-10-02).
+		test.setTimeout(300_000)
 		const round = await openBookingRound(`Oudergesprekken groep 7 (${RUN})`)
 		const availability = await teacherCreate('teacher-availability', {
 			conferenceRoundId: round.id,
@@ -478,15 +518,20 @@ test.describe('po: teacher and parent flows', () => {
 	 * @return {Promise<Page>} The guardian's signed-in portal page.
 	 */
 	async function signInAsGuardian(browser: Browser): Promise<Page> {
-		const page = await (
-			await browser.newContext({ storageState: undefined })
-		).newPage()
-		// Docker Desktop forwards a port that just started listening on the
-		// WSL side only after a few seconds, so the instance's token request
-		// to a fresh stub can be refused and the callback answers
-		// `oidc_failed`. Measured on :8090 on 2026-10-01: refused right
-		// after listen(), answered 200 five seconds later. One more round
-		// trip covers that; a second failure is a real one.
+		const page =
+			await // A Dutch browser: learniq's labels follow the request's language.
+			(
+				await browser.newContext({
+					storageState: undefined,
+					locale: 'nl-NL',
+				})
+			).newPage()
+		// Docker Desktop forwards a port that listens on the WSL side with
+		// gaps: the instance cannot always reach the stub, and its discovery
+		// or token request then fails with `oidc_failed`. Measured on :8090
+		// on 2026-10-01/02: refused for the first 8 to 12 seconds after
+		// listen(), and later reachable, unreachable for about 30 seconds,
+		// and reachable again. A few more round trips cover such a gap.
 		for (let attempt = 1; ; attempt++) {
 			stub.nextLogin({
 				sub: GUARDIAN.sub,
@@ -502,7 +547,7 @@ test.describe('po: teacher and parent flows', () => {
 			// The sign-in returns to the site by itself (portaliq#1028).
 			const landed = await page
 				.waitForURL(/\/apps\/portaliq\/site[^#]*route=%2Fmijn/, {
-					timeout: 30_000,
+					timeout: 15_000,
 				})
 				.then(() => true)
 				.catch(() => false)
@@ -512,7 +557,7 @@ test.describe('po: teacher and parent flows', () => {
 			expect(
 				attempt,
 				`sign-in did not return to the site: ${page.url()}`,
-			).toBeLessThan(2)
+			).toBeLessThan(8)
 			await page.waitForTimeout(5_000)
 		}
 		await waitForAccountPage(page)
