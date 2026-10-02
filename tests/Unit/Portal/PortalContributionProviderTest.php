@@ -348,6 +348,50 @@ class PortalContributionProviderTest extends TestCase {
 	}//end testSubmissionHandInDeclaresAFileField()
 
 	/**
+	 * Both absence reports declare their attachment as portaliq's file field.
+	 * Without `type: file` portaliq renders `attachmentRef` as a text box and
+	 * the guardian can only type a name. The property is a string, so the
+	 * field takes one file, inside FileFieldConfigNormaliser's limits.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-parent-audience-can-report-a-childs-absence-validated-against-the-callers-own-children-req-pcon-007
+	 */
+	public function testAbsenceReportAttachmentIsAFileField(): void {
+		$byAudience = [
+			'parent'  => $this->provider->getContribution(self::PARENT_SUBJECT),
+			'student' => $this->provider->getContribution(self::STUDENT_SUBJECT),
+		];
+
+		foreach ($byAudience as $audience => $manifest) {
+			$excuse = array_values(
+				array_filter(
+					$manifest['actions'],
+					static fn (array $a): bool => ($a['id'] ?? '') === 'createExcuseRequest'
+				)
+			)[0];
+
+			$this->assertContains('attachmentRef', $excuse['fields'], $audience);
+			$file = $excuse['fieldConfigs']['attachmentRef'];
+			$this->assertSame('file', $file['type'], $audience.': attachmentRef must be a file field, not a text box');
+			$this->assertFalse($file['multiple'], $audience.': attachmentRef is a string property, one file');
+			$this->assertSame('Attachment', $file['label'], $audience);
+			$this->assertGreaterThanOrEqual(1, $file['maxSizeMb']);
+			$this->assertLessThanOrEqual(50, $file['maxSizeMb']);
+			$this->assertContains('.pdf', $file['accept']);
+			$this->assertLessThanOrEqual(20, count($file['accept']));
+			foreach ($file['accept'] as $accepted) {
+				$this->assertMatchesRegularExpression('/^\.[a-z0-9]+$/', $accepted);
+			}
+		}
+
+		// The parent form keeps its other field configs next to the file field.
+		$parent = $byAudience['parent']['actions'][0];
+		$this->assertTrue($parent['fieldConfigs']['learnerRef']['required']);
+
+	}//end testAbsenceReportAttachmentIsAFileField()
+
+	/**
 	 * studentTests is a timed task over the learner's own attempts: it names
 	 * five instance-local POST actions, each stamping learnerRef from the
 	 * server, and exposes no response or score.
