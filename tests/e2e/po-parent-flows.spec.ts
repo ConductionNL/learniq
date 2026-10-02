@@ -31,7 +31,10 @@
  *   d. the teacher opens a conference round, she books, the schedule is generated,
  *      she sees her time, the teacher records the conversation report;
  *   e. she reads the grades on her child's published report cards, and a draft
- *      report card the teacher starts never reaches her.
+ *      report card the teacher starts never reaches her;
+ *   f. she opens her child and reads the attendance figures, report cards,
+ *      homework, attendance, calendar and news on one page, and the calendar
+ *      page holds her child's school events and holidays.
  *
  * Every page the guardian sees is the Vue site (`/apps/portaliq/site`), on its
  * signed-in routes (`&route=/mijn/learniq/<collection>` and the shell's own
@@ -48,6 +51,7 @@
  * @spec openspec/changes/portal-parent-conference-booking/specs/parent-conferences/spec.md
  * @spec openspec/changes/excuse-decision-records-who-and-when/specs/attendance/spec.md
  * @spec openspec/changes/portal-parent-report-card-grades/specs/portal-contribution/spec.md
+ * @spec openspec/changes/portal-parent-child-record/specs/portal-contribution/spec.md
  */
 
 import type { APIRequestContext, Browser, Page } from '@playwright/test'
@@ -144,9 +148,8 @@ test.describe('po: teacher and parent flows', () => {
 	test('a. the guardian sees her own child and nothing of another child', async () => {
 		await shot(parent, 'a1-portal-home')
 		await openPage(parent, 'learniq/parentChildren')
-		await expect(
-			parent.getByText(CHILD.name, { exact: true }).first(),
-		).toBeVisible()
+		// One child opens at once: her name heads her record page.
+		await expect(parent.getByTestId('record-head')).toContainText(CHILD.name)
 		await shot(parent, 'a2-my-children')
 		await openPage(parent, 'learniq/parentAttendance')
 		await shot(parent, 'a3-attendance')
@@ -509,6 +512,64 @@ test.describe('po: teacher and parent flows', () => {
 		// their uuids, and the draft is not there.
 		expect(rows.every((row) => row.subjectGrades === undefined)).toBe(true)
 		expect(rows.map((row) => row.id)).not.toContain(draft.id)
+	})
+
+	test('f. the guardian opens her child: figures, report cards, homework, attendance, calendar and news', async () => {
+		await openPage(parent, 'learniq/parentChildren')
+		const head = parent.getByTestId('record-head')
+		await expect(head).toContainText(`${CHILD.name} Hulstkamp`)
+
+		// Three figure cards from the attendance summary, in Dutch, with the
+		// school year they read.
+		const cards = parent.getByTestId('kpi-card')
+		await expect(cards).toHaveCount(3)
+		await expect(cards.first()).toContainText('Afwezig')
+		await expect(cards.first()).toContainText('met toestemming')
+		await expect(parent.getByTestId('kpi-caption')).toContainText('Schooljaar')
+
+		// Report cards and homework of this child, with handed in or open.
+		await expect(
+			parent.locator('[data-collection="parentReportCards"]'),
+		).toContainText('Rapport 1')
+		const homework = parent.locator('[data-collection="parentHomework"]')
+		await expect(homework).toContainText('Rekenen: oefenblad breuken')
+		await expect(homework).toContainText('Ingeleverd')
+		await expect(homework).toContainText('Open')
+		await expect(
+			parent.locator('[data-collection="parentAttendance"]'),
+		).toBeVisible()
+
+		// The calendar and the news of her child.
+		await expect(parent.getByTestId('calendar-block')).toBeVisible()
+		await parent.getByTestId('calendar-view-month').click()
+		await expect(parent.getByTestId('calendar-month')).toBeVisible()
+		await expect(parent.getByTestId('news-block')).toBeVisible()
+		await shot(parent, 'f1-child-record')
+
+		// The school calendar reads her child's school only, and its holidays.
+		const events = await portalRows('school-event', 'parentSchoolEvents')
+		expect(events.map((row) => row.title)).toEqual(
+			expect.arrayContaining(['Sportdag', 'Schoolfotograaf']),
+		)
+		expect(new Set(events.map((row) => row.schoolId))).toEqual(new Set([SCHOOL]))
+		const periods = await portalRows('report-period', 'parentSchoolCalendar')
+		expect(
+			periods.flatMap((row) =>
+				row.holidays.map((h: { name: string }) => h.name),
+			),
+		).toContain('Herfstvakantie')
+
+		// Homework is her child's group's, and no other pupil's uuid leaves.
+		const assignments = await portalRows('assignment', 'parentHomework')
+		expect(assignments.length).toBeGreaterThan(0)
+		expect(new Set(assignments.map((row) => row.cohortId))).toEqual(
+			new Set([GROUP_7]),
+		)
+		expect(assignments.every((row) => row.learnerRefs === undefined)).toBe(true)
+
+		await openPage(parent, 'learniq/parentCalendar')
+		await expect(parent.getByTestId('calendar-block')).toBeVisible()
+		await shot(parent, 'f2-calendar')
 	})
 
 	/**
