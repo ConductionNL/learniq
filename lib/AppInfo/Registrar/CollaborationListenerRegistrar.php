@@ -70,6 +70,9 @@ class CollaborationListenerRegistrar {
 		$this->registerReportingListeners(context: $context);
 		$this->registerEvaluationListeners(context: $context);
 
+		// Direct conference booking has its own registrar (direct-conference-booking).
+		(new ConferenceListenerRegistrar())->register(context: $context);
+
 	}//end register()
 
 	/**

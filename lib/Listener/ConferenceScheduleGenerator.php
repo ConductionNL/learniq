@@ -61,6 +61,7 @@ namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\Learniq\Service\ConferenceBookingMode;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -115,6 +116,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 * @return void
 	 *
 	 * @spec openspec/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
+	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -129,7 +131,14 @@ class ConferenceScheduleGenerator implements IEventListener {
 			return;
 		}
 
-		$this->generateForRound(round: $event->getObject()->jsonSerialize());
+		$round = $event->getObject()->jsonSerialize();
+		// A round with direct booking has no preferences to plan: parents
+		// picked their own free times (ConferenceSlotBookingStamp).
+		if (ConferenceBookingMode::isDirect(round: $round) === true) {
+			return;
+		}
+
+		$this->generateForRound(round: $round);
 
 	}//end handle()
 
