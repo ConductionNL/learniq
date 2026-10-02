@@ -153,7 +153,23 @@ class RollCallServiceTest extends TestCase {
 
 		$l10n = $this->createMock(IL10N::class);
 		$l10n->method('t')->willReturnCallback(static fn (string $text, $params=[]): string => vsprintf($text, (array)$params));
-		$l10n->method('l')->willReturnCallback(static fn (string $type, $data): string => $data->format('l j F Y'));
+		// Mirrors IL10N::l() on Nextcloud 34: only a \DateTime is used as is; a
+		// DateTimeImmutable falls through to `(int)$data`, which is 1, so the
+		// title read "Thursday 1 January 1970" on a live instance.
+		$l10n->method('l')->willReturnCallback(
+			static function (string $type, $data): string {
+				$value = new \DateTime('@0');
+				if ($data instanceof \DateTime) {
+					$value = $data;
+				} else if (is_int($data) === true) {
+					$value->setTimestamp($data);
+				} else if ($data !== null) {
+					$value->setTimestamp(1);
+				}
+
+				return $value->format('l j F Y');
+			}
+		);
 
 		$reader = new RollCallReader(objectService: $objects);
 
