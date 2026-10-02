@@ -74,6 +74,24 @@
 					}
 				},
 				{
+					"id": "RollCallMenu",
+					"label": "Today's register",
+					"icon": "ClipboardCheckOutline",
+					"route": "RollCall",
+					"order": 29,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					},
+					"_note": "attendance-roll-call: the day's register of one group. A group teacher lands on their own group and today; coordinators and administration-managers pick any group. The server (RollCallService) decides who may open which group, so the gate here only decides who sees the entry."
+				},
+				{
 					"id": "Attendance",
 					"label": "Attendance",
 					"icon": "Calendar",
@@ -1045,6 +1063,14 @@
 					]
 				}
 			}
+		},
+		{
+			"id": "RollCall",
+			"route": "/attendance/roll-call",
+			"type": "custom",
+			"title": "Today's register",
+			"component": "RollCallView",
+			"_note": "Mounts RollCallView (attendance-roll-call): one screen per group and day, everyone present by default, one tap per exception, saved through /api/attendance/roll-call."
 		},
 		{
 			"id": "ExcuseRequests",

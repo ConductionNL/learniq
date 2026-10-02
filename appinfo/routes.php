@@ -281,6 +281,12 @@ return [
         // and #1142): X-Portal-Subject assertion only, learnerRef from portaliq.
         // Controller: PortalCheckInController (slug: portalCheckIn).
         ['name' => 'portalCheckIn#checkIn', 'url' => '/api/portal/check-in', 'verb' => 'POST'],
+        // Roll-call (attendance-roll-call): the day's register of one group.
+        // A group teacher opens their own groups, coordinators and
+        // administration-managers every group; the server writes the records
+        // (rules in RollCallService). Controller: RollCallController (slug: rollCall).
+        ['name' => 'rollCall#show', 'url' => '/api/attendance/roll-call', 'verb' => 'GET'],
+        ['name' => 'rollCall#save', 'url' => '/api/attendance/roll-call', 'verb' => 'POST'],
         // Work groups (enrolment-self-join-work-group): the signed-in learner
         // sees the work groups of their classes and joins, moves or leaves
         // while sign-up is open (rules in WorkGroupMembershipService).

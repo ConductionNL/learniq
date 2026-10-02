@@ -40,9 +40,11 @@ declare(strict_types=1);
 namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Event\ObjectDeletedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\Learniq\Lifecycle\XapiCompletionHandler;
 use OCA\Learniq\Listener\AssessmentDrawResolver;
+use OCA\Learniq\Listener\AttendanceSummaryListener;
 use OCA\Learniq\Listener\CompetencyAttainmentRollupHandler;
 use OCA\Learniq\Listener\EngagementSignalHandler;
 use OCA\Learniq\Listener\EnrolmentProgressRollupHandler;
@@ -145,6 +147,7 @@ class BootListenerRegistrar {
 
 		$this->registerAnalyticsListeners(dispatcher: $dispatcher, appId: $appId);
 		$this->registerPaymentListeners(dispatcher: $dispatcher, appId: $appId);
+		$this->registerAttendanceListeners(dispatcher: $dispatcher, appId: $appId);
 
 	}//end register()
 
@@ -269,6 +272,33 @@ class BootListenerRegistrar {
 			schemas: ['PaymentRequest']
 		);
 	}//end registerPaymentListeners()
+
+	/**
+	 * Subscribe the listener that keeps AttendanceSummary current.
+	 *
+	 * ADR-031 legitimate exception (attendance-summary-per-school-year): every
+	 * AttendanceRecord create, update and delete defers a recount of that
+	 * learner's school year to AttendanceSummaryRecomputeJob.
+	 *
+	 * @param IEventDispatcher $dispatcher The live event dispatcher.
+	 * @param string $appId The Learniq app id (log context only).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+	 */
+	private function registerAttendanceListeners(IEventDispatcher $dispatcher, string $appId): void {
+		foreach ([ObjectCreatedEvent::class, ObjectUpdatedEvent::class, ObjectDeletedEvent::class] as $event) {
+			$this->registerFilteredObjectListener(
+				dispatcher: $dispatcher,
+				appId: $appId,
+				event: $event,
+				listener: AttendanceSummaryListener::class,
+				registers: ['learniq'],
+				schemas: ['attendance-record']
+			);
+		}
+	}//end registerAttendanceListeners()
 
 	/**
 	 * Register an object-lifecycle listener that declares its interest up front.

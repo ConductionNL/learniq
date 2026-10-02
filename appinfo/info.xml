@@ -296,6 +296,15 @@ Vrij en open source onder de EUPL-1.2-licentie.
                 next upgrade.
             -->
             <step>OCA\Learniq\Repair\BackfillReportCardGradeLines</step>
+            <!--
+                attendance-summary-per-school-year: counts the attendance
+                summary (absent days with and without permission, late
+                arrivals and minutes) of every learner with records written
+                before the summary existed. After InitializeSettings (the
+                register must declare the schema). Idempotent: a second run
+                saves nothing.
+            -->
+            <step>OCA\Learniq\Repair\BackfillAttendanceSummaries</step>
         </post-migration>
         <install>
             <!--

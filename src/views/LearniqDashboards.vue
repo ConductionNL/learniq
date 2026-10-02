@@ -64,9 +64,12 @@
 					schema="Session"
 					:schemaLabel="t('learniq', 'session')"
 					:columns="['title', 'startsAt', 'lifecycle']"
-					:filter="teacherFilters.sessions"
+					:filter="sessionsToMark"
 					:pending="scopePending"
 					indexRoute="/sessions"
+					:rowRoute="rollCallRoute"
+					:footerLabel="t('learniq', 'Today\'s register')"
+					:footerRoute="rollCallPath"
 					:limit="6" />
 			</template>
 			<template #widget-teacher-cohorts>
@@ -99,6 +102,11 @@ import ManageCoursesWidget from './widgets/ManageCoursesWidget.vue'
 import ManageListWidget from './widgets/ManageListWidget.vue'
 import ManageProgrammesWidget from './widgets/ManageProgrammesWidget.vue'
 import MyMandatoryTrainingWidget from './widgets/MyMandatoryTrainingWidget.vue'
+import {
+	ROLL_CALL_PATH,
+	rollCallRoute,
+	sessionsToMarkFilter,
+} from '../utils/rollCall.js'
 import {
 	appendFilter,
 	isScopedTeacher,
@@ -138,6 +146,7 @@ export default {
 
 	data() {
 		return {
+			rollCallPath: ROLL_CALL_PATH,
 			// The group teacher's cohorts and courses; null = school-wide.
 			scope: null,
 			scopePending: false,
@@ -154,6 +163,17 @@ export default {
 		 */
 		teacherFilters() {
 			return teacherWidgetFilters(getCurrentUser()?.uid ?? '', this.scope)
+		},
+
+		/**
+		 * "Sessions to mark": the lessons of the teacher's scope that started
+		 * today or earlier, newest first (attendance-roll-call).
+		 *
+		 * @return {object}
+		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-the-teacher-reaches-the-register-from-the-menu-and-the-dashboard
+		 */
+		sessionsToMark() {
+			return sessionsToMarkFilter(this.teacherFilters.sessions, new Date())
 		},
 
 		/**
@@ -633,6 +653,17 @@ export default {
 	},
 
 	methods: {
+		/**
+		 * The roll-call of a lesson's group and day, where "Sessions to mark" leads.
+		 *
+		 * @param {object} session A Session row.
+		 * @return {object} A vue-router location.
+		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-the-teacher-reaches-the-register-from-the-menu-and-the-dashboard
+		 */
+		rollCallRoute(session) {
+			return rollCallRoute(session)
+		},
+
 		/**
 		 * The aggregation source of a teacher-view stat tile: scoped to the
 		 * pupils of a group teacher's own groups, school-wide for other roles.
