@@ -5778,8 +5778,8 @@
 						"id": "ask-correction",
 						"label": "Ask for a correction",
 						"icon": "FileDocumentEditOutline",
-						"handler": "navigate",
-						"route": "DataCorrectionRequests"
+						"type": "open-page",
+						"target": "DataCorrectionRequests"
 					}
 				]
 			}

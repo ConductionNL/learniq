@@ -35,6 +35,7 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle;
 use OCA\Learniq\Lifecycle\FraudCaseBlockGuard;
 use OCA\Learniq\Lifecycle\ReportPeriodLockGuard;
 use OCA\Learniq\Service\Grading\CorrectionApprovals;
+use OCA\Learniq\Service\Grading\ReportPeriodLocks;
 use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Service\ObjectService;
@@ -123,7 +124,7 @@ class ReportPeriodLockGuardTest extends TestCase {
 
 		return new ReportPeriodLockGuard(
 			$fraudCaseGuard,
-			$objectService,
+			new ReportPeriodLocks(objects: $objectService),
 			new CorrectionApprovals(objects: $objectService),
 			$this->createMock(LoggerInterface::class)
 		);

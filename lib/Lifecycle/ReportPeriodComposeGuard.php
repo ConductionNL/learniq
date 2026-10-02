@@ -46,6 +46,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Service\Grading\ReportPeriodLocks;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use Psr\Log\LoggerInterface;
@@ -69,11 +70,13 @@ class ReportPeriodComposeGuard implements LifecycleGuardInterface {
 	/**
 	 * Constructor.
 	 *
+	 * @param ReportPeriodLocks $locks Whether a report period is locked.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
+		private readonly ReportPeriodLocks $locks,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -117,13 +120,10 @@ class ReportPeriodComposeGuard implements LifecycleGuardInterface {
 	private function allows(array $object): bool {
 		$periodId = $object['id'] ?? ($object['uuid'] ?? '');
 
-		$isLocked = $object['isLocked'] ?? null;
-
-		if (is_bool($isLocked) === false) {
-			// Materialised value absent — defensive fallback, computed the same
-			// way as the declared x-openregister-calculations expression.
-			$isLocked = $this->computeIsLocked(object: $object);
-		}
+		// Decided from lockDate as well as the stored isLocked: OpenRegister
+		// does not keep the materialised value, and a period created before its
+		// lock date could carry a stale false (live pass D2).
+		$isLocked = $this->locks->isLocked(period: $object);
 
 		if ($isLocked === false) {
 			$this->logger->info(
@@ -135,29 +135,4 @@ class ReportPeriodComposeGuard implements LifecycleGuardInterface {
 
 		return true;
 	}//end allows()
-
-	/**
-	 * Defensive fallback: compute whether `lockDate` has passed `@now`,
-	 * mirroring the declared `isLocked` x-openregister-calculations
-	 * expression exactly (`lockDate` set AND `lockDate < now`).
-	 *
-	 * @param array<string,mixed> $object The ReportPeriod data array.
-	 *
-	 * @return bool True when lockDate is set and in the past.
-	 */
-	private function computeIsLocked(array $object): bool {
-		$lockDate = $object['lockDate'] ?? null;
-
-		if ($lockDate === null || $lockDate === '') {
-			return false;
-		}
-
-		$lockTimestamp = strtotime((string)$lockDate);
-
-		if ($lockTimestamp === false) {
-			return false;
-		}
-
-		return $lockTimestamp < time();
-	}//end computeIsLocked()
 }//end class
