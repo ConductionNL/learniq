@@ -68,7 +68,7 @@ class ReportPeriodLocks {
 	 *
 	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
 	 */
-	public static function isLocked(array $period, ?int $now = null): bool {
+	public function isLocked(array $period, ?int $now = null): bool {
 		if (($period['isLocked'] ?? null) === true) {
 			return true;
 		}
@@ -138,7 +138,7 @@ class ReportPeriodLocks {
 	 */
 	public function lockedPeriodFor(array $entry): ?array {
 		$period = $this->governing(entry: $entry);
-		if ($period === null || self::isLocked(period: $period) === false) {
+		if ($period === null || $this->isLocked(period: $period) === false) {
 			return null;
 		}
 

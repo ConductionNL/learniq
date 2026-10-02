@@ -53,14 +53,15 @@ class ReportPeriodLocksTest extends TestCase {
 	 */
 	public function testIsLocked(): void {
 		$now = strtotime('2026-10-02T12:00:00+00:00');
-		self::assertTrue(ReportPeriodLocks::isLocked(['isLocked' => true], $now));
-		self::assertTrue(ReportPeriodLocks::isLocked(['lockDate' => '2026-10-01T08:00:00+00:00'], $now));
-		self::assertTrue(ReportPeriodLocks::isLocked(['isLocked' => false, 'lockDate' => '2026-10-01T08:00:00+00:00'], $now));
-		self::assertFalse(ReportPeriodLocks::isLocked(['lockDate' => '2026-10-03T08:00:00+00:00'], $now));
-		self::assertFalse(ReportPeriodLocks::isLocked(['lockDate' => null], $now));
-		self::assertFalse(ReportPeriodLocks::isLocked(['lockDate' => '  '], $now));
-		self::assertFalse(ReportPeriodLocks::isLocked(['lockDate' => 'not a date'], $now));
-		self::assertFalse(ReportPeriodLocks::isLocked([], $now));
+		$locks = new ReportPeriodLocks(objects: $this->createMock(ObjectService::class));
+		self::assertTrue($locks->isLocked(['isLocked' => true], $now));
+		self::assertTrue($locks->isLocked(['lockDate' => '2026-10-01T08:00:00+00:00'], $now));
+		self::assertTrue($locks->isLocked(['isLocked' => false, 'lockDate' => '2026-10-01T08:00:00+00:00'], $now));
+		self::assertFalse($locks->isLocked(['lockDate' => '2026-10-03T08:00:00+00:00'], $now));
+		self::assertFalse($locks->isLocked(['lockDate' => null], $now));
+		self::assertFalse($locks->isLocked(['lockDate' => '  '], $now));
+		self::assertFalse($locks->isLocked(['lockDate' => 'not a date'], $now));
+		self::assertFalse($locks->isLocked([], $now));
 	}//end testIsLocked()
 
 	/**

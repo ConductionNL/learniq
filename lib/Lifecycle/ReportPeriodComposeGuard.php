@@ -70,11 +70,13 @@ class ReportPeriodComposeGuard implements LifecycleGuardInterface {
 	/**
 	 * Constructor.
 	 *
+	 * @param ReportPeriodLocks $locks Whether a report period is locked.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
+		private readonly ReportPeriodLocks $locks,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -121,7 +123,7 @@ class ReportPeriodComposeGuard implements LifecycleGuardInterface {
 		// Decided from lockDate as well as the stored isLocked: OpenRegister
 		// does not keep the materialised value, and a period created before its
 		// lock date could carry a stale false (live pass D2).
-		$isLocked = ReportPeriodLocks::isLocked(period: $object);
+		$isLocked = $this->locks->isLocked(period: $object);
 
 		if ($isLocked === false) {
 			$this->logger->info(

@@ -213,7 +213,7 @@ class ReportPeriodLockStoredPeriodTest extends TestCase {
 	 */
 	public function testComposeFollowsTheLockDateNotAStaleFalse(): void {
 		$period = $this->storePeriod(lockDate: '2026-10-01T08:00:00+00:00', extra: ['isLocked' => false]);
-		$guard = new ReportPeriodComposeGuard(new NullLogger());
+		$guard = new ReportPeriodComposeGuard(new ReportPeriodLocks(objects: $this->createMock(ObjectService::class)), new NullLogger());
 
 		self::assertAllowed($guard->check(array_merge($period, ['isLocked' => false]), 'compose', ''));
 		self::assertAllowed($guard->check($period, 'compose', ''));
