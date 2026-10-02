@@ -23,11 +23,13 @@ namespace OCA\Learniq\Tests\Unit\Repair;
 
 use OCA\Learniq\Repair\BackfillReadableCopies;
 use OCA\Learniq\Service\ReadableCopies;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use RuntimeException;
 
 /**
  * Tests for BackfillReadableCopies::run().
@@ -110,6 +112,65 @@ class BackfillReadableCopiesTest extends TestCase {
 
 		self::assertSame($first, count($this->store->saves));
 	}//end testASecondRunSavesNothing()
+
+	/**
+	 * The step names what it does.
+	 *
+	 * @return void
+	 */
+	public function testTheStepNamesItsWork(): void {
+		self::assertStringContainsString('readable', $this->makeStep()->getName());
+	}//end testTheStepNamesItsWork()
+
+	/**
+	 * Plain array rows are read; a row without an id is skipped; a save that
+	 * fails is counted as failed and the next row is still written.
+	 *
+	 * @return void
+	 */
+	public function testArrayRowsAndFailedSaves(): void {
+		$saved = [];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			static function (array $config): array {
+				$schema = $config['filters']['schema'];
+				if ($schema === 'cohort') {
+					return [['id' => 'cohort-6', 'name' => 'Groep 6']];
+				}
+
+				if ($schema !== 'enrolment' || ($config['offset'] ?? 0) > 0) {
+					return [];
+				}
+
+				return [
+					['cohortId' => 'cohort-6'],
+					['id' => 'enrolment-broken', 'cohortId' => 'cohort-6'],
+					['id' => 'enrolment-ok', 'cohortId' => 'cohort-6'],
+				];
+			}
+		);
+		$objectService->method('saveObject')->willReturnCallback(
+			static function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use (&$saved) {
+				if ($uuid === 'enrolment-broken') {
+					throw new RuntimeException('locked');
+				}
+
+				$saved[$uuid] = $object['cohortName'];
+				return OrEntityFactory::make($object, (string)$schema);
+			}
+		);
+
+		$messages = [];
+		$output = $this->createMock(IOutput::class);
+		$output->method('info')->willReturnCallback(static function (string $message) use (&$messages): void {
+			$messages[] = $message;
+		});
+
+		(new BackfillReadableCopies(objectService: $objectService, copies: new ReadableCopies(objectService: $objectService), logger: new NullLogger()))->run($output);
+
+		self::assertSame(['enrolment-ok' => 'Groep 6'], $saved);
+		self::assertContains('BackfillReadableCopies enrolment: 1 stamped, 1 failed, of 3 scanned.', $messages);
+	}//end testArrayRowsAndFailedSaves()
 
 	/**
 	 * When OpenRegister cannot be read, nothing is written and the step ends.

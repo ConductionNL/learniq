@@ -34,10 +34,12 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\OpenRegister\Service\OrganisationService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IUserManager;
+use OCP\EventDispatcher\Event;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ReflectionMethod;
+use RuntimeException;
 
 /**
  * A rename is queued by the listener and written by the job, after the request.
@@ -181,6 +183,55 @@ class CohortNameCascadeTest extends TestCase {
 			self::assertArrayNotHasKey('@self', $save['object']);
 		}
 	}//end testTheJobRestampsTheGroupsEnrolments()
+
+	/**
+	 * Another event, or a cohort whose schema cannot be resolved, queues nothing.
+	 *
+	 * @return void
+	 */
+	public function testGuardsQueueNothing(): void {
+		$cascade = $this->makeCascade();
+		$cascade->handle(new Event());
+		self::assertSame([], $this->deferred);
+
+		$deferral = $this->createMock(ListenerDeferralService::class);
+		$deferral->expects(self::never())->method('defer');
+		$resolver = $this->createMock(ListenerSchemaResolver::class);
+		$resolver->method('guardSchemaSlug')->willThrowException(new RuntimeException('unknown schema'));
+		(new CohortNameCascade(schemaResolver: $resolver, deferral: $deferral))->handle($this->rename(newName: 'Groep 7', oldName: 'Groep 6'));
+	}//end testGuardsQueueNothing()
+
+	/**
+	 * A save that fails for one enrolment is logged and the others still get the name.
+	 *
+	 * @return void
+	 */
+	public function testAFailedSaveSkipsOnlyThatEnrolment(): void {
+		$this->store = new RegisterFaithfulStore();
+		$this->store->rows = [
+			'enrolment' => [
+				['id' => 'enrolment-broken', 'cohortId' => self::COHORT, 'cohortName' => 'Groep 6'],
+				['id' => 'enrolment-sem', 'cohortId' => self::COHORT, 'cohortName' => 'Groep 6'],
+			],
+		];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
+		);
+		$objectService->method('saveObject')->willReturnCallback(
+			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) {
+				if ($uuid === 'enrolment-broken') {
+					throw new RuntimeException('locked');
+				}
+
+				return $this->store->save((string)$schema, $object, $uuid);
+			}
+		);
+
+		(new CohortNameRestamp(objectService: $objectService, logger: new NullLogger()))->restamp(cohortId: self::COHORT, name: 'Groep 7');
+
+		self::assertSame(['enrolment-sem'], array_column($this->store->saves, 'uuid'));
+	}//end testAFailedSaveSkipsOnlyThatEnrolment()
 
 	/**
 	 * A failed read writes nothing and does not throw.

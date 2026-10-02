@@ -33,9 +33,11 @@ use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\EventDispatcher\Event;
 use Opis\JsonSchema\Validator;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use RuntimeException;
 
 /**
  * Tests for ReadableCopyStamp::handle().
@@ -193,6 +195,62 @@ class ReadableCopyStampTest extends TestCase {
 
 		self::assertSame([], $event->getModifiedData());
 	}//end testAnotherSchemaIsLeftAlone()
+
+	/**
+	 * An event that is not a write, a stopped write and a write whose schema
+	 * cannot be resolved are all left untouched, and nothing is read.
+	 *
+	 * @return void
+	 */
+	public function testGuardsLeaveTheEventAlone(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->expects(self::never())->method('findAll');
+		$resolver = $this->createMock(ListenerSchemaResolver::class);
+		$resolver->method('guardSchemaSlug')->willThrowException(new RuntimeException('unknown schema'));
+		$stamp = new ReadableCopyStamp(schemaResolver: $resolver, copies: new ReadableCopies(objectService: $objectService), logger: new NullLogger());
+
+		$stamp->handle(new Event());
+
+		$stopped = new ObjectCreatingEvent(OrEntityFactory::make(['courseId' => 'course-rekenen'], 'grade-entry'));
+		$stopped->stopPropagation();
+		$stamp->handle($stopped);
+		self::assertSame([], $stopped->getModifiedData());
+
+		$unknown = new ObjectCreatingEvent(OrEntityFactory::make(['courseId' => 'course-rekenen'], 'grade-entry'));
+		$stamp->handle($unknown);
+		self::assertSame([], $unknown->getModifiedData());
+	}//end testGuardsLeaveTheEventAlone()
+
+	/**
+	 * The service answers nothing for a schema it does not cover, nulls for a
+	 * share whose portfolio is gone, and reads plain array rows too. A blank
+	 * name and a non-text name both store null, and a row that is neither an
+	 * array nor an entity is skipped.
+	 *
+	 * @return void
+	 */
+	public function testTheServiceHandlesOddRows(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			static function (array $config): array {
+				$schema = $config['filters']['schema'];
+				$rows = [
+					'course' => ['not-a-row', ['id' => 'course-blank', 'name' => '   ']],
+					'portfolio' => [['id' => 'portfolio-1', 'title' => 'Proeve', 'learnerRef' => 'profile-odd']],
+					'learner-profile' => [['id' => 'profile-odd', 'givenName' => 42, 'familyName' => 'Visser']],
+				];
+				return ($rows[$schema] ?? []);
+			}
+		);
+		$copies = new ReadableCopies(objectService: $objectService);
+
+		self::assertFalse($copies->covers(slug: 'final-grade'));
+		self::assertSame([], $copies->derive(slug: 'final-grade', row: ['courseId' => 'course-blank']));
+		self::assertSame(['courseName' => null], $copies->derive(slug: 'grade-entry', row: ['courseId' => 'course-blank']));
+		self::assertSame(['portfolioTitle' => null, 'learnerName' => null], $copies->derive(slug: 'portfolio-share', row: ['portfolioId' => 'portfolio-gone']));
+		self::assertSame(['portfolioTitle' => 'Proeve', 'learnerName' => 'Visser'], $copies->derive(slug: 'portfolio-share', row: ['portfolioId' => 'portfolio-1']));
+		self::assertSame(['portfolioTitle', 'learnerName'], $copies->fields(slug: 'portfolio-share'));
+	}//end testTheServiceHandlesOddRows()
 
 	/**
 	 * The stamp is wired for creates and updates, and the cascade for stored
