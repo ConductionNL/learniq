@@ -409,9 +409,15 @@ class ParentPortalCollections {
 	 * closes. The server sets the state; ConferenceSlotBookingSync refuses a
 	 * cancel after the window and offers the time to other families again.
 	 *
+	 * `rowWhen` (portaliq update-row-action-condition) shows the button only
+	 * on a booked or acknowledged time, the states a parent may cancel. It
+	 * only hides the button: the window, which the row cannot express, and
+	 * every other refusal stay with ConferenceSlotBookingSync.
+	 *
 	 * @return array<string, mixed> The update action.
 	 *
 	 * @spec openspec/changes/direct-conference-booking/specs/portal-contribution/spec.md
+	 * @spec openspec/changes/parent-row-actions-only-where-they-apply/specs/portal-contribution/spec.md#requirement-a-guardian-is-offered-a-cancel-only-on-a-time-that-can-still-be-cancelled
 	 */
 	private function cancelTimeAction(): array {
 		return [
@@ -425,6 +431,10 @@ class ParentPortalCollections {
 			'minTrust' => 'substantial',
 			'fields' => ['lifecycle'],
 			'set' => ['lifecycle' => 'cancelled'],
+			'rowWhen' => [
+				'field' => 'lifecycle',
+				'in' => ['booked', 'acknowledged'],
+			],
 			'submitLabel' => 'Cancel this time',
 			'successMessage' => 'The time is cancelled. You can book another free time while booking is open.',
 		];
