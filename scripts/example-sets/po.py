@@ -81,6 +81,10 @@ SCHEMAS = [
     "group-plan-evaluation",
     "support-request",
     "dossier-note",
+    # direct-conference-booking: appended, so every earlier schema keeps its uuid namespace.
+    "conference-round",
+    "teacher-availability",
+    "conference-slot",
 ]
 
 HOLIDAYS = [
@@ -712,6 +716,38 @@ def build() -> dict:
         b.add("dossier-note", {"learnerId": p["nc"], "authorId": author, "date": date, "category": category, "body": body,
                                "confidentiality": confidentiality, "careTeamUserIds": [IB, teacher_on(p["class"], dt.date.fromisoformat(date))]})
 
+    # --- parent evening (direct booking) ------------------------------------
+    # Group 7's parent evening in the autumn after this school year, open for
+    # booking: the teacher's availability is cut into free times parents pick
+    # in the portal (direct-conference-booking). The free slots are what
+    # ConferenceFreeSlotGenerator writes on `open-booking`, 10 minutes with 2
+    # minutes between them.
+    group7 = [p for p in pupils if p["class"] == "Groep 7"]
+    teacher7 = TEACHERS["Groep 7"][0][0]
+    evening = dt.date(2026, 11, 12)
+    round7 = b.add("conference-round", {
+        "name": "Oudergesprekken groep 7, november 2026", "cohortIds": [cohorts["Groep 7"]["uuid"]],
+        "teacherIds": [teacher7], "slotDurationMinutes": 10, "bufferMinutes": 2,
+        "bookingOpensAt": stamp(dt.date(2026, 9, 28), 8, 0), "bookingClosesAt": stamp(dt.date(2026, 11, 6), 17, 0),
+        "invitedLearnerIds": [p["nc"] for p in group7], "invitedLearnerRefs": [p["profile"]["uuid"] for p in group7],
+        "bookingMode": "direct", "maxBookingsPerChild": 1, "lifecycle": "booking-open",
+    })
+    b.add("teacher-availability", {
+        "conferenceRoundId": round7["uuid"], "teacherId": teacher7,
+        "blocks": [{"startsAt": stamp(evening, 18, 0), "endsAt": stamp(evening, 20, 0)}], "lifecycle": "submitted",
+    })
+    start = dt.datetime(evening.year, evening.month, evening.day, 18, 0, tzinfo=AMS)
+    while start + dt.timedelta(minutes=10) <= dt.datetime(evening.year, evening.month, evening.day, 20, 0, tzinfo=AMS):
+        end = start + dt.timedelta(minutes=10)
+        b.add("conference-slot", {
+            "conferenceRoundId": round7["uuid"], "teacherId": teacher7, "teacherName": "Leerkracht groep 7",
+            "startsAt": start.isoformat(), "endsAt": end.isoformat(),
+            "slotLabel": f"{start:%d-%m-%Y %H:%M}-{end:%H:%M}, Leerkracht groep 7",
+            "eligibleLearnerRefs": [p["profile"]["uuid"] for p in group7], "location": "Lokaal groep 7",
+            "lifecycle": "free",
+        })
+        start = end + dt.timedelta(minutes=2)
+
     # --- assemble -----------------------------------------------------------
     for cohort in cohorts.values():
         del cohort["_room"]
@@ -748,7 +784,8 @@ def build() -> dict:
                 "description": (
                     "One school with two locations, seven classes for groups 1 to 8 (5 and 6 combined), about 200 pupils and their "
                     "guardians, staff and subject teachers, a school day per class per day of 2025-2026 with the absences recorded, "
-                    "two report periods with report cards, Cito and doorstroomtoets results, a group plan, support requests and dossier notes."
+                    "two report periods with report cards, Cito and doorstroomtoets results, a group plan, support requests and dossier notes, "
+                    "and group 7's parent evening open for booking with free times parents pick in the portal."
                 ),
                 "objects": objects,
             },
