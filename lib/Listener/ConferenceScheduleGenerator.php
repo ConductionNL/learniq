@@ -14,7 +14,7 @@
  * round, and writes ConferenceSlot objects via ObjectService::saveObject.
  *
  * Algorithm (design.md):
- *   1. sliceAvailability() cuts each teacher's declared free blocks into a
+ *   1. ConferenceSlotSlicer::slice() cuts each teacher's declared free blocks into a
  *      chronologically ordered FIFO queue of slotDurationMinutes candidates,
  *      bufferMinutes apart. Pure function, no side effects.
  *   2. Candidate slots overlapping an already-`confirmed` ConferenceSlot for
@@ -338,7 +338,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 			$availability = $this->normalise(row: $availability);
 			$teacherId = ($availability['teacherId'] ?? '');
 
-			$sliced = self::sliceAvailability(
+			$sliced = (new ConferenceSlotSlicer())->slice(
 				blocks: ($availability['blocks'] ?? []),
 				slotDurationMinutes: $slotDurationMinutes,
 				bufferMinutes: $bufferMinutes
@@ -516,24 +516,6 @@ class ConferenceScheduleGenerator implements IEventListener {
 		];
 
 	}//end assignSlotsForSignup()
-
-	/**
-	 * Step 1 — slice a teacher's declared free blocks into a chronologically
-	 * ordered list of candidate `{startsAt, endsAt}` slots, slotDurationMinutes
-	 * long with a bufferMinutes gap between consecutive slots. Pure function,
-	 * no side effects, deterministic for the same input (design.md "Step 1").
-	 *
-	 * @param array<int,array<string,mixed>> $blocks Free blocks: [{startsAt, endsAt}, ...].
-	 * @param int $slotDurationMinutes Length of one slot in minutes.
-	 * @param int $bufferMinutes Gap between consecutive slots in minutes.
-	 *
-	 * @return array<int,array{startsAt:string,endsAt:string}> Candidate slots, in chronological order.
-	 *
-	 * @spec openspec/specs/parent-conferences/spec.md#requirement-a-conference-round-declares-its-scope-slot-duration-and-buffer-time
-	 */
-	public static function sliceAvailability(array $blocks, int $slotDurationMinutes, int $bufferMinutes): array {
-		return (new ConferenceSlotSlicer())->slice(blocks: $blocks, slotDurationMinutes: $slotDurationMinutes, bufferMinutes: $bufferMinutes);
-	}//end sliceAvailability()
 
 	/**
 	 * Pop candidate slots from the front of a teacher's queue until one is
