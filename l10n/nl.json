@@ -3713,7 +3713,8 @@
         "The school this event belongs to.": "De school waar dit bij hoort.",
         "The groups this event is for, when it is not for the whole school.": "De groepen waar dit voor is, als het niet voor de hele school is.",
         "The school whose holidays and study days this period holds. Parents see them in the portal calendar.": "De school waarvan deze periode de vakanties en studiedagen bevat. Ouders zien ze in de portaalkalender.",
-        "The pupils of the assignment's group. Filled by the server, never by hand.": "De leerlingen van de groep van de opdracht. Vult het systeem zelf, nooit met de hand."
+        "The pupils of the assignment's group. Filled by the server, never by hand.": "De leerlingen van de groep van de opdracht. Vult het systeem zelf, nooit met de hand.",
+        "To do": "Opdracht"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

@@ -85,7 +85,7 @@ class ParentRecordPage {
 				[
 					'filter' => ['lifecycle' => 'published'],
 					'columns' => [
-						['field' => 'title', 'label' => 'Assignment'],
+						['field' => 'title', 'label' => 'To do'],
 						['field' => 'dueAt', 'label' => 'Hand in by', 'render' => 'date'],
 						['field' => 'status', 'label' => 'Status', 'render' => 'badge'],
 					],

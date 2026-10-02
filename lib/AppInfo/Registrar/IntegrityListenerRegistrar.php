@@ -146,17 +146,7 @@ class IntegrityListenerRegistrar {
 			listener: SubmissionLearnerRefsStamp::class
 		);
 
-		// Assignment learnerRefs (portal-parent-child-record): the guardian
-		// portal scopes homework on the pupils of the assignment's group, so
-		// the server derives them from the group's enrolments on every write.
-		$context->registerEventListener(
-			event: ObjectCreatingEvent::class,
-			listener: AssignmentLearnerRefsStamp::class
-		);
-		$context->registerEventListener(
-			event: ObjectUpdatingEvent::class,
-			listener: AssignmentLearnerRefsStamp::class
-		);
+		$this->registerHomeworkScope(context: $context);
 
 		// Submission resubmission date (submission-resubmission-action): the
 		// date moves the hand-in deadline, so only staff may write it. Drops
@@ -231,4 +221,24 @@ class IntegrityListenerRegistrar {
 			listener: ConferenceSignupPortalStamp::class
 		);
 	}//end registerOwnerStamps()
+
+	/**
+	 * Assignment learnerRefs (portal-parent-child-record): the guardian portal
+	 * scopes homework on the pupils of the assignment's group, so the server
+	 * derives them from the group's enrolments on every write.
+	 *
+	 * @param IRegistrationContext $context The registration context.
+	 *
+	 * @return void
+	 */
+	private function registerHomeworkScope(IRegistrationContext $context): void {
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: AssignmentLearnerRefsStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: AssignmentLearnerRefsStamp::class
+		);
+	}//end registerHomeworkScope()
 }//end class

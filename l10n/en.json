@@ -3246,7 +3246,8 @@
         "The school this event belongs to.": "The school this event belongs to.",
         "The groups this event is for, when it is not for the whole school.": "The groups this event is for, when it is not for the whole school.",
         "The school whose holidays and study days this period holds. Parents see them in the portal calendar.": "The school whose holidays and study days this period holds. Parents see them in the portal calendar.",
-        "The pupils of the assignment's group. Filled by the server, never by hand.": "The pupils of the assignment's group. Filled by the server, never by hand."
+        "The pupils of the assignment's group. Filled by the server, never by hand.": "The pupils of the assignment's group. Filled by the server, never by hand.",
+        "To do": "To do"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
