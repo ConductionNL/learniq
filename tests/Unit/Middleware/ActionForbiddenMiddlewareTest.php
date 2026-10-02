@@ -26,6 +26,15 @@ namespace OCA\Learniq\Tests\Unit\Middleware;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Controller\ComplianceRollupController;
 use OCA\Learniq\Middleware\ActionForbiddenMiddleware;
+use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\ComplianceRollupService;
+use OCA\Learniq\Service\RegulationAssignmentService;
+use OCA\Learniq\Service\RegulationAudienceResolver;
+use OCA\Learniq\Service\RegulationCoverageService;
+use OCA\OpenRegister\Service\ObjectService;
+use OCP\IRequest;
+use OCP\IUser;
+use OCP\IUserSession;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\OCS\OCSForbiddenException;
@@ -99,4 +108,67 @@ class ActionForbiddenMiddlewareTest extends TestCase {
 
 		self::assertContains(ActionForbiddenMiddleware::class, $registered);
 	}//end testTheAppRegistersIt()
+	/**
+	 * Live pass D7: a learner reads the by-regulation figures. The controller
+	 * asks the action matrix, which refuses the way OpenRegister does; the
+	 * request goes through the app's middleware the way Nextcloud's
+	 * MiddlewareDispatcher hands an exception to afterException(). The
+	 * rule-coverage spec says 403; it was a 500 page.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/compliance-rule-coverage-table/specs/compliance-rule-coverage/spec.md#requirement-per-rule-coverage-table
+	 */
+	public function testALearnerReadingTheCoverageGets403(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('lp-learner');
+		$session = $this->createMock(IUserSession::class);
+		$session->method('getUser')->willReturn($user);
+		$actionAuth = $this->createMock(ActionAuthService::class);
+		$actionAuth->method('requireAction')->willThrowException(
+			new OCSForbiddenException("Action 'compliance.department-rollup' not allowed for your groups")
+		);
+		$rollup = $this->createMock(ComplianceRollupService::class);
+		$controller = new ComplianceRollupController(
+			$this->createMock(IRequest::class),
+			$session,
+			$actionAuth,
+			$rollup,
+			$this->createMock(RegulationAssignmentService::class),
+			$this->createMock(ObjectService::class),
+			new RegulationCoverageService($rollup, new RegulationAudienceResolver())
+		);
+
+		$registered = [];
+		$context = $this->createMock(IRegistrationContext::class);
+		$context->method('registerMiddleware')->willReturnCallback(
+			static function (string $class) use (&$registered): void {
+				$registered[] = $class;
+			}
+		);
+		try {
+			(new Application())->register($context);
+		} catch (\Throwable $e) {
+			// See testTheAppRegistersIt().
+		}
+
+		foreach (['regulations', 'departments', 'assignRegulation'] as $method) {
+			$response = null;
+			try {
+				$response = $controller->$method();
+			} catch (\Exception $exception) {
+				foreach (array_reverse($registered) as $middlewareClass) {
+					try {
+						$response = (new $middlewareClass())->afterException($controller, $method, $exception);
+						break;
+					} catch (\Exception $rethrown) {
+						$exception = $rethrown;
+					}
+				}
+			}
+
+			self::assertInstanceOf(JSONResponse::class, $response, $method . ': the refusal reached Nextcloud as an exception (a 500 page).');
+			self::assertSame(403, $response->getStatus(), $method);
+		}
+	}//end testALearnerReadingTheCoverageGets403()
 }//end class
