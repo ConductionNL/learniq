@@ -50,7 +50,7 @@ The sidecar SHALL be seeded with every key that appears on an added line of `git
 
 ### Requirement: Marking a key reviewed removes it from the sidecar
 
-`POST /api/l10n/ai-translated/reviewed` with `key` SHALL remove that key from the sidecar and rewrite it atomically, keeping every other member. A key that is not listed SHALL answer 404 and change nothing. When the file cannot be written, the answer SHALL be 409 with a reason naming the read-only app directory, and nothing SHALL change.
+`POST /api/l10n/ai-translated/reviewed` with `key` SHALL remove that key from the sidecar and rewrite it atomically, keeping every other member. A key that is not listed SHALL answer 404 and change nothing. When the file cannot be written, or the app is a signed release (it carries `appinfo/signature.json`), the answer SHALL be 409 with a reason naming the read-only app directory or the signed release, and nothing SHALL change. A signed release is refused even when its folder is writable: Nextcloud checks every shipped file against the signature, so a rewritten list would give the instance a code integrity warning.
 
 #### Scenario: A reviewed key leaves the list
 
@@ -69,6 +69,14 @@ The sidecar SHALL be seeded with every key that appears on an added line of `git
 - GIVEN the sidecar cannot be written
 - WHEN an administrator marks a key reviewed
 - THEN the answer MUST be 409 with the reason `read-only`
+
+#### Scenario: A signed release is refused even when its folder is writable
+
+- GIVEN the app was installed from a signed release, so `appinfo/signature.json` exists
+- AND the web server user can write the app folder
+- WHEN an administrator marks a key reviewed
+- THEN the answer MUST be 409 with the reason `read-only`
+- AND the sidecar MUST be unchanged, so the integrity check still passes
 
 ### Requirement: The l10n build ignores the sidecar
 

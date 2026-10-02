@@ -8,11 +8,11 @@
 ## 2. Page and export
 
 - [x] 2.1a Add the conformance table and edit dialog to the statement page. Verify: node --test `tests/unit-js/conformance.test.mjs` for the fail-needs-limitation prompt and the saved payload.
-- [ ] 2.1b Playwright flow: record a result on the shared instance (live check, owed).
+- [x] 2.1b Live flow on the shared dev instance (2 Oct, learniq 1197793c, browser): record 1.1.1 pass on the published statement (summary moves to 1 pass, 49 not tested), then download the evidence signed out as JSON and CSV (200, no user field). Evidence: `~/memcap-work/build-all/livepass/learniq/governance-wcag-evidence-report/RESULT.md`.
 - [x] 2.2 Add the public export route (JSON, CSV) with rate limiting. Verify: PHPUnit that no personal field is present; hydra route-auth gate.
 
 ## 3. Close out
 
 - [x] 3.1 Add strings to every shipped locale. Verify: `npm run test:l10n`.
-- [ ] 3.2 Set row `gov-wcag-aa` to built and archive the change. Verify: parity_verify --strict.
+- [x] 3.2 Set row `gov-wcag-aa` to built and archive the change. Verify: parity_verify --strict.
 

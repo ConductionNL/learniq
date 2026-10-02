@@ -287,6 +287,57 @@ class ParentPortalCollections {
 	}//end freeSlotsCollection()
 
 	/**
+	 * The change rule that tells a guardian the teacher answered their
+	 * booking: acknowledged, or declined with the teacher's note.
+	 *
+	 * The booking holds the guardian's learniq reference (`guardianRef`), not
+	 * their portal reference, so the rule names its recipients by that claim
+	 * (portaliq claim-addressed-change-notices): portaliq tells the portal
+	 * accounts whose `claims.learniq.guardianRef` the booking holds, and only
+	 * when that account may read the booking through this collection. Only
+	 * `acknowledged` and `declined` have words, so a booking the parent
+	 * cancels themselves, or any other move, is not reported. Placeholders
+	 * name fields the bookings collection shows the guardian; portaliq drops
+	 * the rule otherwise.
+	 *
+	 * @return array<string, mixed> The rule.
+	 *
+	 * @spec openspec/changes/conference-answer-notice/specs/parent-conferences/spec.md
+	 */
+	public function conferenceAnsweredRule(): array {
+		return [
+			'ruleKey' => 'conference.answered',
+			'collection' => 'parentConferenceSignups',
+			'on' => ['field' => 'lifecycle', 'operator' => 'changed'],
+			'titleField' => 'slotLabel',
+			'recipients' => ['field' => 'guardianRef', 'claim' => 'guardianRef'],
+			'messages' => [
+				'acknowledged' => [
+					'subject' => [
+						'nl' => 'Gesprekstijd bevestigd',
+						'en' => 'Conference time confirmed',
+					],
+					'body' => [
+						'nl' => 'De leerkracht heeft uw gesprekstijd bevestigd: {startsAt|datetime}, met {teacherName}.',
+						'en' => 'The teacher confirmed your conference time: {startsAt|datetime}, with {teacherName}.',
+					],
+				],
+				'declined' => [
+					'subject' => [
+						'nl' => 'Gesprekstijd gaat niet door',
+						'en' => 'Conference time declined',
+					],
+					'body' => [
+						'nl' => 'De leerkracht kan helaas niet op {startsAt|datetime}. U kunt een andere tijd kiezen. Toelichting van de leerkracht: {declineNote}',
+						'en' => 'The teacher cannot make {startsAt|datetime}. You can pick another time. The teacher\'s note: {declineNote}',
+					],
+				],
+			],
+		];
+
+	}//end conferenceAnsweredRule()
+
+	/**
 	 * Every conference action of the guardian: book a free time, cancel it,
 	 * and ask for a conversation in a round the school plans.
 	 *

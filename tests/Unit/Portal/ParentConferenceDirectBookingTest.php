@@ -127,4 +127,46 @@ class ParentConferenceDirectBookingTest extends TestCase {
 		$this->assertSame(['type' => 'collection', 'collection' => 'parentConferenceSlots'], $pages['parentConferenceSlots']['blocks'][0]);
 		$this->assertArrayNotHasKey('hidden', $pages);
 	}//end testEachConferenceFormHasItsOwnPage()
+	/**
+	 * When the teacher acknowledges or declines a booked time, the guardian
+	 * who booked it hears so in the portal: one change rule on the bookings
+	 * collection, addressed to the portal accounts whose learniq claim
+	 * `guardianRef` the booking holds, with Dutch words for exactly those two
+	 * values. Every placeholder is a field the collection shows the guardian,
+	 * which portaliq requires, and no text carries an em-dash.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/conference-answer-notice/specs/parent-conferences/spec.md
+	 */
+	public function testTheGuardianHearsWhenTheTeacherAnswersABooking(): void {
+		$extras = new ParentPortalCollections();
+		$rule = $extras->conferenceAnsweredRule();
+		$bookings = array_column($extras->conferenceCollections(childJoin: self::CHILD_JOIN), null, 'id')['parentConferenceSignups'];
+
+		$this->assertSame('conference.answered', $rule['ruleKey']);
+		$this->assertSame('parentConferenceSignups', $rule['collection']);
+		$this->assertSame(['field' => 'lifecycle', 'operator' => 'changed'], $rule['on']);
+		$this->assertSame(['field' => 'guardianRef', 'claim' => 'guardianRef'], $rule['recipients']);
+		$this->assertSame('guardianRef', $bookings['scopeClaim'], 'the claim the rule addresses is the one the bookings are read by');
+		$this->assertContains($rule['on']['field'], $bookings['fields']);
+		$this->assertContains($rule['titleField'], $bookings['fields']);
+		$this->assertSame(['acknowledged', 'declined'], array_keys($rule['messages']));
+
+		$this->assertSame('De leerkracht heeft uw gesprekstijd bevestigd: {startsAt|datetime}, met {teacherName}.', $rule['messages']['acknowledged']['body']['nl']);
+		$this->assertStringContainsString('{declineNote}', $rule['messages']['declined']['body']['nl'], 'a decline carries the teacher\'s note');
+
+		foreach ($rule['messages'] as $message) {
+			foreach (['subject', 'body'] as $part) {
+				$this->assertSame(['nl', 'en'], array_keys($message[$part]));
+				foreach ($message[$part] as $text) {
+					$this->assertStringNotContainsString('—', $text);
+					preg_match_all('/\{([A-Za-z_][A-Za-z0-9_-]*)(\|datetime)?\}/', $text, $placeholders);
+					foreach ($placeholders[1] as $field) {
+						$this->assertContains($field, $bookings['fields'], 'portaliq drops a rule whose placeholder the guardian may not read');
+					}
+				}
+			}
+		}
+	}//end testTheGuardianHearsWhenTheTeacherAnswersABooking()
 }//end class
