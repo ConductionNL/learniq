@@ -137,6 +137,10 @@ class ConferenceSlotBookingStampTest extends TestCase {
 		$this->assertNotSame('', (string)$slot['signupId']);
 		$this->assertSame([], $this->locks->held, 'every lock is released');
 
+		$this->assertNull(
+			self::schemaError('conference-signup', ['learnerRef' => self::VERA, 'guardianRef' => self::FATIMA, 'slotId' => self::SLOT_1, 'notes' => 'Graag over rekenen']),
+			'the real fragment accepts the booking as portaliq sends it, before the stamp (OpenRegister validates first)'
+		);
 		$this->assertNull(self::schemaError('conference-slot', $this->store->saves[0]['object']), 'the real fragment accepts the booked slot');
 		$this->assertNull(
 			self::schemaError('conference-signup', array_merge($event->getObject()->getObject(), $data)),

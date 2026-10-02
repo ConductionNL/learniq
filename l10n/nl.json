@@ -3671,7 +3671,8 @@
         "Bookings to answer": "Boekingen om te beantwoorden",
         "No bookings waiting for an answer.": "Geen boekingen die op een antwoord wachten.",
         "Acknowledged by the teacher": "Bevestigd door de leerkracht",
-        "Declined by the teacher": "Afgewezen door de leerkracht"
+        "Declined by the teacher": "Afgewezen door de leerkracht",
+        "UUID of the ConferenceRound this signup belongs to. A portal booking of a free time leaves it out; ConferenceSlotBookingStamp stamps it from the slot, and a signup without a round it can check is refused.": "UUID van de oudergespreksronde van deze aanmelding. Een boeking van een vrije tijd in het portaal laat hem weg; ConferenceSlotBookingStamp vult hem vanuit de gekozen tijd, en een aanmelding zonder ronde die te controleren is, wordt geweigerd."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

@@ -3204,7 +3204,8 @@
         "Bookings to answer": "Bookings to answer",
         "No bookings waiting for an answer.": "No bookings waiting for an answer.",
         "Acknowledged by the teacher": "Acknowledged by the teacher",
-        "Declined by the teacher": "Declined by the teacher"
+        "Declined by the teacher": "Declined by the teacher",
+        "UUID of the ConferenceRound this signup belongs to. A portal booking of a free time leaves it out; ConferenceSlotBookingStamp stamps it from the slot, and a signup without a round it can check is refused.": "UUID of the ConferenceRound this signup belongs to. A portal booking of a free time leaves it out; ConferenceSlotBookingStamp stamps it from the slot, and a signup without a round it can check is refused."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
