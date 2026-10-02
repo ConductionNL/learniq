@@ -606,11 +606,9 @@ class PortalContributionProvider {
 		return [
 			'label' => 'Learniq',
 			'collections' => $collections,
-			// One page per child, the calendar, then every other section with
-			// its own form (ParentPortalCollections::pages()).
+			// One page per child, the calendar, then every other section.
 			'pages' => $record->pages(collections: $collections, actions: $actions, sections: $extras),
-			// Portaliq's writer validates each cross-reference against the
-			// guardian's own children (portaliq#607); see parentActions().
+			// Cross-references are checked against the guardian's children (portaliq#607).
 			'actions' => $actions,
 			'notifications' => [],
 			// Portaliq news-audience-from-the-school-app: which of the collections
