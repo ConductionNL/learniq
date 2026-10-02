@@ -17,4 +17,4 @@
 
 ## 4. Example data and live
 - [x] 4.1 po set: group 7's parent evening books directly. Verify: `python3 scripts/example-sets/po.py --check`, `ExampleSetDescriptorContractTest`.
-- [ ] 4.2 Live: the teacher creates free times, the guardian books one on the site, the teacher acknowledges, the guardian sees it, a second booking of the same time is refused. Verify: `tests/e2e/po-parent-flows.spec.ts` flow d.
+- [x] 4.2 Live: the teacher creates free times, the guardian books one on the site, the teacher acknowledges, the guardian sees it, a second booking of the same time is refused. Verify: `tests/e2e/po-parent-flows.spec.ts` flow d.

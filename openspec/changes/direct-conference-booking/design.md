@@ -24,3 +24,7 @@ The check ("is the slot free, may this child book it, has the child no other tim
 ## Migration
 
 No data moves. A round without `bookingMode` reads as `preference` (`ConferenceBookingMode::of`). `ConferenceRoundBookingModeStamp` fills the value on creates only.
+
+## Why the parent contribution declares its pages
+
+Portaliq builds a default page per collection and puts the first create form of the collection's schema on it. Both conference forms create a `conference-signup`, so the request form of a planned round disappeared behind "Book a time". `ParentPortalCollections::pages()` builds the same pages (same ids, so the site's routes stay) and puts "Book a time" on the free times page and the request form on the bookings page.
