@@ -3117,7 +3117,14 @@ OC.L10N.register(
         "The school has your report. You see the teacher's decision in the list of absence reports.": "The school has your report. You see the teacher's decision in the list of absence reports.",
         "Anything the teacher should know beforehand": "Anything the teacher should know beforehand",
         "Book": "Book",
-        "Your booking is in. The school plans the times, and you see yours under your conference times.": "Your booking is in. The school plans the times, and you see yours under your conference times."
+        "Your booking is in. The school plans the times, and you see yours under your conference times.": "Your booking is in. The school plans the times, and you see yours under your conference times.",
+        "Submitted": "Submitted",
+        "Scheduled": "Scheduled",
+        "On the waiting list": "On the waiting list",
+        "Booking cancelled": "Booking cancelled",
+        "Proposed time": "Proposed time",
+        "Did not attend": "Did not attend",
+        "Conversation cancelled": "Conversation cancelled"
     },
     "nplurals=2; plural=(n != 1);"
 )

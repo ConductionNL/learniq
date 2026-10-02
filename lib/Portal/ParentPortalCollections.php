@@ -185,7 +185,7 @@ class ParentPortalCollections {
 				'columns' => [
 					['field' => 'requestedTeacherIds', 'label' => 'With'],
 					['field' => 'notes', 'label' => 'Your note'],
-					['field' => 'lifecycle', 'label' => 'Status'],
+					['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::SIGNUP_STATUS],
 				],
 			],
 			[
@@ -212,7 +212,7 @@ class ParentPortalCollections {
 					['field' => 'endsAt', 'label' => 'Ends'],
 					['field' => 'teacherId', 'label' => 'With'],
 					['field' => 'location', 'label' => 'Where'],
-					['field' => 'lifecycle', 'label' => 'Status'],
+					['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::SLOT_STATUS],
 				],
 			],
 		];

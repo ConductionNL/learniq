@@ -3570,7 +3570,13 @@ OC.L10N.register(
         "The school has your report. You see the teacher's decision in the list of absence reports.": "De school heeft uw melding. Het besluit van de leerkracht ziet u in de lijst met afwezigheidsmeldingen.",
         "Anything the teacher should know beforehand": "Wat de leerkracht vooraf moet weten",
         "Book": "Boeken",
-        "Your booking is in. The school plans the times, and you see yours under your conference times.": "Uw aanvraag is binnen. De school plant de tijden, en u ziet uw tijd onder uw gesprekstijden."
+        "Your booking is in. The school plans the times, and you see yours under your conference times.": "Uw aanvraag is binnen. De school plant de tijden, en u ziet uw tijd onder uw gesprekstijden.",
+        "Scheduled": "Ingepland",
+        "On the waiting list": "Op de wachtlijst",
+        "Booking cancelled": "Boeking geannuleerd",
+        "Proposed time": "Voorgestelde tijd",
+        "Did not attend": "Niet verschenen",
+        "Conversation cancelled": "Gesprek geannuleerd"
     },
     "nplurals=2; plural=(n != 1);"
 )
