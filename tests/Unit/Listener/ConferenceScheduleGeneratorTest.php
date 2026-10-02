@@ -407,4 +407,22 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 		$generator->handle($event);
 
 	}//end testIgnoresUnrelatedTransitions()
+
+	/**
+	 * A round with direct booking is never planned: parents picked their own
+	 * free times, so `generate` reads and writes nothing.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
+	 */
+	public function testADirectRoundIsNotPlanned(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->expects(self::never())->method('findAll');
+		$objectService->expects(self::never())->method('saveObject');
+
+		$generator = new ConferenceScheduleGenerator($objectService, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
+		$generator->handle($this->makeEvent(['id' => 'round-d', 'bookingMode' => 'direct', 'slotDurationMinutes' => 10]));
+
+	}//end testADirectRoundIsNotPlanned()
 }//end class
