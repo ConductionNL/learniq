@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Settings;
 
+use OCA\Learniq\Service\Attendance\AttendanceSummaryCalculator;
 use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
 use PHPUnit\Framework\TestCase;
 
@@ -137,4 +138,44 @@ class AttendanceSummaryRegisterTest extends TestCase {
 			self::assertArrayHasKey($string, $nl, $string);
 		}
 	}//end testTheRecordCarriesLateMinutesAndAReasonForAbsence()
+
+	/**
+	 * The primary school example set ships one summary per pupil, counted exactly as the server counts.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
+	 */
+	public function testThePrimarySchoolSummariesMatchTheCalculator(): void {
+		$set = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/profiles/po.json'), true);
+		$objects = $set['x-openregister']['seedData']['objects'];
+		$sessions = AttendanceSummaryCalculator::sessionDays(rows: array_map(static fn (array $s): array => ['id' => $s['uuid']] + $s, $objects['session']));
+		$records = [];
+		foreach ($objects['attendance-record'] as $record) {
+			$records[$record['learnerId']][] = $record;
+		}
+
+		$calculator = new AttendanceSummaryCalculator();
+		$summaries = $objects['attendance-summary'];
+		self::assertCount(count($objects['enrolment']), $summaries, 'one summary per enrolled pupil');
+		$late = 0;
+		$unauthorised = 0;
+		foreach ($summaries as $summary) {
+			$counted = ($calculator->summarise(records: ($records[$summary['learnerId']] ?? []), sessions: $sessions)['2025-2026'] ?? AttendanceSummaryCalculator::emptyCounts());
+			self::assertSame($counted, array_intersect_key($summary, $counted), $summary['learnerId']);
+			self::assertSame('2025-2026', $summary['schoolYear']);
+			self::assertNull(self::schemaError(slug: 'attendance-summary', payload: array_diff_key($summary, ['@self' => 1, 'uuid' => 1, 'slug' => 1])));
+			$late += $summary['lateMinutes'];
+			$unauthorised += $summary['absentUnauthorisedDays'];
+		}
+
+		self::assertGreaterThan(0, $late, 'control: the set has late arrivals');
+		self::assertGreaterThan(0, $unauthorised, 'control: the set has unexcused absence');
+
+		foreach ($objects['attendance-record'] as $record) {
+			if ($record['status'] === 'late') {
+				self::assertGreaterThan(0, $record['lateMinutes']);
+			}
+		}
+	}//end testThePrimarySchoolSummariesMatchTheCalculator()
 }//end class

@@ -81,6 +81,8 @@ SCHEMAS = [
     "group-plan-evaluation",
     "support-request",
     "dossier-note",
+    # Appended last so every earlier schema keeps its uuid namespace (attendance-summary-per-school-year).
+    "attendance-summary",
 ]
 
 HOLIDAYS = [
@@ -521,9 +523,28 @@ def build() -> dict:
                 "minutesAttended": minutes, "markedBy": teacher_on(p["class"], d),
                 "markedAt": stamp(d, 8, 50 if status == "late" else 40), "reason": reason,
                 "excuseRequestId": (excuses[(p["nc"], d)]["uuid"] if (p["nc"], d) in excuses else None),
+                # The roll-call's fields (attendance-roll-call): minutes late, and why an excused pupil was away.
+                "lateMinutes": (minutes_of(d) - minutes) if status == "late" else None,
+                "absenceReasonKind": "illness" if status == "absent-excused" else None,
             })
             if p is signal and status == "absent-unexcused":
                 signal_records.append(rec["uuid"])
+
+    # Attendance summaries (attendance-summary-per-school-year): one row per pupil for the year, counted with
+    # the rules of AttendanceSummaryCalculator. Every school day has one session, so an absent mark is an absent day.
+    for p in pupils:
+        pm = marks.get(p["nc"], {})
+        excused = sum(1 for m in pm.values() if m[0] == "absent-excused")
+        unexcused = sum(1 for m in pm.values() if m[0] == "absent-unexcused")
+        lates = [d for d, m in pm.items() if m[0] == "late"]
+        cohort = cohorts[p["class"]]
+        b.add("attendance-summary", {
+            "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "schoolYear": YEAR,
+            "absentDays": excused + unexcused, "absentAuthorisedDays": excused, "absentUnauthorisedDays": unexcused,
+            "lateCount": len(lates), "lateMinutes": sum(minutes_of(d) - pm[d][2] for d in lates),
+            "updatedAt": stamp(LAST_DAY, 18, 0),
+            "teacherIds": sorted(set(cohort["teacherIds"]) | {a["teacherId"] for a in cohort["teacherAssignments"]}),
+        })
 
     threshold = b.add("attendance-threshold", {
         "name": "Leerplicht: 16 uur ongeoorloofd verzuim in 4 weken", "kind": "leerplicht-16uur", "scope": "per-learner",
