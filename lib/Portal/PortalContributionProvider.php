@@ -533,6 +533,7 @@ class PortalContributionProvider {
 					'reasonKind',
 					'attachmentRef',
 				],
+				'fieldConfigs' => ['attachmentRef' => (new ExcuseAttachmentField())->config()],
 			],
 		];
 
@@ -718,7 +719,7 @@ class PortalContributionProvider {
 					'dateTo' => ['label' => 'Last day absent', 'required' => true],
 					'reason' => ['label' => 'Reason', 'required' => true],
 					'reasonKind' => ['label' => 'Kind of absence', 'required' => true, 'valueLabels' => PortalValueLabels::ABSENCE_KIND],
-					'attachmentRef' => ['label' => 'Attachment'],
+					'attachmentRef' => (new ExcuseAttachmentField())->config(),
 				],
 				'submitLabel' => 'Report the absence',
 				'successMessage' => "The school has your report. You see the teacher's decision in the list of absence reports.",
