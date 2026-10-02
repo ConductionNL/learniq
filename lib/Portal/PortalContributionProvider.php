@@ -590,7 +590,7 @@ class PortalContributionProvider {
 		$extras = new ParentPortalCollections();
 		$record = new ParentRecordPage();
 		$collections = array_merge(
-			[$this->parentChildrenCollection()],
+			[$record->childrenCollection()],
 			$this->parentResultCollections(childJoin: $childJoin),
 			[$extras->reportCardGradesCollection(childJoin: $childJoin)],
 			$this->parentWelfareCollections(childJoin: $childJoin),
@@ -626,50 +626,6 @@ class PortalContributionProvider {
 		];
 
 	}//end parentContribution()
-
-	/**
-	 * The guardian's per-child, per-guardian-group directory, with current
-	 * beeldmateriaal consent state.
-	 *
-	 * Matches `learner-profile` DIRECTLY (no `via`) by `guardianRefs` (array)
-	 * containing the guardian's own `subjectRef`. Portaliq's direct scope
-	 * compared one value, so this list read empty; ConductionNL/portaliq#750
-	 * adds list membership to the reader and writer. There is no cross-object hop
-	 * here, since `guardianRefs` lives on
-	 * the very schema being read. `guardianRefs` is itself exposed so a
-	 * guardian can see the full co-guardian group sharing a child (the
-	 * "per-group" audience D1 names alongside "per-child").
-	 *
-	 * @return array<string, mixed> The parentChildren collection.
-	 *
-	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-parent-audience-exposes-per-child-and-per-guardian-group-directory-data-req-pcon-006
-	 */
-	private function parentChildrenCollection(): array {
-		return [
-			'id' => 'parentChildren',
-			'register' => self::REGISTER,
-			'schema' => 'learner-profile',
-			'scopeField' => 'guardianRefs',
-			'scopeClaim' => 'guardianRef',
-			'label' => 'My children',
-			'listable' => true,
-			'minTrust' => 'substantial',
-			'fields' => [
-				'givenName',
-				'familyName',
-				'guardianRefs',
-				// The record page joins the school's calendar and news on it.
-				'schoolId',
-				'beeldmateriaalConsent',
-				'beeldmateriaalConsentReviewDueAt',
-			],
-			'columns' => [
-				['field' => 'givenName', 'label' => 'First name'],
-				['field' => 'familyName', 'label' => 'Last name'],
-			],
-		];
-
-	}//end parentChildrenCollection()
 
 	/**
 	 * The guardian's create-actions — report a child's absence.
