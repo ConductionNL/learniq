@@ -611,7 +611,8 @@ class PortalContributionProvider {
 			'pages' => $record->pages(collections: $collections, actions: $actions, sections: $extras),
 			// Cross-references are checked against the guardian's children (portaliq#607).
 			'actions' => $actions,
-			'notifications' => [],
+			// The guardian hears when the teacher answers a conference booking.
+			'notifications' => [$extras->conferenceAnsweredRule()],
 			// Portaliq news-audience-from-the-school-app: which of the collections
 			// above name the guardian's children, their school and their groups,
 			// so a news item for the school or a group reaches the guardian.
