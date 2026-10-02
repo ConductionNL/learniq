@@ -9,10 +9,10 @@
 ## 2. UI
 
 - [x] 2.1a Add Subscribe in your calendar and Reset link to the timetable page (`src/dialogs/TimetableCalendarFeedDialog.vue`, button on `MyTimetable.vue`).
-- [ ] 2.1b Verify: Playwright flow copy address, fetch it, reset, old address 404.
+- [x] 2.1b Live flow on the shared dev instance (2 Oct, learniq 397e4cc8, register 0.34.32, browser as lp-learner on /my-timetable): Make an address, Copy address puts it on the clipboard, the address fetched signed out answers 200 text/calendar, Reset link gives a new address, the old one answers 404 and the new one 200. Evidence: `~/memcap-work/build-all/livepass/learniq/attendance-timetable-calendar-feed/RESULT.md` and its screenshots. Not seen live: event content (the test learner has no sessions); the unit tests cover it.
 
 ## 3. Close out
 
 - [x] 3.1 Add strings to every shipped locale (en, nl). Verify: `npm run check:l10n`, `check:l10n-js`.
-- [ ] 3.2 Set row `att-timetable-in-my-calendar` to built; list planninq row `sib-learniq-att-timetable-in-my-calendar` for the coordinator. Verify: parity_verify --strict.
+- [x] 3.2 Set row `att-timetable-in-my-calendar` to built; list planninq row `sib-learniq-att-timetable-in-my-calendar` for the coordinator. Verify: parity_verify --strict.
 

@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Attendance;
 
+use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
 use OCA\OpenRegister\Service\ObjectService;
@@ -124,7 +125,7 @@ class RollCallLessons {
 
 		$session = [
 			'cohortId' => $cohortId,
-			'title' => (string)($cohort['name'] ?? '') . ', ' . (string)$this->l10n->l('date', $day, ['width' => 'full']),
+			'title' => (string)($cohort['name'] ?? '') . ', ' . $this->dayName(day: $day),
 			'startsAt' => (new DateTimeImmutable($date . 'T' . $start . ':00', $zone))->format(DATE_ATOM),
 			'endsAt' => (new DateTimeImmutable($date . 'T' . $end . ':00', $zone))->format(DATE_ATOM),
 			'tenant_id' => (string)($cohort['tenant_id'] ?? ''),
@@ -144,6 +145,20 @@ class RollCallLessons {
 
 		return array_merge($session, $row);
 	}//end create()
+
+	/**
+	 * The day in the user's language, for instance "donderdag 17 september 2026".
+	 *
+	 * IL10N::l() on Nextcloud 34 takes a mutable \DateTime; a DateTimeImmutable
+	 * falls through to `(int)$data` and is formatted as 1 January 1970.
+	 *
+	 * @param DateTimeImmutable $day Noon of the day, in the caller's zone.
+	 *
+	 * @return string
+	 */
+	private function dayName(DateTimeImmutable $day): string {
+		return (string)$this->l10n->l('date', new DateTime($day->format(DATE_ATOM), $day->getTimezone()), ['width' => 'full']);
+	}//end dayName()
 
 	/**
 	 * The start and end time (`H:i`) of a new lesson.

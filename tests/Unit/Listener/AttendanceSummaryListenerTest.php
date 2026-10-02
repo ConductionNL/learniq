@@ -31,6 +31,7 @@ use OCA\Learniq\BackgroundJob\AttendanceSummaryRecomputeJob;
 use OCA\Learniq\Listener\AttendanceSummaryListener;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectDeletedEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
@@ -66,8 +67,8 @@ class AttendanceSummaryListenerTest extends TestCase {
 		);
 
 		$resolver = $this->createMock(ListenerSchemaResolver::class);
-		$resolver->method('registerSlug')->willReturn($register);
-		$resolver->method('schemaSlug')->willReturn($schema);
+		// guardSchemaSlug() answers '' for an object outside Learniq's register.
+		$resolver->method('guardSchemaSlug')->willReturn($register === 'learniq' ? $schema : '');
 
 		return new AttendanceSummaryListener(deferral: $deferral, schemaResolver: $resolver);
 	}//end listener()
@@ -134,6 +135,71 @@ class AttendanceSummaryListenerTest extends TestCase {
 		self::assertCount(1, $this->deferred);
 		self::assertSame('pupil-1', $this->deferred[0]['entry']['learnerId']);
 	}//end testADeletedRecordDefersARecount()
+
+	/**
+	 * The listener over the REAL resolver, whose mappers answer like OpenRegister's.
+	 *
+	 * @return AttendanceSummaryListener
+	 */
+	private function listenerOverTheRealResolver(): AttendanceSummaryListener {
+		$this->deferred = [];
+		$deferral = $this->createMock(ListenerDeferralService::class);
+		$deferral->method('defer')->willReturnCallback(
+			function (string $jobClass, array $entry, int $chunkSize=100, ?string $dedupeKey=null): void {
+				$this->deferred[] = ['jobClass' => $jobClass, 'entry' => $entry, 'dedupeKey' => $dedupeKey];
+			}
+		);
+
+		return new AttendanceSummaryListener(deferral: $deferral, schemaResolver: TransitionScope::resolver());
+	}//end listenerOverTheRealResolver()
+
+	/**
+	 * A record entity as OpenRegister materialises it: numeric register and schema ids.
+	 *
+	 * @param string $register The register id.
+	 * @param string $schema   The schema slug the id stands for.
+	 *
+	 * @return \OCA\OpenRegister\Db\ObjectEntity
+	 */
+	private static function entityWithIds(string $register=TransitionScope::LEARNIQ_REGISTER_ID, string $schema='attendance-record'): \OCA\OpenRegister\Db\ObjectEntity {
+		return OrEntityFactory::make(
+			['sessionId' => 'session-1', 'learnerId' => 'pupil-1', 'learnerRef' => 'ref-1', 'status' => 'absent-unexcused', 'tenant_id' => self::TENANT],
+			TransitionScope::schemaId($schema),
+			$register
+		);
+	}//end entityWithIds()
+
+	/**
+	 * A record carrying numeric ids (OpenRegister's default) still defers a recount,
+	 * with the listener slug contract at its shipped default (off).
+	 *
+	 * @return void
+	 */
+	public function testARecordCarryingIdsDefersARecountWithTheContractOff(): void {
+		$this->listenerOverTheRealResolver()->handle(new ObjectCreatedEvent(self::entityWithIds()));
+		self::assertCount(1, $this->deferred);
+		self::assertSame(AttendanceSummaryRecomputeJob::class, $this->deferred[0]['jobClass']);
+		self::assertSame('pupil-1|session-1', $this->deferred[0]['dedupeKey']);
+
+		$this->listenerOverTheRealResolver()->handle(new ObjectUpdatedEvent(self::entityWithIds(), self::entityWithIds()));
+		self::assertCount(1, $this->deferred);
+
+		$this->listenerOverTheRealResolver()->handle(new ObjectDeletedEvent(self::entityWithIds()));
+		self::assertCount(1, $this->deferred);
+	}//end testARecordCarryingIdsDefersARecountWithTheContractOff()
+
+	/**
+	 * By id, another schema or another app's register still does not match.
+	 *
+	 * @return void
+	 */
+	public function testIdsOfAnotherSchemaOrRegisterDoNotMatch(): void {
+		$this->listenerOverTheRealResolver()->handle(new ObjectCreatedEvent(self::entityWithIds(schema: 'session')));
+		self::assertSame([], $this->deferred);
+
+		$this->listenerOverTheRealResolver()->handle(new ObjectCreatedEvent(self::entityWithIds(register: TransitionScope::OTHER_REGISTER_ID)));
+		self::assertSame([], $this->deferred);
+	}//end testIdsOfAnotherSchemaOrRegisterDoNotMatch()
 
 	/**
 	 * Writes to other schemas, other registers, other events or without a learner are ignored.
