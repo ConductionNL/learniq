@@ -8610,7 +8610,7 @@
             "Assignment": {
                 "slug": "assignment",
                 "icon": "ClipboardEditOutline",
-                "version": "0.5.3",
+                "version": "0.5.4",
                 "title": "Assignment",
                 "description": "A deliverable that learners hand in: title, instructions, due date, rubric, and submission window. Belongs to a Course, Session, or both. Linked to a CurriculumPlan component to enable grade roll-up.",
                 "type": "object",
@@ -12360,7 +12360,7 @@
             "ReportPeriod": {
                 "slug": "report-period",
                 "icon": "CalendarRangeOutline",
-                "version": "0.1.2",
+                "version": "0.1.3",
                 "title": "ReportPeriod",
                 "description": "The school-wide term a periodic report card (rapport) is composed for: name, academic year, a periodCode matching the same period identifier GradeEntry.period / CurriculumPlan.components[].period / FinalGrade.breakdown.periods keys already use, the window AttendanceRecord is summarised over, which CurriculumPlans (subjects) and Cohorts it covers, and a nullable lockDate after which ordinary grade publishing for that period is blocked (report-card spec).",
                 "type": "object",
