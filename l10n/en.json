@@ -3303,7 +3303,22 @@
         "The title of the shared portfolio, as the person it is shared with reads it. The server copies it from the Portfolio when the share is written; a value sent for it is replaced.": "The title of the shared portfolio, as the person it is shared with reads it. The server copies it from the Portfolio when the share is written; a value sent for it is replaced.",
         "The name of the learner whose portfolio is shared (given name and family name), as the person it is shared with reads it. The server copies it from the learner's profile when the share is written; a value sent for it is replaced.": "The name of the learner whose portfolio is shared (given name and family name), as the person it is shared with reads it. The server copies it from the learner's profile when the share is written; a value sent for it is replaced.",
         "Portfolio title": "Portfolio title",
-        "Learner name": "Learner name"
+        "Learner name": "Learner name",
+        "My grades": "My grades",
+        "My final grades": "My final grades",
+        "My attendance": "My attendance",
+        "My enrolments": "My enrolments",
+        "My submissions": "My submissions",
+        "My absence excuses": "My absence excuses",
+        "Notifications": "Notifications",
+        "My tests": "My tests",
+        "Hand in an assignment": "Hand in an assignment",
+        "Report an absence": "Report an absence",
+        "Tests you can take": "Tests you can take",
+        "Start a test": "Start a test",
+        "Save an answer": "Save an answer",
+        "Hand in a test": "Hand in a test",
+        "View a result": "View a result"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

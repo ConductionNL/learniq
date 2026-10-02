@@ -132,7 +132,8 @@ class PortalContributionProvider {
 		$audience = $subject['audience'] ?? '';
 
 		if ($audience === 'student') {
-			return $this->studentContribution();
+			// The pupil reads her labels in her language too (site-pupil-portal-design).
+			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: $this->studentContribution());
 		}
 
 		if ($audience === 'parent') {

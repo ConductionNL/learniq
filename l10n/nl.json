@@ -3769,7 +3769,22 @@
         "The title of the shared portfolio, as the person it is shared with reads it. The server copies it from the Portfolio when the share is written; a value sent for it is replaced.": "De titel van het gedeelde portfolio, zoals degene met wie het gedeeld is die leest. Het systeem neemt die over van het portfolio als het delen wordt opgeslagen; een meegestuurde waarde wordt vervangen.",
         "The name of the learner whose portfolio is shared (given name and family name), as the person it is shared with reads it. The server copies it from the learner's profile when the share is written; a value sent for it is replaced.": "De naam van de leerling van wie het portfolio gedeeld is (voornaam en achternaam), zoals degene met wie het gedeeld is die leest. Het systeem neemt die over van het profiel van de leerling als het delen wordt opgeslagen; een meegestuurde waarde wordt vervangen.",
         "Portfolio title": "Titel van het portfolio",
-        "Learner name": "Naam van de leerling"
+        "Learner name": "Naam van de leerling",
+        "My grades": "Mijn cijfers",
+        "My final grades": "Mijn eindcijfers",
+        "My attendance": "Mijn aanwezigheid",
+        "My enrolments": "Mijn inschrijvingen",
+        "My submissions": "Mijn ingeleverde werk",
+        "My absence excuses": "Mijn afwezigheidsmeldingen",
+        "Notifications": "Meldingen",
+        "My tests": "Mijn toetsen",
+        "Hand in an assignment": "Werk inleveren",
+        "Report an absence": "Afwezig melden",
+        "Tests you can take": "Toetsen die je kunt maken",
+        "Start a test": "Toets starten",
+        "Save an answer": "Antwoord opslaan",
+        "Hand in a test": "Toets inleveren",
+        "View a result": "Uitslag bekijken"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
