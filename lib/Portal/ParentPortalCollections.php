@@ -433,6 +433,71 @@ class ParentPortalCollections {
 	}//end conferenceSignupAction()
 
 	/**
+	 * The parent pages: one per listable collection, built the way portaliq
+	 * builds its default pages (the collection's create form, the table, the
+	 * selected row), with one difference. Portaliq puts the FIRST create
+	 * action of a schema on every page of that schema, and both conference
+	 * forms create a `conference-signup`; so the free times page carries
+	 * "Book a time" and the bookings page carries the request form of a
+	 * round the school plans.
+	 *
+	 * Page ids are the collection ids, as portaliq's own, so the site's
+	 * routes (`/mijn/learniq/<collection>`) stay the same.
+	 *
+	 * @param array<int, array<string, mixed>> $collections The parent collections.
+	 * @param array<int, array<string, mixed>> $actions The parent actions.
+	 *
+	 * @return array<int, array<string, mixed>> The pages.
+	 *
+	 * @spec openspec/changes/direct-conference-booking/specs/portal-contribution/spec.md
+	 */
+	public function pages(array $collections, array $actions): array {
+		$forms = [
+			'parentConferenceFreeSlots' => 'bookConferenceSlot',
+			'parentConferenceSignups' => 'createConferenceSignup',
+		];
+		$pages = [];
+		foreach ($collections as $collection) {
+			if (($collection['listable'] ?? true) !== true) {
+				continue;
+			}
+
+			$id = (string)$collection['id'];
+			$form = ($forms[$id] ?? $this->firstCreateFor(schema: (string)$collection['schema'], actions: $actions));
+			$blocks = [];
+			if ($form !== null) {
+				$blocks[] = ['type' => 'action', 'action' => $form];
+			}
+
+			$blocks[] = ['type' => 'collection', 'collection' => $id];
+			$blocks[] = ['type' => 'detail', 'collection' => $id];
+			$pages[] = ['id' => $id, 'label' => (string)($collection['label'] ?? $id), 'blocks' => $blocks];
+		}
+
+		return $pages;
+
+	}//end pages()
+
+	/**
+	 * The first create action for a schema, as portaliq picks it.
+	 *
+	 * @param string $schema The collection's schema.
+	 * @param array<int, array<string, mixed>> $actions The actions.
+	 *
+	 * @return string|null The action id.
+	 */
+	private function firstCreateFor(string $schema, array $actions): ?string {
+		foreach ($actions as $action) {
+			if (($action['type'] ?? '') === 'create' && ($action['schema'] ?? '') === $schema) {
+				return (string)$action['id'];
+			}
+		}
+
+		return null;
+
+	}//end firstCreateFor()
+
+	/**
 	 * The cross reference that proves a `learnerRef` names one of the
 	 * guardian's own children: a direct read of `learner-profile` whose
 	 * `guardianRefs` list holds the guardian's claim.

@@ -102,4 +102,29 @@ class ParentConferenceDirectBookingTest extends TestCase {
 
 		$this->assertArrayHasKey('createConferenceSignup', $actions, 'the preference flow stays');
 	}//end testBookingAndCancellingAreTheGuardiansOwn()
+
+	/**
+	 * Both conference forms show: portaliq would put the first signup form on
+	 * every signup page, so the free times page carries "Book a time" and the
+	 * bookings page the request form. Every other page is portaliq's default.
+	 *
+	 * @return void
+	 */
+	public function testEachConferenceFormHasItsOwnPage(): void {
+		$extras = new ParentPortalCollections();
+		$collections = array_merge(
+			[['id' => 'parentExcuseRequests', 'schema' => 'excuse-request', 'listable' => true, 'label' => 'Absences']],
+			$extras->conferenceCollections(childJoin: self::CHILD_JOIN),
+			[['id' => 'hidden', 'schema' => 'enrolment', 'listable' => false]]
+		);
+		$actions = array_merge([['id' => 'createExcuseRequest', 'type' => 'create', 'schema' => 'excuse-request']], $extras->conferenceActions());
+
+		$pages = array_column($extras->pages(collections: $collections, actions: $actions), null, 'id');
+
+		$this->assertSame(['type' => 'action', 'action' => 'bookConferenceSlot'], $pages['parentConferenceFreeSlots']['blocks'][0]);
+		$this->assertSame(['type' => 'action', 'action' => 'createConferenceSignup'], $pages['parentConferenceSignups']['blocks'][0]);
+		$this->assertSame(['type' => 'action', 'action' => 'createExcuseRequest'], $pages['parentExcuseRequests']['blocks'][0]);
+		$this->assertSame(['type' => 'collection', 'collection' => 'parentConferenceSlots'], $pages['parentConferenceSlots']['blocks'][0]);
+		$this->assertArrayNotHasKey('hidden', $pages);
+	}//end testEachConferenceFormHasItsOwnPage()
 }//end class

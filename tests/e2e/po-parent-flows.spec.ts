@@ -553,9 +553,9 @@ test.describe('po: teacher and parent flows', () => {
 				{ timeout: 15_000 },
 			)
 			.toBe(true)
+		// The free times page carries the booking form.
 		await openPage(parent, 'learniq/parentConferenceFreeSlots')
 		await shot(parent, 'd2-free-times')
-		await openPage(parent, 'learniq/parentConferenceSignups')
 		const form = parent.getByRole('form', { name: 'Tijd boeken' })
 		await form
 			.getByRole('combobox', { name: 'Kind', exact: true })
