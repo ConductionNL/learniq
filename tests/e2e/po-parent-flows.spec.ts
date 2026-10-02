@@ -391,8 +391,10 @@ test.describe('po: teacher and parent flows', () => {
 
 		// The booking form on the site is d0's step; the same booking goes
 		// through the portal API here, with the guardian's own token.
+		// Two forms create a signup now (direct-conference-booking), so the
+		// request names its action, as the site does.
 		const booked = await parent.request.post(
-			'/apps/portaliq/portal/api/collections/learniq/conference-signup',
+			'/apps/portaliq/portal/api/collections/learniq/conference-signup?actionId=createConferenceSignup',
 			{
 				headers: bearer(),
 				data: {
