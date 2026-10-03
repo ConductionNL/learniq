@@ -121,6 +121,14 @@ class AiTranslatedCatalogue {
 			return self::READ_ONLY;
 		}
 
+		// A signed release is refused even when its folder is writable, and it
+		// usually is: Nextcloud installs an app-store app as the web server
+		// user. Rewriting a signed file gives the instance a code integrity
+		// warning (INVALID_HASH), so the list is only edited on a checkout.
+		if ($this->isSignedRelease() === true) {
+			return self::READ_ONLY;
+		}
+
 		$raw['keys'] = array_values(array_filter($this->keysOf(raw: $raw), static fn (string $listed): bool => $listed !== $key));
 		$json        = json_encode($raw, (JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
 		if ($json === false) {
@@ -141,6 +149,18 @@ class AiTranslatedCatalogue {
 
 		return self::REVIEWED;
 	}//end markReviewed()
+
+	/**
+	 * Whether this copy of the app is a signed release: Nextcloud then checks
+	 * every shipped file against `appinfo/signature.json`.
+	 *
+	 * @return bool True for a signed release, false for a development checkout.
+	 *
+	 * @spec openspec/specs/ai-translated-catalogue/spec.md#requirement-marking-a-key-reviewed-removes-it-from-the-sidecar
+	 */
+	private function isSignedRelease(): bool {
+		return is_file(dirname($this->l10nDir) . '/appinfo/signature.json');
+	}//end isSignedRelease()
 
 	/**
 	 * The sidecar's language and keys, empty when the file is missing or broken.
