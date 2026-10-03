@@ -93,6 +93,11 @@ export default {
 		},
 	},
 
+	/**
+	 * Load the assignment the learner hands work in for.
+	 *
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
+	 */
 	async mounted() {
 		try {
 			this.assignment = oneObject(

@@ -323,6 +323,8 @@ class LtiToolPlacementController extends Controller {
 	 * @param string $eventClass The fully qualified class name, without a leading backslash.
 	 *
 	 * @return string|null The class name, or null when absent.
+	 *
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	protected function resolveEventClass(string $eventClass): ?string {
 		$qualified = '\\' . $eventClass;
