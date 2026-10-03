@@ -240,10 +240,16 @@ class ParentRecordPage {
 	 * The three figure cards Ruben chose (2026-10-02): absence this school
 	 * year with and without permission, late arrivals, and unexcused absence,
 	 * highlighted. The latest school year counts (lq-attendance CONTRACT.md).
+	 * Every unit names its singular and plural, so a card reads "1 dag" and
+	 * "5 dagen" (portaliq kpi-unit-singular-and-plural).
 	 *
 	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/parent-figures-singular-and-plural/specs/portal-contribution/spec.md#requirement-the-figure-cards-count-in-singular-and-plural
 	 */
 	private function attendanceFigures(): array {
+		$days = ['one' => 'day', 'other' => 'days'];
+
 		return [
 			'type' => 'kpi',
 			'collection' => 'parentAttendanceSummary',
@@ -255,7 +261,7 @@ class ParentRecordPage {
 				[
 					'field' => 'absentDays',
 					'label' => 'Absent',
-					'unit' => 'days',
+					'unit' => $days,
 					'details' => [
 						['field' => 'absentAuthorisedDays', 'label' => 'with permission'],
 						['field' => 'absentUnauthorisedDays', 'label' => 'without permission'],
@@ -264,13 +270,13 @@ class ParentRecordPage {
 				[
 					'field' => 'lateCount',
 					'label' => 'Late',
-					'unit' => 'times',
-					'details' => [['field' => 'lateMinutes', 'label' => 'minutes in total']],
+					'unit' => ['one' => 'time', 'other' => 'times'],
+					'details' => [['field' => 'lateMinutes', 'label' => ['one' => 'minute in total', 'other' => 'minutes in total']]],
 				],
 				[
 					'field' => 'absentUnauthorisedDays',
 					'label' => 'Unexcused absence',
-					'unit' => 'days',
+					'unit' => $days,
 					'highlight' => true,
 				],
 			],
