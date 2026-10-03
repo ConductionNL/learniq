@@ -18,6 +18,11 @@
  *   on save and refuses a filter, the way OpenRegister does (live pass D6:
  *   the instance gave it no column, and MagicSearchHandler rejects a filter
  *   on an encrypted property).
+ * - A scalar filter is bound with `createNamedParameter($value)`, a string
+ *   parameter, so a PHP `false` reaches PostgreSQL as `''`, which a boolean
+ *   column refuses (SQLSTATE 22P02, live pass D5: /api/evaluations/mine 500ed
+ *   on every PostgreSQL install while sqlite answered). This store refuses a
+ *   boolean filter the way PostgreSQL does.
  *
  * Saves are applied, so a test can read back what a call site wrote.
  *
@@ -65,6 +70,13 @@ final class RegisterFaithfulStore {
 	 * @var array<string, true>
 	 */
 	private static array $pending = [];
+
+	/**
+	 * Declared property types per schema slug, from the shipped register.
+	 *
+	 * @var array<string, array<string, string>>
+	 */
+	private static array $types = [];
 
 	/**
 	 * Rows keyed by schema slug.
@@ -122,6 +134,7 @@ final class RegisterFaithfulStore {
 		}
 
 		$declared = (self::declaredProperties()[$schema] ?? []);
+		self::bindLikePostgres(schema: $schema, filters: $filters);
 		// `config.ids` (top level, not a filter) narrows the read to those
 		// object ids, the way ObjectService::findAll() hands it to the mapper.
 		$ids = null;
@@ -214,6 +227,38 @@ final class RegisterFaithfulStore {
 	}//end matches()
 
 	/**
+	 * Refuse a filter value PostgreSQL would refuse on a boolean column.
+	 *
+	 * OpenRegister binds a scalar filter as a string parameter; PDO turns a PHP
+	 * `false` into `''` and `true` into `'1'`. PostgreSQL's boolean input
+	 * accepts `t`, `true`, `yes`, `on`, `1` and their false counterparts (or a
+	 * unique prefix), case-insensitive, and refuses anything else.
+	 *
+	 * @param string $schema The schema slug.
+	 * @param array<string, mixed> $filters The filters.
+	 *
+	 * @return void
+	 *
+	 * @throws RuntimeException The error PostgreSQL raises.
+	 */
+	private static function bindLikePostgres(string $schema, array $filters): void {
+		$types = (self::$types[$schema] ?? []);
+		foreach ($filters as $key => $value) {
+			if (($types[$key] ?? null) !== 'boolean' || is_scalar($value) === false) {
+				continue;
+			}
+
+			$bound = strtolower(trim((string)$value));
+			$accepted = ['t', 'tr', 'tru', 'true', 'y', 'ye', 'yes', 'on', '1', 'f', 'fa', 'fal', 'fals', 'false', 'n', 'no', 'of', 'off', '0'];
+			if (in_array($bound, $accepted, true) === false) {
+				throw new RuntimeException(
+					'SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  invalid input syntax for type boolean: "' . (string)$value . '"'
+				);
+			}
+		}
+	}//end bindLikePostgres()
+
+	/**
 	 * Declare a schema the register does not ship yet, so a test can exercise
 	 * code written ahead of its register change. Remove the call once the
 	 * schema is in `learniq_register.json`; a slug that already ships is
@@ -252,6 +297,11 @@ final class RegisterFaithfulStore {
 		foreach (($register['components']['schemas'] ?? []) as $name => $schema) {
 			$slug = (string)($schema['slug'] ?? $name);
 			self::$declared[$slug] = array_keys(($schema['properties'] ?? []));
+			foreach (($schema['properties'] ?? []) as $property => $definition) {
+				if (is_array($definition) === true && is_string($definition['type'] ?? null) === true) {
+					self::$types[$slug][$property] = $definition['type'];
+				}
+			}
 		}
 
 		return self::$declared;
