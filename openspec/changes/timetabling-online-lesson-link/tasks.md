@@ -3,6 +3,8 @@
 ## 1. Register and write path
 
 - [x] 1.1 Add `onlineMeetingUrl` to `Session` with https validation (register 0.34.28). Verify: `SessionOnlineMeetingUrlRegisterTest` (the real fragment through Opis: https stored; javascript:, http, data:, relative refused), `TimetableControllerTest::testAnOnlineLessonCarriesItsHttpsLinkOnly`, `npm run check:specs`.
+- [x] 1.9 Live pass D8 (DECISIONS row 53): a planninq lesson carries `onlineMeetingUrl` (contract v2), and `PlanninqTimetableSource` passes it on. Verify: `PlanninqCourseQueryTest::testTheLessonLinkIsCarried`, and from the caller `PlanninqTimetableCallerTest::testAPlanninqLessonLinkReachesTheTimetable` (https reaches My timetable, `javascript:` does not).
+- [ ] 1.10 Live check with planninq on contract v2 (needs the planninq change): Join on a planninq lesson opens the meeting.
 
 ## 2. UI
 
