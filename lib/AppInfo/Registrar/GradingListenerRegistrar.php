@@ -41,11 +41,14 @@ use OCA\Learniq\Listener\GradeRollupHandler;
 use OCA\Learniq\Listener\ItemAnalysisRecomputeHandler;
 use OCA\Learniq\Listener\LearningPlanEvaluationHandler;
 use OCA\Learniq\Listener\PortfolioGradeEmitHandler;
+use OCA\Learniq\Listener\RegulationAssignmentHandler;
 use OCA\Learniq\Listener\WerkprocesGradeEmitHandler;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 /**
  * Wires the grading, credential-issuance and evidence-to-GradeEntry bridges.
+ *
+ * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
  */
 class GradingListenerRegistrar {
 	/**
@@ -64,6 +67,12 @@ class GradingListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: CredentialIssuanceHandler::class
+		);
+
+		// ADR-031 exception: Regulation publish -> mandatory Enrolments for its audience (learniq#951).
+		$context->registerEventListener(
+			event: ObjectTransitionedEvent::class,
+			listener: RegulationAssignmentHandler::class
 		);
 
 		// ADR-031 legitimate exception: GradeEntry.published → FinalGrade recompute bridge,
@@ -99,7 +108,7 @@ class GradingListenerRegistrar {
 		// ADR-031 legitimate exception: AttendanceThreshold calculatedChange crossing → AttendanceFlag creation.
 		// When OR fires a threshold-crossed event for an AttendanceThreshold, the handler
 		// creates an AttendanceFlag (open) with mentor/window/metric details and, when
-		// onCross.dataExchangeTarget is set, queues a DataExchangeJob to that target.
+		// onCross.dataExchangeTarget is set, asks integriq for an exchange job to that target.
 		// It does NOT auto-act against the learner.
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,

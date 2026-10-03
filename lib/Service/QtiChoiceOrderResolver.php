@@ -3,9 +3,9 @@
 /**
  * Learniq QTI Choice Order Resolver
  *
- * Stateless helper: parses a choice-type Item's QTI 3.0 `qtiBody` for its
+ * Stateless helper: parses a choice-type Item's QTI 2.1 `qtiBody` for its
  * `choiceInteraction`'s `simpleChoice` identifiers and, when asked, returns
- * those identifiers permuted — respecting the QTI 3.0 `fixed` attribute on
+ * those identifiers permuted — respecting the QTI `fixed` attribute on
  * any individual `simpleChoice` that must not move (e.g. "None of the
  * above" pinned last). Extracted out of AssessmentDrawResolver purely to
  * keep that class's own complexity within this app's PHPMD budget; it
@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
+ * @spec openspec/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ use DOMNodeList;
 /**
  * Resolves a permuted QTI simpleChoice order, respecting `fixed` choices.
  *
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
+ * @spec openspec/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
  */
 class QtiChoiceOrderResolver {
 	/**
@@ -54,7 +54,7 @@ class QtiChoiceOrderResolver {
 	 * @return array<int,string>|null Permuted identifier list, or null for
 	 *                                non-choice items or an unparseable/empty body.
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
+	 * @spec openspec/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
 	 */
 	public function resolveOrder(array $item): ?array {
 		if (($item['interactionType'] ?? null) !== 'choice') {
@@ -85,10 +85,10 @@ class QtiChoiceOrderResolver {
 	}//end resolveOrder()
 
 	/**
-	 * Parse a QTI 3.0 item body XML string, suppressing libxml warnings for
+	 * Parse a QTI 2.1 item body XML string, suppressing libxml warnings for
 	 * a malformed body (returns null instead).
 	 *
-	 * @param string $qtiBody Raw QTI 3.0 XML body.
+	 * @param string $qtiBody Raw QTI 2.1 XML body.
 	 *
 	 * @return DOMDocument|null
 	 */

@@ -7,7 +7,7 @@
  CnAppRoot resolves this name against the customComponents registry at runtime.
 
  Sections:
-   1. OpenRegister default register picker (IAppConfig key: default_register)
+   1. OpenRegister default register picker (IAppConfig key: register)
    2. AI features read-only table (sourced from AiFeature schema objects via OR)
    3. Credential signing key widget (calls CredentialSigningController — ADR-031)
 -->
@@ -66,6 +66,38 @@
 						"Install and enable the Hermiq app to manage this app's EU AI Act high-risk AI features in the central governance register.",
 					)
 				}}
+			</NcNoteCard>
+			<!-- differentiation-not-styles-copy: a request to profile pupils
+				 would arrive as an AI feature, so the evidence sits here. -->
+			<NcNoteCard type="info" data-testid="learniq-differentiation-note">
+				<p>
+					{{
+						t(
+							'learniq',
+							'Learniq does not profile how a pupil prefers to learn.',
+						)
+					}}
+					{{
+						t(
+							'learniq',
+							'Research finds no benefit in matching lessons to such a profile (NRO Kennisrotonde, Differentiatie in de klas).',
+						)
+					}}
+				</p>
+				<p>
+					{{
+						t(
+							'learniq',
+							'Differentiate by level, goal, time and material instead.',
+						)
+					}}
+					{{
+						t(
+							'learniq',
+							'Record support needs in the group plan or the learning plan.',
+						)
+					}}
+				</p>
 			</NcNoteCard>
 		</NcSettingsSection>
 
@@ -208,14 +240,101 @@
 				</div>
 			</template>
 		</NcSettingsSection>
+
+		<!-- Section 5: privacy-governance-surfaces (P-new-6/P-new-7/15.5/15.3) -->
+		<NcSettingsSection
+			:name="t('learniq', 'Privacy governance')"
+			:description="
+				t(
+					'learniq',
+					'Record the Privacyconvenant agreement and privacybijsluiter, and track correction or deletion requests.',
+				)
+			">
+			<div class="learniq-settings__field">
+				<div class="learniq-settings__catalogue-label">
+					{{ t('learniq', 'Privacyconvenant and privacybijsluiter') }}
+				</div>
+				<NcCheckboxRadioSwitch
+					v-model="complianceForm.privacyconvenantSigned">
+					{{
+						t(
+							'learniq',
+							'The Privacyconvenant verwerkersovereenkomst is signed',
+						)
+					}}
+				</NcCheckboxRadioSwitch>
+				<label for="learniq-verwerkersovereenkomst-url">
+					{{ t('learniq', 'Verwerkersovereenkomst link') }}
+				</label>
+				<input
+					id="learniq-verwerkersovereenkomst-url"
+					v-model="complianceForm.verwerkersovereenkomstUrl"
+					type="text"
+					:placeholder="t('learniq', 'https://…')" />
+				<label for="learniq-privacybijsluiter-url">
+					{{ t('learniq', 'Privacybijsluiter link') }}
+				</label>
+				<input
+					id="learniq-privacybijsluiter-url"
+					v-model="complianceForm.privacybijsluiterUrl"
+					type="text"
+					:placeholder="t('learniq', 'https://…')" />
+				<label for="learniq-privacybijsluiter-version">
+					{{ t('learniq', 'Privacybijsluiter version') }}
+				</label>
+				<input
+					id="learniq-privacybijsluiter-version"
+					v-model="complianceForm.privacybijsluiterVersion"
+					type="text" />
+				<div class="learniq-settings__activity-actions">
+					<NcButton
+						variant="primary"
+						:disabled="complianceSaving"
+						@click="saveCompliance">
+						{{ t('learniq', 'Save') }}
+					</NcButton>
+				</div>
+			</div>
+
+			<div class="learniq-settings__field">
+				<div class="learniq-settings__catalogue-label">
+					{{ t('learniq', 'Recent privacy requests') }}
+				</div>
+				<ul
+					v-if="recentDataSubjectRequests.length > 0"
+					class="learniq-settings__activities">
+					<li
+						v-for="request in recentDataSubjectRequests"
+						:key="request.id">
+						<strong>{{ request.type }}</strong>
+						<span class="learniq-settings__activity-meta">{{
+							request.subjectId
+						}}</span>
+						<span class="learniq-settings__activity-meta">{{
+							request.status || 'received'
+						}}</span>
+					</li>
+				</ul>
+				<div v-else class="learniq-settings__message">
+					{{ t('learniq', 'No privacy requests logged yet.') }}
+				</div>
+				<div class="learniq-settings__activity-actions">
+					<NcButton variant="secondary" @click="openDataSubjectRequests">
+						{{ t('learniq', 'Open the full list') }}
+					</NcButton>
+				</div>
+			</div>
+		</NcSettingsSection>
 	</div>
 </template>
 
 <script>
-import { getRequestToken } from '@nextcloud/auth'
+import { useObjectStore } from '@conduction/nextcloud-vue'
+import { getCurrentUser, getRequestToken } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 import {
 	NcButton,
+	NcCheckboxRadioSwitch,
 	NcLoadingIcon,
 	NcNoteCard,
 	NcSelect,
@@ -224,12 +343,30 @@ import {
 import AccountSearchOutline from 'vue-material-design-icons/AccountSearchOutline.vue'
 import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
+import {
+	DEFAULT_REGISTER_KEY,
+	registerValue,
+	selectedRegister,
+} from '../utils/defaultRegister.js'
+
+// The slugs privacy-governance-surfaces declares in
+// lib/Settings/learniq_register.json, verbatim (the resolver lowercases both
+// sides, so casing is irrelevant, but a structural difference is not).
+const REGISTER = 'learniq'
+const COMPLIANCE_SCHEMA = 'compliance'
+const COMPLIANCE_TYPE = `${REGISTER}-${COMPLIANCE_SCHEMA}`
+// privacy-reuse-openregister-register (D20): privacy requests live in
+// OpenRegister's shared data subject request register, not in learniq's own.
+const DATA_SUBJECT_REQUEST_REGISTER = 'data-subject-requests'
+const DATA_SUBJECT_REQUEST_SCHEMA = 'dataSubjectRequest'
+const DATA_SUBJECT_REQUEST_TYPE = `${DATA_SUBJECT_REQUEST_REGISTER}-${DATA_SUBJECT_REQUEST_SCHEMA}`
 
 export default {
 	name: 'LearniqSettings',
 
 	components: {
 		NcButton,
+		NcCheckboxRadioSwitch,
 		NcLoadingIcon,
 		NcNoteCard,
 		NcSelect,
@@ -253,12 +390,23 @@ export default {
 	data() {
 		return {
 			defaultRegister: null,
+			savedRegister: '',
 			registerOptions: [],
 			registersLoading: false,
 			signingKeyLoading: false,
 			signingKeyMessage: '',
 			isAdmin: false,
 			openRegisterInstalled: false,
+			complianceId: null,
+			complianceForm: {
+				privacyconvenantSigned: false,
+				verwerkersovereenkomstUrl: '',
+				privacybijsluiterUrl: '',
+				privacybijsluiterVersion: '',
+			},
+
+			complianceSaving: false,
+			recentDataSubjectRequests: [],
 		}
 	},
 
@@ -268,7 +416,7 @@ export default {
 		 * enabled on this instance. Drives the delegated "AI Features" section:
 		 * link to Hermiq's register when present, otherwise an install notice.
 		 *
-		 * @spec openspec/changes/ai-feature-delegate-to-hermiq/specs/ai-surface/spec.md#requirement-req-sai-004-the-system-shall-surface-ai-feature-governance-from-settings-via-hermiq
+		 * @spec openspec/specs/ai-surface/spec.md#requirement-req-sai-004-the-system-shall-surface-ai-feature-governance-from-settings-via-hermiq
 		 * @return {boolean} True when Hermiq is enabled.
 		 */
 		hermiqInstalled() {
@@ -413,7 +561,18 @@ export default {
 	 * @spec openspec/changes/archive/retrofit-2026-05-25-app-shell-settings/tasks.md#tasks
 	 */
 	async created() {
-		await Promise.all([this.fetchRegisters(), this.fetchSettingsStatus()])
+		await Promise.all([
+			this.fetchRegisters(),
+			this.fetchSettingsStatus(),
+			this.loadCompliance(),
+			this.loadRecentDataSubjectRequests(),
+		])
+		// Both the register list and the saved value are in now; show the
+		// saved register instead of an empty picker.
+		this.defaultRegister = selectedRegister(
+			this.registerOptions,
+			this.savedRegister,
+		)
 	},
 
 	methods: {
@@ -467,6 +626,7 @@ export default {
 					// OpenRegister is installed; both gate the AVG Art. 30 section.
 					this.isAdmin = !!data.isAdmin
 					this.openRegisterInstalled = !!data.openregisters
+					this.savedRegister = data[DEFAULT_REGISTER_KEY] || ''
 				}
 			} catch (error) {
 				// eslint-disable-next-line no-console
@@ -481,7 +641,8 @@ export default {
 		 * @spec openspec/changes/archive/retrofit-2026-05-25-app-shell-settings/tasks.md#tasks
 		 */
 		async saveDefaultRegister() {
-			if (!this.defaultRegister) return
+			const value = registerValue(this.defaultRegister)
+			if (value === '') return
 			try {
 				await fetch(generateUrl('/apps/learniq/api/settings'), {
 					method: 'POST',
@@ -489,11 +650,11 @@ export default {
 						'Content-Type': 'application/json',
 						requesttoken: getRequestToken(),
 					},
-					body: JSON.stringify({
-						default_register:
-							this.defaultRegister.slug || this.defaultRegister,
-					}),
+					// `register` is the key SettingsService persists; the former
+					// `default_register` was not in CONFIG_KEYS and was dropped.
+					body: JSON.stringify({ [DEFAULT_REGISTER_KEY]: value }),
 				})
+				this.savedRegister = value
 			} catch (error) {
 				// eslint-disable-next-line no-console
 				console.error('[LearniqSettings] saveDefaultRegister failed:', error)
@@ -547,7 +708,7 @@ export default {
 		 * Nextcloud app, so no in-app router). Only shown when Hermiq is enabled.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/ai-feature-delegate-to-hermiq/specs/ai-surface/spec.md
+		 * @spec openspec/specs/ai-surface/spec.md
 		 */
 		openHermiqAiFeatures() {
 			window.location.href = generateUrl('/apps/hermiq') + '/ai-features'
@@ -599,6 +760,147 @@ export default {
 				),
 				'_blank',
 			)
+		},
+
+		/**
+		 * Load the Compliance singleton (the first object, or the schema
+		 * default) into the edit-form state — mirrors
+		 * LearniqAiProcessingDisclosure's loadPolicy() shape.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-the-school-records-its-privacyconvenant-agreement-and-privacybijsluiter
+		 */
+		async loadCompliance() {
+			const store = useObjectStore()
+			if (typeof store.registerObjectType === 'function') {
+				store.registerObjectType(
+					COMPLIANCE_TYPE,
+					COMPLIANCE_SCHEMA,
+					REGISTER,
+				)
+			}
+
+			const results =
+				typeof store.fetchCollection === 'function'
+					? await store
+							.fetchCollection(COMPLIANCE_TYPE, { _limit: 1 })
+							.catch(() => [])
+					: []
+
+			const existing =
+				Array.isArray(results) && results.length > 0 ? results[0] : null
+
+			if (existing) {
+				this.complianceId =
+					existing.id
+					?? (existing['@self'] && existing['@self'].id)
+					?? null
+				this.complianceForm = {
+					privacyconvenantSigned: !!existing.privacyconvenantSigned,
+					verwerkersovereenkomstUrl:
+						existing.verwerkersovereenkomstUrl || '',
+
+					privacybijsluiterUrl: existing.privacybijsluiterUrl || '',
+					privacybijsluiterVersion:
+						existing.privacybijsluiterVersion || '',
+				}
+			}
+		},
+
+		/**
+		 * Persist the Compliance singleton via OpenRegister's generic
+		 * object-create/update endpoint — no bespoke write controller, per
+		 * ADR-022, mirrors LearniqAiProcessingDisclosure's savePolicy().
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-records-the-signed-privacyconvenant-agreement
+		 */
+		async saveCompliance() {
+			this.complianceSaving = true
+			try {
+				const store = useObjectStore()
+				const currentUser = getCurrentUser()
+
+				const payload = {
+					privacyconvenantSigned:
+						!!this.complianceForm.privacyconvenantSigned,
+
+					privacyconvenantSignedAt: this.complianceForm
+						.privacyconvenantSigned
+						? new Date().toISOString()
+						: null,
+
+					verwerkersovereenkomstUrl:
+						this.complianceForm.verwerkersovereenkomstUrl || null,
+
+					privacybijsluiterUrl:
+						this.complianceForm.privacybijsluiterUrl || null,
+
+					privacybijsluiterVersion:
+						this.complianceForm.privacybijsluiterVersion || null,
+
+					lastReviewedAt: new Date().toISOString(),
+					lastReviewedBy: currentUser ? currentUser.uid : null,
+				}
+				if (this.complianceId) {
+					payload.id = this.complianceId
+				}
+
+				const saved =
+					typeof store.saveObject === 'function'
+						? await store.saveObject(COMPLIANCE_TYPE, payload)
+						: null
+
+				if (saved) {
+					this.complianceId = saved.id ?? this.complianceId
+				}
+			} catch (err) {
+				// eslint-disable-next-line no-console
+				console.error('[LearniqSettings] saveCompliance error', err)
+			} finally {
+				this.complianceSaving = false
+			}
+		},
+
+		/**
+		 * Load the most recent OpenRegister dataSubjectRequest cases for the
+		 * compact "Recent requests" list. Read-only: the full list lives on the
+		 * DataSubjectRequests index page.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+		 */
+		async loadRecentDataSubjectRequests() {
+			const store = useObjectStore()
+			if (typeof store.registerObjectType === 'function') {
+				store.registerObjectType(
+					DATA_SUBJECT_REQUEST_TYPE,
+					DATA_SUBJECT_REQUEST_SCHEMA,
+					DATA_SUBJECT_REQUEST_REGISTER,
+				)
+			}
+
+			const results =
+				typeof store.fetchCollection === 'function'
+					? await store
+							.fetchCollection(DATA_SUBJECT_REQUEST_TYPE, {
+								_limit: 5,
+							})
+							.catch(() => [])
+					: []
+
+			this.recentDataSubjectRequests = Array.isArray(results) ? results : []
+		},
+
+		/**
+		 * Navigate to the full DataSubjectRequests index page.
+		 *
+		 * @return {void}
+		 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+		 */
+		openDataSubjectRequests() {
+			window.location.href =
+				generateUrl('/apps/learniq') + '/compliance/data-subject-requests'
 		},
 	},
 }

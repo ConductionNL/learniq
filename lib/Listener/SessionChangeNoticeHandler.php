@@ -36,7 +36,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-cancellation-or-substitution-notifies-affected-learners-and-parents
+ * @spec openspec/specs/timetabling/spec.md#requirement-cancellation-or-substitution-notifies-affected-learners-and-parents
  */
 
 declare(strict_types=1);
@@ -46,6 +46,7 @@ namespace OCA\Learniq\Listener;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -58,7 +59,7 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-cancellation-or-substitution-notifies-affected-learners-and-parents
+ * @spec openspec/specs/timetabling/spec.md#requirement-cancellation-or-substitution-notifies-affected-learners-and-parents
  */
 class SessionChangeNoticeHandler implements IEventListener {
 
@@ -79,12 +80,14 @@ class SessionChangeNoticeHandler implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -95,14 +98,16 @@ class SessionChangeNoticeHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-cancelling-a-session-notifies-every-affected-learner-and-parent
+	 * @spec openspec/specs/timetabling/spec.md#scenario-cancelling-a-session-notifies-every-affected-learner-and-parent
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER || $event->getSchema() !== self::SESSION_SCHEMA) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
+			|| $this->schemas->eventSchema(event: $event) !== self::SESSION_SCHEMA
+		) {
 			return;
 		}
 
@@ -110,9 +115,38 @@ class SessionChangeNoticeHandler implements IEventListener {
 			return;
 		}
 
-		$this->materialiseAffected(session: $event->getObject()->jsonSerialize());
+		$session = $event->getObject()->jsonSerialize();
+
+		// A lesson changed in a batch sends no message of its own: its
+		// affected lists stay empty and the batch sends one message for all
+		// its lessons (timetabling-bulk-change-weeks).
+		if (is_string($session['changeBatchId'] ?? null) === true && $session['changeBatchId'] !== '') {
+			return;
+		}
+
+		$this->materialiseAffected(session: $session);
 
 	}//end handle()
+
+	/**
+	 * The learners and parents a change to this lesson affects, without
+	 * writing anything.
+	 *
+	 * @param array<string,mixed> $session The Session data.
+	 *
+	 * @return array{learnerIds: array<int,string>, parentIds: array<int,string>}
+	 *
+	 * @spec openspec/specs/timetabling/spec.md#requirement-affected-people-get-one-message-per-batch
+	 */
+	public function affectedPeople(array $session): array {
+		$tenantId = (string)($session['tenant_id'] ?? '');
+		$learnerIds = $this->resolveCohortLearnerIds(cohortId: (string)($session['cohortId'] ?? ''), tenantId: $tenantId);
+
+		return [
+			'learnerIds' => $learnerIds,
+			'parentIds' => $this->resolveParentIds(learnerIds: $learnerIds, tenantId: $tenantId),
+		];
+	}//end affectedPeople()
 
 	/**
 	 * Resolve and persist affectedLearnerIds/affectedParentIds/changedAt onto the Session.
@@ -121,7 +155,7 @@ class SessionChangeNoticeHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-cancelling-a-session-notifies-every-affected-learner-and-parent
+	 * @spec openspec/specs/timetabling/spec.md#scenario-cancelling-a-session-notifies-every-affected-learner-and-parent
 	 */
 	private function materialiseAffected(array $session): void {
 		$sessionId = (string)($session['id'] ?? ($session['uuid'] ?? ''));
@@ -166,16 +200,21 @@ class SessionChangeNoticeHandler implements IEventListener {
 			return [];
 		}
 
-		$filters = ['id' => $cohortId];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::COHORT_SCHEMA,
-				'filters' => $filters,
+				'ids' => [$cohortId],
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::COHORT_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -216,9 +255,13 @@ class SessionChangeNoticeHandler implements IEventListener {
 
 			$results = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::LEARNER_PROFILE_SCHEMA,
-					'filters' => $filters,
+					'filters' => array_merge(
+						$filters,
+						[
+							'register' => self::LEARNIQ_REGISTER,
+							'schema' => self::LEARNER_PROFILE_SCHEMA,
+						]
+					),
 					'limit' => 1,
 				]
 			);

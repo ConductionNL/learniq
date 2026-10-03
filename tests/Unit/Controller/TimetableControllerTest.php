@@ -26,9 +26,25 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+if (class_exists('\\OCA\\Planninq\\Event\\TimetableSessionsQueryEvent') === false) {
+	require_once __DIR__ . '/../../Stubs/Planninq/Event/TimetableSessionsQueryEvent.php';
+}
+
+use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Controller\TimetableController;
+use OCA\Learniq\Service\LessonNoteReader;
+use OCA\Learniq\Service\PersonalTimetableService;
 use OCA\Learniq\Service\TimetableProjector;
+use OCA\Learniq\Timetabling\Source\LocalSessionTimetableSource;
+use OCA\Learniq\Timetabling\Source\PlanninqTimetableSource;
+use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
+use OCA\Planninq\Event\TimetableSessionsQueryEvent;
+use OCP\App\IAppManager;
+use OCP\EventDispatcher\Event;
+use OCP\EventDispatcher\IEventDispatcher;
+use OCP\IAppConfig;
+use OCP\IGroupManager;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
@@ -93,19 +109,99 @@ class TimetableControllerTest extends TestCase {
 	}//end setUp()
 
 	/**
+	 * Criteria of every planninq query, in order.
+	 *
+	 * @var array<int,array<string,mixed>>
+	 */
+	private array $planninqQueries = [];
+
+	/**
 	 * Build the controller under test.
+	 *
+	 * @param array<int,array<string,mixed>>|null $planninqLessons Lessons planninq answers with; null means planninq is not installed.
+	 * @param bool                                $planninqSilent  Whether planninq stays silent.
 	 *
 	 * @return TimetableController The controller.
 	 */
-	private function controller(): TimetableController {
+	private function controller(?array $planninqLessons = null, bool $planninqSilent = false): TimetableController {
+		$dispatcher = $this->createMock(IEventDispatcher::class);
+		$dispatcher->method('dispatchTyped')->willReturnCallback(
+			function (Event $event) use ($planninqLessons, $planninqSilent): void {
+				if (($event instanceof TimetableSessionsQueryEvent) === false || $planninqSilent === true) {
+					return;
+				}
+
+				$criteria = $event->getCriteria();
+				$this->planninqQueries[] = $criteria;
+				$event->setSessions(
+					array_values(
+						array_filter(
+							($planninqLessons ?? []),
+							static fn (array $lesson): bool => (isset($criteria['cohortId']) === true && ($lesson['cohortId'] ?? '') === $criteria['cohortId'])
+								|| (isset($criteria['teacherUserId']) === true && ($lesson['teacherUserId'] ?? '') === $criteria['teacherUserId'])
+						)
+					)
+				);
+			}
+		);
+		$appManager = $this->createMock(IAppManager::class);
+		$appManager->method('isInstalled')->willReturn($planninqLessons !== null);
+		$config = $this->createMock(IAppConfig::class);
+		$config->method('getValueString')->willReturn('auto');
+
+		$projector = new TimetableProjector(
+			logger: $this->logger,
+			noteReader: new LessonNoteReader($this->objectService, $this->groupManager(), $this->logger)
+		);
+		$sources = new TimetableSourceResolver(
+			$config,
+			new LocalSessionTimetableSource($this->objectService),
+			new PlanninqTimetableSource($appManager, $dispatcher)
+		);
+
+		// The real PersonalTimetableService: mine() delegates to it since the
+		// calendar feed shares it, and every test below proves its output unchanged.
 		return new TimetableController(
 			request: $this->createMock(IRequest::class),
 			userSession: $this->userSession,
 			objectService: $this->objectService,
-			projector: new TimetableProjector(logger: $this->logger),
+			projector: $projector,
+			sources: $sources,
+			timetable: new PersonalTimetableService(
+				objectService: $this->objectService,
+				projector: $projector,
+				sources: $sources,
+				logger: $this->logger
+			),
 			logger: $this->logger,
 		);
 	}//end controller()
+
+	/**
+	 * Groups of the signed-in user, for the lesson note reader.
+	 *
+	 * @var array<int,string>
+	 */
+	private array $callerGroups = [];
+
+	/**
+	 * Lesson notes served for the `lesson-note` schema.
+	 *
+	 * @var array<int,array<string,mixed>>
+	 */
+	private array $notes = [];
+
+	/**
+	 * A group manager that answers from $callerGroups.
+	 *
+	 * @return IGroupManager
+	 */
+	private function groupManager(): IGroupManager {
+		$groups = $this->createMock(IGroupManager::class);
+		$groups->method('isAdmin')->willReturn(false);
+		$groups->method('isInGroup')->willReturnCallback(fn (string $uid, string $group): bool => in_array($group, $this->callerGroups, true));
+		return $groups;
+	}//end groupManager()
 
 	/**
 	 * Make IUserSession return a user with the given uid.
@@ -137,8 +233,8 @@ class TimetableControllerTest extends TestCase {
 	private function wireFindAll(array $cohorts, array $enrolments, array $sessions, array $rooms = []): void {
 		$this->objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($cohorts, $enrolments, $sessions, $rooms): array {
-				$schema = $config['schema'] ?? '';
-				$filters = $config['filters'] ?? [];
+				$schema = $config['filters']['schema'] ?? '';
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 
 				if ($schema === 'cohort') {
 					return $cohorts;
@@ -155,17 +251,31 @@ class TimetableControllerTest extends TestCase {
 				}
 
 				if ($schema === 'session') {
-					$cohortId = $filters['cohortId'] ?? null;
+					// Equality on every filter key, as OpenRegister applies them
+					// (`cohortId` per cohort, `substituteTeacherId` for cover).
 					return array_values(
 						array_filter(
 							$sessions,
-							static fn (array $s): bool => $cohortId === null || ($s['cohortId'] ?? null) === $cohortId
+							static function (array $s) use ($filters): bool {
+								foreach ($filters as $key => $value) {
+									if (($s[$key] ?? null) !== $value) {
+										return false;
+									}
+								}
+
+								return true;
+							}
 						)
 					);
 				}
 
+				if ($schema === 'lesson-note') {
+					$cohort = $filters['cohortId'] ?? null;
+					return array_values(array_filter($this->notes, static fn (array $n): bool => ($n['cohortId'] ?? null) === $cohort));
+				}
+
 				if ($schema === 'room') {
-					$id = $filters['id'] ?? null;
+					$id = $config['ids'][0] ?? null;
 					return array_values(array_filter($rooms, static fn (array $r): bool => ($r['id'] ?? null) === $id));
 				}
 
@@ -261,15 +371,18 @@ class TimetableControllerTest extends TestCase {
 		$cohorts = [
 			['id' => 'cohort-1', 'learnerIds' => ['alice'], 'teacherIds' => ['tom']],
 		];
-		// findAll must never be asked for sessions when there are no cohorts.
-		$this->objectService->expects($this->exactly(2))
+		// Sessions are only ever asked for the caller's own cover lessons when
+		// the caller has no cohorts: never per cohort, never unfiltered.
+		$this->objectService->expects($this->exactly(3))
 			->method('findAll')
 			->willReturnCallback(
 				function (array $config) use ($cohorts): array {
-					if (($config['schema'] ?? '') === 'session') {
-						$this->fail('Sessions must not be queried when the caller has no cohorts');
+					if (($config['filters']['schema'] ?? '') === 'session') {
+						$filters = array_diff_key($config['filters'], ['register' => true, 'schema' => true]);
+						$this->assertSame(['substituteTeacherId' => 'nobody'], $filters, 'Sessions must not be queried per cohort when the caller has no cohorts');
+						return [];
 					}
-					if (($config['schema'] ?? '') === 'cohort') {
+					if (($config['filters']['schema'] ?? '') === 'cohort') {
 						return $cohorts;
 					}
 					return [];
@@ -284,12 +397,65 @@ class TimetableControllerTest extends TestCase {
 	}//end testNoCohortsReturnsEmptyOk()
 
 	/**
+	 * A teacher assigned as substitute on another cohort's lesson sees that
+	 * lesson, marked as cover, and no other lesson of that cohort (learniq#1134).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
+	 */
+	public function testASubstituteSeesTheLessonTheyCoverAndNothingElseOfThatCohort(): void {
+		$this->signInAs('e.devries');
+
+		$cohorts = [
+			['id' => 'cohort-own', 'learnerIds' => ['alice'], 'teacherIds' => ['e.devries']],
+			['id' => 'cohort-4havo', 'learnerIds' => ['bob'], 'teacherIds' => ['s.jansen']],
+		];
+		$sessions = [
+			['id' => 's-own', 'cohortId' => 'cohort-own', 'title' => 'Economie', 'startsAt' => '2026-01-05T09:00:00+00:00', 'endsAt' => '2026-01-05T10:00:00+00:00'],
+			['id' => 's-cover', 'cohortId' => 'cohort-4havo', 'title' => 'Wiskunde B', 'startsAt' => '2026-01-06T11:00:00+00:00', 'endsAt' => '2026-01-06T12:00:00+00:00', 'substituteTeacherId' => 'e.devries'],
+			['id' => 's-not-covered', 'cohortId' => 'cohort-4havo', 'title' => 'Wiskunde B', 'startsAt' => '2026-01-08T11:00:00+00:00', 'endsAt' => '2026-01-08T12:00:00+00:00'],
+		];
+		$this->wireFindAll($cohorts, [], $sessions);
+
+		$out = $this->body($this->controller()->mine(from: $this->from, to: $this->to));
+		$byId = array_column($out['sessions'], null, 'id');
+
+		$this->assertSame(['s-own', 's-cover'], array_column($out['sessions'], 'id'));
+		$this->assertTrue($byId['s-cover']['cover'], 'The covered lesson is marked as cover.');
+		$this->assertFalse($byId['s-own']['cover'], 'A lesson of the caller\'s own cohort is not cover.');
+	}//end testASubstituteSeesTheLessonTheyCoverAndNothingElseOfThatCohort()
+
+	/**
+	 * A substitute who teaches no cohort still sees the lessons they cover.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
+	 */
+	public function testASubstituteWithNoCohortSeesTheLessonTheyCover(): void {
+		$this->signInAs('pool.invaller');
+
+		$cohorts = [['id' => 'cohort-4havo', 'learnerIds' => ['bob'], 'teacherIds' => ['s.jansen']]];
+		$sessions = [
+			['id' => 's-cover', 'cohortId' => 'cohort-4havo', 'title' => 'Wiskunde B', 'startsAt' => '2026-01-06T11:00:00+00:00', 'endsAt' => '2026-01-06T12:00:00+00:00', 'substituteTeacherId' => 'pool.invaller'],
+			['id' => 's-not-covered', 'cohortId' => 'cohort-4havo', 'title' => 'Wiskunde B', 'startsAt' => '2026-01-08T11:00:00+00:00', 'endsAt' => '2026-01-08T12:00:00+00:00'],
+		];
+		$this->wireFindAll($cohorts, [], $sessions);
+
+		$out = $this->body($this->controller()->mine(from: $this->from, to: $this->to));
+
+		$this->assertSame(['s-cover'], array_column($out['sessions'], 'id'));
+		$this->assertTrue($out['sessions'][0]['cover']);
+	}//end testASubstituteWithNoCohortSeesTheLessonTheyCover()
+
+	/**
 	 * Each session projects roomId (with resolved Room detail when set),
 	 * lifecycle, substituteTeacherId, changeReasonKind, and changeReason.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
 	 */
 	public function testProjectsRoomAndSubstitutionFields(): void {
 		$this->signInAs('alice');
@@ -342,7 +508,7 @@ class TimetableControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/personal-timetable/spec.md#scenario-today-s-cancellation-surfaces-in-the-dagrooster-changes-list-even-for-a-future-session
+	 * @spec openspec/specs/personal-timetable/spec.md#scenario-today-s-cancellation-surfaces-in-the-dagrooster-changes-list-even-for-a-future-session
 	 */
 	public function testTodaysCancellationSurfacesInChangesRegardlessOfWindow(): void {
 		$this->signInAs('alice');
@@ -463,4 +629,324 @@ class TimetableControllerTest extends TestCase {
 		$toTs = strtotime($out['to']);
 		$this->assertSame(7 * 24 * 3600, ($toTs - $fromTs));
 	}//end testDefaultWindowIsCurrentWeek()
+
+	/**
+	 * Two planninq lessons: one for cohort c-1 taught by jan, one of jan's in another group.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function planninqLessons(): array {
+		return [
+			['id' => 'p-1', 'title' => 'Wiskunde', 'startsAt' => '2026-01-06T09:00:00+00:00', 'endsAt' => '2026-01-06T09:50:00+00:00', 'cohortId' => 'c-1', 'teacherUserId' => 'jan', 'roomReference' => 'A1.12', 'roomLabel' => null, 'status' => 'scheduled'],
+			['id' => 'p-2', 'title' => 'Wiskunde', 'startsAt' => '2026-01-07T09:00:00+00:00', 'endsAt' => '2026-01-07T09:50:00+00:00', 'cohortId' => '', 'teacherUserId' => 'jan', 'roomReference' => 'A1.12', 'roomLabel' => null, 'status' => 'cancelled'],
+		];
+	}//end planninqLessons()
+
+	/**
+	 * With planninq, my timetable reads planninq by cohort and by the caller's
+	 * own account, merges without duplicates, and writes nothing.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+	 */
+	public function testMineReadsPlanninqByCohortAndTeacher(): void {
+		$this->signInAs('jan');
+		$this->wireFindAll(cohorts: [['id' => 'c-1', 'teacherIds' => ['jan'], 'learnerIds' => []]], enrolments: [], sessions: []);
+		$this->objectService->expects($this->never())->method('saveObject');
+
+		$out = $this->controller(planninqLessons: $this->planninqLessons())->mine($this->from, $this->to)->getData();
+
+		$this->assertSame('planninq', $out['source']);
+		$this->assertSame(['p-1', 'p-2'], array_column($out['sessions'], 'id'));
+		$this->assertSame(['planninq', 'planninq'], array_column($out['sessions'], 'source'));
+		$this->assertSame('cancelled', $out['sessions'][1]['lifecycle']);
+		$this->assertSame('A1.12', $out['sessions'][0]['location']);
+		$this->assertSame('c-1', $this->planninqQueries[0]['cohortId']);
+		$this->assertSame('jan', $this->planninqQueries[1]['teacherUserId']);
+	}//end testMineReadsPlanninqByCohortAndTeacher()
+
+	/**
+	 * A silent planninq is a 503, not an empty timetable.
+	 *
+	 * @return void
+	 */
+	public function testSilentPlanninqIsUnavailableNotEmpty(): void {
+		$this->signInAs('jan');
+		$this->wireFindAll(cohorts: [['id' => 'c-1', 'teacherIds' => ['jan'], 'learnerIds' => []]], enrolments: [], sessions: []);
+
+		$response = $this->controller(planninqLessons: [], planninqSilent: true)->mine($this->from, $this->to);
+
+		$this->assertSame(Http::STATUS_SERVICE_UNAVAILABLE, $response->getStatus());
+	}//end testSilentPlanninqIsUnavailableNotEmpty()
+
+	/**
+	 * The cohort timetable reads the cohort with RBAC, then the source.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+	 */
+	public function testCohortTimetableReadsThroughTheSource(): void {
+		$this->signInAs('jan');
+		$this->objectService->method('find')->willReturn($this->createMock(ObjectEntity::class));
+
+		$out = $this->controller(planninqLessons: $this->planninqLessons())->cohort('c-1', $this->from, $this->to)->getData();
+
+		$this->assertSame('planninq', $out['source']);
+		$this->assertSame(['p-1'], array_column($out['sessions'], 'id'));
+		$this->assertSame($this->from, $out['from']);
+	}//end testCohortTimetableReadsThroughTheSource()
+
+	/**
+	 * The cohort timetable without planninq reads the cohort's Sessions, and
+	 * defaults to an eight-week window.
+	 *
+	 * @return void
+	 */
+	public function testCohortTimetableWithoutPlanninqReadsSessions(): void {
+		$this->signInAs('jan');
+		$this->objectService->method('find')->willReturn($this->createMock(ObjectEntity::class));
+		$monday = (new \DateTimeImmutable('monday this week', new \DateTimeZone('UTC')))->setTime(9, 0);
+		$this->wireFindAll(
+			cohorts: [],
+			enrolments: [],
+			sessions: [['id' => 's-1', 'cohortId' => 'c-1', 'title' => 'Biologie', 'startsAt' => $monday->format(DATE_ATOM), 'endsAt' => $monday->modify('+50 minutes')->format(DATE_ATOM)]]
+		);
+
+		$out = $this->controller()->cohort('c-1')->getData();
+
+		$this->assertSame('learniq', $out['source']);
+		$this->assertSame(['s-1'], array_column($out['sessions'], 'id'));
+		$this->assertSame(56 * 24 * 3600, (strtotime($out['to']) - strtotime($out['from'])));
+	}//end testCohortTimetableWithoutPlanninqReadsSessions()
+
+	/**
+	 * A cohort the caller cannot read is a 403, and no lesson is read.
+	 *
+	 * @return void
+	 */
+	public function testUnreadableCohortIsForbiddenAndReadsNothing(): void {
+		$this->signInAs('learner');
+		$this->objectService->method('find')->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('nope'));
+
+		$response = $this->controller(planninqLessons: $this->planninqLessons())->cohort('c-9', $this->from, $this->to);
+
+		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		$this->assertSame([], $this->planninqQueries);
+	}//end testUnreadableCohortIsForbiddenAndReadsNothing()
+	/**
+	 * The lesson note fixtures: one for learners and one for the covering
+	 * teacher on s-1 (cohort-1), and one on another cohort's lesson.
+	 *
+	 * @return void
+	 */
+	private function seedNotes(): void {
+		$this->notes = [
+			['id' => 'n-1', 'sessionId' => 's-1', 'cohortId' => 'cohort-1', 'topic' => 'Hoofdstuk 4', 'text' => 'Neem je rekenmachine mee', 'audience' => 'learners', 'authorId' => 'tom'],
+			['id' => 'n-2', 'sessionId' => 's-1', 'cohortId' => 'cohort-1', 'topic' => null, 'text' => 'Opgave 12 tot 18', 'audience' => 'cover', 'authorId' => 'tom'],
+			['id' => 'n-3', 'sessionId' => 's-9', 'cohortId' => 'cohort-9', 'topic' => null, 'text' => 'Other', 'audience' => 'learners', 'authorId' => 'other'],
+		];
+	}//end seedNotes()
+
+	/**
+	 * The cohort and lessons the note tests share.
+	 *
+	 * @param array<string,mixed> $extra Extra fields on s-1.
+	 *
+	 * @return void
+	 */
+	private function wireNoteLessons(array $extra = []): void {
+		$cohorts = [
+			['id' => 'cohort-1', 'learnerIds' => ['alice'], 'teacherIds' => ['tom']],
+			['id' => 'cohort-9', 'learnerIds' => ['zoe'], 'teacherIds' => ['other']],
+		];
+		$sessions = [
+			array_merge(['id' => 's-1', 'cohortId' => 'cohort-1', 'title' => 'Wiskunde B', 'startsAt' => '2026-01-07T13:00:00+00:00', 'endsAt' => '2026-01-07T14:00:00+00:00'], $extra),
+			['id' => 's-9', 'cohortId' => 'cohort-9', 'title' => 'Other', 'startsAt' => '2026-01-07T15:00:00+00:00', 'endsAt' => '2026-01-07T16:00:00+00:00'],
+		];
+		$this->seedNotes();
+		$this->wireFindAll($cohorts, [], $sessions);
+	}//end wireNoteLessons()
+
+	/**
+	 * A learner sees the note for learners on their lesson, and never the cover note.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+	 */
+	public function testLearnerSeesLearnerNoteButNeverTheCoverNote(): void {
+		$this->signInAs('alice');
+		$this->wireNoteLessons();
+
+		$out = $this->body($this->controller()->mine(from: $this->from, to: $this->to));
+
+		$this->assertSame(['s-1'], array_column($out['sessions'], 'id'));
+		$notes = $out['sessions'][0]['notes'];
+		$this->assertSame(['n-1'], array_column($notes, 'id'));
+		$this->assertSame('Hoofdstuk 4', $notes[0]['topic']);
+		$this->assertNotContains('cover', array_column($notes, 'audience'));
+		// A learner may not add a note.
+		$this->assertFalse($out['sessions'][0]['canAddNote']);
+	}//end testLearnerSeesLearnerNoteButNeverTheCoverNote()
+
+	/**
+	 * The lesson's teacher sees both notes.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
+	 */
+	public function testTeacherSeesEveryNoteOfTheirLesson(): void {
+		$this->signInAs('tom');
+		$this->wireNoteLessons();
+
+		$out = $this->body($this->controller()->mine(from: $this->from, to: $this->to));
+
+		$this->assertSame(['n-1', 'n-2'], array_column($out['sessions'][0]['notes'], 'id'));
+		$this->assertTrue($out['sessions'][0]['canAddNote']);
+	}//end testTeacherSeesEveryNoteOfTheirLesson()
+
+	/**
+	 * A substitute gets the lesson they cover, marked cover, with the cover note.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
+	 */
+	public function testSubstituteSeesTheCoverNote(): void {
+		$this->signInAs('eva');
+		$this->wireNoteLessons(extra: ['substituteTeacherId' => 'eva']);
+
+		$out = $this->body($this->controller()->mine(from: $this->from, to: $this->to));
+
+		$this->assertSame(['s-1'], array_column($out['sessions'], 'id'));
+		$this->assertTrue($out['sessions'][0]['cover']);
+		$this->assertSame(['n-1', 'n-2'], array_column($out['sessions'][0]['notes'], 'id'));
+	}//end testSubstituteSeesTheCoverNote()
+
+	/**
+	 * A chosen elective appears: an enrolment in Drama with no cohort (as an
+	 * approved subject choice creates it) brings Drama's lessons, which belong
+	 * to another cohort, and nothing else of that cohort.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-elective-sessions-in-the-personal-timetable
+	 */
+	public function testAChosenElectiveAppears(): void {
+		$this->signInAs('alice');
+		$cohorts = [
+			['id' => 'cohort-1', 'learnerIds' => ['alice'], 'teacherIds' => ['tom']],
+			['id' => 'cohort-drama', 'learnerIds' => ['bob'], 'teacherIds' => ['dina']],
+		];
+		$enrolments = [
+			['learnerId' => 'alice', 'courseId' => 'course-drama', 'cohortId' => null, 'source' => 'subject-choice', 'lifecycle' => 'active'],
+		];
+		$sessions = [
+			['id' => 's-core', 'cohortId' => 'cohort-1', 'courseId' => 'course-maths', 'title' => 'Maths', 'startsAt' => '2026-01-06T09:00:00+00:00', 'endsAt' => '2026-01-06T10:00:00+00:00'],
+			['id' => 's-drama', 'cohortId' => 'cohort-drama', 'courseId' => 'course-drama', 'title' => 'Drama', 'startsAt' => '2026-01-06T10:00:00+00:00', 'endsAt' => '2026-01-06T11:00:00+00:00'],
+			['id' => 's-other', 'cohortId' => 'cohort-drama', 'courseId' => 'course-music', 'title' => 'Music', 'startsAt' => '2026-01-07T10:00:00+00:00', 'endsAt' => '2026-01-07T11:00:00+00:00'],
+		];
+		$this->wireFindAll($cohorts, $enrolments, $sessions);
+
+		$ids = array_column($this->body($this->controller()->mine(from: $this->from, to: $this->to))['sessions'], 'id');
+
+		$this->assertSame(['s-core', 's-drama'], $ids);
+	}//end testAChosenElectiveAppears()
+
+	/**
+	 * A withdrawn, completed or failed enrolment brings no lesson, by course or by cohort.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-elective-sessions-in-the-personal-timetable
+	 */
+	public function testAWithdrawnEnrolmentDisappears(): void {
+		$this->signInAs('alice');
+		$enrolments = [
+			['learnerId' => 'alice', 'courseId' => 'course-drama', 'cohortId' => null, 'lifecycle' => 'withdrawn'],
+			['learnerId' => 'alice', 'courseId' => 'course-art', 'cohortId' => 'cohort-art', 'lifecycle' => 'completed'],
+			['learnerId' => 'alice', 'courseId' => 'course-pe', 'cohortId' => null, 'lifecycle' => 'failed'],
+		];
+		$sessions = [
+			['id' => 's-drama', 'cohortId' => 'cohort-drama', 'courseId' => 'course-drama', 'startsAt' => '2026-01-06T10:00:00+00:00', 'endsAt' => '2026-01-06T11:00:00+00:00'],
+			['id' => 's-art', 'cohortId' => 'cohort-art', 'courseId' => 'course-art', 'startsAt' => '2026-01-07T10:00:00+00:00', 'endsAt' => '2026-01-07T11:00:00+00:00'],
+			['id' => 's-pe', 'cohortId' => 'cohort-pe', 'courseId' => 'course-pe', 'startsAt' => '2026-01-08T10:00:00+00:00', 'endsAt' => '2026-01-08T11:00:00+00:00'],
+		];
+		$this->wireFindAll([], $enrolments, $sessions);
+
+		$this->assertSame([], $this->body($this->controller()->mine(from: $this->from, to: $this->to))['sessions']);
+	}//end testAWithdrawnEnrolmentDisappears()
+
+	/**
+	 * A course the learner attends through their cohort and also through an
+	 * enrolment lists each lesson once.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-elective-sessions-in-the-personal-timetable
+	 */
+	public function testNoDuplicatesWhenCohortAndEnrolmentBothReachALesson(): void {
+		$this->signInAs('alice');
+		$cohorts = [['id' => 'cohort-1', 'learnerIds' => ['alice'], 'teacherIds' => []]];
+		$enrolments = [['learnerId' => 'alice', 'courseId' => 'course-drama', 'cohortId' => null]];
+		$sessions = [
+			['id' => 's-drama', 'cohortId' => 'cohort-1', 'courseId' => 'course-drama', 'startsAt' => '2026-01-06T10:00:00+00:00', 'endsAt' => '2026-01-06T11:00:00+00:00'],
+		];
+		$this->wireFindAll($cohorts, $enrolments, $sessions);
+
+		$ids = array_column($this->body($this->controller()->mine(from: $this->from, to: $this->to))['sessions'], 'id');
+
+		$this->assertSame(['s-drama'], $ids);
+	}//end testNoDuplicatesWhenCohortAndEnrolmentBothReachALesson()
+
+	/**
+	 * With planninq as the source an elective enrolment adds no query planninq
+	 * cannot answer: planninq lessons carry no course, so electives reach a
+	 * learner through the elective group's cohort.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-elective-sessions-in-the-personal-timetable
+	 */
+	public function testPlanninqIsNeverAskedByCourse(): void {
+		$this->signInAs('alice');
+		$this->wireFindAll(
+			[['id' => 'cohort-1', 'learnerIds' => ['alice'], 'teacherIds' => []]],
+			[['learnerId' => 'alice', 'courseId' => 'course-drama', 'cohortId' => null]],
+			[]
+		);
+
+		$response = $this->controller(planninqLessons: [])->mine(from: $this->from, to: $this->to);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		foreach ($this->planninqQueries as $criteria) {
+			$this->assertArrayNotHasKey('courseId', $criteria);
+		}
+	}//end testPlanninqIsNeverAskedByCourse()
+
+	/**
+	 * An online lesson carries its https meeting link; a stored value that is
+	 * not https (older data, another source) is never handed to the page.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-online-lesson-link/specs/timetable-online-lesson-link/spec.md#requirement-online-meeting-link-on-a-lesson
+	 */
+	public function testAnOnlineLessonCarriesItsHttpsLinkOnly(): void {
+		$this->signInAs('alice');
+		$cohorts = [['id' => 'cohort-1', 'learnerIds' => ['alice'], 'teacherIds' => []]];
+		$sessions = [
+			['id' => 's-online', 'cohortId' => 'cohort-1', 'startsAt' => '2026-01-06T09:00:00+00:00', 'endsAt' => '2026-01-06T10:00:00+00:00', 'onlineMeetingUrl' => 'https://meet.example.org/les'],
+			['id' => 's-bad', 'cohortId' => 'cohort-1', 'startsAt' => '2026-01-07T09:00:00+00:00', 'endsAt' => '2026-01-07T10:00:00+00:00', 'onlineMeetingUrl' => 'javascript:alert(1)'],
+			['id' => 's-none', 'cohortId' => 'cohort-1', 'startsAt' => '2026-01-08T09:00:00+00:00', 'endsAt' => '2026-01-08T10:00:00+00:00'],
+		];
+		$this->wireFindAll($cohorts, [], $sessions);
+
+		$out = array_column($this->body($this->controller()->mine(from: $this->from, to: $this->to))['sessions'], 'onlineMeetingUrl', 'id');
+
+		$this->assertSame(['s-online' => 'https://meet.example.org/les', 's-bad' => null, 's-none' => null], $out);
+	}//end testAnOnlineLessonCarriesItsHttpsLinkOnly()
 }//end class

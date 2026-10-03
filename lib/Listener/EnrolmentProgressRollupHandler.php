@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
+ * @spec openspec/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
  */
 
 declare(strict_types=1);
@@ -36,6 +36,7 @@ namespace OCA\Learniq\Listener;
 use OCA\Learniq\BackgroundJob\EnrolmentProgressRollupJob;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -65,16 +66,19 @@ class EnrolmentProgressRollupHandler implements IEventListener {
 	}//end __construct()
 
 	/**
-	 * Handle an ObjectCreatedEvent.
+	 * Handle an ObjectCreatedEvent or ObjectUpdatedEvent on a LessonCompletion.
 	 *
 	 * @param Event $event The dispatched event.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
+	 * @spec openspec/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
+	 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof ObjectCreatedEvent === false) {
+		// Created AND updated: a re-completion or a changed score on an
+		// existing row owes a roll-up too (learniq#945).
+		if ($event instanceof ObjectCreatedEvent === false && $event instanceof ObjectUpdatedEvent === false) {
 			return;
 		}
 
@@ -112,6 +116,7 @@ class EnrolmentProgressRollupHandler implements IEventListener {
 			entry: [
 				'learnerId' => $learnerId,
 				'courseId' => $courseId,
+				'enrolmentId' => (string)($completion['enrolmentId'] ?? ''),
 			],
 			dedupeKey: $learnerId . '|' . $courseId
 		);

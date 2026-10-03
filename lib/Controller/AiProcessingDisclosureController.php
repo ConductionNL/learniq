@@ -38,7 +38,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-compose-an-ai-processing-disclosure-a-school-can-hand-to-its-dpo
+ * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-compose-an-ai-processing-disclosure-a-school-can-hand-to-its-dpo
  */
 
 declare(strict_types=1);
@@ -62,7 +62,7 @@ use Throwable;
 /**
  * Composes the AI-processing disclosure a school hands to its DPO.
  *
- * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-compose-an-ai-processing-disclosure-a-school-can-hand-to-its-dpo
+ * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-compose-an-ai-processing-disclosure-a-school-can-hand-to-its-dpo
  */
 class AiProcessingDisclosureController extends Controller {
 
@@ -130,9 +130,9 @@ class AiProcessingDisclosureController extends Controller {
 	 *
 	 * @return JSONResponse `{sovereigntyPolicy, hermiqInstalled, features: [...]}`.
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-the-disclosure-page-lists-every-hermiq-governed-feature-with-its-locality-verdict
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-an-unverified-locality-never-renders-as-compliant
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-hermiq-absent-degrades-gracefully
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-the-disclosure-page-lists-every-hermiq-governed-feature-with-its-locality-verdict
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-an-unverified-locality-never-renders-as-compliant
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-hermiq-absent-degrades-gracefully
 	 */
 	#[NoAdminRequired]
 	public function index(): JSONResponse {
@@ -184,8 +184,10 @@ class AiProcessingDisclosureController extends Controller {
 		try {
 			$features = $this->objectService->findAll(
 				[
-					'register' => self::HERMIQ_REGISTER,
-					'schema' => self::HERMIQ_AI_FEATURE_SCHEMA,
+					'filters' => [
+						'register' => self::HERMIQ_REGISTER,
+						'schema' => self::HERMIQ_AI_FEATURE_SCHEMA,
+					],
 				]
 			);
 		} catch (Throwable $e) {
@@ -226,8 +228,10 @@ class AiProcessingDisclosureController extends Controller {
 		try {
 			$existing = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::SOVEREIGNTY_POLICY_SCHEMA,
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::SOVEREIGNTY_POLICY_SCHEMA,
+					],
 					'limit' => 1,
 				]
 			);

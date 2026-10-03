@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
+ * @spec openspec/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
  */
 
 declare(strict_types=1);
@@ -124,8 +124,8 @@ class EnrolmentPrerequisiteListenerTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
-				$schema = $config['schema'];
-				$filters = ($config['filters'] ?? []);
+				$schema = $config['filters']['schema'];
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 				$records = array_values($this->db[$schema] ?? []);
 
 				$matched = array_values(
@@ -173,7 +173,7 @@ class EnrolmentPrerequisiteListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#scenario-block-enrolment-when-prerequisites-are-unmet
+	 * @spec openspec/specs/enrolment/spec.md#scenario-block-enrolment-when-prerequisites-are-unmet
 	 */
 	public function testEnrolmentBlockedWhenPrerequisiteUnmet(): void {
 		$this->seed(
@@ -206,7 +206,7 @@ class EnrolmentPrerequisiteListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#scenario-enrolment-succeeds-once-the-prerequisite-course-is-completed
+	 * @spec openspec/specs/enrolment/spec.md#scenario-enrolment-succeeds-once-the-prerequisite-course-is-completed
 	 */
 	public function testEnrolmentAllowedWhenPrerequisiteMet(): void {
 		$this->seed(
@@ -240,7 +240,7 @@ class EnrolmentPrerequisiteListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#scenario-enrolment-proceeds-unaffected-when-a-course-has-no-prerequisites
+	 * @spec openspec/specs/enrolment/spec.md#scenario-enrolment-proceeds-unaffected-when-a-course-has-no-prerequisites
 	 */
 	public function testNoPrerequisitesAllowsUnaffected(): void {
 		$this->seed('course', 'course-open', ['name' => 'Open Course']);
@@ -357,7 +357,7 @@ class EnrolmentPrerequisiteListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#scenario-an-infrastructure-error-during-the-prerequisite-lookup-does-not-block-enrolment
+	 * @spec openspec/specs/enrolment/spec.md#scenario-an-infrastructure-error-during-the-prerequisite-lookup-does-not-block-enrolment
 	 */
 	public function testInfrastructureFailureFailsSoftAndLogsWarning(): void {
 		$objectService = $this->createMock(ObjectService::class);

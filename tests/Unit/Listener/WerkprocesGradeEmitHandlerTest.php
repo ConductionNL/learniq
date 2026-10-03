@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+ * @spec openspec/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
  */
 
 declare(strict_types=1);
@@ -36,6 +36,13 @@ use Psr\Log\LoggerInterface;
  * WerkprocesAssessment → confirmed.
  */
 class WerkprocesGradeEmitHandlerTest extends TestCase {
+
+	/**
+	 * The `_rbac` argument of every saveObject() call, per schema.
+	 *
+	 * @var array<int, array{schema: string, rbac: bool}>
+	 */
+	private array $rbacWrites = [];
 
 	/**
 	 * Recorded saveObject() calls, captured by the ObjectService stub used per test.
@@ -71,15 +78,15 @@ class WerkprocesGradeEmitHandlerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($placement, $curriculumPlan, $existingEntries) {
-				if ($config['schema'] === 'bpv-placement') {
+				if ($config['filters']['schema'] === 'bpv-placement') {
 					return ($placement === null) ? [] : [$placement];
 				}
 
-				if ($config['schema'] === 'curriculum-plan') {
+				if ($config['filters']['schema'] === 'curriculum-plan') {
 					return ($curriculumPlan === null) ? [] : [$curriculumPlan];
 				}
 
-				if ($config['schema'] === 'grade-entry') {
+				if ($config['filters']['schema'] === 'grade-entry') {
 					return $existingEntries;
 				}
 
@@ -88,7 +95,8 @@ class WerkprocesGradeEmitHandlerTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true): ObjectEntity {
+				$this->rbacWrites[] = ['schema' => (string)$schema, 'rbac' => $_rbac];
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->savedObjects[] = [
 					'register' => (string)$register,
@@ -99,7 +107,7 @@ class WerkprocesGradeEmitHandlerTest extends TestCase {
 			}
 		);
 
-		return new WerkprocesGradeEmitHandler($objectService, $this->createMock(LoggerInterface::class));
+		return new WerkprocesGradeEmitHandler($objectService, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**
@@ -266,4 +274,20 @@ class WerkprocesGradeEmitHandlerTest extends TestCase {
 		$this->assertCount(0, $this->savedObjects);
 
 	}//end testIgnoresUnrelatedEvents()
+
+	/**
+	 * Coordinators and praktijkopleiders confirm a werkproces assessment and may not create a
+	 * GradeEntry, so it is written as the system.
+	 *
+	 * @return void
+	 */
+	public function testGradeEntryIsWrittenAsTheSystem(): void {
+		$this->testCompetentAssessmentCreatesGradeEntry();
+
+		$writes = array_values(array_filter($this->rbacWrites, static fn (array $w): bool => $w['schema'] === 'grade-entry'));
+		self::assertNotEmpty($writes, 'no grade-entry write');
+		foreach ($writes as $write) {
+			self::assertFalse($write['rbac'], 'grade-entry is written with _rbac: false');
+		}
+	}//end testGradeEntryIsWrittenAsTheSystem()
 }//end class

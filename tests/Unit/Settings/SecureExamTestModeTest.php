@@ -33,7 +33,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+ * @spec openspec/specs/assessment/spec.md
  */
 
 declare(strict_types=1);
@@ -148,10 +148,14 @@ class SecureExamTestModeTest extends TestCase {
 
 		$auth = $schema['authorization'] ?? null;
 		$this->assertIsArray($auth, 'ProctoringSession MUST declare an `authorization` block');
+		// learniq#981: TakeAssessmentView creates the native test-mode session
+		// from the learner's own client (design section 3.4), so every signed-in
+		// user may create one. LearnerOwnRowGuard refuses `activate` and `end`
+		// to anyone but the session's learner, and `fail` stays staff-only.
 		$this->assertSame(
-			['instructors', 'compliance-officers'],
+			['instructors', 'compliance-officers', 'authenticated'],
 			$auth['create'] ?? null,
-			'ProctoringSession.create is staff-scoped: a proctoring session is evidence about a learner, not a learner-authored record.'
+			'ProctoringSession.create is staff plus the learner starting their own native test-mode session.'
 		);
 
 	}//end testProctoringSessionDeclaresExplicitCreateAuthorization()

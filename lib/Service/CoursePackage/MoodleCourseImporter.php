@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-a-moodle-backup-materialises-the-same-structural-shapes
+ * @spec openspec/specs/course-management/spec.md#scenario-a-moodle-backup-materialises-the-same-structural-shapes
  */
 
 declare(strict_types=1);
@@ -65,7 +65,7 @@ class MoodleCourseImporter {
 	 *
 	 * @return array<string, mixed> `MoodleBackupParser::parseManifest()` result.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-a-moodle-backup-materialises-the-same-structural-shapes
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-moodle-backup-materialises-the-same-structural-shapes
 	 */
 	public function extractAndParse(string $packagePath, string $targetDir): array {
 		$this->mbzExtractor->extract(mbzPath: $packagePath, targetDir: $targetDir);
@@ -84,7 +84,7 @@ class MoodleCourseImporter {
 	 *
 	 * @return string|null UUID of the top-level Course, or null if none was created.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-a-moodle-backup-materialises-the-same-structural-shapes
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-moodle-backup-materialises-the-same-structural-shapes
 	 */
 	public function importManifest(string $dir, array $manifest, string $importedBy, string $tenantId, array &$entries): ?string {
 		$courseId = $this->objectWriter->createCourse(title: 'Imported Moodle course', parentCourseId: null, tenantId: $tenantId);

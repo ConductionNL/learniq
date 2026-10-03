@@ -9,6 +9,10 @@ name: Spec Validation
 #     app-manifest.schema.json (catches invented page/widget/action shapes)
 #   - check:register     — structural checks: schema shape, slug uniqueness,
 #     lifecycle `requires:` → PHP class exists, "schema looks clobbered" heuristic
+#   - check:l10n         — translation-parity ratchet against
+#     l10n/.l10n-parity-baseline.json: a new English key without its Dutch value
+#     fails, and no other required locale may lose a translation it has
+#     (openspec/specs/i18n-locale-parity)
 #
 # To make these BLOCK a merge, add the "Spec Validation / validate" check to the
 # branch-protection ruleset's required-status-checks list (org settings).
@@ -42,5 +46,5 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Validate specs (json-strict + manifest + register)
+      - name: Validate specs (json-strict + manifest + register + l10n)
         run: npm run check:specs

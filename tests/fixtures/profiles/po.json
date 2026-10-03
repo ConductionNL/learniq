@@ -1,0 +1,79 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Learniq example set: contract fixture",
+        "version": "1.0.0",
+        "description": "The smallest descriptor that honours the example set contract. Used by ExampleSetDescriptorContractTest and SeedProfileServiceTest; never shipped."
+    },
+    "x-openregister": {
+        "type": "profile",
+        "app": "learniq",
+        "profile": {
+            "id": "po",
+            "segment": "po",
+            "label": "Primary school",
+            "description": "Groups 1 to 8, guardians, report cards and pupil tracking.",
+            "order": 1,
+            "objectCount": 3,
+            "icon": "SchoolOutline"
+        },
+        "description": "Test fixture for the example set contract (openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md).",
+        "seedData": {
+            "description": "One school, one location, one group.",
+            "objects": {
+                "school": [
+                    {
+                        "@self": {
+                            "configuration": "learniq",
+                            "register": "learniq",
+                            "schema": "school"
+                        },
+                        "uuid": "ee010001-0000-4000-8000-000000000001",
+                        "slug": "po-school-001",
+                        "brin": "00X1",
+                        "name": "Voorbeeldschool De Wilgenboom",
+                        "pedagogicalConcept": "regular",
+                        "tenant_id": "00000000-0000-4000-8000-000000000000"
+                    }
+                ],
+                "vestiging": [
+                    {
+                        "@self": {
+                            "configuration": "learniq",
+                            "register": "learniq",
+                            "schema": "vestiging"
+                        },
+                        "uuid": "ee010002-0000-4000-8000-000000000001",
+                        "slug": "po-vestiging-001",
+                        "schoolId": "ee010001-0000-4000-8000-000000000001",
+                        "vestigingscode": "00X100",
+                        "onderwijslocatiecode": null,
+                        "name": "Hoofdlocatie",
+                        "street": null,
+                        "postalCode": null,
+                        "city": "Wilgendam",
+                        "tenant_id": "00000000-0000-4000-8000-000000000000"
+                    }
+                ],
+                "cohort": [
+                    {
+                        "@self": {
+                            "configuration": "learniq",
+                            "register": "learniq",
+                            "schema": "cohort"
+                        },
+                        "uuid": "ee010003-0000-4000-8000-000000000001",
+                        "slug": "po-cohort-001",
+                        "name": "Groep 5/6",
+                        "period": "Schooljaar",
+                        "academicYear": "2025-2026",
+                        "locationId": "ee010002-0000-4000-8000-000000000001",
+                        "tenant_id": "00000000-0000-4000-8000-000000000000"
+                    }
+                ]
+            }
+        }
+    },
+    "paths": {},
+    "components": {}
+}

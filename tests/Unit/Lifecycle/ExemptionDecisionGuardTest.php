@@ -16,13 +16,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
+ * @spec openspec/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\Learniq\Lifecycle\ExemptionDecisionGuard;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -31,6 +32,8 @@ use Psr\Log\LoggerInterface;
  * Tests for the ExemptionDecisionGuard (in-assessment → granted|rejected).
  */
 class ExemptionDecisionGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * Build a guard with a stub logger.
@@ -47,15 +50,14 @@ class ExemptionDecisionGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testBothFieldsSetAllowsTransition(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'case-1',
 				'decisionRationale' => 'Prior HBO diploma covers this component.',
 				'policyReference' => 'handreiking-2026 §3.2',
-			],
-		];
+				'lifecycle' => 'granted',
+			];
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'grant', ''));
 
 	}//end testBothFieldsSetAllowsTransition()
 
@@ -65,14 +67,13 @@ class ExemptionDecisionGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testMissingDecisionRationaleBlocks(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'case-1',
 				'policyReference' => 'handreiking-2026 §3.2',
-			],
-		];
+				'lifecycle' => 'granted',
+			];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'grant', ''));
 
 	}//end testMissingDecisionRationaleBlocks()
 
@@ -82,14 +83,13 @@ class ExemptionDecisionGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testMissingPolicyReferenceBlocks(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'case-1',
 				'decisionRationale' => 'Prior HBO diploma covers this component.',
-			],
-		];
+				'lifecycle' => 'granted',
+			];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'grant', ''));
 
 	}//end testMissingPolicyReferenceBlocks()
 
@@ -99,15 +99,14 @@ class ExemptionDecisionGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testBlankValuesBlock(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'case-1',
 				'decisionRationale' => '   ',
 				'policyReference' => '   ',
-			],
-		];
+				'lifecycle' => 'granted',
+			];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'grant', ''));
 
 	}//end testBlankValuesBlock()
 
@@ -117,9 +116,9 @@ class ExemptionDecisionGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testNeitherFieldSetBlocks(): void {
-		$context = ['object' => ['id' => 'case-1']];
+		$object = ['id' => 'case-1', 'lifecycle' => 'granted'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'grant', ''));
 
 	}//end testNeitherFieldSetBlocks()
 }//end class

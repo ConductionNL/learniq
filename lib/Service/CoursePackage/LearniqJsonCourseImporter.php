@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+ * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
  */
 
 declare(strict_types=1);
@@ -70,7 +70,7 @@ class LearniqJsonCourseImporter {
 	 *
 	 * @return array<string, mixed> The persisted `CoursePackageImportReport`.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
 	public function importPackage(
 		string $packagePath,
@@ -122,14 +122,18 @@ class LearniqJsonCourseImporter {
 	 *
 	 * @return string|null UUID of the re-created top-level Course.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
 	private function importTree(array $tree, string $importedBy, string $tenantId, array &$entries): ?string {
 		$courseData = (array)($tree['course'] ?? []);
+		// The copy keeps the source course's metadata, so a CC BY licence and
+		// its author survive an install from the course store
+		// (lesson-sharing-via-store-plane); invalid values are dropped.
 		$courseId = $this->objectWriter->createCourse(
 			title: (string)($courseData['name'] ?? 'Imported course'),
 			parentCourseId: null,
-			tenantId: $tenantId
+			tenantId: $tenantId,
+			metadata: $courseData
 		);
 		$entries[] = $this->reporter->entry(
 			resourceIdentifier: $this->sourceIdentifier(row: $courseData, fallback: 'course'),
@@ -161,7 +165,7 @@ class LearniqJsonCourseImporter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
 	private function importChildCourses(array $tree, ?string $courseId, string $tenantId, array &$entries): void {
 		foreach ((array)($tree['childCourses'] ?? []) as $child) {
@@ -193,7 +197,7 @@ class LearniqJsonCourseImporter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
 	private function importLessons(array $tree, ?string $courseId, string $tenantId, array &$entries): void {
 		foreach ((array)($tree['lessons'] ?? []) as $lesson) {
@@ -230,7 +234,7 @@ class LearniqJsonCourseImporter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
 	private function importMaterials(array $tree, ?string $courseId, string $importedBy, string $tenantId, array &$entries): void {
 		foreach ((array)($tree['materials'] ?? []) as $material) {
@@ -274,7 +278,7 @@ class LearniqJsonCourseImporter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
 	private function importRubrics(array $tree, string $tenantId, array &$entries): void {
 		foreach ((array)($tree['rubrics'] ?? []) as $rubric) {
@@ -312,7 +316,7 @@ class LearniqJsonCourseImporter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
 	private function importAssessments(array $tree, ?string $courseId, string $tenantId, array &$entries): void {
 		foreach ((array)($tree['assessments'] ?? []) as $assessment) {
@@ -350,7 +354,7 @@ class LearniqJsonCourseImporter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-lti-resource-becomes-a-placement-not-an-inline-link
+	 * @spec openspec/specs/course-management/spec.md#scenario-an-lti-resource-becomes-a-placement-not-an-inline-link
 	 */
 	private function importLtiPlacements(array $tree, ?string $courseId, string $tenantId, array &$entries): void {
 		foreach ((array)($tree['ltiPlacements'] ?? []) as $placement) {
@@ -377,7 +381,7 @@ class LearniqJsonCourseImporter {
 	 *
 	 * @return string The source identifier.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-every-course-package-import-produces-a-coursepackageimportreport-naming-every-resources-outcome
+	 * @spec openspec/specs/course-management/spec.md#requirement-every-course-package-import-produces-a-coursepackageimportreport-naming-every-resources-outcome
 	 */
 	private function sourceIdentifier(array $row, string $fallback): string {
 		return (string)($row['id'] ?? $row['uuid'] ?? $fallback);

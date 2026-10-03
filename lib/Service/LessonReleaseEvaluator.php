@@ -37,10 +37,10 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-supports-drip-release-relative-to-each-learners-own-enrolment-date
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#requirement-assessment-supports-drip-release-relative-to-each-learners-own-enrolment-date
+ * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
+ * @spec openspec/specs/course-management/spec.md#requirement-lesson-supports-drip-release-relative-to-each-learners-own-enrolment-date
+ * @spec openspec/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
+ * @spec openspec/specs/assessment/spec.md#requirement-assessment-supports-drip-release-relative-to-each-learners-own-enrolment-date
  */
 
 declare(strict_types=1);
@@ -56,7 +56,7 @@ use OCA\OpenRegister\Service\ObjectService;
 /**
  * Evaluates release-gating for a single (Lesson|Assessment, learner) pair.
  *
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
+ * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
  */
 class LessonReleaseEvaluator {
 
@@ -96,11 +96,13 @@ class LessonReleaseEvaluator {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access service.
+	 * @param AssessmentAccessPolicy $accessPolicy Live availability-window rules.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
+		private readonly AssessmentAccessPolicy $accessPolicy = new AssessmentAccessPolicy(),
 	) {
 	}//end __construct()
 
@@ -124,15 +126,15 @@ class LessonReleaseEvaluator {
 	 *
 	 * @return array{available: bool, reason: string|null, availableAt: string|null}
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-is-unavailable-until-its-prerequisite-lesson-is-completed
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-is-locked-until-n-days-after-the-learners-own-enrolment-date
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-lesson-is-unavailable-until-its-prerequisite-lesson-is-completed
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-lesson-is-locked-until-n-days-after-the-learners-own-enrolment-date
 	 */
 	public function evaluate(array $item, string $itemSchema, string $learnerId, array $enrolment): array {
 		$tenantId = (string)($item['tenant_id'] ?? '');
 		$now = new DateTimeImmutable();
 
 		if ($itemSchema === self::ASSESSMENT_SCHEMA) {
-			$windowReason = $this->evaluateAbsoluteWindow(item: $item);
+			$windowReason = $this->evaluateAbsoluteWindow(item: $item, now: $now);
 			if ($windowReason !== null) {
 				return [
 					'available' => false,
@@ -178,24 +180,23 @@ class LessonReleaseEvaluator {
 	}//end evaluate()
 
 	/**
-	 * Check the item's materialised absolute availability window
-	 * (`Assessment.isAvailable`). Absent for schemas that carry no such
-	 * field (e.g. `Lesson`) — treated as "no absolute window", not blocked.
+	 * Check the item's absolute availability window, evaluated live from
+	 * availableFrom/availableUntil by AssessmentAccessPolicy (the stored
+	 * `isAvailable` goes stale the moment the window opens or closes, so it is
+	 * only a fallback for a row with neither date).
 	 *
 	 * @param array<string, mixed> $item The Assessment row.
+	 * @param DateTimeInterface $now Evaluation instant.
 	 *
 	 * @return string|null A block reason, or null when the window is open/absent.
 	 */
-	private function evaluateAbsoluteWindow(array $item): ?string {
-		if (array_key_exists('isAvailable', $item) === false) {
+	private function evaluateAbsoluteWindow(array $item, DateTimeInterface $now): ?string {
+		$block = $this->accessPolicy->windowBlock(assessment: $item, now: $now);
+		if ($block === null) {
 			return null;
 		}
 
-		if ($item['isAvailable'] === false) {
-			return 'This assessment is outside its available window.';
-		}
-
-		return null;
+		return $block['message'];
 	}//end evaluateAbsoluteWindow()
 
 	/**
@@ -294,7 +295,7 @@ class LessonReleaseEvaluator {
 	 *
 	 * @return array{blocked: bool, reason: string|null}
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
+	 * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
 	 */
 	private function evaluateLessonCompletedCondition(array $condition, string $learnerId, string $tenantId): array {
 		$lessonId = (string)($condition['lessonId'] ?? '');
@@ -302,28 +303,8 @@ class LessonReleaseEvaluator {
 			return ['blocked' => false, 'reason' => null];
 		}
 
-		$filters = [
-			'lessonId' => $lessonId,
-			'verified_actor_id' => $learnerId,
-		];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$statements = $this->objectService->findAll(
-			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::XAPI_SCHEMA,
-				'filters' => $filters,
-			]
-		);
-
-		foreach ($statements as $statement) {
-			$data = $this->toArray(object: $statement);
-			$verbId = $data['verb']['id'] ?? '';
-			if (in_array($verbId, self::COMPLETION_VERBS, true) === true) {
-				return ['blocked' => false, 'reason' => null];
-			}
+		if ($this->hasCompleted(lessonId: $lessonId, learnerId: $learnerId, tenantId: $tenantId) === true) {
+			return ['blocked' => false, 'reason' => null];
 		}
 
 		$lessonName = ($this->resolveName(id: $lessonId, schema: self::LESSON_SCHEMA) ?? $lessonId);
@@ -350,7 +331,7 @@ class LessonReleaseEvaluator {
 	 *
 	 * @return array{blocked: bool, reason: string|null}
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
+	 * @spec openspec/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
 	 */
 	private function evaluateAssessmentMinScoreCondition(array $condition, string $learnerId, string $tenantId): array {
 		$assessmentId = (string)($condition['assessmentId'] ?? '');
@@ -359,32 +340,7 @@ class LessonReleaseEvaluator {
 			return ['blocked' => false, 'reason' => null];
 		}
 
-		$filters = [
-			'assessmentId' => $assessmentId,
-			'learnerId' => $learnerId,
-			'lifecycle' => self::GRADED_STATE,
-		];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$results = $this->objectService->findAll(
-			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ASSESSMENT_RESULT_SCHEMA,
-				'filters' => $filters,
-			]
-		);
-
-		$bestScore = null;
-		foreach ($results as $result) {
-			$data = $this->toArray(object: $result);
-			$sumScore = $this->sumResponses(responses: ($data['responses'] ?? []));
-			if ($bestScore === null || $sumScore > $bestScore) {
-				$bestScore = $sumScore;
-			}
-		}
-
+		$bestScore = $this->bestScore(assessmentId: $assessmentId, learnerId: $learnerId, tenantId: $tenantId);
 		if ($bestScore !== null && $bestScore >= (float)$minScore) {
 			return ['blocked' => false, 'reason' => null];
 		}
@@ -397,6 +353,97 @@ class LessonReleaseEvaluator {
 		];
 
 	}//end evaluateAssessmentMinScoreCondition()
+
+	/**
+	 * Whether the learner has an xAPI statement completing or passing the
+	 * lesson: read for that learner only (`verified_actor_id`).
+	 *
+	 * @param string $lessonId  UUID of the lesson.
+	 * @param string $learnerId NC user ID of the learner.
+	 * @param string $tenantId  Tenant scope for the lookup ('' when unknown).
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
+	 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
+	 */
+	public function hasCompleted(string $lessonId, string $learnerId, string $tenantId): bool {
+		$filters = [
+			'lessonId' => $lessonId,
+			'verified_actor_id' => $learnerId,
+		];
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
+
+		$statements = $this->objectService->findAll(
+			[
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::XAPI_SCHEMA,
+					]
+				),
+			]
+		);
+
+		foreach ($statements as $statement) {
+			$data = $this->toArray(object: $statement);
+			$verbId = ($data['verb']['id'] ?? '');
+			if (in_array($verbId, self::COMPLETION_VERBS, true) === true) {
+				return true;
+			}
+		}
+
+		return false;
+	}//end hasCompleted()
+
+	/**
+	 * The learner's best summed score over their graded attempts on the
+	 * assessment, or null without a graded attempt: read for that learner
+	 * only (`learnerId`).
+	 *
+	 * @param string $assessmentId UUID of the assessment.
+	 * @param string $learnerId    NC user ID of the learner.
+	 * @param string $tenantId     Tenant scope for the lookup ('' when unknown).
+	 *
+	 * @return float|null
+	 *
+	 * @spec openspec/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
+	 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
+	 */
+	public function bestScore(string $assessmentId, string $learnerId, string $tenantId): ?float {
+		$filters = [
+			'assessmentId' => $assessmentId,
+			'learnerId' => $learnerId,
+			'lifecycle' => self::GRADED_STATE,
+		];
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
+
+		$results = $this->objectService->findAll(
+			[
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::ASSESSMENT_RESULT_SCHEMA,
+					]
+				),
+			]
+		);
+
+		$bestScore = null;
+		foreach ($results as $result) {
+			$data = $this->toArray(object: $result);
+			$sumScore = $this->sumResponses(responses: ($data['responses'] ?? []));
+			$bestScore = max(($bestScore ?? $sumScore), $sumScore);
+		}
+
+		return $bestScore;
+	}//end bestScore()
 
 	/**
 	 * Sum an AssessmentResult's per-item scores, preferring `autoScore` and

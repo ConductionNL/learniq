@@ -32,6 +32,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -43,7 +45,14 @@ use Psr\Log\LoggerInterface;
  * 2. That CurriculumPlan is in lifecycle state `published`.
  * 3. The CurriculumPlan has at least one required course (requiredCourseIds is non-empty).
  */
-class ProgrammePublishGuard {
+class ProgrammePublishGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'A programme needs a published curriculum plan with at least one required course before it can be published.';
 
 	/**
 	 * OR register slug for Learniq objects.
@@ -65,25 +74,41 @@ class ProgrammePublishGuard {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-13
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
+	 * The rule behind check(), answered as a boolean.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing the `publish`
 	 * transition on a Programme object. Returns true only when the Programme has
 	 * an assigned published CurriculumPlan that lists at least one required course.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the Programme data array
-	 *                                               - 'transition' : 'publish'
-	 *                                               - 'from'       : current lifecycle state
-	 *                                               - 'to'         : 'published'
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True if the Programme's CurriculumPlan is published and has ≥1 required
 	 *              course; false blocks the transition.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-13
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
+	private function allows(array $object): bool {
 		$curriculumPlanId = $object['curriculumPlanId'] ?? null;
 		$tenantId = $object['tenant_id'] ?? '';
 
@@ -95,16 +120,21 @@ class ProgrammePublishGuard {
 		}
 
 		// H1: scope CurriculumPlan lookup to the same tenant.
-		$planFilters = ['uuid' => $curriculumPlanId, 'lifecycle' => 'published'];
+		$planFilters = ['lifecycle' => 'published'];
 		if ($tenantId !== '') {
 			$planFilters['tenant_id'] = $tenantId;
 		}
 
 		$plans = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'curriculum-plan',
-				'filters' => $planFilters,
+				'ids' => [$curriculumPlanId],
+				'filters' => array_merge(
+					$planFilters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'curriculum-plan',
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -129,5 +159,5 @@ class ProgrammePublishGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 }//end class

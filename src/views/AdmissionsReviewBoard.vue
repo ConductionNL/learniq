@@ -20,7 +20,7 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-frontend-is-declarative-with-one-named-admissions-review-exception
+  @spec openspec/specs/enrolment/spec.md#requirement-frontend-is-declarative-with-one-named-admissions-review-exception
 -->
 
 <template>
@@ -88,7 +88,7 @@
 							t('learniq', 'Deadline: {deadline}', {
 								deadline: formatDate(
 									/**
-									 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+									 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 									 */
 									roundFor(application)
 										&& roundFor(application).applicationDeadline,
@@ -144,7 +144,7 @@ export default {
 		 * not yet ready, or already decided.
 		 *
 		 * @return {object[]}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
 		pendingApplications() {
 			return this.applications.filter(
@@ -162,7 +162,7 @@ export default {
 		 * Fetch open Applications and their AdmissionsRounds.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
 		async loadData() {
 			this.loading = true
@@ -241,7 +241,7 @@ export default {
 		 *
 		 * @param {object} application Application object
 		 * @return {string}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
 		applicantName(application) {
 			const given = application.applicantGivenName || ''
@@ -254,7 +254,7 @@ export default {
 		 *
 		 * @param {object} application Application object
 		 * @return {string}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
 		roundKindLabel(application) {
 			const round = this.roundFor(application)
@@ -278,7 +278,7 @@ export default {
 		 *
 		 * @param {object} application Application object
 		 * @return {string}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
 		capacityLabel(application) {
 			const round = this.roundFor(application)
@@ -305,7 +305,7 @@ export default {
 		 *
 		 * @param {object} application Application object
 		 * @return {string}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
 		decisionHref(application) {
 			const id = application.id || application.uuid

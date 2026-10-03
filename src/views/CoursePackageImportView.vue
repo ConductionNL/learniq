@@ -14,8 +14,9 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-course-package-frontend-is-declarative-with-one-named-custom-view-for-the-import-report
-  @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
+  @spec openspec/specs/course-management/spec.md#requirement-course-package-frontend-is-declarative-with-one-named-custom-view-for-the-import-report
+  @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
+  @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
 -->
 
 <template>
@@ -166,14 +167,23 @@
 				{{ t('learniq', 'Import another package') }}
 			</button>
 		</div>
+
+		<!-- office-file-lesson-onboarding: Word and PowerPoint lessons from the
+		     teacher's onboarding folder, confirmed one file at a time (D17). -->
+		<LessonOnboardingPanel class="course-package-import__onboarding" />
 	</div>
 </template>
 
 <script>
 import { generateUrl } from '@nextcloud/router'
+import LessonOnboardingPanel from '../components/lesson/LessonOnboardingPanel.vue'
 
 export default {
 	name: 'CoursePackageImportView',
+
+	components: {
+		LessonOnboardingPanel,
+	},
 
 	data() {
 		return {
@@ -191,7 +201,7 @@ export default {
 		 * Human-readable lifecycle summary line.
 		 *
 		 * @return {string} Localised summary text.
-		 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
+		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		lifecycleLabel() {
 			if (!this.report) return ''
@@ -216,7 +226,7 @@ export default {
 		 * Report entries filtered by the selected outcome.
 		 *
 		 * @return {Array<object>} Filtered entries.
-		 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
+		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		filteredEntries() {
 			const entries = this.report?.entries ?? []
@@ -231,7 +241,7 @@ export default {
 		 *
 		 * @param {Event} event The change event.
 		 * @return {void}
-		 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
+		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		onFileSelected(event) {
 			const file = event.target.files?.[0] ?? null
@@ -244,7 +254,7 @@ export default {
 		 * Upload the selected package and render the resulting report.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
+		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		async uploadPackage() {
 			if (!this.selectedFile) return
@@ -290,7 +300,7 @@ export default {
 		 * Reset the view to upload another package.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
+		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		reset() {
 			this.report = null
@@ -423,6 +433,12 @@ export default {
 .course-package-import__badge--dropped {
 	background: var(--color-error);
 	color: var(--color-primary-element-text, #fff);
+}
+
+.course-package-import__onboarding {
+	margin-top: calc(var(--default-grid-baseline, 4px) * 8);
+	padding-top: calc(var(--default-grid-baseline, 4px) * 6);
+	border-top: 1px solid var(--color-border);
 }
 
 .course-package-import__empty {

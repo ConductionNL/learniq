@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/external-training-recording/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @psalm-api
  *
- * @spec openspec/changes/external-training-recording/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
 class ExternalTrainingCsvBuilder {
 
@@ -74,7 +74,7 @@ class ExternalTrainingCsvBuilder {
 	 *
 	 * @return string CSV string (header-only when there are no matching records).
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 */
 	public function build(
 		string $regulationSlug,
@@ -84,9 +84,9 @@ class ExternalTrainingCsvBuilder {
 	): string {
 		$rows = $this->objectService->findAll(
 			[
-				'register' => 'learniq',
-				'schema' => 'external-training-record',
 				'filters' => [
+					'register' => 'learniq',
+					'schema' => 'external-training-record',
 					'regulationSlug' => $regulationSlug,
 					'lifecycle' => 'verified',
 					'tenant_id' => $tenantId,
@@ -154,7 +154,7 @@ class ExternalTrainingCsvBuilder {
 	 *
 	 * @return array<string,mixed> The record as a plain array.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 */
 	private function normaliseRecord(mixed $row): array {
 		if (is_array($row) === true) {
@@ -177,7 +177,7 @@ class ExternalTrainingCsvBuilder {
 	 *
 	 * @return bool True when the record belongs in this pack.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 */
 	private function completedAtInRange(string $completedAt, string $dateFrom, string $dateTo): bool {
 		if ($completedAt === '') {
@@ -202,7 +202,7 @@ class ExternalTrainingCsvBuilder {
 	 *
 	 * @return array<int,string> Attachment names in record order.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 */
 	private function evidenceFileNames(array $rec): array {
 		$files = ($rec['@self']['files'] ?? ($rec['files'] ?? []));
@@ -231,7 +231,7 @@ class ExternalTrainingCsvBuilder {
 	 *
 	 * @return array<int,string> Cells in the order of the CSV header.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 */
 	private function csvRow(array $rec, string $completedAt): array {
 		return [

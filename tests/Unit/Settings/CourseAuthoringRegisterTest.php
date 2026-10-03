@@ -32,8 +32,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-authoring-ux/tasks.md#task-7.1
- * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md
+ * @spec openspec/changes/archive/2026-07-16-course-authoring-ux/tasks.md#task-7.1
+ * @spec openspec/specs/course-management/spec.md
  */
 
 declare(strict_types=1);
@@ -77,7 +77,7 @@ class CourseAuthoringRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lessons-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-lessons-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 	 */
 	public function testLessonBlocksShapeAndPropertyMeta(): void {
 		$lesson = $this->config['components']['schemas']['Lesson'] ?? null;
@@ -95,10 +95,12 @@ class CourseAuthoringRegisterTest extends TestCase {
 			$this->assertArrayHasKey('description', $itemProps[$field], "Lesson.blocks.items.$field MUST carry a description");
 		}
 
+		// The five course-authoring-ux types stay first and unchanged; later
+		// changes may append (office-file-lesson-onboarding adds teacherNote).
 		$this->assertSame(
 			['richText', 'media', 'quiz', 'assignment', 'ltiTool'],
-			$itemProps['type']['enum'] ?? null,
-			'Lesson.blocks.items.type MUST enumerate exactly the five block types'
+			array_slice(($itemProps['type']['enum'] ?? []), 0, 5),
+			'Lesson.blocks.items.type MUST keep the five course-authoring-ux block types'
 		);
 		$this->assertSame(['blockId', 'type', 'order'], $blocks['items']['required'] ?? null);
 
@@ -120,7 +122,7 @@ class CourseAuthoringRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lessons-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-lessons-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 	 */
 	public function testContentRefConditionalShapeMirrorsGradeEntryPrecedent(): void {
 		$lesson = $this->config['components']['schemas']['Lesson'] ?? null;
@@ -170,9 +172,9 @@ class CourseAuthoringRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-authoring-ux/tasks.md#task-7.1
-	 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-an-instructional-designer-composes-a-lesson-from-mixed-blocks
-	 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-packaged-content-lessons-are-unaffected
+	 * @spec openspec/changes/archive/2026-07-16-course-authoring-ux/tasks.md#task-7.1
+	 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-composes-a-lesson-from-mixed-blocks
+	 * @spec openspec/specs/course-management/spec.md#scenario-packaged-content-lessons-are-unaffected
 	 */
 	public function testContentRefConditionalRequirednessMatchesDesignD2Behaviour(): void {
 		$lesson = $this->config['components']['schemas']['Lesson'] ?? [];
@@ -247,7 +249,7 @@ class CourseAuthoringRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-course-declares-its-display-order-among-sibling-modules
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-declares-its-display-order-among-sibling-modules
 	 */
 	public function testCourseOrderIsNullableAdditive(): void {
 		$course = $this->config['components']['schemas']['Course'] ?? null;
@@ -275,7 +277,7 @@ class CourseAuthoringRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-course-structure-can-be-saved-as-a-reusable-template-and-instantiated
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-structure-can-be-saved-as-a-reusable-template-and-instantiated
 	 */
 	public function testCourseTemplateSchemaShapeAndNoLearnerData(): void {
 		$schema = $this->config['components']['schemas']['CourseTemplate'] ?? null;
@@ -379,8 +381,13 @@ class CourseAuthoringRegisterTest extends TestCase {
 		// description, not that it is the latest entry.
 		$this->assertStringContainsString('course-authoring-ux', $this->config['info']['description'] ?? '');
 
-		$this->assertSame('0.3.0', $this->config['components']['schemas']['Lesson']['version'] ?? null);
-		$this->assertSame('0.3.0', $this->config['components']['schemas']['Course']['version'] ?? null);
+		// A floor, not an exact value: later changes (goal-alignment-depth,
+		// 0.4.0) bump these schemas again, and course-authoring-ux's own bump
+		// stays satisfied by any version at or above it.
+		foreach (['Lesson', 'Course'] as $name) {
+			$version = (string) ($this->config['components']['schemas'][$name]['version'] ?? '0.0.0');
+			$this->assertTrue(version_compare($version, '0.3.0', '>='), "$name version $version is below course-authoring-ux's 0.3.0");
+		}
 
 	}//end testRegisterAndSchemaVersionsBumped()
 

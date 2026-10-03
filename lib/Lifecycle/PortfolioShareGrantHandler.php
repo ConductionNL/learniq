@@ -47,14 +47,17 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
+ * @spec openspec/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Constants;
 use OCP\EventDispatcher\Event;
@@ -70,10 +73,22 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
- * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
+ * @spec openspec/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
+ * @spec openspec/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) The thirteenth collaborator is ListenerSchemaResolver,
+ *                                                 which every transition listener needs to read the ids
+ *                                                 OpenRegister sends; splitting the class for it would hide
+ *                                                 the listener's one job across two files.
  */
-class PortfolioShareGrantHandler implements IEventListener {
+class PortfolioShareGrantHandler implements IEventListener, LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'This portfolio share is not complete or not allowed, so it can not be granted.';
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const SHARE_SCHEMA = 'portfolio-share';
@@ -87,6 +102,7 @@ class PortfolioShareGrantHandler implements IEventListener {
 	 * @param IManager $shareManager NC share manager for the teacher-kind NC Files share.
 	 * @param IRootFolder $rootFolder NC root folder for resolving attachmentRef paths to Nodes.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -95,8 +111,30 @@ class PortfolioShareGrantHandler implements IEventListener {
 		private readonly IManager $shareManager,
 		private readonly IRootFolder $rootFolder,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
+
+	/**
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(share: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
 
 	/**
 	 * OR lifecycle guard entry-point — blocks self-grant.
@@ -104,18 +142,13 @@ class PortfolioShareGrantHandler implements IEventListener {
 	 * Called by OpenRegister's lifecycle engine before executing the `grant`
 	 * transition on a PortfolioShare object.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the PortfolioShare data array
-	 *                                               - 'transition' : 'grant'
-	 *                                               - 'from'       : 'draft'
-	 *                                               - 'to'         : 'active'
+	 * @param array<string,mixed> $share The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True to allow the transition; false blocks it (HTTP 422 from OR engine).
 	 *
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
+	 * @spec openspec/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
 	 */
-	public function check(array &$transitionContext): bool {
-		$share = $transitionContext['object'] ?? [];
+	private function allows(array $share): bool {
 		$shareId = $share['id'] ?? ($share['uuid'] ?? '');
 		$sharedBy = $share['sharedBy'] ?? '';
 		$recipient = $this->resolveRecipientIdentity(share: $share);
@@ -130,7 +163,7 @@ class PortfolioShareGrantHandler implements IEventListener {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Handle an ObjectTransitionedEvent.
@@ -139,18 +172,18 @@ class PortfolioShareGrantHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
+	 * @spec openspec/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() !== self::SHARE_SCHEMA) {
+		if ($this->schemas->eventSchema(event: $event) !== self::SHARE_SCHEMA) {
 			return;
 		}
 
@@ -178,7 +211,7 @@ class PortfolioShareGrantHandler implements IEventListener {
 	 * @return string|null The recipient identity (an NC uid for teacher; a domain-object UUID for
 	 *                     praktijkopleider/external-assessor), or null when unresolved.
 	 *
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
+	 * @spec openspec/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
 	 */
 	private function resolveRecipientIdentity(array $share): ?string {
 		$kind = $share['sharedWithKind'] ?? '';
@@ -205,7 +238,7 @@ class PortfolioShareGrantHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-granting-a-teacher-share-creates-a-native-nc-files-share
+	 * @spec openspec/specs/eportfolio/spec.md#scenario-granting-a-teacher-share-creates-a-native-nc-files-share
 	 */
 	private function createTeacherFileShare(array $share): void {
 		$shareId = $share['id'] ?? ($share['uuid'] ?? '');
@@ -239,9 +272,11 @@ class PortfolioShareGrantHandler implements IEventListener {
 
 		$entries = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ENTRY_SCHEMA,
-				'filters' => ['portfolioId' => $portfolioId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ENTRY_SCHEMA,
+					'portfolioId' => $portfolioId,
+				],
 			]
 		);
 
@@ -337,7 +372,7 @@ class PortfolioShareGrantHandler implements IEventListener {
 	 *
 	 * @return bool True when a share was created (or already existed for this recipient).
 	 *
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-granting-a-teacher-share-creates-a-native-nc-files-share
+	 * @spec openspec/specs/eportfolio/spec.md#scenario-granting-a-teacher-share-creates-a-native-nc-files-share
 	 */
 	private function shareAttachment(string $ownerId, string $teacherId, string $attachmentRef): bool {
 		try {
@@ -387,7 +422,7 @@ class PortfolioShareGrantHandler implements IEventListener {
 	 *
 	 * @return array<string,mixed>|null The object data, or null when not found.
 	 *
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
+	 * @spec openspec/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
 	 */
 	private function loadObject(string $schema, string $id): ?array {
 		if ($id === '') {
@@ -396,9 +431,11 @@ class PortfolioShareGrantHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => $schema,
-				'filters' => ['id' => $id],
+				'ids' => [$id],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => $schema,
+				],
 				'limit' => 1,
 			]
 		);

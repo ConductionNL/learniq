@@ -92,6 +92,7 @@ abstract class ObjectService {
 	 * @param array<string,mixed>|null $uploadedFiles Uploaded files.
 	 * @param IUser|null $currentUser Acting user.
 	 * @param bool $failIfExists Fail on conflict.
+	 * @param bool $_unowned     Stamp the system identity as owner even with a session (OR 3de558cc7d).
 	 *
 	 * @return ObjectEntity
 	 */
@@ -107,6 +108,49 @@ abstract class ObjectService {
 		?array $uploadedFiles = null,
 		?IUser $currentUser = null,
 		bool $failIfExists = false,
+		bool $_unowned = false,
 	): ObjectEntity;
+
+	/**
+	 * Delete an object.
+	 *
+	 * @param string                   $uuid          Object uuid.
+	 * @param Register|string|int|null $register      Register context.
+	 * @param Schema|string|int|null   $schema        Schema context.
+	 * @param bool                     $_rbac         Apply RBAC.
+	 * @param bool                     $_multitenancy Apply multitenancy.
+	 *
+	 * @return bool
+	 */
+	abstract public function deleteObject(
+		string $uuid,
+		Register|string|int|null $register = null,
+		Schema|string|int|null $schema = null,
+		bool $_rbac = true,
+		bool $_multitenancy = true,
+	): bool;
+
+	/**
+	 * Run a callable as a named user, with that user's RBAC and multitenancy.
+	 *
+	 * Mirrors the real signature exactly: no return type.
+	 *
+	 * @param IUser    $user      The user to act as.
+	 * @param callable $operation The operation to execute as that user.
+	 *
+	 * @return mixed
+	 */
+	abstract public function runAs(IUser $user, callable $operation);
+
+	/**
+	 * Run a trusted callable with system rights (no RBAC, no multitenancy).
+	 *
+	 * Mirrors the real signature exactly: no return type.
+	 *
+	 * @param callable $operation The trusted operation to execute.
+	 *
+	 * @return mixed
+	 */
+	abstract public function runAsSystem(callable $operation);
 
 }//end class

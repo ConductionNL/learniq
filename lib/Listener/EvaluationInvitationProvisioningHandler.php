@@ -30,13 +30,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+ * @spec openspec/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -60,12 +61,14 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -76,7 +79,7 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -124,11 +127,11 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
 	 */
 	private function isCampaignOpening(ObjectTransitionedEvent $event): bool {
-		return $event->getRegister() === self::LEARNIQ_REGISTER
-			&& $event->getSchema() === self::EVALUATION_CAMPAIGN_SCHEMA
+		return $this->schemas->eventRegister(event: $event) === self::LEARNIQ_REGISTER
+			&& $this->schemas->eventSchema(event: $event) === self::EVALUATION_CAMPAIGN_SCHEMA
 			&& $event->getTo() === 'open';
 
 	}//end isCampaignOpening()
@@ -143,7 +146,7 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
 	 */
 	private function provisionInvitations(array $campaign, string $campaignId, array $scopedCohorts): void {
 		$stamp = [
@@ -186,7 +189,7 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
 	 */
 	private function inviteCohortLearners(array $cohort, array $stamp, array &$provisioned): void {
 		$cohortId = $cohort['id'] ?? ($cohort['uuid'] ?? null);
@@ -229,7 +232,7 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 	 *
 	 * @return array<int, array> Cohort data arrays, de-duplicated by id.
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
 	 */
 	private function resolveScopedCohorts(array $campaign): array {
 		$byId = [];
@@ -248,7 +251,7 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
 	 */
 	private function collectCohortsById(array $campaign, array &$byId): void {
 		foreach (($campaign['cohortIds'] ?? []) as $cohortId) {
@@ -282,7 +285,7 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
 	 */
 	private function collectCohortsByCourse(array $campaign, array &$byId): void {
 		foreach (($campaign['courseIds'] ?? []) as $courseId) {
@@ -292,9 +295,11 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 
 			$matches = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::COHORT_SCHEMA,
-					'filters' => ['courseId' => $courseId],
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::COHORT_SCHEMA,
+						'courseId' => $courseId,
+					],
 				]
 			);
 
@@ -327,14 +332,16 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 	 *
 	 * @return array<string, bool>
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
 	 */
 	private function fetchExistingInvitedLearnerIds(string $campaignId): array {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::EVALUATION_INVITATION_SCHEMA,
-				'filters' => ['campaignId' => $campaignId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::EVALUATION_INVITATION_SCHEMA,
+					'campaignId' => $campaignId,
+				],
 			]
 		);
 

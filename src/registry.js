@@ -10,6 +10,27 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
  */
 
+// registry-component-fix: eight shared @conduction/nextcloud-vue components
+// that 14 type:"custom" manifest pages named by their exact export string but
+// this registry never registered, so CnPageRenderer.resolveCustomComponent()
+// found nothing and mounted an empty page body. learniq#947 then pointed
+// those 14 pages at thin learniq views (below) that load the data and mount
+// these building blocks with their props, since a bare CnWizardDialog or
+// CnDataMatrix mounted as a page receives no steps, rows or save handler.
+// The eight stay registered for registryComponentCoverage.test.mjs.
+import {
+	CnDataMatrix,
+	CnExportWizard,
+	CnRelationshipGraph,
+	CnRichSubmitDialog,
+	CnSignatureCapture,
+	CnStructuredDocReview,
+	CnTimelineView,
+	CnWizardDialog,
+} from '@conduction/nextcloud-vue'
+// assignment-missing-submissions-view: body section on AssignmentDetail.
+import AssignmentHandInStatus from './components/sections/AssignmentHandInStatus.vue'
+import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeerReviewAllocation.vue'
 import AuditTrailWidget from './components/widgets/AuditTrailWidget.vue'
 // admissions-and-subject-choice: the two genuine new custom views this
 // change adds — the coordinator's admissions review board (queue of
@@ -18,6 +39,15 @@ import AuditTrailWidget from './components/widgets/AuditTrailWidget.vue'
 // with live electiveRules/capacity feedback; every other Application/
 // AdmissionsRound/SubjectChoice screen is a declarative manifest page.
 import AdmissionsReviewBoard from './views/AdmissionsReviewBoard.vue'
+import AllocateMarkersView from './views/AllocateMarkersView.vue'
+// learniq#948: score one open question for every submitted attempt in turn.
+import AssessmentScoringView from './views/AssessmentScoringView.vue'
+// learniq#947: AttendanceRegisterView, BulkEnrolView, CohortGradebookView,
+// CohortTimetableView, ExportRequestView, LearningPlanEditorView,
+// QtiImportView, SignatureView, SubmitExcuseView and
+// SubmitWorkView are thin views for the custom pages that named a library
+// component directly and so opened as "This page is empty".
+import AttendanceRegisterView from './views/AttendanceRegisterView.vue'
 // parent-evening-planner: the guardian/self conversation-slot picker and the
 // coordinator's manual-override / regenerate board.
 import BookConferenceSlotsView from './views/BookConferenceSlotsView.vue'
@@ -26,7 +56,12 @@ import BookConferenceSlotsView from './views/BookConferenceSlotsView.vue'
 // discovered while wiring learning-progress-and-analytics's own new custom
 // view below — both routes were unreachable at HEAD; fixed here alongside).
 import BsaRiskDashboard from './views/BsaRiskDashboard.vue'
+import BulkEnrolView from './views/BulkEnrolView.vue'
+import CheckInPage from './views/CheckInPage.vue'
+import CohortGradebookView from './views/CohortGradebookView.vue'
+import CohortTimetableView from './views/CohortTimetableView.vue'
 import ConferenceScheduleBoard from './views/ConferenceScheduleBoard.vue'
+import ContactHoursReport from './views/ContactHoursReport.vue'
 // course-authoring-ux: the two genuine new custom views this change adds —
 // the Course/Module/Lesson tree editor and the per-lesson block composer.
 // Everything else (CourseTemplate index/detail) is a declarative manifest
@@ -41,21 +76,36 @@ import ConferenceScheduleBoard from './views/ConferenceScheduleBoard.vue'
 // pre-existing gap ItemAuthorView/LessonPlayer/PortfolioBuilder already
 // ship with, not one this change introduces.
 import CourseBuilder from './views/CourseBuilder.vue'
+import CourseCatalogue from './views/CourseCatalogue.vue'
 // course-package-import-export: the one genuine new custom view this change
 // adds — uploads a Common Cartridge/Moodle course package and renders the
 // resulting CoursePackageImportReport's entries table. Course export reuses
 // the existing CnExportWizard shared component (no new Vue file for export).
 import CoursePackageImportView from './views/CoursePackageImportView.vue'
+// content-adaptive-next-step-and-preview: Preview as learner from the course page.
+import CoursePreviewView from './views/CoursePreviewView.vue'
 // course-evaluation: the one genuine new custom view this change adds — a
 // coordinator/opleidingscommissie view of a course's CourseQualityScore
 // trend over time, response rate, and raw free-text answers.
 import CourseQualityReport from './views/CourseQualityReport.vue'
+// curriculum-coverage-matrix-view: goals by year with planned and assessed
+// marked, plus the gap list per subject and year (read-only CnDataMatrix).
+import CurriculumCoverageMatrixView from './views/CurriculumCoverageMatrixView.vue'
 // Per-role dashboard route wrappers (group-gated menu items; replaces the
 // single role-switcher dashboard).
 import DashboardAdmin from './views/DashboardAdmin.vue'
 import DashboardStudent from './views/DashboardStudent.vue'
 import DashboardTeacher from './views/DashboardTeacher.vue'
+import DisplayScreenAddressView from './views/DisplayScreenAddressView.vue'
+import ElectiveRosterView from './views/ElectiveRosterView.vue'
+import EnrolmentForecastView from './views/EnrolmentForecastView.vue'
+// assessment-course-evaluation-answer-page: a campaign's figures for staff.
+import EvaluationCampaignResultsView from './views/EvaluationCampaignResultsView.vue'
 import ExamCaseDossierView from './views/ExamCaseDossierView.vue'
+import ExportRequestView from './views/ExportRequestView.vue'
+// learniq#952: record one external training for many learners at once, the
+// only caller of ExternalTrainingController (bulk, credential, coverage).
+import ExternalTrainingBulkRecordView from './views/ExternalTrainingBulkRecordView.vue'
 import FlowDetailSidebar from './views/flows/FlowDetailSidebar.vue'
 import GradeImpactDetail from './views/GradeImpactDetail.vue'
 // groepsplan: the one genuine new custom view this change adds — resolves
@@ -67,6 +117,10 @@ import GroupPlanSubgroupLearnerContext from './views/GroupPlanSubgroupLearnerCon
 // learning-progress-and-analytics: cohort x period grade-trend heat map —
 // the one genuine new custom view this change adds.
 import GroupTrendHeatmap from './views/GroupTrendHeatmap.vue'
+// timetabling-multi-year-hour-plan: the hour plan grid and the teaching
+// activities a school year needs.
+import HourPlanActivities from './views/HourPlanActivities.vue'
+import HourPlanEditor from './views/HourPlanEditor.vue'
 import ItemAnalysisView from './views/ItemAnalysisView.vue'
 import ItemAuthorView from './views/ItemAuthorView.vue'
 // engagement-gamification: the one genuine new custom view this change adds —
@@ -76,6 +130,7 @@ import LeaderboardView from './views/LeaderboardView.vue'
 // nav-restructure-dashboards (supersedes ADR-044 cards-collapse): the Learning
 // and People groups land on domain dashboards instead of tile-grid card pages.
 import LearningDashboard from './views/LearningDashboard.vue'
+import LearningPlanEditorView from './views/LearningPlanEditorView.vue'
 import LearningRecordImportView from './views/LearningRecordImportView.vue'
 import LearningRecordShareVerifyView from './views/LearningRecordShareVerifyView.vue'
 // accessibility-conformance-statement: the toegankelijkheidsverklaring
@@ -95,6 +150,10 @@ import LearniqLearnerHome from './views/LearniqLearnerHome.vue'
 import LessonComposer from './views/LessonComposer.vue'
 import LessonPlayer from './views/LessonPlayer.vue'
 import MarkSubmissionView from './views/MarkSubmissionView.vue'
+// personal-timetable: the signed-in user's own week view over Session objects.
+import MyElectives from './views/MyElectives.vue'
+// assessment-course-evaluation-answer-page: a learner answers their course evaluations.
+import MyEvaluationsView from './views/MyEvaluationsView.vue'
 // portable-learning-record: the three genuine new custom views this change
 // adds — the learner's aggregate dashboard + export/share actions, the
 // coordinator's prior-record upload + live coverage report, and the public
@@ -102,9 +161,8 @@ import MarkSubmissionView from './views/MarkSubmissionView.vue'
 // LearningRecordExport/LearningRecordShare/LearningRecordImport screen is a
 // declarative manifest index/detail page.
 import MyLearningRecordView from './views/MyLearningRecordView.vue'
-// personal-timetable: the signed-in user's own week view over Session objects.
 import MyTimetable from './views/MyTimetable.vue'
-import OrderPaymentPanel from './views/OrderPaymentPanel.vue'
+import MyWorkGroups from './views/MyWorkGroups.vue'
 import PeerReviewMarkingView from './views/PeerReviewMarkingView.vue'
 import PeopleDashboard from './views/PeopleDashboard.vue'
 // eportfolio: the learner's evidence-picker portfolio builder and the
@@ -117,6 +175,7 @@ import ProctoringReviewQueue from './views/ProctoringReviewQueue.vue'
 // the chronological DossierNote/BehaviourIncident/WellbeingCheckIn +
 // LearningPlan/SupportRequest/DeliberationRecord merge for one learner.
 import PupilDossierTimelineView from './views/PupilDossierTimelineView.vue'
+import QtiImportView from './views/QtiImportView.vue'
 // report-card-composer: the rapportvergadering cohort-wide review grid
 // (mirrors GradebookView's "no manifest page can render a cohort grid"
 // precedent) — the ComposeReportPeriodModal dialog it hosts is imported
@@ -124,10 +183,19 @@ import PupilDossierTimelineView from './views/PupilDossierTimelineView.vue'
 // as procest's src/dialogs/*.vue shape, not a routed page).
 import RapportvergaderingReviewView from './views/RapportvergaderingReviewView.vue'
 import RegulationDetailPage from './views/RegulationDetailPage.vue'
+import ReissueCertificatesView from './views/ReissueCertificatesView.vue'
+import RollCallView from './views/RollCallView.vue'
 import RolloverWizard from './views/RolloverWizard.vue'
+// timetabling-room-utilisation: the room use report under Reports.
+import RoomUtilisationReport from './views/RoomUtilisationReport.vue'
 import SelfAssessmentView from './views/SelfAssessmentView.vue'
+import SignatureView from './views/SignatureView.vue'
 import SkillsGapDashboard from './views/SkillsGapDashboard.vue'
+// timetabling-standby-slots: the standby planning grid.
+import StandbyPlanning from './views/StandbyPlanning.vue'
 import SubjectChoicePicker from './views/SubjectChoicePicker.vue'
+import SubmitExcuseView from './views/SubmitExcuseView.vue'
+import SubmitWorkView from './views/SubmitWorkView.vue'
 import TakeAssessmentView from './views/TakeAssessmentView.vue'
 // timetabling-and-substitution: the one genuine new routed custom view this
 // change adds — the scheduling-coordinator's TimetableConflict review queue.
@@ -136,6 +204,8 @@ import TakeAssessmentView from './views/TakeAssessmentView.vue'
 // TimetableConflict, and ExamAccommodation index/detail pages are declarative
 // manifest pages.
 import TimetableConflictQueue from './views/TimetableConflictQueue.vue'
+// timetabling-visibility-rules: other timetables within the school's policy.
+import TimetableLookup from './views/TimetableLookup.vue'
 
 /**
  * Wrap a Vue component into the v2 registry shape required by CnAppRoot's
@@ -174,20 +244,61 @@ export default {
 	//     to keep full width. ---
 	FlowDetailSidebar: page(FlowDetailSidebar),
 
+	// --- Shared @conduction/nextcloud-vue components named directly by
+	//     type:"custom" manifest pages (registry-component-fix; see the
+	//     import comment above). Keyed by the component's own export name,
+	//     matching each page's `component` string verbatim. ---
+	CnDataMatrix: page(CnDataMatrix),
+	CnExportWizard: page(CnExportWizard),
+	CnRelationshipGraph: page(CnRelationshipGraph),
+	CnRichSubmitDialog: page(CnRichSubmitDialog),
+	CnSignatureCapture: page(CnSignatureCapture),
+	CnStructuredDocReview: page(CnStructuredDocReview),
+	CnTimelineView: page(CnTimelineView),
+	CnWizardDialog: page(CnWizardDialog),
+	// learniq#947
+	AttendanceRegisterView: page(AttendanceRegisterView),
+	RollCallView: page(RollCallView),
+	BulkEnrolView: page(BulkEnrolView),
+	CheckInPage: page(CheckInPage),
+	CourseCatalogue: page(CourseCatalogue),
+	CohortGradebookView: page(CohortGradebookView),
+	CohortTimetableView: page(CohortTimetableView),
+	ExportRequestView: page(ExportRequestView),
+	LearningPlanEditorView: page(LearningPlanEditorView),
+	QtiImportView: page(QtiImportView),
+	SignatureView: page(SignatureView),
+	StandbyPlanning: page(StandbyPlanning),
+	SubmitExcuseView: page(SubmitExcuseView),
+	TimetableLookup: page(TimetableLookup),
+	SubmitWorkView: page(SubmitWorkView),
+
 	AdmissionsReviewBoard: page(AdmissionsReviewBoard),
+	AssessmentScoringView: page(AssessmentScoringView),
 	BookConferenceSlotsView: page(BookConferenceSlotsView),
 	BsaRiskDashboard: page(BsaRiskDashboard),
 	ConferenceScheduleBoard: page(ConferenceScheduleBoard),
+	ContactHoursReport: page(ContactHoursReport),
 	CourseBuilder: page(CourseBuilder),
 	CoursePackageImportView: page(CoursePackageImportView),
+	DisplayScreenAddressView: page(DisplayScreenAddressView),
+	ElectiveRosterView: page(ElectiveRosterView),
+	EnrolmentForecastView: page(EnrolmentForecastView),
+	EvaluationCampaignResultsView: page(EvaluationCampaignResultsView),
+	MyEvaluationsView: page(MyEvaluationsView),
 	CourseQualityReport: page(CourseQualityReport),
+	CurriculumCoverageMatrixView: page(CurriculumCoverageMatrixView),
 	DashboardAdmin: page(DashboardAdmin),
 	DashboardTeacher: page(DashboardTeacher),
 	DashboardStudent: page(DashboardStudent),
 	ExamCaseDossierView: page(ExamCaseDossierView),
+	ExternalTrainingBulkRecordView: page(ExternalTrainingBulkRecordView),
 	GradeImpactDetail: page(GradeImpactDetail),
 	GroupPlanSubgroupLearnerContext: page(GroupPlanSubgroupLearnerContext),
 	GroupTrendHeatmap: page(GroupTrendHeatmap),
+	HourPlanActivities: page(HourPlanActivities),
+	HourPlanEditor: page(HourPlanEditor),
+	RoomUtilisationReport: page(RoomUtilisationReport),
 	ItemAnalysisView: page(ItemAnalysisView),
 	ItemAuthorView: page(ItemAuthorView),
 	LeaderboardView: page(LeaderboardView),
@@ -197,9 +308,13 @@ export default {
 	LessonComposer: page(LessonComposer),
 	LessonPlayer: page(LessonPlayer),
 	MarkSubmissionView: page(MarkSubmissionView),
+	ReissueCertificatesView: page(ReissueCertificatesView),
+	CoursePreviewView: page(CoursePreviewView),
+	MyWorkGroups: page(MyWorkGroups),
+	AllocateMarkersView: page(AllocateMarkersView),
 	MyLearningRecordView: page(MyLearningRecordView),
+	MyElectives: page(MyElectives),
 	MyTimetable: page(MyTimetable),
-	OrderPaymentPanel: page(OrderPaymentPanel),
 	PeerReviewMarkingView: page(PeerReviewMarkingView),
 	PeopleDashboard: page(PeopleDashboard),
 	PortfolioBuilder: page(PortfolioBuilder),
@@ -219,6 +334,20 @@ export default {
 	SubjectChoicePicker: page(SubjectChoicePicker),
 	TakeAssessmentView: page(TakeAssessmentView),
 	TimetableConflictQueue: page(TimetableConflictQueue),
+
+	// --- Body sections (manifest `config.bodyWidgets`), resolved by
+	//     CnBodySections. Not grid widgets, so not counted by the
+	//     custom-widget ratchet. ---
+	AssignmentHandInStatus: {
+		kind: 'section',
+		component: AssignmentHandInStatus,
+		_note: 'Hand-in status on AssignmentDetail: the cohort roster minus the learners who handed in, split into started and not started, overdue after dueAt. Staff only; self-fetches assignment, cohort(s), submissions and learner names.',
+	},
+	AssignmentPeerReviewAllocation: {
+		kind: 'section',
+		component: AssignmentPeerReviewAllocation,
+		_note: 'Peer review on AssignmentDetail: states the strategy and reviewers per submission and, unless allocation is manual, posts to /api/peer-review/{id}/allocate and reports the counts. Staff only, and only when peerReviewEnabled.',
+	},
 
 	// --- Shared library widgets registered under manifest widget keys (ADR-036). ---
 	'audit-trail': {

@@ -4,7 +4,7 @@
  * Gate-19 e2e coverage — student-analytics spec UI scenario.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
+ *   @e2e openspec/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
  *
  * EngagementScore recompute, the EngagementRiskThreshold/EngagementRiskFlag
  * detection + idempotency, and the "no AI/ML call" guarantee are all
@@ -37,7 +37,7 @@ const GROUP_TREND_HEATMAP_URL =
 const GroupTrendHeatmap = GROUP_TREND_HEATMAP_URL
 
 test.describe('learning-progress-and-analytics — Group trend heat map', () => {
-	// @e2e openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
+	// @e2e openspec/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
 	test('Group trend heat map renders without a fatal error', async ({
 		loggedInPage: page,
 	}) => {

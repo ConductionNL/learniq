@@ -19,10 +19,10 @@
     - GET  /api/objects/learniq/portfolio-entry?filters[portfolioId]=:id
     - GET  /api/objects/learniq/Submission?filters[learnerIds]=:learnerId
     - GET  /api/objects/learniq/werkproces-assessment?filters[...]
-    - GET  /api/objects/learniq/external-training-record?filters[learnerId]=:learnerId
-    - GET  /api/objects/learniq/Credential?filters[learnerId]=:learnerId
+    - GET  /api/objects/learniq/external-training-record?filters[learnerUserId]=:learnerId
+    - GET  /api/objects/learniq/Credential?filters[learnerUserId]=:learnerId
     - POST /api/objects/learniq/portfolio-entry
-    - POST /api/objects/learniq/Portfolio/:id/transition/submit
+    - POST /api/objects/:id/transition           ({ action: 'submit' })
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView.vue's existing shape.
@@ -30,9 +30,9 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
-  @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-portfolioentry-references-existing-evidence-objects-via-per-kind-fields-never-a-polymorphic-ref
-  @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
+  @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+  @spec openspec/specs/eportfolio/spec.md#requirement-portfolioentry-references-existing-evidence-objects-via-per-kind-fields-never-a-polymorphic-ref
+  @spec openspec/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
 -->
 
 <template>
@@ -109,7 +109,7 @@
 						class="portfolio-builder__entry-item">
 						<span class="portfolio-builder__entry-kind">{{
 							/**
-							 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+							 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 							 */
 							evidenceKindLabel(entry.evidenceKind)
 						}}</span>
@@ -295,6 +295,7 @@
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'PortfolioBuilder',
@@ -342,7 +343,7 @@ export default {
 		 * The governing PortfolioTemplate's sections, or an empty array when untemplated.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		sections() {
 			return this.template?.sections ?? []
@@ -352,7 +353,7 @@ export default {
 		 * Whether the add-entry form has enough data to submit.
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		canAddEntry() {
 			if (this.newEntry.evidenceKind === 'reflection') {
@@ -374,7 +375,7 @@ export default {
 		 * not offered").
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		canSubmit() {
 			return (
@@ -392,7 +393,7 @@ export default {
 			 *
 			 * @param {string} newId New portfolio UUID
 			 * @return {Promise<void>}
-			 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+			 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 			 */
 			async handler(newId) {
 				if (newId) {
@@ -410,7 +411,7 @@ export default {
 		 *
 		 * @param {string} portfolioId Portfolio UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadData(portfolioId) {
 			this.loading = true
@@ -462,7 +463,7 @@ export default {
 		 * @param {string} schema OR schema PascalCase key (matches the object-API path convention).
 		 * @param {string} objId  Object UUID.
 		 * @return {Promise<object>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async fetchObject(schema, objId) {
 			const url = generateUrl(
@@ -496,7 +497,7 @@ export default {
 		 * @param {string} schema OR schema PascalCase key.
 		 * @param {string} query  Pre-built query string (already URL-encoded).
 		 * @return {Promise<Array<object>>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async fetchList(schema, query) {
 			const url = generateUrl(
@@ -517,7 +518,7 @@ export default {
 		 *
 		 * @param {string} portfolioId Portfolio UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadEntries(portfolioId) {
 			this.entries = await this.fetchList(
@@ -532,7 +533,7 @@ export default {
 		 * Never a free-text UUID field (spec requirement).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadPickerOptions() {
 			const uid = getCurrentUser()?.uid ?? ''
@@ -567,7 +568,9 @@ export default {
 				} else if (kind === 'external-training-record') {
 					const rows = await this.fetchList(
 						kind,
-						`filters[learnerId]=${uid}&_limit=100`,
+						// ExternalTrainingRecord.learnerId is the LearnerProfile
+						// uuid; the learner's user id is on learnerUserId.
+						`filters[learnerUserId]=${uid}&_limit=100`,
 					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
@@ -576,7 +579,9 @@ export default {
 				} else if (kind === 'credential') {
 					const rows = await this.fetchList(
 						'Credential',
-						`filters[learnerId]=${uid}&_limit=100`,
+						// Credential.learnerId is the LearnerProfile uuid; the
+						// learner's user id is on learnerUserId.
+						`filters[learnerUserId]=${uid}&_limit=100`,
 					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
@@ -596,7 +601,7 @@ export default {
 		 * Re-load picker options when the evidence-kind selector changes.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async onEvidenceKindChange() {
 			this.newEntry.referenceId = ''
@@ -620,7 +625,7 @@ export default {
 		 *
 		 * @param {string} sectionId Section identifier.
 		 * @return {string}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		sectionLabel(sectionId) {
 			return (
@@ -658,7 +663,7 @@ export default {
 		 * duplicating the referenced object's own field values.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async addEntry() {
 			if (!this.portfolio) {
@@ -733,16 +738,14 @@ export default {
 		 * generic error.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async submitPortfolio() {
 			this.submitting = true
 			this.submitError = null
 
 			try {
-				const url = generateUrl(
-					`/apps/openregister/api/objects/learniq/Portfolio/${this.id}/transition/submit`,
-				)
+				const url = generateUrl(objectTransitionUrl(this.id))
 				const resp = await fetch(url, {
 					method: 'POST',
 					headers: {
@@ -750,7 +753,7 @@ export default {
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({}),
+					body: JSON.stringify({ action: 'submit' }),
 				})
 				if (resp.status === 422) {
 					this.submitError = this.t(

@@ -33,8 +33,8 @@
  too) but never over-inclusive (never leaks internals to an unauthorised
  viewer). Flagged here rather than silently assumed complete.
 
- @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
- @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-frontend-is-declarative-with-one-shared-custom-detail-view
+ @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+ @spec openspec/specs/exam-board/spec.md#requirement-frontend-is-declarative-with-one-shared-custom-detail-view
 -->
 
 <template>
@@ -338,6 +338,7 @@
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'ExamCaseDossierView',
@@ -391,7 +392,7 @@ export default {
 		 * real `examboard` membership flag via loadState.
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
 		 */
 		canSeeInternals() {
 			return !!getCurrentUser()?.isAdmin
@@ -484,20 +485,20 @@ export default {
 		 * @param {object} payload Fields to submit alongside the transition (read by
 		 *                         the server-side guard as part of the transitioning object).
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
 		 */
 		async transition(action, payload = {}) {
 			this.saving = true
 			this.saveError = null
 			try {
-				const resp = await fetch(this.objectUrl(`/transition/${action}`), {
+				const resp = await fetch(generateUrl(objectTransitionUrl(this.id)), {
 					method: 'POST',
 					headers: {
 						'OCS-APIREQUEST': 'true',
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify(payload),
+					body: JSON.stringify({ action, data: payload }),
 				})
 				if (!resp.ok) {
 					throw new Error(`Transition '${action}' failed: ${resp.status}`)
@@ -519,14 +520,14 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
 		 */
 		startAssessment() {
 			return this.transition('startAssessment')
 		},
 
 		/**
-		 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
 		 */
 		grantExemption() {
 			return this.transition('grant', {
@@ -543,14 +544,14 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
 		 */
 		withdrawExemption() {
 			return this.transition('withdraw')
 		},
 
 		/**
-		 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
 		 */
 		scheduleHearing() {
 			return this.transition('scheduleHearing', {
@@ -559,14 +560,14 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
 		 */
 		holdHearing() {
 			return this.transition('holdHearing')
 		},
 
 		/**
-		 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
 		 */
 		decideFraudCase() {
 			const payload = {
@@ -582,7 +583,7 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
 		 */
 		dismissFraudCase() {
 			return this.transition('dismiss')

@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
+ * @spec openspec/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ use OCA\OpenRegister\Service\ObjectService;
  * Session window plus the Cohort, Room, Assessment and TimetableConflict
  * lookups it needs.
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
+ * @spec openspec/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
  */
 class SessionWindowLoader {
 
@@ -83,7 +83,7 @@ class SessionWindowLoader {
 	 *
 	 * @return array<int,int|string> Distinct day-bucket values.
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
+	 * @spec openspec/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
 	 */
 	public function dayBuckets(array $sessions): array {
 		$buckets = [];
@@ -117,7 +117,7 @@ class SessionWindowLoader {
 	 *
 	 * @return array<string,array<string,mixed>> Window sessions keyed by id, lifecycle-filtered.
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-two-sessions-imported-for-the-same-room-at-overlapping-times-are-flagged-not-auto-moved
+	 * @spec openspec/specs/timetabling/spec.md#scenario-two-sessions-imported-for-the-same-room-at-overlapping-times-are-flagged-not-auto-moved
 	 */
 	public function loadWindow(array $sessions, array $buckets, string $tenantId): array {
 		$window = [];
@@ -139,9 +139,13 @@ class SessionWindowLoader {
 
 			$results = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::SESSION_SCHEMA,
-					'filters' => $filters,
+					'filters' => array_merge(
+						$filters,
+						[
+							'register' => self::LEARNIQ_REGISTER,
+							'schema' => self::SESSION_SCHEMA,
+						]
+					),
 					'limit' => 2000,
 				]
 			);
@@ -167,7 +171,7 @@ class SessionWindowLoader {
 	 *
 	 * @return array<int,array<string,mixed>> The open conflict rows.
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-re-scanning-an-unchanged-window-does-not-create-duplicate-conflicts
+	 * @spec openspec/specs/timetabling/spec.md#scenario-re-scanning-an-unchanged-window-does-not-create-duplicate-conflicts
 	 */
 	public function loadOpenConflicts(string $tenantId): array {
 		$filters = ['lifecycle' => 'open'];
@@ -177,9 +181,13 @@ class SessionWindowLoader {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::TIMETABLE_CONFLICT_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::TIMETABLE_CONFLICT_SCHEMA,
+					]
+				),
 				'limit' => 5000,
 			]
 		);
@@ -201,7 +209,7 @@ class SessionWindowLoader {
 	 *
 	 * @return bool True when a linked Assessment exists.
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-an-exam-session-exceeding-room-capacity-is-flagged-as-room-capacity-exceeded
+	 * @spec openspec/specs/timetabling/spec.md#scenario-an-exam-session-exceeding-room-capacity-is-flagged-as-room-capacity-exceeded
 	 */
 	public function hasLinkedAssessment(string $sessionId, string $tenantId, array &$cache): bool {
 		if ($sessionId === '') {
@@ -219,9 +227,13 @@ class SessionWindowLoader {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ASSESSMENT_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::ASSESSMENT_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -252,7 +264,7 @@ class SessionWindowLoader {
 	 *
 	 * @return array<string,mixed>|null The cohort data, or null.
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
+	 * @spec openspec/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
 	 */
 	public function loadCohort(string $cohortId, string $tenantId, array &$cache): ?array {
 		if ($cohortId === '') {
@@ -263,16 +275,21 @@ class SessionWindowLoader {
 			return $cache[$cohortId];
 		}
 
-		$filters = ['id' => $cohortId];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::COHORT_SCHEMA,
-				'filters' => $filters,
+				'ids' => [$cohortId],
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::COHORT_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -298,7 +315,7 @@ class SessionWindowLoader {
 	 *
 	 * @return array<string,mixed>|null The room data, or null.
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-an-exam-session-exceeding-room-capacity-is-flagged-as-room-capacity-exceeded
+	 * @spec openspec/specs/timetabling/spec.md#scenario-an-exam-session-exceeding-room-capacity-is-flagged-as-room-capacity-exceeded
 	 */
 	public function loadRoom(string $roomId, string $tenantId, array &$cache): ?array {
 		if ($roomId === '') {
@@ -309,16 +326,21 @@ class SessionWindowLoader {
 			return $cache[$roomId];
 		}
 
-		$filters = ['id' => $roomId];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ROOM_SCHEMA,
-				'filters' => $filters,
+				'ids' => [$roomId],
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::ROOM_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);

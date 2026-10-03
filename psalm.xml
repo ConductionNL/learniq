@@ -33,6 +33,26 @@
              container. Real classes live in openregister/lib/Service/. -->
         <file name="tests/Stubs/Service/TenantKeyService.php" preloadClasses="true" />
         <file name="tests/Stubs/Service/TalkLinkService.php" preloadClasses="true" />
+        <file name="tests/Stubs/Service/FileService.php" preloadClasses="true" />
+        <!-- OpenRegister's store plane (ADR-080): discovery, publish and the
+             publish authorizer, used by learniq's course store
+             (lesson-sharing-via-store-plane, store-publish-through-plane). The
+             plane owns the SSRF guard, so learniq no longer stubs SecurityService. -->
+        <file name="tests/Stubs/AppHost/Service/StoreDescriptor.php" preloadClasses="true" />
+        <file name="tests/Stubs/AppHost/Service/GenericStoreService.php" preloadClasses="true" />
+        <file name="tests/Stubs/AppHost/Store/StoreActionAuthorizer.php" preloadClasses="true" />
+        <!-- OpenRegister's lifecycle guard contract. A `requires` guard must
+             implement the interface or OpenRegister refuses to run it. -->
+        <file name="tests/Stubs/Lifecycle/GuardResult.php" preloadClasses="true" />
+        <file name="tests/Stubs/Lifecycle/LifecycleGuardInterface.php" preloadClasses="true" />
+        <!-- OpenRegister's lifecycle action contract: the transition `actions`
+             that carry the writes the guards used to make (learniq#983). -->
+        <file name="tests/Stubs/Lifecycle/LifecycleActionInterface.php" preloadClasses="true" />
+        <!-- Integriq's connection-registry event (adopt-connection-registry).
+             ConnectionReportService names it by string behind class_exists
+             (ADR-041). Declaration-only stub, so psalm sees the constructor the
+             service builds instead of reading the guarded branch as dead. -->
+        <file name="tests/Stubs/Integriq/Event/ConnectionStatusReportedEvent.php" preloadClasses="true" />
     </stubs>
     <issueHandlers>
         <UndefinedDocblockClass errorLevel="suppress"/>
@@ -86,18 +106,26 @@
                 <referencedClass name="OCA\OpenRegister\Db\ObjectEntity"/>
                 <referencedClass name="OCA\OpenRegister\Db\RegisterMapper"/>
                 <referencedClass name="OCA\OpenRegister\Db\SchemaMapper"/>
+                <!-- retired-schemas-prune: OpenRegister's schema entity and its
+                     cascade teardown, resolved lazily from the container by
+                     Repair\PruneRetiredSchemas. Real classes in openregister/lib. -->
+                <referencedClass name="OCA\OpenRegister\Db\Schema"/>
+                <referencedClass name="OCA\OpenRegister\Service\SchemaDeletionService"/>
                 <referencedClass name="OCA\OpenRegister\Event\DeepLinkRegistrationEvent"/>
                 <referencedClass name="OCA\OpenRegister\Event\ObjectCreatingEvent"/>
                 <referencedClass name="OCA\OpenRegister\Event\ObjectCreatedEvent"/>
                 <referencedClass name="OCA\OpenRegister\Event\ObjectUpdatingEvent"/>
                 <referencedClass name="OCA\OpenRegister\Event\ObjectUpdatedEvent"/>
                 <referencedClass name="OCA\OpenRegister\Event\ObjectDeletedEvent"/>
+                <referencedClass name="OCA\OpenRegister\Event\ObjectDeletingEvent"/>
                 <referencedClass name="OCA\OpenRegister\Service\ObjectService"/>
                 <referencedClass name="OCA\OpenRegister\Service\ConfigurationService"/>
                 <referencedClass name="OCA\OpenRegister\Service\RegisterService"/>
                 <referencedClass name="OCA\OpenRegister\Service\FileService"/>
                 <referencedClass name="OCA\OpenRegister\Service\CalendarEventService"/>
                 <referencedClass name="OCA\OpenRegister\Mcp\IMcpToolProvider"/>
+                <referencedClass name="OCA\OpenRegister\Mcp\IMcpScannableServices"/>
+                <referencedClass name="OCA\OpenRegister\Mcp\Attribute\McpTool"/>
                 <referencedClass name="OCA\OpenRegister\Event\ObjectTransitionedEvent"/>
                 <referencedClass name="OCA\OpenRegister\Service\Lifecycle\TransitionEngine"/>
                 <referencedClass name="OCA\OpenRegister\Db\AuditTrailMapper"/>
@@ -124,6 +152,13 @@
                 <referencedClass name="GuzzleHttp\Exception\GuzzleException"/>
             </errorLevel>
         </UndefinedClass>
+        <!-- OpenRegister's #[McpTool] attribute on the agent tools (hermiq-ai-tooling);
+             the class exists once openregister is installed. -->
+        <UndefinedAttributeClass>
+            <errorLevel type="suppress">
+                <referencedClass name="OCA\OpenRegister\Mcp\Attribute\McpTool"/>
+            </errorLevel>
+        </UndefinedAttributeClass>
         <UndefinedMagicMethod errorLevel="suppress"/>
         <UnusedClass errorLevel="suppress"/>
         <PossiblyUnusedMethod errorLevel="suppress"/>

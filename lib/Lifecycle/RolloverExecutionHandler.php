@@ -32,13 +32,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-year-rollover/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\RolloverExecutionService;
@@ -51,7 +52,7 @@ use Throwable;
 /**
  * Runs the rollover when a RolloverPlan transitions to `executing`.
  *
- * @spec openspec/changes/school-year-rollover/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
 class RolloverExecutionHandler implements IEventListener {
 	/**
@@ -71,12 +72,14 @@ class RolloverExecutionHandler implements IEventListener {
 	 * @param RolloverService $rolloverService Rollover preview logic (the dry-run gate).
 	 * @param RolloverExecutionService $executionService Rollover execution logic (the writes).
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly RolloverService $rolloverService,
 		private readonly RolloverExecutionService $executionService,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -87,15 +90,15 @@ class RolloverExecutionHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER
-			|| $event->getSchema() !== self::SCHEMA
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
+			|| $this->schemas->eventSchema(event: $event) !== self::SCHEMA
 			|| $event->getTo() !== 'executing'
 		) {
 			return;

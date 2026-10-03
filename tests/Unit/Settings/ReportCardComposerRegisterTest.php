@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/tasks.md#task-10.4
+ * @spec openspec/changes/archive/2026-07-16-report-card-composer/tasks.md#task-10.4
  */
 
 declare(strict_types=1);
@@ -78,7 +78,7 @@ class ReportCardComposerRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-lock-date-is-enforced-by-a-materialised-calculation-and-guards-not-an-automatic-transition
+	 * @spec openspec/specs/report-card/spec.md#requirement-lock-date-is-enforced-by-a-materialised-calculation-and-guards-not-an-automatic-transition
 	 */
 	public function testReportPeriodIsLockedCalculationShape(): void {
 		$period = $this->config['components']['schemas']['ReportPeriod'];
@@ -105,7 +105,7 @@ class ReportCardComposerRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-reminder-notification-fires-once-the-lock-date-passes-without-auto-transitioning
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-reminder-notification-fires-once-the-lock-date-passes-without-auto-transitioning
 	 */
 	public function testReportPeriodLockDatePassedIsScheduledNotificationOnly(): void {
 		$period = $this->config['components']['schemas']['ReportPeriod'];
@@ -133,7 +133,7 @@ class ReportCardComposerRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-the-rapportvergadering-review-lifecycle-gates-parent-visibility-behind-a-finalise-step
+	 * @spec openspec/specs/report-card/spec.md#requirement-the-rapportvergadering-review-lifecycle-gates-parent-visibility-behind-a-finalise-step
 	 */
 	public function testReportCardLifecycleTransitions(): void {
 		$transitions = $this->config['components']['schemas']['ReportCard']['x-openregister-lifecycle']['transitions'];
@@ -193,7 +193,7 @@ class ReportCardComposerRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+	 * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
 	 */
 	public function testGradeEntryPublishRepublishRequireReportPeriodLockGuard(): void {
 		$gradeEntry = $this->config['components']['schemas']['GradeEntry'];

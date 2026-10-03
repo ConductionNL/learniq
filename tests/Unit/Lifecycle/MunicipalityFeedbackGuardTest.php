@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/verzuim-report-composer/tasks.md#task-2.2
+ * @spec openspec/changes/archive/2026-07-13-verzuim-report-composer/tasks.md#task-2.2
  */
 
 declare(strict_types=1);
@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\Learniq\Lifecycle\MunicipalityFeedbackGuard;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -31,8 +32,9 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
 /**
- * Tests for MunicipalityFeedbackGuard::check() — the DataExchangeJob
- * recordMunicipalityFeedback (succeeded → succeeded) self-loop transition.
+ * Tests for MunicipalityFeedbackGuard::check() — the AttendanceFlag
+ * recordMunicipalityFeedback (reported → reported) self-loop transition
+ * (moved off DataExchangeJob by data-exchange-to-integriq).
  */
 class MunicipalityFeedbackGuardTest extends TestCase {
 	/**
@@ -60,130 +62,83 @@ class MunicipalityFeedbackGuardTest extends TestCase {
 	}//end makeGuard()
 
 	/**
-	 * A coordinator recording feedback on a leerplicht job is allowed, and
-	 * recordedBy/receivedAt are stamped server-side into the payload.
+	 * The flag as the guard would see it: lifecycle stays `reported` (a
+	 * self-loop) and the `municipalityFeedback` input is merged in.
 	 *
-	 * @return void
+	 * @param string $lifecycle The flag's state.
 	 *
-	 * @spec openspec/changes/verzuim-report-composer/specs/data-exchange/spec.md#scenario-coordinator-records-the-municipalitys-route-decision
+	 * @return array<string,mixed>
 	 */
-	public function testCoordinatorOnLeerplichtJobIsAllowedAndStamped(): void {
-		$guard = $this->makeGuard(['coordinator']);
-		$context = [
-			'object' => ['id' => 'job-1', 'target' => 'leerplicht'],
-			'actor' => 'actor-1',
-			'payload' => ['municipalityFeedback' => ['masRoute' => 'jeugdhulp', 'note' => 'Route toegewezen.']],
+	private function job(string $lifecycle = 'reported'): array {
+		return [
+			'id' => 'flag-1',
+			'lifecycle' => $lifecycle,
+			'municipalityFeedback' => ['masRoute' => 'jeugdhulp', 'note' => 'Route toegewezen.'],
 		];
-
-		self::assertTrue($guard->check($context));
-		self::assertSame('actor-1', $context['payload']['municipalityFeedback']['recordedBy']);
-		self::assertNotEmpty($context['payload']['municipalityFeedback']['receivedAt']);
-		self::assertSame('jeugdhulp', $context['payload']['municipalityFeedback']['masRoute']);
-
-	}//end testCoordinatorOnLeerplichtJobIsAllowedAndStamped()
+	}//end job()
 
 	/**
-	 * An admin recording feedback is also allowed.
+	 * OpenRegister's registry refuses a guard that does not implement its interface.
+	 *
+	 * @return void
+	 */
+	public function testImplementsTheOpenRegisterGuardInterface(): void {
+		self::assertInstanceOf(LifecycleGuardInterface::class, $this->makeGuard([]));
+
+	}//end testImplementsTheOpenRegisterGuardInterface()
+
+	/**
+	 * A coordinator on a leerplicht job is allowed. recordedBy/receivedAt are
+	 * MunicipalityFeedbackStampListener's write (learniq#983), see
+	 * tests/Unit/Listener/MunicipalityFeedbackStampListenerTest.php.
+	 *
+	 * @return void
+	 */
+	public function testCoordinatorOnLeerplichtJobIsAllowed(): void {
+		self::assertTrue($this->makeGuard(['coordinators'])->check($this->job(), 'recordMunicipalityFeedback', 'actor-1')->isAllowed());
+
+	}//end testCoordinatorOnLeerplichtJobIsAllowed()
+
+	/**
+	 * An admin on a leerplicht job is allowed.
 	 *
 	 * @return void
 	 */
 	public function testAdminOnLeerplichtJobIsAllowed(): void {
-		$guard = $this->makeGuard(['admin']);
-		$context = [
-			'object' => ['id' => 'job-1', 'target' => 'leerplicht'],
-			'actor' => 'actor-1',
-			'payload' => [],
-		];
-
-		self::assertTrue($guard->check($context));
+		self::assertTrue($this->makeGuard(['admin'])->check($this->job(), 'recordMunicipalityFeedback', 'actor-1')->isAllowed());
 
 	}//end testAdminOnLeerplichtJobIsAllowed()
 
 	/**
-	 * A caller-supplied recordedBy is overwritten with the actual actor —
-	 * never trust a caller-supplied identity for this compliance field.
-	 *
-	 * @return void
-	 */
-	public function testCallerSuppliedRecordedByIsOverwritten(): void {
-		$guard = $this->makeGuard(['coordinator']);
-		$context = [
-			'object' => ['id' => 'job-1', 'target' => 'leerplicht'],
-			'actor' => 'actor-1',
-			'payload' => ['municipalityFeedback' => ['recordedBy' => 'someone-else']],
-		];
-
-		self::assertTrue($guard->check($context));
-		self::assertSame('actor-1', $context['payload']['municipalityFeedback']['recordedBy']);
-
-	}//end testCallerSuppliedRecordedByIsOverwritten()
-
-	/**
-	 * A caller-supplied receivedAt is preserved (not overwritten) when present.
-	 *
-	 * @return void
-	 */
-	public function testCallerSuppliedReceivedAtIsPreserved(): void {
-		$guard = $this->makeGuard(['coordinator']);
-		$context = [
-			'object' => ['id' => 'job-1', 'target' => 'leerplicht'],
-			'actor' => 'actor-1',
-			'payload' => ['municipalityFeedback' => ['receivedAt' => '2026-01-01T00:00:00+00:00']],
-		];
-
-		self::assertTrue($guard->check($context));
-		self::assertSame('2026-01-01T00:00:00+00:00', $context['payload']['municipalityFeedback']['receivedAt']);
-
-	}//end testCallerSuppliedReceivedAtIsPreserved()
-
-	/**
-	 * A learner (no privileged group) is denied.
+	 * A user outside admin/coordinators is denied.
 	 *
 	 * @return void
 	 */
 	public function testUnauthorisedActorIsDenied(): void {
-		$guard = $this->makeGuard([]);
-		$context = [
-			'object' => ['id' => 'job-1', 'target' => 'leerplicht'],
-			'actor' => 'actor-1',
-			'payload' => [],
-		];
+		$result = $this->makeGuard([])->check($this->job(), 'recordMunicipalityFeedback', 'actor-1');
 
-		self::assertFalse($guard->check($context));
+		self::assertFalse($result->isAllowed());
+		self::assertNotSame('', (string)$result->getMessage());
 
 	}//end testUnauthorisedActorIsDenied()
 
 	/**
-	 * A non-leerplicht target (e.g. oso) is denied even for a coordinator —
-	 * municipalityFeedback only applies to leerplicht reports.
+	 * A flag that is not reported yet is denied.
 	 *
 	 * @return void
 	 */
 	public function testNonLeerplichtTargetIsDenied(): void {
-		$guard = $this->makeGuard(['coordinator']);
-		$context = [
-			'object' => ['id' => 'job-1', 'target' => 'oso'],
-			'actor' => 'actor-1',
-			'payload' => [],
-		];
-
-		self::assertFalse($guard->check($context));
+		self::assertFalse($this->makeGuard(['coordinators'])->check($this->job('in-handling'), 'recordMunicipalityFeedback', 'actor-1')->isAllowed());
 
 	}//end testNonLeerplichtTargetIsDenied()
 
 	/**
-	 * No actor in the transition context is denied.
+	 * No session user is denied.
 	 *
 	 * @return void
 	 */
 	public function testNoActorIsDenied(): void {
-		$guard = $this->makeGuard(['coordinator']);
-		$context = [
-			'object' => ['id' => 'job-1', 'target' => 'leerplicht'],
-			'payload' => [],
-		];
-
-		self::assertFalse($guard->check($context));
+		self::assertFalse($this->makeGuard(['coordinators'])->check($this->job(), 'recordMunicipalityFeedback', '')->isAllowed());
 
 	}//end testNoActorIsDenied()
 }//end class

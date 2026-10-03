@@ -6,17 +6,17 @@ description: Add programmes and cohorts so teachers can organise courses and bul
 
 # Set up your school structure
 
-Programmes group courses into a degree, a track or a year. Cohorts group learners into classes that move through courses together. Both are optional, but every Scholiq feature that does *bulk anything* (enrol a class, take cohort attendance, issue programme certificates) leans on them.
+Programmes group courses into a degree, a track or a year. Cohorts group learners into classes that move through courses together. Both are optional, but every Learniq feature that does *bulk anything* (enrol a class, take cohort attendance, issue programme certificates) leans on them.
 
 ## Goal
 
-By the end you will have at least one programme and one cohort in Scholiq, with members and a course attached, ready for teachers to use in [Create a course](../user/02-create-course.md) and [Enrol students](../user/03-enrol-students.md).
+By the end you will have at least one programme and one cohort in Learniq, with members and a course attached, ready for teachers to use in [Create a course](../user/02-create-course.md) and [Enrol students](../user/03-enrol-students.md).
 
 ## Prerequisites
 
-- You completed [Open Scholiq for the first time](../user/01-first-launch.md) and confirmed the OpenRegister back end is wired up.
-- Your account is in the *admin* group or has the Scholiq *Coordinator* role.
-- The learners you want to put into a cohort exist as **Learner Profiles** in Scholiq (run the SIS import or add them under **Learners → Add Item**).
+- You completed [Open Learniq for the first time](../user/01-first-launch.md) and confirmed the OpenRegister back end is wired up.
+- Your account is in the *admin* group or has the Learniq *Coordinator* role.
+- The learners you want to put into a cohort exist as **Learner Profiles** in Learniq (run the SIS import or add them under **Learners → Add Item**).
 
 ## Steps
 
@@ -36,9 +36,13 @@ By the end you will have at least one programme and one cohort in Scholiq, with 
 
    ![Cohort members tab](/screenshots/tutorials/admin/01-school-structure-04.png)
 
-5. Switch to the **Timetable** tab on the cohort to schedule the recurring sessions teachers will mark attendance against. Scholiq writes one session per recurrence into the cohort's *Sessions* list.
+5. Switch to the **Timetable** tab on the cohort to schedule the recurring sessions teachers will mark attendance against. Learniq writes one session per recurrence into the cohort's *Sessions* list.
 
    ![Cohort timetable](/screenshots/tutorials/admin/01-school-structure-05.png)
+
+## Record staff functions
+
+Open **People > Staff** and pick the functions each person holds, such as *Exam secretary*, *Career counsellor* or *Confidential counsellor*. A function tells colleagues who does what. It gives no access. What someone can open depends on their groups, which the Nextcloud admin sets.
 
 ## Verification
 

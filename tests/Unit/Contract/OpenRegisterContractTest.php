@@ -98,6 +98,22 @@ final class OpenRegisterContractTest extends TestCase {
 	}//end testObjectServiceFindAllSignatureIsUnchanged()
 
 	/**
+	 * The parameter list the portal assessment writes assume for
+	 * ObjectService::runAs(): the user first, then the operation.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
+	 */
+	public function testObjectServiceRunAsSignatureIsUnchanged(): void {
+		$this->assertParameterNames(
+			new ReflectionMethod(ObjectService::class, 'runAs'),
+			['user', 'operation']
+		);
+
+	}//end testObjectServiceRunAsSignatureIsUnchanged()
+
+	/**
 	 * The parameter list Learniq's mocks assume for ObjectService::saveObject().
 	 *
 	 * `$object` is the FIRST parameter. Learniq production code used to call

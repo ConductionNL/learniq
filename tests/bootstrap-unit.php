@@ -81,12 +81,6 @@ if (is_dir($serverTestsLib)) {
 	$loader->register(true);
 }
 
-// IMcpToolProvider stub — loaded when the openregister runtime (PR #1466) is absent.
-// This lets LearniqToolProvider unit tests run in standalone CI environments.
-if (interface_exists(\OCA\OpenRegister\Mcp\IMcpToolProvider::class) === false) {
-	include_once __DIR__ . '/Stubs/Mcp/IMcpToolProvider.php';
-}
-
 // ObjectEntity stub — loaded when the openregister runtime is absent.
 // Required by CredentialVerifyControllerTest to mock ObjectService::find().
 if (class_exists(\OCA\OpenRegister\Db\ObjectEntity::class) === false) {
@@ -161,8 +155,26 @@ if (interface_exists(\OC\Hooks\Emitter::class) === false) {
 	include_once __DIR__ . '/Stubs/Hooks/Emitter.php';
 }
 
+// Symfony HeaderUtils stub, as in tests/bootstrap.php: DataDownloadResponse needs it.
+if (class_exists(\Symfony\Component\HttpFoundation\HeaderUtils::class) === false) {
+	include_once __DIR__ . '/Stubs/Symfony/HeaderUtils.php';
+}
+
 // Test-support helpers. Deliberately required rather than registered in
 // composer `autoload-dev`: a dev-built vendor/ bakes autoload-dev into the
 // runtime classmap and can shadow real app classes instance-wide
 // (openregister#2036) — the same hazard the stub registration above avoids.
 require_once __DIR__ . '/Support/OrEntityFactory.php';
+require_once __DIR__ . '/Support/GuardVerdicts.php';
+require_once __DIR__ . '/Support/RegisterFaithfulStore.php';
+require_once __DIR__ . '/Support/CapturingLogger.php';
+require_once __DIR__ . '/Support/XapiDocumentsInMemory.php';
+
+// Integriq's connection-registry event (adopt-connection-registry).
+// ConnectionReportService sends it by string class name behind class_exists
+// (ADR-041), so learniq stays installable without integriq. The stub mirrors
+// hydra connection-registry design D6 verbatim and loads only when integriq's
+// real class is absent.
+if (class_exists('\\OCA\\Integriq\\Event\\ConnectionStatusReportedEvent') === false) {
+	require_once __DIR__ . '/Stubs/Integriq/Event/ConnectionStatusReportedEvent.php';
+}

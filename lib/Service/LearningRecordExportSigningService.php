@@ -4,9 +4,8 @@
  * Learniq Learning Record Export Signing Service
  *
  * Canonicalises (RFC 8785 JCS) and signs a LearningRecordExport bundle with
- * the tenant's existing RS256 keypair — the SAME `learniq.credential.signing
- * .{private,public}.{tenantId}` IAppConfig keys `KeyManagementService`
- * generates and `CredentialSigningService` already signs Credentials with.
+ * the tenant's existing RS256 keypair — the SAME IAppConfig keys
+ * (`SigningKeyConfigKey::forTenant()`) `KeyManagementService` generates and `CredentialSigningService` already signs Credentials with.
  * No new key material, no new crypto primitive: the canonicalisation +
  * signing routine is ported verbatim from `CredentialSigningService`
  * (design.md: "reuse or port CredentialSigningService's RFC 8785 JCS
@@ -32,7 +31,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-the-export-bundle-is-cryptographically-signed-and-its-artefact-retained
+ * @spec openspec/specs/portable-learning-record/spec.md#requirement-the-export-bundle-is-cryptographically-signed-and-its-artefact-retained
  */
 
 declare(strict_types=1);
@@ -46,23 +45,11 @@ use OCP\Security\ICrypto;
  * Signs and verifies a LearningRecordExport bundle with the tenant's
  * existing RS256 keypair.
  *
- * @spec openspec/changes/portable-learning-record/tasks.md#task-2-4
+ * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-4
  */
 class LearningRecordExportSigningService {
 
-	/**
-	 * App config key prefix for encrypted tenant private keys — identical to
-	 * `KeyManagementService::PRIVATE_KEY_PREFIX`/`CredentialSigningService
-	 * ::PRIVATE_KEY_PREFIX`.
-	 */
-	private const PRIVATE_KEY_PREFIX = 'learniq.credential.signing.private.';
 
-	/**
-	 * App config key prefix for public keys (plain) — identical to
-	 * `KeyManagementService::PUBLIC_KEY_PREFIX`/`CredentialSigningService
-	 * ::PUBLIC_KEY_PREFIX`.
-	 */
-	private const PUBLIC_KEY_PREFIX = 'learniq.credential.signing.public.';
 
 	/**
 	 * Constructor.
@@ -87,12 +74,12 @@ class LearningRecordExportSigningService {
 	 *
 	 * @return string|null DID string, or null when no key has been generated yet.
 	 *
-	 * @spec openspec/changes/portable-learning-record/tasks.md#task-2-4
+	 * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-4
 	 */
 	public function resolveIssuerDid(string $tenantId): ?string {
 		$publicKey = $this->appConfig->getValueString(
 			app: 'learniq',
-			key: self::PUBLIC_KEY_PREFIX . $tenantId,
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
 			default: ''
 		);
 
@@ -116,12 +103,12 @@ class LearningRecordExportSigningService {
 	 *
 	 * @return string|null Compact JWS string, or null when the key is absent / signing fails.
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-the-signature-verifies-against-the-tenant-s-existing-public-key
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-the-signature-verifies-against-the-tenant-s-existing-public-key
 	 */
 	public function sign(array $bundle, string $tenantId): ?string {
 		$encryptedPrivateKey = $this->appConfig->getValueString(
 			app: 'learniq',
-			key: self::PRIVATE_KEY_PREFIX . $tenantId,
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PRIVATE, tenantId: $tenantId),
 			default: ''
 		);
 
@@ -137,7 +124,7 @@ class LearningRecordExportSigningService {
 
 		$publicKeyPem = $this->appConfig->getValueString(
 			app: 'learniq',
-			key: self::PUBLIC_KEY_PREFIX . $tenantId,
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
 			default: ''
 		);
 
@@ -176,7 +163,7 @@ class LearningRecordExportSigningService {
 	 *
 	 * @return bool True when the signature is cryptographically valid.
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
+	 * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
 	 */
 	public function verify(string $jws, array $bundle, string $tenantId): bool {
 		$parts = explode('..', $jws, 2);
@@ -191,7 +178,7 @@ class LearningRecordExportSigningService {
 
 		$publicKeyPem = $this->appConfig->getValueString(
 			app: 'learniq',
-			key: self::PUBLIC_KEY_PREFIX . $tenantId,
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
 			default: ''
 		);
 		if ($publicKeyPem === '') {

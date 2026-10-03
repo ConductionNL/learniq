@@ -37,7 +37,7 @@ use OCP\IUser;
 /**
  * Resolves Learniq roles and dashboard views from Nextcloud group membership.
  *
- * @spec openspec/changes/fix-dead-role-gates/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit
+ * @spec openspec/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit
  */
 class DashboardRoleService {
 	/**
@@ -59,8 +59,17 @@ class DashboardRoleService {
 		'team-lead'              => 'team-leads',
 		'coordinator'            => 'coordinators',
 		'instructor'             => 'instructors',
+		'confidential-counsellor' => 'confidential-counsellors',
 		'guardian'               => 'guardians',
 	];
+
+	/**
+	 * The group of the confidential counsellor (vertrouwenspersoon). Ranked
+	 * below every staff role above, so a teacher who is also the
+	 * vertrouwenspersoon keeps the teacher menus; the confidential menu gates
+	 * on {@see isConfidentialCounsellor()} instead of the primary role.
+	 */
+	public const CONFIDENTIAL_COUNSELLOR_GROUP = 'confidential-counsellors';
 
 	/**
 	 * Constructor.
@@ -83,9 +92,10 @@ class DashboardRoleService {
 	 *
 	 * @param IUser $user The authenticated Nextcloud user.
 	 *
-	 * @return string One of: admin, compliance-officer, hr, administration-manager, team-lead, coordinator, instructor, guardian, learner.
+	 * @return string One of: admin, compliance-officer, hr, administration-manager, team-lead, coordinator,
+	 *                instructor, confidential-counsellor, guardian, learner.
 	 *
-	 * @spec openspec/changes/fix-dead-role-gates/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit
+	 * @spec openspec/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit
 	 */
 	public function resolvePrimaryRole(IUser $user): string {
 		if ($this->groupManager->isAdmin($user->getUID()) === true) {
@@ -102,6 +112,21 @@ class DashboardRoleService {
 	}//end resolvePrimaryRole()
 
 	/**
+	 * Whether the user holds the confidential counsellor function, i.e. is a
+	 * member of the confidential-counsellors group. Admins do not get it for
+	 * free: the confidential notes menu is for the function, not for IT.
+	 *
+	 * @param IUser $user The authenticated Nextcloud user.
+	 *
+	 * @return bool True when the user is in the confidential-counsellors group.
+	 *
+	 * @spec openspec/specs/confidential-counsel/spec.md#requirement-the-confidential-notes-menu-is-shown-to-confidential-counsellors-only
+	 */
+	public function isConfidentialCounsellor(IUser $user): bool {
+		return $this->groupManager->isInGroup($user->getUID(), self::CONFIDENTIAL_COUNSELLOR_GROUP) === true;
+	}//end isConfidentialCounsellor()
+
+	/**
 	 * Resolve the set of dashboard views the user may switch between.
 	 *
 	 * Every user can see the `student` view. Operational staff
@@ -115,7 +140,7 @@ class DashboardRoleService {
 	 *
 	 * @return string[] Ordered list of accessible views (subset of admin|teacher|student).
 	 *
-	 * @spec openspec/changes/fix-dead-role-gates/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit
+	 * @spec openspec/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit
 	 */
 	public function resolveViews(IUser $user): array {
 		$role = $this->resolvePrimaryRole(user: $user);
@@ -149,7 +174,7 @@ class DashboardRoleService {
 	 *
 	 * @return string One of: admin, teacher, student.
 	 *
-	 * @spec openspec/changes/fix-dashboards-settings-notifications/specs/dashboard/spec.md#requirement-per-resolved-role-default-dashboard
+	 * @spec openspec/changes/archive/2026-06-15-fix-dashboards-settings-notifications/specs/dashboard/spec.md#requirement-per-resolved-role-default-dashboard
 	 */
 	public function resolveDefaultView(IUser $user): string {
 		$views = $this->resolveViews(user: $user);

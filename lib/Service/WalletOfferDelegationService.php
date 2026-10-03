@@ -9,7 +9,7 @@
  * ConductionNL/openconnector) over REST.
  *
  * DEVIATION FROM THE ORIGINAL DESIGN — read before touching this file:
- * `openspec/changes/eudi-wallet-credential-push/proposal.md` and `tasks.md`
+ * `openspec/changes/archive/2026-07-13-eudi-wallet-credential-push/proposal.md` and `tasks.md`
  * specify an ADR-041 typed-event contract (`WalletOfferRequestedEvent`
  * dispatched via IEventDispatcher, consumed by an openconnector listener).
  * That mechanism does not exist and was never built: openconnector's merged
@@ -45,9 +45,9 @@
  * before a state transition and cannot be expressed as a schema declaration."
  * Referenced from the Credential schema's
  * x-openregister-lifecycle.transitions.offerToWallet.requires in
- * learniq_register.json. Built to the `check(array &$transitionContext): bool`
- * contract `CredentialSigningService` establishes (see that class's docblock)
- * and every other Lifecycle guard in this app uses.
+ * learniq_register.json, as a LifecycleGuardInterface guard; the offer itself
+ * runs in CredentialWalletTransitionListener, because offerToWallet is a
+ * self-loop (learniq#983).
  *
  * @category Service
  * @package  OCA\Learniq\Service
@@ -62,7 +62,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
+ * @spec openspec/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
  */
 
 declare(strict_types=1);
@@ -70,6 +70,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Support\FleetAppId;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\App\IAppManager;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
@@ -80,14 +82,14 @@ use Throwable;
 /**
  * Guards the Credential `offerToWallet` transition.
  *
- * Builds a credential-offer request from the Credential's already-signed
- * payload, POSTs it to openconnector's `/api/eudi/credential-offers`
- * endpoint, and writes the resulting wallet-offer fields back into the
- * transition context. Fails closed: any failure (missing config, HTTP
- * error, malformed response) sets `walletOfferError` and blocks the
- * transition — it never leaves partial wallet-offer state.
+ * The guard refuses a Credential with nothing to offer. offer() builds a
+ * credential-offer request from the Credential's already-signed payload,
+ * POSTs it to openconnector's `/api/eudi/credential-offers` endpoint, and
+ * returns the Credential with the resulting wallet-offer fields. Any failure
+ * (missing config, HTTP error, malformed response) sets `walletOfferError`
+ * and leaves no partial wallet-offer state.
  */
-class WalletOfferDelegationService {
+class WalletOfferDelegationService implements LifecycleGuardInterface {
 
 	/**
 	 * OpenConnector REST endpoint for app-facing, consumer-gated offer
@@ -114,6 +116,13 @@ class WalletOfferDelegationService {
 	private const OPENCONNECTOR_TOKEN_KEY = 'openconnector_api_token';
 
 	/**
+	 * Refusal when the Credential carries nothing to offer.
+	 *
+	 * @var string
+	 */
+	private const NO_PAYLOAD = 'Credential has no signed payload to offer (openbadges3Payload and edciPayload are both empty).';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IClientService $clientService NC HTTP client factory.
@@ -123,6 +132,9 @@ class WalletOfferDelegationService {
 	 *                                needs it, and it arrives as a dependency now
 	 *                                rather than out of the global server.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ConnectionReportService|null $connectionReports Records what each offer met, for
+	 *                                                        integriq's connection registry
+	 *                                                        (adopt-connection-registry).
 	 *
 	 * @return void
 	 */
@@ -132,62 +144,87 @@ class WalletOfferDelegationService {
 		private readonly IAppConfig $appConfig,
 		private readonly IAppManager $appManager,
 		private readonly LoggerInterface $logger,
+		private readonly ?ConnectionReportService $connectionReports = null,
 	) {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * OpenRegister lifecycle guard entry-point for `offerToWallet`.
 	 *
-	 * Called before executing the `offerToWallet` transition on a Credential
-	 * object. Builds the offer request from the Credential's signed payload,
-	 * calls openconnector, and on success writes `walletOfferStatus=offered`,
-	 * `walletOfferedAt`, `walletAttestationRef` into the context, clearing
-	 * `walletOfferError`. On any failure sets `walletOfferError` and returns
-	 * false, blocking the transition.
+	 * Refuses the offer when the Credential has no signed payload or no
+	 * subject to offer. The openconnector call and the wallet-offer fields
+	 * are done by offer(): `offerToWallet` is a self-loop (issued -> issued),
+	 * on which OpenRegister runs neither guards nor actions, so offer() runs
+	 * after the save in
+	 * {@see \OCA\Learniq\Listener\CredentialWalletTransitionListener}
+	 * (learniq#983).
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the Credential data array
-	 *                                               - 'transition' : 'offerToWallet'
-	 *                                               - 'from'       : 'issued'
-	 *                                               - 'to'         : 'issued'
+	 * @param array<string,mixed> $object The Credential as it would be saved.
+	 * @param string $action The transition, `offerToWallet`.
+	 * @param string $userId The caller, or '' without a session.
 	 *
-	 * @return bool True when the offer was created; false blocks the transition.
+	 * @return GuardResult
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
+	 *
+	 * @spec openspec/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = &$transitionContext['object'];
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->buildOfferRequest(credential: $object) === null) {
+			return GuardResult::deny(self::NO_PAYLOAD);
+		}
 
-		$requestBody = $this->buildOfferRequest(credential: $object);
+		return GuardResult::allow();
+	}//end check()
+
+	/**
+	 * Push the Credential to the EUDI wallet through openconnector.
+	 *
+	 * On success sets `walletOfferStatus=offered`, `walletOfferedAt` and
+	 * `walletAttestationRef` and clears `walletOfferError`. On any failure sets
+	 * `walletOfferError` and leaves the offer fields as they were, so a failed
+	 * offer is recorded rather than lost. Never throws.
+	 *
+	 * @param array<string,mixed> $credential The Credential data array.
+	 *
+	 * @return array<string,mixed> The Credential with the offer outcome applied.
+	 *
+	 * @spec openspec/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
+	 */
+	public function offer(array $credential): array {
+		$requestBody = $this->buildOfferRequest(credential: $credential);
 		if ($requestBody === null) {
-			$object['walletOfferError'] = 'Credential has no signed payload to offer (openbadges3Payload and edciPayload are both empty).';
-			return false;
+			$credential['walletOfferError'] = self::NO_PAYLOAD;
+			return $credential;
 		}
 
 		$result = $this->callOpenConnectorCreateOffer(requestBody: $requestBody);
 		if ($result === null) {
-			$object['walletOfferError'] = 'OpenConnector wallet offer creation failed or is unavailable.';
-			return false;
+			$credential['walletOfferError'] = 'OpenConnector wallet offer creation failed or is unavailable.';
+			return $credential;
 		}
 
 		$attestationRef = $this->extractOfferUuid(response: $result);
 		if ($attestationRef === null) {
-			$object['walletOfferError'] = 'OpenConnector returned no usable credentialOfferUri for the wallet offer.';
-			return false;
+			$credential['walletOfferError'] = 'OpenConnector returned no usable credentialOfferUri for the wallet offer.';
+			$this->observeConnection(status: 'error', reason: 'Integriq answered the last wallet offer without a usable offer reference.');
+			return $credential;
 		}
 
-		$object['walletOfferStatus'] = 'offered';
-		$object['walletOfferedAt'] = gmdate('c');
-		$object['walletAttestationRef'] = $attestationRef;
-		$object['walletOfferError'] = null;
+		$this->observeConnection(status: 'configured', reason: 'The last wallet offer reached integriq.');
+
+		$credential['walletOfferStatus'] = 'offered';
+		$credential['walletOfferedAt'] = gmdate('c');
+		$credential['walletAttestationRef'] = $attestationRef;
+		$credential['walletOfferError'] = null;
 
 		$this->logger->info(
 			'[WalletOfferDelegationService] Credential {id} pushed to EUDI wallet, attestationRef={ref}',
-			['id' => ($object['id'] ?? $object['uuid'] ?? ''), 'ref' => $attestationRef]
+			['id' => ($credential['id'] ?? $credential['uuid'] ?? ''), 'ref' => $attestationRef]
 		);
 
-		return true;
-	}//end check()
+		return $credential;
+	}//end offer()
 
 	/**
 	 * Build the openconnector `createOffer` request body from the
@@ -296,6 +333,7 @@ class WalletOfferDelegationService {
 				'[WalletOfferDelegationService] No OpenConnector API token configured ('
 				. 'learniq.openconnector_api_token); the wallet offer call will fail with 401.'
 			);
+			$this->observeConnection(status: 'unconfigured', reason: 'No integriq API token is set, so the last wallet offer was not sent.');
 			return null;
 		}
 
@@ -314,6 +352,7 @@ class WalletOfferDelegationService {
 			$body = json_decode($response->getBody(), true);
 			if (is_array($body) === false) {
 				$this->logger->error('[WalletOfferDelegationService] OpenConnector returned non-JSON for createOffer.');
+				$this->observeConnection(status: 'error', reason: 'Integriq answered the last wallet offer without JSON.');
 				return null;
 			}
 
@@ -323,7 +362,25 @@ class WalletOfferDelegationService {
 				'[WalletOfferDelegationService] OpenConnector createOffer call failed: {msg}',
 				['msg' => $exception->getMessage()]
 			);
+			$this->observeConnection(status: 'error', reason: 'The last wallet offer to integriq failed: ' . $exception->getMessage());
 			return null;
 		}//end try
 	}//end callOpenConnectorCreateOffer()
+
+	/**
+	 * Record what this offer met on the EUDI wallet connection.
+	 *
+	 * Only records. The report to integriq goes out from the daily job or a
+	 * settings save, never from inside this lifecycle guard.
+	 *
+	 * @param string $status configured, unconfigured or error.
+	 * @param string $reason What the offer met.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
+	 */
+	private function observeConnection(string $status, string $reason): void {
+		$this->connectionReports?->observe(key: ConnectionReportService::WALLET_KEY, status: $status, reason: $reason);
+	}//end observeConnection()
 }//end class

@@ -34,7 +34,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-year-rollover/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
 
 declare(strict_types=1);
@@ -44,13 +44,14 @@ namespace OCA\Learniq\Service;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IGroupManager;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 /**
  * Idempotent execution of a previewed school-year rollover plan.
  *
  * @psalm-api
  *
- * @spec openspec/changes/school-year-rollover/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
 class RolloverExecutionService {
 	/**
@@ -72,12 +73,14 @@ class RolloverExecutionService {
 	 * @param IGroupManager $groupManager NC group manager for cohort-group sync.
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param RolloverService $rolloverService Planning surface (group naming, override indexing, cohort loading).
+	 * @param IntegriqExchangeClient $integriq Asks integriq for the outflow OSO export.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly IGroupManager $groupManager,
 		private readonly LoggerInterface $logger,
 		private readonly RolloverService $rolloverService,
+		private readonly IntegriqExchangeClient $integriq,
 	) {
 	}//end __construct()
 
@@ -97,7 +100,7 @@ class RolloverExecutionService {
 	 *
 	 * @return array<string,string> Map of fromCohortId => 'done'.
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
 	public function execute(array $plan): array {
 		$tenantId = (string)($plan['tenant_id'] ?? '');
@@ -123,6 +126,14 @@ class RolloverExecutionService {
 			$members = (array)($cohort['learnerIds'] ?? []);
 
 			if ($action === 'promote') {
+				// The group moves up a year of its programme
+				// (timetabling-multi-year-hour-plan).
+				$mapping['toProgrammeYear'] = $this->nextProgrammeYear(fromCohort: $cohort, mapping: $mapping);
+				if ((string)($mapping['toProgrammeId'] ?? '') === '' && $mapping['toProgrammeYear'] !== null) {
+					// The group stays in its programme.
+					$mapping['toProgrammeId'] = ($cohort['programmeId'] ?? null);
+				}
+
 				$this->executePromotion(
 					mapping: $mapping,
 					members: $members,
@@ -181,7 +192,8 @@ class RolloverExecutionService {
 			programmeId: ($mapping['toProgrammeId'] ?? null),
 			courseId: ($mapping['toCourseId'] ?? null),
 			learnerIds: $movingMembers,
-			tenantId: $tenantId
+			tenantId: $tenantId,
+			programmeYear: ($mapping['toProgrammeYear'] ?? null)
 		);
 
 		// Sync the backing NC group to the moving members.
@@ -216,6 +228,7 @@ class RolloverExecutionService {
 	 * @param mixed $courseId Optional course.
 	 * @param array<int,string> $learnerIds Members.
 	 * @param string $tenantId Tenant ID.
+	 * @param int|null $programmeYear The group's year of its programme in the to-year, when known.
 	 *
 	 * @return array<string,mixed> The created/found cohort.
 	 */
@@ -226,12 +239,13 @@ class RolloverExecutionService {
 		mixed $courseId,
 		array $learnerIds,
 		string $tenantId,
+		?int $programmeYear = null,
 	): array {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'cohort',
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => 'cohort',
 					'name' => $toCohortName,
 					'academicYear' => $toAcademicYear,
 					'tenant_id' => $tenantId,
@@ -263,9 +277,39 @@ class RolloverExecutionService {
 			$cohort['courseId'] = $courseId;
 		}
 
+		if ($programmeYear !== null) {
+			$cohort['programmeYear'] = $programmeYear;
+		}
+
 		$saved = $this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: 'cohort', object: $cohort);
 		return $this->rolloverService->toArray(row: $saved);
 	}//end createOrFindToCohort()
+
+	/**
+	 * The to-year cohort's year of its programme: one more than the from-year
+	 * cohort's, when the group stays in the same programme. A group that moves
+	 * to another programme, or whose year is not known, gets none.
+	 *
+	 * @param array<string,mixed> $fromCohort The from-year cohort.
+	 * @param array<string,mixed> $mapping    The promote mapping.
+	 *
+	 * @return int|null
+	 *
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-cohort-knows-which-year-of-its-programme-it-is-in
+	 */
+	public function nextProgrammeYear(array $fromCohort, array $mapping): ?int {
+		$year = $fromCohort['programmeYear'] ?? null;
+		if (is_int($year) === false && (is_string($year) === false || ctype_digit($year) === false)) {
+			return null;
+		}
+
+		$toProgramme = (string)($mapping['toProgrammeId'] ?? '');
+		if ($toProgramme !== '' && $toProgramme !== (string)($fromCohort['programmeId'] ?? '')) {
+			return null;
+		}
+
+		return ((int)$year + 1);
+	}//end nextProgrammeYear()
 
 	/**
 	 * Archive a from-year cohort via its lifecycle, preserving historical members.
@@ -302,9 +346,11 @@ class RolloverExecutionService {
 
 		$enrolments = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'enrolment',
-				'filters' => ['learnerId' => $learnerId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => 'enrolment',
+					'learnerId' => $learnerId,
+				],
 			]
 		);
 
@@ -362,29 +408,45 @@ class RolloverExecutionService {
 	}//end syncGroup()
 
 	/**
-	 * Queue a data-exchange OSO export job for an outflow learner.
+	 * Ask integriq for the OSO export of an outflow learner, and open the
+	 * parents' review the exchange gate waits for.
 	 *
-	 * @param string $learnerId Outflow learner UUID.
+	 * Without integriq nothing is asked; the rollover itself carries on.
+	 *
+	 * @param string $learnerId Outflow learner (NC user id).
 	 * @param string $tenantId Tenant ID.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	private function queueOutflow(string $learnerId, string $tenantId): void {
-		$job = [
-			'direction' => 'export',
-			'target' => 'oso',
-			'scope' => [
-				'schema' => 'learner-profile',
-				'filters' => ['learnerId' => $learnerId],
-				'cohortId' => null,
-				'period' => null,
-			],
-			'requestedBy' => 'rollover',
-			'requestedAt' => date('c'),
-			'lifecycle' => 'queued',
-			'tenant_id' => $tenantId,
-		];
+		try {
+			$jobId = $this->integriq->requestJob(
+				target: 'oso',
+				direction: 'export',
+				ownerRef: 'learner-profile/' . $learnerId,
+				scope: [
+					'schema' => 'learner-profile',
+					'filters' => ['ncUserId' => $learnerId],
+					'tenantId' => $tenantId,
+				],
+				mappingSlug: 'learniq-oso-export-dossier',
+				requestedBy: 'rollover',
+				name: 'OSO overstapdossier'
+			);
+		} catch (Throwable $exception) {
+			$this->logger->warning(
+				'[RolloverExecutionService] No OSO export for outflow learner {l}: {msg}',
+				['l' => $learnerId, 'msg' => $exception->getMessage()]
+			);
+			return;
+		}
 
-		$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: 'data-exchange-job', object: $job);
+		$this->objectService->saveObject(
+			register: self::LEARNIQ_REGISTER,
+			schema: 'dossier-review',
+			object: ['exchangeJobId' => $jobId, 'target' => 'oso', 'learnerUserId' => $learnerId, 'status' => 'pending', 'tenant_id' => $tenantId]
+		);
 	}//end queueOutflow()
 }//end class

@@ -21,7 +21,7 @@
     - GET  /api/objects/learniq/external-training-record/:id      (per external-training-record-kind entry)
     - GET  /api/objects/learniq/Credential/:id                  (per credential-kind entry)
     - PUT  /api/objects/learniq/Portfolio/:id                   (gradeValue)
-    - POST /api/objects/learniq/Portfolio/:id/transition/grade
+    - POST /api/objects/:id/transition           ({ action: 'grade' })
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView.vue's existing shape.
@@ -29,8 +29,8 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
-  @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-graded-course-bound-portfolio-flows-through-the-existing-gradeentry-pipeline-not-a-parallel-one
+  @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+  @spec openspec/specs/eportfolio/spec.md#requirement-a-graded-course-bound-portfolio-flows-through-the-existing-gradeentry-pipeline-not-a-parallel-one
 -->
 
 <template>
@@ -85,7 +85,7 @@
 						class="portfolio-review-view__entry-item">
 						<span class="portfolio-review-view__entry-kind">{{
 							/**
-							 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+							 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 							 */
 							evidenceKindLabel(entry.evidenceKind)
 						}}</span>
@@ -171,6 +171,7 @@
 
 <script>
 import { generateUrl } from '@nextcloud/router'
+import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 /**
  * Map from PortfolioEntry.evidenceKind to the OR schema + id field to
@@ -231,7 +232,7 @@ export default {
 		 * (`submitted -> graded` is the only transition it reacts to).
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		canGrade() {
 			return (
@@ -249,7 +250,7 @@ export default {
 			 *
 			 * @param {string} newId New portfolio UUID
 			 * @return {Promise<void>}
-			 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+			 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 			 */
 			async handler(newId) {
 				if (newId) {
@@ -266,7 +267,7 @@ export default {
 		 *
 		 * @param {string} portfolioId Portfolio UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadData(portfolioId) {
 			this.loading = true
@@ -310,7 +311,7 @@ export default {
 		 * @param {string} schema OR schema PascalCase key.
 		 * @param {string} objId  Object UUID.
 		 * @return {Promise<object>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async fetchObject(schema, objId) {
 			const url = generateUrl(
@@ -339,7 +340,7 @@ export default {
 		 * @param {string} schema OR schema PascalCase key.
 		 * @param {string} query  Pre-built query string (already URL-encoded).
 		 * @return {Promise<Array<object>>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async fetchList(schema, query) {
 			const url = generateUrl(
@@ -362,7 +363,7 @@ export default {
 		 * resolved reference unset.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async resolveEntryReferences() {
 			const resolved = {}
@@ -426,7 +427,7 @@ export default {
 		 * view computes no grade itself.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async gradePortfolio() {
 			if (!this.portfolio) {
@@ -440,7 +441,7 @@ export default {
 					`/apps/openregister/api/objects/learniq/Portfolio/${this.id}`,
 				)
 				const updateResp = await fetch(updateUrl, {
-					method: 'PUT',
+					method: 'PATCH',
 					headers: {
 						'OCS-APIREQUEST': 'true',
 						Accept: 'application/json',
@@ -452,9 +453,7 @@ export default {
 					throw new Error(`Portfolio update failed: ${updateResp.status}`)
 				}
 
-				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/learniq/Portfolio/${this.id}/transition/grade`,
-				)
+				const transitionUrl = generateUrl(objectTransitionUrl(this.id))
 				const transResp = await fetch(transitionUrl, {
 					method: 'POST',
 					headers: {
@@ -462,7 +461,7 @@ export default {
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({}),
+					body: JSON.stringify({ action: 'grade' }),
 				})
 				if (!transResp.ok) {
 					throw new Error(

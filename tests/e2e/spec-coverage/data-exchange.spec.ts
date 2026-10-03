@@ -1,45 +1,36 @@
 /**
  * SPDX-License-Identifier: EUPL-1.2
  *
- * Gate-19 e2e coverage — duo-afkeurmelding-correction spec UI scenarios.
+ * Gate-19 e2e coverage for data-exchange-to-integriq: the Data exchange menu is
+ * a read-only status panel over integriq's jobs and rejections owned by
+ * learniq, next to the pages of the exchange gate's own records.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-admin-deep-links-from-a-rejection-to-the-offending-object
- *   @e2e openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-resubmit-creates-exactly-one-scoped-job-and-stamps-the-link
+ *   @e2e openspec/specs/data-exchange/spec.md#scenario-an-administrator-opens-the-panel
+ *   @e2e openspec/specs/data-exchange/spec.md#scenario-a-parent-approves
  *
- * ExchangeRejection is exclusively listener-created (RejectionMappingHandler,
- * on a DataExchangeJob transitioning to succeeded/partial/failed) — never
- * through the generic object-create UI (design.md "no x-openregister-
- * authorization.create block"). There is no declarative way to seed a
- * rejection through the UI itself, so — mirroring eportfolio.spec.ts's own
- * "declarative pages, no seeded fixtures assumed" precedent — this file
- * proves the DECLARATIVE index/detail pages resolve and render without a
- * fatal error (the same route-reachability bar the manifest wiring exists to
- * guarantee) rather than driving a full seeded rejection through
- * markCorrected → resubmit. The deep-link (`related` widget resolving
- * whichever sourceKind $ref field is set) and the resubmit job-creation flow
- * are exercised at the unit level by RejectionMappingHandlerTest and
- * RejectionResubmitGuardTest — a full seeded interactive pass (create a
- * DataExchangeJob with a validationReport, let RejectionMappingHandler map
- * it, then click through markCorrected/Resubmit) is deferred to a
- * dev-instance-seeded follow-up, consistent with every other custom-view/
- * listener-created-schema spec's coverage style in this repo.
+ * The panel pages declare `requiresApp: integriq`; on an instance without
+ * integriq they render the app-required notice, which is also a non-fatal
+ * render. The gate's decisions are exercised at the unit level
+ * (ExchangeGateServiceTest, ExchangeGateListenerTest).
  */
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '../fixtures.ts'
 
-const EXCHANGE_REJECTIONS_INDEX_URL =
-	'/index.php/apps/learniq/data-exchange/rejections'
-const EXCHANGE_ERROR_CODES_INDEX_URL =
-	'/index.php/apps/learniq/data-exchange/error-codes'
-const EXCHANGE_REJECTION_DETAIL_URL =
-	'/index.php/apps/learniq/data-exchange/rejections/00000000-0000-0000-0000-000000000000'
+const PAGES = [
+	'/index.php/apps/learniq/data-exchange/jobs',
+	'/index.php/apps/learniq/data-exchange/rejections',
+	'/index.php/apps/learniq/data-exchange/parent-reviews',
+	'/index.php/apps/learniq/data-exchange/teldatum-checks',
+	'/index.php/apps/learniq/compliance/partner-approvals',
+]
 
 /**
- * Collect console errors on a page, filtering out the same benign noise
- * every other spec-coverage spec in this repo filters (favicon/font/network
- * blips unrelated to app logic).
+ * Collect console errors, minus the benign network noise other specs filter.
+ *
+ * @param {Page} page The page.
+ * @return {string[]} The collected errors, filled as the page runs.
  */
 function collectFatalErrors(page: Page): string[] {
 	const errors: string[] = []
@@ -51,74 +42,42 @@ function collectFatalErrors(page: Page): string[] {
 	return errors
 }
 
-function assertNoFatalErrors(errors: string[]): void {
-	const fatal = errors.filter(
-		(e) =>
-			!e.includes('favicon')
-			&& !e.includes('font')
-			&& !e.includes('Failed to load resource')
-			&& !e.includes('net::ERR_ABORTED')
-			&& !e.includes('Failed to fetch')
-			&& !e.includes('ERR_CONNECTION_REFUSED'),
-	)
-	expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
-}
+test.describe('data-exchange-to-integriq: status panel and gate pages', () => {
+	for (const url of PAGES) {
+		// @e2e openspec/specs/data-exchange/spec.md#scenario-an-administrator-opens-the-panel
+		test(`${url} renders without a fatal error`, async ({
+			loggedInPage: page,
+		}) => {
+			const errors = collectFatalErrors(page)
 
-test.describe('duo-afkeurmelding-correction — declarative index pages', () => {
-	// @e2e openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-admin-deep-links-from-a-rejection-to-the-offending-object
-	test('ExchangeRejections index page renders without a fatal error', async ({
+			await page.goto(url)
+			await page.waitForSelector('body', { timeout: 15_000 })
+			await page.waitForLoadState('domcontentloaded')
+
+			expect((await page.innerText('body')).trim().length).toBeGreaterThan(0)
+			const fatal = errors.filter(
+				(e) =>
+					!e.includes('favicon')
+					&& !e.includes('font')
+					&& !e.includes('Failed to load resource')
+					&& !e.includes('net::ERR_ABORTED')
+					&& !e.includes('Failed to fetch')
+					&& !e.includes('ERR_CONNECTION_REFUSED'),
+			)
+			expect(
+				fatal,
+				`unexpected fatal errors: ${fatal.join(' | ')}`,
+			).toHaveLength(0)
+		})
+	}
+
+	// @e2e openspec/specs/data-exchange/spec.md#scenario-a-parent-approves
+	test('the exchange jobs page offers no add action', async ({
 		loggedInPage: page,
 	}) => {
-		const errors = collectFatalErrors(page)
-
-		await page.goto(EXCHANGE_REJECTIONS_INDEX_URL)
-		await page.waitForSelector('body', { timeout: 15_000 })
+		await page.goto(PAGES[0])
 		await page.waitForLoadState('domcontentloaded')
 
-		const bodyText = await page.innerText('body')
-		expect(bodyText.trim().length).toBeGreaterThan(0)
-
-		assertNoFatalErrors(errors)
-	})
-
-	test('ExchangeErrorCodes index page renders without a fatal error', async ({
-		loggedInPage: page,
-	}) => {
-		const errors = collectFatalErrors(page)
-
-		await page.goto(EXCHANGE_ERROR_CODES_INDEX_URL)
-		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('domcontentloaded')
-
-		const bodyText = await page.innerText('body')
-		expect(bodyText.trim().length).toBeGreaterThan(0)
-
-		assertNoFatalErrors(errors)
-	})
-})
-
-test.describe('duo-afkeurmelding-correction — detail page resolves (manifest wiring)', () => {
-	// @e2e openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-admin-deep-links-from-a-rejection-to-the-offending-object
-	// @e2e openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-resubmit-creates-exactly-one-scoped-job-and-stamps-the-link
-	test('ExchangeRejectionDetail route resolves the registered component, not a blank/404 shell', async ({
-		loggedInPage: page,
-	}) => {
-		const errors = collectFatalErrors(page)
-
-		// A non-existent id is enough to prove the ROUTE resolves the declarative
-		// detail page (manifest.json ExchangeRejectionDetail) and renders its
-		// declared loading/error state rather than a blank Vue-router 404. The
-		// `related` widget's deep-link resolution and the Resubmit lifecycle
-		// action's job-creation side effect need a seeded ExchangeRejection to
-		// drive interactively — deferred to a dev-instance-seeded follow-up (see
-		// file header).
-		await page.goto(EXCHANGE_REJECTION_DETAIL_URL)
-		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('domcontentloaded')
-
-		const bodyText = await page.innerText('body')
-		expect(bodyText.trim().length).toBeGreaterThan(0)
-
-		assertNoFatalErrors(errors)
+		await expect(page.getByRole('button', { name: /^Add/ })).toHaveCount(0)
 	})
 })

@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
+ * @spec openspec/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
  */
 
 declare(strict_types=1);
@@ -35,6 +35,7 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Listener\ConferenceScheduleGenerator;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -80,8 +81,8 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
-				$rows = $this->fixtures[$config['schema']] ?? [];
-				$filters = $config['filters'] ?? [];
+				$rows = $this->fixtures[$config['filters']['schema']] ?? [];
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 
 				return array_values(
 					array_filter(
@@ -111,7 +112,7 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 			}
 		);
 
-		return new ConferenceScheduleGenerator($objectService, $this->createMock(LoggerInterface::class));
+		return new ConferenceScheduleGenerator($objectService, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeGenerator()
 
 	/**
@@ -208,7 +209,7 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
+	 * @spec openspec/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
 	 */
 	public function testConflictFreeGenerationAcrossTeachersAndSignups(): void {
 		$this->fixtures['teacher-availability'] = [
@@ -274,7 +275,7 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
+	 * @spec openspec/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
 	 */
 	public function testRegenerateAfterCancellationFreesExactlyThatSignupsMinutes(): void {
 		$this->fixtures['teacher-availability'] = [
@@ -334,7 +335,7 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
+	 * @spec openspec/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
 	 */
 	public function testRegenerateAfterAddingAvailabilitySchedulesWaitlistedSignup(): void {
 		$this->fixtures['teacher-availability'] = [
@@ -392,7 +393,7 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 		$objectService->expects(self::never())->method('findAll');
 		$objectService->expects(self::never())->method('saveObject');
 
-		$generator = new ConferenceScheduleGenerator($objectService, $this->createMock(LoggerInterface::class));
+		$generator = new ConferenceScheduleGenerator($objectService, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 
 		$objectEntity = $this->createMock(ObjectEntity::class);
 		$objectEntity->method('jsonSerialize')->willReturn(['id' => 'round-x']);
@@ -407,4 +408,58 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 		$generator->handle($event);
 
 	}//end testIgnoresUnrelatedTransitions()
+
+	/**
+	 * A planned slot carries the teacher's name, so the parent portal shows
+	 * who the conversation is with.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/direct-conference-booking/specs/portal-contribution/spec.md
+	 */
+	public function testAPlannedSlotNamesTheTeacherForTheParent(): void {
+		$this->fixtures = [
+			'teacher-availability' => [['id' => 'a', 'conferenceRoundId' => 'r', 'teacherId' => 't1', 'lifecycle' => 'submitted', 'blocks' => [['startsAt' => '2026-10-08T18:00:00+02:00', 'endsAt' => '2026-10-08T18:30:00+02:00']]]],
+			'conference-signup' => [['id' => 's', 'conferenceRoundId' => 'r', 'learnerId' => 'l1', 'lifecycle' => 'submitted', 'requestedTeacherIds' => ['t1'], 'createdAt' => '2026-10-01']],
+			'conference-slot' => [],
+		];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config) {
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
+				return array_values(array_filter(($this->fixtures[$config['filters']['schema']] ?? []), static fn (array $row): bool => array_intersect_assoc($filters, $row) === $filters));
+			}
+		);
+		$objectService->method('saveObject')->willReturnCallback(
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+				$this->savedObjects[] = ['register' => (string)$register, 'schema' => (string)$schema, 'object' => $object];
+				return OrEntityFactory::make($object, (string)$schema, (string)$register);
+			}
+		);
+		$users = $this->createMock(IUserManager::class);
+		$users->method('getDisplayName')->willReturn('Meester Daan');
+
+		$generator = new ConferenceScheduleGenerator($objectService, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver(), $users);
+		$generator->handle($this->makeEvent(['id' => 'r', 'slotDurationMinutes' => 10, 'bufferMinutes' => 0, 'tenant_id' => 't']));
+
+		$this->assertSame('Meester Daan', $this->savedSlots()[0]['teacherName']);
+	}//end testAPlannedSlotNamesTheTeacherForTheParent()
+
+	/**
+	 * A round with direct booking is never planned: parents picked their own
+	 * free times, so `generate` reads and writes nothing.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
+	 */
+	public function testADirectRoundIsNotPlanned(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->expects(self::never())->method('findAll');
+		$objectService->expects(self::never())->method('saveObject');
+
+		$generator = new ConferenceScheduleGenerator($objectService, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
+		$generator->handle($this->makeEvent(['id' => 'round-d', 'bookingMode' => 'direct', 'slotDurationMinutes' => 10]));
+
+	}//end testADirectRoundIsNotPlanned()
 }//end class

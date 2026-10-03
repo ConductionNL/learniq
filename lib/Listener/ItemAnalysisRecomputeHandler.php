@@ -43,7 +43,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-a-quality-threshold-breach-opens-an-itemrevisionflag-routed-to-the-exam-board
+ * @spec openspec/specs/assessment/spec.md#requirement-a-quality-threshold-breach-opens-an-itemrevisionflag-routed-to-the-exam-board
  */
 
 declare(strict_types=1);
@@ -51,6 +51,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\ItemAnalysisService;
@@ -63,7 +64,7 @@ use OCP\EventDispatcher\IEventListener;
  * whenever an AssessmentResult reaches `graded`.
  *
  * @implements IEventListener<Event>
- * @spec       openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-a-quality-threshold-breach-opens-an-itemrevisionflag-routed-to-the-exam-board
+ * @spec       openspec/specs/assessment/spec.md#requirement-a-quality-threshold-breach-opens-an-itemrevisionflag-routed-to-the-exam-board
  */
 class ItemAnalysisRecomputeHandler implements IEventListener {
 
@@ -88,6 +89,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	 * @param ObjectService $objectService OR object access.
 	 * @param ItemAnalysisService $itemAnalysisService CTT statistics calculation engine.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -95,6 +97,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly ItemAnalysisService $itemAnalysisService,
 		private readonly ITimeFactory $timeFactory,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -105,18 +108,18 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
+	 * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() !== self::ASSESSMENT_RESULT_SCHEMA || $event->getTo() !== 'graded') {
+		if ($this->schemas->eventSchema(event: $event) !== self::ASSESSMENT_RESULT_SCHEMA || $event->getTo() !== 'graded') {
 			return;
 		}
 
@@ -211,9 +214,12 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	private function upsertItemStatistics(string $itemId, string $assessmentId, string $tenantId, array $statistics): ?string {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ITEM_STATISTICS_SCHEMA,
-				'filters' => ['itemId' => $itemId, 'assessmentId' => $assessmentId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ITEM_STATISTICS_SCHEMA,
+					'itemId' => $itemId,
+					'assessmentId' => $assessmentId,
+				],
 				'limit' => 1,
 			]
 		);
@@ -223,6 +229,8 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 			$existingData = $this->toArrayData(object: $existing[0]);
 		}
 
+		// System context (item-statistics): the grade transition is granted by the teacherIds match,
+		// not the instructors group, and ItemStatistics is written by staff groups only.
 		$saved = $this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::ITEM_STATISTICS_SCHEMA,
@@ -239,7 +247,8 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 					'computedAt' => $statistics['computedAt'],
 					'tenant_id' => $tenantId,
 				]
-			)
+			),
+			_rbac: false
 		);
 
 		$savedData = $this->toArrayData(object: $saved);
@@ -259,9 +268,11 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	private function upsertAssessmentReliability(string $assessmentId, string $tenantId, array $reliability): void {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ASSESSMENT_RELIABILITY_SCHEMA,
-				'filters' => ['assessmentId' => $assessmentId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ASSESSMENT_RELIABILITY_SCHEMA,
+					'assessmentId' => $assessmentId,
+				],
 				'limit' => 1,
 			]
 		);
@@ -271,6 +282,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 			$existingData = $this->toArrayData(object: $existing[0]);
 		}
 
+		// System context (assessment-reliability): as above.
 		$this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::ASSESSMENT_RELIABILITY_SCHEMA,
@@ -285,7 +297,8 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 					'computedAt' => $reliability['computedAt'],
 					'tenant_id' => $tenantId,
 				]
-			)
+			),
+			_rbac: false
 		);
 
 	}//end upsertAssessmentReliability()
@@ -303,7 +316,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-a-quality-threshold-breach-opens-an-itemrevisionflag-routed-to-the-exam-board
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-quality-threshold-breach-opens-an-itemrevisionflag-routed-to-the-exam-board
 	 */
 	private function evaluateThresholds(
 		string $itemId,
@@ -386,6 +399,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 			return;
 		}
 
+		// System context (item-revision-flag): as above.
 		$this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::ITEM_REVISION_FLAG_SCHEMA,
@@ -398,7 +412,8 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 				'flaggedAt' => DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime())->format(\DATE_ATOM),
 				'lifecycle' => 'open',
 				'tenant_id' => $tenantId,
-			]
+			],
+			_rbac: false
 		);
 
 	}//end createFlagIfNotOpen()
@@ -415,9 +430,13 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 		foreach (self::OPEN_FLAG_STATES as $state) {
 			$existing = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::ITEM_REVISION_FLAG_SCHEMA,
-					'filters' => ['itemId' => $itemId, 'reason' => $reason, 'lifecycle' => $state],
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::ITEM_REVISION_FLAG_SCHEMA,
+						'itemId' => $itemId,
+						'reason' => $reason,
+						'lifecycle' => $state,
+					],
 					'limit' => 1,
 				]
 			);
@@ -446,9 +465,13 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ASSESSMENT_RESULT_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::ASSESSMENT_RESULT_SCHEMA,
+					]
+				),
 			]
 		);
 
@@ -469,16 +492,21 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	 * @return array<string,mixed>|null
 	 */
 	private function fetchOne(string $schema, string $uuid, string $tenantId = ''): ?array {
-		$filters = ['uuid' => $uuid];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$matches = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => $schema,
-				'filters' => $filters,
+				'ids' => [$uuid],
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => $schema,
+					]
+				),
 				'limit' => 1,
 			]
 		);

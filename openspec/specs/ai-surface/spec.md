@@ -6,57 +6,73 @@ status: done
 
 ## Purpose
 Consolidates Scholiq's AI surfaces into a single interactive "Assistant" navigation entry that opens the LLM chat companion, removing the duplicate standalone "AI features" menu entry. The EU AI Act AI features register and its detail pages remain routable via deep links and are reachable through a "Manage AI features" affordance on the Settings page, keeping the governance register discoverable.
+
 ## Requirements
-### Requirement: REQ-SAI-001 — The system SHALL expose exactly one interactive AI nav entry, "Assistant"
-The system SHALL present exactly one top-level navigation entry for the interactive AI companion, the `AssistantMenu` entry labelled "Assistant" routing to the `Assistant` chat page (`/assistant`), per ADR-034. The system SHALL NOT present a second top-level AI-labelled nav entry alongside it.
 
-#### Scenario: Only one AI nav entry is shown
-- **GIVEN** the Scholiq app navigation menu is rendered
-- **WHEN** a user scans the menu
-- **THEN** exactly one AI-labelled entry, "Assistant", is present
-- **AND** no "AI features" top-level menu entry appears
+### Requirement: REQ-SAI-005 — The system SHALL NOT present an inherited Assistant AI-chat surface
+The system SHALL NOT present the inherited generic "Assistant" AI-chat surface. Specifically: `src/manifest.json.menu[]` SHALL contain no entry with `id: "AssistantMenu"`; `src/manifest.json.pages[]` SHALL contain no page with `id: "Assistant"` (`route: "/assistant"`, `type: "chat"`); `src/menu-layout.json#settingsSection` SHALL NOT list `AssistantMenu`; and consequently the nc-vue `CnAppRoot` floating "Open AI chat" FAB — which renders only while a `type: "chat"` page is declared — SHALL NOT be rendered. This removal does not touch the EU AI Act `AiFeature` governance register.
+<!-- @e2e exclude Absence / static-manifest / nc-vue-FAB assertions — verified by the manifest unit test (no `AssistantMenu` menu id, no `Assistant` page, no `AssistantMenu` in settingsSection) and an in-browser check of the removed FAB at apply; not positive route-smoke DOM behaviours. -->
 
-#### Scenario: Assistant opens the chat companion
-- **GIVEN** the "Assistant" nav entry
-- **WHEN** the user activates it
-- **THEN** the `Assistant` chat page at `/assistant` renders the LLM chat companion
-
-### Requirement: REQ-SAI-002 — The system SHALL remove the standalone "AI features" nav entry
-The system SHALL remove the `AiFeaturesMenu` menu array entry from `src/manifest.json.menu[]` so that the "AI features" governance register is no longer a standalone top-level (or settings-section) navigation item.
-
-#### Scenario: AiFeaturesMenu is absent from the menu
+#### Scenario: Assistant menu entry is absent
 - **GIVEN** the parsed `src/manifest.json`
 - **WHEN** its `menu[]` array is inspected
-- **THEN** no entry with `id: "AiFeaturesMenu"` is present
+- **THEN** no entry with `id: "AssistantMenu"` is present
 
-### Requirement: REQ-SAI-003 — The system SHALL keep the AI features register and Assistant pages routable
-The system SHALL retain the `AiFeatures` (`/ai-features`), `AiFeatureDetail` (`/ai-features/:id`), and `Assistant` (`/assistant`) page objects in `src/manifest.json.pages[]` unchanged, so deep links and the `KpiSchemasWidget` link to `/ai-features` continue to resolve even though the "AI features" menu entry is removed.
+#### Scenario: Assistant chat page is absent
+- **GIVEN** the parsed `src/manifest.json`
+- **WHEN** its `pages[]` array is inspected
+- **THEN** no page with `id: "Assistant"` (`route: "/assistant"`, `type: "chat"`) is present
+- **AND** `src/menu-layout.json#settingsSection` does not list `AssistantMenu`
 
-#### Scenario: AI features deep link still resolves
-- **GIVEN** the "AI features" menu entry has been removed
-- **WHEN** a user navigates directly to `/ai-features`
-- **THEN** the `AiFeatures` index page renders the `AiFeature` register
+#### Scenario: No "Open AI chat" FAB is rendered
+- **GIVEN** the Scholiq app shell has no `type: "chat"` page declared
+- **WHEN** any Scholiq page is rendered
+- **THEN** nc-vue's `CnAppRoot` renders no floating "Open AI chat" action button
 
-#### Scenario: AI feature detail deep link still resolves
-- **GIVEN** an `AiFeature` object id
-- **WHEN** a user navigates to `/ai-features/:id`
-- **THEN** the `AiFeatureDetail` page renders that feature's DPO-ack lifecycle context
+### Requirement: REQ-SAI-004 — The system SHALL surface AI-feature governance from Settings via Hermiq
+The system SHALL surface EU AI Act AI-feature governance from the Nextcloud **Admin Settings** page (`ScholiqSettings.vue`) by delegating to the central **Hermiq** app rather than a local register. When Hermiq is installed, the "AI Features" section SHALL present an affordance ("Open the AI-feature register in Hermiq") that full-navigates to `generateUrl('/apps/hermiq') + '/ai-features'`. When Hermiq is not installed, the section SHALL present an "install and enable Hermiq" notice instead, with no hard dependency and no crash. The same Settings page SHALL continue to render the AVG Art. 30 `scholiq-ai-features` AI-assisted-learning processing block.
 
-#### Scenario: KpiSchemasWidget link still works
-- **GIVEN** the dashboard `KpiSchemasWidget` whose `link` targets `/ai-features`
-- **WHEN** the link is followed
-- **THEN** the `AiFeatures` register page loads
+#### Scenario: AI-feature governance reachable via Hermiq when installed
+- **GIVEN** a user on the Scholiq Admin Settings page and Hermiq is installed
+- **WHEN** they view the "AI Features" section
+- **THEN** an "Open the AI-feature register in Hermiq" affordance is shown
+- **AND** activating it navigates to Hermiq's `/ai-features` register
 
-### Requirement: REQ-SAI-004 — The system SHALL surface the AI features register from Settings
-The system SHALL make the EU AI Act `AiFeature` register reachable from the existing `Settings` page (`section-scholiq` slot, `ScholiqSettings.vue`), which already loads the AI features, by providing a "Manage AI features" affordance that deep-links to `/ai-features`. This keeps the governance register discoverable now that its standalone menu entry is gone, consistent with the IA model that config/governance belongs under Settings.
-
-#### Scenario: AI features reachable from Settings
-- **GIVEN** a user on the Scholiq `Settings` page
-- **WHEN** they view the `section-scholiq` content
-- **THEN** a "Manage AI features" affordance is shown that links to `/ai-features`
+#### Scenario: Install notice when Hermiq is absent
+- **GIVEN** a user on the Scholiq Admin Settings page and Hermiq is not installed
+- **WHEN** they view the "AI Features" section
+- **THEN** an "install and enable Hermiq" notice is shown
+- **AND** no local AI-features table is rendered and the page does not error
 
 #### Scenario: Settings still shows the AVG Art. 30 AI processing block
-- **GIVEN** the Scholiq `Settings` page is open
+- **GIVEN** the Scholiq Admin Settings page is open
 - **WHEN** the AVG Art. 30 processing register is rendered
 - **THEN** the `scholiq-ai-features` AI-assisted learning processing block remains visible
+<!-- @e2e exclude Hermiq-presence branching + Settings deep-link + AVG-block presence — verified by the settings unit/build check and an in-browser check at apply (Hermiq installed vs absent); not positive route-smoke DOM behaviours in the scholiq e2e. -->
 
+### Requirement: REQ-SAI-006 — The system SHALL delegate AI-feature governance to Hermiq
+The system SHALL NOT maintain a local EU AI Act AI-feature governance register. Specifically: `src/manifest.json.pages[]` SHALL contain no `AiFeatures` (`/ai-features`) or `AiFeatureDetail` (`/ai-features/:id`) page; `lib/Lifecycle/AiFeatureDpoAckGuard.php` SHALL NOT exist; and the `AiFeature` schema in `lib/Settings/scholiq_register.json` SHALL carry no `x-openregister-lifecycle` governance and no governance properties, retaining only `slug`/`name`/`description` and its `x-openregister-processing` (`scholiq-ai-features`) AVG Art. 30 annotation. Governance of high-risk AI features is delegated to the Hermiq app's `agentaifeature` register. The `AssessmentPublishGuard` SHALL enforce the ADR-005 DPO gate for `ai-assisted` proctoring by looking the feature up in Hermiq's register (`register=hermiq`, `schema=agentaifeature`, `slug=assessment-ai-proctor-review`, `lifecycle=enabled`), failing closed with actionable guidance when Hermiq is unavailable, while leaving manual proctoring and all other transitions unaffected. Scholiq SHALL declare no hard dependency on Hermiq.
+<!-- @e2e exclude Static-manifest / file-absence / schema-shape / guard-source assertions — verified by the manifest validator (no AiFeatures/AiFeatureDetail pages), the register-contract unit tests (schema shape + retained processing annotation), phpcs/lint on the re-pointed guard, and the ADR-005 amendment; not positive route-smoke DOM behaviours. -->
+
+#### Scenario: Local AI-feature governance pages are absent
+- **GIVEN** the parsed `src/manifest.json`
+- **WHEN** its `pages[]` array is inspected
+- **THEN** no page with `id: "AiFeatures"` or `id: "AiFeatureDetail"` is present
+
+#### Scenario: The DPO-acknowledgement guard is removed
+- **GIVEN** the repository
+- **WHEN** `lib/Lifecycle/` is inspected
+- **THEN** `AiFeatureDpoAckGuard.php` does not exist
+- **AND** the `AiFeature` schema declares no `x-openregister-lifecycle` and no governance properties
+
+#### Scenario: The AVG Art. 30 processing carrier is retained
+- **GIVEN** the `AiFeature` schema in `lib/Settings/scholiq_register.json`
+- **WHEN** its `x-openregister-processing` annotation is inspected
+- **THEN** it declares `code: "scholiq-ai-features"` with the required Art. 30 catalogue fields
+- **AND** Scholiq's verwerkingsregister still declares seven processing activities
+
+#### Scenario: The proctoring DPO gate is sourced from Hermiq (fail closed)
+- **GIVEN** an Assessment with `proctoring.flagReviewMode: "ai-assisted"` and a non-empty `itemRefs`
+- **WHEN** it is published while Hermiq has no `enabled` `assessment-ai-proctor-review` feature (or Hermiq is not installed)
+- **THEN** `AssessmentPublishGuard` blocks the publish and logs actionable guidance (install Hermiq / DPO-enable the feature)
+- **AND** the same Assessment with `flagReviewMode: "manual"` publishes with only the itemRefs check applied

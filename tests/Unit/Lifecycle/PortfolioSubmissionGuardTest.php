@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
+ * @spec openspec/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
  */
 
 declare(strict_types=1);
@@ -24,7 +24,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Learniq\Lifecycle\LearnerCaller;
 use OCA\Learniq\Lifecycle\PortfolioSubmissionGuard;
+use OCP\IGroupManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -32,7 +34,7 @@ use Psr\Log\LoggerInterface;
  * Tests for the PortfolioSubmissionGuard lifecycle guard (Portfolio `submit`, draft|active
  * → submitted).
  *
- * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
+ * @spec openspec/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
  */
 class PortfolioSubmissionGuardTest extends TestCase {
 
@@ -51,11 +53,11 @@ class PortfolioSubmissionGuardTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($template, $entries) {
-				if ($config['schema'] === 'portfolio-template') {
+				if ($config['filters']['schema'] === 'portfolio-template') {
 					return ($template === null) ? [] : [$template];
 				}
 
-				if ($config['schema'] === 'portfolio-entry') {
+				if ($config['filters']['schema'] === 'portfolio-entry') {
 					return $entries;
 				}
 
@@ -63,7 +65,7 @@ class PortfolioSubmissionGuardTest extends TestCase {
 			}
 		);
 
-		return new PortfolioSubmissionGuard($objectService, $this->createMock(LoggerInterface::class));
+		return new PortfolioSubmissionGuard($objectService, $this->createMock(LoggerInterface::class), new LearnerCaller($this->createMock(IGroupManager::class)));
 	}//end makeGuard()
 
 	/**
@@ -76,7 +78,7 @@ class PortfolioSubmissionGuardTest extends TestCase {
 		$guard = $this->makeGuard(null);
 		$context = ['object' => ['id' => 'portfolio-1', 'templateId' => null]];
 
-		$this->assertTrue($guard->check($context));
+		$this->assertTrue($guard->check($context['object'], 'submit', '')->isAllowed());
 
 	}//end testNoTemplateAllowsUnconditionally()
 
@@ -101,7 +103,7 @@ class PortfolioSubmissionGuardTest extends TestCase {
 		$guard = $this->makeGuard($template, $entries);
 		$context = ['object' => ['id' => 'portfolio-1', 'templateId' => 'template-1']];
 
-		$this->assertFalse($guard->check($context));
+		$this->assertFalse($guard->check($context['object'], 'submit', '')->isAllowed());
 
 	}//end testMissingSectionEvidenceRefused()
 
@@ -127,7 +129,7 @@ class PortfolioSubmissionGuardTest extends TestCase {
 		$guard = $this->makeGuard($template, $entries);
 		$context = ['object' => ['id' => 'portfolio-1', 'templateId' => 'template-1']];
 
-		$this->assertTrue($guard->check($context));
+		$this->assertTrue($guard->check($context['object'], 'submit', '')->isAllowed());
 
 	}//end testEverySectionCoveredAllowed()
 
@@ -141,7 +143,7 @@ class PortfolioSubmissionGuardTest extends TestCase {
 		$guard = $this->makeGuard(null);
 		$context = ['object' => ['id' => 'portfolio-1', 'templateId' => 'missing-template']];
 
-		$this->assertFalse($guard->check($context));
+		$this->assertFalse($guard->check($context['object'], 'submit', '')->isAllowed());
 
 	}//end testUnresolvableTemplateBlocksDefensively()
 
@@ -155,7 +157,7 @@ class PortfolioSubmissionGuardTest extends TestCase {
 		$guard = $this->makeGuard($template, []);
 		$context = ['object' => ['id' => 'portfolio-1', 'templateId' => 'template-1']];
 
-		$this->assertTrue($guard->check($context));
+		$this->assertTrue($guard->check($context['object'], 'submit', '')->isAllowed());
 
 	}//end testTemplateWithNoSectionsAllows()
 }//end class

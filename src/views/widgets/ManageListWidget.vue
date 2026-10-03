@@ -14,7 +14,12 @@
    columns    — array of field names to display per item (first becomes item title)
    indexRoute — router path for the index page ("+ New" link + row-click base)
    limit      — max items to show (default 5)
-   filter     — optional extra filter params (e.g. { lifecycle: 'published' })
+   filter     — optional extra filter params (e.g. { lifecycle: 'published' }).
+                A list value is sent as key[]=a&key[]=b (an IN filter); an
+                empty list matches nothing, so the widget shows an empty list
+                without asking the server.
+   pending    — true while the caller is still working out the filter; the
+                widget shows its loading state and waits.
 -->
 <template>
 	<CnDataTable
@@ -35,7 +40,12 @@
 				@click.prevent="navigate"
 				@keydown.enter.prevent="navigate"
 				@keydown.space.prevent="navigate">
-				+ {{ t('learniq', 'New') }} {{ schemaLabel }}
+				<template v-if="footerLabel">
+					{{ footerLabel }}
+				</template>
+				<template v-else>
+					+ {{ t('learniq', 'New') }} {{ schemaLabel }}
+				</template>
 			</a>
 		</template>
 	</CnDataTable>
@@ -45,6 +55,7 @@
 import { CnDataTable } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
+import { appendFilter, filterMatchesNothing } from '../../utils/teacherScope.js'
 
 export default {
 	name: 'ManageListWidget',
@@ -84,10 +95,16 @@ export default {
 			default: 5,
 		},
 
-		/** Additional OR filter params */
+		/** Additional OR filter params; a list value is an IN filter */
 		filter: {
 			type: Object,
 			default: () => ({}),
+		},
+
+		/** True while the caller is still working out the filter */
+		pending: {
+			type: Boolean,
+			default: false,
 		},
 
 		/**
@@ -107,6 +124,28 @@ export default {
 		 */
 		nameResolver: {
 			type: Function,
+			default: null,
+		},
+
+		/**
+		 * Optional (row) => vue-router location for a row click; defaults to
+		 *  `{indexRoute}/{id}`. The teacher dashboard's "Sessions to mark"
+		 *  opens the roll-call of the lesson's group and day.
+		 */
+		rowRoute: {
+			type: Function,
+			default: null,
+		},
+
+		/** Optional footer link text, replacing "+ New {schemaLabel}". */
+		footerLabel: {
+			type: String,
+			default: '',
+		},
+
+		/** Optional footer link target, replacing indexRoute. */
+		footerRoute: {
+			type: [String, Object],
 			default: null,
 		},
 	},
@@ -166,24 +205,59 @@ export default {
 		},
 	},
 
+	watch: {
+		/**
+		 * Fetch once the caller has worked out the filter.
+		 *
+		 * @return {void}
+		 * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+		 */
+		pending() {
+			this.fetchItems()
+		},
+
+		filter: {
+			deep: true,
+			/**
+			 * Fetch again when the filter changes.
+			 *
+			 * @return {void}
+			 * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+			 */
+			handler() {
+				this.fetchItems()
+			},
+		},
+	},
+
 	created() {
 		this.fetchItems()
 	},
 
 	methods: {
 		/**
-		 * Fetch the top-N objects of this schema from OpenRegister.
+		 * Fetch the top-N objects of this schema from OpenRegister. Waits while
+		 * the filter is pending, and asks nothing when it can match no row.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-29
+		 * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
 		 */
 		async fetchItems() {
 			this.loading = true
+			if (this.pending) {
+				return
+			}
+			if (filterMatchesNothing(this.filter)) {
+				this.items = []
+				this.loading = false
+				return
+			}
 			try {
-				const params = new URLSearchParams({
-					_limit: String(this.limit),
-					...this.filter,
-				})
+				const params = appendFilter(
+					new URLSearchParams({ _limit: String(this.limit) }),
+					this.filter,
+				)
 				if (this.extend.length) {
 					params.set('_extend', this.extend.join(','))
 				}
@@ -211,6 +285,9 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-29
 		 */
 		rowClickRoute(row) {
+			if (this.rowRoute) {
+				return this.rowRoute(row)
+			}
 			return { path: `${this.indexRoute}/${row.id}` }
 		},
 
@@ -221,7 +298,7 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-29
 		 */
 		navigate() {
-			this.$router.push(this.indexRoute).catch(() => {})
+			this.$router.push(this.footerRoute || this.indexRoute).catch(() => {})
 		},
 	},
 }

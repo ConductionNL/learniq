@@ -17,6 +17,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/retrofit-2026-05-25-app-shell-settings/tasks.md#task-5
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-segment-reaches-the-manifest-runtime
  */
 
 declare(strict_types=1);
@@ -24,13 +25,21 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\PageController;
+use OCA\Learniq\Service\CallerTenantResolver;
+use OCA\Learniq\Service\CourseStore\StoreAccessService;
 use OCA\Learniq\Service\DashboardRoleService;
+use OCA\Learniq\Service\LineManagerCheck;
+use OCA\Learniq\Service\LoadedExampleSets;
+use OCA\Learniq\Service\SegmentService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Services\IInitialState;
+use OCP\IAppConfig;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
+use RuntimeException;
 
 /**
  * Contract tests for the two public page endpoints, manifest() and catchAll().
@@ -40,11 +49,15 @@ class PageControllerTest extends TestCase {
 	/**
 	 * Build a PageController for the given signed-in user (or anonymous).
 	 *
-	 * @param IUser|null $user The signed-in user, or null for anonymous.
+	 * @param IUser|null         $user         The signed-in user, or null for anonymous.
+	 * @param IInitialState|null $initialState The initial-state double, or a silent mock.
+	 * @param bool               $segmentFails Whether resolving SegmentService throws.
+	 * @param StoreAccessService|null   $storeAccess    The store-access double, or a silent mock.
+	 * @param CallerTenantResolver|null $tenantResolver The caller-tenant double, or a silent mock.
 	 *
 	 * @return PageController
 	 */
-	private function controller(?IUser $user): PageController {
+	private function controller(?IUser $user, ?IInitialState $initialState = null, bool $segmentFails = false, ?StoreAccessService $storeAccess = null, ?CallerTenantResolver $tenantResolver = null, ?LineManagerCheck $lineManager = null): PageController {
 		$userSession = $this->createMock(IUserSession::class);
 		$userSession->method('getUser')->willReturn($user);
 
@@ -53,11 +66,42 @@ class PageControllerTest extends TestCase {
 		$roleService->method('resolveDefaultView')->willReturn('learner');
 		$roleService->method('resolveViews')->willReturn(['learner']);
 
+		$segmentService = $this->createMock(SegmentService::class);
+		$segmentService->method('workspace')->willReturn(['segment' => 'po', 'chosenSegment' => 'po']);
+		$container = $this->createMock(ContainerInterface::class);
+		if ($segmentFails === true) {
+			$container->method('get')->willThrowException(new RuntimeException('OpenRegister is not installed'));
+		} else {
+			$storeAccess    = ($storeAccess ?? $this->createMock(StoreAccessService::class));
+			$tenantResolver = ($tenantResolver ?? $this->createMock(CallerTenantResolver::class));
+			$lineManager    = ($lineManager ?? $this->createMock(LineManagerCheck::class));
+			$container->method('get')->willReturnCallback(
+				static function (string $id) use ($segmentService, $storeAccess, $tenantResolver, $lineManager): object {
+					if ($id === LineManagerCheck::class) {
+						return $lineManager;
+					}
+
+					if ($id === StoreAccessService::class) {
+						return $storeAccess;
+					}
+
+					if ($id === CallerTenantResolver::class) {
+						return $tenantResolver;
+					}
+
+					self::assertSame(SegmentService::class, $id);
+					return $segmentService;
+				}
+			);
+		}
+
 		return new PageController(
 			request: $this->createMock(IRequest::class),
 			userSession: $userSession,
-			initialState: $this->createMock(IInitialState::class),
+			initialState: ($initialState ?? $this->createMock(IInitialState::class)),
 			dashboardRoleSvc: $roleService,
+			container: $container,
+			loadedSets: new LoadedExampleSets($this->createMock(IAppConfig::class)),
 		);
 	}//end controller()
 
@@ -132,4 +176,347 @@ class PageControllerTest extends TestCase {
 		self::assertSame(Http::STATUS_OK, $response->getStatus());
 		self::assertSame('index', $response->getTemplateName());
 	}//end testCatchAllStillServesTheShellWhenAnonymous()
+
+	/**
+	 * A signed-in user's page carries the instance segment as initial state,
+	 * next to the role context, so `src/main.js` can publish it at
+	 * `runtime.workspace.segment`.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/nextcloud-app/spec.md#scenario-a-signed-in-users-page-carries-the-segment
+	 */
+	public function testIndexProvidesTheSegmentForASignedInUser(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('learner-1');
+
+		$provided     = [];
+		$initialState = $this->createMock(IInitialState::class);
+		$initialState->method('provideInitialState')
+			->willReturnCallback(
+				static function (string $key, mixed $value) use (&$provided): void {
+					$provided[$key] = $value;
+				}
+			);
+
+		$this->controller($user, $initialState)->index();
+
+		self::assertSame('po', ($provided['segment'] ?? null));
+		self::assertArrayHasKey('primaryRole', $provided);
+	}//end testIndexProvidesTheSegmentForASignedInUser()
+
+	/**
+	 * The page also carries the segment an admin chose, so a menu can hide for
+	 * a chosen company and stay for an install that never chose (D26).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/nextcloud-app/spec.md#scenario-the-wizard-stored-company
+	 */
+	public function testIndexProvidesTheChosenSegment(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('learner-1');
+
+		$provided     = [];
+		$initialState = $this->createMock(IInitialState::class);
+		$initialState->method('provideInitialState')
+			->willReturnCallback(
+				static function (string $key, mixed $value) use (&$provided): void {
+					$provided[$key] = $value;
+				}
+			);
+
+		$this->controller($user, $initialState)->index();
+
+		self::assertArrayHasKey('chosenSegment', $provided);
+		self::assertSame('po', $provided['chosenSegment']);
+	}//end testIndexProvidesTheChosenSegment()
+
+	/**
+	 * Without OpenRegister the segment cannot be read, and the start screen
+	 * still renders with the default segment rather than a 500 (ADR-083).
+	 *
+	 * @return void
+	 */
+	public function testIndexFallsBackToTheDefaultWhenTheSegmentCannotBeResolved(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('learner-1');
+
+		$provided     = [];
+		$initialState = $this->createMock(IInitialState::class);
+		$initialState->method('provideInitialState')
+			->willReturnCallback(
+				static function (string $key, mixed $value) use (&$provided): void {
+					$provided[$key] = $value;
+				}
+			);
+
+		$response = $this->controller($user, $initialState, true)->index();
+
+		self::assertSame('index', $response->getTemplateName());
+		self::assertSame('corporate', ($provided['segment'] ?? null));
+		self::assertArrayHasKey('chosenSegment', $provided);
+		self::assertNull($provided['chosenSegment'], 'a failed read must keep every menu, so nobody chose');
+	}//end testIndexFallsBackToTheDefaultWhenTheSegmentCannotBeResolved()
+
+	/**
+	 * An anonymous request gets the shell and no initial state at all.
+	 *
+	 * @return void
+	 */
+	public function testIndexProvidesNothingWhenAnonymous(): void {
+		$initialState = $this->createMock(IInitialState::class);
+		$initialState->expects(self::never())->method('provideInitialState');
+
+		$this->controller(null, $initialState)->index();
+	}//end testIndexProvidesNothingWhenAnonymous()
+
+	/**
+	 * index() hands the page shell the confidential counsellor flag, so the
+	 * confidential notes menu can gate on group membership.
+	 *
+	 * @spec openspec/specs/confidential-counsel/spec.md#requirement-the-confidential-notes-menu-is-shown-to-confidential-counsellors-only
+	 *
+	 * @return void
+	 */
+	public function testIndexProvidesTheConfidentialCounsellorFlag(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('vp-01');
+
+		$userSession = $this->createMock(IUserSession::class);
+		$userSession->method('getUser')->willReturn($user);
+
+		$roleService = $this->createMock(DashboardRoleService::class);
+		$roleService->method('resolvePrimaryRole')->willReturn('instructor');
+		$roleService->method('resolveDefaultView')->willReturn('teacher');
+		$roleService->method('resolveViews')->willReturn(['teacher', 'student']);
+		$roleService->method('isConfidentialCounsellor')->willReturn(true);
+
+		$provided     = [];
+		$initialState = $this->createMock(IInitialState::class);
+		$initialState->method('provideInitialState')->willReturnCallback(
+			static function (string $key, mixed $value) use (&$provided): void {
+				$provided[$key] = $value;
+			}
+		);
+
+		$controller = new PageController(
+			request: $this->createMock(IRequest::class),
+			userSession: $userSession,
+			initialState: $initialState,
+			dashboardRoleSvc: $roleService,
+			container: $this->createMock(ContainerInterface::class),
+			loadedSets: new LoadedExampleSets($this->createMock(IAppConfig::class)),
+		);
+		$controller->index();
+
+		self::assertTrue($provided['confidentialCounsellor']);
+		self::assertSame('instructor', $provided['primaryRole']);
+	}//end testIndexProvidesTheConfidentialCounsellorFlag()
+
+	/**
+	 * index() hands the page shell the loaded example sets, from which the
+	 * browser builds one removal step per set.
+	 *
+	 * @spec openspec/specs/example-sets/spec.md#scenario-two-sets-were-loaded
+	 *
+	 * @return void
+	 */
+	public function testIndexProvidesTheLoadedExampleSets(): void {
+		$user        = $this->createMock(IUser::class);
+		$userSession = $this->createMock(IUserSession::class);
+		$userSession->method('getUser')->willReturn($user);
+
+		$provided     = [];
+		$initialState = $this->createMock(IInitialState::class);
+		$initialState->method('provideInitialState')->willReturnCallback(
+			static function (string $key, mixed $value) use (&$provided): void {
+				$provided[$key] = $value;
+			}
+		);
+
+		$appConfig = $this->createMock(IAppConfig::class);
+		$appConfig->method('getValueString')->willReturn('[{"id":"corporate","label":"Company"},{"id":"training","label":"Training institute"}]');
+
+		$controller = new PageController(
+			request: $this->createMock(IRequest::class),
+			userSession: $userSession,
+			initialState: $initialState,
+			dashboardRoleSvc: $this->createMock(DashboardRoleService::class),
+			container: $this->createMock(ContainerInterface::class),
+			loadedSets: new LoadedExampleSets($appConfig),
+		);
+		$controller->index();
+
+		self::assertSame(['corporate', 'training'], array_column($provided['loadedExampleSets'], 'id'));
+	}//end testIndexProvidesTheLoadedExampleSets()
+
+	/**
+	 * A signed-in user's page carries what they may do in the course store
+	 * (store-rights-for-teachers, D27).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
+	 */
+	public function testIndexProvidesTheStoreAccess(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('docent-07');
+
+		$storeAccess = $this->createMock(StoreAccessService::class);
+		$storeAccess->expects(self::once())->method('forCurrentUser')->willReturn(['install' => true, 'publish' => false]);
+
+		$provided     = [];
+		$initialState = $this->createMock(IInitialState::class);
+		$initialState->method('provideInitialState')->willReturnCallback(
+			static function (string $key, mixed $value) use (&$provided): void {
+				$provided[$key] = $value;
+			}
+		);
+
+		$this->controller($user, $initialState, false, $storeAccess)->index();
+
+		self::assertSame(['install' => true, 'publish' => false], ($provided['storeAccess'] ?? null));
+	}//end testIndexProvidesTheStoreAccess()
+
+	/**
+	 * Without OpenRegister the store service cannot be built: the page still
+	 * renders and shows no store buttons.
+	 *
+	 * @return void
+	 */
+	public function testStoreAccessDegradesToNoneWhenItCannotBeResolved(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('docent-07');
+
+		$provided     = [];
+		$initialState = $this->createMock(IInitialState::class);
+		$initialState->method('provideInitialState')->willReturnCallback(
+			static function (string $key, mixed $value) use (&$provided): void {
+				$provided[$key] = $value;
+			}
+		);
+
+		$response = $this->controller($user, $initialState, true)->index();
+
+		self::assertSame('index', $response->getTemplateName());
+		self::assertSame(['install' => false, 'publish' => false], ($provided['storeAccess'] ?? null));
+	}//end testStoreAccessDegradesToNoneWhenItCannotBeResolved()
+
+	/**
+	 * Capture every initial-state value the controller provides.
+	 *
+	 * @param array<string,mixed> $provided Receives key => value.
+	 *
+	 * @return IInitialState
+	 */
+	private function recordingInitialState(array &$provided): IInitialState {
+		$initialState = $this->createMock(IInitialState::class);
+		$initialState->method('provideInitialState')
+			->willReturnCallback(
+				static function (string $key, mixed $value) use (&$provided): void {
+					$provided[$key] = $value;
+				}
+			);
+		return $initialState;
+	}//end recordingInitialState()
+
+	/**
+	 * The page carries the caller's tenant as CallerTenantResolver resolves
+	 * it, so nextcloud-vue's create dialog fills a hidden `tenant_id` with
+	 * the same value every learniq server-side write carries, not the
+	 * OpenRegister organisation.
+	 *
+	 * @return void
+	 */
+	public function testIndexProvidesTheCallerTenant(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('teacher-1');
+
+		$resolver = $this->createMock(CallerTenantResolver::class);
+		$resolver->expects(self::once())->method('resolve')->with($user)->willReturn('tenant-school-a');
+
+		$provided = [];
+		$this->controller($user, $this->recordingInitialState($provided), false, null, $resolver)->index();
+
+		self::assertSame('tenant-school-a', ($provided['callerTenant'] ?? null));
+	}//end testIndexProvidesTheCallerTenant()
+
+	/**
+	 * An unresolvable tenant (the resolver's OpenRegister dependency is
+	 * missing) degrades to null and the page still renders; the dialog then
+	 * leaves the key out instead of guessing.
+	 *
+	 * @return void
+	 */
+	public function testCallerTenantDegradesToNullWhenItCannotBeResolved(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('teacher-1');
+
+		$provided = [];
+		$response = $this->controller($user, $this->recordingInitialState($provided), true)->index();
+
+		self::assertSame('index', $response->getTemplateName());
+		self::assertArrayHasKey('callerTenant', $provided);
+		self::assertNull($provided['callerTenant']);
+	}//end testCallerTenantDegradesToNullWhenItCannotBeResolved()
+
+	/**
+	 * An empty resolution (no binding and no instance id) is provided as
+	 * null, never as an empty string a form would stamp.
+	 *
+	 * @return void
+	 */
+	public function testAnEmptyCallerTenantIsProvidedAsNull(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('teacher-1');
+
+		$resolver = $this->createMock(CallerTenantResolver::class);
+		$resolver->method('resolve')->willReturn('');
+
+		$provided = [];
+		$this->controller($user, $this->recordingInitialState($provided), false, null, $resolver)->index();
+
+		self::assertArrayHasKey('callerTenant', $provided);
+		self::assertNull($provided['callerTenant']);
+	}//end testAnEmptyCallerTenantIsProvidedAsNull()
+
+	/**
+	 * A line manager gets `managesLearners`, so the Sign-up requests entry
+	 * reaches them although their primary role is `learner`.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-request-waits-for-a-teacher-or-manager
+	 */
+	public function testIndexProvidesTheLineManagerFlag(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('manager-1');
+
+		$check = $this->createMock(LineManagerCheck::class);
+		$check->expects(self::once())->method('managesLearners')->with($user)->willReturn(true);
+
+		$provided = [];
+		$this->controller($user, $this->recordingInitialState($provided), false, null, null, $check)->index();
+
+		self::assertTrue($provided['managesLearners'] ?? null);
+	}//end testIndexProvidesTheLineManagerFlag()
+
+	/**
+	 * Without OpenRegister the flag degrades to false and the page still renders.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-request-waits-for-a-teacher-or-manager
+	 */
+	public function testTheLineManagerFlagDegradesToFalse(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('manager-1');
+
+		$provided = [];
+		$response = $this->controller($user, $this->recordingInitialState($provided), true)->index();
+
+		self::assertSame('index', $response->getTemplateName());
+		self::assertFalse($provided['managesLearners'] ?? null);
+	}//end testTheLineManagerFlagDegradesToFalse()
 }//end class

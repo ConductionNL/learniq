@@ -31,6 +31,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -40,7 +42,14 @@ use Psr\Log\LoggerInterface;
  * Returns true only when the Course has at least one published Lesson, ensuring
  * learners cannot be enrolled onto a course with no available content.
  */
-class CoursePublishGuard {
+class CoursePublishGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'A course needs at least one published lesson before it can be published.';
 
 	/**
 	 * OR register slug for Learniq objects.
@@ -62,24 +71,40 @@ class CoursePublishGuard {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-13
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
+	 * The rule behind check(), answered as a boolean.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing the `publish`
 	 * transition on a Course object. Returns true only when at least one
 	 * published Lesson belongs to this Course.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the Course data array
-	 *                                               - 'transition' : 'publish'
-	 *                                               - 'from'       : current lifecycle state
-	 *                                               - 'to'         : 'published'
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True if the Course has at least one published Lesson; false blocks transition.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-13
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
+	private function allows(array $object): bool {
 		$courseId = $object['uuid'] ?? $object['id'] ?? null;
 		$tenantId = $object['tenant_id'] ?? '';
 
@@ -96,9 +121,13 @@ class CoursePublishGuard {
 
 		$publishedLessons = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'lesson',
-				'filters' => $lessonFilters,
+				'filters' => array_merge(
+					$lessonFilters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'lesson',
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -112,5 +141,5 @@ class CoursePublishGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 }//end class

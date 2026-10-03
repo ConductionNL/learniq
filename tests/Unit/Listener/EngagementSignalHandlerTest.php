@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#requirement-at-risk-detection-beyond-bsa-is-a-deterministic-rule-based-threshold--not-aiml
+ * @spec openspec/specs/student-analytics/spec.md#requirement-at-risk-detection-beyond-bsa-is-a-deterministic-rule-based-threshold--not-aiml
  */
 
 declare(strict_types=1);
@@ -127,9 +127,9 @@ class EngagementSignalHandlerTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
-				$schema = $config['schema'];
+				$schema = $config['filters']['schema'];
 				$records = $this->db[$schema] ?? [];
-				$filters = $config['filters'] ?? [];
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 
 				$matched = array_values(
 					array_filter(
@@ -249,7 +249,7 @@ class EngagementSignalHandlerTest extends TestCase {
 	 * An xAPI statement defers the recompute rather than doing it.
 	 *
 	 * @return void
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
 	 */
 	public function testAnXapiStatementDefersTheRecompute(): void {
 		$handler = $this->makeHandler(
@@ -279,7 +279,7 @@ class EngagementSignalHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#requirement-at-risk-detection-beyond-bsa-is-a-deterministic-rule-based-threshold--not-aiml
+	 * @spec openspec/specs/student-analytics/spec.md#requirement-at-risk-detection-beyond-bsa-is-a-deterministic-rule-based-threshold--not-aiml
 	 */
 	/**
 	 * An event of another type is ignored before getObject() is reached.

@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+ * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
  */
 
 declare(strict_types=1);
@@ -78,7 +78,7 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 			}
 		);
 
-		return new BpvLeerbedrijfVerificationHandler($objectService, $container, $this->createMock(LoggerInterface::class));
+		return new BpvLeerbedrijfVerificationHandler($objectService, $container, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**

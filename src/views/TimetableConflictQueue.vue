@@ -16,7 +16,7 @@
  Mirrors ProctoringReviewQueue's Options API + direct fetch/axios shape (no
  custom Pinia store module).
 
- @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+ @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
 -->
 
 <template>
@@ -33,7 +33,30 @@
 					)
 				}}
 			</p>
+			<NcButton
+				v-if="canImport"
+				variant="secondary"
+				:disabled="!planninqReady"
+				data-testid="timetable-import-open"
+				@click="importOpen = true">
+				{{ t('learniq', 'Import a timetable') }}
+			</NcButton>
+			<p
+				v-if="canImport && !planninqReady"
+				class="timetable-conflict-queue__subtitle">
+				{{
+					t(
+						'learniq',
+						'Install planninq to import a timetable: integriq delivers it there.',
+					)
+				}}
+			</p>
 		</header>
+
+		<TimetableImportDialog
+			v-if="importOpen"
+			@imported="load"
+			@close="importOpen = false" />
 
 		<div
 			v-if="loading"
@@ -67,7 +90,7 @@
 				<div class="timetable-conflict-queue__info">
 					<span class="timetable-conflict-queue__kind">{{
 						/**
-						 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+						 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
 						 */
 						kindLabel(conflict.kind)
 					}}</span>
@@ -83,7 +106,7 @@
 					</span>
 					<span class="timetable-conflict-queue__detected">{{
 						/**
-						 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+						 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
 						 */
 						formatDate(conflict.detectedAt)
 					}}</span>
@@ -120,6 +143,8 @@
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
+import TimetableImportDialog from '../dialogs/TimetableImportDialog.vue'
+import { IMPORT_ACCESS_URL } from '../utils/timetableExchangeSettings.js'
 
 export default {
 	name: 'TimetableConflictQueue',
@@ -129,10 +154,14 @@ export default {
 		NcEmptyContent,
 		NcLoadingIcon,
 		NcNoteCard,
+		TimetableImportDialog,
 	},
 
 	data() {
 		return {
+			canImport: false,
+			planninqReady: false,
+			importOpen: false,
 			conflicts: [],
 			loading: false,
 			error: '',
@@ -146,7 +175,7 @@ export default {
 		 * Open + acknowledged conflicts, ordered newest-first.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+		 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
 		 */
 		visibleConflicts() {
 			return this.conflicts
@@ -162,18 +191,42 @@ export default {
 		},
 	},
 
+	/**
+	 * Load the queue, and whether this user may import a timetable.
+	 *
+	 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+	 * @spec openspec/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
+	 */
 	created() {
 		this.load()
+		this.loadImportAccess()
 	},
 
 	methods: {
 		t,
 
 		/**
+		 * Show the import button only to someone the import endpoint admits
+		 * (exchange.request), and enable it where planninq takes the delivery.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
+		 */
+		async loadImportAccess() {
+			try {
+				const { data } = await axios.get(generateUrl(IMPORT_ACCESS_URL))
+				this.canImport = data?.canImport === true
+				this.planninqReady = data?.planninq === true
+			} catch {
+				this.canImport = false
+			}
+		},
+
+		/**
 		 * Fetch every TimetableConflict object.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+		 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
 		 */
 		async load() {
 			this.loading = true
@@ -230,7 +283,7 @@ export default {
 		 * @param {object} conflict The TimetableConflict object.
 		 * @param {string} lifecycle Target lifecycle value.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-coordinator-sees-a-newly-detected-conflict-in-their-review-queue
+		 * @spec openspec/specs/timetabling/spec.md#scenario-a-coordinator-sees-a-newly-detected-conflict-in-their-review-queue
 		 */
 		async transition(conflict, lifecycle) {
 			this.savingId = conflict.id
@@ -241,7 +294,7 @@ export default {
 					'/apps/openregister/api/objects/learniq/timetable-conflict/{id}',
 					{ id: conflict.id },
 				)
-				await axios.put(url, { lifecycle })
+				await axios.patch(url, { lifecycle })
 
 				const idx = this.conflicts.findIndex((c) => c.id === conflict.id)
 				if (idx >= 0) {

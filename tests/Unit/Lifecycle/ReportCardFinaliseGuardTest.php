@@ -16,13 +16,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
+ * @spec openspec/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\Learniq\Lifecycle\ReportCardFinaliseGuard;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -31,6 +32,8 @@ use Psr\Log\LoggerInterface;
  * Tests for ReportCardFinaliseGuard (rapportvergadering-review -> finalised).
  */
 class ReportCardFinaliseGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * Build a guard with a mocked logger.
@@ -48,15 +51,14 @@ class ReportCardFinaliseGuardTest extends TestCase {
 	 */
 	public function testCommentAndSubjectsAllowsFinalise(): void {
 		$guard = $this->makeGuard();
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'card-1',
 				'mentorComment' => 'Goed gedaan dit rapport.',
 				'subjectGrades' => [['curriculumPlanId' => 'plan-1']],
-			],
-		];
+				'lifecycle' => 'finalised',
+			];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'finalise', ''));
 
 	}//end testCommentAndSubjectsAllowsFinalise()
 
@@ -65,13 +67,13 @@ class ReportCardFinaliseGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
+	 * @spec openspec/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
 	 */
 	public function testMissingMentorCommentBlocksFinalise(): void {
 		$guard = $this->makeGuard();
-		$context = ['object' => ['id' => 'card-1', 'subjectGrades' => [['curriculumPlanId' => 'plan-1']]]];
+		$object = ['id' => 'card-1', 'subjectGrades' => [['curriculumPlanId' => 'plan-1']], 'lifecycle' => 'finalised'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'finalise', ''));
 
 	}//end testMissingMentorCommentBlocksFinalise()
 
@@ -80,19 +82,18 @@ class ReportCardFinaliseGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
+	 * @spec openspec/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
 	 */
 	public function testBlankMentorCommentBlocksFinalise(): void {
 		$guard = $this->makeGuard();
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'card-1',
 				'mentorComment' => '   ',
 				'subjectGrades' => [['curriculumPlanId' => 'plan-1']],
-			],
-		];
+				'lifecycle' => 'finalised',
+			];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'finalise', ''));
 
 	}//end testBlankMentorCommentBlocksFinalise()
 
@@ -103,9 +104,9 @@ class ReportCardFinaliseGuardTest extends TestCase {
 	 */
 	public function testEmptySubjectGradesBlocksFinalise(): void {
 		$guard = $this->makeGuard();
-		$context = ['object' => ['id' => 'card-1', 'mentorComment' => 'Prima.', 'subjectGrades' => []]];
+		$object = ['id' => 'card-1', 'mentorComment' => 'Prima.', 'subjectGrades' => [], 'lifecycle' => 'finalised'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'finalise', ''));
 
 	}//end testEmptySubjectGradesBlocksFinalise()
 }//end class

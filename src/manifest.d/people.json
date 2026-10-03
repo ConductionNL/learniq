@@ -37,7 +37,7 @@
 					"label": "Enrolments",
 					"icon": "AccountGroup",
 					"route": "Enrolments",
-					"order": 20,
+					"order": 19,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
@@ -49,6 +49,47 @@
 							]
 						}
 					}
+				},
+				{
+					"id": "SignUpRequestsMenu",
+					"label": "Sign-up requests",
+					"icon": "AccountGroup",
+					"route": "Enrolments",
+					"order": 21,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"hr",
+								"team-lead",
+								"administration-manager",
+								"admin"
+							]
+						}
+					},
+					"query": {
+						"source": "self",
+						"lifecycle": "pending"
+					}
+				},
+				{
+					"id": "RollCallMenu",
+					"label": "Today's register",
+					"icon": "ClipboardCheckOutline",
+					"route": "RollCall",
+					"order": 29,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					},
+					"_note": "attendance-roll-call: the day's register of one group. A group teacher lands on their own group and today; coordinators and administration-managers pick any group. The server (RollCallService) decides who may open which group, so the gate here only decides who sees the entry."
 				},
 				{
 					"id": "Attendance",
@@ -69,6 +110,29 @@
 					}
 				},
 				{
+					"id": "AbsenceReportsMenu",
+					"label": "Absence reports",
+					"icon": "CalendarRemoveOutline",
+					"route": "ExcuseRequests",
+					"order": 31,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
+						}
+					},
+					"_note": "The absence reports guardians and the school file (ExcuseRequest). The list reads only what the register lets the user read: a group teacher sees the reports of their own groups (teacherIds), coordinators and directors the whole school. hr is left out because ExcuseRequest does not grant it. Compliance officers can read the reports too, but GroupPeople does not reach them, so AbsenceReportsComplianceMenu gives them the same page under Compliance. School-only, like the AttendanceFlags report card."
+				},
+				{
 					"id": "Credentials",
 					"label": "Credentials",
 					"icon": "Check",
@@ -80,6 +144,54 @@
 								"instructor",
 								"coordinator",
 								"hr",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "Staff",
+					"label": "Staff",
+					"icon": "AccountTieOutline",
+					"route": "Staff",
+					"order": 47,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "Schools",
+					"label": "Schools",
+					"icon": "OfficeBuilding",
+					"route": "Schools",
+					"order": 48,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "Locations",
+					"label": "Locations",
+					"icon": "MapMarker",
+					"route": "Locations",
+					"order": 59,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
 								"administration-manager",
 								"admin"
 							]
@@ -119,6 +231,36 @@
 			"config": {
 				"register": "learniq",
 				"schema": "Credential"
+			}
+		},
+		{
+			"id": "Staff",
+			"route": "/staff",
+			"type": "index",
+			"title": "Staff",
+			"config": {
+				"register": "learniq",
+				"schema": "Staff"
+			}
+		},
+		{
+			"id": "Schools",
+			"route": "/schools",
+			"type": "index",
+			"title": "Schools",
+			"config": {
+				"register": "learniq",
+				"schema": "School"
+			}
+		},
+		{
+			"id": "Locations",
+			"route": "/locations",
+			"type": "index",
+			"title": "Locations",
+			"config": {
+				"register": "learniq",
+				"schema": "Vestiging"
 			}
 		},
 		{
@@ -446,8 +588,8 @@
 			"route": "/enrolments/bulk",
 			"type": "custom",
 			"title": "Bulk Enrol",
-			"component": "CnWizardDialog",
-			"_note": "Mounts CnWizardDialog from @conduction/nextcloud-vue for the multi-step bulk-enrol flow (audience picker → course/section → confirm + batch progress)."
+			"component": "BulkEnrolView",
+			"_note": "Mounts BulkEnrolView (learniq#947): a course plus a cohort and/or picked learners; learners with an open enrolment are skipped."
 		},
 		{
 			"id": "CredentialDetail",
@@ -483,6 +625,14 @@
 						"integrationId": "files",
 						"title": "Badge & certificate files",
 						"icon": "FolderOutline"
+					},
+					{
+						"id": "cred-calendar",
+						"type": "integration",
+						"integrationId": "calendar",
+						"requiredApp": "calendar",
+						"title": "Agenda",
+						"icon": "CalendarClockOutline"
 					}
 				],
 				"layout": [
@@ -512,6 +662,14 @@
 						"gridWidth": 12,
 						"gridHeight": 3,
 						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "cred-calendar",
+						"gridX": 0,
+						"gridY": 8,
+						"gridWidth": 12,
+						"gridHeight": 4
 					}
 				],
 				"sidebar": {
@@ -529,7 +687,32 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "download-europass",
+						"label": "Download for Europass",
+						"icon": "FileCertificateOutline",
+						"type": "api-call",
+						"url": "/apps/learniq/api/credentials/@objectId/europass/download",
+						"method": "POST",
+						"download": true,
+						"filename": "europass.jsonld",
+						"refresh": false,
+						"errorMessage": "This certificate has no Europass version yet, or you may not download it."
+					},
+					{
+						"id": "create-europass",
+						"label": "Create Europass version",
+						"icon": "CertificateOutline",
+						"type": "api-call",
+						"url": "/apps/learniq/api/credentials/@objectId/europass",
+						"method": "POST",
+						"confirm": true,
+						"successMessage": "The Europass version was created.",
+						"errorMessage": "The Europass version could not be created. It exists already, the certificate is not issued, or only HR and compliance officers can create it."
+					}
+				]
 			}
 		},
 		{
@@ -587,13 +770,218 @@
 			}
 		},
 		{
+			"id": "StaffDetail",
+			"route": "/staff/:id",
+			"type": "detail",
+			"title": "Staff",
+			"_note": "A Staff record is reference data (ncUserId, roles, qualifications, workingDays) with no lifecycle, same shape as Room. Body leads with the staff data 8-wide with a Related panel resolving Cohorts and SubjectTeacherAssignments this person is named on. No email/calendar/files (HARD RULE 1: reference data, not correspondence). Sidebar keeps metadata + audit-trail.",
+			"config": {
+				"register": "learniq",
+				"schema": "Staff",
+				"widgets": [
+					{
+						"id": "staff-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AccountTieOutline"
+					},
+					{
+						"id": "staff-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "staff-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "staff-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "SchoolDetail",
+			"route": "/schools/:id",
+			"type": "detail",
+			"title": "School",
+			"_note": "A School is a reference-data record (BRIN, name, pedagogical concept) with no lifecycle — same shape as Room. Body leads with the school data 8-wide with a Related panel resolving its Locations. No email/calendar/files (HARD RULE 1: reference data, not a document or correspondence archetype). Sidebar keeps metadata + audit-trail.",
+			"config": {
+				"register": "learniq",
+				"schema": "School",
+				"widgets": [
+					{
+						"id": "school-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "OfficeBuilding"
+					},
+					{
+						"id": "school-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "school-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "school-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "LocationDetail",
+			"route": "/locations/:id",
+			"type": "detail",
+			"title": "Location",
+			"_note": "A Location is a vestiging/onderwijslocatie reference-data record (schoolId, vestigingscode, onderwijslocatiecode, address) with no lifecycle — same shape as Room. Body leads with the location data 8-wide with a Related panel resolving its School and the Cohorts running there. No email/calendar/files (HARD RULE 1). Sidebar keeps metadata + audit-trail.",
+			"config": {
+				"register": "learniq",
+				"schema": "Vestiging",
+				"widgets": [
+					{
+						"id": "location-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "MapMarker"
+					},
+					{
+						"id": "location-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "location-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "location-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
 			"id": "AttendanceRecords",
 			"route": "/attendance/records",
 			"type": "index",
 			"title": "Attendance records",
 			"config": {
 				"register": "learniq",
-				"schema": "attendance-record"
+				"schema": "attendance-record",
+				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly so the platform's built-in mass import/export/copy/delete (CnIndexPage showMass*) is a documented capability of this index, not an implicit default (findings 12.6/14.7).",
+				"columns": [
+					"learnerId",
+					"cohortId",
+					"status",
+					"markedAt"
+				],
+				"actionToggles": {
+					"showMassImport": true,
+					"showMassExport": true,
+					"showMassCopy": true,
+					"showMassDelete": true
+				}
 			}
 		},
 		{
@@ -675,6 +1063,14 @@
 					]
 				}
 			}
+		},
+		{
+			"id": "RollCall",
+			"route": "/attendance/roll-call",
+			"type": "custom",
+			"title": "Today's register",
+			"component": "RollCallView",
+			"_note": "Mounts RollCallView (attendance-roll-call): one screen per group and day, everyone present by default, one tap per exception, saved through /api/attendance/roll-call."
 		},
 		{
 			"id": "ExcuseRequests",
@@ -1139,8 +1535,8 @@
 			"route": "/attendance/excuses/submit",
 			"type": "custom",
 			"title": "Submit excuse",
-			"component": "CnRichSubmitDialog",
-			"_note": "Mounts CnRichSubmitDialog from @conduction/nextcloud-vue for excuse submission (file attachment + reason taxonomy)."
+			"component": "SubmitExcuseView",
+			"_note": "Mounts SubmitExcuseView (learniq#947): a staff form that records an ExcuseRequest for a learner."
 		},
 		{
 			"id": "LearnerProfiles",
@@ -1149,7 +1545,20 @@
 			"title": "Learners",
 			"config": {
 				"register": "learniq",
-				"schema": "learner-profile"
+				"schema": "learner-profile",
+				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly, see AttendanceRecords' note.",
+				"columns": [
+					"givenName",
+					"familyName",
+					"ncUserId",
+					"schoolId"
+				],
+				"actionToggles": {
+					"showMassImport": true,
+					"showMassExport": true,
+					"showMassCopy": true,
+					"showMassDelete": true
+				}
 			}
 		},
 		{
@@ -1160,8 +1569,44 @@
 			"config": {
 				"register": "learniq",
 				"schema": "learner-profile",
-				"_note": "A Learner Profile is the person record — the STUDENT hub. What a mentor lands here to see is this learner's whole footprint, each its own object-list scoped by learnerId: Enrolments (the courses they take), Final grades (outcomes/results), Attendance (presence), Learning plans (support/OPP), and Credentials (diplomas/badges earned) — paired 6+6 below the profile Data block (8-wide) and a Related panel resolving parents + manager. A stats-block KPI panel counts enrolments/attendance/credentials at a glance. No lifecycleActions: LearnerProfile uses a states model (active/merged/deleted via merge/delete transitions), not a linear `lifecycle` enum, so status changes are handled by dedicated flows, not a generic transition menu. No comms leaves on the body: LearnerProfile declares no linkedTypes (HARD RULE 1). The audit trail lives as the single sidebar tab (the built-in audit widget), not a body widget (HARD RULE 4).",
+				"_note": "A Learner Profile is the person record — the STUDENT hub. learner-record-extras (finding 2.1/pupil-card-anatomy.md) replaced the single scrolling Data block with a top-of-page `lprof-tabs` widget (Identity / Address & contact / Guardians / Medical / First aid), so guardians — previously the `related` widget buried at layout slot 8, resolving only after a long scroll — are now one click away instead of a dash at the bottom. Each tabbed child is declared here as an ordinary widget with NO layout entry of its own (CnTabsWidget resolves them by id from this widgets array, not from layout; a widget with both would render twice). Below the tabs: KPI tiles, then Enrolments (the courses they take), Final grades (outcomes/results), Attendance (presence), Learning plans (support/OPP), and Credentials (diplomas/badges earned), each its own object-list scoped by learnerId — paired 6+6. No lifecycleActions: LearnerProfile uses a states model (active/merged/deleted via merge/delete transitions), not a linear `lifecycle` enum, so status changes are handled by dedicated flows, not a generic transition menu. No comms leaves on the body: LearnerProfile declares no linkedTypes (HARD RULE 1). The audit trail lives as the single sidebar tab (the built-in audit widget), not a body widget (HARD RULE 4).",
 				"widgets": [
+					{
+						"id": "lprof-tabs",
+						"type": "tabs",
+						"title": "Learner",
+						"icon": "AccountBoxOutline",
+						"content": {
+							"ariaLabel": "Learner profile sections",
+							"tabs": [
+								{
+									"widgetId": "lprof-data",
+									"label": "Identity",
+									"icon": "AccountBoxOutline"
+								},
+								{
+									"widgetId": "lprof-data-address",
+									"label": "Address & contact",
+									"icon": "MapMarkerOutline"
+								},
+								{
+									"widgetId": "lprof-related",
+									"label": "Guardians",
+									"icon": "AccountMultipleOutline"
+								},
+								{
+									"widgetId": "lprof-data-medical",
+									"label": "Medical",
+									"icon": "MedicalBag"
+								},
+								{
+									"widgetId": "lprof-first-aid",
+									"label": "First aid",
+									"icon": "Bandage"
+								}
+							]
+						}
+					},
 					{
 						"id": "lprof-data",
 						"type": "data",
@@ -1170,6 +1615,72 @@
 							"columns": 2
 						},
 						"icon": "AccountBoxOutline"
+					},
+					{
+						"id": "lprof-data-address",
+						"type": "data",
+						"title": "Address & contact",
+						"content": {
+							"columns": 2,
+							"include": [
+								"address",
+								"emergencyContacts"
+							]
+						},
+						"icon": "MapMarkerOutline"
+					},
+					{
+						"id": "lprof-data-medical",
+						"type": "data",
+						"title": "Medical",
+						"content": {
+							"columns": 2,
+							"include": [
+								"medicalConditions",
+								"allergies",
+								"medicalConsentDate",
+								"hasParentalAuthority"
+							]
+						},
+						"icon": "MedicalBag"
+					},
+					{
+						"id": "lprof-first-aid",
+						"type": "object-list",
+						"title": "First aid incidents",
+						"content": {
+							"register": "learniq",
+							"schema": "first-aid-incident",
+							"filter": {
+								"learnerId": "@objectId"
+							},
+							"sort": {
+								"field": "occurredAt",
+								"dir": "desc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "occurredAt",
+									"label": "Occurred At"
+								},
+								{
+									"key": "whatHappened",
+									"label": "What Happened"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "FirstAidIncidentDetail",
+							"viewAllRoute": "FirstAidIncidents",
+							"viewAllQuery": {
+								"learnerId": "@objectId"
+							},
+							"emptyText": "No first aid incidents found."
+						},
+						"icon": "Bandage"
 					},
 					{
 						"id": "lprof-kpis-enrolments",
@@ -1577,12 +2088,20 @@
 							"emptyText": "No wellbeing check-ins found."
 						},
 						"icon": "Heart"
+					},
+					{
+						"id": "lp-contact",
+						"type": "integration",
+						"integrationId": "contacts",
+						"requiredApp": "contacts",
+						"title": "Contact card",
+						"icon": "AccountBoxOutline"
 					}
 				],
 				"layout": [
 					{
 						"id": "1",
-						"widgetId": "lprof-data",
+						"widgetId": "lprof-tabs",
 						"gridX": 0,
 						"gridY": 0,
 						"gridWidth": 8,
@@ -1662,15 +2181,6 @@
 						"showTitle": false
 					},
 					{
-						"id": "8",
-						"widgetId": "lprof-related",
-						"gridX": 6,
-						"gridY": 16,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
 						"id": "9",
 						"widgetId": "lprof-kpis-dossier-timeline",
 						"gridX": 0,
@@ -1705,6 +2215,14 @@
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
+					},
+					{
+						"id": "13",
+						"widgetId": "lp-contact",
+						"gridX": 0,
+						"gridY": 33,
+						"gridWidth": 12,
+						"gridHeight": 4
 					}
 				],
 				"sidebar": {

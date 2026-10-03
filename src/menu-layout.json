@@ -6,6 +6,7 @@
 	},
 	"relocations": {
 		"GroupTimetabling": "GroupLearning",
+		"GroupExamSchedule": "GroupLearning",
 		"GroupAdmissions": "GroupPeople",
 		"GroupPupilDossier": "GroupPeople",
 		"GroupConferences": "GroupPeople",
@@ -18,6 +19,7 @@
 		"GroupBpv": "GroupProgress",
 		"Compliance": "GroupCompliance",
 		"ExternalTraining": "GroupCompliance",
+		"AbsenceReportsComplianceMenu": "GroupCompliance",
 		"Accessibility": "GroupCompliance",
 		"AccessibilityLimitationsMenu": "GroupCompliance",
 		"AiProcessingDisclosureMenu": "GroupCompliance",
@@ -27,7 +29,15 @@
 		"DashboardTeacher": "Dashboard",
 		"DashboardStudent": "Dashboard",
 		"MyTimetableMenu": "GroupMyLearning",
-		"MyLearningRecordMenu": "GroupMyLearning"
+		"CheckInMenu": "GroupMyLearning",
+		"MyWorkGroupsMenu": "GroupMyLearning",
+		"MyEvaluationsMenu": "GroupMyLearning",
+		"CatalogueMenu": "GroupMyLearning",
+		"MyLearningRecordMenu": "GroupMyLearning",
+		"ManagerSignUpRequestsMenu": "GroupMyLearning",
+		"TeamLeadSignUpRequestsMenu": "GroupMyLearning",
+		"FeeItemsMenu": "GroupPeople",
+		"EntitlementsMenu": "GroupPeople"
 	},
 	"removals": [
 		"Accessibility",

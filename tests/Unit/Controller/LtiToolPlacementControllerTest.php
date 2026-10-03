@@ -3,18 +3,16 @@
 /**
  * Unit tests for LtiToolPlacementController.
  *
- * Covers the launch-delegation contract: a valid placement's launch call
- * forwards the correct openconnectorDeploymentId and returns the mocked
- * OpenConnector response unmodified (task 2.4); OpenConnector
- * unreachable/non-2xx returns a clear error response, not a silent empty
- * body (task 2.5); and the bearer-token header reuses the same
- * learniq.openconnector_api_token config key DataExchangeRunHandler already
- * uses.
+ * The launch raises integriq's typed `LtiLaunchRequestedEvent` (a stand-in
+ * copied from integriq lives under tests/Stubs/Integriq) and answers with the
+ * login initiation form the listener sets. Covers: no integriq (503), a refusal
+ * (409), nobody answering (503), the event's contents (message type, role,
+ * course context, return URL), and the unchanged 401/404/422 paths.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Controller
  *
- * @author    Conduction Development Team <dev@conductio.nl>
+ * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
@@ -24,28 +22,25 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lti-tool-placement/tasks.md#task-2.4
- * @spec openspec/changes/lti-tool-placement/tasks.md#task-2.5
+ * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+use OCA\Integriq\Event\LtiLaunchRequestedEvent;
+use OCA\Learniq\Controller\LtiToolPlacementController;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Controller\LtiToolPlacementController;
-use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
-use OCP\Http\Client\IClient;
-use OCP\Http\Client\IClientService;
-use OCP\Http\Client\IResponse;
-use OCP\IAppConfig;
+use OCP\EventDispatcher\IEventDispatcher;
+use OCP\IGroupManager;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserSession;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -55,240 +50,269 @@ use Psr\Log\NullLogger;
 class LtiToolPlacementControllerTest extends TestCase {
 
 	/**
-	 * ObjectService mock.
+	 * Objects by schema and id.
 	 *
-	 * @var ObjectService&MockObject
+	 * @var array<string, array<string, array<string, mixed>>>
 	 */
-	private ObjectService&MockObject $objectService;
+	private array $objects = [];
 
 	/**
-	 * User-session mock.
+	 * What the listener does with the event: 'form', 'refuse' or 'nothing'.
 	 *
-	 * @var IUserSession&MockObject
+	 * @var string
 	 */
-	private IUserSession&MockObject $userSession;
+	private string $listener = 'form';
 
 	/**
-	 * HTTP client-service mock.
+	 * The last dispatched event.
 	 *
-	 * @var IClientService&MockObject
+	 * @var LtiLaunchRequestedEvent|null
 	 */
-	private IClientService&MockObject $clientService;
+	private ?LtiLaunchRequestedEvent $dispatched = null;
 
 	/**
-	 * URL generator mock.
+	 * Whether the signed-in user teaches.
 	 *
-	 * @var IURLGenerator&MockObject
+	 * @var bool
 	 */
-	private IURLGenerator&MockObject $urlGenerator;
+	private bool $instructor = false;
 
 	/**
-	 * App-config mock.
+	 * Build the controller.
 	 *
-	 * @var IAppConfig&MockObject
+	 * @param bool $integriq  Whether integriq's event class resolves.
+	 * @param bool $signedIn  Whether a user is signed in.
+	 *
+	 * @return LtiToolPlacementController
 	 */
-	private IAppConfig&MockObject $appConfig;
+	private function controller(bool $integriq = true, bool $signedIn = true): LtiToolPlacementController {
+		$user = null;
+		if ($signedIn === true) {
+			$user = $this->createMock(IUser::class);
+			$user->method('getUID')->willReturn('pupil1');
+		}
+
+		$session = $this->createMock(IUserSession::class);
+		$session->method('getUser')->willReturn($user);
+
+		$objects = $this->createMock(ObjectService::class);
+		$objects->method('find')->willReturnCallback(
+			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+				$row = ($this->objects[(string)$schema][(string)$id] ?? null);
+				if ($row === null) {
+					throw new DoesNotExistException('not found');
+				}
+
+				$entity = $this->createMock(ObjectEntity::class);
+				$entity->method('jsonSerialize')->willReturn($row);
+				return $entity;
+			}
+		);
+
+		$dispatcher = $this->createMock(IEventDispatcher::class);
+		$dispatcher->method('dispatchTyped')->willReturnCallback(
+			function ($event): void {
+				$this->dispatched = $event;
+				if ($this->listener === 'form') {
+					$event->setLoginInitiation(['formActionUrl' => 'https://tool.example/login', 'method' => 'post', 'fields' => ['login_hint' => 'h', 'iss' => 'i']]);
+				}
+
+				if ($this->listener === 'refuse') {
+					$event->refuse('tool-not-approved', 'This tool is not approved in integriq.');
+				}
+			}
+		);
+
+		$groups = $this->createMock(IGroupManager::class);
+		$groups->method('isInGroup')->willReturnCallback(fn (string $uid, string $group): bool => $this->instructor === true && $group === 'instructors');
+
+		$urls = $this->createMock(IURLGenerator::class);
+		$urls->method('getAbsoluteURL')->willReturnCallback(static fn (string $path): string => 'https://school.example' . $path);
+
+		return new class(
+			$integriq,
+			$this->createMock(IRequest::class),
+			$session,
+			$objects,
+			$dispatcher,
+			$groups,
+			$urls
+		) extends LtiToolPlacementController {
+
+			/**
+			 * @param bool             $integriq   Whether the event class resolves.
+			 * @param IRequest         $request    Request.
+			 * @param IUserSession     $session    Session.
+			 * @param ObjectService    $objects    Objects.
+			 * @param IEventDispatcher $dispatcher Dispatcher.
+			 * @param IGroupManager    $groups     Groups.
+			 * @param IURLGenerator    $urls       URLs.
+			 */
+			public function __construct(
+				private readonly bool $integriq,
+				IRequest $request,
+				IUserSession $session,
+				ObjectService $objects,
+				IEventDispatcher $dispatcher,
+				IGroupManager $groups,
+				IURLGenerator $urls,
+			) {
+				parent::__construct(
+					request: $request,
+					userSession: $session,
+					objectService: $objects,
+					eventDispatcher: $dispatcher,
+					groupManager: $groups,
+					urlGenerator: $urls,
+					logger: new NullLogger()
+				);
+			}
+
+			/**
+			 * @param string $eventClass The class.
+			 *
+			 * @return string|null The class, or null without integriq.
+			 */
+			protected function resolveEventClass(string $eventClass): ?string {
+				if ($this->integriq === false) {
+					return null;
+				}
+
+				return parent::resolveEventClass(eventClass: $eventClass);
+			}
+		};
+	}//end controller()
 
 	/**
 	 * @return void
 	 */
 	protected function setUp(): void {
 		parent::setUp();
-		$this->objectService = $this->createMock(ObjectService::class);
-		$this->userSession = $this->createMock(IUserSession::class);
-		$this->clientService = $this->createMock(IClientService::class);
-		$this->urlGenerator = $this->createMock(IURLGenerator::class);
-		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->objects = [
+			'lti-tool-placement' => [
+				'pl1' => ['id' => 'pl1', 'openconnectorDeploymentId' => 'dep-1', 'launchMode' => 'resource-link', 'courseId' => 'c1', 'lessonId' => 'l1'],
+				'pl2' => ['id' => 'pl2', 'openconnectorDeploymentId' => '', 'launchMode' => 'resource-link'],
+			],
+			// Real Course shape: the display name is `name` (lib/Settings/learniq_register.json).
+			'course'             => [
+				'c1' => ['id' => 'c1', 'code' => 'AK-3H', 'name' => 'Aardrijkskunde'],
+				'c2' => ['id' => 'c2', 'code' => 'GS-3H', 'name' => 'Geschiedenis'],
+			],
+			'lesson'             => ['l2' => ['id' => 'l2', 'courseId' => 'c2', 'name' => 'De Gouden Eeuw', 'contentType' => 'lti']],
+		];
 	}//end setUp()
 
 	/**
-	 * Build the controller under test.
-	 *
-	 * @return LtiToolPlacementController
-	 */
-	private function controller(): LtiToolPlacementController {
-		return new LtiToolPlacementController(
-			request: $this->createMock(IRequest::class),
-			userSession: $this->userSession,
-			objectService: $this->objectService,
-			clientService: $this->clientService,
-			urlGenerator: $this->urlGenerator,
-			appConfig: $this->appConfig,
-			logger: new NullLogger()
-		);
-	}//end controller()
-
-	/**
-	 * Sign the caller in as the given uid.
-	 *
-	 * @param string $uid The user id.
+	 * A launch raises the event and answers with the login initiation form.
 	 *
 	 * @return void
 	 */
-	private function signInAs(string $uid): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn($uid);
-		$this->userSession->method('getUser')->willReturn($user);
-	}//end signInAs()
+	public function testLaunchRaisesTheEventAndReturnsTheForm(): void {
+		$response = $this->controller()->launch(placementId: 'pl1');
 
-	/**
-	 * A valid placement's launch call forwards the correct
-	 * openconnectorDeploymentId and returns the mocked response unmodified.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-2.4
-	 */
-	public function testLaunchForwardsDeploymentIdAndReturnsResponseUnmodified(): void {
-		$this->signInAs('learner-1');
-
-		// OpenRegister's find() is find($id, $_extend, $files, $register, $schema, ...)
-		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
-		// mock's arguments POSITIONALLY, so the closure must mirror that order.
-		$this->objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
-				if ($register === 'learniq' && $schema === 'lti-tool-placement' && $id === 'placement-1') {
-					return OrEntityFactory::make(
-						[
-							'id' => 'placement-1',
-							'openconnectorDeploymentId' => 'deployment-uuid-1',
-							'launchMode' => 'resource-link',
-						],
-						'lti-tool-placement'
-					);
-				}
-
-				return null;
-			}
-		);
-
-		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
-			static fn (string $path): string => 'https://learniq.example' . $path
-		);
-
-		$this->appConfig->method('getValueString')->willReturn('token-abc');
-
-		$capturedUrl = null;
-		$capturedOptions = null;
-
-		$response = $this->createMock(IResponse::class);
-		$response->method('getBody')->willReturn(json_encode(['formActionUrl' => 'https://tool.example/launch', 'idToken' => 'jwt-value']));
-
-		$client = $this->createMock(IClient::class);
-		$client->expects($this->once())
-			->method('post')
-			->willReturnCallback(
-				function (string $url, array $options) use (&$capturedUrl, &$capturedOptions, $response): IResponse {
-					$capturedUrl = $url;
-					$capturedOptions = $options;
-					return $response;
-				}
-			);
-
-		$this->clientService->method('newClient')->willReturn($client);
-
-		$result = $this->controller()->launch(placementId: 'placement-1');
-
-		self::assertSame(Http::STATUS_OK, $result->getStatus());
+		self::assertSame(Http::STATUS_OK, $response->getStatus());
 		self::assertSame(
-			['formActionUrl' => 'https://tool.example/launch', 'idToken' => 'jwt-value', 'launchMode' => 'resource-link'],
-			$result->getData()
+			['formActionUrl' => 'https://tool.example/login', 'method' => 'POST', 'fields' => ['login_hint' => 'h', 'iss' => 'i'], 'launchMode' => 'resource-link'],
+			$response->getData()
 		);
-
-		// Forwarded the deployment UUID, not the placement UUID, in the URL.
-		self::assertStringContainsString('deployment-uuid-1', (string)$capturedUrl);
-		self::assertStringNotContainsString('placement-1', (string)$capturedUrl);
-
-		// Reused the same bearer-token header shape DataExchangeRunHandler uses.
-		self::assertSame('Bearer token-abc', $capturedOptions['headers']['Authorization']);
-		self::assertSame('learner-1', $capturedOptions['json']['subject']);
-	}//end testLaunchForwardsDeploymentIdAndReturnsResponseUnmodified()
+		self::assertSame('learniq', $this->dispatched->getSourceApp());
+		self::assertSame('pl1', $this->dispatched->getPlacementId());
+		self::assertSame('dep-1', $this->dispatched->getDeploymentUuid());
+		self::assertSame('pupil1', $this->dispatched->getUserId());
+		self::assertSame('LtiResourceLinkRequest', $this->dispatched->getMessageType());
+		self::assertSame('Learner', $this->dispatched->getRole());
+		self::assertSame('c1', $this->dispatched->getContextId());
+		self::assertSame('Aardrijkskunde', $this->dispatched->getContextTitle());
+		self::assertSame('https://school.example/apps/learniq/lessons/l1', $this->dispatched->getReturnUrl());
+	}//end testLaunchRaisesTheEventAndReturnsTheForm()
 
 	/**
-	 * OpenConnector unreachable / non-2xx: launch() returns a clear error
-	 * response, not a silent empty body.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-2.5
-	 */
-	public function testLaunchReturnsClearErrorWhenOpenConnectorUnreachable(): void {
-		$this->signInAs('learner-1');
-
-		$this->objectService->method('find')->willReturn(
-			OrEntityFactory::make(
-				[
-					'id' => 'placement-1',
-					'openconnectorDeploymentId' => 'deployment-uuid-1',
-					'launchMode' => 'resource-link',
-				],
-				'lti-tool-placement'
-			)
-		);
-
-		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
-			static fn (string $path): string => 'https://learniq.example' . $path
-		);
-		$this->appConfig->method('getValueString')->willReturn('token-abc');
-
-		$client = $this->createMock(IClient::class);
-		$client->method('post')->willThrowException(new \Exception('Connection refused'));
-		$this->clientService->method('newClient')->willReturn($client);
-
-		$result = $this->controller()->launch(placementId: 'placement-1');
-
-		self::assertSame(Http::STATUS_BAD_GATEWAY, $result->getStatus());
-		self::assertArrayHasKey('error', $result->getData());
-		self::assertNotSame('', $result->getData()['error']);
-	}//end testLaunchReturnsClearErrorWhenOpenConnectorUnreachable()
-
-	/**
-	 * A placement that does not exist returns 404, never a silent empty body.
+	 * A lesson-level placement has no courseId; the context is the lesson's course.
 	 *
 	 * @return void
 	 */
-	public function testLaunchReturnsNotFoundForUnknownPlacement(): void {
-		$this->signInAs('learner-1');
-		$this->objectService->method('find')->willReturn(null);
+	public function testALessonPlacementRunsInTheLessonsCourse(): void {
+		$this->objects['lti-tool-placement']['pl3'] = ['id' => 'pl3', 'openconnectorDeploymentId' => 'dep-1', 'launchMode' => 'resource-link', 'courseId' => null, 'lessonId' => 'l2'];
 
-		$result = $this->controller()->launch(placementId: 'nope');
+		$this->controller()->launch(placementId: 'pl3');
 
-		self::assertSame(Http::STATUS_NOT_FOUND, $result->getStatus());
-	}//end testLaunchReturnsNotFoundForUnknownPlacement()
+		self::assertSame('c2', $this->dispatched->getContextId());
+		self::assertSame('Geschiedenis', $this->dispatched->getContextTitle());
+		self::assertSame('https://school.example/apps/learniq/lessons/l2', $this->dispatched->getReturnUrl());
+	}//end testALessonPlacementRunsInTheLessonsCourse()
 
 	/**
-	 * An unknown placement id returns 404 when ObjectService THROWS.
-	 *
-	 * ObjectService::find() raises DoesNotExistException for an unknown id
-	 * rather than returning null, so before the catch in resolvePlacement()
-	 * the exception escaped launch() entirely and became a 500 with a stack
-	 * trace — the 404 above was unreachable in production, and only passed
-	 * here because the mock returned null instead of throwing.
+	 * The fixture's Course shape is the register's: a `name`, no `title`.
 	 *
 	 * @return void
 	 */
-	public function testLaunchReturnsNotFoundWhenObjectServiceThrows(): void {
-		$this->signInAs('learner-1');
-		$this->objectService->method('find')->willThrowException(
-			new \OCP\AppFramework\Db\DoesNotExistException('no such object')
-		);
+	public function testTheCourseFixtureHasTheRegistersShape(): void {
+		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
+		$course   = null;
+		foreach ($register['components']['schemas'] as $schema) {
+			if (($schema['slug'] ?? '') === 'course') {
+				$course = $schema;
+			}
+		}
 
-		$result = $this->controller()->launch(placementId: 'nope');
-
-		self::assertSame(Http::STATUS_NOT_FOUND, $result->getStatus());
-	}//end testLaunchReturnsNotFoundWhenObjectServiceThrows()
+		self::assertArrayHasKey('name', $course['properties']);
+		self::assertArrayNotHasKey('title', $course['properties']);
+	}//end testTheCourseFixtureHasTheRegistersShape()
 
 	/**
-	 * An unauthenticated caller receives 401, never proceeds to launch.
+	 * Teaching staff launch as Instructor, and deep linking asks for a deep-linking message.
 	 *
 	 * @return void
 	 */
-	public function testLaunchRequiresAuthentication(): void {
-		$this->userSession->method('getUser')->willReturn(null);
-		$this->objectService->expects($this->never())->method('find');
+	public function testInstructorRoleAndDeepLinking(): void {
+		$this->instructor = true;
+		$this->objects['lti-tool-placement']['pl1']['launchMode'] = 'deep-linking';
 
-		$result = $this->controller()->launch(placementId: 'placement-1');
+		$response = $this->controller()->launch(placementId: 'pl1');
 
-		self::assertSame(Http::STATUS_UNAUTHORIZED, $result->getStatus());
-	}//end testLaunchRequiresAuthentication()
+		self::assertSame('deep-linking', $response->getData()['launchMode']);
+		self::assertSame('Instructor', $this->dispatched->getRole());
+		self::assertSame('LtiDeepLinkingRequest', $this->dispatched->getMessageType());
+	}//end testInstructorRoleAndDeepLinking()
+
+	/**
+	 * Without integriq the launch answers 503 and raises nothing.
+	 *
+	 * @return void
+	 */
+	public function testWithoutIntegriqAnswers503(): void {
+		$response = $this->controller(integriq: false)->launch(placementId: 'pl1');
+
+		self::assertSame(Http::STATUS_SERVICE_UNAVAILABLE, $response->getStatus());
+		self::assertSame('LTI tools need integriq, which is not installed', $response->getData()['error']);
+		self::assertNull($this->dispatched);
+	}//end testWithoutIntegriqAnswers503()
+
+	/**
+	 * A refusal answers 409 with integriq's reason; nobody answering is 503.
+	 *
+	 * @return void
+	 */
+	public function testRefusalAndNoAnswer(): void {
+		$this->listener = 'refuse';
+		$refused = $this->controller()->launch(placementId: 'pl1');
+		self::assertSame(Http::STATUS_CONFLICT, $refused->getStatus());
+		self::assertSame('This tool is not approved in integriq.', $refused->getData()['error']);
+
+		$this->listener = 'nothing';
+		$silent = $this->controller()->launch(placementId: 'pl1');
+		self::assertSame(Http::STATUS_SERVICE_UNAVAILABLE, $silent->getStatus());
+	}//end testRefusalAndNoAnswer()
+
+	/**
+	 * Unauthenticated, unknown placement and a placement without a deployment keep their answers.
+	 *
+	 * @return void
+	 */
+	public function testGuardPaths(): void {
+		self::assertSame(Http::STATUS_UNAUTHORIZED, $this->controller(signedIn: false)->launch(placementId: 'pl1')->getStatus());
+		self::assertSame(Http::STATUS_NOT_FOUND, $this->controller()->launch(placementId: 'missing')->getStatus());
+		self::assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $this->controller()->launch(placementId: 'pl2')->getStatus());
+		self::assertNull($this->dispatched);
+	}//end testGuardPaths()
 }//end class

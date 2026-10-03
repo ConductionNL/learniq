@@ -27,13 +27,15 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
+ * @spec openspec/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -45,9 +47,16 @@ use Psr\Log\LoggerInterface;
  * `fraudCaseId`, case not found, case not decided, or a non-fraud-proven
  * verdict).
  *
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
+ * @spec openspec/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
  */
-class FraudCaseInvalidationGuard {
+class FraudCaseInvalidationGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'A grade can only be invalidated by a decided fraud case with a proven verdict.';
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const FRAUD_CASE_SCHEMA = 'fraud-case';
@@ -67,18 +76,36 @@ class FraudCaseInvalidationGuard {
 	}//end __construct()
 
 	/**
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(entry: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
 	 * Allow the `invalidate` transition only when the linked FraudCase is decided fraud-proven.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the GradeEntry data array
-	 *                                               - 'transition' : 'invalidate'
+	 * @param array<string,mixed> $entry The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True if the transition is allowed; false blocks it (HTTP 422).
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
+	 * @spec openspec/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
 	 */
-	public function check(array &$transitionContext): bool {
-		$entry = $transitionContext['object'] ?? [];
+	private function allows(array $entry): bool {
 		$entryId = $entry['id'] ?? ($entry['uuid'] ?? '');
 		$fraudCaseId = $entry['fraudCaseId'] ?? null;
 
@@ -113,7 +140,7 @@ class FraudCaseInvalidationGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Fetch the linked FraudCase by id.

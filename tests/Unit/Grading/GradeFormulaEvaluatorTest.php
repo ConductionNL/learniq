@@ -24,8 +24,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-an-exemption-entry-does-not-corrupt-the-weighted-average
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-an-exemption-satisfies-an-all-must-pass-component-without-a-numeric-check
+ * @spec openspec/specs/grading/spec.md#scenario-an-exemption-entry-does-not-corrupt-the-weighted-average
+ * @spec openspec/specs/grading/spec.md#scenario-an-exemption-satisfies-an-all-must-pass-component-without-a-numeric-check
  */
 
 declare(strict_types=1);
@@ -37,6 +37,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Grading\GradeAggregationEngine;
 use OCA\Learniq\Grading\GradeFormulaEvaluator;
 use OCA\Learniq\Grading\GradePassEvaluator;
+use OCA\Learniq\Service\BsaProgressEvaluator;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -93,7 +94,7 @@ class GradeFormulaEvaluatorTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($entries) {
-				if ($config['schema'] === 'grade-entry') {
+				if ($config['filters']['schema'] === 'grade-entry') {
 					return $entries;
 				}
 
@@ -119,7 +120,7 @@ class GradeFormulaEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-an-exemption-entry-does-not-corrupt-the-weighted-average
+	 * @spec openspec/specs/grading/spec.md#scenario-an-exemption-entry-does-not-corrupt-the-weighted-average
 	 */
 	public function testExemptionEntryDoesNotCorruptWeightedAverage(): void {
 		$plan = [
@@ -172,7 +173,7 @@ class GradeFormulaEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/design.md#6-gradeformulaevaluator-extension--verified-against-the-current-implementation
+	 * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/design.md#6-gradeformulaevaluator-extension--verified-against-the-current-implementation
 	 */
 	public function testExemptionEntryWithHeavyWeightDoesNotDragDownAverage(): void {
 		$plan = [
@@ -209,7 +210,7 @@ class GradeFormulaEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-an-exemption-satisfies-an-all-must-pass-component-without-a-numeric-check
+	 * @spec openspec/specs/grading/spec.md#scenario-an-exemption-satisfies-an-all-must-pass-component-without-a-numeric-check
 	 */
 	public function testExemptionSatisfiesAllMustPassWithoutNumericCheck(): void {
 		$plan = [
@@ -220,8 +221,8 @@ class GradeFormulaEvaluatorTest extends TestCase {
 				['componentId' => 'comp-b', 'weight' => 1],
 			],
 			'passRules' => [
-				['componentId' => 'comp-a', 'passThreshold' => 5.5],
-				['componentId' => 'comp-b', 'passThreshold' => 5.5],
+				['componentId' => 'comp-a', 'minValue' => 5.5],
+				['componentId' => 'comp-b', 'minValue' => 5.5],
 			],
 		];
 
@@ -245,7 +246,7 @@ class GradeFormulaEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-an-exemption-satisfies-an-all-must-pass-component-without-a-numeric-check
+	 * @spec openspec/specs/grading/spec.md#scenario-an-exemption-satisfies-an-all-must-pass-component-without-a-numeric-check
 	 */
 	public function testNonExemptComponentStillEnforcesThresholdAlongsideAnExemption(): void {
 		$plan = [
@@ -256,8 +257,8 @@ class GradeFormulaEvaluatorTest extends TestCase {
 				['componentId' => 'comp-b', 'weight' => 1],
 			],
 			'passRules' => [
-				['componentId' => 'comp-a', 'passThreshold' => 5.5],
-				['componentId' => 'comp-b', 'passThreshold' => 5.5],
+				['componentId' => 'comp-a', 'minValue' => 5.5],
+				['componentId' => 'comp-b', 'minValue' => 5.5],
 			],
 		];
 
@@ -292,4 +293,112 @@ class GradeFormulaEvaluatorTest extends TestCase {
 		self::assertSame([], $result['breakdown']);
 
 	}//end testNoPublishedEntriesReturnsEmptyResult()
+
+	/**
+	 * A plan whose one component the exam board exempted rolls up to
+	 * `passed: true`, and that FinalGrade earns its course's study advice
+	 * credits. Red before the fix: the roll-up gave `passed: null`, which the
+	 * BSA read (`passed: true` only) skipped.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/study-progress/spec.md#scenario-a-first-year-exemption-counts-toward-the-advice
+	 */
+	public function testAnExemptedCourseEarnsItsStudyAdviceCredits(): void {
+		$plan = [
+			'id' => 'plan-1',
+			'formula' => 'weighted-average',
+			'gradeScaleId' => 'scale-1',
+			'components' => [['componentId' => 'unit-1', 'weight' => 1]],
+			'passRules' => [['componentId' => null, 'minValue' => 5.5]],
+		];
+		$entries = [
+			['componentId' => 'unit-1', 'courseId' => 'course-1', 'sourceKind' => 'exemption', 'value' => null, 'weight' => 1, 'gradedAt' => '2026-01-02T00:00:00Z'],
+		];
+
+		$result = $this->makeEvaluator(plan: $plan, entries: $entries, scale: ['passThreshold' => 5.5])
+			->evaluate(curriculumPlanId: 'plan-1', learnerId: 'learner-1');
+
+		self::assertNull($result['value']);
+		self::assertTrue($result['passed']);
+
+		// The study advice read, over a store that honours the `passed` filter the way OpenRegister does.
+		$finalGrades = [['learnerId' => 'learner-1', 'courseId' => 'course-1', 'passed' => $result['passed']]];
+		$store = $this->createMock(ObjectService::class);
+		$store->method('findAll')->willReturnCallback(
+			static function (array $config) use ($finalGrades): array {
+				if ($config['filters']['schema'] === 'course') {
+					return [['id' => 'course-1', 'ectsCredits' => 5]];
+				}
+
+				return array_values(
+					array_filter($finalGrades, static fn (array $grade): bool => $grade['passed'] === ($config['filters']['passed'] ?? null))
+				);
+			}
+		);
+
+		self::assertSame(5.0, (new BsaProgressEvaluator($store))->evaluate(programmeId: 'programme-1', learnerId: 'learner-1')['ectsEarned']);
+	}//end testAnExemptedCourseEarnsItsStudyAdviceCredits()
+
+	/**
+	 * One exemption on a two-component plan keeps the verdict open. This
+	 * fails when the formula evaluator does not hand the plan's components to
+	 * the pass evaluator, because the exemption alone would then look like
+	 * the whole plan.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/grading/spec.md#scenario-a-partial-exemption-with-a-missing-component-stays-open
+	 */
+	public function testAPartialExemptionKeepsTheFinalGradeOpen(): void {
+		$plan = [
+			'id' => 'plan-1',
+			'formula' => 'weighted-average',
+			'components' => [
+				['componentId' => 'unit-1', 'weight' => 1],
+				['componentId' => 'unit-2', 'weight' => 1],
+			],
+		];
+		$entries = [
+			['componentId' => 'unit-1', 'sourceKind' => 'exemption', 'value' => null, 'weight' => 1, 'gradedAt' => '2026-01-02T00:00:00Z'],
+		];
+
+		$result = $this->makeEvaluator(plan: $plan, entries: $entries)->evaluate(curriculumPlanId: 'plan-1', learnerId: 'learner-1');
+
+		self::assertNull($result['passed']);
+	}//end testAPartialExemptionKeepsTheFinalGradeOpen()
+
+	/**
+	 * An all-must-pass component under its minValue fails the plan through
+	 * the whole roll-up, with the register's field name. Red before the fix.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/grading/spec.md#scenario-a-component-below-its-minimum-fails-the-plan
+	 */
+	public function testAComponentUnderItsMinValueFailsTheRollUp(): void {
+		$plan = [
+			'id' => 'plan-1',
+			'formula' => 'all-must-pass',
+			'gradeScaleId' => 'scale-1',
+			'components' => [
+				['componentId' => 'comp-a', 'weight' => 1],
+				['componentId' => 'comp-b', 'weight' => 1],
+			],
+			'passRules' => [
+				['componentId' => 'comp-a', 'minValue' => 5.5],
+				['componentId' => 'comp-b', 'minValue' => 5.5],
+			],
+		];
+		$entries = [
+			['componentId' => 'comp-a', 'sourceKind' => 'manual', 'value' => 8.0, 'weight' => 1, 'gradedAt' => '2026-01-01T00:00:00Z'],
+			['componentId' => 'comp-b', 'sourceKind' => 'manual', 'value' => 4.0, 'weight' => 1, 'gradedAt' => '2026-01-01T00:00:00Z'],
+		];
+
+		$result = $this->makeEvaluator(plan: $plan, entries: $entries, scale: ['passThreshold' => 5.5])
+			->evaluate(curriculumPlanId: 'plan-1', learnerId: 'learner-1');
+
+		self::assertSame(6.0, $result['value']);
+		self::assertFalse($result['passed']);
+	}//end testAComponentUnderItsMinValueFailsTheRollUp()
 }//end class

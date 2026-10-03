@@ -1,12 +1,12 @@
 ---
 sidebar_position: 2
 title: Create a course
-description: Add a course to Scholiq, set its metadata, and prepare it for enrolments.
+description: Add a course to Learniq, set its metadata, and prepare it for enrolments.
 ---
 
 # Create a course
 
-Courses are the unit Scholiq plans, teaches and grades against. Everything else, enrolments, assignments, assessments, attendance, certificates, hangs off a course.
+Courses are the unit Learniq plans, teaches and grades against. Everything else, enrolments, assignments, assessments, attendance, certificates, hangs off a course.
 
 ## Goal
 
@@ -14,13 +14,13 @@ By the end you will have a course in the Courses list with a title, a descriptio
 
 ## Prerequisites
 
-- You completed [Open Scholiq for the first time](./01-first-launch.md).
-- Your account has the role *Teacher* or *Coordinator* (an admin sets this in [Manage Scholiq settings](../admin/03-admin-settings.md)).
+- You completed [Open Learniq for the first time](./01-first-launch.md).
+- Your account has the role *Teacher* or *Coordinator* (an admin sets this in [Manage Learniq settings](../admin/03-admin-settings.md)).
 - A programme to attach the course to (optional, courses can stand alone, but they slot more cleanly into reports when they sit under a programme). See [Define your school structure](../admin/01-school-structure.md).
 
 ## Steps
 
-1. Open Scholiq and click **Courses** in the left navigation.
+1. Open Learniq and click **Courses** in the left navigation.
 
    ![Courses list, before adding](/screenshots/tutorials/user/02-create-course-01.png)
 
@@ -28,7 +28,7 @@ By the end you will have a course in the Courses list with a title, a descriptio
 
    ![Add course dialog](/screenshots/tutorials/user/02-create-course-02.png)
 
-3. Fill in **Title**, **Code** and a short **Description**. Pick a **Start** and **End** date, Scholiq uses these to drive enrolment validity, attendance windows and certificate dates. Set **Status** to *Open* if you want enrolments to start immediately; leave it on *Draft* otherwise.
+3. Fill in **Title**, **Code** and a short **Description**. Pick a **Start** and **End** date, Learniq uses these to drive enrolment validity, attendance windows and certificate dates. Set **Status** to *Open* if you want enrolments to start immediately; leave it on *Draft* otherwise.
 
    ![Course dialog filled in](/screenshots/tutorials/user/02-create-course-03.png)
 
@@ -48,7 +48,7 @@ The course is created when: it shows up in the Courses list with the title and s
 
 | Symptom | Fix |
 |---|---|
-| **Add Item** opens an empty dialog with no fields | The Scholiq register is not fully imported, an admin re-runs **Settings → Registers → Re-import configuration**. |
+| **Add Item** opens an empty dialog with no fields | The Learniq register is not fully imported, an admin re-runs **Settings → Registers → Re-import configuration**. |
 | Saving the course returns *"end must be after start"* | The end date is on or before the start date, pick an end at least one day later. |
 | The new course is missing from the list after save | The list does not auto-refresh on every Nextcloud version, reload the page, or switch to the *Table* view and back. |
 
@@ -71,6 +71,18 @@ content type is *Text*, compose the lesson body itself:
 
 Packaged content lessons (video, SCORM, cmi5, quiz, LTI) are unaffected — those still play through their
 existing content reference; only the *Text* content type composes its body from blocks.
+
+## Share a course outside the school
+
+Give the course a licence and an author first. Pick an open licence, such as CC BY-SA 4.0, if other schools may reuse it. Leave a lesson's licence empty to use the course licence.
+
+Open **Export course package** and turn on **Share outside the school**. Confirm the two statements: the package holds no pupil names, photos, work or other personal data, and the school may share everything in it. The download leaves out your school's own links, file paths and access codes.
+
+If sharing is refused, the page lists every reason, such as a missing author or a worksheet from a publisher's method. Your confirmation is recorded with your name, so your school leader can see what left the school.
+
+To share with other schools straight away, choose **Publish to the course store** instead of **Download**. The same checks run first. Other schools then find the course in their **Store** and install their own copy, with your licence and your name on it. You see this button when your school lets you publish; by default team leads do.
+
+Any teacher can install a course from the **Store**. You get your own copy to change as you like, and the original author and licence stay on it.
 
 ## Reference
 

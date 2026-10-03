@@ -39,6 +39,7 @@ namespace OCA\Learniq\Grading;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\AppFramework\Db\DoesNotExistException;
 
 /**
  * Evaluates CurriculumPlan formulas over a learner's published GradeEntries.
@@ -79,6 +80,7 @@ class GradeFormulaEvaluator {
 	 * @return array{value: float|null, passed: bool|null, breakdown: array, lastRecomputedAt: string}
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
+	 * @spec openspec/specs/grading/spec.md#requirement-a-plan-satisfied-entirely-by-exemptions-passes
 	 */
 	public function evaluate(string $curriculumPlanId, string $learnerId): array {
 		$plan = $this->fetchPlan(curriculumPlanId: $curriculumPlanId);
@@ -113,7 +115,8 @@ class GradeFormulaEvaluator {
 			value: $value,
 			entries: $entries,
 			passRules: $passRules,
-			passThreshold: $passThreshold
+			passThreshold: $passThreshold,
+			components: $components
 		);
 
 		return [
@@ -135,11 +138,7 @@ class GradeFormulaEvaluator {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
 	 */
 	private function fetchPlan(string $curriculumPlanId): ?array {
-		$obj = $this->objectService->find(
-			id: $curriculumPlanId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::CURRICULUM_PLAN_SCHEMA
-		);
+		$obj = $this->systemRead(id: $curriculumPlanId, schema: self::CURRICULUM_PLAN_SCHEMA);
 
 		if ($obj === null) {
 			return null;
@@ -147,6 +146,37 @@ class GradeFormulaEvaluator {
 
 		return $obj->jsonSerialize();
 	}//end fetchPlan()
+
+	/**
+	 * Read a plan or scale the roll-up needs, whoever published the grade.
+	 *
+	 * The roll-up runs inside the publishing teacher's request, and a teacher
+	 * may not be allowed to read the curriculum plan: OpenRegister then throws
+	 * DoesNotExistException, and that exception stopped every listener after
+	 * the roll-up on the same event, so an approved correction was never marked
+	 * applied (live pass D9). The read is a system read (the publish itself was
+	 * authorised by the transition; nothing read here is returned to the
+	 * caller), and an object that is not there reads as null.
+	 *
+	 * @param string $id     The object UUID.
+	 * @param string $schema The schema slug.
+	 *
+	 * @return \OCA\OpenRegister\Db\ObjectEntity|null
+	 *
+	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+	 */
+	private function systemRead(string $id, string $schema): ?\OCA\OpenRegister\Db\ObjectEntity {
+		try {
+			return $this->objectService->find(
+				id: $id,
+				register: self::LEARNIQ_REGISTER,
+				schema: $schema,
+				_rbac: false
+			);
+		} catch (DoesNotExistException) {
+			return null;
+		}
+	}//end systemRead()
 
 	/**
 	 * Fetch all published GradeEntries for this learner on this plan.
@@ -161,9 +191,9 @@ class GradeFormulaEvaluator {
 	private function fetchPublishedEntries(string $curriculumPlanId, string $learnerId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::GRADE_ENTRY_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::GRADE_ENTRY_SCHEMA,
 					'learnerId' => $learnerId,
 					'curriculumPlanId' => $curriculumPlanId,
 					'lifecycle' => 'published',
@@ -202,11 +232,7 @@ class GradeFormulaEvaluator {
 			return null;
 		}
 
-		$obj = $this->objectService->find(
-			id: $gradeScaleId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::GRADE_SCALE_SCHEMA
-		);
+		$obj = $this->systemRead(id: $gradeScaleId, schema: self::GRADE_SCALE_SCHEMA);
 
 		if ($obj === null) {
 			return null;

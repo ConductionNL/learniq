@@ -53,9 +53,9 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.1
- * @spec openspec/changes/lti-tool-placement/specs/grading/spec.md#scenario-an-lti-ags-score-creates-a-traceable-concept-gradeentry
- * @spec openspec/changes/lti-tool-placement/specs/grading/spec.md#scenario-a-redelivered-ags-message-does-not-create-a-duplicate-gradeentry
+ * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.1
+ * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/specs/grading/spec.md#scenario-an-lti-ags-score-creates-a-traceable-concept-gradeentry
+ * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/specs/grading/spec.md#scenario-a-redelivered-ags-message-does-not-create-a-duplicate-gradeentry
  */
 
 declare(strict_types=1);
@@ -79,7 +79,7 @@ use Throwable;
  *
  * @psalm-api
  *
- * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.1
+ * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.1
  */
 class LtiAgsScorePollJob extends TimedJob {
 
@@ -147,7 +147,7 @@ class LtiAgsScorePollJob extends TimedJob {
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 *
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.1
+	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.1
 	 */
 	public function run(mixed $argument): void {
 		$subscriptionId = $this->appConfig->getValueString(app: Application::APP_ID, key: self::SUBSCRIPTION_ID_KEY, default: '');
@@ -211,9 +211,10 @@ class LtiAgsScorePollJob extends TimedJob {
 	 *
 	 * @return bool True when a GradeEntry was created; false when the message was skipped.
 	 *
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.2
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.3
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.4
+	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.2
+	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.3
+	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.4
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-returned-grade-lands-on-the-placement-that-launched-it
 	 */
 	private function processMessage(array $message): bool {
 		$resultId = (string)($message['id'] ?? ($message['uuid'] ?? ''));
@@ -222,9 +223,17 @@ class LtiAgsScorePollJob extends TimedJob {
 			return false;
 		}
 
-		$data = $message['payload'] ?? [];
+		// The message payload is integriq's whole CloudEvent (the `event` object's
+		// serialisation, see integriq EventService::createEventMessage()); the
+		// score, deployment and line item are its `data`.
+		$envelope = $message['payload'] ?? null;
+		$data     = null;
+		if (is_array($envelope) === true) {
+			$data = $envelope['data'] ?? null;
+		}
+
 		if (is_array($data) === false) {
-			$this->logger->warning('[LtiAgsScorePollJob] Message {id} has no usable payload — skipping.', ['id' => $resultId]);
+			$this->logger->warning('[LtiAgsScorePollJob] Message {id} carries no CloudEvent data — skipping.', ['id' => $resultId]);
 			return false;
 		}
 
@@ -279,10 +288,16 @@ class LtiAgsScorePollJob extends TimedJob {
 			'lifecycle' => 'concept',
 		];
 
+		// System context: the job runs without a user, as cron does, and a
+		// GradeEntry may only be created by teaching staff. Which grade is
+		// written is decided above (placement, line item, learner), not by the
+		// caller's rights.
 		$this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::GRADE_ENTRY_SCHEMA,
-			object: $gradeEntry
+			object: $gradeEntry,
+			_rbac: false,
+			_multitenancy: false
 		);
 
 		return true;
@@ -295,12 +310,12 @@ class LtiAgsScorePollJob extends TimedJob {
 	 * while the score was already in flight) is logged and skipped, not
 	 * treated as an error.
 	 *
-	 * @param array<string,mixed> $data The message payload.
+	 * @param array<string,mixed> $data The CloudEvent data of the message.
 	 * @param string $resultId The AGS result id, for the log lines.
 	 *
 	 * @return array{placement: array<string,mixed>, placementId: string}|null The placement, or null when unresolvable.
 	 *
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.2
+	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.2
 	 */
 	private function resolvePlacementForMessage(array $data, string $resultId): ?array {
 		$deploymentUuid = (string)($data['deploymentUuid'] ?? '');
@@ -309,7 +324,13 @@ class LtiAgsScorePollJob extends TimedJob {
 			return null;
 		}
 
-		$placement = $this->resolvePlacementByDeployment(deploymentUuid: $deploymentUuid);
+		// Integriq sets the line item to the placement id, so two placements on
+		// one deployment are told apart; the deployment lookup is the fallback.
+		$placement = $this->resolvePlacementByLineItem(lineItemId: (string)($data['lineItemId'] ?? ''), deploymentUuid: $deploymentUuid);
+		if ($placement === null) {
+			$placement = $this->resolvePlacementByDeployment(deploymentUuid: $deploymentUuid);
+		}
+
 		if ($placement === null) {
 			$this->logger->info(
 				'[LtiAgsScorePollJob] No LtiToolPlacement for deployment {dep} (message {id}) — skipping (orphan).',
@@ -337,12 +358,12 @@ class LtiAgsScorePollJob extends TimedJob {
 	 * A message without both a userId and a scoreGiven cannot produce a
 	 * GradeEntry, so it is skipped rather than written with a guessed value.
 	 *
-	 * @param array<string,mixed> $data The message payload.
+	 * @param array<string,mixed> $data The CloudEvent data of the message.
 	 * @param string $resultId The AGS result id, for the log line.
 	 *
 	 * @return array{learnerId: string, scoreGiven: float, scoreMaximum: float|null}|null The score, or null when insufficient.
 	 *
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.2
+	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.2
 	 */
 	private function extractScore(array $data, string $resultId): ?array {
 		$score = [];
@@ -375,6 +396,47 @@ class LtiAgsScorePollJob extends TimedJob {
 	}//end extractScore()
 
 	/**
+	 * Resolve the placement a score's line item names, when it belongs to the
+	 * score's deployment. A line item naming a placement on another deployment
+	 * is ignored, so one tool's score cannot land on another tool's placement.
+	 *
+	 * @param string $lineItemId     The score's line item (integriq sets it to the placement id).
+	 * @param string $deploymentUuid The score's deployment.
+	 *
+	 * @return array<string,mixed>|null The placement, or null.
+	 *
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-returned-grade-lands-on-the-placement-that-launched-it
+	 */
+	private function resolvePlacementByLineItem(string $lineItemId, string $deploymentUuid): ?array {
+		if ($lineItemId === '') {
+			return null;
+		}
+
+		try {
+			$object = $this->objectService->find(
+				id: $lineItemId,
+				register: self::LEARNIQ_REGISTER,
+				schema: self::PLACEMENT_SCHEMA,
+				_rbac: false,
+				_multitenancy: false
+			);
+		} catch (Throwable $e) {
+			return null;
+		}
+
+		if ($object === null) {
+			return null;
+		}
+
+		$placement = $this->toArray(row: $object);
+		if ((string)($placement['openconnectorDeploymentId'] ?? '') !== $deploymentUuid) {
+			return null;
+		}
+
+		return $placement;
+	}//end resolvePlacementByLineItem()
+
+	/**
 	 * Resolve an `LtiToolPlacement` by `openconnectorDeploymentId`.
 	 *
 	 * @param string $deploymentUuid The OpenConnector lti_deployment UUID.
@@ -384,11 +446,16 @@ class LtiAgsScorePollJob extends TimedJob {
 	private function resolvePlacementByDeployment(string $deploymentUuid): ?array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::PLACEMENT_SCHEMA,
-				'filters' => ['openconnectorDeploymentId' => $deploymentUuid],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::PLACEMENT_SCHEMA,
+					'openconnectorDeploymentId' => $deploymentUuid,
+				],
 				'limit' => 1,
-			]
+			],
+			// System context: see processMessage().
+			_rbac: false,
+			_multitenancy: false
 		);
 
 		if (empty($results) === true) {
@@ -406,19 +473,22 @@ class LtiAgsScorePollJob extends TimedJob {
 	 *
 	 * @return bool True when a matching GradeEntry already exists.
 	 *
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.3
+	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.3
 	 */
 	private function gradeEntryAlreadyExists(string $placementId, string $resultId): bool {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::GRADE_ENTRY_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::GRADE_ENTRY_SCHEMA,
 					'ltiToolPlacementId' => $placementId,
 					'ltiAgsResultId' => $resultId,
 				],
 				'limit' => 1,
-			]
+			],
+			// System context: a duplicate the caller cannot see is still a duplicate.
+			_rbac: false,
+			_multitenancy: false
 		);
 
 		return (empty($results) === false);
@@ -444,7 +514,16 @@ class LtiAgsScorePollJob extends TimedJob {
 			return $scoreGiven;
 		}
 
-		$scale = $this->objectService->find(id: $gradeScaleId, register: self::LEARNIQ_REGISTER, schema: self::GRADE_SCALE_SCHEMA);
+		// System context: see processMessage(). Without it a user-less run was
+		// refused ("User 'Anonymous' does not have permission to 'read' objects
+		// in schema 'GradeScale'") and no grade was written.
+		$scale = $this->objectService->find(
+			id: $gradeScaleId,
+			register: self::LEARNIQ_REGISTER,
+			schema: self::GRADE_SCALE_SCHEMA,
+			_rbac: false,
+			_multitenancy: false
+		);
 		if ($scale === null) {
 			return $scoreGiven;
 		}

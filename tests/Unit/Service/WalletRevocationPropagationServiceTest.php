@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
+ * @spec openspec/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
  */
 
 declare(strict_types=1);
@@ -31,6 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\Learniq\Service\WalletRevocationPropagationService;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\App\IAppManager;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -104,18 +105,14 @@ class WalletRevocationPropagationServiceTest extends TestCase {
 	public function testNoOpWhenWalletOfferStatusIsNull(): void {
 		$this->clientService->expects($this->never())->method('newClient');
 
-		$context = [
-			'object' => [
-				'id' => 'credential-1',
-				'walletOfferStatus' => null,
-			],
-			'transition' => 'revoke',
-			'from' => 'issued',
-			'to' => 'revoked',
+		$object = [
+			'id' => 'credential-1',
+			'walletOfferStatus' => null,
+			'lifecycle' => 'revoked',
 		];
 
-		self::assertTrue($this->service()->check($context));
-		self::assertNull($context['object']['walletOfferStatus']);
+		$saved = $this->service()->propagate(credential: $object);
+		self::assertSame($object, $saved);
 	}//end testNoOpWhenWalletOfferStatusIsNull()
 
 	/**
@@ -124,7 +121,7 @@ class WalletRevocationPropagationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#scenario-revoking-a-credential-with-an-outstanding-wallet-offer-propagates-the-revocation
+	 * @spec openspec/specs/certification/spec.md#scenario-revoking-a-credential-with-an-outstanding-wallet-offer-propagates-the-revocation
 	 */
 	public function testPropagatesAndSetsRevokedOnSuccess(): void {
 		$this->appConfig->method('getValueString')->willReturn('token-abc');
@@ -144,19 +141,15 @@ class WalletRevocationPropagationServiceTest extends TestCase {
 			);
 		$this->clientService->method('newClient')->willReturn($client);
 
-		$context = [
-			'object' => [
-				'id' => 'credential-2',
-				'walletOfferStatus' => 'offered',
-				'walletAttestationRef' => 'offer-uuid-1',
-			],
-			'transition' => 'revoke',
-			'from' => 'issued',
-			'to' => 'revoked',
+		$object = [
+			'id' => 'credential-2',
+			'walletOfferStatus' => 'offered',
+			'walletAttestationRef' => 'offer-uuid-1',
+			'lifecycle' => 'revoked',
 		];
 
-		self::assertTrue($this->service()->check($context));
-		self::assertSame('revoked', $context['object']['walletOfferStatus']);
+		$saved = $this->service()->propagate(credential: $object);
+		self::assertSame('revoked', $saved['walletOfferStatus']);
 		self::assertStringContainsString('offer-uuid-1', (string)$capturedUrl);
 		self::assertStringContainsString('/revoke', (string)$capturedUrl);
 	}//end testPropagatesAndSetsRevokedOnSuccess()
@@ -176,19 +169,15 @@ class WalletRevocationPropagationServiceTest extends TestCase {
 		$client->method('post')->willReturn($response);
 		$this->clientService->method('newClient')->willReturn($client);
 
-		$context = [
-			'object' => [
-				'id' => 'credential-3',
-				'walletOfferStatus' => 'claimed',
-				'walletAttestationRef' => 'offer-uuid-2',
-			],
-			'transition' => 'revoke',
-			'from' => 'issued',
-			'to' => 'revoked',
+		$object = [
+			'id' => 'credential-3',
+			'walletOfferStatus' => 'claimed',
+			'walletAttestationRef' => 'offer-uuid-2',
+			'lifecycle' => 'revoked',
 		];
 
-		self::assertTrue($this->service()->check($context));
-		self::assertSame('revoked', $context['object']['walletOfferStatus']);
+		$saved = $this->service()->propagate(credential: $object);
+		self::assertSame('revoked', $saved['walletOfferStatus']);
 	}//end testClaimedOfferAlsoPropagates()
 
 	/**
@@ -198,7 +187,7 @@ class WalletRevocationPropagationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#scenario-revoking-a-credential-proceeds-even-when-the-wallet-rail-is-unavailable
+	 * @spec openspec/specs/certification/spec.md#scenario-revoking-a-credential-proceeds-even-when-the-wallet-rail-is-unavailable
 	 */
 	public function testThrowableIsCaughtAndTransitionStillProceeds(): void {
 		$this->appConfig->method('getValueString')->willReturn('token-abc');
@@ -207,22 +196,17 @@ class WalletRevocationPropagationServiceTest extends TestCase {
 		$client->method('post')->willThrowException(new \Exception('Connection refused'));
 		$this->clientService->method('newClient')->willReturn($client);
 
-		$context = [
-			'object' => [
-				'id' => 'credential-4',
-				'walletOfferStatus' => 'claimed',
-				'walletAttestationRef' => 'offer-uuid-3',
-			],
-			'transition' => 'revoke',
-			'from' => 'issued',
-			'to' => 'revoked',
+		$object = [
+			'id' => 'credential-4',
+			'walletOfferStatus' => 'claimed',
+			'walletAttestationRef' => 'offer-uuid-3',
+			'lifecycle' => 'revoked',
 		];
 
-		$result = $this->service()->check($context);
+		$saved = $this->service()->propagate(credential: $object);
 
-		self::assertTrue($result);
-		self::assertSame('claimed', $context['object']['walletOfferStatus']);
-		self::assertNotEmpty($context['object']['walletOfferError']);
+		self::assertSame('claimed', $saved['walletOfferStatus']);
+		self::assertNotEmpty($saved['walletOfferError']);
 	}//end testThrowableIsCaughtAndTransitionStillProceeds()
 
 	/**
@@ -236,20 +220,28 @@ class WalletRevocationPropagationServiceTest extends TestCase {
 		$this->appConfig->method('getValueString')->willReturn('');
 		$this->clientService->method('newClient')->willReturn($this->createMock(IClient::class));
 
-		$context = [
-			'object' => [
-				'id' => 'credential-5',
-				'walletOfferStatus' => 'offered',
-				'walletAttestationRef' => 'offer-uuid-4',
-			],
-			'transition' => 'revoke',
-			'from' => 'issued',
-			'to' => 'revoked',
+		$object = [
+			'id' => 'credential-5',
+			'walletOfferStatus' => 'offered',
+			'walletAttestationRef' => 'offer-uuid-4',
+			'lifecycle' => 'revoked',
 		];
 
-		$result = $this->service()->check($context);
+		$saved = $this->service()->propagate(credential: $object);
 
-		self::assertTrue($result);
-		self::assertSame('offered', $context['object']['walletOfferStatus']);
+		self::assertSame('offered', $saved['walletOfferStatus']);
 	}//end testMissingTokenStillProceedsFailSoft()
+	/**
+	 * The revoke guard never blocks: revoking is the compliance action of record.
+	 *
+	 * @return void
+	 */
+	public function testGuardAlwaysAllowsRevoke(): void {
+		$this->clientService->expects($this->never())->method('newClient');
+
+		$service = $this->service();
+
+		self::assertInstanceOf(LifecycleGuardInterface::class, $service);
+		self::assertTrue($service->check(['id' => 'credential-6', 'lifecycle' => 'revoked', 'walletOfferStatus' => 'offered'], 'revoke', 'admin')->isAllowed());
+	}//end testGuardAlwaysAllowsRevoke()
 }//end class

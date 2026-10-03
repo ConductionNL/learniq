@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
+ * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
  */
 
 declare(strict_types=1);
@@ -35,12 +35,12 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CoursePackageImportService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
-use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IUserSession;
 
@@ -62,7 +62,7 @@ class CoursePackageImportController extends Controller {
 	 * @param CoursePackageImportService $importService Course-package import service.
 	 * @param IUserSession $userSession Nextcloud user session.
 	 * @param ActionAuthService $actionAuth ADR-023 action authorization service.
-	 * @param IConfig $config Nextcloud config for tenant resolution.
+	 * @param CallerTenantResolver $tenants Resolves the tenant: the per-user binding, else the default tenant.
 	 *
 	 * @return void
 	 */
@@ -71,7 +71,7 @@ class CoursePackageImportController extends Controller {
 		private readonly CoursePackageImportService $importService,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
-		private readonly IConfig $config,
+		private readonly CallerTenantResolver $tenants,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -85,7 +85,7 @@ class CoursePackageImportController extends Controller {
 	 *
 	 * @return JSONResponse The created `CoursePackageImportReport`, or an error.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
+	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
 	#[NoAdminRequired]
 	public function import(): JSONResponse {
@@ -125,16 +125,7 @@ class CoursePackageImportController extends Controller {
 		$sourceFilename = (string)($uploadedFile['name'] ?? 'package');
 
 		// Resolve the caller's tenant — same pattern as QtiImportController::import().
-		$tenantId = $this->config->getSystemValue('instanceid', '');
-		$userTenantId = $this->config->getUserValue(
-			userId: $user->getUID(),
-			appName: 'learniq',
-			key: 'tenant_id',
-			default: ''
-		);
-		if ($userTenantId !== '') {
-			$tenantId = $userTenantId;
-		}
+		$tenantId = $this->tenants->resolve(user: $user);
 
 		try {
 			$report = $this->importService->import(

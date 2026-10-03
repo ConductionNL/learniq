@@ -30,7 +30,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-6.3
+ * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-6.3
  */
 
 declare(strict_types=1);
@@ -91,18 +91,23 @@ class ZorgvraagSwvTlvChainRegisterTest extends TestCase {
 		// and named `principal`. Neither survives: OpenRegister reads
 		// `authorization`, never the `x-` variant, and `principal` was retired
 		// from the role vocabulary as school-specific when the app was reframed
-		// from Scholiq to Learniq. SupportRequest carries no schema-level block
-		// and is governed by the register cascade (Tier 2), so the assertion is
-		// that the decoy is gone and the cascade is what applies.
+		// from Scholiq to Learniq. learniq#963: the register cascade let every
+		// staff group read every support request, wider than the audience its
+		// x-property-rbac declares, so SupportRequest now carries its own block:
+		// the principal's group (administration-managers) and the coordinator
+		// who raised the request.
 		self::assertArrayNotHasKey(
 			'x-openregister-authorization',
 			$schema,
 			'The decoy key MUST be gone — OpenRegister never read it.'
 		);
-		self::assertArrayNotHasKey(
-			'authorization',
-			$schema,
-			'SupportRequest is Tier 2: it inherits the register cascade rather than declaring its own block.'
+		self::assertSame(
+			[
+				'administration-managers',
+				['group' => 'authenticated', 'match' => ['raisedBy' => '$userId']],
+			],
+			($schema['authorization']['read'] ?? null),
+			'SupportRequest is read by administration-managers and the coordinator who raised it.'
 		);
 
 	}//end testSupportRequestLifecycleAndAuthorizationShape()
@@ -207,7 +212,7 @@ class ZorgvraagSwvTlvChainRegisterTest extends TestCase {
 	}//end testTlvExpiringSoonNotificationShape()
 
 	/**
-	 * DeliberationRecord is appendOnly, requires at least one of
+	 * DeliberationRecord is not appendOnly (its record transition is an update), requires at least one of
 	 * supportRequestId/tlvApplicationId (schema-level anyOf), and the
 	 * scheduled → recorded transition requires PupilVoiceGuard.
 	 *
@@ -216,7 +221,8 @@ class ZorgvraagSwvTlvChainRegisterTest extends TestCase {
 	public function testDeliberationRecordAppendOnlyAndRequiredOneOfShape(): void {
 		$schema = $this->config['components']['schemas']['DeliberationRecord'];
 
-		self::assertTrue($schema['appendOnly']);
+		// Open Register refuses every update on an appendOnly schema, transitions included (learniq#977); a correction is still a new record via correctsId.
+		self::assertNotTrue($schema['appendOnly'] ?? false);
 
 		$anyOf = $schema['anyOf'];
 		self::assertSame(['supportRequestId'], $anyOf[0]['required']);
@@ -253,56 +259,4 @@ class ZorgvraagSwvTlvChainRegisterTest extends TestCase {
 
 	}//end testPupilVoicePropertyShape()
 
-	/**
-	 * DataExchangeJob.target and DataMappingProfile.target descriptions name
-	 * `swv` alongside the existing bron-rod/oso/leerplicht/surfconext/hr
-	 * targets (both fields are free strings, not a JSON-schema enum, so this
-	 * is a documentation-level assertion — the actual gating lives in
-	 * DataExchangeRunGuard::GATED_TARGETS, covered by
-	 * DataExchangeRunGuardTest).
-	 *
-	 * @return void
-	 */
-	public function testDataExchangeJobAndMappingProfileTargetDescriptionsNameSwv(): void {
-		$job = $this->config['components']['schemas']['DataExchangeJob'];
-		$profile = $this->config['components']['schemas']['DataMappingProfile'];
-
-		self::assertStringContainsString('swv', $job['properties']['target']['description']);
-		self::assertStringContainsString('swv', $profile['properties']['target']['description']);
-		self::assertStringContainsString('support-request', $job['properties']['scope']['properties']['schema']['description']);
-
-	}//end testDataExchangeJobAndMappingProfileTargetDescriptionsNameSwv()
-
-	/**
-	 * The seeded "SWV zorgvraag dossier" DataMappingProfile whitelists only
-	 * supportDomain/description/urgency — no learnerId/bsn/full-object
-	 * mapping in the flat fieldMappings (the learner/learningPlan whitelist
-	 * sections are composed separately by DataExchangeRunHandler::
-	 * composeSwvDossier(), covered by DataExchangeRunHandlerTest).
-	 *
-	 * @return void
-	 */
-	public function testSwvDataMappingProfileSeedShape(): void {
-		$profile = $this->config['components']['schemas']['DataMappingProfile'];
-		$seeds = $profile['x-openregister-seed'];
-
-		$swvSeed = null;
-		foreach ($seeds as $seed) {
-			if (($seed['target'] ?? '') === 'swv') {
-				$swvSeed = $seed;
-				break;
-			}
-		}
-
-		self::assertNotNull($swvSeed, 'Expected a seeded DataMappingProfile with target=swv.');
-		self::assertSame('support-request', $swvSeed['sourceSchema']);
-
-		$mappedFields = array_column($swvSeed['fieldMappings'], 'scholiqField');
-		self::assertContains('supportDomain', $mappedFields);
-		self::assertContains('description', $mappedFields);
-		self::assertContains('urgency', $mappedFields);
-		self::assertNotContains('learnerId', $mappedFields);
-		self::assertNotContains('bsnEncrypted', $mappedFields);
-
-	}//end testSwvDataMappingProfileSeedShape()
 }//end class

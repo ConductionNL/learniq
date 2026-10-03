@@ -15,7 +15,8 @@ boundary resolves at runtime.
 - **acceptance_criteria**:
   - GIVEN the renamed codebase WHEN `composer dump-autoload` runs THEN it resolves every class under `OCA\Learniq\` with zero "class not found" warnings
   - GIVEN the renamed codebase WHEN `composer check:strict` (PHPCS, PHPMD, Psalm, PHPStan) runs THEN it passes with no new findings introduced by the rename itself
-- [ ] Implement + verify (`composer dump-autoload && composer check:strict` clean)
+- [x] Implement + verify (`composer dump-autoload && composer check:strict` clean)
+  - Done before round 5 (r5-structure check 2026-09-28): `composer.json` autoloads `OCA\Learniq\` from `lib/`, every `lib/` and `tests/` namespace is `OCA\Learniq`; `composer check:strict` ran on the r5 part 1 PR (see PR body for the exit code).
 
 ## 2. App id, routes, install path, navigation
 
@@ -25,7 +26,8 @@ boundary resolves at runtime.
 - **acceptance_criteria**:
   - GIVEN the app mounted at `custom_apps/learniq` WHEN Nextcloud loads the app list THEN it registers under id `learniq` and the URL prefix is `/apps/learniq/`
   - GIVEN the app's navigation entry WHEN a user clicks it THEN it routes via `learniq.page.index`, not a leftover `scholiq.page.index` reference
-- [ ] Implement + verify (fresh mount at `custom_apps/learniq`, nav entry clicks through)
+- [x] Implement + verify (fresh mount at `custom_apps/learniq`, nav entry clicks through)
+  - Done before round 5: `appinfo/info.xml` `<id>learniq</id>` and `<namespace>Learniq</namespace>`, `Application::APP_ID = 'learniq'`, `package.json` name `learniq`. The live nav click-through was not re-run by this lane (lane rules forbid touching the shared instance).
 
 ## 3. Register-slug migration (data)
 
@@ -36,8 +38,11 @@ boundary resolves at runtime.
   - GIVEN a fresh install WHEN the repair step runs THEN the register's slug is `learniq` and zero shard-table rows are touched (row counts identical before/after)
   - GIVEN the repair step has already run WHEN it runs a second time THEN it makes no further change and logs zero renames (idempotent)
   - GIVEN two registers where one already has slug `learniq` WHEN the step encounters the collision THEN it logs a warning and skips rather than merging or overwriting
-- [ ] Implement (repair step + all 117 call sites in the same deploy, per design.md's ordering requirement)
-- [ ] Verify against seeded pre-existing objects (migration.md's Validation section — fetch a known pre-migration object id under `register: 'learniq'`, confirm byte-identical property values)
+- [x] Implement (repair step + all 117 call sites in the same deploy, per design.md's ordering requirement)
+  - Done before round 5: `lib/Repair/RenameRegisterSlug.php` is registered as a post-migration step in `appinfo/info.xml`; `tests/Unit/Repair/RenameRegisterSlugTest.php` covers rename, collision refusal, idempotency and fail-closed paths. The remaining `'scholiq'` literals in `lib/` are the repair steps' own OLD values and `FleetAppId`'s alias list, which is intended.
+- [x] Verify against seeded pre-existing objects (migration.md's Validation section — fetch a known pre-migration object id under `register: 'learniq'`, confirm byte-identical property values)
+  - Throwaway instance, 2026-09-29 (Nextcloud 34 on :8090 with its own Postgres, OpenRegister development): installed the last pre-rename tag `v0.2.13-dev.20260818065757` (app id `scholiq`) and seeded it with `tests/e2e/seed-example-data.mjs` (register `scholiq`, id 20, 118 schemas, 60 rows). Then disabled scholiq, swapped the app directory for learniq development (4168b357) and ran `occ app:enable learniq`. Result: the same row (id 20) now has slug `learniq`, and no `scholiq` register is left. The 12 objects fetched before the swap (two each of course, learner-profile, session, cohort, grade-entry and attendance-record) come back from `/api/objects/learniq/{schema}/{id}` with the same ids and every earlier property value identical. The only new keys are schema defaults added since 0.2.13 (`kind` on one cohort, `selfEnrolment` on courses). At database level, the 118 original shard tables are all still there, with identical row counts, and all 60 rows match column for column apart from `_version` and `_updated` on 13 rows that an install step re-saved.
+  - Found on the way: learniq development's LearnerProfile did not import on this OpenRegister (`PARTIAL IMPORT ... learner-profile`), for two reasons. The age fields carried `expression`/`materialise` outside `calculation` (fixed in this PR, `LearnerProfileAgeCalculationRegisterTest`), and OpenRegister refused `authorization.audit` on `personalNumber` (ConductionNL/openregister#4177). With both fixes applied, a forced `POST /api/settings/load` on this already-upgraded instance still leaves `learner-profile` in its 0.2.13 shape (16 properties, no errors logged). The first failed import is what left it there, and the learner objects themselves are untouched. A fresh install does not have this problem (task 11).
 
 ## 4. IAppConfig key migration (data)
 
@@ -47,8 +52,10 @@ boundary resolves at runtime.
 - **acceptance_criteria**:
   - GIVEN an admin has customized `scholiq.actions` away from the all-admin default WHEN the app upgrades THEN `learniq.actions` reads the same customized mapping, not the seed default
   - GIVEN the migration has already run WHEN it runs again THEN it does not overwrite an already-migrated `learniq.*` value
-- [ ] Implement (repair step + all `IAppConfig` call-site renames)
-- [ ] Verify action-authorization matrix survives (upgrade an install with a customized `scholiq.actions`, confirm `occ config:app:get learniq actions` matches)
+- [x] Implement (repair step + all `IAppConfig` call-site renames)
+  - Done before round 5: `lib/Repair/MigrateAppConfigKeys.php` is a post-migration step; `tests/Unit/Repair/MigrateAppConfigKeysTest.php` covers copy, no-overwrite of an existing learniq value, empty-source skip and the no-op path.
+- [x] Verify action-authorization matrix survives (upgrade an install with a customized `scholiq.actions`, confirm `occ config:app:get learniq actions` matches)
+  - Throwaway instance, 2026-09-29, same upgrade as the box above: before the swap, `occ config:app:set scholiq actions` customised all nine keys away from the seed (for example `qti.import: [admin, teachers]`, `rollover.plan: [admin, roster-office]`, `external-training.issue-credential: [compliance-officer]`). After `occ app:enable learniq`, `occ config:app:get learniq actions` returns those nine values unchanged. InitializeActions adds the 15 actions that did not exist in 0.2.13 with their defaults. The `scholiq.actions` row is left in place, as migration.md says.
 
 ## 5. Manifest and register JSON
 
@@ -58,7 +65,8 @@ boundary resolves at runtime.
 - **acceptance_criteria**:
   - GIVEN the renamed register JSON WHEN the register sync runs THEN every schema declared in it registers under the `learniq` register
   - GIVEN a page carrying a `deepLinks[].registerSlug` entry WHEN a user follows that deep link THEN it resolves an object under the `learniq` register, not a 404
-- [ ] Implement + verify (register sync succeeds, all 5 deep links resolve)
+- [x] Implement + verify (register sync succeeds, all 5 deep links resolve)
+  - Done before round 5: `lib/Settings/learniq_register.json` (register slug `learniq`), all five `deepLinks[].registerSlug` entries in `src/manifest.json` read `learniq`. Live deep-link resolution not re-run by this lane.
 
 ## 6. Filenames and Vue components
 
@@ -68,7 +76,8 @@ boundary resolves at runtime.
 - **acceptance_criteria**:
   - GIVEN the renamed Vue files WHEN the frontend build runs (`npm run build`) THEN it succeeds with zero unresolved-import errors
   - GIVEN the renamed test files WHEN `composer test` runs THEN every renamed test is discovered and passes
-- [ ] Implement + verify (`npm run build` and `composer test` both clean)
+- [x] Implement + verify (`npm run build` and `composer test` both clean)
+  - Done before round 5: `lib/Service/CoursePackage/LearniqJsonCourseImporter.php`, seven `src/views/Learniq*.vue`, `tests/Unit/LearniqTest.php`, `tests/integration/learniq.postman_collection.json`, `tests/wedge-scaffolds/learniq-wedge.postman_collection.json`. The `scholiq-json` and `scholiq-learning-record` FORMAT ids stay: they are wire and stored-data values (frozen per the fleet rename rule).
 
 ## 7. MCP tool provider
 
@@ -78,7 +87,8 @@ boundary resolves at runtime.
 - **acceptance_criteria**:
   - GIVEN `scholiq-mcp-adoption` has NOT yet merged WHEN this task runs THEN the provider file and its test are renamed and the provider id returns `'learniq'`
   - GIVEN `scholiq-mcp-adoption` HAS already merged (file deleted) WHEN this task runs THEN it confirms the derived `x-openregister-mcp` tool-name prefix already reads `learniq.{schema}.{verb}` (falls out of Task 2's app-id rename) and makes no further change
-- [ ] Implement + verify (either branch of the above, confirmed against the actual state of `scholiq-mcp-adoption` at merge time)
+- [x] Implement + verify (either branch of the above, confirmed against the actual state of `scholiq-mcp-adoption` at merge time)
+  - Done before round 5: `lib/Mcp/LearniqToolProvider.php`, `tests/Unit/Mcp/LearniqToolProviderTest.php::testGetAppIdReturnsLearniq`.
 
 ## 8. l10n
 
@@ -88,7 +98,8 @@ boundary resolves at runtime.
 - **acceptance_criteria**:
   - GIVEN the English-source keys mentioning the product name WHEN renamed THEN every locale file has a correspondingly re-translated value (not a blind substitution) for those specific keys
   - GIVEN every other existing translated value containing the literal word `Scholiq`/`scholiq` WHEN substituted THEN a diff against the pre-change file shows only the product-name token changed, nothing else in the surrounding sentence
-- [ ] Implement + verify (diff review across all 37 locale files per test-plan.md TC-10)
+- [x] Implement + verify (diff review across all 37 locale files per test-plan.md TC-10)
+  - Finished in round 5 (r5-structure): the product name in 28 register strings (18 schemas in `learniq_register.json`, plus `learniq_mock_register.json`) now reads Learniq, the matching catalogue keys are renamed in `l10n/en.json`, `l10n/nl.json` and `l10n/ai-translated.json` (no other locale carried them), `npm run check:schema-l10n` exit 0 at baseline. Export folders moved from `Scholiq/{tenant}/...` to `Learniq/{tenant}/...` and the docs name the app Learniq (24 files). Processing-activity codes like `scholiq-credentialing` stay: they are stored data.
 
 ## 9. Product framing
 
@@ -98,7 +109,8 @@ boundary resolves at runtime.
 - **acceptance_criteria**:
   - GIVEN the rewritten English summary WHEN read THEN it does not describe the app as education-only and does not claim a capability absent from `docs/FEATURES.md`'s shipped tier
   - GIVEN the rewritten Dutch summary WHEN read THEN it describes the same three audiences (school, training provider, company) as the English summary, not a narrower translation
-- [ ] Implement + verify (App Store listing preview renders both locales correctly)
+- [x] Implement + verify (App Store listing preview renders both locales correctly)
+  - Done before round 5: both `<summary>` elements in `appinfo/info.xml` name schools, training providers and companies.
 
 ## 10. CI and coverage
 
@@ -107,7 +119,8 @@ boundary resolves at runtime.
 - **files**: `.github/workflows/spec-validation.yml`, `.github/workflows/release.yml`, `.github/workflows/openspec-sync.yml`, `.github/workflows/documentation.yml`, `.github/workflows/code-quality.yml`, `.github/workflows/issue-triage.yml`
 - **acceptance_criteria**:
   - GIVEN the renamed repo WHEN CI runs on the PR branch THEN every workflow's path filters and coverage-baseline references resolve under `OCA\Learniq` / `learniq` and none silently no-ops on a stale `scholiq` path
-- [ ] Implement + verify (a CI run on the actual PR branch is green, not merely "would be green" by inspection)
+- [x] Implement + verify (a CI run on the actual PR branch is green, not merely "would be green" by inspection)
+  - Done before round 5: the remaining `scholiq` strings in `.github/workflows/` are comments plus the deliberate `previous-app-id: scholiq` (release.yml) and the retired docs host kept in `docs-hosts` (documentation.yml). On development, Spec Validation, Lint Check, Documentation and Release were green on 2026-09-28.
 
 ## 11. Fresh-install verification
 
@@ -116,7 +129,14 @@ boundary resolves at runtime.
 - **files**: none (verification-only task)
 - **acceptance_criteria**:
   - GIVEN a clean Nextcloud instance with no prior `scholiq` install WHEN `learniq` is installed THEN install completes with zero errors in `nextcloud.log`, the register imports under slug `learniq`, and the app's start screen renders
-- [ ] Verify (clean-instance install per test-plan.md TC-1/TC-2)
+- [x] Verify (clean-instance install per test-plan.md TC-1/TC-2)
+  - Throwaway instance, 2026-09-29, second pass on a clean install: a dropped and recreated database, Nextcloud 34, OpenRegister development 442120ab4 (includes #4173) plus ConductionNL/openregister#4177, then learniq development f99b1a57 (includes #1466 and 8bccc8f5) from `custom_apps/learniq`. Screenshots are in `docs/images/rename-clean-install/`.
+    - TC-2: `occ app:enable learniq` succeeded. Register `learniq` (id 20) links all 148 schemas declared in `learniq_register.json`, xapi-document included; none missing, none extra, checked against both the database and `/api/registers`. There is no `scholiq` register. nextcloud.log from the enable has 300 warnings, no `PARTIAL IMPORT`, and 7 error-level lines. All 7 are OpenRegister existence probes that run before the thing they look for exists: `Register not found after filters` for `learniq` (twice), and 5 lookups of a seed course in `oc_openregister_table_20_31` before that table existed. The course was then created. Taken literally, the acceptance criterion's "zero errors in nextcloud.log" is therefore not met: none of the 7 lines comes from learniq and none left anything missing, but OpenRegister logs these expected misses at error level. Settings, Administration, Learniq opens (`05-admin-settings-learniq.png`).
+    - TC-1: the admin apps page lists Learniq 0.3.6-unstable.20260929001524 as enabled (`01-admin-apps-enabled-learniq.png`). The first open of the app shows the start screen with the "Welcome to Learniq" tour on top (`02-first-open.png`). The next open shows the setup wizard, walked through its steps (`03-setup-wizard-step-1.png` to `-7.png`): Welcome, the example-data choice (the Company set was picked and loaded), organisation kind Company, remove example data (not run), then "Setup complete". After that the start screen renders with the navigation and no dialog, and there are no page errors (`04-start-screen.png`). In the files, `appinfo/info.xml` has id `learniq` and namespace `Learniq` (`scholiq` appears only in comments about the rename), composer autoload is `OCA\\Learniq\\`, all 5 manifest `deepLinks[].registerSlug` values read `learniq`, the register JSON's app and register slug are `learniq`, the navigation entry is id `learniq` with route `learniq.page.index`, and the MCP side is `LearniqScannableServices`.
+    - Seen, not changed: the "Default register" picker in the admin settings shows empty even though the register is set up. The component starts with `defaultRegister: null` and only writes the value; it never reads back the saved one.
+  - Throwaway instance, 2026-09-29, first pass (partly done). Clean install (fresh database, OpenRegister development, then `occ app:enable learniq`):
+    - On learniq development as shipped (4168b357) the install is RED. The register `learniq` imports with 146 of 147 schemas, and `learner-profile` is rejected (`Unknown property key(s) 'materialise, expression' at '/ageYears'`, then `PARTIAL IMPORT`).
+    - With this PR's LearnerProfile fix plus ConductionNL/openregister#4177, a second clean install imports all 147 schemas under slug `learniq`, with no `scholiq` register and no import error. The only error-level lines are OpenRegister's existence probes before the register and tables exist (`Register not found after filters`, `relation ... does not exist`); the objects those probes looked for were then created.
 
 ## 12. Route-reachability verification (ADR-029)
 
@@ -125,7 +145,9 @@ boundary resolves at runtime.
 - **files**: e2e test targets updated from `/apps/scholiq/...` to `/apps/learniq/...`
 - **acceptance_criteria**:
   - GIVEN the full Playwright e2e suite retargeted to `/apps/learniq/...` WHEN run against the renamed, freshly-installed app THEN every previously-passing test still passes and `hydra-gate-route-reachability` reports zero unrouted or wrong-binding methods
-- [ ] Verify (e2e suite green + route-reachability gate clean per test-plan.md TC-6/TC-7)
+- [x] Verify (e2e suite green + route-reachability gate clean per test-plan.md TC-6/TC-7)
+  - Throwaway instance, 2026-09-29, on a clean install of learniq development (4168b357 with the LearnerProfile fix from #1466) and OpenRegister development with ConductionNL/openregister#4177. `tests/e2e/pages.spec.ts` and `tests/e2e/custom-pages-mount.spec.ts` against :8090 gave 69 passed and 0 failed in 11.4 min (24 routes plus 45 custom pages), all on `/apps/learniq/...`. `vendor/bin/hydra-gates` on development (45760341): `[gate-14] route-reachability: PASS`. The run's six other red gates (3, 7, 25, 49, 55, 60) are inherited and not about routes. Scope: the route smoke suite named for this check, not every spec in `tests/e2e/`.
+  - r5-live, 2026-09-29, shared dev instance: partly. The e2e specs run in this pass are green (connection-registry, shell, integration-leaves, pages, custom-pages-mount, self-check-in, double-marking, menu-personas), but the full suite was not run as one.
 
 ## 13. Cross-app coordination
 
@@ -136,8 +158,10 @@ boundary resolves at runtime.
   - GIVEN this change has merged WHEN the hermiq follow-up issue is filed THEN it links `contract.md`, names the exact constants to update (`SCHOLIQ_APP_ID`, `SCHOLIQ_REGISTER` → `learniq` values, optionally renamed), and states the graceful "unavailable" degradation behavior in the interim
   - GIVEN this change has merged WHEN the pipelinq follow-up issue is filed THEN it links `contract.md`, names the exact constant to update (`DOWNSTREAM_SYSTEMS`'s `'scholiq'` entry → `'learniq'`), and flags that the interim failure mode is **silent** (no log, no error) rather than graceful, so it should be prioritized over the hermiq follow-up despite being the smaller code change
   - Both issues MUST be filed — not necessarily merged — before this change is archived; archiving without filing either would leave the cross-app breakage undiscoverable, since neither failure throws, error-logs, or fails a CI gate on the consumer side
-- [ ] Verify hermiq issue filed and linked
-- [ ] Verify pipelinq issue filed and linked
+- [x] Verify hermiq issue filed and linked
+  - Resolved in hermiq code, so no issue was needed: `hermiq/lib/Support/FleetAppId.php` maps learniq to both ids and `LearnerSignalRegister::CANONICAL_APP` / `CANONICAL_REGISTER` read `learniq` (hermiq development, 2026-09-28). `CourseRecommendationEngine::SOURCE_APP_STAMP = 'scholiq'` is a stored-data value, frozen on purpose.
+- [x] Verify pipelinq issue filed and linked
+  - Filed: https://github.com/ConductionNL/pipelinq/issues/2091 (the list also still carries `procest` and `decidesk`).
 
 ## 14. Repo rename and App Store republish (last)
 
@@ -148,6 +172,8 @@ boundary resolves at runtime.
   - GIVEN every task above (1–12) is verified GREEN WHEN the repo is renamed `ConductionNL/scholiq` → `ConductionNL/learniq` THEN GitHub's automatic redirect from the old URL is confirmed working
   - GIVEN the App Store id changes WHEN the new listing is published THEN it is treated as a republish (new listing), not an in-place update, per design.md, and the old listing links to the new one
 - [ ] Verify (redirect confirmed, new App Store listing live, old listing cross-links)
+  - r5-live, 2026-09-29, shared dev instance: the App Store listing is admin-only and outside this lane.
+  - Partly done: the GitHub redirect works (`gh repo view ConductionNL/scholiq` resolves to ConductionNL/learniq) and the new App Store listing is live (apps.nextcloud.com/apps/learniq). The old listing (apps.nextcloud.com/apps/scholiq) does not link to the new one yet: that is an App Store admin action no lane can take.
 
 ## Verification
 

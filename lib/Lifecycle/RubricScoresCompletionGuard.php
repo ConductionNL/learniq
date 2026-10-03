@@ -37,23 +37,25 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-submit-is-blocked-when-rubric-coverage-is-incomplete
+ * @spec openspec/specs/assignments/spec.md#scenario-submit-is-blocked-when-rubric-coverage-is-incomplete
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
 /**
  * Guards PeerReview.submit and SelfAssessment.submit.
  *
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-peerreview-captures-one-reviewers-rubric-based-assessment-with-its-own-lifecycle
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-self-assessment-lets-a-learner-score-their-own-submission-against-the-assignments-rubric
+ * @spec openspec/specs/assignments/spec.md#requirement-peerreview-captures-one-reviewers-rubric-based-assessment-with-its-own-lifecycle
+ * @spec openspec/specs/assignments/spec.md#requirement-self-assessment-lets-a-learner-score-their-own-submission-against-the-assignments-rubric
  */
-class RubricScoresCompletionGuard {
+class RubricScoresCompletionGuard implements LifecycleGuardInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSIGNMENT_SCHEMA = 'assignment';
@@ -65,30 +67,62 @@ class RubricScoresCompletionGuard {
 	 *
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param LearnerCaller $learnerCaller Decides whether the caller is the person named on the row.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly LearnerCaller $learnerCaller,
 	) {
 	}//end __construct()
+
+	/**
+	 * OpenRegister lifecycle guard entry-point for `submit`.
+	 *
+	 * Only the person the row names submits it: the reviewer on a PeerReview,
+	 * the learner on a SelfAssessment (administrators and system calls are not
+	 * refused). A SelfAssessment may be created by any signed-in user, so this
+	 * is where one made in someone else's name is stopped.
+	 *
+	 * @param array<string,mixed> $object The PeerReview/SelfAssessment as it would be saved.
+	 * @param string $action The transition, `submit`.
+	 * @param string $userId The caller, or '' without a session.
+	 *
+	 * @return GuardResult
+	 *
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-a-learner-runs-the-transitions-on-their-own-rows
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		$named = ($object['reviewerId'] ?? null);
+		if (array_key_exists('learnerId', $object) === true) {
+			$named = $object['learnerId'];
+		}
+
+		if ($this->learnerCaller->isNamed(userId: $userId, named: $named) === false) {
+			return GuardResult::deny(sprintf('Only the person this assessment belongs to can %s it.', $action));
+		}
+
+		if ($this->allows(object: $object) === false) {
+			return GuardResult::deny('Score every rubric criterion before submitting.');
+		}
+
+		return GuardResult::allow();
+	}//end check()
 
 	/**
 	 * Allow the `submit` transition unless rubric coverage is incomplete (or, for a
 	 * SelfAssessment, `learnerId` is not a member of the linked Submission's
 	 * `learnerIds`).
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the PeerReview/SelfAssessment data array
-	 *                                               - 'transition' : 'submit'
+	 * @param array<string,mixed> $object The PeerReview/SelfAssessment data array.
 	 *
-	 * @return bool True if the transition is allowed; false blocks it (HTTP 422).
+	 * @return bool True if the transition is allowed; false blocks it.
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-submit-is-blocked-when-rubric-coverage-is-incomplete
+	 * @spec openspec/specs/assignments/spec.md#scenario-submit-is-blocked-when-rubric-coverage-is-incomplete
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
+	private function allows(array $object): bool {
 		$objectId = $object['id'] ?? ($object['uuid'] ?? '');
 		$assignmentId = $object['assignmentId'] ?? null;
 		$rubricScores = $object['rubricScores'] ?? [];
@@ -125,7 +159,7 @@ class RubricScoresCompletionGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Resolve the set of criterionId values the linked Assignment's Rubric declares.
@@ -137,7 +171,7 @@ class RubricScoresCompletionGuard {
 	 *                           empty requirement set is trivially satisfied by any
 	 *                           rubricScores array, including an empty one.
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-submit-is-blocked-when-rubric-coverage-is-incomplete
+	 * @spec openspec/specs/assignments/spec.md#scenario-submit-is-blocked-when-rubric-coverage-is-incomplete
 	 */
 	private function fetchRequiredCriterionIds(string $assignmentId): array {
 		$assignment = $this->fetchObject(id: $assignmentId, schema: self::ASSIGNMENT_SCHEMA);
@@ -173,7 +207,7 @@ class RubricScoresCompletionGuard {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-submit-is-blocked-when-rubric-coverage-is-incomplete
+	 * @spec openspec/specs/assignments/spec.md#scenario-submit-is-blocked-when-rubric-coverage-is-incomplete
 	 */
 	private function coversAllCriteria(array $rubricScores, array $requiredCriterionIds): bool {
 		if (empty($requiredCriterionIds) === true) {
@@ -206,7 +240,7 @@ class RubricScoresCompletionGuard {
 	 *              missing and there is nothing to check against — fails closed
 	 *              instead: an unresolvable Submission denies the transition).
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-self-assessment-lets-a-learner-score-their-own-submission-against-the-assignments-rubric
+	 * @spec openspec/specs/assignments/spec.md#requirement-self-assessment-lets-a-learner-score-their-own-submission-against-the-assignments-rubric
 	 */
 	private function isLearnerOnSubmission(array $object): bool {
 		$submissionId = $object['submissionId'] ?? null;

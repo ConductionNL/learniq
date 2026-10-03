@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/external-training-recording/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
 
 declare(strict_types=1);
@@ -37,12 +37,13 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use Psr\Log\LoggerInterface;
 
 /**
  * Coverage, bulk-entry, and credential-issuance logic for external training.
  *
- * @spec openspec/changes/external-training-recording/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
 class ExternalTrainingService {
 	/**
@@ -86,7 +87,7 @@ class ExternalTrainingService {
 	 *
 	 * @return bool True when the learner counts as covered.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 */
 	public function isLearnerCovered(
 		string $learnerId,
@@ -127,7 +128,7 @@ class ExternalTrainingService {
 	 *
 	 * @return string|null One of 'attestation'|'credential'|'external-training', or null.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 */
 	public function coveringEvidenceClass(
 		string $learnerId,
@@ -168,7 +169,7 @@ class ExternalTrainingService {
 	 *
 	 * @return string The generated batchId (empty when nothing was created).
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 */
 	public function bulkRecord(array $learnerIds, array $shared): string {
 		$learnerIds = array_values(array_unique(array_filter($learnerIds, static fn ($id): bool => $id !== '')));
@@ -236,11 +237,17 @@ class ExternalTrainingService {
 	 *
 	 * @return array<string,mixed> The Credential object payload to save.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 */
 	public function buildManualCredentialPayload(array $record, string $issuedBy): array {
+		// ExternalTrainingRecord.learnerId is already the LearnerProfile uuid,
+		// as Credential.learnerId must be; learnerUserId is that profile's
+		// Nextcloud user id, which the credential's read rule matches on.
+		$learnerId = (string)($record['learnerId'] ?? '');
+
 		return [
-			'learnerId' => (string)($record['learnerId'] ?? ''),
+			'learnerId' => $learnerId,
+			'learnerUserId' => $this->profileUserId(profileId: $learnerId),
 			'kind' => 'external-training',
 			'issuedAt' => (string)($record['completedAt'] ?? ''),
 			'expiresAt' => ($record['validUntil'] ?? null),
@@ -250,6 +257,40 @@ class ExternalTrainingService {
 			'tenant_id' => (string)($record['tenant_id'] ?? ''),
 		];
 	}//end buildManualCredentialPayload()
+
+	/**
+	 * The Nextcloud user id of a LearnerProfile, or null when there is none.
+	 *
+	 * @param string $profileId LearnerProfile uuid.
+	 *
+	 * @return string|null
+	 *
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
+	 */
+	private function profileUserId(string $profileId): ?string {
+		if ($profileId === '') {
+			return null;
+		}
+
+		try {
+			$profile = $this->objectService->find(
+				id: $profileId,
+				register: self::LEARNIQ_REGISTER,
+				schema: 'learner-profile',
+				_rbac: false,
+				_multitenancy: false
+			);
+		} catch (DoesNotExistException) {
+			return null;
+		}
+
+		$ncUserId = ($profile?->jsonSerialize()['ncUserId'] ?? null);
+		if (is_string($ncUserId) === false || $ncUserId === '') {
+			return null;
+		}
+
+		return $ncUserId;
+	}//end profileUserId()
 
 	/**
 	 * Whether a signed Attestation exists for the learner + regulation.
@@ -262,9 +303,9 @@ class ExternalTrainingService {
 	private function hasSignedAttestation(string $learnerId, string $regulationSlug): bool {
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'attestation',
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => 'attestation',
 					'learnerId' => $learnerId,
 					'regulationSlug' => $regulationSlug,
 					'lifecycle' => 'signed',
@@ -288,9 +329,9 @@ class ExternalTrainingService {
 	private function hasValidCredential(string $learnerId, string $regulationSlug, DateTimeInterface $now): bool {
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'credential',
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => 'credential',
 					'learnerId' => $learnerId,
 					'regulationSlug' => $regulationSlug,
 				],
@@ -326,9 +367,9 @@ class ExternalTrainingService {
 	private function hasVerifiedExternalRecord(string $learnerId, string $regulationSlug, DateTimeInterface $now): bool {
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::SCHEMA,
 					'learnerId' => $learnerId,
 					'regulationSlug' => $regulationSlug,
 					'lifecycle' => 'verified',

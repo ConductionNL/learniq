@@ -4,8 +4,8 @@
  * Gate-19 e2e coverage — admissions-and-subject-choice spec UI scenarios.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
- *   @e2e openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-learner-picks-electives-with-live-rule-feedback
+ *   @e2e openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+ *   @e2e openspec/specs/school-structure/spec.md#scenario-a-learner-picks-electives-with-live-rule-feedback
  *
  * The MBO toelatingsrecht / VO schooladvies-adjustment / capacity branches
  * (AdmissionsDecisionGuard), waitlist auto-promotion
@@ -54,7 +54,7 @@ function collectFatalErrors(errors: string[]): string[] {
 }
 
 test.describe('admissions-and-subject-choice — review board and subject-choice picker', () => {
-	// @e2e openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+	// @e2e openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 	test('admissions review board page renders without a fatal error', async ({
 		loggedInPage: page,
 	}) => {
@@ -86,7 +86,7 @@ test.describe('admissions-and-subject-choice — review board and subject-choice
 		)
 	})
 
-	// @e2e openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-learner-picks-electives-with-live-rule-feedback
+	// @e2e openspec/specs/school-structure/spec.md#scenario-a-learner-picks-electives-with-live-rule-feedback
 	test('subject choice picker page renders without a fatal error', async ({
 		loggedInPage: page,
 	}) => {

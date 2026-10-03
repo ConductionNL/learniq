@@ -41,7 +41,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+ * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
  */
 
 declare(strict_types=1);
@@ -93,7 +93,7 @@ class WalletOfferConcludedListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+	 * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
 	 */
 	public function handle(Event $event): void {
 		if (method_exists($event, 'getExternalReference') === false
@@ -153,9 +153,11 @@ class WalletOfferConcludedListener implements IEventListener {
 	private function resolveCredentialByAttestationRef(string $attestationRef): ?array {
 		$matches = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::CREDENTIAL_SCHEMA,
-				'filters' => ['walletAttestationRef' => $attestationRef],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::CREDENTIAL_SCHEMA,
+					'walletAttestationRef' => $attestationRef,
+				],
 				'limit' => 1,
 			]
 		);

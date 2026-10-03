@@ -105,12 +105,34 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 			// container is what turns one into the other in production.
 			$schemaResolver = \OC::$server->get(\OCA\Learniq\Service\ListenerSchemaResolver::class);
 
-			$this->handler = new XapiCompletionHandler(
-				$this->objectService,
-				$transitionEngine,
-				$schemaResolver,
-				new NullLogger(),
-			);
+			// The handler queues; this deferral runs the queued work at once,
+			// as XapiStatementFollowUpJob would, so the test sees the result.
+			$completion = new \OCA\Learniq\Service\XapiEnrolmentCompletion($this->objectService, $transitionEngine, new NullLogger());
+			$deferral = new class ($completion) extends \OCA\OpenRegister\Service\Deferral\ListenerDeferralService {
+				/**
+				 * Constructor.
+				 *
+				 * @param \OCA\Learniq\Service\XapiEnrolmentCompletion $completion The job's work.
+				 */
+				public function __construct(private readonly \OCA\Learniq\Service\XapiEnrolmentCompletion $completion) {
+				}//end __construct()
+
+				/**
+				 * Run the entry now.
+				 *
+				 * @param string               $jobClass  The job class.
+				 * @param array<string, mixed> $entry     The entry.
+				 * @param int                  $chunkSize Unused.
+				 * @param string|null          $dedupeKey Unused.
+				 *
+				 * @return void
+				 */
+				public function defer(string $jobClass, array $entry, int $chunkSize = self::DEFAULT_CHUNK_SIZE, ?string $dedupeKey = null): void {
+					$this->completion->complete(statement: $entry['statement']);
+				}//end defer()
+			};
+
+			$this->handler = new XapiCompletionHandler($deferral, $schemaResolver);
 		} catch (\Throwable $e) {
 			$this->markTestSkipped('Could not resolve OR services from DI container: ' . $e->getMessage());
 		}

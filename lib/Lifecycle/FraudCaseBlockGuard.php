@@ -30,14 +30,16 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
+ * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
+ * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -49,9 +51,16 @@ use Psr\Log\LoggerInterface;
  * `verdict: unfounded` or `dismissed`. When `fraudCaseId` is unset, allows
  * unconditionally.
  *
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
+ * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
  */
-class FraudCaseBlockGuard {
+class FraudCaseBlockGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'This grade is linked to a fraud case that is not closed as unfounded or dismissed, so it can not be published.';
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const FRAUD_CASE_SCHEMA = 'fraud-case';
@@ -80,19 +89,38 @@ class FraudCaseBlockGuard {
 	}//end __construct()
 
 	/**
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
+	 * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(entry: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
 	 * Allow the `publish`/`republish` transition unless a linked FraudCase blocks it.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the GradeEntry data array
-	 *                                               - 'transition' : 'publish' or 'republish'
+	 * @param array<string,mixed> $entry The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True if the transition is allowed; false blocks it (HTTP 422).
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
+	 * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
+	 * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
 	 */
-	public function check(array &$transitionContext): bool {
-		$entry = $transitionContext['object'] ?? [];
+	private function allows(array $entry): bool {
 		$entryId = $entry['id'] ?? ($entry['uuid'] ?? '');
 		$fraudCaseId = $entry['fraudCaseId'] ?? null;
 
@@ -132,7 +160,7 @@ class FraudCaseBlockGuard {
 
 		// Decided/unfounded or dismissed — publication may proceed.
 		return true;
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Fetch the linked FraudCase by id.

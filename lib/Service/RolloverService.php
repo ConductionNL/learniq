@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-year-rollover/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
 
 declare(strict_types=1);
@@ -41,7 +41,7 @@ use OCA\OpenRegister\Service\ObjectService;
 /**
  * Mapping-proposal and preview semantics for the school-year rollover.
  *
- * @spec openspec/changes/school-year-rollover/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
 class RolloverService {
 	/**
@@ -81,7 +81,7 @@ class RolloverService {
 	 *
 	 * @return array<int,array<string,mixed>> Proposed mappings.
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
 	public function proposeDefaultMapping(array $fromCohorts): array {
 		$mappings = [];
@@ -121,7 +121,7 @@ class RolloverService {
 	 *
 	 * @return array<string,mixed> The dry-run report.
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
 	public function preview(array $plan): array {
 		$mappings = (array)($plan['mappings'] ?? []);
@@ -192,7 +192,7 @@ class RolloverService {
 	 *
 	 * @return string A stable group identifier.
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
 	public function groupName(string $academicYear, string $cohortName): string {
 		$slug = strtolower(preg_replace('/[^A-Za-z0-9]+/', '-', $academicYear . '-' . $cohortName) ?? '');
@@ -210,7 +210,7 @@ class RolloverService {
 	 *
 	 * @return bool True when the stored dryRunReport matches the current mappings.
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
 	public function previewMatchesMappings(array $plan): bool {
 		$stored = ($plan['dryRunReport'] ?? null);
@@ -235,7 +235,7 @@ class RolloverService {
 	 *
 	 * @return array<string,array<string,mixed>> Indexed overrides.
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
 	public function indexOverrides(array $overrides): array {
 		$indexed = [];
@@ -259,7 +259,7 @@ class RolloverService {
 	 *
 	 * @return array<string,mixed> The cohort, or an empty array when not found.
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
 	public function loadCohort(string $cohortId): array {
 		if ($cohortId === '') {
@@ -283,7 +283,7 @@ class RolloverService {
 	 *
 	 * @return array<string,mixed> The row as an associative array.
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
 	public function toArray(mixed $row): array {
 		if (is_array($row) === true) {
@@ -316,9 +316,11 @@ class RolloverService {
 
 			$enrolments = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => 'enrolment',
-					'filters' => ['learnerId' => $learnerId],
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'enrolment',
+						'learnerId' => $learnerId,
+					],
 				]
 			);
 

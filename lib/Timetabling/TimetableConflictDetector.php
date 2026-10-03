@@ -35,8 +35,8 @@
  * expression. The same exception class as ConferenceScheduleGenerator.
  *
  * Invoked by SessionConflictListener (OR-event-driven, on Session
- * create/update) and by TimetableImportHandler (batch, once a
- * timetable-import DataExchangeJob succeeds).
+ * create/update) and by PlanninqTimetableImport (batch, once planninq
+ * took a timetable delivery, requested through TimetableImportController).
  *
  * @category Service
  * @package  OCA\Learniq\Timetabling
@@ -51,7 +51,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
+ * @spec openspec/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
  */
 
 declare(strict_types=1);
@@ -68,7 +68,7 @@ use Psr\Log\LoggerInterface;
  * Pairwise overlap scan over Session objects scoped to an affected date
  * window, writing idempotent TimetableConflict rows.
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
+ * @spec openspec/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
  */
 class TimetableConflictDetector {
 
@@ -100,9 +100,9 @@ class TimetableConflictDetector {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-two-sessions-imported-for-the-same-room-at-overlapping-times-are-flagged-not-auto-moved
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-re-scanning-an-unchanged-window-does-not-create-duplicate-conflicts
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-an-exam-session-exceeding-room-capacity-is-flagged-as-room-capacity-exceeded
+	 * @spec openspec/specs/timetabling/spec.md#scenario-two-sessions-imported-for-the-same-room-at-overlapping-times-are-flagged-not-auto-moved
+	 * @spec openspec/specs/timetabling/spec.md#scenario-re-scanning-an-unchanged-window-does-not-create-duplicate-conflicts
+	 * @spec openspec/specs/timetabling/spec.md#scenario-an-exam-session-exceeding-room-capacity-is-flagged-as-room-capacity-exceeded
 	 */
 	public function scan(array $sessions): void {
 		if (empty($sessions) === true) {
@@ -117,6 +117,55 @@ class TimetableConflictDetector {
 			return;
 		}
 
+		$this->scanSessions(window: $window, tenantId: $tenantId);
+
+	}//end scan()
+
+	/**
+	 * Scan exactly the given lessons for conflicts, without loading a window.
+	 *
+	 * For a caller that already holds the lessons from a timetable source,
+	 * such as the planninq lessons a timetable-import job just delivered
+	 * (sessions-from-planninq). Cancelled lessons are left out, the same rule
+	 * the Session window applies. Conflict rows are written under `$tenantId`,
+	 * because a planninq lesson carries no learniq tenant of its own.
+	 *
+	 * @param array<int,array<string,mixed>> $sessions Lessons in learniq's session shape.
+	 * @param string                         $tenantId Tenant the conflict rows belong to.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004
+	 */
+	public function scanWindow(array $sessions, string $tenantId): void {
+		$window = [];
+		foreach ($sessions as $session) {
+			$id = (string)($session['id'] ?? ($session['uuid'] ?? ''));
+			if ($id === '' || ($session['lifecycle'] ?? '') === 'cancelled') {
+				continue;
+			}
+
+			$window[$id] = $session;
+		}
+
+		if (count($window) < 2) {
+			return;
+		}
+
+		$this->scanSessions(window: $window, tenantId: $tenantId);
+
+	}//end scanWindow()
+
+	/**
+	 * Pairwise overlap and capacity scan over a loaded window, writing new
+	 * TimetableConflict rows idempotently.
+	 *
+	 * @param array<string,array<string,mixed>> $window   Lessons keyed by id.
+	 * @param string                            $tenantId Tenant scope.
+	 *
+	 * @return void
+	 */
+	private function scanSessions(array $window, string $tenantId): void {
 		$cohortCache = [];
 		$roomCache = [];
 		$assessmentCache = [];
@@ -175,7 +224,7 @@ class TimetableConflictDetector {
 			);
 		}
 
-	}//end scan()
+	}//end scanSessions()
 
 	/**
 	 * Evaluate the pairwise overlap kinds for one Session pair, appending any

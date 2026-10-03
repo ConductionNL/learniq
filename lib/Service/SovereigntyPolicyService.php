@@ -29,8 +29,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
- * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
+ * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
+ * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ use Throwable;
  * Stateless policy-compliance evaluator over the `SovereigntyPolicy`
  * singleton.
  *
- * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
+ * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
  */
 class SovereigntyPolicyService {
 
@@ -104,14 +104,16 @@ class SovereigntyPolicyService {
 	 *
 	 * @return string One of `on-premises-only`, `eu-hosted-allowed`, `third-country-allowed`.
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-no-policy-set-yet-defaults-to-the-documented-default
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-no-policy-set-yet-defaults-to-the-documented-default
 	 */
 	public function currentPolicy(): string {
 		try {
 			$existing = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::SOVEREIGNTY_POLICY_SCHEMA,
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::SOVEREIGNTY_POLICY_SCHEMA,
+					],
 					'limit' => 1,
 				]
 			);
@@ -164,7 +166,7 @@ class SovereigntyPolicyService {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
 	 */
 	public function isCompliant(string $locality, bool $verified): bool {
 		$policy = $this->currentPolicy();

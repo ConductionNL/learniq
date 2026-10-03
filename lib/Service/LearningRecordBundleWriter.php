@@ -4,7 +4,7 @@
  * Learniq Learning Record Bundle Writer
  *
  * Owns the nc:files side of a learner's signed learning-record export: JSON
- * encoding, the `Scholiq/{tenant}/learning-record-exports` destination
+ * encoding, the `Learniq/{tenant}/learning-record-exports` destination
  * convention `CoursePackageImportService::writeBytesToFiles()` established,
  * folder creation, and the create-or-overwrite of the bundle file itself.
  * Extracted out of `LearningRecordExportService` so that class stays a
@@ -31,7 +31,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-learner-initiated-export-produces-a-signed-dual-shaped-bundle
+ * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-learner-initiated-export-produces-a-signed-dual-shaped-bundle
  */
 
 declare(strict_types=1);
@@ -47,7 +47,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Writes a signed learning-record export bundle into the owner's nc:files home.
  *
- * @spec openspec/changes/portable-learning-record/tasks.md#task-2-3
+ * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-3
  */
 class LearningRecordBundleWriter {
 	/**
@@ -67,7 +67,7 @@ class LearningRecordBundleWriter {
 	/**
 	 * Write the signed bundle JSON to the owner's nc:files home, mirroring
 	 * `CoursePackageImportService::writeBytesToFiles()`'s destination
-	 * convention (`Scholiq/{tenant}/...`).
+	 * convention (`Learniq/{tenant}/...`).
 	 *
 	 * @param array<string,mixed> $bundle The signed bundle (bundle itself, not the JWS).
 	 * @param string $ownerUid Nextcloud user id who will own the file.
@@ -76,7 +76,7 @@ class LearningRecordBundleWriter {
 	 *
 	 * @return string|null The nc:files path, or null on failure.
 	 *
-	 * @spec openspec/changes/portable-learning-record/tasks.md#task-2-3
+	 * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-3
 	 */
 	public function write(array $bundle, string $ownerUid, string $tenantId, string $exportId): ?string {
 		if ($ownerUid === '') {
@@ -94,7 +94,7 @@ class LearningRecordBundleWriter {
 				$tenantSegment = $tenantId;
 			}
 
-			$ncBaseDir = 'Scholiq/' . $tenantSegment . '/learning-record-exports';
+			$ncBaseDir = 'Learniq/' . $tenantSegment . '/learning-record-exports';
 			$ncPath = $ncBaseDir . '/' . $exportId . '.json';
 
 			$userFolder = $this->rootFolder->getUserFolder($ownerUid);

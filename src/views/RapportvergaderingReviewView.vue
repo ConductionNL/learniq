@@ -17,9 +17,9 @@
 
  Route param: :id (ReportPeriod UUID).
 
- @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
- @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-the-rapportvergadering-review-lifecycle-gates-parent-visibility-behind-a-finalise-step
- @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-publishtoparents-must-not-surface-a-grade-before-its-own-scheduled-visibility-window
+ @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+ @spec openspec/specs/report-card/spec.md#requirement-the-rapportvergadering-review-lifecycle-gates-parent-visibility-behind-a-finalise-step
+ @spec openspec/specs/report-card/spec.md#requirement-publishtoparents-must-not-surface-a-grade-before-its-own-scheduled-visibility-window
 -->
 <template>
 	<div class="rapportvergadering-review">
@@ -89,7 +89,7 @@
 										<div class="rapportvergadering-review__cell">
 											<strong>{{
 												/**
-												 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+												 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 												 */
 												formatAverage(
 													subjectRow(card, plan.id)
@@ -120,7 +120,7 @@
 												rows="2"
 												@change="
 													/**
-													 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+													 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 													 */
 													onTeacherCommentChange(
 														card,
@@ -150,7 +150,7 @@
 										rows="2"
 										@change="
 											/**
-											 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+											 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 											 */
 											onMentorCommentChange(
 												card,
@@ -278,7 +278,7 @@ export default {
 		 * One column per in-scope CurriculumPlan, in ReportPeriod.curriculumPlanIds order.
 		 *
 		 * @return {Array<{id: string, label: string}>}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		subjectColumns() {
 			if (!this.period) return []
@@ -304,7 +304,7 @@ export default {
 		 * CurriculumPlan labels and ReportCards.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadPeriod() {
 			this.loadingPeriod = true
@@ -331,7 +331,7 @@ export default {
 		 * Resolve display labels for the period's in-scope CurriculumPlans.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadCurriculumPlans() {
 			const planIds = (this.period && this.period.curriculumPlanIds) || []
@@ -361,7 +361,7 @@ export default {
 		 * Load every ReportCard composed for this ReportPeriod.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadCards() {
 			this.loadingCards = true
@@ -388,7 +388,7 @@ export default {
 		 * Called when ComposeReportPeriodModal successfully triggers `compose`.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async onComposed() {
 			await this.loadPeriod()
@@ -427,7 +427,7 @@ export default {
 		 *
 		 * @param {object} card A ReportCard.
 		 * @return {string}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		cardId(card) {
 			return card.id || card.uuid || ''
@@ -477,7 +477,7 @@ export default {
 		 *
 		 * @param {object} card The ReportCard to save.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async saveCard(card) {
 			const id = this.cardId(card)
@@ -504,8 +504,8 @@ export default {
 		 * @param {object} card         The ReportCard.
 		 * @param {string} toLifecycle  Target lifecycle state.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-mentor-reopens-a-finalised-report-card-to-correct-it-before-publication
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publish-succeeds-once-every-contributing-grades-window-has-opened
+		 * @spec openspec/specs/report-card/spec.md#scenario-a-mentor-reopens-a-finalised-report-card-to-correct-it-before-publication
+		 * @spec openspec/specs/report-card/spec.md#scenario-publish-succeeds-once-every-contributing-grades-window-has-opened
 		 */
 		async transition(card, toLifecycle) {
 			const id = this.cardId(card)
@@ -518,7 +518,7 @@ export default {
 					'/apps/openregister/api/objects/learniq/report-card/{id}',
 					{ id },
 				)
-				await axios.put(url, { lifecycle: toLifecycle })
+				await axios.patch(url, { lifecycle: toLifecycle })
 				await this.loadCards()
 			} catch (e) {
 				console.error('[RapportvergaderingReviewView] transition failed', e)

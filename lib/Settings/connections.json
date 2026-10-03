@@ -1,0 +1,71 @@
+{
+    "app": "learniq",
+    "connections": [
+        {
+            "key": "data-exchange",
+            "title": "Data exchange",
+            "description": "Reports to DUO ROD and the Verzuimloket, OSO transfer files and SWV hand-offs, carried by integriq once learniq's gate allows them.",
+            "order": 10,
+            "settingsUrl": "/settings/admin/learniq#section-data-exchange",
+            "available": true
+        },
+        {
+            "key": "timetable",
+            "title": "Timetable import",
+            "description": "Lessons from Zermelo, Untis or Xedule.",
+            "order": 20,
+            "settingsUrl": "/settings/admin/learniq#section-timetable-exchange",
+            "reportedOnly": true,
+            "unconfiguredMessage": "Learniq has not reported yet whether planninq is installed. It reports once a day, and when you save the admin settings. Integriq delivers the timetable to planninq, and learniq reads the lessons from there."
+        },
+        {
+            "key": "lti",
+            "title": "LTI tools",
+            "description": "Opening an external learning tool from a course, and pulling its grades back.",
+            "order": 30,
+            "settingsUrl": "/settings/admin/learniq#section-lti",
+            "reportedOnly": true,
+            "unconfiguredMessage": "Learniq has not reported yet whether integriq can open LTI tools. It reports once a day, and when you save the admin settings. Grades come back once you enter the grade subscription in the LTI section."
+        },
+        {
+            "key": "eudi-wallet",
+            "title": "EUDI wallet",
+            "description": "Offering an issued credential to a learner's EUDI wallet, and revoking that offer.",
+            "order": 40,
+            "requiredConfig": ["openconnector_api_token"],
+            "unconfiguredMessage": "No integriq API token is set, so no credential reaches a wallet. Set it with occ config:app:set learniq openconnector_api_token."
+        },
+        {
+            "key": "payment",
+            "title": "Payments through shillinq",
+            "description": "Raising a fee's contributions in shillinq, and granting an entitlement once shillinq reports the payment settled.",
+            "order": 50,
+            "requiredConfig": ["shillinq_administration_id"],
+            "unconfiguredMessage": "No shillinq administration is set, so learniq cannot raise a fee's contributions. Set it with occ config:app:set learniq shillinq_administration_id."
+        },
+        {
+            "key": "sbb",
+            "title": "SBB leerbedrijf check",
+            "description": "Checking that the employer of a work placement is an erkend leerbedrijf in the SBB register.",
+            "order": 60,
+            "available": false,
+            "unavailableMessage": "No verification provider ships in learniq or integriq. A work placement cannot confirm its leerbedrijf until one does."
+        },
+        {
+            "key": "proctoring",
+            "title": "Proctoring",
+            "description": "Online supervision of an exam by an outside proctoring service.",
+            "order": 70,
+            "available": false,
+            "unavailableMessage": "Learniq defines the provider interface only. No provider ships, and nothing calls it."
+        },
+        {
+            "key": "plagiarism",
+            "title": "Plagiarism check",
+            "description": "Checking a submitted assignment with an outside plagiarism service.",
+            "order": 80,
+            "available": false,
+            "unavailableMessage": "Learniq defines the provider interface only. No provider ships, and nothing calls it."
+        }
+    ]
+}

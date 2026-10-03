@@ -35,7 +35,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
+ * @spec openspec/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
  */
 
 declare(strict_types=1);
@@ -48,7 +48,7 @@ use OCA\OpenRegister\Service\ObjectService;
  * Reads a learner's trajectory live, across nine schemas, scoped by
  * `learnerRef`. No persistence — a pure read composition.
  *
- * @spec openspec/changes/portable-learning-record/tasks.md#task-2-1
+ * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-1
  */
 class LearningRecordAggregationService {
 
@@ -94,7 +94,7 @@ class LearningRecordAggregationService {
 	 *
 	 * @return string|null The LearnerProfile UUID, or null when no LearnerProfile is bound to this user.
 	 *
-	 * @spec openspec/changes/portable-learning-record/tasks.md#task-2-2
+	 * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-2
 	 */
 	public function resolveLearnerRefForUser(string $ncUserId): ?string {
 		if ($ncUserId === '') {
@@ -103,9 +103,11 @@ class LearningRecordAggregationService {
 
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::REGISTER,
-				'schema' => self::SCHEMA_LEARNER_PROFILE,
-				'filters' => ['ncUserId' => $ncUserId],
+				'filters' => [
+					'register' => self::REGISTER,
+					'schema' => self::SCHEMA_LEARNER_PROFILE,
+					'ncUserId' => $ncUserId,
+				],
 				'limit' => 1,
 			]
 		);
@@ -132,7 +134,7 @@ class LearningRecordAggregationService {
 	 * @return array<string,mixed> Keyed by collection name — see the class docblock for the nine
 	 *                             schemas composed. Every value is a list of plain associative arrays.
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
+	 * @spec openspec/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
 	 */
 	public function compose(string $learnerRef): array {
 		$enrolments = $this->findAllByLearnerRef(schema: self::SCHEMA_ENROLMENT, learnerRef: $learnerRef);
@@ -196,9 +198,13 @@ class LearningRecordAggregationService {
 	private function findAll(string $schema, array $filters): array {
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::REGISTER,
-				'schema' => $schema,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::REGISTER,
+						'schema' => $schema,
+					]
+				),
 			]
 		);
 

@@ -16,17 +16,19 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+ * @spec openspec/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\CourseEvaluationEligibilityGuard;
 use OCP\IUser;
 use OCP\IUserSession;
+use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -35,6 +37,8 @@ use Psr\Log\LoggerInterface;
  * Tests for the CourseEvaluationEligibilityGuard lifecycle guard (draft → submitted).
  */
 class CourseEvaluationEligibilityGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * ObjectService mock.
@@ -86,7 +90,7 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 	private function wireInvitations(array $invitations): void {
 		$this->objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($invitations) {
-				if ($config['schema'] === 'evaluation-invitation') {
+				if ($config['filters']['schema'] === 'evaluation-invitation') {
 					return $invitations;
 				}
 
@@ -115,15 +119,15 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-learner-without-an-invitation-cannot-submit
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-learner-without-an-invitation-cannot-submit
 	 */
 	public function testNoInvitationBlocksSubmit(): void {
 		$this->signInAs('learner-1');
 		$this->wireInvitations([]);
 
-		$context = ['object' => ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a']];
+		$object = ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testNoInvitationBlocksSubmit()
 
@@ -134,7 +138,7 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-learner-cannot-submit-a-second-response-for-the-same-campaign
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-learner-cannot-submit-a-second-response-for-the-same-campaign
 	 */
 	public function testAlreadyRespondedBlocksSecondSubmit(): void {
 		$this->signInAs('learner-1');
@@ -142,9 +146,9 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 		// invitation never matches, so findAll returns empty for this caller.
 		$this->wireInvitations([]);
 
-		$context = ['object' => ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a']];
+		$object = ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testAlreadyRespondedBlocksSecondSubmit()
 
@@ -153,7 +157,7 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
 	 */
 	public function testEligibleInvitationAllowsSubmit(): void {
 		$this->signInAs('learner-1');
@@ -167,9 +171,9 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 			]
 		);
 
-		$context = ['object' => ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a']];
+		$object = ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testEligibleInvitationAllowsSubmit()
 
@@ -181,7 +185,7 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-response-is-anonymous-by-schema-shape-not-by-rbac
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-response-is-anonymous-by-schema-shape-not-by-rbac
 	 */
 	public function testGuardNeverMutatesResponsePayload(): void {
 		$this->signInAs('learner-1');
@@ -201,13 +205,16 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 			'answers' => [],
 			'tenant_id' => 'tenant-a',
 		];
-		$context = ['object' => $original];
+		$object = array_merge($original, ['lifecycle' => 'submitted']);
 
-		$this->makeGuard()->check($context);
+		self::assertAllowed($this->makeGuard()->check($object, 'submit', ''));
 
-		self::assertSame($original, $context['object'], 'The guard MUST NOT add/remove/change any key on the response payload');
-		self::assertArrayNotHasKey('learnerId', $context['object']);
-		self::assertArrayNotHasKey('submittedBy', $context['object']);
+		// OpenRegister hands the guard the object by value, so the guard can not
+		// add, remove or change a key on the response it judges (anonymity).
+		$parameter = (new \ReflectionMethod(CourseEvaluationEligibilityGuard::class, 'check'))->getParameters()[0];
+		self::assertFalse($parameter->isPassedByReference());
+		self::assertArrayNotHasKey('learnerId', $object);
+		self::assertArrayNotHasKey('submittedBy', $object);
 
 	}//end testGuardNeverMutatesResponsePayload()
 
@@ -228,9 +235,9 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 			]
 		);
 
-		$context = ['object' => ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a']];
+		$object = ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testNoAuthenticatedUserFailsClosed()
 
@@ -243,9 +250,37 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 		$this->signInAs('learner-1');
 		$this->objectService->expects(self::never())->method('findAll');
 
-		$context = ['object' => ['tenant_id' => 'tenant-a']];
+		$object = ['tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testMissingCampaignIdFailsClosedWithoutQuerying()
+	/**
+	 * The guard over a store that binds filters the way OpenRegister does on
+	 * PostgreSQL (live pass D5): a `hasResponded => false` filter is refused
+	 * there, so the guard must not send one, and an answered invitation is
+	 * still not a second chance.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-learner-without-an-invitation-cannot-submit
+	 */
+	public function testTheGuardWorksOnAPostgresBoundStore(): void {
+		$store = new RegisterFaithfulStore();
+		$objects = $this->createMock(ObjectService::class);
+		$objects->method('findAll')->willReturnCallback(
+			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $store->findAll($config, $_rbac, $_multitenancy)
+		);
+		$this->signInAs('learner-1');
+		$guard = new CourseEvaluationEligibilityGuard($this->userSession, $objects, $this->createMock(LoggerInterface::class));
+		$object = ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
+
+		$store->rows['evaluation-invitation'] = [
+			['id' => 'inv-1', 'campaignId' => 'campaign-1', 'learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'hasResponded' => true],
+		];
+		self::assertDenied($guard->check($object, 'submit', ''));
+
+		$store->rows['evaluation-invitation'][] = ['id' => 'inv-2', 'campaignId' => 'campaign-1', 'learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'hasResponded' => false];
+		self::assertAllowed($guard->check($object, 'submit', ''));
+	}//end testTheGuardWorksOnAPostgresBoundStore()
 }//end class

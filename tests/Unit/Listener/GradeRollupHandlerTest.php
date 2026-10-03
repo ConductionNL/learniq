@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+ * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
 
 declare(strict_types=1);
@@ -39,6 +39,7 @@ use OCA\Learniq\Grading\GradeFormulaEvaluator;
 use OCA\Learniq\Grading\GradeVisibilityResolver;
 use OCA\Learniq\Listener\GradeRollupHandler;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -53,6 +54,13 @@ class GradeRollupHandlerTest extends TestCase {
 	 * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
 	 */
 	private array $savedObjects = [];
+
+	/**
+	 * Programme rows the programme lookup finds, filtered on curriculumPlanId.
+	 *
+	 * @var array<int, array<string, mixed>>
+	 */
+	private array $programmes = [];
 
 	/**
 	 * Reset the capture buffer before each test.
@@ -71,10 +79,13 @@ class GradeRollupHandlerTest extends TestCase {
 	 * @param array<string, mixed>|null $curriculumPlan Curriculum plan data returned by find().
 	 * @param array<int, string> $parentIds Parent user IDs returned for the learner profile.
 	 * @param DateTime $now The "now" the injected ITimeFactory reports.
+	 * @param RegisterFaithfulStore|null $profiles When set, LearnerProfile reads are answered the way
+	 *                                            OpenRegister answers them instead of by $parentIds.
+	 * @param array<int, array<string, mixed>> $finalGrades FinalGrade rows the existing-row lookup returns.
 	 *
 	 * @return GradeRollupHandler
 	 */
-	private function makeHandler(?array $curriculumPlan, array $parentIds, DateTime $now): GradeRollupHandler {
+	private function makeHandler(?array $curriculumPlan, array $parentIds, DateTime $now, ?RegisterFaithfulStore $profiles = null, array $finalGrades = []): GradeRollupHandler {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$objectService->method('find')->willReturnCallback(
@@ -88,12 +99,21 @@ class GradeRollupHandlerTest extends TestCase {
 		);
 
 		$objectService->method('findAll')->willReturnCallback(
-			function (array $config) use ($parentIds) {
-				if ($config['schema'] === 'final-grade') {
-					return [];
+			function (array $config, bool $_rbac = true) use ($parentIds, $profiles, $finalGrades) {
+				if ($config['filters']['schema'] === 'final-grade') {
+					return $finalGrades;
 				}
 
-				if ($config['schema'] === 'learner-profile') {
+				if ($config['filters']['schema'] === 'programme') {
+					$plan = ($config['filters']['curriculumPlanId'] ?? null);
+					return array_values(array_filter($this->programmes, static fn (array $row): bool => ($row['curriculumPlanId'] ?? null) === $plan));
+				}
+
+				if ($config['filters']['schema'] === 'learner-profile' && $profiles !== null) {
+					return $profiles->findAll($config, $_rbac);
+				}
+
+				if ($config['filters']['schema'] === 'learner-profile') {
 					return [['parentIds' => $parentIds]];
 				}
 
@@ -130,7 +150,8 @@ class GradeRollupHandlerTest extends TestCase {
 			$objectService,
 			$evaluator,
 			new GradeVisibilityResolver(),
-			$timeFactory
+			$timeFactory,
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 	}//end makeHandler()
@@ -162,7 +183,7 @@ class GradeRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#scenario-night-publish-defers-notification-to-the-resolved-visiblefrom
+	 * @spec openspec/specs/grading/spec.md#scenario-night-publish-defers-notification-to-the-resolved-visiblefrom
 	 */
 	public function testNightPublishUnderNextSchoolDayPolicyResolvesAndStampsVisibleFrom(): void {
 		// Monday 2026-07-13, 23:40 Europe/Amsterdam — after the 10:00 cutoff.
@@ -207,12 +228,54 @@ class GradeRollupHandlerTest extends TestCase {
 	}//end testNightPublishUnderNextSchoolDayPolicyResolvesAndStampsVisibleFrom()
 
 	/**
+	 * Parent notifications go to the parents on the learner's own profile,
+	 * found on ncUserId. LearnerProfile has no learnerId property, so the old
+	 * lookup on learnerId matched nothing and no parent was ever notified.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/grading/spec.md#requirement-parent-grade-notifications-find-the-learners-profile-on-ncuserid
+	 */
+	public function testParentNotificationsReachTheParentsOnTheLearnersOwnProfile(): void {
+		$now = new DateTime('2026-07-13 12:00:00', new DateTimeZone('Europe/Amsterdam'));
+		$store = new RegisterFaithfulStore();
+		$store->rows['learner-profile'] = [
+			['id' => 'profile-9', 'ncUserId' => 'learner-9', 'parentIds' => ['parent-9']],
+			['id' => 'profile-1', 'ncUserId' => 'learner-1', 'parentIds' => ['parent-1', 'parent-2']],
+		];
+
+		$handler = $this->makeHandler(curriculumPlan: ['id' => 'plan-1'], parentIds: [], now: $now, profiles: $store);
+		$handler->handle(
+			$this->makeEvent(
+				[
+					'id' => 'entry-1',
+					'learnerId' => 'learner-1',
+					'curriculumPlanId' => 'plan-1',
+					'tenant_id' => 'tenant-a',
+					'courseId' => 'course-1',
+					'lifecycle' => 'published',
+				]
+			)
+		);
+
+		$recipients = array_map(
+			static fn (array $save): string => $save['object']['recipient'],
+			array_values(array_filter($this->savedObjects, static fn (array $s): bool => $s['schema'] === 'grade-notification'))
+		);
+		self::assertSame(['parent-1', 'parent-2'], $recipients);
+
+		// The publisher may not read LearnerProfile; the lookup runs without RBAC.
+		self::assertFalse($store->reads[0]['rbac']);
+
+	}//end testParentNotificationsReachTheParentsOnTheLearnersOwnProfile()
+
+	/**
 	 * An explicit teacher override on the GradeEntry propagates unchanged to the persisted
 	 * GradeEntry and every fanned-out GradeNotification, regardless of the CurriculumPlan policy.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#scenario-teacher-overrides-the-default-visibility-window
+	 * @spec openspec/specs/grading/spec.md#scenario-teacher-overrides-the-default-visibility-window
 	 */
 	public function testExplicitOverridePropagatesToGradeEntryAndNotifications(): void {
 		$now = new DateTime('2026-07-13 23:40:00', new DateTimeZone('Europe/Amsterdam'));
@@ -254,7 +317,7 @@ class GradeRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#scenario-roll-up-re-fires-on-publish-without-a-timedjob
+	 * @spec openspec/specs/grading/spec.md#scenario-roll-up-re-fires-on-publish-without-a-timedjob
 	 */
 	public function testFinalGradeRecomputeIsUnaffectedByVisibleFromResolution(): void {
 		// A far-future nextSchoolDay resolution (policy defers visibility significantly).
@@ -296,7 +359,7 @@ class GradeRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#scenario-gradeentry-schema-carries-a-scheduled-visibility-window
+	 * @spec openspec/changes/archive/2026-07-13-grade-visibility-scheduling/specs/grading/spec.md#scenario-gradeentry-schema-carries-a-scheduled-visibility-window
 	 */
 	public function testNullPolicyResolvesVisibleFromToPublishMoment(): void {
 		$now = new DateTime('2026-07-13 14:00:00', new DateTimeZone('Europe/Amsterdam'));
@@ -318,4 +381,100 @@ class GradeRollupHandlerTest extends TestCase {
 		self::assertSame('2026-07-13T14:00:00+02:00', $gradeEntrySaves[0]['object']['visibleFrom']);
 
 	}//end testNullPolicyResolvesVisibleFromToPublishMoment()
+
+	/**
+	 * The roll-up writes only what FinalGrade declares. It used to copy the
+	 * entry's `cohortId` onto the FinalGrade, a property the schema does not
+	 * declare and no reader uses; a row that still carries it loses it on
+	 * recompute.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/grading/spec.md#scenario-a-recomputed-final-grade-carries-no-cohortid
+	 */
+	public function testARecomputedFinalGradeCarriesNoCohortId(): void {
+		$now = new DateTime('2026-07-13 12:00:00', new DateTimeZone('Europe/Amsterdam'));
+		$existing = [
+			'id' => 'final-1',
+			'learnerId' => 'learner-1',
+			'curriculumPlanId' => 'plan-1',
+			'cohortId' => 'cohort-old',
+			'courseId' => 'course-1',
+			'gradeScaleId' => 'scale-1',
+			'tenant_id' => 'tenant-a',
+		];
+
+		$handler = $this->makeHandler(curriculumPlan: ['id' => 'plan-1'], parentIds: [], now: $now, finalGrades: [$existing]);
+		$handler->handle(
+			$this->makeEvent(
+				[
+					'id' => 'entry-1',
+					'learnerId' => 'learner-1',
+					'curriculumPlanId' => 'plan-1',
+					'cohortId' => 'cohort-1',
+					'tenant_id' => 'tenant-a',
+					'courseId' => 'course-1',
+					'gradeScaleId' => 'scale-1',
+					'lifecycle' => 'published',
+				]
+			)
+		);
+
+		$finalGradeSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'final-grade'));
+		self::assertCount(1, $finalGradeSaves);
+		$saved = $finalGradeSaves[0]['object'];
+		self::assertArrayNotHasKey('cohortId', $saved);
+		self::assertSame('final-1', $saved['id']);
+		self::assertSame('course-1', $saved['courseId']);
+		self::assertSame('scale-1', $saved['gradeScaleId']);
+		self::assertSame('tenant-a', $saved['tenant_id']);
+
+		// Everything the roll-up writes is a property FinalGrade declares.
+		$register = json_decode((string)file_get_contents(dirname(__DIR__, 3) . '/lib/Settings/learniq_register.json'), true);
+		$declared = array_keys($register['components']['schemas']['FinalGrade']['properties']);
+		self::assertSame([], array_values(array_diff(array_keys($saved), array_merge($declared, ['id']))));
+	}//end testARecomputedFinalGradeCarriesNoCohortId()
+
+	/**
+	 * The roll-up writes the Programme whose curriculum plan the grade was
+	 * computed from, so the programme KPI (which filters on programmeId) counts it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/grading/spec.md#scenario-a-final-grade-names-the-programme-of-its-plan
+	 */
+	public function testAFinalGradeNamesTheProgrammeOfItsPlan(): void {
+		$this->programmes = [
+			['id' => 'programme-other', 'curriculumPlanId' => 'plan-2'],
+			['id' => 'programme-1', 'curriculumPlanId' => 'plan-1'],
+		];
+		$now = new DateTime('2026-07-13 12:00:00', new DateTimeZone('Europe/Amsterdam'));
+		$handler = $this->makeHandler(curriculumPlan: ['id' => 'plan-1'], parentIds: [], now: $now);
+		$handler->handle(
+			$this->makeEvent(['id' => 'entry-1', 'learnerId' => 'learner-1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'])
+		);
+
+		$saves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'final-grade'));
+		self::assertCount(1, $saves);
+		self::assertSame('programme-1', $saves[0]['object']['programmeId']);
+	}//end testAFinalGradeNamesTheProgrammeOfItsPlan()
+
+	/**
+	 * A plan no programme uses gives a course-level grade: programmeId stays null.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/grading/spec.md#scenario-a-final-grade-names-the-programme-of-its-plan
+	 */
+	public function testAPlanWithoutAProgrammeLeavesProgrammeIdNull(): void {
+		$now = new DateTime('2026-07-13 12:00:00', new DateTimeZone('Europe/Amsterdam'));
+		$handler = $this->makeHandler(curriculumPlan: ['id' => 'plan-9'], parentIds: [], now: $now);
+		$handler->handle(
+			$this->makeEvent(['id' => 'entry-1', 'learnerId' => 'learner-1', 'curriculumPlanId' => 'plan-9', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'])
+		);
+
+		$saves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'final-grade'));
+		self::assertArrayHasKey('programmeId', $saves[0]['object']);
+		self::assertNull($saves[0]['object']['programmeId']);
+	}//end testAPlanWithoutAProgrammeLeavesProgrammeIdNull()
 }//end class

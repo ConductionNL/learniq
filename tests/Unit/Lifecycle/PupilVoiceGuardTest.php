@@ -22,14 +22,15 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.4
- * @spec openspec/changes/zorgvraag-swv-tlv-chain/specs/learning-plan/spec.md#requirement-the-pupils-own-voice-hoorrecht-is-a-first-class-non-optional-field
+ * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-3.4
+ * @spec openspec/specs/learning-plan/spec.md#requirement-the-pupils-own-voice-hoorrecht-is-a-first-class-non-optional-field
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\Learniq\Lifecycle\PupilVoiceGuard;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -39,6 +40,8 @@ use Psr\Log\NullLogger;
  * scheduled → recorded transition.
  */
 class PupilVoiceGuardTest extends TestCase {
+
+	use GuardVerdicts;
 	/**
 	 * Build a guard with a null logger.
 	 *
@@ -53,11 +56,10 @@ class PupilVoiceGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.4
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-3.4
 	 */
 	public function testBlocksWhenNeitherHeardNorWaivedIsSet(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'delib-1',
 				'pupilVoice' => [
 					'heard' => false,
@@ -65,10 +67,10 @@ class PupilVoiceGuardTest extends TestCase {
 					'waived' => false,
 					'waiverReason' => null,
 				],
-			],
-		];
+				'lifecycle' => 'recorded',
+			];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'record', ''));
 
 	}//end testBlocksWhenNeitherHeardNorWaivedIsSet()
 
@@ -78,21 +80,20 @@ class PupilVoiceGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.4
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-3.4
 	 */
 	public function testBlocksWhenWaivedWithEmptyWaiverReason(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'delib-2',
 				'pupilVoice' => [
 					'heard' => false,
 					'waived' => true,
 					'waiverReason' => '',
 				],
-			],
-		];
+				'lifecycle' => 'recorded',
+			];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'record', ''));
 
 	}//end testBlocksWhenWaivedWithEmptyWaiverReason()
 
@@ -101,21 +102,20 @@ class PupilVoiceGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.4
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-3.4
 	 */
 	public function testBlocksWhenWaiverReasonIsOnlyWhitespace(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'delib-2b',
 				'pupilVoice' => [
 					'heard' => false,
 					'waived' => true,
 					'waiverReason' => '   ',
 				],
-			],
-		];
+				'lifecycle' => 'recorded',
+			];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'record', ''));
 
 	}//end testBlocksWhenWaiverReasonIsOnlyWhitespace()
 
@@ -124,11 +124,10 @@ class PupilVoiceGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.4
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-3.4
 	 */
 	public function testAllowsWhenHeardIsTrue(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'delib-3',
 				'pupilVoice' => [
 					'heard' => true,
@@ -136,10 +135,10 @@ class PupilVoiceGuardTest extends TestCase {
 					'waived' => false,
 					'waiverReason' => null,
 				],
-			],
-		];
+				'lifecycle' => 'recorded',
+			];
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'record', ''));
 
 	}//end testAllowsWhenHeardIsTrue()
 
@@ -148,21 +147,20 @@ class PupilVoiceGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.4
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-3.4
 	 */
 	public function testAllowsWhenWaivedWithNonEmptyWaiverReason(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'delib-4',
 				'pupilVoice' => [
 					'heard' => false,
 					'waived' => true,
 					'waiverReason' => 'Leerling is 3 jaar oud; horen niet passend.',
 				],
-			],
-		];
+				'lifecycle' => 'recorded',
+			];
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'record', ''));
 
 	}//end testAllowsWhenWaivedWithNonEmptyWaiverReason()
 
@@ -172,16 +170,15 @@ class PupilVoiceGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.4
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-3.4
 	 */
 	public function testBlocksWhenPupilVoiceIsMissing(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'delib-5',
-			],
-		];
+				'lifecycle' => 'recorded',
+			];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'record', ''));
 
 	}//end testBlocksWhenPupilVoiceIsMissing()
 }//end class

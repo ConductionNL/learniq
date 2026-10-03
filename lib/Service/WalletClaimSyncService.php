@@ -21,8 +21,8 @@
  * before a state transition and cannot be expressed as a schema declaration."
  * Referenced from the Credential schema's
  * x-openregister-lifecycle.transitions.recordWalletClaim.requires in
- * learniq_register.json. Built to the `check(array &$transitionContext): bool`
- * contract `CredentialSigningService` establishes.
+ * learniq_register.json, as a LifecycleGuardInterface guard; the write runs
+ * in CredentialWalletTransitionListener (learniq#983).
  *
  * @category Service
  * @package  OCA\Learniq\Service
@@ -37,45 +37,58 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+ * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
+
 /**
- * Guards the Credential `recordWalletClaim` transition.
+ * Guards the Credential `recordWalletClaim` transition and records the claim.
  *
- * Always allows the transition; its purpose is the side effect of writing
- * `walletOfferStatus=claimed` and `walletClaimedAt` into the transition
- * context, mirroring `AssessmentScoringHandler`'s "always-true handler that
- * mutates the object" shape.
+ * The guard always allows. `recordWalletClaim` is a self-loop
+ * (issued -> issued), on which OpenRegister runs neither guards nor actions,
+ * so claim() is run after the save by
+ * {@see \OCA\Learniq\Listener\CredentialWalletTransitionListener}
+ * (learniq#983).
+ *
+ * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
  */
-class WalletClaimSyncService {
+class WalletClaimSyncService implements LifecycleGuardInterface {
 	/**
-	 * OR lifecycle guard entry-point.
+	 * OpenRegister lifecycle guard entry-point for `recordWalletClaim`.
 	 *
-	 * Called before executing the `recordWalletClaim` transition on a
-	 * Credential object. Writes `walletOfferStatus=claimed` and
-	 * `walletClaimedAt=now` into the context.
+	 * @param array<string,mixed> $object The Credential as it would be saved.
+	 * @param string $action The transition, `recordWalletClaim`.
+	 * @param string $userId The caller, or '' without a session.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the Credential data array (mutated)
-	 *                                               - 'transition' : 'recordWalletClaim'
-	 *                                               - 'from'       : 'issued'
-	 *                                               - 'to'         : 'issued'
+	 * @return GuardResult Always allow: this transition has no failure mode.
 	 *
-	 * @return bool Always true — this transition has no failure mode.
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+	 * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = &$transitionContext['object'];
-
-		$object['walletOfferStatus'] = 'claimed';
-		$object['walletClaimedAt'] = gmdate('c');
-
-		return true;
+	public function check(array $object, string $action, string $userId): GuardResult {
+		return GuardResult::allow();
 	}//end check()
+
+	/**
+	 * Record the wallet claim on a Credential.
+	 *
+	 * @param array<string,mixed> $credential The Credential data array.
+	 *
+	 * @return array<string,mixed> The Credential with `walletOfferStatus=claimed` and `walletClaimedAt=now`.
+	 *
+	 * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+	 */
+	public function claim(array $credential): array {
+		$credential['walletOfferStatus'] = 'claimed';
+		$credential['walletClaimedAt'] = gmdate('c');
+
+		return $credential;
+	}//end claim()
 }//end class

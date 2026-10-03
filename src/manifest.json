@@ -1,7 +1,7 @@
 {
   "$schema": "https://github.com/ConductionNL/nextcloud-vue/raw/main/src/schemas/app-manifest-v2.schema.json",
   "setup": {
-    "version": 1,
+    "version": 2,
     "completionConfigKey": "setup_completed_version",
     "steps": [
       {
@@ -11,22 +11,52 @@
         "body": "A short setup to get this app ready. Nothing here is required; you can close it and come back later."
       },
       {
-        "id": "demo-data",
+        "id": "example-set",
         "type": "choice",
         "display": "cards",
-        "optionsSource": "datasets",
-        "configKey": "demo_dataset",
-        "title": "Load example data?",
+        "optionsSource": "profiles",
+        "configKey": "example_profile",
+        "multiple": false,
+        "title": "Which example data do you want?",
         "required": false,
-        "body": "Example data fills the lists, detail pages and dashboards so you can see the app working straight away. Pick \"None\" on a production install."
+        "body": "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Pick \"None\" on a production install."
       },
       {
-        "id": "load-demo-data",
+        "id": "load-example-set",
         "type": "run-action",
-        "action": "load-demo-data",
+        "action": "load-example-set",
         "title": "Load the example data",
         "required": false,
-        "body": "Loads what you picked. The data is obviously sample data, it is safe to run more than once, and you can delete it afterwards."
+        "body": "Loads the set you picked. It is sample data, and running it twice adds nothing. You can remove it again at the end of this wizard."
+      },
+      {
+        "id": "segment",
+        "type": "choice",
+        "display": "cards",
+        "optionsSource": "segments",
+        "configKey": "segment",
+        "multiple": false,
+        "suggestFrom": "example_profile",
+        "suggestMap": {
+          "po": "po",
+          "vo": "vo",
+          "mbo": "mbo",
+          "he": "he",
+          "corporate": "corporate",
+          "training": "training"
+        },
+        "title": "What kind of organisation is this?",
+        "required": false,
+        "body": "Pick the one that fits best. The app shows the menus that fit it. You can change it later under App settings."
+      },
+      {
+        "id": "remove-example-set",
+        "type": "run-action",
+        "action": "remove-example-set",
+        "title": "Remove the example data",
+        "required": false,
+        "onDemand": true,
+        "body": "This only runs when you click the button. It moves the example set you loaded to the trash and keeps everything you made yourself. You can come back to it later."
       },
       {
         "id": "done",
@@ -132,12 +162,14 @@
     }
   ],
   "store": {
-    "_note": "Configuration exchange, not rows. A configuration set carries the registers, schemas, objects, views, flows, sources and mappings that make one way of working hold together. There is deliberately NO `installable` allowlist: a set exists to introduce schemas the instance does not have YET, so listing schemas this app already owns would refuse exactly the sets worth installing. The trust boundary for a bundle is its publisher, enforced by the engine's source allowlist and trusted-key check. ⚠️ An EMPTY `installable` means install NOTHING, not install anything — omitting the key and declaring an empty list are different things.",
-    "types": [
-      "openregister.configset",
-      "openregister.flows"
+    "_note": "The course store (lesson-sharing-via-store-plane). Learniq ships its own Controller\\StoreController, so OpenRegister's generic store controller is not bound for learniq and this block documents the store rather than configuring it: search and resolve run through OpenRegister's GenericStoreService with CourseStoreDescriptor (schema shared-course-package in register learniq of the configured registry; its CARD_FIELDS are the one list of card fields, so none are repeated here); install imports a shared course as a copy through CoursePackageImportService; publish runs the sharing gate first. `installable` is empty on purpose: the engine's generic installer never writes for learniq. The configuration-set types this block used to declare never had a route in learniq; configuration sets stay installable through OpenRegister's own configuration import.",
+    "schema": "shared-course-package",
+    "register": "learniq",
+    "localRegister": "learniq",
+    "kinds": [
+      "course-package"
     ],
-    "localRegister": "learniq"
+    "installable": []
   },
   "menu": [
     {
@@ -158,6 +190,9 @@
       "visibleIf": {
         "user.primaryRole": {
           "in": [
+            "instructor",
+            "coordinator",
+            "team-lead",
             "administration-manager",
             "admin"
           ]
@@ -252,31 +287,86 @@
       "config": {
         "app": "learniq",
         "title": "Store",
-        "description": "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them."
+        "description": "Find courses other schools share and install your own copy. Every course here carries an open licence and the name of its maker.",
+        "publishRoute": "CoursePackageExport"
       },
-      "_note": "ADR-114 Decision 4 / ADR-080. Declarative: openregister hosts the store plane, so this app writes NO store controller. With no registry configured the page renders the app's built-in items and makes NO network call."
+      "_note": "ADR-114 Decision 4 / ADR-080, lesson-sharing-via-store-plane. CnStorePage calls learniq's own StoreController: search through OpenRegister's store plane, install as a copy through CoursePackageImportService. store-rights-for-teachers (D27): src/main.js writes canInstall and canPublish from the storeAccess initial state into this config, and publishRoute sends Publish to the export screen, where the sharing gate runs; a CnStorePage without those props (before nextcloud-vue #1268 is released) keeps Install admin-only. With no registry configured the page says so and makes no network call."
     },
     {
       "id": "Reports",
-      "_note": "ADR-112 / ADR-114 Decision 3. NOTHING here is invented and nothing is relocated: all seven pages already existed as routes with NO menu entry at all, reachable only by someone who already knew the URL. Carding them GIVES an entry point rather than moving one. Two neighbouring orphans are deliberately NOT carded, because a gate finding is a question rather than an instruction: AuditPackExport (/compliance/export) BUILDS an export, and EngagementRiskThresholds (/progress/engagement-thresholds) CONFIGURES the thresholds that produce the flags. Both are things you do, not readings, and ADR-097 keeps work in the main navigation. The report periods, report cards, conference reports and course-package import reports already have menu entries and stay there: ADR-112 forbids a report being BOTH a card and an entry, not being an entry.",
+      "_note": "ADR-112 / ADR-114 Decision 3. NOTHING here is invented and nothing is relocated: all nine pages already existed as routes with NO menu entry at all, reachable only by someone who already knew the URL. Carding them GIVES an entry point rather than moving one. Two neighbouring orphans are deliberately NOT carded, because a gate finding is a question rather than an instruction: AuditPackExport (/compliance/export) BUILDS an export, and EngagementRiskThresholds (/progress/engagement-thresholds) CONFIGURES the thresholds that produce the flags. Both are things you do, not readings, and ADR-097 keeps work in the main navigation. The report periods, report cards, conference reports and course-package import reports already have menu entries and stay there: ADR-112 forbids a report being BOTH a card and an entry, not being an entry.",
       "route": "/reports",
       "type": "reports",
       "title": "Reports",
       "config": {
         "description": "Pick a report to open it.",
         "categories": {
+          "attendance": "Attendance and compulsory education",
+          "results": "Results",
           "progress": "Progress and risk",
           "quality": "Quality and assessment",
           "placements": "Placements"
         },
         "cards": [
           {
+            "id": "AttendanceFlags",
+            "label": "Attendance flags",
+            "description": "Which pupils crossed an attendance threshold, and what has to be reported.",
+            "icon": "FlagOutline",
+            "category": "attendance",
+            "route": "AttendanceFlags",
+            "visibleIf": {
+              "workspace.chosenSegment": {
+                "notIn": [
+                  "corporate"
+                ]
+              }
+            }
+          },
+          {
+            "id": "ContactHoursReport",
+            "label": "Contact hours",
+            "description": "Per group and course the contact hours owed by the hour plan, the hours given and the hours each learner attended.",
+            "icon": "CalendarClockOutline",
+            "category": "attendance",
+            "route": "ContactHoursReport"
+          },
+          {
+            "id": "EnrolmentForecast",
+            "label": "Enrolment forecast",
+            "description": "Next year's learners and groups per programme year and subject, from this year's groups, progression rates and subject choices.",
+            "icon": "TrendingUp",
+            "category": "progress",
+            "route": "EnrolmentForecast"
+          },
+          {
+            "id": "FinalGrades",
+            "label": "Final grades",
+            "description": "The final grade per pupil and subject, as it was decided.",
+            "icon": "CertificateOutline",
+            "category": "results",
+            "route": "FinalGrades"
+          },
+          {
             "id": "BsaRiskDashboard",
             "label": "Study progress risk",
             "description": "Which students are at risk of falling short of the binding study advice.",
             "icon": "AlertOutline",
             "category": "progress",
-            "route": "BsaRiskDashboard"
+            "route": "BsaRiskDashboard",
+            "visibleIf": {
+              "workspace.segment": {
+                "in": [
+                  "he",
+                  "corporate"
+                ]
+              },
+              "workspace.chosenSegment": {
+                "notIn": [
+                  "corporate"
+                ]
+              }
+            }
           },
           {
             "id": "EngagementRiskFlags",
@@ -316,7 +406,17 @@
             "description": "What course evaluations said, per course.",
             "icon": "SchoolOutline",
             "category": "quality",
-            "route": "CourseQualityReport"
+            "route": "CourseQualityReport",
+            "visibleIf": {
+              "workspace.segment": {
+                "in": [
+                  "mbo",
+                  "he",
+                  "corporate",
+                  "training"
+                ]
+              }
+            }
           },
           {
             "id": "BpvVisitReports",
@@ -324,7 +424,38 @@
             "description": "What was found on placement visits.",
             "icon": "BriefcaseOutline",
             "category": "placements",
-            "route": "BpvVisitReports"
+            "route": "BpvVisitReports",
+            "visibleIf": {
+              "workspace.segment": {
+                "in": [
+                  "mbo",
+                  "corporate"
+                ]
+              },
+              "workspace.chosenSegment": {
+                "notIn": [
+                  "corporate"
+                ]
+              }
+            }
+          },
+          {
+            "id": "RoomUtilisationReport",
+            "label": "Room use",
+            "description": "How many of the open hours each room is used, and how full it is.",
+            "icon": "OfficeBuilding",
+            "category": "quality",
+            "route": "RoomUtilisationReport",
+            "visibleIf": {
+              "user.primaryRole": {
+                "in": [
+                  "instructor",
+                  "coordinator",
+                  "administration-manager",
+                  "admin"
+                ]
+              }
+            }
           }
         ]
       }

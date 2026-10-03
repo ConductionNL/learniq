@@ -16,13 +16,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
+ * @spec openspec/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\FraudCaseInvalidationGuard;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -33,6 +34,8 @@ use Psr\Log\LoggerInterface;
  * Tests for the FraudCaseInvalidationGuard (GradeEntry concept → invalidated).
  */
 class FraudCaseInvalidationGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * Build a guard whose ObjectService::find() returns the given FraudCase (or null).
@@ -58,9 +61,9 @@ class FraudCaseInvalidationGuardTest extends TestCase {
 	 */
 	public function testNoFraudCaseIdBlocks(): void {
 		$guard = $this->makeGuard(fraudCase: null);
-		$context = ['object' => ['id' => 'entry-1']];
+		$object = ['id' => 'entry-1', 'lifecycle' => 'invalidated'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'invalidate', ''));
 
 	}//end testNoFraudCaseIdBlocks()
 
@@ -69,13 +72,13 @@ class FraudCaseInvalidationGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-invalidate-succeeds-once-the-linked-case-is-decided-fraud-proven
+	 * @spec openspec/specs/grading/spec.md#scenario-invalidate-succeeds-once-the-linked-case-is-decided-fraud-proven
 	 */
 	public function testDecidedFraudProvenAllowsInvalidate(): void {
 		$guard = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'decided', 'verdict' => 'fraud-proven']);
-		$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
+		$object = ['id' => 'entry-1', 'fraudCaseId' => 'case-1', 'lifecycle' => 'invalidated'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'invalidate', ''));
 
 	}//end testDecidedFraudProvenAllowsInvalidate()
 
@@ -84,14 +87,14 @@ class FraudCaseInvalidationGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-invalidate-is-blocked-without-a-fraud-proven-decision
+	 * @spec openspec/specs/grading/spec.md#scenario-invalidate-is-blocked-without-a-fraud-proven-decision
 	 */
 	public function testNotYetDecidedBlocks(): void {
 		foreach (['reported', 'hearing-scheduled', 'heard'] as $state) {
 			$guard = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => $state]);
-			$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
+			$object = ['id' => 'entry-1', 'fraudCaseId' => 'case-1', 'lifecycle' => 'invalidated'];
 
-			self::assertFalse($guard->check($context), "state '{$state}' should block invalidate");
+			self::assertDenied($guard->check($object, 'invalidate', ''), "state '{$state}' should block invalidate");
 		}
 
 	}//end testNotYetDecidedBlocks()
@@ -101,13 +104,13 @@ class FraudCaseInvalidationGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-invalidate-is-blocked-without-a-fraud-proven-decision
+	 * @spec openspec/specs/grading/spec.md#scenario-invalidate-is-blocked-without-a-fraud-proven-decision
 	 */
 	public function testDecidedUnfoundedBlocks(): void {
 		$guard = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'decided', 'verdict' => 'unfounded']);
-		$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
+		$object = ['id' => 'entry-1', 'fraudCaseId' => 'case-1', 'lifecycle' => 'invalidated'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'invalidate', ''));
 
 	}//end testDecidedUnfoundedBlocks()
 
@@ -118,9 +121,9 @@ class FraudCaseInvalidationGuardTest extends TestCase {
 	 */
 	public function testUnresolvableFraudCaseFailsClosed(): void {
 		$guard = $this->makeGuard(fraudCase: null);
-		$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-missing']];
+		$object = ['id' => 'entry-1', 'fraudCaseId' => 'case-missing', 'lifecycle' => 'invalidated'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'invalidate', ''));
 
 	}//end testUnresolvableFraudCaseFailsClosed()
 }//end class

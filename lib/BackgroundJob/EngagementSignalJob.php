@@ -13,7 +13,7 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
  *
- * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
+ * @spec openspec/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
  */
 
 declare(strict_types=1);
@@ -107,7 +107,7 @@ class EngagementSignalJob extends ActorForwardedJob {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
 	 */
 	protected function runDeferred(DeferredListenerContext $context): void {
 		foreach ($context->getEntries() as $entry) {
@@ -158,7 +158,7 @@ class EngagementSignalJob extends ActorForwardedJob {
 	 *
 	 * @return array<string, mixed> The saved EngagementScore data.
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
 	 */
 	private function recomputeEngagementScore(string $learnerId, string $courseId, string $tenantId): array {
 		$existing = $this->findExistingEngagementScore(learnerId: $learnerId, courseId: $courseId);
@@ -201,9 +201,9 @@ class EngagementSignalJob extends ActorForwardedJob {
 	private function findExistingEngagementScore(string $learnerId, string $courseId): ?array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ENGAGEMENT_SCORE_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ENGAGEMENT_SCORE_SCHEMA,
 					'learnerId' => $learnerId,
 					'courseId' => $courseId,
 				],
@@ -242,9 +242,9 @@ class EngagementSignalJob extends ActorForwardedJob {
 	): void {
 		$thresholds = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ENGAGEMENT_RISK_THRESHOLD_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ENGAGEMENT_RISK_THRESHOLD_SCHEMA,
 					'lifecycle' => 'active',
 				],
 			]
@@ -279,7 +279,7 @@ class EngagementSignalJob extends ActorForwardedJob {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-a-resolved-flag-does-not-block-re-flagging-on-a-later-relapse
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-a-resolved-flag-does-not-block-re-flagging-on-a-later-relapse
 	 */
 	private function checkThreshold(
 		array $threshold,
@@ -453,9 +453,9 @@ class EngagementSignalJob extends ActorForwardedJob {
 		foreach (self::OPEN_FLAG_STATES as $state) {
 			$existing = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::ENGAGEMENT_RISK_FLAG_SCHEMA,
 					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::ENGAGEMENT_RISK_FLAG_SCHEMA,
 						'learnerId' => $learnerId,
 						'engagementRiskThresholdId' => $thresholdId,
 						'lifecycle' => $state,

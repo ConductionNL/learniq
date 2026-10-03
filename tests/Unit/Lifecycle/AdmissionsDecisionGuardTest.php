@@ -16,13 +16,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+ * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\AdmissionsDecisionGuard;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -34,6 +35,8 @@ use Psr\Log\NullLogger;
  * Tests for the AdmissionsDecisionGuard lifecycle guard.
  */
 class AdmissionsDecisionGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * ObjectService mock.
@@ -88,7 +91,7 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	private function wireApplicationCounts(array $placed, array $converted): void {
 		$this->objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($placed, $converted) {
-				if (($config['schema'] ?? '') !== 'admission') {
+				if (($config['filters']['schema'] ?? '') !== 'admission') {
 					return [];
 				}
 
@@ -141,14 +144,14 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+	 * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
 	 */
 	public function testMandatoryIntakeBlocksCompleteIntakeWhenNotRecorded(): void {
 		$this->wireRound(['kind' => 'generic', 'mandatoryIntake' => true]);
 
-		$context = ['object' => $this->application(['intakeCompleted' => false]), 'to' => 'intake-completed'];
+		$object = array_merge($this->application(['intakeCompleted' => false]), ['lifecycle' => 'intake-completed']);
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'completeIntake', ''));
 
 	}//end testMandatoryIntakeBlocksCompleteIntakeWhenNotRecorded()
 
@@ -160,9 +163,9 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	public function testMandatoryIntakeAllowsCompleteIntakeWhenRecorded(): void {
 		$this->wireRound(['kind' => 'generic', 'mandatoryIntake' => true]);
 
-		$context = ['object' => $this->application(['intakeCompleted' => true]), 'to' => 'intake-completed'];
+		$object = array_merge($this->application(['intakeCompleted' => true]), ['lifecycle' => 'intake-completed']);
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'completeIntake', ''));
 
 	}//end testMandatoryIntakeAllowsCompleteIntakeWhenRecorded()
 
@@ -174,9 +177,9 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	public function testMandatoryIntakeFalseAllowsCompleteIntakeRegardless(): void {
 		$this->wireRound(['kind' => 'generic', 'mandatoryIntake' => false]);
 
-		$context = ['object' => $this->application(['intakeCompleted' => false]), 'to' => 'intake-completed'];
+		$object = array_merge($this->application(['intakeCompleted' => false]), ['lifecycle' => 'intake-completed']);
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'completeIntake', ''));
 
 	}//end testMandatoryIntakeFalseAllowsCompleteIntakeRegardless()
 
@@ -186,7 +189,7 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-timely-intake-complete-mbo-application-cannot-be-rejected-without-a-named-reason
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-timely-intake-complete-mbo-application-cannot-be-rejected-without-a-named-reason
 	 */
 	public function testToelatingsrechtBlocksRejectionWithoutNamedReason(): void {
 		$this->wireRound(
@@ -196,18 +199,18 @@ class AdmissionsDecisionGuardTest extends TestCase {
 			]
 		);
 
-		$context = [
-			'object' => $this->application(
+		$object = array_merge(
+			$this->application(
 				[
 					'submittedAt' => '2026-03-01T10:00:00+01:00',
 					'studiekeuzeadviesGiven' => true,
 					'decisionReason' => '',
 				]
 			),
-			'to' => 'rejected',
-		];
+			['lifecycle' => 'rejected']
+		);
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'reject', ''));
 
 	}//end testToelatingsrechtBlocksRejectionWithoutNamedReason()
 
@@ -216,7 +219,7 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-named-prerequisite-failure-still-allows-rejection
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-named-prerequisite-failure-still-allows-rejection
 	 */
 	public function testToelatingsrechtAllowsRejectionWithNamedReason(): void {
 		$this->wireRound(
@@ -226,18 +229,18 @@ class AdmissionsDecisionGuardTest extends TestCase {
 			]
 		);
 
-		$context = [
-			'object' => $this->application(
+		$object = array_merge(
+			$this->application(
 				[
 					'submittedAt' => '2026-03-01T10:00:00+01:00',
 					'studiekeuzeadviesGiven' => true,
 					'decisionReason' => 'prerequisite diploma not held',
 				]
 			),
-			'to' => 'rejected',
-		];
+			['lifecycle' => 'rejected']
+		);
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'reject', ''));
 
 	}//end testToelatingsrechtAllowsRejectionWithNamedReason()
 
@@ -255,18 +258,18 @@ class AdmissionsDecisionGuardTest extends TestCase {
 			]
 		);
 
-		$context = [
-			'object' => $this->application(
+		$object = array_merge(
+			$this->application(
 				[
 					'submittedAt' => '2026-05-01T10:00:00+01:00',
 					'studiekeuzeadviesGiven' => true,
 					'decisionReason' => '',
 				]
 			),
-			'to' => 'rejected',
-		];
+			['lifecycle' => 'rejected']
+		);
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'reject', ''));
 
 	}//end testToelatingsrechtDoesNotBlockLateApplicationRejection()
 
@@ -275,13 +278,13 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-higher-doorstroomtoets-score-without-an-adjustment-or-motivation-blocks-the-decision
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-higher-doorstroomtoets-score-without-an-adjustment-or-motivation-blocks-the-decision
 	 */
 	public function testSchooladviesAdjustmentRequiredBlocksDecision(): void {
 		$this->wireRound(['kind' => 'vo-schooladvies-doorstroomtoets']);
 
-		$context = [
-			'object' => $this->application(
+		$object = array_merge(
+			$this->application(
 				[
 					'schoolAdviceLevel' => 'vmbo-gt',
 					'progressionTestLevel' => 'havo',
@@ -289,10 +292,10 @@ class AdmissionsDecisionGuardTest extends TestCase {
 					'adjustmentMotivation' => '',
 				]
 			),
-			'to' => 'placed',
-		];
+			['lifecycle' => 'placed']
+		);
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'promote', ''));
 
 	}//end testSchooladviesAdjustmentRequiredBlocksDecision()
 
@@ -301,13 +304,13 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-the-pro-vmbo-bb-exemption-allows-the-decision-without-adjustment
+	 * @spec openspec/specs/enrolment/spec.md#scenario-the-pro-vmbo-bb-exemption-allows-the-decision-without-adjustment
 	 */
 	public function testProVmboBbExemptionAllowsDecision(): void {
 		$this->wireRound(['kind' => 'vo-schooladvies-doorstroomtoets']);
 
-		$context = [
-			'object' => $this->application(
+		$object = array_merge(
+			$this->application(
 				[
 					'schoolAdviceLevel' => 'pro',
 					'progressionTestLevel' => 'vmbo-bb',
@@ -315,10 +318,10 @@ class AdmissionsDecisionGuardTest extends TestCase {
 					'adjustmentMotivation' => '',
 				]
 			),
-			'to' => 'waitlisted',
-		];
+			['lifecycle' => 'waitlisted']
+		);
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'waitlist', ''));
 
 	}//end testProVmboBbExemptionAllowsDecision()
 
@@ -330,8 +333,8 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	public function testAdjustedLevelMatchingDoorstroomtoetsAllowsDecision(): void {
 		$this->wireRound(['kind' => 'vo-schooladvies-doorstroomtoets']);
 
-		$context = [
-			'object' => $this->application(
+		$object = array_merge(
+			$this->application(
 				[
 					'schoolAdviceLevel' => 'vmbo-gt',
 					'progressionTestLevel' => 'havo',
@@ -339,10 +342,10 @@ class AdmissionsDecisionGuardTest extends TestCase {
 					'adjustmentMotivation' => '',
 				]
 			),
-			'to' => 'placed',
-		];
+			['lifecycle' => 'placed']
+		);
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'promote', ''));
 
 	}//end testAdjustedLevelMatchingDoorstroomtoetsAllowsDecision()
 
@@ -354,8 +357,8 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	public function testMotivatedExceptionAllowsDecision(): void {
 		$this->wireRound(['kind' => 'vo-schooladvies-doorstroomtoets']);
 
-		$context = [
-			'object' => $this->application(
+		$object = array_merge(
+			$this->application(
 				[
 					'schoolAdviceLevel' => 'vmbo-gt',
 					'progressionTestLevel' => 'havo',
@@ -363,10 +366,10 @@ class AdmissionsDecisionGuardTest extends TestCase {
 					'adjustmentMotivation' => 'Not in the pupil\'s best interest given documented circumstances.',
 				]
 			),
-			'to' => 'rejected',
-		];
+			['lifecycle' => 'rejected']
+		);
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'reject', ''));
 
 	}//end testMotivatedExceptionAllowsDecision()
 
@@ -375,15 +378,15 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-full-round-routes-a-new-placement-to-the-waitlist
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-full-round-routes-a-new-placement-to-the-waitlist
 	 */
 	public function testCapacityReachedBlocksPlacement(): void {
 		$this->wireRound(['kind' => 'generic', 'capacity' => 2]);
 		$this->wireApplicationCounts(placed: [['id' => 'a'], ['id' => 'b']], converted: []);
 
-		$context = ['object' => $this->application(), 'to' => 'placed'];
+		$object = array_merge($this->application(), ['lifecycle' => 'placed']);
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'promote', ''));
 
 	}//end testCapacityReachedBlocksPlacement()
 
@@ -396,9 +399,9 @@ class AdmissionsDecisionGuardTest extends TestCase {
 		$this->wireRound(['kind' => 'generic', 'capacity' => 2]);
 		$this->wireApplicationCounts(placed: [['id' => 'a']], converted: []);
 
-		$context = ['object' => $this->application(), 'to' => 'placed'];
+		$object = array_merge($this->application(), ['lifecycle' => 'placed']);
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'promote', ''));
 
 	}//end testCapacityNotReachedAllowsPlacement()
 
@@ -411,9 +414,9 @@ class AdmissionsDecisionGuardTest extends TestCase {
 		$this->wireRound(['kind' => 'generic', 'capacity' => null]);
 		$this->objectService->expects(self::never())->method('findAll');
 
-		$context = ['object' => $this->application(), 'to' => 'placed'];
+		$object = array_merge($this->application(), ['lifecycle' => 'placed']);
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'promote', ''));
 
 	}//end testNullCapacityNeverBlocksPlacement()
 
@@ -426,9 +429,9 @@ class AdmissionsDecisionGuardTest extends TestCase {
 		$this->wireRound(['kind' => 'generic', 'capacity' => 2]);
 		$this->wireApplicationCounts(placed: [['id' => 'a']], converted: [['id' => 'c']]);
 
-		$context = ['object' => $this->application(), 'to' => 'placed'];
+		$object = array_merge($this->application(), ['lifecycle' => 'placed']);
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'promote', ''));
 
 	}//end testCapacityCountsPlacedAndConverted()
 
@@ -440,9 +443,9 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	public function testMissingAdmissionsRoundIdFailsClosed(): void {
 		$this->objectService->expects(self::never())->method('find');
 
-		$context = ['object' => ['id' => 'app-1', 'tenant_id' => 'tenant-a'], 'to' => 'placed'];
+		$object = ['id' => 'app-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'placed'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'promote', ''));
 
 	}//end testMissingAdmissionsRoundIdFailsClosed()
 
@@ -454,9 +457,9 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	public function testMissingRoundFailsClosed(): void {
 		$this->wireRound(null);
 
-		$context = ['object' => $this->application(), 'to' => 'placed'];
+		$object = array_merge($this->application(), ['lifecycle' => 'placed']);
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'promote', ''));
 
 	}//end testMissingRoundFailsClosed()
 
@@ -469,9 +472,9 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	public function testUngovernedTransitionAllowed(): void {
 		$this->wireRound(['kind' => 'mbo-toelatingsrecht']);
 
-		$context = ['object' => $this->application(), 'to' => 'submitted'];
+		$object = array_merge($this->application(), ['lifecycle' => 'submitted']);
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'completeIntake', ''));
 
 	}//end testUngovernedTransitionAllowed()
 
@@ -483,18 +486,18 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	public function testGenericKindSkipsToelatingsrechtAndSchooladviesBranches(): void {
 		$this->wireRound(['kind' => 'generic', 'capacity' => null]);
 
-		$context = [
-			'object' => $this->application(
+		$object = array_merge(
+			$this->application(
 				[
 					'schoolAdviceLevel' => 'vmbo-gt',
 					'progressionTestLevel' => 'vwo',
 					'decisionReason' => '',
 				]
 			),
-			'to' => 'rejected',
-		];
+			['lifecycle' => 'rejected']
+		);
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'reject', ''));
 
 	}//end testGenericKindSkipsToelatingsrechtAndSchooladviesBranches()
 }//end class

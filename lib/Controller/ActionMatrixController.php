@@ -105,17 +105,22 @@ class ActionMatrixController extends Controller {
 	 * Persist the action matrix.
 	 *
 	 * Reads the `matrix` parameter from the request body and writes it through
-	 * the action authorization service (which normalizes the shape).
+	 * the action authorization service (which normalizes the shape). A payload
+	 * that is not a complete action-to-groups map is refused with 400 and the
+	 * stored matrix is left alone: a missing or non-array `matrix` used to be
+	 * written as an empty matrix, wiping every grant.
 	 *
 	 * @return JSONResponse The normalized matrix after the write.
 	 *
 	 * @spec openspec/architecture/adr-023-action-authorization.md
+	 * @spec openspec/changes/archive/2026-09-29-controller-test-coverage-security-critical/tasks.md#task-1
 	 */
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function setMatrix(): JSONResponse {
 		$matrix = $this->request->getParam('matrix');
-		if (is_array($matrix) === false) {
-			$matrix = [];
+		$problem = $this->matrixProblem(matrix: $matrix);
+		if ($problem !== null) {
+			return new JSONResponse(['error' => $problem], \OCP\AppFramework\Http::STATUS_BAD_REQUEST);
 		}
 
 		try {
@@ -129,6 +134,43 @@ class ActionMatrixController extends Controller {
 
 		return new JSONResponse(['matrix' => $this->actionAuth->getMatrix()]);
 	}//end setMatrix()
+
+	/**
+	 * Why a submitted matrix may not be stored, or null when it may.
+	 *
+	 * The matrix must map every seeded action to a list of group ids. Extra
+	 * actions are allowed; the admin screen always submits the full list.
+	 *
+	 * @param mixed $matrix The submitted `matrix` parameter.
+	 *
+	 * @return string|null The reason for refusal, or null for a valid matrix.
+	 *
+	 * @spec openspec/changes/archive/2026-09-29-controller-test-coverage-security-critical/tasks.md#task-1
+	 */
+	private function matrixProblem(mixed $matrix): ?string {
+		if (is_array($matrix) === false || $matrix === []) {
+			return 'matrix must be an object mapping each action to a list of groups';
+		}
+
+		foreach ($matrix as $action => $groups) {
+			if (is_string($action) === false || is_array($groups) === false) {
+				return 'every action must map to a list of groups';
+			}
+
+			foreach ($groups as $group) {
+				if (is_string($group) === false) {
+					return 'groups must be group ids: ' . $action;
+				}
+			}
+		}
+
+		$missing = array_values(array_diff($this->seedActionKeys(), array_keys($matrix)));
+		if ($missing !== []) {
+			return 'matrix is missing actions: ' . implode(', ', $missing);
+		}
+
+		return null;
+	}//end matrixProblem()
 
 	/**
 	 * Read the action keys declared in the seed file.

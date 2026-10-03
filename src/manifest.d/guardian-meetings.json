@@ -26,6 +26,11 @@
 								"learner",
 								"admin"
 							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
 						}
 					}
 				},
@@ -42,6 +47,11 @@
 								"coordinator",
 								"administration-manager",
 								"admin"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
 							]
 						}
 					}
@@ -60,6 +70,11 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
 						}
 					}
 				},
@@ -75,6 +90,11 @@
 								"admin",
 								"team-lead",
 								"administration-manager"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
 							]
 						}
 					}
@@ -92,6 +112,11 @@
 								"coordinator",
 								"administration-manager",
 								"admin"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
 							]
 						}
 					}
@@ -130,7 +155,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "conference-round",
-				"_note": "A ConferenceRound is one oudergesprekken-cyclus for a report period — an event/cycle archetype (scope, timing, booking window, invited learners). Body leads with round details (8-wide) and a Related panel. The generated ConferenceSlots for the round render as a wide related-index (the schedule). lifecycleActions expose send-invitations/open-booking/close-booking/generate/regenerate/complete/cancel as buttons. Sidebar keeps metadata + audit-trail.",
+				"_note": "A ConferenceRound is one oudergesprekken-cyclus for a report period — an event/cycle archetype (scope, timing, booking window, invited learners). Body leads with round details (8-wide) and a Related panel. The generated ConferenceSlots for the round render as a wide related-index (the schedule). lifecycleActions expose send-invitations/open-booking/create-free-slots/close-booking/generate/regenerate/complete/cancel as buttons. In a round with direct booking, open-booking and create-free-slots turn submitted teacher availability into free slots (ConferenceFreeSlotGenerator), and the 'Bookings to answer' list shows the booked slots a teacher acknowledges or declines on the slot page. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
@@ -141,6 +166,46 @@
 						"title": "Data",
 						"content": {
 							"columns": 2
+						},
+						"icon": "Calendar"
+					},
+					{
+						"id": "round-bookings",
+						"type": "object-list",
+						"title": "Bookings to answer",
+						"content": {
+							"register": "learniq",
+							"schema": "conference-slot",
+							"filter": {
+								"conferenceRoundId": "@object.id",
+								"lifecycle": "booked"
+							},
+							"sort": {
+								"field": "startsAt",
+								"dir": "asc"
+							},
+							"limit": 50,
+							"columns": [
+								{
+									"key": "slotLabel",
+									"label": "Time"
+								},
+								{
+									"key": "teacherName",
+									"label": "Teacher"
+								},
+								{
+									"key": "learnerId",
+									"label": "Learner"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "ConferenceSlotDetail",
+							"emptyText": "No bookings waiting for an answer.",
+							"allowCreate": false
 						},
 						"icon": "Calendar"
 					},
@@ -218,10 +283,19 @@
 						"showTitle": false
 					},
 					{
+						"id": "4",
+						"widgetId": "round-bookings",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
 						"id": "3",
 						"widgetId": "round-slots",
 						"gridX": 0,
-						"gridY": 5,
+						"gridY": 10,
 						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false

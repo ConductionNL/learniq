@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
+ * @spec openspec/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
  */
 
 declare(strict_types=1);
@@ -30,6 +30,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Listener\ApplicationConversionHandler;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
+use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -37,6 +38,14 @@ use Psr\Log\NullLogger;
  * Tests for ApplicationConversionHandler::handle() on Application -> placed.
  */
 class ApplicationConversionHandlerTest extends TestCase {
+	use RegisterSchemaPayloads;
+
+	/**
+	 * The `_rbac` argument of every saveObject() call, per schema.
+	 *
+	 * @var array<int, array{schema: string, rbac: bool}>
+	 */
+	private array $rbacWrites = [];
 
 	/**
 	 * Recorded saveObject() calls.
@@ -86,7 +95,8 @@ class ApplicationConversionHandlerTest extends TestCase {
 
 		$counter = ['learner-profile' => 0, 'enrolment' => 0];
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) use (&$counter): ObjectEntity {
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true) use (&$counter): ObjectEntity {
+				$this->rbacWrites[] = ['schema' => (string)$schema, 'rbac' => $_rbac];
 				$this->savedObjects[] = [
 					'register' => (string)$register,
 					'schema' => (string)$schema,
@@ -123,7 +133,7 @@ class ApplicationConversionHandlerTest extends TestCase {
 			}
 		);
 
-		return new ApplicationConversionHandler($objectService, $transitionEngine, new NullLogger());
+		return new ApplicationConversionHandler($objectService, $transitionEngine, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver(), new \OCA\Learniq\Service\Programme\ProgrammeRequirements());
 	}//end makeHandler()
 
 	/**
@@ -153,7 +163,7 @@ class ApplicationConversionHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
+	 * @spec openspec/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
 	 */
 	public function testPlacementCreatesLearnerProfileAndEnrolments(): void {
 		$programme = ['id' => 'programme-1', 'courseIds' => ['course-a', 'course-b', 'course-c']];
@@ -195,12 +205,34 @@ class ApplicationConversionHandlerTest extends TestCase {
 	}//end testPlacementCreatesLearnerProfileAndEnrolments()
 
 	/**
+	 * Placement enrols each part with the programme's default and names the
+	 * programme, so the learner's programme progress can find the parts.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/enrolment-programme-mandatory-per-person/specs/programme-mandatory-parts/spec.md#scenario-an-author-marks-a-part-optional
+	 */
+	public function testPlacementEnrolsEachPartWithTheProgrammeDefault(): void {
+		$programme = ['id' => 'programme-1', 'courseIds' => ['course-a', 'course-b', 'course-c'], 'mandatoryCourseIds' => ['course-a', 'course-b']];
+		$handler = $this->makeHandler(programme: $programme);
+
+		$handler->handle($this->makeEvent(['id' => 'app-1', 'programmeId' => 'programme-1', 'applicantGivenName' => 'Kim', 'tenant_id' => 'tenant-a', 'lifecycle' => 'placed']));
+
+		$enrolments = array_column(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'enrolment'), 'object');
+		self::assertSame(['course-a' => true, 'course-b' => true, 'course-c' => false], array_column($enrolments, 'mandatory', 'courseId'));
+		self::assertSame(['programme-1'], array_values(array_unique(array_column($enrolments, 'programmeId'))));
+		foreach ($enrolments as $enrolment) {
+			self::assertNull(self::schemaError(slug: 'enrolment', payload: array_merge($enrolment, ['programmeId' => '00000000-0000-4000-8000-00000000000a', 'courseId' => '00000000-0000-4000-8000-00000000000b', 'tenant_id' => '00000000-0000-4000-8000-00000000000c'])), 'the written enrolment fits the Enrolment schema');
+		}
+	}//end testPlacementEnrolsEachPartWithTheProgrammeDefault()
+
+	/**
 	 * No NC user account or LMS provisioning side effect — only OpenRegister writes happen
 	 * (no unexpected schema is saved).
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
+	 * @spec openspec/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
 	 */
 	public function testNoUnexpectedSideEffectSchemasWritten(): void {
 		$programme = ['id' => 'programme-1', 'courseIds' => ['course-a']];
@@ -303,4 +335,54 @@ class ApplicationConversionHandlerTest extends TestCase {
 		self::assertCount(0, $this->transitions);
 
 	}//end testNonMatchingEventTypeIgnored()
+
+	/**
+	 * Admissions staff place the applicant; they may not create a LearnerProfile or an
+	 * Enrolment, so those are written as the system. The Admission itself stays under the
+	 * caller's rights.
+	 *
+	 * @return void
+	 */
+	public function testLearnerProfileAndEnrolmentsAreWrittenAsTheSystem(): void {
+		$this->testPlacementCreatesLearnerProfileAndEnrolments();
+
+		$writes = array_values(array_filter($this->rbacWrites, static fn (array $w): bool => $w['schema'] === 'learner-profile'));
+		self::assertNotEmpty($writes, 'no learner-profile write');
+		foreach ($writes as $write) {
+			self::assertFalse($write['rbac'], 'learner-profile is written with _rbac: false');
+		}
+
+		$writes = array_values(array_filter($this->rbacWrites, static fn (array $w): bool => $w['schema'] === 'enrolment'));
+		self::assertNotEmpty($writes, 'no enrolment write');
+		foreach ($writes as $write) {
+			self::assertFalse($write['rbac'], 'enrolment is written with _rbac: false');
+		}
+
+		$writes = array_values(array_filter($this->rbacWrites, static fn (array $w): bool => $w['schema'] === 'admission'));
+		self::assertNotEmpty($writes, 'no admission write');
+		foreach ($writes as $write) {
+			self::assertTrue($write['rbac'], 'admission is written with _rbac: true');
+		}
+	}//end testLearnerProfileAndEnrolmentsAreWrittenAsTheSystem()
+
+	/**
+	 * Placement into a programme that is gone, or whose course list is not a
+	 * list, still creates the learner profile but no enrolment.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
+	 */
+	public function testAMissingOrMalformedProgrammeCreatesNoEnrolments(): void {
+		foreach ([null, ['id' => 'programme-1', 'courseIds' => 'course-a']] as $programme) {
+			$this->savedObjects = [];
+			$handler = $this->makeHandler(programme: $programme);
+
+			$handler->handle($this->makeEvent(['id' => 'app-9', 'programmeId' => 'programme-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'placed']));
+
+			$schemas = array_column($this->savedObjects, 'schema');
+			self::assertContains('learner-profile', $schemas);
+			self::assertNotContains('enrolment', $schemas);
+		}
+	}//end testAMissingOrMalformedProgrammeCreatesNoEnrolments()
 }//end class

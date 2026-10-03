@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eportfolio/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+ * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
 
 declare(strict_types=1);
@@ -34,8 +34,8 @@ use Psr\Log\LoggerInterface;
 /**
  * Tests for PortfolioGradeEmitHandler::handle() on Portfolio → graded.
  *
- * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-graded-course-bound-portfolio-flows-through-the-existing-gradeentry-pipeline-not-a-parallel-one
- * @spec openspec/changes/eportfolio/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+ * @spec openspec/specs/eportfolio/spec.md#requirement-a-graded-course-bound-portfolio-flows-through-the-existing-gradeentry-pipeline-not-a-parallel-one
+ * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
 class PortfolioGradeEmitHandlerTest extends TestCase {
 
@@ -69,7 +69,7 @@ class PortfolioGradeEmitHandlerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($curriculumPlan) {
-				if ($config['schema'] === 'curriculum-plan') {
+				if ($config['filters']['schema'] === 'curriculum-plan') {
 					return ($curriculumPlan === null) ? [] : [$curriculumPlan];
 				}
 
@@ -95,7 +95,7 @@ class PortfolioGradeEmitHandlerTest extends TestCase {
 			}
 		);
 
-		return new PortfolioGradeEmitHandler($objectService, $this->createMock(LoggerInterface::class));
+		return new PortfolioGradeEmitHandler($objectService, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**

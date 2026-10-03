@@ -9,12 +9,12 @@
  * scheduled, and the idempotent `regenerate` self-transition, scheduled →
  * scheduled). Runs the greedy, submission-order, earliest-fit conflict-free
  * slot-assignment algorithm described in
- * openspec/changes/parent-evening-planner/design.md over submitted/locked
+ * openspec/changes/archive/2026-07-13-parent-evening-planner/design.md over submitted/locked
  * TeacherAvailability and submitted/waitlisted ConferenceSignup rows for the
  * round, and writes ConferenceSlot objects via ObjectService::saveObject.
  *
  * Algorithm (design.md):
- *   1. sliceAvailability() cuts each teacher's declared free blocks into a
+ *   1. ConferenceSlotSlicer::slice() cuts each teacher's declared free blocks into a
  *      chronologically ordered FIFO queue of slotDurationMinutes candidates,
  *      bufferMinutes apart. Pure function, no side effects.
  *   2. Candidate slots overlapping an already-`confirmed` ConferenceSlot for
@@ -52,19 +52,21 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
+ * @spec openspec/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use DateTimeImmutable;
-use DateTimeZone;
+use OCA\Learniq\Service\ConferenceBookingMode;
+use OCA\Learniq\Service\ConferenceSlotSlicer;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -95,12 +97,16 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param IUserManager|null $users The teacher's display name for the parent portal (direct-conference-booking).
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolver $schemas,
+		private readonly ?IUserManager $users=null,
 	) {
 	}//end __construct()
 
@@ -111,22 +117,30 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
+	 * @spec openspec/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
+	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() !== self::CONFERENCE_ROUND_SCHEMA || $event->getTo() !== 'scheduled') {
+		if ($this->schemas->eventSchema(event: $event) !== self::CONFERENCE_ROUND_SCHEMA || $event->getTo() !== 'scheduled') {
 			return;
 		}
 
-		$this->generateForRound(round: $event->getObject()->jsonSerialize());
+		$round = $event->getObject()->jsonSerialize();
+		// A round with direct booking has no preferences to plan: parents
+		// picked their own free times (ConferenceSlotBookingStamp).
+		if ((new ConferenceBookingMode())->isDirect(round: $round) === true) {
+			return;
+		}
+
+		$this->generateForRound(round: $round);
 
 	}//end handle()
 
@@ -137,8 +151,8 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
+	 * @spec openspec/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
+	 * @spec openspec/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
 	 */
 	private function generateForRound(array $round): void {
 		$roundId = $round['id'] ?? ($round['uuid'] ?? '');
@@ -158,9 +172,11 @@ class ConferenceScheduleGenerator implements IEventListener {
 
 		$existingSlots = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::CONFERENCE_SLOT_SCHEMA,
-				'filters' => ['conferenceRoundId' => $roundId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::CONFERENCE_SLOT_SCHEMA,
+					'conferenceRoundId' => $roundId,
+				],
 				'limit' => 5000,
 			]
 		);
@@ -246,7 +262,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 *               activeSlotKeys: array<string,true>,
 	 *               intervalsBySignup: array<string,array<int,array<string,mixed>>>}
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
+	 * @spec openspec/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
 	 */
 	private function indexExistingSlots(array $existingSlots, array $cancelledSignupIds): array {
 		// Confirmed slots are pinned — their minutes are excluded from re-slicing.
@@ -308,7 +324,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 *
 	 * @return array<string,array<int,array<string,mixed>>> Map of teacherId => ordered free slots.
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
+	 * @spec openspec/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
 	 */
 	private function buildTeacherQueues(
 		array $availabilities,
@@ -322,7 +338,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 			$availability = $this->normalise(row: $availability);
 			$teacherId = ($availability['teacherId'] ?? '');
 
-			$sliced = self::sliceAvailability(
+			$sliced = (new ConferenceSlotSlicer())->slice(
 				blocks: ($availability['blocks'] ?? []),
 				slotDurationMinutes: $slotDurationMinutes,
 				bufferMinutes: $bufferMinutes
@@ -368,7 +384,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 *
 	 * @return array{newSlots: array<int,array<string,mixed>>, signupSaves: array<int,array<string,mixed>>, scheduledCount: int, waitlistedCount: int}
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
+	 * @spec openspec/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
 	 */
 	private function assignSignups(
 		array $signups,
@@ -443,7 +459,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 *
 	 * @return array{newSlots: array<int,array<string,mixed>>, unmetTeacherIds: array<int,string>}
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
+	 * @spec openspec/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
 	 */
 	private function assignSlotsForSignup(
 		array $signup,
@@ -479,6 +495,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 			$newSlots[] = [
 				'conferenceRoundId' => $roundId,
 				'teacherId' => $teacherId,
+				'teacherName' => ($this->users?->getDisplayName((string)$teacherId) ?? (string)$teacherId),
 				'learnerId' => ($signup['learnerId'] ?? ''),
 				'learnerRef' => ($signup['learnerRef'] ?? null),
 				'signupId' => $signupId,
@@ -499,60 +516,6 @@ class ConferenceScheduleGenerator implements IEventListener {
 		];
 
 	}//end assignSlotsForSignup()
-
-	/**
-	 * Step 1 — slice a teacher's declared free blocks into a chronologically
-	 * ordered list of candidate `{startsAt, endsAt}` slots, slotDurationMinutes
-	 * long with a bufferMinutes gap between consecutive slots. Pure function,
-	 * no side effects, deterministic for the same input (design.md "Step 1").
-	 *
-	 * @param array<int,array<string,mixed>> $blocks Free blocks: [{startsAt, endsAt}, ...].
-	 * @param int $slotDurationMinutes Length of one slot in minutes.
-	 * @param int $bufferMinutes Gap between consecutive slots in minutes.
-	 *
-	 * @return array<int,array{startsAt:string,endsAt:string}> Candidate slots, in chronological order.
-	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-a-conference-round-declares-its-scope-slot-duration-and-buffer-time
-	 */
-	public static function sliceAvailability(array $blocks, int $slotDurationMinutes, int $bufferMinutes): array {
-		if ($slotDurationMinutes <= 0) {
-			return [];
-		}
-
-		$slots = [];
-
-		foreach ($blocks as $block) {
-			$startRaw = $block['startsAt'] ?? null;
-			$endRaw = $block['endsAt'] ?? null;
-
-			if ($startRaw === null || $endRaw === null) {
-				continue;
-			}
-
-			try {
-				$cursor = new DateTimeImmutable((string)$startRaw, new DateTimeZone('UTC'));
-				$blockEnds = new DateTimeImmutable((string)$endRaw, new DateTimeZone('UTC'));
-			} catch (\Exception) {
-				continue;
-			}
-
-			while (true) {
-				$slotEnd = $cursor->modify('+' . $slotDurationMinutes . ' minutes');
-				if ($slotEnd > $blockEnds) {
-					break;
-				}
-
-				$slots[] = [
-					'startsAt' => $cursor->format(DATE_ATOM),
-					'endsAt' => $slotEnd->format(DATE_ATOM),
-				];
-
-				$cursor = $slotEnd->modify('+' . $bufferMinutes . ' minutes');
-			}
-		}//end foreach
-
-		return $slots;
-	}//end sliceAvailability()
 
 	/**
 	 * Pop candidate slots from the front of a teacher's queue until one is
@@ -623,9 +586,9 @@ class ConferenceScheduleGenerator implements IEventListener {
 	private function fetchByRoundAndLifecycle(string $schema, string $roundId, string $lifecycle): array {
 		return $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => $schema,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => $schema,
 					'conferenceRoundId' => $roundId,
 					'lifecycle' => $lifecycle,
 				],

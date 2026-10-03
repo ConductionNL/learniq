@@ -41,13 +41,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+ * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Bpv\ProvidesLeerbedrijfVerification;
@@ -65,7 +66,7 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+ * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
  */
 class BpvLeerbedrijfVerificationHandler implements IEventListener {
 
@@ -80,6 +81,7 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 	 * @param ContainerInterface $container DI container used to resolve the configured
 	 *                                      ProvidesLeerbedrijfVerification adapter by FQCN.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -87,6 +89,7 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly ContainerInterface $container,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -97,18 +100,18 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+	 * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() !== self::PLACEMENT_SCHEMA) {
+		if ($this->schemas->eventSchema(event: $event) !== self::PLACEMENT_SCHEMA) {
 			return;
 		}
 
@@ -127,7 +130,7 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+	 * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
 	 */
 	private function runVerification(ObjectTransitionedEvent $event): void {
 		$placement = $event->getObject()->jsonSerialize();
@@ -211,7 +214,7 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 	 *
 	 * @return ProvidesLeerbedrijfVerification|null The resolved adapter, or null.
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+	 * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
 	 */
 	private function resolveProvider(mixed $providerClass): ?ProvidesLeerbedrijfVerification {
 		if (is_string($providerClass) === false || $providerClass === '') {

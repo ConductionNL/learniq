@@ -54,6 +54,12 @@
 						{{ t('learniq', 'Week') }}
 					</NcButton>
 				</div>
+				<NcButton
+					variant="secondary"
+					data-testid="calendar-feed-open"
+					@click="subscribing = true">
+					{{ t('learniq', 'Subscribe in your calendar') }}
+				</NcButton>
 			</div>
 		</div>
 
@@ -67,6 +73,15 @@
 				<span class="icon-error" />
 			</template>
 		</NcEmptyContent>
+
+		<NcNoteCard v-if="!loading && !error && source === 'planninq'" type="info">
+			{{
+				t(
+					'learniq',
+					'These lessons come from the school timetable. Changes are made there.',
+				)
+			}}
+		</NcNoteCard>
 
 		<section
 			v-if="!loading && !error && changes.length > 0"
@@ -98,7 +113,9 @@
 		</section>
 
 		<NcEmptyContent
-			v-if="!loading && !error && sessions.length === 0"
+			v-if="
+				!loading && !error && sessions.length === 0 && standby.length === 0
+			"
 			:name="t('learniq', 'No sessions')"
 			:description="emptyDescription">
 			<template #icon>
@@ -107,7 +124,7 @@
 		</NcEmptyContent>
 
 		<div
-			v-if="!loading && !error && sessions.length > 0"
+			v-if="!loading && !error && (sessions.length > 0 || standby.length > 0)"
 			class="my-timetable__grid"
 			:class="{ 'my-timetable__grid--single': mode === 'today' }">
 			<section
@@ -120,7 +137,20 @@
 					<span class="my-timetable__day-date">{{ day.dateLabel }}</span>
 				</header>
 				<ul class="my-timetable__sessions">
-					<li v-if="day.sessions.length === 0" class="my-timetable__none">
+					<li
+						v-for="block in day.standby"
+						:key="'standby-' + block.slotId + block.date"
+						class="my-timetable__standby">
+						<span class="my-timetable__session-time"
+							>{{ block.startsAt }}–{{ block.endsAt }}</span
+						>
+						<span class="my-timetable__session-name">{{
+							t('learniq', 'Standby')
+						}}</span>
+					</li>
+					<li
+						v-if="day.sessions.length === 0 && day.standby.length === 0"
+						class="my-timetable__none">
 						{{ t('learniq', 'No sessions') }}
 					</li>
 					<li
@@ -132,8 +162,8 @@
 								session.lifecycle === 'cancelled',
 						}">
 						<div
-							tabindex="0"
-							role="button"
+							:tabindex="isLearniqSession(session) ? 0 : undefined"
+							:role="isLearniqSession(session) ? 'button' : undefined"
 							class="my-timetable__session-main"
 							:aria-label="sessionAria(session)"
 							@click="openSession(session)"
@@ -166,8 +196,71 @@
 								">
 								{{ statusLabel(session) }}
 							</span>
+							<span
+								v-if="session.cover"
+								class="my-timetable__session-badge my-timetable__session-badge--cover">
+								{{ t('learniq', 'Cover') }}
+							</span>
+							<span
+								v-if="noteTopic(session)"
+								class="my-timetable__session-topic">
+								{{ noteTopic(session) }}
+							</span>
 						</div>
+						<details
+							v-if="session.notes && session.notes.length > 0"
+							class="my-timetable__notes">
+							<summary>
+								<NoteTextOutline :size="14" />
+								{{ notesSummary(session) }}
+							</summary>
+							<ul class="my-timetable__notes-list">
+								<li
+									v-for="note in session.notes"
+									:key="note.id"
+									class="my-timetable__note">
+									<strong v-if="note.topic">{{
+										note.topic
+									}}</strong>
+									<span>{{ note.text }}</span>
+									<em
+										v-if="note.audience === 'cover'"
+										class="my-timetable__note-audience">
+										{{
+											t('learniq', 'For the covering teacher')
+										}}
+									</em>
+								</li>
+							</ul>
+						</details>
 						<NcButton
+							v-if="
+								joinUrl(session) && session.lifecycle !== 'cancelled'
+							"
+							class="my-timetable__session-manage"
+							variant="secondary"
+							:href="joinUrl(session)"
+							target="_blank"
+							rel="noopener noreferrer"
+							:aria-label="
+								t(
+									'learniq',
+									'Join this lesson online (opens in a new tab)',
+								)
+							"
+							data-testid="session-join">
+							{{ t('learniq', 'Join') }}
+						</NcButton>
+						<NcButton
+							v-if="session.canAddNote"
+							class="my-timetable__session-manage"
+							variant="tertiary"
+							:aria-label="t('learniq', 'Add a note to this lesson')"
+							@click="notingSession = session">
+							{{ t('learniq', 'Add note') }}
+						</NcButton>
+						<NcButton
+							v-if="isLearniqSession(session)"
 							class="my-timetable__session-manage"
 							variant="tertiary"
 							:aria-label="t('learniq', 'Manage this session')"
@@ -184,13 +277,31 @@
 			:session="managingSession"
 			@close="managingSession = null"
 			@changed="onChanged" />
+
+		<LessonNoteDialog
+			v-if="notingSession"
+			:session="notingSession"
+			@close="notingSession = null"
+			@saved="onChanged" />
+
+		<TimetableCalendarFeedDialog
+			v-if="subscribing"
+			@close="subscribing = false" />
 	</div>
 </template>
 
 <script>
-import { NcButton, NcEmptyContent, NcLoadingIcon } from '@nextcloud/vue'
+import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
+import NoteTextOutline from 'vue-material-design-icons/NoteTextOutline.vue'
+import LessonNoteDialog from '../dialogs/LessonNoteDialog.vue'
 import SubstitutionModal from '../dialogs/SubstitutionModal.vue'
-import { fetchMyTimetable } from '../api/timetable.js'
+import TimetableCalendarFeedDialog from '../dialogs/TimetableCalendarFeedDialog.vue'
+import {
+	fetchMyStandby,
+	fetchMyTimetable,
+	isLearniqSession,
+} from '../api/timetable.js'
+import { joinUrl } from '../utils/onlineLesson.js'
 
 /**
  * Compute the Monday (00:00, local) of the week containing `date`.
@@ -213,7 +324,11 @@ export default {
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
+		NcNoteCard,
+		LessonNoteDialog,
+		NoteTextOutline,
 		SubstitutionModal,
+		TimetableCalendarFeedDialog,
 	},
 
 	data() {
@@ -229,6 +344,15 @@ export default {
 			mode: 'week',
 			// The Session currently open in SubstitutionModal, or null.
 			managingSession: null,
+			// The lesson currently open in LessonNoteDialog, or null.
+			notingSession: null,
+			// Whether the calendar feed dialog is open (attendance-timetable-calendar-feed).
+			subscribing: false,
+			// Where the lessons come from: `learniq` Sessions, or planninq's
+			// school timetable (sessions-from-planninq).
+			source: 'learniq',
+			// The caller's standby blocks this week (timetabling-standby-slots).
+			standby: [],
 		}
 	},
 
@@ -268,7 +392,13 @@ export default {
 						&& ts < next.getTime()
 					)
 				})
+				const dayIso = [
+					day.getFullYear(),
+					String(day.getMonth() + 1).padStart(2, '0'),
+					String(day.getDate()).padStart(2, '0'),
+				].join('-')
 				out.push({
+					standby: this.standby.filter((b) => b.date === dayIso),
 					iso: day.toISOString().slice(0, 10),
 					weekday: day.toLocaleDateString(undefined, { weekday: 'short' }),
 					dateLabel: day.toLocaleDateString(undefined, {
@@ -347,6 +477,20 @@ export default {
 	},
 
 	methods: {
+		joinUrl,
+
+		/**
+		 * Whether a session is a learniq Session (opens and can be managed).
+		 *
+		 * @param {object} session A session from the timetable endpoint.
+		 *
+		 * @return {boolean} True for a learniq Session.
+		 * @spec openspec/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+		 */
+		isLearniqSession(session) {
+			return isLearniqSession(session)
+		},
+
 		t,
 		/**
 		 * Load the caller's sessions for the current week window.
@@ -364,6 +508,11 @@ export default {
 				)
 				this.sessions = result.sessions
 				this.changes = result.changes
+				this.source = result.source
+				this.standby = await fetchMyStandby(
+					this.weekStart.toISOString(),
+					this.weekEnd.toISOString(),
+				)
 			} catch (e) {
 				this.error = t(
 					'learniq',
@@ -415,7 +564,9 @@ export default {
 		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
 		 */
 		openSession(session) {
-			if (!session || !session.id) {
+			// A planninq lesson is not a learniq Session: it is changed in the
+			// timetable system, so it does not open here.
+			if (!isLearniqSession(session)) {
 				return
 			}
 			if (this.$router) {
@@ -489,7 +640,7 @@ export default {
 		 * @param {object} session The session.
 		 *
 		 * @return {string} The status label.
-		 * @spec openspec/changes/timetabling-and-substitution/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
 		 */
 		statusLabel(session) {
 			if (session.lifecycle === 'cancelled') {
@@ -504,12 +655,40 @@ export default {
 		},
 
 		/**
+		 * The topic shown on a lesson: the first note that has one.
+		 *
+		 * @param {object} session The session.
+		 *
+		 * @return {string} The topic, or ''.
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+		 */
+		noteTopic(session) {
+			const note = (session.notes || []).find((n) => n.topic)
+			return note ? note.topic : ''
+		},
+
+		/**
+		 * The summary line of a lesson's notes.
+		 *
+		 * @param {object} session The session.
+		 *
+		 * @return {string} The label.
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+		 */
+		notesSummary(session) {
+			const count = (session.notes || []).length
+			return count === 1
+				? t('learniq', '1 note')
+				: t('learniq', '{count} notes', { count })
+		},
+
+		/**
 		 * Open SubstitutionModal for a session (cancel / assign substitute).
 		 *
 		 * @param {object} session The session to manage.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-frontend-is-declarative-with-named-custom-views
+		 * @spec openspec/specs/timetabling/spec.md#requirement-frontend-is-declarative-with-named-custom-views
 		 */
 		manage(session) {
 			this.managingSession = session
@@ -519,7 +698,7 @@ export default {
 		 * Reload the timetable after a substitution/cancellation change.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-frontend-is-declarative-with-named-custom-views
+		 * @spec openspec/specs/timetabling/spec.md#requirement-frontend-is-declarative-with-named-custom-views
 		 */
 		async onChanged() {
 			await this.load()
@@ -616,6 +795,15 @@ export default {
 		gap: 6px;
 	}
 
+	&__standby {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		padding: 8px;
+		border-radius: var(--border-radius, 4px);
+		border: 1px dashed var(--color-primary-element);
+	}
+
 	&__none {
 		color: var(--color-text-maxcontrast);
 		font-size: 0.85em;
@@ -624,6 +812,7 @@ export default {
 
 	&__session {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: flex-start;
 		gap: 4px;
 		padding: 8px;
@@ -663,6 +852,38 @@ export default {
 		font-weight: 600;
 	}
 
+	&__session-topic {
+		font-size: 0.8em;
+		font-style: italic;
+	}
+
+	&__notes {
+		flex-basis: 100%;
+		font-size: 0.85em;
+
+		summary {
+			cursor: pointer;
+		}
+	}
+
+	&__notes-list {
+		list-style: none;
+		margin: 4px 0 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	&__note {
+		display: flex;
+		flex-direction: column;
+	}
+
+	&__note-audience {
+		color: var(--color-text-maxcontrast);
+	}
+
 	&__session-loc {
 		font-size: 0.8em;
 		color: var(--color-text-maxcontrast);
@@ -680,6 +901,11 @@ export default {
 		&--cancelled {
 			background: var(--color-error);
 			color: white;
+		}
+
+		&--cover {
+			background: var(--color-primary-element);
+			color: var(--color-primary-element-text);
 		}
 	}
 

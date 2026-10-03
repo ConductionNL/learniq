@@ -82,6 +82,22 @@ function runSeed(): void {
 }
 
 /**
+ * The manifest's `setup.version`, which keys CnAppRoot's wizard dismissal.
+ *
+ * @return The version, or 0 (CnAppRoot's own fallback) when it is absent.
+ */
+function readSetupVersion(): number | string {
+	try {
+		const manifest = JSON.parse(
+			fs.readFileSync(path.join(APP_ROOT, 'src', 'manifest.json'), 'utf8'),
+		)
+		return manifest?.setup?.version ?? 0
+	} catch {
+		return 0
+	}
+}
+
+/**
  * Global Playwright setup: log in as admin once and save the browser storage
  * state (cookies + localStorage) to test-results/.auth/admin.json, then seed
  * example data.
@@ -145,17 +161,33 @@ async function globalSetup(): Promise<void> {
 		 * `sinceVersion` sorts below it and the tour composes to an empty step
 		 * set rather than merely starting dismissed.
 		 */
+		/*
+		 * Suppress the non-gating setup wizard the same way.
+		 *
+		 * CnAppRoot auto-opens CnSetupWizard whenever the setup status is
+		 * optional-unmet, which is the normal state of any instance where
+		 * nobody walked the wizard (a fresh CI runner, and the shared dev
+		 * instance). Its `cn-modal` intercepts every click behind it, so every
+		 * click-through spec timed out while the URL-driven ones passed. The
+		 * dismissal is keyed on the manifest's `setup.version`, read from the
+		 * manifest so a version bump cannot silently bring the wizard back.
+		 */
+		const setupVersion = readSetupVersion()
 		try {
-			await page.evaluate(() => {
+			await page.evaluate((wizardVersion) => {
 				try {
 					window.localStorage.setItem(
 						'cn-walkthrough-seen:learniq',
 						'999.0.0',
 					)
+					window.localStorage.setItem(
+						'cn-setup-wizard-dismissed:learniq:' + wizardVersion,
+						'1',
+					)
 				} catch {
 					// localStorage unavailable — specs fall back to dismissing by hand.
 				}
-			})
+			}, setupVersion)
 		} catch {
 			// Never fail setup over an optional convenience.
 		}

@@ -16,13 +16,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-the-formal-warning-captures-improvement-period-guidance-and-personal-circumstances-and-is-signed-evidence
+ * @spec openspec/specs/study-progress/spec.md#requirement-the-formal-warning-captures-improvement-period-guidance-and-personal-circumstances-and-is-signed-evidence
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\TenantKeyService;
 use OCA\Learniq\Lifecycle\BsaWarningSigningGuard;
 use PHPUnit\Framework\TestCase;
@@ -50,6 +51,7 @@ class BsaWarningSigningGuardTest extends TestCase {
 			],
 			'offeredGuidance' => 'Weekly study-advisor check-ins and a referral to the student dean.',
 			'tenant_id' => 'tenant-a',
+			'lifecycle' => 'issued',
 		];
 
 	}//end warningObject()
@@ -66,32 +68,39 @@ class BsaWarningSigningGuardTest extends TestCase {
 	}//end makeGuard()
 
 	/**
-	 * Happy path: valid improvementPeriod + offeredGuidance + tenant key present → true, signature injected.
+	 * OpenRegister's registry refuses a guard that does not implement its interface.
+	 *
+	 * @return void
+	 */
+	public function testImplementsTheOpenRegisterGuardInterface(): void {
+		self::assertInstanceOf(LifecycleGuardInterface::class, $this->makeGuard($this->createMock(TenantKeyService::class)));
+
+	}//end testImplementsTheOpenRegisterGuardInterface()
+
+	/**
+	 * Happy path: valid improvementPeriod + offeredGuidance + tenant key present → allowed. The signature is
+	 * TenantSignatureAction's write, see tests/Unit/Lifecycle/Action/TenantSignatureActionTest.php.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-issued-warning-carries-a-verifiable-signature
+	 * @spec openspec/specs/study-progress/spec.md#scenario-issued-warning-carries-a-verifiable-signature
 	 */
-	public function testIssueStampsSignature(): void {
+	public function testCompleteWarningMayBeIssued(): void {
 		$tenantKeyService = $this->createMock(TenantKeyService::class);
 		$tenantKeyService->method('getCurrentTenantKey')->willReturn('super-secret-key');
 
-		$context = ['object' => $this->warningObject(), 'payload' => []];
+		$object = $this->warningObject();
 
-		self::assertTrue($this->makeGuard($tenantKeyService)->check($context));
-		self::assertArrayHasKey('signature', $context['payload']);
-		self::assertArrayHasKey('signingKeyId', $context['payload']);
-		self::assertSame(64, strlen($context['payload']['signature']), 'HMAC-SHA256 hex digest is 64 chars');
-		self::assertSame(16, strlen($context['payload']['signingKeyId']), 'key fingerprint is 16 hex chars');
+		self::assertTrue($this->makeGuard($tenantKeyService)->check($object, 'issue', 'advisor-1')->isAllowed());
 
-	}//end testIssueStampsSignature()
+	}//end testCompleteWarningMayBeIssued()
 
 	/**
 	 * Missing offeredGuidance blocks the issue transition.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-warning-cannot-be-issued-without-offered-guidance
+	 * @spec openspec/specs/study-progress/spec.md#scenario-warning-cannot-be-issued-without-offered-guidance
 	 */
 	public function testMissingGuidanceBlocksIssue(): void {
 		$tenantKeyService = $this->createMock(TenantKeyService::class);
@@ -100,10 +109,7 @@ class BsaWarningSigningGuardTest extends TestCase {
 		$object = $this->warningObject();
 		$object['offeredGuidance'] = '';
 
-		$context = ['object' => $object, 'payload' => []];
-
-		self::assertFalse($this->makeGuard($tenantKeyService)->check($context));
-		self::assertArrayNotHasKey('signature', $context['payload']);
+		self::assertFalse($this->makeGuard($tenantKeyService)->check($object, 'issue', 'advisor-1')->isAllowed());
 
 	}//end testMissingGuidanceBlocksIssue()
 
@@ -118,9 +124,7 @@ class BsaWarningSigningGuardTest extends TestCase {
 		$object = $this->warningObject();
 		$object['offeredGuidance'] = "   \n\t  ";
 
-		$context = ['object' => $object, 'payload' => []];
-
-		self::assertFalse($this->makeGuard($tenantKeyService)->check($context));
+		self::assertFalse($this->makeGuard($tenantKeyService)->check($object, 'issue', 'advisor-1')->isAllowed());
 
 	}//end testWhitespaceOnlyGuidanceBlocksIssue()
 
@@ -136,9 +140,7 @@ class BsaWarningSigningGuardTest extends TestCase {
 		$object = $this->warningObject();
 		$object['improvementPeriod']['startDate'] = null;
 
-		$context = ['object' => $object, 'payload' => []];
-
-		self::assertFalse($this->makeGuard($tenantKeyService)->check($context));
+		self::assertFalse($this->makeGuard($tenantKeyService)->check($object, 'issue', 'advisor-1')->isAllowed());
 
 	}//end testMissingImprovementPeriodStartBlocksIssue()
 
@@ -153,9 +155,7 @@ class BsaWarningSigningGuardTest extends TestCase {
 		$object = $this->warningObject();
 		unset($object['improvementPeriod']);
 
-		$context = ['object' => $object, 'payload' => []];
-
-		self::assertFalse($this->makeGuard($tenantKeyService)->check($context));
+		self::assertFalse($this->makeGuard($tenantKeyService)->check($object, 'issue', 'advisor-1')->isAllowed());
 
 	}//end testMissingImprovementPeriodBlocksIssue()
 
@@ -169,10 +169,9 @@ class BsaWarningSigningGuardTest extends TestCase {
 		$tenantKeyService = $this->createMock(TenantKeyService::class);
 		$tenantKeyService->method('getCurrentTenantKey')->willReturn('');
 
-		$context = ['object' => $this->warningObject(), 'payload' => []];
+		$object = $this->warningObject();
 
-		self::assertFalse($this->makeGuard($tenantKeyService)->check($context));
-		self::assertArrayNotHasKey('signature', $context['payload']);
+		self::assertFalse($this->makeGuard($tenantKeyService)->check($object, 'issue', 'advisor-1')->isAllowed());
 
 	}//end testUnavailableTenantKeyRejected()
 }//end class

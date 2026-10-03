@@ -36,6 +36,77 @@
 						"hr",
 						"admin"
 					]
+				},
+				"workspace.segment": {
+					"in": [
+						"corporate",
+						"training"
+					]
+				}
+			}
+		},
+		{
+			"id": "RegulationExemptionsMenu",
+			"label": "Exemptions",
+			"icon": "ShieldOffOutline",
+			"route": "RegulationExemptions",
+			"order": 53,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"compliance-officer",
+						"hr",
+						"admin"
+					]
+				},
+				"workspace.segment": {
+					"in": [
+						"corporate",
+						"training"
+					]
+				}
+			}
+		},
+		{
+			"id": "AbsenceReportsComplianceMenu",
+			"label": "Absence reports",
+			"icon": "CalendarRemoveOutline",
+			"route": "ExcuseRequests",
+			"order": 55,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"compliance-officer"
+					]
+				},
+				"workspace.chosenSegment": {
+					"notIn": [
+						"corporate"
+					]
+				}
+			},
+			"_note": "Compliance officers read every absence report (ExcuseRequest grants compliance-officers), but the People group that holds AbsenceReportsMenu does not reach them. menu-layout.json relocates this entry into GroupCompliance. Only compliance-officer: the admin reaches the page under People, and hr has no read on ExcuseRequest."
+		},
+		{
+			"id": "RequestExemptionMenu",
+			"label": "Request an exemption",
+			"icon": "ShieldOffOutline",
+			"route": "RegulationExemptions",
+			"order": 54,
+			"visibleIf": {
+				"user.managesLearners": true,
+				"user.primaryRole": {
+					"notIn": [
+						"compliance-officer",
+						"hr",
+						"admin"
+					]
+				},
+				"workspace.segment": {
+					"in": [
+						"corporate",
+						"training"
+					]
 				}
 			}
 		}
@@ -48,8 +119,25 @@
 			"title": "External training",
 			"config": {
 				"register": "learniq",
-				"schema": "external-training-record"
+				"schema": "external-training-record",
+				"headerActions": [
+					{
+						"id": "record-for-group",
+						"label": "Record training for a group",
+						"icon": "AccountMultipleOutline",
+						"handler": "navigate",
+						"route": "ExternalTrainingBulkRecord"
+					}
+				]
 			}
+		},
+		{
+			"id": "ExternalTrainingBulkRecord",
+			"route": "/compliance/external-training/record-for-group",
+			"type": "custom",
+			"title": "Record training for a group",
+			"component": "ExternalTrainingBulkRecordView",
+			"_note": "learniq#952: record one external training for many learners at once through POST /api/external-training/bulk, then issue credentials and check coverage for the batch. No manifest page can post one form for a list of picked learners. Reached from the External training index header action."
 		},
 		{
 			"id": "ExternalTrainingRecordDetail",
@@ -135,6 +223,80 @@
 			}
 		},
 		{
+			"id": "DataSubjectRequests",
+			"route": "/compliance/data-subject-requests",
+			"type": "index",
+			"title": "Privacy requests",
+			"config": {
+				"register": "data-subject-requests",
+				"schema": "dataSubjectRequest",
+				"_note": "privacy-reuse-openregister-register (D20): reads OpenRegister's shared data-subject-requests register through the generic objects API. Learniq no longer ships its own DataSubjectRequest schema; MigrateDataSubjectRequestsToOpenRegister moved the existing rows here."
+			}
+		},
+		{
+			"id": "DataSubjectRequestDetail",
+			"route": "/compliance/data-subject-requests/:id",
+			"type": "detail",
+			"title": "Privacy request",
+			"config": {
+				"register": "data-subject-requests",
+				"schema": "dataSubjectRequest",
+				"_note": "privacy-reuse-openregister-register (D20): an OpenRegister dataSubjectRequest case (six AVG rights, the art-12 deadline, escalation), read through the generic objects API. Body leads with the case data; no Related/Files leaves. The lifecycle field is OpenRegister's `status`. Sidebar keeps metadata and the audit trail as History.",
+				"lifecycleActions": {
+					"field": "status"
+				},
+				"widgets": [
+					{
+						"id": "dsr-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AccountAlertOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "dsr-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "PartnerApprovalJobs",
+			"route": "/compliance/partner-approvals",
+			"type": "index",
+			"title": "Partner approvals",
+			"config": {
+				"register": "learniq",
+				"schema": "exchange-partner-approval",
+				"_note": "privacy-governance-surfaces P-new-7 (\"Koppelingsgegevens inzien\"): every standing partner link per data exchange target, with its status and shared fields. Since data-exchange-to-integriq each row is an ExchangePartnerApproval with its own approve and reject lifecycle (detail page PartnerApprovalDetail), and learniq's exchange gate reads it before integriq runs a job."
+			}
+		},
+		{
 			"id": "ComplianceLanding",
 			"route": "/compliance-overview",
 			"type": "dashboard",
@@ -154,7 +316,15 @@
 									"route": "Compliance",
 									"order": 10,
 									"icon": "ClipboardCheckOutline",
-									"description": "Regulation coverage and attestations"
+									"description": "Regulation coverage and attestations",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"corporate",
+												"training"
+											]
+										}
+									}
 								},
 								{
 									"id": "ExternalTraining",
@@ -162,7 +332,15 @@
 									"route": "ExternalTrainingRecords",
 									"order": 20,
 									"icon": "Plus",
-									"description": "Training recorded outside the app"
+									"description": "Training recorded outside the app",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"corporate",
+												"training"
+											]
+										}
+									}
 								},
 								{
 									"id": "Accessibility",
@@ -199,7 +377,23 @@
 									"route": "ExemptionCases",
 									"order": 70,
 									"icon": "Check",
-									"description": "Exam-board exemption requests"
+									"description": "Exam-board exemption requests",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"vo",
+												"mbo",
+												"he",
+												"corporate",
+												"training"
+											]
+										},
+										"workspace.chosenSegment": {
+											"notIn": [
+												"corporate"
+											]
+										}
+									}
 								},
 								{
 									"id": "FraudCasesMenu",
@@ -207,7 +401,23 @@
 									"route": "FraudCases",
 									"order": 80,
 									"icon": "FolderAccountOutline",
-									"description": "Exam-board integrity cases"
+									"description": "Exam-board integrity cases",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"vo",
+												"mbo",
+												"he",
+												"corporate",
+												"training"
+											]
+										},
+										"workspace.chosenSegment": {
+											"notIn": [
+												"corporate"
+											]
+										}
+									}
 								},
 								{
 									"id": "ItemRevisionFlagsMenu",
@@ -215,7 +425,47 @@
 									"route": "ItemRevisionFlags",
 									"order": 90,
 									"icon": "FlagVariantOutline",
-									"description": "Assessment items flagged for revision"
+									"description": "Assessment items flagged for revision",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"vo",
+												"mbo",
+												"he",
+												"corporate",
+												"training"
+											]
+										},
+										"workspace.chosenSegment": {
+											"notIn": [
+												"corporate"
+											]
+										}
+									}
+								},
+								{
+									"id": "DataSubjectRequestsCard",
+									"label": "Privacy requests",
+									"route": "DataSubjectRequests",
+									"order": 45,
+									"icon": "AccountAlertOutline",
+									"description": "AVG requests, tracked to their legal deadline"
+								},
+								{
+									"id": "PartnerApprovalJobsCard",
+									"label": "Partner integration approvals",
+									"route": "PartnerApprovalJobs",
+									"order": 46,
+									"icon": "HandshakeOutline",
+									"description": "Data-exchange partners awaiting or holding school approval"
+								},
+								{
+									"id": "PrivacyGovernanceDashboardCard",
+									"label": "Privacy governance",
+									"route": "PrivacyGovernanceDashboard",
+									"order": 47,
+									"icon": "ShieldCheckOutline",
+									"description": "Board-level view: groups, 2FA adoption, partner approvals"
 								}
 							]
 						}
@@ -231,6 +481,69 @@
 						"gridHeight": 8
 					}
 				]
+			}
+		},
+		{
+			"id": "RegulationExemptions",
+			"route": "/compliance/exemptions",
+			"type": "index",
+			"title": "Exemptions",
+			"config": {
+				"register": "learniq",
+				"schema": "regulation-exemption",
+				"_note": "Reached by compliance officers, hr and admin through RegulationExemptionsMenu, and by a line manager through RequestExemptionMenu (user.managesLearners; its notIn list is the roles that already reach RegulationExemptionsMenu, so nobody sees the entry twice). The read rule narrows a line manager's list to the requests they made; RegulationExemptionRequestStamp refuses a person who does not report to them."
+			}
+		},
+		{
+			"id": "RegulationExemptionDetail",
+			"route": "/compliance/exemptions/:id",
+			"type": "detail",
+			"title": "Exemptions",
+			"config": {
+				"register": "learniq",
+				"schema": "regulation-exemption",
+				"_note": "A regulation exemption is a request and its decision. The body is the record; grant and reject run as lifecycle actions (RegulationExemptionDecisionGuard asks for the rationale, the policy reference and the end date). History is the audit of who asked and who decided.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "exemption-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ShieldOffOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "exemption-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
 			}
 		}
 	]

@@ -40,7 +40,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
+ * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
  */
 
 declare(strict_types=1);
@@ -71,7 +71,7 @@ use Psr\Log\LoggerInterface;
  * No session auth, no CSRF. Denies (no partial data) when revoked, expired,
  * or signature-invalid. On success returns only the bundle content.
  *
- * @spec openspec/changes/portable-learning-record/tasks.md#task-3-2
+ * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-3-2
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects) One over the threshold since
  * IThrottler + LoggerInterface were injected to stop this endpoint being an
@@ -149,8 +149,8 @@ class LearningRecordShareVerifyController extends Controller {
 	 * @NoCSRFRequired
 	 * @PublicPage
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-valid-unexpired-share-resolves-to-the-shared-bundle
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-an-expired-share-is-denied-even-though-its-lifecycle-is-still-active
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-valid-unexpired-share-resolves-to-the-shared-bundle
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-an-expired-share-is-denied-even-though-its-lifecycle-is-still-active
 	 */
 	#[NoCSRFRequired]
 	#[PublicPage]

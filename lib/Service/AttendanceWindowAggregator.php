@@ -35,7 +35,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
+ * @spec openspec/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
  */
 
 declare(strict_types=1);
@@ -75,7 +75,7 @@ class AttendanceWindowAggregator {
 	 * @param string $endDate Window end (ISO 8601 date).
 	 *
 	 * @return array<int,string> Session UUIDs within the window.
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
+	 * @spec openspec/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
 	 */
 	public function fetchWindowSessionIds(array $cohortIds, string $startDate, string $endDate): array {
 		$fromTs = strtotime($startDate);
@@ -86,9 +86,11 @@ class AttendanceWindowAggregator {
 		foreach ($cohortIds as $cohortId) {
 			$rows = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::SESSION_SCHEMA,
-					'filters' => ['cohortId' => $cohortId],
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::SESSION_SCHEMA,
+						'cohortId' => $cohortId,
+					],
 					'limit' => 5000,
 				]
 			);
@@ -161,7 +163,7 @@ class AttendanceWindowAggregator {
 	 * @param array<int,string> $sessionIds Session UUIDs within the ReportPeriod's window.
 	 *
 	 * @return array<string,mixed>
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
+	 * @spec openspec/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
 	 */
 	public function buildAttendanceSummary(string $learnerId, array $sessionIds): array {
 		$summary = [
@@ -181,9 +183,11 @@ class AttendanceWindowAggregator {
 
 		$records = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ATTENDANCE_RECORD_SCHEMA,
-				'filters' => ['learnerId' => $learnerId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ATTENDANCE_RECORD_SCHEMA,
+					'learnerId' => $learnerId,
+				],
 				'limit' => 5000,
 			]
 		);

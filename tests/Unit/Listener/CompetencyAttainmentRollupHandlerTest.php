@@ -16,8 +16,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
- * @spec openspec/changes/competency-framework/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+ * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+ * @spec openspec/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
  */
 
 declare(strict_types=1);
@@ -27,8 +27,11 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Learniq\BackgroundJob\CompetencyAttainmentRollupJob;
 use OCA\Learniq\Listener\CompetencyAttainmentRollupHandler;
+use OCA\Learniq\Service\CompetencyAttainmentRollup;
 use OCA\Learniq\Service\CompetencyAttainmentWriter;
 use OCA\Learniq\Service\CompetencyLevelResolver;
 use OCA\Learniq\Service\GradeEvidenceRollup;
@@ -64,6 +67,20 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 	private array $savedObjects = [];
 
 	/**
+	 * Entries the handler queued, with the job class and dedupe key.
+	 *
+	 * @var array<int, array{jobClass: string, entry: array<string, mixed>, dedupeKey: string|null}>
+	 */
+	private array $queued = [];
+
+	/**
+	 * Whether the deferral fake runs each queued entry straight away.
+	 *
+	 * @var bool
+	 */
+	private bool $runQueued = true;
+
+	/**
 	 * Resolver turning the entity's numeric register/schema ids into slugs.
 	 *
 	 * @var ListenerSchemaResolver&MockObject
@@ -79,7 +96,12 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 		parent::setUp();
 		$this->db = [];
 		$this->savedObjects = [];
+		$this->queued = [];
+		$this->runQueued = true;
 		$this->schemaResolver = $this->createMock(ListenerSchemaResolver::class);
+		// Transition events pass through the resolver as the real one does for slugs.
+		$this->schemaResolver->method('eventRegister')->willReturnCallback(static fn (ObjectTransitionedEvent $event): string => $event->getRegister());
+		$this->schemaResolver->method('eventSchema')->willReturnCallback(static fn (ObjectTransitionedEvent $event): string => $event->getSchema());
 
 	}//end setUp()
 
@@ -107,9 +129,9 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
-				$schema = $config['schema'];
+				$schema = $config['filters']['schema'];
 				$records = $this->db[$schema] ?? [];
-				$filters = $config['filters'] ?? [];
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 
 				$matched = array_values(
 					array_filter(
@@ -168,15 +190,47 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 		$levelResolver = new CompetencyLevelResolver($reader);
 		$writer = new CompetencyAttainmentWriter($objectService, $reader, $levelResolver, $logger);
 
-		return new CompetencyAttainmentRollupHandler(
+		$rollup = new CompetencyAttainmentRollup(
 			$objectService,
-			$this->schemaResolver,
 			$logger,
 			$reader,
 			$writer,
 			$levelResolver,
 			new GradeEvidenceRollup($reader, $writer)
 		);
+
+		$test = $this;
+		$deferral = new class ($test, $rollup) extends ListenerDeferralService {
+			/**
+			 * Constructor.
+			 *
+			 * @param CompetencyAttainmentRollupHandlerTest $test The test, to record entries.
+			 * @param CompetencyAttainmentRollup $rollup The work the job would run.
+			 */
+			public function __construct(
+				private readonly CompetencyAttainmentRollupHandlerTest $test,
+				private readonly CompetencyAttainmentRollup $rollup,
+			) {
+			}//end __construct()
+
+			/**
+			 * Record the entry, then run it as the job would.
+			 *
+			 * @param string $jobClass The job class.
+			 * @param array<string, mixed> $entry The entry.
+			 * @param int $chunkSize Unused.
+			 * @param string|null $dedupeKey The dedupe key.
+			 *
+			 * @return void
+			 */
+			public function defer(string $jobClass, array $entry, int $chunkSize = self::DEFAULT_CHUNK_SIZE, ?string $dedupeKey = null): void {
+				if ($this->test->recordQueued(jobClass: $jobClass, entry: $entry, dedupeKey: $dedupeKey) === true) {
+					$this->rollup->run(kind: $entry['kind'], object: $entry['object']);
+				}
+			}//end defer()
+		};
+
+		return new CompetencyAttainmentRollupHandler($deferral, $this->schemaResolver);
 
 	}//end makeHandler()
 
@@ -618,6 +672,95 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 	}//end testWerkprocesCreationNoMatchLeavesCompetencyIdNull()
 
 	/**
+	 * Seed two SBB dossiers that share werkproces code B1-K1-W1, the way SBB
+	 * repeats codes in every dossier. The logistics dossier comes first, so a
+	 * first-match lookup lands there.
+	 *
+	 * @param string|null $logisticsRef sourceRef of the logistics framework.
+	 * @param string|null $careRef sourceRef of the care framework.
+	 *
+	 * @return void
+	 */
+	private function seedTwoDossiersSharingACode(?string $logisticsRef, ?string $careRef): void {
+		$this->seed('competency-framework', ['id' => 'fw-log', 'sourceAuthority' => 'sbb-kwalificatiedossier', 'sourceRef' => $logisticsRef, 'tenant_id' => 'tenant-a']);
+		$this->seed('competency-framework', ['id' => 'fw-vig', 'sourceAuthority' => 'sbb-kwalificatiedossier', 'sourceRef' => $careRef, 'tenant_id' => 'tenant-a']);
+		$this->seed('competency', ['id' => 'comp-log-w1', 'frameworkId' => 'fw-log', 'code' => 'B1-K1-W1', 'tenant_id' => 'tenant-a']);
+		$this->seed('competency', ['id' => 'comp-vig-w1', 'frameworkId' => 'fw-vig', 'code' => 'B1-K1-W1', 'tenant_id' => 'tenant-a']);
+		$this->seed('competency', ['id' => 'comp-vig-k3w2', 'frameworkId' => 'fw-vig', 'code' => 'B1-K3-W2', 'tenant_id' => 'tenant-a']);
+	}//end seedTwoDossiersSharingACode()
+
+	/**
+	 * A code that repeats across dossiers resolves inside the assessment's own
+	 * dossier. Red before the fix: the first framework's competency won.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/bpv/spec.md#scenario-a-repeated-code-resolves-to-the-assessments-own-dossier
+	 */
+	public function testARepeatedCodeResolvesToTheAssessmentsOwnDossier(): void {
+		$handler = $this->makeHandler();
+		$this->seedTwoDossiersSharingACode(logisticsRef: '90201', careRef: '90302');
+
+		$handler->handle(
+			$this->makeCreatedEvent(
+				'werkproces-assessment',
+				['id' => 'wpa-vig', 'kwalificatiedossierCode' => '90302', 'werkprocesCode' => 'B1-K1-W1', 'competencyId' => null, 'tenant_id' => 'tenant-a']
+			)
+		);
+
+		$saved = $this->savedFor('werkproces-assessment');
+		$this->assertCount(1, $saved);
+		$this->assertSame('comp-vig-w1', $saved[0]['competencyId']);
+	}//end testARepeatedCodeResolvesToTheAssessmentsOwnDossier()
+
+	/**
+	 * Without a dossier match, a code two frameworks share is ambiguous and
+	 * stays unresolved. Red before the fix: it linked the first framework's
+	 * competency.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/bpv/spec.md#scenario-an-ambiguous-code-stays-unresolved
+	 */
+	public function testAnAmbiguousCodeStaysUnresolved(): void {
+		$handler = $this->makeHandler();
+		$this->seedTwoDossiersSharingACode(logisticsRef: null, careRef: 'crebo 90302 (voorbeeldcode)');
+
+		$handler->handle(
+			$this->makeCreatedEvent(
+				'werkproces-assessment',
+				['id' => 'wpa-amb', 'kwalificatiedossierCode' => '90302', 'werkprocesCode' => 'B1-K1-W1', 'competencyId' => null, 'tenant_id' => 'tenant-a']
+			)
+		);
+
+		$this->assertCount(0, $this->savedFor('werkproces-assessment'));
+	}//end testAnAmbiguousCodeStaysUnresolved()
+
+	/**
+	 * Without a dossier match, a code exactly one framework knows still
+	 * resolves, so tenants that never filled in sourceRef keep working.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/bpv/spec.md#scenario-a-code-only-one-framework-knows-still-resolves
+	 */
+	public function testACodeOnlyOneFrameworkKnowsStillResolves(): void {
+		$handler = $this->makeHandler();
+		$this->seedTwoDossiersSharingACode(logisticsRef: null, careRef: null);
+
+		$handler->handle(
+			$this->makeCreatedEvent(
+				'werkproces-assessment',
+				['id' => 'wpa-one', 'werkprocesCode' => 'B1-K3-W2', 'competencyId' => null, 'tenant_id' => 'tenant-a']
+			)
+		);
+
+		$saved = $this->savedFor('werkproces-assessment');
+		$this->assertCount(1, $saved);
+		$this->assertSame('comp-vig-k3w2', $saved[0]['competencyId']);
+	}//end testACodeOnlyOneFrameworkKnowsStillResolves()
+
+	/**
 	 * Events for other schemas/states are ignored entirely.
 	 *
 	 * @return void
@@ -644,4 +787,44 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 		$this->assertCount(0, $this->savedObjects);
 
 	}//end testIgnoresUnrelatedCreatedEvents()
+
+	/**
+	 * Record one queued entry (called by the deferral fake).
+	 *
+	 * @param string $jobClass The job class.
+	 * @param array<string, mixed> $entry The entry.
+	 * @param string|null $dedupeKey The dedupe key.
+	 *
+	 * @return bool Whether the fake should run the entry now.
+	 */
+	public function recordQueued(string $jobClass, array $entry, ?string $dedupeKey): bool {
+		$this->queued[] = ['jobClass' => $jobClass, 'entry' => $entry, 'dedupeKey' => $dedupeKey];
+		return $this->runQueued;
+	}//end recordQueued()
+
+	/**
+	 * The handler writes nothing inside the save that fired it: it queues the
+	 * roll-up for CompetencyAttainmentRollupJob (hydra gate 61, ADR-078).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/competency/spec.md#scenario-a-new-werkproces-assessment-is-saved-without-waiting-for-its-competency
+	 */
+	public function testTheHandlerQueuesTheWorkAndWritesNothingItself(): void {
+		$this->stubResolver('werkproces-assessment');
+		$this->runQueued = false;
+		$handler = $this->makeHandler();
+
+		$handler->handle($this->makeCreatedEvent('werkproces-assessment', ['id' => 'wpa-1', 'werkprocesCode' => 'B1-K1-W1', 'tenant_id' => 'tenant-a']));
+		$handler->handle($this->makeTransitionEvent('grade-entry', 'published', ['id' => 'ge-1']));
+		$handler->handle($this->makeTransitionEvent('werkproces-assessment', 'confirmed', ['id' => 'wpa-1']));
+
+		self::assertCount(0, $this->savedObjects);
+		self::assertSame(
+			[CompetencyAttainmentRollup::WERKPROCES_CREATED, CompetencyAttainmentRollup::GRADE_ENTRY_PUBLISHED, CompetencyAttainmentRollup::WERKPROCES_CONFIRMED],
+			array_map(static fn (array $q): string => $q['entry']['kind'], $this->queued)
+		);
+		self::assertSame(CompetencyAttainmentRollupJob::class, $this->queued[0]['jobClass']);
+		self::assertSame('werkproces-created|wpa-1', $this->queued[0]['dedupeKey']);
+	}//end testTheHandlerQueuesTheWorkAndWritesNothingItself()
 }//end class

@@ -270,7 +270,7 @@ export default {
 		 *
 		 * @param {string} kind Flag kind value
 		 * @return {string}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		flagKindLabel(kind) {
 			const labels = {
@@ -319,7 +319,7 @@ export default {
 					`/apps/openregister/api/objects/learniq/proctoring-session/${session.uuid}`,
 				)
 				const resp = await fetch(url, {
-					method: 'PUT',
+					method: 'PATCH',
 					headers: {
 						'OCS-APIREQUEST': 'true',
 						Accept: 'application/json',

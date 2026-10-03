@@ -38,8 +38,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
+ * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
+ * @spec openspec/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
  */
 
 declare(strict_types=1);
@@ -47,6 +47,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -57,7 +58,7 @@ use OCP\EventDispatcher\IEventListener;
  * Bridges PeerReview.released -> PeerFeedbackSummary recompute.
  *
  * @implements IEventListener<Event>
- * @spec       openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-identity-is-hidden-from-the-submission-author-via-a-server-enforced-feedback-projection
+ * @spec       openspec/changes/archive/2026-07-16-peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-identity-is-hidden-from-the-submission-author-via-a-server-enforced-feedback-projection
  */
 class PeerFeedbackAggregator implements IEventListener {
 
@@ -73,12 +74,14 @@ class PeerFeedbackAggregator implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly ITimeFactory $timeFactory,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -89,18 +92,18 @@ class PeerFeedbackAggregator implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-teacher-releases-a-submitted-peerreview
+	 * @spec openspec/specs/assignments/spec.md#scenario-a-teacher-releases-a-submitted-peerreview
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() !== self::PEER_REVIEW_SCHEMA || $event->getTo() !== 'released') {
+		if ($this->schemas->eventSchema(event: $event) !== self::PEER_REVIEW_SCHEMA || $event->getTo() !== 'released') {
 			return;
 		}
 
@@ -126,8 +129,8 @@ class PeerFeedbackAggregator implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
+	 * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
+	 * @spec openspec/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
 	 */
 	private function recomputeSummary(string $submissionId, string $assignmentId): void {
 		$anonymity = $this->fetchAnonymityMode(assignmentId: $assignmentId);
@@ -214,9 +217,9 @@ class PeerFeedbackAggregator implements IEventListener {
 	private function fetchReleasedReviews(string $submissionId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::PEER_REVIEW_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::PEER_REVIEW_SCHEMA,
 					'submissionId' => $submissionId,
 					'lifecycle' => 'released',
 				],
@@ -241,9 +244,11 @@ class PeerFeedbackAggregator implements IEventListener {
 	private function fetchExistingSummary(string $submissionId): ?array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::PEER_FEEDBACK_SUMMARY_SCHEMA,
-				'filters' => ['submissionId' => $submissionId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::PEER_FEEDBACK_SUMMARY_SCHEMA,
+					'submissionId' => $submissionId,
+				],
 				'limit' => 1,
 			]
 		);

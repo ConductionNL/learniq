@@ -20,7 +20,7 @@
   Copyright (C) 2026 Conduction B.V.
 
   @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
-  @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-every-assessmentresult-persists-a-frozen-server-resolved-snapshot-of-what-was-presented
+  @spec openspec/specs/assessment/spec.md#requirement-every-assessmentresult-persists-a-frozen-server-resolved-snapshot-of-what-was-presented
 -->
 
 <template>
@@ -36,6 +36,47 @@
 			<span class="icon-error" aria-hidden="true" />
 			<p>{{ error }}</p>
 		</div>
+
+		<!-- Closed: outside the availability window or otherwise not released -->
+		<div v-else-if="closedMessage" class="take-assessment__closed" role="status">
+			<span class="icon-info" aria-hidden="true" />
+			<p>{{ closedMessage }}</p>
+		</div>
+
+		<!-- Access code: the assessment is behind a code (learniq#946) -->
+		<form
+			v-else-if="showAccessCodeForm"
+			class="take-assessment__access-code"
+			@submit.prevent="submitAccessCode">
+			<h3>{{ assessment ? assessment.title : '' }}</h3>
+			<p id="take-assessment-access-code-hint">
+				{{
+					t(
+						'learniq',
+						'Enter the access code you were given to start this assessment.',
+					)
+				}}
+			</p>
+			<label for="take-assessment-access-code">
+				{{ t('learniq', 'Access code') }}
+			</label>
+			<input
+				id="take-assessment-access-code"
+				v-model="accessCode"
+				type="password"
+				autocomplete="off"
+				aria-describedby="take-assessment-access-code-hint"
+				required />
+			<p
+				v-if="accessCodeError"
+				role="alert"
+				class="take-assessment__error-inline">
+				{{ accessCodeError }}
+			</p>
+			<button type="submit" class="button-vue button-vue--primary">
+				{{ t('learniq', 'Start assessment') }}
+			</button>
+		</form>
 
 		<!-- Confirmation -->
 		<div
@@ -159,6 +200,13 @@
 								time: formattedTimeRemaining,
 							})
 						}}
+					</span>
+					<span
+						v-if="autosaveState"
+						class="take-assessment__autosave"
+						role="status"
+						aria-live="polite">
+						{{ autosaveMessage }}
 					</span>
 					<span class="take-assessment__progress">
 						{{
@@ -293,6 +341,13 @@
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import {
+	answersFromResult,
+	responsesPayload,
+	secondsUntilDeadline,
+	serverOffsetMs,
+} from '../utils/attemptClock.js'
+import { transitionUrl } from '../utils/manualScoring.js'
 
 export default {
 	name: 'TakeAssessmentView',
@@ -332,11 +387,24 @@ export default {
 			submitted: false,
 			showProctoringNotice: false,
 			error: null,
+			/** @type {string|null} Why the assessment cannot be started now */
+			closedMessage: null,
+			showAccessCodeForm: false,
+			/** Access code the learner typed; sent once, on create */
+			accessCode: '',
+			/** @type {string|null} */
+			accessCodeError: null,
 			submitError: null,
 			/** @type {number|null} Seconds remaining; null = untimed */
 			secondsRemaining: null,
 			/** @type {number|null} Interval ID */
 			timerInterval: null,
+			/** @type {number} Server time minus browser time, in milliseconds */
+			serverOffset: 0,
+			/** @type {number|null} Timeout ID of the pending autosave */
+			autosaveTimeout: null,
+			/** @type {string|null} 'saving', 'saved' or 'failed' */
+			autosaveState: null,
 			showTestModeIntro: false,
 			showTabLockBlocked: false,
 			nativeTestModeActive: false,
@@ -378,7 +446,7 @@ export default {
 		 * disabled or the item has no discrete choice identifiers).
 		 *
 		 * @return {string[]|null}
-		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
+		 * @spec openspec/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
 		 */
 		currentItemOptionOrder() {
 			const item = this.currentItem
@@ -410,6 +478,25 @@ export default {
 		timeWarning() {
 			return this.secondsRemaining !== null && this.secondsRemaining <= 300
 		},
+
+		/**
+		 * What the autosave status line says.
+		 *
+		 * @return {string}
+		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
+		 */
+		autosaveMessage() {
+			if (this.autosaveState === 'saving') {
+				return this.t('learniq', 'Saving your answers')
+			}
+			if (this.autosaveState === 'failed') {
+				return this.t(
+					'learniq',
+					'Your answers could not be saved just now. We try again with your next answer and when you hand in.',
+				)
+			}
+			return this.t('learniq', 'Your answers are saved')
+		},
 	},
 
 	watch: {
@@ -437,10 +524,11 @@ export default {
 	 * mid-attempt without a successful submit.
 	 *
 	 * @return {void}
-	 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+	 * @spec openspec/specs/assessment/spec.md
 	 */
 	beforeUnmount() {
 		this.clearTimer()
+		this.clearAutosave()
 
 		if (!this.nativeTestModeActive) return
 
@@ -458,10 +546,10 @@ export default {
 			&& typeof navigator !== 'undefined'
 			&& typeof navigator.sendBeacon === 'function'
 		) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/proctoring-session/${this.proctoringSession.uuid}/transition/end`,
-			)
-			const blob = new Blob([JSON.stringify({})], { type: 'application/json' })
+			const url = generateUrl(transitionUrl(this.proctoringSession.uuid))
+			const blob = new Blob([JSON.stringify({ action: 'end' })], {
+				type: 'application/json',
+			})
 			navigator.sendBeacon(url, blob)
 		}
 	},
@@ -474,63 +562,226 @@ export default {
 		 * @param {string} id Assessment UUID
 		 * @return {Promise<void>}
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
-		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-every-assessmentresult-persists-a-frozen-server-resolved-snapshot-of-what-was-presented
+		 * @spec openspec/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md#requirement-every-assessmentresult-persists-a-frozen-server-resolved-snapshot-of-what-was-presented
 		 */
 		async init(id) {
 			this.loading = true
 			this.error = null
+			this.closedMessage = null
 
 			try {
 				await this.loadAssessment(id)
 
-				const proctoring = this.assessment?.proctoring ?? null
-
-				if (proctoring?.provider) {
-					if (proctoring?.nativeTestMode) {
-						// Config error: both an external provider and native test mode are set.
-						// The external provider wins (design.md §3.1) — no schema-level
-						// mutual-exclusion precedent exists in this register.
-						// eslint-disable-next-line no-console
-						console.warn(
-							'[TakeAssessmentView] Assessment.proctoring has both "provider" and "nativeTestMode" set; the external provider path wins.',
-						)
-					}
-					this.showProctoringNotice = true
+				// Server-side gate facts first (learniq#946): the create guard
+				// refuses an attempt outside the window or without the access
+				// code anyway, this only lets the page say why up front.
+				const status = await this.loadReleaseStatus(id)
+				if (status && status.available === false) {
+					this.closedMessage = this.closedMessageFor(
+						status.reasonCode,
+						status.reason,
+					)
 					return
 				}
 
-				if (proctoring?.nativeTestMode) {
-					this.nativeTestModeActive = true
-					this.tabId = this.generateId()
-					this.showTestModeIntro = true
+				if (
+					status?.requiresAccessCode === true
+					&& !(await this.checkExistingAttempt(id))
+				) {
+					this.showAccessCodeForm = true
 					return
 				}
 
-				// Item pools and analysis: items are resolved from the server-side
-				// drawnItemRefs snapshot, which only exists once the AssessmentResult
-				// has been created — loadItems() MUST run after getOrCreateResult().
-				await this.getOrCreateResult(id)
-				await this.loadItems()
-				this.startTimer()
+				await this.proceed(id)
 			} catch (err) {
-				// A missing record is input, not a fault — see the same branch in
-				// PortfolioBuilder.vue. An assessment that has been withdrawn, or
-				// a link a learner kept after it was removed, is an ordinary 404
-				// and belongs on screen rather than in console.error.
-				if (err?.notFound === true) {
-					this.error = this.t(
-						'learniq',
-						'This assessment is no longer available, or you do not have access to it.',
-					)
-				} else {
-					this.error = this.t(
-						'learniq',
-						'Failed to load assessment. Please try again.',
-					)
+				this.handleInitError(err)
+			} finally {
+				this.loading = false
+			}
+		},
+
+		/**
+		 * Continue after the gate: branch on proctoring shape (external provider
+		 * notice / native test-mode intro / unproctored start).
+		 *
+		 * @param {string} id Assessment UUID
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md#requirement-every-assessmentresult-persists-a-frozen-server-resolved-snapshot-of-what-was-presented
+		 */
+		async proceed(id) {
+			const proctoring = this.assessment?.proctoring ?? null
+
+			if (proctoring?.provider) {
+				if (proctoring?.nativeTestMode) {
+					// Config error: both an external provider and native test mode are set.
+					// The external provider wins (design.md §3.1) — no schema-level
+					// mutual-exclusion precedent exists in this register.
 					// eslint-disable-next-line no-console
-					console.error('[TakeAssessmentView] init error', err)
+					console.warn(
+						'[TakeAssessmentView] Assessment.proctoring has both "provider" and "nativeTestMode" set; the external provider path wins.',
+					)
 				}
+				this.showProctoringNotice = true
+				return
+			}
+
+			if (proctoring?.nativeTestMode) {
+				this.nativeTestModeActive = true
+				this.tabId = this.generateId()
+				this.showTestModeIntro = true
+				return
+			}
+
+			// Item pools and analysis: items are resolved from the server-side
+			// drawnItemRefs snapshot, which only exists once the AssessmentResult
+			// has been created — loadItems() MUST run after getOrCreateResult().
+			await this.getOrCreateResult(id)
+			await this.loadItems()
+			this.startTimer()
+		},
+
+		/**
+		 * Show an init failure: a refused attempt goes back to the gate screen,
+		 * a missing record is a plain message, anything else is logged.
+		 *
+		 * @param {Error} err The failure
+		 * @return {void}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 */
+		handleInitError(err) {
+			if (this.routeGateRefusal(err)) {
+				return
+			}
+			// A missing record is input, not a fault — see the same branch in
+			// PortfolioBuilder.vue. An assessment that has been withdrawn, or
+			// a link a learner kept after it was removed, is an ordinary 404
+			// and belongs on screen rather than in console.error.
+			if (err?.notFound === true) {
+				this.error = this.t(
+					'learniq',
+					'This assessment is no longer available, or you do not have access to it.',
+				)
+			} else {
+				this.error = this.t(
+					'learniq',
+					'Failed to load assessment. Please try again.',
+				)
+				// eslint-disable-next-line no-console
+				console.error('[TakeAssessmentView] init error', err)
+			}
+		},
+
+		/**
+		 * Ask the server whether this learner may start the assessment now
+		 * (window, drip and release conditions) and whether it needs an access
+		 * code. A failed lookup returns null: the create guard still decides.
+		 *
+		 * @param {string} id Assessment UUID
+		 * @return {Promise<object|null>} `{available, reason, reasonCode, requiresAccessCode}`
+		 * @spec openspec/specs/assessment/spec.md#requirement-an-attempt-starts-only-inside-the-availability-window-and-with-the-access-code
+		 */
+		async loadReleaseStatus(id) {
+			try {
+				const resp = await fetch(
+					generateUrl(
+						`/apps/learniq/api/assessments/${id}/release-status`,
+					),
+					{
+						headers: {
+							'OCS-APIREQUEST': 'true',
+							Accept: 'application/json',
+						},
+					},
+				)
+				if (!resp.ok) return null
+				return await resp.json()
+			} catch (err) {
+				return null
+			}
+		},
+
+		/**
+		 * The sentence to show for a refused start, by the server's reason code.
+		 *
+		 * @param {string|null} reasonCode Machine reason from the server
+		 * @param {string|null} fallback Server-supplied text for other reasons
+		 * @return {string}
+		 * @spec openspec/specs/assessment/spec.md#requirement-an-attempt-starts-only-inside-the-availability-window-and-with-the-access-code
+		 */
+		closedMessageFor(reasonCode, fallback) {
+			if (reasonCode === 'window-not-open') {
+				const from = this.assessment?.availableFrom
+				if (from) {
+					return this.t(
+						'learniq',
+						'This assessment is not open yet. It opens on {date}.',
+						{ date: new Date(from).toLocaleString() },
+					)
+				}
+				return this.t('learniq', 'This assessment is not open yet.')
+			}
+			if (reasonCode === 'window-closed') {
+				return this.t('learniq', 'This assessment is closed.')
+			}
+			if (reasonCode === 'attempts-used') {
+				return this.t(
+					'learniq',
+					'You have used all attempts for this assessment.',
+				)
+			}
+			return (
+				fallback
+				|| this.t('learniq', 'This assessment is not available right now.')
+			)
+		},
+
+		/**
+		 * Route a create refused by the server's attempt gate back to the right
+		 * screen. Returns false for any other failure.
+		 *
+		 * @param {Error} err The failure
+		 * @return {boolean} True when handled
+		 * @spec openspec/specs/assessment/spec.md#requirement-an-attempt-starts-only-inside-the-availability-window-and-with-the-access-code
+		 */
+		routeGateRefusal(err) {
+			const reason = err?.gateReason ?? null
+			if (!reason) return false
+
+			if (
+				reason === 'access-code-required'
+				|| reason === 'access-code-invalid'
+			) {
+				this.showProctoringNotice = false
+				this.showTestModeIntro = false
+				this.showAccessCodeForm = true
+				this.accessCodeError =
+					reason === 'access-code-invalid'
+						? this.t('learniq', 'The access code is not correct.')
+						: null
+				return true
+			}
+
+			this.closedMessage = this.closedMessageFor(reason, err?.gateMessage)
+			return true
+		},
+
+		/**
+		 * The learner entered an access code: continue the normal start. The
+		 * code is checked by the server when the attempt is created.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/assessment/spec.md#requirement-an-attempt-starts-only-inside-the-availability-window-and-with-the-access-code
+		 */
+		async submitAccessCode() {
+			this.showAccessCodeForm = false
+			this.accessCodeError = null
+			this.loading = true
+			try {
+				await this.proceed(this.assessmentId)
+			} catch (err) {
+				this.handleInitError(err)
 			} finally {
 				this.loading = false
 			}
@@ -573,7 +824,7 @@ export default {
 		 * fixed list) — AssessmentDrawResolver populates it for EVERY attempt.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-every-assessmentresult-persists-a-frozen-server-resolved-snapshot-of-what-was-presented
+		 * @spec openspec/specs/assessment/spec.md#requirement-every-assessmentresult-persists-a-frozen-server-resolved-snapshot-of-what-was-presented
 		 */
 		async loadItems() {
 			const drawnItemRefs = this.result?.drawnItemRefs ?? []
@@ -633,10 +884,20 @@ export default {
 					startedAt: new Date().toISOString(),
 					lifecycle: 'in-progress',
 					tenant_id: this.assessment?.tenant_id ?? '',
+					...(this.accessCode ? { accessCode: this.accessCode } : {}),
 				}),
 			})
 			if (!resp.ok) {
-				throw new Error(`AssessmentResult create failed: ${resp.status}`)
+				const err = new Error(
+					`AssessmentResult create failed: ${resp.status}`,
+				)
+				if (resp.status === 422) {
+					// AssessmentAttemptGateListener refused the attempt.
+					const body = await resp.json().catch(() => ({}))
+					err.gateReason = body?.errors?.reason ?? null
+					err.gateMessage = body?.errors?.message ?? body?.error ?? null
+				}
+				throw err
 			}
 			const json = await resp.json()
 			const created = json.object ?? json ?? {}
@@ -653,7 +914,7 @@ export default {
 		 *
 		 * @param {string} resultId AssessmentResult UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
+		 * @spec openspec/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
 		 */
 		async fetchResult(resultId) {
 			const url = generateUrl(
@@ -667,6 +928,12 @@ export default {
 			}
 			const json = await resp.json()
 			this.result = json.object ?? json ?? {}
+			this.serverOffset = serverOffsetMs(
+				resp.headers?.get?.('Date'),
+				Date.now(),
+			)
+			// A resumed attempt shows the answers autosave already stored.
+			this.responses = { ...answersFromResult(this.result), ...this.responses }
 		},
 
 		/**
@@ -677,7 +944,7 @@ export default {
 		 *
 		 * @param {string} assessmentId Assessment UUID
 		 * @return {Promise<object|null>} The existing in-progress result, or null.
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		async checkExistingAttempt(assessmentId) {
 			const currentUser = getCurrentUser()
@@ -708,8 +975,8 @@ export default {
 		 *
 		 * @param {string} assessmentId Assessment UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
-		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
+		 * @spec openspec/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
 		 */
 		async getOrCreateResult(assessmentId) {
 			const existing = await this.checkExistingAttempt(assessmentId)
@@ -728,7 +995,7 @@ export default {
 		 * where available.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		generateId() {
 			if (
@@ -747,18 +1014,32 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
 		startTimer() {
+			const deadlineAt = this.result?.deadlineAt ?? null
 			const minutes = this.assessment?.timeLimitMinutes ?? null
-			if (!minutes) return
+			if (!deadlineAt && !minutes) return
 
-			this.secondsRemaining = minutes * 60
+			// The server's deadline counts the learner's extra time and does not
+			// restart when the attempt is resumed; the browser's own count is
+			// only the fallback for an attempt without one.
+			const fallbackEnd = Date.now() + (minutes ?? 0) * 60 * 1000
+			const remaining = () => {
+				const fromServer = secondsUntilDeadline(
+					deadlineAt,
+					Date.now(),
+					this.serverOffset,
+				)
+				if (fromServer !== null) return fromServer
+				return Math.max(0, Math.floor((fallbackEnd - Date.now()) / 1000))
+			}
+
+			this.clearTimer()
+			this.secondsRemaining = remaining()
 			this.timerInterval = setInterval(() => {
+				this.secondsRemaining = remaining()
 				if (this.secondsRemaining <= 0) {
 					this.clearTimer()
 					this.submitAssessment()
-					return
 				}
-
-				this.secondsRemaining--
 			}, 1000)
 		},
 
@@ -789,6 +1070,7 @@ export default {
 				await this.loadItems()
 				this.startTimer()
 			} catch (err) {
+				if (this.routeGateRefusal(err)) return
 				this.error = this.t(
 					'learniq',
 					'Failed to start assessment. Please try again.',
@@ -804,7 +1086,7 @@ export default {
 		 * and — if not blocked — create the ProctoringSession and attach hardening.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		async startNativeTestMode() {
 			this.loading = true
@@ -826,6 +1108,10 @@ export default {
 				await this.loadItems()
 				this.startTimer()
 			} catch (err) {
+				if (this.routeGateRefusal(err)) {
+					this.showTestModeIntro = false
+					return
+				}
 				this.error = this.t(
 					'learniq',
 					'Failed to start assessment. Please try again.',
@@ -844,7 +1130,7 @@ export default {
 		 *
 		 * @param {string} resultId AssessmentResult UUID
 		 * @return {boolean} True when this tab is blocked by a live lock elsewhere.
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		acquireTabLock(resultId) {
 			const key = `learniq-native-test-mode-lock-${resultId}`
@@ -877,7 +1163,7 @@ export default {
 		 *
 		 * @param {string} key localStorage key for the current attempt's lock
 		 * @return {void}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		writeTabLock(key) {
 			try {
@@ -894,7 +1180,7 @@ export default {
 		 * Stop the tab-lock heartbeat and release the held lock, if any.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		releaseTabLock() {
 			if (this.tabLockInterval !== null) {
@@ -918,7 +1204,7 @@ export default {
 		 *
 		 * @param {string} resultId AssessmentResult UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		async flagConcurrentSessionForBlockedTab(resultId) {
 			try {
@@ -955,7 +1241,7 @@ export default {
 		 * existing `activate` transition.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		async createProctoringSession() {
 			const currentUser = getCurrentUser()
@@ -985,17 +1271,17 @@ export default {
 			const json = await resp.json()
 			this.proctoringSession = json.object ?? json ?? {}
 
-			const transitionUrl = generateUrl(
-				`/apps/openregister/api/objects/learniq/proctoring-session/${this.proctoringSession.uuid}/transition/activate`,
+			const activateUrl = generateUrl(
+				transitionUrl(this.proctoringSession.uuid),
 			)
-			const transitionResp = await fetch(transitionUrl, {
+			const transitionResp = await fetch(activateUrl, {
 				method: 'POST',
 				headers: {
 					'OCS-APIREQUEST': 'true',
 					Accept: 'application/json',
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({}),
+				body: JSON.stringify({ action: 'activate' }),
 			})
 			if (!transitionResp.ok) {
 				throw new Error(
@@ -1010,7 +1296,7 @@ export default {
 		 * in native mode; popstate/beforeunload are gated by `navigationLock`.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		attachNativeHardening() {
 			const proctoring = this.assessment?.proctoring ?? {}
@@ -1072,7 +1358,7 @@ export default {
 		 * Remove every listener attached by `attachNativeHardening()`.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		detachNativeHardening() {
 			const handlers = this.nativeHandlers ?? {}
@@ -1104,7 +1390,7 @@ export default {
 		 * @param {string} kind     Flag kind (see design §3.4 event table)
 		 * @param {string} severity 'low' | 'medium' | 'high'
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		async appendFlag(kind, severity) {
 			if (!this.proctoringSession?.uuid) return
@@ -1128,7 +1414,7 @@ export default {
 					`/apps/openregister/api/objects/learniq/proctoring-session/${this.proctoringSession.uuid}`,
 				)
 				const resp = await fetch(url, {
-					method: 'PUT',
+					method: 'PATCH',
 					headers: {
 						'OCS-APIREQUEST': 'true',
 						Accept: 'application/json',
@@ -1155,7 +1441,7 @@ export default {
 		 * fullscreen, and detach listeners.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md
 		 */
 		async teardownNativeTestMode() {
 			this.detachNativeHardening()
@@ -1171,17 +1457,17 @@ export default {
 
 			if (this.proctoringSession?.uuid) {
 				try {
-					const transitionUrl = generateUrl(
-						`/apps/openregister/api/objects/learniq/proctoring-session/${this.proctoringSession.uuid}/transition/end`,
+					const endUrl = generateUrl(
+						transitionUrl(this.proctoringSession.uuid),
 					)
-					const resp = await fetch(transitionUrl, {
+					const resp = await fetch(endUrl, {
 						method: 'POST',
 						headers: {
 							'OCS-APIREQUEST': 'true',
 							Accept: 'application/json',
 							'Content-Type': 'application/json',
 						},
-						body: JSON.stringify({}),
+						body: JSON.stringify({ action: 'end' }),
 					})
 					if (!resp.ok) {
 						throw new Error(
@@ -1199,6 +1485,68 @@ export default {
 		},
 
 		/**
+		 * Save the answers a moment after the learner stops changing them, so a
+		 * closed tab or a stopped clock loses nothing already answered.
+		 *
+		 * @return {void}
+		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
+		 */
+		scheduleAutosave() {
+			if (!this.resultId || this.submitted || this.submitting) return
+			this.clearAutosave()
+			this.autosaveTimeout = setTimeout(() => {
+				this.autosaveTimeout = null
+				this.autosave()
+			}, 1500)
+		},
+
+		/**
+		 * Cancel a pending autosave.
+		 *
+		 * @return {void}
+		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
+		 */
+		clearAutosave() {
+			if (this.autosaveTimeout !== null) {
+				clearTimeout(this.autosaveTimeout)
+				this.autosaveTimeout = null
+			}
+		},
+
+		/**
+		 * Save the answers on the attempt in progress. PATCH, so only the
+		 * answers change; the server keeps them out after the deadline.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
+		 */
+		async autosave() {
+			if (!this.resultId || this.submitted || this.submitting) return
+			this.autosaveState = 'saving'
+			try {
+				const resp = await fetch(
+					generateUrl(
+						`/apps/openregister/api/objects/learniq/assessment-result/${this.resultId}`,
+					),
+					{
+						method: 'PATCH',
+						headers: {
+							'OCS-APIREQUEST': 'true',
+							Accept: 'application/json',
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({
+							responses: responsesPayload(this.items, this.responses),
+						}),
+					},
+				)
+				this.autosaveState = resp.ok ? 'saved' : 'failed'
+			} catch {
+				this.autosaveState = 'failed'
+			}
+		},
+
+		/**
 		 * Set the response for the current item.
 		 *
 		 * @param {unknown} value Learner's response value
@@ -1209,6 +1557,7 @@ export default {
 			const item = this.currentItem
 			if (!item) return
 			this.responses = { ...this.responses, [item.uuid]: value }
+			this.scheduleAutosave()
 		},
 
 		/**
@@ -1247,28 +1596,24 @@ export default {
 			this.submitting = true
 			this.submitError = null
 			this.clearTimer()
-
-			const responsesPayload = this.items.map((item) => ({
-				itemId: item.uuid,
-				response: { value: this.responses[item.uuid] ?? null },
-				autoScore: null,
-				manualScore: null,
-			}))
+			this.clearAutosave()
 
 			try {
 				// Persist responses.
 				const patchUrl = generateUrl(
 					`/apps/openregister/api/objects/learniq/assessment-result/${this.resultId}`,
 				)
+				// PATCH, not PUT: a PUT replaces the object, and this body carries
+				// only the responses and submittedAt.
 				const patchResp = await fetch(patchUrl, {
-					method: 'PUT',
+					method: 'PATCH',
 					headers: {
 						'OCS-APIREQUEST': 'true',
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
 					body: JSON.stringify({
-						responses: responsesPayload,
+						responses: responsesPayload(this.items, this.responses),
 						submittedAt: new Date().toISOString(),
 					}),
 				})
@@ -1277,18 +1622,20 @@ export default {
 				}
 
 				// Dispatch submit transition (triggers AssessmentScoringHandler).
-				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/learniq/assessment-result/${this.resultId}/transition/submit`,
-				)
-				const transitionResp = await fetch(transitionUrl, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
+				// Open Register routes transitions at /api/objects/{id}/transition
+				// with the action in the body (learniq#948).
+				const transitionResp = await fetch(
+					generateUrl(transitionUrl(this.resultId)),
+					{
+						method: 'POST',
+						headers: {
+							'OCS-APIREQUEST': 'true',
+							Accept: 'application/json',
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({ action: 'submit' }),
 					},
-					body: JSON.stringify({}),
-				})
+				)
 				if (!transitionResp.ok) {
 					throw new Error(
 						`Submit transition failed: ${transitionResp.status}`,
@@ -1341,7 +1688,7 @@ export default {
 		 * @param {string[]|null} [optionOrder] Server-resolved identifier order, or null.
 		 * @return {Array<{id: string, label: string}>}
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
-		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
+		 * @spec openspec/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
 		 */
 		extractChoices(qtiBody, optionOrder = null) {
 			if (!qtiBody) return []
@@ -1397,6 +1744,21 @@ export default {
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
+.take-assessment__closed {
+	display: flex;
+	align-items: center;
+	gap: var(--default-grid-baseline, 8px);
+	padding: calc(var(--default-grid-baseline, 8px) * 2);
+}
+
+.take-assessment__access-code {
+	display: flex;
+	flex-direction: column;
+	gap: var(--default-grid-baseline, 8px);
+	max-inline-size: 400px;
+	padding: calc(var(--default-grid-baseline, 8px) * 2);
+}
+
 .take-assessment__header {
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
 	border-bottom: 1px solid var(--color-border);
@@ -1413,6 +1775,10 @@ export default {
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
 	margin-top: var(--default-grid-baseline, 8px);
 	font-size: 0.9em;
+	color: var(--color-text-maxcontrast);
+}
+
+.take-assessment__autosave {
 	color: var(--color-text-maxcontrast);
 }
 

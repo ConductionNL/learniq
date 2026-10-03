@@ -5,10 +5,11 @@
  *
  * Lifecycle guard for the GradeEntry schema's `publish` and `republish`
  * transitions (grading spec, report-card-composer delta). Blocks ordinary
- * teacher grade-publishing once a matching `ReportPeriod` is locked
- * (`isLocked` true), unless the acting user holds admin/mentor/principal —
- * an explicit override, e.g. a genuine post-lock correction agreed at the
- * rapportvergadering.
+ * grade-publishing once a matching `ReportPeriod` is locked (`isLocked`
+ * true), unless a DataCorrectionRequest for the entry was approved by a
+ * second person (governance-four-eyes). The former lone override for
+ * admin, team leads and administration managers is gone: those groups now
+ * approve a correction, and the publish itself needs the approved request.
  *
  * DEVIATION FROM THE ORIGINAL DESIGN — this class REPLACES
  * {@see FraudCaseBlockGuard} as the `requires` value on `publish`/`republish`
@@ -54,19 +55,20 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
- * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
- * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-a-mentor-override-publishes-a-grade-for-a-locked-report-period
- * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
+ * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+ * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
+ * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
+ * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use OCA\OpenRegister\Service\ObjectService;
-use OCP\IGroupManager;
-use OCP\IUserManager;
+use OCA\Learniq\Service\Grading\CorrectionApprovals;
+use OCA\Learniq\Service\Grading\ReportPeriodLocks;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -79,179 +81,113 @@ use Psr\Log\LoggerInterface;
  * such `ReportPeriod` exists, allows unconditionally (fail-open — a school
  * not using report cards, or a GradeEntry outside any declared
  * ReportPeriod's scope, is completely unaffected). If a matching, locked
- * ReportPeriod exists, blocks unless the acting user holds
- * admin/mentor/principal.
+ * ReportPeriod exists, blocks unless an approved correction request covers
+ * this publish (CorrectionApprovals).
  *
- * @spec openspec/changes/report-card-composer/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+ * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
-class ReportPeriodLockGuard {
-
-	private const LEARNIQ_REGISTER = 'learniq';
-	private const REPORT_PERIOD_SCHEMA = 'report-period';
+class ReportPeriodLockGuard implements LifecycleGuardInterface {
 
 	/**
-	 * Roles whose members may override a locked report period and publish
-	 * anyway (an explicit, logged correction).
+	 * Reason shown to the caller when the transition is refused.
 	 *
-	 * @var string[]
+	 * @var string
 	 */
-	private const OVERRIDE_GROUPS = ['admin', 'mentor', 'principal'];
+	private const DENIAL = 'This grade is in a locked report period. A change needs a correction that a second person'
+		. ' approved. Publish the grade with the approved value.';
 
 	/**
 	 * Constructor.
 	 *
 	 * @param FraudCaseBlockGuard $fraudCaseBlockGuard The original guard this class composes (unchanged behaviour, called first).
-	 * @param ObjectService $objectService OR object access service.
-	 * @param IGroupManager $groupManager OR/NC group manager to resolve the acting user's role groups.
-	 * @param IUserManager $userManager User manager to resolve the acting user object for membership checks.
+	 * @param ReportPeriodLocks $locks The report period over a grade entry, and whether it is locked.
+	 * @param CorrectionApprovals $corrections The approved correction for a grade entry, if any.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly FraudCaseBlockGuard $fraudCaseBlockGuard,
-		private readonly ObjectService $objectService,
-		private readonly IGroupManager $groupManager,
-		private readonly IUserManager $userManager,
+		private readonly ReportPeriodLocks $locks,
+		private readonly CorrectionApprovals $corrections,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
+	 * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		// 1. Preserve the original fraud-case check.
+		$fraudCaseVerdict = $this->fraudCaseBlockGuard->check($object, $action, $userId);
+		if ($fraudCaseVerdict->isAllowed() === false) {
+			return $fraudCaseVerdict;
+		}
+
+		if ($this->allows(entry: $object, userId: $userId) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
+	 * The rule behind check(), answered as a boolean.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing the
 	 * `publish`/`republish` transition on a GradeEntry object.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the GradeEntry data array
-	 *                                               - 'transition' : 'publish' or 'republish'
-	 *                                               - 'actor'      : NC user ID of the requester (when available)
+	 * @param array<string,mixed> $entry The object at its target state, transition inputs merged in.
+	 * @param string $userId The uid of the caller.
 	 *
 	 * @return bool True if the transition is allowed; false blocks it.
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
-	 * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-a-mentor-override-publishes-a-grade-for-a-locked-report-period
-	 * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
+	 * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
+	 * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
 	 */
-	public function check(array &$transitionContext): bool {
-		// 1. Preserve the original fraud-case check byte-for-byte.
-		if ($this->fraudCaseBlockGuard->check($transitionContext) === false) {
-			return false;
-		}
-
-		$entry = $transitionContext['object'] ?? [];
-
-		$period = (string)($entry['period'] ?? '');
-		$curriculumPlanId = (string)($entry['curriculumPlanId'] ?? '');
-		$tenantId = (string)($entry['tenant_id'] ?? '');
+	private function allows(array $entry, string $userId): bool {
 		$entryId = $entry['id'] ?? ($entry['uuid'] ?? '');
 
-		if ($period === '' || $curriculumPlanId === '') {
-			// Nothing to match a ReportPeriod against.
-			return true;
-		}
-
-		$reportPeriod = $this->findGoverningReportPeriod(
-			period: $period,
-			curriculumPlanId: $curriculumPlanId,
-			tenantId: $tenantId
-		);
-
+		// No governing period (a school not using report cards, or an entry
+		// outside every period's scope) or a period before its lock date:
+		// allow. Locked is decided from lockDate, never from the stored
+		// isLocked alone, which OpenRegister does not keep (live pass D2).
+		$reportPeriod = $this->locks->lockedPeriodFor(entry: $entry);
 		if ($reportPeriod === null) {
-			// No ReportPeriod governs this entry — fail open, mirroring
-			// AttendanceFlagReportGuard's "no linked job -> allow
-			// unconditionally" posture.
 			return true;
 		}
 
-		$isLocked = $reportPeriod['isLocked'] ?? false;
-
-		if ($isLocked !== true) {
-			return true;
-		}
-
-		$actor = (string)($transitionContext['actor'] ?? '');
-
-		if ($this->actorMayOverride(actor: $actor) === true) {
+		$request = $this->corrections->approvedFor(entry: $entry, publisher: $userId);
+		if ($request !== null) {
 			$this->logger->info(
-				'[ReportPeriodLockGuard] GradeEntry {id} publish allowed — actor {actor} overrides locked ReportPeriod {period}.',
-				['id' => $entryId, 'actor' => $actor, 'period' => $reportPeriod['id'] ?? ($reportPeriod['uuid'] ?? '')]
+				'[ReportPeriodLockGuard] GradeEntry {id} published in locked ReportPeriod {period} on correction {request}'
+				. ' (asked by {requester}, approved by {approver}, published by {actor}).',
+				[
+					'id'        => $entryId,
+					'period'    => $reportPeriod['id'] ?? ($reportPeriod['uuid'] ?? ''),
+					'request'   => $request['id'] ?? '',
+					'requester' => $request['requestedBy'] ?? '',
+					'approver'  => $request['decidedBy'] ?? '',
+					'actor'     => $userId,
+				]
 			);
 			return true;
 		}
 
 		$this->logger->info(
-			'[ReportPeriodLockGuard] GradeEntry {id} blocked — governing ReportPeriod {period} is locked and actor {actor} holds no override role.',
-			['id' => $entryId, 'period' => $reportPeriod['id'] ?? ($reportPeriod['uuid'] ?? ''), 'actor' => $actor]
+			'[ReportPeriodLockGuard] GradeEntry {id} blocked: ReportPeriod {period} is locked and no correction approved by a second person covers {actor}.',
+			['id' => $entryId, 'period' => $reportPeriod['id'] ?? ($reportPeriod['uuid'] ?? ''), 'actor' => $userId]
 		);
 
 		return false;
-	}//end check()
-
-	/**
-	 * Resolve the ReportPeriod (if any) governing this GradeEntry's period +
-	 * curriculumPlanId, scoped to the same tenant.
-	 *
-	 * @param string $period GradeEntry.period value.
-	 * @param string $curriculumPlanId GradeEntry.curriculumPlanId value.
-	 * @param string $tenantId GradeEntry.tenant_id value.
-	 *
-	 * @return array<string,mixed>|null The governing ReportPeriod data array, or null when none matches.
-	 */
-	private function findGoverningReportPeriod(string $period, string $curriculumPlanId, string $tenantId): ?array {
-		$filters = ['periodCode' => $period];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$candidates = $this->objectService->findAll(
-			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::REPORT_PERIOD_SCHEMA,
-				'filters' => $filters,
-				'limit' => 500,
-			]
-		);
-
-		foreach ($candidates as $candidate) {
-			$candidateData = $candidate;
-			if (is_array($candidate) === false) {
-				$candidateData = $candidate->jsonSerialize();
-			}
-
-			$curriculumPlanIds = $candidateData['curriculumPlanIds'] ?? [];
-			if (is_array($curriculumPlanIds) === false) {
-				continue;
-			}
-
-			if (in_array($curriculumPlanId, $curriculumPlanIds, true) === true) {
-				return $candidateData;
-			}
-		}//end foreach
-
-		return null;
-	}//end findGoverningReportPeriod()
-
-	/**
-	 * Whether the acting user holds an override role (admin/mentor/principal).
-	 *
-	 * @param string $actor NC user ID of the requester.
-	 *
-	 * @return bool True when the user is in one of the override groups.
-	 */
-	private function actorMayOverride(string $actor): bool {
-		if ($actor === '') {
-			return false;
-		}
-
-		$user = $this->userManager->get($actor);
-		if ($user === null) {
-			return false;
-		}
-
-		$actorGroups = $this->groupManager->getUserGroupIds($user);
-
-		return count(array_intersect($actorGroups, self::OVERRIDE_GROUPS)) > 0;
-	}//end actorMayOverride()
+	}//end allows()
 }//end class

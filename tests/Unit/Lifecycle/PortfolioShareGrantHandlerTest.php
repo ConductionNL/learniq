@@ -16,13 +16,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
+ * @spec openspec/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -40,10 +41,12 @@ use Psr\Log\LoggerInterface;
  * Tests for PortfolioShareGrantHandler — both its `check()` self-grant guard and its
  * `handle()` IEventListener half (native NC Files share creation for sharedWithKind=teacher).
  *
- * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
- * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
+ * @spec openspec/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
+ * @spec openspec/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
  */
 class PortfolioShareGrantHandlerTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * Recorded IManager::createShare() calls.
@@ -79,11 +82,11 @@ class PortfolioShareGrantHandlerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($portfolio, $entries) {
-				if ($config['schema'] === 'portfolio') {
+				if ($config['filters']['schema'] === 'portfolio') {
 					return ($portfolio === null) ? [] : [$portfolio];
 				}
 
-				if ($config['schema'] === 'portfolio-entry') {
+				if ($config['filters']['schema'] === 'portfolio-entry') {
 					return $entries;
 				}
 
@@ -121,7 +124,8 @@ class PortfolioShareGrantHandlerTest extends TestCase {
 			$objectService,
 			$shareManager,
 			$rootFolder,
-			$this->createMock(LoggerInterface::class)
+			$this->createMock(LoggerInterface::class),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 	}//end makeHandler()
@@ -155,16 +159,15 @@ class PortfolioShareGrantHandlerTest extends TestCase {
 	public function testSelfGrantBlocked(): void {
 		$handler = $this->makeHandler(null, []);
 
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'share-1',
 				'sharedWithKind' => 'teacher',
 				'sharedWithTeacherId' => 'user-1',
 				'sharedBy' => 'user-1',
-			],
-		];
+				'lifecycle' => 'active',
+			];
 
-		$this->assertFalse($handler->check($context));
+		self::assertDenied($handler->check($object, 'grant', ''));
 
 	}//end testSelfGrantBlocked()
 
@@ -176,16 +179,15 @@ class PortfolioShareGrantHandlerTest extends TestCase {
 	public function testDifferentRecipientAllowed(): void {
 		$handler = $this->makeHandler(null, []);
 
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'share-1',
 				'sharedWithKind' => 'teacher',
 				'sharedWithTeacherId' => 'teacher-mentor',
 				'sharedBy' => 'learner-7',
-			],
-		];
+				'lifecycle' => 'active',
+			];
 
-		$this->assertTrue($handler->check($context));
+		self::assertAllowed($handler->check($object, 'grant', ''));
 
 	}//end testDifferentRecipientAllowed()
 
@@ -198,16 +200,15 @@ class PortfolioShareGrantHandlerTest extends TestCase {
 	public function testSelfGrantBlockedForPraktijkopleiderKind(): void {
 		$handler = $this->makeHandler(null, []);
 
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'share-2',
 				'sharedWithKind' => 'praktijkopleider',
 				'sharedWithPracticalTrainerId' => 'po-1',
 				'sharedBy' => 'po-1',
-			],
-		];
+				'lifecycle' => 'active',
+			];
 
-		$this->assertFalse($handler->check($context));
+		self::assertDenied($handler->check($object, 'grant', ''));
 
 	}//end testSelfGrantBlockedForPraktijkopleiderKind()
 

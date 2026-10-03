@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-course-teacher-quality-scores-are-a-declared-aggregation-and-calculation-engine-not-a-timedjob
+ * @spec openspec/specs/course-evaluation/spec.md#requirement-course-teacher-quality-scores-are-a-declared-aggregation-and-calculation-engine-not-a-timedjob
  */
 
 declare(strict_types=1);
@@ -44,11 +44,11 @@ class CourseQualityScoreEvaluatorTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($responses, $invitations) {
-				if ($config['schema'] === 'course-evaluation-response') {
+				if ($config['filters']['schema'] === 'course-evaluation-response') {
 					return $responses;
 				}
 
-				if ($config['schema'] === 'evaluation-invitation') {
+				if ($config['filters']['schema'] === 'evaluation-invitation') {
 					return $invitations;
 				}
 
@@ -65,7 +65,7 @@ class CourseQualityScoreEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
 	 */
 	public function testAverageRecomputesCorrectlyAcrossMultipleResponses(): void {
 		$responses = [
@@ -89,7 +89,7 @@ class CourseQualityScoreEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
 	 */
 	public function testNullOverallScoreDoesNotSkewAverage(): void {
 		$responses = [
@@ -113,7 +113,7 @@ class CourseQualityScoreEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-response-rate-reflects-invitations-not-just-responses
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-response-rate-reflects-invitations-not-just-responses
 	 */
 	public function testResponseRateDividesByInvitationCount(): void {
 		$responses = array_fill(0, 5, ['overallScore' => 4]);
@@ -134,7 +134,7 @@ class CourseQualityScoreEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-course-teacher-quality-scores-are-a-declared-aggregation-and-calculation-engine-not-a-timedjob
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-course-teacher-quality-scores-are-a-declared-aggregation-and-calculation-engine-not-a-timedjob
 	 */
 	public function testZeroInvitationsReturnsZeroResponseRate(): void {
 		$evaluator = $this->makeEvaluator(responses: [], invitations: []);

@@ -32,11 +32,32 @@
 					}
 				},
 				{
+					"id": "ImportedCoursesMenu",
+					"label": "Imported, not yet published",
+					"icon": "PackageDown",
+					"route": "Courses",
+					"query": {
+						"lifecycle": "draft",
+						"license": "all-rights-reserved"
+					},
+					"order": 11,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "CoursePackageImportMenu",
 					"label": "Import course package",
 					"icon": "DatabaseImportOutline",
 					"route": "CoursePackageImportView",
-					"order": 11,
+					"order": 12,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
@@ -53,12 +74,13 @@
 					"label": "Export course package",
 					"icon": "DatabaseExportOutline",
 					"route": "CoursePackageExport",
-					"order": 12,
+					"order": 13,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
 								"instructor",
 								"coordinator",
+								"team-lead",
 								"administration-manager",
 								"admin"
 							]
@@ -70,7 +92,7 @@
 					"label": "Course package import reports",
 					"icon": "DatabaseImportOutline",
 					"route": "CoursePackageImportReports",
-					"order": 13,
+					"order": 14,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
@@ -93,6 +115,24 @@
 							"in": [
 								"instructor",
 								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "CurriculumCoverageMenu",
+					"label": "Curriculum coverage",
+					"icon": "TableCheck",
+					"route": "CurriculumCoverageMatrix",
+					"order": 21,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"team-lead",
 								"administration-manager",
 								"admin"
 							]
@@ -126,6 +166,25 @@
 						"user.primaryRole": {
 							"in": [
 								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "CareTeamOverviewMenu",
+					"label": "Care team overview",
+					"icon": "AccountHeartOutline",
+					"route": "LearningPlans",
+					"query": {
+						"lifecycle": "active"
+					},
+					"order": 31,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
 								"coordinator",
 								"administration-manager",
 								"admin"
@@ -168,6 +227,39 @@
 					}
 				},
 				{
+					"id": "TrajectoriesMenu",
+					"label": "Trajectories",
+					"icon": "MapMarkerPath",
+					"route": "Trajectories",
+					"order": 36,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "ObservationInstrumentsMenu",
+					"label": "Observation instruments",
+					"icon": "EyeOutline",
+					"route": "ObservationInstruments",
+					"order": 37,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "Assignments",
 					"label": "Assignments",
 					"icon": "ClipboardTextOutline",
@@ -198,6 +290,19 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"vo",
+								"mbo",
+								"he",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
 						}
 					}
 				},
@@ -214,6 +319,19 @@
 								"guardian",
 								"coordinator",
 								"admin"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"vo",
+								"mbo",
+								"he",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
 							]
 						}
 					}
@@ -240,7 +358,7 @@
 					"label": "Grades",
 					"icon": "Gauge",
 					"route": "GradeEntries",
-					"order": 60,
+					"order": 58,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
@@ -253,11 +371,28 @@
 					}
 				},
 				{
+					"id": "GradeCorrectionsMenu",
+					"label": "Grade corrections",
+					"icon": "FileDocumentEditOutline",
+					"route": "DataCorrectionRequests",
+					"order": 67,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"team-lead",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "ReportPeriodsMenu",
 					"label": "Report periods",
 					"icon": "ChartBoxOutline",
 					"route": "ReportPeriods",
-					"order": 62,
+					"order": 61,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
@@ -265,6 +400,11 @@
 								"coordinator",
 								"administration-manager",
 								"admin"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
 							]
 						}
 					}
@@ -282,6 +422,32 @@
 								"coordinator",
 								"administration-manager",
 								"admin"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
+						}
+					}
+				},
+				{
+					"id": "ReportCardTemplatesMenu",
+					"label": "Report card templates",
+					"icon": "FileDocumentEditOutline",
+					"route": "ReportCardTemplates",
+					"order": 66,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
 							]
 						}
 					}
@@ -319,15 +485,84 @@
 			"order": 28,
 			"children": [
 				{
+					"id": "SessionsTodayMenu",
+					"label": "Today's sessions",
+					"icon": "Calendar",
+					"route": "SessionsToday",
+					"order": 59,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "SessionsThisWeekMenu",
+					"label": "This week's sessions",
+					"icon": "Calendar",
+					"route": "SessionsThisWeek",
+					"order": 60,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "RoomsMenu",
 					"label": "Rooms",
 					"icon": "OfficeBuilding",
 					"route": "Rooms",
+					"order": 68,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "DisplayScreensMenu",
+					"label": "Display screens",
+					"icon": "MonitorDashboard",
+					"route": "DisplayScreens",
+					"order": 69,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"team-lead",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "ElectiveOffersMenu",
+					"label": "Optional lessons",
+					"icon": "CalendarCheckOutline",
+					"route": "ElectiveOffers",
 					"order": 70,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
 								"instructor",
+								"team-lead",
 								"coordinator",
 								"administration-manager",
 								"admin"
@@ -361,6 +596,47 @@
 							"in": [
 								"coordinator",
 								"administration-manager",
+								"admin"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"vo",
+								"mbo",
+								"he",
+								"corporate",
+								"training"
+							]
+						}
+					}
+				},
+				{
+					"id": "StandbyPlanningMenu",
+					"label": "Standby hours",
+					"icon": "AccountClockOutline",
+					"route": "StandbyPlanning",
+					"order": 63,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "HourPlanActivitiesMenu",
+					"label": "Teaching activities",
+					"icon": "TableClock",
+					"route": "HourPlanActivities",
+					"order": 62,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
 								"admin"
 							]
 						}
@@ -936,8 +1212,40 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "reissue-certificates",
+						"label": "Reissue certificates",
+						"icon": "CertificateOutline",
+						"type": "navigate",
+						"target": "/courses/@objectId/reissue"
+					},
+					{
+						"id": "preview-as-learner",
+						"label": "Preview as learner",
+						"icon": "EyeOutline",
+						"type": "navigate",
+						"target": "/courses/@objectId/preview"
+					}
+				]
 			}
+		},
+		{
+			"id": "CoursePreview",
+			"route": "/courses/:courseId/preview",
+			"type": "custom",
+			"title": "Preview as learner",
+			"component": "CoursePreviewView",
+			"_note": "Mounts CoursePreviewView (content-adaptive-next-step-and-preview): a course author picks a simulated score and walks the course in the real lesson player in preview mode, which records nothing. Custom on purpose: it lists lessons from learniq's authors-only preview endpoint and hands off to the player, not a list or record page of one schema."
+		},
+		{
+			"id": "ReissueCertificates",
+			"route": "/courses/:courseId/reissue",
+			"type": "custom",
+			"title": "Reissue certificates",
+			"component": "ReissueCertificatesView",
+			"_note": "Mounts ReissueCertificatesView (credentials-bulk-reissue): the counts of issued, revoked and expired certificates, a required reason and the start of a queued run through learniq's own endpoint. Custom on purpose: a confirm-and-queue action against a learniq endpoint, not a list, record or dashboard of one schema."
 		},
 		{
 			"id": "CoursePackageImportReports",
@@ -1057,8 +1365,11 @@
 			"route": "/course-packages/export",
 			"type": "custom",
 			"title": "Export course package",
-			"component": "CnExportWizard",
-			"_note": "course-package-import-export: mounts CnExportWizard from @conduction/nextcloud-vue for the course export (Course scope + common-cartridge/scholiq-json format picker → server-side bundle), the same declarative pattern AuditPackExport (src/manifest.json) already uses — no bespoke Vue file needed."
+			"component": "ExportRequestView",
+			"_note": "Mounts ExportRequestView (learniq#947) with kind course-package: course and format, downloads from GET /api/course-management/course-package-export.",
+			"config": {
+				"kind": "course-package"
+			}
 		},
 		{
 			"id": "LessonIndex",
@@ -1419,6 +1730,10 @@
 									"label": "Academic Year"
 								},
 								{
+									"key": "programmeYear",
+									"label": "Year of the programme"
+								},
+								{
 									"key": "period",
 									"label": "Period"
 								},
@@ -1484,6 +1799,47 @@
 						"type": "related",
 						"title": "Related",
 						"icon": "LinkVariant"
+					},
+					{
+						"id": "prog-hour-plans",
+						"type": "object-list",
+						"title": "Hour plans",
+						"icon": "TableClock",
+						"content": {
+							"register": "learniq",
+							"schema": "hour-plan",
+							"filter": {
+								"programmeId": "@objectId"
+							},
+							"sort": {
+								"field": "intakeYear",
+								"dir": "desc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "name",
+									"label": "Name"
+								},
+								{
+									"key": "intakeYear",
+									"label": "Intake year"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "HourPlanEditor",
+							"emptyText": "No hour plans yet.",
+							"formExcludeFields": [
+								"programmeId",
+								"lines",
+								"yearNorms",
+								"lifecycle",
+								"tenant_id"
+							]
+						}
 					}
 				],
 				"layout": [
@@ -1558,6 +1914,15 @@
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
+					},
+					{
+						"id": "7",
+						"widgetId": "prog-hour-plans",
+						"gridX": 0,
+						"gridY": 16,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
 					}
 				],
 				"sidebar": {
@@ -1577,6 +1942,14 @@
 					]
 				}
 			}
+		},
+		{
+			"id": "CurriculumCoverageMatrix",
+			"route": "/curriculum/coverage",
+			"type": "custom",
+			"title": "Curriculum coverage",
+			"component": "CurriculumCoverageMatrixView",
+			"_note": "curriculum-coverage-matrix-view: the one custom view for reading curriculum coverage. A read-only CnDataMatrix of a framework's goals (rows, grouped under their domains) by year label (columns), each cell saying planned, assessed, both or neither, plus the gap list per subject and year. Reads the CurriculumCoverage rows curriculum-coverage-rollup keeps current; computes nothing. A menu entry next to Curriculum, deliberately NOT a Reports card (ADR-112: a report is a card or an entry, never both)."
 		},
 		{
 			"id": "CurriculumPlans",
@@ -1824,7 +2197,30 @@
 			"title": "Cohorts",
 			"config": {
 				"register": "learniq",
-				"schema": "Cohort"
+				"schema": "Cohort",
+				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly so the platform's built-in mass import/export/copy/delete is a documented capability of this index, not an implicit default (findings 12.6/14.7).",
+				"columns": [
+					"name",
+					"period",
+					"academicYear",
+					"lifecycle"
+				],
+				"actionToggles": {
+					"showMassImport": true,
+					"showMassExport": true,
+					"showMassCopy": true,
+					"showMassDelete": true
+				}
+			}
+		},
+		{
+			"id": "SubjectTeacherAssignments",
+			"route": "/subject-teacher-assignments",
+			"type": "index",
+			"title": "Subject teacher assignments",
+			"config": {
+				"register": "learniq",
+				"schema": "SubjectTeacherAssignment"
 			}
 		},
 		{
@@ -1848,6 +2244,56 @@
 							"columns": 2
 						},
 						"icon": "AccountGroup"
+					},
+					{
+						"id": "coh-notes",
+						"type": "data",
+						"title": "Notes",
+						"content": {
+							"columns": 1,
+							"include": [
+								"notes"
+							]
+						},
+						"icon": "NoteTextOutline"
+					},
+					{
+						"id": "coh-sessions-today",
+						"type": "object-list",
+						"title": "Today's sessions",
+						"content": {
+							"register": "learniq",
+							"schema": "Session",
+							"filter": {
+								"cohortId": "@objectId",
+								"startsAt": {
+									"gte": "@today",
+									"lt": "@today+1d"
+								}
+							},
+							"sort": {
+								"field": "startsAt",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "title",
+									"label": "Title"
+								},
+								{
+									"key": "startsAt",
+									"label": "Starts At"
+								},
+								{
+									"key": "endsAt",
+									"label": "Ends At"
+								}
+							],
+							"rowRoute": "SessionDetail",
+							"emptyText": "No sessions scheduled for today."
+						},
+						"icon": "Calendar"
 					},
 					{
 						"id": "coh-kpis-sessions",
@@ -1972,6 +2418,10 @@
 									"label": "Learner ID"
 								},
 								{
+									"key": "leerjaar",
+									"label": "Leerjaar"
+								},
+								{
 									"key": "courseId",
 									"label": "Course ID"
 								},
@@ -2037,6 +2487,86 @@
 						"icon": "AlertCircleOutline"
 					},
 					{
+						"id": "coh-subject-teachers",
+						"type": "object-list",
+						"title": "Subject teachers",
+						"content": {
+							"register": "learniq",
+							"schema": "SubjectTeacherAssignment",
+							"filter": {
+								"cohortId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "courseId",
+									"label": "Course ID"
+								},
+								{
+									"key": "teacherId",
+									"label": "Teacher ID"
+								}
+							],
+							"rowRoute": "SubjectTeacherAssignmentDetail",
+							"viewAllRoute": "SubjectTeacherAssignments",
+							"viewAllQuery": {
+								"cohortId": "@objectId"
+							},
+							"emptyText": "No subject teacher assignments found."
+						},
+						"icon": "AccountSchoolOutline"
+					},
+					{
+						"id": "coh-work-groups",
+						"type": "object-list",
+						"title": "Work groups",
+						"content": {
+							"register": "learniq",
+							"schema": "work-group",
+							"filter": {
+								"cohortId": "@objectId"
+							},
+							"sort": {
+								"field": "name",
+								"dir": "asc"
+							},
+							"limit": 50,
+							"columns": [
+								{
+									"key": "setName",
+									"label": "Set"
+								},
+								{
+									"key": "name",
+									"label": "Name"
+								},
+								{
+									"key": "maxMembers",
+									"label": "Maximum members"
+								},
+								{
+									"key": "selfJoinUntil",
+									"label": "Sign-up open until"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "WorkGroupDetail",
+							"viewAllRoute": "WorkGroups",
+							"viewAllQuery": {
+								"cohortId": "@objectId"
+							},
+							"emptyText": "No work groups yet."
+						},
+						"icon": "AccountGroup"
+					},
+					{
 						"id": "coh-related",
 						"type": "related",
 						"title": "Related",
@@ -2088,10 +2618,28 @@
 						"showTitle": false
 					},
 					{
+						"id": "2-4",
+						"widgetId": "coh-notes",
+						"gridX": 0,
+						"gridY": 6,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					},
+					{
+						"id": "2-5",
+						"widgetId": "coh-sessions-today",
+						"gridX": 0,
+						"gridY": 9,
+						"gridWidth": 12,
+						"gridHeight": 4,
+						"showTitle": false
+					},
+					{
 						"id": "3",
 						"widgetId": "coh-sessions",
 						"gridX": 0,
-						"gridY": 6,
+						"gridY": 13,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2100,7 +2648,7 @@
 						"id": "4",
 						"widgetId": "coh-enrol",
 						"gridX": 6,
-						"gridY": 6,
+						"gridY": 13,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2109,7 +2657,7 @@
 						"id": "5",
 						"widgetId": "coh-flags",
 						"gridX": 0,
-						"gridY": 11,
+						"gridY": 18,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2118,17 +2666,122 @@
 						"id": "6",
 						"widgetId": "coh-related",
 						"gridX": 6,
-						"gridY": 11,
+						"gridY": 18,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
 					},
 					{
 						"id": "7",
+						"widgetId": "coh-subject-teachers",
+						"gridX": 0,
+						"gridY": 23,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "8",
 						"widgetId": "cohort-talk",
 						"gridX": 0,
-						"gridY": 16,
+						"gridY": 32,
 						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "work-groups",
+						"widgetId": "coh-work-groups",
+						"gridX": 0,
+						"gridY": 28,
+						"gridWidth": 12,
+						"gridHeight": 4
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "WorkGroups",
+			"route": "/work-groups",
+			"type": "index",
+			"title": "Work groups",
+			"config": {
+				"register": "learniq",
+				"schema": "work-group"
+			}
+		},
+		{
+			"id": "WorkGroupDetail",
+			"route": "/work-groups/:id",
+			"type": "detail",
+			"title": "Work group",
+			"config": {
+				"register": "learniq",
+				"schema": "work-group",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				}
+			},
+			"_note": "enrolment-self-join-work-group: a teacher sets the set, name, maximum size and sign-up date, moves a learner by editing the members, and closes or reopens sign-up. Learners never read this page; they use MyWorkGroups."
+		},
+		{
+			"id": "SubjectTeacherAssignmentDetail",
+			"route": "/subject-teacher-assignments/:id",
+			"type": "detail",
+			"title": "Subject teacher assignment",
+			"_note": "A SubjectTeacherAssignment is a class x subject teacher join (cohortId, courseId, teacherId), distinct from Cohort.teacherIds — for VO/MBO/HE where a class has a different teacher per subject. Plain resource-metadata object, no lifecycle. Body leads with the assignment data 8-wide with a Related panel resolving Cohort and Course. No email/calendar/files (HARD RULE 1). Sidebar keeps metadata + audit-trail.",
+			"config": {
+				"register": "learniq",
+				"schema": "SubjectTeacherAssignment",
+				"widgets": [
+					{
+						"id": "sta-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AccountSchoolOutline"
+					},
+					{
+						"id": "sta-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "sta-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "sta-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
 						"gridHeight": 5,
 						"showTitle": false
 					}
@@ -2156,8 +2809,8 @@
 			"route": "/cohorts/:id/timetable",
 			"type": "custom",
 			"title": "Cohort timetable",
-			"component": "CnTimelineView",
-			"_note": "Mounts CnTimelineView from @conduction/nextcloud-vue for the date-grouped session timetable (calendar-like layout)."
+			"component": "CohortTimetableView",
+			"_note": "Mounts CohortTimetableView (learniq#947): the cohort's Sessions in CnTimelineView."
 		},
 		{
 			"id": "Sessions",
@@ -2167,6 +2820,38 @@
 			"config": {
 				"register": "learniq",
 				"schema": "Session"
+			}
+		},
+		{
+			"id": "SessionsToday",
+			"route": "/sessions/today",
+			"type": "index",
+			"title": "Today's sessions",
+			"config": {
+				"register": "learniq",
+				"schema": "Session",
+				"filter": {
+					"startsAt": {
+						"gte": "@today",
+						"lt": "@today+1d"
+					}
+				}
+			}
+		},
+		{
+			"id": "SessionsThisWeek",
+			"route": "/sessions/week",
+			"type": "index",
+			"title": "This week's sessions",
+			"config": {
+				"register": "learniq",
+				"schema": "Session",
+				"filter": {
+					"startsAt": {
+						"gte": "@today",
+						"lt": "@today+7d"
+					}
+				}
 			}
 		},
 		{
@@ -2313,6 +2998,47 @@
 						"icon": "ClipboardList"
 					},
 					{
+						"id": "sess-notes",
+						"type": "object-list",
+						"title": "Notes",
+						"icon": "NoteTextOutline",
+						"content": {
+							"register": "learniq",
+							"schema": "lesson-note",
+							"filter": {
+								"sessionId": "@objectId",
+								"cohortId": "@object.cohortId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "topic",
+									"label": "Topic"
+								},
+								{
+									"key": "text",
+									"label": "Note"
+								},
+								{
+									"key": "audience",
+									"label": "Audience"
+								}
+							],
+							"emptyText": "No notes on this lesson yet.",
+							"formExcludeFields": [
+								"sessionId",
+								"timetableSessionRef",
+								"cohortId",
+								"authorId",
+								"tenant_id"
+							]
+						}
+					},
+					{
 						"id": "sess-related",
 						"type": "related",
 						"title": "Related",
@@ -2331,6 +3057,14 @@
 						"integrationId": "talk",
 						"title": "Join call",
 						"icon": "Phone"
+					},
+					{
+						"id": "sess-calendar",
+						"type": "integration",
+						"integrationId": "calendar",
+						"requiredApp": "calendar",
+						"title": "Agenda",
+						"icon": "CalendarClockOutline"
 					}
 				],
 				"layout": [
@@ -2380,10 +3114,19 @@
 						"showTitle": false
 					},
 					{
+						"id": "4-1",
+						"widgetId": "sess-notes",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
 						"id": "5",
 						"widgetId": "sess-related",
 						"gridX": 0,
-						"gridY": 10,
+						"gridY": 15,
 						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2392,7 +3135,7 @@
 						"id": "6",
 						"widgetId": "sess-files",
 						"gridX": 0,
-						"gridY": 15,
+						"gridY": 20,
 						"gridWidth": 12,
 						"gridHeight": 3,
 						"showTitle": false
@@ -2401,10 +3144,18 @@
 						"id": "7",
 						"widgetId": "session-talk",
 						"gridX": 0,
-						"gridY": 18,
+						"gridY": 23,
 						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false
+					},
+					{
+						"id": "8",
+						"widgetId": "sess-calendar",
+						"gridX": 0,
+						"gridY": 23,
+						"gridWidth": 12,
+						"gridHeight": 4
 					}
 				],
 				"sidebar": {
@@ -2668,6 +3419,196 @@
 					]
 				}
 			}
+		},
+		{
+			"id": "DisplayScreens",
+			"route": "/display-screens",
+			"type": "index",
+			"title": "Display screens",
+			"config": {
+				"register": "learniq",
+				"schema": "display-screen"
+			}
+		},
+		{
+			"id": "DisplayScreenDetail",
+			"route": "/display-screens/:id",
+			"type": "detail",
+			"title": "Display screen",
+			"config": {
+				"register": "learniq",
+				"schema": "display-screen",
+				"headerActions": [
+					{
+						"id": "screen-address",
+						"label": "Address",
+						"type": "navigate",
+						"icon": "LinkVariant",
+						"target": "/display-screens/@objectId/address"
+					}
+				],
+				"widgets": [
+					{
+						"id": "display-screen-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "MonitorDashboard"
+					},
+					{
+						"id": "display-screen-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "display-screen-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "display-screen-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			},
+			"_note": "timetabling-display-screens: the Address action opens DisplayScreenAddress, which creates, renews or revokes the screen's secret address and shows a new address once."
+		},
+		{
+			"id": "DisplayScreenAddress",
+			"route": "/display-screens/:id/address",
+			"type": "custom",
+			"title": "Screen address",
+			"component": "DisplayScreenAddressView",
+			"_note": "timetabling-display-screens: POST /api/display-screens/{id}/token answers the address once; POST .../revoke stops it at once."
+		},
+		{
+			"id": "ElectiveOffers",
+			"route": "/electives/offers",
+			"type": "index",
+			"title": "Optional lessons",
+			"config": {
+				"register": "learniq",
+				"schema": "elective-offer"
+			}
+		},
+		{
+			"id": "ElectiveOfferDetail",
+			"route": "/electives/offers/:id",
+			"type": "detail",
+			"title": "Optional lesson offer",
+			"config": {
+				"register": "learniq",
+				"schema": "elective-offer",
+				"headerActions": [
+					{
+						"id": "offer-roster",
+						"label": "Sign-ups",
+						"type": "navigate",
+						"icon": "AccountCheckOutline",
+						"target": "/electives/offers/@objectId/roster"
+					}
+				],
+				"widgets": [
+					{
+						"id": "elective-offer-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "CalendarCheckOutline"
+					},
+					{
+						"id": "elective-offer-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "elective-offer-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "elective-offer-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			},
+			"_note": "timetabling-elective-lesson-signup: the Sign-ups action opens ElectiveRoster, per lesson who signed up, who of the eligible groups did not, and Place."
+		},
+		{
+			"id": "ElectiveRoster",
+			"route": "/electives/offers/:id/roster",
+			"type": "custom",
+			"title": "Sign-ups",
+			"component": "ElectiveRosterView",
+			"_note": "timetabling-elective-lesson-signup: GET /api/electives/{offerId}/roster and POST .../place, behind elective.manage."
+		},
+		{
+			"id": "ContactHoursReport",
+			"route": "/reports/contact-hours",
+			"type": "custom",
+			"title": "Contact hours",
+			"component": "ContactHoursReport",
+			"_note": "timetabling-contact-hours: GET /api/reports/contact-hours behind report.contact-hours; opened from the Reports page card (category attendance)."
 		},
 		{
 			"id": "TimetableConflicts",
@@ -3095,6 +4036,22 @@
 						"integrationId": "files",
 						"title": "Briefing materials",
 						"icon": "FolderOutline"
+					},
+					{
+						"id": "asn-calendar",
+						"type": "integration",
+						"integrationId": "calendar",
+						"requiredApp": "calendar",
+						"title": "Agenda",
+						"icon": "CalendarClockOutline"
+					},
+					{
+						"id": "asn-intake-form",
+						"type": "integration",
+						"integrationId": "forms",
+						"requiredApp": "forms",
+						"title": "Intake form",
+						"icon": "ClipboardEditOutline"
 					}
 				],
 				"layout": [
@@ -3142,6 +4099,42 @@
 						"gridWidth": 12,
 						"gridHeight": 3,
 						"showTitle": false
+					},
+					{
+						"id": "6",
+						"widgetId": "asn-calendar",
+						"gridX": 0,
+						"gridY": 13,
+						"gridWidth": 6,
+						"gridHeight": 4
+					},
+					{
+						"id": "7",
+						"widgetId": "asn-intake-form",
+						"gridX": 6,
+						"gridY": 13,
+						"gridWidth": 6,
+						"gridHeight": 4
+					}
+				],
+				"bodyWidgets": [
+					{
+						"id": "asn-hand-in",
+						"component": "AssignmentHandInStatus",
+						"title": "Hand-in status",
+						"placement": "after-data",
+						"props": {
+							"assignmentId": "@objectId"
+						}
+					},
+					{
+						"id": "asn-peer-review",
+						"component": "AssignmentPeerReviewAllocation",
+						"title": "Peer review",
+						"placement": "after-data",
+						"props": {
+							"assignmentId": "@objectId"
+						}
 					}
 				],
 				"sidebar": {
@@ -3159,7 +4152,21 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "allocate-markers",
+						"label": "Allocate markers",
+						"icon": "AccountCheckOutline",
+						"type": "navigate",
+						"target": "/assignments/@objectId/markers",
+						"visibleWhen": {
+							"field": "markersPerSubmission",
+							"op": "gt",
+							"value": 1
+						}
+					}
+				]
 			}
 		},
 		{
@@ -3184,6 +4191,24 @@
 				"register": "learniq",
 				"schema": "Submission",
 				"readOnly": true,
+				"lifecycleActions": {
+					"field": "lifecycle",
+					"transitions": [
+						{
+							"from": "returned",
+							"to": "draft",
+							"action": "reopen",
+							"label": "Ask to hand in again",
+							"variant": "secondary",
+							"inputs": [
+								{
+									"field": "resubmissionDueAt",
+									"required": true
+								}
+							]
+						}
+					]
+				},
 				"_note": "A Submission is a learner's handed-in work for an assignment (attachments, feedback, rubric scores, proposed grade, linked grade entry) — a result/score record. Body leads with the submission data including feedback and rubric scores (8-wide), a proposed-grade KPI stat, and a Related panel resolving the assignment and grade entry. The submitted work renders as a Files leaf (attachments are the point of a submission). No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"widgets": [
 					{
@@ -3261,8 +4286,8 @@
 			"route": "/assignments/:assignmentId/submit",
 			"type": "custom",
 			"title": "Submit work",
-			"component": "CnRichSubmitDialog",
-			"_note": "Mounts CnRichSubmitDialog from @conduction/nextcloud-vue for assignment submission (file upload + late-submission rules)."
+			"component": "SubmitWorkView",
+			"_note": "Mounts SubmitWorkView (learniq#947): CnRichSubmitDialog with the assignment's late rule; creates the Submission, attaches the files and fires submit."
 		},
 		{
 			"id": "MarkSubmissionView",
@@ -3271,6 +4296,14 @@
 			"title": "Mark submission",
 			"component": "MarkSubmissionView",
 			"_note": "Grading UI (rubric scores, inline feedback, attachments). Lib gap: grading workflow widget. peer-and-self-assessment: gains a read-only PeerFeedbackSummary/SelfAssessment context panel and, when peerReviewWeightPercent is set, an advisory-only blended-score suggestion — never pre-fills proposedGrade."
+		},
+		{
+			"id": "AllocateMarkers",
+			"route": "/assignments/:assignmentId/markers",
+			"type": "custom",
+			"title": "Allocate markers",
+			"component": "AllocateMarkersView",
+			"_note": "Mounts AllocateMarkersView (assignments-double-marking): the teacher in charge names up to markersPerSubmission markers for every handed-in submission or one; learniq's POST /api/assignments/{id}/markers does the allocation. Custom on purpose: it is an action form that picks Nextcloud accounts through the core autocomplete and posts to a learniq endpoint, not a list, record or widget grid of one OpenRegister schema, so no typed page archetype fits."
 		},
 		{
 			"id": "PeerReviews",
@@ -3358,7 +4391,7 @@
 			"type": "custom",
 			"title": "Complete peer review",
 			"component": "PeerReviewMarkingView",
-			"_note": "Reviewer's rubric-scoring UI for an assigned PeerReview (peer-and-self-assessment). Lib gap: peer-review marking workflow widget — mirrors MarkSubmissionView's own genuine-UI justification. When the governing Assignment's peerReviewAnonymity is double-blind, this view withholds the reviewed Submission's learner identity from its own display (a UI convention, not a server-enforced guarantee — see design.md 'Anonymity Enforcement')."
+			"_note": "Reviewer's rubric-scoring UI for an assigned PeerReview (peer-and-self-assessment). Lib gap: peer-review marking workflow widget — mirrors MarkSubmissionView's own genuine-UI justification. The work under review comes from learniq's server-side projection (GET /api/peer-review/{id}/work, peer-review-projection-guard), which withholds the authors for a double-blind review and never includes the teacher's marking; the reviewer never reads the raw Submission."
 		},
 		{
 			"id": "SelfAssessments",
@@ -3534,10 +4567,19 @@
 			"config": {
 				"register": "learniq",
 				"schema": "item-bank",
-				"_note": "An Item Bank is a reusable pool of assessment questions grouped by subject. Body leads with the bank metadata (8-wide) and a Related panel. The constituent Items render as a wide related-index (the bank's actual content), with a total-items KPI stat. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"_note": "An Item Bank is a reusable pool of assessment questions grouped by subject. Body leads with the bank metadata (8-wide) and a Related panel. The constituent Items render as a wide related-index (the bank's actual content), with a total-items KPI stat. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail. assessment-completeness (finding 6.3): headerActions adds a QTI export trigger for the already-built, unit-tested QtiExportController/qti-export route — the id is `export-qti`, not `export`, because a bare `export` header-action id is dropped at render time to avoid shadowing the built-in.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
+				"headerActions": [
+					{
+						"id": "export-qti",
+						"label": "Export QTI package",
+						"icon": "PackageDown",
+						"type": "navigate",
+						"target": "/apps/learniq/api/assessment/qti-export?itemBankId=@objectId"
+					}
+				],
 				"widgets": [
 					{
 						"id": "ibank-data",
@@ -3850,6 +4892,45 @@
 						"type": "related",
 						"title": "Related",
 						"icon": "LinkVariant"
+					},
+					{
+						"id": "ass-accommodations",
+						"type": "object-list",
+						"title": "Exam accommodations",
+						"content": {
+							"register": "learniq",
+							"schema": "exam-accommodation",
+							"filter": {
+								"assessmentId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner ID"
+								},
+								{
+									"key": "accommodationKind",
+									"label": "Kind"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "ExamAccommodationDetail",
+							"viewAllRoute": "ExamAccommodations",
+							"viewAllQuery": {
+								"assessmentId": "@objectId"
+							},
+							"emptyText": "No accommodations found for this assessment.",
+							"allowCreate": false
+						},
+						"icon": "AccountHeartOutline"
 					}
 				],
 				"layout": [
@@ -3886,6 +4967,15 @@
 						"gridX": 6,
 						"gridY": 5,
 						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "ass-accommodations",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false
 					}
@@ -3927,7 +5017,16 @@
 				"showDeleteAction": false,
 				"showMassImport": false,
 				"showMassCopy": false,
-				"showMassDelete": false
+				"showMassDelete": false,
+				"headerActions": [
+					{
+						"id": "score-open-answers",
+						"label": "Score open answers",
+						"icon": "CheckboxMarkedOutline",
+						"handler": "navigate",
+						"route": "AssessmentScoring"
+					}
+				]
 			}
 		},
 		{
@@ -4071,6 +5170,14 @@
 					]
 				}
 			}
+		},
+		{
+			"id": "AssessmentScoring",
+			"route": "/assessments/:assessmentId/scoring",
+			"type": "custom",
+			"title": "Score open answers",
+			"component": "AssessmentScoringView",
+			"_note": "learniq#948: a teacher scores one open question for every submitted attempt in turn, writing responses[].manualScore, then grades the attempts that are fully scored. No manifest page can show one question across many attempts. Reached from the results list header action."
 		},
 		{
 			"id": "ItemStatisticsList",
@@ -4353,8 +5460,8 @@
 			"route": "/assessments/item-banks/:itemBankId/import",
 			"type": "custom",
 			"title": "Import QTI package",
-			"component": "CnWizardDialog",
-			"_note": "Mounts CnWizardDialog from @conduction/nextcloud-vue for the QTI item-bank import (file upload → parse → preview → commit)."
+			"component": "QtiImportView",
+			"_note": "Mounts QtiImportView (learniq#947): uploads the package to POST /api/assessment/qti-import."
 		},
 		{
 			"id": "GradeScales",
@@ -4532,7 +5639,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "lti-tool-placement",
-				"_note": "An LtiToolPlacement names which lesson/course an external LTI 1.3 tool is placed into and, optionally, which grading component its AGS scores feed — a config archetype, same shape as GradeScale. Body leads with the placement definition (8-wide) and a Related panel resolving the Lesson/Course/CurriculumPlan/GradeScale it references. No comms leaves (no linkedTypes) — this is configuration, not a conversation. Sidebar keeps metadata + audit-trail for config-change history (openspec/changes/lti-tool-placement/tasks.md#task-3.3).",
+				"_note": "An LtiToolPlacement names which lesson/course an external LTI 1.3 tool is placed into and, optionally, which grading component its AGS scores feed — a config archetype, same shape as GradeScale. Body leads with the placement definition (8-wide) and a Related panel resolving the Lesson/Course/CurriculumPlan/GradeScale it references. No comms leaves (no linkedTypes) — this is configuration, not a conversation. Sidebar keeps metadata + audit-trail for config-change history (openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-3.3).",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
@@ -4609,7 +5716,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "grade-entry",
-				"_note": "A Grade Entry is a single recorded score (value, scale, weight, period, grader, source submission/result) for a learner and curriculum component — a score record. Body leads with the entry data including value and comment (8-wide), a value KPI stat, and a Related panel resolving the learner, course, grade-scale and source submission/result. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail as the grade-change audit.",
+				"_note": "A Grade Entry is a single recorded score (value, scale, weight, period, grader, source submission/result) for a learner and curriculum component — a score record. Body leads with the entry data including value and comment (8-wide), a value KPI stat, and a Related panel resolving the learner, course, grade-scale and source submission/result. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail as the grade-change audit. Header action (governance-four-eyes): Ask for a correction opens /grades/corrections. It replaces nothing; no widget or sidebar tab on this page reaches the corrections, and a grade in a locked report period changes only through one.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
@@ -4643,6 +5750,93 @@
 					{
 						"id": "2",
 						"widgetId": "gentry-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				},
+				"headerActions": [
+					{
+						"id": "ask-correction",
+						"label": "Ask for a correction",
+						"icon": "FileDocumentEditOutline",
+						"type": "open-page",
+						"target": "DataCorrectionRequests"
+					}
+				]
+			}
+		},
+		{
+			"id": "DataCorrectionRequests",
+			"route": "/grades/corrections",
+			"type": "index",
+			"title": "Grade corrections",
+			"config": {
+				"register": "learniq",
+				"schema": "data-correction-request",
+				"_note": "governance-four-eyes: a grade in a locked report period changes only on a correction a second person approved. A teacher asks here (the grade, the new value, the reason); team leads, administration managers and admins see every request and approve or reject it on the detail page. The read rule gives a teacher their own requests only. Reached from the Grades menu and from the Ask for a correction action on a grade entry."
+			}
+		},
+		{
+			"id": "DataCorrectionRequestDetail",
+			"route": "/grades/corrections/:id",
+			"type": "detail",
+			"title": "Grade correction",
+			"config": {
+				"register": "learniq",
+				"schema": "data-correction-request",
+				"_note": "A correction request and its decision. Approve and reject run as lifecycle actions for the approver groups; DataCorrectionDecisionGuard refuses the person who asked. Apply is done by the app when the grade is published with the approved value. History is the audit of who asked, who approved and when it was applied.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "correction-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "FileDocumentEditOutline"
+					},
+					{
+						"id": "correction-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "correction-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "correction-related",
 						"gridX": 8,
 						"gridY": 0,
 						"gridWidth": 4,
@@ -4833,8 +6027,8 @@
 			"route": "/grades/cohort/:cohortId/plan/:planId",
 			"type": "custom",
 			"title": "Gradebook",
-			"component": "CnDataMatrix",
-			"_note": "Mounts CnDataMatrix from @conduction/nextcloud-vue for the gradebook (cohort × plan inline-edit grid with weighted aggregation)."
+			"component": "CohortGradebookView",
+			"_note": "Mounts CohortGradebookView (learniq#947): CnDataMatrix of cohort learners by plan components; a typed mark saves a concept GradeEntry."
 		},
 		{
 			"id": "GradeImpactDetail",
@@ -5085,7 +6279,15 @@
 			"title": "Learning plans",
 			"config": {
 				"register": "learniq",
-				"schema": "learning-plan"
+				"schema": "learning-plan",
+				"_note": "care-and-support-index: columns[] added so the care team's own read (learner, kind, coordinator, lifecycle, next review date) does not need a second index page over the same schema (ADR-097 Decision 5, ratchet gate-68 duplicate-index-pages). The CareTeamOverviewMenu nav entry deep-links here with a lifecycle=active query preset (menu[].query, the documented role-lens mechanism) rather than duplicating this page.",
+				"columns": [
+					"learnerId",
+					"kind",
+					"coordinatorId",
+					"lifecycle",
+					"nextReviewAt"
+				]
 			}
 		},
 		{
@@ -5518,16 +6720,19 @@
 			"route": "/learning-plans/:planId/sign",
 			"type": "custom",
 			"title": "Sign learning plan",
-			"component": "CnSignatureCapture",
-			"_note": "Mounts CnSignatureCapture from @conduction/nextcloud-vue for the learning-plan signature flow (canvas/typed signature + audit)."
+			"component": "SignatureView",
+			"_note": "Mounts SignatureView (learniq#947) with subject learning-plan: CnSignatureCapture, saved as an append-only Signature.",
+			"config": {
+				"subject": "learning-plan"
+			}
 		},
 		{
 			"id": "LearningPlanEditor",
 			"route": "/learning-plans/:planId/edit",
 			"type": "custom",
 			"title": "Learning plan editor",
-			"component": "CnRelationshipGraph",
-			"_note": "Mounts CnRelationshipGraph from @conduction/nextcloud-vue for the learning-plan editor (dependency-chain layout, drag-drop ordering, milestone scoring)."
+			"component": "LearningPlanEditorView",
+			"_note": "Mounts LearningPlanEditorView (learniq#947): CnRelationshipGraph of the plan, goals added, reworded, reordered and removed below it."
 		},
 		{
 			"id": "GroupPlans",
@@ -6024,7 +7229,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "support-request",
-				"_note": "A SupportRequest is the zorgvraag (support/care request) raised from a pupil's dossier — the school-side start of the Wet passend onderwijs SWV chain (openspec/changes/zorgvraag-swv-tlv-chain). Submitting it auto-queues a DataExchangeJob (target: swv) that routes an OSO-format dossier to the samenwerkingsverband, gated by the same pending-parent-review step OsoDossierReviewView already renders for target: oso jobs — reused here, not duplicated. Body leads with the request data (8-wide) and a Related panel resolving the learner and optional LearningPlan; TLV applications and deliberation records tracing to this request render as wide related-index panels. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail. Zorg data is the most sensitive category this app handles (design.md Security Considerations) — full-detail read is restricted to admin/principal plus the raising coordinator.",
+				"_note": "A SupportRequest is the zorgvraag (support/care request) raised from a pupil's dossier — the school-side start of the Wet passend onderwijs SWV chain (openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain). Submitting it asks integriq for an swv exchange job that hands an OSO-format dossier to the samenwerkingsverband, gated by a parent's DossierReview (data-exchange-to-integriq). Body leads with the request data (8-wide) and a Related panel resolving the learner and optional LearningPlan; TLV applications and deliberation records tracing to this request render as wide related-index panels. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail. Zorg data is the most sensitive category this app handles (design.md Security Considerations) — full-detail read is restricted to admin/principal plus the raising coordinator.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
@@ -6370,12 +7575,286 @@
 			}
 		},
 		{
+			"id": "Trajectories",
+			"route": "/trajectories",
+			"type": "index",
+			"title": "Trajectories",
+			"config": {
+				"register": "learniq",
+				"schema": "trajectory"
+			}
+		},
+		{
+			"id": "TrajectoryDetail",
+			"route": "/trajectories/:id",
+			"type": "detail",
+			"title": "Trajectory",
+			"config": {
+				"register": "learniq",
+				"schema": "trajectory",
+				"_note": "care-and-support-index: a Trajectory tracks a bovenschoolse-voorziening placement (OPDC, rebound), referral -> preparation -> scheduled -> running -> stopped, extending SupportRequest's pattern via a nullable back-reference rather than duplicating it. Body leads with the trajectory data (8-wide) and a Related panel resolving the learner and optional SupportRequest; TrajectoryStatusUpdates render as a wide, append-only related-index (the status log a care team reads chronologically). No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "traj-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "MapMarkerPath"
+					},
+					{
+						"id": "traj-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "traj-status-updates",
+						"type": "object-list",
+						"title": "Status updates",
+						"content": {
+							"register": "learniq",
+							"schema": "trajectory-status-update",
+							"filter": {
+								"trajectoryId": "@objectId"
+							},
+							"sort": {
+								"field": "recordedAt",
+								"dir": "desc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "recordedAt",
+									"label": "Recorded At"
+								},
+								{
+									"key": "recordedBy",
+									"label": "Recorded By"
+								},
+								{
+									"key": "note",
+									"label": "Note"
+								}
+							],
+							"rowRoute": "TrajectoryStatusUpdateDetail",
+							"viewAllRoute": "TrajectoryStatusUpdates",
+							"viewAllQuery": {
+								"trajectoryId": "@objectId"
+							},
+							"emptyText": "No status updates found.",
+							"allowCreate": true
+						},
+						"icon": "ClipboardTextClockOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "traj-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "traj-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "traj-status-updates",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "TrajectoryStatusUpdates",
+			"route": "/trajectories/:trajectoryId/status-updates",
+			"type": "index",
+			"title": "Trajectory status updates",
+			"config": {
+				"register": "learniq",
+				"schema": "trajectory-status-update",
+				"filter": {
+					"trajectoryId": "@route.trajectoryId"
+				},
+				"selectable": false,
+				"showEditAction": false,
+				"showCopyAction": false,
+				"showDeleteAction": false,
+				"showMassImport": false,
+				"showMassCopy": false,
+				"showMassDelete": false
+			}
+		},
+		{
+			"id": "TrajectoryStatusUpdateDetail",
+			"route": "/trajectories/:trajectoryId/status-updates/:id",
+			"type": "detail",
+			"title": "Trajectory status update",
+			"config": {
+				"register": "learniq",
+				"schema": "trajectory-status-update",
+				"_note": "care-and-support-index: an append-only status-log entry on a Trajectory (ADR-008), mirroring LearningPlanEvaluation/DeliberationRecord's append-only precedent. Read-only once recorded, per the schema's appendOnly:true declaration.",
+				"widgets": [
+					{
+						"id": "tsu-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ClipboardTextClockOutline"
+					},
+					{
+						"id": "tsu-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "tsu-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "tsu-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true
+				}
+			}
+		},
+		{
+			"id": "ObservationInstruments",
+			"route": "/observation-instruments",
+			"type": "index",
+			"title": "Observation instruments",
+			"config": {
+				"register": "learniq",
+				"schema": "observation-instrument"
+			}
+		},
+		{
+			"id": "ObservationInstrumentDetail",
+			"route": "/observation-instruments/:id",
+			"type": "detail",
+			"title": "Observation instrument",
+			"config": {
+				"register": "learniq",
+				"schema": "observation-instrument",
+				"_note": "care-and-support-index: structured kleuter (groep 1-2) leerlijn observation, per learner per period, mirroring IEP's documented observatie-instrument. A standing record, not a workflow (lifecycle is active/archived only). Body leads with the instrument data (entries[] renders via the generic data widget's nested-array support, 8-wide) and a Related panel resolving the learner. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "oi-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "EyeOutline"
+					},
+					{
+						"id": "oi-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "oi-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "oi-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
 			"id": "MarkAttendanceView",
 			"route": "/sessions/:sessionId/attendance",
 			"type": "custom",
 			"title": "Mark attendance",
-			"component": "CnDataMatrix",
-			"_note": "Mounts CnDataMatrix from @conduction/nextcloud-vue for roster-based attendance marking (inline-edit grid with bulk + per-student state + late codes)."
+			"component": "AttendanceRegisterView",
+			"_note": "Mounts AttendanceRegisterView (learniq#947): one row per learner of the session's cohort, a status per learner, saved as one AttendanceRecord each."
 		},
 		{
 			"id": "ReportPeriods",
@@ -6509,7 +7988,20 @@
 			"title": "Report cards",
 			"config": {
 				"register": "learniq",
-				"schema": "report-card"
+				"schema": "report-card",
+				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly, see Cohorts' note.",
+				"columns": [
+					"learnerId",
+					"cohortId",
+					"lifecycle",
+					"composedAt"
+				],
+				"actionToggles": {
+					"showMassImport": true,
+					"showMassExport": true,
+					"showMassCopy": true,
+					"showMassDelete": true
+				}
 			}
 		},
 		{
@@ -6558,6 +8050,83 @@
 						"gridY": 0,
 						"gridWidth": 4,
 						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "ReportCardTemplates",
+			"route": "/report-cards/templates",
+			"type": "index",
+			"title": "Report card templates",
+			"config": {
+				"register": "learniq",
+				"schema": "report-card-template"
+			}
+		},
+		{
+			"id": "ReportCardTemplateDetail",
+			"route": "/report-cards/templates/:id",
+			"type": "detail",
+			"title": "Report card template",
+			"config": {
+				"register": "learniq",
+				"schema": "report-card-template",
+				"_note": "report-card-templates: a ReportCardTemplate declares an ordered sections[] array (grades/lvs-results/attendance/social-emotional/narrative/pupil-voice/portfolio, each with a scale from the shared library) and a per-group testKindSectionMap[], a config/template archetype mirroring CourseTemplateDetail's shape exactly. Body leads with the template definition (8-wide, sections[]/testKindSectionMap[] render via the generic data widget's nested-array support) and a Related panel resolving the Cohorts assigned this template (Cohort.reportCardTemplateId). Assignment itself happens on CohortDetail, not here, this page only defines the template. No comms leaves (no linkedTypes): a template is a definition, not a correspondence thread. Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "rctpl-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "FileDocumentEditOutline"
+					},
+					{
+						"id": "rctpl-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "rctpl-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "rctpl-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
 						"showTitle": false
 					}
 				],
@@ -6679,6 +8248,46 @@
 				"register": "learniq"
 			},
 			"_note": "nav-restructure-dashboards: GroupLearning's navigable landing dashboard — a bespoke domain overview with no generic index/detail/dashboard analogue. The nav icon + group association live on the GroupLearning menu entry (base manifest + this fragment's menu route), not on the page (icon/group are not valid v2 page props)."
+		},
+		{
+			"id": "Timetables",
+			"route": "/timetables",
+			"type": "custom",
+			"title": "Timetables",
+			"component": "TimetableLookup",
+			"_note": "timetabling-visibility-rules: look up a group's, teacher's or room's timetable within the school's visibility policy (GET /api/timetable/of). Team leads and compliance officers edit the policy here."
+		},
+		{
+			"id": "StandbyPlanning",
+			"route": "/standby",
+			"type": "custom",
+			"title": "Standby hours",
+			"component": "StandbyPlanning",
+			"_note": "timetabling-standby-slots: the week's standby hours as a weekday by time grid; a coordinator adds or removes a teacher. The substitution dialog lists these teachers first."
+		},
+		{
+			"id": "HourPlanEditor",
+			"route": "/hour-plans/:id",
+			"type": "custom",
+			"title": "Hour plan",
+			"component": "HourPlanEditor",
+			"_note": "timetabling-multi-year-hour-plan: the hours per course, year of the programme and period as a grid, with totals per year against the norm. A matrix editor the generic form cannot render."
+		},
+		{
+			"id": "HourPlanActivities",
+			"route": "/teaching-activities",
+			"type": "custom",
+			"title": "Teaching activities",
+			"component": "HourPlanActivities",
+			"_note": "timetabling-multi-year-hour-plan: the teaching activities a school year needs, derived from the hour plans by GET /api/hour-plans/activities, with CSV export for the timetabling system."
+		},
+		{
+			"id": "RoomUtilisationReport",
+			"route": "/reports/room-use",
+			"type": "custom",
+			"title": "Room use",
+			"component": "RoomUtilisationReport",
+			"_note": "timetabling-room-utilisation: how well rooms are used over a period, computed by GET /api/reports/room-use. Reached from a Reports card (D8), no menu entry."
 		}
 	]
 }

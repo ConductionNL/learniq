@@ -19,8 +19,8 @@
  Storage/lifecycle/notifications are OpenRegister's; this view only creates
  the signup and drives its submit transition through the OR object API.
 
- @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
- @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
+ @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+ @spec openspec/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
 -->
 <template>
 	<div class="book-conference-slots">
@@ -158,7 +158,7 @@ export default {
 		 * Options for the round picker.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		roundOptions() {
 			return this.rounds.map((r) => ({
@@ -183,7 +183,7 @@ export default {
 		 * Teacher options scoped to the selected round's teacherIds.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		teacherOptions() {
 			if (!this.selectedRound) return []
@@ -197,7 +197,7 @@ export default {
 		 * Learner options: the caller's linked children plus themselves (18+ self-signup).
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		learnerOptions() {
 			return this.learners.map((l) => ({
@@ -210,7 +210,7 @@ export default {
 		 * Whether the form has enough input to submit.
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
+		 * @spec openspec/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
 		 */
 		canSubmit() {
 			return (
@@ -232,7 +232,7 @@ export default {
 		 * Load ConferenceRounds currently open for booking.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadRounds() {
 			this.loading = true
@@ -259,7 +259,7 @@ export default {
 		 * self via ncUserId for an 18+ self-signup).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
+		 * @spec openspec/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
 		 */
 		async loadLearners() {
 			this.loadingLearners = true
@@ -307,7 +307,7 @@ export default {
 		 * Reset the teacher/learner selection when the round changes.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		onRoundChange() {
 			this.selectedTeacherIds = []
@@ -319,8 +319,8 @@ export default {
 		 * user-facing error rather than a silent failure.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-an-unrelated-user-cannot-submit-a-signup-for-someone-else-s-child
+		 * @spec openspec/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
+		 * @spec openspec/specs/parent-conferences/spec.md#scenario-an-unrelated-user-cannot-submit-a-signup-for-someone-else-s-child
 		 */
 		async submitSignup() {
 			if (!this.canSubmit) return
@@ -355,7 +355,7 @@ export default {
 					'/apps/openregister/api/objects/learniq/conference-signup/{id}',
 					{ id: signupId },
 				)
-				await axios.put(transitionUrl, { lifecycle: 'submitted' })
+				await axios.patch(transitionUrl, { lifecycle: 'submitted' })
 
 				this.submitSuccess = true
 				this.selectedTeacherIds = []

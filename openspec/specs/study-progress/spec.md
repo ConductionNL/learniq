@@ -2,13 +2,16 @@
 
 ## Purpose
 TBD - created by archiving change bsa-study-progress-guard. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Persist BSA domain objects in OpenRegister
 
 The system MUST persist `BsaTrajectory`, `BsaProgressFlag`, `BsaWarning`, and `BsaDecision` as OpenRegister
 objects. `BsaTrajectory` MUST carry `x-openregister-lifecycle` (`draft → active → archived`, mirroring
-`AttendanceThreshold`). `BsaProgressFlag`, `BsaWarning`, and `BsaDecision` MUST be `appendOnly: true` (audit
-per ADR-008), each with its own `x-openregister-lifecycle` workflow (`BsaProgressFlag`:
+`AttendanceThreshold`). `BsaProgressFlag`, `BsaWarning`, and `BsaDecision` MUST NOT be `appendOnly` (Open Register
+refuses every update on an append-only schema, transitions included; the audit trail keeps each version per
+ADR-008), each with its own `x-openregister-lifecycle` workflow (`BsaProgressFlag`:
 `open → in-handling → warned → resolved`; `BsaWarning`: `drafted → issued → acknowledged`; `BsaDecision`:
 `drafted → decided → appealed → upheld | overturned`). Creation of `BsaWarning` and `BsaDecision` MUST be
 restricted via `x-openregister-authorization.create` to `admin`/`study-advisor`/`exam-board` roles — a
@@ -21,7 +24,7 @@ learner MUST NOT be able to author their own warning or decision.
 - **GIVEN** the `study-progress` schemas are registered in OpenRegister
 - **WHEN** a `BsaTrajectory`, `BsaProgressFlag`, `BsaWarning`, or `BsaDecision` is created
 - **THEN** it is stored as an OpenRegister object with its declared lifecycle
-- **AND** `BsaProgressFlag`, `BsaWarning`, and `BsaDecision` are `appendOnly: true`
+- **AND** `BsaProgressFlag`, `BsaWarning`, and `BsaDecision` are not `appendOnly`, so their transitions run
 - **AND** a non-privileged user cannot create a `BsaWarning` or `BsaDecision`
 
 ### Requirement: Credit-earned and at-risk detection are declared calculations, not a TimedJob
@@ -155,3 +158,14 @@ trajectory's norm and interim-check window (story `bsa-risico-dashboard`, 10071)
   `interimNormEcts`/`normEcts`
 - **AND** the coordinator can navigate from a listed learner to draft a `BsaWarning`
 
+### Requirement: An exempted unit earns its study advice credits
+
+A course whose final grade the exam board satisfied entirely by exemption MUST count toward the learner's earned ECTS credits in the binding study advice calculation, the same as a passed course. The credit MUST come from the FinalGrade's `passed: true`, which the grading roll-up writes for an exemption-only plan, so `BsaProgressEvaluator` keeps one rule: it sums the credits of passed final grades.
+
+#### Scenario: A first-year exemption counts toward the advice
+
+- **GIVEN** a programme course worth 5 ECTS whose plan has one component
+- **AND** the learner's only entry on that plan is an exemption granted by the exam board
+- **WHEN** the final grade is recomputed and the learner's study advice credits are evaluated
+- **THEN** the FinalGrade has `passed: true`
+- **AND** the course's 5 ECTS count in `ectsEarned`

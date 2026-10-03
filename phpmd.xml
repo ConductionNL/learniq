@@ -11,7 +11,21 @@
         <exclude name="StaticAccess"/>
     </rule>
 
-    <!-- StaticAccess: three exceptions, all named and all argued.
+    <!-- StaticAccess: five exceptions, all named and all argued.
+
+         (5) `\OCA\Learniq\Service\SigningKeyConfigKey::forTenant()` is a pure
+         function from (purpose, tenant id) to an app config key, with no state
+         and no collaborators (#1232). It exists so the three services that share
+         the signing-key family (KeyManagementService, CredentialSigningService,
+         LearningRecordExportSigningService) cannot drift apart on the key
+         scheme again. There is nothing to inject: an instance would carry no
+         state, and threading it through three constructors, their DI wiring and
+         their tests would buy nothing.
+
+         (4) `\OCA\OpenRegister\Lifecycle\GuardResult` is the verdict a
+         `LifecycleGuardInterface` guard returns. Its constructor is private and
+         `allow()` / `deny()` are the only way to build one, so there is nothing
+         to inject: every guard OpenRegister will run has to call them.
 
          (3) `\OCP\Server` is Nextcloud's service locator, reached from exactly
          one place here: `Support\FleetAppId::path()`. That method exists because
@@ -58,7 +72,7 @@
          place, a probe using a DIFFERENT static call is still reported. -->
     <rule ref="rulesets/cleancode.xml/StaticAccess">
         <properties>
-            <property name="exceptions" value="\OCA\OpenRegister\AppHost\Bootstrap,\OCA\Learniq\Support\FleetAppId,\OCP\Server"/>
+            <property name="exceptions" value="\OCA\OpenRegister\AppHost\Bootstrap,\OCA\Learniq\Support\FleetAppId,\OCP\Server,\OCA\OpenRegister\Lifecycle\GuardResult,\OCA\Learniq\Service\SigningKeyConfigKey"/>
         </properties>
     </rule>
 </ruleset>

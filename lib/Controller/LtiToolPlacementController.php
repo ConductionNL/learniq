@@ -3,23 +3,21 @@
 /**
  * Learniq LTI Tool Placement Controller
  *
- * Delegates an LTI 1.3 launch to OpenConnector's `lti-13-platform` adapter.
- * Learniq implements NO LTI protocol code (OIDC, JWT signing/verification,
- * JWKS) — this controller resolves the `LtiToolPlacement` the caller wants to
- * launch, forwards its `openconnectorDeploymentId` to OpenConnector, and
- * returns the opaque launch response (auto-submitting form / URL) unmodified.
- * It never inspects, caches, or re-derives any LTI claim (design.md D5).
+ * Starts an LTI 1.3 launch of a tool placement by raising integriq's typed
+ * `LtiLaunchRequestedEvent` (ADR-041). Integriq is the LTI platform: it signs
+ * and holds every LTI token, and answers with the login initiation form
+ * `{formActionUrl, method, fields}` that targets the tool's OIDC login URL.
+ * Learniq builds, signs and reads no LTI token; it resolves the placement the
+ * caller may open, describes the launch (user, role, course, return URL) and
+ * hands integriq's form to the lesson player, which submits it.
  *
- * The outbound call reuses the exact `IClientService` + `IURLGenerator` +
- * `IAppConfig` bearer-token shape `DataExchangeRunHandler::callOpenConnector()`
- * already established, and the same `learniq.openconnector_api_token` config
- * key — see {@see self::OPENCONNECTOR_LAUNCH_PATH} for the documented
- * assumption about the target endpoint's shape.
+ * The event class is looked up by name, never imported, so learniq stays
+ * installable without integriq: without it a launch answers 503.
  *
  * @category Controller
  * @package  OCA\Learniq\Controller
  *
- * @author    Conduction Development Team <dev@conductio.nl>
+ * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
@@ -29,24 +27,23 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lti-tool-placement/tasks.md#task-2.1
- * @spec openspec/changes/lti-tool-placement/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-oidc-launch-to-the-openconnector-adapter
+ * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\JSONResponse;
-use OCP\Http\Client\IClientService;
-use OCP\IAppConfig;
+use OCP\EventDispatcher\Event;
+use OCP\EventDispatcher\IEventDispatcher;
+use OCP\IGroupManager;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
@@ -54,11 +51,18 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * Thin, opaque proxy that starts an LTI Platform-role launch in OpenConnector.
+ * Raises integriq's LTI launch event for a placement and returns its login form.
  *
- * @spec openspec/changes/lti-tool-placement/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-oidc-launch-to-the-openconnector-adapter
+ * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
  */
 class LtiToolPlacementController extends Controller {
+
+	/**
+	 * Integriq's launch event (ADR-041), named by string.
+	 *
+	 * @var string
+	 */
+	public const LAUNCH_EVENT = 'OCA\Integriq\Event\LtiLaunchRequestedEvent';
 
 	/**
 	 * OpenRegister register slug that owns the Learniq schemas.
@@ -75,110 +79,30 @@ class LtiToolPlacementController extends Controller {
 	private const PLACEMENT_SCHEMA = 'lti-tool-placement';
 
 	/**
-	 * ASSUMED OpenConnector REST endpoint for Platform-role launch initiation
-	 * (openconnector `lti-13-platform` REQ-LTI-006).
+	 * Groups that launch a tool as an LTI Instructor; everyone else is a Learner.
 	 *
-	 * DOCUMENTED ASSUMPTION (mirrors DataExchangeRunHandler::OPENCONNECTOR_RUN_PATH's
-	 * comment style): verified against openconnector HEAD at the time this
-	 * class was written — the merged `lti-13-platform` adapter exposes
-	 * `OCA\OpenConnector\Service\Lti\LtiLaunchService::initiatePlatformLaunch()`
-	 * ONLY as an in-process PHP service method
-	 * (lib/Service/Lti/LtiLaunchService.php:370); `appinfo/routes.php` wires
-	 * NO route to it — the only registered `lti#*` routes cover the Tool-role
-	 * inbound surface (login/launch/token/agsScore/agsLineItem/nrpsMembership)
-	 * plus JWKS publish and admin key management. OpenConnector's own
-	 * REQ-LTI-006 requirement text describes this as "an internal service
-	 * method a consuming app calls" — it never committed to a REST surface.
-	 *
-	 * Learniq's design.md nonetheless commits to the REST-only cross-app
-	 * pattern `DataExchangeRunHandler` already established, since no direct
-	 * PHP cross-app service injection exists anywhere in this codebase (REST
-	 * is the sanctioned learniq→openconnector boundary; learniq's
-	 * `composer.json`/autoloading has no dependency on OpenConnector's PHP
-	 * namespace). This constant therefore names the path a thin
-	 * OpenConnector-side REST wrapper around `initiatePlatformLaunch()`
-	 * would need to expose. Until that wrapper ships in the other repo, a
-	 * call through this constant returns HTTP 404 and `callOpenConnectorLaunch()`
-	 * below fails closed (`null`), which `launch()` turns into a 502. Update
-	 * this constant (and the request/response mapping below) once the real
-	 * endpoint lands.
-	 *
-	 * Assumed request body: `{"subject": string, "messageType": string}`.
-	 * Assumed response body: `{"formActionUrl": string, "idToken": string}`
-	 * — mirrors `initiatePlatformLaunch()`'s actual return shape
-	 * (`['formActionUrl' => ..., 'idToken' => ...]`), so once the wrapper
-	 * exists it can return that array unmodified.
-	 *
-	 * @var string
+	 * @var array<int, string>
 	 */
-	/**
-	 * 🔴 THIS ENDPOINT DOES NOT EXIST, AND RESOLVING THE APP NAME WILL NOT MAKE
-	 * IT EXIST. Do not "fix" the `openconnector` segment here.
-	 *
-	 * The stale app id is real — the connector app is `integriq` now, so this
-	 * path 404s on any instance that has renamed, and Support\FleetAppId exists
-	 * for exactly that. It is not the reason this call fails, and correcting it
-	 * alone would make things WORSE rather than better.
-	 *
-	 * Verified 2026-09-09 against integriq `development` a5e43d8. There is no
-	 * `api/lti/deployments/{id}/launch`. What that app publishes is
-	 * `api/lti/{deployment}/launch`, and it is not this endpoint wearing a
-	 * different path: it is a `#[PublicPage]`, rate-limited, browser-facing LTI
-	 * leg that consumes an `id_token` plus a `state` cookie from an OIDC
-	 * redirect and answers with a 302. This class posts
-	 * `{"subject", "messageType"}` with a Bearer token and expects
-	 * `{"formActionUrl", "idToken"}` back. Different contract, different actor,
-	 * different response type.
-	 *
-	 * So repointing the segment would replace a clean 404 with a 400 "Missing
-	 * id_token" from a public rate-limited endpoint, on a diff that reads as a
-	 * fix. The wrapper described in the docblock above still has to ship in the
-	 * other repo first; when it does, this constant AND the request/response
-	 * mapping below change together, and the segment gets resolved at call time
-	 * in the same change.
-	 *
-	 * @stale-fleet-app-id exclude integriq publishes no such route under either
-	 * name. Re-verified 2026-09-10 against integriq `development`: its LTI table
-	 * is `/api/lti/{deployment}/{login,launch,token,ags/*,nrps/*}`, and
-	 * `git log -S "lti/deployments"` over the full 3,960-commit history returns
-	 * nothing, so the `deployments` segment has never existed. The nearest
-	 * published leg, `lti#launch`, is a #[PublicPage] browser redirect that
-	 * consumes an id_token and answers 302; this class posts a Bearer-token JSON
-	 * body and expects JSON back. Repointing swaps a clean 404 for a 400 from a
-	 * public rate-limited endpoint. The wrapper described above has to ship in
-	 * integriq first, and this constant moves with the request mapping when it does.
-	 *
-	 * @var string
-	 */
-	private const OPENCONNECTOR_LAUNCH_PATH = '/apps/openconnector/api/lti/deployments/%s/launch';
-
-	/**
-	 * App-config key for the OpenConnector internal API token. Same key
-	 * `DataExchangeRunHandler` already uses — reused rather than adding a
-	 * second cross-app credential.
-	 *
-	 * @var string
-	 */
-	private const OPENCONNECTOR_TOKEN_KEY = 'openconnector_api_token';
+	private const INSTRUCTOR_GROUPS = ['instructors', 'team-leads', 'compliance-officers'];
 
 	/**
 	 * Constructor.
 	 *
-	 * @param IRequest $request The current request.
-	 * @param IUserSession $userSession NC user session.
-	 * @param ObjectService $objectService OR object access service.
-	 * @param IClientService $clientService NC HTTP client factory.
-	 * @param IURLGenerator $urlGenerator NC URL generator for internal requests.
-	 * @param IAppConfig $appConfig NC app config for token lookup.
-	 * @param LoggerInterface $logger PSR logger.
+	 * @param IRequest         $request         The current request.
+	 * @param IUserSession     $userSession     NC user session.
+	 * @param ObjectService    $objectService   OR object access service.
+	 * @param IEventDispatcher $eventDispatcher Raises integriq's launch event.
+	 * @param IGroupManager    $groupManager    Decides the LTI role.
+	 * @param IURLGenerator    $urlGenerator    Builds the return URL.
+	 * @param LoggerInterface  $logger          PSR logger.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ObjectService $objectService,
-		private readonly IClientService $clientService,
+		private readonly IEventDispatcher $eventDispatcher,
+		private readonly IGroupManager $groupManager,
 		private readonly IURLGenerator $urlGenerator,
-		private readonly IAppConfig $appConfig,
 		private readonly LoggerInterface $logger,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
@@ -188,19 +112,16 @@ class LtiToolPlacementController extends Controller {
 	/**
 	 * Start an LTI launch for a placement.
 	 *
-	 * Resolves the `LtiToolPlacement`, forwards its `openconnectorDeploymentId`
-	 * to OpenConnector's Platform-role launch-initiation surface, and returns
-	 * the opaque launch response unmodified. Any authenticated caller may
-	 * launch a placement they can resolve — per-object visibility is
-	 * whatever already gates the placement/Lesson (OR RBAC), not a bespoke
-	 * check here.
+	 * 401 without a session, 404 for a placement the caller cannot read, 422 for
+	 * a placement without a deployment, 503 without integriq or when nothing
+	 * answered, 409 when integriq refused, else 200 with the login initiation
+	 * form plus the placement's `launchMode`.
 	 *
 	 * @param string $placementId UUID of the LtiToolPlacement to launch.
 	 *
-	 * @return JSONResponse The opaque `{formActionUrl, idToken}` launch response, or an error.
+	 * @return JSONResponse `{formActionUrl, method, fields, launchMode}`, or an error.
 	 *
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-2.1
-	 * @spec openspec/changes/lti-tool-placement/specs/course-management/spec.md#scenario-opening-an-lti-lesson-delegates-the-launch-and-renders-the-response-opaquely
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -210,7 +131,8 @@ class LtiToolPlacementController extends Controller {
 			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
 		}
 
-		$placement = $this->resolvePlacement(placementId: $placementId);
+		// Read with the caller's own rights: a placement they cannot read is not launched.
+		$placement = $this->findObject(id: $placementId, schema: self::PLACEMENT_SCHEMA);
 		if ($placement === null) {
 			return new JSONResponse(data: ['error' => 'Placement not found'], statusCode: Http::STATUS_NOT_FOUND);
 		}
@@ -218,59 +140,173 @@ class LtiToolPlacementController extends Controller {
 		$deploymentId = (string)($placement['openconnectorDeploymentId'] ?? '');
 		if ($deploymentId === '') {
 			return new JSONResponse(
-				data: ['error' => 'Placement has no openconnectorDeploymentId configured'],
+				data: ['error' => 'This placement names no LTI deployment'],
 				statusCode: Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
 
+		$eventClass = $this->resolveEventClass(eventClass: self::LAUNCH_EVENT);
+		if ($eventClass === null) {
+			return new JSONResponse(
+				data: ['error' => 'LTI tools need integriq, which is not installed'],
+				statusCode: Http::STATUS_SERVICE_UNAVAILABLE
+			);
+		}
+
+		$event = $this->buildEvent(eventClass: $eventClass, placementId: $placementId, placement: $placement, uid: $user->getUID());
+		if ($event === null) {
+			return new JSONResponse(data: ['error' => 'No LTI launch handler answered'], statusCode: Http::STATUS_SERVICE_UNAVAILABLE);
+		}
+
+		return $this->answer(event: $event, launchMode: (string)($placement['launchMode'] ?? 'resource-link'));
+	}//end launch()
+
+	/**
+	 * Build and dispatch the launch event, or null when it cannot be raised.
+	 *
+	 * @param string               $eventClass  The resolved event class.
+	 * @param string               $placementId The placement UUID.
+	 * @param array<string, mixed> $placement   The placement.
+	 * @param string               $uid         The caller.
+	 *
+	 * @return Event|null The dispatched event, or null.
+	 */
+	private function buildEvent(string $eventClass, string $placementId, array $placement, string $uid): ?Event {
 		$messageType = 'LtiResourceLinkRequest';
 		if (($placement['launchMode'] ?? 'resource-link') === 'deep-linking') {
 			$messageType = 'LtiDeepLinkingRequest';
 		}
 
-		$launchResponse = $this->callOpenConnectorLaunch(
-			deploymentId: $deploymentId,
-			subject: $user->getUID(),
-			messageType: $messageType
-		);
+		$courseId = $this->contextCourseId(placement: $placement);
+		$course   = [];
+		if ($courseId !== '') {
+			$course = ($this->findObject(id: $courseId, schema: 'course') ?? []);
+		}
 
-		if ($launchResponse === null) {
+		$returnPath = '/apps/learniq/courses/' . $courseId;
+		if ((string)($placement['lessonId'] ?? '') !== '') {
+			$returnPath = '/apps/learniq/lessons/' . $placement['lessonId'];
+		}
+
+		try {
+			$event = new $eventClass(
+				sourceApp: Application::APP_ID,
+				placementId: $placementId,
+				deploymentUuid: (string)$placement['openconnectorDeploymentId'],
+				userId: $uid,
+				messageType: $messageType,
+				role: $this->roleFor(uid: $uid),
+				contextId: $courseId,
+				contextTitle: (string)($course['name'] ?? ''),
+				returnUrl: $this->urlGenerator->getAbsoluteURL($returnPath),
+			);
+			if (($event instanceof Event) === false) {
+				return null;
+			}
+
+			$this->eventDispatcher->dispatchTyped($event);
+		} catch (Throwable $e) {
+			$this->logger->error('[LtiToolPlacementController] raising the LTI launch event failed: {msg}', ['msg' => $e->getMessage()]);
+			return null;
+		}
+
+		return $event;
+	}//end buildEvent()
+
+	/**
+	 * The course a launch runs in, for the LTI context claim.
+	 *
+	 * A course-level placement names its course. A lesson-level placement has no
+	 * `courseId` (the schema leaves it null), so the course is the lesson's own,
+	 * read with the caller's rights.
+	 *
+	 * @param array<string, mixed> $placement The placement.
+	 *
+	 * @return string The course UUID, or '' when neither names one.
+	 *
+	 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-delegates-the-lti-launch-to-integriq-through-a-typed-event
+	 */
+	private function contextCourseId(array $placement): string {
+		$courseId = (string)($placement['courseId'] ?? '');
+		$lessonId = (string)($placement['lessonId'] ?? '');
+		if ($courseId !== '' || $lessonId === '') {
+			return $courseId;
+		}
+
+		$lesson = ($this->findObject(id: $lessonId, schema: 'lesson') ?? []);
+
+		return (string)($lesson['courseId'] ?? '');
+	}//end contextCourseId()
+
+	/**
+	 * Turn the answered event into the response.
+	 *
+	 * @param Event  $event      The dispatched event.
+	 * @param string $launchMode The placement's launch mode.
+	 *
+	 * @return JSONResponse The response.
+	 */
+	private function answer(Event $event, string $launchMode): JSONResponse {
+		$refusal = null;
+		if (method_exists($event, 'getRefusal') === true) {
+			$refusal = $event->getRefusal();
+		}
+
+		if (is_array($refusal) === true) {
 			return new JSONResponse(
-				data: ['error' => 'OpenConnector launch-initiation failed or is unavailable'],
-				statusCode: Http::STATUS_BAD_GATEWAY
+				data: ['error' => (string)($refusal['reason'] ?? 'The launch was refused'), 'code' => (string)($refusal['code'] ?? '')],
+				statusCode: Http::STATUS_CONFLICT
 			);
 		}
 
-		// D5: forward the response as-is — Learniq MUST NOT parse any LTI
-		// claim from it (id_token, formActionUrl target). `launchMode` is
-		// NOT an LTI claim: it is Learniq's own placement configuration,
-		// added here purely so the frontend can decide new-tab vs in-page
-		// frame without a second round trip to read the LtiToolPlacement
-		// object directly (a learner may not have OR read access to it).
-		$launchResponse['launchMode'] = ($placement['launchMode'] ?? 'resource-link');
+		$form = null;
+		if (method_exists($event, 'getLoginInitiation') === true) {
+			$form = $event->getLoginInitiation();
+		}
 
-		return new JSONResponse(data: $launchResponse);
-	}//end launch()
+		if (is_array($form) === false || (string)($form['formActionUrl'] ?? '') === '') {
+			return new JSONResponse(data: ['error' => 'No LTI launch handler answered'], statusCode: Http::STATUS_SERVICE_UNAVAILABLE);
+		}
+
+		return new JSONResponse(
+			data: [
+				'formActionUrl' => (string)$form['formActionUrl'],
+				'method'        => strtoupper((string)($form['method'] ?? 'POST')),
+				'fields'        => (array)($form['fields'] ?? []),
+				'launchMode'    => $launchMode,
+			]
+		);
+	}//end answer()
 
 	/**
-	 * Resolve an `LtiToolPlacement` by UUID.
+	 * The LTI role of a user: Instructor for teaching staff, else Learner.
 	 *
-	 * @param string $placementId UUID of the placement.
+	 * @param string $uid The user id.
 	 *
-	 * @return array<string,mixed>|null The placement data, or null if not found.
+	 * @return string `Instructor` or `Learner`.
 	 */
-	private function resolvePlacement(string $placementId): ?array {
-		// ObjectService::find() THROWS DoesNotExistException for an unknown id —
-		// it does not return null — so without this catch the `=== null` check
-		// below was dead code and an unknown placementId escaped as a 500 instead
-		// of the 404 this resolver's nullable contract promises the caller.
+	private function roleFor(string $uid): string {
+		foreach (self::INSTRUCTOR_GROUPS as $group) {
+			if ($this->groupManager->isInGroup($uid, $group) === true) {
+				return 'Instructor';
+			}
+		}
+
+		return 'Learner';
+	}//end roleFor()
+
+	/**
+	 * Read one learniq object with the caller's rights, or null.
+	 *
+	 * @param string $id     The object UUID.
+	 * @param string $schema The schema slug.
+	 *
+	 * @return array<string, mixed>|null The object, or null when absent or not readable.
+	 */
+	private function findObject(string $id, string $schema): ?array {
 		try {
-			$object = $this->objectService->find(
-				id: $placementId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::PLACEMENT_SCHEMA
-			);
-		} catch (DoesNotExistException $e) {
+			$object = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+		} catch (Throwable $e) {
 			return null;
 		}
 
@@ -279,69 +315,21 @@ class LtiToolPlacementController extends Controller {
 		}
 
 		return $object->jsonSerialize();
-	}//end resolvePlacement()
+	}//end findObject()
 
 	/**
-	 * Call OpenConnector's (assumed, see {@see self::OPENCONNECTOR_LAUNCH_PATH})
-	 * Platform-role launch-initiation endpoint.
+	 * The event class to instantiate, or null when integriq does not ship it.
 	 *
-	 * @param string $deploymentId UUID of the `lti_deployment` in OpenConnector's register.
-	 * @param string $subject The LTI `sub` claim to request — this instance's caller uid.
-	 * @param string $messageType `LtiResourceLinkRequest` or `LtiDeepLinkingRequest`.
+	 * @param string $eventClass The fully qualified class name, without a leading backslash.
 	 *
-	 * @return array<string,mixed>|null The opaque launch response, or null on failure.
-	 *
-	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-2.1
+	 * @return string|null The class name, or null when absent.
 	 */
-	private function callOpenConnectorLaunch(string $deploymentId, string $subject, string $messageType): ?array {
-		$path = sprintf(self::OPENCONNECTOR_LAUNCH_PATH, rawurlencode($deploymentId));
-		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . $path);
-
-		$apiToken = $this->appConfig->getValueString(
-			app: Application::APP_ID,
-			key: self::OPENCONNECTOR_TOKEN_KEY,
-			default: ''
-		);
-
-		$requestOptions = [
-			'json' => [
-				'subject' => $subject,
-				'messageType' => $messageType,
-			],
-			'timeout' => 30,
-		];
-
-		if ($apiToken === '') {
-			$this->logger->warning(
-				'[LtiToolPlacementController] No OpenConnector API token configured ('
-				. 'learniq.openconnector_api_token); the launch call may fail with 401/403.'
-			);
-		}
-
-		if ($apiToken !== '') {
-			$requestOptions['headers'] = [
-				'Authorization' => 'Bearer ' . $apiToken,
-			];
-		}
-
-		try {
-			$client = $this->clientService->newClient();
-			$response = $client->post($url, $requestOptions);
-
-			$body = json_decode($response->getBody(), true);
-			if (is_array($body) === false) {
-				$this->logger->error('[LtiToolPlacementController] OpenConnector returned non-JSON for launch.');
-				return null;
-			}
-
-			return $body;
-		} catch (Throwable $exception) {
-			$this->logger->error(
-				'[LtiToolPlacementController] OpenConnector launch call failed: {msg}',
-				['msg' => $exception->getMessage()]
-			);
+	protected function resolveEventClass(string $eventClass): ?string {
+		$qualified = '\\' . $eventClass;
+		if (class_exists($qualified) === false) {
 			return null;
-		}//end try
+		}
 
-	}//end callOpenConnectorLaunch()
+		return $qualified;
+	}//end resolveEventClass()
 }//end class

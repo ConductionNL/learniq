@@ -41,7 +41,6 @@ use DateTimeInterface;
 use DateTimeZone;
 use OCA\OpenRegister\Db\AuditTrailMapper;
 use OCA\OpenRegister\Service\AuditHashService;
-use OCP\IConfig;
 use OCP\IUser;
 use ZipArchive;
 
@@ -67,18 +66,20 @@ class AuditPackBuilder {
 	 *
 	 * @param AuditTrailMapper $auditTrailMapper OR audit-trail database mapper.
 	 * @param AuditHashService $auditHashService OR HMAC chain verification service.
-	 * @param IConfig $config NC config for tenant ID lookup.
+	 * @param CallerTenantResolver $tenants Resolves the tenant: the per-user binding, else the default tenant.
 	 * @param CsvCellSanitizer $sanitizer CSV formula-injection neutraliser.
 	 * @param VerwerkingsregisterCsvBuilder $registerCsv AVG Art. 30 register artefact builder.
 	 * @param ExternalTrainingCsvBuilder $trainingCsv External-training evidence artefact builder.
+	 * @param AuditEntryAttribution $attribution Keeps the entries whose object is in the caller's tenant.
 	 */
 	public function __construct(
 		private readonly AuditTrailMapper $auditTrailMapper,
 		private readonly AuditHashService $auditHashService,
-		private readonly IConfig $config,
+		private readonly CallerTenantResolver $tenants,
 		private readonly CsvCellSanitizer $sanitizer,
 		private readonly VerwerkingsregisterCsvBuilder $registerCsv,
 		private readonly ExternalTrainingCsvBuilder $trainingCsv,
+		private readonly AuditEntryAttribution $attribution,
 	) {
 
 	}//end __construct()
@@ -101,16 +102,21 @@ class AuditPackBuilder {
 	public function build(IUser $user, string $regulationSlug, string $dateFrom, string $dateTo): string {
 		$tenantId = $this->resolveTenantId(user: $user);
 
-		// Query OR's audit trail via the real mapper — filters available columns.
+		// The trail has no tenant column, and AuditTrailMapper::findAll() drops
+		// every filter outside its column allowlist, so a tenant_id filter here
+		// returned every tenant's entries. The period is filtered by the
+		// mapper; the tenant is decided by the object each entry is about.
 		$entries = $this->auditTrailMapper->findAll(
-			filters: [
-				'created' => $dateFrom . ',' . $dateTo,
-				'tenant_id' => $tenantId,
-			],
+			filters: ['created' => $dateFrom . ',' . $dateTo],
 			sort: ['created' => 'ASC']
 		);
 
-		$events = $this->collectMatchingEvents(entries: $entries, regulationSlug: $regulationSlug);
+		$own = $this->attribution->ownEntries(
+			entries: $this->serialise(entries: $entries),
+			tenantId: $tenantId,
+			regulationSlug: $regulationSlug
+		);
+		$events = $own['events'];
 
 		// #192: scope verifyChain to the ID range of the matched events so the
 		// integrity report covers exactly the entries that appear in the export,
@@ -126,6 +132,7 @@ class AuditPackBuilder {
 				regulationSlug: $regulationSlug,
 				dateFrom: $dateFrom,
 				dateTo: $dateTo,
+				unattributed: $own['unattributed'],
 			)
 		);
 
@@ -134,62 +141,36 @@ class AuditPackBuilder {
 	/**
 	 * Resolve the requesting tenant's ID.
 	 *
-	 * #184: `instanceid` is the same for every tenant on the instance, so the
-	 * authenticated user's own tenant binding (written by the admin module) is
-	 * preferred; `instanceid` is only the fallback when no per-user mapping exists.
+	 * #184: the authenticated user's own tenant binding is preferred; an
+	 * unbound user belongs to the default tenant (CallerTenantResolver).
 	 *
 	 * @param IUser $user Authenticated user whose tenant binding is read.
 	 *
-	 * @return string Tenant UUID, or the instance id when unbound.
+	 * @return string Tenant UUID, or the default tenant when unbound.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
 	 */
 	private function resolveTenantId(IUser $user): string {
-		$userTenantId = $this->config->getUserValue(
-			userId: $user->getUID(),
-			appName: 'learniq',
-			key: 'tenant_id',
-			default: ''
-		);
-
-		if ($userTenantId !== '') {
-			return $userTenantId;
-		}
-
-		return (string)$this->config->getSystemValue('instanceid', 'unknown');
+		return $this->tenants->resolve(user: $user);
 	}//end resolveTenantId()
 
 	/**
-	 * Serialise the audit-trail entities and keep only the entries whose
-	 * `changed` payload carries the requested regulation slug.
+	 * Serialise the audit-trail entities, in mapper order.
 	 *
 	 * @param array<int,mixed> $entries AuditTrail entities from the OR mapper.
-	 * @param string $regulationSlug Regulation slug to filter on ('' keeps everything).
 	 *
-	 * @return array<int,array<string,mixed>> Serialised, filtered events in mapper order.
+	 * @return array<int,array<string,mixed>> Serialised entries.
 	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+	 * @spec openspec/specs/compliance-audit/spec.md#requirement-export-audit-ready-zip-per-regulation-and-date-range
 	 */
-	private function collectMatchingEvents(array $entries, string $regulationSlug): array {
-		$events = [];
+	private function serialise(array $entries): array {
+		$rows = [];
 		foreach ($entries as $entry) {
-			$row = (array)$entry->jsonSerialize();
-
-			// The regulation slug lives inside the `changed` JSON field.
-			$changed = [];
-			if (is_string($row['changed'] ?? null) === true) {
-				$changed = (array)json_decode($row['changed'], associative: true);
-			}
-
-			if ($regulationSlug !== '' && ($changed['regulationSlug'] ?? '') !== $regulationSlug) {
-				continue;
-			}
-
-			$events[] = $row;
+			$rows[] = (array)$entry->jsonSerialize();
 		}
 
-		return $events;
-	}//end collectMatchingEvents()
+		return $rows;
+	}//end serialise()
 
 	/**
 	 * Find the lowest and highest audit-entry ID among the exported events.
@@ -269,6 +250,7 @@ class AuditPackBuilder {
 	 * @param string $regulationSlug Regulation slug for this pack.
 	 * @param string $dateFrom ISO-8601 period start.
 	 * @param string $dateTo ISO-8601 period end.
+	 * @param int $unattributed Entries left out because no tenant could be attributed.
 	 *
 	 * @return array<string,string> Archive filename => file content.
 	 *
@@ -281,6 +263,7 @@ class AuditPackBuilder {
 		string $regulationSlug,
 		string $dateFrom,
 		string $dateTo,
+		int $unattributed,
 	): array {
 		$signatureStatus = 'broken';
 		if (($verification['valid'] ?? false) === true) {
@@ -307,6 +290,7 @@ class AuditPackBuilder {
 				signatureStatus: $signatureStatus,
 				exportTimestamp: $exportTimestamp,
 				keyFingerprint: $keyFingerprint,
+				unattributed: $unattributed,
 			),
 			'signature-verification.txt' => $this->buildVerificationTxt(verification: $verification),
 			'verwerkingsregister.csv' => $this->registerCsv->build(
@@ -363,16 +347,18 @@ class AuditPackBuilder {
 		fputcsv($handle, ['event_id', 'action', 'object', 'register', 'schema', 'user', 'created']);
 
 		foreach ($events as $event) {
+			// AuditTrail::jsonSerialize() returns register, schema and object
+			// as integers; the sanitizer takes strings (strict types).
 			fputcsv(
 				$handle,
 				[
-					$this->sanitizer->sanitize(value: $event['uuid'] ?? ''),
-					$this->sanitizer->sanitize(value: $event['action'] ?? ''),
-					$this->sanitizer->sanitize(value: $event['object'] ?? ''),
-					$this->sanitizer->sanitize(value: $event['register'] ?? ''),
-					$this->sanitizer->sanitize(value: $event['schema'] ?? ''),
-					$this->sanitizer->sanitize(value: $event['user'] ?? ''),
-					$this->sanitizer->sanitize(value: $event['created'] ?? ''),
+					$this->sanitizer->sanitize(value: (string)($event['uuid'] ?? '')),
+					$this->sanitizer->sanitize(value: (string)($event['action'] ?? '')),
+					$this->sanitizer->sanitize(value: (string)($event['objectUuid'] ?? ($event['object'] ?? ''))),
+					$this->sanitizer->sanitize(value: (string)($event['register'] ?? '')),
+					$this->sanitizer->sanitize(value: (string)($event['schema'] ?? '')),
+					$this->sanitizer->sanitize(value: (string)($event['user'] ?? '')),
+					$this->sanitizer->sanitize(value: (string)($event['created'] ?? '')),
 				]
 			);
 		}
@@ -387,7 +373,7 @@ class AuditPackBuilder {
 	/**
 	 * Build the manifest.json content per ADR-008 §6.
 	 *
-	 * @param string $tenantId Tenant UUID or instanceid.
+	 * @param string $tenantId Tenant UUID.
 	 * @param string $regulationSlug Regulation slug.
 	 * @param string $dateFrom Period start.
 	 * @param string $dateTo Period end.
@@ -395,6 +381,7 @@ class AuditPackBuilder {
 	 * @param string $signatureStatus OR chain verification result.
 	 * @param string $exportTimestamp ISO-8601 timestamp of this export.
 	 * @param string $keyFingerprint Public verification key fingerprint.
+	 * @param int $unattributed Entries left out because no tenant could be attributed.
 	 *
 	 * @return string JSON string.
 	 *
@@ -409,6 +396,7 @@ class AuditPackBuilder {
 		string $signatureStatus,
 		string $exportTimestamp,
 		string $keyFingerprint,
+		int $unattributed,
 	): string {
 		$manifest = [
 			'schema_version' => '1.0',
@@ -419,6 +407,9 @@ class AuditPackBuilder {
 			'signature_status' => $signatureStatus,
 			'export_timestamp' => $exportTimestamp,
 			'key_fingerprint' => $keyFingerprint,
+			// Entries in the period whose object is gone or has no tenant: left
+			// out, because they cannot be shown to be this tenant's.
+			'unattributed_entries_excluded' => $unattributed,
 			'generator' => 'learniq/AuditPackExportController@0.1.0',
 		];
 

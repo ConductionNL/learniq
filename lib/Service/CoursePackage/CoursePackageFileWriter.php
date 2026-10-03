@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+ * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
  */
 
 declare(strict_types=1);
@@ -66,7 +66,7 @@ class CoursePackageFileWriter {
 	 *
 	 * @return string|null The nc:files path, or null when the source file could not be resolved.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+	 * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
 	 */
 	public function resolveFileRef(string $dir, ?string $href, string $importedBy, string $tenantId): ?string {
 		if ($href === null) {
@@ -99,7 +99,7 @@ class CoursePackageFileWriter {
 	 *
 	 * @return string|null The nc:files path, or null when the content could not be decoded/written.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
 	public function writeBase64ToFiles(string $base64Content, string $title, string $importedBy, string $tenantId): ?string {
 		$decoded = base64_decode($base64Content, strict: true);
@@ -126,7 +126,7 @@ class CoursePackageFileWriter {
 	 *
 	 * @return string|null The nc:files path, or null on failure.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+	 * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
 	 */
 	public function writeBytesToFiles(string $content, string $filename, string $importedBy, string $tenantId): ?string {
 		try {
@@ -135,7 +135,7 @@ class CoursePackageFileWriter {
 				$tenantSegment = $tenantId;
 			}
 
-			$ncBaseDir = 'Scholiq/' . $tenantSegment . '/course-imports';
+			$ncBaseDir = 'Learniq/' . $tenantSegment . '/course-imports';
 			$ncPath = $ncBaseDir . '/' . $filename;
 
 			$userFolder = $this->rootFolder->getUserFolder($importedBy);
@@ -159,7 +159,7 @@ class CoursePackageFileWriter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#security--privacy-posture
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#security--privacy-posture
 	 */
 	public function removeDirectory(string $dir): void {
 		if (is_dir($dir) === false) {
@@ -195,7 +195,7 @@ class CoursePackageFileWriter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+	 * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
 	 */
 	private function putFileContent(Folder $userFolder, string $path, string $content): void {
 		if ($userFolder->nodeExists($path) === false) {
@@ -217,7 +217,7 @@ class CoursePackageFileWriter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+	 * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
 	 */
 	private function ensureFolder(Folder $userFolder, string $path): void {
 		$segments = array_filter(explode('/', $path));

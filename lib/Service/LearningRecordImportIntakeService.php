@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
+ * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
  */
 
 declare(strict_types=1);
@@ -42,7 +42,6 @@ use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
-use OCP\IConfig;
 use OCP\IUser;
 use Psr\Log\LoggerInterface;
 
@@ -50,7 +49,7 @@ use Psr\Log\LoggerInterface;
  * Stores a prior-institution learning-record upload and creates the
  * `LearningRecordImport` object that tracks its parse.
  *
- * @spec openspec/changes/portable-learning-record/tasks.md#task-4-2
+ * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-4-2
  */
 class LearningRecordImportIntakeService {
 
@@ -63,7 +62,7 @@ class LearningRecordImportIntakeService {
 	 * @param ObjectService $objectService OR object create/read service.
 	 * @param TransitionEngine $transitionEngine OR lifecycle engine used to dispatch the `parse` transition.
 	 * @param IRootFolder $rootFolder NC root folder for writing the uploaded bytes.
-	 * @param IConfig $config Nextcloud config for tenant resolution.
+	 * @param CallerTenantResolver $tenants Resolves the tenant: the per-user binding, else the default tenant.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -72,7 +71,7 @@ class LearningRecordImportIntakeService {
 		private readonly ObjectService $objectService,
 		private readonly TransitionEngine $transitionEngine,
 		private readonly IRootFolder $rootFolder,
-		private readonly IConfig $config,
+		private readonly CallerTenantResolver $tenants,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -80,34 +79,23 @@ class LearningRecordImportIntakeService {
 	/**
 	 * Resolve the requesting tenant's ID.
 	 *
-	 * The authenticated user's own tenant binding wins; `instanceid` is only the
-	 * fallback, because it is the same for every tenant on the instance.
+	 * The authenticated user's own tenant binding wins; an unbound user belongs
+	 * to the default tenant (CallerTenantResolver).
 	 *
 	 * @param IUser $user Authenticated user whose tenant binding is read.
 	 *
-	 * @return string Tenant UUID, or the instance id when unbound.
+	 * @return string Tenant UUID, or the default tenant when unbound.
 	 *
 	 * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 	 */
 	public function resolveTenantId(IUser $user): string {
-		$userTenantId = $this->config->getUserValue(
-			userId: $user->getUID(),
-			appName: 'learniq',
-			key: 'tenant_id',
-			default: ''
-		);
-
-		if ($userTenantId !== '') {
-			return $userTenantId;
-		}
-
-		return (string)$this->config->getSystemValue('instanceid', '');
+		return $this->tenants->resolve(user: $user);
 	}//end resolveTenantId()
 
 	/**
 	 * Write the raw uploaded bytes into the caller's nc:files home, mirroring
 	 * `CoursePackageImportService::writeBytesToFiles()`'s destination
-	 * convention (`Scholiq/{tenant}/...`).
+	 * convention (`Learniq/{tenant}/...`).
 	 *
 	 * @param string $tmpPath Absolute path to the uploaded tmp file.
 	 * @param string $ownerUid Nextcloud user id who will own the file.
@@ -115,7 +103,7 @@ class LearningRecordImportIntakeService {
 	 *
 	 * @return string|null The nc:files path (relative, no leading slash), or null on failure.
 	 *
-	 * @spec openspec/changes/portable-learning-record/tasks.md#task-4-2
+	 * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-4-2
 	 */
 	public function storeUpload(string $tmpPath, string $ownerUid, string $tenantId): ?string {
 		try {
@@ -126,7 +114,7 @@ class LearningRecordImportIntakeService {
 				$tenantSegment = $tenantId;
 			}
 
-			$ncBaseDir = 'Scholiq/' . $tenantSegment . '/learning-record-imports';
+			$ncBaseDir = 'Learniq/' . $tenantSegment . '/learning-record-imports';
 			$ncPath = $ncBaseDir . '/' . bin2hex(random_bytes(8)) . '.json';
 
 			$userFolder = $this->rootFolder->getUserFolder($ownerUid);
@@ -178,7 +166,7 @@ class LearningRecordImportIntakeService {
 	 * @return array<string,mixed>|null The created (now `parsed`, or `uploaded`+errorMessage) record, or
 	 *                                  null when it could not be created.
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
 	 */
 	public function createImport(
 		string $applicationId,

@@ -33,13 +33,15 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
+ * @spec openspec/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
@@ -51,7 +53,14 @@ use Psr\Log\LoggerInterface;
  * (caller's NC user id in LearnerProfile.parentIds) or the caller IS the
  * target learner (18+ self-signup). Fails closed on any lookup miss.
  */
-class ConferenceSignupGuardianGuard {
+class ConferenceSignupGuardianGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'Only a guardian of this learner, or the adult learner, can sign up for this conference.';
 
 	/**
 	 * OR register slug for Learniq objects.
@@ -80,7 +89,28 @@ class ConferenceSignupGuardianGuard {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
+	 * The rule behind check(), answered as a boolean.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing the `submit`
 	 * transition on a ConferenceSignup object. Resolves the caller's NC user
@@ -88,18 +118,13 @@ class ConferenceSignupGuardianGuard {
 	 * when that user is a linked guardian of the signup's learnerId, or is
 	 * the learner themselves.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the ConferenceSignup data array
-	 *                                               - 'transition' : 'submit'
-	 *                                               - 'from'       : 'draft'
-	 *                                               - 'to'         : 'submitted'
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True if the caller may submit for this learner; false blocks the transition.
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
+	 * @spec openspec/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
+	private function allows(array $object): bool {
 		$learnerId = $object['learnerId'] ?? '';
 
 		if ($learnerId === '') {
@@ -140,7 +165,7 @@ class ConferenceSignupGuardianGuard {
 		);
 
 		return false;
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Load the LearnerProfile the signup is about, scoped to its tenant.
@@ -160,9 +185,13 @@ class ConferenceSignupGuardianGuard {
 
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEARNER_PROFILE_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::LEARNER_PROFILE_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);

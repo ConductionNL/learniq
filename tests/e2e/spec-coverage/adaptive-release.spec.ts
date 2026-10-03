@@ -98,7 +98,7 @@ async function openLessonPlayer(page: Page, courseId: string, lessonId: string) 
 }
 
 test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate locked state', () => {
-	// @e2e openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-is-unavailable-until-its-prerequisite-lesson-is-completed
+	// @e2e openspec/specs/course-management/spec.md#scenario-a-lesson-is-unavailable-until-its-prerequisite-lesson-is-completed
 	//
 	// ⚠️ BLOCKED BY ConductionNL/openregister#2179, in a way worth spelling out
 	// because the fixture LOOKS present.
@@ -166,7 +166,7 @@ test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate 
 		)
 	})
 
-	// @e2e openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-unlocks-once-its-prerequisite-lesson-is-completed
+	// @e2e openspec/specs/course-management/spec.md#scenario-a-lesson-unlocks-once-its-prerequisite-lesson-is-completed
 	test('lesson-unlocks-once-prerequisite-lesson-completed', async ({
 		loggedInPage: page,
 	}) => {
@@ -209,7 +209,7 @@ test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate 
 		)
 	})
 
-	// @e2e openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-is-locked-until-n-days-after-the-learners-own-enrolment-date
+	// @e2e openspec/specs/course-management/spec.md#scenario-a-lesson-is-locked-until-n-days-after-the-learners-own-enrolment-date
 	test('lesson-locked-until-drip-delay-elapses', async ({
 		loggedInPage: page,
 	}) => {

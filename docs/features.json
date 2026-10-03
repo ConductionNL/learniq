@@ -149,7 +149,7 @@
     "title": "AI assistant",
     "summary": "Ask the assistant about a course; it only reads, never writes.",
     "status": "beta",
-    "docsUrl": "openspec/specs/ai-companion-tools/spec.md",
+    "docsUrl": "openspec/specs/mcp-tool-surface/spec.md",
     "providedBy": "openregister",
     "title_nl": "AI-assistent",
     "summary_nl": "Vraag de assistent naar een cursus; hij leest alleen, schrijft nooit."

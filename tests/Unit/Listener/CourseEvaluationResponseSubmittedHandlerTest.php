@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
+ * @spec openspec/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
  */
 
 declare(strict_types=1);
@@ -74,11 +74,11 @@ class CourseEvaluationResponseSubmittedHandlerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($invitations, $callerUid) {
-				if ($config['schema'] !== 'evaluation-invitation') {
+				if ($config['filters']['schema'] !== 'evaluation-invitation') {
 					return [];
 				}
 
-				$filters = $config['filters'] ?? [];
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 				return array_values(
 					array_filter(
 						$invitations,
@@ -100,7 +100,7 @@ class CourseEvaluationResponseSubmittedHandlerTest extends TestCase {
 			}
 		);
 
-		return new CourseEvaluationResponseSubmittedHandler($userSession, $objectService, $this->createMock(LoggerInterface::class));
+		return new CourseEvaluationResponseSubmittedHandler($userSession, $objectService, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**
@@ -130,7 +130,7 @@ class CourseEvaluationResponseSubmittedHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-submitting-flips-the-caller-s-own-invitation-not-anyone-else-s
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-submitting-flips-the-caller-s-own-invitation-not-anyone-else-s
 	 */
 	public function testFlipsCallersOwnInvitationOnly(): void {
 		$invitations = [
@@ -166,7 +166,7 @@ class CourseEvaluationResponseSubmittedHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-submitting-flips-the-caller-s-own-invitation-not-anyone-else-s
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-submitting-flips-the-caller-s-own-invitation-not-anyone-else-s
 	 */
 	public function testUpdatedInvitationGainsNoResponseReference(): void {
 		$invitations = [
@@ -240,7 +240,7 @@ class CourseEvaluationResponseSubmittedHandlerTest extends TestCase {
 		$objectService->expects(self::never())->method('findAll');
 		$objectService->expects(self::never())->method('saveObject');
 
-		$handler = new CourseEvaluationResponseSubmittedHandler($userSession, $objectService, $this->createMock(LoggerInterface::class));
+		$handler = new CourseEvaluationResponseSubmittedHandler($userSession, $objectService, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 
 		$response = ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a'];
 		$handler->handle($this->makeEvent($response));

@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-year-rollover/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
 
 declare(strict_types=1);
@@ -26,6 +26,7 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Controller\RolloverController;
 use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\RolloverService;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
@@ -65,6 +66,7 @@ class RolloverControllerNotFoundTest extends TestCase {
 			actionAuth: $actionAuth,
 			rolloverService: $this->createMock(RolloverService::class),
 			objectService: $objectService,
+			callerTenant: $this->createMock(CallerTenantResolver::class),
 		);
 	}//end controllerWithThrowingFind()
 
@@ -138,6 +140,7 @@ class RolloverControllerNotFoundTest extends TestCase {
 			actionAuth: $this->createMock(ActionAuthService::class),
 			rolloverService: $rolloverService,
 			objectService: $objectService,
+			callerTenant: $this->createMock(CallerTenantResolver::class),
 		);
 
 		$response = $controller->proposeMapping('2025-2026');

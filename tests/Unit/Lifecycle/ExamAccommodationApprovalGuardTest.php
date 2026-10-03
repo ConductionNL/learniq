@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-exam-accommodations-are-recorded-as-approved-evidence-backed-entitlements
+ * @spec openspec/specs/timetabling/spec.md#requirement-exam-accommodations-are-recorded-as-approved-evidence-backed-entitlements
  */
 
 declare(strict_types=1);
@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\Learniq\Lifecycle\ExamAccommodationApprovalGuard;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -32,8 +33,26 @@ use Psr\Log\NullLogger;
 
 /**
  * Tests for ExamAccommodationApprovalGuard::check() — the `approve` transition.
+ *
+ * approvedBy is StampTransitionActorAction's write (learniq#983), see
+ * tests/Unit/Lifecycle/Action/StampTransitionActorActionTest.php.
  */
 class ExamAccommodationApprovalGuardTest extends TestCase {
+
+	/**
+	 * The accommodation as the guard sees it on the approve transition.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function accommodation(): array {
+		return [
+			'id' => 'accommodation-1',
+			'learnerId' => 'learner-1',
+			'accommodationKind' => 'extra-time',
+			'tenant_id' => 'tenant-a',
+			'lifecycle' => 'approved',
+		];
+	}//end accommodation()
 
 	/**
 	 * Build a guard whose group/user managers report the given group
@@ -60,20 +79,26 @@ class ExamAccommodationApprovalGuardTest extends TestCase {
 	}//end makeGuard()
 
 	/**
-	 * A mentor may approve, and approvedBy is stamped server-side.
+	 * OpenRegister's registry refuses a guard that does not implement its interface.
+	 *
+	 * @return void
+	 */
+	public function testImplementsTheOpenRegisterGuardInterface(): void {
+		self::assertInstanceOf(LifecycleGuardInterface::class, $this->makeGuard([]));
+
+	}//end testImplementsTheOpenRegisterGuardInterface()
+
+	/**
+	 * A mentor may approve.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-learner-requests-an-accommodation-and-a-mentor-approves-it
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-learner-requests-an-accommodation-and-a-mentor-approves-it
 	 */
-	public function testMentorApprovalIsAllowedAndStamped(): void {
-		$guard = $this->makeGuard(['mentor']);
-		$context = ['actor' => 'actor-1', 'payload' => []];
+	public function testMentorApprovalIsAllowed(): void {
+		self::assertTrue($this->makeGuard(['team-leads'])->check($this->accommodation(), 'approve', 'actor-1')->isAllowed());
 
-		self::assertTrue($guard->check($context));
-		self::assertSame('actor-1', $context['payload']['approvedBy']);
-
-	}//end testMentorApprovalIsAllowedAndStamped()
+	}//end testMentorApprovalIsAllowed()
 
 	/**
 	 * An admin may approve.
@@ -81,10 +106,7 @@ class ExamAccommodationApprovalGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testAdminApprovalIsAllowed(): void {
-		$guard = $this->makeGuard(['admin']);
-		$context = ['actor' => 'actor-1', 'payload' => []];
-
-		self::assertTrue($guard->check($context));
+		self::assertTrue($this->makeGuard(['admin'])->check($this->accommodation(), 'approve', 'actor-1')->isAllowed());
 
 	}//end testAdminApprovalIsAllowed()
 
@@ -94,10 +116,7 @@ class ExamAccommodationApprovalGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testComplianceOfficerApprovalIsAllowed(): void {
-		$guard = $this->makeGuard(['compliance-officer']);
-		$context = ['actor' => 'actor-1', 'payload' => []];
-
-		self::assertTrue($guard->check($context));
+		self::assertTrue($this->makeGuard(['compliance-officers'])->check($this->accommodation(), 'approve', 'actor-1')->isAllowed());
 
 	}//end testComplianceOfficerApprovalIsAllowed()
 
@@ -106,41 +125,33 @@ class ExamAccommodationApprovalGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-learner-cannot-self-approve-their-own-accommodation
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-learner-cannot-self-approve-their-own-accommodation
 	 */
 	public function testLearnerCannotSelfApprove(): void {
-		$guard = $this->makeGuard([]);
-		$context = ['actor' => 'actor-1', 'payload' => []];
+		$result = $this->makeGuard([])->check($this->accommodation(), 'approve', 'actor-1');
 
-		self::assertFalse($guard->check($context));
-		self::assertArrayNotHasKey('approvedBy', $context['payload']);
+		self::assertFalse($result->isAllowed());
+		self::assertNotSame('', (string)$result->getMessage());
 
 	}//end testLearnerCannotSelfApprove()
 
 	/**
-	 * A caller-supplied approvedBy is overwritten with the actual actor.
+	 * An unknown user is denied.
 	 *
 	 * @return void
 	 */
-	public function testCallerSuppliedApprovedByIsOverwritten(): void {
-		$guard = $this->makeGuard(['admin']);
-		$context = ['actor' => 'actor-1', 'payload' => ['approvedBy' => 'someone-else']];
+	public function testUnknownUserIsDenied(): void {
+		self::assertFalse($this->makeGuard(['admin'])->check($this->accommodation(), 'approve', 'ghost')->isAllowed());
 
-		self::assertTrue($guard->check($context));
-		self::assertSame('actor-1', $context['payload']['approvedBy']);
-
-	}//end testCallerSuppliedApprovedByIsOverwritten()
+	}//end testUnknownUserIsDenied()
 
 	/**
-	 * No actor in the transition context is denied.
+	 * No session user is denied.
 	 *
 	 * @return void
 	 */
 	public function testNoActorIsDenied(): void {
-		$guard = $this->makeGuard(['admin']);
-		$context = ['payload' => []];
-
-		self::assertFalse($guard->check($context));
+		self::assertFalse($this->makeGuard(['admin'])->check($this->accommodation(), 'approve', '')->isAllowed());
 
 	}//end testNoActorIsDenied()
 }//end class

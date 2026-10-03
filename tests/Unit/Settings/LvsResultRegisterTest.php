@@ -1,0 +1,171 @@
+<?php
+
+/**
+ * Unit tests for the `lvs-import-contract` register-JSON declarations.
+ *
+ * @category Tests
+ * @package  OCA\Learniq\Tests\Unit\Settings
+ *
+ * @author    Conduction Development Team <dev@conductio.nl>
+ * @copyright 2026 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * SPDX-License-Identifier: EUPL-1.2
+ *
+ * @link https://conduction.nl
+ *
+ * @spec openspec/changes/archive/2026-09-28-lvs-import-contract/tasks.md#task-4
+ */
+
+declare(strict_types=1);
+
+namespace OCA\Learniq\Tests\Unit\Settings;
+
+use PHPUnit\Framework\TestCase;
+
+/**
+ * Verifies the LvsResult schema declaration, its lifecycle/RBAC, the
+ * `lvs-results` DataExchangeJob target, and the DataMappingProfile seed.
+ */
+class LvsResultRegisterTest extends TestCase {
+
+	/**
+	 * Decoded register configuration.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private array $config;
+
+	/**
+	 * Load the register configuration once per test.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		$path = __DIR__ . '/../../../lib/Settings/learniq_register.json';
+		$this->config = json_decode((string)file_get_contents($path), true);
+
+	}//end setUp()
+
+	/**
+	 * Required fields cover the four-provider import shape findings.md#6.5
+	 * asked for. LvsResult is not append-only: Open Register runs `verify` and
+	 * `archive` as updates and refuses every update on an append-only schema
+	 * (access-control-ratchet-compliance, D23).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-imported-lvs-results-and-transfer-dossiers-are-read-and-written-by-the-groups-that-review-them
+	 */
+	public function testRequiredFieldsAndNotAppendOnly(): void {
+		$schema = $this->config['components']['schemas']['LvsResult'];
+
+		self::assertNotTrue($schema['appendOnly'] ?? false);
+		self::assertSame(
+			['provider', 'instrument', 'moment', 'learnerId', 'dataExchangeJobId', 'tenant_id'],
+			$schema['required']
+		);
+
+		$props = $schema['properties'];
+		self::assertSame(['cito', 'iep', 'boom', 'dia'], $props['provider']['enum']);
+
+	}//end testRequiredFieldsAndAppendOnly()
+
+	/**
+	 * The normed-score fields (rawScore, vaardigheidsscore, niveau,
+	 * referentieniveau, dle) are all nullable numbers/strings — a provider
+	 * need not publish every one of them.
+	 *
+	 * @return void
+	 */
+	public function testNormedScoreFieldsAreNullable(): void {
+		$props = $this->config['components']['schemas']['LvsResult']['properties'];
+
+		foreach (['rawScore', 'vaardigheidsscore', 'niveau', 'referentieniveau', 'dle', 'takenAt'] as $field) {
+			self::assertTrue($props[$field]['nullable'], "{$field} must be nullable");
+			self::assertNull($props[$field]['default']);
+		}
+
+	}//end testNormedScoreFieldsAreNullable()
+
+	/**
+	 * assessmentResultId is a nullable $ref into AssessmentResult — set only
+	 * when an in-app Assessment counterpart exists.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-an-imported-lvs-result-links-to-an-existing-assessmentresult-when-one-exists
+	 */
+	public function testAssessmentResultLinkIsNullable(): void {
+		$props = $this->config['components']['schemas']['LvsResult']['properties'];
+
+		self::assertSame('AssessmentResult', $props['assessmentResultId']['$ref']);
+		self::assertTrue($props['assessmentResultId']['nullable']);
+		self::assertNull($props['assessmentResultId']['default']);
+
+		// data-exchange-to-integriq: the job lives in integriq, so the id is a plain uuid.
+		self::assertArrayNotHasKey('$ref', $props['dataExchangeJobId']);
+		self::assertStringContainsString('integriq', $props['dataExchangeJobId']['description']);
+
+	}//end testAssessmentResultLinkIsNullable()
+
+	/**
+	 * LvsResult starts at `imported` and only reaches `verified` via a
+	 * transition that requires LvsResultVerifyGuard.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-an-imported-result-is-not-verified-until-a-coordinator-confirms-it
+	 */
+	public function testInitialLifecycleStateIsImported(): void {
+		$schema = $this->config['components']['schemas']['LvsResult'];
+		$lifecycle = $schema['x-openregister-lifecycle'];
+
+		self::assertSame('lifecycle', $lifecycle['property']);
+		self::assertSame('imported', $lifecycle['initial']);
+
+		$verify = $lifecycle['transitions']['verify'];
+		self::assertSame('imported', $verify['from']);
+		self::assertSame('verified', $verify['to']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\LvsResultVerifyGuard', $verify['requires']);
+
+		$archive = $lifecycle['transitions']['archive'];
+		self::assertSame(['imported', 'verified'], $archive['from']);
+		self::assertSame('archived', $archive['to']);
+
+	}//end testInitialLifecycleStateIsImported()
+
+	/**
+	 * Read access mirrors AssessmentResult: admin, or the learner reading
+	 * their own result.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-a-learner-can-read-their-own-lvs-results-but-not-another-learners
+	 */
+	public function testRbacReadMirrorsAssessmentResult(): void {
+		$read = $this->config['components']['schemas']['LvsResult']['x-property-rbac']['read'];
+
+		self::assertSame('admin', $read['anyOf'][0]['role']);
+		self::assertSame('learnerId', $read['anyOf'][1]['match']['field']);
+		self::assertSame('eq', $read['anyOf'][1]['match']['operator']);
+		self::assertSame('$userId', $read['anyOf'][1]['match']['value']);
+
+	}//end testRbacReadMirrorsAssessmentResult()
+
+	/**
+	 * Every LvsResult property carries a title and description (gate-28
+	 * discipline).
+	 *
+	 * @return void
+	 */
+	public function testEveryPropertyHasTitleAndDescription(): void {
+		$props = $this->config['components']['schemas']['LvsResult']['properties'];
+		foreach ($props as $name => $prop) {
+			self::assertArrayHasKey('title', $prop, "LvsResult.{$name} missing title");
+			self::assertArrayHasKey('description', $prop, "LvsResult.{$name} missing description");
+		}
+
+	}//end testEveryPropertyHasTitleAndDescription()
+}//end class

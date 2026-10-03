@@ -17,6 +17,9 @@ $autoloader = require __DIR__ . '/../vendor/autoload.php';
 // is irrelevant.
 $autoloader->addPsr4('OCA\\OpenRegister\\', __DIR__ . '/Stubs/');
 $autoloader->addPsr4('OCA\\Talk\\', __DIR__ . '/Stubs/Talk/');
+// Integriq's exchange events, copied verbatim (data-exchange-to-integriq): learniq talks to
+// integriq only through them, and its tests construct the real contract classes.
+$autoloader->addPsr4('OCA\\Integriq\\', __DIR__ . '/Stubs/Integriq/');
 
 // The nextcloud/ocp package ships the OCP\* interface definitions under
 // vendor/nextcloud/ocp/OCP/ but declares an empty Composer autoload block
@@ -44,6 +47,15 @@ if (is_dir($ocpRoot)) {
 // runtime classmap and can shadow real app classes instance-wide
 // (openregister#2036) — the same hazard the stub registration above avoids.
 require_once __DIR__ . '/Support/OrEntityFactory.php';
+require_once __DIR__ . '/Support/GuardVerdicts.php';
+require_once __DIR__ . '/Support/RegisterFaithfulStore.php';
+require_once __DIR__ . '/Support/CapturingLogger.php';
+require_once __DIR__ . '/Support/XapiDocumentsInMemory.php';
+require_once __DIR__ . '/Support/ExamScheduleFixture.php';
+require_once __DIR__ . '/Support/SlugMapper.php';
+require_once __DIR__ . '/Support/TransitionScope.php';
+require_once __DIR__ . '/Support/OrReadVerdict.php';
+require_once __DIR__ . '/Support/RegisterSchemaPayloads.php';
 
 // Shared guard: base.php exits() rather than throwing on a bad NC instance, so
 // loading it unconditionally silently truncates the suite to zero tests while
@@ -111,12 +123,6 @@ if (!defined('OC_CONSOLE')) {
 	}
 }
 
-// IMcpToolProvider stub — loaded when the openregister runtime (PR #1466) is absent.
-// This lets LearniqToolProvider unit tests run in standalone CI environments.
-if (interface_exists(\OCA\OpenRegister\Mcp\IMcpToolProvider::class) === false) {
-	require_once __DIR__ . '/Stubs/Mcp/IMcpToolProvider.php';
-}
-
 // Doctrine\DBAL\ParameterType stub — IQueryBuilder references it in its own
 // constant declarations, so doubling OCP\IDBConnection loads it. The file
 // self-guards, so where the real Doctrine package is installed this is a
@@ -139,4 +145,19 @@ require_once __DIR__ . '/Stubs/DoctrineParameterType.php';
 // never did. The two bootstraps had silently diverged.
 if (interface_exists(\OC\Hooks\Emitter::class) === false) {
 	require_once __DIR__ . '/Stubs/Hooks/Emitter.php';
+}
+
+// Symfony HeaderUtils stub — DataDownloadResponse needs it and only the server
+// ships it, so a controller returning a download could not be unit tested.
+if (class_exists(\Symfony\Component\HttpFoundation\HeaderUtils::class) === false) {
+	require_once __DIR__ . '/Stubs/Symfony/HeaderUtils.php';
+}
+
+// Integriq's connection-registry event (adopt-connection-registry).
+// ConnectionReportService sends it by string class name behind class_exists
+// (ADR-041), so learniq stays installable without integriq. The stub mirrors
+// hydra connection-registry design D6 verbatim and loads only when integriq's
+// real class is absent.
+if (class_exists('\\OCA\\Integriq\\Event\\ConnectionStatusReportedEvent') === false) {
+	require_once __DIR__ . '/Stubs/Integriq/Event/ConnectionStatusReportedEvent.php';
 }

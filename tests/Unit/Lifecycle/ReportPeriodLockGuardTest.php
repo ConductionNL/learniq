@@ -6,8 +6,9 @@
  * Covers the composition with FraudCaseBlockGuard (a fraud-blocked GradeEntry
  * MUST stay blocked regardless of ReportPeriod lock state — the fraud-appeal
  * guarantee this guard must never regress), the fail-open "no governing
- * ReportPeriod" posture, the locked-period block, and the admin/mentor/
- * principal override.
+ * ReportPeriod" posture, the locked-period block, and the four-eyes rule
+ * that replaced the lone role override: a publish in a locked period needs
+ * a correction approved by a second person (governance-four-eyes).
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle
@@ -22,21 +23,22 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
- * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
- * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-a-mentor-override-publishes-a-grade-for-a-locked-report-period
+ * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
+ * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
+ * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
-use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\FraudCaseBlockGuard;
 use OCA\Learniq\Lifecycle\ReportPeriodLockGuard;
-use OCP\IGroupManager;
-use OCP\IUser;
-use OCP\IUserManager;
+use OCA\Learniq\Service\Grading\CorrectionApprovals;
+use OCA\Learniq\Service\Grading\ReportPeriodLocks;
+use OCA\Learniq\Tests\Support\GuardVerdicts;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -45,49 +47,85 @@ use Psr\Log\LoggerInterface;
  */
 class ReportPeriodLockGuardTest extends TestCase {
 
+	use GuardVerdicts;
+
 	/**
-	 * Build a guard.
+	 * A locked report period for period 1 of plan-1.
 	 *
-	 * @param bool $fraudCaseAllows Whether the composed FraudCaseBlockGuard's check() returns true.
-	 * @param array<int,array<string,mixed>> $reportPeriods ReportPeriod rows returned by findAll(schema=report-period).
-	 * @param array<string> $actorGroups Group IDs the acting user belongs to.
-	 * @param bool $actorExists Whether the user manager resolves the actor.
+	 * @var array<string, mixed>
+	 */
+	private const LOCKED = ['id' => 'period-1', 'periodCode' => '1', 'curriculumPlanIds' => ['plan-1'], 'isLocked' => true];
+
+	/**
+	 * A published grade in that period, being republished as a 6.5.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private const ENTRY = ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a', 'value' => 6.5, 'lifecycle' => 'published'];
+
+	/**
+	 * Teacher A's request for that grade, approved by principal B.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private const APPROVED = [
+		'id'            => 'dcr-1',
+		'gradeEntryId'  => 'entry-1',
+		'proposedValue' => 6.5,
+		'currentValue'  => 5.5,
+		'reason'        => 'A page of the exam was not counted.',
+		'requestedBy'   => 'teacher-a',
+		'decidedBy'     => 'principal-b',
+		'lifecycle'     => 'approved',
+	];
+
+	/**
+	 * Build a guard over the real CorrectionApprovals.
+	 *
+	 * @param bool                           $fraudCaseAllows Whether the composed FraudCaseBlockGuard's check() allows.
+	 * @param array<int,array<string,mixed>> $reportPeriods   ReportPeriod rows returned by findAll(schema=report-period).
+	 * @param array<int,array<string,mixed>> $corrections     DataCorrectionRequest rows in the store.
 	 *
 	 * @return ReportPeriodLockGuard
 	 */
 	private function makeGuard(
 		bool $fraudCaseAllows,
 		array $reportPeriods,
-		array $actorGroups = [],
-		bool $actorExists = true,
+		array $corrections = [],
 	): ReportPeriodLockGuard {
 		$fraudCaseGuard = $this->createMock(FraudCaseBlockGuard::class);
-		$fraudCaseGuard->method('check')->willReturn($fraudCaseAllows);
+		$fraudCaseVerdict = GuardResult::deny('Linked fraud case is still open.');
+		if ($fraudCaseAllows === true) {
+			$fraudCaseVerdict = GuardResult::allow();
+		}
+
+		$fraudCaseGuard->method('check')->willReturn($fraudCaseVerdict);
 
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
-			function (array $config) use ($reportPeriods) {
-				if ($config['schema'] === 'report-period') {
+			function (array $config) use ($reportPeriods, $corrections) {
+				$filters = $config['filters'];
+				if ($filters['schema'] === 'report-period') {
 					return $reportPeriods;
+				}
+
+				if ($filters['schema'] === 'data-correction-request') {
+					return array_values(
+						array_filter(
+							$corrections,
+							static fn (array $row): bool => $row['gradeEntryId'] === $filters['gradeEntryId'] && $row['lifecycle'] === $filters['lifecycle']
+						)
+					);
 				}
 
 				return [];
 			}
 		);
 
-		$user = $this->createMock(IUser::class);
-
-		$userManager = $this->createMock(IUserManager::class);
-		$userManager->method('get')->willReturn($actorExists === true ? $user : null);
-
-		$groupManager = $this->createMock(IGroupManager::class);
-		$groupManager->method('getUserGroupIds')->willReturn($actorGroups);
-
 		return new ReportPeriodLockGuard(
 			$fraudCaseGuard,
-			$objectService,
-			$groupManager,
-			$userManager,
+			new ReportPeriodLocks(objects: $objectService),
+			new CorrectionApprovals(objects: $objectService),
 			$this->createMock(LoggerInterface::class)
 		);
 
@@ -103,9 +141,9 @@ class ReportPeriodLockGuardTest extends TestCase {
 	public function testFraudCaseBlockGuardShortCircuitsAndStaysBlocked(): void {
 		// Even with NO locked ReportPeriod at all, a fraud-case block wins.
 		$guard = $this->makeGuard(fraudCaseAllows: false, reportPeriods: []);
-		$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1'], 'actor' => 'admin-1'];
+		$object = ['id' => 'entry-1', 'fraudCaseId' => 'case-1', 'lifecycle' => 'published'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', 'admin-1'));
 
 	}//end testFraudCaseBlockGuardShortCircuitsAndStaysBlocked()
 
@@ -115,16 +153,13 @@ class ReportPeriodLockGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
+	 * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
 	 */
 	public function testNoGoverningReportPeriodAllowsUnconditionally(): void {
 		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: []);
-		$context = [
-			'object' => ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a'],
-			'actor' => 'teacher-1',
-		];
+		$object = ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', 'teacher-1'));
 
 	}//end testNoGoverningReportPeriodAllowsUnconditionally()
 
@@ -136,12 +171,9 @@ class ReportPeriodLockGuardTest extends TestCase {
 	public function testMatchingButUnlockedReportPeriodAllows(): void {
 		$period = ['id' => 'period-1', 'periodCode' => '1', 'curriculumPlanIds' => ['plan-1'], 'isLocked' => false];
 		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: [$period]);
-		$context = [
-			'object' => ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a'],
-			'actor' => 'teacher-1',
-		];
+		$object = ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', 'teacher-1'));
 
 	}//end testMatchingButUnlockedReportPeriodAllows()
 
@@ -150,38 +182,71 @@ class ReportPeriodLockGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
+	 * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
 	 */
 	public function testMatchingLockedReportPeriodBlocksOrdinaryTeacher(): void {
 		$period = ['id' => 'period-1', 'periodCode' => '1', 'curriculumPlanIds' => ['plan-1'], 'isLocked' => true];
-		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: [$period], actorGroups: ['teacher']);
-		$context = [
-			'object' => ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a'],
-			'actor' => 'teacher-1',
-		];
+		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: [$period]);
+		$object = ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', 'teacher-1'));
 
 	}//end testMatchingLockedReportPeriodBlocksOrdinaryTeacher()
 
 	/**
-	 * A matching, locked ReportPeriod allows an admin/mentor/principal override.
+	 * A principal can no longer publish into a locked period alone: without a
+	 * correction request the republish is denied, and the reason names the
+	 * second approver.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-a-mentor-override-publishes-a-grade-for-a-locked-report-period
+	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-principal-cannot-override-alone
 	 */
-	public function testMentorOverrideAllowsPublishOnLockedPeriod(): void {
-		$period = ['id' => 'period-1', 'periodCode' => '1', 'curriculumPlanIds' => ['plan-1'], 'isLocked' => true];
-		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: [$period], actorGroups: ['mentor']);
-		$context = [
-			'object' => ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a'],
-			'actor' => 'mentor-1',
+	public function testAPrincipalCannotOverrideAlone(): void {
+		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: [self::LOCKED]);
+
+		$verdict = $guard->check(self::ENTRY, 'republish', 'principal-b');
+		self::assertDenied($verdict);
+		self::assertStringContainsString('second', (string)$verdict->getMessage());
+	}//end testAPrincipalCannotOverrideAlone()
+
+	/**
+	 * Teacher A asked, principal B approved: teacher A republishes the
+	 * approved value.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
+	 */
+	public function testASecondPersonsApprovalLetsTheRequesterRepublish(): void {
+		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: [self::LOCKED], corrections: [self::APPROVED]);
+
+		self::assertAllowed($guard->check(self::ENTRY, 'republish', 'teacher-a'));
+	}//end testASecondPersonsApprovalLetsTheRequesterRepublish()
+
+	/**
+	 * The approval does not cover a publish by the approver, a request its own
+	 * requester approved, a request that is not approved, another value, or
+	 * another grade entry.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+	 */
+	public function testAnApprovalCoversOnlyItsOwnCase(): void {
+		$cases = [
+			'the approver publishes'         => [self::APPROVED, self::ENTRY, 'principal-b'],
+			'the requester approved it'      => [array_merge(self::APPROVED, ['decidedBy' => 'teacher-a']), self::ENTRY, 'teacher-c'],
+			'the request is still requested' => [array_merge(self::APPROVED, ['lifecycle' => 'requested', 'decidedBy' => null]), self::ENTRY, 'teacher-a'],
+			'another value is published'     => [self::APPROVED, array_merge(self::ENTRY, ['value' => 8.0]), 'teacher-a'],
+			'another grade entry'            => [array_merge(self::APPROVED, ['gradeEntryId' => 'entry-2']), self::ENTRY, 'teacher-a'],
+			'a grade entry without an id'    => [self::APPROVED, array_diff_key(self::ENTRY, ['id' => true]), 'teacher-a'],
 		];
-
-		self::assertTrue($guard->check($context));
-
-	}//end testMentorOverrideAllowsPublishOnLockedPeriod()
+		foreach ($cases as $label => [$request, $entry, $publisher]) {
+			$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: [self::LOCKED], corrections: [$request]);
+			self::assertDenied($guard->check($entry, 'republish', $publisher), $label);
+		}
+	}//end testAnApprovalCoversOnlyItsOwnCase()
 
 	/**
 	 * A ReportPeriod with a different curriculumPlanIds scope does not match —
@@ -191,13 +256,10 @@ class ReportPeriodLockGuardTest extends TestCase {
 	 */
 	public function testNonMatchingCurriculumPlanFailsOpen(): void {
 		$period = ['id' => 'period-1', 'periodCode' => '1', 'curriculumPlanIds' => ['other-plan'], 'isLocked' => true];
-		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: [$period], actorGroups: []);
-		$context = [
-			'object' => ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a'],
-			'actor' => 'teacher-1',
-		];
+		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: [$period]);
+		$object = ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', 'teacher-1'));
 
 	}//end testNonMatchingCurriculumPlanFailsOpen()
 
@@ -208,9 +270,9 @@ class ReportPeriodLockGuardTest extends TestCase {
 	 */
 	public function testEmptyPeriodOrCurriculumPlanIdAllowsUnconditionally(): void {
 		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: []);
-		$context = ['object' => ['id' => 'entry-1'], 'actor' => 'teacher-1'];
+		$object = ['id' => 'entry-1', 'lifecycle' => 'published'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', 'teacher-1'));
 
 	}//end testEmptyPeriodOrCurriculumPlanIdAllowsUnconditionally()
 }//end class

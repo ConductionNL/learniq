@@ -24,10 +24,10 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-supports-drip-release-relative-to-each-learners-own-enrolment-date
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#requirement-assessment-supports-drip-release-relative-to-each-learners-own-enrolment-date
+ * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
+ * @spec openspec/specs/course-management/spec.md#requirement-lesson-supports-drip-release-relative-to-each-learners-own-enrolment-date
+ * @spec openspec/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
+ * @spec openspec/specs/assessment/spec.md#requirement-assessment-supports-drip-release-relative-to-each-learners-own-enrolment-date
  */
 
 declare(strict_types=1);
@@ -103,8 +103,8 @@ class LessonReleaseEvaluatorTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
-				$schema = $config['schema'];
-				$filters = ($config['filters'] ?? []);
+				$schema = $config['filters']['schema'];
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 				$records = ($this->db[$schema] ?? []);
 
 				return array_values(
@@ -165,7 +165,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-is-unavailable-until-its-prerequisite-lesson-is-completed
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-lesson-is-unavailable-until-its-prerequisite-lesson-is-completed
 	 */
 	public function testUnmetLessonCompletedConditionBlocks(): void {
 		$this->seed('lesson', ['id' => 'lesson-a', 'name' => 'Lesson A']);
@@ -193,7 +193,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-unlocks-once-its-prerequisite-lesson-is-completed
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-lesson-unlocks-once-its-prerequisite-lesson-is-completed
 	 */
 	public function testMetLessonCompletedConditionIsAvailable(): void {
 		$this->seed('lesson', ['id' => 'lesson-a', 'name' => 'Lesson A']);
@@ -261,7 +261,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#scenario-an-assessment-is-unavailable-until-a-minimum-score-on-a-prior-assessment-is-met
+	 * @spec openspec/specs/assessment/spec.md#scenario-an-assessment-is-unavailable-until-a-minimum-score-on-a-prior-assessment-is-met
 	 */
 	public function testUnmetAssessmentMinScoreConditionBlocks(): void {
 		$this->seed('exam', ['id' => 'assessment-a', 'title' => 'Quiz A']);
@@ -305,7 +305,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#scenario-an-assessment-unlocks-once-the-learner-meets-the-minimum-score-on-the-prior-assessment
+	 * @spec openspec/specs/assessment/spec.md#scenario-an-assessment-unlocks-once-the-learner-meets-the-minimum-score-on-the-prior-assessment
 	 */
 	public function testMetAssessmentMinScoreConditionIsAvailable(): void {
 		$this->seed('exam', ['id' => 'assessment-a', 'title' => 'Quiz A']);
@@ -397,7 +397,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-is-locked-until-n-days-after-the-learners-own-enrolment-date
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-lesson-is-locked-until-n-days-after-the-learners-own-enrolment-date
 	 */
 	public function testDripNotYetElapsedBlocks(): void {
 		$evaluator = $this->makeEvaluator();
@@ -442,7 +442,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-two-learners-with-different-enrolment-dates-see-different-unlock-dates-for-the-same-lesson
+	 * @spec openspec/specs/course-management/spec.md#scenario-two-learners-with-different-enrolment-dates-see-different-unlock-dates-for-the-same-lesson
 	 */
 	public function testTwoLearnersDifferentEnrolmentDatesDifferentAvailability(): void {
 		$evaluator = $this->makeEvaluator();
@@ -494,7 +494,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#scenario-an-assessment-is-locked-until-n-days-after-the-learners-own-enrolment-date-even-within-its-absolute-availability-window
+	 * @spec openspec/specs/assessment/spec.md#scenario-an-assessment-is-locked-until-n-days-after-the-learners-own-enrolment-date-even-within-its-absolute-availability-window
 	 */
 	public function testAssessmentAbsoluteWindowBlocksEvenWhenDripElapsed(): void {
 		$evaluator = $this->makeEvaluator();
@@ -516,12 +516,50 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	}//end testAssessmentAbsoluteWindowBlocksEvenWhenDripElapsed()
 
 	/**
+	 * The window is read from the dates, not the stored isAvailable: an
+	 * assessment saved inside its window keeps isAvailable true after the
+	 * window closes, and one saved before it opened keeps false after (learniq#946).
+	 *
+	 * @return void
+	 */
+	public function testAssessmentWindowIsEvaluatedFromTheDatesNotTheStoredFlag(): void {
+		$evaluator = $this->makeEvaluator();
+
+		$closed = $evaluator->evaluate(
+			item: [
+				'id' => 'assessment-c',
+				'tenant_id' => 'tenant-a',
+				'isAvailable' => true,
+				'availableUntil' => (new DateTimeImmutable('-1 hour'))->format(DATE_ATOM),
+			],
+			itemSchema: 'exam',
+			learnerId: 'learner-1',
+			enrolment: []
+		);
+		self::assertFalse($closed['available']);
+
+		$opened = $evaluator->evaluate(
+			item: [
+				'id' => 'assessment-c',
+				'tenant_id' => 'tenant-a',
+				'isAvailable' => false,
+				'availableFrom' => (new DateTimeImmutable('-1 hour'))->format(DATE_ATOM),
+			],
+			itemSchema: 'exam',
+			learnerId: 'learner-1',
+			enrolment: []
+		);
+		self::assertTrue($opened['available']);
+
+	}//end testAssessmentWindowIsEvaluatedFromTheDatesNotTheStoredFlag()
+
+	/**
 	 * An Assessment inside its absolute window is STILL locked when its own
 	 * drip delay has not elapsed for this learner — both gates must pass.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#scenario-an-assessment-is-locked-until-n-days-after-the-learners-own-enrolment-date-even-within-its-absolute-availability-window
+	 * @spec openspec/specs/assessment/spec.md#scenario-an-assessment-is-locked-until-n-days-after-the-learners-own-enrolment-date-even-within-its-absolute-availability-window
 	 */
 	public function testAssessmentDripBlocksEvenWhenAbsoluteWindowOpen(): void {
 		$evaluator = $this->makeEvaluator();

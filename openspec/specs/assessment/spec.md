@@ -41,7 +41,9 @@ Beyond hand-in assignments, institutions run **structured tests**: a vmbo `toets
 - GIVEN a proctored Assessment with `provider="X"`, WHEN a learner starts, THEN a `ProctoringSession` is created via the X adapter; provider X is *not* hard-coded anywhere — swapping the config to `provider="Y"` uses the Y adapter with no code change.
 - GIVEN a proctoring flag is raised, WHEN the invigilator opens the review queue, THEN the flag is shown for a human decision; no result is altered until the invigilator records one.
 - GIVEN an Assessment with essay items, WHEN auto-scoring runs, THEN the `AssessmentResult` lifecycle is `submitted` (not `graded`) until the teacher scores the essay items.
+
 ## Requirements
+
 ### Requirement: Persist Assessment domain objects in OpenRegister
 The system MUST persist `Assessment`, `Item`, `ItemBank`, `AssessmentResult`, `ProctoringSession` as OpenRegister objects with `x-openregister-lifecycle` (AssessmentResult: in-progress → submitted → graded), `x-openregister-relations`, and `x-openregister-calculations` (AssessmentResult `autoScore`, `totalScore`, `passed`).
 
@@ -49,14 +51,6 @@ The system MUST persist `Assessment`, `Item`, `ItemBank`, `AssessmentResult`, `P
 - **GIVEN** the assessment schemas are registered in OpenRegister
 - **WHEN** an `Assessment`, `Item`, `ItemBank`, `AssessmentResult`, or `ProctoringSession` is created
 - **THEN** it is stored as an OpenRegister object carrying its `x-openregister-lifecycle`, `x-openregister-relations`, and `x-openregister-calculations` metadata (AssessmentResult moving in-progress → submitted → graded)
-
-### Requirement: Items use QTI 3.0 as canonical form
-Items MUST be QTI 3.0 (importing QTI 2.x and Common Cartridge is required; QTI 3.0 is the canonical stored form).
-
-#### Scenario: Items stored canonically as QTI 3.0
-- **GIVEN** a QTI 2.x package or Common Cartridge import
-- **WHEN** an item author imports the package into an ItemBank
-- **THEN** the items are converted to and stored in canonical QTI 3.0 form
 
 ### Requirement: Proctoring is a pluggable provider
 Proctoring via an external vendor MUST be a declared `x-proctoring.provider` config resolving to
@@ -202,6 +196,90 @@ when one exists.
      consistent with how sibling specs (e.g. school-year-rollover) treat backend/concurrency-heavy
      scenarios. The tab-lock heartbeat logic (acquireTabLock()/writeTabLock() in TakeAssessmentView.vue) is
      deterministic client-side code. -->
+
+### Requirement: An attempt starts only inside the availability window and with the access code
+The server SHALL refuse to create an `AssessmentResult` (start an attempt) when the current time is before
+the Assessment's `availableFrom` or after its `availableUntil`, evaluated live from the two dates rather
+than from the stored `isAvailable` calculation. When the Assessment carries an `accessCode`, the server
+SHALL refuse the create unless the same code is supplied with it, and SHALL NOT keep the supplied code on
+the `AssessmentResult`. `Assessment.accessCode` SHALL be write-only, so no read returns it. The check runs
+in `AssessmentAttemptGateListener` on OpenRegister's `ObjectCreatingEvent`, fails closed when the
+Assessment cannot be read, and exempts Nextcloud admins and system context. `TakeAssessmentView` SHALL ask
+the release-status endpoint first and show why a closed test cannot be started, or ask for the code.
+
+#### Scenario: An attempt before the window opens is refused
+- **GIVEN** an Assessment whose `availableFrom` is tomorrow
+- **WHEN** an enrolled learner opens the take screen, or posts an `AssessmentResult` for it directly
+- **THEN** no attempt is created and the learner is told the test is not open yet
+
+<!-- @e2e exclude The refusal is a server-side create veto; AssessmentAttemptGateListenerTest asserts it
+     (testAttemptBeforeWindowOpensIsRefused, testAttemptAfterWindowClosedIsRefusedEvenWithStaleIsAvailable)
+     without needing a clock-shifted live instance. -->
+
+#### Scenario: A test behind an access code needs the code
+- **GIVEN** an Assessment with an `accessCode`
+- **WHEN** a learner starts it without the code, or with a wrong one
+- **THEN** no attempt is created
+- **AND** with the right code the attempt is created and the code is not stored on it
+
+<!-- @e2e exclude Asserted in tests/Unit/Listener/AssessmentAttemptGateListenerTest.php
+     (testMissingAccessCodeIsRefused, testWrongAccessCodeIsRefused, testRightAccessCodeIsAcceptedAndCleared)
+     and tests/Unit/Controller/LessonReleaseControllerTest.php
+     (testAssessmentStatusReportsAccessCodeAndWindowReason). -->
+
+### Requirement: A teacher scores open answers question by question and a finished attempt stays immutable
+`AssessmentResult` SHALL NOT be `appendOnly`, because Open Register refuses every update on an append-only
+schema, lifecycle transitions included, which made saving answers, `submit`, a manual score and `grade`
+impossible. `AssessmentResultIntegrityListener` SHALL keep the attempt trustworthy instead, on Open
+Register's `ObjectUpdatingEvent` and `ObjectDeletingEvent`: while `in-progress` only the learner changes the
+attempt and cannot score it; once `submitted` the answers, auto scores and attempt fields are frozen and only
+staff (a teacher or admin dashboard view) write `responses[].manualScore`, a number of zero or more, and fire
+`grade`; a `graded` attempt is final apart from the GradeEntry back-link and a learner merge; a delete is
+refused. Nextcloud admins and system context are exempt. `AssessmentScoringView` SHALL let a teacher take one
+open question across every submitted attempt of an assessment, save the scores and grade the attempts whose
+open questions are all scored.
+
+#### Scenario: A teacher scores an essay and grades the attempt
+- **GIVEN** a submitted attempt with an unscored essay answer
+- **WHEN** a teacher opens Score open answers from the results list, enters a score and saves
+- **THEN** the attempt's `manualScore` for that item is stored and the attempt can be graded
+
+<!-- @e2e exclude Needs a submitted attempt, which needs a live learner session through TakeAssessmentView;
+     the rules are asserted in tests/Unit/Listener/AssessmentResultIntegrityListenerTest.php
+     (testTeacherMayWriteAManualScoreOnASubmittedAttempt, testTeacherMayGradeAScoredAttempt) and the screen
+     wiring and helpers in tests/unit-js/manualScoring.test.mjs. -->
+
+#### Scenario: A finished attempt's answers cannot be changed
+- **GIVEN** a submitted attempt
+- **WHEN** the learner writes a score, or anyone changes an answer or an auto score, or deletes the attempt
+- **THEN** the write is refused
+
+<!-- @e2e exclude A server-side write veto; asserted in
+     tests/Unit/Listener/AssessmentResultIntegrityListenerTest.php (testLearnerMayNotScoreTheirOwnSubmittedAttempt,
+     testTeacherMayNotChangeTheAnswers, testTeacherMayNotChangeAnAutoScore, testAGradedAttemptIsFinal,
+     testDeleteIsRefusedForNonAdmins). -->
+
+### Requirement: Assessment results are read by the learner, their manager and the course's teachers
+An `AssessmentResult` (the learner's answers and score) SHALL be readable by the learner who took it, the
+learner's manager (`LearnerProfile.managerId`), the teachers of the assessment's course (the `teacherIds` of
+the Assessment's cohort, or of every cohort of its course), and admins, and by nobody else. The rule SHALL
+be expressed in the schema's `authorization` block, which OpenRegister enforces on every read and list;
+`x-property-rbac` is not read by OpenRegister and is documentation only. Because an authorization `match`
+compares a field on the object with the caller, `AssessmentResultAudience` (run by
+`AssessmentAttemptGateListener` for every create it lets through) SHALL stamp `teacherIds` and `managerId`
+on the result when it is created, overwriting any client value; when a lookup fails it
+stamps an empty audience, which narrows rather than widens. The learner and the course's teachers MAY
+update a result; only admins delete.
+
+#### Scenario: A manager and a course teacher see a learner's result, a peer does not
+- **GIVEN** a learner whose LearnerProfile names a manager, enrolled in a course whose cohort lists a teacher
+- **WHEN** the learner takes and submits a test
+- **THEN** the manager and the teacher each see the attempt in the assessment's results list
+- **AND** another learner of the same course does not
+
+<!-- @e2e exclude Needs four seeded accounts with OpenRegister RBAC evaluated live. The rule itself is
+     asserted in tests/Unit/Register/AssessmentResultAccessTest.php and the stamp in
+     tests/Unit/Service/AssessmentResultAudienceTest.php. -->
 
 ### Requirement: Assessment declares which competencies it assesses, and Item carries competency tags for authoring
 
@@ -447,7 +525,7 @@ The system SHALL compute `AssessmentReliability.cronbachAlpha` for an `Assessmen
      covered by ItemAnalysisServiceTest (PHPUnit), the threshold gate has no DOM surface. -->
 
 ### Requirement: A quality-threshold breach opens an ItemRevisionFlag routed to the exam board
-The system SHALL create an append-only `ItemRevisionFlag` (`open` lifecycle state) when an `ItemStatistics`
+The system SHALL create an `ItemRevisionFlag` (`open` lifecycle state) when an `ItemStatistics`
 computation with `insufficientData: false` crosses a configured quality threshold (too-difficult, too-easy,
 low-discrimination, or negative-discrimination), referencing the item and the triggering
 `ItemStatistics`, unless an `open` flag for the same `(itemId, reason)` already exists. `ItemRevisionFlag`
@@ -486,27 +564,279 @@ RBAC. A learner MUST NOT be able to read an item's difficulty/discrimination sta
 
 <!-- @e2e tests/e2e/spec-coverage/assessment-item-pools-and-analysis.spec.ts -->
 
-### Requirement: ItemBank exports its items as a QTI 3.0 package
+### Requirement: Submission carries a plagiarism-check result landing spot
 
-The system MUST support exporting an `ItemBank` and its `Item`s as a QTI 3.0 package (a ZIP containing an
-`imsmanifest.xml` and one `assessmentItem` XML per `Item`), completing the "Items use QTI 3.0 as canonical
-form" requirement's import-only coverage into a round-trip. Because every `Item.qtiBody` already holds
-verbatim, valid QTI 3.0 XML — written by both `QtiImportService` on import and `ItemAuthorView` on manual
-authoring — the exporter MUST wrap the stored `qtiBody` directly rather than re-deriving it from
-`interactionType`/`correctResponse`, so export fidelity is not limited by the pre-existing import-side
-interaction-type parsing gap (that gap affects what `QtiImportService` can *extract into* `correctResponse`
-on import; it does not affect what is already stored in `qtiBody` and therefore does not affect export). The
-export MUST be usable independently of course-package export (e.g. an item author moving one bank between
-Scholiq tenants) and MUST be the same code path `course-management`'s course export calls for embedded
-assessment items, per this capability's ownership of `Item`/`ItemBank`.
+`Submission` MUST carry `plagiarismStatus` (enum: `not-requested`, `pending`, `completed`; default
+`not-requested`), a nullable `plagiarismScore` (0.0–1.0), and a nullable `plagiarismCheckedAt` (date-time) —
+the data-model landing spot for a `ProvidesPlagiarismCheck` provider's `getSimilarityScore()` result (finding
+6.11). No provider implementation ships with this change; these fields exist so one can write its result
+somewhere once configured.
 
-#### Scenario: Exporting an ItemBank produces a valid QTI 3.0 package
+#### Scenario: A Submission with no plagiarism check requested defaults to not-requested
 
-- **GIVEN** an `ItemBank` containing `Item`s of mixed `interactionType` (some fully parsed on import, some
-  with only raw `qtiBody` preserved)
+- **GIVEN** a `Submission` created without explicit plagiarism fields
+- **WHEN** the row is read
+- **THEN** `plagiarismStatus` resolves to `"not-requested"` and `plagiarismScore`/`plagiarismCheckedAt` are
+  null
+
+#### Scenario: A completed check's score is stored in range
+
+- **GIVEN** a `Submission` whose `Assignment.plagiarismProvider` is set
+- **WHEN** a provider (out of scope for this change) writes `plagiarismStatus: "completed"`,
+  `plagiarismScore: 0.12`, `plagiarismCheckedAt: <timestamp>`
+- **THEN** the schema accepts a `plagiarismScore` value between 0.0 and 1.0 inclusive
+
+### Requirement: GradeEntry records a method-test result per subject per block
+
+`GradeEntry.sourceKind` MUST include `method-test` alongside its existing origins, and `GradeEntry` MUST
+carry nullable `methodName` (the teaching method, e.g. "Wereld in Getallen", "Snappet") and `methodBlock`
+(e.g. "blok 3") properties, populated only when `sourceKind` is `method-test` — finding 6.6 ("no method-test
+model"; PO methodetoetsen scored per subject per block).
+
+#### Scenario: A method-test mark carries its method and block
+
+- **GIVEN** a `GradeEntry` with `sourceKind: "method-test"`
+- **WHEN** `methodName` and `methodBlock` are set
+- **THEN** the entry is valid and distinguishable from every other `sourceKind` by those two fields being
+  populated
+
+#### Scenario: A non-method-test entry leaves methodName/methodBlock null
+
+- **GIVEN** a `GradeEntry` with `sourceKind: "assignment-submission"` (or any non-`method-test` value)
+- **WHEN** the row is read
+- **THEN** `methodName` and `methodBlock` are null — the fields are additive and do not affect any existing
+  source kind
+
+### Requirement: ItemBankDetail exposes a QTI export action
+
+`ItemBankDetail` MUST declare a header action that downloads the item bank's QTI 3.0 export package via the
+already-built `GET /api/assessment/qti-export` route (finding 6.3 — the backend existed with no UI trigger).
+
+#### Scenario: A coordinator exports an item bank as QTI
+
+<!-- @e2e exclude the backend export path (QtiExportController/QtiExportService) is already covered by
+     QtiExportServiceTest; this requirement adds only a manifest-declared UI trigger to an existing,
+     unit-tested endpoint, verified structurally by the merged-manifest Ajv validation this change runs, not
+     a new browser scenario -->
+
+- **GIVEN** an `ItemBank` with items
+- **WHEN** a coordinator clicks the "Export QTI package" action on `ItemBankDetail`
+- **THEN** a QTI 3.0 ZIP download begins, sourced from the existing `/api/assessment/qti-export` endpoint
+
+### Requirement: AssessmentDetail surfaces exam accommodations
+
+`AssessmentDetail` MUST include an `object-list` widget listing `ExamAccommodation` rows scoped to the
+assessment being viewed (`filter: { assessmentId: "@objectId" }`) — finding 6.4 ("no proctoring/
+accommodation surface on the assessment itself").
+
+#### Scenario: A teacher sees a learner's approved accommodation on the assessment
+
+- **GIVEN** an approved `ExamAccommodation` naming a specific `assessmentId`
+- **WHEN** a teacher opens that `Assessment`'s detail page
+- **THEN** the accommodation appears in the assessment's accommodations list
+
+### Requirement: AssessmentResult tracks referentieniveau
+
+`AssessmentResult` MUST carry a nullable `referentieniveau` property (enum: `1F`, `1S`, `2F`, `2S`, `3F`,
+`3S` — the standard Dutch referentieniveau taxonomy) so a learner's achieved reference level per attempt can
+be tracked over time by querying their `AssessmentResult` history (finding 6.8).
+
+#### Scenario: An AssessmentResult records the referentieniveau achieved
+
+- **GIVEN** an `AssessmentResult` for a taal or rekenen assessment
+- **WHEN** it is saved with `referentieniveau: "1F"`
+- **THEN** the value is persisted and readable on that attempt
+
+#### Scenario: A learner's referentieniveau history is visible over time
+
+- **GIVEN** a learner with multiple `AssessmentResult` rows across different academic periods, each carrying
+  a `referentieniveau`
+- **WHEN** those rows are queried by `learnerId`
+- **THEN** the progression of referentieniveau values over time is visible — no new schema or mechanism is
+  needed beyond the existing append-only `AssessmentResult` history
+
+### Requirement: Portal test requests are accepted only from portaliq's signed forward
+
+`PortalAssessmentController` MUST verify the `X-Portal-Subject` assertion before any read, with
+`PortalAssertionVerifier`: HS256 with portaliq's dedicated `jwt_signing_secret` (at least 16
+characters), `use: assertion`, `iss: portaliq`, `exp` in the future, `iat` not in the future and a
+non-empty `sub`. A request without a valid assertion MUST get 401 and register a failed attempt for
+brute-force throttling. The claim `audience` MUST be `student`, else 403. The learner MUST be taken
+only from the body's `learnerRef`, which portaliq stamps from the subject's own account; a request
+without it MUST get 403. A `learnerRef` that names no active LearnerProfile, or a profile whose
+Nextcloud account does not exist, MUST get 403 `not_available`. No Nextcloud session MUST be used
+as a fallback. Every write MUST run as the pupil's own account through `ObjectService::runAs()`.
+
+#### Scenario: A request without a valid assertion is refused
+
+<!-- @e2e exclude Server-to-server receiver with no DOM surface; covered by PHPUnit PortalAssessmentControllerTest and PortalAssertionVerifierTest. -->
+
+- **GIVEN** a request to any of the five endpoints
+- **WHEN** the assertion is missing, forged, expired or a session token
+- **THEN** the response is 401 `unauthorized` and nothing is read
+
+#### Scenario: Another audience or a missing learner is refused
+
+<!-- @e2e exclude PHPUnit PortalAssessmentControllerTest. -->
+
+- **GIVEN** a valid assertion for audience `parent`, or a body without `learnerRef`
+- **WHEN** it reaches an endpoint
+- **THEN** the response is 403 `forbidden`
+
+### Requirement: A portal attempt follows every test rule inside the endpoints
+
+The portal endpoints MUST enforce, themselves, every rule a portal attempt is subject to, because
+the attempt gate and the integrity listener exempt a caller without a Nextcloud user. `available`
+MUST list only tests that are `published`, have no `proctoring` configuration, belong to a course or
+cohort the pupil holds an active or pending Enrolment in, pass `LessonReleaseEvaluator` (window,
+drip, release conditions) and have attempts left, plus any attempt in progress. `start` MUST refuse
+with 403 `not_available` whatever `available` would not list, MUST refuse a missing or wrong access
+code with 403 `access_code_required` or `access_code_wrong`, MUST resume an attempt in progress
+instead of creating a second one, and MUST allow a new attempt only while the pupil's attempts are
+fewer than `maxAttempts` (default 1). The deadline MUST be `startedAt + timeLimitMinutes × (1 +
+p / 100)`, where `p` is the value of an approved or active `extra-time-percentage`
+`ExamAccommodation` for the pupil, one for this test before a generic one. `answer` MUST save one
+question at a time, only on the pupil's own attempt in progress, only for an item the attempt drew,
+only in the shape the item's type takes, and MUST refuse with 409 `attempt_closed` after hand-in or
+after the deadline plus 30 seconds. The first request that finds an attempt past that point MUST hand
+it in. `submit` MUST fire the attempt's `submit` transition, so closed items are auto-scored, and
+MUST refuse a second hand-in with 409.
+
+#### Scenario: A test outside its window cannot be started
+
+<!-- @e2e exclude PHPUnit PortalAttemptServiceTest::testATestOutsideItsWindowIsNotAvailable. -->
+
+- **GIVEN** a published test whose `availableFrom` is tomorrow
+- **WHEN** an enrolled pupil starts it through the portal
+- **THEN** the response is 403 `not_available` and no attempt is created
+
+#### Scenario: The access code is required
+
+<!-- @e2e exclude PHPUnit PortalAttemptServiceTest (missing, wrong and right code). -->
+
+- **GIVEN** a test with an access code
+- **WHEN** the pupil starts it without the code, or with a wrong one
+- **THEN** the response is 403 `access_code_required` or `access_code_wrong`
+- **AND** with the right code an attempt is created as the pupil, carrying the typed code for the attempt gate
+
+#### Scenario: One attempt unless retakes are allowed
+
+<!-- @e2e exclude PHPUnit PortalAttemptServiceTest::testASecondAttemptIsRefusedWhenOnlyOneIsAllowed and testARetakeIsAllowedUpToMaxAttempts. -->
+
+- **GIVEN** a test with `maxAttempts: 1` and a handed-in attempt by this pupil
+- **WHEN** the pupil starts it again
+- **THEN** the response is 403 `not_available`
+
+#### Scenario: Extra time moves the deadline
+
+<!-- @e2e exclude PHPUnit PortalAttemptClockTest and PortalAttemptServiceTest::testExtraTimeMovesTheDeadline. -->
+
+- **GIVEN** a 30 minute test and an active 25% extra-time accommodation for the pupil
+- **WHEN** the pupil starts at 09:00
+- **THEN** `deadlineAt` is 09:37:30 and the task shows 7.5 minutes of extra time
+
+#### Scenario: Answers are saved per question and never after hand-in
+
+<!-- @e2e exclude PHPUnit PortalAttemptServiceTest (save, unknown item, invalid response, after submit, after deadline). -->
+
+- **GIVEN** an attempt in progress
+- **WHEN** the pupil saves an answer to one drawn item
+- **THEN** only that item's response changes, stored as `{value: …}` with no score
+- **AND** after hand-in, or after the deadline plus 30 seconds, the save is refused with 409 `attempt_closed`
+
+#### Scenario: Handing in scores the closed items
+
+<!-- @e2e exclude PHPUnit PortalAttemptServiceTest::testSubmitFiresTheTransitionAsThePupil and AssessmentScoringHandlerTest::testTheStoredValueShapeIsScored. -->
+
+- **GIVEN** an attempt in progress with a correct multiple-choice answer
+- **WHEN** the pupil hands it in
+- **THEN** the `submit` transition runs as the pupil and the answer's `autoScore` is the item's points
+
+### Requirement: A portal result is shown only once the teacher released it
+
+`result` MUST answer `{released: false}` until the attempt is `graded` and, when it fed a
+GradeEntry, that entry is `published` or `revised` with no `visibleFrom` in the future. Once
+released it MUST return the total score, the maximum from the drawn points, `passed` (only for a
+pass-mark test) and per item the prompt, the pupil's answer, the score and the maximum, and never a
+correct answer.
+
+#### Scenario: A graded attempt waits for the published grade
+
+<!-- @e2e exclude PHPUnit PortalResultReaderTest. -->
+
+- **GIVEN** a graded attempt whose GradeEntry is still `concept`
+- **WHEN** the pupil asks for the result
+- **THEN** the response is `{released: false}`
+- **AND** once the GradeEntry is published, the score and the per-item scores are returned
+
+### Requirement: Auto scoring reads the stored answer shape
+
+`AssessmentScoringHandler` MUST score a response stored as `{value: X}` (the shape
+`TakeAssessmentView` and the portal store, and `ItemAnalysisService` and `AssessmentScoringView`
+read) by comparing `X` with the item's correct response. A bare value MUST keep scoring as before.
+
+#### Scenario: A wrapped correct answer earns its points
+
+<!-- @e2e exclude PHPUnit AssessmentScoringHandlerTest::testTheStoredValueShapeIsScored. -->
+
+- **GIVEN** a choice item worth 2 points with correct response `B`
+- **WHEN** an attempt with `response: {value: "B"}` is handed in
+- **THEN** its `autoScore` is 2
+
+### Requirement: Every attempt carries a server-stamped learnerRef and assessment title
+
+The attempt gate MUST stamp `AssessmentResult.learnerRef` (the LearnerProfile of `learnerId`,
+preferring one not merged away) and `assessmentTitle` (the test's title) on every create it lets
+through, overwriting client values, so the portal can list a pupil's attempts. A failed lookup MUST
+stamp null and MUST NOT stop the create. Both properties MUST be `readOnly`.
+
+#### Scenario: An attempt made in the app shows up in the portal
+
+<!-- @e2e exclude PHPUnit AssessmentResultPortalStampTest and AssessmentAttemptGateListenerTest. -->
+
+- **GIVEN** a pupil with LearnerProfile `lp-1`
+- **WHEN** the pupil starts a test in the app, sending `learnerRef: "lp-2"`
+- **THEN** the stored attempt carries `learnerRef: "lp-1"` and the test's title
+
+### Requirement: Items are stored as QTI 2.1 and labelled as QTI 2.1
+
+`Item.qtiBody` MUST hold QTI 2.1 item XML: the element names every reader in the app parses (`assessmentItem`, `responseDeclaration`, `choiceInteraction`, `simpleChoice`, `extendedTextInteraction`). Every writer MUST label that XML with the QTI 2.1 namespace `http://www.imsglobal.org/xsd/imsqti_v2p1`: the item editor, the Moodle quiz mapper, and the exporter. Descriptions in the register, the import dialog and the export package MUST name QTI 2.1 wherever they describe what is stored, and MUST NOT claim QTI 3.0. Importing QTI 2.x and Common Cartridge packages stays required; the importer stores the item XML as found.
+
+<!-- Previous behaviour: the requirement said items are canonically QTI 3.0 and converted on import. No
+     conversion existed: every writer produced QTI 2.1 markup under the QTI 3.0 namespace, and every reader
+     parses 2.1 element names only. Reading real QTI 3.0 markup (qti-assessment-item, qti-simple-choice) is
+     out of scope for grading-defects-from-example-sets. -->
+
+#### Scenario: The editor writes and labels QTI 2.1
+
+- **GIVEN** an item author saves a choice item in the item editor
+- **WHEN** the Item is stored
+- **THEN** its `qtiBody` root is `assessmentItem` in the namespace `http://www.imsglobal.org/xsd/imsqti_v2p1`
+- **AND** its options are `simpleChoice` elements
+
+#### Scenario: A Moodle quiz question becomes a QTI 2.1 item
+
+- **GIVEN** a Moodle multiple-choice question in a course package
+- **WHEN** the question is mapped to an Item
+- **THEN** its `qtiBody` carries the QTI 2.1 namespace and `simpleChoice` options
+
+### Requirement: ItemBank exports its items as a QTI 2.1 package
+
+The system MUST support exporting an `ItemBank` and its `Item`s as a QTI 2.1 package: a ZIP containing an `imsmanifest.xml` that declares QTI 2.1 (`imsqti_v2p1` namespace, resource type `imsqti_item_xmlv2p1`) and one `assessmentItem` XML per `Item`. The exporter MUST wrap the stored `qtiBody` rather than re-deriving it from `interactionType`/`correctResponse`, so export fidelity is not limited by the import-side interaction-type parsing gap. The one rewrite allowed is the label: an item stored with the old hybrid label (QTI 2.1 elements under the QTI 3.0 namespace `http://www.imsglobal.org/xsd/imsqtiasi_v3p0`) MUST be exported with the QTI 2.1 namespace, and nothing else in its XML may change. The export MUST be usable independently of course-package export and MUST be the same code path `course-management`'s course export calls for embedded assessment items.
+
+#### Scenario: Exporting an ItemBank produces a QTI 2.1 package
+
+- **GIVEN** an `ItemBank` containing `Item`s of mixed `interactionType`
 - **WHEN** an authorised user exports the `ItemBank`
-- **THEN** the system produces a ZIP with an `imsmanifest.xml` referencing one `assessmentItem` XML per
-  `Item`, each containing that item's stored `qtiBody` verbatim
+- **THEN** the ZIP's `imsmanifest.xml` declares QTI 2.1 and references one `assessmentItem` XML per `Item`
+- **AND** each item XML is that item's stored `qtiBody`
+
+#### Scenario: An item stored under the old label is exported with the QTI 2.1 namespace
+
+- **GIVEN** an Item whose `qtiBody` is `assessmentItem` markup in the namespace `http://www.imsglobal.org/xsd/imsqtiasi_v3p0`
+- **WHEN** its ItemBank is exported
+- **THEN** the exported item XML carries `http://www.imsglobal.org/xsd/imsqti_v2p1`
+- **AND** the rest of the XML equals the stored `qtiBody`
 
 #### Scenario: Export fidelity is not limited by the import-side parsing gap
 
@@ -514,12 +844,60 @@ assessment items, per this capability's ownership of `Item`/`ItemBank`.
      interactionType) via PHPUnit comparing the exported XML to the stored qtiBody; no DOM surface for XML
      byte-equality. -->
 
-- **GIVEN** an `Item` whose `interactionType` was imported with the pre-existing "raw qtiBody preserved,
-  correctResponse pending a future parser extension" degradation (an interaction type beyond `choice`/
-  `extendedText`)
+- **GIVEN** an `Item` whose `interactionType` was imported with the "raw qtiBody preserved, correctResponse pending a future parser extension" degradation
 - **WHEN** that `Item`'s `ItemBank` is exported
-- **THEN** the exported `assessmentItem` XML matches the stored `qtiBody` exactly, unaffected by the fact
-  that `correctResponse` was not fully parsed on import
+- **THEN** the exported `assessmentItem` XML matches the stored `qtiBody` exactly
+
+### Requirement: The in-app test screen shows the server's deadline and saves answers as the learner works
+
+When a learner starts an attempt with a time limit, the server MUST stamp `deadlineAt` on the AssessmentResult: its start plus the time limit plus the learner's granted extra time, the moment the late-answer rule measures against without the grace. The learner MUST NOT change it. The test screen MUST count down to `deadlineAt`, corrected for a wrong browser clock, also when the attempt is resumed, and MUST save the learner's answers on the attempt shortly after each change while it is in progress, telling the learner whether they are saved.
+
+#### Scenario: The timer counts down to the server's deadline
+@e2e exclude Timer and stamp are pinned by unit tests: tests/Unit/Service/AssessmentAttemptLimitsTest.php::testTheDeadlineCountsExtraTime, tests/Unit/Listener/AssessmentAttemptTimeLimitListenerTest.php::testTheLearnerCannotMoveTheDeadline and tests/unit-js/attemptClock.test.mjs.
+- **GIVEN** a 30-minute test and a learner with 50 percent extra time
+- **WHEN** the learner starts at 09:10
+- **THEN** the attempt's `deadlineAt` is 09:55
+- **AND** the screen shows 45:00 remaining
+- **AND** a save that moves `deadlineAt` is refused
+
+#### Scenario: Answers are saved while the learner works
+@e2e exclude Autosave payload and resume are pinned by tests/unit-js/attemptClock.test.mjs; the save runs through the rules pinned in AssessmentResultIntegrityListenerTest.
+- **GIVEN** an attempt in progress
+- **WHEN** the learner answers a question and pauses
+- **THEN** the answers are saved on the attempt, without scores
+- **AND** reopening the attempt shows them
+
+### Requirement: The in-app test screen enforces attempts and time on the server
+
+An attempt a learner starts or saves through the app, not the portal, MUST be held by the server to the same rules as a portal attempt, with the same parts: a new attempt MUST start only inside the window, with the access code, and while the learner has used fewer attempts than the test's `maxAttempts` (default one); the server MUST set the attempt's `startedAt` from its own clock and its `attemptNumber` from the attempts already made; the learner MUST NOT change either afterwards; and after the deadline (start plus time limit plus the learner's extra time) plus 30 seconds, the attempt's answers MUST NOT change, while the save that carries them, a hand-in included, goes through with the answers stored in time. Scores the server adds to unchanged answers MUST be kept. Nextcloud admins and system context are not held to these rules.
+
+#### Scenario: A second attempt on a one-attempt test is refused
+
+- **GIVEN** a test with `maxAttempts: 1` and a learner who has handed in one attempt
+- **WHEN** the learner starts another attempt from the test screen
+- **THEN** the server refuses it with reason `attempts-used`
+- **AND** the screen says the attempts are used
+
+#### Scenario: The server starts the clock
+
+- **GIVEN** a test with `maxAttempts: 3` and one earlier attempt by the learner
+- **WHEN** the screen creates an attempt with `startedAt` in the future and `attemptNumber: 1`
+- **THEN** the attempt is stored with the server's time as `startedAt` and `attemptNumber: 2`
+- **AND** a later save by the learner that moves `startedAt` or `attemptNumber` is refused
+
+#### Scenario: Answers after the deadline are not saved
+
+- **GIVEN** a 30-minute test and an attempt started at 09:00
+- **WHEN** the learner saves changed answers at 09:30:31
+- **THEN** the save goes through with the answers that were stored
+- **AND** at 09:30:20, or at 09:44 with 50 percent extra time, the changed answers are saved
+
+#### Scenario: A late hand-in keeps the answers given in time
+
+- **GIVEN** the same attempt, still in progress at 09:40
+- **WHEN** the learner hands it in with changed answers
+- **THEN** the attempt is handed in with the stored answers
+- **AND** the submit save that adds auto scores to those answers keeps the scores
 
 ## Standards
 

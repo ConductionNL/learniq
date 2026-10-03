@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-a-quality-threshold-breach-opens-an-itemrevisionflag-routed-to-the-exam-board
+ * @spec openspec/specs/assessment/spec.md#requirement-a-quality-threshold-breach-opens-an-itemrevisionflag-routed-to-the-exam-board
  */
 
 declare(strict_types=1);
@@ -44,6 +44,13 @@ use PHPUnit\Framework\TestCase;
  * Tests for ItemAnalysisRecomputeHandler::handle() on AssessmentResult -> graded.
  */
 class ItemAnalysisRecomputeHandlerTest extends TestCase {
+
+	/**
+	 * The `_rbac` argument of every saveObject() call, per schema.
+	 *
+	 * @var array<int, array{schema: string, rbac: bool}>
+	 */
+	private array $rbacWrites = [];
 
 	/**
 	 * In-memory fake OR datastore, keyed by schema slug.
@@ -85,9 +92,9 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
-				$schema = $config['schema'];
+				$schema = $config['filters']['schema'];
 				$records = $this->db[$schema] ?? [];
-				$filters = $config['filters'] ?? [];
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 
 				$matched = array_values(
 					array_filter(
@@ -113,7 +120,8 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true): ObjectEntity {
+				$this->rbacWrites[] = ['schema' => (string)$schema, 'rbac' => $_rbac];
 				$schema = (string)$schema;
 				$object = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 
@@ -148,7 +156,7 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 		$timeFactory = $this->createMock(ITimeFactory::class);
 		$timeFactory->method('getDateTime')->willReturn($now);
 
-		return new ItemAnalysisRecomputeHandler($objectService, $itemAnalysisService, $timeFactory);
+		return new ItemAnalysisRecomputeHandler($objectService, $itemAnalysisService, $timeFactory, \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**
@@ -328,7 +336,7 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#scenario-a-low-discrimination-item-opens-a-flag-for-the-exam-board-without-altering-the-item
+	 * @spec openspec/specs/assessment/spec.md#scenario-a-low-discrimination-item-opens-a-flag-for-the-exam-board-without-altering-the-item
 	 */
 	public function testTooDifficultyOpensDedupedFlagWithoutMutatingItem(): void {
 		$this->seed('exam', ['id' => 'assessment-1', 'uuid' => 'assessment-1', 'tenant_id' => 'tenant-a']);
@@ -443,4 +451,26 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 		self::assertSame([], $this->savedObjects);
 
 	}//end testUnrelatedEventIsIgnored()
+
+	/**
+	 * The grade transition is granted through the teacherIds match, not the instructors group,
+	 * so the analysis rows are written as the system.
+	 *
+	 * @return void
+	 */
+	public function testAnalysisRowsAreWrittenAsTheSystem(): void {
+		$this->testTooDifficultyOpensDedupedFlagWithoutMutatingItem();
+
+		$writes = array_values(array_filter($this->rbacWrites, static fn (array $w): bool => $w['schema'] === 'item-statistics'));
+		self::assertNotEmpty($writes, 'no item-statistics write');
+		foreach ($writes as $write) {
+			self::assertFalse($write['rbac'], 'item-statistics is written with _rbac: false');
+		}
+
+		$writes = array_values(array_filter($this->rbacWrites, static fn (array $w): bool => $w['schema'] === 'item-revision-flag'));
+		self::assertNotEmpty($writes, 'no item-revision-flag write');
+		foreach ($writes as $write) {
+			self::assertFalse($write['rbac'], 'item-revision-flag is written with _rbac: false');
+		}
+	}//end testAnalysisRowsAreWrittenAsTheSystem()
 }//end class

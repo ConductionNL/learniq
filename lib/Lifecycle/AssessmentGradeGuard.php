@@ -37,6 +37,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -48,7 +50,14 @@ use Psr\Log\LoggerInterface;
  * entirely of auto-scored items pass immediately (AssessmentScoringHandler already
  * set all autoScores on the submit transition).
  */
-class AssessmentGradeGuard {
+class AssessmentGradeGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'Every item that needs manual scoring must have a score before the result can be graded.';
 
 	/**
 	 * OR register slug for Learniq objects.
@@ -70,23 +79,39 @@ class AssessmentGradeGuard {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-7
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(result: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
+	 * The rule behind check(), answered as a boolean.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing the `grade`
 	 * transition on an AssessmentResult object.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the AssessmentResult data array
-	 *                                               - 'transition' : 'grade'
-	 *                                               - 'from'       : 'submitted'
-	 *                                               - 'to'         : 'graded'
+	 * @param array<string,mixed> $result The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True if all manual-scoring items have scores; false blocks the transition.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-7
 	 */
-	public function check(array &$transitionContext): bool {
-		$result = $transitionContext['object'] ?? [];
+	private function allows(array $result): bool {
 		$assessmentId = $result['assessmentId'] ?? null;
 		$responses = $result['responses'] ?? [];
 		$tenantId = $result['tenant_id'] ?? '';
@@ -100,10 +125,15 @@ class AssessmentGradeGuard {
 
 		$assessments = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'exam',
+				'ids' => [$assessmentId],
 				// H1: scope Assessment lookup to the same tenant.
-				'filters' => $this->tenantScoped(filters: ['uuid' => $assessmentId], tenantId: $tenantId),
+				'filters' => $this->tenantScoped(
+					filters: [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'exam',
+					],
+					tenantId: $tenantId
+				),
 				'limit' => 1,
 			]
 		);
@@ -142,7 +172,7 @@ class AssessmentGradeGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Add the tenant filter to a filter set when a tenant scope is known.
@@ -222,10 +252,15 @@ class AssessmentGradeGuard {
 	private function fetchItemsByUuid(array $itemIds, string $tenantId): array {
 		$fetchedItems = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'item',
+				'ids' => array_values($itemIds),
 				// H1: scope the Item lookup to the same tenant.
-				'filters' => $this->tenantScoped(filters: ['uuid' => $itemIds], tenantId: $tenantId),
+				'filters' => $this->tenantScoped(
+					filters: [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'item',
+					],
+					tenantId: $tenantId
+				),
 				'limit' => (count($itemIds) + 1),
 			]
 		);

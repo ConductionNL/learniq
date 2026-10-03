@@ -36,7 +36,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+ * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
  */
 
 declare(strict_types=1);
@@ -82,7 +82,7 @@ class BsaProgressEvaluator {
 	 *
 	 * @return array{ectsEarned: float}
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	public function evaluate(string $programmeId, string $learnerId): array {
 		if ($programmeId === '' || $learnerId === '') {
@@ -118,14 +118,16 @@ class BsaProgressEvaluator {
 	 *
 	 * @return array<string, float>
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	private function fetchCourseCredits(string $programmeId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::COURSE_SCHEMA,
-				'filters' => ['programmeIds' => $programmeId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::COURSE_SCHEMA,
+					'programmeIds' => $programmeId,
+				],
 			]
 		);
 
@@ -158,14 +160,14 @@ class BsaProgressEvaluator {
 	 *
 	 * @return array<int, array>
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	private function fetchPassedFinalGrades(string $learnerId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::FINAL_GRADE_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::FINAL_GRADE_SCHEMA,
 					'learnerId' => $learnerId,
 					'passed' => true,
 				],

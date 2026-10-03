@@ -156,7 +156,7 @@ async function openRoute(page: Page, route: string) {
 }
 
 test.describe('report-card-composer — declarative pages resolve without a fatal error', () => {
-	// @e2e openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-pages-and-custom-views-are-manifest-declared
+	// @e2e openspec/specs/report-card/spec.md#scenario-pages-and-custom-views-are-manifest-declared
 	test('pages-are-manifest-declared', async ({ loggedInPage: page }) => {
 		const errors = collectFatalErrors(page)
 
@@ -176,7 +176,7 @@ test.describe('report-card-composer — declarative pages resolve without a fata
 })
 
 test.describe('report-card-composer — ReportPeriod scope and lock-gated compose', () => {
-	// @e2e openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-reportperiod-scopes-exactly-the-declared-subjects-and-cohorts
+	// @e2e openspec/specs/report-card/spec.md#scenario-a-reportperiod-scopes-exactly-the-declared-subjects-and-cohorts
 	test('report-period-scopes-declared-subjects-and-cohorts', async ({
 		loggedInPage: page,
 	}) => {
@@ -207,7 +207,7 @@ test.describe('report-card-composer — ReportPeriod scope and lock-gated compos
 		)
 	})
 
-	// @e2e openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
+	// @e2e openspec/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 	test('compose-succeeds-once-locked', async ({ loggedInPage: page }) => {
 		const period = await findRow(
 			page,
@@ -234,7 +234,7 @@ test.describe('report-card-composer — ReportPeriod scope and lock-gated compos
 		)
 	})
 
-	// @e2e openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
+	// @e2e openspec/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
 	test('composing-creates-one-card-per-learner', async ({
 		loggedInPage: page,
 	}) => {
@@ -262,7 +262,7 @@ test.describe('report-card-composer — ReportPeriod scope and lock-gated compos
 })
 
 test.describe('report-card-composer — rapportvergadering review lifecycle', () => {
-	// @e2e openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
+	// @e2e openspec/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
 	test('finalise-blocked-without-mentor-comment', async ({
 		loggedInPage: page,
 	}) => {
@@ -296,7 +296,7 @@ test.describe('report-card-composer — rapportvergadering review lifecycle', ()
 		)
 	})
 
-	// @e2e openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-mentor-reopens-a-finalised-report-card-to-correct-it-before-publication
+	// @e2e openspec/specs/report-card/spec.md#scenario-a-mentor-reopens-a-finalised-report-card-to-correct-it-before-publication
 	test('reopen-returns-finalised-card-to-review', async ({
 		loggedInPage: page,
 	}) => {
@@ -321,7 +321,7 @@ test.describe('report-card-composer — rapportvergadering review lifecycle', ()
 		)
 	})
 
-	// @e2e openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publish-is-blocked-while-a-contributing-grades-visibility-window-has-not-opened
+	// @e2e openspec/specs/report-card/spec.md#scenario-publish-is-blocked-while-a-contributing-grades-visibility-window-has-not-opened
 	//
 	// ⚠️ SKIPPED ON A PLATFORM LIMITATION, NOT ON A MISSING ROW — and the
 	// difference is the reason this file stopped trusting bare skips.
@@ -397,7 +397,7 @@ test.describe('report-card-composer — rapportvergadering review lifecycle', ()
 		)
 	})
 
-	// @e2e openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publish-succeeds-once-every-contributing-grades-window-has-opened
+	// @e2e openspec/specs/report-card/spec.md#scenario-publish-succeeds-once-every-contributing-grades-window-has-opened
 	test('publish-succeeds-once-visibility-window-open', async ({
 		loggedInPage: page,
 	}) => {
@@ -426,7 +426,7 @@ test.describe('report-card-composer — rapportvergadering review lifecycle', ()
 })
 
 test.describe('report-card-composer — grading spec delta (ReportPeriodLockGuard)', () => {
-	// @e2e openspec/changes/report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
+	// @e2e openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
 	test('teacher-cannot-publish-grade-for-locked-report-period', async ({
 		loggedInPage: page,
 	}) => {

@@ -1,13 +1,15 @@
 ---
 slug: learning-plan
 title: Individual Learning Plan
-status: done
+status: in-progress
 feature_tier: must
 depends_on_adrs: [ADR-022, ADR-024, ADR-031]
 created: 2026-05-12
 updated: 2026-05-12
 profiles: [opp-passend-onderwijs, handelingsplan, iep, pdp-he, idp-corporate]
 replaces: [opp-cycle]
+openspec_changes:
+  - learner-lookup-and-learnerrefs-fixes
 ---
 
 # Individual Learning Plan
@@ -40,7 +42,9 @@ Some learners need an individualised plan: a school pupil with extra ondersteuni
 - GIVEN a plan moves to a new version, WHEN it is presented for signing, THEN it is `draft` until all required co-signers have signed; only then does it become `active` and supersede the prior version.
 - GIVEN a DigiD-required signature, WHEN a parent signs, THEN the Signature records the assurance level; a signature without the required level does not satisfy the co-sign requirement.
 - GIVEN an evaluation records a goal as "met", WHEN the plan is viewed, THEN that goal shows `status: met` with the evaluation that closed it linked.
+
 ## Requirements
+
 ### Requirement: Persist LearningPlan domain objects in OpenRegister
 The system MUST persist `LearningPlan`, `LearningPlanEvaluation`, `Signature` as OpenRegister objects with `x-openregister-lifecycle` (LearningPlan: draft → active → under-evaluation → closed | superseded), `x-openregister-relations` (LearningPlan↔learner/template/cohort, Evaluation↔LearningPlan, Signature↔LearningPlan-version), `x-openregister-calculations` (LearningPlan `goalsMetCount`, `nextReviewDue`, `isFullySigned`), and `x-openregister-notifications` (`quarterlyReviewReminder`, `signatureRequested`, idempotency-keyed).
 
@@ -94,13 +98,14 @@ component. There MUST be no PHP CRUD controllers.
 The system MUST persist `SupportRequest`, `TlvApplication`, and `DeliberationRecord` as OpenRegister
 objects with `x-openregister-lifecycle` (`SupportRequest`: draft → submitted → routed-to-swv →
 in-deliberation → decided → closed; `TlvApplication`: draft → submitted → under-review → decided
-(approved | rejected | conditional) → expired; `DeliberationRecord`: `appendOnly: true`, scheduled →
+(approved | rejected | conditional) → expired; `DeliberationRecord`: not `appendOnly`, scheduled →
 recorded), `x-openregister-relations` (`SupportRequest`↔learner/optional-`LearningPlan`/optional-
 `GroupPlanSubgroup`, `TlvApplication`↔`SupportRequest`, `DeliberationRecord`↔`SupportRequest`/
 `TlvApplication`), `x-openregister-calculations` (`TlvApplication.tlvExpiringSoon`), and
 `x-openregister-notifications` (`supportRequestRouted`, `tlvDecisionReceived`, `tlvExpiringSoon`,
-idempotency-keyed). `DeliberationRecord` MUST be `appendOnly: true` for audit (ADR-008), matching the
-existing `LearningPlanEvaluation`/`Signature` pattern. `SupportRequest` MUST additionally carry a nullable
+idempotency-keyed). `DeliberationRecord` MUST NOT be `appendOnly`, because Open Register refuses every update
+on an append-only schema and its `record` transition is one; the audit trail keeps each version (ADR-008,
+see the nextcloud-app requirement "A schema with lifecycle transitions is not append-only"). `SupportRequest` MUST additionally carry a nullable
 `originGroupPlanSubgroupId` ($ref `GroupPlanSubgroup`), alongside the existing nullable `learningPlanId`,
 recording that this zorgvraag was raised because a group-level differentiated approach proved insufficient
 for this learner — nullable and independent of `learningPlanId`, since a request may originate from a
@@ -111,7 +116,7 @@ for this learner — nullable and independent of `learningPlanId`, since a reque
 - **GIVEN** the learning-plan domain schemas are registered
 - **WHEN** a coordinator creates a `SupportRequest`, a `TlvApplication`, and records a `DeliberationRecord`
 - **THEN** all three are stored as OpenRegister objects carrying their declared lifecycle, relations,
-  calculations, and notification config, and `DeliberationRecord` is `appendOnly: true`
+  calculations, and notification config, and `DeliberationRecord` is not `appendOnly`
 
 #### Scenario: SupportRequest raised from a GroupPlanSubgroup carries its origin, independent of any LearningPlan link
 
@@ -198,19 +203,20 @@ crossings and `certification`'s renewal reminders (ADR-022) — NOT a PHP TimedJ
 - **THEN** a `tlvExpiringSoon` notification fires to the coordinator via the declared notification
   mechanism, idempotency-keyed, with no PHP TimedJob involved
 
-### Requirement: Deliberation records are structured and append-only
+### Requirement: Deliberation records are structured and corrected by a new record
 
 `DeliberationRecord` MUST capture role-tagged `attendees` (at minimum: parent, pupil, municipality,
 care-partner, school, swv-coordinator), a `scheduledAt`/`recordedAt`, an `outcome`/recommendation, and a
-link to the `SupportRequest`/`TlvApplication` it concerns. Once `recorded`, a `DeliberationRecord` MUST be
-immutable (`appendOnly: true`) — a correction requires a new record referencing the one it supersedes,
-mirroring `LearningPlanEvaluation`'s append-only pattern.
+link to the `SupportRequest`/`TlvApplication` it concerns. Once `recorded`, a correction to a
+`DeliberationRecord` MUST be a new record referencing the one it supersedes (`correctsId`), mirroring
+`LearningPlanEvaluation`. The schema is not `appendOnly`, because that would refuse the `record`
+transition itself; the audit trail keeps each version.
 
 #### Scenario: Deliberation round recorded as immutable
 
 - **GIVEN** a consultation round with parents, the municipality, and a care partner
 - **WHEN** the coordinator records the `DeliberationRecord` with attendees and an outcome
-- **THEN** the record is persisted `appendOnly: true`, and any later correction creates a new record
+- **THEN** the record is persisted and lands in `recorded`, and any later correction creates a new record
   referencing the original rather than mutating it
 
 ### Requirement: The pupil's own voice (hoorrecht) is a first-class, non-optional field
@@ -397,6 +403,163 @@ supports array-membership matching. There MUST be no PHP CRUD controller.
 - **AND** the `GroupPlanSubgroup` detail page's learner-context panel is the one named custom view,
   `GroupPlanSubgroupLearnerContext.vue`
 - **AND** there is no PHP CRUD controller for any of the three new schemas
+
+### Requirement: LearningPlan declares a materialised six-week activation clock
+
+`LearningPlan` MUST carry a nullable `sixWeekDeadline` (date), coordinator-set at plan creation, and
+a materialised `isOverdueForActivation` boolean calculation (`true` when `lifecycle` is `draft` AND
+`sixWeekDeadline` is set AND has passed `@now`), mirroring `TlvApplication.tlvExpiringSoon`'s
+declared-calculation idiom (a `dateDiff`/`now` expression, not a PHP TimedJob). A
+`sixWeekDeadlineApproaching` declared notification (`scheduled` trigger, filtered to
+`lifecycle: draft` with `sixWeekDeadline` within 7 days) MUST reach the plan's `coordinatorId`, the
+same shape `TlvApplication`'s own expiry notification already uses.
+
+#### Scenario: isOverdueForActivation is true once the deadline has passed on a still-draft plan
+
+<!-- @e2e exclude Pure OpenRegister calculation expression; no scholiq DOM surface for the calculation itself, verified by reasoning over the register JSON mirroring TlvApplicationRegisterTest's established pattern for tlvExpiringSoon. -->
+
+- **GIVEN** a `LearningPlan` in `draft` with `sixWeekDeadline` set to a date in the past
+- **WHEN** `isOverdueForActivation` is evaluated
+- **THEN** it is `true`
+
+#### Scenario: isOverdueForActivation is false once the plan has activated, regardless of the deadline
+
+<!-- @e2e exclude Pure calculation expression; same scope as above. -->
+
+- **GIVEN** a `LearningPlan` with `sixWeekDeadline` in the past that has since transitioned to
+  `active`
+- **WHEN** `isOverdueForActivation` is evaluated
+- **THEN** it is `false`
+
+### Requirement: LearningPlan declares OPP uitstroombestemming and a tracked growth bandwidth
+
+`LearningPlan` MUST carry a nullable `uitstroombestemming` (string) and a nullable
+`outflowBandwidth` object (`lowerVaardigheidsscore`, `upperVaardigheidsscore`, `scale`), plus a
+`trackedGrowth[]` array of dated vaardigheidsscore entries a coordinator logs against that band
+(each: `recordedAt`, `vaardigheidsscore`), extending the existing OPP (`kind: opp`) shape
+additively — both fields are independent of `sixWeekDeadline`/`isOverdueForActivation` above.
+
+#### Scenario: A tracked growth entry persists against the declared bandwidth
+
+<!-- @e2e exclude Pure schema/array persistence; no scholiq DOM surface beyond the generic manifest form's array widget, covered by PHPUnit CareAndSupportIndexRegisterTest. -->
+
+- **GIVEN** a `LearningPlan` (`kind: opp`) with `outflowBandwidth` set to a lower/upper
+  vaardigheidsscore pair
+- **WHEN** a coordinator appends a `trackedGrowth[]` entry
+- **THEN** the entry persists with its `recordedAt` and `vaardigheidsscore`, independent of the
+  plan's `lifecycle` state
+
+### Requirement: ObservationInstrument records structured kleuter leerlijn observations
+
+The system MUST persist `ObservationInstrument` as an OpenRegister object: `learnerId`,
+`academicYear`, `period`, `entries[]` (each: `leerlijn` — one of `taal`, `rekenen`,
+`sociaal-emotioneel`, `motoriek`, `spel`, `leren-leren` — `observedAt`, `level` — one of the four
+IEP-documented kleuter-scale values `toont-geen-interesse`, `is-aan-het-ontdekken`,
+`kan-het-met-hulp`, `kan-het-zelfstandig` — `observedBy`, and a nullable `note`), `tenant_id`, and a
+`lifecycle` of `active`/`archived`.
+
+#### Scenario: An ObservationInstrument persists one entry per leerlijn per observation moment
+
+<!-- @e2e exclude Pure OpenRegister schema persistence; no scholiq DOM surface for schema registration itself, covered by CareAndSupportIndexRegisterTest mirroring the established `*RegisterTest` convention. -->
+
+- **GIVEN** the `care-and-support-index` schemas are registered
+- **WHEN** an `ObservationInstrument` is created for a learner with one entry per each of the six
+  leerlijnen, each carrying a distinct `level` value
+- **THEN** it persists as a valid OpenRegister object with all six entries intact
+
+### Requirement: Trajectory tracks a bovenschoolse-voorziening placement lifecycle, with an append-only status log
+
+The system MUST persist `Trajectory` (`learnerId`, nullable `supportRequestId` — `$ref
+SupportRequest`, extending its existing pattern rather than duplicating it — `voorzieningType`,
+`referredAt`, `tenant_id`) with `x-openregister-lifecycle` `referral → preparation → scheduled →
+running → stopped`, and `TrajectoryStatusUpdate` (`trajectoryId`, `recordedAt`, `recordedBy`,
+`note`) as `appendOnly: true`, mirroring `LearningPlanEvaluation`/`DeliberationRecord`'s
+append-only review-log precedent (ADR-008).
+
+#### Scenario: A Trajectory moves through its full lifecycle with a status update at each stage
+
+<!-- @e2e exclude Pure OpenRegister lifecycle/appendOnly persistence; no scholiq DOM surface for the transitions themselves, covered by CareAndSupportIndexRegisterTest asserting the declared transition table and TrajectoryStatusUpdate's appendOnly flag. -->
+
+- **GIVEN** a `Trajectory` created in `referral`
+- **WHEN** it transitions `referral → preparation → scheduled → running → stopped`, with one
+  `TrajectoryStatusUpdate` recorded at each transition
+- **THEN** every transition succeeds in declared order and every `TrajectoryStatusUpdate` remains
+  immutable (`appendOnly: true`)
+
+### Requirement: A care-team lens surfaces pupils in support without a duplicate index page
+
+`LearningPlans` MUST declare `columns` for the learner, `kind`, `coordinatorId`, `lifecycle`, and
+`nextReviewAt` (reusing the already-shipped `nextReviewDue` materialised calculation, per the
+existing `learning-plan` spec's own "Persist LearningPlan domain objects" requirement). A
+`CareTeamOverviewMenu` nav entry MUST deep-link to the same `LearningPlans` route with a
+`lifecycle: "active"` `menu[].query` preset — the manifest v2 schema's own documented mechanism
+("deep-links a nav entry to a pre-filtered index page") — rather than declaring a second `type:
+"index"` page over `learning-plan`, per ADR-097 Decision 5 ("a second index over an already-indexed
+schema is a role lens, not a page") and its enforcing ratchet, gate-68 `duplicate-index-pages`.
+
+#### Scenario: LearningPlans carries the care-team-relevant columns, with no duplicate index page
+
+<!-- @e2e exclude Declarative manifest column/menu-query addition, no new component behaviour to exercise; verified by reasoning over the built effective manifest (build_effective_manifest.js) and gate-68 duplicate-index-pages, mirroring how report-card-templates verified its own new manifest pages. -->
+
+- **GIVEN** the manifest is built
+- **WHEN** `LearningPlans` is inspected
+- **THEN** its `columns` include the learner, `kind`, `coordinatorId`, `lifecycle`, and
+  `nextReviewAt`
+- **AND** `CareTeamOverviewMenu` routes to `LearningPlans` with `query: {lifecycle: "active"}`, and
+  no second `type: "index"` page exists over the `learning-plan` schema (gate-68 reports 0
+  findings)
+
+### Requirement: Differentiation forms speak of support needs, level and goal
+The teacher-facing titles and property descriptions of `GroupPlan`, `GroupPlanSubgroup`, `SupportRequest` and `ExamAccommodation` MUST describe differentiation by level, goal, time or material and the recording of support needs, in plain sentences without engineering rationale. Engineering rationale MUST live in the property's `x-notes`, which the form does not show. Every rewritten title and description MUST have an English catalogue key and a Dutch value.
+
+#### Scenario: A teacher fills in an instruction group
+- **GIVEN** a Dutch-language teacher opens the form for a group within a group plan
+- **WHEN** the form renders
+- **THEN** the title reads "Instructiegroep" and the approach field explains, in Dutch, how the group is taught to reach its goal
+
+#### Scenario: Engineering notes stay out of the form
+- **GIVEN** the `GroupPlan.supersedesId` property
+- **WHEN** its description is read
+- **THEN** it is one plain sentence, and the version-chain rationale sits in `x-notes`
+
+### Requirement: Style-matching wording never reaches a product surface
+A unit test MUST scan `lib/`, `src/`, `templates/`, `appinfo/`, `docs/`, `openspec/specs/` and `l10n/en.json` and `l10n/nl.json` for wording that claims pupils have fixed styles of learning to match, in English and Dutch, and MUST fail naming each file and line with a hit.
+
+#### Scenario: Someone adds a style field
+- **GIVEN** a change that adds a property described as the pupil's preferred style of learning using the forbidden wording
+- **WHEN** the unit tests run
+- **THEN** the scan test fails and names the register file and line
+
+### Requirement: Settings explain the evidence once
+The AI features section in Settings MUST show one note that Learniq does not profile how a pupil prefers to learn, that research finds no benefit in matching lessons to such a profile, and that teachers differentiate by level, goal, time and material and record support needs instead.
+
+#### Scenario: An administrator reads the AI section
+- **GIVEN** an administrator opens Learniq settings
+- **WHEN** the AI features section renders
+- **THEN** the note is shown with the NRO Kennisrotonde reference
+
+### Requirement: Parent co-signs are verified against the learner's profile found on ncUserId
+
+Activating a LearningPlan MUST apply the required signer roles of its template, where the template is found by its id. A `parent` signature MUST count only when its signer is in the `parentIds` of the learner's LearnerProfile, found on `ncUserId`. The profile lookup MUST NOT depend on the signer's own read access to LearnerProfile.
+
+#### Scenario: A co-sign by the learner's parent activates the plan
+
+- **GIVEN** a template requiring a `teacher` and a `parent` signature
+- **AND** signatures by the teacher and by `ouder-001`, who is on the learner's profile
+- **WHEN** the plan is activated
+- **THEN** the guard allows it
+
+#### Scenario: A co-sign by another pupil's parent is refused
+
+- **GIVEN** the same template and a `parent` signature by `ouder-099`, who is not on the learner's profile
+- **WHEN** the plan is activated
+- **THEN** the guard refuses it
+
+#### Scenario: A plan without the required signatures stays in draft
+
+- **GIVEN** a template requiring signatures and no signatures on the plan
+- **WHEN** the plan is activated
+- **THEN** the guard refuses it
 
 ## Standards
 

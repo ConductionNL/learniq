@@ -16,13 +16,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
+ * @spec openspec/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\OpenRegister\Service\TenantKeyService;
 use OCA\Learniq\Lifecycle\BsaDecisionGuard;
@@ -52,6 +53,7 @@ class BsaDecisionGuardTest extends TestCase {
 			'decidedBy' => 'advisor-1',
 			'decisionDate' => '2026-07-01T10:00:00+02:00',
 			'tenant_id' => 'tenant-a',
+			'lifecycle' => 'decided',
 		];
 
 	}//end decisionObject()
@@ -69,11 +71,23 @@ class BsaDecisionGuardTest extends TestCase {
 	}//end makeGuard()
 
 	/**
+	 * OpenRegister's registry refuses a guard that does not implement its interface.
+	 *
+	 * @return void
+	 */
+	public function testImplementsTheOpenRegisterGuardInterface(): void {
+		$guard = $this->makeGuard($this->createMock(ObjectService::class), $this->createMock(TenantKeyService::class));
+
+		self::assertInstanceOf(LifecycleGuardInterface::class, $guard);
+
+	}//end testImplementsTheOpenRegisterGuardInterface()
+
+	/**
 	 * A negative decision without any issued BsaWarning is refused.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-negative-decision-without-a-warning-is-refused
+	 * @spec openspec/specs/study-progress/spec.md#scenario-negative-decision-without-a-warning-is-refused
 	 */
 	public function testNegativeWithoutWarningRefused(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -82,19 +96,18 @@ class BsaDecisionGuardTest extends TestCase {
 		$tenantKeyService = $this->createMock(TenantKeyService::class);
 		$tenantKeyService->expects($this->never())->method('getCurrentTenantKey');
 
-		$context = ['object' => $this->decisionObject('negative', 'Insufficient progress despite guidance.'), 'payload' => []];
+		$object = $this->decisionObject('negative', 'Insufficient progress despite guidance.');
 
-		self::assertFalse($this->makeGuard($objectService, $tenantKeyService)->check($context));
-		self::assertArrayNotHasKey('signature', $context['payload']);
+		self::assertFalse($this->makeGuard($objectService, $tenantKeyService)->check($object, 'decide', 'advisor-1')->isAllowed());
 
 	}//end testNegativeWithoutWarningRefused()
 
 	/**
-	 * A negative decision with a matching issued BsaWarning is allowed and stamps a signature.
+	 * A negative decision with a matching issued BsaWarning is allowed. The signature is TenantSignatureAction's write.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-negative-decision-with-a-logged-warning-is-allowed
+	 * @spec openspec/specs/study-progress/spec.md#scenario-negative-decision-with-a-logged-warning-is-allowed
 	 */
 	public function testNegativeWithIssuedWarningAllowed(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -103,11 +116,9 @@ class BsaDecisionGuardTest extends TestCase {
 		$tenantKeyService = $this->createMock(TenantKeyService::class);
 		$tenantKeyService->method('getCurrentTenantKey')->willReturn('super-secret-key');
 
-		$context = ['object' => $this->decisionObject('negative', 'Insufficient progress despite guidance.'), 'payload' => []];
+		$object = $this->decisionObject('negative', 'Insufficient progress despite guidance.');
 
-		self::assertTrue($this->makeGuard($objectService, $tenantKeyService)->check($context));
-		self::assertArrayHasKey('signature', $context['payload']);
-		self::assertArrayHasKey('signingKeyId', $context['payload']);
+		self::assertTrue($this->makeGuard($objectService, $tenantKeyService)->check($object, 'decide', 'advisor-1')->isAllowed());
 
 	}//end testNegativeWithIssuedWarningAllowed()
 
@@ -122,9 +133,9 @@ class BsaDecisionGuardTest extends TestCase {
 
 		$tenantKeyService = $this->createMock(TenantKeyService::class);
 
-		$context = ['object' => $this->decisionObject('negative-with-recommendation', 'Some progress but below norm.'), 'payload' => []];
+		$object = $this->decisionObject('negative-with-recommendation', 'Some progress but below norm.');
 
-		self::assertFalse($this->makeGuard($objectService, $tenantKeyService)->check($context));
+		self::assertFalse($this->makeGuard($objectService, $tenantKeyService)->check($object, 'decide', 'advisor-1')->isAllowed());
 
 	}//end testNegativeWithRecommendationWithoutWarningRefused()
 
@@ -133,7 +144,7 @@ class BsaDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-negative-decision-without-rationale-is-refused
+	 * @spec openspec/specs/study-progress/spec.md#scenario-negative-decision-without-rationale-is-refused
 	 */
 	public function testNegativeWithoutRationaleRefused(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -142,9 +153,9 @@ class BsaDecisionGuardTest extends TestCase {
 		$tenantKeyService = $this->createMock(TenantKeyService::class);
 		$tenantKeyService->expects($this->never())->method('getCurrentTenantKey');
 
-		$context = ['object' => $this->decisionObject('negative-with-recommendation', ''), 'payload' => []];
+		$object = $this->decisionObject('negative-with-recommendation', '');
 
-		self::assertFalse($this->makeGuard($objectService, $tenantKeyService)->check($context));
+		self::assertFalse($this->makeGuard($objectService, $tenantKeyService)->check($object, 'decide', 'advisor-1')->isAllowed());
 
 	}//end testNegativeWithoutRationaleRefused()
 
@@ -153,7 +164,7 @@ class BsaDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
+	 * @spec openspec/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
 	 */
 	public function testPositiveDecisionUnaffectedByWarningCheck(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -162,10 +173,9 @@ class BsaDecisionGuardTest extends TestCase {
 		$tenantKeyService = $this->createMock(TenantKeyService::class);
 		$tenantKeyService->method('getCurrentTenantKey')->willReturn('super-secret-key');
 
-		$context = ['object' => $this->decisionObject('positive'), 'payload' => []];
+		$object = $this->decisionObject('positive');
 
-		self::assertTrue($this->makeGuard($objectService, $tenantKeyService)->check($context));
-		self::assertArrayHasKey('signature', $context['payload']);
+		self::assertTrue($this->makeGuard($objectService, $tenantKeyService)->check($object, 'decide', 'advisor-1')->isAllowed());
 
 	}//end testPositiveDecisionUnaffectedByWarningCheck()
 
@@ -181,9 +191,9 @@ class BsaDecisionGuardTest extends TestCase {
 		$tenantKeyService = $this->createMock(TenantKeyService::class);
 		$tenantKeyService->method('getCurrentTenantKey')->willReturn('super-secret-key');
 
-		$context = ['object' => $this->decisionObject('postponed'), 'payload' => []];
+		$object = $this->decisionObject('postponed');
 
-		self::assertTrue($this->makeGuard($objectService, $tenantKeyService)->check($context));
+		self::assertTrue($this->makeGuard($objectService, $tenantKeyService)->check($object, 'decide', 'advisor-1')->isAllowed());
 
 	}//end testPostponedDecisionUnaffectedByWarningCheck()
 
@@ -199,9 +209,9 @@ class BsaDecisionGuardTest extends TestCase {
 		$tenantKeyService = $this->createMock(TenantKeyService::class);
 		$tenantKeyService->method('getCurrentTenantKey')->willReturn('');
 
-		$context = ['object' => $this->decisionObject('negative', 'Rationale present.'), 'payload' => []];
+		$object = $this->decisionObject('negative', 'Rationale present.');
 
-		self::assertFalse($this->makeGuard($objectService, $tenantKeyService)->check($context));
+		self::assertFalse($this->makeGuard($objectService, $tenantKeyService)->check($object, 'decide', 'advisor-1')->isAllowed());
 
 	}//end testUnavailableTenantKeyRejected()
 }//end class

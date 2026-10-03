@@ -183,4 +183,83 @@ class DashboardRoleServiceTest extends TestCase {
 		$this->assertSame('hr', $service->resolvePrimaryRole(user: $user));
 		$this->assertSame('admin', $service->resolveDefaultView(user: $user));
 	}//end testHighestPriorityGroupWins()
+
+	/**
+	 * A teacher who is also the vertrouwenspersoon keeps the instructor role
+	 * and the teacher view, and still holds the confidential function.
+	 *
+	 * @spec openspec/specs/confidential-counsel/spec.md#requirement-the-confidential-counsellor-has-one-declared-scope
+	 *
+	 * @return void
+	 */
+	public function testTeacherWhoIsAlsoConfidentialCounsellorKeepsTheTeacherRole(): void {
+		$service = $this->serviceWith(
+			isAdmin: false,
+			groups: ['instructors' => true, 'confidential-counsellors' => true]
+		);
+		$user = $this->user();
+
+		$this->assertSame('instructor', $service->resolvePrimaryRole(user: $user));
+		$this->assertSame(['teacher', 'student'], $service->resolveViews(user: $user));
+		$this->assertTrue($service->isConfidentialCounsellor(user: $user));
+	}//end testTeacherWhoIsAlsoConfidentialCounsellorKeepsTheTeacherRole()
+
+	/**
+	 * An external vertrouwenspersoon with no staff group resolves to the
+	 * confidential counsellor role, not to learner, with the base view only.
+	 *
+	 * @spec openspec/specs/confidential-counsel/spec.md#requirement-the-confidential-counsellor-has-one-declared-scope
+	 *
+	 * @return void
+	 */
+	public function testConfidentialCounsellorOnlyResolvesToItsOwnRole(): void {
+		$service = $this->serviceWith(isAdmin: false, groups: ['confidential-counsellors' => true]);
+		$user = $this->user();
+
+		$this->assertSame('confidential-counsellor', $service->resolvePrimaryRole(user: $user));
+		$this->assertSame(['student'], $service->resolveViews(user: $user));
+		$this->assertTrue($service->isConfidentialCounsellor(user: $user));
+	}//end testConfidentialCounsellorOnlyResolvesToItsOwnRole()
+
+	/**
+	 * The confidential function comes from the group only: neither an admin
+	 * nor a school leader gets it.
+	 *
+	 * @spec openspec/specs/confidential-counsel/spec.md#requirement-the-confidential-notes-menu-is-shown-to-confidential-counsellors-only
+	 *
+	 * @return void
+	 */
+	public function testAdminsAndSchoolLeadersAreNotConfidentialCounsellors(): void {
+		$user = $this->user();
+
+		$this->assertFalse($this->serviceWith(isAdmin: true, groups: [])->isConfidentialCounsellor(user: $user));
+		$this->assertFalse(
+			$this->serviceWith(
+				isAdmin: false,
+				groups: ['administration-managers' => true, 'compliance-officers' => true, 'coordinators' => true]
+			)->isConfidentialCounsellor(user: $user)
+		);
+	}//end testAdminsAndSchoolLeadersAreNotConfidentialCounsellors()
+
+	/**
+	 * The resolver's group vocabulary matches the register's declared scopes,
+	 * so a role can never point at a group nobody provisions.
+	 *
+	 * @spec openspec/specs/confidential-counsel/spec.md#requirement-the-confidential-counsellor-has-one-declared-scope
+	 *
+	 * @return void
+	 */
+	public function testEveryRoleGroupIsADeclaredScope(): void {
+		$register = json_decode(
+			(string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'),
+			true
+		);
+		$scopes   = array_keys($register['components']['securitySchemes']['oauth2']['flows']['authorizationCode']['scopes']);
+
+		foreach (DashboardRoleService::GROUP_BACKED_ROLES as $role => $group) {
+			$this->assertContains($group, $scopes, "Role '$role' is backed by undeclared group '$group'.");
+		}
+
+		$this->assertContains(DashboardRoleService::CONFIDENTIAL_COUNSELLOR_GROUP, $scopes);
+	}//end testEveryRoleGroupIsADeclaredScope()
 }//end class

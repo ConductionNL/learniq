@@ -14,9 +14,9 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
-  @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-learner-initiated-export-produces-a-signed-dual-shaped-bundle
-  @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-learner-can-grant-a-time-boxed-revocable-share-of-one-export-to-a-named-external-recipient
+  @spec openspec/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
+  @spec openspec/specs/portable-learning-record/spec.md#requirement-a-learner-initiated-export-produces-a-signed-dual-shaped-bundle
+  @spec openspec/specs/portable-learning-record/spec.md#requirement-a-learner-can-grant-a-time-boxed-revocable-share-of-one-export-to-a-named-external-recipient
 -->
 
 <template>
@@ -363,6 +363,7 @@
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'MyLearningRecordView',
@@ -398,7 +399,7 @@ export default {
 		 * Load the calling user's own composed learning-record trajectory.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-learner-opens-their-aggregate-record-and-sees-composed-read-only-data
+		 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-learner-opens-their-aggregate-record-and-sees-composed-read-only-data
 		 */
 		async loadRecord() {
 			this.loading = true
@@ -451,7 +452,7 @@ export default {
 		 * transition, then re-fetch the resulting object.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
+		 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
 		 */
 		async generateExport() {
 			if (!this.record) return
@@ -493,9 +494,7 @@ export default {
 				const created = await createResp.json()
 				const exportId = created.id ?? created.uuid
 
-				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/learniq/learning-record-export/${exportId}/transition/generate`,
-				)
+				const transitionUrl = generateUrl(objectTransitionUrl(exportId))
 				await fetch(transitionUrl, {
 					method: 'POST',
 					headers: {
@@ -503,7 +502,7 @@ export default {
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({}),
+					body: JSON.stringify({ action: 'generate' }),
 				})
 
 				const finalUrl = generateUrl(
@@ -536,7 +535,7 @@ export default {
 		 * fire its `grant` transition. Blocked until an expiry date is set.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-learner-creates-a-share-with-a-mandatory-expiry
+		 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-learner-creates-a-share-with-a-mandatory-expiry
 		 */
 		async createShare() {
 			this.shareTouched = true
@@ -586,9 +585,7 @@ export default {
 				const created = await createResp.json()
 				const shareId = created.id ?? created.uuid
 
-				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/learniq/learning-record-share/${shareId}/transition/grant`,
-				)
+				const transitionUrl = generateUrl(objectTransitionUrl(shareId))
 				await fetch(transitionUrl, {
 					method: 'POST',
 					headers: {
@@ -596,7 +593,7 @@ export default {
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({}),
+					body: JSON.stringify({ action: 'grant' }),
 				})
 
 				await this.loadShares()
@@ -623,13 +620,11 @@ export default {
 		 *
 		 * @param {string} shareId LearningRecordShare UUID.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-revoking-a-share-immediately-invalidates-its-verification-link
+		 * @spec openspec/specs/portable-learning-record/spec.md#scenario-revoking-a-share-immediately-invalidates-its-verification-link
 		 */
 		async revokeShare(shareId) {
 			try {
-				const url = generateUrl(
-					`/apps/openregister/api/objects/learniq/learning-record-share/${shareId}/transition/revoke`,
-				)
+				const url = generateUrl(objectTransitionUrl(shareId))
 				await fetch(url, {
 					method: 'POST',
 					headers: {
@@ -637,7 +632,7 @@ export default {
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({}),
+					body: JSON.stringify({ action: 'revoke' }),
 				})
 				await this.loadShares()
 			} catch (err) {
@@ -650,7 +645,7 @@ export default {
 		 * Load every LearningRecordShare for the latest generated export.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
+		 * @spec openspec/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
 		 */
 		async loadShares() {
 			if (!this.latestExport) return
@@ -676,7 +671,7 @@ export default {
 		 *
 		 * @param {string} shareId LearningRecordShare UUID.
 		 * @return {string}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
+		 * @spec openspec/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
 		 */
 		verifyUrl(shareId) {
 			return generateUrl(

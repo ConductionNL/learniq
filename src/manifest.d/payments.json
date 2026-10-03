@@ -2,93 +2,34 @@
 	"_meta": {
 		"spdx-license": "EUPL-1.2",
 		"spdx-copyright": "2026 Conduction B.V.",
-		"change": "manifest-fragment-split",
+		"change": "payments-to-shillinq-migration",
 		"adr": "ADR-037 modular manifest fragment — never edit src/manifest.json",
-		"description": "GroupPayments — slated to leave the app via a future pipelinq extraction; isolating it to one file makes that a file deletion."
+		"description": "FeeItem and Entitlement: what a school charges and what a paid, non-voluntary fee grants. payments-to-shillinq-migration (D19) retired Order, OrderLine, PaymentTransaction, the pay screen and the Payments group: a school charges through shillinq and the pay screen is portaliq's. The two remaining entries are relocated under People by src/menu-layout.json."
 	},
 	"menu": [
 		{
-			"id": "GroupPayments",
-			"label": "Payments",
-			"icon": "CreditCardOutline",
-			"order": 34,
-			"children": [
-				{
-					"id": "OrdersMenu",
-					"label": "Orders",
-					"icon": "ClipboardListOutline",
-					"route": "Orders",
-					"order": 10,
-					"visibleIf": {
-						"user.primaryRole": {
-							"in": [
-								"administration-manager",
-								"admin"
-							]
-						}
-					}
-				},
-				{
-					"id": "FeeItemsMenu",
-					"label": "Fee items",
-					"icon": "CurrencyEur",
-					"route": "FeeItems",
-					"order": 20,
-					"visibleIf": {
-						"user.primaryRole": {
-							"in": [
-								"admin"
-							]
-						}
-					}
-				},
-				{
-					"id": "OrderLinesMenu",
-					"label": "Order lines",
-					"icon": "ClipboardListOutline",
-					"route": "OrderLines",
-					"order": 30,
-					"visibleIf": {
-						"user.primaryRole": {
-							"in": [
-								"admin"
-							]
-						}
-					}
-				},
-				{
-					"id": "PaymentTransactionsMenu",
-					"label": "Payment transactions",
-					"icon": "CreditCardOutline",
-					"route": "PaymentTransactions",
-					"order": 40,
-					"visibleIf": {
-						"user.primaryRole": {
-							"in": [
-								"admin"
-							]
-						}
-					}
-				},
-				{
-					"id": "EntitlementsMenu",
-					"label": "Entitlements",
-					"icon": "Check",
-					"route": "Entitlements",
-					"order": 50,
-					"visibleIf": {
-						"user.primaryRole": {
-							"in": [
-								"admin"
-							]
-						}
-					}
-				}
-			],
+			"id": "FeeItemsMenu",
+			"label": "Fee items",
+			"icon": "CurrencyEur",
+			"route": "FeeItems",
+			"order": 20,
 			"visibleIf": {
 				"user.primaryRole": {
 					"in": [
-						"administration-manager",
+						"admin"
+					]
+				}
+			}
+		},
+		{
+			"id": "EntitlementsMenu",
+			"label": "Entitlements",
+			"icon": "Check",
+			"route": "Entitlements",
+			"order": 49,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
 						"admin"
 					]
 				}
@@ -114,6 +55,24 @@
 			"config": {
 				"register": "learniq",
 				"schema": "fee-item",
+				"headerActions": [
+					{
+						"id": "raise-contributions",
+						"label": "Raise contributions in shillinq",
+						"type": "api-call",
+						"url": "/apps/learniq/api/fee-items/@objectId/contributions",
+						"method": "POST",
+						"confirm": true,
+						"icon": "CurrencyEur",
+						"successMessage": "The contributions were sent to shillinq.",
+						"errorMessage": "The contributions could not be raised in shillinq.",
+						"visibleWhen": {
+							"field": "lifecycle",
+							"op": "eq",
+							"value": "active"
+						}
+					}
+				],
 				"widgets": [
 					{
 						"id": "fee-item-data",
@@ -167,226 +126,8 @@
 						}
 					]
 				}
-			}
-		},
-		{
-			"id": "Orders",
-			"route": "/payments/orders",
-			"type": "index",
-			"title": "Orders",
-			"config": {
-				"register": "learniq",
-				"schema": "order"
-			}
-		},
-		{
-			"id": "OrderDetail",
-			"route": "/payments/orders/:id",
-			"type": "detail",
-			"title": "Order",
-			"config": {
-				"register": "learniq",
-				"schema": "order",
-				"widgets": [
-					{
-						"id": "order-data",
-						"type": "data",
-						"title": "Data",
-						"content": {
-							"columns": 2
-						},
-						"icon": "CashMultiple"
-					},
-					{
-						"id": "order-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "order-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "2",
-						"widgetId": "order-related",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 5,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
-								{
-									"type": "audit"
-								}
-							]
-						}
-					]
-				}
-			}
-		},
-		{
-			"id": "OrderLines",
-			"route": "/payments/order-lines",
-			"type": "index",
-			"title": "Order lines",
-			"config": {
-				"register": "learniq",
-				"schema": "order-line"
-			}
-		},
-		{
-			"id": "OrderLineDetail",
-			"route": "/payments/order-lines/:id",
-			"type": "detail",
-			"title": "Order line",
-			"config": {
-				"register": "learniq",
-				"schema": "order-line",
-				"widgets": [
-					{
-						"id": "order-line-data",
-						"type": "data",
-						"title": "Data",
-						"content": {
-							"columns": 2
-						},
-						"icon": "ClipboardList"
-					},
-					{
-						"id": "order-line-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "order-line-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "2",
-						"widgetId": "order-line-related",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 5,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
-								{
-									"type": "audit"
-								}
-							]
-						}
-					]
-				}
-			}
-		},
-		{
-			"id": "PaymentTransactions",
-			"route": "/payments/payment-transactions",
-			"type": "index",
-			"title": "Payment transactions",
-			"config": {
-				"register": "learniq",
-				"schema": "payment-transaction"
-			}
-		},
-		{
-			"id": "PaymentTransactionDetail",
-			"route": "/payments/payment-transactions/:id",
-			"type": "detail",
-			"title": "Payment transaction",
-			"config": {
-				"register": "learniq",
-				"schema": "payment-transaction",
-				"widgets": [
-					{
-						"id": "payment-transaction-data",
-						"type": "data",
-						"title": "Data",
-						"content": {
-							"columns": 2
-						},
-						"icon": "Cash"
-					},
-					{
-						"id": "payment-transaction-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "payment-transaction-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "2",
-						"widgetId": "payment-transaction-related",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 5,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
-								{
-									"type": "audit"
-								}
-							]
-						}
-					]
-				}
-			}
+			},
+			"_note": "payments-to-shillinq-migration (D19): the Raise contributions action posts to ContributionController, which raises this fee's contributions in shillinq for the guardians of its learners (shillinq contract extracurricular-fee-to-shillinq v1). Visible on an active fee only."
 		},
 		{
 			"id": "Entitlements",
@@ -460,14 +201,6 @@
 					]
 				}
 			}
-		},
-		{
-			"id": "OrderPaymentPanel",
-			"route": "/payments/orders/:orderId/pay",
-			"type": "custom",
-			"title": "Pay now",
-			"component": "OrderPaymentPanel",
-			"_note": "school-payments: the one genuine custom-view exception for payments -- the payer's pay-now surface for an open/partially-paid Order (shows lines/total, calls PaymentTransactionController::initiate(), renders the returned checkout reference opaquely). Every other payments schema is a declarative manifest index/detail page."
 		}
 	]
 }

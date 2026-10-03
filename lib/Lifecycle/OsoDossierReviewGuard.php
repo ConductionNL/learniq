@@ -3,17 +3,17 @@
 /**
  * Learniq OSO Dossier Review Guard
  *
- * Lifecycle guard for the DataExchangeJob schema's `approveDossier`
- * transition (`pending-parent-review → running`). Verifies that the actor
- * approving the dossier is listed as a parent/guardian of the learner whose
- * data is being transferred.
+ * Lifecycle guard for the DossierReview schema's `approve` and `reject`
+ * transitions. Verifies that the actor deciding on an OSO or SWV file is
+ * listed as a parent of the learner whose data would leave the school.
  *
- * The check reads the `scope.filters.learnerId` (or `scope.cohortId` for
- * cohort-wide OSO exports) from the DataExchangeJob, fetches the learner's
- * `LearnerProfile.parentIds`, and returns true only when the approving actor
- * is among them.
+ * The check reads the review's `learnerUserId`, fetches that learner's
+ * `LearnerProfile.parentIds`, and allows only when the actor is among them.
+ * The exchange gate refuses the integriq job until a review is approved
+ * (data-exchange-to-integriq; before that change this guarded the
+ * DataExchangeJob `approveDossier` transition).
  *
- * Referenced from DataExchangeJob.x-openregister-lifecycle.transitions.approveDossier.requires.
+ * Referenced from DossierReview.x-openregister-lifecycle.transitions.{approve,reject}.requires.
  * OR resolves guards by fully-qualified class name from the schema — no
  * Application.php registration needed.
  *
@@ -34,22 +34,34 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-17
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-refuses-an-oso-or-swv-file-until-a-parent-approved-it
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
 /**
- * Guards the DataExchangeJob `pending-parent-review → running` transition.
+ * Guards the DossierReview `pending → approved|rejected` transitions.
  *
  * Only a parent listed in the learner's LearnerProfile.parentIds may approve
  * an OSO dossier for transfer.
+ *
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-refuses-an-oso-or-swv-file-until-a-parent-approved-it
  */
-class OsoDossierReviewGuard {
+class OsoDossierReviewGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'Only a parent of this learner can approve the dossier transfer.';
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
@@ -69,43 +81,57 @@ class OsoDossierReviewGuard {
 	}//end __construct()
 
 	/**
-	 * Allow the `pending-parent-review → running` transition.
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-17
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object, userId: $userId) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
+	 * Allow a parent's decision on the review.
 	 *
 	 * Returns true only when the actor in the transition context is listed in
-	 * the learner's LearnerProfile.parentIds. The learnerId is read from the
-	 * job's `scope.filters.learnerId` field. When no learnerId is resolvable
-	 * (e.g. a cohort-wide export), this guard returns false and the transition
-	 * must be triggered via administrative override outside this guard.
+	 * the learner's LearnerProfile.parentIds. The learner is the review's
+	 * `learnerUserId`. Without one (a review opened for a cohort-wide export),
+	 * this guard returns false: such a file needs a review per learner.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the DataExchangeJob data array
-	 *                                               - 'transition' : 'approveDossier'
-	 *                                               - 'from'       : 'pending-parent-review'
-	 *                                               - 'to'         : 'running'
-	 *                                               - 'actor'      : NC user ID of the requester
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $userId The uid of the caller.
 	 *
 	 * @return bool True if the actor is a parent of the learner; false otherwise.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-17
 	 */
-	public function check(array &$transitionContext): bool {
-		$actor = $transitionContext['actor'] ?? '';
-		$object = $transitionContext['object'] ?? [];
+	private function allows(array $object, string $userId): bool {
+		$actor = $userId;
 		$tenantId = $object['tenant_id'] ?? '';
 
 		if ($actor === '') {
-			$this->logger->warning('[OsoDossierReviewGuard] No actor in transitionContext — denying approveDossier.');
+			$this->logger->warning('[OsoDossierReviewGuard] No acting user — denying approveDossier.');
 			return false;
 		}
 
-		// Resolve learnerId from scope.filters or scope directly.
-		$scope = $object['scope'] ?? [];
-		$filters = $scope['filters'] ?? [];
-		$learnerId = $filters['learnerId'] ?? ($filters['ncUserId'] ?? '');
+		// The review names the learner's account; a DossierReview is created by
+		// learniq together with the exchange request (data-exchange-to-integriq).
+		$learnerId = (string)($object['learnerUserId'] ?? '');
 
 		if ($learnerId === '') {
 			$this->logger->warning(
-				'[OsoDossierReviewGuard] Job {id}: no learnerId in scope — cannot verify parent.',
+				'[OsoDossierReviewGuard] Review {id}: no learnerUserId — cannot verify parent.',
 				['id' => $object['id'] ?? '?']
 			);
 			return false;
@@ -120,9 +146,13 @@ class OsoDossierReviewGuard {
 
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEARNER_PROFILE_SCHEMA,
-				'filters' => $profileFilters,
+				'filters' => array_merge(
+					$profileFilters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::LEARNER_PROFILE_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -151,5 +181,5 @@ class OsoDossierReviewGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 }//end class

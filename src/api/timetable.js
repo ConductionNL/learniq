@@ -31,8 +31,9 @@ import { generateUrl } from '@nextcloud/router'
  * @param {string} [from] Inclusive ISO 8601 window start.
  * @param {string} [to]   Exclusive ISO 8601 window end.
  *
- * @return {Promise<{sessions: Array<object>, from: string, to: string, changes: Array<object>}>} The
- *   ordered session list, the resolved window echoed by the server, and today's changes.
+ * @return {Promise<{sessions: Array<object>, from: string, to: string, changes: Array<object>, source: string}>} The
+ *   ordered session list, the resolved window echoed by the server, today's changes, and the
+ *   timetable source (`learniq` or `planninq`).
  */
 export async function fetchMyTimetable(from, to) {
 	const params = {}
@@ -52,5 +53,154 @@ export async function fetchMyTimetable(from, to) {
 		from: data.from || from || '',
 		to: data.to || to || '',
 		changes: Array.isArray(data.changes) ? data.changes : [],
+		source: data.source || 'learniq',
 	}
+}
+
+/**
+ * Fetch one cohort's sessions for a time window.
+ *
+ * The backend reads the cohort with RBAC first (403 when the caller cannot see
+ * it) and then asks the current timetable source: planninq's school timetable
+ * when planninq is installed, learniq's own Sessions otherwise. Without
+ * `from`/`to` the backend returns eight weeks from this week's Monday.
+ *
+ * @param {string} cohortId The cohort UUID.
+ * @param {string} [from]   Inclusive ISO 8601 window start.
+ * @param {string} [to]     Exclusive ISO 8601 window end.
+ *
+ * @return {Promise<{sessions: Array<object>, from: string, to: string, source: string}>} The
+ *   ordered sessions, the resolved window and the source they came from.
+ * @spec openspec/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+ */
+export async function fetchCohortTimetable(cohortId, from, to) {
+	const params = {}
+	if (from) {
+		params.from = from
+	}
+	if (to) {
+		params.to = to
+	}
+
+	const url = generateUrl('/apps/learniq/api/timetable/cohort/{cohortId}', {
+		cohortId,
+	})
+	const response = await axios.get(url, { params })
+
+	const data = response.data || {}
+	return {
+		sessions: Array.isArray(data.sessions) ? data.sessions : [],
+		from: data.from || from || '',
+		to: data.to || to || '',
+		source: data.source || 'learniq',
+	}
+}
+
+/**
+ * Whether a session is a learniq Session that can be opened and managed, as
+ * opposed to a lesson from planninq's school timetable.
+ *
+ * @param {object} session A session from either timetable endpoint.
+ *
+ * @return {boolean} True for a learniq Session.
+ * @spec openspec/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+ */
+export function isLearniqSession(session) {
+	return Boolean(session?.id) && (session.source ?? 'learniq') === 'learniq'
+}
+
+/**
+ * Fetch another group's, teacher's or room's timetable, as far as the school's
+ * visibility policy allows the caller (timetabling-visibility-rules). A refusal
+ * is an HTTP 403 error with the reason in `error`.
+ *
+ * @param {string} kind   `cohort`, `teacher` or `room`.
+ * @param {string} id     The cohort UUID, teacher user id or room UUID.
+ * @param {string} [from] Inclusive ISO 8601 window start.
+ * @param {string} [to]   Exclusive ISO 8601 window end.
+ *
+ * @return {Promise<{sessions: Array<object>, from: string, to: string, source: string}>} The lessons.
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+ */
+export async function fetchTimetableOf(kind, id, from, to) {
+	const params = { kind, id }
+	if (from) {
+		params.from = from
+	}
+	if (to) {
+		params.to = to
+	}
+
+	const response = await axios.get(generateUrl('/apps/learniq/api/timetable/of'), {
+		params,
+	})
+	const data = response.data || {}
+	return {
+		sessions: Array.isArray(data.sessions) ? data.sessions : [],
+		from: data.from || from || '',
+		to: data.to || to || '',
+		source: data.source || 'learniq',
+	}
+}
+
+/**
+ * Fetch the signed-in caller's own standby blocks for a window
+ * (timetabling-standby-slots). A caller without standby hours gets an empty
+ * list; a failing read is an empty list too, so the lessons still show.
+ *
+ * @param {string} from Inclusive ISO 8601 window start.
+ * @param {string} to   Exclusive ISO 8601 window end.
+ *
+ * @return {Promise<Array<{slotId: string, date: string, startsAt: string, endsAt: string}>>} The blocks.
+ * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+ */
+export async function fetchMyStandby(from, to) {
+	try {
+		const response = await axios.get(
+			generateUrl('/apps/learniq/api/standby/mine'),
+			{
+				params: { from, to },
+			},
+		)
+		return Array.isArray(response.data?.standby) ? response.data.standby : []
+	} catch {
+		return []
+	}
+}
+
+/**
+ * Whether the signed-in user has a calendar feed address.
+ *
+ * @return {Promise<boolean>} True when an address exists.
+ * @spec openspec/changes/attendance-timetable-calendar-feed/specs/timetable-calendar-feed/spec.md#requirement-calendar-subscription-feed
+ */
+export async function fetchCalendarFeedStatus() {
+	const response = await axios.get(generateUrl('/apps/learniq/api/timetable/feed'))
+	return response.data?.exists === true
+}
+
+/**
+ * Make a new calendar feed address; an earlier one stops working.
+ *
+ * @return {Promise<{url: string, webcalUrl: string}>} The new address, shown once.
+ * @spec openspec/changes/attendance-timetable-calendar-feed/specs/timetable-calendar-feed/spec.md#requirement-revoking-the-feed-address
+ */
+export async function createCalendarFeed() {
+	const response = await axios.post(
+		generateUrl('/apps/learniq/api/timetable/feed'),
+	)
+	return {
+		url: String(response.data?.url ?? ''),
+		webcalUrl: String(response.data?.webcalUrl ?? ''),
+	}
+}
+
+/**
+ * Remove the calendar feed address.
+ *
+ * @return {Promise<void>}
+ * @spec openspec/changes/attendance-timetable-calendar-feed/specs/timetable-calendar-feed/spec.md#requirement-revoking-the-feed-address
+ */
+export async function removeCalendarFeed() {
+	await axios.delete(generateUrl('/apps/learniq/api/timetable/feed'))
 }

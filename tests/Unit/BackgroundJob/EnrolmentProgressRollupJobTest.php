@@ -31,7 +31,7 @@ use Psr\Log\NullLogger;
  * them behind on the listener would have meant asserting behaviour at a layer
  * that no longer has it.
  *
- * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
+ * @spec openspec/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
  */
 class EnrolmentProgressRollupJobTest extends TestCase {
 
@@ -180,4 +180,50 @@ class EnrolmentProgressRollupJobTest extends TestCase {
 
 		self::assertCount(1, $this->saved, 'the second entry must still be written');
 	}//end testOneFailingEntryDoesNotLoseTheChunk()
+
+	/**
+	 * An entry naming its enrolment rolls up onto that enrolment, and the
+	 * evaluator is handed the enrolment so only its completions count
+	 * (learniq#945).
+	 *
+	 * @return void
+	 */
+	public function testAnEntryWithAnEnrolmentIdRollsUpOntoThatEnrolment(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturnCallback(
+			static fn (int|string $id) => \OCA\Learniq\Tests\Support\OrEntityFactory::make(['id' => (string)$id, 'learnerId' => 'learner-1', 'courseId' => 'course-1', 'lifecycle' => 'completed'], 'enrolment')
+		);
+		$objectService->method('findAll')->willReturn([['id' => 'enrol-active']]);
+		$objectService->method('saveObject')->willReturnCallback(
+			function (mixed $object = null, ?array $extend = [], mixed $register = null, mixed $schema = null): mixed {
+				$this->saved[] = ['schema' => (string)$schema, 'object' => $object];
+				return $object;
+			}
+		);
+
+		$handed = [];
+		$evaluator = $this->createMock(EnrolmentProgressEvaluator::class);
+		$evaluator->method('evaluate')->willReturnCallback(
+			static function (string $learnerId, string $courseId, array $enrolment = []) use (&$handed): array {
+				$handed[] = $enrolment['id'] ?? null;
+				return ['progressPercent' => 25, 'completedLessonCount' => 1, 'totalPublishedLessonCount' => 4];
+			}
+		);
+
+		$job = new EnrolmentProgressRollupJob(
+			$this->createMock(ITimeFactory::class),
+			$this->createMock(IUserSession::class),
+			$this->createMock(IUserManager::class),
+			$this->createMock(OrganisationService::class),
+			new NullLogger(),
+			$objectService,
+			$evaluator
+		);
+
+		$this->runJob($job, [['learnerId' => 'learner-1', 'courseId' => 'course-1', 'enrolmentId' => 'enrol-1']]);
+
+		self::assertSame(['enrol-1'], $handed);
+		self::assertSame('enrol-1', $this->saved[0]['object']['id']);
+
+	}//end testAnEntryWithAnEnrolmentIdRollsUpOntoThatEnrolment()
 }//end class

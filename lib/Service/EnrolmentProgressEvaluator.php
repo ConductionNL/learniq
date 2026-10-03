@@ -30,7 +30,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
+ * @spec openspec/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
  */
 
 declare(strict_types=1);
@@ -63,19 +63,28 @@ class EnrolmentProgressEvaluator {
 	/**
 	 * Evaluate progressPercent for a learner + course.
 	 *
-	 * Counts the learner's LessonCompletion rows for the course and the
-	 * course's published Lessons, then computes a null-safe percentage —
-	 * 0 (never a divide-by-zero error) when either count is 0.
+	 * Counts the lessons the learner completed and the course's published
+	 * Lessons, then computes a null-safe percentage: 0 (never a
+	 * divide-by-zero error) when either count is 0.
+	 *
+	 * Given the Enrolment, only that enrolment's completions count
+	 * (learniq#945): a row whose enrolmentId names it, or a row with no
+	 * enrolmentId completed after the enrolment was created. A row tied to
+	 * an earlier enrolment never counts, so a retake starts at zero. Each
+	 * lesson counts once. Without an Enrolment every row of the learner for
+	 * the course counts, as before.
 	 *
 	 * @param string $learnerId NC user ID of the learner.
 	 * @param string $courseId UUID of the Course.
+	 * @param array<string, mixed> $enrolment The Enrolment being rolled up, or [].
 	 *
 	 * @return array{progressPercent: int, completedLessonCount: int, totalPublishedLessonCount: int}
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-is-null-safe-before-any-lesson-completes
+	 * @spec openspec/specs/enrolment/spec.md#scenario-progress-percentage-is-null-safe-before-any-lesson-completes
+	 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
 	 */
-	public function evaluate(string $learnerId, string $courseId): array {
-		$completedLessonCount = $this->countCompletedLessons(learnerId: $learnerId, courseId: $courseId);
+	public function evaluate(string $learnerId, string $courseId, array $enrolment = []): array {
+		$completedLessonCount = $this->countCompletedLessons(learnerId: $learnerId, courseId: $courseId, enrolment: $enrolment);
 		$publishedCount = $this->countPublishedLessons(courseId: $courseId);
 
 		if ($completedLessonCount === 0 || $publishedCount === 0) {
@@ -97,26 +106,72 @@ class EnrolmentProgressEvaluator {
 	}//end evaluate()
 
 	/**
-	 * Count the learner's LessonCompletion rows for a course.
+	 * Count the distinct lessons the learner completed for a course, scoped to
+	 * the Enrolment when one is given (see evaluate()).
 	 *
 	 * @param string $learnerId NC user ID of the learner.
 	 * @param string $courseId UUID of the Course.
+	 * @param array<string, mixed> $enrolment The Enrolment, or [].
 	 *
 	 * @return int
+	 *
+	 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
 	 */
-	private function countCompletedLessons(string $learnerId, string $courseId): int {
+	private function countCompletedLessons(string $learnerId, string $courseId, array $enrolment): int {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LESSON_COMPLETION_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LESSON_COMPLETION_SCHEMA,
 					'learnerId' => $learnerId,
 					'courseId' => $courseId,
 				],
 			]
 		);
 
-		return count($results);
+		if ($enrolment === []) {
+			return count($results);
+		}
+
+		$lessons = [];
+		foreach ($results as $row) {
+			if (is_array($row) === false) {
+				$row = $row->jsonSerialize();
+			}
+
+			if ($this->belongsToEnrolment(completion: $row, enrolment: $enrolment) === true) {
+				$lessons[(string)($row['lessonId'] ?? ($row['id'] ?? ''))] = true;
+			}
+		}
+
+		return count($lessons);
+	}//end countCompletedLessons()
+
+	/**
+	 * Whether a LessonCompletion counts for an Enrolment: tied to it by id, or
+	 * untied and completed after the enrolment was created.
+	 *
+	 * @param array<string, mixed> $completion The LessonCompletion row.
+	 * @param array<string, mixed> $enrolment The Enrolment row.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
+	 */
+	public function belongsToEnrolment(array $completion, array $enrolment): bool {
+		$enrolmentId = (string)($enrolment['id'] ?? ($enrolment['uuid'] ?? ''));
+		$tiedTo = (string)($completion['enrolmentId'] ?? '');
+		if ($tiedTo !== '') {
+			return $enrolmentId !== '' && $tiedTo === $enrolmentId;
+		}
+
+		$started = strtotime((string)($enrolment['@self']['created'] ?? ($enrolment['created'] ?? '')));
+		$completedAt = strtotime((string)($completion['completedAt'] ?? ''));
+		if ($started === false || $completedAt === false) {
+			return false;
+		}
+
+		return $completedAt >= $started;
 	}//end countCompletedLessons()
 
 	/**
@@ -129,9 +184,9 @@ class EnrolmentProgressEvaluator {
 	private function countPublishedLessons(string $courseId): int {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LESSON_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LESSON_SCHEMA,
 					'courseId' => $courseId,
 					'lifecycle' => 'published',
 				],

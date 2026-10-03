@@ -18,8 +18,8 @@
  still attempted so the value is captured the moment the endpoint starts
  honouring it — learniq performs no local quiet-hours suppression itself.
 
- @spec openspec/changes/fix-dashboards-settings-notifications/specs/nextcloud-app/spec.md#requirement-per-user-notification-preferences-in-the-user-settings-dialog
- @spec openspec/changes/grade-visibility-scheduling/specs/scholiq-notifications/spec.md#requirement-notification-delivery-must-honor-the-per-user-override-preference
+ @spec openspec/specs/nextcloud-app/spec.md#requirement-per-user-notification-preferences-in-the-user-settings-dialog
+ @spec openspec/specs/scholiq-notifications/spec.md#requirement-notification-delivery-must-honor-the-per-user-override-preference
 -->
 <template>
 	<div class="learniq-notif-settings">
@@ -211,7 +211,7 @@ export default {
 		 * default (off) state until that engine change ships.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/grade-visibility-scheduling/specs/scholiq-notifications/spec.md#requirement-notification-delivery-must-honor-the-per-user-override-preference
+		 * @spec openspec/specs/scholiq-notifications/spec.md#requirement-notification-delivery-must-honor-the-per-user-override-preference
 		 */
 		async fetchPreferences() {
 			this.loading = true
@@ -264,7 +264,7 @@ export default {
 		 * @param {object} item The preference row being changed.
 		 * @param {boolean} value The new enabled state.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/fix-dashboards-settings-notifications/specs/nextcloud-app/spec.md#requirement-per-user-notification-preferences-in-the-user-settings-dialog
+		 * @spec openspec/specs/nextcloud-app/spec.md#requirement-per-user-notification-preferences-in-the-user-settings-dialog
 		 */
 		async toggle(item, value) {
 			const previous = item.enabled
@@ -326,7 +326,7 @@ export default {
 		 *
 		 * @param {object} next The next quiet-hours value `{enabled, start, end}`.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/grade-visibility-scheduling/specs/scholiq-notifications/spec.md#scenario-settings-panel-surfaces-the-quiet-hours-control
+		 * @spec openspec/specs/scholiq-notifications/spec.md#scenario-settings-panel-surfaces-the-quiet-hours-control
 		 */
 		async saveQuietHours(next) {
 			this.quietHours = next

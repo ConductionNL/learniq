@@ -32,13 +32,15 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
+ * @spec openspec/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -47,9 +49,24 @@ use Psr\Log\LoggerInterface;
  * Passes only when both `decisionRationale` and `policyReference` are
  * non-empty strings on the transitioning object. Fails closed otherwise.
  *
- * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
+ * @spec openspec/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
  */
-class ExemptionDecisionGuard {
+class ExemptionDecisionGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'A decision on an exemption needs a rationale and a policy reference.';
+
+	/**
+	 * Keys the caller sends with the transition that this guard reads; each is a
+	 * declared `inputs` entry on the transition (tests/Unit/Register/LifecycleTransitionInputsTest.php).
+	 *
+	 * @var list<string>
+	 */
+	public const TRANSITION_INPUTS = ['decisionRationale', 'policyReference'];
 	/**
 	 * Constructor.
 	 *
@@ -63,28 +80,40 @@ class ExemptionDecisionGuard {
 	}//end __construct()
 
 	/**
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
 	 * Assert the decisionRationale + policyReference precondition.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing the
 	 * `grant`/`reject` transition on an ExemptionCase object.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's
-	 *                                               lifecycle engine. Expected
-	 *                                               keys:
-	 *                                               - 'object'     : the case
-	 *                                               property array (includes
-	 *                                               any fields submitted
-	 *                                               alongside the transition)
-	 *                                               - 'transition' : 'grant'
-	 *                                               or 'reject'
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True when both fields are set; false blocks the transition
 	 *              (HTTP 422).
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
+	 * @spec openspec/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
+	private function allows(array $object): bool {
 		$caseId = $object['id'] ?? ($object['uuid'] ?? '');
 		$decisionRationale = $object['decisionRationale'] ?? '';
 		$policyReference = $object['policyReference'] ?? '';
@@ -100,5 +129,5 @@ class ExemptionDecisionGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 }//end class

@@ -26,6 +26,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\Learniq\Lifecycle\ExternalTrainingVerificationGuard;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
+use OCA\OpenRegister\Service\FileService;
+use OCP\Files\Node;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -34,6 +37,9 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Tests for the ExternalTrainingVerificationGuard (submitted → verified).
+ *
+ * verifiedBy/verifiedAt are StampTransitionActorAction's write (learniq#983),
+ * see tests/Unit/Lifecycle/Action/StampTransitionActorActionTest.php.
  */
 class ExternalTrainingVerificationGuardTest extends TestCase {
 	/**
@@ -41,10 +47,11 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 	 *
 	 * @param array<string> $actorGroups Group IDs the actor belongs to.
 	 * @param bool $actorExists Whether the user manager resolves the actor.
+	 * @param int $files How many files OpenRegister's file service lists on the record.
 	 *
 	 * @return ExternalTrainingVerificationGuard
 	 */
-	private function makeGuard(array $actorGroups, bool $actorExists = true): ExternalTrainingVerificationGuard {
+	private function makeGuard(array $actorGroups, bool $actorExists = true, int $files = 1): ExternalTrainingVerificationGuard {
 		$user = $this->createMock(IUser::class);
 
 		$userManager = $this->createMock(IUserManager::class);
@@ -53,15 +60,21 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 		$groupManager = $this->createMock(IGroupManager::class);
 		$groupManager->method('getUserGroupIds')->willReturn($actorGroups);
 
+		$fileService = $this->createMock(FileService::class);
+		$fileService->method('getFiles')->willReturn(array_fill(0, $files, $this->createMock(Node::class)));
+
 		return new ExternalTrainingVerificationGuard(
 			$groupManager,
 			$userManager,
-			$this->createMock(LoggerInterface::class)
+			$this->createMock(LoggerInterface::class),
+			$fileService
 		);
 	}//end makeGuard()
 
 	/**
-	 * A record fixture with one evidence attachment present.
+	 * A record as OpenRegister's LifecycleValidationListener hands it to a guard
+	 * (ObjectEntity::getObject(): no `@self`, no `files`). The evidence lives in
+	 * the object's file folder, which the guard asks FileService for.
 	 *
 	 * @param string $submittedBy The submitter user ID.
 	 *
@@ -72,27 +85,29 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 			'id' => 'rec-1',
 			'learnerId' => 'learner-1',
 			'submittedBy' => $submittedBy,
-			'@self' => ['files' => [['name' => 'certificate.pdf']]],
+			'lifecycle' => 'verified',
 		];
 	}//end recordWithEvidence()
 
 	/**
-	 * Happy path: officer in a verifier group, evidence present, not self → true + stamp.
+	 * OpenRegister's registry refuses a guard that does not implement its interface.
 	 *
 	 * @return void
 	 */
-	public function testValidVerificationStampsVerifier(): void {
-		$guard = $this->makeGuard(['compliance-officer']);
-		$context = [
-			'object' => $this->recordWithEvidence(submittedBy: 'learner-1'),
-			'actor' => 'officer-1',
-			'payload' => [],
-		];
+	public function testImplementsTheOpenRegisterGuardInterface(): void {
+		$this->assertInstanceOf(LifecycleGuardInterface::class, $this->makeGuard([]));
+	}//end testImplementsTheOpenRegisterGuardInterface()
 
-		$this->assertTrue($guard->check($context));
-		$this->assertSame('officer-1', $context['payload']['verifiedBy']);
-		$this->assertArrayHasKey('verifiedAt', $context['payload']);
-	}//end testValidVerificationStampsVerifier()
+	/**
+	 * Happy path: officer in a verifier group, evidence present, not self → allowed.
+	 *
+	 * @return void
+	 */
+	public function testValidVerificationIsAllowed(): void {
+		$result = $this->makeGuard(['compliance-officers'])->check($this->recordWithEvidence(submittedBy: 'learner-1'), 'verify', 'officer-1');
+
+		$this->assertTrue($result->isAllowed());
+	}//end testValidVerificationIsAllowed()
 
 	/**
 	 * Actor not in any verifier group → denied.
@@ -100,15 +115,10 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testNonVerifierGroupDenied(): void {
-		$guard = $this->makeGuard(['learner']);
-		$context = [
-			'object' => $this->recordWithEvidence(),
-			'actor' => 'pupil-1',
-			'payload' => [],
-		];
+		$result = $this->makeGuard(['learner'])->check($this->recordWithEvidence(), 'verify', 'pupil-1');
 
-		$this->assertFalse($guard->check($context));
-		$this->assertArrayNotHasKey('verifiedBy', $context['payload']);
+		$this->assertFalse($result->isAllowed());
+		$this->assertNotSame('', (string)$result->getMessage());
 	}//end testNonVerifierGroupDenied()
 
 	/**
@@ -117,15 +127,18 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testNoEvidenceAttachmentDenied(): void {
-		$guard = $this->makeGuard(['hr']);
-		$context = [
-			'object' => ['id' => 'rec-2', 'learnerId' => 'learner-1', 'submittedBy' => 'learner-1'],
-			'actor' => 'hr-1',
-			'payload' => [],
-		];
-
-		$this->assertFalse($guard->check($context));
+		$this->assertFalse($this->makeGuard(['hr'], true, 0)->check($this->recordWithEvidence(), 'verify', 'hr-1')->isAllowed());
 	}//end testNoEvidenceAttachmentDenied()
+
+	/**
+	 * The record as OpenRegister hands it carries no file list, so the guard asks
+	 * FileService; with a file there it is allowed (it was always refused, learniq#983).
+	 *
+	 * @return void
+	 */
+	public function testRecordAsOpenRegisterHandsItIsJudgedOnItsStoredFiles(): void {
+		$this->assertTrue($this->makeGuard(['hr'], true, 1)->check($this->recordWithEvidence(), 'verify', 'hr-1')->isAllowed());
+	}//end testRecordAsOpenRegisterHandsItIsJudgedOnItsStoredFiles()
 
 	/**
 	 * Self-verification (verifier == submitter) → denied.
@@ -133,14 +146,9 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testSelfVerificationDenied(): void {
-		$guard = $this->makeGuard(['admin']);
-		$context = [
-			'object' => $this->recordWithEvidence(submittedBy: 'officer-1'),
-			'actor' => 'officer-1',
-			'payload' => [],
-		];
+		$result = $this->makeGuard(['admin'])->check($this->recordWithEvidence(submittedBy: 'officer-1'), 'verify', 'officer-1');
 
-		$this->assertFalse($guard->check($context));
+		$this->assertFalse($result->isAllowed());
 	}//end testSelfVerificationDenied()
 
 	/**
@@ -149,10 +157,7 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testMissingActorDenied(): void {
-		$guard = $this->makeGuard(['admin']);
-		$context = ['object' => $this->recordWithEvidence(), 'actor' => '', 'payload' => []];
-
-		$this->assertFalse($guard->check($context));
+		$this->assertFalse($this->makeGuard(['admin'])->check($this->recordWithEvidence(), 'verify', '')->isAllowed());
 	}//end testMissingActorDenied()
 
 	/**
@@ -161,13 +166,8 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testAdminVerifiesOfficerSubmission(): void {
-		$guard = $this->makeGuard(['admin']);
-		$context = [
-			'object' => $this->recordWithEvidence(submittedBy: 'officer-2'),
-			'actor' => 'admin',
-			'payload' => [],
-		];
+		$result = $this->makeGuard(['admin'])->check($this->recordWithEvidence(submittedBy: 'officer-2'), 'verify', 'admin');
 
-		$this->assertTrue($guard->check($context));
+		$this->assertTrue($result->isAllowed());
 	}//end testAdminVerifiesOfficerSubmission()
 }//end class

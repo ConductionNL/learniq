@@ -2,7 +2,9 @@
 
 ## Purpose
 TBD - created by archiving change timetabling-and-substitution. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Timetable import delegates the wire protocol to OpenConnector via DataExchangeJob
 
 The system MUST accept a generated timetable from an external optimiser (Zermelo, Untis, Xedule, or
@@ -145,14 +147,27 @@ fields, or by a caller who is neither a cohort teacher nor an admin/coordinator,
 
 ### Requirement: Cancellation or substitution notifies affected learners and parents
 
-At the `cancel` and `substitute-teacher` transitions, the system MUST materialise `affectedLearnerIds` (from
-the Session's `Cohort.learnerIds`) and `affectedParentIds` (from each affected learner's
-`LearnerProfile.parentIds`) onto the Session, then declare `x-openregister-notifications` `transition`-
-triggered rules (`action: cancel`, `action: substitute-teacher`) with `recipients: [{kind: field, field:
-affectedLearnerIds}, {kind: field, field: affectedParentIds}]` and an inline `nl`/`en` subject. This change
-MUST introduce no local quiet-hours or delivery-suppression logic; delivery timing and per-user opt-out MUST
-be governed entirely by OpenRegister's existing dispatcher and preference API, per `scholiq-notifications`'s
-existing requirements.
+At the `cancel`, `substitute-teacher`, and `substitute-teacher-in-progress`
+transitions, the system MUST materialise `affectedLearnerIds` (from the
+Session's `Cohort.learnerIds`) and `affectedParentIds` (from each affected
+learner's `LearnerProfile.parentIds`) onto the Session, then declare
+`x-openregister-notifications` `transition`-triggered rules (`action: [cancel,
+substitute-teacher, substitute-teacher-in-progress]`) with `recipients:
+[{kind: field, field: affectedLearnerIds}, {kind: field, field:
+affectedParentIds}]` and an inline `nl`/`en` subject. This change MUST
+introduce no local quiet-hours or delivery-suppression logic; delivery timing
+and per-user opt-out MUST be governed entirely by OpenRegister's existing
+dispatcher and preference API, per `scholiq-notifications`'s existing
+requirements.
+
+<!-- Extends the action list from {cancel, substitute-teacher} to also include
+     substitute-teacher-in-progress: SessionChangeNoticeHandler's own
+     WATCHED_ACTIONS constant already reacts to all three (the in-progress
+     counterpart of substitute-teacher, split into its own transition name per
+     the Session schema's own transition docblock), and the declared
+     notification must cover every action the handler materialises data for,
+     or a substitution made mid-lesson would silently notify nobody even
+     though affectedLearnerIds/affectedParentIds were correctly written. -->
 
 #### Scenario: Cancelling a Session notifies every affected learner and parent
 
@@ -161,6 +176,13 @@ existing requirements.
 - **THEN** `affectedLearnerIds` contains all 28 learners and `affectedParentIds` contains the 19 linked
   parents
 - **AND** each receives an `nc-notification` via the declared `transition` rule
+
+#### Scenario: Assigning a substitute teacher mid-lesson also notifies
+
+- **GIVEN** a Session that is already `in-progress`
+- **WHEN** a substitute teacher is assigned via the `substitute-teacher-in-progress` transition
+- **THEN** the same `rosterChanged` notification rule fires for the Session's affected learners and parents,
+  exactly as it does for the `scheduled`-state `substitute-teacher` transition
 
 #### Scenario: A learner who opted out of Session-change notifications receives nothing
 
@@ -214,3 +236,130 @@ exceptions (lifecycle guard, cross-object write bridge, external-system bridge).
 - **THEN** they are driven by `src/manifest.json`, with `SubstitutionModal` and `TimetableConflictQueue` as
   the only named custom views, and no PHP CRUD controller exists for any of these objects
 
+### Requirement: Sessions has today- and week-scoped index views
+The system MUST provide `SessionsToday` and `SessionsThisWeek` as manifest-declared `type: index` pages on the `Session` schema, each pre-scoped via `config.filter.startsAt` using the shared `@today`/`@today+Nd` filter-token grammar (`resolveFilterMap` → `resolveFilterTokens`, the same mechanism `LessonIndex`/`Submissions`/etc. already use with `@route.*` tokens).
+
+#### Scenario: A teacher opens today's sessions
+- **GIVEN** `Session` rows exist across multiple days
+- **WHEN** `SessionsToday` is opened
+- **THEN** only sessions whose `startsAt` falls within the current day are listed
+
+#### Scenario: A teacher opens this week's sessions
+- **GIVEN** `Session` rows exist across multiple weeks
+- **WHEN** `SessionsThisWeek` is opened
+- **THEN** only sessions whose `startsAt` falls within the next 7 days from today are listed
+
+### Requirement: A per-teacher filter on TimetableConflictQueue is out of scope for a config change
+`TimetableConflictQueue` is a registered custom Vue component (`src/views/TimetableConflictQueue.vue`), not a manifest-declarative page. A `config`-kind change MUST NOT modify it; adding a per-teacher filter control there requires a `code`-kind change per ADR-032 and is explicitly deferred.
+
+#### Scenario: TimetableConflictQueue is unmodified by this change
+- **GIVEN** this change's diff
+- **WHEN** `src/views/TimetableConflictQueue.vue` is inspected
+- **THEN** it is unchanged; the per-teacher filter is tracked as a follow-up `code` change
+
+### Requirement: The timetable connection is available when planninq and integriq are installed
+The timetable row in `lib/Settings/connections.json` MUST NOT be declared unavailable. It MUST be `reportedOnly`, and learniq MUST report its status to integriq: `configured` when planninq is enabled, `unavailable` with a reason naming planninq otherwise. The report MUST be recorded by the daily connection report job and by an admin settings save.
+
+#### Scenario: Planninq is installed
+- **GIVEN** planninq is enabled and integriq is installed
+- **WHEN** the daily connection report runs
+- **THEN** the timetable row is reported `configured`
+
+#### Scenario: Planninq is missing
+- **GIVEN** planninq is not enabled
+- **WHEN** the daily connection report runs
+- **THEN** the timetable row is reported `unavailable`, and the message says planninq is not installed
+
+### Requirement: The timetable page offers the import to whoever may request an exchange
+`GET /api/timetable/imports/access` MUST answer whether the signed-in user holds `exchange.request` and whether planninq takes a delivery. The timetable conflicts page MUST show an import button only to a user who holds the right, MUST enable it only where planninq takes the delivery, and MUST post the chosen rostering system to `POST /api/timetable/imports`.
+
+#### Scenario: An administration manager opens the timetable conflicts
+- **GIVEN** a user in `administration-managers` on an instance with planninq
+- **WHEN** they open the timetable conflicts page
+- **THEN** they see an enabled "Import a timetable" button
+
+#### Scenario: A coordinator without the right
+- **GIVEN** a coordinator the action matrix does not grant `exchange.request`
+- **WHEN** they open the timetable conflicts page
+- **THEN** no import button shows
+
+### Requirement: An administrator keeps the group code maps and the SWV receiver on the admin page
+The admin page MUST have a section that reads and writes, per rostering system (`roster-zermelo`, `roster-untis-oneroster`, `roster-xedule`, `roster-timeedit`), the map from group code to learniq cohort, and the `swv_receiver_id` the SWV hand-off sends. The endpoints MUST be admin settings. A receiver that is not a lowercase hyphenated name, or an unknown rostering system, MUST be refused with a reason.
+
+#### Scenario: Saving a map for Zermelo
+- **GIVEN** an administrator on the admin page
+- **WHEN** they map Zermelo group `4H1` to a cohort and save
+- **THEN** the map reads back for `roster-zermelo`, with empty rows dropped
+
+### Requirement: An import without a posted map uses the kept map
+A timetable import request without its own `groupMap` MUST send the kept map of its rostering system to integriq, and MUST scan that map's cohorts for conflicts. A request that posts a map MUST send the posted map.
+
+#### Scenario: Importing from Zermelo without a map
+- **GIVEN** the administrator keeps `4H1` to a cohort for Zermelo
+- **WHEN** an import for `roster-zermelo` is requested without a map
+- **THEN** integriq receives the kept map
+
+### Requirement: A coordinator applies one change to several weeks
+
+From a lesson's change dialog, a user who may change that lesson MUST be able to list the lessons of the same weekly slot (same group, course, weekday and start time) up to a chosen date, tick the ones to change, and apply one change (cancel, substitute teacher or other room) with one reason to all of them. The dialog MUST then show per lesson whether it was changed or refused, with the reason.
+
+#### Scenario: A coordinator cancels three weeks of a lesson
+
+- **GIVEN** "Wiskunde B, 4 havo" every Tuesday at 10:15, and its teacher away for three weeks
+- **WHEN** the coordinator opens next Tuesday's lesson, chooses "Cancel", then "Apply to more weeks", ticks the next three Tuesdays, gives the reason teacher absence and applies
+- **THEN** the three lessons show as cancelled
+- **AND** the dialog lists all three as changed
+
+### Requirement: Every lesson in a batch passes the same checks
+
+Each lesson in a batch MUST go through the same transition and guard as a single change, as the user who made the batch, and MUST be checked for conflicts as a single change is. A lesson the guard refuses MUST be recorded as refused with the guard's reason, and the other lessons MUST still be changed.
+
+#### Scenario: A lesson that already took place is refused
+
+<!-- @e2e exclude Guard outcome inside a batch; covered by SessionChangeBatchServiceTest::testRefusedLessonDoesNotStopTheBatch. -->
+
+- **GIVEN** a batch with four lessons, one of them already completed
+- **WHEN** the batch is applied
+- **THEN** three lessons are cancelled and the completed one is recorded as refused with the guard's reason
+
+### Requirement: Affected people get one message per batch
+
+A lesson changed as part of a batch MUST NOT send its own change message. The batch MUST send one message to every learner and parent affected by any of its changed lessons, listing the dates.
+
+#### Scenario: A parent gets one message for three weeks
+
+<!-- @e2e exclude Notification delivery through the register dialect; covered by SessionChangeBatchRegisterTest and gate 18. -->
+
+- **GIVEN** a batch that cancelled three Tuesday lessons of a learner's group
+- **WHEN** the batch is saved
+- **THEN** the learner's parent gets one message "Your timetable has changed" listing the three dates
+
+### Requirement: A coordinator plans standby hours
+
+A user in `team-leads` or `compliance-officers` MUST be able to plan standby hours per teacher, weekly or on one date, with a time window, a location and a validity period. A teacher MUST see their own standby hours in their personal timetable.
+
+#### Scenario: A coordinator puts a teacher on standby
+
+- **GIVEN** a coordinator on the standby planning page for 2026-2027
+- **WHEN** they add teacher e.devries to Tuesday 10:15 to 11:05 at the main location and save
+- **THEN** the Tuesday cell for that hour lists e.devries
+- **AND** e.devries's timetable shows a standby block every Tuesday at 10:15
+
+### Requirement: The substitution dialog offers standby teachers first
+
+When a coordinator or the cohort's teacher assigns a substitute, the dialog MUST list the teachers on standby during the lesson first, then the teachers who work that day and have no lesson at that time, each with the reason they are listed, and MUST allow a search over all staff. A standby teacher who has a lesson at that time MUST be listed last with that reason. The absent teacher MUST NOT be listed. Learniq MUST NOT assign a substitute on its own.
+
+#### Scenario: A coordinator covers a sick teacher's lesson
+
+- **GIVEN** Tuesday's 10:15 "Wiskunde B, 4 havo" whose teacher is ill, and e.devries on standby then
+- **WHEN** the coordinator opens the lesson's substitution dialog
+- **THEN** e.devries is at the top under "On standby"
+- **AND** choosing e.devries with the reason teacher absence saves the substitution
+
+#### Scenario: A busy standby teacher goes last
+
+<!-- @e2e exclude Ordering rule of the candidate service; covered by SubstitutionCandidateServiceTest::testBusyStandbyTeacherGoesLast. -->
+
+- **GIVEN** a teacher on standby on Wednesday hour 2 who also teaches a lesson then
+- **WHEN** candidates are requested for another lesson at that time
+- **THEN** that teacher is last, with the reason "has a lesson then"

@@ -27,13 +27,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
+ * @spec openspec/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -45,7 +46,7 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
+ * @spec openspec/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
  */
 class SubjectChoiceEnrolmentBridge implements IEventListener {
 
@@ -58,12 +59,14 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolver $schemas,
 	) {
 	}//end __construct()
 
@@ -74,18 +77,18 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
+	 * @spec openspec/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() !== self::SUBJECT_CHOICE_SCHEMA
+		if ($this->schemas->eventSchema(event: $event) !== self::SUBJECT_CHOICE_SCHEMA
 			|| $event->getFrom() !== 'approved'
 			|| $event->getTo() !== 'locked'
 		) {
@@ -103,7 +106,7 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-locking-a-subject-choice-enrols-the-learner-in-the-chosen-electives
+	 * @spec openspec/specs/school-structure/spec.md#scenario-locking-a-subject-choice-enrols-the-learner-in-the-chosen-electives
 	 */
 	private function bridge(array $choice): void {
 		$learnerId = (string)($choice['learnerId'] ?? '');
@@ -123,6 +126,8 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 				continue;
 			}
 
+			// System context (enrolment): a coordinator or administration manager locks the choice, and
+			// Enrolment create is instructors, hr, compliance officers and team leads only.
 			$this->objectService->saveObject(
 				register: self::LEARNIQ_REGISTER,
 				schema: self::ENROLMENT_SCHEMA,
@@ -131,7 +136,8 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 					'courseId' => $courseId,
 					'source' => 'subject-choice',
 					'tenant_id' => $tenantId,
-				]
+				],
+				_rbac: false
 			);
 			$created++;
 		}
@@ -159,9 +165,13 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ENROLMENT_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::ENROLMENT_SCHEMA,
+					]
+				),
 				'limit' => 2000,
 			]
 		);

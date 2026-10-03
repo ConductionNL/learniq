@@ -8,7 +8,7 @@
  progressPercent is populated (learning-progress-and-analytics), a progress
  bar — declarative reuse of Enrolment.progressPercent, no new custom view.
 
- @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-is-visible-on-the-learners-my-learning-dashboard
+ @spec openspec/specs/enrolment/spec.md#scenario-progress-percentage-is-visible-on-the-learners-my-learning-dashboard
 -->
 <template>
 	<div class="my-training-widget">

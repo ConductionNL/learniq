@@ -4,12 +4,11 @@
  * Learniq Attendance Flag Report Guard
  *
  * Lifecycle guard for the AttendanceFlag schema's `in-handling → reported`
- * transition. Verifies that the DataExchangeJob associated with this flag
- * has been queued AND has succeeded before allowing the `reported` state.
+ * transition. Verifies that the integriq exchange job linked to this flag
+ * (target leerplicht) has succeeded before allowing the `reported` state.
  *
- * This ensures the leerplicht report has been successfully sent to the
- * municipality via OpenConnector (leerplicht target) before the coordinator
- * can mark the flag as `reported`.
+ * This ensures integriq has sent the leerplicht report to the municipality
+ * before the coordinator can mark the flag as `reported`.
  *
  * If the flag has no dataExchangeJobId (no outbound report was configured),
  * the transition is allowed — the flag was handled manually without a
@@ -38,20 +37,31 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
 /**
  * Guards the AttendanceFlag `in-handling → reported` lifecycle transition.
  *
- * When a dataExchangeJobId is set on the flag, verifies the linked
- * DataExchangeJob has reached `succeeded` state. When no job is linked,
+ * When a dataExchangeJobId is set on the flag, verifies the linked integriq
+ * exchange job's `exchangeStatus` is `succeeded`. When no job is linked,
  * allows the transition unconditionally (manual report).
+ *
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
  */
-class AttendanceFlagReportGuard {
+class AttendanceFlagReportGuard implements LifecycleGuardInterface {
 
-	private const LEARNIQ_REGISTER = 'learniq';
-	private const DATA_EXCHANGE_JOB_SCHEMA = 'data-exchange-job';
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'Integriq has not sent the leerplicht report yet, so this flag can not be marked as reported.';
+
+	private const INTEGRIQ_REGISTER = 'integriq';
+	private const INTEGRIQ_JOB_SCHEMA = 'job';
 
 	/**
 	 * Constructor.
@@ -68,69 +78,83 @@ class AttendanceFlagReportGuard {
 	}//end __construct()
 
 	/**
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-10
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
 	 * Allow the `in-handling → reported` transition.
 	 *
 	 * Returns true when:
 	 * - The flag has no dataExchangeJobId (manual report, no data exchange required).
-	 * - The linked DataExchangeJob is in `succeeded` state.
+	 * - The linked integriq exchange job's `exchangeStatus` is `succeeded`.
 	 *
 	 * Returns false when:
-	 * - The linked DataExchangeJob is not yet `succeeded` (queued, running, pending-parent-review, failed, partial).
-	 * - The linked DataExchangeJob cannot be found.
+	 * - The linked integriq job is not `succeeded` (queued, running, refused, failed, partial).
+	 * - The linked integriq job cannot be found (integriq absent too).
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the AttendanceFlag data array
-	 *                                               - 'transition' : 'report'
-	 *                                               - 'from'       : 'in-handling'
-	 *                                               - 'to'         : 'reported'
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True if the report transition is allowed; false otherwise.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-10
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-municipalitys-feedback-on-a-leerplicht-report-is-recorded-on-the-attendance-flag
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
+	private function allows(array $object): bool {
 		$dataExchangeJobId = $object['dataExchangeJobId'] ?? null;
 
-		// No data exchange job linked — the flag was handled manually.
-		// Allow the transition unconditionally.
+		// No exchange job linked: the flag was handled manually.
 		if ($dataExchangeJobId === null || $dataExchangeJobId === '') {
 			return true;
 		}
 
-		// Fetch the DataExchangeJob to check its lifecycle state.
-		$jobs = $this->objectService->findAll(
-			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::DATA_EXCHANGE_JOB_SCHEMA,
-				'filters' => ['id' => (string)$dataExchangeJobId],
-				'limit' => 1,
-			]
-		);
+		// The job lives in integriq since data-exchange-to-integriq; read its
+		// exchangeStatus from integriq's own row.
+		try {
+			$job = $this->objectService->find(
+				id: (string)$dataExchangeJobId,
+				register: self::INTEGRIQ_REGISTER,
+				schema: self::INTEGRIQ_JOB_SCHEMA,
+				_rbac: false,
+				_multitenancy: false
+			);
+		} catch (\Throwable $exception) {
+			$job = null;
+		}
 
-		if (empty($jobs) === true) {
+		if ($job === null) {
 			$this->logger->warning(
-				'[AttendanceFlagReportGuard] DataExchangeJob {id} not found — denying report transition.',
+				'[AttendanceFlagReportGuard] Exchange job {id} not found in integriq — denying report transition.',
 				['id' => $dataExchangeJobId]
 			);
 			return false;
 		}
 
-		$job = $jobs[0];
-		if (is_array($jobs[0]) === false) {
-			$job = $jobs[0]->jsonSerialize();
-		}
-
-		$jobState = $job['lifecycle'] ?? '';
-
+		$jobState = (string)($job->jsonSerialize()['exchangeStatus'] ?? '');
 		if ($jobState !== 'succeeded') {
 			$this->logger->info(
-				'[AttendanceFlagReportGuard] DataExchangeJob {id} is in state {s}, not succeeded — denying report.',
+				'[AttendanceFlagReportGuard] Exchange job {id} is {s}, not succeeded — denying report.',
 				['id' => $dataExchangeJobId, 's' => $jobState]
 			);
 			return false;
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 }//end class

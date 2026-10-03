@@ -13,15 +13,14 @@
  `dependency-missing` phase (REQ-DIA-5) — nothing else renders.
    • openregister IS hard. Every Learniq entity is an OpenRegister object;
      without it the app has no data layer at all.
-   • openconnector is SOFT ({ id, required: false }). Learniq calls it from
-     exactly two places — LtiToolPlacementController (forwards an LTI 1.3
-     OIDC launch to `/apps/openconnector/api/lti/deployments/{id}/launch`)
-     and PaymentTransactionController (`/apps/openconnector/api/payments/
-     initiate`). Both are optional integrations. Declaring it HARD meant a
-     school running Learniq without LTI or online payments got a completely
+   • openconnector is SOFT ({ id, required: false }). Learniq calls it for
+     optional integrations such as LtiToolPlacementController (forwards an
+     LTI 1.3 OIDC launch to `/apps/openconnector/api/lti/deployments/{id}/launch`).
+     Online payments moved to shillinq (D19) and no longer call it. Declaring
+     it HARD meant a school running Learniq without LTI got a completely
      unusable app shell, and it blanked the entire e2e suite on any instance
      where openconnector was absent. As a soft dependency its absence now
-     surfaces as a dismissible in-shell notice and degrades only those two
+     surfaces as a dismissible in-shell notice and degrades only those
      features. appinfo/info.xml still lists <app>openconnector</app> as an
      integration hint; Nextcloud's DependencyAnalyzer does not enforce
      <app> entries, so that declaration never gated anything.
@@ -37,10 +36,21 @@
 		:manifest="manifest"
 		:registry="registry"
 		:pageTypes="pageTypes"
+		:customComponents="headerActionHandlers"
 		appId="learniq"
-		:translate="translateForApp">
+		:translate="translateForApp"
+		:initialOrganisationUuid="callerTenant">
 		<template #user-settings>
 			<LearniqNotificationSettings />
+		</template>
+		<!-- The tenant context carries learniq's tenant id, not an organisation
+		     name, so the library's tenant badge would print a raw id. Keep it
+		     hidden, as it was before the context was fed. The slot needs a real
+		     element: Vue 3 renders a slot's fallback (the badge) when the slot
+		     content is empty, so `<template #tenant-badge />` alone would not
+		     suppress it. -->
+		<template #tenant-badge>
+			<span hidden />
 		</template>
 	</CnAppRoot>
 </template>
@@ -48,7 +58,9 @@
 <script>
 import { CnAppRoot } from '@conduction/nextcloud-vue'
 import { translate as ncT } from '@nextcloud/l10n'
+import { generateUrl } from '@nextcloud/router'
 import LearniqNotificationSettings from './views/LearniqNotificationSettings.vue'
+import { createConnectionHandlers } from './utils/connectionRegistry.js'
 
 export default {
 	name: 'App',
@@ -88,6 +100,31 @@ export default {
 			type: Object,
 			default: null,
 		},
+
+		/**
+		 * The caller's tenant id (CallerTenantResolver, via the `callerTenant`
+		 * initial state), or null. Fed to CnAppRoot as the tenant context so
+		 * nextcloud-vue's create dialog fills a hidden `tenant_id` with it.
+		 */
+		callerTenant: {
+			type: String,
+			default: null,
+		},
+	},
+
+	data() {
+		return {
+			/**
+			 * Header-action handlers resolved by name. CnIndexPage looks a
+			 * `headerActions[].handler` name up in `customComponents` only, not
+			 * in `registry`, so the Integrations page's Add integration handler
+			 * has to travel through that prop.
+			 */
+			headerActionHandlers: createConnectionHandlers({
+				generateUrl,
+				assign: (url) => window.location.assign(url),
+			}),
+		}
 	},
 
 	methods: {

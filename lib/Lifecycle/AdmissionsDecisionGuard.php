@@ -48,24 +48,33 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
+ * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
+ * @spec openspec/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
 /**
  * Guards the Application completeIntake / place / waitlist / reject / promote transitions.
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+ * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
  */
-class AdmissionsDecisionGuard {
+class AdmissionsDecisionGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'This admission decision does not meet the rules of its admissions round.';
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ADMISSIONS_ROUND_SCHEMA = 'admissions-round';
@@ -108,25 +117,40 @@ class AdmissionsDecisionGuard {
 	}//end __construct()
 
 	/**
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
 	 * Assert the pre-conditions for the target transition.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing a guarded
 	 * Application transition.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's
-	 *                                               lifecycle engine:
-	 *                                               - 'object' : Application
-	 *                                               property array
-	 *                                               - 'to'     : target
-	 *                                               lifecycle state
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True when pre-conditions are satisfied; false blocks the transition.
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+	 * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
-		$to = (string)($transitionContext['to'] ?? '');
+	private function allows(array $object): bool {
+		$to = (string)($object['lifecycle'] ?? '');
 
 		$roundId = (string)($object['admissionsRoundId'] ?? '');
 		if ($roundId === '') {
@@ -153,7 +177,7 @@ class AdmissionsDecisionGuard {
 		}
 
 		return $this->checkDecision(round: $round, object: $object, roundId: $roundId, to: $to);
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Run the three decision-transition branches (schooladvies, toelatingsrecht, capacity).
@@ -168,7 +192,7 @@ class AdmissionsDecisionGuard {
 	 *
 	 * @return bool True when the decision may proceed; false blocks the transition.
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
 	 */
 	private function checkDecision(array $round, array $object, string $roundId, string $to): bool {
 		$kind = (string)($round['kind'] ?? 'generic');
@@ -210,7 +234,7 @@ class AdmissionsDecisionGuard {
 	 *
 	 * @return bool True when the transition may proceed.
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+	 * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
 	 */
 	private function checkMandatoryIntake(array $round, array $object): bool {
 		$mandatory = ($round['mandatoryIntake'] ?? true) === true;
@@ -238,7 +262,7 @@ class AdmissionsDecisionGuard {
 	 *
 	 * @return bool True when rejection MUST be blocked (conditions met, no named reason).
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+	 * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
 	 */
 	private function toelatingsrechtBlocksRejection(array $round, array $object): bool {
 		$deadline = $round['applicationDeadline'] ?? null;
@@ -264,7 +288,7 @@ class AdmissionsDecisionGuard {
 	 *
 	 * @return bool True when the rule is satisfied (decision may proceed).
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
 	 */
 	private function schooladviesAdjustmentSatisfied(array $object): bool {
 		$schooladvies = $object['schoolAdviceLevel'] ?? null;
@@ -309,7 +333,7 @@ class AdmissionsDecisionGuard {
 	 *
 	 * @return bool True only when both levels are comparable and the toets scored higher.
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
 	 */
 	private function doorstroomOutranks(mixed $schooladvies, mixed $doorstroom): bool {
 		if (is_string($schooladvies) === false || is_string($doorstroom) === false) {
@@ -335,7 +359,7 @@ class AdmissionsDecisionGuard {
 	 *
 	 * @return bool True when capacity has been reached (placement must be blocked).
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
+	 * @spec openspec/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
 	 */
 	private function capacityReached(array $round, string $roundId, string $tenantId): bool {
 		$capacity = $round['capacity'] ?? null;
@@ -357,9 +381,13 @@ class AdmissionsDecisionGuard {
 			$count += count(
 				$this->objectService->findAll(
 					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::APPLICATION_SCHEMA,
-						'filters' => $filters,
+						'filters' => array_merge(
+							$filters,
+							[
+								'register' => self::LEARNIQ_REGISTER,
+								'schema' => self::APPLICATION_SCHEMA,
+							]
+						),
 						'limit' => 5000,
 					]
 				)

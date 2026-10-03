@@ -40,7 +40,9 @@ Every educational institution — a school, a university faculty, or a corporate
 - GIVEN a teacher opens a Session, WHEN they attach a Material, THEN it appears in every cohort member's view of that session with the declared title, type, and order.
 - GIVEN an administrator clicks "Clone for next year" on a published Course, THEN a draft copy is created with a new academic-year tag, the same Lesson tree, and zero enrolments.
 - GIVEN a PTA expressed as a CurriculumPlan with a kolom of weegfactor 3, WHEN the `grading` spec computes the period average, THEN that kolom contributes 3× (see `grading`).
+
 ## Requirements
+
 ### Requirement: Persist school-structure domain objects in OpenRegister
 
 The system MUST persist `Programme`, `CurriculumPlan`, `Cohort`, `Session`, `Material`, and `Room` as
@@ -401,6 +403,313 @@ same state) alongside the existing `cancel` transition; both `cancel` and `subst
   `changeReasonKind`, `changeReason`, `affectedLearnerIds`, and `affectedParentIds` all unset
 - **WHEN** the row is read or re-saved unchanged
 - **THEN** it validates without error — none of the new fields are required
+
+### Requirement: Cohort declares a kind distinguishing standing care/plusklas subgroups from teaching cohorts
+
+The `Cohort` schema MUST declare a `kind` property (enum: `teaching`, `care`, `plusklas`; default
+`teaching`) so a standing, cross-period care or plusklas subgroup (finding 1.14 — ParnasSys "sublesgroep",
+ESIS "instructiegroepen") can be represented without requiring a `GroupPlan`, which `GroupPlanSubgroup`
+does (`groupPlanId` is required, so a `GroupPlanSubgroup` cannot outlive its plan).
+
+`kind` MUST be additive: existing `Cohort` rows are valid without it (default `teaching` applies), and no
+existing `Cohort` consumer (enrolment, attendance, rollover) is required to branch on it.
+
+#### Scenario: A coordinator creates a standing plusklas group
+
+<!-- @e2e exclude a single additive enum property on an already-manifest-declarative schema (Cohort);
+     asserted by the register's JSON Schema shape and existing Cohort CRUD e2e coverage, not a new browser
+     scenario -->
+
+- **GIVEN** the `Cohort` schema declares `kind`
+- **WHEN** a coordinator creates a `Cohort` with `kind: "plusklas"` and no `programmeId`/`courseId`
+- **THEN** the cohort is created and persists across academic periods like any other `Cohort`, unlike a
+  `GroupPlanSubgroup`, which requires and is scoped to one `GroupPlan`
+
+#### Scenario: An existing Cohort without a declared kind defaults to teaching
+
+- **GIVEN** a `Cohort` row created before this change, with no `kind` value stored
+- **WHEN** the row is read
+- **THEN** `kind` resolves to its default, `"teaching"`
+
+### Requirement: School and Location are persisted as OpenRegister records
+The system MUST persist `School` (BRIN, name, pedagogical concept) and `Location` (vestigingscode, onderwijslocatiecode, address, `schoolId` reference) as OpenRegister objects, each a plain resource-metadata schema with no lifecycle. The `Location` schema's internal key/slug is `Vestiging` (`location` is already claimed by `shillinq` on the shared OpenRegister; see design.md Decision 4); this requirement uses "Location" throughout for the user-facing concept, matching the page title and menu label. — the same shape as `Room` (see "Room is persisted as a bookable resource"). No bestuur/board entity is introduced this round (decision D2); `School` is the top-level record.
+
+#### Scenario: A school and its locations are recorded
+- **GIVEN** the `School` and `Location` schemas are registered
+- **WHEN** an administrator creates a `School` with a BRIN and a `Location` referencing it via `schoolId`
+- **THEN** both persist as OpenRegister objects and the `Location` resolves back to its `School`
+
+### Requirement: School declares a BRIN and a pedagogical concept
+`School.brin` MUST be a pattern-validated DUO BRIN-nummer (4 characters: two digits followed by two alphanumeric characters). `School.pedagogicalConcept` MUST be one of `regular`, `montessori`, `dalton`, `jenaplan`, `freinet`, `vrijeschool`, `other`, defaulting to `regular`.
+
+#### Scenario: A montessori school records its pedagogical concept
+- **GIVEN** a `School` being created for a montessori primary school
+- **WHEN** `pedagogicalConcept` is set to `montessori`
+- **THEN** the value persists and later school-year/reporting changes can read it to select the montessori-shaped reporting profile
+
+#### Scenario: An out-of-pattern BRIN is rejected
+- **GIVEN** a `School` being created
+- **WHEN** `brin` is submitted as a value that does not match the two-digit-plus-two-alphanumeric pattern
+- **THEN** OpenRegister's schema validation rejects the write
+
+### Requirement: Location declares vestigingscode and an independent onderwijslocatiecode
+`Location.vestigingscode` MUST be a required string identifying the DUO/RIO vestiging. `Location.onderwijslocatiecode` MUST be an independent, nullable string — a vestiging MAY have more than one onderwijslocatie (`legal-po-2026-09-25.md`: "BRIN, vestigingscode, onderwijslocatie" are three distinct codes, not one).
+
+#### Scenario: A vestiging with a separate onderwijslocatie is recorded
+- **GIVEN** a `Location` with `vestigingscode` "02VG00"
+- **WHEN** `onderwijslocatiecode` is set to a different RIO onderwijslocatie code for a satellite building
+- **THEN** both codes persist independently on the same `Location` object
+
+#### Scenario: A location without a separate onderwijslocatie is unaffected
+- **GIVEN** a `Location` with no `onderwijslocatiecode` set
+- **WHEN** it is read
+- **THEN** `onderwijslocatiecode` resolves to `null` and the location is otherwise complete with just its `vestigingscode`
+
+### Requirement: Cohort names the one Location it runs at
+`Cohort.locationId` MUST be an additive, nullable `$ref Location` field. This is the enforcement point for the DUO rule that a groep belongs to exactly one location (`legal-po-2026-09-25.md`: "one groep per location"): a `Cohort` object has at most one `locationId`, never an array.
+
+#### Scenario: A groep is assigned to its location
+- **GIVEN** a `Cohort` representing a PO groep
+- **WHEN** `locationId` is set to a `Location` object's UUID
+- **THEN** the cohort resolves to exactly that one location, never more than one
+
+#### Scenario: A pre-existing Cohort without a location is unaffected
+- **GIVEN** a pre-existing `Cohort` row with no `locationId` set
+- **WHEN** it is read
+- **THEN** `locationId` resolves to `null` and the cohort's existing `programmeId`/`courseId`/`teacherIds`/`learnerIds` fields and lifecycle are unchanged
+
+### Requirement: Frontend is declarative for School and Location
+`School` and `Location` MUST render as manifest-declared index+detail page pairs under the existing People domain (`src/manifest.d/people.json`), matching the Enrolment/Credential convention: a data widget, a related widget, and an audit-history sidebar tab. No custom Vue view and no PHP CRUD controller.
+
+#### Scenario: A coordinator opens a School's detail page
+- **GIVEN** the School/Location pages are configured
+- **WHEN** a coordinator navigates to People → Schools and opens a School
+- **THEN** the detail page renders from the manifest (data + related widgets, audit tab), with no bespoke Vue component
+
+### Requirement: Cohort carries free-text notes
+`Cohort` MUST declare `notes` (nullable string) additively.
+
+#### Scenario: A coordinator adds a note to a group
+- **GIVEN** a `Cohort`
+- **WHEN** `notes` is set to a free-text observation
+- **THEN** the value persists on the `Cohort` object
+
+#### Scenario: A pre-existing Cohort without notes is unaffected
+- **GIVEN** a pre-existing `Cohort` row with no `notes` set
+- **WHEN** it is read
+- **THEN** `notes` resolves to `null`
+
+### Requirement: CohortDetail surfaces notes and a today-scoped session view
+`CohortDetail` MUST render a widget showing `Cohort.notes`, and a widget listing this cohort's `Session`s filtered to the current day using the manifest's `@today` filter-token grammar.
+
+#### Scenario: A coordinator reads and edits the group's notes from the group page
+- **GIVEN** `CohortDetail` for a cohort with `notes` set
+- **WHEN** the page renders
+- **THEN** the notes widget shows the current value
+
+#### Scenario: A coordinator sees only today's sessions for this cohort
+- **GIVEN** `CohortDetail` for a cohort with sessions on multiple days
+- **WHEN** the page renders
+- **THEN** the today's-sessions widget lists only sessions whose `startsAt` falls within the current day
+
+### Requirement: CohortDetail's header already names the cohort
+`CohortDetail`'s header MUST show the cohort's own `name`, not the static page-type label. This is satisfied by the current `@conduction/nextcloud-vue` `CnDetailPage` component's `objectDisplayName`/`displayTitle` resolution (which prefers `obj.name` over the `title` prop) consuming `Cohort.name` (already a required property); no manifest change is needed.
+
+#### Scenario: A coordinator opens a cohort and sees its name in the header
+- **GIVEN** `CohortDetail` for a cohort named "Groep 5/6"
+- **WHEN** the page renders and the object has loaded
+- **THEN** the header reads "Groep 5/6", not the literal string "Cohort"
+
+### Requirement: A class x subject teacher join exists distinct from Cohort.teacherIds
+The system MUST persist `SubjectTeacherAssignment` (`cohortId`, `courseId`, `teacherId`) as an OpenRegister object, distinct from `Cohort.teacherIds`. `Cohort.teacherIds` names who teaches the cohort generally; `SubjectTeacherAssignment` names who teaches a specific subject (`Course`) within that cohort.
+
+#### Scenario: A VO class has a different teacher per subject
+- **GIVEN** a `Cohort` (a VO class) with two `Course`s, wiskunde and Engels
+- **WHEN** two `SubjectTeacherAssignment` objects are created, each naming the same `cohortId` but a different `courseId` and `teacherId`
+- **THEN** both persist independently, and neither depends on or duplicates `Cohort.teacherIds`
+
+### Requirement: Cohort declares a duo-partner role and working days per teacher
+`Cohort` MUST declare `teacherAssignments` additively: an array of `{ teacherId, role, days }`, where `role` is `primary` or `duo-partner` and `days` is an array of weekday values. `Cohort.teacherIds` MUST remain unchanged.
+
+#### Scenario: A PO groep has a main teacher and a duo-partner on named days
+- **GIVEN** a `Cohort` (a PO groep)
+- **WHEN** `teacherAssignments` is set with one entry `role: primary` covering Monday-Wednesday and one entry `role: duo-partner` covering Thursday-Friday
+- **THEN** both entries persist, and `Cohort.teacherIds` (if also set) is unaffected
+
+#### Scenario: A pre-existing Cohort without teacherAssignments is unaffected
+- **GIVEN** a pre-existing `Cohort` row with no `teacherAssignments` set
+- **WHEN** it is read
+- **THEN** `teacherAssignments` resolves to an empty array and `teacherIds` is unchanged
+
+### Requirement: Staff is persisted as an OpenRegister record with roles, qualifications and working days
+The system MUST persist `Staff` (`ncUserId`, `roles`, `qualifications`, `workingDays`) as an OpenRegister object, a plain resource-metadata schema with no lifecycle (same shape as `Room`).
+
+#### Scenario: A staff member's roles, qualifications and working days are recorded
+- **GIVEN** the `Staff` schema is registered
+- **WHEN** a `Staff` object is created with `roles: ["teacher", "mentor"]`, one or more `qualifications`, and `workingDays`
+- **THEN** all three persist on the `Staff` object
+
+### Requirement: Frontend is declarative for Staff and SubjectTeacherAssignment
+`Staff` and `SubjectTeacherAssignment` MUST render as manifest-declared index+detail page pairs (`Staff` under People in `src/manifest.d/people.json`; `SubjectTeacherAssignment` alongside Cohort in `src/manifest.d/learning.json`), and `CohortDetail` MUST surface an object-list widget of its `SubjectTeacherAssignment`s filtered by `cohortId`. No custom Vue view and no PHP CRUD controller.
+
+#### Scenario: A coordinator sees which teacher covers which subject from the group page
+- **GIVEN** `CohortDetail` for a VO class with two `SubjectTeacherAssignment`s
+- **WHEN** the page renders
+- **THEN** the subject-teacher roster widget lists both assignments, each linking to its own detail page
+
+### Requirement: Staff roles name the counsellor and exam functions a school staffs
+`Staff.roles` MUST accept, in addition to `teacher`, `mentor`, `coordinator`, `teaching-assistant`, `support-staff`, `administrator` and `other`, the values `career-counsellor` (decaan, loopbaanbegeleider), `study-adviser` (studieadviseur), `remedial-teacher`, `care-coordinator` (intern begeleider, zorgcoördinator), `exam-secretary` (examensecretaris), `placement-coordinator` (stagecoördinator) and `confidential-counsellor` (vertrouwenspersoon). The seven original values MUST keep their position at the start of the enum, so no stored value changes meaning.
+
+#### Scenario: A school records its exam secretary and its decaan
+- **GIVEN** the `Staff` schema is registered
+- **WHEN** a `Staff` object is created with `roles: ["teacher", "career-counsellor", "exam-secretary"]`
+- **THEN** the object validates and all three tags persist
+
+#### Scenario: An existing Staff row stays valid
+- **GIVEN** a `Staff` row stored before this change with `roles: ["teacher", "mentor"]`
+- **WHEN** it is read and saved again
+- **THEN** it validates unchanged
+
+### Requirement: Every Staff role has a readable, translated label
+`Staff.roles.items` MUST declare an `x-enum-labels` map with an English label for every enum value, and every label MUST have a key in `l10n/en.json` and a Dutch value in `l10n/nl.json`.
+
+#### Scenario: The roles picker shows labels, not codes
+- **GIVEN** a Dutch-language user opens the `Staff` form
+- **WHEN** the roles field renders its options
+- **THEN** it shows "Examensecretaris" for `exam-secretary` and "Vertrouwenspersoon" for `confidential-counsellor`
+
+### Requirement: A Staff role tag grants no access
+A `Staff.roles` value MUST be descriptive metadata only. No schema `authorization` block and no manifest `visibleIf` MAY name a `Staff.roles` value that is not also a declared security group or a `DashboardRoleService` role, and the `roles` property description MUST state that a tag grants no access.
+
+#### Scenario: Tagging someone confidential counsellor does not open confidential notes
+- **GIVEN** a `Staff` object tagged `confidential-counsellor` whose Nextcloud user is in no confidential group
+- **WHEN** that user reads a schema whose `authorization.read` is limited to a confidential group
+- **THEN** the tag has no effect on the result; only group membership decides
+
+### Requirement: Cohort activation provisions and maintains a real Nextcloud group
+
+When a Cohort transitions `planned` → `active`, the system SHALL provision a
+real Nextcloud group (`OCP\IGroupManager::createGroup()`), add every resolvable
+user in `teacherIds` and `learnerIds` as a member, and write the provisioned
+group's id back onto `Cohort.ncGroupId`. Provisioning SHALL be idempotent: a
+Cohort whose `ncGroupId` is already set SHALL NOT be provisioned again. After
+activation, an `Enrolment` transitioning `activate` or `withdraw` SHALL add or
+remove that Enrolment's learner from its Cohort's Nextcloud group, when that
+Cohort has already been provisioned (`ncGroupId` set); when the Cohort has not
+yet been provisioned, the sync SHALL no-op rather than error. A user id that
+does not resolve to a real Nextcloud user SHALL be skipped, never block the
+provisioning or the sync.
+
+#### Scenario: Activating a Cohort provisions its Nextcloud group
+
+- **GIVEN** a `Cohort` with `teacherIds: ["teacher-1"]`, `learnerIds: ["learner-1", "learner-2"]`, and `ncGroupId: null`
+- **WHEN** the Cohort's `activate` transition runs
+- **THEN** a Nextcloud group is created, `teacher-1`, `learner-1`, and `learner-2` are added as members, and the Cohort's `ncGroupId` is saved as the provisioned group's id
+
+#### Scenario: Activating an already-provisioned Cohort does not provision a second group
+
+- **GIVEN** a `Cohort` whose `ncGroupId` is already set
+- **WHEN** an `activate`-shaped event is handled for that Cohort again
+- **THEN** no new group is created and no group-membership call is made
+
+#### Scenario: Enrolling a learner into an active Cohort adds them to its group
+
+- **GIVEN** a `Cohort` with a provisioned `ncGroupId`
+- **WHEN** an `Enrolment` referencing that Cohort transitions `activate`
+- **THEN** the Enrolment's `learnerId` is added as a member of the Cohort's Nextcloud group
+
+#### Scenario: Withdrawing an enrolment removes the learner from the group
+
+- **GIVEN** a `Cohort` with a provisioned `ncGroupId` and a learner currently a member of it via an active `Enrolment`
+- **WHEN** that `Enrolment` transitions `withdraw`
+- **THEN** the learner is removed as a member of the Cohort's Nextcloud group
+
+#### Scenario: An Enrolment change on a not-yet-provisioned Cohort is a no-op, not an error
+
+- **GIVEN** a `Cohort` whose `ncGroupId` is still null
+- **WHEN** an `Enrolment` referencing that Cohort transitions `activate` or `withdraw`
+- **THEN** no group-membership call is made and no exception is raised
+
+#### Scenario: An unresolvable user id is skipped, not fatal
+
+- **GIVEN** a `Cohort` with a `teacherIds` or `learnerIds` entry that does not resolve to a real Nextcloud user
+- **WHEN** the Cohort's `activate` transition runs
+- **THEN** the unresolvable id is skipped and every other resolvable id is still added as a group member
+
+### Requirement: A programme has an hour plan over its whole length
+
+Learniq MUST let a user in `instructors`, `team-leads` or `compliance-officers` keep, per programme and intake year, an hour plan that states for every course, year of the programme and period the contact hours and other hours a group must receive, and a norm per year. The plan MUST show its totals per year and MUST mark every year whose contact hours fall below that year's norm. A programme MUST have at most one active plan per intake year.
+
+#### Scenario: A coordinator plans three years of a programme
+
+- **GIVEN** the programme "Medewerker marketing en communicatie" of three years with six courses
+- **WHEN** a coordinator opens the programme, creates an hour plan for intake 2026-2027 and fills the hours per course, year and period
+- **THEN** the plan shows the contact hours of year one, two and three next to each year's norm of 700 hours
+
+#### Scenario: A year below its norm is marked
+
+- **GIVEN** an hour plan whose year two holds 640 contact hours and a norm of 700
+- **WHEN** the coordinator opens the plan
+- **THEN** year two is marked as 60 hours short of its norm
+
+#### Scenario: A second active plan for the same intake is refused
+
+<!-- @e2e exclude Lifecycle guard; covered by HourPlanActivationGuardTest. -->
+
+- **GIVEN** an active hour plan for the programme and intake 2026-2027
+- **WHEN** a coordinator activates a second plan for the same programme and intake
+- **THEN** the activation is refused with a reason naming the active plan
+
+### Requirement: A cohort knows which year of its programme it is in
+
+`Cohort` MUST declare `programmeYear`. Moving a cohort up at the school year rollover MUST raise it by one.
+
+#### Scenario: The rollover moves a group into its second year
+
+<!-- @e2e exclude Rollover step over stored cohorts; covered by the rollover unit test. -->
+
+- **GIVEN** cohort "MV1A" with `programmeYear` 1 in 2025-2026
+- **WHEN** the school year rollover moves it up to 2026-2027
+- **THEN** the new cohort has `programmeYear` 2
+
+### Requirement: Learniq lists the teaching activities a school year needs
+
+For a school year, learniq MUST list per cohort the hour plan lines that apply to it: the plan of the cohort's programme for the intake year the cohort started in, filtered on the cohort's programme year, with the teachers assigned to that cohort and course. The list MUST be derived on every read and MUST be available as a page with a CSV export, at `GET /api/hour-plans/activities` for staff, and through an in-process query event for another fleet app. Learniq MUST NOT place any activity in a week, a day or a room.
+
+#### Scenario: A timetabler exports next year's activities
+
+- **GIVEN** cohort "MV2A" in its second year and an active hour plan for its intake
+- **WHEN** a timetabler opens "Teaching activities", picks 2026-2027 and exports
+- **THEN** the file holds a row per course of year two for MV2A with its period, contact hours and teacher
+
+#### Scenario: A learner cannot read the activity list
+
+<!-- @e2e exclude Access rule on an endpoint; covered by HourPlanControllerTest::testLearnerIsRefused. -->
+
+- **GIVEN** a user who is in no staff group
+- **WHEN** they request `GET /api/hour-plans/activities?academicYear=2026-2027`
+- **THEN** the request is refused
+
+### Requirement: A planner sees how well rooms are used
+
+For a chosen period, learniq MUST report per room the hours in use (the duration of lessons in that room that were not cancelled, within opening hours), the hours the building is open (opening hours per weekday on teaching days, holidays left out), the occupancy rate, and the average fill of the room (group size against capacity), with a weekday by hour grid of the share of rooms in use. The report MUST be filterable by room kind and building, reachable from the Reports page, exportable as CSV, and readable by `instructors`, `team-leads` and `compliance-officers` only.
+
+#### Scenario: A deputy head checks the gyms
+
+- **GIVEN** two gyms used 32 and 33 of 35 open hours in a week, and three labs used 12 hours each
+- **WHEN** the deputy head opens Reports, "Room use", picks that week and filters on gyms and labs
+- **THEN** the gyms show above 90 percent occupancy and the labs about 34 percent
+- **AND** the grid shows the hours in which every gym is taken
+
+### Requirement: Lessons without a room are counted, not hidden
+
+The report MUST state how many lessons in the period have no room and MUST link to them, so that missing data does not read as an empty room.
+
+#### Scenario: Unassigned lessons are named
+
+- **GIVEN** 14 lessons in the week with only a free-text location
+- **WHEN** the report runs for that week
+- **THEN** it says 14 lessons have no room and links to their list
 
 ## Standards
 

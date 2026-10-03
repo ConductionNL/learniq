@@ -27,6 +27,17 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
 						}
 					}
 				},
@@ -43,6 +54,17 @@
 								"coordinator",
 								"administration-manager",
 								"admin"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
 							]
 						}
 					}
@@ -61,6 +83,17 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
 						}
 					}
 				},
@@ -78,6 +111,17 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
 						}
 					}
 				},
@@ -94,6 +138,17 @@
 								"coordinator",
 								"administration-manager",
 								"admin"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
 							]
 						}
 					}
@@ -314,6 +369,14 @@
 							"allowCreate": false
 						},
 						"icon": "MapMarker"
+					},
+					{
+						"id": "bpv-deck",
+						"type": "integration",
+						"integrationId": "deck",
+						"requiredApp": "deck",
+						"title": "Follow-ups",
+						"icon": "ClipboardListOutline"
 					}
 				],
 				"layout": [
@@ -361,6 +424,14 @@
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": true
+					},
+					{
+						"id": "6",
+						"widgetId": "bpv-deck",
+						"gridX": 0,
+						"gridY": 14,
+						"gridWidth": 12,
+						"gridHeight": 4
 					}
 				],
 				"sidebar": {
@@ -448,6 +519,14 @@
 							"allowCreate": false
 						},
 						"icon": "Briefcase"
+					},
+					{
+						"id": "po-contact",
+						"type": "integration",
+						"integrationId": "contacts",
+						"requiredApp": "contacts",
+						"title": "Contact card",
+						"icon": "AccountBoxOutline"
 					}
 				],
 				"layout": [
@@ -477,6 +556,14 @@
 						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": true
+					},
+					{
+						"id": "4",
+						"widgetId": "po-contact",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 12,
+						"gridHeight": 4
 					}
 				],
 				"sidebar": {
@@ -750,8 +837,11 @@
 			"route": "/bpv/praktijkovereenkomsten/:pokId/sign",
 			"type": "custom",
 			"title": "Sign praktijkovereenkomst",
-			"component": "CnSignatureCapture",
-			"_note": "Mounts CnSignatureCapture from @conduction/nextcloud-vue for the student/school signing legs of POK signing inside Learniq's own UI (mirrors SignPlanModal). The praktijkopleider's signature is captured through the portaliq portal (signPraktijkovereenkomst action), not this page."
+			"component": "SignatureView",
+			"_note": "Mounts SignatureView (learniq#947) with subject praktijkovereenkomst for the student and school legs; the praktijkopleider signs through the portaliq portal.",
+			"config": {
+				"subject": "praktijkovereenkomst"
+			}
 		}
 	]
 }

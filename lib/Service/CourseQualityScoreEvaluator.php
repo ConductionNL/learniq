@@ -32,7 +32,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-course-teacher-quality-scores-are-a-declared-aggregation-and-calculation-engine-not-a-timedjob
+ * @spec openspec/specs/course-evaluation/spec.md#requirement-course-teacher-quality-scores-are-a-declared-aggregation-and-calculation-engine-not-a-timedjob
  */
 
 declare(strict_types=1);
@@ -74,8 +74,8 @@ class CourseQualityScoreEvaluator {
 	 * @return array{responseCount: int, invitationCount: int, averageOverallScore: float|null,
 	 *               responseRate: float, lastRecomputedAt: string}
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-response-rate-reflects-invitations-not-just-responses
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-response-rate-reflects-invitations-not-just-responses
 	 */
 	public function evaluate(string $courseId, ?string $teacherId, string $academicYear, string $period): array {
 		$responses = $this->fetchSubmittedResponses(
@@ -112,7 +112,7 @@ class CourseQualityScoreEvaluator {
 	 *
 	 * @return array<int, array>
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
 	 */
 	private function fetchSubmittedResponses(
 		string $courseId,
@@ -133,9 +133,13 @@ class CourseQualityScoreEvaluator {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::COURSE_EVALUATION_RESPONSE_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::COURSE_EVALUATION_RESPONSE_SCHEMA,
+					]
+				),
 			]
 		);
 
@@ -158,14 +162,14 @@ class CourseQualityScoreEvaluator {
 	 *
 	 * @return array<int, array>
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-response-rate-reflects-invitations-not-just-responses
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-response-rate-reflects-invitations-not-just-responses
 	 */
 	private function fetchInvitations(string $courseId, string $academicYear, string $period): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::EVALUATION_INVITATION_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::EVALUATION_INVITATION_SCHEMA,
 					'courseId' => $courseId,
 					'academicYear' => $academicYear,
 					'period' => $period,
@@ -210,7 +214,7 @@ class CourseQualityScoreEvaluator {
 	 *
 	 * @return float|null Null when no response carries a non-null overallScore.
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
 	 */
 	private function averageOverallScore(array $responses): ?float {
 		$sum = 0.0;
@@ -242,7 +246,7 @@ class CourseQualityScoreEvaluator {
 	 *
 	 * @return float
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-response-rate-reflects-invitations-not-just-responses
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-response-rate-reflects-invitations-not-just-responses
 	 */
 	private function responseRate(int $responseCount, int $invitationCount): float {
 		if ($invitationCount === 0) {

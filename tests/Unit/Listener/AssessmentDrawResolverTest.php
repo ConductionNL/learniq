@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
+ * @spec openspec/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
  */
 
 declare(strict_types=1);
@@ -102,9 +102,9 @@ class AssessmentDrawResolverTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
-				$schema = $config['schema'];
+				$schema = $config['filters']['schema'];
 				$records = $this->db[$schema] ?? [];
-				$filters = $config['filters'] ?? [];
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 
 				$matched = array_values(
 					array_filter(
@@ -201,7 +201,7 @@ class AssessmentDrawResolverTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#scenario-a-random-draw-assessment-draws-the-configured-number-of-items-from-the-filtered-pool
+	 * @spec openspec/specs/assessment/spec.md#scenario-a-random-draw-assessment-draws-the-configured-number-of-items-from-the-filtered-pool
 	 */
 	public function testRandomDrawDrawsConfiguredCountFromFilteredPool(): void {
 		$this->seed(
@@ -298,7 +298,7 @@ class AssessmentDrawResolverTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#scenario-a-drawn-set-never-includes-two-items-from-the-same-variant-group
+	 * @spec openspec/specs/assessment/spec.md#scenario-a-drawn-set-never-includes-two-items-from-the-same-variant-group
 	 */
 	public function testDrawnSetNeverIncludesTwoItemsFromTheSameVariantGroup(): void {
 		$this->seed(
@@ -351,7 +351,7 @@ class AssessmentDrawResolverTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#scenario-a-learner-taking-a-fixed-list-assessment-with-shuffle-enabled-sees-a-permuted-item-order
+	 * @spec openspec/specs/assessment/spec.md#scenario-a-learner-taking-a-fixed-list-assessment-with-shuffle-enabled-sees-a-permuted-item-order
 	 */
 	public function testShuffleItemOrderProducesVaryingPresentationOrder(): void {
 		$this->seed(
@@ -428,7 +428,7 @@ class AssessmentDrawResolverTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#scenario-a-pinned-distractor-never-moves-when-answer-options-shuffle
+	 * @spec openspec/specs/assessment/spec.md#scenario-a-pinned-distractor-never-moves-when-answer-options-shuffle
 	 */
 	public function testFixedSimpleChoiceNeverMovesWhenAnswerOptionsShuffle(): void {
 		$qtiBody = '<?xml version="1.0"?>'
@@ -545,7 +545,7 @@ class AssessmentDrawResolverTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#scenario-a-client-supplied-drawnitemrefs-value-is-overwritten-by-the-server-resolved-draw
+	 * @spec openspec/specs/assessment/spec.md#scenario-a-client-supplied-drawnitemrefs-value-is-overwritten-by-the-server-resolved-draw
 	 */
 	public function testClientSuppliedDrawnItemRefsIsOverwritten(): void {
 		$this->seed(

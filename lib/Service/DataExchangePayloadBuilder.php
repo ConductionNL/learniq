@@ -3,18 +3,14 @@
 /**
  * Learniq Data Exchange Payload Builder
  *
- * Turns the Learniq source objects a `DataExchangeJob`'s scope selected into
- * the payload OpenConnector receives: applies the `DataMappingProfile`'s
- * fieldMappings (via `DataExchangeTransformer`), strips PII, stamps the
- * correlation identifier, and runs the per-target dossier composers
- * (leerplicht/verzuimloket and swv/OSO care-request) that a flat mapping
- * cannot express.
+ * Composes what may leave learniq for one exchange job: reads the objects the
+ * job's scope selects, keeps only the fields the job's integriq mapping reads
+ * (ExchangeDisclosure), resolves the BRIN a mapping needs, and runs the
+ * leerplicht and SWV file composers that a flat mapping cannot express. The
+ * records go to integriq in the gate answer and are never stored there.
  *
- * Extracted out of `DataExchangeRunHandler` so that listener stays what its
- * own docblock claims — an orchestrator of the OpenConnector call — and so
- * both classes stay within this app's PHPMD complexity and length budget.
- * No wire protocol lives here; all Edukoppeling/StUF/OSO-XML/Digikoppeling
- * logic remains in OpenConnector (ADR-031 "external-system bridge").
+ * Learniq applies no mapping any more: the integriq mapping renames the fields
+ * (decision D7). No wire protocol lives here.
  *
  * @category Service
  * @package  OCA\Learniq\Service
@@ -29,8 +25,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
- * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
+ * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
+ * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-4.5
  */
 
 declare(strict_types=1);
@@ -41,186 +37,228 @@ use OCA\OpenRegister\Service\ObjectService;
 use RuntimeException;
 
 /**
- * Builds the OpenConnector payload for a data-exchange run.
+ * Builds the records a job may hand to integriq.
  *
- * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
- * @spec openspec/changes/verzuim-report-composer/tasks.md#task-3.1
+ * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
+ * @spec openspec/changes/archive/2026-07-13-verzuim-report-composer/tasks.md#task-3.1
  */
 class DataExchangePayloadBuilder {
 	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
-	 * Target that composes the verzuimloket dossier (attendance-flag +
-	 * breachingRecordIds + interventions) instead of the flat fieldMappings
-	 * export. Mirrors the "OSO dossier composer" pattern described in the
-	 * data-exchange spec's "What" section.
+	 * Target that composes the verzuimloket file (attendance flag plus its
+	 * breaching records and interventions).
 	 */
 	private const LEERPLICHT_TARGET = 'leerplicht';
 	private const ATTENDANCE_RECORD_SCHEMA = 'attendance-record';
 
 	/**
-	 * Target that composes the SWV zorgvraag care-request dossier from the
-	 * originating SupportRequest's linked LearnerProfile + (optional)
-	 * LearningPlan, mirroring the leerplicht dossier composer above and the
-	 * OSO overstapdossier pattern the data-exchange spec describes. See
-	 * composeSwvDossier() for the minimal-disclosure whitelist.
+	 * Target that composes the SWV care-request file from the support
+	 * request's learner and (optional) learning plan.
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-4.5
 	 */
 	private const SWV_TARGET = 'swv';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
 	private const LEARNING_PLAN_SCHEMA = 'learning-plan';
 
 	/**
-	 * Per-target allowlist of mandatory profile slugs.
-	 * When a target is listed here, a null profile (no data mapping) is a hard failure
-	 * rather than pass-through, to prevent unredacted PII from being shipped (C3).
-	 *
-	 * Fixes a pre-existing mismatch: this list previously named 'oso-transfer',
-	 * which is never an actual DataExchangeJob.target value (the real target
-	 * string is 'oso' — see the "OSO transfer dossier" DataMappingProfile seed
-	 * and DataExchangeJob.target's own description). That meant an 'oso' job
-	 * with no configured profile silently fell through to the PII-stripped
-	 * pass-through branch instead of hard-failing — a real gap for a
-	 * discretionary, consent-gated transfer. Corrected here to 'oso' while
-	 * adding 'swv' (openspec/changes/zorgvraag-swv-tlv-chain design.md
-	 * "Minimal disclosure via DataMappingProfile whitelist, not object-level
-	 * ACLs" — fail-closed: an unset profile MUST yield no export, never a
-	 * wider one).
-	 *
-	 * @var string[]
+	 * The most objects one job may carry; reaching it fails the composition
+	 * rather than handing over a silently truncated set (ADR-058).
 	 */
-	private const MANDATORY_PROFILE_TARGETS = ['bron-rod', 'bron-vo', 'oso', 'edukoppeling', 'swv'];
+	public const QUERY_LIMIT = 5000;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService $objectService OR object access service.
-	 * @param DataExchangeTransformer $transformer Named field-transform applier.
+	 * @param ObjectService             $objectService  OR object access service.
+	 * @param DataExchangeTransformer   $transformer    Resolves the BRIN a mapping needs.
+	 * @param ExchangeDisclosure        $disclosure     What each mapping may read.
+	 * @param RodPersonalNumberResolver $personalNumber The pupil's number, for the two ROD mappings only.
+	 * @param RodSchoolAdviceComposer   $schoolAdvice   DUO's AanleverenAdviesVO field set.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly DataExchangeTransformer $transformer,
+		private readonly ExchangeDisclosure $disclosure,
+		private readonly RodPersonalNumberResolver $personalNumber,
+		private readonly RodSchoolAdviceComposer $schoolAdvice,
 	) {
 	}//end __construct()
 
 	/**
-	 * Build the payload array for OpenConnector from source objects and an optional mapping profile.
+	 * Compose the records a job may hand to integriq.
 	 *
-	 * Applies field mappings from the profile when present; falls back to a PII-stripped
-	 * pass-through when the profile is absent. Targets in MANDATORY_PROFILE_TARGETS throw
-	 * a RuntimeException when no profile is provided (C3 — prevents unredacted PII export).
+	 * Each record is `{recordId, sourceKind, data}`. With a field list, data
+	 * holds only those fields; without one (a non-statutory target), the object
+	 * minus `bsnEncrypted`, `bsnHash` and `email`. The caller refuses a statutory
+	 * target without a field list before it gets here.
 	 *
-	 * @param array<int,array<string,mixed>> $objects Source objects retrieved from OR.
-	 * @param array<string,mixed>|null $profile Loaded DataMappingProfile, or null for pass-through.
-	 * @param string $target Data-exchange target slug (e.g. 'bron-rod').
+	 * @param string               $target      The exchange target.
+	 * @param string|null          $mappingSlug The job's integriq mapping.
+	 * @param array<string, mixed> $scope       The job's scope (schema, filters, cohortId, recordIds).
+	 * @param string               $tenantId    Tenant to force on every read.
 	 *
-	 * @return array<int,array<string,mixed>> Mapped (and PII-stripped) payload ready for OpenConnector.
+	 * @return array<int, array{recordId: string, sourceKind: string, data: array<string, mixed>}> The records.
 	 *
-	 * @throws \RuntimeException When the target requires a profile but none is configured.
+	 * @throws RuntimeException When the scope selects more than QUERY_LIMIT objects.
 	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-personal-number-leaves-learniq-only-in-a-rod-message-and-is-never-logged
 	 */
-	public function buildPayload(array $objects, ?array $profile, string $target = ''): array {
-		// C3: for targets that require a mapping profile, null profile is a hard fail.
-		if ($profile === null && in_array($target, self::MANDATORY_PROFILE_TARGETS, strict: true) === true) {
-			throw new RuntimeException(
-				"Data exchange target '{$target}' requires a DataMappingProfile but none is configured — "
-				. 'aborting to prevent unredacted PII export.'
+	public function composeRecords(string $target, ?string $mappingSlug, array $scope, string $tenantId): array {
+		$schema = (string)($scope['schema'] ?? '');
+		$fields = $this->disclosure->fieldsFor(mappingSlug: $mappingSlug);
+		$records = [];
+
+		foreach ($this->querySourceObjects(scope: $scope, tenantId: $tenantId) as $object) {
+			$recordId = (string)($object['id'] ?? ($object['uuid'] ?? ''));
+			$records[] = [
+				'recordId' => $recordId,
+				'sourceKind' => $schema,
+				'data' => $this->composeData(
+					target: $target,
+					mappingSlug: $mappingSlug,
+					fields: $fields,
+					object: $object,
+					tenantId: $tenantId
+				),
+			];
+		}
+
+		return $records;
+	}//end composeRecords()
+
+	/**
+	 * Compose one record's data, adding the personal number only for the two ROD mappings.
+	 *
+	 * @param string                  $target      The exchange target.
+	 * @param string|null             $mappingSlug The job's integriq mapping.
+	 * @param array<int, string>|null $fields      The mapping's field list.
+	 * @param array<string, mixed>    $object      The source object.
+	 * @param string                  $tenantId    The job's tenant.
+	 *
+	 * @return array<string, mixed> The data.
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-rod-learner-record-carries-the-personal-number-where-duo-expects-a-bsn
+	 */
+	private function composeData(string $target, ?string $mappingSlug, ?array $fields, array $object, string $tenantId): array {
+		$carries = $this->disclosure->carriesPersonalNumber(target: $target, mappingSlug: $mappingSlug);
+		if ($carries === true && $mappingSlug === ExchangeDisclosure::ROD_SCHOOL_ADVICE_MAPPING) {
+			return $this->schoolAdvice->compose(advice: $object, tenantId: $tenantId);
+		}
+
+		$data = $this->composeFile(record: $this->disclose(object: $object, fields: $fields), source: $object, target: $target);
+		unset($data[RodPersonalNumberResolver::NUMBER_KEY], $data[RodPersonalNumberResolver::TYPE_KEY]);
+		if ($carries === true) {
+			$data = array_merge(
+				$data,
+				$this->personalNumber->forProfile(profileId: (string)($object['id'] ?? ($object['uuid'] ?? '')), tenantId: $tenantId)
 			);
 		}
 
-		if ($profile === null || empty($profile['fieldMappings']) === true) {
-			return $this->passThroughPayload(objects: $objects, target: $target);
-		}
-
-		$fieldMappings = $profile['fieldMappings'];
-		$payload = [];
-
-		foreach ($objects as $object) {
-			$record = $this->mapRecord(object: $object, fieldMappings: $fieldMappings);
-
-			// C3: always strip PII fields from the mapped record even when profile is present.
-			unset($record['bsnEncrypted'], $record['bsnHash'], $record['email']);
-
-			// Re-assert the correlation stamp: guarantee it survives even if a
-			// (misconfigured) fieldMappings entry names '_scholiqRecordId' as its
-			// own targetField — this stamp must always equal the source object's id.
-			$record['_scholiqRecordId'] = ($object['id'] ?? ($object['uuid'] ?? ''));
-
-			$payload[] = $this->composeFile(record: $record, source: $object, target: $target);
-		}
-
-		return $payload;
-	}//end buildPayload()
+		return $data;
+	}//end composeData()
 
 	/**
-	 * Build the payload for a target that has no mapping profile: the raw source
-	 * objects with PII fields explicitly stripped (C3).
+	 * Keep what may leave of one object.
 	 *
-	 * @param array<int,array<string,mixed>> $objects Source objects retrieved from OR.
-	 * @param string $target Data-exchange target slug.
+	 * @param array<string, mixed>   $object The source object.
+	 * @param array<int, string>|null $fields The mapping's field list, or null for pass-through.
 	 *
-	 * @return array<int,array<string,mixed>> PII-stripped pass-through payload.
-	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
+	 * @return array<string, mixed> The disclosed fields.
 	 */
-	private function passThroughPayload(array $objects, string $target): array {
-		$payload = [];
-		foreach ($objects as $object) {
-			// Correlation stamp (duo-afkeurmelding-correction): every record carries
-			// the source object's own id BEFORE composition, so a rejection returned
-			// in a later job's result.validationReport can be resolved back to the
-			// Learniq object that produced it. Stamped first so the leerplicht/swv
-			// composers never strip it (they only add keys, never unset()).
-			$object['_scholiqRecordId'] = ($object['id'] ?? ($object['uuid'] ?? ''));
+	private function disclose(array $object, ?array $fields): array {
+		if ($fields === null) {
+			foreach (ExchangeDisclosure::NEVER as $never) {
+				unset($object[$never]);
+			}
 
-			unset($object['bsnEncrypted'], $object['bsnHash'], $object['email']);
-
-			$payload[] = $this->composeFile(record: $object, source: $object, target: $target);
+			unset($object['@self']);
+			return $object;
 		}
 
-		return $payload;
-	}//end passThroughPayload()
-
-	/**
-	 * Apply a profile's field mappings to one source object.
-	 *
-	 * @param array<string,mixed> $object The source object.
-	 * @param array<int,array<string,mixed>> $fieldMappings The profile's fieldMappings entries.
-	 *
-	 * @return array<string,mixed> The mapped record, already carrying its correlation stamp.
-	 *
-	 * @throws \RuntimeException When a transform refuses to produce a value (e.g. missing eckId).
-	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
-	 */
-	private function mapRecord(array $object, array $fieldMappings): array {
-		// Correlation stamp (duo-afkeurmelding-correction): the source object's own id,
-		// written before the fieldMappings loop so it is never a caller-mappable target
-		// field and always survives dossier composition.
-		$record = ['_scholiqRecordId' => ($object['id'] ?? ($object['uuid'] ?? ''))];
-
-		foreach ($fieldMappings as $mapping) {
-			$scholiqField = $mapping['scholiqField'] ?? '';
-			$targetField = $mapping['targetField'] ?? '';
-
-			if ($scholiqField === '' || $targetField === '') {
+		$data = [];
+		foreach ($fields as $field) {
+			if ($field === 'schoolBrin') {
+				$data['schoolBrin'] = $this->transformer->applyTransform(
+					value: ($object['cohortId'] ?? null),
+					transform: 'cohort-to-brin',
+					object: $object
+				);
 				continue;
 			}
 
-			$record[$targetField] = $this->transformer->applyTransform(
-				value: ($object[$scholiqField] ?? null),
-				transform: ($mapping['transform'] ?? null),
-				object: $object
+			$data[$field] = ($object[$field] ?? null);
+		}
+
+		return $data;
+	}//end disclose()
+
+	/**
+	 * The objects a job's scope selects, tenant-forced and bounded.
+	 *
+	 * @param array<string, mixed> $scope    The job scope.
+	 * @param string               $tenantId Tenant to force on the read.
+	 *
+	 * @return array<int, array<string, mixed>> The objects.
+	 *
+	 * @throws RuntimeException When the read reaches QUERY_LIMIT.
+	 */
+	private function querySourceObjects(array $scope, string $tenantId): array {
+		$schema = (string)($scope['schema'] ?? '');
+		if ($schema === '') {
+			return [];
+		}
+
+		$filters = $scope['filters'] ?? [];
+		if (is_array($filters) === false) {
+			$filters = [];
+		}
+
+		$cohortId = $scope['cohortId'] ?? null;
+		if (is_string($cohortId) === true && $cohortId !== '') {
+			$filters['cohortId'] = $cohortId;
+		}
+
+		// #186: always force tenant_id so a scope naming another tenant reads nothing.
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
+
+		$results = $this->objectService->findAll(
+			[
+				'filters' => array_merge($filters, ['register' => self::LEARNIQ_REGISTER, 'schema' => $schema]),
+				'limit' => self::QUERY_LIMIT,
+			]
+		);
+
+		if (count($results) >= self::QUERY_LIMIT) {
+			throw new RuntimeException(
+				'The exchange scope selects ' . self::QUERY_LIMIT . " or more '{$schema}' objects; narrow it so nothing is cut off."
 			);
 		}
 
-		return $record;
-	}//end mapRecord()
+		$objects = array_map(
+			static fn ($item): array => self::rowOf(object: $item),
+			$results
+		);
+
+		$wanted = $scope['recordIds'] ?? null;
+		if (is_array($wanted) === false || $wanted === []) {
+			return array_values($objects);
+		}
+
+		$wanted = array_map('strval', $wanted);
+		return array_values(
+			array_filter(
+				$objects,
+				static fn (array $object): bool => in_array((string)($object['id'] ?? ($object['uuid'] ?? '')), $wanted, true)
+			)
+		);
+	}//end querySourceObjects()
 
 	/**
 	 * Run the target's dossier composer over a record, when it has one.
@@ -236,7 +274,7 @@ class DataExchangePayloadBuilder {
 	 *
 	 * @return array<string,mixed> The composed record.
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-4.5
 	 */
 	private function composeFile(array $record, array $source, string $target): array {
 		return match ($target) {
@@ -270,7 +308,7 @@ class DataExchangePayloadBuilder {
 	 *
 	 * @return array<string,mixed> $record with breachingRecords + interventions appended.
 	 *
-	 * @spec openspec/changes/verzuim-report-composer/tasks.md#task-3.1
+	 * @spec openspec/changes/archive/2026-07-13-verzuim-report-composer/tasks.md#task-3.1
 	 */
 	private function composeLeerplichtFile(array $record, array $flag): array {
 		$breachingRecordIds = $flag['breachingRecordIds'] ?? [];
@@ -304,7 +342,7 @@ class DataExchangePayloadBuilder {
 	 * mechanism can express (it has no facility to resolve a $ref into a
 	 * nested payload section).
 	 *
-	 * Minimal disclosure (openspec/changes/zorgvraag-swv-tlv-chain/design.md
+	 * Minimal disclosure (openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/design.md
 	 * "Minimal disclosure via DataMappingProfile whitelist, not object-level
 	 * ACLs"): both the `learner` and `learningPlanContext` sections below are
 	 * built from an EXPLICIT field whitelist, never a full-object dump —
@@ -323,14 +361,18 @@ class DataExchangePayloadBuilder {
 	 *
 	 * @return array<string,mixed> $record with learner + learningPlanContext appended.
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/specs/learning-plan/spec.md#requirement-minimal-disclosure-to-the-swv-via-a-field-whitelisting-datamappingprofile
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-4.5
+	 * @spec openspec/specs/learning-plan/spec.md#requirement-minimal-disclosure-to-the-swv-via-a-field-whitelisting-datamappingprofile
 	 */
 	private function composeSwvFile(array $record, array $supportRequest): array {
 		$learnerId = (string)($supportRequest['learnerId'] ?? '');
 		$tenantId = (string)($supportRequest['tenant_id'] ?? '');
 
 		$record['learner'] = $this->resolveLearnerWhitelist(learnerId: $learnerId, tenantId: $tenantId);
+
+		// Always present, null without a plan: integriq's mapping copies the key, and an
+		// absent key would be rendered as its own name instead.
+		$record['learningPlanContext'] = null;
 
 		$learningPlanId = $supportRequest['learningPlanId'] ?? null;
 		if (is_string($learningPlanId) === true && $learningPlanId !== '') {
@@ -353,7 +395,7 @@ class DataExchangePayloadBuilder {
 	 *
 	 * @return array<string,mixed>|null Whitelisted learner fields, or null when unresolvable.
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-4.5
 	 */
 	private function resolveLearnerWhitelist(string $learnerId, string $tenantId): ?array {
 		if ($learnerId === '') {
@@ -367,9 +409,13 @@ class DataExchangePayloadBuilder {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEARNER_PROFILE_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::LEARNER_PROFILE_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -405,19 +451,24 @@ class DataExchangePayloadBuilder {
 	 *
 	 * @return array<string,mixed>|null Whitelisted plan context, or null when unresolvable.
 	 *
-	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
+	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-4.5
 	 */
 	private function resolveLearningPlanWhitelist(string $learningPlanId, string $tenantId): ?array {
-		$filters = ['id' => $learningPlanId];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEARNING_PLAN_SCHEMA,
-				'filters' => $filters,
+				'ids' => [$learningPlanId],
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::LEARNING_PLAN_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -448,7 +499,7 @@ class DataExchangePayloadBuilder {
 	 *
 	 * @return array<int,array<string,mixed>> Resolved AttendanceRecord objects, PII-stripped.
 	 *
-	 * @spec openspec/changes/verzuim-report-composer/tasks.md#task-3.1
+	 * @spec openspec/changes/archive/2026-07-13-verzuim-report-composer/tasks.md#task-3.1
 	 */
 	private function resolveAttendanceRecords(array $ids, string $tenantId): array {
 		$records = [];
@@ -458,16 +509,21 @@ class DataExchangePayloadBuilder {
 				continue;
 			}
 
-			$filters = ['id' => $id];
+			$filters = [];
 			if ($tenantId !== '') {
 				$filters['tenant_id'] = $tenantId;
 			}
 
 			$results = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::ATTENDANCE_RECORD_SCHEMA,
-					'filters' => $filters,
+					'ids' => [$id],
+					'filters' => array_merge(
+						$filters,
+						[
+							'register' => self::LEARNIQ_REGISTER,
+							'schema' => self::ATTENDANCE_RECORD_SCHEMA,
+						]
+					),
 					'limit' => 1,
 				]
 			);
@@ -488,4 +544,19 @@ class DataExchangePayloadBuilder {
 
 		return $records;
 	}//end resolveAttendanceRecords()
+
+	/**
+	 * One OpenRegister result as a plain row.
+	 *
+	 * @param mixed $object An array or an object entity.
+	 *
+	 * @return array<string, mixed> The row.
+	 */
+	private static function rowOf(mixed $object): array {
+		if (is_array($object) === true) {
+			return $object;
+		}
+
+		return (array)$object->jsonSerialize();
+	}//end rowOf()
 }//end class

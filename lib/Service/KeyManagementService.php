@@ -44,25 +44,9 @@ use RuntimeException;
  * Cryptographic operation — legitimate PHP seam per ADR-031.
  */
 class KeyManagementService {
-	/**
-	 * App config key prefix for encrypted private keys (active key only).
-	 */
-	private const PRIVATE_KEY_PREFIX = 'learniq.credential.signing.private.';
 
-	/**
-	 * App config key prefix for public keys (plain PEM, active key only).
-	 */
-	private const PUBLIC_KEY_PREFIX = 'learniq.credential.signing.public.';
 
-	/**
-	 * App config key prefix for public key fingerprints.
-	 */
-	private const FINGERPRINT_KEY_PREFIX = 'learniq.credential.signing.fingerprint.';
 
-	/**
-	 * App config key prefix for archived (verification-only) public keys (JSON array of PEM strings).
-	 */
-	private const ARCHIVED_KEYS_PREFIX = 'learniq.credential.signing.archived_keys.';
 
 	/**
 	 * Maximum number of archived public keys retained per tenant.
@@ -142,17 +126,17 @@ class KeyManagementService {
 
 		$this->appConfig->setValueString(
 			app: 'learniq',
-			key: self::PRIVATE_KEY_PREFIX . $tenantId,
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PRIVATE, tenantId: $tenantId),
 			value: $encryptedPrivKey
 		);
 		$this->appConfig->setValueString(
 			app: 'learniq',
-			key: self::PUBLIC_KEY_PREFIX . $tenantId,
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
 			value: $publicKeyPem
 		);
 		$this->appConfig->setValueString(
 			app: 'learniq',
-			key: self::FINGERPRINT_KEY_PREFIX . $tenantId,
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::FINGERPRINT, tenantId: $tenantId),
 			value: $fingerprint
 		);
 
@@ -172,8 +156,16 @@ class KeyManagementService {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
 	 */
 	public function getTenantKeyStatus(string $tenantId): ?array {
-		$publicKey = $this->appConfig->getValueString(app: 'learniq', key: self::PUBLIC_KEY_PREFIX . $tenantId, default: '');
-		$fingerprint = $this->appConfig->getValueString(app: 'learniq', key: self::FINGERPRINT_KEY_PREFIX . $tenantId, default: '');
+		$publicKey = $this->appConfig->getValueString(
+			app: 'learniq',
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
+			default: ''
+		);
+		$fingerprint = $this->appConfig->getValueString(
+			app: 'learniq',
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::FINGERPRINT, tenantId: $tenantId),
+			default: ''
+		);
 
 		if ($publicKey === '') {
 			return null;
@@ -200,13 +192,21 @@ class KeyManagementService {
 	 */
 	public function resolvePublicKeyByFingerprint(string $tenantId, string $fingerprint): ?string {
 		// Check the active key first.
-		$activePublicKey = $this->appConfig->getValueString(app: 'learniq', key: self::PUBLIC_KEY_PREFIX . $tenantId, default: '');
+		$activePublicKey = $this->appConfig->getValueString(
+			app: 'learniq',
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
+			default: ''
+		);
 		if ($activePublicKey !== '' && substr(hash('sha256', $activePublicKey), 0, 32) === $fingerprint) {
 			return $activePublicKey;
 		}
 
 		// Check the archived keys.
-		$archivedJson = $this->appConfig->getValueString(app: 'learniq', key: self::ARCHIVED_KEYS_PREFIX . $tenantId, default: '[]');
+		$archivedJson = $this->appConfig->getValueString(
+			app: 'learniq',
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::ARCHIVED, tenantId: $tenantId),
+			default: '[]'
+		);
 		$archived = json_decode($archivedJson, true);
 		if (is_array($archived) === false) {
 			return null;
@@ -233,14 +233,22 @@ class KeyManagementService {
 	 * @return void
 	 */
 	private function archiveCurrentPublicKey(string $tenantId): void {
-		$current = $this->appConfig->getValueString(app: 'learniq', key: self::PUBLIC_KEY_PREFIX . $tenantId, default: '');
+		$current = $this->appConfig->getValueString(
+			app: 'learniq',
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
+			default: ''
+		);
 
 		if ($current === '') {
 			// No active key to archive — first-time generation.
 			return;
 		}
 
-		$archivedJson = $this->appConfig->getValueString(app: 'learniq', key: self::ARCHIVED_KEYS_PREFIX . $tenantId, default: '[]');
+		$archivedJson = $this->appConfig->getValueString(
+			app: 'learniq',
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::ARCHIVED, tenantId: $tenantId),
+			default: '[]'
+		);
 		$archived = json_decode($archivedJson, true);
 		if (is_array($archived) === false) {
 			$archived = [];
@@ -258,7 +266,7 @@ class KeyManagementService {
 
 		$this->appConfig->setValueString(
 			app: 'learniq',
-			key: self::ARCHIVED_KEYS_PREFIX . $tenantId,
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::ARCHIVED, tenantId: $tenantId),
 			value: (string)json_encode($archived)
 		);
 	}//end archiveCurrentPublicKey()

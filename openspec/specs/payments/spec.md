@@ -2,7 +2,9 @@
 
 ## Purpose
 TBD - created by archiving change school-payments. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Persist FeeItem as the chargeable definition, including its voluntary posture
 
 The system MUST persist `FeeItem` as an OpenRegister object naming what is being charged for: `kind`
@@ -23,7 +25,7 @@ product (contractonderwijs, a paid course). `FeeItem` MUST carry `x-openregister
 - **GIVEN** an administrator authoring a schoolkassa `FeeItem` for a school trip
 - **WHEN** they save it with `kind: school-trip` and `voluntary: true`
 - **THEN** the `FeeItem` persists with `voluntary: true`
-- **AND** it is available for `Order`/`OrderLine` composition
+- **AND** it is available to a shillinq payment request raised on an `Entitlement`
 
 #### Scenario: A contractonderwijs course is declared non-voluntary
 
@@ -33,47 +35,6 @@ product (contractonderwijs, a paid course). `FeeItem` MUST carry `x-openregister
 - **WHEN** they save it with `kind: mbo-contractonderwijs`, `voluntary: false`, and `linkedCourseId` set
 - **THEN** the `FeeItem` persists with `voluntary: false`
 - **AND** it is eligible to back an `Entitlement` once paid (see the Entitlement requirement below)
-
-### Requirement: Persist Order and OrderLine as the payer-facing request for payment, with a validated total
-
-The system MUST persist `Order` (payer-facing header: `payerKind` (`guardian | learner | employer`),
-`payerId` (nullable Nextcloud user ID), `payerName`/`payerEmail` (nullable, for an employer or other payer
-with no Nextcloud account), `learnerId` (the beneficiary, required), `totalAmount`, `currency`, `dueDate`
-(nullable), and `x-openregister-lifecycle`: `draft → open → partially-paid | paid`, `draft | open →
-cancelled`, `paid → refunded`) and `OrderLine` (`orderId` $ref `Order`, `feeItemId` $ref `FeeItem`,
-`description` (a snapshot of `FeeItem.name`/title at order time), `quantity` (integer, minimum 1),
-`unitAmount`, `lineTotal`). `Order.totalAmount` MUST be validated, not merely trusted from the frontend: a
-new `OrderTotalValidationGuard` MUST run on the `draft → open` ("finalize") transition, recomputing the sum
-of that `Order`'s `OrderLine.lineTotal` rows and refusing the transition if the stored `totalAmount` does
-not match. `Order` MUST declare a materialised `isOverdue` calculation using the identical `@now`-comparison
-idiom `Enrolment.isOverdue` already uses (`lifecycle` in `open`/`partially-paid` AND `dueDate` set AND
-`dueDate` in the past).
-
-#### Scenario: Finalizing an Order with a mismatched total is refused
-
-<!-- @e2e exclude Lifecycle-transition guard is backend logic verified by PHPUnit OrderTotalValidationGuardTest; no scholiq DOM surface for the guard itself (the composer UI that calls finalize is covered by the frontend requirement's scenario below). -->
-
-- **GIVEN** a `draft` `Order` with `OrderLine`s summing to €45.00 but `totalAmount` stored as €40.00
-- **WHEN** an attempt is made to transition the `Order` from `draft` to `open`
-- **THEN** the transition is refused
-- **AND** the validation error names the mismatch
-
-#### Scenario: Finalizing an Order with a correct total succeeds
-
-<!-- @e2e exclude PHPUnit OrderTotalValidationGuardTest::testMatchingTotalSucceeds; backend guard behaviour, no DOM surface. -->
-
-- **GIVEN** a `draft` `Order` whose `OrderLine`s sum to exactly its stored `totalAmount`
-- **WHEN** it transitions `draft → open`
-- **THEN** the transition succeeds and the `Order` becomes visible to its payer
-
-#### Scenario: An overdue open Order is flagged without a TimedJob
-
-<!-- @e2e exclude Pure JSON-logic calculation, identical idiom to Enrolment.isOverdue; verified by the register-validation suite, no scholiq DOM surface for the calculation itself. -->
-
-- **GIVEN** an `open` `Order` with `dueDate` in the past
-- **WHEN** the `isOverdue` calculation is evaluated
-- **THEN** it resolves to `true`
-- **AND** no scholiq `TimedJob` computes it — it is a materialised `x-openregister-calculations` entry
 
 ### Requirement: A voluntary FeeItem MUST NOT gate enrolment or participation
 
@@ -89,137 +50,108 @@ capability's own mechanism.
 
 #### Scenario: An Entitlement referencing a voluntary FeeItem can never activate
 
-<!-- @e2e exclude Lifecycle-transition guard is backend logic verified by PHPUnit FeeItemVoluntaryEntitlementGuardTest::testVoluntaryFeeItemBlocksGrantRegardlessOfOrderStatus; no scholiq DOM surface for the guard itself. -->
+<!-- @e2e exclude Lifecycle-transition guard is backend logic verified by PHPUnit FeeItemVoluntaryEntitlementGuardTest::testVoluntaryFeeItemBlocksGrantRegardlessOfPaymentState; no scholiq DOM surface for the guard itself. -->
 
 - **GIVEN** an `Entitlement` in `pending` state whose `feeItemId` references a `FeeItem` with
   `voluntary: true`
 - **WHEN** an attempt is made to transition the `Entitlement` from `pending` to `active`
-- **THEN** the transition is refused regardless of whether the linked `Order` reached `paid`
+- **THEN** the transition is refused regardless of whether shillinq reports the contribution settled
 
 #### Scenario: An unpaid voluntary Order does not change the learner's participation status elsewhere
 
 <!-- @e2e exclude Cross-capability non-effect is a negative assertion over backend state (absence of any gating read), verified by PHPUnit; no scholiq DOM surface, since this capability defines no participation check itself (see design.md's fast-follow note on wiring enrolment/course-management consumption). -->
 
-- **GIVEN** a learner whose guardian has an unpaid, overdue `Order` for a `voluntary: true` `FeeItem`
+- **GIVEN** a learner whose guardian has an unpaid, overdue shillinq payment request for a `voluntary: true` `FeeItem`
   (e.g. a school trip)
 - **WHEN** any other scholiq capability checks the learner's enrolment or attendance status
-- **THEN** nothing in this capability's schema exposes a gating signal derived from that unpaid `Order` —
+- **THEN** nothing in this capability's schema exposes a gating signal derived from that unpaid request:
   no `Entitlement` for a voluntary `FeeItem` can ever be `active` (per the scenario above)
 
-### Requirement: Entitlement grants access only once its Order is paid, and only for non-voluntary chargeables
+### Requirement: An Entitlement is granted only once shillinq reports its payment request settled
 
-The system MUST persist `Entitlement` (`feeItemId` $ref `FeeItem`, `orderLineId` $ref `OrderLine`,
-`learnerId`, `grantedResourceKind` (`course-access | trip-participation | material-access |
-contractonderwijs-access`), `grantedResourceId` (nullable UUID, e.g. a `Course` ID), `x-openregister-lifecycle`:
-`pending → active` ("grant") `→ revoked` ("revoke")). The `grant` transition MUST require both (a) the
-`FeeItemVoluntaryEntitlementGuard` pass (previous requirement) and (b) the parent `Order` (via
-`orderLineId → Order`) being in `paid` state — a new `EntitlementOrderPaidGuard`. `revoke` MUST be
-available from `active` (e.g. on `Order` refund) with no additional guard.
+The `Entitlement` `grant` transition (pending → active) MUST pass `FeeItemVoluntaryEntitlementGuard` (a voluntary fee is always refused) and then `EntitlementPaymentSettledGuard`. The latter MUST allow the grant only when shillinq is installed, the Entitlement's `paymentRequestRef` names a `PaymentRequest` in shillinq's register, that request carries `settledAt` (shillinq contract extracurricular-fee-to-shillinq v1), its `subject` is this Entitlement's FeeItem (`subject.app` learniq) and its `beneficiary` this Entitlement's learner. In every other case, including shillinq not installed, a read error, a captured request without `settledAt`, or a request for another fee or learner, the grant MUST be refused. Learniq MUST NOT reference a shillinq class.
 
-#### Scenario: Entitlement activates once its Order is fully paid
+#### Scenario: A settled contribution unlocks a paid course
 
-<!-- @e2e exclude Lifecycle-transition guard is backend logic verified by PHPUnit EntitlementOrderPaidGuardTest::testPaidOrderAllowsGrant. -->
-
-- **GIVEN** a `pending` `Entitlement` for a non-voluntary `FeeItem` whose `Order` has just transitioned to
-  `paid`
+- **GIVEN** a pending `Entitlement` for `leerling-001` on a non-voluntary contractonderwijs `FeeItem` `fee-1`
+- **AND** shillinq holds `PaymentRequest` `pr-1` for `fee-1` and `leerling-001` with `settledAt` set, named in `paymentRequestRef`
 - **WHEN** the `grant` transition is attempted
-- **THEN** it succeeds and the `Entitlement` becomes `active`
+- **THEN** it succeeds
 
-#### Scenario: Entitlement cannot activate while its Order is only partially paid
+#### Scenario: Without shillinq nothing is granted
 
-<!-- @e2e exclude PHPUnit EntitlementOrderPaidGuardTest::testNonPaidOrderRefusesGrant, which loops over partially-paid, open, draft, cancelled and refunded. -->
+- **GIVEN** shillinq is not installed
+- **WHEN** the `grant` transition is attempted on any Entitlement
+- **THEN** it is refused with a message that payments run through shillinq
 
-- **GIVEN** a `pending` `Entitlement` whose `Order` is `partially-paid`
-- **WHEN** the `grant` transition is attempted
+#### Scenario: A request for another learner does not count
+
+- **GIVEN** a settled `PaymentRequest` for `fee-1` whose `beneficiary` is `leerling-009`
+- **WHEN** the `grant` transition is attempted on `leerling-001`'s Entitlement
 - **THEN** it is refused
 
-#### Scenario: A refunded Order revokes its Entitlement
+### Requirement: A settled shillinq contribution grants the learner's entitlement
 
-<!-- @e2e exclude PHPUnit PaymentTransactionStatusHandlerTest::testRefundRevokesOrderAndActiveEntitlements. The cascade lives in the handler, not in EntitlementOrderPaidGuard, which only guards the grant. -->
+When OpenRegister reports an update of a shillinq `PaymentRequest` (register `shillinq`, schema `PaymentRequest`) whose old object has no `settledAt`, whose new object has one, and whose `subject.app` is learniq, learniq MUST find the pending Entitlements for the request's FeeItem (`subject.id`) and learner (`beneficiary`), stamp `paymentRequestRef`, `paymentSettledAt` and `paymentSettledVia` on each and fire its `grant` transition. Any other update MUST be ignored, and a failure MUST NOT be thrown into shillinq's write.
 
-- **GIVEN** an `active` `Entitlement` whose `Order` transitions `paid → refunded`
-- **WHEN** the refund transition completes
-- **THEN** the `Entitlement` transitions `active → revoked`
+#### Scenario: The course opens after the guardian pays
 
-### Requirement: Payment initiation and status delegate entirely to OpenConnector; scholiq implements no PSP wire protocol
+- **GIVEN** a pending Entitlement `ent-1` for `fee-1` and `leerling-001`
+- **WHEN** shillinq saves `pr-1` for `fee-1` and `leerling-001` with `settledAt` for the first time
+- **THEN** `ent-1` carries `paymentRequestRef: pr-1`, the `paymentSettledAt` and the `paymentSettledVia`
+- **AND** its `grant` transition is fired
 
-The system MUST persist `PaymentTransaction` (`orderId` $ref `Order`, `pspProvider`
-(`mollie | stripe` — matching the credential-broker's catalogued provider identifiers), `pspPaymentId`
-(nullable, set once OpenConnector returns it), `amount`, `currency`, `initiatedBy`, `initiatedAt`,
-`completedAt` (nullable), `x-openregister-lifecycle`: `pending → awaiting-redirect → succeeded | failed |
-expired | cancelled`, `succeeded → refunded`; `appendOnly: true` per ADR-008, mirroring `Attestation`'s
-evidentiary shape). Scholiq MUST NOT construct, sign, or verify any PSP-specific request or webhook payload
-itself — a new `PaymentTransactionController::initiate()` MUST delegate to OpenConnector's (not-yet-built)
-PSP adapter using the same `IClientService` + `IURLGenerator::getAbsoluteURL()` + `IAppConfig` bearer-token
-shape `DataExchangeRunHandler::callOpenConnector()` and `LtiToolPlacementController::launch()` already
-establish, under the existing `scholiq.openconnector_api_token` config key. The checkout URL/reference
-OpenConnector returns MUST be forwarded to the frontend and rendered opaquely, without scholiq inspecting
-any PSP-specific field beyond what is needed to store `pspPaymentId` and the current status. Status updates
-MUST arrive via a new inbound `PaymentTransactionController::callback()` endpoint that OpenConnector's PSP
-adapter calls after independently verifying the PSP's webhook signature — this is the first
-OpenConnector-to-scholiq inbound call in this codebase (every existing `callOpenConnector*` call is
-scholiq-initiated) and MUST use its own documented authentication mechanism, not silently reuse the
-outbound `scholiq.openconnector_api_token` in the reverse direction.
+#### Scenario: A later save of a settled request changes nothing
 
-#### Scenario: Initiating payment delegates to OpenConnector and returns an opaque checkout reference
+- **GIVEN** `pr-1` already carries `settledAt`
+- **WHEN** shillinq saves it again
+- **THEN** no transition is fired
 
-<!-- @e2e exclude Thin outbound proxy with no PSP protocol logic in scholiq; contract covered by PHPUnit against a mocked OpenConnector response, mirroring LtiToolPlacementControllerTest's pattern. Cannot be live-verified end-to-end in this change since the OpenConnector mollie-stripe-payment-adapter does not exist yet (see proposal.md Why). -->
+### Requirement: A school raises a fee's contributions in shillinq from learniq
 
-- **GIVEN** an `open` `Order` with a validated `totalAmount`
-- **WHEN** the payer triggers payment initiation
-- **THEN** the backend creates a `pending` `PaymentTransaction` and calls OpenConnector's PSP
-  launch-initiation endpoint with the `Order`'s amount, currency, and a callback reference
-- **AND** the response (a checkout URL/reference) is rendered to the payer without scholiq inspecting any
-  PSP-specific claim it carries
+An administrator holding `fee-item.raise-contributions` MUST be able to raise an active FeeItem's contributions in shillinq with `POST /apps/learniq/api/fee-items/{id}/contributions`, offered as an action on the FeeItem page. Learniq MUST send shillinq's contract request: the FeeItem as `chargeable` (`app: learniq`), one recipient per learner of the fee's group or course, the first guardian with an e-mail address (or the learner without guardians) as `debtor`, and the learner as `beneficiary`, in chunks of at most 200. A learner nobody can be mailed about MUST be reported, not sent. For a non-voluntary fee that unlocks something, each learner MUST end with one pending Entitlement carrying the returned `paymentRequestId`; a voluntary fee MUST create none. Without shillinq the endpoint MUST answer 503 and raise nothing; without a shillinq administration it MUST answer 400.
 
-#### Scenario: An inbound status callback updates the PaymentTransaction and rolls up to the Order
+#### Scenario: The ouderbijdrage goes to the parents of group 7a
 
-<!-- @e2e exclude Inbound webhook-relay contract covered by PHPUnit against a synthetic callback payload; no scholiq DOM surface, since the actual PSP webhook lands on OpenConnector, not scholiq. Cannot be live-verified end-to-end in this change since the OpenConnector adapter that would call this endpoint does not exist yet. -->
+- **GIVEN** a voluntary schoolkassa FeeItem of 60 euro for group 7a, whose learners have guardians with e-mail addresses
+- **WHEN** the administrator raises its contributions
+- **THEN** shillinq receives one recipient per learner with kind `parental-contribution` and `voluntary: true`
+- **AND** no Entitlement is created
 
-- **GIVEN** a `pending` `PaymentTransaction` awaiting a PSP result
-- **WHEN** OpenConnector's PSP adapter calls `PaymentTransactionController::callback()` reporting success
-- **THEN** the `PaymentTransaction` transitions to `succeeded`
-- **AND** a `PaymentTransactionStatusHandler` (event-driven, not a `TimedJob`) rolls the parent `Order` up
-  to `paid` once the sum of its `succeeded` `PaymentTransaction`s meets `totalAmount`, or to
-  `partially-paid` otherwise
+#### Scenario: A paid course waits for its payment
 
-### Requirement: Due-date reminders for open Orders are declarative notifications honouring quiet hours
+- **GIVEN** a non-voluntary course FeeItem and an employee enrolled on the course
+- **WHEN** the administrator raises its contributions
+- **THEN** the employee has a pending Entitlement whose `paymentRequestRef` is the request shillinq returned
 
-`Order` MUST declare `dueSoon` and `overdue` as `x-openregister-notifications` rules using the verified
-engine dialect, in the identical shape `Enrolment.dueReminder`/`Enrolment.overdue` already use
-(`scheduled` trigger, `intervalSec`, a `filter` on `dueDate` with `withinNext`/`olderThan` operators,
-`recipients: [{kind: field, field: payerId}]`, inline `nl`/`en` `subject`). Delivery MUST honour the
-per-user quiet-hours/delivery-window preference exposed by OpenRegister's dispatcher, per
-`scholiq-notifications`'s existing posture — scholiq declares rules only and performs no local suppression
-logic.
+#### Scenario: Raising twice is safe
 
-#### Scenario: A payer receives a reminder before an Order falls due
+- **GIVEN** the contributions were raised once
+- **WHEN** the administrator raises them again
+- **THEN** shillinq answers `skipped` and no second Entitlement appears
 
-<!-- @e2e exclude Notification delivery is OpenRegister's AnnotationNotificationDispatcher; scholiq only declares the rule, verified by the register-validation suite. No scholiq DOM surface drives NC notification fan-out. -->
+### Requirement: Retired payment rows are archived before their schemas go
 
-- **GIVEN** an `open` `Order` with `dueDate` three days out
-- **WHEN** the `dueSoon` rule's scheduled trigger fires
-- **THEN** OpenRegister delivers an `nc-notification` to the `Order`'s `payerId`
-- **AND** a payer who has set quiet hours receives the deferred delivery per
-  `scholiq-notifications`'s existing quiet-hours requirement, with no scholiq-side rewrite
+On upgrade, before the register import, learniq MUST write every `order`, `order-line` and `payment-transaction` row to `payments-archive/retired-payments.json` in its app data folder, with the export time, the reason and the count per schema. The step MUST do nothing when that file exists, MUST write nothing when there are no rows, and MUST NOT delete the rows.
 
-### Requirement: Frontend is declarative with one named view for initiating and tracking payment
+#### Scenario: A school's orders are kept for the accountant
 
-The frontend MUST be declarative: `src/manifest.json` index/detail pages for `FeeItem`, `Order`,
-`OrderLine`, `PaymentTransaction`, and `Entitlement`. The only custom Vue component MUST be
-`OrderPaymentPanel.vue` — the payer's "pay now" surface for an `open`/`partially-paid` `Order`, showing its
-lines and total, calling `PaymentTransactionController::initiate()`, and rendering the returned checkout
-reference opaquely (no PSP-specific rendering logic). No PHP CRUD controllers for `FeeItem`/`Order`/
-`OrderLine`/`Entitlement` — OpenRegister's object API serves those; `PaymentTransactionController` exists
-only for the two delegation endpoints in the requirement above.
+- **GIVEN** two orders, one order line and one payment transaction
+- **WHEN** the upgrade runs
+- **THEN** `retired-payments.json` holds all four, counted per schema
 
-#### Scenario: A payer opens the payment panel and initiates payment
+#### Scenario: A second upgrade writes nothing
 
-<!-- @e2e exclude Requires a live OpenConnector PSP adapter to complete the flow end-to-end, which does not exist yet (see proposal.md Why); the panel's render-and-call-initiate() surface is covered by a Playwright smoke test against a mocked initiate() response, mirroring bsa-study-progress-guard's render-without-fatal-error pattern. -->
+- **GIVEN** the archive exists
+- **WHEN** the upgrade runs again
+- **THEN** the file is left as it is
 
-- **GIVEN** a guardian viewing their child's `open` `Order`
-- **WHEN** they open `OrderPaymentPanel` and select "pay now"
-- **THEN** the panel shows the `Order`'s lines and total
-- **AND** clicking "pay now" calls `PaymentTransactionController::initiate()` and navigates to (or embeds)
-  the returned checkout reference without the panel parsing any PSP-specific field
+### Requirement: Learniq keeps FeeItem and Entitlement and no pay screen of its own
 
+Learniq MUST keep the `FeeItem` and `Entitlement` index and detail pages, listed under People. It MUST NOT ship an order, order line or payment transaction schema, page or route, nor a pay screen: the pay action is portaliq's, contributed by shillinq.
+
+#### Scenario: An administrator looks for fee items
+
+- **GIVEN** an administrator opens the People menu
+- **WHEN** they look for fee items and entitlements
+- **THEN** both are listed there, and there is no Payments menu

@@ -3,17 +3,20 @@
 /**
  * Learniq QTI Import Service
  *
- * Imports QTI 2.x / 3.0 packages and IMS Common Cartridge archives, converts
- * items to the canonical QTI 3.0 stored form, and creates `Item` objects in
- * the specified ItemBank.
+ * Imports QTI 2.x packages and IMS Common Cartridge archives, stores each
+ * item's QTI 2.1 XML as found, and creates `Item` objects in the specified
+ * ItemBank.
  *
  * Legitimate PHP per ADR-031 §"External-format import": parsing ZIP/XML from
  * an external interchange format (QTI, IMS CC) cannot be expressed declaratively.
  *
  * Supports:
- *   - QTI 3.0 packages (imsqti_v3p0.xml manifest)
- *   - QTI 2.1 packages (imsqti_v2p1.xml / qti2p1 manifest) — converted to 3.0 subset
- *   - IMS Common Cartridge 1.x (imsmanifest.xml) — extracts QTI items
+ *   - QTI 2.1 packages (imsqti_v2p1.xml / qti2p1 manifest)
+ *   - packages whose manifest says QTI 3.0 (imsqti_v3p0) but whose items are
+ *     QTI 2.1 markup, which is what this app exported before
+ *     grading-defects-from-example-sets. Items in real QTI 3.0 markup
+ *     (`qti-assessment-item`) have no `assessmentItem` root and are skipped.
+ *   - IMS Common Cartridge 1.x (imsmanifest.xml), extracting its QTI items
  *
  * Full parser implemented for `choice` and `extendedText` interaction types.
  * Other interaction types are imported with their raw qtiBody preserved and
@@ -158,7 +161,7 @@ class QtiImportService {
 	 *
 	 * @return string[] Array of created Item UUIDs.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#why-extraction-is-refactored-not-duplicated
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#why-extraction-is-refactored-not-duplicated
 	 */
 	public function importFromDirectory(string $dir, string $itemBankId, string $tenantId = ''): array {
 		$packageType = $this->manifestScanner->detectPackageType(dir: $dir);
@@ -198,7 +201,7 @@ class QtiImportService {
 	 *
 	 * @throws \RuntimeException When the ZIP cannot be opened or a security violation is detected.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#why-extraction-is-refactored-not-duplicated
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#why-extraction-is-refactored-not-duplicated
 	 */
 	public function extractZip(string $zipPath, string $targetDir): void {
 		$this->packageExtractor->extractZip(zipPath: $zipPath, targetDir: $targetDir);

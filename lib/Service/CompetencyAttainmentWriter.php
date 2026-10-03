@@ -31,7 +31,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+ * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
  */
 
 declare(strict_types=1);
@@ -83,7 +83,7 @@ class CompetencyAttainmentWriter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
 	 */
 	public function upsertAttainment(
 		string $learnerId,
@@ -153,7 +153,7 @@ class CompetencyAttainmentWriter {
 	 *
 	 * @return array<string,mixed> A blank attainment row with every evidence array present.
 	 *
-	 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
 	 */
 	private function blankAttainment(string $learnerId, string $competencyId, string $frameworkId, string $tenantId): array {
 		return [
@@ -179,7 +179,7 @@ class CompetencyAttainmentWriter {
 	 *
 	 * @return string|null The level id to stamp, or null when none resolves.
 	 *
-	 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
 	 */
 	private function effectiveLevelId(?string $levelId, string $frameworkId, ?float $percent): ?string {
 		if ($levelId !== null) {
@@ -202,7 +202,7 @@ class CompetencyAttainmentWriter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
 	 */
 	private function logUpsert(?array $existing, string $learnerId, string $competencyId): void {
 		$kind = 'created';
@@ -229,7 +229,7 @@ class CompetencyAttainmentWriter {
 	 *
 	 * @return array<string,mixed> The row with its evidence arrays updated.
 	 *
-	 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
 	 */
 	private function appendEvidence(array $data, array $evidenceAppend): array {
 		foreach ($evidenceAppend as $field => $id) {
@@ -263,7 +263,7 @@ class CompetencyAttainmentWriter {
 	 *
 	 * @return string The candidate when non-empty, otherwise the current value.
 	 *
-	 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
 	 */
 	private function preferNonEmpty(string $candidate, mixed $current): string {
 		if ($candidate !== '') {
@@ -282,7 +282,7 @@ class CompetencyAttainmentWriter {
 	 *
 	 * @return array<string,mixed>|null The existing row data, or null when none exists.
 	 *
-	 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
 	 */
 	private function findExistingAttainment(string $learnerId, string $competencyId, string $tenantId): ?array {
 		$filters = [
@@ -295,9 +295,13 @@ class CompetencyAttainmentWriter {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ATTAINMENT_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::ATTAINMENT_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);

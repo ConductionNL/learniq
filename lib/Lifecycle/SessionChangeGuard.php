@@ -36,13 +36,15 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-substitution-and-cancellation-require-a-reason-and-are-gated-by-sessionchangeguard
+ * @spec openspec/specs/timetabling/spec.md#requirement-substitution-and-cancellation-require-a-reason-and-are-gated-by-sessionchangeguard
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IGroupManager;
 use OCP\IUserManager;
@@ -51,9 +53,16 @@ use Psr\Log\LoggerInterface;
 /**
  * Guards the Session `cancel` / `substitute-teacher` / `substitute-teacher-in-progress` transitions.
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-substitution-and-cancellation-require-a-reason-and-are-gated-by-sessionchangeguard
+ * @spec openspec/specs/timetabling/spec.md#requirement-substitution-and-cancellation-require-a-reason-and-are-gated-by-sessionchangeguard
  */
-class SessionChangeGuard {
+class SessionChangeGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'This session change needs a reason, a substitute where required, and a caller who may change the session.';
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const COHORT_SCHEMA = 'cohort';
@@ -73,7 +82,7 @@ class SessionChangeGuard {
 	 *
 	 * @var string[]
 	 */
-	private const OVERRIDE_GROUPS = ['admin', 'coordinator'];
+	private const OVERRIDE_GROUPS = ['admin', 'coordinators'];
 
 	/**
 	 * Constructor.
@@ -94,29 +103,47 @@ class SessionChangeGuard {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the Session data array (post-merge with the requested payload)
-	 *                                               - 'transition' : 'cancel'|'substitute-teacher'|'substitute-teacher-in-progress'
-	 *                                               - 'actor'      : NC user ID of the requester
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
+	 * @spec openspec/specs/timetabling/spec.md#scenario-cancelling-without-a-reason-is-refused
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-teacher-outside-the-cohort-cannot-substitute-or-cancel
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object, action: $action, userId: $userId) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
+	 * The rule behind check(), answered as a boolean.
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
 	 *
 	 * @return bool True when the transition is allowed; false blocks it.
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-cancelling-without-a-reason-is-refused
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-teacher-outside-the-cohort-cannot-substitute-or-cancel
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
+	 * @spec openspec/specs/timetabling/spec.md#scenario-cancelling-without-a-reason-is-refused
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-teacher-outside-the-cohort-cannot-substitute-or-cancel
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
-		$action = (string)($transitionContext['transition'] ?? '');
-		$actor = (string)($transitionContext['actor'] ?? '');
+	private function allows(array $object, string $action, string $userId): bool {
+		$actor = $userId;
 		$cohortId = (string)($object['cohortId'] ?? '');
 		$tenantId = (string)($object['tenant_id'] ?? '');
 		$reasonKind = $object['changeReasonKind'] ?? null;
 
 		if ($actor === '') {
-			$this->logger->info('[SessionChangeGuard] No actor in transitionContext — blocking {a}.', ['a' => $action]);
+			$this->logger->info('[SessionChangeGuard] No acting user — blocking {a}.', ['a' => $action]);
 			return false;
 		}
 
@@ -165,7 +192,7 @@ class SessionChangeGuard {
 		);
 
 		return false;
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Whether a context value is present as a non-empty string.
@@ -231,16 +258,21 @@ class SessionChangeGuard {
 	 * @return array<string,mixed>|null The cohort data, or null when not found.
 	 */
 	private function loadCohort(string $cohortId, string $tenantId): ?array {
-		$filters = ['id' => $cohortId];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::COHORT_SCHEMA,
-				'filters' => $filters,
+				'ids' => [$cohortId],
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::COHORT_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);

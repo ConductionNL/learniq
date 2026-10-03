@@ -3,8 +3,9 @@
 
 <!--
  LearniqCompliance — compliance dashboard page.
- Renders KPI tiles for regulations and signed attestations, plus a
- "View in LaunchPad" header action.
+ Renders KPI tiles for regulations and signed attestations, the
+ per-department compliance roll-up (learniq#951), the coverage per rule
+ (compliance-rule-coverage-table), and a "View in LaunchPad" header action.
 
  @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-12
 -->
@@ -13,6 +14,12 @@
 		:title="t('learniq', 'Compliance')"
 		:widgets="widgets"
 		:layout="layout">
+		<template #widget-department-compliance>
+			<DepartmentComplianceWidget />
+		</template>
+		<template #widget-rule-coverage>
+			<RegulationCoverageWidget />
+		</template>
 		<template #header-actions>
 			<NcButton variant="secondary" @click="viewInLaunchPad">
 				{{ t('learniq', 'View in LaunchPad') }}
@@ -24,13 +31,17 @@
 <script>
 import { CnDashboardPage } from '@conduction/nextcloud-vue'
 import { NcButton } from '@nextcloud/vue'
+import DepartmentComplianceWidget from './widgets/DepartmentComplianceWidget.vue'
+import RegulationCoverageWidget from './widgets/RegulationCoverageWidget.vue'
 
 export default {
 	name: 'LearniqCompliance',
 
 	components: {
 		CnDashboardPage,
+		DepartmentComplianceWidget,
 		NcButton,
+		RegulationCoverageWidget,
 	},
 
 	data() {
@@ -62,6 +73,24 @@ export default {
 					gridWidth: 3,
 					gridHeight: 2,
 					showTitle: false,
+				},
+				{
+					id: 4,
+					widgetId: 'department-compliance',
+					gridX: 0,
+					gridY: 4,
+					gridWidth: 12,
+					gridHeight: 6,
+					showTitle: true,
+				},
+				{
+					id: 5,
+					widgetId: 'rule-coverage',
+					gridX: 0,
+					gridY: 10,
+					gridWidth: 12,
+					gridHeight: 6,
+					showTitle: true,
 				},
 			],
 		}
@@ -130,6 +159,16 @@ export default {
 							metric: 'count',
 						},
 					},
+				},
+				{
+					id: 'department-compliance',
+					title: this.t('learniq', 'Compliance per department'),
+					type: 'custom',
+				},
+				{
+					id: 'rule-coverage',
+					title: this.t('learniq', 'Coverage per rule'),
+					type: 'custom',
 				},
 			]
 		},

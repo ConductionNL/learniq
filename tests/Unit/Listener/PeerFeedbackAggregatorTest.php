@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
+ * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
  */
 
 declare(strict_types=1);
@@ -83,11 +83,11 @@ class PeerFeedbackAggregatorTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($releasedReviews, $existingSummary) {
-				if (($config['schema'] ?? '') === 'peer-review') {
+				if (($config['filters']['schema'] ?? '') === 'peer-review') {
 					return $releasedReviews;
 				}
 
-				if (($config['schema'] ?? '') === 'peer-feedback-summary') {
+				if (($config['filters']['schema'] ?? '') === 'peer-feedback-summary') {
 					return $existingSummary === null ? [] : [$existingSummary];
 				}
 
@@ -110,7 +110,7 @@ class PeerFeedbackAggregatorTest extends TestCase {
 		$timeFactory = $this->createMock(ITimeFactory::class);
 		$timeFactory->method('getDateTime')->willReturn(new DateTime('2026-07-14T10:00:00+00:00'));
 
-		return new PeerFeedbackAggregator($objectService, $timeFactory);
+		return new PeerFeedbackAggregator($objectService, $timeFactory, \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeAggregator()
 
 	/**
@@ -139,7 +139,7 @@ class PeerFeedbackAggregatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
+	 * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
 	 */
 	public function testBlindAnonymityNullsReviewerId(): void {
 		$assignment = ['id' => 'assignment-1', 'peerReviewAnonymity' => 'blind'];
@@ -161,7 +161,7 @@ class PeerFeedbackAggregatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
+	 * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
 	 */
 	public function testDoubleBlindAnonymityNullsReviewerId(): void {
 		$assignment = ['id' => 'assignment-1', 'peerReviewAnonymity' => 'double-blind'];
@@ -181,7 +181,7 @@ class PeerFeedbackAggregatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
+	 * @spec openspec/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
 	 */
 	public function testOpenAnonymityPopulatesReviewerId(): void {
 		$assignment = ['id' => 'assignment-1', 'peerReviewAnonymity' => 'open'];
@@ -201,7 +201,7 @@ class PeerFeedbackAggregatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-teacher-releases-a-submitted-peerreview
+	 * @spec openspec/specs/assignments/spec.md#scenario-a-teacher-releases-a-submitted-peerreview
 	 */
 	public function testReviewCountAndAverageScoreRecomputeCorrectly(): void {
 		$assignment = ['id' => 'assignment-1', 'peerReviewAnonymity' => 'open'];

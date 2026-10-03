@@ -16,13 +16,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-substitution-and-cancellation-require-a-reason-and-are-gated-by-sessionchangeguard
+ * @spec openspec/specs/timetabling/spec.md#requirement-substitution-and-cancellation-require-a-reason-and-are-gated-by-sessionchangeguard
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\SessionChangeGuard;
 use OCP\IGroupManager;
@@ -36,6 +37,8 @@ use Psr\Log\NullLogger;
  * substitute-teacher / substitute-teacher-in-progress transitions.
  */
 class SessionChangeGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * Build a guard whose group/user managers report the given group
@@ -63,7 +66,7 @@ class SessionChangeGuardTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			static function (array $config) use ($cohort): array {
-				if (($config['schema'] ?? '') === 'cohort') {
+				if (($config['filters']['schema'] ?? '') === 'cohort') {
 					return $cohort === null ? [] : [$cohort];
 				}
 				return [];
@@ -78,17 +81,13 @@ class SessionChangeGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
 	 */
 	public function testCohortTeacherCancelsWithReasonIsAllowed(): void {
 		$guard = $this->makeGuard([], ['id' => 'cohort-1', 'teacherIds' => ['actor-1']]);
-		$context = [
-			'object' => ['cohortId' => 'cohort-1', 'tenant_id' => 'tenant-a', 'changeReasonKind' => 'teacher-absence'],
-			'transition' => 'cancel',
-			'actor' => 'actor-1',
-		];
+		$object = ['cohortId' => 'cohort-1', 'tenant_id' => 'tenant-a', 'changeReasonKind' => 'teacher-absence', 'lifecycle' => 'cancelled'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'cancel', 'actor-1'));
 
 	}//end testCohortTeacherCancelsWithReasonIsAllowed()
 
@@ -97,17 +96,13 @@ class SessionChangeGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-cancelling-without-a-reason-is-refused
+	 * @spec openspec/specs/timetabling/spec.md#scenario-cancelling-without-a-reason-is-refused
 	 */
 	public function testCancelWithoutReasonIsRefused(): void {
 		$guard = $this->makeGuard([], ['id' => 'cohort-1', 'teacherIds' => ['actor-1']]);
-		$context = [
-			'object' => ['cohortId' => 'cohort-1', 'tenant_id' => 'tenant-a'],
-			'transition' => 'cancel',
-			'actor' => 'actor-1',
-		];
+		$object = ['cohortId' => 'cohort-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'cancelled'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'cancel', 'actor-1'));
 
 	}//end testCancelWithoutReasonIsRefused()
 
@@ -116,17 +111,13 @@ class SessionChangeGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-teacher-outside-the-cohort-cannot-substitute-or-cancel
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-teacher-outside-the-cohort-cannot-substitute-or-cancel
 	 */
 	public function testOutsideTeacherCannotCancel(): void {
 		$guard = $this->makeGuard([], ['id' => 'cohort-1', 'teacherIds' => ['someone-else']]);
-		$context = [
-			'object' => ['cohortId' => 'cohort-1', 'tenant_id' => 'tenant-a', 'changeReasonKind' => 'teacher-absence'],
-			'transition' => 'cancel',
-			'actor' => 'actor-1',
-		];
+		$object = ['cohortId' => 'cohort-1', 'tenant_id' => 'tenant-a', 'changeReasonKind' => 'teacher-absence', 'lifecycle' => 'cancelled'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'cancel', 'actor-1'));
 
 	}//end testOutsideTeacherCannotCancel()
 
@@ -137,13 +128,9 @@ class SessionChangeGuardTest extends TestCase {
 	 */
 	public function testAdminMayCancelWithoutCohortMembership(): void {
 		$guard = $this->makeGuard(['admin'], ['id' => 'cohort-1', 'teacherIds' => ['someone-else']]);
-		$context = [
-			'object' => ['cohortId' => 'cohort-1', 'tenant_id' => 'tenant-a', 'changeReasonKind' => 'timetable-change'],
-			'transition' => 'cancel',
-			'actor' => 'actor-1',
-		];
+		$object = ['cohortId' => 'cohort-1', 'tenant_id' => 'tenant-a', 'changeReasonKind' => 'timetable-change', 'lifecycle' => 'cancelled'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'cancel', 'actor-1'));
 
 	}//end testAdminMayCancelWithoutCohortMembership()
 
@@ -153,19 +140,16 @@ class SessionChangeGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testCoordinatorMaySubstitute(): void {
-		$guard = $this->makeGuard(['coordinator'], ['id' => 'cohort-1', 'teacherIds' => []]);
-		$context = [
-			'object' => [
+		$guard = $this->makeGuard(['coordinators'], ['id' => 'cohort-1', 'teacherIds' => []]);
+		$object = [
 				'cohortId' => 'cohort-1',
 				'tenant_id' => 'tenant-a',
 				'changeReasonKind' => 'teacher-absence',
 				'substituteTeacherId' => 'sub-1',
-			],
-			'transition' => 'substitute-teacher',
-			'actor' => 'actor-1',
-		];
+				'lifecycle' => 'scheduled',
+			];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'substitute-teacher', 'actor-1'));
 
 	}//end testCoordinatorMaySubstitute()
 
@@ -176,13 +160,9 @@ class SessionChangeGuardTest extends TestCase {
 	 */
 	public function testSubstituteWithoutTeacherIdIsRefused(): void {
 		$guard = $this->makeGuard(['admin'], null);
-		$context = [
-			'object' => ['cohortId' => 'cohort-1', 'tenant_id' => 'tenant-a', 'changeReasonKind' => 'teacher-absence'],
-			'transition' => 'substitute-teacher',
-			'actor' => 'actor-1',
-		];
+		$object = ['cohortId' => 'cohort-1', 'tenant_id' => 'tenant-a', 'changeReasonKind' => 'teacher-absence', 'lifecycle' => 'scheduled'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'substitute-teacher', 'actor-1'));
 
 	}//end testSubstituteWithoutTeacherIdIsRefused()
 
@@ -193,13 +173,9 @@ class SessionChangeGuardTest extends TestCase {
 	 */
 	public function testSubstituteInProgressRequiresTeacherId(): void {
 		$guard = $this->makeGuard(['admin'], null);
-		$context = [
-			'object' => ['cohortId' => 'cohort-1', 'tenant_id' => 'tenant-a', 'changeReasonKind' => 'teacher-absence'],
-			'transition' => 'substitute-teacher-in-progress',
-			'actor' => 'actor-1',
-		];
+		$object = ['cohortId' => 'cohort-1', 'tenant_id' => 'tenant-a', 'changeReasonKind' => 'teacher-absence', 'lifecycle' => 'in-progress'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'substitute-teacher-in-progress', 'actor-1'));
 
 	}//end testSubstituteInProgressRequiresTeacherId()
 
@@ -210,12 +186,9 @@ class SessionChangeGuardTest extends TestCase {
 	 */
 	public function testNoActorIsRefused(): void {
 		$guard = $this->makeGuard(['admin'], null);
-		$context = [
-			'object' => ['cohortId' => 'cohort-1', 'tenant_id' => 'tenant-a', 'changeReasonKind' => 'teacher-absence'],
-			'transition' => 'cancel',
-		];
+		$object = ['cohortId' => 'cohort-1', 'tenant_id' => 'tenant-a', 'changeReasonKind' => 'teacher-absence', 'lifecycle' => 'cancelled'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'cancel', ''));
 
 	}//end testNoActorIsRefused()
 
@@ -226,13 +199,9 @@ class SessionChangeGuardTest extends TestCase {
 	 */
 	public function testMissingCohortFailsClosed(): void {
 		$guard = $this->makeGuard([], null);
-		$context = [
-			'object' => ['cohortId' => 'cohort-missing', 'tenant_id' => 'tenant-a', 'changeReasonKind' => 'teacher-absence'],
-			'transition' => 'cancel',
-			'actor' => 'actor-1',
-		];
+		$object = ['cohortId' => 'cohort-missing', 'tenant_id' => 'tenant-a', 'changeReasonKind' => 'teacher-absence', 'lifecycle' => 'cancelled'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'cancel', 'actor-1'));
 
 	}//end testMissingCohortFailsClosed()
 }//end class

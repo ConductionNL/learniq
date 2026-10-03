@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
+ * @spec openspec/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
  */
 
 declare(strict_types=1);
@@ -36,6 +36,13 @@ use Psr\Log\NullLogger;
  * Tests for SubjectChoiceEnrolmentBridge::handle() on SubjectChoice approved -> locked.
  */
 class SubjectChoiceEnrolmentBridgeTest extends TestCase {
+
+	/**
+	 * The `_rbac` argument of every saveObject() call, per schema.
+	 *
+	 * @var array<int, array{schema: string, rbac: bool}>
+	 */
+	private array $rbacWrites = [];
 
 	/**
 	 * Recorded saveObject() calls.
@@ -67,7 +74,7 @@ class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($existingEnrolments) {
-				if (($config['schema'] ?? '') === 'enrolment') {
+				if (($config['filters']['schema'] ?? '') === 'enrolment') {
 					return $existingEnrolments;
 				}
 
@@ -76,7 +83,8 @@ class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true): ObjectEntity {
+				$this->rbacWrites[] = ['schema' => (string)$schema, 'rbac' => $_rbac];
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->savedObjects[] = [
 					'register' => (string)$register,
@@ -87,7 +95,7 @@ class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 			}
 		);
 
-		return new SubjectChoiceEnrolmentBridge($objectService, new NullLogger());
+		return new SubjectChoiceEnrolmentBridge($objectService, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**
@@ -116,7 +124,7 @@ class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-locking-a-subject-choice-enrols-the-learner-in-the-chosen-electives
+	 * @spec openspec/specs/school-structure/spec.md#scenario-locking-a-subject-choice-enrols-the-learner-in-the-chosen-electives
 	 */
 	public function testLockCreatesEnrolments(): void {
 		$handler = $this->makeHandler(existingEnrolments: []);
@@ -148,7 +156,7 @@ class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
+	 * @spec openspec/specs/school-structure/spec.md#requirement-an-approved-subject-choice-feeds-enrolment
 	 */
 	public function testNoDuplicateEnrolmentForAlreadyEnrolledCourse(): void {
 		$handler = $this->makeHandler(existingEnrolments: [['courseId' => 'course-a']]);
@@ -252,4 +260,20 @@ class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 		self::assertCount(0, $this->savedObjects);
 
 	}//end testNonMatchingEventTypeIgnored()
+
+	/**
+	 * A coordinator locks the choice and may not create an Enrolment, so the enrolments are
+	 * written as the system.
+	 *
+	 * @return void
+	 */
+	public function testEnrolmentsAreWrittenAsTheSystem(): void {
+		$this->testLockCreatesEnrolments();
+
+		$writes = array_values(array_filter($this->rbacWrites, static fn (array $w): bool => $w['schema'] === 'enrolment'));
+		self::assertNotEmpty($writes, 'no enrolment write');
+		foreach ($writes as $write) {
+			self::assertFalse($write['rbac'], 'enrolment is written with _rbac: false');
+		}
+	}//end testEnrolmentsAreWrittenAsTheSystem()
 }//end class

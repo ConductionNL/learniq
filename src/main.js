@@ -27,6 +27,12 @@ import bundledManifest from './manifest.json'
 import menuLayout from './menu-layout.json'
 import pinia from './pinia.js'
 import registry from './registry.js'
+import { normaliseCallerTenant } from './utils/callerTenant.js'
+import { applyExampleSetRemovalSteps } from './utils/exampleSetSteps.js'
+import { applyIntegrationTitles } from './utils/integrationTitles.js'
+import { applyReportCardGates } from './utils/reportCardGates.js'
+import { applyStoreAccess } from './utils/storeAccess.js'
+import { buildWorkspaceRuntime, DEFAULT_SEGMENT } from './utils/workspaceRuntime.js'
 
 // Library CSS — must be explicit import (webpack tree-shakes side-effect imports from aliased packages)
 import '@conduction/nextcloud-vue/css/index.css'
@@ -154,6 +160,14 @@ function routesFromManifest(manifest) {
 // Exposed as per-role booleans so each dashboard menu item's
 // `visibleIf` can gate on a scalar `eq: true` (the predicate grammar has no
 // array-contains operator).
+// `workspace.segment` is the kind of organisation this instance serves
+// (SegmentService, provided by PageController), so a menu item can declare
+// `visibleIf: {"workspace.segment": …}`. It is always defined: a missing or
+// unknown value becomes the default rather than tripping the fail-safe.
+// `workspace.chosenSegment` is the segment an admin actually chose, or null on
+// an install that never chose (still on the default). School-only menus gate
+// on `{"workspace.chosenSegment": {"notIn": ["corporate"]}}`, which passes for
+// null, so a chosen company loses them and nobody else does (D26).
 const dashboardRoles = loadState('learniq', 'dashboardRoles', ['student']) || []
 bundledManifest.runtime = {
 	...(bundledManifest.runtime || {}),
@@ -163,7 +177,20 @@ bundledManifest.runtime = {
 		canAdminDashboard: dashboardRoles.includes('admin'),
 		canTeachDashboard: dashboardRoles.includes('teacher'),
 		canLearnDashboard: dashboardRoles.includes('student'),
+		// The confidential notes menu gates on group membership, not on
+		// primaryRole: a teacher who is also the vertrouwenspersoon keeps
+		// primaryRole 'instructor' (confidential-counsellor-channel).
+		isConfidentialCounsellor:
+			loadState('learniq', 'confidentialCounsellor', false) === true,
+		// A line manager approves their reports' self sign-ups but has no
+		// staff role, so the Sign-up requests menu also gates on this.
+		managesLearners: loadState('learniq', 'managesLearners', false) === true,
 	},
+	workspace: buildWorkspaceRuntime(
+		bundledManifest.runtime?.workspace,
+		loadState('learniq', 'segment', DEFAULT_SEGMENT),
+		loadState('learniq', 'chosenSegment', null),
+	),
 }
 
 // Collect the app's manifest.d/*.json fragments — require.context is resolved
@@ -180,7 +207,32 @@ const fragments = fragmentCtx
 	.keys()
 	.sort()
 	.map((key) => fragmentCtx(key))
-const mergedManifest = buildManifest(bundledManifest, fragments, menuLayout)
+// CnReportsPage ignores a card's `visibleIf` (CnAppNav and CnNavCardGrid
+// honour it), so the Reports cards are filtered here against the runtime
+// built above, with the library's own evaluator (company-segment-menu-gating).
+const mergedManifest = applyReportCardGates(
+	buildManifest(bundledManifest, fragments, menuLayout),
+)
+
+// Who sees Install and Publish on the Store page is learniq's answer, resolved
+// server-side from the ADR-023 matrix (store-rights-for-teachers, D27). The
+// manifest cannot express a per-user value, so boot writes it into the store
+// page's config, which CnPageRenderer hands to CnStorePage as props.
+applyStoreAccess(mergedManifest, loadState('learniq', 'storeAccess', null))
+
+// An integration card that reads its heading from `titleLabel` (Contacts,
+// Contact moments) gets its manifest title there too: the host passes only
+// `title`, so LearnerProfileDetail's "Contact card" rendered as "Contacts".
+applyIntegrationTitles(mergedManifest)
+
+// The setup wizard gets one removal step per loaded example set, each with
+// its own button (D34). The shared wizard's run-action step posts no body,
+// so a step can only remove the one set its action id names.
+applyExampleSetRemovalSteps(
+	mergedManifest,
+	loadState('learniq', 'loadedExampleSets', []),
+	(text, vars) => t('learniq', text, vars),
+)
 
 /**
  * The router base for THIS page load.
@@ -224,12 +276,20 @@ tryLoadTranslations()
 const pageTypesProp = { ...defaultPageTypes }
 const registryProp = { ...registry }
 
+// The caller's tenant (CallerTenantResolver, via PageController) becomes
+// nextcloud-vue's tenant context, so the shared create dialog fills a hidden
+// `tenant_id` with the value every learniq write carries.
+const callerTenant = normaliseCallerTenant(
+	loadState('learniq', 'callerTenant', null),
+)
+
 const app = createApp({
 	render: () =>
 		h(App, {
 			manifest: mergedManifest,
 			registry: registryProp,
 			pageTypes: pageTypesProp,
+			callerTenant,
 		}),
 })
 

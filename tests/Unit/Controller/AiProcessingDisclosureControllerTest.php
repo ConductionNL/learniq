@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-compose-an-ai-processing-disclosure-a-school-can-hand-to-its-dpo
+ * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-compose-an-ai-processing-disclosure-a-school-can-hand-to-its-dpo
  */
 
 declare(strict_types=1);
@@ -71,7 +71,7 @@ class AiProcessingDisclosureControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-the-disclosure-page-lists-every-hermiq-governed-feature-with-its-locality-verdict
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-the-disclosure-page-lists-every-hermiq-governed-feature-with-its-locality-verdict
 	 */
 	public function testComposesHermiqFeatureAvgCarrierAndLocalityVerdict(): void {
 		$appManager = $this->createMock(IAppManager::class);
@@ -80,7 +80,7 @@ class AiProcessingDisclosureControllerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
-				if (($config['schema'] ?? null) === 'agentaifeature') {
+				if (($config['filters']['schema'] ?? null) === 'agentaifeature') {
 					return [
 						[
 							'slug' => 'assessment-ai-proctor-review',
@@ -134,7 +134,7 @@ class AiProcessingDisclosureControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-an-unverified-locality-never-renders-as-compliant
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-an-unverified-locality-never-renders-as-compliant
 	 */
 	public function testUnverifiedLocalitySurfacedAsUnverifiedEvenUnderPermissivePolicy(): void {
 		$appManager = $this->createMock(IAppManager::class);
@@ -143,7 +143,7 @@ class AiProcessingDisclosureControllerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
-				if (($config['schema'] ?? null) === 'agentaifeature') {
+				if (($config['filters']['schema'] ?? null) === 'agentaifeature') {
 					return [['slug' => 'assessment-ai-proctor-review', 'name' => 'x', 'lifecycle' => 'enabled']];
 				}
 
@@ -183,7 +183,7 @@ class AiProcessingDisclosureControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-hermiq-absent-degrades-gracefully
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-hermiq-absent-degrades-gracefully
 	 */
 	public function testHermiqAbsentReturnsEmptyFeatureListNotError(): void {
 		$appManager = $this->createMock(IAppManager::class);

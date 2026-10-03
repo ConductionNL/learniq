@@ -16,13 +16,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-mentor-reopens-a-finalised-report-card-to-correct-it-before-publication
+ * @spec openspec/specs/report-card/spec.md#scenario-a-mentor-reopens-a-finalised-report-card-to-correct-it-before-publication
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\Learniq\Lifecycle\ReportCardReopenGuard;
 use OCP\IGroupManager;
 use OCP\IUser;
@@ -34,6 +35,8 @@ use Psr\Log\LoggerInterface;
  * Tests for ReportCardReopenGuard (finalised -> rapportvergadering-review).
  */
 class ReportCardReopenGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * Build a guard whose group manager reports the given groups for the actor.
@@ -60,14 +63,14 @@ class ReportCardReopenGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-mentor-reopens-a-finalised-report-card-to-correct-it-before-publication
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-mentor-reopens-a-finalised-report-card-to-correct-it-before-publication
 	 */
 	public function testOverrideRolesAllowReopen(): void {
-		foreach (['admin', 'mentor', 'principal'] as $role) {
+		foreach (['admin', 'team-leads', 'administration-managers'] as $role) {
 			$guard = $this->makeGuard([$role]);
-			$context = ['object' => ['id' => 'card-1'], 'actor' => 'staff-1'];
+			$object = ['id' => 'card-1', 'lifecycle' => 'rapportvergadering-review'];
 
-			self::assertTrue($guard->check($context), "role '{$role}' should be allowed to reopen");
+			self::assertAllowed($guard->check($object, 'reopen', 'staff-1'), "role '{$role}' should be allowed to reopen");
 		}
 
 	}//end testOverrideRolesAllowReopen()
@@ -79,9 +82,9 @@ class ReportCardReopenGuardTest extends TestCase {
 	 */
 	public function testNonOverrideRoleDeniesReopen(): void {
 		$guard = $this->makeGuard(['teacher']);
-		$context = ['object' => ['id' => 'card-1'], 'actor' => 'teacher-1'];
+		$object = ['id' => 'card-1', 'lifecycle' => 'rapportvergadering-review'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'reopen', 'teacher-1'));
 
 	}//end testNonOverrideRoleDeniesReopen()
 
@@ -92,9 +95,9 @@ class ReportCardReopenGuardTest extends TestCase {
 	 */
 	public function testMissingActorDeniesReopen(): void {
 		$guard = $this->makeGuard(['admin']);
-		$context = ['object' => ['id' => 'card-1'], 'actor' => ''];
+		$object = ['id' => 'card-1', 'lifecycle' => 'rapportvergadering-review'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'reopen', ''));
 
 	}//end testMissingActorDeniesReopen()
 
@@ -105,9 +108,9 @@ class ReportCardReopenGuardTest extends TestCase {
 	 */
 	public function testUnresolvableActorDeniesReopen(): void {
 		$guard = $this->makeGuard(['admin'], actorExists: false);
-		$context = ['object' => ['id' => 'card-1'], 'actor' => 'ghost-1'];
+		$object = ['id' => 'card-1', 'lifecycle' => 'rapportvergadering-review'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'reopen', 'ghost-1'));
 
 	}//end testUnresolvableActorDeniesReopen()
 }//end class

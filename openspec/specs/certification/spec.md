@@ -29,14 +29,31 @@ Certificate templates (visual + metadata); issuance triggered by course/exam com
 - GIVEN a certification has an expiry date, WHEN the daily job runs, THEN learners + managers + compliance officers get tiered notifications at 90/60/30 days.
 - GIVEN a regulation changes and the related course is marked as a new content version, WHEN the change is saved, THEN every previously certified learner is auto-enrolled in the delta module.
 - GIVEN a degree is awarded, WHEN the registrar confirms, THEN a Bologna Diploma Supplement is generated and an EDCI credential is issued.
+
 ## Requirements
+
 ### Requirement: Issue EDCI/Europass and Open Badges 3.0 credentials
-The system MUST issue EDCI / Europass credentials and Open Badges 3.0 with verifiable URLs.
+The system MUST issue EDCI / Europass credentials and Open Badges 3.0 with verifiable URLs, signed using the
+per-tenant RSA-2048 keypair managed by `KeyAdminController`. `KeyAdminController::generateKey()` and
+`::keyStatus()` MUST have a controller-level automated test asserting: key generation never returns private
+key material in the JSON response; rotation of an existing key is blocked without explicit `confirm=true`;
+rotation is blocked within the 24-hour throttle window; and a `tenantId` that does not match the caller's
+server-resolved bound tenant is rejected (403) before any key-management call is made.
 
 #### Scenario: Credential issued with verifiable URL
 - **GIVEN** a learner who completes a course or exam with a defined certificate template
 - **WHEN** the credential is issued
 - **THEN** an EDCI / Europass credential and an Open Badges 3.0 badge are produced, each with a verifiable URL
+
+#### Scenario: Key rotation is throttled, confirmed, and never leaks private key material
+<!-- @e2e exclude Admin-only cryptographic operation; no scholiq DOM surface — covered by KeyAdminControllerTest. -->
+
+- **GIVEN** a tenant already has a signing keypair configured
+- **WHEN** an admin calls `generateKey()` again without `confirm=true`
+- **THEN** the endpoint returns 400 and no new key is generated
+- **WHEN** an admin calls `generateKey()` with `confirm=true` within 24 hours of the last rotation
+- **THEN** the endpoint returns 429 and no new key is generated
+- **AND** in no successful or unsuccessful response does the JSON body ever contain the private key
 
 ### Requirement: Detect expiries on a daily schedule
 The system MUST detect expiries on a daily schedule and dispatch tiered notifications.
@@ -47,9 +64,32 @@ The system MUST detect expiries on a daily schedule and dispatch tiered notifica
 - **THEN** expiries are detected and tiered notifications are dispatched at 90/60/30 days to learners, managers, and compliance officers
 
 ### Requirement: Auto-enrol on renewal or content-version change
-The system MUST auto-enrol learners in renewal or delta modules when triggered by expiry or content-version change.
+
+The system MUST auto-enrol learners in renewal or delta modules when
+triggered by expiry or content-version change.
+
+The **expiry** trigger is implemented: `CredentialRenewalListener` reacts to a
+`Credential`'s `expire` transition (`issued` → `expired`) by creating a new
+`Enrolment` for the same learner/course (`source: credential-renewal`,
+`mandatory: true`) and writing its id back onto `Credential.renewalEnrolmentId`.
+
+The **content-version-change** trigger is NOT implemented by this
+requirement's current scope — it needs a content-version concept on `Course`
+that does not exist today, and a fan-out across every credential-holder
+affected by a version bump, not a single-object transition listener. This is
+a named, open gap, not a silent omission.
+
+#### Scenario: Auto-enrol on credential expiry
+
+- **GIVEN** a previously certified learner whose `Credential` transitions `issued` → `expired`
+- **WHEN** the `expire` transition is applied
+- **THEN** a new `Enrolment` is created for the same learner and course, with `source: credential-renewal`
+- **AND** the expiring `Credential`'s `renewalEnrolmentId` is set to the new Enrolment's id
 
 #### Scenario: Auto-enrol on renewal or content-version change
+
+<!-- @e2e exclude The content-version-change half is not implemented in this change — Course carries no content-version concept today; tracked as an explicit open gap in openspec/changes/archive/2026-09-29-credential-renewal-listener/proposal.md Out of Scope, not silently assumed covered. The expiry half is covered by the scenario above. -->
+
 - **GIVEN** a previously certified learner whose certification expires or whose related course gets a new content version
 - **WHEN** the expiry or content-version change is triggered
 - **THEN** the learner is auto-enrolled in the corresponding renewal or delta module
@@ -232,6 +272,103 @@ unchanged by this change (no new issuance trigger is added).
 - **WHEN** it is read
 - **THEN** `competencyIds` resolves to an empty array and issuance/revocation behave exactly as they did
   before this change
+
+### Requirement: Staff reissue every certificate of a course in one action
+
+Users in `hr` or `compliance-officers` MUST be able to reissue every `issued` credential of a course from the course page, with a required reason, after a preview that shows how many credentials will be reissued and how many revoked or expired ones are left alone. The work MUST run as a queued job, MUST be idempotent per run, and MUST NOT stop at one failed credential.
+
+#### Scenario: A compliance officer reissues after the wording changed
+
+- **GIVEN** the course "BHV basisopleiding" with twelve issued, one revoked and one expired certificate
+- **WHEN** a compliance officer opens the course, chooses "Reissue certificates", reads "12 certificates will be reissued, 2 are left alone", enters the reason and confirms
+- **THEN** the twelve issued certificates carry new signed content built from the current course
+- **AND** the revoked and the expired certificate are unchanged
+
+#### Scenario: An instructor cannot start a reissue
+
+<!-- @e2e exclude Access rule on an endpoint; covered by CredentialReissueControllerTest::testInstructorIsRefused. -->
+
+- **GIVEN** a user in `instructors` only
+- **WHEN** they post to `POST /api/courses/{courseId}/credentials/reissue`
+- **THEN** the request is refused and no job is queued
+
+### Requirement: A reissue keeps who and when and records why
+
+A reissue MUST NOT change a credential's `id`, `learnerId`, `courseId`, `issuedAt`, `expiresAt` or `kind`. It MUST set `reissuedAt`, `reissuedBy` and `reissueReason`, increase `reissueCount`, and leave an entry in the credential's audit trail.
+
+#### Scenario: The certificate's history shows the reissue
+
+- **GIVEN** a certificate issued on 3 March and reissued on 20 September with the reason "Nieuwe tekst certificaat na wijziging NIBHV-eisen"
+- **WHEN** an HR officer opens the certificate
+- **THEN** it still shows 3 March as the issue date
+- **AND** its history shows the reissue on 20 September, by whom and why
+
+### Requirement: A learner hears that their certificate was reissued
+
+Each learner whose certificate was reissued in a run MUST get one notification with a link to the certificate. A certificate that had been offered to the EUDI wallet MUST get its wallet offer status cleared, so staff can offer the new version.
+
+#### Scenario: A learner is told
+
+<!-- @e2e exclude Notification delivery through the register dialect; covered by the gate-18 dialect check and CredentialReissueServiceTest. -->
+
+- **GIVEN** a learner with one certificate in a reissue run
+- **WHEN** the run reissues it
+- **THEN** the learner gets one notification naming the course, linking to the certificate
+
+### Requirement: An issued certificate carries a signed Europass form
+
+When learniq issues a `Credential` of kind `certificate`, `diploma` or `microcredential`, it MUST also write `edciPayload`: a European Digital Credential in one pinned version of the European Learning Model, built only from values learniq holds (course, learner name, issuer, dates, credits, level, learning outcomes), and signed with the same tenant key and key id as `openbadges3Payload`. An element without a source value MUST be left out, never filled with a placeholder.
+
+#### Scenario: A training certificate gets its Europass form
+
+<!-- @e2e exclude Issue-time payload assembly and signing; covered by EdciPayloadBuilderTest and CredentialSigningServiceTest. -->
+
+- **GIVEN** a learner completes the course "BHV basisopleiding", which has a certificate template and no credits
+- **WHEN** learniq issues the certificate
+- **THEN** the credential holds a signed `edciPayload` naming the course, the learner and the issuing organisation
+- **AND** the payload has no credit element
+
+### Requirement: A learner downloads their certificate for Europass
+
+The learner a credential belongs to, and staff who may read the credential, MUST be able to download its `edciPayload` as a JSON-LD file from the credential page and from `GET /api/credentials/{id}/europass`. Any other caller MUST get a not-found answer.
+
+#### Scenario: A learner saves a certificate to their Europass profile
+
+- **GIVEN** learner f.elamrani with an issued certificate for "Minor duurzame bedrijfsvoering"
+- **WHEN** f.elamrani opens the certificate and chooses "Download for Europass"
+- **THEN** a file named after the course and the issue date downloads
+- **AND** the file is the signed European Digital Credential of that certificate
+
+#### Scenario: Another learner cannot download it
+
+<!-- @e2e exclude Access rule on an endpoint; covered by CredentialEuropassControllerTest::testOtherLearnerGetsNotFound. -->
+
+- **GIVEN** a certificate that belongs to f.elamrani
+- **WHEN** another learner requests `GET /api/credentials/{id}/europass`
+- **THEN** the answer is not found
+
+### Requirement: Staff create the Europass form for an earlier certificate
+
+Users in `hr` or `compliance-officers` MUST be able to create the Europass form for a credential issued before this change, once, from the credential page. A revoked credential MUST be refused.
+
+#### Scenario: An HR officer backfills an old certificate
+
+- **GIVEN** a certificate issued last year with an empty `edciPayload`
+- **WHEN** an HR officer opens it and chooses "Create Europass version"
+- **THEN** the certificate shows "Download for Europass"
+
+### Requirement: The Europass form is checkable on the verification route
+
+The verification route MUST accept a Europass file for a credential, check its signature against the tenant key and against the stored `edciPayload`, and answer with validity only. It MUST report a file changed after signing as not valid, and it MUST NOT return the stored payload or any personal data.
+
+#### Scenario: A tampered file fails verification
+
+<!-- @e2e exclude Signature check on a public route; covered by CredentialVerifyControllerTest::testTamperedEdciFails. -->
+
+- **GIVEN** a downloaded Europass file whose achievement title was edited after download
+- **WHEN** an employer sends it to `POST /api/credentials/{id}/verify`
+- **THEN** the answer says the credential is not valid
+- **AND** the answer holds no name and no payload
 
 ## Standards
 EDCI (Europass), Open Badges 3.0, E-Portfolio NL, Bologna Diploma Supplement, Schema.org `EducationalOccupationalCredential`.

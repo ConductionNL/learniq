@@ -7,7 +7,7 @@
  * CourseEvaluationResponse, CourseQualityScore, and ImprovementAction —
  * most importantly the anonymity-by-schema-shape invariant (design.md
  * Decision 2): CourseEvaluationResponse declares NO learner-identifying
- * property anywhere in its schema, is appendOnly, and its submit transition
+ * property anywhere in its schema, is not appendOnly, and its submit transition
  * requires CourseEvaluationEligibilityGuard, while EvaluationInvitation is
  * the only place learnerId and response status co-exist and carries no
  * field referencing a response. Mirrors PupilDossierNotesRegisterTest.php's
@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md
+ * @spec openspec/specs/course-evaluation/spec.md
  */
 
 declare(strict_types=1);
@@ -98,7 +98,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-response-is-anonymous-by-schema-shape-not-by-rbac
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-response-is-anonymous-by-schema-shape-not-by-rbac
 	 */
 	public function testCourseEvaluationResponseDeclaresNoLearnerIdentityProperty(): void {
 		$schema = $this->config['components']['schemas']['CourseEvaluationResponse'] ?? null;
@@ -124,18 +124,18 @@ class CourseEvaluationRegisterTest extends TestCase {
 	}//end testCourseEvaluationResponseDeclaresNoLearnerIdentityProperty()
 
 	/**
-	 * CourseEvaluationResponse is appendOnly, and its draft -> submitted
+	 * CourseEvaluationResponse is not appendOnly (its submit is an update), and its draft -> submitted
 	 * transition requires CourseEvaluationEligibilityGuard.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
 	 */
 	public function testCourseEvaluationResponseIsAppendOnlyAndGuardedOnSubmit(): void {
 		$schema = $this->config['components']['schemas']['CourseEvaluationResponse'] ?? null;
 		$this->assertIsArray($schema, 'CourseEvaluationResponse schema MUST exist');
 
-		$this->assertTrue($schema['appendOnly'] ?? false, 'CourseEvaluationResponse MUST be appendOnly');
+		$this->assertNotTrue($schema['appendOnly'] ?? false, 'CourseEvaluationResponse MUST NOT be appendOnly: Open Register refuses every update on an appendOnly schema, transitions included (learniq#977)');
 
 		$lifecycle = $schema['x-openregister-lifecycle'] ?? null;
 		$this->assertIsArray($lifecycle);
@@ -164,7 +164,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
 	 */
 	public function testEvaluationInvitationCarriesIdentityButNoResponseLink(): void {
 		$schema = $this->config['components']['schemas']['EvaluationInvitation'] ?? null;
@@ -196,7 +196,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-non-responder-reminders-reuse-the-verified-notification-dialect-s-scheduled-filter-shape
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-non-responder-reminders-reuse-the-verified-notification-dialect-s-scheduled-filter-shape
 	 */
 	public function testEvaluationInvitationReminderMatchesEnrolmentDueReminderShape(): void {
 		$schema = $this->config['components']['schemas']['EvaluationInvitation'] ?? null;
@@ -227,7 +227,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-campaign-scopes-its-courses-cohorts-academic-period-and-instrument
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-campaign-scopes-its-courses-cohorts-academic-period-and-instrument
 	 */
 	public function testEvaluationCampaignShapeAndProvisioningTrigger(): void {
 		$schema = $this->config['components']['schemas']['EvaluationCampaign'] ?? null;
@@ -262,7 +262,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-course-teacher-quality-scores-are-a-declared-aggregation-and-calculation-engine-not-a-timedjob
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-course-teacher-quality-scores-are-a-declared-aggregation-and-calculation-engine-not-a-timedjob
 	 */
 	public function testCourseQualityScoreIsReadOnlyWithRollupTrigger(): void {
 		$schema = $this->config['components']['schemas']['CourseQualityScore'] ?? null;
@@ -292,7 +292,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-the-evaluation-cycle-closes-the-loop-with-a-recorded-improvement-action
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-the-evaluation-cycle-closes-the-loop-with-a-recorded-improvement-action
 	 */
 	public function testImprovementActionLifecycleHasNoGuard(): void {
 		$schema = $this->config['components']['schemas']['ImprovementAction'] ?? null;
@@ -320,7 +320,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
 	 */
 	public function testCourseAndCohortAreReferencedNotModified(): void {
 		$schemas = $this->config['components']['schemas'] ?? [];

@@ -30,16 +30,16 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/external-training-recording/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use DateTimeImmutable;
-use DateTimeInterface;
-use DateTimeZone;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
+use OCA\OpenRegister\Service\FileService;
 use OCP\IGroupManager;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
@@ -49,18 +49,19 @@ use Psr\Log\LoggerInterface;
  *
  * The transition proceeds only when ALL of the following hold:
  *   1. The acting user is in one of the privileged groups
- *      (`compliance-officer`, `hr`, `admin`).
+ *      (`compliance-officers`, `hr`, `admin`).
  *   2. At least one OpenRegister file attachment (evidence) is present on the
  *      record.
  *   3. The verifier is not the same person who submitted the record when the
  *      record was self-submitted by the learner (`verifiedBy != submittedBy`).
  *
- * On success it stamps `verifiedBy` and `verifiedAt` into the transition
- * payload so OR persists them on the verified record.
+ * `verifiedBy` and `verifiedAt` are stamped by StampTransitionActorAction,
+ * declared on the same transition: OpenRegister calls guards by value, so a
+ * guard can not write onto the object (learniq#983).
  *
- * @spec openspec/changes/external-training-recording/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
-class ExternalTrainingVerificationGuard {
+class ExternalTrainingVerificationGuard implements LifecycleGuardInterface {
 	/**
 	 * Groups whose members may verify an external-training record.
 	 *
@@ -68,7 +69,7 @@ class ExternalTrainingVerificationGuard {
 	 */
 	private const VERIFIER_GROUPS = [
 		'admin',
-		'compliance-officer',
+		'compliance-officers',
 		'hr',
 	];
 
@@ -80,55 +81,47 @@ class ExternalTrainingVerificationGuard {
 	 * @param IUserManager $userManager User manager to resolve the acting
 	 *                                  user object for membership checks.
 	 * @param LoggerInterface $logger PSR logger for guard rejections.
+	 * @param FileService $fileService OR file service, lists the record's attached files.
 	 */
 	public function __construct(
 		private readonly IGroupManager $groupManager,
 		private readonly IUserManager $userManager,
 		private readonly LoggerInterface $logger,
+		private readonly FileService $fileService,
 	) {
 	}//end __construct()
 
 	/**
-	 * Assert the verification preconditions and stamp the verifier.
+	 * Assert the verification preconditions.
 	 *
-	 * Called by OpenRegister's lifecycle engine before executing the
-	 * `submitted → verified` transition. Returns true to allow the transition
-	 * (and writes `verifiedBy`/`verifiedAt` into the payload), false to block
-	 * it with HTTP 422.
+	 * Called by OpenRegister's LifecycleValidationListener before the
+	 * `submitted → verified` transition is saved.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's
-	 *                                               lifecycle engine. Expected
-	 *                                               keys:
-	 *                                               - 'object'     : the record
-	 *                                               property array
-	 *                                               - 'actor'      : NC user ID
-	 *                                               of the verifier
-	 *                                               - 'transition' : 'verify'
-	 *                                               - 'payload'    : mutable
-	 *                                               array; verifier fields are
-	 *                                               written here
+	 * @param array<string,mixed> $object The record as it would be saved (lifecycle at `verified`).
+	 * @param string              $action The transition action (`verify`).
+	 * @param string              $userId The verifier's uid, or '' without a session.
 	 *
-	 * @return bool True when the transition is allowed; false blocks it.
+	 * @return GuardResult Allow, or deny with what is missing.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
-		$actor = (string)($transitionContext['actor'] ?? '');
+	public function check(array $object, string $action, string $userId): GuardResult {
 		$submittedBy = (string)($object['submittedBy'] ?? '');
 
-		if ($actor === '') {
-			$this->logger->warning('[ExternalTrainingVerificationGuard] No actor in transitionContext — denying verify.');
-			return false;
+		if ($userId === '') {
+			$this->logger->warning('[ExternalTrainingVerificationGuard] No session user — denying verify.');
+			return GuardResult::deny('Only a signed-in compliance officer, HR member or admin can verify outside training.');
 		}
 
 		// Step 1 — actor must be in a privileged verifier group.
-		if ($this->actorIsVerifier(actor: $actor) === false) {
+		if ($this->actorIsVerifier(actor: $userId) === false) {
 			$this->logger->info(
 				'[ExternalTrainingVerificationGuard] Actor is not in a verifier group — denying verify.',
-				['actor' => $actor]
+				['actor' => $userId]
 			);
-			return false;
+			return GuardResult::deny('Only a compliance officer, HR member or admin can verify outside training.');
 		}
 
 		// Step 2 — at least one evidence file attachment must be present.
@@ -137,24 +130,19 @@ class ExternalTrainingVerificationGuard {
 				'[ExternalTrainingVerificationGuard] No evidence attachment present — denying verify.',
 				['record' => ($object['id'] ?? '')]
 			);
-			return false;
+			return GuardResult::deny('The record needs at least one evidence attachment before it can be verified.');
 		}
 
 		// Step 3 — a learner self-submission may not be self-verified.
-		if ($submittedBy !== '' && $submittedBy === $actor) {
+		if ($submittedBy !== '' && $submittedBy === $userId) {
 			$this->logger->info(
 				'[ExternalTrainingVerificationGuard] Verifier equals submitter (self-verification) — denying verify.',
-				['actor' => $actor]
+				['actor' => $userId]
 			);
-			return false;
+			return GuardResult::deny('The person who submitted the record can not also verify it.');
 		}
 
-		// Stamp the verifier on the payload so OR persists it on the verified record.
-		$now = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
-		$transitionContext['payload']['verifiedBy'] = $actor;
-		$transitionContext['payload']['verifiedAt'] = $now;
-
-		return true;
+		return GuardResult::allow();
 	}//end check()
 
 	/**
@@ -178,24 +166,29 @@ class ExternalTrainingVerificationGuard {
 	/**
 	 * Whether the record carries at least one OpenRegister file attachment.
 	 *
-	 * OR exposes attachments on the serialised object under `@self.files` (the
-	 * canonical attachment list) or a legacy `files` array. A non-empty list of
-	 * either satisfies the evidence precondition.
+	 * The object OpenRegister hands a guard is ObjectEntity::getObject(), which
+	 * carries no file list (no `@self`), so reading one off it always found
+	 * nothing and refused every verification (learniq#983). The files live in
+	 * the object's folder; FileService lists them. A lookup failure refuses.
 	 *
 	 * @param array<string,mixed> $object The record property array.
 	 *
 	 * @return bool True when one or more evidence attachments are present.
 	 */
 	private function hasEvidenceAttachment(array $object): bool {
-		$self = $object['@self'] ?? [];
-		if (is_array($self) === true && empty($self['files'] ?? []) === false) {
-			return true;
+		$recordId = (string)($object['id'] ?? ($object['uuid'] ?? ''));
+		if ($recordId === '') {
+			return false;
 		}
 
-		if (empty($object['files'] ?? []) === false && is_array($object['files']) === true) {
-			return true;
+		try {
+			return count($this->fileService->getFiles(object: $recordId)) > 0;
+		} catch (\Throwable $e) {
+			$this->logger->warning(
+				'[ExternalTrainingVerificationGuard] Could not list the files of record {id}: {msg}',
+				['id' => $recordId, 'msg' => $e->getMessage()]
+			);
+			return false;
 		}
-
-		return false;
 	}//end hasEvidenceAttachment()
 }//end class

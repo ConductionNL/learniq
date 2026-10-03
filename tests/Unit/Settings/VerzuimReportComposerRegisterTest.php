@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/verzuim-report-composer/tasks.md#task-5.2
+ * @spec openspec/changes/archive/2026-07-13-verzuim-report-composer/tasks.md#task-5.2
  */
 
 declare(strict_types=1);
@@ -71,7 +71,8 @@ class VerzuimReportComposerRegisterTest extends TestCase {
 	public function testAttendanceFlagInterventionsShape(): void {
 		$flag = $this->config['components']['schemas']['AttendanceFlag'];
 
-		self::assertTrue($flag['appendOnly']);
+		// Open Register refuses every update on an appendOnly schema, transitions included (learniq#977).
+		self::assertNotTrue($flag['appendOnly'] ?? false);
 
 		$interventions = $flag['properties']['interventions'];
 		self::assertSame('array', $interventions['type']);
@@ -193,8 +194,9 @@ class VerzuimReportComposerRegisterTest extends TestCase {
 	 * @return void
 	 */
 	public function testMunicipalityFeedbackPropertyShape(): void {
-		$job = $this->config['components']['schemas']['DataExchangeJob'];
-		$feedback = $job['properties']['municipalityFeedback'];
+		// data-exchange-to-integriq: the feedback moved from the job to the flag.
+		$flag = $this->config['components']['schemas']['AttendanceFlag'];
+		$feedback = $flag['properties']['municipalityFeedback'];
 
 		self::assertTrue($feedback['nullable']);
 		self::assertNull($feedback['default']);
@@ -208,25 +210,24 @@ class VerzuimReportComposerRegisterTest extends TestCase {
 	}//end testMunicipalityFeedbackPropertyShape()
 
 	/**
-	 * DataExchangeJob's recordMunicipalityFeedback transition is a
-	 * succeeded -> succeeded self-loop guarded by MunicipalityFeedbackGuard,
-	 * and the existing run/approveDossier/succeed transitions are unchanged.
+	 * AttendanceFlag's recordMunicipalityFeedback transition is a
+	 * reported -> reported self-loop guarded by MunicipalityFeedbackGuard, and
+	 * the report transition still waits on AttendanceFlagReportGuard
+	 * (data-exchange-to-integriq moved it off DataExchangeJob).
 	 *
 	 * @return void
 	 */
 	public function testRecordMunicipalityFeedbackTransitionShape(): void {
-		$job = $this->config['components']['schemas']['DataExchangeJob'];
-		$transitions = $job['x-openregister-lifecycle']['transitions'];
+		$flag = $this->config['components']['schemas']['AttendanceFlag'];
+		$transitions = $flag['x-openregister-lifecycle']['transitions'];
 
 		$recordFeedback = $transitions['recordMunicipalityFeedback'];
-		self::assertSame('succeeded', $recordFeedback['from']);
-		self::assertSame('succeeded', $recordFeedback['to']);
+		self::assertSame('reported', $recordFeedback['from']);
+		self::assertSame('reported', $recordFeedback['to']);
 		self::assertSame('OCA\\Learniq\\Lifecycle\\MunicipalityFeedbackGuard', $recordFeedback['requires']);
-
-		// Existing chain untouched.
-		self::assertSame('OCA\\Learniq\\Lifecycle\\DataExchangeRunGuard', $transitions['run']['requires']);
-		self::assertSame('OCA\\Learniq\\Lifecycle\\OsoDossierReviewGuard', $transitions['approveDossier']['requires']);
-		self::assertArrayNotHasKey('requires', $transitions['succeed']);
+		self::assertSame([['field' => 'municipalityFeedback', 'required' => false]], $recordFeedback['inputs']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\AttendanceFlagReportGuard', $transitions['report']['requires']);
+		self::assertArrayNotHasKey('DataExchangeJob', $this->config['components']['schemas']);
 
 	}//end testRecordMunicipalityFeedbackTransitionShape()
 }//end class

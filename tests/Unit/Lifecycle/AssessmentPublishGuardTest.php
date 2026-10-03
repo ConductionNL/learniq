@@ -21,14 +21,15 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/ai-feature-delegate-to-hermiq/specs/ai-surface/spec.md
- * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
+ * @spec openspec/specs/ai-surface/spec.md
+ * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\AssessmentPublishGuard;
 use OCA\Learniq\Service\AiLocalityClassifier;
@@ -43,6 +44,8 @@ use Psr\Log\LoggerInterface;
  * `draft -> published` transition.
  */
 class AssessmentPublishGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * Build a guard with explicit collaborators (all mocked unless overridden).
@@ -87,14 +90,9 @@ class AssessmentPublishGuardTest extends TestCase {
 		$classifier->expects($this->never())->method('classifyActiveProvider');
 
 		$guard = $this->buildGuard(classifier: $classifier);
-		$context = [
-			'object' => ['id' => 'assessment-1', 'itemRefs' => []],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+		$object = ['id' => 'assessment-1', 'itemRefs' => [], 'lifecycle' => 'published'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 
 	}//end testNoItemRefsBlocksPublish()
 
@@ -104,7 +102,7 @@ class AssessmentPublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-manual-proctoring-is-unaffected
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-manual-proctoring-is-unaffected
 	 */
 	public function testManualProctoringSkipsDpoAndLocalityChecks(): void {
 		$appManager = $this->createMock(IAppManager::class);
@@ -117,18 +115,14 @@ class AssessmentPublishGuardTest extends TestCase {
 		$policyService->expects($this->never())->method('isCompliant');
 
 		$guard = $this->buildGuard(appManager: $appManager, classifier: $classifier, policyService: $policyService);
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'assessment-2',
 				'itemRefs' => ['item-1'],
 				'proctoring' => ['flagReviewMode' => 'manual'],
-			],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+				'lifecycle' => 'published',
+			];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', ''));
 
 	}//end testManualProctoringSkipsDpoAndLocalityChecks()
 
@@ -142,14 +136,9 @@ class AssessmentPublishGuardTest extends TestCase {
 		$classifier->expects($this->never())->method('classifyActiveProvider');
 
 		$guard = $this->buildGuard(classifier: $classifier);
-		$context = [
-			'object' => ['id' => 'assessment-3', 'itemRefs' => ['item-1']],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+		$object = ['id' => 'assessment-3', 'itemRefs' => ['item-1'], 'lifecycle' => 'published'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', ''));
 
 	}//end testUnsetFlagReviewModeDefaultsToManualAndSkipsChecks()
 
@@ -168,18 +157,14 @@ class AssessmentPublishGuardTest extends TestCase {
 		$classifier->expects($this->never())->method('classifyActiveProvider');
 
 		$guard = $this->buildGuard(appManager: $appManager, classifier: $classifier);
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'assessment-4',
 				'itemRefs' => ['item-1'],
 				'proctoring' => ['flagReviewMode' => 'ai-assisted'],
-			],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+				'lifecycle' => 'published',
+			];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 
 	}//end testHermiqNotInstalledBlocksAiAssistedPublish()
 
@@ -200,18 +185,14 @@ class AssessmentPublishGuardTest extends TestCase {
 		$classifier->expects($this->never())->method('classifyActiveProvider');
 
 		$guard = $this->buildGuard(objectService: $objectService, appManager: $appManager, classifier: $classifier);
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'assessment-5',
 				'itemRefs' => ['item-1'],
 				'proctoring' => ['flagReviewMode' => 'ai-assisted'],
-			],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+				'lifecycle' => 'published',
+			];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 
 	}//end testFeatureNotDpoEnabledBlocksAiAssistedPublish()
 
@@ -220,7 +201,7 @@ class AssessmentPublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-publish-is-blocked-when-a-verified-third-country-provider-violates-an-on-premises-only-policy
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-publish-is-blocked-when-a-verified-third-country-provider-violates-an-on-premises-only-policy
 	 */
 	public function testAiAssistedProctoringBlockedByLocalityPolicy(): void {
 		$appManager = $this->createMock(IAppManager::class);
@@ -241,18 +222,14 @@ class AssessmentPublishGuardTest extends TestCase {
 			->willReturn(false);
 
 		$guard = $this->buildGuard(objectService: $objectService, appManager: $appManager, classifier: $classifier, policyService: $policyService);
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'assessment-6',
 				'itemRefs' => ['item-1'],
 				'proctoring' => ['flagReviewMode' => 'ai-assisted'],
-			],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+				'lifecycle' => 'published',
+			];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 
 	}//end testAiAssistedProctoringBlockedByLocalityPolicy()
 
@@ -262,7 +239,7 @@ class AssessmentPublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-publish-is-blocked-when-locality-is-unverified-under-a-stricter-than-permissive-policy
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-publish-is-blocked-when-locality-is-unverified-under-a-stricter-than-permissive-policy
 	 */
 	public function testAiAssistedProctoringBlockedByUnverifiedLocality(): void {
 		$appManager = $this->createMock(IAppManager::class);
@@ -280,18 +257,14 @@ class AssessmentPublishGuardTest extends TestCase {
 		$policyService->method('isCompliant')->with('unverified', false)->willReturn(false);
 
 		$guard = $this->buildGuard(objectService: $objectService, appManager: $appManager, classifier: $classifier, policyService: $policyService);
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'assessment-7',
 				'itemRefs' => ['item-1'],
 				'proctoring' => ['flagReviewMode' => 'ai-assisted'],
-			],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+				'lifecycle' => 'published',
+			];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 
 	}//end testAiAssistedProctoringBlockedByUnverifiedLocality()
 
@@ -301,7 +274,7 @@ class AssessmentPublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-publish-succeeds-when-the-school-accepts-the-permissive-tier
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-publish-succeeds-when-the-school-accepts-the-permissive-tier
 	 */
 	public function testAiAssistedProctoringAllowedUnderThirdCountryAllowedPolicy(): void {
 		$appManager = $this->createMock(IAppManager::class);
@@ -319,18 +292,14 @@ class AssessmentPublishGuardTest extends TestCase {
 		$policyService->method('isCompliant')->with('unverified', false)->willReturn(true);
 
 		$guard = $this->buildGuard(objectService: $objectService, appManager: $appManager, classifier: $classifier, policyService: $policyService);
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'assessment-8',
 				'itemRefs' => ['item-1'],
 				'proctoring' => ['flagReviewMode' => 'ai-assisted'],
-			],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+				'lifecycle' => 'published',
+			];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', ''));
 
 	}//end testAiAssistedProctoringAllowedUnderThirdCountryAllowedPolicy()
 }//end class

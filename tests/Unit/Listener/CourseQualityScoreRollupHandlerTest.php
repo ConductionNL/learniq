@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
+ * @spec openspec/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
  */
 
 declare(strict_types=1);
@@ -69,15 +69,15 @@ class CourseQualityScoreRollupHandlerTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($existingScore, $responses, $invitations) {
-				if ($config['schema'] === 'course-evaluation-response') {
+				if ($config['filters']['schema'] === 'course-evaluation-response') {
 					return $responses;
 				}
 
-				if ($config['schema'] === 'evaluation-invitation') {
+				if ($config['filters']['schema'] === 'evaluation-invitation') {
 					return $invitations;
 				}
 
-				if ($config['schema'] === 'course-quality-score') {
+				if ($config['filters']['schema'] === 'course-quality-score') {
 					return $existingScore === null ? [] : [$existingScore];
 				}
 
@@ -96,7 +96,7 @@ class CourseQualityScoreRollupHandlerTest extends TestCase {
 			}
 		);
 
-		return new CourseQualityScoreRollupHandler($objectService, new CourseQualityScoreEvaluator($objectService));
+		return new CourseQualityScoreRollupHandler($objectService, new CourseQualityScoreEvaluator($objectService), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**
@@ -125,7 +125,7 @@ class CourseQualityScoreRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
 	 */
 	public function testFirstResponseCreatesQualityScoreRow(): void {
 		$responses = [['overallScore' => 4]];
@@ -159,7 +159,7 @@ class CourseQualityScoreRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
 	 */
 	public function testSubsequentResponseUpdatesExistingRow(): void {
 		$existing = [

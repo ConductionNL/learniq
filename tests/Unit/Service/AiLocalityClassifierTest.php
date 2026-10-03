@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-derive-an-ai-feature-s-processing-locality-from-real-code-enforced-configuration-never-a-hand-typed-field
+ * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-derive-an-ai-feature-s-processing-locality-from-real-code-enforced-configuration-never-a-hand-typed-field
  */
 
 declare(strict_types=1);
@@ -97,7 +97,7 @@ class AiLocalityClassifierTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-a-catalogued-third-country-saas-provider-classifies-as-verified-third-country
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-a-catalogued-third-country-saas-provider-classifies-as-verified-third-country
 	 */
 	public function testOpenAiCredentialClassifiesAsVerifiedThirdCountry(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -170,7 +170,7 @@ class AiLocalityClassifierTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-a-self-hosted-ollama-configuration-classifies-as-unverified-never-as-on-premises
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-a-self-hosted-ollama-configuration-classifies-as-unverified-never-as-on-premises
 	 */
 	public function testOllamaAlwaysClassifiesUnverified(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -207,7 +207,7 @@ class AiLocalityClassifierTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-an-inject-only-broker-credential-classifies-as-unverified
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-an-inject-only-broker-credential-classifies-as-unverified
 	 */
 	public function testInjectOnlyCredentialClassifiesUnverified(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -260,7 +260,7 @@ class AiLocalityClassifierTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-derive-an-ai-feature-s-processing-locality-from-real-code-enforced-configuration-never-a-hand-typed-field
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-derive-an-ai-feature-s-processing-locality-from-real-code-enforced-configuration-never-a-hand-typed-field
 	 */
 	public function testHermiqAbsentOrUnconfiguredClassifiesUnverified(): void {
 		$appManager = $this->createMock(IAppManager::class);

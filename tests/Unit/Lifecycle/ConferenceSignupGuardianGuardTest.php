@@ -16,13 +16,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
+ * @spec openspec/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\ConferenceSignupGuardianGuard;
 use OCP\IUser;
@@ -35,6 +36,8 @@ use Psr\Log\LoggerInterface;
  * Tests for the ConferenceSignupGuardianGuard lifecycle guard (draft → submitted).
  */
 class ConferenceSignupGuardianGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * ObjectService mock.
@@ -87,7 +90,7 @@ class ConferenceSignupGuardianGuardTest extends TestCase {
 	private function wireLearnerProfile(array $profiles): void {
 		$this->objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($profiles) {
-				if ($config['schema'] === 'learner-profile') {
+				if ($config['filters']['schema'] === 'learner-profile') {
 					return $profiles;
 				}
 
@@ -116,15 +119,15 @@ class ConferenceSignupGuardianGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
+	 * @spec openspec/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
 	 */
 	public function testLinkedGuardianPasses(): void {
 		$this->signInAs('parent-1');
 		$this->wireLearnerProfile([['ncUserId' => 'learner-1', 'parentIds' => ['parent-1', 'parent-2']]]);
 
-		$context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
+		$object = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testLinkedGuardianPasses()
 
@@ -133,15 +136,15 @@ class ConferenceSignupGuardianGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-an-unrelated-user-cannot-submit-a-signup-for-someone-elses-child
+	 * @spec openspec/specs/parent-conferences/spec.md#scenario-an-unrelated-user-cannot-submit-a-signup-for-someone-elses-child
 	 */
 	public function testUnrelatedUserIsBlocked(): void {
 		$this->signInAs('stranger-1');
 		$this->wireLearnerProfile([['ncUserId' => 'learner-1', 'parentIds' => ['parent-1', 'parent-2']]]);
 
-		$context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
+		$object = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testUnrelatedUserIsBlocked()
 
@@ -155,9 +158,9 @@ class ConferenceSignupGuardianGuardTest extends TestCase {
 		$this->signInAs('learner-1');
 		$this->wireLearnerProfile([['ncUserId' => 'learner-1', 'parentIds' => []]]);
 
-		$context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
+		$object = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testSelfSignupPasses()
 
@@ -170,9 +173,9 @@ class ConferenceSignupGuardianGuardTest extends TestCase {
 		$this->signInAs('parent-1');
 		$this->wireLearnerProfile([]);
 
-		$context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
+		$object = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testMissingLearnerProfileFailsClosed()
 
@@ -185,9 +188,9 @@ class ConferenceSignupGuardianGuardTest extends TestCase {
 		$this->signInAs('parent-1');
 		$this->objectService->expects(self::never())->method('findAll');
 
-		$context = ['object' => ['tenant_id' => 'tenant-a']];
+		$object = ['tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testMissingLearnerIdFailsClosedWithoutQuerying()
 
@@ -200,9 +203,9 @@ class ConferenceSignupGuardianGuardTest extends TestCase {
 		$this->userSession->method('getUser')->willReturn(null);
 		$this->wireLearnerProfile([['ncUserId' => 'learner-1', 'parentIds' => ['parent-1']]]);
 
-		$context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
+		$object = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testNoAuthenticatedUserFailsClosed()
 }//end class

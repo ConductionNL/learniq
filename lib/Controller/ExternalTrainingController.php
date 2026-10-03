@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/external-training-recording/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
 
 declare(strict_types=1);
@@ -39,9 +39,11 @@ namespace OCA\Learniq\Controller;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\CallerTenantResolver;
+use OCA\Learniq\Service\CredentialSigningService;
+use OCA\Learniq\Service\ExternalTrainingImport;
 use OCA\Learniq\Service\ExternalTrainingService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
@@ -51,7 +53,7 @@ use OCP\IUserSession;
 /**
  * Multi-object operations for external-training records.
  *
- * @spec openspec/changes/external-training-recording/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
 class ExternalTrainingController extends Controller {
 	/**
@@ -62,6 +64,9 @@ class ExternalTrainingController extends Controller {
 	 * @param ActionAuthService $actionAuth ADR-023 action authorization.
 	 * @param ExternalTrainingService $trainingService External-training business logic.
 	 * @param ObjectService $objectService OR object query/persistence.
+	 * @param CredentialSigningService $signingService Signs a credential before it is saved.
+	 * @param CallerTenantResolver $callerTenant Resolves the caller's tenant.
+	 * @param ExternalTrainingImport $trainingImport Checks and records an uploaded list.
 	 */
 	public function __construct(
 		IRequest $request,
@@ -69,6 +74,9 @@ class ExternalTrainingController extends Controller {
 		private readonly ActionAuthService $actionAuth,
 		private readonly ExternalTrainingService $trainingService,
 		private readonly ObjectService $objectService,
+		private readonly CredentialSigningService $signingService,
+		private readonly CallerTenantResolver $callerTenant,
+		private readonly ExternalTrainingImport $trainingImport,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -87,7 +95,7 @@ class ExternalTrainingController extends Controller {
 	 *
 	 * @return JSONResponse The created batchId + count, or an error.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 */
 	#[NoAdminRequired]
 	public function bulkRecord(array $learnerIds = [], array $training = []): JSONResponse {
@@ -122,6 +130,58 @@ class ExternalTrainingController extends Controller {
 	}//end bulkRecord()
 
 	/**
+	 * Check, and on confirm record, the rows of an uploaded attendance list.
+	 *
+	 * Authorized via the `external-training.bulk-record` action, the same as
+	 * the bulk entry. Learners are matched in the caller's tenant, which the
+	 * server resolves: a client-supplied tenant is ignored. `dryRun` (the
+	 * default) reports every row without writing, so the preview and the
+	 * import run the same checks.
+	 *
+	 * @param array<int,mixed> $rows The parsed rows (learner, title, provider, kind,
+	 *                               completedAt, validUntil, regulationSlug, evidenceNote).
+	 * @param bool $dryRun True for the preview, false to record the ready rows.
+	 *
+	 * @return JSONResponse The per-row report, or an error.
+	 *
+	 * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-spreadsheet-import-of-external-training
+	 * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-import-result-report
+	 *
+	 * @SuppressWarnings(PHPMD.BooleanArgumentFlag) `dryRun` is the request field design D2 chose over a second
+	 *                                             route, so preview and import share one code path.
+	 */
+	#[NoAdminRequired]
+	public function import(array $rows = [], bool $dryRun = true): JSONResponse {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
+
+		// ADR-023: throws OCSForbiddenException (HTTP 403) when not allowed.
+		$this->actionAuth->requireAction(user: $user, action: 'external-training.bulk-record');
+
+		if ($rows === []) {
+			return new JSONResponse(data: ['error' => 'The file has no rows.'], statusCode: Http::STATUS_BAD_REQUEST);
+		}
+
+		if (count($rows) > ExternalTrainingImport::MAX_ROWS) {
+			return new JSONResponse(
+				data: ['error' => 'A file can hold at most ' . ExternalTrainingImport::MAX_ROWS . ' rows. Split it and upload the parts.'],
+				statusCode: Http::STATUS_BAD_REQUEST
+			);
+		}
+
+		$report = $this->trainingImport->import(
+			rows: $rows,
+			tenantId: $this->callerTenant->resolve(user: $user),
+			submittedBy: $user->getUID(),
+			dryRun: $dryRun
+		);
+
+		return new JSONResponse(data: $report, statusCode: Http::STATUS_OK);
+	}//end import()
+
+	/**
 	 * Issue a linked manual Credential for a verified external-training record.
 	 *
 	 * Authorized via the `external-training.issue-credential` action. The record
@@ -133,7 +193,8 @@ class ExternalTrainingController extends Controller {
 	 *
 	 * @return JSONResponse The new credentialId, or an error.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-2
 	 */
 	#[NoAdminRequired]
 	public function issueCredential(string $recordId = ''): JSONResponse {
@@ -148,24 +209,13 @@ class ExternalTrainingController extends Controller {
 			return new JSONResponse(data: ['error' => 'recordId is required'], statusCode: Http::STATUS_BAD_REQUEST);
 		}
 
-		// ObjectService::find() THROWS DoesNotExistException for an unknown id —
-		// it does not return null — so without this catch the 404 below was dead
-		// code and an unknown recordId escaped as a 500 with a stack trace.
-		try {
-			$recordObj = $this->objectService->find(
-				id: $recordId,
-				register: 'learniq',
-				schema: 'external-training-record'
-			);
-		} catch (DoesNotExistException $e) {
+		// An unknown id and another tenant's record both read as absent, before
+		// any credential is built (ObjectService::find() throws for an unknown id;
+		// the resolver turns that into null too).
+		$record = $this->callerTenant->findOwned(user: $user, id: $recordId, schema: 'external-training-record');
+		if ($record === null) {
 			return new JSONResponse(data: ['error' => 'Record not found'], statusCode: Http::STATUS_NOT_FOUND);
 		}
-
-		if ($recordObj === null) {
-			return new JSONResponse(data: ['error' => 'Record not found'], statusCode: Http::STATUS_NOT_FOUND);
-		}
-
-		$record = $recordObj->jsonSerialize();
 
 		if (($record['lifecycle'] ?? '') !== 'verified') {
 			return new JSONResponse(
@@ -181,12 +231,48 @@ class ExternalTrainingController extends Controller {
 
 		$payload = $this->trainingService->buildManualCredentialPayload(record: $record, issuedBy: $user->getUID());
 
-		// Do NOT set lifecycle — OR fires the `issue` transition (and its signing
-		// guard) from the initial state, mirroring CredentialIssuanceHandler.
+		$credentialId = $this->saveSignedCredential(payload: $payload, record: $record);
+		if ($credentialId === null) {
+			return new JSONResponse(
+				data: ['error' => 'The credential could not be signed. Generate the credential signing key in the Learniq admin settings first.'],
+				statusCode: Http::STATUS_CONFLICT
+			);
+		}
+
+		return new JSONResponse(data: ['credentialId' => $credentialId], statusCode: Http::STATUS_CREATED);
+	}//end issueCredential()
+
+	/**
+	 * Sign a manual credential, save it, and link it back onto its record.
+	 *
+	 * Signs before the save: OR runs no lifecycle guard or action on a create
+	 * (learniq#182), and the signed fields are required. `lifecycle` is left to
+	 * OR's declared initial `issued`, as in CredentialIssuanceHandler. Nothing is
+	 * saved when the credential cannot be signed.
+	 *
+	 * @param array<string, mixed> $payload The unsigned credential payload.
+	 * @param array<string, mixed> $record  The verified external-training record.
+	 *
+	 * @return string|null The saved credential's id ('' when OR returned none), or null when unsigned.
+	 *
+	 * @throws \Exception When OpenRegister refuses the credential or the record save; it reaches the caller as before.
+	 *
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
+	 */
+	private function saveSignedCredential(array $payload, array $record): ?string {
+		$signed = $this->signingService->sign(credential: $payload);
+		if ($signed === null) {
+			return null;
+		}
+
+		$signedId = (string)$signed['id'];
+		unset($signed['id']);
+
 		$saved = $this->objectService->saveObject(
 			register: 'learniq',
 			schema: 'credential',
-			object: $payload
+			object: $signed,
+			uuid: $signedId
 		);
 
 		$savedArr = $saved->jsonSerialize();
@@ -202,8 +288,8 @@ class ExternalTrainingController extends Controller {
 			);
 		}
 
-		return new JSONResponse(data: ['credentialId' => $credentialId], statusCode: Http::STATUS_CREATED);
-	}//end issueCredential()
+		return $credentialId;
+	}//end saveSignedCredential()
 
 	/**
 	 * Report whether a learner is covered for a regulation, and by which class.
@@ -214,14 +300,16 @@ class ExternalTrainingController extends Controller {
 	 * via the same officer/HR/admin action as bulk-record; a learner querying
 	 * their own coverage is allowed because the action matrix admits their
 	 * group, and the read itself is scoped to the (learnerId, regulationSlug)
-	 * pair supplied — no arbitrary-object exposure beyond a boolean + class.
+	 * pair supplied. A learner outside the caller's tenant, or an unknown one,
+	 * reads as not covered, so the endpoint discloses nothing across tenants.
 	 *
 	 * @param string $learnerId LearnerProfile UUID.
 	 * @param string $regulationSlug Regulation slug.
 	 *
 	 * @return JSONResponse { covered: bool, evidenceClass: string|null }.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-2
 	 */
 	#[NoAdminRequired]
 	public function learnerCoverage(string $learnerId = '', string $regulationSlug = ''): JSONResponse {
@@ -237,6 +325,10 @@ class ExternalTrainingController extends Controller {
 				data: ['error' => 'learnerId and regulationSlug are required'],
 				statusCode: Http::STATUS_BAD_REQUEST
 			);
+		}
+
+		if ($this->callerTenant->findOwned(user: $user, id: $learnerId, schema: 'learner-profile') === null) {
+			return new JSONResponse(data: ['covered' => false, 'evidenceClass' => null]);
 		}
 
 		$evidenceClass = $this->trainingService->coveringEvidenceClass(

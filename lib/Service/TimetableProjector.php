@@ -55,14 +55,50 @@ class TimetableProjector {
 	/**
 	 * Constructor.
 	 *
-	 * @param LoggerInterface $logger Application logger.
+	 * @param LoggerInterface  $logger     Application logger.
+	 * @param LessonNoteReader $noteReader The notes on each lesson the caller may read (timetabling-lesson-note).
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly LoggerInterface $logger,
+		private readonly LessonNoteReader $noteReader,
 	) {
 	}//end __construct()
+
+	/**
+	 * The caller's own lessons in the window, each with the notes the caller
+	 * may read and whether the caller may add one (timetabling-lesson-note).
+	 *
+	 * @param array<int,array<string,mixed>>    $rawSessions     Raw session data arrays.
+	 * @param string                            $windowFrom      Inclusive window start (ISO 8601).
+	 * @param string                            $windowTo        Exclusive window end (ISO 8601).
+	 * @param array<string,array<string,mixed>> $roomCache       Pre-loaded Room data keyed by UUID.
+	 * @param string                            $uid             The caller.
+	 * @param array<int,string>                 $taughtCohortIds Cohorts the caller teaches.
+	 *
+	 * @return array<int,array<string,mixed>> The ordered, projected sessions.
+	 *
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+	 */
+	public function personalSessions(
+		array $rawSessions,
+		string $windowFrom,
+		string $windowTo,
+		array $roomCache,
+		string $uid,
+		array $taughtCohortIds
+	): array {
+		$sessions = $this->windowedSessions(
+			rawSessions: $rawSessions,
+			windowFrom: $windowFrom,
+			windowTo: $windowTo,
+			roomCache: $roomCache,
+			notes: $this->noteReader->forSessions(sessions: $rawSessions, uid: $uid, taughtCohortIds: $taughtCohortIds)
+		);
+
+		return $this->noteReader->markWritable(sessions: $sessions, uid: $uid, taughtCohortIds: $taughtCohortIds);
+	}//end personalSessions()
 
 	/**
 	 * Resolve the requested window, defaulting to the current ISO week (UTC).
@@ -119,12 +155,14 @@ class TimetableProjector {
 	 * @param string $windowFrom Inclusive window start (ISO 8601).
 	 * @param string $windowTo Exclusive window end (ISO 8601).
 	 * @param array<string,array<string,mixed>> $roomCache Pre-loaded Room data keyed by UUID.
+	 * @param array<string,array<int,array<string,mixed>>> $notes Visible lesson notes keyed by session id (timetabling-lesson-note).
 	 *
 	 * @return array<int,array<string,mixed>> The ordered, projected sessions.
 	 *
 	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
 	 */
-	public function windowedSessions(array $rawSessions, string $windowFrom, string $windowTo, array $roomCache): array {
+	public function windowedSessions(array $rawSessions, string $windowFrom, string $windowTo, array $roomCache, array $notes = []): array {
 		$fromTs = strtotime($windowFrom);
 		$toTs = strtotime($windowTo);
 
@@ -134,7 +172,9 @@ class TimetableProjector {
 				continue;
 			}
 
-			$sessions[] = $this->projectSession(session: $session, roomCache: $roomCache);
+			$projected = $this->projectSession(session: $session, roomCache: $roomCache);
+			$projected['notes'] = ($notes[$projected['id']] ?? []);
+			$sessions[] = $projected;
 		}
 
 		usort(
@@ -159,7 +199,7 @@ class TimetableProjector {
 	 *
 	 * @return array<int,array<string,mixed>> The projected same-day changes, ordered by changedAt.
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/personal-timetable/spec.md#scenario-today-s-cancellation-surfaces-in-the-dagrooster-changes-list-even-for-a-future-session
+	 * @spec openspec/specs/personal-timetable/spec.md#scenario-today-s-cancellation-surfaces-in-the-dagrooster-changes-list-even-for-a-future-session
 	 */
 	public function todaysChanges(array $rawSessions, array $roomCache): array {
 		$today = gmdate('Y-m-d');
@@ -229,11 +269,40 @@ class TimetableProjector {
 			'roomId' => $roomIdOrNull,
 			'room' => $room,
 			'substituteTeacherId' => $session['substituteTeacherId'] ?? null,
+			// A planninq lesson's teacher, and its key for a lesson note
+			// (timetabling-lesson-note); empty on a learniq Session.
+			'teacherUserId' => (string)($session['teacherUserId'] ?? ''),
+			'externalRef' => (string)($session['externalRef'] ?? ''),
+			'sourceSystem' => (string)($session['sourceSystem'] ?? ''),
+			'cover' => (($session['cover'] ?? false) === true),
 			'changeReasonKind' => $session['changeReasonKind'] ?? null,
 			'changeReason' => $session['changeReason'] ?? null,
 			'changedAt' => $session['changedAt'] ?? null,
+			// Where the lesson lives: `learniq` (a Session) or `planninq` (the
+			// school timetable, sessions-from-planninq). A page opens only a
+			// learniq Session as a learniq Session.
+			'source' => (string)($session['source'] ?? 'learniq'),
+			// Online lesson link (timetabling-online-lesson-link): only https reaches a page.
+			'onlineMeetingUrl' => $this->httpsOrNull(value: $session['onlineMeetingUrl'] ?? null),
 		];
 	}//end projectSession()
+
+	/**
+	 * An https link, or null for anything else (older data, another source).
+	 *
+	 * @param mixed $value The stored link.
+	 *
+	 * @return string|null
+	 *
+	 * @spec openspec/changes/timetabling-online-lesson-link/specs/timetable-online-lesson-link/spec.md#requirement-online-meeting-link-on-a-lesson
+	 */
+	public function httpsOrNull(mixed $value): ?string {
+		if (is_string($value) === false || preg_match('#^https://[^\s/?\#]+\S*$#', $value) !== 1) {
+			return null;
+		}
+
+		return $value;
+	}//end httpsOrNull()
 
 	/**
 	 * Decide whether a session overlaps the requested window.

@@ -45,7 +45,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#requirement-persist-engagementscore-domain-objects-in-openregister
+ * @spec openspec/specs/student-analytics/spec.md#requirement-persist-engagementscore-domain-objects-in-openregister
  */
 
 declare(strict_types=1);
@@ -97,7 +97,7 @@ class EngagementScoreEvaluator {
 	 *
 	 * @return array{timeOnTaskMinutes: float, lastActivityAt: string|null, score: int}
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
 	 */
 	public function evaluate(string $learnerId, string $courseId, ?string $previousActivityAt = null): array {
 		$statements = $this->fetchStatements(learnerId: $learnerId, courseId: $courseId);
@@ -150,9 +150,9 @@ class EngagementScoreEvaluator {
 	private function fetchStatements(string $learnerId, string $courseId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::XAPI_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::XAPI_SCHEMA,
 					'verified_actor_id' => $learnerId,
 					'courseId' => $courseId,
 				],
@@ -208,9 +208,9 @@ class EngagementScoreEvaluator {
 	private function sumPublishedLessonDuration(string $courseId): float {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LESSON_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LESSON_SCHEMA,
 					'courseId' => $courseId,
 					'lifecycle' => 'published',
 				],
