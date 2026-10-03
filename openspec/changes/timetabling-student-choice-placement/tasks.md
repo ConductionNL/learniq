@@ -3,7 +3,7 @@
 ## 1. Timetable
 
 - [x] 1.1 Add enrolment based session resolution to the timetable source and merge without duplicates. Verify: PHPUnit for elective, withdrawn and duplicate cases. Done: `TimetableSource::sessionsForCourses()`, `PersonalTimetableService` (D3); `TimetableControllerTest::testAChosenElectiveAppears`, `testAWithdrawnEnrolmentDisappears`, `testNoDuplicatesWhenCohortAndEnrolmentBothReachALesson`, `testPlanninqIsNeverAskedByCourse`.
-- [x] 1.9 Live pass D8 (DECISIONS row 53): with planninq as the source, `PlanninqTimetableSource::sessionsForCourses()` asks planninq by `courseId` from contract v2 (`for-ruben/planninq-timetable-course-query-and-lesson-link.md`); below v2 it asks nothing, as before. Verify: `PlanninqCourseQueryTest` against a fake of the v2 contract. Red before the code: `~/memcap-work/build-all/learniq/lanefix/d8-red.log`.
+- [x] 1.9 Live pass D8 (DECISIONS row 53): with planninq as the source, `PlanninqTimetableSource::sessionsForCourses()` asks planninq by `courseId` from contract v2 (`for-ruben/planninq-timetable-course-query-and-lesson-link.md`); below v2 it asks nothing, as before. Verify: `PlanninqCourseQueryTest` against a fake of the v2 contract, and from the caller `PlanninqTimetableCallerTest::testTwoOverlappingPlanninqElectivesBothShowTheirSlot` (the live-pass `course-slots` request). Red before the code: `~/memcap-work/build-all/learniq/lanefix2/d8-red.log`.
 - [ ] 1.10 Live check with planninq on contract v2 (needs the planninq change): two overlapping planninq electives warn in the picker.
 
 ## 2. Picker
