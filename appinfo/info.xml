@@ -68,7 +68,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
 
 **Ondersteuning:** support@conduction.nl
     ]]></description>
-    <version>0.3.8-beta.20261003061936</version>
+    <version>0.3.8-beta.20261003120000</version>
     <licence>EUPL-1.2</licence>
     <author mail="info@conduction.nl" homepage="https://www.conduction.nl/">Conduction</author>
     <namespace>Learniq</namespace>
@@ -311,6 +311,14 @@ Vrij en open source onder de EUPL-1.2-licentie.
                 saves nothing.
             -->
             <step>OCA\Learniq\Repair\BackfillAttendanceSummaries</step>
+            <!--
+                site-guardian-portal-design, site-external-assessor-portal-design:
+                writes courseName on grade entries, cohortName on enrolments,
+                and portfolioTitle and learnerName on portfolio shares written
+                before the server did. After InitializeSettings (the register
+                must declare the fields). Idempotent: a second run saves nothing.
+            -->
+            <step>OCA\Learniq\Repair\BackfillReadableCopies</step>
         </post-migration>
         <install>
             <!--

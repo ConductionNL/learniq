@@ -2,7 +2,7 @@
 
 Specs only so far. Build starts after Ruben approves the specs. T3 waits on portaliq's `via.when` and `via.validUntilField` (REQ-SMO-023, wave 1 of `site-mijn-omgeving-components`).
 
-- [ ] **T1**: register: `PortfolioShare.portfolioTitle`, `PortfolioShare.learnerName`, a server stamp on create, a back-fill for existing shares
+- [x] **T1**: register: `PortfolioShare.portfolioTitle`, `PortfolioShare.learnerName`, a server stamp on create, a back-fill for existing shares
   - PHPUnit for the stamp; `npm run check:register`
 - [ ] **T2**: `eaSharedPortfolios` projects both copies
   - PHPUnit `PortalContributionProviderTest`

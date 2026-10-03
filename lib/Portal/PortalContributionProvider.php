@@ -132,7 +132,8 @@ class PortalContributionProvider {
 		$audience = $subject['audience'] ?? '';
 
 		if ($audience === 'student') {
-			return $this->studentContribution();
+			// The pupil reads her labels in her language too (site-pupil-portal-design).
+			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: $this->studentContribution());
 		}
 
 		if ($audience === 'parent') {
@@ -211,6 +212,12 @@ class PortalContributionProvider {
 				'fields' => [
 					'learnerRef',
 					'courseId',
+					// Readable copies and the weight (site-guardian-portal-design):
+					// the subject and test a grade is for, and how often it counts.
+					'courseName',
+					'methodName',
+					'methodBlock',
+					'weight',
 					'curriculumPlanId',
 					'componentId',
 					'value',
@@ -715,6 +722,12 @@ class PortalContributionProvider {
 				'fields' => [
 					'learnerRef',
 					'courseId',
+					// Readable copies and the weight (site-guardian-portal-design):
+					// the subject and test a grade is for, and how often it counts.
+					'courseName',
+					'methodName',
+					'methodBlock',
+					'weight',
 					'curriculumPlanId',
 					'componentId',
 					'value',
