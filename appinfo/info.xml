@@ -68,7 +68,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
 
 **Ondersteuning:** support@conduction.nl
     ]]></description>
-    <version>0.3.6-unstable.20261002210000</version>
+    <version>0.3.7-unstable.20261003090000</version>
     <licence>EUPL-1.2</licence>
     <author mail="info@conduction.nl" homepage="https://www.conduction.nl/">Conduction</author>
     <namespace>Learniq</namespace>
@@ -229,6 +229,12 @@ Vrij en open source onder de EUPL-1.2-licentie.
                  and move course-package.share off the untouched old default. After
                  InitializeActions, which owns an empty matrix. -->
             <step>OCA\Learniq\Repair\ApplyStoreRightsDefaults</step>
+            <!--
+                The seed named compliance-officer and manager, groups that do
+                not exist; InitializeActions keeps a stored matrix, so this
+                renames them there once (live pass 2 Oct, D1).
+            -->
+            <step>OCA\Learniq\Repair\RenameStaleActionGroups</step>
             <!--
                 Must run AFTER the register sync that adds the English columns.
                 Covers every renamed property together: a register-scoped step

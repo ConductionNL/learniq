@@ -99,7 +99,9 @@ class CourseEvaluationAnswerService {
 					'register' => self::REGISTER,
 					'schema' => 'evaluation-invitation',
 					'learnerId' => $learnerId,
-					'hasResponded' => false,
+					// No `hasResponded => false` filter: OpenRegister binds it as
+					// '' and PostgreSQL refuses that for a boolean (live pass D5).
+					// The loop below skips answered invitations instead.
 				],
 				'limit' => self::READ_LIMIT,
 			]
