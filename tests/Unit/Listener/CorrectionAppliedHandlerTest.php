@@ -125,8 +125,12 @@ class CorrectionAppliedHandlerTest extends TestCase {
 
 	/**
 	 * Teacher A republishes on principal B's approval: the request moves to
-	 * applied with who and when, and the grade entry names the request. Both
-	 * writes run as the system, since a teacher may not update a request.
+	 * applied, as the system, since a teacher may not update a request. The
+	 * handler sends no appliedBy/appliedAt: both are readOnly, and the `apply`
+	 * transition's stamp action writes them on the save path (live pass D10;
+	 * CorrectionAppliedThroughApplyTransitionTest saves through a store that
+	 * enforces that). The entry link is the republish's own action, so the
+	 * handler writes nothing to the grade entry.
 	 *
 	 * @return void
 	 *
@@ -135,20 +139,15 @@ class CorrectionAppliedHandlerTest extends TestCase {
 	public function testARepublishOnAnApprovalAppliesIt(): void {
 		$this->handler(corrections: [self::APPROVED])->handle(self::published());
 
-		self::assertCount(2, $this->saved);
-		[$request, $entry] = $this->saved;
+		self::assertCount(1, $this->saved);
+		[$request] = $this->saved;
 		self::assertSame('data-correction-request', $request['schema']);
 		self::assertSame('dcr-1', $request['uuid']);
 		self::assertSame('applied', $request['object']['lifecycle']);
-		self::assertSame('teacher-a', $request['object']['appliedBy']);
-		self::assertNotEmpty($request['object']['appliedAt']);
+		self::assertArrayNotHasKey('appliedBy', $request['object']);
+		self::assertArrayNotHasKey('appliedAt', $request['object']);
 		self::assertSame('principal-b', $request['object']['decidedBy']);
 		self::assertFalse($request['rbac']);
-
-		self::assertSame('grade-entry', $entry['schema']);
-		self::assertSame('entry-1', $entry['uuid']);
-		self::assertSame('dcr-1', $entry['object']['correctionRequestId']);
-		self::assertFalse($entry['rbac']);
 	}//end testARepublishOnAnApprovalAppliesIt()
 
 	/**

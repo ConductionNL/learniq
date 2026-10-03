@@ -54,7 +54,9 @@ class PersonalNumberProtectionTest extends TestCase {
 		$properties = $this->properties();
 		$number = $properties['personalNumber'];
 
-		$this->assertTrue($number['x-openregister-encrypted'] ?? false, 'Encrypted at rest.');
+		// DECISIONS row 54 (live pass D6): stored in plain text so an upload row can be matched on it;
+		// an encrypted property gets no filter in OpenRegister.
+		$this->assertArrayNotHasKey('x-openregister-encrypted', $number, 'Stored and filterable, not encrypted.');
 		$this->assertTrue($number['authorization']['audit'] ?? false, 'Every reveal is recorded.');
 		$this->assertArrayNotHasKey('pattern', $number, 'A pattern would validate the stored envelope.');
 		$this->assertFalse($number['facetable'] ?? false);
