@@ -14,6 +14,10 @@
  *   nothing (`MagicSearchHandler` emits `1 = 0`). This store reads the
  *   declared properties from `lib/Settings/learniq_register.json`.
  * - `config.ids` narrows the read to those object ids.
+ * - A property the register flags `x-openregister-encrypted` keeps no value
+ *   on save and refuses a filter, the way OpenRegister does (live pass D6:
+ *   the instance gave it no column, and MagicSearchHandler rejects a filter
+ *   on an encrypted property).
  * - A scalar filter is bound with `createNamedParameter($value)`, a string
  *   parameter, so a PHP `false` reaches PostgreSQL as `''`, which a boolean
  *   column refuses (SQLSTATE 22P02, live pass D5: /api/evaluations/mine 500ed
@@ -117,6 +121,12 @@ final class RegisterFaithfulStore {
 			throw new RuntimeException($this->failReads);
 		}
 
+		foreach (array_keys(($config['filters'] ?? [])) as $key) {
+			if (in_array($key, self::encryptedProperties(schema: (string)($config['filters']['schema'] ?? '')), true) === true) {
+				throw new RuntimeException('Filtering on encrypted property ' . $key . ' is not supported.');
+			}
+		}
+
 		$filters = ($config['filters'] ?? []);
 		$schema = ($filters['schema'] ?? null);
 		if (is_string($schema) === false || ($filters['register'] ?? null) !== 'learniq') {
@@ -161,6 +171,10 @@ final class RegisterFaithfulStore {
 	 */
 	public function save(string $schema, array $object, ?string $uuid): ObjectEntity {
 		$this->saves[] = ['schema' => $schema, 'object' => $object, 'uuid' => $uuid];
+		foreach (self::encryptedProperties(schema: $schema) as $encrypted) {
+			unset($object[$encrypted]);
+		}
+
 		$id = ($uuid ?? ($object['id'] ?? ('new-' . count($this->saves))));
 		$object['id'] = $id;
 		foreach (($this->rows[$schema] ?? []) as $index => $row) {
@@ -292,4 +306,32 @@ final class RegisterFaithfulStore {
 
 		return self::$declared;
 	}//end declaredProperties()
+
+	/**
+	 * The properties of a schema the register flags `x-openregister-encrypted`.
+	 *
+	 * @param string $schema The schema slug.
+	 *
+	 * @return array<int, string>
+	 */
+	public static function encryptedProperties(string $schema): array {
+		static $encrypted = null;
+		if ($encrypted === null) {
+			$encrypted = [];
+			$register = json_decode(
+				(string)file_get_contents(__DIR__ . '/../../lib/Settings/learniq_register.json'),
+				true
+			);
+			foreach (($register['components']['schemas'] ?? []) as $name => $definition) {
+				$slug = (string)($definition['slug'] ?? $name);
+				foreach (($definition['properties'] ?? []) as $property => $spec) {
+					if (is_array($spec) === true && ($spec['x-openregister-encrypted'] ?? false) === true) {
+						$encrypted[$slug][] = (string)$property;
+					}
+				}
+			}
+		}
+
+		return ($encrypted[$schema] ?? []);
+	}//end encryptedProperties()
 }//end class
