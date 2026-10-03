@@ -3280,7 +3280,9 @@ OC.L10N.register(
         "Start a test": "Start a test",
         "Save an answer": "Save an answer",
         "Hand in a test": "Hand in a test",
-        "View a result": "View a result"
+        "View a result": "View a result",
+        "The learner profile of the pupil whose absence this reports. Required: the pupil's portal stamps it from the pupil, a guardian picks one of their own children, and a staff form sends the pupil it records the report for. Distinct from learnerId, the Nextcloud user id.": "The learner profile of the pupil whose absence this reports. Required: the pupil's portal stamps it from the pupil, a guardian picks one of their own children, and a staff form sends the pupil it records the report for. Distinct from learnerId, the Nextcloud user id.",
+        "The learner profile of the pupil this conversation is about. Required: a guardian picks one of their own children, and a staff booking sends the pupil it books for. Distinct from learnerId, the Nextcloud user id.": "The learner profile of the pupil this conversation is about. Required: a guardian picks one of their own children, and a staff booking sends the pupil it books for. Distinct from learnerId, the Nextcloud user id."
     },
     "nplurals=2; plural=(n != 1);"
 )

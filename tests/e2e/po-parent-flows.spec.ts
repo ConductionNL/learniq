@@ -61,7 +61,7 @@
  * @spec openspec/changes/portal-parent-child-record/specs/portal-contribution/spec.md
  */
 
-import type { APIRequestContext, Browser, Page } from '@playwright/test'
+import type { APIRequestContext, Browser, Locator, Page } from '@playwright/test'
 import type { StubDigid } from './helpers/stub-digid.ts'
 
 import { expect, request, test } from '@playwright/test'
@@ -200,8 +200,8 @@ test.describe('po: teacher and parent flows', () => {
 		await form
 			.getByRole('combobox', { name: 'Kind', exact: true })
 			.selectOption({ label: CHILD.name })
-		await form.getByLabel('Eerste dag afwezig').fill('2026-10-01')
-		await form.getByLabel('Laatste dag afwezig').fill('2026-10-01')
+		await fillDate(form, 'Eerste dag afwezig', '2026-10-01')
+		await fillDate(form, 'Laatste dag afwezig', '2026-10-01')
 		await form.getByRole('textbox', { name: 'Reden', exact: true }).fill(reason)
 		await form
 			.getByRole('combobox', { name: 'Soort afwezigheid' })
@@ -564,8 +564,10 @@ test.describe('po: teacher and parent flows', () => {
 		await form
 			.getByRole('combobox', { name: 'Kind', exact: true })
 			.selectOption({ label: CHILD.name })
+		// The slot is not required in the schema (a preference request has
+		// none), so the site labels it "Tijd (niet verplicht)" (portaliq#1130).
 		await form
-			.getByRole('combobox', { name: 'Tijd', exact: true })
+			.getByRole('combobox', { name: /^Tijd( \(niet verplicht\))?$/ })
 			.selectOption({ label: first.slotLabel })
 		await form.getByLabel('Wat de leerkracht vooraf moet weten').fill(note)
 		await shot(parent, 'd2-booking-form')
@@ -985,6 +987,23 @@ async function waitForAccountPage(page: Page): Promise<void> {
 	await page
 		.waitForLoadState('networkidle', { timeout: 10_000 })
 		.catch(() => undefined)
+}
+
+/**
+ * Fill a site date field: three boxes (Dag, Maand, Jaar) in a group named by
+ * the field's label (portaliq#1130, site-multi-step-forms).
+ *
+ * @param {Locator} form The form.
+ * @param {string} label The field's label, the group's name.
+ * @param {string} iso The date as YYYY-MM-DD.
+ * @return {Promise<void>}
+ */
+async function fillDate(form: Locator, label: string, iso: string): Promise<void> {
+	const [year, month, day] = iso.split('-')
+	const group = form.getByRole('group', { name: label, exact: true })
+	await group.getByLabel('Dag', { exact: true }).fill(day)
+	await group.getByLabel('Maand', { exact: true }).fill(month)
+	await group.getByLabel('Jaar', { exact: true }).fill(year)
 }
 
 /**

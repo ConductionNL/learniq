@@ -3731,7 +3731,9 @@ OC.L10N.register(
         "Start a test": "Toets starten",
         "Save an answer": "Antwoord opslaan",
         "Hand in a test": "Toets inleveren",
-        "View a result": "Uitslag bekijken"
+        "View a result": "Uitslag bekijken",
+        "The learner profile of the pupil whose absence this reports. Required: the pupil's portal stamps it from the pupil, a guardian picks one of their own children, and a staff form sends the pupil it records the report for. Distinct from learnerId, the Nextcloud user id.": "Het leerlingprofiel van de leerling van wie dit de afwezigheid meldt. Verplicht: het portaal van de leerling vult het zelf in, een ouder kiest een van de eigen kinderen, en een formulier van school stuurt de leerling mee voor wie de melding is.",
+        "The learner profile of the pupil this conversation is about. Required: a guardian picks one of their own children, and a staff booking sends the pupil it books for. Distinct from learnerId, the Nextcloud user id.": "Het leerlingprofiel van de leerling over wie dit gesprek gaat. Verplicht: een ouder kiest een van de eigen kinderen, en een boeking door school stuurt de leerling mee voor wie geboekt wordt."
     },
     "nplurals=2; plural=(n != 1);"
 )

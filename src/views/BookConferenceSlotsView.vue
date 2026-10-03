@@ -125,6 +125,7 @@ import {
 	NcNoteCard,
 	NcSelect,
 } from '@nextcloud/vue'
+import { conferenceSignupBody } from '../utils/conferenceSignupBody.js'
 
 export default {
 	name: 'BookConferenceSlotsView',
@@ -330,15 +331,16 @@ export default {
 			this.submitSuccess = false
 
 			try {
-				const body = {
-					conferenceRoundId: this.selectedRoundId,
-					learnerId: this.selectedLearnerId,
-					requestedTeacherIds: this.selectedTeacherIds,
-					notes: this.notes || null,
-					tenant_id: this.selectedRound
-						? this.selectedRound.tenant_id
-						: undefined,
-				}
+				const body = conferenceSignupBody({
+					roundId: this.selectedRoundId,
+					round: this.selectedRound,
+					learner:
+						this.learners.find(
+							(l) => l.ncUserId === this.selectedLearnerId,
+						) || null,
+					teacherIds: this.selectedTeacherIds,
+					notes: this.notes,
+				})
 
 				const createUrl = generateUrl(
 					'/apps/openregister/api/objects/learniq/conference-signup',
