@@ -247,6 +247,9 @@ class ReadableCopyStampTest extends TestCase {
 		self::assertFalse($copies->covers(slug: 'final-grade'));
 		self::assertSame([], $copies->derive(slug: 'final-grade', row: ['courseId' => 'course-blank']));
 		self::assertSame(['courseName' => null], $copies->derive(slug: 'grade-entry', row: ['courseId' => 'course-blank']));
+		// A grade without a course, or with an empty pointer, names none.
+		self::assertSame(['courseName' => null], $copies->derive(slug: 'grade-entry', row: []));
+		self::assertSame(['cohortName' => null], $copies->derive(slug: 'enrolment', row: ['cohortId' => '']));
 		self::assertSame(['portfolioTitle' => null, 'learnerName' => null], $copies->derive(slug: 'portfolio-share', row: ['portfolioId' => 'portfolio-gone']));
 		self::assertSame(['portfolioTitle' => 'Proeve', 'learnerName' => 'Visser'], $copies->derive(slug: 'portfolio-share', row: ['portfolioId' => 'portfolio-1']));
 		self::assertSame(['portfolioTitle', 'learnerName'], $copies->fields(slug: 'portfolio-share'));
