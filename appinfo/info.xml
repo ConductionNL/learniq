@@ -68,7 +68,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
 
 **Ondersteuning:** support@conduction.nl
     ]]></description>
-    <version>0.3.8-beta.20261003061936</version>
+    <version>0.3.8-beta.20261003150000</version>
     <licence>EUPL-1.2</licence>
     <author mail="info@conduction.nl" homepage="https://www.conduction.nl/">Conduction</author>
     <namespace>Learniq</namespace>
@@ -285,6 +285,14 @@ Vrij en open source onder de EUPL-1.2-licentie.
             -->
             <step>OCA\Learniq\Repair\BackfillSubmissionLearnerRefs</step>
             <!--
+                absence-and-booking-fields-are-required: writes learnerRef on
+                stored absence reports and conference signups that lack it, so
+                they still save now that the schemas require it. Before
+                BackfillExcuseRequestTeachers, whose writes need it. After
+                InitializeSettings. Idempotent: a second run saves nothing.
+            -->
+            <step>OCA\Learniq\Repair\BackfillRequiredLearnerRefs</step>
+            <!--
                 excuse-reports-follow-the-pupils-group: stamps teacherIds (the
                 teachers of the pupil's current groups) on absence reports
                 written before the server did, so the group teacher can read
@@ -311,6 +319,14 @@ Vrij en open source onder de EUPL-1.2-licentie.
                 saves nothing.
             -->
             <step>OCA\Learniq\Repair\BackfillAttendanceSummaries</step>
+            <!--
+                site-guardian-portal-design, site-external-assessor-portal-design:
+                writes courseName on grade entries, cohortName on enrolments,
+                and portfolioTitle and learnerName on portfolio shares written
+                before the server did. After InitializeSettings (the register
+                must declare the fields). Idempotent: a second run saves nothing.
+            -->
+            <step>OCA\Learniq\Repair\BackfillReadableCopies</step>
         </post-migration>
         <install>
             <!--

@@ -8,11 +8,11 @@ Specs only so far. Build starts after Ruben approves the specs, `site-guardian-p
   - portaliq reader test; PHPUnit `PortalContributionProviderTest`
 - [ ] **T3**: `studentHomework` over published assignments by `learnerRefs`, with the submission status lookup; the overview's `tasks` block with `excludeWhen: { lookup: submission, in: [submitted, late, returned] }`
   - PHPUnit `PortalContributionProviderTest`
-- [ ] **T4**: `studentGrades` projects `courseName`, `methodName`, `methodBlock`, `weight`
+- [x] **T4**: `studentGrades` projects `courseName`, `methodName`, `methodBlock`, `weight`
   - PHPUnit `PortalContributionProviderTest`
 - [ ] **T5**: `StudentPortalPages`: the overview (`range: day` timetable, four `cta` tiles with `action` or `page`), the menu pages, the default pages with `menu: false`
   - PHPUnit for the new class
-- [ ] **T6**: the student manifest through `PortalLabelTranslator`; Dutch "je" entries
+- [x] **T6**: the student manifest through `PortalLabelTranslator`; Dutch "je" entries
   - PHPUnit `PortalLabelTranslatorTest`; `npm run check:l10n`
 - [ ] **T7**: vo example set: a pupil portal account for one havo 3 pupil, with assignments due this week
   - `python3 scripts/example-sets/vo.py --check`

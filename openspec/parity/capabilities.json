@@ -1119,16 +1119,17 @@
       "area": "compliance",
       "name": "Read every rule's coverage next to each other on one page.",
       "built": {
-        "state": "building",
-        "evidence": "src/views/LearniqCompliance.vue renders three count tiles, not a per-rule coverage table",
+        "state": "built",
+        "evidence": "lib/Controller/ComplianceRollupController.php regulations() serves GET /api/compliance/coverage-by-regulation (department filter, 403 on denial); src/views/widgets/RegulationCoverageWidget.vue renders the per-rule table on /compliance. Live flow passed on the dev instance 2026-10-03, recorded in the archived tasks.md.",
+        "reachedOn": "/compliance",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/compliance-rule-coverage-table"
+        "change": "openspec/changes/archive/2026-10-03-compliance-rule-coverage-table"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "compliance-coverage",
       "featureConfidence": "high",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
       "ilias": "partial",

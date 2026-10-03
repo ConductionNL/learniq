@@ -37,10 +37,13 @@ use OCA\Learniq\Listener\LvsResultLearnerRefStamp;
 use OCA\Learniq\Listener\ReportCardGradeLinesStamp;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Listener\AssignmentLearnerRefsStamp;
+use OCA\Learniq\Listener\CohortNameCascade;
+use OCA\Learniq\Listener\ReadableCopyStamp;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
 use OCA\Learniq\Listener\SubmissionOwnerStamp;
 use OCA\Learniq\Listener\SubmissionResubmissionDateListener;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
@@ -147,6 +150,7 @@ class IntegrityListenerRegistrar {
 		);
 
 		$this->registerHomeworkScope(context: $context);
+		$this->registerReadableCopies(context: $context);
 
 		// Submission resubmission date (submission-resubmission-action): the
 		// date moves the hand-in deadline, so only staff may write it. Drops
@@ -241,4 +245,29 @@ class IntegrityListenerRegistrar {
 			listener: AssignmentLearnerRefsStamp::class
 		);
 	}//end registerHomeworkScope()
+
+	/**
+	 * Readable copies (site-guardian-portal-design, site-external-assessor-portal-design):
+	 * the portal shows a course name on a grade, a group name on an enrolment
+	 * and a portfolio title and learner name on a share, so the server writes
+	 * them on every save and re-stamps the enrolments when a group is renamed.
+	 *
+	 * @param IRegistrationContext $context The registration context.
+	 *
+	 * @return void
+	 */
+	private function registerReadableCopies(IRegistrationContext $context): void {
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: ReadableCopyStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: ReadableCopyStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: CohortNameCascade::class
+		);
+	}//end registerReadableCopies()
 }//end class

@@ -57,6 +57,12 @@ class PlanninqTimetableSource implements TimetableSource {
 	private const LIMIT = 1000;
 
 	/**
+	 * The planninq contract version that answers a course query and carries
+	 * a lesson's course and online link.
+	 */
+	public const COURSE_QUERY_CONTRACT = 2;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IAppManager      $appManager Tells whether planninq is installed.
@@ -140,22 +146,60 @@ class PlanninqTimetableSource implements TimetableSource {
 	}//end sessionsForTeacher()
 
 	/**
-	 * Planninq lessons carry no learniq course, and planninq's query takes no
-	 * course: an elective reaches a learner through the elective group's
-	 * cohort instead. So no course query is ever sent.
+	 * The lessons of the given courses (electives from a subject choice).
+	 * Planninq answers a `courseId` query from contract version 2 on
+	 * (DECISIONS row 53, live pass D8; the contract is in
+	 * for-ruben/planninq-timetable-course-query-and-lesson-link.md). An older
+	 * planninq has no course on a lesson, so nothing is asked and the answer
+	 * is empty, as before.
 	 *
 	 * @param array<int,string> $courseIds Course UUIDs.
 	 * @param string|null       $from      ISO 8601 window start, or null.
 	 * @param string|null       $to        ISO 8601 window end, or null.
 	 *
-	 * @return array<int,array<string,mixed>> Always empty.
+	 * @return array<int,array<string,mixed>> Sessions in learniq's session shape.
+	 *
+	 * @throws RuntimeException When planninq is absent, silent or refuses.
 	 *
 	 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-elective-sessions-in-the-personal-timetable
 	 */
 	public function sessionsForCourses(array $courseIds, ?string $from, ?string $to): array {
-		unset($courseIds, $from, $to);
-		return [];
+		if ($this->contractVersion() < self::COURSE_QUERY_CONTRACT) {
+			return [];
+		}
+
+		$rows = [];
+		foreach (array_unique($courseIds) as $courseId) {
+			if ($courseId === '') {
+				continue;
+			}
+
+			foreach ($this->query(identity: ['courseId' => $courseId], from: $from, to: $to) as $session) {
+				// Never let another course's lesson through.
+				if ($session['courseId'] === $courseId) {
+					$rows[] = $session;
+				}
+			}
+		}
+
+		return $rows;
 	}//end sessionsForCourses()
+
+	/**
+	 * The contract version of the planninq event class, 0 when it has none.
+	 *
+	 * @return int The version.
+	 *
+	 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-elective-sessions-in-the-personal-timetable
+	 */
+	private function contractVersion(): int {
+		$constant = $this->eventClass . '::CONTRACT_VERSION';
+		if (class_exists($this->eventClass) === false || defined($constant) === false) {
+			return 0;
+		}
+
+		return (int)constant($constant);
+	}//end contractVersion()
 
 	/**
 	 * Dispatch one query and map planninq's lessons onto learniq's session shape.
@@ -233,6 +277,9 @@ class PlanninqTimetableSource implements TimetableSource {
 			'endsAt' => (string)($lesson['endsAt'] ?? ''),
 			'location' => $location,
 			'cohortId' => (string)($lesson['cohortId'] ?? ''),
+			'courseId' => (string)($lesson['courseId'] ?? ''),
+			// The lesson's online link (contract v2); the projector shows only https.
+			'onlineMeetingUrl' => $this->linkOf(lesson: $lesson),
 			'lifecycle' => $lifecycle,
 			'teacherUserId' => (string)($lesson['teacherUserId'] ?? ''),
 			'roomReference' => (string)($lesson['roomReference'] ?? ''),
@@ -244,4 +291,22 @@ class PlanninqTimetableSource implements TimetableSource {
 			'source' => self::NAME,
 		];
 	}//end toSession()
+
+	/**
+	 * A lesson's online link, or null when it has none.
+	 *
+	 * @param array<string,mixed> $lesson The planninq lesson.
+	 *
+	 * @return string|null The link.
+	 *
+	 * @spec openspec/changes/timetabling-online-lesson-link/specs/timetable-online-lesson-link/spec.md#requirement-online-meeting-link-on-a-lesson
+	 */
+	private function linkOf(array $lesson): ?string {
+		$link = ($lesson['onlineMeetingUrl'] ?? null);
+		if (is_string($link) === false || trim($link) === '') {
+			return null;
+		}
+
+		return trim($link);
+	}//end linkOf()
 }//end class

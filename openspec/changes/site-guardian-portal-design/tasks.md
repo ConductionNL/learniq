@@ -2,11 +2,13 @@
 
 Specs only so far. Build starts after Ruben approves the specs and portaliq's `site-mijn-omgeving-components` names the keys it accepts.
 
-- [ ] **T1**: register: `GradeEntry.courseName`, and a server stamp that fills it from the course on create and update
+- [x] **T1**: register: `GradeEntry.courseName`, and a server stamp that fills it from the course on create and update
   - PHPUnit for the stamp; `npm run check:register`
-- [ ] **T1b**: register: `Enrolment.cohortName`, stamped on create, update and cohort rename; projected in `parentGroupMemberships`
-  - PHPUnit for the stamp; `npm run check:register`
-- [ ] **T2**: parent grade projection gains `courseName`, `methodName`, `methodBlock`, `weight`
+- [x] **T1b**: register: `Enrolment.cohortName`, stamped on create, update and cohort rename
+  - PHPUnit `ReadableCopyStampTest`, `CohortNameCascadeTest`, `BackfillReadableCopiesTest`; `npm run check:register`
+- [ ] **T1c**: `parentGroupMemberships` projects `cohortName` (with the switcher, T4)
+  - PHPUnit `PortalContributionProviderTest`
+- [x] **T2**: parent grade projection gains `courseName`, `methodName`, `methodBlock`, `weight`
   - PHPUnit `PortalContributionProviderTest`
 - [ ] **T3**: `parentInbox` (`kind: inbox`) over `report-card-parent-notification` and `grade-notification`, through the child join, `visibleFrom` passed
   - PHPUnit `PortalContributionProviderTest`, `ParentRecordPageTest`
@@ -20,7 +22,7 @@ Specs only so far. Build starts after Ruben approves the specs and portaliq's `s
   - PHPUnit `PortalLabelTranslatorTest`; `npm run check:l10n`
 - [ ] **T8**: `ExamplePortalProvisioner` writes the signed-out home on `created` only
   - PHPUnit `ExamplePortalProvisionerTest`
-- [ ] **T9**: po example set: Sami Hulstkamp, groep 3, with attendance, a summary and a grade
+- [x] **T9**: po example set: Sami Hulstkamp, groep 3, with attendance, a summary and a grade
   - `python3 scripts/example-sets/po.py --check`, PHPUnit `ExampleSetDescriptorContractTest`
 - [ ] **T10**: e2e: the guardian switches child, reads the task, reports Vera sick from the overview
   - `tests/e2e/po-parent-flows.spec.ts`

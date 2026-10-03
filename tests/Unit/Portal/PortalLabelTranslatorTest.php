@@ -168,6 +168,45 @@ class PortalLabelTranslatorTest extends TestCase {
 	}//end testTheParentManifestArrivesInDutch()
 
 	/**
+	 * Every visible string of the student manifest has a Dutch entry
+	 * (site-pupil-portal-design).
+	 *
+	 * @return void
+	 */
+	public function testEveryStudentLabelHasADutchEntry(): void {
+		$english = (new PortalContributionProvider())->getContribution(['audience' => 'student']);
+		$strings = self::visibleStrings(manifest: $english);
+
+		self::assertNotEmpty($strings);
+		$missing = array_values(array_filter($strings, fn (string $text): bool => isset($this->dutch[$text]) === false));
+		self::assertSame([], $missing, 'Pupil portal strings without a Dutch entry in l10n/nl.json');
+	}//end testEveryStudentLabelHasADutchEntry()
+
+	/**
+	 * Through the container's l10n factory the student manifest comes out in
+	 * Dutch, in the "je" form, and its ids stay as they were.
+	 *
+	 * @return void
+	 */
+	public function testTheStudentManifestArrivesInDutch(): void {
+		$factory = $this->createMock(IFactory::class);
+		$factory->expects(self::once())->method('get')->with('learniq')->willReturn($this->dutchL10n());
+
+		$manifest = (new PortalContributionProvider(l10nFactory: $factory))->getContribution(['audience' => 'student']);
+		$labels = array_column($manifest['collections'], 'label', 'id');
+
+		self::assertSame('Mijn cijfers', $labels['studentGrades']);
+		self::assertSame('Mijn ingeleverde werk', $labels['studentSubmissions']);
+		self::assertSame('Mijn toetsen', $labels['studentTests']);
+
+		$actions = array_column($manifest['actions'], null, 'id');
+		self::assertSame('Werk inleveren', $actions['createSubmission']['label']);
+		self::assertSame('Je werk', $actions['createSubmission']['fieldConfigs']['attachmentRefs']['label']);
+		self::assertSame('Toetsen die je kunt maken', $actions['listTests']['label']);
+		self::assertSame('Afwezig melden', $actions['createExcuseRequest']['label']);
+	}//end testTheStudentManifestArrivesInDutch()
+
+	/**
 	 * Only visible strings move: ids, field names, schemas, the `labelField`
 	 * a dropdown reads, and every scope value stay exactly as they were.
 	 *

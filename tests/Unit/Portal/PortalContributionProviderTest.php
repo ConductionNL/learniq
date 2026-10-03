@@ -491,10 +491,19 @@ class PortalContributionProviderTest extends TestCase {
 		}
 
 		// Parent grade/attendance/excuse projections mirror the student ones.
-		$this->assertSame(
-			['learnerRef', 'courseId', 'curriculumPlanId', 'componentId', 'value', 'gradeScaleId', 'period', 'gradedAt'],
-			$byId['parentGrades']['fields']
-		);
+		// site-guardian-portal-design: a grade names its subject, its test and its weight.
+		$gradeFields = ['learnerRef', 'courseId', 'courseName', 'methodName', 'methodBlock', 'weight', 'curriculumPlanId', 'componentId', 'value', 'gradeScaleId', 'period', 'gradedAt'];
+		$this->assertSame($gradeFields, $byId['parentGrades']['fields']);
+		$student = [];
+		foreach ((new PortalContributionProvider())->getContribution(['audience' => 'student'])['collections'] as $collection) {
+			$student[$collection['id']] = $collection;
+		}
+
+		$this->assertSame($gradeFields, $student['studentGrades']['fields']);
+		// Every projected grade field is declared by the shipped GradeEntry schema.
+		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
+		$declared = array_keys($register['components']['schemas']['GradeEntry']['properties']);
+		$this->assertSame([], array_values(array_diff($gradeFields, $declared)));
 		$this->assertSame(
 			['learnerRef', 'sessionId', 'cohortId', 'status', 'minutesAttended', 'markedAt'],
 			$byId['parentAttendance']['fields']
