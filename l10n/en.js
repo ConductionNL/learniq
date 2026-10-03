@@ -3259,7 +3259,19 @@ OC.L10N.register(
         "The groups this event is for, when it is not for the whole school.": "The groups this event is for, when it is not for the whole school.",
         "The school whose holidays and study days this period holds. Parents see them in the portal calendar.": "The school whose holidays and study days this period holds. Parents see them in the portal calendar.",
         "The pupils of the assignment's group. Filled by the server, never by hand.": "The pupils of the assignment's group. Filled by the server, never by hand.",
-        "To do": "To do"
+        "To do": "To do",
+        "Round": "Round",
+        "Booking opens": "Booking opens",
+        "Booking closes": "Booking closes",
+        "Invitations sent": "Invitations sent",
+        "Booking open": "Booking open",
+        "Booking closed": "Booking closed",
+        "Locked": "Locked",
+        "Learner profile": "Learner profile",
+        "Conference Signup": "Conference Signup",
+        "Conference Report": "Conference Report",
+        "Conference Round": "Conference Round",
+        "Conference Slot": "Conference Slot"
     },
     "nplurals=2; plural=(n != 1);"
 )

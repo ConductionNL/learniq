@@ -3710,7 +3710,19 @@ OC.L10N.register(
         "The groups this event is for, when it is not for the whole school.": "De groepen waar dit voor is, als het niet voor de hele school is.",
         "The school whose holidays and study days this period holds. Parents see them in the portal calendar.": "De school waarvan deze periode de vakanties en studiedagen bevat. Ouders zien ze in de portaalkalender.",
         "The pupils of the assignment's group. Filled by the server, never by hand.": "De leerlingen van de groep van de opdracht. Vult het systeem zelf, nooit met de hand.",
-        "To do": "Opdracht"
+        "To do": "Opdracht",
+        "Round": "Ronde",
+        "Booking opens": "Boeken kan vanaf",
+        "Booking closes": "Boeken kan tot",
+        "Invitations sent": "Uitnodigingen verstuurd",
+        "Booking open": "Boeken geopend",
+        "Booking closed": "Boeken gesloten",
+        "Locked": "Vastgezet",
+        "Learner profile": "Leerlingprofiel",
+        "Conference Signup": "Aanmelding oudergesprek",
+        "Conference Report": "Gespreksverslag",
+        "Conference Round": "Oudergespreksronde",
+        "Conference Slot": "Oudergespreksslot"
     },
     "nplurals=2; plural=(n != 1);"
 )
