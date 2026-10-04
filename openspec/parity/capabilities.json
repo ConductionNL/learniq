@@ -940,17 +940,17 @@
       "area": "compliance",
       "name": "Upload a spreadsheet of outside training for many people at once.",
       "built": {
-        "state": "building",
-        "evidence": "src/views/ExternalTrainingBulkRecordView.vue records one training for many picked learners through lib/Controller/ExternalTrainingController.php bulkRecord(); no spreadsheet upload, so it stays partial (learniq#952)",
-        "reachedOn": "/compliance/external-training (header action Record training for a group)",
+        "state": "built",
+        "evidence": "lib/Controller/ExternalTrainingController.php serves POST /api/external-training/import (dryRun preview, then one batch); lib/Service/ExternalTrainingLearnerMatch.php matches each row by email, learner reference or personal number within the caller's tenant; src/views/ExternalTrainingBulkRecordView.vue holds the Upload a spreadsheet dialog with its preview and result. Live flow passed on the dev instance 2026-10-04, recorded in the archived tasks.md.",
+        "reachedOn": "/compliance/external-training/record-for-group (Upload a spreadsheet)",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/compliance-external-training-spreadsheet-upload"
+        "change": "openspec/changes/archive/2026-10-04-compliance-external-training-spreadsheet-upload"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "external-training",
       "featureConfidence": "high",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "no",
