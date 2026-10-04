@@ -87,6 +87,10 @@ const TRAINER = {
 	kvk: '81234567',
 }
 const WERKPROCES = `B1-K1-W${RUN.slice(-2)}`
+// What her page really shows. `poWerkprocesAssessments` declares its columns
+// as the work process, the judgement and the date, so the code is in the row
+// but never on screen; the label is what she reads.
+const WERKPROCES_LABEL = `Voert installatiewerkzaamheden uit (${RUN})`
 
 test.describe.configure({ mode: 'serial' })
 
@@ -259,7 +263,7 @@ test.describe('trainer: an invited workplace trainer', () => {
 					kwalificatiedossierCode: '25605',
 					coreTaskCode: 'B1-K1',
 					werkprocesCode: WERKPROCES,
-					werkprocesLabel: 'Voert installatiewerkzaamheden uit',
+					werkprocesLabel: WERKPROCES_LABEL,
 					assessment: 'competent',
 					notes,
 				},
@@ -304,7 +308,7 @@ test.describe('trainer: an invited workplace trainer', () => {
 		)
 		await openRoute(trainer.page, PORTAL, 'learniq/poWerkprocesAssessments')
 		await shot(trainer.page, SHOTS, 'd1-assessments')
-		await expect(trainer.page.getByText(WERKPROCES).first()).toBeVisible({
+		await expect(trainer.page.getByText(WERKPROCES_LABEL).first()).toBeVisible({
 			timeout: 20_000,
 		})
 

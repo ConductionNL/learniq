@@ -119,6 +119,9 @@ test.describe('pupil: her own portal', () => {
 	let pupil: PortalLogin
 	let profileRef = ''
 	let submissionId = ''
+	// A second draft, which nothing hands in: step c hands the first one in,
+	// so a step that wants to see a draft needs one of its own.
+	let waitingSubmissionId = ''
 	let otherProfileRef = ''
 	let assignmentId = ''
 	let assignmentTitle = ''
@@ -225,6 +228,14 @@ test.describe('pupil: her own portal', () => {
 			lifecycle: 'draft',
 		})
 		submissionId = String(draft.id)
+
+		const waiting = await createRow(admin, created, 'learniq', 'submission', {
+			assignmentId,
+			learnerIds: [learnerId],
+			tenant_id: String(profile!.tenant_id ?? TENANT),
+			lifecycle: 'draft',
+		})
+		waitingSubmissionId = String(waiting.id)
 
 		// One mark of her own, on a subject this run names, so the assertions
 		// never depend on what the example set happens to hold.
@@ -350,12 +361,20 @@ test.describe('pupil: her own portal', () => {
 		await shot(pupil.page, SHOTS, 'c1-handed-in')
 	})
 
-	test('c2. her draft is on her submissions page, still waiting', async () => {
+	test('c2. a draft she has not handed in is still waiting', async () => {
 		await openRoute(pupil.page, PORTAL, 'learniq/studentSubmissions')
 		await shot(pupil.page, SHOTS, 'c2-submissions')
 		const mine = await portalRows(pupil, 'submission', 'studentSubmissions')
-		const draft = mine.find((row) => String(row.id) === submissionId)
-		expect(draft, 'her own draft').toBeTruthy()
+
+		// The one step c handed in reads as handed in, and the one nothing
+		// touched is still a draft. Reading the first one here is what this
+		// step used to do, and it passed only while the hand-in was broken.
+		const handedIn = mine.find((row) => String(row.id) === submissionId)
+		expect(handedIn, 'the draft step c handed in').toBeTruthy()
+		expect(handedIn?.lifecycle).not.toBe('draft')
+
+		const draft = mine.find((row) => String(row.id) === waitingSubmissionId)
+		expect(draft, 'the draft nothing handed in').toBeTruthy()
 		expect(draft?.lifecycle).toBe('draft')
 		// Every submission she reads is her own.
 		expect(new Set(mine.map((row) => row.learnerRef))).toEqual(
@@ -445,6 +464,10 @@ test.describe('pupil: her own portal', () => {
 		// signed in: the pupil is the submitter of her own absence.
 		expect(mine?.submittedByRef ?? profileRef).toBe(profileRef)
 
+		// The page was drawn before she sent it, and the site does not push a
+		// new row onto a list it already rendered; her own reload is what she
+		// would do, and what this asserts.
+		await openRoute(pupil.page, PORTAL, 'learniq/studentExcuseRequests')
 		await expect(pupil.page.getByText(reason).first()).toBeVisible({
 			timeout: 20_000,
 		})
