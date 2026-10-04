@@ -111,7 +111,7 @@ class LearningRecordImportService implements LifecycleGuardInterface {
 	 *
 	 * @param array<string,mixed> $object The LearningRecordImport as it would be saved.
 	 * @param string $action The transition, `parse`.
-	 * @param string $userId The caller, or '' without a session.
+	 * @param string $userId The caller, or '' without a session (unused: this guard does not depend on who asks).
 	 *
 	 * @return GuardResult
 	 *

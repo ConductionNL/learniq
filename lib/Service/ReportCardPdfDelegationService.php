@@ -165,7 +165,7 @@ class ReportCardPdfDelegationService implements LifecycleGuardInterface {
 	 *
 	 * @param array<string,mixed> $object The ReportCard as it would be saved.
 	 * @param string $action The transition, `renderToPdf` or `rerenderToPdf`.
-	 * @param string $userId The caller, or '' without a session.
+	 * @param string $userId The caller, or '' without a session (unused: this guard does not depend on who asks).
 	 *
 	 * @return GuardResult Always allow (fail-soft by design).
 	 *

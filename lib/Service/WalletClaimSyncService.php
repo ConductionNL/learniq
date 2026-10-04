@@ -64,7 +64,7 @@ class WalletClaimSyncService implements LifecycleGuardInterface {
 	 *
 	 * @param array<string,mixed> $object The Credential as it would be saved.
 	 * @param string $action The transition, `recordWalletClaim`.
-	 * @param string $userId The caller, or '' without a session.
+	 * @param string $userId The caller, or '' without a session (unused: this guard does not depend on who asks).
 	 *
 	 * @return GuardResult Always allow: this transition has no failure mode.
 	 *

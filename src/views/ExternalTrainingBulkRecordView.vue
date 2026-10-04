@@ -285,6 +285,11 @@ export default {
 		},
 	},
 
+	/**
+	 * Load the learners and regulations, and the batch named in the route.
+	 *
+	 * @spec openspec/specs/external-training-recording/spec.md
+	 */
 	mounted() {
 		this.searchLearners('')
 		this.loadRegulations()
