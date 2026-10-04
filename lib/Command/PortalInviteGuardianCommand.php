@@ -54,6 +54,8 @@ class PortalInviteGuardianCommand extends Command {
 	 * Name, description and arguments.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/portal-guardian-invitation/specs/portal-identity/spec.md#requirement-the-school-links-a-guardian-to-the-parent-portal-req-pid-004
 	 */
 	protected function configure(): void {
 		$this->setName(name: 'learniq:portal:invite-guardian')
@@ -70,6 +72,8 @@ class PortalInviteGuardianCommand extends Command {
 	 * @param OutputInterface $output The output.
 	 *
 	 * @return int
+	 *
+	 * @spec openspec/changes/portal-guardian-invitation/specs/portal-identity/spec.md#requirement-the-school-links-a-guardian-to-the-parent-portal-req-pid-004
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		$result = $this->invitations->invite(

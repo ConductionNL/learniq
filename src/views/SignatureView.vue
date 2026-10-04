@@ -210,6 +210,11 @@ export default {
 		},
 	},
 
+	/**
+	 * Load the object that is signed.
+	 *
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
+	 */
 	async mounted() {
 		try {
 			this.subjectObject = oneObject(

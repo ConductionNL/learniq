@@ -133,7 +133,7 @@ class LearningRecordExportService implements LifecycleGuardInterface {
 	 *
 	 * @param array<string,mixed> $object The LearningRecordExport as it would be saved.
 	 * @param string $action The transition, `generate`.
-	 * @param string $userId The caller, or '' without a session.
+	 * @param string $userId The caller, or '' without a session (unused: this guard does not depend on who asks).
 	 *
 	 * @return GuardResult
 	 *

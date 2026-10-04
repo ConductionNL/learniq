@@ -4,7 +4,10 @@
 		"spdx-copyright": "2026 Conduction B.V.",
 		"change": "manifest-fragment-split",
 		"adr": "ADR-037 modular manifest fragment — never edit src/manifest.json",
-		"description": "ExternalTraining only — Compliance itself stays inside GroupInsight/dashboard.json per Decision 1 (no cross-file children split); see design.md \"Why compliance.json is nearly empty today\"."
+		"description": "ExternalTraining only — Compliance itself stays inside GroupInsight/dashboard.json per Decision 1 (no cross-file children split); see design.md \"Why compliance.json is nearly empty today\".",
+		"menuNotes": {
+			"AbsenceReportsComplianceMenu": "Compliance officers read every absence report (ExcuseRequest grants compliance-officers), but the People group that holds AbsenceReportsMenu does not reach them. menu-layout.json relocates this entry into GroupCompliance. Only compliance-officer: the admin reaches the page under People, and hr has no read on ExcuseRequest."
+		}
 	},
 	"menu": [
 		{
@@ -84,8 +87,7 @@
 						"corporate"
 					]
 				}
-			},
-			"_note": "Compliance officers read every absence report (ExcuseRequest grants compliance-officers), but the People group that holds AbsenceReportsMenu does not reach them. menu-layout.json relocates this entry into GroupCompliance. Only compliance-officer: the admin reaches the page under People, and hr has no read on ExcuseRequest."
+			}
 		},
 		{
 			"id": "RequestExemptionMenu",
