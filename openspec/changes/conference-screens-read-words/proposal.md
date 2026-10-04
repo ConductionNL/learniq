@@ -16,7 +16,7 @@ Seen on the primary-school instance in the review of 2026-10-03:
 - A round page lists its slots by time and teacher name, not by the teacher's user id.
 - The round status and the teacher availability status get labels. Slot field titles read "Conference round", "Starts", "Ends" and "Status".
 - The learner profile schema is titled "Learner profile". Twelve new catalogue keys with their Dutch.
-- Register 0.34.34; the four touched schemas each go up one patch.
+- Register 0.34.38; the four touched schemas each go up one patch.
 
 ## Not changed
 

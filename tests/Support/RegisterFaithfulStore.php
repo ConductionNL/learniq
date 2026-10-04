@@ -24,6 +24,22 @@
  *   on every PostgreSQL install while sqlite answered). This store refuses a
  *   boolean filter the way PostgreSQL does.
  *
+ * - An update that changes a property the register declares `readOnly` is
+ *   refused with OpenRegister's own message ("Cannot modify readOnly
+ *   properties: a, b"), whoever saves and with `_rbac` false or not
+ *   (ObjectService::enforceReadOnlyOnUpdate(); live pass D10: the correction
+ *   was never marked applied because its handler wrote appliedBy/appliedAt).
+ *   A readOnly key left out of the payload, or sent unchanged, is no change.
+ * - An update that moves the schema's lifecycle field runs the declared
+ *   transition on the save path, AFTER the readOnly check, the way
+ *   LifecycleValidationListener (the `requires` guard) and
+ *   LifecycleActionListener (the `actions`) do on ObjectUpdatingEvent. That
+ *   is how OpenRegister writes a readOnly stamp: the declared action writes
+ *   it, never the caller. Register the guards and actions a test needs in
+ *   `$lifecycleGuards` / `$lifecycleActions`; a declared action with no
+ *   registered handler fails loud, as OpenRegister's action registry does. A
+ *   guard nobody registered is not run.
+ *
  * Saves are applied, so a test can read back what a call site wrote.
  *
  * @category Tests
@@ -45,6 +61,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Support;
 
 use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use RuntimeException;
 
 /**
@@ -105,6 +123,34 @@ final class RegisterFaithfulStore {
 	 * @var string|null
 	 */
 	public ?string $failReads = null;
+
+	/**
+	 * Lifecycle action handlers by the class name the register declares.
+	 *
+	 * @var array<string, LifecycleActionInterface>
+	 */
+	public array $lifecycleActions = [];
+
+	/**
+	 * Lifecycle guards by the class name the register declares.
+	 *
+	 * @var array<string, LifecycleGuardInterface>
+	 */
+	public array $lifecycleGuards = [];
+
+	/**
+	 * The uid OpenRegister hands a guard (the session user), '' for none.
+	 *
+	 * @var string
+	 */
+	public string $actingUser = '';
+
+	/**
+	 * Schema definitions by slug, read once from the shipped register.
+	 *
+	 * @var array<string, array<string, mixed>>|null
+	 */
+	private static ?array $definitions = null;
 
 	/**
 	 * Answer a findAll() the way OpenRegister does.
@@ -176,6 +222,18 @@ final class RegisterFaithfulStore {
 		}
 
 		$id = ($uuid ?? ($object['id'] ?? ('new-' . count($this->saves))));
+		$stored = null;
+		foreach (($this->rows[$schema] ?? []) as $row) {
+			if (($row['id'] ?? null) === $id) {
+				$stored = $row;
+			}
+		}
+
+		if ($stored !== null) {
+			self::refuseReadOnlyChanges(schema: $schema, object: $object, stored: $stored);
+			$object = $this->runTransition(schema: $schema, object: $object, stored: $stored);
+		}
+
 		$object['id'] = $id;
 		foreach (($this->rows[$schema] ?? []) as $index => $row) {
 			if (($row['id'] ?? null) === $id) {
@@ -187,6 +245,127 @@ final class RegisterFaithfulStore {
 		$this->rows[$schema][] = $object;
 		return OrEntityFactory::make($object, $schema);
 	}//end save()
+
+	/**
+	 * Refuse an update that changes a readOnly property, as OpenRegister does.
+	 *
+	 * Mirrors ValidateObject::validateReadOnlyConstraints(): a key absent from
+	 * the payload is no change, a value `===` the stored one (absent = null) is
+	 * no change, anything else is a violation. The message is
+	 * ObjectService::describeViolations()'s.
+	 *
+	 * @param string               $schema The schema slug.
+	 * @param array<string, mixed> $object The incoming payload.
+	 * @param array<string, mixed> $stored The stored row.
+	 *
+	 * @return void
+	 *
+	 * @throws RuntimeException When a readOnly property would change.
+	 */
+	private static function refuseReadOnlyChanges(string $schema, array $object, array $stored): void {
+		$violations = [];
+		foreach ((self::definition(schema: $schema)['properties'] ?? []) as $name => $spec) {
+			if (is_array($spec) === false || ($spec['readOnly'] ?? false) !== true) {
+				continue;
+			}
+
+			if (array_key_exists($name, $object) === false || $object[$name] === ($stored[$name] ?? null)) {
+				continue;
+			}
+
+			$violations[] = (string)$name;
+		}
+
+		if ($violations === []) {
+			return;
+		}
+
+		$suffix = (count($violations) === 1) ? 'y' : 'ies';
+		throw new RuntimeException('Cannot modify readOnly propert' . $suffix . ': ' . implode(', ', $violations));
+	}//end refuseReadOnlyChanges()
+
+	/**
+	 * Run the declared transition an update makes, on the save path.
+	 *
+	 * The guard first (LifecycleValidationListener), then the actions in order
+	 * (LifecycleActionExecutor), each handed the object after the move and the
+	 * stored row; what the last action returns is what is saved.
+	 *
+	 * @param string               $schema The schema slug.
+	 * @param array<string, mixed> $object The incoming payload, readOnly-checked.
+	 * @param array<string, mixed> $stored The stored row.
+	 *
+	 * @return array<string, mixed> The object to save.
+	 *
+	 * @throws RuntimeException When the guard denies or a declared action has no handler.
+	 */
+	private function runTransition(string $schema, array $object, array $stored): array {
+		$annotation = (self::definition(schema: $schema)['x-openregister-lifecycle'] ?? null);
+		if (is_array($annotation) === false) {
+			return $object;
+		}
+
+		$field = (string)($annotation['field'] ?? ($annotation['property'] ?? ''));
+		$old = ($stored[$field] ?? null);
+		$new = ($object[$field] ?? null);
+		if ($field === '' || is_string($new) === false || $old === $new) {
+			return $object;
+		}
+
+		foreach (($annotation['transitions'] ?? []) as $action => $spec) {
+			if (in_array($old, (array)($spec['from'] ?? []), true) === false || ($spec['to'] ?? null) !== $new) {
+				continue;
+			}
+
+			$guard = (string)($spec['requires'] ?? '');
+			if ($guard !== '' && isset($this->lifecycleGuards[$guard]) === true) {
+				$verdict = $this->lifecycleGuards[$guard]->check($object, (string)$action, $this->actingUser);
+				if ($verdict->isAllowed() === false) {
+					throw new RuntimeException((string)($verdict->getMessage() ?? 'Transition denied by guard.'));
+				}
+			}
+
+			foreach (($spec['actions'] ?? []) as $envelope) {
+				$name = (string)($envelope['action'] ?? '');
+				if (isset($this->lifecycleActions[$name]) === false) {
+					throw new RuntimeException(sprintf('No lifecycle action handler is registered for "%s".', $name));
+				}
+
+				$object = $this->lifecycleActions[$name]->execute(
+					$object,
+					$stored,
+					(array)($envelope['actionParameters'] ?? []),
+					$name
+				);
+			}
+
+			return $object;
+		}//end foreach
+
+		return $object;
+	}//end runTransition()
+
+	/**
+	 * A schema's definition from the shipped register.
+	 *
+	 * @param string $schema The schema slug.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function definition(string $schema): array {
+		if (self::$definitions === null) {
+			self::$definitions = [];
+			$register = json_decode(
+				(string)file_get_contents(__DIR__ . '/../../lib/Settings/learniq_register.json'),
+				true
+			);
+			foreach (($register['components']['schemas'] ?? []) as $name => $definition) {
+				self::$definitions[(string)($definition['slug'] ?? $name)] = $definition;
+			}
+		}
+
+		return (self::$definitions[$schema] ?? []);
+	}//end definition()
 
 	/**
 	 * Whether a row passes every filter; an undeclared key matches nothing.

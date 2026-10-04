@@ -10,4 +10,4 @@
   - node test "every status a conference screen shows has a label in Dutch"
 - [x] **1.5** the schemas a Related panel names read as words, in Dutch too
   - node test "the schemas a Related panel names read as words, in Dutch too"
-- [x] **1.6** register 0.34.34, schema versions bumped, `check:schema-l10n` baseline lowered (2226 to 2221)
+- [x] **1.6** register 0.34.38, schema versions bumped, `check:schema-l10n` baseline lowered (2225 to 2221)

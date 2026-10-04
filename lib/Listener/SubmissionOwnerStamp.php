@@ -41,6 +41,7 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Service\LearnerRefResolver;
+use OCA\Learniq\Service\Portal\PortalWriteSubject;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -48,7 +49,6 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -82,8 +82,8 @@ class SubmissionOwnerStamp implements IEventListener {
 	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
 	 * @param LearnerRefResolver $profiles LearnerProfile by uuid, uuid by user.
 	 * @param ObjectService $objectService OpenRegister object access (the Assignment).
-	 * @param IUserSession $userSession Tells a portal write (no session) from an app write.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param PortalWriteSubject $writers Whether the portal's own subject is writing.
 	 *
 	 * @return void
 	 */
@@ -91,8 +91,8 @@ class SubmissionOwnerStamp implements IEventListener {
 		private readonly ListenerSchemaResolver $schemaResolver,
 		private readonly LearnerRefResolver $profiles,
 		private readonly ObjectService $objectService,
-		private readonly IUserSession $userSession,
 		private readonly LoggerInterface $logger,
+		private readonly PortalWriteSubject $writers,
 	) {
 	}//end __construct()
 
@@ -157,13 +157,18 @@ class SubmissionOwnerStamp implements IEventListener {
 	 * @return bool
 	 */
 	private function isPortalHandIn(array $payload): bool {
-		if ($this->userSession->getUser() !== null || $this->firstLearner(payload: $payload) !== '') {
+		if ($this->firstLearner(payload: $payload) !== '') {
 			return false;
 		}
 
 		$learnerRef = ($payload['learnerRef'] ?? '');
+		if (is_string($learnerRef) === false || $learnerRef === '') {
+			return false;
+		}
 
-		return is_string($learnerRef) === true && $learnerRef !== '';
+		// Who wrote it decides the branch, not whether anybody is signed in
+		// (PortalWriteSubject).
+		return $this->writers->wroteItThemselves(ref: $learnerRef);
 	}//end isPortalHandIn()
 
 	/**

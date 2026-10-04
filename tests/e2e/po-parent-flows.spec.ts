@@ -61,7 +61,7 @@
  * @spec openspec/changes/portal-parent-child-record/specs/portal-contribution/spec.md
  */
 
-import type { APIRequestContext, Browser, Page } from '@playwright/test'
+import type { APIRequestContext, Browser, Locator, Page } from '@playwright/test'
 import type { StubDigid } from './helpers/stub-digid.ts'
 
 import { expect, request, test } from '@playwright/test'
@@ -98,6 +98,8 @@ const CHILD = {
 	name: 'Vera',
 	userId: 'po-leerling-147',
 }
+// Vera's younger brother in groep 3 (po example set, learniq#1647).
+const SIBLING = { ref: 'ee010008-0000-4000-8000-000000000467', name: 'Sami' }
 const OTHER_CHILD = 'ee010008-0000-4000-8000-000000000411'
 const GROUP_7 = 'ee010006-0000-4000-8000-000000000006'
 const REPORT_PERIOD_1 = 'ee01000b-0000-4000-8000-000000000001'
@@ -124,6 +126,8 @@ test.describe('po: teacher and parent flows', () => {
 	let token = ''
 	let admin: APIRequestContext
 	let teacher: APIRequestContext
+	// What this run wrote, newest last, so afterAll can take it away again.
+	const created: Array<{ schema: string; id: string }> = []
 
 	test.beforeAll(async ({ browser }) => {
 		// Room for the sign-in's retries (see signInAsGuardian).
@@ -149,13 +153,38 @@ test.describe('po: teacher and parent flows', () => {
 	})
 
 	test.afterAll(async () => {
+		// Take this run's rows away again. A conference round left behind stays
+		// `booking-open` and keeps showing as a task on the guardian's overview,
+		// so every run added one more. Newest first, because a slot points at
+		// its round. A refusal is reported, never thrown: the suite's verdict is
+		// the tests', not the cleanup's.
+		const failed: string[] = []
+		for (const row of [...created].reverse()) {
+			const res = await teacher
+				.delete(
+					`/apps/openregister/api/objects/learniq/${row.schema}/${row.id}`,
+				)
+				.catch(() => null)
+			if (!res || res.status() >= 300) {
+				failed.push(
+					`${row.schema}/${row.id}${res ? ` (${res.status()})` : ''}`,
+				)
+			}
+		}
+		console.log(
+			`po-flow cleanup: removed ${created.length - failed.length} of ${created.length} row(s)`,
+		)
+		if (failed.length > 0) {
+			console.warn(`po-flow cleanup could not remove: ${failed.join(', ')}`)
+		}
+		created.length = 0
 		await stub?.close()
 	})
 
 	test('a. the guardian sees her own child and nothing of another child', async () => {
 		await shot(parent, 'a1-portal-home')
-		await openPage(parent, 'learniq/parentChildren')
-		// One child opens at once: her name heads her record page.
+		// Two children, so the route names Vera; her name heads her record page.
+		await openPage(parent, `learniq/parentChildren/${CHILD.ref}`)
 		await expect(parent.getByTestId('record-head')).toContainText(CHILD.name)
 		await shot(parent, 'a2-my-children')
 		await openPage(parent, 'learniq/parentAttendance')
@@ -163,8 +192,16 @@ test.describe('po: teacher and parent flows', () => {
 		await openPage(parent, 'learniq/parentReportCards')
 		await shot(parent, 'a4-report-cards')
 
+		// She reads her own children and nobody else's. Sami is in the po set
+		// since learniq#1647, but an instance seeded before it has only Vera,
+		// so the test pins the rule, not how often the set was loaded.
 		const children = await portalRows('learner-profile', 'parentChildren')
-		expect(children.map((row) => row.id)).toEqual([CHILD.ref])
+		const ids = children.map((row) => row.id)
+		expect(ids).toContain(CHILD.ref)
+		expect(ids).not.toContain(OTHER_CHILD)
+		expect(ids.filter((id) => id !== CHILD.ref && id !== SIBLING.ref)).toEqual(
+			[],
+		)
 
 		const attendance = await portalRows('attendance-record', 'parentAttendance')
 		expect(attendance.length).toBeGreaterThan(0)
@@ -200,12 +237,14 @@ test.describe('po: teacher and parent flows', () => {
 		await form
 			.getByRole('combobox', { name: 'Kind', exact: true })
 			.selectOption({ label: CHILD.name })
-		await form.getByLabel('Eerste dag afwezig').fill('2026-10-01')
-		await form.getByLabel('Laatste dag afwezig').fill('2026-10-01')
+		await fillDate(form, 'Eerste dag afwezig', '2026-10-01')
+		await fillDate(form, 'Laatste dag afwezig', '2026-10-01')
 		await form.getByRole('textbox', { name: 'Reden', exact: true }).fill(reason)
+		// Two cards and "Een andere reden" (choice cards, portaliq#1137).
 		await form
-			.getByRole('combobox', { name: 'Soort afwezigheid' })
-			.selectOption('illness')
+			.getByRole('group', { name: 'Soort afwezigheid', exact: true })
+			.getByRole('radio', { name: 'Ziekte', exact: true })
+			.check()
 		await shot(parent, 'b0-absence-form')
 		await form.getByRole('button', { name: 'Afwezigheid melden' }).click()
 		await expect
@@ -336,7 +375,7 @@ test.describe('po: teacher and parent flows', () => {
 		const note = `Graag over lezen praten (${RUN})`
 		const round = await openBookingRound(name)
 		await openPage(parent, 'learniq/parentConferenceSignups')
-		const form = parent.getByRole('form', { name: 'Oudergesprek aanvragen' })
+		const form = parent.getByRole('form', { name: 'Stuur uw voorkeur' })
 		await form
 			.getByRole('combobox', { name: 'Oudergespreksronde' })
 			.selectOption({ label: name })
@@ -345,7 +384,9 @@ test.describe('po: teacher and parent flows', () => {
 			.selectOption({ label: CHILD.name })
 		await form.getByLabel('Wat de leerkracht vooraf moet weten').fill(note)
 		await shot(parent, 'd0-booking-form')
-		await form.getByRole('button', { name: 'Boeken', exact: true }).click()
+		await form
+			.getByRole('button', { name: 'Voorkeur versturen', exact: true })
+			.click()
 		await expect
 			.poll(
 				async () =>
@@ -560,10 +601,12 @@ test.describe('po: teacher and parent flows', () => {
 		// The free times page carries the booking form.
 		await openPage(parent, 'learniq/parentConferenceFreeSlots')
 		await shot(parent, 'd2-free-times')
-		const form = parent.getByRole('form', { name: 'Tijd boeken' })
+		const form = parent.getByRole('form', { name: 'Kies een tijd' })
 		await form
 			.getByRole('combobox', { name: 'Kind', exact: true })
 			.selectOption({ label: CHILD.name })
+		// The booking form names the time as its own required field
+		// (requiredFields, portaliq#1139), so it reads "Tijd" without a suffix.
 		await form
 			.getByRole('combobox', { name: 'Tijd', exact: true })
 			.selectOption({ label: first.slotLabel })
@@ -644,7 +687,7 @@ test.describe('po: teacher and parent flows', () => {
 	})
 
 	test('f. the guardian opens her child: figures, report cards, homework, attendance, calendar and news', async () => {
-		await openPage(parent, 'learniq/parentChildren')
+		await openPage(parent, `learniq/parentChildren/${CHILD.ref}`)
 		const head = parent.getByTestId('record-head')
 		await expect(head).toContainText(`${CHILD.name} Hulstkamp`)
 
@@ -682,6 +725,14 @@ test.describe('po: teacher and parent flows', () => {
 		)
 		expect(new Set(events.map((row) => row.schoolId))).toEqual(new Set([SCHOOL]))
 		const periods = await portalRows('report-period', 'parentSchoolCalendar')
+		// The join is on the child's school, so a ReportPeriod seeded before
+		// `schoolId` existed (portal-parent-child-record) reaches nobody. The
+		// precondition is named here, or the next reader reads an empty
+		// holidays list as a broken calendar.
+		expect(
+			periods.map((row) => row.id),
+			'no report period reached the guardian: reload the po example set, whose periods name their school',
+		).not.toEqual([])
 		expect(
 			periods.flatMap((row) =>
 				row.holidays.map((h: { name: string }) => h.name),
@@ -840,7 +891,12 @@ test.describe('po: teacher and parent flows', () => {
 			{ data },
 		)
 		expect(res.status(), await res.text()).toBeLessThan(300)
-		return await res.json()
+		const row = await res.json()
+		const id = String(row?.id ?? row?.uuid ?? '')
+		if (id !== '') {
+			created.push({ schema, id })
+		}
+		return row
 	}
 
 	/**
@@ -977,14 +1033,41 @@ async function openPage(page: Page, route: string): Promise<void> {
 /**
  * Wait until the signed-in area of the site shows its page title.
  *
+ * Every signed-in page heads itself with `#site-account-title`: a contributed
+ * page with its label (portaliq `AccountArea.vue`), and the `/mijn` home with
+ * the greeting (`MijnHome.vue`), which renders the id but no `data-testid`.
+ * The id is what both share, so the wait reads it rather than the test id.
+ *
  * @param {Page} page The site page.
  * @return {Promise<void>}
  */
 async function waitForAccountPage(page: Page): Promise<void> {
-	await page.getByTestId('site-account-title').first().waitFor({ timeout: 20_000 })
+	await page.locator('#site-account-title').first().waitFor({ timeout: 20_000 })
 	await page
 		.waitForLoadState('networkidle', { timeout: 10_000 })
 		.catch(() => undefined)
+}
+
+/**
+ * Fill a site date field: three boxes (Dag, Maand, Jaar) in a group named by
+ * the field's label (portaliq#1130, site-multi-step-forms).
+ *
+ * @param {Locator} form The form.
+ * @param {string} label The field's label, the group's name.
+ * @param {string} iso The date as YYYY-MM-DD.
+ * @return {Promise<void>}
+ */
+async function fillDate(form: Locator, label: string, iso: string): Promise<void> {
+	const [year, month, day] = iso.split('-')
+	const group = form.getByRole('group', { name: label, exact: true })
+	// With named days (dateChoices) the boxes open behind "Een andere dag".
+	const other = group.getByRole('radio', { name: 'Een andere dag', exact: true })
+	if ((await other.count()) > 0) {
+		await other.check()
+	}
+	await group.getByLabel('Dag', { exact: true }).fill(day)
+	await group.getByLabel('Maand', { exact: true }).fill(month)
+	await group.getByLabel('Jaar', { exact: true }).fill(year)
 }
 
 /**
