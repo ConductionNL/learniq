@@ -59,14 +59,13 @@ import {
 	grantPortalAccount,
 	nextcloudAccountExists,
 	offerSignInMode,
+	openHome,
 	openRoute,
 	portalRows,
 	removeNextcloudAccount,
 	removeRows,
 	shot,
 	signInWithNextcloudAccount,
-	siteUrl,
-	waitForAccountPage,
 } from './helpers/portal-fixture.ts'
 
 const ENABLED = process.env.AUDIENCE_FLOW_E2E === '1'
@@ -506,10 +505,12 @@ test.describe('trainer: an invited workplace trainer', () => {
 		// progress away and the cards keep no bar.
 		expect(Number(placement?.agreedHours ?? -1)).toBe(AGREED_HOURS)
 
-		// Her overview is the signed-in home, so it is reached by the portal's
-		// own URL rather than a page route.
-		await trainer.page.goto(siteUrl(PORTAL))
-		await waitForAccountPage(trainer.page)
+		// Her overview is a contributed page on the signed-in route `/mijn`,
+		// reached the way every other step reaches its page. The bare portal
+		// URL is the CMS page slot, and this school's portal has no CMS home
+		// page, so it answers "Deze pagina bestaat niet (meer)" even to a
+		// signed-in trainer (found live, 4 October 2026).
+		await openHome(trainer.page, PORTAL)
 		await shot(trainer.page, SHOTS, 'g1-overview-hours')
 		await expect(
 			trainer.page.getByText(String(AGREED_HOURS)).first(),

@@ -506,6 +506,27 @@ export async function openRoute(
 }
 
 /**
+ * Open the signed-in home, the contributed `/mijn` overview.
+ *
+ * WHY NOT THE BARE PORTAL URL. `siteUrl(portal)` with no `route` is the CMS
+ * page slot, not the signed-in area. A portal with no CMS home page renders
+ * "Deze pagina bestaat niet (meer)" there, even for a signed-in visitor, so a
+ * suite that navigated to it timed out waiting for an account title that was
+ * never going to appear. Measured on :8090 on 4 October 2026: the
+ * `portaliq/page` schema held four pages and none belonged to the school's
+ * portal. The overview is a contributed page, so it is reached by its route
+ * like every other one.
+ *
+ * @param {Page} page The site page.
+ * @param {string} portal The portal slug.
+ * @return {Promise<void>}
+ */
+export async function openHome(page: Page, portal: string): Promise<void> {
+	await page.goto(`${siteUrl(portal)}&route=${encodeURIComponent('/mijn')}`)
+	await waitForAccountPage(page)
+}
+
+/**
  * Wait until the signed-in area shows its page title.
  *
  * Every signed-in page heads itself with `#site-account-title`: a contributed
