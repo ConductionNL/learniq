@@ -26,6 +26,7 @@ use OCA\Learniq\Service\ReadableCopies;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\IUserManager;
 use OCP\Migration\IOutput;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -42,6 +43,20 @@ class BackfillReadableCopiesTest extends TestCase {
 	 * @var RegisterFaithfulStore
 	 */
 	private RegisterFaithfulStore $store;
+
+	/**
+	 * A user manager that knows one teacher's display name.
+	 *
+	 * @return IUserManager
+	 */
+	private function users(): IUserManager {
+		$users = $this->createMock(IUserManager::class);
+		$users->method('getDisplayName')->willReturnCallback(
+			static fn (string $uid): ?string => ['po-leerkracht-09' => 'Meester Daan'][$uid] ?? null
+		);
+
+		return $users;
+	}//end users()
 
 	/**
 	 * Build the step over a real ReadableCopies and the fake store.
@@ -61,6 +76,10 @@ class BackfillReadableCopiesTest extends TestCase {
 			],
 			'enrolment' => [['id' => 'enrolment-old', 'cohortId' => 'cohort-6']],
 			'portfolio-share' => [['id' => 'share-old', 'portfolioId' => 'portfolio-1']],
+			'teacher-availability' => [
+				['id' => 'availability-old', 'teacherId' => 'po-leerkracht-09', 'blocks' => []],
+				['id' => 'availability-done', 'teacherId' => 'po-leerkracht-09', 'teacherName' => 'Meester Daan', 'blocks' => []],
+			],
 		];
 
 		$objectService = $this->createMock(ObjectService::class);
@@ -73,7 +92,7 @@ class BackfillReadableCopiesTest extends TestCase {
 
 		return new BackfillReadableCopies(
 			objectService: $objectService,
-			copies: new ReadableCopies(objectService: $objectService),
+			copies: new ReadableCopies(objectService: $objectService, users: $this->users()),
 			logger: new NullLogger(),
 		);
 	}//end makeStep()
@@ -91,7 +110,8 @@ class BackfillReadableCopiesTest extends TestCase {
 			$saved[$save['uuid']] = $save['object'];
 		}
 
-		self::assertSame(['grade-old', 'enrolment-old', 'share-old'], array_keys($saved));
+		self::assertSame(['grade-old', 'enrolment-old', 'share-old', 'availability-old'], array_keys($saved));
+		self::assertSame('Meester Daan', $saved['availability-old']['teacherName']);
 		self::assertSame('Rekenen', $saved['grade-old']['courseName']);
 		self::assertArrayNotHasKey('@self', $saved['grade-old']);
 		self::assertSame('Groep 6', $saved['enrolment-old']['cohortName']);
@@ -166,7 +186,7 @@ class BackfillReadableCopiesTest extends TestCase {
 			$messages[] = $message;
 		});
 
-		(new BackfillReadableCopies(objectService: $objectService, copies: new ReadableCopies(objectService: $objectService), logger: new NullLogger()))->run($output);
+		(new BackfillReadableCopies(objectService: $objectService, copies: new ReadableCopies(objectService: $objectService, users: $this->users()), logger: new NullLogger()))->run($output);
 
 		self::assertSame(['enrolment-ok' => 'Groep 6'], $saved);
 		self::assertContains('BackfillReadableCopies enrolment: 1 stamped, 1 failed, of 3 scanned.', $messages);

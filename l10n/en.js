@@ -3344,7 +3344,9 @@ OC.L10N.register(
         "Conference Signup": "Conference Signup",
         "Conference Report": "Conference Report",
         "Conference Round": "Conference Round",
-        "Conference Slot": "Conference Slot"
+        "Conference Slot": "Conference Slot",
+        "Times": "Times",
+        "The teacher's name, as a list reads it. The server copies it from the teacher's account on every save; a value sent for it is replaced.": "The teacher's name, as a list reads it. The server copies it from the teacher's account on every save; a value sent for it is replaced."
     },
     "nplurals=2; plural=(n != 1);"
 )
