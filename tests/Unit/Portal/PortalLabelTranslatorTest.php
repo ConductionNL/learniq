@@ -117,6 +117,7 @@ class PortalLabelTranslatorTest extends TestCase {
 	 */
 	private static function isVisible(string $path): bool {
 		return preg_match('#/(label|submitLabel|successMessage|unit|fallback|group|otherLabel|requiredMessage)$#', $path) === 1
+			|| preg_match('#/(label|unit)/(one|other)$#', $path) === 1
 			|| preg_match('#/sources/\d+/(kind|title)$#', $path) === 1
 			|| preg_match('#/values/[^/]+$#', $path) === 1;
 	}//end isVisible()
@@ -294,6 +295,28 @@ class PortalLabelTranslatorTest extends TestCase {
 		self::assertSame('Ziekte', $kinds['illness']);
 		self::assertSame('Medische afspraak', $kinds['medical-appointment']);
 	}//end testStatusesAndAbsenceKindsArriveInDutch()
+
+	/**
+	 * The figure cards arrive in Dutch singular and plural: "1 dag" and
+	 * "5 dagen", "1 keer", and "1 minuut in totaal" (lq-polish, 2026-10-03).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/parent-figures-singular-and-plural/specs/portal-contribution/spec.md#requirement-the-figure-cards-count-in-singular-and-plural
+	 */
+	public function testTheFigureCardsArriveInDutchSingularAndPlural(): void {
+		$factory = $this->createMock(IFactory::class);
+		$factory->method('get')->with('learniq')->willReturn($this->dutchL10n());
+
+		$manifest = (new PortalContributionProvider(l10nFactory: $factory))->getContribution(['audience' => 'parent']);
+		$record   = array_column($manifest['pages'], null, 'id')['parentChildren'];
+		$kpi      = array_values(array_filter($record['blocks'], static fn (array $b): bool => $b['type'] === 'kpi'))[0];
+
+		self::assertSame(['one' => 'dag', 'other' => 'dagen'], $kpi['cards'][0]['unit']);
+		self::assertSame(['one' => 'keer', 'other' => 'keer'], $kpi['cards'][1]['unit']);
+		self::assertSame(['one' => 'minuut in totaal', 'other' => 'minuten in totaal'], $kpi['cards'][1]['details'][0]['label']);
+		self::assertSame('met toestemming', $kpi['cards'][0]['details'][0]['label']);
+	}//end testTheFigureCardsArriveInDutchSingularAndPlural()
 
 	/**
 	 * Every labelled value is a value the schema stores, and every value the
