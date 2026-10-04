@@ -218,6 +218,28 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 	/**
 	 * Load the parent Assignment, scoped to the Submission's tenant.
 	 *
+	 * WHY THIS READS WITH RBAC OFF. The guard runs on two kinds of caller. A
+	 * teacher hands work in with a Nextcloud session; a pupil hands it in from
+	 * the portal, where `PortalSubmissionController::handIn()` is
+	 * `#[PublicPage]` and the receiver has no session at all. With RBAC on,
+	 * that second caller read NOTHING here, the guard answered "Assignment not
+	 * found", and every portal hand-in was refused with a message about the
+	 * deadline. Measured on a live instance on 4 October 2026
+	 * (pupil-flows.spec.ts, step c): 422 `hand_in_refused`, and the log line
+	 * `[SubmissionWindowGuard] Assignment <uuid> not found; blocking hand-in.`
+	 * while the same transition as the pupil's own account succeeded.
+	 *
+	 * Turning RBAC off here is not a hole, for three reasons. Nothing read is
+	 * returned to anyone: the method answers a `GuardResult`, which is an
+	 * allow or a refusal message about a deadline. The tenant filter below is
+	 * kept and is the isolation that matters — it is applied explicitly rather
+	 * than left to the session. And who may hand in is settled separately by
+	 * `callerMayHandIn()`, against the Submission's own learners.
+	 *
+	 * This mirrors the sibling read in `PortalSubmissionHandIn::submission()`,
+	 * which already passes `_rbac: false, _multitenancy: false` with the
+	 * comment "the receiver has no session".
+	 *
 	 * @param string $assignmentId The Assignment UUID.
 	 * @param string $tenantId     The tenant UUID, '' when unscoped.
 	 *
@@ -241,7 +263,9 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 					]
 				),
 				'limit' => 1,
-			]
+			],
+			_rbac: false,
+			_multitenancy: false
 		);
 
 		if (empty($assignments) === true) {
