@@ -4,7 +4,11 @@
 		"spdx-copyright": "2026 Conduction B.V.",
 		"change": "manifest-fragment-split",
 		"adr": "ADR-037 modular manifest fragment — never edit src/manifest.json",
-		"description": "GroupPeople. Also carries the former people-dashboard.json content (GroupPeople.route + the PeopleDashboard page)."
+		"description": "GroupPeople. Also carries the former people-dashboard.json content (GroupPeople.route + the PeopleDashboard page).",
+		"menuNotes": {
+			"RollCallMenu": "attendance-roll-call: the day's register of one group. A group teacher lands on their own group and today; coordinators and administration-managers pick any group. The server (RollCallService) decides who may open which group, so the gate here only decides who sees the entry.",
+			"AbsenceReportsMenu": "The absence reports guardians and the school file (ExcuseRequest). The list reads only what the register lets the user read: a group teacher sees the reports of their own groups (teacherIds), coordinators and directors the whole school. hr is left out because ExcuseRequest does not grant it. Compliance officers can read the reports too, but GroupPeople does not reach them, so AbsenceReportsComplianceMenu gives them the same page under Compliance. School-only, like the AttendanceFlags report card."
+		}
 	},
 	"menu": [
 		{
@@ -88,8 +92,7 @@
 								"admin"
 							]
 						}
-					},
-					"_note": "attendance-roll-call: the day's register of one group. A group teacher lands on their own group and today; coordinators and administration-managers pick any group. The server (RollCallService) decides who may open which group, so the gate here only decides who sees the entry."
+					}
 				},
 				{
 					"id": "Attendance",
@@ -129,8 +132,7 @@
 								"corporate"
 							]
 						}
-					},
-					"_note": "The absence reports guardians and the school file (ExcuseRequest). The list reads only what the register lets the user read: a group teacher sees the reports of their own groups (teacherIds), coordinators and directors the whole school. hr is left out because ExcuseRequest does not grant it. Compliance officers can read the reports too, but GroupPeople does not reach them, so AbsenceReportsComplianceMenu gives them the same page under Compliance. School-only, like the AttendanceFlags report card."
+					}
 				},
 				{
 					"id": "Credentials",
