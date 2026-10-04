@@ -184,7 +184,7 @@ class PortalContributionProviderTest extends TestCase {
 
 	/**
 	 * The student manifest is labelled and carries all four sections, with the
-	 * six learner-scoped read collections plus the inbox.
+	 * ten learner-scoped read collections plus the inbox.
 	 *
 	 * @return void
 	 */
@@ -196,7 +196,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(9, $collections);
+		$this->assertCount(11, $collections);
 		$this->assertSame(
 			[
 				'studentGrades',
@@ -204,6 +204,10 @@ class PortalContributionProviderTest extends TestCase {
 				'studentAttendance',
 				'studentEnrolments',
 				'studentSubmissions',
+				// internship-hours: her own placement, and one row per week of
+				// hours with both numbers on it.
+				'studentBpvPlacements',
+				'studentHourWeeks',
 				'studentExcuseRequests',
 				'studentInbox',
 				'studentTests',
@@ -264,17 +268,31 @@ class PortalContributionProviderTest extends TestCase {
 		$actions = $manifest['actions'];
 
 		$this->assertSame(
-			['createSubmission', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn'],
+			['createSubmission', 'submitHourWeek', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn'],
 			array_column($actions, 'id')
 		);
+		$byId = array_column($actions, null, 'id');
 
-		$submission = $actions[0];
+		$submission = $byId['createSubmission'];
 		$this->assertSame('create', $submission['type']);
 		$this->assertSame('submission', $submission['schema']);
 		$this->assertSame('learnerRef', $submission['scopeField']);
 		$this->assertSame(['assignmentId', 'attachmentRefs'], $submission['fields']);
 
-		$excuse = $actions[1];
+		// internship-hours: she enters a week of her own placement's hours and
+		// nothing else. Who she is, when she sent it, the hours her trainer
+		// approved and the state are all server-written.
+		$hours = $byId['submitHourWeek'];
+		$this->assertSame('create', $hours['type']);
+		$this->assertSame('bpv-hour-week', $hours['schema']);
+		$this->assertSame('learnerRef', $hours['scopeField']);
+		$this->assertSame('low', $hours['minTrust']);
+		$this->assertSame(['bpvPlacementId', 'isoWeek', 'hoursSubmitted'], $hours['fields']);
+		foreach (['learnerRef', 'submittedBy', 'submittedAt', 'hoursApproved', 'approvedBy', 'approvedByName', 'assuranceLevel', 'lifecycle', 'tenant_id'] as $server) {
+			$this->assertNotContains($server, $hours['fields'], $server);
+		}
+
+		$excuse = $byId['createExcuseRequest'];
 		$this->assertSame('create', $excuse['type']);
 		$this->assertSame('excuse-request', $excuse['schema']);
 		$this->assertSame('learnerRef', $excuse['scopeField']);
@@ -742,10 +760,11 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		// Her placements, the portfolios shared with her, and the assessments
-		// she wrote (site-workplace-trainer-portal-design).
+		// Her placements, the portfolios shared with her, the assessments she
+		// wrote (site-workplace-trainer-portal-design) and the weeks of hours
+		// waiting for her (internship-hours).
 		$this->assertSame(
-			['poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments'],
+			['poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments', 'poHourWeeks'],
 			array_column($collections, 'id')
 		);
 		$collection = $collections[0];
@@ -842,12 +861,16 @@ class PortalContributionProviderTest extends TestCase {
 		$manifest = $this->provider->getContribution(self::PRAKTIJKOPLEIDER_SUBJECT);
 		$actions = $manifest['actions'];
 
-		$this->assertSame(['createWerkprocesAssessment', 'signPraktijkovereenkomst'], array_column($actions, 'id'));
+		$this->assertSame(
+			['createWerkprocesAssessment', 'approveHourWeek', 'signPraktijkovereenkomst'],
+			array_column($actions, 'id')
+		);
+		$byId = array_column($actions, null, 'id');
 
 		// an-invited-trainer-may-assess: the assessment posts to learniq's own
 		// endpoint, because only a forward carries the sign-in level, and an
 		// invited trainer may assess.
-		$assessment = $actions[0];
+		$assessment = $byId['createWerkprocesAssessment'];
 		$this->assertSame('endpoint-forward', $assessment['type']);
 		$this->assertSame('/apps/learniq/api/portal/werkproces-assessments', $assessment['endpoint']);
 		$this->assertSame('POST', $assessment['method']);
@@ -875,11 +898,27 @@ class PortalContributionProviderTest extends TestCase {
 			$this->assertNotContains($server, $assessment['fields'], $server);
 		}
 
+		// internship-hours: approving a week is her word about a student's
+		// record, like an assessment, so it takes the same route and the same
+		// floor. The hours she approves and her note are hers to send; who
+		// approved, when, and how sure the school is are not.
+		$approval = $byId['approveHourWeek'];
+		$this->assertSame('endpoint-forward', $approval['type']);
+		$this->assertSame('/apps/learniq/api/portal/hour-weeks/approve', $approval['endpoint']);
+		$this->assertSame('POST', $approval['method']);
+		$this->assertArrayNotHasKey('schema', $approval);
+		$this->assertSame('practicalTrainerId', $approval['subjectField']);
+		$this->assertSame('practicalTrainerId', $approval['scopeClaim']);
+		$this->assertSame('low', $approval['minTrust']);
+		$this->assertSame(['hourWeekId', 'hoursApproved', 'note'], $approval['fields']);
+		foreach (['approvedBy', 'approvedByName', 'approvedAt', 'assuranceLevel', 'lifecycle', 'hoursSubmitted', 'learnerRef'] as $server) {
+			$this->assertNotContains($server, $approval['fields'], $server);
+		}
+
 		// The POK signature is a contract signature, not an assessment: it keeps
 		// its substantial floor until Ruben says otherwise.
-		$this->assertSame('substantial', $actions[1]['minTrust']);
-
-		$signature = $actions[1];
+		$signature = $byId['signPraktijkovereenkomst'];
+		$this->assertSame('substantial', $signature['minTrust']);
 		$this->assertSame('create', $signature['type']);
 		$this->assertSame('pok-signature', $signature['schema']);
 		$this->assertSame('signerId', $signature['scopeField']);

@@ -20408,6 +20408,159 @@
         },
         "x-openregister-seed": [],
         "appendOnly": true
+      },
+      "BpvHourWeek": {
+        "slug": "bpv-hour-week",
+        "icon": "clock-outline",
+        "version": "0.2.0",
+        "title": "BpvHourWeek",
+        "description": "One week of realised BPV hours for one placement. The hours the student submitted and the hours the trainer approved are kept as two values, so a correction is readable afterwards instead of overwriting what the student said.",
+        "type": "object",
+        "x-openregister": {
+          "active": true,
+          "hardDelete": false,
+          "searchable": true
+        },
+        "x-notes": "tenant_id is deliberately NOT required: OpenRegister validates required before any listener runs, so a field cannot be both required and server-stamped. HourWeekSubmissionStamp takes it from the placement and refuses a week without one.",
+        "required": [
+          "bpvPlacementId",
+          "learnerRef",
+          "isoWeek",
+          "hoursSubmitted"
+        ],
+        "properties": {
+          "bpvPlacementId": {
+            "type": "string",
+            "title": "Placement",
+            "description": "The BpvPlacement this week belongs to.",
+            "format": "uuid",
+            "$ref": "BpvPlacement"
+          },
+          "learnerRef": {
+            "type": "string",
+            "title": "Student",
+            "description": "The LearnerProfile uuid of the student whose week this is. The server derives it from the placement; a value sent for it is replaced.",
+            "format": "uuid",
+            "$ref": "LearnerProfile"
+          },
+          "isoWeek": {
+            "type": "string",
+            "title": "Week",
+            "description": "The ISO week this is about, as 2026-W39.",
+            "pattern": "^[0-9]{4}-W[0-9]{2}$"
+          },
+          "hoursSubmitted": {
+            "type": "number",
+            "title": "Hours submitted",
+            "description": "The hours the student entered for this week.",
+            "minimum": 0,
+            "maximum": 80
+          },
+          "submittedBy": {
+            "type": "string",
+            "title": "Submitted by",
+            "description": "The LearnerProfile uuid of whoever entered the hours.",
+            "format": "uuid",
+            "$ref": "LearnerProfile"
+          },
+          "submittedAt": {
+            "type": "string",
+            "title": "Submitted at",
+            "description": "When the hours were entered.",
+            "format": "date-time"
+          },
+          "hoursApproved": {
+            "type": "number",
+            "title": "Hours approved",
+            "description": "The hours the trainer approved. Equal to the hours submitted on a plain approval, lower or higher on a correction.",
+            "minimum": 0,
+            "maximum": 80
+          },
+          "approvedBy": {
+            "type": "string",
+            "title": "Approved by",
+            "description": "The Praktijkopleider uuid of the trainer who approved. The server writes it from the session; a value sent for it is replaced.",
+            "format": "uuid",
+            "$ref": "Praktijkopleider"
+          },
+          "approvedByName": {
+            "type": "string",
+            "title": "Approved by, as a name",
+            "description": "The trainer who approved, as the school reads it afterwards. The server copies it."
+          },
+          "approvedAt": {
+            "type": "string",
+            "title": "Approved at",
+            "description": "When the trainer approved.",
+            "format": "date-time"
+          },
+          "assuranceLevel": {
+            "type": "string",
+            "title": "eIDAS Assurance Level",
+            "description": "How sure the school is who approved: the eIDAS level the trainer’s portal session reached. `basic` is an invitation or a Nextcloud account, `substantial` an eHerkenning or DigiD sign-in. The server writes it from the session; a value sent for it is replaced.",
+            "enum": [
+              "none",
+              "basic",
+              "substantial",
+              "high"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "description": "Why the hours were corrected, in the trainer’s own words.",
+            "maxLength": 1000
+          },
+          "lifecycle": {
+            "type": "string",
+            "title": "Lifecycle",
+            "description": "`submitted` while it waits for the trainer, `approved` when she approved what the student entered, `corrected` when she approved another number, `rejected` when she approved none.",
+            "enum": [
+              "submitted",
+              "approved",
+              "corrected",
+              "rejected"
+            ],
+            "x-enum-labels": {
+              "submitted": "Waiting for approval",
+              "approved": "Approved",
+              "corrected": "Approved with a correction",
+              "rejected": "Rejected"
+            },
+            "default": "submitted"
+          },
+          "tenant_id": {
+            "type": "string",
+            "title": "Tenant",
+            "description": "The school this week belongs to.",
+            "format": "uuid"
+          }
+        },
+        "x-openregister-lifecycle": {
+          "field": "lifecycle",
+          "initial": "submitted",
+          "transitions": {
+            "approve": {
+              "from": [
+                "submitted"
+              ],
+              "to": "approved"
+            },
+            "correct": {
+              "from": [
+                "submitted"
+              ],
+              "to": "corrected"
+            },
+            "reject": {
+              "from": [
+                "submitted"
+              ],
+              "to": "rejected"
+            }
+          }
+        },
+        "x-openregister-seed": []
       }
     },
     "objects": [
@@ -21555,6 +21708,62 @@
           "status": "unverified"
         },
         "lifecycle": "confirmed"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "BpvHourWeek",
+          "slug": "bpvhourweek-bpvhourweek-1-1"
+        },
+        "bpvPlacementId": "00000000-0000-4000-8000-000000000000",
+        "learnerRef": "00000000-0000-4000-8000-000000000000",
+        "isoWeek": "2026-W10",
+        "hoursSubmitted": 24,
+        "submittedBy": "00000000-0000-4000-8000-000000000000",
+        "submittedAt": "2026-03-01T17:10:00+00:00",
+        "lifecycle": "submitted",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "BpvHourWeek",
+          "slug": "bpvhourweek-bpvhourweek-2-2"
+        },
+        "bpvPlacementId": "00000000-0000-4000-8000-000000000001",
+        "learnerRef": "00000000-0000-4000-8000-000000000001",
+        "isoWeek": "2026-W11",
+        "hoursSubmitted": 24,
+        "submittedBy": "00000000-0000-4000-8000-000000000001",
+        "submittedAt": "2026-03-02T17:10:00+00:00",
+        "hoursApproved": 24,
+        "approvedBy": "00000000-0000-4000-8000-000000000001",
+        "approvedByName": "Voorbeeld Praktijkopleider 2",
+        "approvedAt": "2026-03-05T09:20:00+00:00",
+        "assuranceLevel": "basic",
+        "lifecycle": "approved",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "BpvHourWeek",
+          "slug": "bpvhourweek-bpvhourweek-3-3"
+        },
+        "bpvPlacementId": "00000000-0000-4000-8000-000000000002",
+        "learnerRef": "00000000-0000-4000-8000-000000000002",
+        "isoWeek": "2026-W12",
+        "hoursSubmitted": 24,
+        "submittedBy": "00000000-0000-4000-8000-000000000002",
+        "submittedAt": "2026-03-03T17:10:00+00:00",
+        "hoursApproved": 22,
+        "approvedBy": "00000000-0000-4000-8000-000000000002",
+        "approvedByName": "Voorbeeld Praktijkopleider 3",
+        "approvedAt": "2026-03-06T09:20:00+00:00",
+        "assuranceLevel": "basic",
+        "note": "Voorbeeld reden voor de correctie 3",
+        "lifecycle": "corrected",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
       },
       {
         "@self": {

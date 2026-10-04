@@ -106,6 +106,50 @@ export async function createRow(
 }
 
 /**
+ * Create an object the instance may not know yet, and say so instead of
+ * failing the whole suite.
+ *
+ * WHY THIS EXISTS. A fixture built in `beforeAll` takes every step of the
+ * suite down with it. An instance whose learniq predates the schema a new step
+ * needs is a correct instance for its own build, so the seed reports that it
+ * could not be made and the steps that need it skip, the way the trainer suite
+ * already skips an assessment its instance still asks `substantial` for.
+ *
+ * @param {APIRequestContext} api The caller.
+ * @param {SeededRow[]} created The cleanup ledger, appended to on success.
+ * @param {string} register The register.
+ * @param {string} schema The schema slug.
+ * @param {object} data The object.
+ * @return {Promise<Record<string, any> | undefined>} The created object, or undefined when the instance refused it.
+ */
+export async function createRowIfSupported(
+	api: APIRequestContext,
+	created: SeededRow[],
+	register: string,
+	schema: string,
+	data: Record<string, unknown>,
+): Promise<Record<string, any> | undefined> {
+	const res = await api
+		.post(`/apps/openregister/api/objects/${register}/${schema}`, { data })
+		.catch(() => null)
+	if (!res || res.status() >= 300) {
+		console.log(
+			`fixture: this instance would not create a ${schema}${res ? ` (${res.status()}: ${(await res.text()).slice(0, 200)})` : ''}`,
+		)
+		return undefined
+	}
+
+	const row = await res.json()
+	const id = String(row?.id ?? row?.uuid ?? '')
+	if (id === '') {
+		return undefined
+	}
+
+	created.push({ register, schema, id })
+	return row
+}
+
+/**
  * Remove everything a run created, newest first, and report what stayed.
  *
  * A refusal is reported and never thrown: the suite's verdict is the tests',
@@ -458,6 +502,27 @@ export async function openRoute(
 	await page.goto(
 		`${siteUrl(portal)}&route=${encodeURIComponent(`/mijn/${route}`)}`,
 	)
+	await waitForAccountPage(page)
+}
+
+/**
+ * Open the signed-in home, the contributed `/mijn` overview.
+ *
+ * WHY NOT THE BARE PORTAL URL. `siteUrl(portal)` with no `route` is the CMS
+ * page slot, not the signed-in area. A portal with no CMS home page renders
+ * "Deze pagina bestaat niet (meer)" there, even for a signed-in visitor, so a
+ * suite that navigated to it timed out waiting for an account title that was
+ * never going to appear. Measured on :8090 on 4 October 2026: the
+ * `portaliq/page` schema held four pages and none belonged to the school's
+ * portal. The overview is a contributed page, so it is reached by its route
+ * like every other one.
+ *
+ * @param {Page} page The site page.
+ * @param {string} portal The portal slug.
+ * @return {Promise<void>}
+ */
+export async function openHome(page: Page, portal: string): Promise<void> {
+	await page.goto(`${siteUrl(portal)}&route=${encodeURIComponent('/mijn')}`)
 	await waitForAccountPage(page)
 }
 

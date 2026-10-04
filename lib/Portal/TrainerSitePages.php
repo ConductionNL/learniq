@@ -86,6 +86,58 @@ class TrainerSitePages {
 	}//end assessmentsCollection()
 
 	/**
+	 * The weeks of hours waiting for her.
+	 *
+	 * Matched through the placement she supervises, so she reads the weeks of
+	 * her own students and nobody else's. Only weeks that are still
+	 * `submitted` are offered: a week she has decided is history, and lives on
+	 * the student's page and the school's.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 */
+	public function hourWeeksCollection(): array {
+		return [
+			'id' => 'poHourWeeks',
+			'register' => self::REGISTER,
+			'schema' => 'bpv-hour-week',
+			'scopeField' => 'bpvPlacementId',
+			'scopeClaim' => 'practicalTrainerId',
+			// The reverse one-hop join the guardian's children already use, read
+			// the other way round: portaliq reads the placements whose
+			// `practicalTrainerId` is her claim, takes each row's own `id` as a
+			// target, and keeps only the weeks whose `bpvPlacementId` is in that
+			// set (`match: scopeField`). `targetField` names a property of the
+			// JOIN row, so it is the placement's identity token and NOT
+			// `bpvPlacementId`, which bpv-placement does not have.
+			'via' => [
+				'register' => self::REGISTER,
+				'schema' => 'bpv-placement',
+				'scopeField' => 'practicalTrainerId',
+				'targetField' => 'id',
+				'match' => 'scopeField',
+			],
+			'label' => 'Hours to approve',
+			'listable' => true,
+			'minTrust' => 'low',
+			'filter' => ['lifecycle' => 'submitted'],
+			'fields' => [
+				'bpvPlacementId',
+				'learnerRef',
+				'isoWeek',
+				'hoursSubmitted',
+				'submittedAt',
+				'lifecycle',
+			],
+			'columns' => [
+				['field' => 'isoWeek', 'label' => 'Week'],
+				['field' => 'hoursSubmitted', 'label' => 'Hours'],
+			],
+		];
+	}//end hourWeeksCollection()
+
+	/**
 	 * The trainer's pages: the overview, then one page per section.
 	 *
 	 * @param array<int, array<string, mixed>> $collections Every trainer collection.
@@ -105,8 +157,9 @@ class TrainerSitePages {
 	}//end pages()
 
 	/**
-	 * The overview: her students' placements, the assessments she wrote last,
-	 * the two things she can do, and her messages.
+	 * The overview: the weeks of hours waiting for her, her students'
+	 * placements with their hours, the assessments she wrote last, the three
+	 * things she can do, and her messages.
 	 *
 	 * @return array<string, mixed>
 	 *
@@ -120,16 +173,41 @@ class TrainerSitePages {
 			'group' => ParentSitePages::GROUP,
 			'home' => true,
 			'blocks' => [
+				// What is waiting for her comes first: the weeks of hours her
+				// students entered and nobody has decided yet.
+				['type' => 'tasks', 'label' => 'Hours to approve', 'collection' => 'poHourWeeks', 'dueField' => 'submittedAt', 'titleFields' => ['isoWeek']],
 				// A collection block carries no heading of its own on portaliq
 				// today, so the two lists stand on their columns: the placements
 				// first, then the three assessments she wrote last.
-				['type' => 'collection', 'collection' => 'poBpvPlacements'],
+				[
+					'type' => 'collection',
+					'collection' => 'poBpvPlacements',
+					// The progress card portaliq ships, but only where the
+					// placement really agreed a total: a placement without
+					// `agreedHours` shows its hours and no bar
+					// (internship-hours).
+					'display' => 'cards',
+					// What each card is called. A card that cannot name itself
+					// is merely unhelpful with one placement and unusable with
+					// several, because she cannot tell which company a bar
+					// belongs to: portaliq's renderer falls back to `name`,
+					// `title` and `givenName`, and bpv-placement has none of
+					// the three (found live, 4 October 2026; needs
+					// ConductionNL/portaliq#1178).
+					'titleFields' => ['trainingCompanyName'],
+					'progress' => [
+						'valueField' => 'hoursApprovedTotal',
+						'totalField' => 'agreedHours',
+						'label' => 'Hours done',
+					],
+				],
 				[
 					'type' => 'collection',
 					'collection' => 'poWerkprocesAssessments',
 					'limit' => 3,
 					'sort' => ['field' => 'assessedAt', 'direction' => 'desc'],
 				],
+				['type' => 'cta', 'action' => 'approveHourWeek', 'label' => 'Approve hours'],
 				['type' => 'cta', 'action' => 'createWerkprocesAssessment', 'label' => 'Fill in an assessment'],
 				['type' => 'cta', 'action' => 'signPraktijkovereenkomst', 'label' => 'Sign the placement agreement'],
 				['type' => 'inbox', 'label' => 'Messages', 'limit' => 2],
@@ -235,6 +313,12 @@ class TrainerSitePages {
 						'trainingCompanyName',
 						'periodFrom',
 						'periodTo',
+						// The two numbers the progress card reads. Portaliq drops
+						// a `progress` whose fields the collection does not
+						// project, so leaving these out would have drawn cards
+						// with no bar (internship-hours).
+						'agreedHours',
+						'hoursApprovedTotal',
 						'lifecycle',
 					],
 				],
@@ -263,6 +347,7 @@ class TrainerSitePages {
 			'notifications' => [],
 		];
 		$contribution['collections'][] = $this->assessmentsCollection();
+		$contribution['collections'][] = $this->hourWeeksCollection();
 		// The overview and a page per section (site-workplace-trainer-portal-design).
 		$contribution['pages'] = $this->pages(collections: $contribution['collections'], actions: $contribution['actions']);
 
@@ -271,12 +356,14 @@ class TrainerSitePages {
 	}//end contribution()
 
 	/**
-	 * What the trainer may do: submit a werkproces assessment through
-	 * learniq's own endpoint, and sign a praktijkovereenkomst.
+	 * What the trainer may do: submit a werkproces assessment through learniq's
+	 * own endpoint, approve or correct a week of hours through the same kind of
+	 * endpoint, and sign a praktijkovereenkomst.
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
 	 * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-invited-trainer-may-submit-a-werkproces-assessment
+	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
 	 */
 	private function actions(): array {
 		return [
@@ -307,6 +394,42 @@ class TrainerSitePages {
 					'assessment',
 					'notes',
 				],
+			],
+			[
+				'id' => 'approveHourWeek',
+				// Through learniq's own endpoint, for the reason the assessment
+				// moved there: a portal write carries no assertion, and the
+				// assertion is where her sign-in level is.
+				'type' => 'endpoint-forward',
+				'label' => 'Approve the hours of a week',
+				'endpoint' => '/apps/learniq/api/portal/hour-weeks/approve',
+				'method' => 'POST',
+				'minTrust' => 'low',
+				'subjectField' => 'practicalTrainerId',
+				'scopeClaim' => 'practicalTrainerId',
+				'fields' => ['hourWeekId', 'hoursApproved', 'note'],
+				// She picks the week from the weeks waiting for her instead of
+				// typing a uuid. Portaliq fills a `collection` provider from the
+				// SUBJECT-SCOPED collection over that schema, which for her is
+				// `poHourWeeks` and so already filtered to `lifecycle:
+				// submitted`: the list offers the weeks she may decide and
+				// nothing else.
+				'optionsProviders' => [
+					'hourWeekId' => [
+						'type' => 'collection',
+						'register' => self::REGISTER,
+						'schema' => 'bpv-hour-week',
+						'labelField' => 'isoWeek',
+						'valueField' => 'id',
+					],
+				],
+				'fieldConfigs' => [
+					'hourWeekId' => ['label' => 'The week you are approving', 'required' => true],
+					'hoursApproved' => ['label' => 'Hours you approve', 'required' => true],
+					'note' => ['label' => 'Why you approve another number'],
+				],
+				'submitLabel' => 'Approve these hours',
+				'successMessage' => 'The hours are approved. Your student sees your decision and your note.',
 			],
 			[
 				'id' => 'signPraktijkovereenkomst',
