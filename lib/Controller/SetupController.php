@@ -307,7 +307,7 @@ class SetupController extends Controller {
 	 * @param string $actionId The action that asked, which decides whether an
 	 *                         unanswered choice is refused or means the generated set.
 	 *
-	 * @return JSONResponse `{ success, message }`.
+	 * @return JSONResponse `{ success, message, objects, skipped }`.
 	 */
 	private function loadExampleSet(string $actionId): JSONResponse {
 		$picked = $this->pickedProfile();
@@ -346,10 +346,22 @@ class SetupController extends Controller {
 
 		$this->appConfig->setValueString(Application::APP_ID, self::DEMO_DECIDED_KEY, 'installed');
 
+		// 🔴 SAY WHAT DID NOT ARRIVE. OpenRegister skips an object it cannot
+		// place and keeps going, so "Imported 490" was reported while 302 of
+		// them never landed. The skips come from the importer's own reply.
+		$skipped = (int)($imported['skipped'] ?? 0);
+		$message = 'Imported ' . $imported['objects'] . ' example object(s).';
+		if ($skipped > 0) {
+			$message = 'Imported ' . max(0, ($imported['objects'] - $skipped)) . ' of ' . $imported['objects']
+				. ' example object(s). ' . $skipped . ' could not be imported; the Nextcloud log names each one.';
+		}
+
 		return new JSONResponse(
 			data: [
 				'success' => true,
-				'message' => 'Imported ' . $imported['objects'] . ' example object(s).',
+				'message' => $message,
+				'objects' => $imported['objects'],
+				'skipped' => $skipped,
 			]
 		);
 	}//end loadExampleSet()
