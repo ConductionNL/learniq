@@ -1057,4 +1057,30 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertContains($manifest['guardianAudience']['children'], $ids);
 		$this->assertContains($manifest['guardianAudience']['groups']['collection'], $ids);
 	}//end testParentDeclaresTheNewsAudience()
+
+	/**
+	 * The guardian reads the group's name, not its uuid. Portaliq leaves a
+	 * uuid out of a cell, so a `cohortId` column read empty. The column reads
+	 * the enrolment's own readable copy, `cohortName` (ReadableCopyStamp), so
+	 * the guardian reads nothing beyond their child's own enrolments; the
+	 * news audience still matches on `cohortId`.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/parent-groups-read-by-name/specs/portal-contribution/spec.md#requirement-the-guardian-reads-the-name-of-the-childs-group
+	 */
+	public function testParentGroupColumnReadsTheGroupName(): void {
+		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
+		$groups = array_column($manifest['collections'], null, 'id')['parentGroupMemberships'];
+
+		$this->assertSame([['field' => 'cohortName', 'label' => 'Group']], $groups['columns']);
+		$this->assertSame(['learnerRef', 'cohortId', 'cohortName'], $groups['fields']);
+		$this->assertSame('enrolment', $groups['schema']);
+		$this->assertSame('cohortId', $manifest['guardianAudience']['groups']['field']);
+
+		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
+		$enrolment = array_column($register['components']['schemas'], null, 'slug')['enrolment'];
+		$this->assertSame('string', $enrolment['properties']['cohortName']['type']);
+		$this->assertArrayNotHasKey('format', $enrolment['properties']['cohortName']);
+	}//end testParentGroupColumnReadsTheGroupName()
 }//end class
