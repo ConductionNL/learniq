@@ -86,6 +86,51 @@ class TrainerSitePages {
 	}//end assessmentsCollection()
 
 	/**
+	 * The weeks of hours waiting for her.
+	 *
+	 * Matched through the placement she supervises, so she reads the weeks of
+	 * her own students and nobody else's. Only weeks that are still
+	 * `submitted` are offered: a week she has decided is history, and lives on
+	 * the student's page and the school's.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 */
+	public function hourWeeksCollection(): array {
+		return [
+			'id' => 'poHourWeeks',
+			'register' => self::REGISTER,
+			'schema' => 'bpv-hour-week',
+			'scopeField' => 'bpvPlacementId',
+			'scopeClaim' => 'practicalTrainerId',
+			'via' => [
+				'register' => self::REGISTER,
+				'schema' => 'bpv-placement',
+				'scopeField' => 'practicalTrainerId',
+				'targetField' => 'bpvPlacementId',
+				'match' => 'scopeField',
+			],
+			'label' => 'Hours to approve',
+			'listable' => true,
+			'minTrust' => 'low',
+			'filter' => ['lifecycle' => 'submitted'],
+			'fields' => [
+				'bpvPlacementId',
+				'learnerRef',
+				'isoWeek',
+				'hoursSubmitted',
+				'submittedAt',
+				'lifecycle',
+			],
+			'columns' => [
+				['field' => 'isoWeek', 'label' => 'Week'],
+				['field' => 'hoursSubmitted', 'label' => 'Hours'],
+			],
+		];
+	}//end hourWeeksCollection()
+
+	/**
 	 * The trainer's pages: the overview, then one page per section.
 	 *
 	 * @param array<int, array<string, mixed>> $collections Every trainer collection.
@@ -120,16 +165,29 @@ class TrainerSitePages {
 			'group' => ParentSitePages::GROUP,
 			'home' => true,
 			'blocks' => [
+				// What is waiting for her comes first: the weeks of hours her
+				// students entered and nobody has decided yet.
+				['type' => 'tasks', 'label' => 'Hours to approve', 'collection' => 'poHourWeeks', 'dueField' => 'submittedAt', 'titleFields' => ['isoWeek']],
 				// A collection block carries no heading of its own on portaliq
 				// today, so the two lists stand on their columns: the placements
 				// first, then the three assessments she wrote last.
-				['type' => 'collection', 'collection' => 'poBpvPlacements'],
+				[
+					'type' => 'collection',
+					'collection' => 'poBpvPlacements',
+					// The progress card portaliq ships, but only where the
+					// placement really agreed a total: a placement without
+					// `agreedHours` shows its hours and no bar
+					// (internship-hours).
+					'display' => 'cards',
+					'progress' => ['value' => 'hoursApprovedTotal', 'total' => 'agreedHours'],
+				],
 				[
 					'type' => 'collection',
 					'collection' => 'poWerkprocesAssessments',
 					'limit' => 3,
 					'sort' => ['field' => 'assessedAt', 'direction' => 'desc'],
 				],
+				['type' => 'cta', 'action' => 'approveHourWeek', 'label' => 'Approve hours'],
 				['type' => 'cta', 'action' => 'createWerkprocesAssessment', 'label' => 'Fill in an assessment'],
 				['type' => 'cta', 'action' => 'signPraktijkovereenkomst', 'label' => 'Sign the placement agreement'],
 				['type' => 'inbox', 'label' => 'Messages', 'limit' => 2],
@@ -263,6 +321,7 @@ class TrainerSitePages {
 			'notifications' => [],
 		];
 		$contribution['collections'][] = $this->assessmentsCollection();
+		$contribution['collections'][] = $this->hourWeeksCollection();
 		// The overview and a page per section (site-workplace-trainer-portal-design).
 		$contribution['pages'] = $this->pages(collections: $contribution['collections'], actions: $contribution['actions']);
 
@@ -307,6 +366,27 @@ class TrainerSitePages {
 					'assessment',
 					'notes',
 				],
+			],
+			[
+				'id' => 'approveHourWeek',
+				// Through learniq's own endpoint, for the reason the assessment
+				// moved there: a portal write carries no assertion, and the
+				// assertion is where her sign-in level is.
+				'type' => 'endpoint-forward',
+				'label' => 'Approve the hours of a week',
+				'endpoint' => '/apps/learniq/api/portal/hour-weeks/approve',
+				'method' => 'POST',
+				'minTrust' => 'low',
+				'subjectField' => 'practicalTrainerId',
+				'scopeClaim' => 'practicalTrainerId',
+				'fields' => ['hourWeekId', 'hoursApproved', 'note'],
+				'fieldConfigs' => [
+					'hourWeekId' => ['label' => 'The week you are approving', 'required' => true],
+					'hoursApproved' => ['label' => 'Hours you approve', 'required' => true],
+					'note' => ['label' => 'Why you approve another number'],
+				],
+				'submitLabel' => 'Approve these hours',
+				'successMessage' => 'The hours are approved. Your student sees your decision and your note.',
 			],
 			[
 				'id' => 'signPraktijkovereenkomst',

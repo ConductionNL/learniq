@@ -195,6 +195,10 @@ return [
         // an-invited-trainer-may-assess: the trainer's assessment goes through
         // learniq, because only a forward carries the sign-in level.
         ['name' => 'portalWerkproces#submit',    'url' => '/api/portal/werkproces-assessments', 'verb' => 'POST'],
+        // internship-hours: the trainer approves or corrects one week of her
+        // student's hours. Same assertion receiver pattern: the assertion is
+        // the only place her sign-in level can be read.
+        ['name' => 'portalHourWeek#approve',     'url' => '/api/portal/hour-weeks/approve', 'verb' => 'POST'],
 
         // Personal timetable — the caller's own sessions for a window, resolved
         // from cohort membership (teacher/learner) via ObjectService (RBAC-scoped).
