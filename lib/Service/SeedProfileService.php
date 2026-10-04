@@ -243,7 +243,7 @@ class SeedProfileService {
 
 		return [
 			'objects' => $objects,
-			'skipped' => DemoDataService::skippedIn(result: (array)$result),
+			'skipped' => $this->demoData->skippedIn(result: (array)$result),
 			'profile' => $profileId,
 			'portal'  => $portal,
 		];

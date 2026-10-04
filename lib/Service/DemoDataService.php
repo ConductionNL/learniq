@@ -234,7 +234,7 @@ class DemoDataService {
 
 		$imported = [
 			'objects'   => $objects,
-			'skipped'   => self::skippedIn(result: $result),
+			'skipped'   => $this->skippedIn(result: $result),
 			'registers' => count((array)($result['registers'] ?? [])),
 			'schemas'   => count((array)($result['schemas'] ?? [])),
 		];
@@ -267,7 +267,7 @@ class DemoDataService {
 	 *
 	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-imports-exactly-its-descriptor
 	 */
-	public static function skippedIn(array $result): int {
+	public function skippedIn(array $result): int {
 		$skipped = ($result['skipped'] ?? []);
 		if (is_array($skipped) === false) {
 			return 0;

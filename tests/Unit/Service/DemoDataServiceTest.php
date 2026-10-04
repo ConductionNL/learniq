@@ -217,8 +217,8 @@ class DemoDataServiceTest extends TestCase {
 	}
 
 	public function testSkippedInAddsBothObjectBucketsAndToleratesAMissingBlock(): void {
-		$this->assertSame(5, DemoDataService::skippedIn(result: ['skipped' => ['objects' => 2, 'seedObjects' => 3]]));
-		$this->assertSame(0, DemoDataService::skippedIn(result: []));
-		$this->assertSame(0, DemoDataService::skippedIn(result: ['skipped' => 'none']));
+		$this->assertSame(5, $this->service()->skippedIn(result: ['skipped' => ['objects' => 2, 'seedObjects' => 3]]));
+		$this->assertSame(0, $this->service()->skippedIn(result: []));
+		$this->assertSame(0, $this->service()->skippedIn(result: ['skipped' => 'none']));
 	}
 }
