@@ -44,6 +44,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use RuntimeException;
 
 /**
  * Tests for the two listeners internship-hours adds.
@@ -97,12 +98,20 @@ class HourWeekListenersTest extends TestCase {
 	/**
 	 * An ObjectService over the store.
 	 *
+	 * @param bool $readsThrow Whether every read fails.
+	 *
 	 * @return ObjectService
 	 */
-	private function objectService(): ObjectService {
+	private function objectService(bool $readsThrow = false): ObjectService {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
-			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
+			function (array $config = [], bool $_rbac = true, bool $_multitenancy = true) use ($readsThrow): array {
+				if ($readsThrow === true) {
+					throw new RuntimeException('database gone');
+				}
+
+				return $this->store->findAll($config, $_rbac, $_multitenancy);
+			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
 			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): object => $this->store->save((string)$schema, $object, ($uuid ?? (string)($object['id'] ?? '')))
@@ -114,17 +123,23 @@ class HourWeekListenersTest extends TestCase {
 	/**
 	 * The submission stamp, over the store.
 	 *
-	 * @param string $slug The slug the resolver reports for the entity.
+	 * @param string $slug            The slug the resolver reports for the entity.
+	 * @param bool   $readsThrow      Whether every read fails.
+	 * @param bool   $resolverThrows  Whether the schema cannot be resolved.
 	 *
 	 * @return HourWeekSubmissionStamp
 	 */
-	private function stamp(string $slug = 'bpv-hour-week'): HourWeekSubmissionStamp {
+	private function stamp(string $slug = 'bpv-hour-week', bool $readsThrow = false, bool $resolverThrows = false): HourWeekSubmissionStamp {
 		$resolver = $this->createMock(ListenerSchemaResolver::class);
-		$resolver->method('guardSchemaSlug')->willReturn($slug);
+		if ($resolverThrows === true) {
+			$resolver->method('guardSchemaSlug')->willThrowException(new RuntimeException('no schema'));
+		} else {
+			$resolver->method('guardSchemaSlug')->willReturn($slug);
+		}
 
 		return new HourWeekSubmissionStamp(
 			schemaResolver: $resolver,
-			objectService: $this->objectService(),
+			objectService: $this->objectService(readsThrow: $readsThrow),
 			logger: new NullLogger()
 		);
 	}//end stamp()
@@ -132,17 +147,23 @@ class HourWeekListenersTest extends TestCase {
 	/**
 	 * The rollup, over the store.
 	 *
-	 * @param string $slug The slug the resolver reports for the entity.
+	 * @param string $slug            The slug the resolver reports for the entity.
+	 * @param bool   $readsThrow      Whether every read fails.
+	 * @param bool   $resolverThrows  Whether the schema cannot be resolved.
 	 *
 	 * @return HourWeekTotalRollup
 	 */
-	private function rollup(string $slug = 'bpv-hour-week'): HourWeekTotalRollup {
+	private function rollup(string $slug = 'bpv-hour-week', bool $readsThrow = false, bool $resolverThrows = false): HourWeekTotalRollup {
 		$resolver = $this->createMock(ListenerSchemaResolver::class);
-		$resolver->method('guardSchemaSlug')->willReturn($slug);
+		if ($resolverThrows === true) {
+			$resolver->method('guardSchemaSlug')->willThrowException(new RuntimeException('no schema'));
+		} else {
+			$resolver->method('guardSchemaSlug')->willReturn($slug);
+		}
 
 		return new HourWeekTotalRollup(
 			schemaResolver: $resolver,
-			objectService: $this->objectService(),
+			objectService: $this->objectService(readsThrow: $readsThrow),
 			logger: new NullLogger()
 		);
 	}//end rollup()
@@ -390,6 +411,160 @@ class HourWeekListenersTest extends TestCase {
 		self::assertContains(ObjectCreatedEvent::class . ' => ' . HourWeekTotalRollup::class, $pairs);
 		self::assertContains(ObjectUpdatedEvent::class . ' => ' . HourWeekTotalRollup::class, $pairs);
 	}//end testBothListenersAreRegistered()
+
+	/**
+	 * Each listener answers for exactly one half of the write: the stamp
+	 * before it, the rollup after it.
+	 *
+	 * @return void
+	 */
+	public function testNeitherListenerActsOnAnEventItDoesNotHandle(): void {
+		// A post-event is not a write event, and a write event is not a
+		// post-event: each listener answers for exactly one half.
+		$week = OrEntityFactory::make(
+			['id' => self::WEEK, 'bpvPlacementId' => self::PLACEMENT, 'hoursApproved' => 8],
+			'bpv-hour-week'
+		);
+		$this->stamp()->handle(new ObjectCreatedEvent($week));
+		$this->rollup()->handle(new ObjectCreatingEvent($week));
+
+		self::assertSame(0, (int)$this->placement(id: self::PLACEMENT)['hoursApprovedTotal']);
+	}//end testNeitherListenerActsOnAnEventItDoesNotHandle()
+
+	/**
+	 * A schema nobody can resolve is nobody's: neither listener touches the
+	 * write, because not knowing the schema is not knowing it is ours.
+	 *
+	 * @return void
+	 */
+	public function testAnUnresolvableSchemaIsLeftAlone(): void {
+		$event = $this->pupilCreate();
+		$this->stamp(resolverThrows: true)->handle($event);
+		self::assertFalse($event->isPropagationStopped());
+		self::assertSame([], $event->getModifiedData());
+
+		$week = OrEntityFactory::make(
+			['id' => self::WEEK, 'bpvPlacementId' => self::PLACEMENT, 'hoursApproved' => 8],
+			'bpv-hour-week'
+		);
+		$this->rollup(resolverThrows: true)->handle(new ObjectUpdatedEvent($week, $week));
+		self::assertSame(0, (int)$this->placement(id: self::PLACEMENT)['hoursApprovedTotal']);
+	}//end testAnUnresolvableSchemaIsLeftAlone()
+
+	/**
+	 * When the placement cannot be read at all the week is refused, not
+	 * stored unattributed; and the rollup keeps the stored total rather than
+	 * writing a number it could not compute.
+	 *
+	 * @return void
+	 */
+	public function testAFailedReadRefusesTheWeekAndKeepsTheTotal(): void {
+		$event = $this->pupilCreate();
+		$this->stamp(readsThrow: true)->handle($event);
+
+		self::assertTrue($event->isPropagationStopped());
+		self::assertSame('hour-week-lookup-failed', $event->getErrors()['reason']);
+
+		$this->store->rows['bpv-placement'][0]['hoursApprovedTotal'] = 118;
+		$week = OrEntityFactory::make(
+			['id' => self::WEEK, 'bpvPlacementId' => self::PLACEMENT, 'hoursApproved' => 8],
+			'bpv-hour-week'
+		);
+		$this->rollup(readsThrow: true)->handle(new ObjectUpdatedEvent($week, $week));
+		// Stale, never wrong by invention.
+		self::assertSame(118, $this->placement(id: self::PLACEMENT)['hoursApprovedTotal']);
+	}//end testAFailedReadRefusesTheWeekAndKeepsTheTotal()
+
+	/**
+	 * A week that names no placement is left alone by the rollup: there is no
+	 * total it could belong to.
+	 *
+	 * @return void
+	 */
+	public function testAWeekWithoutAPlacementMovesNoTotal(): void {
+		$week = OrEntityFactory::make(['id' => self::WEEK, 'hoursApproved' => 8], 'bpv-hour-week');
+		$this->rollup()->handle(new ObjectCreatedEvent($week));
+
+		self::assertSame(0, (int)$this->placement(id: self::PLACEMENT)['hoursApprovedTotal']);
+	}//end testAWeekWithoutAPlacementMovesNoTotal()
+
+	/**
+	 * OpenRegister answers rows as entities, as plain arrays, and sometimes as
+	 * neither. The stamp reads the first two and refuses on the third rather
+	 * than stamping a week it could not attribute.
+	 *
+	 * @return void
+	 */
+	public function testEveryShapeAReadCanAnswerIsHandled(): void {
+		$placement = [
+			'id' => self::PLACEMENT,
+			'learnerRef' => 'lp-1',
+			'tenant_id' => self::TENANT,
+		];
+
+		foreach ([[$placement], [OrEntityFactory::make($placement, 'bpv-placement')]] as $answer) {
+			$service = $this->createMock(ObjectService::class);
+			$service->method('findAll')->willReturn($answer);
+			$resolver = $this->createMock(ListenerSchemaResolver::class);
+			$resolver->method('guardSchemaSlug')->willReturn('bpv-hour-week');
+
+			$event = $this->pupilCreate();
+			(new HourWeekSubmissionStamp(schemaResolver: $resolver, objectService: $service, logger: new NullLogger()))
+				->handle($event);
+
+			self::assertFalse($event->isPropagationStopped());
+			self::assertSame('lp-1', $event->getModifiedData()['learnerRef']);
+		}
+
+		$junk = $this->createMock(ObjectService::class);
+		$junk->method('findAll')->willReturn(['not-a-row']);
+		$resolver = $this->createMock(ListenerSchemaResolver::class);
+		$resolver->method('guardSchemaSlug')->willReturn('bpv-hour-week');
+		$event = $this->pupilCreate();
+		(new HourWeekSubmissionStamp(schemaResolver: $resolver, objectService: $junk, logger: new NullLogger()))
+			->handle($event);
+
+		self::assertTrue($event->isPropagationStopped());
+		self::assertSame('hour-week-placement-unknown', $event->getErrors()['reason']);
+	}//end testEveryShapeAReadCanAnswerIsHandled()
+
+	/**
+	 * A placement the read answers as something other than a row moves no
+	 * total: the rollup skips it rather than writing against a non-row.
+	 *
+	 * @return void
+	 */
+	public function testANonRowPlacementMovesNoTotal(): void {
+		$this->store->rows['bpv-hour-week'] = [
+			['id' => 'w1', 'bpvPlacementId' => self::PLACEMENT, 'hoursApproved' => 30, 'lifecycle' => 'approved'],
+		];
+		$writes = 0;
+		$service = $this->createMock(ObjectService::class);
+		$service->method('findAll')->willReturnCallback(
+			function (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array {
+				$slug = (string)(($config['filters'] ?? [])['schema'] ?? '');
+				if ($slug === 'bpv-placement') {
+					return ['not-a-row'];
+				}
+
+				return $this->store->findAll($config, $_rbac, $_multitenancy);
+			}
+		);
+		$service->method('saveObject')->willReturnCallback(
+			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use (&$writes): object {
+				$writes++;
+				return $this->store->save((string)$schema, $object, (string)($object['id'] ?? ''));
+			}
+		);
+		$resolver = $this->createMock(ListenerSchemaResolver::class);
+		$resolver->method('guardSchemaSlug')->willReturn('bpv-hour-week');
+
+		$week = OrEntityFactory::make($this->store->rows['bpv-hour-week'][0], 'bpv-hour-week');
+		(new HourWeekTotalRollup(schemaResolver: $resolver, objectService: $service, logger: new NullLogger()))
+			->handle(new ObjectUpdatedEvent($week, $week));
+
+		self::assertSame(0, $writes);
+	}//end testANonRowPlacementMovesNoTotal()
 
 	/**
 	 * One placement as the store holds it.

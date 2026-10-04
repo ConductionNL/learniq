@@ -247,16 +247,17 @@ class PortalHourWeekApproval {
 	/**
 	 * One row by uuid, RBAC off (the receiver has no session), or null.
 	 *
+	 * Every caller has already refused an empty id: `approve()` answers 422
+	 * before it reads anything, and `ownsPlacement()` answers false. There is
+	 * therefore no empty-id guard here, because there was no caller that could
+	 * reach it.
+	 *
 	 * @param string $schema The schema slug.
 	 * @param string $id     The uuid.
 	 *
 	 * @return array<string, mixed>|null
 	 */
 	private function row(string $schema, string $id): ?array {
-		if ($id === '') {
-			return null;
-		}
-
 		$objects = $this->objectService->findAll(
 			config: [
 				'filters' => ['register' => self::REGISTER, 'schema' => $schema],
