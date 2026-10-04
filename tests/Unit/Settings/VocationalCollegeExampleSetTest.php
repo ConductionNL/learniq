@@ -49,11 +49,14 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
 
 /**
  * Content and consistency of lib/Settings/profiles/mbo.json.
  */
 class VocationalCollegeExampleSetTest extends TestCase {
+	use RegisterSchemaPayloads;
+
 
 	/**
 	 * Weekday names by ISO day number minus one.
@@ -608,4 +611,64 @@ class VocationalCollegeExampleSetTest extends TestCase {
 
 		self::assertSame(0, $exitCode, implode("\n", $output));
 	}//end testTheFileIsWhatTheGeneratorProduces()
+
+	/**
+	 * The set gives the examenportaal somebody to sign in as and something to
+	 * read: an active assessor, and two active shares that name their
+	 * candidate and portfolio the way the server stamps them.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/invite-a-trainer-and-an-assessor/specs/example-sets/spec.md#requirement-the-vocational-set-seeds-an-assessor-with-work-to-read
+	 */
+	public function testTheSetSeedsAnAssessorWithPortfoliosToRead(): void {
+		$assessors = self::of('external-assessor');
+		self::assertCount(1, $assessors);
+		$assessor = $assessors[0];
+		self::assertTrue($assessor['active']);
+		self::assertNotEmpty($assessor['email']);
+
+		$portfolios = self::by(self::of('portfolio'), 'uuid');
+		$learners = self::by(self::of('learner-profile'), 'uuid');
+		$shares = self::of('portfolio-share');
+		self::assertGreaterThanOrEqual(2, count($shares));
+
+		foreach ($shares as $share) {
+			self::assertSame('external-assessor', $share['sharedWithKind'], $share['slug']);
+			self::assertSame($assessor['uuid'], $share['sharedWithExternalAssessorId'], $share['slug']);
+			// Only an active grant resolves for the assessor's collection.
+			self::assertSame('active', $share['lifecycle'], $share['slug']);
+			self::assertArrayHasKey($share['portfolioId'], $portfolios, $share['slug'] . ' shares a portfolio of this set');
+
+			// The readable copies match the rows they were copied from, so the
+			// seed says what a live save would have stamped.
+			$portfolio = $portfolios[$share['portfolioId']];
+			self::assertSame($portfolio['title'], $share['portfolioTitle'], $share['slug']);
+			$learner = $learners[$portfolio['learnerRef']];
+			self::assertSame($learner['givenName'] . ' ' . $learner['familyName'], $share['learnerName'], $share['slug']);
+		}
+	}//end testTheSetSeedsAnAssessorWithPortfoliosToRead()
+
+	/**
+	 * Every new row passes the fragment that will validate it, and a share
+	 * without its portfolio does not.
+	 *
+	 * @return void
+	 */
+	public function testTheNewRowsPassTheRealSchemas(): void {
+		$strip = static function (array $row): array {
+			unset($row['@self'], $row['uuid'], $row['slug']);
+			return $row;
+		};
+
+		foreach (['external-assessor', 'portfolio', 'portfolio-entry', 'portfolio-share'] as $schema) {
+			foreach (self::of($schema) as $row) {
+				self::assertNull(self::schemaError(slug: $schema, payload: $strip($row)), $schema . ' ' . ($row['slug'] ?? '?'));
+			}
+		}
+
+		$share = $strip(self::of('portfolio-share')[0]);
+		unset($share['portfolioId']);
+		self::assertNotNull(self::schemaError(slug: 'portfolio-share', payload: $share), 'control: a share names its portfolio');
+	}//end testTheNewRowsPassTheRealSchemas()
 }//end class
