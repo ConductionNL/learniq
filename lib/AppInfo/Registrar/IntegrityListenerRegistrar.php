@@ -272,9 +272,9 @@ class IntegrityListenerRegistrar {
 			event: ObjectUpdatedEvent::class,
 			listener: CohortNameCascade::class
 		);
-		// internship-hours: who entered a week of hours, when, for which
-		// student and for which school, all from the placement the week names.
-		// The pupil's form may send none of it.
+		// Who entered a week of hours, when, for which student and for which
+		// school, all from the placement the week names: the pupil's form may
+		// send none of it (internship-hours).
 		$context->registerEventListener(
 			event: ObjectCreatingEvent::class,
 			listener: HourWeekSubmissionStamp::class
@@ -283,9 +283,9 @@ class IntegrityListenerRegistrar {
 			event: ObjectUpdatingEvent::class,
 			listener: HourWeekSubmissionStamp::class
 		);
-		// internship-hours: a placement's approved hours stay equal to the sum
-		// of its weeks, because the trainer's progress card reads one row and
-		// a total that lived only in a query could never reach it.
+		// A placement's approved hours stay equal to the sum of its weeks,
+		// because the trainer's progress card reads one row and a total that
+		// lived only in a query could never reach it (internship-hours).
 		$context->registerEventListener(
 			event: ObjectCreatedEvent::class,
 			listener: HourWeekTotalRollup::class

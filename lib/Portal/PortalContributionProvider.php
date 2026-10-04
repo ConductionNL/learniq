@@ -173,11 +173,11 @@ class PortalContributionProvider {
 		$site = new StudentPortalPages();
 		$collections = array_merge(
 			$this->studentResultCollections(),
-			$this->studentActivityCollections(),
+			$this->studentActivityCollections(site: $site),
 			[$this->studentTestsCollection(), $site->homeworkCollection()]
 		);
 		$actions = array_merge(
-			$this->studentActions(),
+			$this->studentActions(site: $site),
 			$this->studentTestActions(),
 			[$this->handInAction()],
 			(new CatalogueFlowActions())->actions(),
@@ -284,11 +284,31 @@ class PortalContributionProvider {
 	 * (assignment-portal-wiring). The inbox entry carries `kind: inbox` so portaliq renders it
 	 * in the shared inbox surface rather than as a plain collection.
 	 *
+	 * @param StudentPortalPages $site The pupil's own declarations.
+	 *
 	 * @return array<int, array<string, mixed>> Student activity collections.
 	 *
 	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
-	private function studentActivityCollections(): array {
+	private function studentActivityCollections(StudentPortalPages $site): array {
+		return array_merge(
+			$this->studentEnrolmentAndSubmissionCollections(),
+			// Her placement and her weeks of hours sit between them, which is
+			// the order the pupil's pages read (internship-hours).
+			$site->bpvCollections(),
+			$this->studentWelfareAndInboxCollections()
+		);
+
+	}//end studentActivityCollections()
+
+	/**
+	 * What she is enrolled in and what she has handed in.
+	 *
+	 * @return array<int, array<string, mixed>> Two collections.
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md
+	 */
+	private function studentEnrolmentAndSubmissionCollections(): array {
 		return [
 			[
 				'id' => 'studentEnrolments',
@@ -328,70 +348,20 @@ class PortalContributionProvider {
 					'lifecycle',
 				],
 			],
-			[
-				// Her own placement, so her hours have something to be about.
-				// Without it the week form could only ask her to type a uuid:
-				// portaliq fills a `collection` option provider from the
-				// subject-scoped collection over that schema, and a pupil had
-				// none (internship-hours).
-				'id' => 'studentBpvPlacements',
-				'register' => self::REGISTER,
-				'schema' => 'bpv-placement',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'label' => 'My placement',
-				'listable' => true,
-				'minTrust' => 'low',
-				// The school's own people and the SBB payload stay out, the same
-				// projection her trainer reads.
-				'fields' => [
-					'learnerRef',
-					'trainingCompanyName',
-					'periodFrom',
-					'periodTo',
-					'agreedHours',
-					'hoursApprovedTotal',
-					'lifecycle',
-				],
-				'columns' => [
-					['field' => 'trainingCompanyName', 'label' => 'Training company'],
-					['field' => 'hoursApprovedTotal', 'label' => 'Hours approved'],
-					['field' => 'agreedHours', 'label' => 'Agreed hours'],
-				],
-			],
-			[
-				'id' => 'studentHourWeeks',
-				'register' => self::REGISTER,
-				'schema' => 'bpv-hour-week',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'label' => 'My hours',
-				'listable' => true,
-				'minTrust' => 'low',
-				// She reads her own number, the number her trainer approved,
-				// the note and who approved it: being overruled is visible
-				// rather than silent (internship-hours).
-				'fields' => [
-					'learnerRef',
-					'bpvPlacementId',
-					'isoWeek',
-					'hoursSubmitted',
-					'hoursApproved',
-					'approvedByName',
-					'approvedAt',
-					'note',
-					'lifecycle',
-				],
-				'columns' => [
-					['field' => 'isoWeek', 'label' => 'Week'],
-					['field' => 'hoursSubmitted', 'label' => 'Hours you entered'],
-					['field' => 'hoursApproved', 'label' => 'Hours approved'],
-					// A corrected week says so in words. Reading "approved"
-					// over a number she did not write is exactly how a
-					// correction becomes silent.
-					['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::HOUR_WEEK_STATUS],
-				],
-			],
+		];
+
+	}//end studentEnrolmentAndSubmissionCollections()
+
+
+	/**
+	 * Her absence reports and her inbox.
+	 *
+	 * @return array<int, array<string, mixed>> Two collections.
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md
+	 */
+	private function studentWelfareAndInboxCollections(): array {
+		return [
 			[
 				'id' => 'studentExcuseRequests',
 				'register' => self::REGISTER,
@@ -431,7 +401,7 @@ class PortalContributionProvider {
 			],
 		];
 
-	}//end studentActivityCollections()
+	}//end studentWelfareAndInboxCollections()
 
 	/**
 	 * The learner's tests as a portaliq timed task (ConductionNL/portaliq#749).
@@ -566,130 +536,117 @@ class PortalContributionProvider {
 	 * learners and tenant a portal create cannot send are stamped by
 	 * `SubmissionOwnerStamp` from the pupil's LearnerProfile.
 	 *
+	 * @param StudentPortalPages $site The pupil's own declarations.
+	 *
 	 * @return array<int, array<string, mixed>> Student create-actions.
 	 *
 	 * @spec openspec/specs/portal-contribution/spec.md
 	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-work-through-the-portal-with-a-real-file-req-pcon-007
 	 */
-	private function studentActions(): array {
+	private function studentActions(StudentPortalPages $site): array {
 		return [
-			[
-				'id' => 'createSubmission',
-				'type' => 'create',
-				'label' => 'Hand in an assignment',
-				'register' => self::REGISTER,
-				'schema' => 'submission',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'minTrust' => 'low',
-				'fields' => [
-					'assignmentId',
-					'attachmentRefs',
-				],
-				'fieldConfigs' => [
-					// Same reason as the absence form below: an unlabelled field
-					// is drawn as `assignmentId`.
-					'assignmentId' => ['label' => 'The work you are handing in', 'required' => true],
-					'attachmentRefs' => [
-						'type' => 'file',
-						'label' => 'Your work',
-						'multiple' => true,
-						'accept' => ['.pdf', '.doc', '.docx', '.odt', '.pptx', '.jpg', '.png'],
-						'maxSizeMb' => 20,
-					],
-				],
-				'submitLabel' => 'Hand in your work',
-			],
-			[
-				'id' => 'submitHourWeek',
-				'type' => 'create',
-				'label' => 'Enter the hours of a week',
-				'register' => self::REGISTER,
-				'schema' => 'bpv-hour-week',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'minTrust' => 'low',
-				'fields' => ['bpvPlacementId', 'isoWeek', 'hoursSubmitted'],
-				// The placement must be her own. Portaliq stamps `learnerRef`
-				// from her claim, but `bpvPlacementId` comes from the form, so
-				// without this guard she could file hours against another
-				// student's placement and HourWeekTotalRollup would add them to
-				// that placement's total.
-				'crossRefs' => [
-					'bpvPlacementId' => [
-						'register' => self::REGISTER,
-						'schema' => 'bpv-placement',
-						'scopeField' => 'learnerRef',
-						'scopeClaim' => 'learnerRef',
-						'required' => true,
-					],
-				],
-				// And she picks it from her own placements rather than typing a
-				// uuid, the way her guardian picks a child.
-				'optionsProviders' => [
-					'bpvPlacementId' => [
-						'type' => 'collection',
-						'register' => self::REGISTER,
-						'schema' => 'bpv-placement',
-						'labelField' => 'trainingCompanyName',
-						'valueField' => 'id',
-					],
-				],
-				'fieldConfigs' => [
-					'bpvPlacementId' => ['label' => 'Your placement', 'required' => true],
-					'isoWeek' => ['label' => 'The week, as 2026-W39', 'required' => true],
-					'hoursSubmitted' => ['label' => 'Hours you worked', 'required' => true],
-				],
-				'submitLabel' => 'Send these hours',
-				'successMessage' => 'Your hours are with your workplace trainer. You see her decision in the list.',
-			],
-			[
-				'id' => 'createExcuseRequest',
-				'type' => 'create',
-				'label' => 'Report an absence',
-				'register' => self::REGISTER,
-				'schema' => 'excuse-request',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'minTrust' => 'low',
-				'fields' => [
-					'dateFrom',
-					'dateTo',
-					'reason',
-					'reasonKind',
-					'attachmentRef',
-				],
-				// A field portaliq is given no label for is drawn under its own
-				// name, so the pupil's form read `dateFrom`, `reason`,
-				// `reasonKind` where her guardian's reads Dutch sentences
-				// (measured on a live instance, pupil-flows.spec.ts). She gets
-				// the same labels and the same widgets, addressed to her.
-				'fieldConfigs' => [
-					'dateFrom' => ['label' => 'First day you are absent', 'required' => true, 'widget' => 'dateChoices', 'dateChoices' => 2],
-					'dateTo' => [
-						'label' => 'Last day you are absent',
-						'required' => true,
-						'widget' => 'dateChoices',
-						'dateChoices' => 2,
-						'requiredMessage' => 'Choose the last day you are absent.',
-					],
-					'reason' => ['label' => 'Reason', 'required' => true],
-					'reasonKind' => [
-						'label' => 'Kind of absence',
-						'required' => true,
-						'valueLabels' => PortalValueLabels::ABSENCE_KIND,
-						'widget' => 'choices',
-						'choiceOptions' => ['illness', 'medical-appointment'],
-						'otherLabel' => 'Another reason',
-					],
-					'attachmentRef' => (new ExcuseAttachmentField())->config(),
-				],
-				'submitLabel' => 'Report your absence',
-				'successMessage' => 'The school has your report. You see the decision in the list of absence reports.',
-			],
+			$this->submissionAction(),
+			// Between them, in the order her pages read (internship-hours).
+			$site->hourWeekAction(),
+			$this->absenceAction(),
 		];
 
 	}//end studentActions()
+
+
+	/**
+	 * She hands in a piece of work.
+	 *
+	 * @return array<string, mixed> The create action.
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md
+	 */
+	private function submissionAction(): array {
+		return [
+			'id' => 'createSubmission',
+			'type' => 'create',
+			'label' => 'Hand in an assignment',
+			'register' => self::REGISTER,
+			'schema' => 'submission',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'minTrust' => 'low',
+			'fields' => [
+				'assignmentId',
+				'attachmentRefs',
+			],
+			'fieldConfigs' => [
+				// Same reason as the absence form below: an unlabelled field
+				// is drawn as `assignmentId`.
+				'assignmentId' => ['label' => 'The work you are handing in', 'required' => true],
+				'attachmentRefs' => [
+					'type' => 'file',
+					'label' => 'Your work',
+					'multiple' => true,
+					'accept' => ['.pdf', '.doc', '.docx', '.odt', '.pptx', '.jpg', '.png'],
+					'maxSizeMb' => 20,
+				],
+			],
+			'submitLabel' => 'Hand in your work',
+		];
+
+	}//end submissionAction()
+
+	/**
+	 * She reports herself absent, with the same widgets her guardian gets.
+	 *
+	 * @return array<string, mixed> The create action.
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md
+	 */
+	private function absenceAction(): array {
+		return [
+		'id' => 'createExcuseRequest',
+		'type' => 'create',
+		'label' => 'Report an absence',
+		'register' => self::REGISTER,
+		'schema' => 'excuse-request',
+		'scopeField' => 'learnerRef',
+		'scopeClaim' => 'learnerRef',
+		'minTrust' => 'low',
+		'fields' => [
+			'dateFrom',
+			'dateTo',
+			'reason',
+			'reasonKind',
+			'attachmentRef',
+		],
+		// A field portaliq is given no label for is drawn under its own
+		// name, so the pupil's form read `dateFrom`, `reason`,
+		// `reasonKind` where her guardian's reads Dutch sentences
+		// (measured on a live instance, pupil-flows.spec.ts). She gets
+		// the same labels and the same widgets, addressed to her.
+		'fieldConfigs' => [
+			'dateFrom' => ['label' => 'First day you are absent', 'required' => true, 'widget' => 'dateChoices', 'dateChoices' => 2],
+			'dateTo' => [
+				'label' => 'Last day you are absent',
+				'required' => true,
+				'widget' => 'dateChoices',
+				'dateChoices' => 2,
+				'requiredMessage' => 'Choose the last day you are absent.',
+			],
+			'reason' => ['label' => 'Reason', 'required' => true],
+			'reasonKind' => [
+				'label' => 'Kind of absence',
+				'required' => true,
+				'valueLabels' => PortalValueLabels::ABSENCE_KIND,
+				'widget' => 'choices',
+				'choiceOptions' => ['illness', 'medical-appointment'],
+				'otherLabel' => 'Another reason',
+			],
+			'attachmentRef' => (new ExcuseAttachmentField())->config(),
+		],
+		'submitLabel' => 'Report your absence',
+		'successMessage' => 'The school has your report. You see the decision in the list of absence reports.',
+		];
+
+	}//end absenceAction()
+
 
 	/**
 	 * Manifest for the `parent` audience (a guardian of the learner).
