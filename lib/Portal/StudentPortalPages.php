@@ -76,7 +76,7 @@ class StudentPortalPages {
 			'minTrust' => 'low',
 			'fields' => ['title', 'instructions', 'dueAt', 'cohortId', 'allowLateSubmission', 'lifecycle'],
 			'columns' => [
-				['field' => 'title', 'label' => 'Assignment'],
+				['field' => 'title', 'label' => 'To do'],
 				['field' => 'dueAt', 'label' => 'Hand in by', 'render' => 'date'],
 			],
 		];
