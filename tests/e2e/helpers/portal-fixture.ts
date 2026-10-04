@@ -472,10 +472,16 @@ export async function openRoute(
  * @return {Promise<void>}
  */
 export async function waitForAccountPage(page: Page): Promise<void> {
-	await page.locator('#site-account-title').first().waitFor({ timeout: 30_000 })
-	await page
-		.waitForLoadState('networkidle', { timeout: 10_000 })
-		.catch(() => undefined)
+	const title = page.locator('#site-account-title').first()
+	await title.waitFor({ timeout: 30_000 })
+	// Not `networkidle`: Nextcloud never goes idle, so that wait only ever
+	// costs its timeout (hydra gate-58). The page is ready when its title has
+	// text, which is the last thing the contributed page renders.
+	await expect
+		.poll(async () => (await title.textContent())?.trim() ?? '', {
+			timeout: 20_000,
+		})
+		.not.toBe('')
 }
 
 /**
