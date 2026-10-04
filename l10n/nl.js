@@ -3765,7 +3765,15 @@ OC.L10N.register(
         "Sign the placement agreement": "Praktijkovereenkomst ondertekenen",
         "Shared with me": "Met u gedeeld",
         "Candidate": "Kandidaat",
-        "Access until": "Toegang tot en met"
+        "Access until": "Toegang tot en met",
+        "Assessor": "Beoordelaar",
+        "The name of the person who assessed, as the school reads it afterwards. The server copies it from the Praktijkopleider record the portal subject resolves to; a value sent for it is replaced.": "De naam van de persoon die heeft beoordeeld, zoals de school die later terugleest. De server neemt die over uit het Praktijkopleider-record waar het portaalaccount naar verwijst; een meegestuurde waarde wordt overschreven.",
+        "Training company": "Leerbedrijf",
+        "The leerbedrijf the assessor works for. The server copies it from the same Praktijkopleider record; a value sent for it is replaced.": "Het leerbedrijf waar de beoordelaar werkt. De server neemt dit over uit hetzelfde Praktijkopleider-record; een meegestuurde waarde wordt overschreven.",
+        "KvK number": "KvK-nummer",
+        "The KvK number of that leerbedrijf, copied by the server, so the company behind an assessment can be identified years later.": "Het KvK-nummer van dat leerbedrijf, overgenomen door de server, zodat jaren later nog vast te stellen is welk bedrijf achter een beoordeling zat.",
+        "Assurance level": "Betrouwbaarheidsniveau",
+        "How sure the school is who assessed: the eIDAS level the assessor's portal session reached. `basic` is an invitation or a Nextcloud account, `substantial` an eHerkenning or DigiD sign-in. The server writes it from the session; a value sent for it is replaced. Same vocabulary as PokSignature.assuranceLevel.": "Hoe zeker de school weet wie heeft beoordeeld: het eIDAS-niveau dat de portaalsessie van de beoordelaar haalde. `basic` is een uitnodiging of een Nextcloud-account, `substantial` een aanmelding met eHerkenning of DigiD. De server schrijft dit vanuit de sessie; een meegestuurde waarde wordt overschreven. Zelfde begrippen als PokSignature.assuranceLevel."
     },
     "nplurals=2; plural=(n != 1);"
 )
