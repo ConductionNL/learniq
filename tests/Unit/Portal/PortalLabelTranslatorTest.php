@@ -116,7 +116,7 @@ class PortalLabelTranslatorTest extends TestCase {
 	 * @return bool
 	 */
 	private static function isVisible(string $path): bool {
-		return preg_match('#/(label|submitLabel|successMessage|unit|fallback)$#', $path) === 1
+		return preg_match('#/(label|submitLabel|successMessage|unit|fallback|group|otherLabel|requiredMessage)$#', $path) === 1
 			|| preg_match('#/sources/\d+/(kind|title)$#', $path) === 1
 			|| preg_match('#/values/[^/]+$#', $path) === 1;
 	}//end isVisible()
@@ -164,7 +164,7 @@ class PortalLabelTranslatorTest extends TestCase {
 		self::assertSame('Afwezigheid van uw kind melden', $actions['createExcuseRequest']['label']);
 		self::assertSame('Kind', $actions['createExcuseRequest']['fieldConfigs']['learnerRef']['label']);
 		self::assertSame('Afwezigheid melden', $actions['createExcuseRequest']['submitLabel']);
-		self::assertSame('Boeken', $actions['createConferenceSignup']['submitLabel']);
+		self::assertSame('Voorkeur versturen', $actions['createConferenceSignup']['submitLabel']);
 	}//end testTheParentManifestArrivesInDutch()
 
 	/**

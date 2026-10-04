@@ -1,6 +1,6 @@
 # Tasks: site-guardian-portal-design
 
-Specs only so far. Build starts after Ruben approves the specs and portaliq's `site-mijn-omgeving-components` names the keys it accepts.
+Built in waves. A key is declared only once portaliq development keeps it; portaliq drops an unknown key without a word.
 
 - [x] **T1**: register: `GradeEntry.courseName`, and a server stamp that fills it from the course on create and update
   - PHPUnit for the stamp; `npm run check:register`
@@ -12,13 +12,15 @@ Specs only so far. Build starts after Ruben approves the specs and portaliq's `s
   - PHPUnit `PortalContributionProviderTest`
 - [ ] **T3**: `parentInbox` (`kind: inbox`) over `report-card-parent-notification` and `grade-notification`, through the child join, `visibleFrom` passed
   - PHPUnit `PortalContributionProviderTest`, `ParentRecordPageTest`
-- [ ] **T4**: `parentOverview` page (`home: true`, `records` with `subtitleLookup`): tasks, four `cta` tiles (`withRecord`, `{title}`), week, figures, latest report, newest grades, newest messages with `recordField`; `recordField: learnerRef` on `createExcuseRequest`
-  - PHPUnit `ParentRecordPageTest`
-- [ ] **T5**: `group` and `perRecord` on the parent pages; the collection pages keep id and route and get `menu: false`
-  - PHPUnit `ParentRecordPageTest`
-- [ ] **T6**: per-child "Afwezigheid" and "Oudergesprekken" record pages; `widget: choices` and `dateChoices` and a `confirmation` on `createExcuseRequest`
-  - PHPUnit `PortalContributionProviderTest`
-- [ ] **T7**: Dutch for every new label; translator covers task, quick action and menu group labels
+- [x] **T4a**: `parentOverview` with today's keys: `home: true`, `records` over the children, `group`, the `tasks` block, two `cta` tiles on actions, the calendar, the figures, the child's absence reports and grades (`recordField`), the inbox
+  - PHPUnit `GuardianSitePagesTest`; run through portaliq's own normalisers (development 69de37c): nothing dropped
+- [ ] **T4b** (waits for portaliq wave 6): `records.subtitleLookup` with the group name, `cta` with `page`/`route`/`withRecord`/`{title}` (grades tile, message tile, child preset), `calendar` `range: week`, `limit` and `sort` on the collection blocks, `inbox` with `recordField`, `recordField: learnerRef` on `createExcuseRequest`
+- [x] **T5**: `group` and `perRecord` on the parent pages; the collection pages keep id and route and get `menu: false`
+  - PHPUnit `GuardianSitePagesTest`, `ParentRecordPageTest`
+- [x] **T6a**: per-child "Afwezigheid" and "Oudergesprekken" record pages; `widget: choices` (`choiceOptions`, `otherLabel`) and `dateChoices` on `createExcuseRequest`, `requiredMessage` on the last day
+  - PHPUnit `GuardianSitePagesTest`
+- [ ] **T6b** (waits for portaliq): `confirmation` on `createExcuseRequest` (REQ-SMF-022 is not on portaliq development yet; `successMessage` stays)
+- [x] **T7**: Dutch for every new label; the translator covers `group`, `otherLabel` and `requiredMessage`
   - PHPUnit `PortalLabelTranslatorTest`; `npm run check:l10n`
 - [ ] **T8**: `ExamplePortalProvisioner` writes the signed-out home on `created` only
   - PHPUnit `ExamplePortalProvisionerTest`
@@ -30,7 +32,6 @@ Specs only so far. Build starts after Ruben approves the specs and portaliq's `s
 ## Follow-ups (not in this change)
 
 - The portaliq route for "Bericht sturen aan de juf", once lane pq names it.
-- "Ziek", "Dokter of tandarts" and "Een andere reden" as cards (`choiceOptions`, `otherLabel`), once Ruben decides.
 
 - `school-trip-permission`: a permission slip the school sends and the guardian signs.
 - A decision on showing the teacher's comment on a grade to guardians.

@@ -3282,7 +3282,24 @@ OC.L10N.register(
         "Hand in a test": "Hand in a test",
         "View a result": "View a result",
         "The learner profile of the pupil whose absence this reports. Required: the pupil's portal stamps it from the pupil, a guardian picks one of their own children, and a staff form sends the pupil it records the report for. Distinct from learnerId, the Nextcloud user id.": "The learner profile of the pupil whose absence this reports. Required: the pupil's portal stamps it from the pupil, a guardian picks one of their own children, and a staff form sends the pupil it records the report for. Distinct from learnerId, the Nextcloud user id.",
-        "The learner profile of the pupil this conversation is about. Required: a guardian picks one of their own children, and a staff booking sends the pupil it books for. Distinct from learnerId, the Nextcloud user id.": "The learner profile of the pupil this conversation is about. Required: a guardian picks one of their own children, and a staff booking sends the pupil it books for. Distinct from learnerId, the Nextcloud user id."
+        "The learner profile of the pupil this conversation is about. Required: a guardian picks one of their own children, and a staff booking sends the pupil it books for. Distinct from learnerId, the Nextcloud user id.": "The learner profile of the pupil this conversation is about. Required: a guardian picks one of their own children, and a staff booking sends the pupil it books for. Distinct from learnerId, the Nextcloud user id.",
+        "To hand in": "To hand in",
+        "My space": "My space",
+        "Hand in work": "Hand in work",
+        "Messages": "Messages",
+        "Tests": "Tests",
+        "Still to do": "Still to do",
+        "Report sick or absent": "Report sick or absent",
+        "Messages from school": "Messages from school",
+        "Grades and report cards": "Grades and report cards",
+        "Absence": "Absence",
+        "Parent-teacher conversations": "Parent-teacher conversations",
+        "Choose the last day your child is absent.": "Choose the last day your child is absent.",
+        "Another reason": "Another reason",
+        "Choose a time": "Choose a time",
+        "Send your preference": "Send your preference",
+        "Send my preference": "Send my preference",
+        "Your preference is in. The school plans the times, and you see yours under your conference times.": "Your preference is in. The school plans the times, and you see yours under your conference times."
     },
     "nplurals=2; plural=(n != 1);"
 )

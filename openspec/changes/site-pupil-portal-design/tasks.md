@@ -1,17 +1,19 @@
 # Tasks: site-pupil-portal-design
 
-Specs only so far. Build starts after Ruben approves the specs, `site-guardian-portal-design` T1 lands `GradeEntry.courseName`, and portaliq names the keys it accepts.
+Built in waves. A key is declared only once portaliq development keeps it.
 
-- [ ] **T1**: `studentSessions` over `session` through the enrolment join, projected fields only
+- [ ] **T1** (waits for portaliq `via.when`, see T2): `studentSessions` over `session` through the enrolment join, projected fields only
   - PHPUnit `PortalContributionProviderTest`
 - [ ] **T2**: `via.when: { field: lifecycle, in: [active] }` on the enrolment join, so a withdrawn enrolment grants no session
   - portaliq reader test; PHPUnit `PortalContributionProviderTest`
-- [ ] **T3**: `studentHomework` over published assignments by `learnerRefs`, with the submission status lookup; the overview's `tasks` block with `excludeWhen: { lookup: submission, in: [submitted, late, returned] }`
-  - PHPUnit `PortalContributionProviderTest`
+- [x] **T3a**: `studentHomework` over published assignments by `learnerRefs` (never projected); the overview's `tasks` block over it
+  - PHPUnit `PortalContributionProviderTest`, `GuardianSitePagesTest`
+- [ ] **T3b** (waits for portaliq wave 6): the submission status lookup on the `tasks` block and `excludeWhen: { lookup: submission, in: [submitted, late, returned] }`
 - [x] **T4**: `studentGrades` projects `courseName`, `methodName`, `methodBlock`, `weight`
   - PHPUnit `PortalContributionProviderTest`
-- [ ] **T5**: `StudentPortalPages`: the overview (`range: day` timetable, four `cta` tiles with `action` or `page`), the menu pages, the default pages with `menu: false`
-  - PHPUnit for the new class
+- [x] **T5a**: `StudentPortalPages`: the overview (`home: true`, `group`, tasks, two `cta` tiles on actions, grades, inbox), the menu pages Inleveren, Cijfers, Toetsen and Afwezig melden, the other pages with `menu: false`
+  - PHPUnit `GuardianSitePagesTest`; run through portaliq's own normalisers: nothing dropped
+- [ ] **T5b** (waits for portaliq wave 6 and T1): the timetable on the overview (`calendar` `range: day`) and the "Rooster" page, `cta` tiles with `page` for Cijfers and Toetsen
 - [x] **T6**: the student manifest through `PortalLabelTranslator`; Dutch "je" entries
   - PHPUnit `PortalLabelTranslatorTest`; `npm run check:l10n`
 - [ ] **T7**: vo example set: a pupil portal account for one havo 3 pupil, with assignments due this week

@@ -98,6 +98,8 @@ const CHILD = {
 	name: 'Vera',
 	userId: 'po-leerling-147',
 }
+// Vera's younger brother in groep 3 (po example set, learniq#1647).
+const SIBLING = { ref: 'ee010008-0000-4000-8000-000000000467', name: 'Sami' }
 const OTHER_CHILD = 'ee010008-0000-4000-8000-000000000411'
 const GROUP_7 = 'ee010006-0000-4000-8000-000000000006'
 const REPORT_PERIOD_1 = 'ee01000b-0000-4000-8000-000000000001'
@@ -154,8 +156,8 @@ test.describe('po: teacher and parent flows', () => {
 
 	test('a. the guardian sees her own child and nothing of another child', async () => {
 		await shot(parent, 'a1-portal-home')
-		await openPage(parent, 'learniq/parentChildren')
-		// One child opens at once: her name heads her record page.
+		// Two children, so the route names Vera; her name heads her record page.
+		await openPage(parent, `learniq/parentChildren/${CHILD.ref}`)
 		await expect(parent.getByTestId('record-head')).toContainText(CHILD.name)
 		await shot(parent, 'a2-my-children')
 		await openPage(parent, 'learniq/parentAttendance')
@@ -164,7 +166,9 @@ test.describe('po: teacher and parent flows', () => {
 		await shot(parent, 'a4-report-cards')
 
 		const children = await portalRows('learner-profile', 'parentChildren')
-		expect(children.map((row) => row.id)).toEqual([CHILD.ref])
+		expect(children.map((row) => row.id).sort()).toEqual(
+			[CHILD.ref, SIBLING.ref].sort(),
+		)
 
 		const attendance = await portalRows('attendance-record', 'parentAttendance')
 		expect(attendance.length).toBeGreaterThan(0)
@@ -203,9 +207,11 @@ test.describe('po: teacher and parent flows', () => {
 		await fillDate(form, 'Eerste dag afwezig', '2026-10-01')
 		await fillDate(form, 'Laatste dag afwezig', '2026-10-01')
 		await form.getByRole('textbox', { name: 'Reden', exact: true }).fill(reason)
+		// Two cards and "Een andere reden" (choice cards, portaliq#1137).
 		await form
-			.getByRole('combobox', { name: 'Soort afwezigheid' })
-			.selectOption('illness')
+			.getByRole('group', { name: 'Soort afwezigheid', exact: true })
+			.getByRole('radio', { name: 'Ziekte', exact: true })
+			.check()
 		await shot(parent, 'b0-absence-form')
 		await form.getByRole('button', { name: 'Afwezigheid melden' }).click()
 		await expect
@@ -336,7 +342,7 @@ test.describe('po: teacher and parent flows', () => {
 		const note = `Graag over lezen praten (${RUN})`
 		const round = await openBookingRound(name)
 		await openPage(parent, 'learniq/parentConferenceSignups')
-		const form = parent.getByRole('form', { name: 'Oudergesprek aanvragen' })
+		const form = parent.getByRole('form', { name: 'Stuur uw voorkeur' })
 		await form
 			.getByRole('combobox', { name: 'Oudergespreksronde' })
 			.selectOption({ label: name })
@@ -345,7 +351,9 @@ test.describe('po: teacher and parent flows', () => {
 			.selectOption({ label: CHILD.name })
 		await form.getByLabel('Wat de leerkracht vooraf moet weten').fill(note)
 		await shot(parent, 'd0-booking-form')
-		await form.getByRole('button', { name: 'Boeken', exact: true }).click()
+		await form
+			.getByRole('button', { name: 'Voorkeur versturen', exact: true })
+			.click()
 		await expect
 			.poll(
 				async () =>
@@ -560,14 +568,14 @@ test.describe('po: teacher and parent flows', () => {
 		// The free times page carries the booking form.
 		await openPage(parent, 'learniq/parentConferenceFreeSlots')
 		await shot(parent, 'd2-free-times')
-		const form = parent.getByRole('form', { name: 'Tijd boeken' })
+		const form = parent.getByRole('form', { name: 'Kies een tijd' })
 		await form
 			.getByRole('combobox', { name: 'Kind', exact: true })
 			.selectOption({ label: CHILD.name })
-		// The slot is not required in the schema (a preference request has
-		// none), so the site labels it "Tijd (niet verplicht)" (portaliq#1130).
+		// The booking form names the time as its own required field
+		// (requiredFields, portaliq#1139), so it reads "Tijd" without a suffix.
 		await form
-			.getByRole('combobox', { name: /^Tijd( \(niet verplicht\))?$/ })
+			.getByRole('combobox', { name: 'Tijd', exact: true })
 			.selectOption({ label: first.slotLabel })
 		await form.getByLabel('Wat de leerkracht vooraf moet weten').fill(note)
 		await shot(parent, 'd2-booking-form')
@@ -646,7 +654,7 @@ test.describe('po: teacher and parent flows', () => {
 	})
 
 	test('f. the guardian opens her child: figures, report cards, homework, attendance, calendar and news', async () => {
-		await openPage(parent, 'learniq/parentChildren')
+		await openPage(parent, `learniq/parentChildren/${CHILD.ref}`)
 		const head = parent.getByTestId('record-head')
 		await expect(head).toContainText(`${CHILD.name} Hulstkamp`)
 
@@ -1001,6 +1009,11 @@ async function waitForAccountPage(page: Page): Promise<void> {
 async function fillDate(form: Locator, label: string, iso: string): Promise<void> {
 	const [year, month, day] = iso.split('-')
 	const group = form.getByRole('group', { name: label, exact: true })
+	// With named days (dateChoices) the boxes open behind "Een andere dag".
+	const other = group.getByRole('radio', { name: 'Een andere dag', exact: true })
+	if ((await other.count()) > 0) {
+		await other.check()
+	}
 	await group.getByLabel('Dag', { exact: true }).fill(day)
 	await group.getByLabel('Maand', { exact: true }).fill(month)
 	await group.getByLabel('Jaar', { exact: true }).fill(year)

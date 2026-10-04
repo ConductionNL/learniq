@@ -196,7 +196,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(8, $collections);
+		$this->assertCount(9, $collections);
 		$this->assertSame(
 			[
 				'studentGrades',
@@ -207,6 +207,7 @@ class PortalContributionProviderTest extends TestCase {
 				'studentExcuseRequests',
 				'studentInbox',
 				'studentTests',
+				'studentHomework',
 			],
 			array_column($collections, 'id')
 		);
@@ -215,9 +216,18 @@ class PortalContributionProviderTest extends TestCase {
 			$this->assertSame('learniq', $collection['register']);
 			$this->assertSame('learnerRef', $collection['scopeClaim']);
 			$this->assertNotEmpty($collection['fields']);
-			// Every collection, Submission included, is scoped by the scalar
-			// learnerRef: portaliq's direct scope compares one value, so an
-			// array scope field never matches (assignment-portal-wiring).
+			if ($collection['id'] === 'studentHomework') {
+				// The pupil's uuid is one of the group's pupils on the
+				// assignment; portaliq matches list membership (portaliq#750).
+				// The list itself is never projected.
+				$this->assertSame('learnerRefs', $collection['scopeField']);
+				$this->assertNotContains('learnerRefs', $collection['fields']);
+				$this->assertSame(['lifecycle' => 'published'], $collection['filter']);
+				continue;
+			}
+
+			// Every other collection, Submission included, is scoped by the
+			// scalar learnerRef (assignment-portal-wiring).
 			$this->assertSame('learnerRef', $collection['scopeField']);
 		}
 
