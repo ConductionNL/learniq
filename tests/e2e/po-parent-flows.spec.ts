@@ -203,17 +203,15 @@ test.describe('po: teacher and parent flows', () => {
 			[],
 		)
 
+		// Her attendance and report cards follow the same rule: Vera's rows are
+		// there, Sami's may be, and no other child's ever is.
 		const attendance = await portalRows('attendance-record', 'parentAttendance')
 		expect(attendance.length).toBeGreaterThan(0)
-		expect(new Set(attendance.map((row) => row.learnerRef))).toEqual(
-			new Set([CHILD.ref]),
-		)
+		expectOwnChildrenOnly(attendance.map((row) => row.learnerRef))
 
 		const reportCards = await portalRows('report-card', 'parentReportCards')
 		expect(reportCards.length).toBeGreaterThan(0)
-		expect(new Set(reportCards.map((row) => row.learnerRef))).toEqual(
-			new Set([CHILD.ref]),
-		)
+		expectOwnChildrenOnly(reportCards.map((row) => row.learnerRef))
 
 		const foreign = await parent.request.get(
 			`/apps/portaliq/portal/api/collections/learniq/learner-profile/${OTHER_CHILD}?collection=parentChildren`,
@@ -996,6 +994,25 @@ async function signInToNextcloud(
 	await page.locator('button[type="submit"]').click()
 	await page.waitForURL((url) => !url.pathname.includes('/login'))
 	return page
+}
+
+/**
+ * Assert that rows the guardian reads name only her own children.
+ *
+ * Vera's rows must be there. Sami's may be: he is in the po set since
+ * learniq#1647, but an instance seeded before it has only Vera. Any other
+ * learner fails the assertion.
+ *
+ * @param {unknown[]} learnerRefs The learnerRef of every row she read.
+ * @return {void}
+ */
+function expectOwnChildrenOnly(learnerRefs: unknown[]): void {
+	const refs = new Set(learnerRefs)
+	expect(refs.has(CHILD.ref)).toBe(true)
+	expect(refs.has(OTHER_CHILD)).toBe(false)
+	expect(
+		[...refs].filter((ref) => ref !== CHILD.ref && ref !== SIBLING.ref),
+	).toEqual([])
 }
 
 /**
