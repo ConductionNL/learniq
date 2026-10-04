@@ -68,7 +68,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
 
 **Ondersteuning:** support@conduction.nl
     ]]></description>
-    <version>0.3.8-beta.20261004120000</version>
+    <version>0.3.8-beta.20261004180000</version>
     <licence>EUPL-1.2</licence>
     <author mail="info@conduction.nl" homepage="https://www.conduction.nl/">Conduction</author>
     <namespace>Learniq</namespace>
@@ -322,11 +322,20 @@ Vrij en open source onder de EUPL-1.2-licentie.
             <!--
                 site-guardian-portal-design, site-external-assessor-portal-design:
                 writes courseName on grade entries, cohortName on enrolments,
-                and portfolioTitle and learnerName on portfolio shares written
-                before the server did. After InitializeSettings (the register
+                portfolioTitle and learnerName on portfolio shares, and
+                teacherName on teacher availability (teacher-availability-reads-words)
+                written before the server did. After InitializeSettings (the register
                 must declare the fields). Idempotent: a second run saves nothing.
             -->
             <step>OCA\Learniq\Repair\BackfillReadableCopies</step>
+            <!--
+                pupils-read-by-name: saves every learner profile stored before
+                the schema named its objects from the given and family name,
+                so OpenRegister computes the name a teacher's list reads. After
+                InitializeSettings (the register must declare the template).
+                Idempotent: a second run saves nothing.
+            -->
+            <step>OCA\Learniq\Repair\BackfillLearnerProfileNames</step>
         </post-migration>
         <install>
             <!--

@@ -5,10 +5,13 @@
  *
  * Derives the readable copies a portal shows instead of a uuid: the course
  * name on a grade, the group name on an enrolment, and the portfolio title and
- * learner name on a portfolio share. The portal joins one hop at most and
+ * learner name on a portfolio share, and the teacher's display name on a
+ * teacher availability. The portal joins one hop at most and
  * never reads a course, a cohort or a learner profile for these readers, so
  * the server writes the names on the row itself (site-guardian-portal-design,
- * site-external-assessor-portal-design).
+ * site-external-assessor-portal-design). A Nextcloud user is no register
+ * object a list can resolve, so the teacher's name is written on the
+ * availability too (teacher-availability-reads-words).
  *
  * @category Service
  * @package  OCA\Learniq\Service
@@ -31,6 +34,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\IUserManager;
 
 /**
  * Names the objects a row points at, for the schemas that carry a readable copy.
@@ -50,17 +54,20 @@ class ReadableCopies {
 		'grade-entry'     => ['courseName' => null],
 		'enrolment'       => ['cohortName' => null],
 		'portfolio-share' => ['portfolioTitle' => null, 'learnerName' => null],
+		'teacher-availability' => ['teacherName' => null],
 	];
 
 	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService Reads the named objects.
+	 * @param IUserManager  $users         Names a Nextcloud user.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
+		private readonly IUserManager $users,
 	) {
 	}//end __construct()
 
@@ -105,6 +112,7 @@ class ReadableCopies {
 	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
 	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
 	 * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-new-a-share-names-its-candidate-and-portfolio
+	 * @spec openspec/changes/teacher-availability-reads-words/specs/parent-conferences/spec.md#requirement-the-teacher-availability-list-reads-words
 	 */
 	public function derive(string $slug, array $row): array {
 		if ($slug === 'grade-entry') {
@@ -117,6 +125,10 @@ class ReadableCopies {
 
 		if ($slug === 'portfolio-share') {
 			return $this->shareCopies(portfolioId: $row['portfolioId'] ?? null);
+		}
+
+		if ($slug === 'teacher-availability') {
+			return ['teacherName' => $this->userName(uid: $row['teacherId'] ?? null)];
 		}
 
 		return [];
@@ -148,6 +160,21 @@ class ReadableCopies {
 			'learnerName'    => $name,
 		];
 	}//end shareCopies()
+
+	/**
+	 * A Nextcloud user's display name, or null for an empty or unknown uid.
+	 *
+	 * @param mixed $uid The user id.
+	 *
+	 * @return string|null
+	 */
+	private function userName(mixed $uid): ?string {
+		if (is_string($uid) === false || $uid === '') {
+			return null;
+		}
+
+		return $this->orNull(value: trim((string)$this->users->getDisplayName($uid)));
+	}//end userName()
 
 	/**
 	 * One text field of the object a pointer names, or null.
