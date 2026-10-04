@@ -15,9 +15,9 @@ Built in waves. T3 waits on portaliq's `via.when` and `via.validUntilField`, whi
 - [ ] **T4b** (waits for portaliq `richText` `template` and `whenEmpty`): the access sentence "U heeft toegang tot en met …". Until then each row names the date his access runs to.
 - [x] **T5**: the manifest through `PortalLabelTranslator`; Dutch "u" entries
   - PHPUnit `PortalLabelTranslatorTest`; `npm run check:l10n`
-- [ ] **T6**: mbo example set: one external assessor with a portal account and two portfolio shares
-  - `python3 scripts/example-sets/mbo.py --check`
-- [ ] **T7**: e2e: the assessor reads his access date and opens a shared entry
+- [x] **T6**: the mbo set seeds an active external assessor, two portfolios and two active shares, and he can be given a portal account (`occ learniq:portal:invite-assessor`)
+  - PHPUnit `VocationalCollegeExampleSetTest`, `BpvPortalInvitationTest`; `python3 scripts/example-sets/mbo.py --check`
+- [ ] **T7**: e2e: the assessor reads his access date and opens a shared entry. The data and the account now exist; the suite waits on an instance with the mbo set loaded.
   - `tests/e2e/mbo-assessor-flows.spec.ts`
 
 ## Follow-ups (not in this change)
