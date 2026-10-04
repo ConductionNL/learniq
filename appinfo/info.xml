@@ -328,6 +328,14 @@ Vrij en open source onder de EUPL-1.2-licentie.
                 must declare the fields). Idempotent: a second run saves nothing.
             -->
             <step>OCA\Learniq\Repair\BackfillReadableCopies</step>
+            <!--
+                pupils-read-by-name: saves every learner profile stored before
+                the schema named its objects from the given and family name,
+                so OpenRegister computes the name a teacher's list reads. After
+                InitializeSettings (the register must declare the template).
+                Idempotent: a second run saves nothing.
+            -->
+            <step>OCA\Learniq\Repair\BackfillLearnerProfileNames</step>
         </post-migration>
         <install>
             <!--

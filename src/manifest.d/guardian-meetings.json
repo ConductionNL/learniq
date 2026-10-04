@@ -217,8 +217,13 @@
 									"label": "Teacher"
 								},
 								{
-									"key": "learnerId",
-									"label": "Learner"
+									"key": "learnerRef",
+									"label": "Learner",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "learner-profile"
+									}
 								},
 								{
 									"key": "lifecycle",
@@ -256,8 +261,13 @@
 									"label": "Teacher"
 								},
 								{
-									"key": "learnerId",
-									"label": "Learner"
+									"key": "learnerRef",
+									"label": "Learner",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "learner-profile"
+									}
 								},
 								{
 									"key": "startsAt",

@@ -40,6 +40,14 @@
  *   registered handler fails loud, as OpenRegister's action registry does. A
  *   guard nobody registered is not run.
  *
+ * - A save computes `@self.name` from the schema's
+ *   `configuration.objectNameField` when the register declares one, the way
+ *   MetadataHydrationHandler::processTwigLikeTemplate() does: each
+ *   `{{ field }}` is replaced by its trimmed value, whitespace collapses, and
+ *   a template with no filled field leaves the name unset (the uuid). A row
+ *   that was never saved keeps the uuid, as a stored object does until it is
+ *   saved again.
+ *
  * Saves are applied, so a test can read back what a call site wrote.
  *
  * @category Tests
@@ -146,6 +154,13 @@ final class RegisterFaithfulStore {
 	public string $actingUser = '';
 
 	/**
+	 * `@self.name` per schema slug and object id, as the last save hydrated it.
+	 *
+	 * @var array<string, array<string, string>>
+	 */
+	public array $names = [];
+
+	/**
 	 * Schema definitions by slug, read once from the shipped register.
 	 *
 	 * @var array<string, array<string, mixed>>|null
@@ -203,7 +218,15 @@ final class RegisterFaithfulStore {
 		$limit = ($config['limit'] ?? null);
 		$matches = array_slice($matches, $offset, ($limit === null ? null : (int)$limit));
 
-		return OrEntityFactory::makeMany($matches, $schema);
+		$entities = OrEntityFactory::makeMany($matches, $schema);
+		foreach ($entities as $entity) {
+			$name = ($this->names[$schema][(string)$entity->getUuid()] ?? null);
+			if ($name !== null) {
+				$entity->setName($name);
+			}
+		}
+
+		return $entities;
 	}//end findAll()
 
 	/**
@@ -235,16 +258,84 @@ final class RegisterFaithfulStore {
 		}
 
 		$object['id'] = $id;
+		$name = self::hydrateName(schema: $schema, object: $object);
+		unset($this->names[$schema][(string)$id]);
+		if ($name !== null) {
+			$this->names[$schema][(string)$id] = $name;
+		}
+
 		foreach (($this->rows[$schema] ?? []) as $index => $row) {
 			if (($row['id'] ?? null) === $id) {
 				$this->rows[$schema][$index] = $object;
-				return OrEntityFactory::make($object, $schema);
+				return $this->entity(schema: $schema, object: $object, name: $name);
 			}
 		}
 
 		$this->rows[$schema][] = $object;
-		return OrEntityFactory::make($object, $schema);
+		return $this->entity(schema: $schema, object: $object, name: $name);
 	}//end save()
+
+	/**
+	 * The entity a save answers with, carrying its hydrated name.
+	 *
+	 * @param string               $schema The schema slug.
+	 * @param array<string, mixed> $object The stored object.
+	 * @param string|null          $name   The hydrated name.
+	 *
+	 * @return ObjectEntity
+	 */
+	private function entity(string $schema, array $object, ?string $name): ObjectEntity {
+		$entity = OrEntityFactory::make($object, $schema);
+		if ($name !== null) {
+			$entity->setName($name);
+		}
+
+		return $entity;
+	}//end entity()
+
+	/**
+	 * The `@self.name` OpenRegister computes from a twig-like objectNameField.
+	 *
+	 * Only the `{{ field }}` form is mirrored; a schema without a template
+	 * gives null, and so does a template none of whose fields is filled.
+	 *
+	 * @param string               $schema The schema slug.
+	 * @param array<string, mixed> $object The object as saved.
+	 *
+	 * @return string|null
+	 */
+	private static function hydrateName(string $schema, array $object): ?string {
+		$template = (self::definition(schema: $schema)['configuration']['objectNameField'] ?? null);
+		if (is_string($template) === false || str_contains($template, '{{') === false) {
+			return null;
+		}
+
+		$filled = false;
+		$result = preg_replace_callback(
+			'/\{\{\s*([^}]+?)\s*\}\}/',
+			static function (array $match) use ($object, &$filled): string {
+				$value = ($object[$match[1]] ?? null);
+				if (is_string($value) === true && trim($value) !== '') {
+					$filled = true;
+					return trim($value);
+				}
+
+				return '';
+			},
+			$template
+		);
+
+		if ($filled === false) {
+			return null;
+		}
+
+		$result = trim((string)preg_replace('/\s+/', ' ', (string)$result));
+		if ($result === '') {
+			return null;
+		}
+
+		return $result;
+	}//end hydrateName()
 
 	/**
 	 * Refuse an update that changes a readOnly property, as OpenRegister does.

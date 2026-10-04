@@ -973,10 +973,33 @@
 				"schema": "attendance-record",
 				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly so the platform's built-in mass import/export/copy/delete (CnIndexPage showMass*) is a documented capability of this index, not an implicit default (findings 12.6/14.7).",
 				"columns": [
-					"learnerId",
-					"cohortId",
-					"status",
-					"markedAt"
+					{
+						"key": "learnerRef",
+						"label": "Learner",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "learner-profile"
+						}
+					},
+					{
+						"key": "cohortId",
+						"label": "Group",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "cohort"
+						}
+					},
+					{
+						"key": "status",
+						"label": "Status"
+					},
+					{
+						"key": "markedAt",
+						"label": "Marked At",
+						"formatter": "date"
+					}
 				],
 				"actionToggles": {
 					"showMassImport": true,
@@ -1081,7 +1104,36 @@
 			"title": "Excuse requests",
 			"config": {
 				"register": "learniq",
-				"schema": "excuse-request"
+				"schema": "excuse-request",
+				"columns": [
+					{
+						"key": "learnerRef",
+						"label": "Learner",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "learner-profile"
+						}
+					},
+					{
+						"key": "dateFrom",
+						"label": "From",
+						"formatter": "date"
+					},
+					{
+						"key": "dateTo",
+						"label": "To",
+						"formatter": "date"
+					},
+					{
+						"key": "reasonKind",
+						"label": "Kind of reason"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					}
+				]
 			}
 		},
 		{
