@@ -33,13 +33,16 @@
  *   b. her grades page names the subject and the mark;
  *   c. she hands in her draft, and it reads as handed in afterwards;
  *   d. she reports herself absent through the form, and the report is hers;
- *   e. another pupil's row is not hers to read.
+ *   e. another pupil's row is not hers to read;
+ *   f. she enters a week of her own BPV hours, and the week is hers alone;
+ *   g. a week on somebody else's placement is refused.
  *
  * Screenshots land in `test-results/audience-flow/pupil/`.
  *
  * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-a-pupil-lands-on-an-overview-of-today
  * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-new-a-pupil-sees-the-work-she-has-to-hand-in
  * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-the-pupil-menu-is-short
+ * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
  * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-a-draft-submission-from-the-portal-req-pcon-009
  */
 
@@ -104,6 +107,12 @@ const COURSE_REF =
 // exactly what it created.
 const PUPIL = { user: '', pass: `Lq-e2e-${RUN}-pupil!`, name: '' }
 const GRADE_COMPONENT = `lq-e2e-${RUN}`
+// internship-hours: the week she enters, and the hours in it. The company
+// name carries the run id so her placement page can be read without depending
+// on what the example set happens to hold.
+const ISO_WEEK = '2026-W40'
+const HOURS_WORKED = 28
+const COMPANY = `Installatiebedrijf Van Dam (${RUN})`
 
 test.describe.configure({ mode: 'serial' })
 
@@ -126,6 +135,10 @@ test.describe('pupil: her own portal', () => {
 	let assignmentId = ''
 	let assignmentTitle = ''
 	let createdAccount = false
+	// Her own BPV placement, and one on another pupil, so a cross-reference
+	// that must be refused has something real to point at.
+	let placementId = ''
+	let foreignPlacementId = ''
 
 	test.beforeAll(async ({ browser }) => {
 		test.setTimeout(300_000)
@@ -255,6 +268,62 @@ test.describe('pupil: her own portal', () => {
 			lifecycle: 'published',
 			tenant_id: TENANT,
 		})
+
+		// Her BPV placement, and one on another pupil of the same group. Both
+		// name a praktijkopleider the suite creates, so no real trainer's
+		// portal gains a row.
+		const supervisor = await createRow(
+			admin,
+			created,
+			'learniq',
+			'praktijkopleider',
+			{
+				givenName: 'Karin',
+				familyName: `Smit (${RUN})`,
+				email: `lq-e2e-${RUN}-opleider@example.org`,
+				trainingCompanyName: COMPANY,
+				trainingCompanyKvkNumber: '81234567',
+				active: true,
+				tenant_id: TENANT,
+			},
+		)
+		const placementFor = async (
+			ref: string,
+			ncUserId: string,
+			company: string,
+		): Promise<string> => {
+			const row = await createRow(admin, created, 'learniq', 'bpv-placement', {
+				learnerId: ncUserId,
+				learnerRef: ref,
+				curriculumPlanId: '00000000-0000-4000-8000-0000000000c1',
+				practicalTrainerId: String(supervisor.id),
+				schoolCoachId: 'admin',
+				trainingCompanyName: company,
+				trainingCompanyKvkNumber: '81234567',
+				periodFrom: '2026-09-01',
+				periodTo: '2027-01-31',
+				agreedHours: 640,
+				lifecycle: 'active',
+				tenant_id: TENANT,
+			})
+			return String(row.id)
+		}
+
+		placementId = await placementFor(profileRef, learnerId, COMPANY)
+		// A second pupil of the same group, when the instance has one: without
+		// it there is no foreign placement to point at, and step g says so
+		// instead of passing on nothing.
+		const other =
+			otherProfileRef === undefined || otherProfileRef === ''
+				? undefined
+				: await borrowLearnerProfile(admin, otherProfileRef)
+		if (other !== undefined && String(other.ncUserId ?? '') !== '') {
+			foreignPlacementId = await placementFor(
+				otherProfileRef,
+				String(other.ncUserId),
+				`Ander bedrijf (${RUN})`,
+			)
+		}
 
 		// The claim her collections are scoped by. learniq's own invitations
 		// write this; a suite has no `occ`, so it writes the same shape.
@@ -514,11 +583,102 @@ test.describe('pupil: her own portal', () => {
 			['grade-entry', 'studentGrades'],
 			['submission', 'studentSubmissions'],
 			['attendance-record', 'studentAttendance'],
+			['bpv-placement', 'studentBpvPlacements'],
 		]) {
 			const rows = await portalRows(pupil, schema, collection)
 			for (const row of rows) {
 				expect(row.learnerRef).toBe(profileRef)
 			}
 		}
+	})
+
+	test('f. she enters a week of her own BPV hours', async () => {
+		// Her placement is what the form's picker reads, so it must be hers and
+		// readable before the form can be filled at all.
+		await openRoute(pupil.page, PORTAL, 'learniq/studentBpvPlacements')
+		await shot(pupil.page, SHOTS, 'f1-placement')
+		await expect(pupil.page.getByText(COMPANY).first()).toBeVisible({
+			timeout: 20_000,
+		})
+
+		// What her form sends: the placement, the week, the hours. Who she is,
+		// when she sent it and which school it belongs to are the server's
+		// (HourWeekSubmissionStamp), which is why they are not in the body.
+		const sent = await pupil.page.request.post(
+			'/apps/portaliq/portal/api/collections/learniq/bpv-hour-week',
+			{
+				headers: { Authorization: `Bearer ${pupil.token}` },
+				data: {
+					bpvPlacementId: placementId,
+					isoWeek: ISO_WEEK,
+					hoursSubmitted: HOURS_WORKED,
+				},
+			},
+		)
+		expect(sent.status(), await sent.text()).toBeLessThan(300)
+
+		const weeks = await portalRows(pupil, 'bpv-hour-week', 'studentHourWeeks')
+		for (const row of weeks) {
+			if (String(row.isoWeek ?? '') === ISO_WEEK) {
+				created.push({
+					register: 'learniq',
+					schema: 'bpv-hour-week',
+					id: String(row.id),
+				})
+			}
+		}
+
+		const mine = weeks.find((row) => String(row.isoWeek ?? '') === ISO_WEEK)
+		expect(mine, 'the week she just entered').toBeTruthy()
+		expect(Number(mine?.hoursSubmitted)).toBe(HOURS_WORKED)
+		expect(mine?.learnerRef).toBe(profileRef)
+		// The server said who entered it and when, from the placement.
+		expect(mine?.submittedBy).toBe(profileRef)
+		expect(String(mine?.submittedAt ?? '')).not.toBe('')
+		// Nobody has decided it yet, so her trainer's number is still empty.
+		expect(mine?.lifecycle).toBe('submitted')
+		expect(mine?.hoursApproved ?? null).toBeFalsy()
+		// Every week she reads is her own.
+		expect(new Set(weeks.map((row) => row.learnerRef))).toEqual(
+			new Set([profileRef]),
+		)
+
+		// The page was drawn before she sent it, and the site does not push a
+		// new row onto a list it already rendered; her own reload is what she
+		// would do, and what this asserts.
+		await openRoute(pupil.page, PORTAL, 'learniq/studentHourWeeks')
+		await expect(pupil.page.getByText(ISO_WEEK).first()).toBeVisible({
+			timeout: 20_000,
+		})
+		await shot(pupil.page, SHOTS, 'f2-hours-sent')
+	})
+
+	test("g. a week on another pupil's placement is refused", async () => {
+		test.skip(
+			foreignPlacementId === '',
+			'this instance had no second pupil to put another placement on',
+		)
+
+		// Portaliq stamps her own learnerRef, so without the cross-reference
+		// guard this would be stored: her hours on another student's placement,
+		// and the rollup would add them to that placement's total.
+		const foreign = await pupil.page.request.post(
+			'/apps/portaliq/portal/api/collections/learniq/bpv-hour-week',
+			{
+				headers: { Authorization: `Bearer ${pupil.token}` },
+				data: {
+					bpvPlacementId: foreignPlacementId,
+					isoWeek: '2026-W41',
+					hoursSubmitted: 8,
+				},
+			},
+		)
+		expect(foreign.status(), await foreign.text()).toBeGreaterThanOrEqual(400)
+
+		// And nothing of hers was created by the attempt.
+		const weeks = await portalRows(pupil, 'bpv-hour-week', 'studentHourWeeks')
+		expect(
+			weeks.filter((row) => String(row.isoWeek ?? '') === '2026-W41'),
+		).toHaveLength(0)
 	})
 })

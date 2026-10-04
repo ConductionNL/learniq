@@ -29,12 +29,18 @@
  *      school is `basic` sure who assessed;
  *   d. the assessment she wrote is on her own page, and only hers;
  *   e. signing a praktijkovereenkomst still demands a higher bar than an
- *      invitation gives, and a placement that is not hers resolves nothing.
+ *      invitation gives, and a placement that is not hers resolves nothing;
+ *   f. a week of her student's hours is waiting for her, she approves another
+ *      number with a note, and both numbers stay on the row;
+ *   g. her overview reads the hours done against the hours the agreement
+ *      states.
  *
  * Screenshots land in `test-results/audience-flow/trainer/`.
  *
  * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-invited-trainer-may-submit-a-werkproces-assessment
  * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md#requirement-a-workplace-trainer-lands-on-what-is-waiting-for-her
+ * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+ * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
  * @spec openspec/specs/bpv/spec.md#requirement-praktijkopleider-portal-access-is-a-direct-scope-portalcontributionprovider-audience
  */
 
@@ -58,6 +64,8 @@ import {
 	removeRows,
 	shot,
 	signInWithNextcloudAccount,
+	siteUrl,
+	waitForAccountPage,
 } from './helpers/portal-fixture.ts'
 
 const ENABLED = process.env.AUDIENCE_FLOW_E2E === '1'
@@ -91,6 +99,13 @@ const WERKPROCES = `B1-K1-W${RUN.slice(-2)}`
 // as the work process, the judgement and the date, so the code is in the row
 // but never on screen; the label is what she reads.
 const WERKPROCES_LABEL = `Voert installatiewerkzaamheden uit (${RUN})`
+// internship-hours: the week her student entered, the hours he entered, and
+// the number she approves instead. The agreed total is what her card counts
+// against; 640 is the figure the approved mockup shows.
+const ISO_WEEK = '2026-W39'
+const HOURS_SUBMITTED = 32
+const HOURS_APPROVED = 30
+const AGREED_HOURS = 640
 
 test.describe.configure({ mode: 'serial' })
 
@@ -106,6 +121,7 @@ test.describe('trainer: an invited workplace trainer', () => {
 	let trainer: PortalLogin
 	let trainerRef = ''
 	let placementId = ''
+	let hourWeekId = ''
 	let learnerRef = ''
 	let createdAccount = false
 	// What the instance's own learniq says the assessment action demands. An
@@ -175,11 +191,27 @@ test.describe('trainer: an invited workplace trainer', () => {
 				trainingCompanyKvkNumber: TRAINER.kvk,
 				periodFrom: '2026-09-01',
 				periodTo: '2027-01-31',
+				// internship-hours: the hours the agreement states, so her card
+				// has a real denominator to count against.
+				agreedHours: AGREED_HOURS,
 				lifecycle: 'active',
 				tenant_id: TENANT,
 			},
 		)
 		placementId = String(placement.id)
+
+		// One week of his hours, waiting for her. The server stamps who
+		// entered it, when, which student and which school from the placement
+		// (HourWeekSubmissionStamp), so the suite sends only the three fields
+		// the pupil's own form sends plus the required learner.
+		const week = await createRow(admin, created, 'learniq', 'bpv-hour-week', {
+			bpvPlacementId: placementId,
+			learnerRef,
+			isoWeek: ISO_WEEK,
+			hoursSubmitted: HOURS_SUBMITTED,
+			lifecycle: 'submitted',
+		})
+		hourWeekId = String(week.id)
 
 		// The claim her collections and her assessment are scoped by. This is
 		// what `occ learniq:portal:invite-trainer` writes (learniq#1680); a
@@ -359,5 +391,109 @@ test.describe('trainer: an invited workplace trainer', () => {
 			},
 		)
 		expect(foreign.status()).toBeGreaterThanOrEqual(400)
+	})
+
+	test('f. she approves another number, and both numbers stay', async () => {
+		// The week reaches her through the reverse join over her placements, so
+		// this read is also the proof that the join resolves at all: the first
+		// version of it named a field bpv-placement does not have and would
+		// have returned nothing, with no error anywhere.
+		const waiting = await portalRows(trainer, 'bpv-hour-week', 'poHourWeeks')
+		const mine = waiting.find((row) => String(row.id) === hourWeekId)
+		expect(mine, 'the week of hours waiting for her').toBeTruthy()
+		expect(mine?.hoursSubmitted).toBe(HOURS_SUBMITTED)
+		// Only weeks nobody has decided are offered to her.
+		expect(new Set(waiting.map((row) => row.lifecycle))).toEqual(
+			new Set(['submitted']),
+		)
+
+		await openRoute(trainer.page, PORTAL, 'learniq/poHourWeeks')
+		await shot(trainer.page, SHOTS, 'f1-hours-waiting')
+		await expect(trainer.page.getByText(ISO_WEEK).first()).toBeVisible({
+			timeout: 20_000,
+		})
+
+		const note = `Donderdag twee uur eerder weg (${RUN})`
+		const approved = await trainer.page.request.post(
+			'/apps/portaliq/portal/api/actions/learniq/approveHourWeek',
+			{
+				headers: { Authorization: `Bearer ${trainer.token}` },
+				data: {
+					hourWeekId,
+					hoursApproved: HOURS_APPROVED,
+					note,
+				},
+			},
+		)
+		expect(approved.status(), await approved.text()).toBeLessThan(300)
+		await shot(trainer.page, SHOTS, 'f2-hours-approved')
+
+		// What the school reads afterwards. The hours he entered are still
+		// there beside the hours she approved: a correction is readable, not an
+		// overwrite.
+		const stored = await admin.get(
+			`/apps/openregister/api/objects/learniq/bpv-hour-week/${hourWeekId}`,
+		)
+		expect(stored.status(), await stored.text()).toBe(200)
+		const row = await stored.json()
+		expect(row.hoursSubmitted).toBe(HOURS_SUBMITTED)
+		expect(Number(row.hoursApproved)).toBe(HOURS_APPROVED)
+		expect(row.lifecycle).toBe('corrected')
+		expect(row.note).toBe(note)
+		expect(row.approvedBy).toBe(trainerRef)
+		expect(row.approvedByName).toBe(`${TRAINER.given} ${TRAINER.family}`)
+		expect(row.assuranceLevel).toBe('basic')
+		// Who entered it, and when, were not touched by her decision.
+		expect(row.submittedBy).toBe(learnerRef)
+		expect(String(row.submittedAt ?? '')).not.toBe('')
+
+		// And a week she has decided is no longer waiting for her.
+		await expect
+			.poll(
+				async () =>
+					(await portalRows(trainer, 'bpv-hour-week', 'poHourWeeks')).find(
+						(r) => String(r.id) === hourWeekId,
+					),
+				{ timeout: 20_000 },
+			)
+			.toBeFalsy()
+	})
+
+	test('g. her overview counts the hours against the agreed total', async () => {
+		// The rollup keeps the placement's own total equal to the sum of its
+		// approved weeks, because the card reads one row and a total that lived
+		// only in a query could never reach it.
+		await expect
+			.poll(
+				async () =>
+					Number(
+						(
+							await portalRows(
+								trainer,
+								'bpv-placement',
+								'poBpvPlacements',
+							)
+						).find((row) => String(row.id) === placementId)
+							?.hoursApprovedTotal ?? -1,
+					),
+				{ timeout: 20_000 },
+			)
+			.toBe(HOURS_APPROVED)
+
+		const placement = (
+			await portalRows(trainer, 'bpv-placement', 'poBpvPlacements')
+		).find((row) => String(row.id) === placementId)
+		// Both numbers the card needs are projected, or portaliq throws the
+		// progress away and the cards keep no bar.
+		expect(Number(placement?.agreedHours ?? -1)).toBe(AGREED_HOURS)
+
+		// Her overview is the signed-in home, so it is reached by the portal's
+		// own URL rather than a page route.
+		await trainer.page.goto(siteUrl(PORTAL))
+		await waitForAccountPage(trainer.page)
+		await shot(trainer.page, SHOTS, 'g1-overview-hours')
+		await expect(
+			trainer.page.getByText(String(AGREED_HOURS)).first(),
+		).toBeVisible({ timeout: 20_000 })
 	})
 })
