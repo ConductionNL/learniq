@@ -132,6 +132,12 @@ function validateRegister(file, errors, warnings) {
 		)
 	}
 	const schemas = (reg.components && reg.components.schemas) || null
+	// A mock descriptor carries objects only: its schemas are the register's
+	// own, and a copy of them created shadow schemas at import. Its objects
+	// are checked by tests/Unit/Settings/DemoDescriptorContractTest.php.
+	if (xo && xo.type === 'mock' && !schemas) {
+		return
+	}
 	if (
 		!schemas
 		|| typeof schemas !== 'object'
