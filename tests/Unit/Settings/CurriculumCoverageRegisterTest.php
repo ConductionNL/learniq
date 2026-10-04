@@ -117,7 +117,7 @@ class CurriculumCoverageRegisterTest extends TestCase {
 		$mock = json_decode((string) file_get_contents($path), true);
 		$rows = [];
 		foreach ($mock['components']['objects'] as $object) {
-			if (($object['@self']['schema'] ?? '') === 'CurriculumCoverage') {
+			if (($object['@self']['schema'] ?? '') === 'curriculum-coverage') {
 				$rows[$object['@self']['slug']] = $object;
 			}
 		}

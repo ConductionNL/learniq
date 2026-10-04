@@ -141,7 +141,7 @@ class CompetencyYearScopeRegisterTest extends TestCase {
 		$mock  = json_decode((string) file_get_contents($path), true);
 		$rows  = [];
 		foreach ($mock['components']['objects'] as $object) {
-			if (($object['@self']['schema'] ?? '') === 'Competency') {
+			if (($object['@self']['schema'] ?? '') === 'competency') {
 				$rows[$object['@self']['slug']] = $object;
 			}
 		}
