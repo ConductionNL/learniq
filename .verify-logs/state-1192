@@ -1,0 +1,25 @@
+== PR 1192 fix/segment-tidy 17:59 base-pr=none
+branch tip da3c4f2e; dev 4ed85285; PR files vs dev before: 33
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1167 -> 1169 keys; added 2, dropped 0 (not in nl.json)
+  + Remove the example set "{set}"
+  + This only runs when you click the button. It moves this example set to the trash and keeps everything you made
+appinfo/info.xml: <version> 0.3.6-unstable.20260928145637 ok (dev 0.3.6-unstable.20260928145637, branch 0.3.6-unstable.20260928145637, merge-base 0.3.6-unstable.20260928145637)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2128, Assertions: 131245, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+8dcd8418 merge development into fix/segment-tidy
+pushed fix/segment-tidy 8dcd8418024bc26090d54a3b3eff4ed5971a6973
+PR files vs dev after: 34 (+1029/-24)
+gh pr merge exit=0 
+RESULT PR 1192: MERGED e5ef1d1d8f8e5b560e630f96d7fcfdec1d1e755d
+dev tree == tested tree; current failure set = pr1192 (0)

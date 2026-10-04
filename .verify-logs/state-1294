@@ -1,0 +1,60 @@
+== PR 1294 feat/timetabling-display-screens 07:21 base-pr=none
+branch tip a0a5e570; dev 83101ced; PR files vs dev before: 31
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1664 -> 1697 keys; added 33, dropped 0 (not in nl.json)
+  + A revoked screen's address stops working at once.
+  + Address
+  + Address created at
+  + Address hash
+  + Cancelled
+  + Cannot reach the server. Showing the timetable as it was at {time}.
+  + Change
+  + Changes only
+  + Create address
+  + Display screen
+  + Display screens
+  + No lessons to show.
+  + Open this address in the browser of the screen. It needs no account and shows today's lessons and changes with
+  + Other teacher
+  + Revoke address
+  + Revoked
+  + Screen address
+  + Show only lessons in these rooms. Leave empty for every room.
+  + Show only these groups. Leave empty for every group of the location.
+  + Show teacher codes
+  + Shows
+  + The address could not be changed.
+  + The address was revoked. The screen shows nothing until you create a new address.
+  + The hash of the screen's secret address. Never shown.
+  + The location whose groups the screen shows when no groups are chosen.
+  + The screen's name, for example the hall it hangs in.
+  + This address is shown once. Copy it into the screen's browser now.
+  + Timetable
+  + Today
+  + Today and tomorrow
+  + When the current address was created.
+  + Whether the screen shows teacher codes.
+  + Which lessons the screen shows.
+lib/Settings/learniq_register.json: info.version 0.34.2 already > dev 0.34.1
+lib/Settings/learniq_register.json: no bump needed
+lib/Settings/learniq_mock_register.json: info.version 1.1.40 already > dev 1.1.39
+lib/Settings/learniq_mock_register.json: no bump needed
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2418, Assertions: 133492, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+f1c12633 merge development into feat/timetabling-display-screens
+pushed feat/timetabling-display-screens f1c1263387b61cdb45d0b8b6b1dcca88e9ebc4e1
+PR files vs dev after: 32 (+2352/-24)
+gh pr merge exit=0 
+RESULT PR 1294: MERGED 806b755cea349305470810edc1d4fa99b75781cd
+dev tree == tested tree; current failure set = pr1294 (0)

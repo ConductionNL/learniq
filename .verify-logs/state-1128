@@ -1,0 +1,42 @@
+== PR 1128 feat/store-publish-through-plane 10:26 base-pr=none
+branch tip d89e7e91; dev 4945d68f; PR files vs dev before: 26
+merge-dev exit=1
+conflicts(development): l10n/nl.js l10n/nl.json
+resolved l10n/nl.json
+prep OK
+l10n/ai-translated.json: 1037 -> 1040 keys; added 3, dropped 0 (not in nl.json)
+  + The course store is busy. Try again in a few minutes.
+  + This server cannot publish to a course store yet. Ask your administrator to update OpenRegister.
+  + You may not publish courses to the store. Your administrator decides who may.
+appinfo/info.xml: <version> 0.3.6-unstable.20260928090000 ok (dev 0.3.6-unstable.20260928090000, branch 0.3.6-unstable.20260927180000, merge-base 0.3.6-unstable.20260927180000)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+l10n/nl.json: 0 mismatches
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+l10n/ai-translated.json: 1040 -> 1040 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260928090000 ok (dev 0.3.6-unstable.20260928090000, branch 0.3.6-unstable.20260927180000, merge-base 0.3.6-unstable.20260927180000)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+l10n/nl.json: 0 mismatches
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=1 check:specs=1
+STOP: npm check red
+l10n/ai-translated.json: 1040 -> 1040 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260928090000 ok (dev 0.3.6-unstable.20260928090000, branch 0.3.6-unstable.20260927180000, merge-base 0.3.6-unstable.20260927180000)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+l10n/nl.json: 0 mismatches
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2042, Assertions: 129825, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+89f3779b merge development into feat/store-publish-through-plane
+pushed feat/store-publish-through-plane 89f3779bce18e87767c7528d61681bb4df27fb42
+PR files vs dev after: 27 (+1197/-402)
+gh pr merge exit=0 
+RESULT PR 1128: MERGED 146d4402a870ad03316ba35cec3954a3d07b23e7
+dev tree == tested tree; current failure set = pr1128 (0)

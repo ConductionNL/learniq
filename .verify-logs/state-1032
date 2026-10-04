@@ -1,0 +1,47 @@
+== PR 1032 feat/curriculum-coverage-rollup 15:22 base-pr=1024
+resuming: local merge commits not yet pushed: merge feat/goal-alignment-depth into feat/curriculum-coverage-rollup;
+branch tip a8d6661f; dev c9d1e76e; PR files vs dev before: 43
+stack: feat/goal-alignment-depth final already merged
+stack: recorded squash c9d1e76e (-s ours, tree(S)==tree(feat/goal-alignment-depth) verified)
+merge-dev exit=0
+conflicts(development): none
+prep OK
+lib/Settings/learniq_register.json: info.version 0.27.0 already > dev 0.26.0
+lib/Settings/learniq_register.json: no bump needed
+lib/Settings/learniq_mock_register.json: info.version 1.1.14 -> 1.1.15 (dev 1.1.14) (textual, file not canonical)
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=1
+Tests: 1612, Assertions: 125370, Failures: 13, Skipped: 5.
+defects=13
+phpunit: 13 defects; new vs current dev set: 1; fixed: 0
+NEW FAILURES:
+failure|OCA\Learniq\Tests\Unit\AppInfo\RegisteredListenersHandleRealEventsTest::testEveryRegisteredListenerHandlesTheRealEventItListensFor
+lib/Settings/learniq_register.json: info.version 0.27.0 already > dev 0.26.0
+lib/Settings/learniq_register.json: no bump needed
+lib/Settings/learniq_mock_register.json: info.version 1.1.15 already > dev 1.1.14
+lib/Settings/learniq_mock_register.json: no bump needed (file not canonical)
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=1
+Tests: 1612, Assertions: 125370, Failures: 12, Skipped: 5.
+defects=12
+phpunit: 12 defects; new vs current dev set: 0; fixed: 0
+phpmd: 3 findings; new (file+rule) vs baseline: 0 
+verify OK
+== PR 1032 feat/curriculum-coverage-rollup 15:21 base-pr=1024
+branch tip 1d0ae42a; dev c9d1e76e; PR files vs dev before: 51
+conflicts(base feat/goal-alignment-depth): appinfo/info.xml
+MANUAL: non-mechanical conflicts left: appinfo/info.xml
+manual: appinfo/info.xml <commands>: kept both commands (ExampleSetRemoveCommand from development, RecomputeCurriculumCoverage from the PR), each with its comment
+manual: new PHPUnit failure RegisteredListenersHandleRealEventsTest (dev's #1046 fixture table x this PR's ObjectDeletedEvent listener): stub mirrored to real openregister class + fixture row, commit 374a8f9b; 8 tests OK
+693ffc85 merge development into feat/curriculum-coverage-rollup
+pushed feat/curriculum-coverage-rollup 693ffc853af542e7fe551f6a1471748f559b96e5
+PR files vs dev after: 31 (+3778/-8)
+gh pr merge exit=0 
+RESULT PR 1032: MERGED 585c2e6f2d0c8cae0d0ab88a3f2f0b8ebc666e09
+dev tree == tested tree; current failure set = pr1032 (12)

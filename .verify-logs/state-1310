@@ -1,0 +1,26 @@
+== PR 1310 chore/archive-built-changes-6 23:02 base-pr=1276
+branch tip bd982e2f; dev f8f9612b; PR files vs dev before: 851
+conflicts(base chore/archive-built-changes-5): none
+stack: merged final chore/archive-built-changes-5 (8c2d8c6b)
+stack: recorded squash f8f9612b (-s ours, tree(S)==tree(chore/archive-built-changes-5) verified)
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1205 -> 1205 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260928145637 ok (dev 0.3.6-unstable.20260928145637, branch 0.3.6-unstable.20260928145637, merge-base 0.3.6-unstable.20260928145637)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2203, Assertions: 131865, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+c50e4559 merge development's squash of #1276 into chore/archive-built-changes-6 (its tree equals chore/archive-built-changes-5)
+pushed chore/archive-built-changes-6 c50e4559594fe78581f8ac971c26e4583b565558
+PR files vs dev after: 203 (+982/-624)
+gh pr merge exit=0 
+RESULT PR 1310: MERGED 8e7ee3fec76046480dd3dafe54cd71742e1a29e2
+dev tree == tested tree; current failure set = pr1310 (0)

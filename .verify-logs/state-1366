@@ -1,0 +1,26 @@
+== PR 1366 feat/timetabling-standby-slots 23:55 base-pr=none
+resuming: local merge commits not yet pushed: merge development into feat/timetabling-standby-slots;
+branch tip e2a5d302; dev af49ae96; PR files vs dev before: 27
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1451 -> 1451 keys; added 0, dropped 0 (not in nl.json)
+lib/Settings/learniq_register.json: info.version 0.32.5 -> 0.32.6 (dev 0.32.5)
+lib/Settings/learniq_mock_register.json: info.version 1.1.33 -> 1.1.34 (dev 1.1.33)
+appinfo/info.xml: <version> 0.3.6-unstable.20260928195209 ok (dev 0.3.6-unstable.20260928195209, branch 0.3.6-unstable.20260928195209, merge-base 0.3.6-unstable.20260928195209)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2307, Assertions: 132640, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+526e75f7 merge development into feat/timetabling-standby-slots
+pushed feat/timetabling-standby-slots 526e75f7af6814f171de1ead216215226b1f13ca
+PR files vs dev after: 27 (+2387/-37)
+gh pr merge exit=0 
+RESULT PR 1366: MERGED 70964a985fe07c7f6547ca95d35755969881f63d
+dev tree == tested tree; current failure set = pr1366 (0)

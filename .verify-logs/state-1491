@@ -1,0 +1,23 @@
+== PR 1491 lq/rename-clean-install 21:24 base-pr=none
+branch tip 307badbb; dev 4c93f0c5; PR files vs dev before: 13
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1829 -> 1829 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2527, Assertions: 135553, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: lib/ unchanged vs dev, not run
+verify OK
+296371fe merge development into lq/rename-clean-install
+pushed lq/rename-clean-install 296371fe493c478ce5cc1f42f314d330cb4b29c3
+PR files vs dev after: 13 (+6/-5)
+gh pr merge exit=0 
+RESULT PR 1491: MERGED 7dff723266b087f5d6f609e10792cac4769f939d
+dev tree == tested tree; current failure set = pr1491 (0)

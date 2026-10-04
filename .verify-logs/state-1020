@@ -1,0 +1,22 @@
+== PR 1020 feat/gradeentry-learnerref-stamp 15:28 base-pr=none
+branch tip 2c485728; dev 948a7191; PR files vs dev before: 17
+merge-dev exit=1
+conflicts(development): lib/AppInfo/Registrar/IntegrityListenerRegistrar.php
+MANUAL: non-mechanical conflicts left: lib/AppInfo/Registrar/IntegrityListenerRegistrar.php
+manual: IntegrityListenerRegistrar.php imports + registrations: kept both (CompetencyAlignmentListener from development first, GradeEntryLearnerRefStamp from the PR; disjoint schemas)
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (1 files) exit=0
+phpunit-exit=1
+Tests: 1634, Assertions: 125417, Failures: 12, Skipped: 5.
+defects=12
+phpunit: 12 defects; new vs current dev set: 0; fixed: 0
+phpmd: 3 findings; new (file+rule) vs baseline: 0 
+verify OK
+f73d0287 merge development into feat/gradeentry-learnerref-stamp
+pushed feat/gradeentry-learnerref-stamp f73d028769cd1312b87bd7323f00375ee57f984d
+PR files vs dev after: 17 (+1775/-1)
+gh pr merge exit=0 
+RESULT PR 1020: MERGED 09fb7643cb218aa74173a0c9c4a818f253ad7fe6
+dev tree == tested tree; current failure set = pr1020 (12)

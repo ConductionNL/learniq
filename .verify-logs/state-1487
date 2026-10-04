@@ -1,0 +1,23 @@
+== PR 1487 test/r5-live-2-unblocked 21:22 base-pr=none
+branch tip f6b14e09; dev dd64d051; PR files vs dev before: 5
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1829 -> 1829 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2527, Assertions: 135553, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: lib/ unchanged vs dev, not run
+verify OK
+8554857c merge development into test/r5-live-2-unblocked
+pushed test/r5-live-2-unblocked 8554857c336779484e5196f740323dc3f4613a27
+PR files vs dev after: 5 (+172/-89)
+gh pr merge exit=0 
+RESULT PR 1487: MERGED 4c93f0c5c500f568e1689c809eba6e6c306b5c28
+WARN dev tree != tested tree ( 51 files changed, 2297 insertions(+), 58 deletions(-)); refresh the current set

@@ -1,0 +1,49 @@
+== PR 1196 feat/timetable-connection-and-import-screen 18:25 base-pr=none
+branch tip 5efb73ae; dev 837b9bef; PR files vs dev before: 31
+merge-dev exit=1
+conflicts(development): l10n/en.js l10n/en.json l10n/nl.js l10n/nl.json
+resolved l10n/en.json
+resolved l10n/nl.json
+prep OK
+l10n/ai-translated.json: 1169 -> 1191 keys; added 22, dropped 0 (not in nl.json)
+  + Add a group
+  + Exchange settings saved.
+  + Group code in {system}
+  + Group in learniq
+  + Groups from {system}
+  + Import a timetable
+  + Install planninq to import a timetable: integriq delivers it there.
+  + Integriq reads the timetable from your rostering system and delivers it to planninq. Learniq then checks the l
+  + Loading the exchange settings…
+  + No groups mapped yet.
+  + Remove this group
+  + Rostering system
+  + SWV receiver
+  + Say which group in your rostering system is which group in learniq, so an imported timetable lands on the righ
+  + The SWV receiver is a lowercase name such as swv-kindkans.
+  + The exchange settings could not be loaded.
+  + The exchange settings could not be saved.
+  + The group maps must be a list per rostering system.
+  + The integriq receiver of your support requests, for example swv-kindkans. Leave empty when you send none.
+  + The timetable could not be imported.
+  + The timetable was delivered to planninq ({state}).
+  + Timetable and SWV exchange
+appinfo/info.xml: <version> 0.3.6-unstable.20260928145637 ok (dev 0.3.6-unstable.20260928145637, branch 0.3.6-unstable.20260928145637, merge-base 0.3.6-unstable.20260928145637)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+l10n/en.json: 0 mismatches
+l10n/nl.json: 0 mismatches
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2152, Assertions: 131556, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+c8402018 merge development into feat/timetable-connection-and-import-screen
+pushed feat/timetable-connection-and-import-screen c8402018e399d4e4daec3a84b33afacc213eb1b3
+PR files vs dev after: 32 (+1559/-16)
+gh pr merge exit=0 
+RESULT PR 1196: MERGED b1de8120e0a88b9c83f4e4998482db4a33e68cc8
+dev tree == tested tree; current failure set = pr1196 (0)

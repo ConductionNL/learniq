@@ -1,0 +1,23 @@
+== PR 1486 chore/r5-spec-reviews 21:19 base-pr=none
+branch tip 404de94a; dev 7d009886; PR files vs dev before: 11
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1829 -> 1829 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2527, Assertions: 135553, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+adfe7007 merge development into chore/r5-spec-reviews
+pushed chore/r5-spec-reviews adfe70077a668fefd1d860bfbb6e5c6109f4f7e2
+PR files vs dev after: 11 (+663/-35)
+gh pr merge exit=0 
+RESULT PR 1486: MERGED dd64d0517e3a4143a4f577c57d098d603faf45dc
+dev tree == tested tree; current failure set = pr1486 (0)

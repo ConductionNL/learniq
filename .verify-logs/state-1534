@@ -1,0 +1,23 @@
+== PR 1534 fix/lti-ags-poll-system-context 09:17 base-pr=none
+branch tip 2cb9c9e2; dev b9e5dcdd; PR files vs dev before: 2
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1876 -> 1876 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2634, Assertions: 137220, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+17773b7b merge development into fix/lti-ags-poll-system-context
+pushed fix/lti-ags-poll-system-context 17773b7bb7bd95ccaa713d96c639961d15f93f55
+PR files vs dev after: 2 (+133/-7)
+gh pr merge exit=0 
+RESULT PR 1534: MERGED 7e3ecfe6736a9d55a04d5274a6204f96b6053143
+dev tree == tested tree; current failure set = pr1534 (0)

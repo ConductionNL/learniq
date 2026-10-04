@@ -1,0 +1,24 @@
+== PR 1042 feat/curriculum-coverage-matrix-view 15:26 base-pr=1032
+branch tip d95e67e5; dev 585c2e6f; PR files vs dev before: 62
+conflicts(base feat/curriculum-coverage-rollup): none
+stack: merged final feat/curriculum-coverage-rollup (693ffc85)
+stack: recorded squash 585c2e6f (-s ours, tree(S)==tree(feat/curriculum-coverage-rollup) verified)
+merge-dev exit=0
+conflicts(development): none
+prep OK
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=1
+Tests: 1612, Assertions: 125370, Failures: 12, Skipped: 5.
+defects=12
+phpunit: 12 defects; new vs current dev set: 0; fixed: 0
+phpmd: lib/ unchanged vs dev, not run
+verify OK
+366a80ad merge development's squash of #1032 into feat/curriculum-coverage-matrix-view (its tree equals feat/curriculum-coverage-rollup)
+pushed feat/curriculum-coverage-matrix-view 366a80adf1661edf1a165e6b4cab771f6e5545ea
+PR files vs dev after: 15 (+1434/-4)
+gh pr merge exit=0 
+RESULT PR 1042: MERGED 948a71912a132a0869a99072c1371e49a0c10258
+dev tree == tested tree; current failure set = pr1042 (12)

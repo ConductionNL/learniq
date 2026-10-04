@@ -1,0 +1,31 @@
+== PR 1068 feat/assignment-portal-wiring 18:23 base-pr=none
+branch tip 52e952cd; dev 730b9532; PR files vs dev before: 24
+merge-dev exit=1
+conflicts(development): l10n/en.js l10n/en.json l10n/nl.js l10n/nl.json lib/AppInfo/Registrar/IntegrityListenerRegistrar.php lib/Settings/learniq_register.json
+resolved lib/Settings/learniq_register.json
+resolved l10n/en.json
+resolved l10n/nl.json
+MANUAL: non-mechanical conflicts left: lib/AppInfo/Registrar/IntegrityListenerRegistrar.php
+manual: IntegrityListenerRegistrar.php import conflict: union (SubmissionOwnerStamp from the PR, SubmissionLearnerRefsStamp from #1056); registrations merged by git, OwnerStamp registered first. Both write Submission.learnerRefs: checked compatible (OwnerStamp stamps learnerIds + learnerRefs for a portal hand-in, LearnerRefsStamp re-derives learnerRefs from those learnerIds = same value; other writes: learnerRef vs learnerRefs)
+lib/Settings/learniq_register.json: info.version 0.27.9 -> 0.27.10 (dev 0.27.9)
+lib/Settings/learniq_mock_register.json: info.version 1.1.21 -> 1.1.22 (dev 1.1.21)
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+l10n/en.json: 0 mismatches
+l10n/nl.json: 0 mismatches
+BOTH-CHANGED /info/description | merged has it
+lib/Settings/learniq_register.json: 0 mismatches
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (1 files) exit=0
+phpunit-exit=1
+Tests: 1833, Assertions: 127027, Failures: 12, Skipped: 5.
+defects=12
+phpunit: 12 defects; new vs current dev set: 0; fixed: 0
+phpmd: 3 findings; new (file+rule) vs baseline: 0 
+verify OK
+29dc3a94 merge development into feat/assignment-portal-wiring
+pushed feat/assignment-portal-wiring 29dc3a9482943854b94a30632be4d746b4480e76
+PR files vs dev after: 24 (+1907/-38)
+gh pr merge exit=0 
+RESULT PR 1068: MERGED 421a67e470664889c5ee1742b04762a3c289ac9e
+dev tree == tested tree; current failure set = pr1068 (12)

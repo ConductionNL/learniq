@@ -1,0 +1,76 @@
+== PR 1556 test/hermiq-ai-tooling-live-8090 11:12 base-pr=none
+branch tip 38f69ae9; dev 652da973; PR files vs dev before: 2
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1876 -> 1929 keys; added 53, dropped 0 (not in nl.json)
+  + A confidential report of bullying, harassment, discrimination or violence, sent to the school's confidential c
+  + A decision that one person does not have to follow one mandatory training rule for a while, with the reason. A
+  + Bullying
+  + Concern report
+  + Concern reports
+  + Discrimination
+  + Done
+  + Equivalent qualification
+  + Excused
+  + Exemptions
+  + Expired
+  + Filed by
+  + Granted
+  + Harassment
+  + I would like to talk to a counsellor
+  + In progress
+  + Mandatory courses done: {percent}%
+  + My programmes
+  + Optional courses
+  + Person
+  + Pick what fits best. The counsellor reads your own words below.
+  + Received
+  + Regulation exemption
+  + Report a concern
+  + Request an exemption
+  + Role change
+  + Rule
+  + Something else
+  + Started
+  + Tell what happened, where, and who was there if you want to. The confidential counsellors and you can read thi
+  + The compliance officer who decided. Filled in by the app.
+  + The counsellor keeps this up to date, so you can see your report is being handled.
+  + The counsellor will contact you. Untick this if you only want them to know.
+  + The courses everyone in this programme must complete. The other courses are optional. Each new enrolment start
+  + The date, if you know it. Leave it empty when it keeps happening.
+  + The first day the exemption applies. Empty means from the decision on.
+  + The last day the exemption applies. After it the rule applies again.
+  + The learner profile of the person the exemption is for.
+  + The mandatory training rule the person does not have to follow.
+  + The person who asked for the exemption. Filled in by the app.
+  + The person who filed this report. Filled in by the app, never changed.
+  + The policy or article the decision rests on.
+  + Violence
+  + What happened
+  + What is it about
+  + What the decision is based on. Leave out medical details: say that a doctor's note exists, not what it says.
+  + When did it happen
+  + When the decision was taken. Filled in by the app.
+  + Where the request stands.
+  + Why the exemption was granted or rejected.
+  + Why the person does not have to follow the rule.
+  + You are not enrolled in a programme
+  + {done} of {total} mandatory courses done
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2685, Assertions: 137889, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: lib/ unchanged vs dev, not run
+verify OK
+ec927899 merge development into test/hermiq-ai-tooling-live-8090
+pushed test/hermiq-ai-tooling-live-8090 ec927899cf9cb7dffac35f162a4d8aa676f9b540
+PR files vs dev after: 3 (+124/-19)
+gh pr merge exit=0 
+RESULT PR 1556: MERGED c3999190c44d3447be44803f083dbd8659edd7b7
+dev tree == tested tree; current failure set = pr1556 (0)

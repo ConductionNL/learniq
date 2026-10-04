@@ -1,0 +1,24 @@
+== PR 1193 fix/example-set-regulation-dedupe 18:05 base-pr=none
+branch tip f2777df0; dev e5ef1d1d; PR files vs dev before: 16
+merge-dev exit=1
+conflicts(development): lib/Service/SeedProfileService.php tests/Unit/Service/SeedProfileServiceTest.php tests/Unit/Settings/CorporateExampleSetTest.php tests/Unit/Settings/HigherEducationExampleSetTest.php tests/Unit/Settings/PrimarySchoolExampleSetTest.php tests/Unit/Settings/SecondarySchoolExampleSetTest.php tests/Unit/Settings/TrainingExampleSetTest.php tests/Unit/Settings/VocationalCollegeExampleSetTest.php
+MANUAL: non-mechanical conflicts left: lib/Service/SeedProfileService.php tests/Unit/Service/SeedProfileServiceTest.php tests/Unit/Settings/CorporateExampleSetTest.php tests/Unit/Settings/HigherEducationExampleSetTest.php tests/Unit/Settings/PrimarySchoolExampleSetTest.php tests/Unit/Settings/SecondarySchoolExampleSetTest.php tests/Unit/Settings/TrainingExampleSetTest.php tests/Unit/Settings/VocationalCollegeExampleSetTest.php
+manual keep-both resolution: SeedProfileService ctor (sharedCodes + loadedSets) and 7 test files, per coordinator
+l10n/ai-translated.json: 1169 -> 1169 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260928145637 ok (dev 0.3.6-unstable.20260928145637, branch 0.3.6-unstable.20260928145637, merge-base 0.3.6-unstable.20260928145637)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (8 files) exit=0
+phpunit-exit=0
+Tests: 2131, Assertions: 131250, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+cf8651fc merge development into fix/example-set-regulation-dedupe
+pushed fix/example-set-regulation-dedupe cf8651fceb76727c1ccace73c27fb43a16118206
+PR files vs dev after: 16 (+438/-8)
+gh pr merge exit=0 
+RESULT PR 1193: MERGED 7d893cac60248953c98ff36ad34400aa8624a038
+dev tree == tested tree; current failure set = pr1193 (0)

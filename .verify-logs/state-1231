@@ -1,0 +1,31 @@
+== PR 1231 fix/oso-import-dossier-nullable-job 20:25 base-pr=none
+branch tip 73adb6bb; dev bf08a45d; PR files vs dev before: 11
+merge-dev exit=1
+conflicts(development): l10n/en.js l10n/en.json l10n/nl.js l10n/nl.json
+resolved l10n/en.json
+resolved l10n/nl.json
+prep OK
+l10n/ai-translated.json: 1202 -> 1203 keys; added 1, dropped 0 (not in nl.json)
+  + UUID of the integriq exchange job that received this dossier, when it came in through one. Null for a dossier 
+lib/Settings/learniq_register.json: info.version 0.31.5 already > dev 0.31.4
+lib/Settings/learniq_register.json: no bump needed
+lib/Settings/learniq_mock_register.json: info.version 1.1.28 -> 1.1.29 (dev 1.1.28)
+appinfo/info.xml: <version> 0.3.6-unstable.20260928145637 ok (dev 0.3.6-unstable.20260928145637, branch 0.3.6-unstable.20260928145637, merge-base 0.3.6-unstable.20260928145637)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+l10n/en.json: 0 mismatches
+l10n/nl.json: 0 mismatches
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2188, Assertions: 131704, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+18b29b5c merge development into fix/oso-import-dossier-nullable-job
+pushed fix/oso-import-dossier-nullable-job 18b29b5c69d580a3356dc625f43f7ba14ed30824
+PR files vs dev after: 12 (+286/-9)
+gh pr merge exit=0 
+RESULT PR 1231: MERGED 11e4f8e1d279c35b404f90a9d68373db7a1feb03
+dev tree == tested tree; current failure set = pr1231 (0)

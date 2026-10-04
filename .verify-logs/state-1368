@@ -1,0 +1,27 @@
+== PR 1368 feat/enrolment-self-join-work-group 00:03 base-pr=none
+resuming: local merge commits not yet pushed: merge development into feat/enrolment-self-join-work-group;
+branch tip fd7b5ee5; dev 6cab7849; PR files vs dev before: 31
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1550 -> 1550 keys; added 0, dropped 0 (not in nl.json)
+lib/Settings/learniq_register.json: info.version 0.32.8 -> 0.32.9 (dev 0.32.8)
+lib/Settings/learniq_register.json: schema Assignment 0.5.2 -> 0.5.3 (dev 0.5.2)
+lib/Settings/learniq_mock_register.json: info.version 1.1.36 -> 1.1.37 (dev 1.1.36)
+appinfo/info.xml: <version> 0.3.6-unstable.20260928211524 ok (dev 0.3.6-unstable.20260928204329, branch 0.3.6-unstable.20260928211524, merge-base 0.3.6-unstable.20260928204329)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2345, Assertions: 133000, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+7ddee46b merge development into feat/enrolment-self-join-work-group
+pushed feat/enrolment-self-join-work-group 7ddee46bc0ea742e9111e92df842b5404bc99e33
+PR files vs dev after: 31 (+2453/-23)
+gh pr merge exit=0 
+RESULT PR 1368: MERGED ece2a107f56aff9d2dd91a79e69d4bdbf298467a
+dev tree == tested tree; current failure set = pr1368 (0)

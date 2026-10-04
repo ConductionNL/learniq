@@ -1,0 +1,23 @@
+== PR 1575 test/po-flow-d-reads-this-rounds-slot 06:28 base-pr=none
+branch tip ab66d167; dev e333dd9c; PR files vs dev before: 1
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1955 -> 1955 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2756, Assertions: 138429, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: lib/ unchanged vs dev, not run
+verify OK
+ab66d167 test(e2e): the parent-evening flow checks this round's slot, not the first proposed one
+pushed test/po-flow-d-reads-this-rounds-slot ab66d1674c7bbedc613370db8c0346af69ea089a
+PR files vs dev after: 1 (+21/-6)
+gh pr merge exit=0 
+RESULT PR 1575: MERGED 556d9b9581358c95aee2d55cf1fd3732edcc9f9f
+dev tree == tested tree; current failure set = pr1575 (0)

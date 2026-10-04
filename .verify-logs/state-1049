@@ -1,0 +1,25 @@
+== PR 1049 feat/lesson-ai-assist-actions 18:07 base-pr=none
+branch tip 5aaa5476; dev b301a6fa; PR files vs dev before: 18
+merge-dev exit=1
+conflicts(development): l10n/en.js l10n/en.json l10n/nl.js l10n/nl.json
+resolved l10n/en.json
+resolved l10n/nl.json
+prep OK
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+l10n/en.json: 0 mismatches
+l10n/nl.json: 0 mismatches
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=1
+Tests: 1764, Assertions: 126677, Failures: 12, Skipped: 5.
+defects=12
+phpunit: 12 defects; new vs current dev set: 0; fixed: 0
+phpmd: lib/ unchanged vs dev, not run
+verify OK
+016f7534 merge development into feat/lesson-ai-assist-actions
+pushed feat/lesson-ai-assist-actions 016f7534a0842e023aee2713df83b7a6ebbda7cf
+PR files vs dev after: 18 (+2492/-53)
+gh pr merge exit=0 
+RESULT PR 1049: MERGED ce503e9fee42d557c2279387822c47c42e850fb1
+WARN dev tree != tested tree ( 2 files changed, 5 insertions(+), 5 deletions(-)); refresh the current set

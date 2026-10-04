@@ -1,0 +1,23 @@
+== PR 1203 fix/mbz-test-temp-leak 18:34 base-pr=none
+branch tip 1a4cdc2a; dev 0e9d1449; PR files vs dev before: 1
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1191 -> 1191 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260928145637 ok (dev 0.3.6-unstable.20260928145637, branch 0.3.6-unstable.20260928145637, merge-base 0.3.6-unstable.20260928145637)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2156, Assertions: 131562, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: lib/ unchanged vs dev, not run
+verify OK
+88fbfea3 merge development into fix/mbz-test-temp-leak
+pushed fix/mbz-test-temp-leak 88fbfea3ef745909b4998942b09ffba65519d290
+PR files vs dev after: 1 (+38/-)
+gh pr merge exit=0 
+RESULT PR 1203: MERGED 09568de5f1dba0565a06f19dcbf0695fbe47c131
+dev tree == tested tree; current failure set = pr1203 (0)

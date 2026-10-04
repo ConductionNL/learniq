@@ -1,0 +1,33 @@
+== PR 1141 feat/ai-translated-catalogue-review 09:25 base-pr=none
+branch tip 6ddb3932; dev 354930cf; PR files vs dev before: 22
+merge-dev exit=1
+conflicts(development): l10n/en.js l10n/en.json l10n/nl.js l10n/nl.json
+resolved l10n/en.json
+resolved l10n/nl.json
+prep OK
+l10n/ai-translated.json: 1021 -> 1025 keys; added 5, dropped 1 (not in nl.json)
+  + Loads the set you picked. It is sample data, and running it twice adds nothing. You can remove it again at the
+  + Named OpenConnector connection (e.g. 'bron-rod', 'oso', 'leerplicht', 'surfconext', 'hr', 'swv', 'ooapi-catalo
+  + Named OpenConnector connection: bron-rod | oso | leerplicht | surfconext | hr | swv | timetable-import | migra
+  + Remove the example data
+  + This only runs when you click the button. It moves the example set you loaded to the trash and keeps everythin
+  - Loads the set you picked. It is sample data, and running it twice adds nothing. Remove a set later with occ le
+appinfo/info.xml: <version> 0.3.6-unstable.20260928090000 ok (dev 0.3.6-unstable.20260928090000, branch 0.3.6-unstable.20260927180000, merge-base 0.3.6-unstable.20260927180000)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+l10n/en.json: 0 mismatches
+l10n/nl.json: 0 mismatches
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 1996, Assertions: 129624, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+e394fa7d merge development into feat/ai-translated-catalogue-review
+pushed feat/ai-translated-catalogue-review e394fa7d3b0c25907debd0cf5587805efc5099f9
+PR files vs dev after: 22 (+2581/-9)
+gh pr merge exit=0 
+RESULT PR 1141: MERGED 3600fd1cb02e980e7adb47e70c91ff8e6dba2976
+dev tree == tested tree; current failure set = pr1141 (0)

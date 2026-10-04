@@ -1,0 +1,27 @@
+== PR 1585 fix/excuse-reports-follow-group 15:56 base-pr=none
+branch tip 1319dc3e; dev e1a42ea2; PR files vs dev before: 16
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1956 -> 1958 keys; added 2, dropped 0 (not in nl.json)
+  + Group teachers
+  + The teachers of the pupil's group. The school fills this in when the report is saved.
+lib/Settings/learniq_register.json: info.version 0.34.25 already > dev 0.34.24
+lib/Settings/learniq_register.json: no bump needed
+appinfo/info.xml: <version> 0.3.6-unstable.20261001054823 ok (dev 0.3.6-unstable.20261001054823, branch 0.3.6-unstable.20261001054823, merge-base 0.3.6-unstable.20261001054823)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2820, Assertions: 138776, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+1c270f23 merge development into fix/excuse-reports-follow-group
+pushed fix/excuse-reports-follow-group 1c270f2355d0fb703abdb1b3531424f402326852
+PR files vs dev after: 17 (+1144/-11)
+gh pr merge exit=0 
+RESULT PR 1585: MERGED 9db55bdd2b2b0e39545c91c61f07423d6ec70e2d
+dev tree == tested tree; current failure set = pr1585 (0)

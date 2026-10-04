@@ -1,0 +1,44 @@
+== PR 1244 chore/r5-structure-part1 22:25 base-pr=none
+branch tip 57b10a9a; dev 1734bd49; PR files vs dev before: 38
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1203 -> 1203 keys; added 0, dropped 0 (not in nl.json)
+lib/Settings/learniq_register.json: info.version 0.31.6 already > dev 0.31.5
+lib/Settings/learniq_register.json: no bump needed
+lib/Settings/learniq_mock_register.json: info.version 1.1.30 already > dev 1.1.29
+lib/Settings/learniq_mock_register.json: schema AccessibilityStatement 0.1.0 -> 0.1.2 (dev 0.1.0, mirrors lib/Settings/learniq_register.json)
+lib/Settings/learniq_mock_register.json: schema AdmissionsRound 0.1.0 -> 0.1.1 (dev 0.1.0, mirrors lib/Settings/learniq_register.json)
+lib/Settings/learniq_mock_register.json: schema AiFeature 0.2.0 -> 0.2.1 (dev 0.2.0, mirrors lib/Settings/learniq_register.json)
+lib/Settings/learniq_mock_register.json: schema Application 0.1.0 -> 0.1.1 (dev 0.1.0, mirrors lib/Settings/learniq_register.json)
+lib/Settings/learniq_mock_register.json: schema Assessment 0.2.0 -> 0.3.2 (dev 0.2.0, mirrors lib/Settings/learniq_register.json)
+lib/Settings/learniq_mock_register.json: schema BpvPlacement 0.1.0 -> 0.2.1 (dev 0.1.0, mirrors lib/Settings/learniq_register.json)
+lib/Settings/learniq_mock_register.json: schema DeliberationRecord 0.1.0 -> 0.1.1 (dev 0.1.0, mirrors lib/Settings/learniq_register.json)
+lib/Settings/learniq_mock_register.json: schema EvaluationCampaign 0.1.0 -> 0.1.1 (dev 0.1.0, mirrors lib/Settings/learniq_register.json)
+lib/Settings/learniq_mock_register.json: schema ExternalAssessor 0.1.0 -> 0.1.1 (dev 0.1.0, mirrors lib/Settings/learniq_register.json)
+lib/Settings/learniq_mock_register.json: schema LearnerProfile 0.2.0 -> 0.3.1 (dev 0.2.0, mirrors lib/Settings/learniq_register.json)
+lib/Settings/learniq_mock_register.json: schema LearningRecordShare 0.1.0 -> 0.1.1 (dev 0.1.0, mirrors lib/Settings/learniq_register.json)
+lib/Settings/learniq_mock_register.json: schema Lesson 0.3.0 -> 0.5.1 (dev 0.3.0, mirrors lib/Settings/learniq_register.json)
+lib/Settings/learniq_mock_register.json: schema LtiToolPlacement 0.1.0 -> 0.1.1 (dev 0.1.0, mirrors lib/Settings/learniq_register.json)
+lib/Settings/learniq_mock_register.json: schema Material 0.1.0 -> 0.1.1 (dev 0.1.0, mirrors lib/Settings/learniq_register.json)
+lib/Settings/learniq_mock_register.json: schema Praktijkopleider 0.1.0 -> 0.2.1 (dev 0.1.0, mirrors lib/Settings/learniq_register.json)
+lib/Settings/learniq_mock_register.json: schema SovereigntyPolicy 0.1.0 -> 0.1.1 (dev 0.1.0, mirrors lib/Settings/learniq_register.json)
+lib/Settings/learniq_mock_register.json: schema TlvApplication 0.1.0 -> 0.1.2 (dev 0.1.0, mirrors lib/Settings/learniq_register.json)
+lib/Settings/learniq_mock_register.json: schema XapiStatement 0.1.0 -> 0.1.1 (dev 0.1.0, mirrors lib/Settings/learniq_register.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260928145637 ok (dev 0.3.6-unstable.20260928145637, branch 0.3.6-unstable.20260928145637, merge-base 0.3.6-unstable.20260928145637)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2203, Assertions: 131865, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+34a2984e merge development into chore/r5-structure-part1
+pushed chore/r5-structure-part1 34a2984eff7cd185cecbc7718d582c6ddf9a27e3
+PR files vs dev after: 38 (+404/-356)
+gh pr merge exit=0 
+RESULT PR 1244: MERGED 6cdfcd112f2d2283fcb768274a753732984786e2
+dev tree == tested tree; current failure set = pr1244 (0)

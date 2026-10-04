@@ -1,0 +1,23 @@
+== PR 1509 test/hermiq-ai-tooling-live 22:20 base-pr=none
+branch tip 05e12861; dev ed9ad279; PR files vs dev before: 8
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1829 -> 1829 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2531, Assertions: 135594, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+05783e37 merge development into test/hermiq-ai-tooling-live
+pushed test/hermiq-ai-tooling-live 05783e37074cd184f69b253adc92553fa1d60e32
+PR files vs dev after: 8 (+862/-14)
+gh pr merge exit=0 
+RESULT PR 1509: MERGED 14abc94f02206177448e00f95864032fdb797d13
+dev tree == tested tree; current failure set = pr1509 (0)

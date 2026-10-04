@@ -1,0 +1,57 @@
+== PR 1140 feat/store-rights-for-teachers 15:33 base-pr=1128
+branch tip 1e669df7; dev 146d4402; PR files vs dev before: 54
+conflicts(base feat/store-publish-through-plane): appinfo/info.xml src/main.js src/views/settings/AdminRoot.vue
+appinfo/info.xml: <version> 0.3.6-unstable.20260928100000 ok (dev 0.3.6-unstable.20260928090000, branch 0.3.6-unstable.20260928100000, merge-base 0.3.6-unstable.20260927180000)
+appver-resolve appinfo/info.xml (<version> only)
+MANUAL: non-mechanical conflicts left: src/main.js src/views/settings/AdminRoot.vue
+l10n/ai-translated.json: 1040 -> 1056 keys; added 16, dropped 0 (not in nl.json)
+  + A token is set. Enter a new one to replace it, or leave this empty to keep it.
+  + Connect a course registry so teachers can find and install courses other schools share. The registry is anothe
+  + Course store
+  + Course store connection saved.
+  + For example https://store.example.nl. Leave empty to disconnect the store.
+  + Leave empty to use learniq, the usual register name.
+  + Loading the course store connection…
+  + Put the token in the token field, not in the address.
+  + Registry address
+  + Remove the stored token
+  + The course store connection could not be loaded.
+  + The course store connection could not be saved.
+  + The register is a lowercase name such as learniq.
+  + The registry address must be a full http or https address.
+  + The token of an account in the instructors group on the registry.
+  + Token
+appinfo/info.xml: <version> 0.3.6-unstable.20260928100000 ok (dev 0.3.6-unstable.20260928090000, branch 0.3.6-unstable.20260928100000, merge-base 0.3.6-unstable.20260927180000)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2067, Assertions: 129917, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+a46bf1a4 merge development into feat/store-rights-for-teachers
+pushed feat/store-rights-for-teachers a46bf1a49267e128beb0990e2d3feea55616f601
+PR files vs dev after: 55 (+3382/-418)
+gh pr merge exit=1 GraphQL: Pull Request has merge conflicts (mergePullRequest)
+RESULT PR 1140: OPEN null
+l10n/ai-translated.json: 1056 -> 1056 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260928100000 ok (dev 0.3.6-unstable.20260928090000, branch 0.3.6-unstable.20260928100000, merge-base 0.3.6-unstable.20260928090000)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2067, Assertions: 129917, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+ba290d75 merge development into feat/store-rights-for-teachers
+pushed feat/store-rights-for-teachers ba290d755103983bf768950fd0f312d5e18b676d
+PR files vs dev after: 35 (+2189/-18)
+gh pr merge exit=0 
+RESULT PR 1140: MERGED 60b9be3fa63de540b8b4db88dc0da5c3dafa4854
+WARN dev tree != tested tree ( 6 files changed, 833 insertions(+), 40 deletions(-)); refresh the current set

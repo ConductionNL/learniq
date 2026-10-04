@@ -1,0 +1,21 @@
+== PR 1012 feat/reports-school-cards 15:05 base-pr=none
+branch tip f71a1064; dev b1165973; PR files vs dev before: 5
+merge-dev exit=0
+conflicts(development): none
+prep OK
+lib/Settings/learniq_register.json: 0 new, 2 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=2
+Tests: 1458, Assertions: 6386, Errors: 1, Failures: 13, Warnings: 1, Skipped: 5.
+defects=14
+phpunit: 14 defects; new vs current dev set: 0; fixed: 0
+phpmd: lib/ unchanged vs dev, not run
+verify OK
+cb86a818 merge development into feat/reports-school-cards
+pushed feat/reports-school-cards cb86a8186190f28575b46d40c6f3d89bfa28aba8
+PR files vs dev after: 5 (+35/-5)
+gh pr merge exit=0 
+RESULT PR 1012: MERGED b159d0913e265b355c5ac5081e0883e5c4a65c1f
+dev tree == tested tree; current failure set = pr1012 (14)

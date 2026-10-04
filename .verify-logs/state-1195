@@ -1,0 +1,26 @@
+== PR 1195 fix/lvs-score-freeze 18:22 base-pr=none
+branch tip f4b5e7c1; dev 6186faed; PR files vs dev before: 9
+merge-dev exit=1
+conflicts(development): lib/Settings/learniq_register.json
+resolved lib/Settings/learniq_register.json
+prep OK
+l10n/ai-translated.json: 1169 -> 1169 keys; added 0, dropped 0 (not in nl.json)
+lib/Settings/learniq_register.json: info.version 0.31.0 -> 0.31.1 (dev 0.31.0)
+appinfo/info.xml: <version> 0.3.6-unstable.20260928145637 ok (dev 0.3.6-unstable.20260928145637, branch 0.3.6-unstable.20260928145637, merge-base 0.3.6-unstable.20260928145637)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_register.json: 0 mismatches
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2142, Assertions: 131499, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+12304e76 merge development into fix/lvs-score-freeze
+pushed fix/lvs-score-freeze 12304e767abd07a3657237abaf4ab1f6d5e7b6c7
+PR files vs dev after: 9 (+679/-20)
+gh pr merge exit=0 
+RESULT PR 1195: MERGED 837b9bef80b416cffd9525d28f59378fcab756d0
+dev tree == tested tree; current failure set = pr1195 (0)

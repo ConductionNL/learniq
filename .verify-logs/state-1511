@@ -1,0 +1,23 @@
+== PR 1511 fix/default-tenant-fallback 22:37 base-pr=none
+branch tip cbb6760a; dev 9524def5; PR files vs dev before: 22
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1829 -> 1829 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2547, Assertions: 136261, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+ae35fab7 merge development into fix/default-tenant-fallback
+pushed fix/default-tenant-fallback ae35fab7463ea2eb954b067691cc6e7c4d3a902a
+PR files vs dev after: 22 (+894/-137)
+gh pr merge exit=0 
+RESULT PR 1511: MERGED 4bf309670ee175c7a05a9fc3c52af81715d47db6
+dev tree == tested tree; current failure set = pr1511 (0)

@@ -1,0 +1,23 @@
+== PR 1529 fix/credential-issuance-saves-as-system 08:54 base-pr=none
+branch tip 2dfb1ce9; dev ed8e8e4a; PR files vs dev before: 2
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1876 -> 1876 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2632, Assertions: 137210, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+2dfb1ce9 fix(credentials): issuance saves the certificate as the system, not as the teacher
+pushed fix/credential-issuance-saves-as-system 2dfb1ce99dcff87974bd081eb2e50b28765cec75
+PR files vs dev after: 2 (+25/-4)
+gh pr merge exit=0 
+RESULT PR 1529: MERGED 0b3cf78925e5944563831c19f99e0134f31c36eb
+dev tree == tested tree; current failure set = pr1529 (0)

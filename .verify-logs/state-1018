@@ -1,0 +1,23 @@
+== PR 1018 feat/staff-role-vocabulary-extension 18:37 base-pr=none
+branch tip 6d962f03; dev 511eba5f; PR files vs dev before: 15
+merge-dev exit=1
+conflicts(development): l10n/en.js l10n/en.json l10n/nl.js l10n/nl.json lib/Settings/learniq_register.json tests/Unit/Settings/SubjectAndTeacherAssignmentRegisterTest.php
+resolved lib/Settings/learniq_register.json
+resolved l10n/en.json
+resolved l10n/nl.json
+MANUAL: non-mechanical conflicts left: tests/Unit/Settings/SubjectAndTeacherAssignmentRegisterTest.php
+manual: SubjectAndTeacherAssignmentRegisterTest conflict hunk: development's side (po.json lookups); the branch's non-conflicting enum floor (array_slice) kept
+lib/Settings/learniq_register.json: info.version 0.28.0 -> 0.28.1 (dev 0.28.0)
+lib/Settings/learniq_mock_register.json: info.version 1.1.25 -> 1.1.26 (dev 1.1.25)
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+BOTH-CHANGED /info/description | merged has it
+lib/Settings/learniq_register.json: 0 mismatches
+l10n/en.json: 0 mismatches
+l10n/nl.json: 0 mismatches
+70f2db62 merge development into feat/staff-role-vocabulary-extension
+== 18:5x resolution per orchestrator: staff-decaan-01 removed from register seed (Staff seed [] as development); vo.py appends vo-decaan-02 as vo-staff-033 (ee020009-0000-4000-8000-000000000033), vo.json regenerated, objectCount 7841->7842, vo.py --check=0; StaffRoleVocabularyRegisterTest seed test points at the example sets (vo-staff-033 by slug, floor >=1 tagged row, Staff.version floor 0.2.0); openspec design/proposal/tasks updated. commits 70f2db62 (merge) d8bc7b60 (move)
+checks: tests/Unit/Register 5 fail (all baseline) ; targeted Staff/Subject/Secondary/Primary/Contract 38 OK exit 0 ; check:register=0 check:schema-l10n=0 check:l10n-js=0 check:specs=0 check:json-strict=0
+phpunit full: 1911 tests, 12 defects; new vs current dev set: 0; fixed: 0
+pushed feat/staff-role-vocabulary-extension d8bc7b60bdef513521da4261788efcfc39e229ce
+RESULT PR 1018: MERGED 7a3ad490b508af223557d7f6e5f9718bc841f536

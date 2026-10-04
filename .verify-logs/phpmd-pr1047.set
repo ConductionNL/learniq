@@ -1,0 +1,3 @@
+lib/AppInfo/Registrar/CaseListenerRegistrar.php CouplingBetweenObjects The class CaseListenerRegistrar has a coupling between objects value of 13. Consider to reduce the number of dependencies under 13.
+lib/AppInfo/Registrar/SchedulingListenerRegistrar.php CouplingBetweenObjects The class SchedulingListenerRegistrar has a coupling between objects value of 13. Consider to reduce the number of dependencies under 13.
+lib/AppInfo/Registrar/SchedulingListenerRegistrar.php ExcessiveMethodLength The method register() has 108 lines of code. Current threshold is set to 100. Avoid really long methods.

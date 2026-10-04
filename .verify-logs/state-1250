@@ -1,0 +1,32 @@
+== PR 1250 feat/timetabling-lesson-note 23:44 base-pr=none
+branch tip 15e2e002; dev 69196e5b; PR files vs dev before: 26
+merge-dev exit=1
+conflicts(development): l10n/ai-translated.json l10n/en.js l10n/en.json l10n/nl.js l10n/nl.json lib/Settings/learniq_register.json
+resolved lib/Settings/learniq_register.json
+ai-union l10n/ai-translated.json: keys base 1203 ours 1239 theirs 1269 merged 1305
+resolved l10n/en.json
+resolved l10n/nl.json
+prep OK
+l10n/ai-translated.json: 1305 -> 1305 keys; added 0, dropped 0 (not in nl.json)
+lib/Settings/learniq_register.json: info.version 0.32.3 -> 0.32.4 (dev 0.32.3)
+lib/Settings/learniq_mock_register.json: info.version 1.1.31 -> 1.1.32 (dev 1.1.31)
+appinfo/info.xml: <version> 0.3.6-unstable.20260928195209 ok (dev 0.3.6-unstable.20260928195209, branch 0.3.6-unstable.20260928145637, merge-base 0.3.6-unstable.20260928145637)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+l10n/en.json: 0 mismatches
+l10n/nl.json: 0 mismatches
+lib/Settings/learniq_register.json: 0 mismatches
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2278, Assertions: 132429, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+ce88a3c2 merge development into feat/timetabling-lesson-note
+pushed feat/timetabling-lesson-note ce88a3c2fc73737e3458018854deafb62b571c90
+PR files vs dev after: 26 (+2527/-38)
+gh pr merge exit=0 
+RESULT PR 1250: MERGED e6ac1f74c0f0c983c63eda7e885d4dbe3c3c1577
+dev tree == tested tree; current failure set = pr1250 (0)

@@ -1,0 +1,28 @@
+== PR 1024 feat/goal-alignment-depth 15:19 base-pr=1019
+branch tip c7e524e0; dev f7d364f3; PR files vs dev before: 27
+conflicts(base feat/competency-year-scope): lib/Settings/learniq_register.json
+resolved lib/Settings/learniq_register.json
+stack: merged final feat/competency-year-scope (7015b2de)
+stack: recorded squash f7d364f3 (-s ours, tree(S)==tree(feat/competency-year-scope) verified)
+merge-dev exit=0
+conflicts(development): none
+prep OK
+lib/Settings/learniq_register.json: info.version 0.26.0 already > dev 0.25.3
+lib/Settings/learniq_register.json: no bump needed
+lib/Settings/learniq_mock_register.json: info.version 1.1.13 -> 1.1.14 (dev 1.1.13) (textual, file not canonical)
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=1
+Tests: 1583, Assertions: 125179, Failures: 12, Skipped: 5.
+defects=12
+phpunit: 12 defects; new vs current dev set: 0; fixed: 0
+phpmd: 3 findings; new (file+rule) vs baseline: 0 
+verify OK
+bf4d3d60 merge development into feat/goal-alignment-depth
+pushed feat/goal-alignment-depth bf4d3d607900e962599c8758ee3feb5cea4e71c8
+PR files vs dev after: 19 (+1942/-17)
+gh pr merge exit=0 
+RESULT PR 1024: MERGED c9d1e76e7eb8aef79f14cfc78ef41202eb4c4d6d
+dev tree == tested tree; current failure set = pr1024 (12)

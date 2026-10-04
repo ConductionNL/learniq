@@ -1,0 +1,23 @@
+== PR 1329 ci/wire-l10n-parity-gate 08:58 base-pr=none
+branch tip 0a1f8020; dev f191007e; PR files vs dev before: 6
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1797 -> 1797 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260928145637, merge-base 0.3.6-unstable.20260928145637)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2460, Assertions: 133735, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: lib/ unchanged vs dev, not run
+verify OK
+985e8472 merge development into ci/wire-l10n-parity-gate
+pushed ci/wire-l10n-parity-gate 985e8472c872855b83502bb20c2eabc632a7d764
+PR files vs dev after: 6 (+393/-14)
+gh pr merge exit=0 
+RESULT PR 1329: MERGED 5ad69bcb86eceb8615b62de59e10b5c2e6a160d4
+dev tree == tested tree; current failure set = pr1329 (0)

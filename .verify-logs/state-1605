@@ -1,0 +1,26 @@
+== PR 1605 fix/school-readable-by-staff 01:41 base-pr=none
+branch tip b93c68b6; dev 5eccae18; PR files vs dev before: 5
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1965 -> 1968 keys; added 3, dropped 0 (not in nl.json)
+  + Join this lesson online (opens in a new tab)
+  + Online meeting link
+  + The https link learners use to join this lesson online (Talk, Teams, Zoom or any other platform). Only https l
+lib/Settings/learniq_register.json: info.version 0.34.28 -> 0.34.29 (dev 0.34.28)
+appinfo/info.xml: <version> 0.3.6-unstable.20261001054823 ok (dev 0.3.6-unstable.20261001054823, branch 0.3.6-unstable.20261001054823, merge-base 0.3.6-unstable.20261001054823)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=127
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+d9d1cb60 merge development into fix/school-readable-by-staff
+pushed fix/school-readable-by-staff d9d1cb60692e4b10d782713bd2510a953cc75754
+PR files vs dev after: 6 (+161/-2)
+gh pr merge exit=0 
+RESULT PR 1605: MERGED 25e46fe87bfb53524f5e3a5a4119d1a3100a398f
+dev tree == tested tree; current failure set = pr1605 (0)

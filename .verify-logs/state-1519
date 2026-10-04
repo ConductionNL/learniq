@@ -1,0 +1,70 @@
+== PR 1519 docs/cmi5-live-checks-pass 23:45 base-pr=none
+branch tip 315c17ca; dev 5e4d323c; PR files vs dev before: 1
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1829 -> 1876 keys; added 47, dropped 0 (not in nl.json)
+  + Available from
+  + Available until
+  + Clashes
+  + Classes
+  + Declined
+  + End
+  + Exam period
+  + Exam schedule
+  + Exam sitting
+  + Exam sittings
+  + Exams in this week
+  + From when this colleague can invigilate.
+  + How many invigilators this exam needs.
+  + How many learners sit this exam.
+  + Invigilation request
+  + Invigilation requests
+  + Invigilator
+  + Invigilator assignment
+  + Invigilator availability
+  + Invigilators
+  + Invigilators needed
+  + Number of learners
+  + Other lessons and exams at the same time for the same rooms or classes. Filled in by the server when you save.
+  + Planned, or cancelled when the exam does not take place.
+  + Planning
+  + Planning while you place exams, published when the schedule is final, closed afterwards.
+  + Published
+  + Test week
+  + Test weeks
+  + The classes that sit exams in this week.
+  + The classes that sit this exam. Used to find clashes with their other lessons.
+  + The colleague who can invigilate.
+  + The colleague who is asked to invigilate.
+  + The courses whose exams are planned in this week.
+  + The exam that is sat.
+  + The exam to invigilate.
+  + The first day of the test week.
+  + The last day of the test week.
+  + The name of the test week, such as Toetsweek 2.
+  + The rooms the exam is held in. Together they must seat everyone.
+  + The test week this availability is for.
+  + The test week this exam is planned in.
+  + Until when this colleague can invigilate.
+  + Waiting for an answer
+  + Waiting until the invigilator confirms or declines.
+  + When the exam ends for learners without extra time.
+  + When the exam starts.
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2584, Assertions: 136508, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: lib/ unchanged vs dev, not run
+verify OK
+628011ee merge development into docs/cmi5-live-checks-pass
+pushed docs/cmi5-live-checks-pass 628011ee1e0818c1722b043ecd8a63173b7f47cf
+PR files vs dev after: 2 (+71/-4)
+gh pr merge exit=0 
+RESULT PR 1519: MERGED 4a735d049519f06de6e01f8c8437f3c0d1ddab2a
+dev tree == tested tree; current failure set = pr1519 (0)

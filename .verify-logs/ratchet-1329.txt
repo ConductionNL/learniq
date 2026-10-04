@@ -1,0 +1,10 @@
+l10n-parity [learniq]: 36 required locales; checked 2 translation set(s)
+
+l10n-parity: FAIL — language support went backwards:
+  • frontend (.js) nl: 1 English key(s) with no nl translation:
+      "Emergency contacts to reach when no guardian in guardianRefs is reachable, e.g. a grandparent or neighbour with no Scholiq identity of their own (finding G-new-12). Ordered by priority; the first entry is called first."
+  • backend (.json) nl: 1 English key(s) with no nl translation:
+      "Emergency contacts to reach when no guardian in guardianRefs is reachable, e.g. a grandparent or neighbour with no Scholiq identity of their own (finding G-new-12). Ordered by priority; the first entry is called first."
+
+Add the nl value for every new English key, and do not drop existing translations.
+If a key was removed from English on purpose, record it with: node tests/l10n/check-l10n-parity.js --update

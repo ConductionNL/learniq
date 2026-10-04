@@ -1,0 +1,23 @@
+== PR 1467 chore/r5-live-2-evidence 18:45 base-pr=none
+branch tip 2b2dede1; dev 20d7b86d; PR files vs dev before: 4
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1799 -> 1799 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2478, Assertions: 133818, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: lib/ unchanged vs dev, not run
+verify OK
+2b2dede1 chore(openspec): round-5 live evidence for reissue, Europass, catalogue sign-up and work groups
+pushed chore/r5-live-2-evidence 2b2dede107600b214f2c346fe8b3cd664f24875f
+PR files vs dev after: 4 (+10/-4)
+gh pr merge exit=0 
+RESULT PR 1467: MERGED 457603410164f32f1e7619d14f02f3980e002cfe
+dev tree == tested tree; current failure set = pr1467 (0)

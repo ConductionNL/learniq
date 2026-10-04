@@ -1,0 +1,47 @@
+== PR 1027 feat/submission-resubmission-action 15:32 base-pr=none
+branch tip 46126bbb; dev 275e5bb0; PR files vs dev before: 18
+merge-dev exit=1
+conflicts(development): lib/AppInfo/Registrar/IntegrityListenerRegistrar.php lib/Settings/learniq_register.json
+resolved lib/Settings/learniq_register.json
+MANUAL: non-mechanical conflicts left: lib/AppInfo/Registrar/IntegrityListenerRegistrar.php
+manual: IntegrityListenerRegistrar.php registrations: kept both (development's CompetencyAlignment + GradeEntryLearnerRefStamp first, then the PR's SubmissionResubmissionDateListener; disjoint schemas)
+lib/Settings/learniq_register.json: info.version 0.27.0 -> 0.27.1 (dev 0.27.0)
+lib/Settings/learniq_mock_register.json: NOT canonical and a schema bump is needed: manual
+lib/Settings/learniq_register.json: info.version 0.27.1 already > dev 0.27.0
+lib/Settings/learniq_register.json: no bump needed
+lib/Settings/learniq_mock_register.json: info.version 1.1.16 already > dev 1.1.15
+lib/Settings/learniq_mock_register.json: no bump needed (file not canonical)
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+BOTH-CHANGED /info/description | merged has it
+lib/Settings/learniq_register.json: 0 mismatches
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (1 files) exit=0
+phpunit-exit=1
+Tests: 1652, Assertions: 125508, Failures: 12, Skipped: 5.
+defects=12
+phpunit: 12 defects; new vs current dev set: 0; fixed: 0
+phpmd: 3 findings; new (file+rule) vs baseline: 0 
+verify OK
+lib/Settings/learniq_register.json: info.version 0.27.0 -> 0.27.1 (dev 0.27.0)
+lib/Settings/learniq_mock_register.json: info.version 1.1.16 already > dev 1.1.15
+lib/Settings/learniq_mock_register.json: no bump needed (file not canonical)
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+BOTH-CHANGED /info/description | merged has it
+lib/Settings/learniq_register.json: 0 mismatches
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (1 files) exit=0
+phpunit-exit=1
+Tests: 1652, Assertions: 125508, Failures: 12, Skipped: 5.
+defects=12
+phpunit: 12 defects; new vs current dev set: 0; fixed: 0
+phpmd: 3 findings; new (file+rule) vs baseline: 0 
+verify OK
+manual: info.description concatenation re-done after fixing the separator (was 'rollup/./. adds', now 'rollup/. adds'); mock Submission schema 0.2.0 -> 0.3.0 mirroring main, mock info 1.1.15 -> 1.1.16 (textual: dev mock not canonical since #1019)
+e89bb596 merge development into feat/submission-resubmission-action
+pushed feat/submission-resubmission-action e89bb596770aa894b94b33f1e77130bb58dceabb
+PR files vs dev after: 18 (+1044/-7)
+gh pr merge exit=0 
+RESULT PR 1027: MERGED a79c4b8c0064f93453a6f64a635a5c7a1e102f12
+dev tree == tested tree; current failure set = pr1027 (12)

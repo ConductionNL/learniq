@@ -1,0 +1,24 @@
+== PR 1277 feat/cmi5-xapi-lrs-ingest 23:36 base-pr=none
+branch tip 4bb21335; dev cf9ed53a; PR files vs dev before: 17
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1261 -> 1261 keys; added 0, dropped 0 (not in nl.json)
+lib/Settings/learniq_register.json: info.version 0.32.2 -> 0.32.3 (dev 0.32.2)
+appinfo/info.xml: <version> 0.3.6-unstable.20260928195209 ok (dev 0.3.6-unstable.20260928195209, branch 0.3.6-unstable.20260928195209, merge-base 0.3.6-unstable.20260928195209)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2254, Assertions: 132305, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+8ff2a97e merge development into feat/cmi5-xapi-lrs-ingest
+pushed feat/cmi5-xapi-lrs-ingest 8ff2a97e8e4a120ca6cba24b13d117f866e7af9b
+PR files vs dev after: 17 (+1833/-145)
+gh pr merge exit=0 
+RESULT PR 1277: MERGED de24e9c14d6c6ba0c8adbf6b24a51d5fe1093a64
+dev tree == tested tree; current failure set = pr1277 (0)

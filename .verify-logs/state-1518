@@ -1,0 +1,23 @@
+== PR 1518 fix/lti-context-claim-course 23:19 base-pr=none
+branch tip 4938b217; dev f43e5279; PR files vs dev before: 2
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1829 -> 1829 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2554, Assertions: 136303, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+4938b217 fix(lti): the context claim names the lesson's course and its name
+pushed fix/lti-context-claim-course 4938b21773dae6a5ad9a7135e38517b1ce9800d7
+PR files vs dev after: 2 (+66/-3)
+gh pr merge exit=0 
+RESULT PR 1518: MERGED 5e4d323c08a8b05e8e294b71e750055c0630e1c9
+WARN dev tree != tested tree ( 31 files changed, 3658 insertions(+), 63 deletions(-)); refresh the current set

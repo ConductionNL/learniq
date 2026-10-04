@@ -1,0 +1,7 @@
+== PR 1043 feat/lesson-sharing-via-store-plane 17:41 base-pr=1029
+branch tip 1cb549e2; dev 30e412ce; PR files vs dev before: 64
+conflicts(base feat/lesson-sharing-consent-gate): docs/user-guide/admin/03-admin-settings.md lib/Settings/learniq_mock_register.json lib/Settings/learniq_register.json
+resolved lib/Settings/learniq_mock_register.json
+resolved lib/Settings/learniq_register.json
+MANUAL: non-mechanical conflicts left: docs/user-guide/admin/03-admin-settings.md
+manual: docs/user-guide/admin/03-admin-settings.md: kept both sections (confidential notes from #1025, course store from the PR); base union audits 0 mismatches, mock objects set-checked

@@ -1,0 +1,21 @@
+== PR 1047 fix/findall-config-filters-sweep 18:04 base-pr=none
+branch tip 53f9e016; dev ca2ae61d; PR files vs dev before: 184
+merge-dev exit=0
+conflicts(development): none
+prep OK
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=1
+Tests: 1748, Assertions: 126646, Failures: 12, Skipped: 5.
+defects=12
+phpunit: 12 defects; new vs current dev set: 0; fixed: 0
+phpmd: 3 findings; new (file+rule) vs baseline: 0 
+verify OK
+f85374bf merge development into fix/findall-config-filters-sweep
+pushed fix/findall-config-filters-sweep f85374bf9646221b9dc40c9ac1b2d77e5331048a
+PR files vs dev after: 184 (+1632/-612)
+gh pr merge exit=0 
+RESULT PR 1047: MERGED 6a065c4f80a648a72e947f5369c186a4b6111144
+dev tree == tested tree; current failure set = pr1047 (12)

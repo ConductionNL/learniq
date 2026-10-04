@@ -1,0 +1,31 @@
+== PR 1347 feat/content-lti-launch-through-integriq 23:38 base-pr=none
+branch tip 795974ae; dev de24e9c1; PR files vs dev before: 21
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1261 -> 1269 keys; added 8, dropped 0 (not in nl.json)
+  + Grade subscription
+  + Integriq opens external tools from a lesson and sends their grades back. Create a subscription on grade events
+  + Integriq returned an unexpected launch response.
+  + LTI settings saved
+  + Loading the LTI settings…
+  + The LTI settings could not be loaded.
+  + The LTI settings could not be saved.
+  + The id of the integriq event subscription on LTI grade events. Leave empty to stop pulling grades.
+appinfo/info.xml: <version> 0.3.6-unstable.20260928195209 ok (dev 0.3.6-unstable.20260928195209, branch 0.3.6-unstable.20260928195209, merge-base 0.3.6-unstable.20260928195209)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2256, Assertions: 132329, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+f5ed748a merge development into feat/content-lti-launch-through-integriq
+pushed feat/content-lti-launch-through-integriq f5ed748aa38ce1ffe0d7314a59ef278212d1bcf6
+PR files vs dev after: 22 (+1173/-471)
+gh pr merge exit=0 
+RESULT PR 1347: MERGED 69196e5b52dab48c01cb35af21d998eb01e9a03d
+dev tree == tested tree; current failure set = pr1347 (0)

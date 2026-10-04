@@ -1,0 +1,63 @@
+== PR 1388 feat/timetabling-enrolment-forecast 08:04 base-pr=none
+branch tip ae87f0c6; dev ac906215; PR files vs dev before: 23
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1761 -> 1797 keys; added 36, dropped 0 (not in nl.json)
+  + A final scenario is the one the school plans with.
+  + A scenario for next school year: progression rates per programme year, expected intake and a target group size
+  + Compute forecast
+  + Copy scenario
+  + Enrolment forecast
+  + Expected intake
+  + Expected intake in year 1
+  + Expected learners in year 1 per programme. Leave empty to use the placed applications.
+  + Final
+  + Forecast
+  + Forecast "{scenario}" for {year}, computed {time}.
+  + Group size
+  + Groups needed
+  + Intake
+  + Learners expected in year 1.
+  + Leaves
+  + Moves up
+  + Next year's learners and groups per programme year and subject, from this year's groups, progression rates and
+  + Progression per programme and year; the three shares add up to one. A year without a row uses 0.9, 0.05 and 0.
+  + Rate
+  + Rates
+  + Rates per programme year
+  + Repeats
+  + Save scenario
+  + Scenario
+  + Share that leaves the school.
+  + Share that moves up; in the last year, the share that finishes.
+  + Share that stays in the same year.
+  + The group size used to count the groups needed.
+  + The last computed forecast, with the time it was computed.
+  + The programme.
+  + The scenario's name.
+  + The school year the forecast is for.
+  + The year of the programme this year's learners are in.
+  + estimated
+  + {name} (copy)
+lib/Settings/learniq_register.json: info.version 0.34.4 already > dev 0.34.3
+lib/Settings/learniq_register.json: no bump needed
+lib/Settings/learniq_mock_register.json: info.version 1.1.42 already > dev 1.1.41
+lib/Settings/learniq_mock_register.json: no bump needed
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2460, Assertions: 133735, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+7d2bc196 merge development into feat/timetabling-enrolment-forecast
+pushed feat/timetabling-enrolment-forecast 7d2bc19689e26167a5190ad7e3337c73e619a3d0
+PR files vs dev after: 24 (+2058/-29)
+gh pr merge exit=0 
+RESULT PR 1388: MERGED f191007e1859926aabcf198278c8f3594e9a3506
+dev tree == tested tree; current failure set = pr1388 (0)

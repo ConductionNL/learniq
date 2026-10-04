@@ -1,0 +1,8 @@
+#1047 fix/findall-config-filters-sweep
+#1056 fix/learner-lookup-and-learnerrefs
+#1049 feat/lesson-ai-assist-actions
+#1080 feat/office-file-lesson-onboarding
+#1068 feat/assignment-portal-wiring
+#1096 feat/assessment-portal-endpoints
+#1070 feat/privacy-reuse-openregister-register
+#1082 feat/payments-to-shillinq-migration

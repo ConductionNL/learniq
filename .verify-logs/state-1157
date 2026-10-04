@@ -1,0 +1,113 @@
+== PR 1157 feat/data-exchange-to-integriq 16:11 base-pr=none
+branch tip ab22be96; dev 4f3f55d7; PR files vs dev before: 127
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1079 -> 1157 keys; added 78, dropped 0 (not in nl.json)
+  + %1$s record(s) miss a required field (%2$s): %3$s.
+  + A parent rejected this file, so it does not leave the school.
+  + Another school (OSO)
+  + Anything worth keeping about the count.
+  + Basispoort
+  + Confirmed
+  + Decided at
+  + Decided by
+  + Dossier review
+  + Edu-V
+  + Exchange job ID
+  + Exchange target
+  + Finished
+  + If set, learniq asks integriq for an exchange job to this target (for example 'leerplicht') when a flag is rai
+  + Integriq has the export. It runs once learniq's checks allow it.
+  + Integriq sends learniq's reports to DUO, OSO transfer files and SWV hand-offs once learniq's checks allow them
+  + Job
+  + Learner account
+  + Learniq has no list of what may leave for this %s job, so nothing is sent.
+  + MAS route
+  + Municipality feedback
+  + Nobody has taken up this attendance flag yet. Start handling it, then the report is sent.
+  + Parent review
+  + Parent reviews
+  + Partner
+  + Partner approval
+  + Partner approvals
+  + Pupil count
+  + Received at
+  + Record
+  + Recorded by
+  + Requested
+  + Reviewed at
+  + Reviewed by
+  + Samenwerkingsverband
+  + Shared fields
+  + Teldatum
+  + Teldatum check
+  + Teldatum checks
+  + Test supplier (UWLR)
+  + The DUO count date this check is for.
+  + The case-handling route (MAS-route) the municipality assigned this report to.
+  + The coordinator's note on the municipality's feedback.
+  + The data exchange target this partner link is for.
+  + The data exchange target whose numbers were checked.
+  + The fields this partner receives, so you can show a parent or an auditor.
+  + The learner the file is about.
+  + The learner's account id, used to find the parents who may decide.
+  + The municipality's case-handling route (MAS route) for this leerplicht report, recorded by a coordinator or ad
+  + The number of pupils the school counted on the teldatum.
+  + The organisation on the other side of the link.
+  + The parent who decided. Stamped server-side.
+  + The partner link for %s is not approved yet.
+  + The teldatum count for %s is not confirmed yet.
+  + This file leaves the school only after a parent approved it.
+  + UUID of the integriq exchange job (target bron-rod) requested when this advice was sent to ROD. Null until sen
+  + UUID of the integriq exchange job (target leerplicht) requested for this flag. Null when no target is configur
+  + UUID of the integriq exchange job (target swv) requested when this request was submitted. Null until submitted
+  + UUID of the integriq exchange job that carries this file.
+  + UUID of the integriq exchange job that imported this result, when it came in through one. Null for a result en
+  + UUID of the integriq exchange job that received this dossier, when it came in through one.
+  + User id of whoever recorded this feedback. Always stamped server-side from the transition actor.
+  + Waiting for a parent
+  + Waiting for approval
+  + Waiting for confirmation
+  + What went wrong
+  + When the count was confirmed. Stamped server-side.
+  + When the link was approved or rejected. Stamped server-side.
+  + When the municipality told the school. Stamped server-side when not supplied.
+  + When the parent decided. Stamped server-side.
+  + Where the file goes: another school (OSO) or the samenwerkingsverband (SWV).
+  + Whether a parent approved the file.
+  + Whether a staff member confirmed the count.
+  + Whether the school approved this partner link.
+  + Who approved or rejected the link. Stamped server-side.
+  + Who confirmed the count. Stamped server-side.
+  + Why the link was rejected, or anything else worth keeping.
+  + Why the parent rejected the file, or a question for the school.
+lib/Settings/learniq_register.json: info.version 0.30.0 already > dev 0.29.5
+lib/Settings/learniq_register.json: schema Session 0.1.0 -> 0.1.1 (dev 0.1.0)
+lib/Settings/learniq_register.json: schema AttendanceThreshold 0.1.1 -> 0.1.2 (dev 0.1.1)
+lib/Settings/learniq_register.json: schema AttendanceFlag 0.2.0 -> 0.2.1 (dev 0.2.0)
+lib/Settings/learniq_register.json: schema LvsResult 0.2.0 -> 0.2.1 (dev 0.2.0)
+lib/Settings/learniq_register.json: schema OsoImportDossier 0.2.0 -> 0.2.1 (dev 0.2.0)
+lib/Settings/learniq_register.json: schema SsoAttributeMapping 0.1.0 -> 0.1.1 (dev 0.1.0)
+lib/Settings/learniq_mock_register.json: info.version 1.1.27 -> 1.1.28 (dev 1.1.27)
+lib/Settings/learniq_mock_register.json: schema AttendanceFlag 0.1.0 -> 0.2.1 (dev 0.1.0, mirrors lib/Settings/learniq_register.json)
+lib/Settings/learniq_mock_register.json: schema SupportRequest 0.1.0 -> 0.3.0 (dev 0.1.0, mirrors lib/Settings/learniq_register.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260928145637 ok (dev 0.3.6-unstable.20260928145637, branch 0.3.6-unstable.20260928145637, merge-base 0.3.6-unstable.20260928145637)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2111, Assertions: 131133, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+bdec22e0 merge development into feat/data-exchange-to-integriq
+pushed feat/data-exchange-to-integriq bdec22e04f0af798d423589b740748b5e04d6e33
+PR files vs dev after: 128 (+10952/-15324)
+gh pr merge exit=1 GraphQL: Pull Request is not mergeable (mergePullRequest)
+RESULT PR 1157: OPEN null
+gh pr merge exit=0 
+RESULT PR 1157: MERGED 055b9d9eeadcc4c495a88c188fa751ee691d5610
+dev tree == tested tree; current failure set = pr1157 (0)

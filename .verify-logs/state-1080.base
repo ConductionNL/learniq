@@ -1,0 +1,6 @@
+== PR 1080 feat/office-file-lesson-onboarding 18:09 base-pr=1049
+branch tip f3f69e5b; dev ce503e9f; PR files vs dev before: 57
+conflicts(base feat/lesson-ai-assist-actions): appinfo/routes.php lib/Settings/learniq_register.json
+resolved lib/Settings/learniq_register.json
+MANUAL: non-mechanical conflicts left: appinfo/routes.php
+manual: appinfo/routes.php kept both route groups (courseSharing + store from #1029/#1043, lessonOnboarding from the PR); no duplicate verb+url

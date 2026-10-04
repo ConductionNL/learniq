@@ -1,0 +1,23 @@
+== PR 1586 fix/teacher-dashboard-own-groups 15:58 base-pr=none
+branch tip bfe48e9f; dev 9db55bdd; PR files vs dev before: 7
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1958 -> 1958 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20261001054823 ok (dev 0.3.6-unstable.20261001054823, branch 0.3.6-unstable.20261001054823, merge-base 0.3.6-unstable.20261001054823)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2820, Assertions: 138776, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: lib/ unchanged vs dev, not run
+verify OK
+2289541e merge development into fix/teacher-dashboard-own-groups
+pushed fix/teacher-dashboard-own-groups 2289541e99281a8d3d94d161b5abde71c692edf4
+PR files vs dev after: 7 (+556/-11)
+gh pr merge exit=0 
+RESULT PR 1586: MERGED e480b978b27c85963448456b7c87cc9c21b27e03
+dev tree == tested tree; current failure set = pr1586 (0)

@@ -1,0 +1,22 @@
+== PR 1139 feat/retired-schemas-prune 09:15 base-pr=none
+branch tip 32f299ef; dev 132d1d7e; PR files vs dev before: 16
+merge-dev exit=0
+conflicts(development): none
+prep OK
+appinfo/info.xml: <version> 0.3.6-unstable.20260928090000 ok (dev 0.3.6-unstable.20260927180000, branch 0.3.6-unstable.20260928090000, merge-base 0.3.6-unstable.20260927180000)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 1964, Assertions: 129432, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+f663ccf0 merge development into feat/retired-schemas-prune
+pushed feat/retired-schemas-prune f663ccf07563653f855ba138f4783a7936d32a84
+PR files vs dev after: 16 (+1309/-1)
+gh pr merge exit=0 
+RESULT PR 1139: MERGED ae3429cbdf99eee9c542ab65594fa7aa98355e16
+dev tree == tested tree; current failure set = pr1139 (0)

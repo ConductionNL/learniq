@@ -1,0 +1,24 @@
+== PR 1030 feat/peer-review-allocation-trigger 15:31 base-pr=1023
+branch tip 9afd52a9; dev dcde983c; PR files vs dev before: 25
+conflicts(base feat/assignment-missing-submissions-view): none
+stack: merged final feat/assignment-missing-submissions-view (b53f8eba)
+stack: recorded squash dcde983c (-s ours, tree(S)==tree(feat/assignment-missing-submissions-view) verified)
+merge-dev exit=0
+conflicts(development): none
+prep OK
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=1
+Tests: 1636, Assertions: 125459, Failures: 12, Skipped: 5.
+defects=12
+phpunit: 12 defects; new vs current dev set: 0; fixed: 0
+phpmd: 3 findings; new (file+rule) vs baseline: 0 
+verify OK
+6ce23965 merge development's squash of #1023 into feat/peer-review-allocation-trigger (its tree equals feat/assignment-missing-submissions-view)
+pushed feat/peer-review-allocation-trigger 6ce23965eb18a3e7a6efa88df7367d2fd53e3c76
+PR files vs dev after: 16 (+859/-24)
+gh pr merge exit=0 
+RESULT PR 1030: MERGED 275e5bb0b1db02a31e907c233504f2677e7961c3
+dev tree == tested tree; current failure set = pr1030 (12)

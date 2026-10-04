@@ -1,0 +1,27 @@
+== PR 1031 feat/segment-example-datasets-po 15:08 base-pr=1028
+branch tip 05da1e23; dev ce10ebc7; PR files vs dev before: 58
+conflicts(base feat/segment-wizard-choice): none
+stack: merged final feat/segment-wizard-choice (d1ab0bda)
+stack: recorded squash ce10ebc7 (-s ours, tree(S)==tree(feat/segment-wizard-choice) verified)
+merge-dev exit=0
+conflicts(development): none
+prep OK
+lib/Settings/learniq_register.json: info.version 0.25.1 already > dev 0.25.0
+lib/Settings/learniq_register.json: no bump needed
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 1 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=1
+Tests: 1498, Assertions: 17493, Failures: 12, Skipped: 5.
+defects=12
+phpunit: 12 defects; new vs current dev set: 0; fixed: 2
+fixed: error|OCA\Learniq\Tests\Unit\Settings\SubjectAndTeacherAssignmentRegisterTest::testSeedFixturesExerciseDuoPartnerSplitAndSubjectAssignments failure|OCA\Learniq\Tests\Unit\Settings\CohortGroupPagePolishRegisterTest::testSeedFixtureCarriesNotes
+phpmd: 3 findings; new (file+rule) vs baseline: 0 
+verify OK
+37246044 merge development's squash of #1028 into feat/segment-example-datasets-po (its tree equals feat/segment-wizard-choice)
+pushed feat/segment-example-datasets-po 37246044199bd92b43bca0a53e0fb1b33d0fd7f6
+PR files vs dev after: 20 (+6324/-405)
+gh pr merge exit=0 
+RESULT PR 1031: MERGED a1e2fadc6fdf038484f22aecc286735fef72c1ba
+dev tree == tested tree; current failure set = pr1031 (12)

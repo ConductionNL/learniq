@@ -1,0 +1,23 @@
+== PR 1484 fix/merge-fraud-case-and-contacts-title 21:10 base-pr=none
+branch tip ff258483; dev acdf1dd5; PR files vs dev before: 6
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1829 -> 1829 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2517, Assertions: 134095, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+7aa13e5a merge development into fix/merge-fraud-case-and-contacts-title
+pushed fix/merge-fraud-case-and-contacts-title 7aa13e5aa67fc5f6c611e3b3bf4f791d08d4d8f5
+PR files vs dev after: 6 (+150/-1)
+gh pr merge exit=0 
+RESULT PR 1484: MERGED 7d00988685911031a22a78ef7c3b9b89839e3242
+dev tree == tested tree; current failure set = pr1484 (0)

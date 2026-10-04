@@ -1,0 +1,24 @@
+== PR 1055 feat/segment-example-datasets-he 15:12 base-pr=1031
+branch tip 7d734225; dev 48b95aba; PR files vs dev before: 66
+conflicts(base feat/segment-example-datasets-po): none
+stack: merged final feat/segment-example-datasets-po (37246044)
+stack: recorded squash a1e2fadc (-s ours, tree(S)==tree(feat/segment-example-datasets-po) verified)
+merge-dev exit=0
+conflicts(development): none
+prep OK
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=1
+Tests: 1533, Assertions: 101555, Failures: 12, Skipped: 5.
+defects=12
+phpunit: 12 defects; new vs current dev set: 0; fixed: 0
+phpmd: 3 findings; new (file+rule) vs baseline: 0 
+verify OK
+1b688fde merge development into feat/segment-example-datasets-he
+pushed feat/segment-example-datasets-he 1b688fdef9d1b1eebb974ba77ee15088f823bc89
+PR files vs dev after: 12 (+8529/-)
+gh pr merge exit=0 
+RESULT PR 1055: MERGED 8c7e55b3de2c7ef51ba92a3595aee46a2e8804e7
+dev tree == tested tree; current failure set = pr1055 (12)

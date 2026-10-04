@@ -1,0 +1,6 @@
+== PR 1032 feat/curriculum-coverage-rollup 15:21 base-pr=1024
+branch tip 1d0ae42a; dev c9d1e76e; PR files vs dev before: 51
+conflicts(base feat/goal-alignment-depth): appinfo/info.xml
+MANUAL: non-mechanical conflicts left: appinfo/info.xml
+manual: appinfo/info.xml <commands>: kept both commands (ExampleSetRemoveCommand from development, RecomputeCurriculumCoverage from the PR), each with its comment
+manual: new PHPUnit failure RegisteredListenersHandleRealEventsTest (dev's #1046 fixture table x this PR's ObjectDeletedEvent listener): stub mirrored to real openregister class + fixture row, commit 374a8f9b; 8 tests OK

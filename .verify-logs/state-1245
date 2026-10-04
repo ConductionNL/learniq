@@ -1,0 +1,23 @@
+== PR 1245 chore/archive-built-changes-2 22:33 base-pr=none
+branch tip 2a6966f3; dev b496a584; PR files vs dev before: 117
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1205 -> 1205 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260928145637 ok (dev 0.3.6-unstable.20260928145637, branch 0.3.6-unstable.20260928145637, merge-base 0.3.6-unstable.20260928145637)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2203, Assertions: 131865, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+1b061259 merge development into chore/archive-built-changes-2
+pushed chore/archive-built-changes-2 1b061259e1c5ad86e88158dc1ca273694dbce581
+PR files vs dev after: 117 (+849/-60)
+gh pr merge exit=0 
+RESULT PR 1245: MERGED 18f33244fb94128218f513d75831dba39460e246
+dev tree == tested tree; current failure set = pr1245 (0)

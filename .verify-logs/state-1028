@@ -1,0 +1,24 @@
+== PR 1028 feat/segment-wizard-choice 15:07 base-pr=1022
+branch tip c16667fe; dev c1cd766b; PR files vs dev before: 43
+conflicts(base feat/segment-runtime-bridge): none
+stack: merged final feat/segment-runtime-bridge (75866a49)
+stack: recorded squash c1cd766b (-s ours, tree(S)==tree(feat/segment-runtime-bridge) verified)
+merge-dev exit=0
+conflicts(development): none
+prep OK
+lib/Settings/learniq_register.json: 0 new, 2 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=2
+Tests: 1489, Assertions: 6505, Errors: 1, Failures: 13, Warnings: 1, Skipped: 5.
+defects=14
+phpunit: 14 defects; new vs current dev set: 0; fixed: 0
+phpmd: 3 findings; new (file+rule) vs baseline: 0 
+verify OK
+d1ab0bda merge development's squash of #1022 into feat/segment-wizard-choice (its tree equals feat/segment-runtime-bridge)
+pushed feat/segment-wizard-choice d1ab0bda8a333eebb1156de9f07eff92d1e8b2ea
+PR files vs dev after: 29 (+3277/-403)
+gh pr merge exit=0 
+RESULT PR 1028: MERGED ce10ebc71a07655b8da7f98fca7b231d725b08bb
+dev tree == tested tree; current failure set = pr1028 (14)

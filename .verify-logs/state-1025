@@ -1,0 +1,35 @@
+== PR 1025 feat/confidential-counsellor-channel 16:36 base-pr=none
+branch tip 7fefbace; dev 3bdddc07; PR files vs dev before: 20
+merge-dev exit=1
+conflicts(development): l10n/en.js l10n/en.json l10n/nl.js l10n/nl.json lib/Controller/PageController.php lib/Settings/learniq_mock_register.json lib/Settings/learniq_register.json tests/Unit/Controller/PageControllerTest.php
+resolved lib/Settings/learniq_mock_register.json
+resolved lib/Settings/learniq_register.json
+resolved l10n/en.json
+resolved l10n/nl.json
+MANUAL: non-mechanical conflicts left: lib/Controller/PageController.php tests/Unit/Controller/PageControllerTest.php
+manual: PageController.php kept both initial-state lines (segment from #1022, confidentialCounsellor from the PR); PageControllerTest.php kept both method sets, and the PR's test gained container: createMock(ContainerInterface) because #1022 added that 5th constructor argument (ArgumentCountError otherwise); 8 tests OK
+lib/Settings/learniq_register.json: info.version 0.27.3 -> 0.27.4 (dev 0.27.3)
+lib/Settings/learniq_mock_register.json: info.version 1.1.16 -> 1.1.17 (dev 1.1.16)
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+l10n/en.json: 0 mismatches
+l10n/nl.json: 0 mismatches
+BOTH-CHANGED /components/objects | merged has it
+lib/Settings/learniq_mock_register.json: 0 mismatches
+BOTH-CHANGED /info/description | merged has it
+lib/Settings/learniq_register.json: 0 mismatches
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (2 files) exit=0
+phpunit-exit=1
+Tests: 1683, Assertions: 125956, Failures: 12, Skipped: 5.
+defects=12
+phpunit: 12 defects; new vs current dev set: 0; fixed: 0
+phpmd: 3 findings; new (file+rule) vs baseline: 0 
+verify OK
+note: mock register rewritten as a canonical dump by the union (restores the formatting #1019's inline arrays broke); objects list = development + the PR's 3 confidential-note objects (checked as a set); mock 1.1.16 -> 1.1.17
+135618ba merge development into feat/confidential-counsellor-channel
+pushed feat/confidential-counsellor-channel 135618ba80c0a3f966df806d9d600e2340acb917
+PR files vs dev after: 20 (+984/-11)
+gh pr merge exit=0 
+RESULT PR 1025: MERGED 46346f6c524471d2083319ebaa923a292e9c9296
+dev tree == tested tree; current failure set = pr1025 (12)

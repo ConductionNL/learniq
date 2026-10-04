@@ -1,0 +1,26 @@
+== PR 1349 feat/enrolment-catalogue-self-signup 00:00 base-pr=none
+resuming: local merge commits not yet pushed: merge development into feat/enrolment-catalogue-self-signup;
+branch tip eb079802; dev ae6fbd27; PR files vs dev before: 30
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1517 -> 1517 keys; added 0, dropped 0 (not in nl.json)
+lib/Settings/learniq_register.json: info.version 0.32.7 -> 0.32.8 (dev 0.32.7)
+lib/Settings/learniq_mock_register.json: info.version 1.1.35 -> 1.1.36 (dev 1.1.35)
+appinfo/info.xml: <version> 0.3.6-unstable.20260928204329 ok (dev 0.3.6-unstable.20260928195209, branch 0.3.6-unstable.20260928204329, merge-base 0.3.6-unstable.20260928195209)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2333, Assertions: 132872, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+c8edb6b5 merge development into feat/enrolment-catalogue-self-signup
+pushed feat/enrolment-catalogue-self-signup c8edb6b5a367444865b5777976f4c235f0c9cc99
+PR files vs dev after: 30 (+2830/-38)
+gh pr merge exit=0 
+RESULT PR 1349: MERGED 6cab78491d4f231cca488f25d92f68cdf44cf51a
+dev tree == tested tree; current failure set = pr1349 (0)

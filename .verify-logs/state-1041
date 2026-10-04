@@ -1,0 +1,24 @@
+== PR 1041 feat/segment-menu-gating 15:09 base-pr=1028
+branch tip 38f56b0e; dev a1e2fadc; PR files vs dev before: 58
+conflicts(base feat/segment-wizard-choice): none
+stack: merged final feat/segment-wizard-choice (d1ab0bda)
+stack: recorded squash ce10ebc7 (-s ours, tree(S)==tree(feat/segment-wizard-choice) verified)
+merge-dev exit=0
+conflicts(development): none
+prep OK
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=1
+Tests: 1498, Assertions: 17493, Failures: 12, Skipped: 5.
+defects=12
+phpunit: 12 defects; new vs current dev set: 0; fixed: 0
+phpmd: lib/ unchanged vs dev, not run
+verify OK
+6c7a698d merge development into feat/segment-menu-gating
+pushed feat/segment-menu-gating 6c7a698d9db88116bfbc6cedc3d0d7336af4b1d6
+PR files vs dev after: 22 (+649/-7)
+gh pr merge exit=0 
+RESULT PR 1041: MERGED e8f15de76ffa62d19d2e1c61a9dfda877a5b5016
+dev tree == tested tree; current failure set = pr1041 (12)

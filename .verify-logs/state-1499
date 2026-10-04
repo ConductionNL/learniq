@@ -1,0 +1,25 @@
+== PR 1499 chore/archive-built-changes-12 21:56 base-pr=none
+branch tip 9db96df7; dev 0f96f435; PR files vs dev before: 60
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1829 -> 1829 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2529, Assertions: 135579, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+3094e332 merge development into chore/archive-built-changes-12
+pushed chore/archive-built-changes-12 3094e33286e8888f5e7ce147a5ae1d015e5d5d3d
+PR files vs dev after: 60 (+446/-264)
+gh pr merge exit=1 GraphQL: Pull Request is not mergeable (mergePullRequest)
+RESULT PR 1499: OPEN null
+gh pr merge exit=0 
+RESULT PR 1499: MERGED 44a150936d7ad1d9ef900774f5cbaa52e1b53339
+dev tree == tested tree; current failure set = pr1499 (0)

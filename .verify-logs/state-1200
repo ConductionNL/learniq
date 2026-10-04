@@ -1,0 +1,26 @@
+== PR 1200 fix/notification-recipients-provisioned 18:28 base-pr=none
+branch tip 181a1bd1; dev b1de8120; PR files vs dev before: 8
+merge-dev exit=1
+conflicts(development): lib/Settings/learniq_register.json
+resolved lib/Settings/learniq_register.json
+prep OK
+l10n/ai-translated.json: 1191 -> 1191 keys; added 0, dropped 0 (not in nl.json)
+lib/Settings/learniq_register.json: info.version 0.31.1 -> 0.31.2 (dev 0.31.1)
+appinfo/info.xml: <version> 0.3.6-unstable.20260928145637 ok (dev 0.3.6-unstable.20260928145637, branch 0.3.6-unstable.20260928145637, merge-base 0.3.6-unstable.20260928145637)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_register.json: 0 mismatches
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2155, Assertions: 131560, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+6e03e1d8 merge development into fix/notification-recipients-provisioned
+pushed fix/notification-recipients-provisioned 6e03e1d825ca7c385e3873ceb8554c731d76320e
+PR files vs dev after: 8 (+295/-51)
+gh pr merge exit=0 
+RESULT PR 1200: MERGED 0e9d14496db5b46e0d157b55cf10ee14bb04d249
+dev tree == tested tree; current failure set = pr1200 (0)

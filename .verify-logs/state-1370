@@ -1,0 +1,37 @@
+== PR 1370 feat/timetabling-contact-hours 07:55 base-pr=none
+branch tip 4a807541; dev 9d2b4b69; PR files vs dev before: 20
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1747 -> 1761 keys; added 14, dropped 0 (not in nl.json)
+  + Attended of given
+  + Difference
+  + Export CSV
+  + Given
+  + Hide learners
+  + Owed
+  + Per group and course the contact hours owed by the hour plan, the hours given and the hours each learner atten
+  + Show learners
+  + The report could not be loaded.
+  + This group has no active hour plan, so owed hours are missing.
+  + To
+  + below the margin
+  + short
+  + {attended} of {given} hours
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2449, Assertions: 133673, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+3704409b merge development into feat/timetabling-contact-hours
+pushed feat/timetabling-contact-hours 3704409ba44b5d36a97e8b7c36951a821c2c80ac
+PR files vs dev after: 21 (+1615/-15)
+gh pr merge exit=0 
+RESULT PR 1370: MERGED ac906215b2e32a0fb02b2893c2f1cd1604e4a318
+dev tree == tested tree; current failure set = pr1370 (0)

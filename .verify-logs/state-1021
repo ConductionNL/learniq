@@ -1,0 +1,25 @@
+== PR 1021 feat/bpv-coach-authorization 16:35 base-pr=none
+branch tip f3381858; dev df0b73ec; PR files vs dev before: 7
+merge-dev exit=1
+conflicts(development): lib/Settings/learniq_register.json
+resolved lib/Settings/learniq_register.json
+prep OK
+lib/Settings/learniq_register.json: info.version 0.27.2 -> 0.27.3 (dev 0.27.2)
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+BOTH-CHANGED /info/description | merged has it
+lib/Settings/learniq_register.json: 0 mismatches
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=1
+Tests: 1671, Assertions: 125627, Failures: 12, Skipped: 5.
+defects=12
+phpunit: 12 defects; new vs current dev set: 0; fixed: 0
+phpmd: 3 findings; new (file+rule) vs baseline: 0 
+verify OK
+763fd5df merge development into feat/bpv-coach-authorization
+pushed feat/bpv-coach-authorization 763fd5df5a47bc3c91682e6862202bb08177bae2
+PR files vs dev after: 7 (+406/-6)
+gh pr merge exit=0 
+RESULT PR 1021: MERGED 3bdddc07dd62c4d5456720667e6b7033b7830547
+dev tree == tested tree; current failure set = pr1021 (12)

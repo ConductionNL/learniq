@@ -1,0 +1,60 @@
+== PR 1082 feat/payments-to-shillinq-migration 18:30 base-pr=none
+branch tip bc744014; dev 596ae937; PR files vs dev before: 64
+merge-dev exit=1
+conflicts(development): appinfo/info.xml l10n/.schema-l10n-baseline.json l10n/en.js l10n/en.json l10n/nl.js l10n/nl.json lib/Controller/PaymentTransactionController.php lib/Listener/PaymentTransactionStatusHandler.php lib/Service/OrderTotalEvaluator.php lib/Settings/learniq_register.json tests/Unit/Listener/PaymentTransactionStatusHandlerTest.php
+resolved lib/Settings/learniq_register.json
+resolved l10n/.schema-l10n-baseline.json
+resolved l10n/en.json
+resolved l10n/nl.json
+SCALAR CONFLICT /uncovered branch= 2358 incoming= 2398
+MANUAL: non-mechanical conflicts left: appinfo/info.xml lib/Controller/PaymentTransactionController.php lib/Listener/PaymentTransactionStatusHandler.php lib/Service/OrderTotalEvaluator.php tests/Unit/Listener/PaymentTransactionStatusHandlerTest.php
+manual: modify/delete on PaymentTransactionController, PaymentTransactionStatusHandler, OrderTotalEvaluator and PaymentTransactionStatusHandlerTest (#1047 edited, this PR deletes): kept the deletion per the PR's landing note; no code reference left. appinfo/info.xml: app version both bumped the unstable timestamp, took the higher 0.3.6-unstable.20260927180000; repair steps kept both (MigrateDataSubjectRequestsToOpenRegister from #1070, then ArchiveRetiredPaymentObjects), both before InitializeSettings. l10n/.schema-l10n-baseline.json: uncovered kept at the branch's lower 2358 (dev 2398), to be confirmed by check:schema-l10n
+lib/Settings/learniq_register.json: info.version 0.28.0 already > dev 0.27.12
+lib/Settings/learniq_register.json: no bump needed
+lib/Settings/learniq_mock_register.json: info.version 1.1.24 -> 1.1.25 (dev 1.1.24)
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+BOTH-CHANGED /uncovered | merged has it
+l10n/.schema-l10n-baseline.json: 0 mismatches
+l10n/en.json: 0 mismatches
+l10n/nl.json: 0 mismatches
+BOTH-CHANGED /components/registers/learniq/schemas | merged has it
+BOTH-CHANGED /info/description | merged has it
+lib/Settings/learniq_register.json: 0 mismatches
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l FAIL lib/Controller/PaymentTransactionController.php
+php -l FAIL lib/Listener/PaymentTransactionStatusHandler.php
+php -l FAIL lib/Service/OrderTotalEvaluator.php
+php -l FAIL tests/Unit/Listener/PaymentTransactionStatusHandlerTest.php
+php -l on conflicted PHP (4 files) exit=1
+lib/Settings/learniq_register.json: info.version 0.28.0 already > dev 0.27.12
+lib/Settings/learniq_register.json: no bump needed
+lib/Settings/learniq_mock_register.json: info.version 1.1.25 already > dev 1.1.24
+lib/Settings/learniq_mock_register.json: no bump needed
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+BOTH-CHANGED /uncovered | merged has it
+l10n/.schema-l10n-baseline.json: 0 mismatches
+l10n/en.json: 0 mismatches
+l10n/nl.json: 0 mismatches
+BOTH-CHANGED /components/registers/learniq/schemas | merged has it
+BOTH-CHANGED /info/description | merged has it
+lib/Settings/learniq_register.json: 0 mismatches
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l skip lib/Controller/PaymentTransactionController.php (deleted by the resolution)
+php -l skip lib/Listener/PaymentTransactionStatusHandler.php (deleted by the resolution)
+php -l skip lib/Service/OrderTotalEvaluator.php (deleted by the resolution)
+php -l skip tests/Unit/Listener/PaymentTransactionStatusHandlerTest.php (deleted by the resolution)
+php -l on conflicted PHP (4 files) exit=0
+phpunit-exit=1
+Tests: 1905, Assertions: 128881, Failures: 12, Skipped: 5.
+defects=12
+phpunit: 12 defects; new vs current dev set: 0; fixed: 0
+phpmd: 1 findings; new (file+rule) vs baseline: 0 
+verify OK
+08d5c37e merge development into feat/payments-to-shillinq-migration
+pushed feat/payments-to-shillinq-migration 08d5c37e81e202631c74a74e506122aaf9ca4532
+PR files vs dev after: 64 (+3713/-5053)
+gh pr merge exit=0 
+RESULT PR 1082: MERGED 511eba5f9daee3a71aa75063527db6dff51b82e6
+dev tree == tested tree; current failure set = pr1082 (12)

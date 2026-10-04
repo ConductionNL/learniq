@@ -1,0 +1,25 @@
+== PR 1124 fix/access-control-ratchet-compliance 09:09 base-pr=none
+branch tip d949174a; dev 0171a896; PR files vs dev before: 22
+merge-dev exit=0
+conflicts(development): none
+prep OK
+lib/Settings/learniq_register.json: info.version 0.29.0 already > dev 0.28.1
+lib/Settings/learniq_register.json: no bump needed
+appinfo/info.xml: <version> 0.3.6-unstable.20260927180000 ok (dev 0.3.6-unstable.20260927180000, branch 0.3.6-unstable.20260927180000, merge-base 0.3.6-unstable.20260927180000)
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=1
+Tests: 1929, Assertions: 129327, Failures: 6, Skipped: 5.
+defects=6
+phpunit: 6 defects; new vs current dev set: 0; fixed: 6
+fixed: failure|OCA\Learniq\Tests\Unit\Register\DeclaredAudienceEnforcedTest::testEverySelfMatchIsEnforced failure|OCA\Learniq\Tests\Unit\Register\DeclaredAudienceEnforcedTest::testGroupOnlyBlocksAddThePersonTheRowIsAbout failure|OCA\Learniq\Tests\Unit\Register\DeclaredAudienceEnforcedTest::testNoSchemaDeclaresAnAudienceWithoutAnAuthorizationBlock failure|OCA\Learniq\Tests\Unit\Register\GuardGroupsAreDeclaredTest::testEveryGroupAGuardTestsIsDeclared failure|OCA\Learniq\Tests\Unit\Register\LifecycleSchemasAreNotAppendOnlyTest::testNoSchemaIsAppendOnlyAndTransitions failure|OCA\Learniq\Tests\Unit\Settings\RbacScopeKindsRegisterTest::testDossierNoteGainsCareTeamPropertyAndReadEntry
+phpmd: 1 findings; new (file+rule) vs baseline (1): 0 
+verify OK
+b97f2c6d merge development into fix/access-control-ratchet-compliance
+pushed fix/access-control-ratchet-compliance b97f2c6dbf57a1665c4ce6a80cc29b2e52d44003
+PR files vs dev after: 22 (+654/-34)
+gh pr merge exit=0 
+RESULT PR 1124: MERGED 5226c21a7a4219ae1ea36c267f36181ca1ff5a43
+dev tree == tested tree; current failure set = pr1124 (6)

@@ -1,0 +1,67 @@
+== PR 1614 feature/direct-conference-booking 11:52 base-pr=none
+branch tip 33474126; dev 1a7f43d5; PR files vs dev before: 38
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 2018 -> 2061 keys; added 43, dropped 0 (not in nl.json)
+  + Acknowledged
+  + Acknowledged at
+  + Acknowledged by the teacher
+  + Ask for a parent-teacher conversation
+  + Book a time
+  + Book this time
+  + Booked
+  + Booked at
+  + Booked by
+  + Booked time
+  + Booking mode
+  + Bookings per child
+  + Bookings to answer
+  + Cancel this time
+  + Declined by the teacher
+  + End of the booked time.
+  + Free
+  + Free times you can book
+  + How many times a family may book per child in this round. Empty means one.
+  + How parents book. Direct: teachers publish free times and a parent picks one. Preference: parents ask, and the
+  + Nextcloud user ID of the learner this conversation is about. Empty while the slot is free.
+  + No bookings waiting for an answer.
+  + No-show
+  + Parents pick a free time
+  + Parents state a preference, the school plans
+  + Proposed
+  + Pupils who may book
+  + Start of the booked time.
+  + The booked date, time and teacher in one line.
+  + The date, time and teacher in one line, in the school's time zone, for the portal's time picker.
+  + The free time the parent picked, in a round with direct booking.
+  + The guardian who booked this time from the portal. Only that guardian can cancel it there.
+  + The pupils whose parents may book this free time: the invited pupils of the teacher's own groups in the round.
+  + The teacher of the booked time.
+  + The teacher's name as parents see it.
+  + The time is cancelled. You can book another free time while booking is open.
+  + The time is yours. The teacher still acknowledges it; you see the status under your conference times.
+  + UUID of the ConferenceRound this signup belongs to. A portal booking of a free time leaves it out; ConferenceS
+  + Waitlisted
+  + When the parent booked this time.
+  + When the teacher acknowledged the booking.
+  + Why the teacher declined the booked time.
+  + Why the teacher declined this booking. The parent reads it in the portal.
+lib/Settings/learniq_register.json: info.version 0.34.31 already > dev 0.34.30
+lib/Settings/learniq_register.json: no bump needed
+appinfo/info.xml: <version> 0.3.6-unstable.20261001054823 ok (dev 0.3.6-unstable.20261001054823, branch 0.3.6-unstable.20261001054823, merge-base 0.3.6-unstable.20261001054823)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=127
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+e3ece734 merge development into feature/direct-conference-booking
+pushed feature/direct-conference-booking e3ece7345262d1583150a6b2bd11e02f310136d3
+PR files vs dev after: 39 (+4473/-114)
+gh pr merge exit=0 
+RESULT PR 1614: MERGED e5b08993a7127f77f406312e17a8b48df696afce
+dev tree == tested tree; current failure set = pr1614 (0)

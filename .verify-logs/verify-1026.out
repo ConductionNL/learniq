@@ -1,0 +1,12 @@
+lib/Settings/learniq_register.json: info.version 0.27.5 already > dev 0.27.4
+lib/Settings/learniq_register.json: no bump needed
+lib/Settings/learniq_mock_register.json: info.version 1.1.18 already > dev 1.1.17
+lib/Settings/learniq_mock_register.json: no bump needed
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+l10n/en.json: 0 mismatches
+l10n/nl.json: 0 mismatches
+lib/Settings/learniq_mock_register.json: 0 mismatches
+lib/Settings/learniq_register.json: 0 mismatches
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (1 files) exit=0

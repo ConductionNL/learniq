@@ -1,0 +1,26 @@
+== PR 1469 fix/profile-uuid-learner-matches 19:53 base-pr=none
+branch tip 09a76b76; dev fbdd7c30; PR files vs dev before: 23
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1803 -> 1803 keys; added 0, dropped 0 (not in nl.json)
+lib/Settings/learniq_register.json: info.version 0.34.9 -> 0.34.10 (dev 0.34.9)
+lib/Settings/learniq_mock_register.json: info.version 1.1.45 already > dev 1.1.44
+lib/Settings/learniq_mock_register.json: no bump needed
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2496, Assertions: 133889, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+5f4e801a merge development into fix/profile-uuid-learner-matches
+pushed fix/profile-uuid-learner-matches 5f4e801a4705f54a4caf51cc673a5562b1d21c46
+PR files vs dev after: 23 (+964/-87)
+gh pr merge exit=0 
+RESULT PR 1469: MERGED 6e140eec35bd3ac4e2d807bd81fd65e14f171735
+dev tree == tested tree; current failure set = pr1469 (0)

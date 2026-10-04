@@ -1,0 +1,24 @@
+== PR 1056 fix/learner-lookup-and-learnerrefs 18:06 base-pr=1047
+branch tip 04128f9d; dev 6a065c4f; PR files vs dev before: 199
+conflicts(base fix/findall-config-filters-sweep): none
+stack: merged final fix/findall-config-filters-sweep (f85374bf)
+stack: recorded squash 6a065c4f (-s ours, tree(S)==tree(fix/findall-config-filters-sweep) verified)
+merge-dev exit=0
+conflicts(development): none
+prep OK
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=1
+Tests: 1764, Assertions: 126677, Failures: 12, Skipped: 5.
+defects=12
+phpunit: 12 defects; new vs current dev set: 0; fixed: 0
+phpmd: 3 findings; new (file+rule) vs baseline: 0 
+verify OK
+2b5588a8 merge development's squash of #1047 into fix/learner-lookup-and-learnerrefs (its tree equals fix/findall-config-filters-sweep)
+pushed fix/learner-lookup-and-learnerrefs 2b5588a8e21f26d42ef1d198f7b36f15906760ff
+PR files vs dev after: 22 (+1112/-68)
+gh pr merge exit=0 
+RESULT PR 1056: MERGED b301a6fae187a664d140a24cc1bd3ddbf003fb12
+dev tree == tested tree; current failure set = pr1056 (12)

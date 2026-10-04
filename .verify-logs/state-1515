@@ -1,0 +1,23 @@
+== PR 1515 docs/compliance-audit-attribution 22:57 base-pr=none
+branch tip edeceff3; dev 98156145; PR files vs dev before: 2
+merge-dev exit=0
+conflicts(development): none
+prep OK
+l10n/ai-translated.json: 1829 -> 1829 keys; added 0, dropped 0 (not in nl.json)
+appinfo/info.xml: <version> 0.3.6-unstable.20260929001524 ok (dev 0.3.6-unstable.20260929001524, branch 0.3.6-unstable.20260929001524, merge-base 0.3.6-unstable.20260929001524)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2552, Assertions: 136298, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: lib/ unchanged vs dev, not run
+verify OK
+edeceff3 docs(spec): the audit pack attributes entries to a tenant through their objects
+pushed docs/compliance-audit-attribution edeceff31ec544d7ffca3b3ac8e4e86cd777e1f8
+PR files vs dev after: 2 (+30/-6)
+gh pr merge exit=0 
+RESULT PR 1515: MERGED f43e5279066a7f2dda36f8fca132875f3e0639f4
+dev tree == tested tree; current failure set = pr1515 (0)

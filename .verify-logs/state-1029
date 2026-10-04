@@ -1,0 +1,32 @@
+== PR 1029 feat/lesson-sharing-consent-gate 17:40 base-pr=1026
+branch tip d89a17e7; dev b7de0b2f; PR files vs dev before: 36
+conflicts(base feat/course-content-metadata): lib/Settings/learniq_mock_register.json lib/Settings/learniq_register.json
+resolved lib/Settings/learniq_mock_register.json
+resolved lib/Settings/learniq_register.json
+stack: merged final feat/course-content-metadata (e7802721)
+BOTH-CHANGED /components/objects | merged has it
+lib/Settings/learniq_mock_register.json: 0 mismatches
+BOTH-CHANGED /info/description | merged has it
+lib/Settings/learniq_register.json: 0 mismatches
+stack: recorded squash b7de0b2f (-s ours, tree(S)==tree(feat/course-content-metadata) verified)
+merge-dev exit=0
+conflicts(development): none
+prep OK
+lib/Settings/learniq_register.json: info.version 0.27.5 -> 0.27.6 (dev 0.27.5)
+lib/Settings/learniq_mock_register.json: info.version 1.1.18 -> 1.1.19 (dev 1.1.18)
+lib/Settings/learniq_register.json: 0 new, 1 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+checks: check:specs=0 check:schema-l10n=0 check:l10n-js=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=1
+Tests: 1709, Assertions: 126232, Failures: 12, Skipped: 5.
+defects=12
+phpunit: 12 defects; new vs current dev set: 0; fixed: 0
+phpmd: 3 findings; new (file+rule) vs baseline: 0 
+verify OK
+ea213395 merge development into feat/lesson-sharing-consent-gate
+pushed feat/lesson-sharing-consent-gate ea213395e869468f674fe99300f539743310e4f7
+PR files vs dev after: 28 (+2335/-25)
+gh pr merge exit=0 
+RESULT PR 1029: MERGED 30e412ce15ed45acb556ea27aec617d3ba88ad09
+dev tree == tested tree; current failure set = pr1029 (12)

@@ -1,0 +1,3 @@
+phpunit-exit=1
+Tests: 1919, Assertions: 129294, Failures: 12, Skipped: 5.
+defects=12

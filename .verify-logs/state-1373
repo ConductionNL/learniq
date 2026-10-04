@@ -1,0 +1,34 @@
+== PR 1373 feat/credentials-europass-edci-export 00:07 base-pr=none
+branch tip 8774e565; dev cc488caf; PR files vs dev before: 23
+merge-dev exit=1
+conflicts(development): appinfo/info.xml l10n/ai-translated.json l10n/en.js l10n/en.json l10n/nl.js l10n/nl.json lib/Settings/learniq_register.json
+resolved lib/Settings/learniq_register.json
+ai-union l10n/ai-translated.json: keys base 1261 ours 1270 theirs 1591 merged 1600
+resolved l10n/en.json
+resolved l10n/nl.json
+appinfo/info.xml: <version> 0.3.6-unstable.20260928213314 -> 0.3.6-unstable.20260928231524 (dev 0.3.6-unstable.20260928221524, branch 0.3.6-unstable.20260928213314, merge-base 0.3.6-unstable.20260928195209) (minted: the branch moved <version> for a repair step and development moved to 0.3.6-unstable.20260928221524, so strictly above it)
+appver-resolve appinfo/info.xml (<version> only)
+prep OK
+l10n/ai-translated.json: 1600 -> 1600 keys; added 0, dropped 0 (not in nl.json)
+lib/Settings/learniq_register.json: info.version 0.33.0 already > dev 0.32.10
+lib/Settings/learniq_register.json: no bump needed
+appinfo/info.xml: <version> 0.3.6-unstable.20260928231524 -> 0.3.6-unstable.20260928231524 (dev 0.3.6-unstable.20260928221524, branch 0.3.6-unstable.20260928213314, merge-base 0.3.6-unstable.20260928195209) (minted: the branch moved <version> for a repair step and development moved to 0.3.6-unstable.20260928221524, so strictly above it)
+lib/Settings/learniq_register.json: 0 new, 0 inherited, 0 fixed
+lib/Settings/learniq_mock_register.json: 0 new, 0 inherited, 0 fixed
+l10n/en.json: 0 mismatches
+l10n/nl.json: 0 mismatches
+lib/Settings/learniq_register.json: 0 mismatches
+checks: check:register=0 check:schema-l10n=0 check:l10n-js=0 check:json-strict=0 check:manifest=0 check:specs=0
+php -l on conflicted PHP (0 files) exit=0
+phpunit-exit=0
+Tests: 2372, Assertions: 133214, Warnings: 1, Skipped: 5.
+defects=0
+phpunit: 0 defects; new vs current dev set: 0; fixed: 0
+phpmd: 0 findings; new (file+rule) vs baseline (0): 0 
+verify OK
+b62baa86 merge development into feat/credentials-europass-edci-export
+pushed feat/credentials-europass-edci-export b62baa8667132c90d6cb2cee214ab0fd03714a30
+PR files vs dev after: 23 (+1702/-177)
+gh pr merge exit=0 
+RESULT PR 1373: MERGED 95102458d759351842f73468378e323a669b326c
+dev tree == tested tree; current failure set = pr1373 (0)
