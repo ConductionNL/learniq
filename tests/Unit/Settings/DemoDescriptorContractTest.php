@@ -102,6 +102,56 @@ class DemoDescriptorContractTest extends TestCase {
 	}//end testEveryDemoObjectNamesARegisterSchemaBySlug()
 
 	/**
+	 * Every reference a demo object holds points at another demo object.
+	 *
+	 * Live on 2026-10-04 a demo Session held `assignmentIds:
+	 * ["00000000-0000-4000-8000-000000000000"]`, the generator's placeholder,
+	 * and its detail page asked OpenRegister for that assignment to show its
+	 * name and got a 404. The data widget is right to resolve a reference; the
+	 * demo set must not hold one to an object that does not exist.
+	 *
+	 * @return void
+	 */
+	public function testEveryDemoReferencePointsAtADemoObject(): void {
+		$definitions = [];
+		$keyToSlug   = [];
+		foreach (self::settings(file: 'learniq_register.json')['components']['schemas'] as $key => $definition) {
+			$slug               = (string)($definition['slug'] ?? $key);
+			$definitions[$slug] = $definition;
+			$keyToSlug[$key]    = $slug;
+		}
+
+		$objects = self::settings(file: 'learniq_mock_register.json')['components']['objects'];
+		// `@self.id`, the key OpenRegister's object import creates the object under.
+		$uuids   = array_flip(array_filter(array_map(static fn (array $o): ?string => ($o['@self']['id'] ?? null), $objects)));
+		self::assertCount(count($objects), $uuids, 'Every demo object needs its own uuid for others to point at.');
+
+		$dangling = [];
+		foreach ($objects as $object) {
+			$schema = (string)$object['@self']['schema'];
+			foreach (($definitions[$schema]['properties'] ?? []) as $key => $property) {
+				$ref = ($property['$ref'] ?? ($property['items']['$ref'] ?? null));
+				if ($ref === null || array_key_exists($key, $object) === false) {
+					continue;
+				}
+
+				$target = (string)basename(str_replace('.json', '', (string)$ref));
+				if (isset($definitions[$target]) === false && isset($keyToSlug[$target]) === false) {
+					continue;
+				}
+
+				foreach ((array)$object[$key] as $value) {
+					if (is_string($value) === true && $value !== '' && isset($uuids[$value]) === false) {
+						$dangling[] = $schema . '.' . $key . ' = ' . $value;
+					}
+				}
+			}
+		}
+
+		self::assertSame([], array_values(array_unique($dangling)), 'These demo references point at no demo object.');
+	}//end testEveryDemoReferencePointsAtADemoObject()
+
+	/**
 	 * The demo set brings no schema definitions and no register block.
 	 *
 	 * @return void
