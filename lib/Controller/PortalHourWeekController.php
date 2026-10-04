@@ -3,11 +3,12 @@
 /**
  * Learniq PortalHourWeekController
  *
- * Receives portaliq's forward when a workplace trainer submits a werkproces
- * approval from the portal. The signed `X-Portal-Subject` assertion is the
+ * Receives portaliq's forward when a workplace trainer approves one week of
+ * her student's BPV hours from the portal. The signed `X-Portal-Subject` assertion is the
  * only credential, and it is also the only place the sign-in level can be
  * read: a portal create writes straight into OpenRegister and carries none.
- * That is why the assessment goes through learniq's own endpoint since
+ * That is why the approval goes through learniq's own endpoint, for the same
+ * reason the werkproces assessment moved there in
  * `an-invited-trainer-may-assess`.
  *
  * @category Controller
@@ -45,7 +46,7 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * Receives one werkproces assessment from the trainer's portal form.
+ * Receives one week's approval from the trainer's portal form.
  *
  * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
  */
@@ -78,7 +79,7 @@ class PortalHourWeekController extends Controller {
 	 *
 	 * @param IRequest                   $request     The request.
 	 * @param PortalAssertionVerifier    $verifier    Verifies X-Portal-Subject.
-	 * @param PortalHourWeekApproval $approvals Checks, stamps and stores the assessment.
+	 * @param PortalHourWeekApproval $approvals Checks, stamps and stores the approval.
 	 * @param LoggerInterface            $logger      PSR logger.
 	 *
 	 * @return void

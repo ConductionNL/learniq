@@ -38,6 +38,7 @@ use OCA\Learniq\Listener\ReportCardGradeLinesStamp;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Listener\AssignmentLearnerRefsStamp;
 use OCA\Learniq\Listener\CohortNameCascade;
+use OCA\Learniq\Listener\HourWeekSubmissionStamp;
 use OCA\Learniq\Listener\HourWeekTotalRollup;
 use OCA\Learniq\Listener\ReadableCopyStamp;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
@@ -270,6 +271,17 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatedEvent::class,
 			listener: CohortNameCascade::class
+		);
+		// internship-hours: who entered a week of hours, when, for which
+		// student and for which school, all from the placement the week names.
+		// The pupil's form may send none of it.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: HourWeekSubmissionStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: HourWeekSubmissionStamp::class
 		);
 		// internship-hours: a placement's approved hours stay equal to the sum
 		// of its weeks, because the trainer's progress card reads one row and

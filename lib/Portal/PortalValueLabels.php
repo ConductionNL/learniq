@@ -122,4 +122,19 @@ class PortalValueLabels {
 		'nog-niet-competent' => 'Not yet competent',
 		'competent'          => 'Competent',
 	];
+
+	/**
+	 * `bpv-hour-week.lifecycle`: where a week of BPV hours stands. A
+	 * correction gets a word of its own, because reading "approved" over a
+	 * number the student did not write is how a correction becomes silent
+	 * (internship-hours).
+	 *
+	 * @var array<string, string>
+	 */
+	public const HOUR_WEEK_STATUS = [
+		'submitted' => 'Waiting for approval',
+		'approved'  => 'Approved',
+		'corrected' => 'Approved with a correction',
+		'rejected'  => 'Rejected',
+	];
 }//end class

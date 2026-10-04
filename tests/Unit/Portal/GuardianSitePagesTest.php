@@ -254,10 +254,13 @@ class GuardianSitePagesTest extends TestCase {
 	}//end testAnUnlistedCollectionGetsNoPage()
 
 	/**
-	 * The trainer lands on an overview with her placements, her last
-	 * assessments and the two things she may do; every section keeps a page.
+	 * The trainer lands on an overview with the weeks of hours waiting for
+	 * her, her placements, her last assessments and the three things she may
+	 * do; every section keeps a page.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
 	 */
 	public function testTheTrainerOverviewAndMenu(): void {
 		$manifest = self::manifest(audience: 'praktijkopleider');
@@ -266,9 +269,19 @@ class GuardianSitePagesTest extends TestCase {
 
 		self::assertTrue($overview['home']);
 		self::assertSame('My space', $overview['group']);
-		self::assertSame(['collection', 'collection', 'cta', 'cta', 'inbox'], array_column($overview['blocks'], 'type'));
-		self::assertSame(['field' => 'assessedAt', 'direction' => 'desc'], $overview['blocks'][1]['sort']);
-		self::assertSame(3, $overview['blocks'][1]['limit']);
+		self::assertSame(
+			['tasks', 'collection', 'collection', 'cta', 'cta', 'cta', 'inbox'],
+			array_column($overview['blocks'], 'type')
+		);
+		self::assertSame(['field' => 'assessedAt', 'direction' => 'desc'], $overview['blocks'][2]['sort']);
+		self::assertSame(3, $overview['blocks'][2]['limit']);
+
+		// internship-hours: what is waiting for her comes first, oldest
+		// submission at the top, and the week is what she reads on the row.
+		$waiting = $overview['blocks'][0];
+		self::assertSame('poHourWeeks', $waiting['collection']);
+		self::assertSame('submittedAt', $waiting['dueField']);
+		self::assertSame(['isoWeek'], $waiting['titleFields']);
 
 		// A collection block carries no heading on portaliq, so none is declared.
 		foreach ($overview['blocks'] as $block) {
@@ -278,7 +291,7 @@ class GuardianSitePagesTest extends TestCase {
 		}
 
 		self::assertSame(
-			['poOverview', 'poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments'],
+			['poOverview', 'poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments', 'poHourWeeks'],
 			array_keys($pages)
 		);
 
@@ -289,6 +302,83 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame('low', $assessments['minTrust']);
 		self::assertSame('Assessments I wrote', $assessments['label']);
 	}//end testTheTrainerOverviewAndMenu()
+
+	/**
+	 * The hours card is declared with the keys portaliq keeps, over fields the
+	 * collection really projects.
+	 *
+	 * PORTALIQ DROPS BOTH HALVES SILENTLY. CollectionListKeys::cards() reads
+	 * `valueField` and `totalField`, so a `progress` spelled any other way
+	 * leaves the cards with no bar and no error; and it drops a progress whose
+	 * fields the collection does not project, so the two numbers must be in
+	 * `fields` as well. This test is what the first version of the block
+	 * failed: it declared `value`/`total` over unprojected fields.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
+	 */
+	public function testTheTrainerSeesHoursAgainstTheAgreedTotal(): void {
+		$manifest = self::manifest(audience: 'praktijkopleider');
+		$overview = array_column($manifest['pages'], null, 'id')['poOverview'];
+		$placements = array_column($manifest['collections'], null, 'id')['poBpvPlacements'];
+
+		$cards = $overview['blocks'][1];
+		self::assertSame('poBpvPlacements', $cards['collection']);
+		self::assertSame('cards', $cards['display']);
+		self::assertSame(
+			['valueField' => 'hoursApprovedTotal', 'totalField' => 'agreedHours', 'label' => 'Hours done'],
+			$cards['progress']
+		);
+
+		// Both numbers are projected, or portaliq keeps the cards and throws
+		// the progress away.
+		foreach (['hoursApprovedTotal', 'agreedHours'] as $field) {
+			self::assertContains($field, $placements['fields'], $field);
+		}
+	}//end testTheTrainerSeesHoursAgainstTheAgreedTotal()
+
+	/**
+	 * The week the trainer approves is picked from the weeks waiting for her,
+	 * not typed as a uuid, and the pupil picks her own placement the same way
+	 * with a cross-reference guard behind it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 */
+	public function testTheHourFormsPickFromACollection(): void {
+		$trainer = array_column(self::manifest(audience: 'praktijkopleider')['actions'], null, 'id');
+		$approve = $trainer['approveHourWeek'];
+
+		self::assertSame(
+			[
+				'type' => 'collection',
+				'register' => 'learniq',
+				'schema' => 'bpv-hour-week',
+				'labelField' => 'isoWeek',
+				'valueField' => 'id',
+			],
+			$approve['optionsProviders']['hourWeekId']
+		);
+
+		$pupil = array_column(self::manifest(audience: 'student')['actions'], null, 'id');
+		$submit = $pupil['submitHourWeek'];
+		self::assertSame('bpv-placement', $submit['optionsProviders']['bpvPlacementId']['schema']);
+		// The placement must be the pupil's own: portaliq stamps her
+		// `learnerRef` but the placement comes from the form, so without this
+		// she could file hours against another student's placement.
+		self::assertSame(
+			[
+				'register' => 'learniq',
+				'schema' => 'bpv-placement',
+				'scopeField' => 'learnerRef',
+				'scopeClaim' => 'learnerRef',
+				'required' => true,
+			],
+			$submit['crossRefs']['bpvPlacementId']
+		);
+	}//end testTheHourFormsPickFromACollection()
 
 	/**
 	 * The assessor lands on his shares, longest access first, each naming the

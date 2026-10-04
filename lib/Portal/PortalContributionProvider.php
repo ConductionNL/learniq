@@ -329,6 +329,37 @@ class PortalContributionProvider {
 				],
 			],
 			[
+				// Her own placement, so her hours have something to be about.
+				// Without it the week form could only ask her to type a uuid:
+				// portaliq fills a `collection` option provider from the
+				// subject-scoped collection over that schema, and a pupil had
+				// none (internship-hours).
+				'id' => 'studentBpvPlacements',
+				'register' => self::REGISTER,
+				'schema' => 'bpv-placement',
+				'scopeField' => 'learnerRef',
+				'scopeClaim' => 'learnerRef',
+				'label' => 'My placement',
+				'listable' => true,
+				'minTrust' => 'low',
+				// The school's own people and the SBB payload stay out, the same
+				// projection her trainer reads.
+				'fields' => [
+					'learnerRef',
+					'trainingCompanyName',
+					'periodFrom',
+					'periodTo',
+					'agreedHours',
+					'hoursApprovedTotal',
+					'lifecycle',
+				],
+				'columns' => [
+					['field' => 'trainingCompanyName', 'label' => 'Training company'],
+					['field' => 'hoursApprovedTotal', 'label' => 'Hours approved'],
+					['field' => 'agreedHours', 'label' => 'Agreed hours'],
+				],
+			],
+			[
 				'id' => 'studentHourWeeks',
 				'register' => self::REGISTER,
 				'schema' => 'bpv-hour-week',
@@ -355,6 +386,10 @@ class PortalContributionProvider {
 					['field' => 'isoWeek', 'label' => 'Week'],
 					['field' => 'hoursSubmitted', 'label' => 'Hours you entered'],
 					['field' => 'hoursApproved', 'label' => 'Hours approved'],
+					// A corrected week says so in words. Reading "approved"
+					// over a number she did not write is exactly how a
+					// correction becomes silent.
+					['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::HOUR_WEEK_STATUS],
 				],
 			],
 			[
@@ -575,6 +610,31 @@ class PortalContributionProvider {
 				'scopeClaim' => 'learnerRef',
 				'minTrust' => 'low',
 				'fields' => ['bpvPlacementId', 'isoWeek', 'hoursSubmitted'],
+				// The placement must be her own. Portaliq stamps `learnerRef`
+				// from her claim, but `bpvPlacementId` comes from the form, so
+				// without this guard she could file hours against another
+				// student's placement and HourWeekTotalRollup would add them to
+				// that placement's total.
+				'crossRefs' => [
+					'bpvPlacementId' => [
+						'register' => self::REGISTER,
+						'schema' => 'bpv-placement',
+						'scopeField' => 'learnerRef',
+						'scopeClaim' => 'learnerRef',
+						'required' => true,
+					],
+				],
+				// And she picks it from her own placements rather than typing a
+				// uuid, the way her guardian picks a child.
+				'optionsProviders' => [
+					'bpvPlacementId' => [
+						'type' => 'collection',
+						'register' => self::REGISTER,
+						'schema' => 'bpv-placement',
+						'labelField' => 'trainingCompanyName',
+						'valueField' => 'id',
+					],
+				],
 				'fieldConfigs' => [
 					'bpvPlacementId' => ['label' => 'Your placement', 'required' => true],
 					'isoWeek' => ['label' => 'The week, as 2026-W39', 'required' => true],
