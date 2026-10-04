@@ -661,7 +661,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 			return $row;
 		};
 
-		foreach (['external-assessor', 'portfolio', 'portfolio-entry', 'portfolio-share'] as $schema) {
+		foreach (['external-assessor', 'portfolio', 'portfolio-entry', 'portfolio-share', 'bpv-hour-week'] as $schema) {
 			foreach (self::of($schema) as $row) {
 				self::assertNull(self::schemaError(slug: $schema, payload: $strip($row)), $schema . ' ' . ($row['slug'] ?? '?'));
 			}
@@ -671,4 +671,93 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		unset($share['portfolioId']);
 		self::assertNotNull(self::schemaError(slug: 'portfolio-share', payload: $share), 'control: a share names its portfolio');
 	}//end testTheNewRowsPassTheRealSchemas()
+
+	/**
+	 * The set seeds weeks of realised BPV hours: for every work placement unit
+	 * two students have a run of weeks, with one week still waiting for the
+	 * praktijkopleider and one she corrected, and the placement states both
+	 * the hours its agreement promised and the hours approved so far.
+	 *
+	 * WHY THE TOTAL IS ASSERTED AGAINST THE WEEKS. `hoursApprovedTotal` is the
+	 * number the trainer's progress card reads, and on a live instance
+	 * HourWeekTotalRollup writes it. A seed whose total disagreed with its own
+	 * weeks would put a figure on screen that no week supports.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
+	 */
+	public function testTheSetSeedsWeeksOfRealisedHours(): void {
+		$placements = self::by(self::of('bpv-placement'), 'uuid');
+		$trainers = self::by(self::of('praktijkopleider'), 'uuid');
+		$weeks = self::of('bpv-hour-week');
+		self::assertNotEmpty($weeks);
+
+		$perPlacement = [];
+		foreach ($weeks as $week) {
+			self::assertArrayHasKey($week['bpvPlacementId'], $placements, $week['slug'] . ' names a placement of this set');
+			$placement = $placements[$week['bpvPlacementId']];
+			// The student the week is about is the student of its placement.
+			self::assertSame($placement['learnerRef'], $week['learnerRef'], $week['slug']);
+			self::assertSame($placement['learnerRef'], $week['submittedBy'], $week['slug']);
+			self::assertMatchesRegularExpression('/^\d{4}-W\d{2}$/', $week['isoWeek'], $week['slug']);
+			$perPlacement[$week['bpvPlacementId']][] = $week;
+		}
+
+		// Every work placement unit has weeks, so every trainer in the set has
+		// something waiting for her.
+		$units = [];
+		foreach (array_keys($perPlacement) as $placementId) {
+			$units[$placements[$placementId]['curriculumPlanId']] = true;
+		}
+
+		self::assertCount(5, $units, 'every BPV unit has a placement with weeks');
+
+		foreach ($perPlacement as $placementId => $rows) {
+			$placement = $placements[$placementId];
+			$label = $placement['slug'];
+			$states = array_column($rows, 'lifecycle');
+			self::assertSame(1, count(array_keys($states, 'submitted', true)), $label . ' has one week still waiting');
+			self::assertSame(1, count(array_keys($states, 'corrected', true)), $label . ' has one corrected week');
+
+			$total = 0.0;
+			foreach ($rows as $week) {
+				if ($week['lifecycle'] === 'submitted') {
+					// Nobody has decided it, so there is no approved number and
+					// no trainer on it yet.
+					self::assertArrayNotHasKey('hoursApproved', $week, $week['slug']);
+					self::assertArrayNotHasKey('approvedBy', $week, $week['slug']);
+					continue;
+				}
+
+				self::assertArrayHasKey($week['approvedBy'], $trainers, $week['slug'] . ' names a trainer of this set');
+				// The trainer who approved is the trainer of the placement.
+				self::assertSame($placement['practicalTrainerId'], $week['approvedBy'], $week['slug']);
+				$trainer = $trainers[$week['approvedBy']];
+				self::assertSame($trainer['givenName'] . ' ' . $trainer['familyName'], $week['approvedByName'], $week['slug']);
+				self::assertSame('basic', $week['assuranceLevel'], $week['slug']);
+
+				if ($week['lifecycle'] === 'corrected') {
+					// A correction keeps what the student entered and says why.
+					self::assertLessThan($week['hoursSubmitted'], $week['hoursApproved'], $week['slug']);
+					self::assertNotEmpty($week['note'], $week['slug']);
+				} else {
+					self::assertSame($week['hoursSubmitted'], $week['hoursApproved'], $week['slug']);
+				}
+
+				$total += (float)$week['hoursApproved'];
+			}
+
+			self::assertSame($total, (float)$placement['hoursApprovedTotal'], $label . ' states the hours its weeks add up to');
+			// And the denominator the card counts against really exists.
+			self::assertGreaterThan(0, (float)$placement['agreedHours'], $label);
+		}
+
+		// Every placement of the set states its agreed hours, not only the ones
+		// that have weeks: a card without a total shows no bar at all.
+		foreach ($placements as $placement) {
+			self::assertArrayHasKey('agreedHours', $placement, $placement['slug']);
+		}
+	}//end testTheSetSeedsWeeksOfRealisedHours()
 }//end class

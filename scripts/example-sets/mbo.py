@@ -11,7 +11,8 @@ classes (one per programme and leerjaar), 250 students, staff with a
 studieloopbaanbegeleider per class, a timetable of school days around the work
 placement days, the absences a college records, unit results with resits and
 final grades, work placements (BPV) with praktijkopleiders, signed
-praktijkovereenkomsten, visit reports and werkproces assessments, the
+praktijkovereenkomsten, weeks of realised BPV hours, visit reports and
+werkproces assessments, the
 first-year study advice (flags, warnings, a decision per first-year student),
 exam board cases and a stagecoordinator on Staff.
 
@@ -108,6 +109,12 @@ SCHEMAS = [
     "support-request",
     "dossier-note",
     "hour-plan",
+    # internship-hours. Appended, never inserted: the TTTT group of every uuid
+    # is this list's position, so a slug in the middle would move every later
+    # schema's uuids and `occ learniq:example-set:remove mbo` would no longer
+    # name the rows it loaded. Its parent, bpv-placement, is already above it,
+    # and removal runs in reverse, so the load order still holds.
+    "bpv-hour-week",
 ]
 
 HOLIDAYS = [
@@ -543,7 +550,9 @@ def build() -> dict:
             "parentCourseId": courses[f"{key}-OPL"]["uuid"], "order": order[key], "programmeIds": [programmes[key]["uuid"]],
             "ectsCredits": credits, "competencyIds": [competencies[(key, k)]["uuid"] for k in kerntaken], "prerequisiteCourseIds": [],
         })
-        bpv_meta[code] = {"programme": key, "leerjaar": lj, "coach": coach, "kerntaken": kerntaken}
+        bpv_meta[code] = {"programme": key, "leerjaar": lj, "coach": coach, "kerntaken": kerntaken,
+                          # 28 placement hours per credit, the same convention HourPlan uses below.
+                          "agreedHours": credits * 28}
 
     period_rows = [{"periodId": s[0], "label": s[1], "startDate": s[2].isoformat(), "endDate": s[3].isoformat()} for s in SEMESTERS]
     plans: dict[str, dict] = {}
@@ -795,6 +804,9 @@ def build() -> dict:
                     "learnerId": s["nc"], "learnerRef": s["profile"]["uuid"], "programmeId": programmes[key]["uuid"],
                     "curriculumPlanId": plans[unit]["uuid"], "practicalTrainerId": trainer["uuid"], "schoolCoachId": coach,
                     "trainingCompanyName": company, "trainingCompanyKvkNumber": kvk, "periodFrom": f.isoformat(), "periodTo": t.isoformat(),
+                    # What the praktijkovereenkomst states, so "312 van 640" has
+                    # a real denominator (internship-hours).
+                    "agreedHours": bpv_meta[unit]["agreedHours"], "hoursApprovedTotal": 0,
                     "trainingCompanyVerification": {"provider": "sbb", "status": "verified", "erkenningNumber": erkenning,
                                                     "verifiedAt": stamp(f - dt.timedelta(days=21), 10, 0),
                                                     "expiresAt": stamp(dt.date(2027, 12, 31), 23, 59)},
@@ -1482,6 +1494,64 @@ def build() -> dict:
             "lifecycle": "active",
         })
 
+    # --- weeks of realised BPV hours (internship-hours) -----------------------
+    # Only the first two placements of every BPV unit carry weeks. That is
+    # enough for every praktijkopleider in the set to have one week waiting for
+    # her, for a student to read a correction on her own page, and for the
+    # progress card to have a real numerator; seeding every week of every
+    # placement would add thousands of rows to a set that already has 6,263.
+    #
+    # The pattern per placement, in the order a year really goes: four weeks she
+    # approved as entered, one she corrected downwards with her reason, and one
+    # still waiting for her. `hoursApprovedTotal` on the placement is the sum of
+    # the decided weeks, which is exactly what HourWeekTotalRollup would write.
+    hour_week_notes = {
+        "LOG": "Vrijdagmiddag eerder weg na het legen van de stellingen.",
+        "VIG": "Donderdag twee uur eerder weg, in overleg met de teamleider.",
+        "SD": "Woensdag een halve dag; de sprintdemo verviel.",
+    }
+    by_unit: dict[str, list[dict]] = {}
+    for p in placements:
+        if p["state"] == "completed":
+            by_unit.setdefault(p["unit"], []).append(p)
+    for unit in sorted(by_unit):
+        for p in by_unit[unit][:2]:
+            s = p["student"]
+            per_week = len(p["weekdays"]) * 8
+            monday = p["from"] - dt.timedelta(days=p["from"].weekday())
+            approved_total = 0
+            for index in range(6):
+                week_monday = monday + dt.timedelta(weeks=index)
+                iso_year, iso_week, _day = week_monday.isocalendar()
+                friday = week_monday + dt.timedelta(days=4)
+                fields = {
+                    "bpvPlacementId": p["row"]["uuid"], "learnerRef": s["profile"]["uuid"],
+                    "isoWeek": f"{iso_year}-W{iso_week:02d}",
+                    "hoursSubmitted": per_week,
+                    "submittedBy": s["profile"]["uuid"], "submittedAt": stamp(friday, 17, 10),
+                }
+                if index == 5:
+                    # Still with her: this is what her overview puts first.
+                    fields["lifecycle"] = "submitted"
+                else:
+                    corrected = index == 4
+                    approved = (per_week - 2) if corrected else per_week
+                    approved_total += approved
+                    fields.update({
+                        "hoursApproved": approved,
+                        "approvedBy": p["trainer"]["uuid"],
+                        "approvedByName": trainer_name(p["trainer"]),
+                        "approvedAt": stamp(friday + dt.timedelta(days=3), 9, 20),
+                        "assuranceLevel": "basic",
+                        "lifecycle": "corrected" if corrected else "approved",
+                    })
+                    if corrected:
+                        fields["note"] = hour_week_notes[p["student"]["programme"]]
+
+                b.add("bpv-hour-week", fields)
+
+            p["row"]["hoursApprovedTotal"] = approved_total
+
     # --- assemble -------------------------------------------------------------
     objects = {name: rows for name, rows in b.buckets.items() if rows}
     total = sum(len(rows) for rows in objects.values())
@@ -1517,7 +1587,8 @@ def build() -> dict:
                     "One college with two locations, three programmes (niveau 2, 3 and 4) with their kerntaken and werkprocessen, eight "
                     "classes, 250 students, staff with a studieloopbaanbegeleider per class, a school day per class around the placement days "
                     "of 2025-2026 with the absences recorded, unit results with resits and final grades, work placements with signed "
-                    "praktijkovereenkomsten, visit reports and werkproces assessments, first-year study advice and exam board cases."
+                    "praktijkovereenkomsten, weeks of realised BPV hours with one still waiting for the praktijkopleider and one she "
+                    "corrected, visit reports and werkproces assessments, first-year study advice and exam board cases."
                 ),
                 "objects": objects,
             },
