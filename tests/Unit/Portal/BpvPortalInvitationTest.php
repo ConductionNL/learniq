@@ -394,4 +394,37 @@ class BpvPortalInvitationTest extends TestCase {
 
 		self::assertSame('portal-unavailable', $result['reason']);
 	}//end testAThrowingDispatcherIsReported()
+
+	/**
+	 * A store that ignores `ids` and answers with a neighbour's row must not
+	 * get that neighbour invited: the uuid asked for is the one checked.
+	 *
+	 * @return void
+	 */
+	public function testARowThatIsNotTheOneAskedForIsSkipped(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturn(
+			[
+				[
+					'id' => 'ee030010-0000-4000-8000-000000000099',
+					'givenName' => 'Iemand',
+					'familyName' => 'Anders',
+					'email' => 'iemand.anders@vandam.example',
+					'active' => true,
+				],
+			]
+		);
+		$dispatcher = $this->createMock(IEventDispatcher::class);
+		$dispatcher->expects(self::never())->method('dispatchTyped');
+
+		$result = (new BpvPortalInvitation(
+			objectService: $objectService,
+			dispatcher: $dispatcher,
+			logger: new NullLogger(),
+			provisionEventClass: FakeBpvProvisionEvent::class,
+			claimEventClass: FakeBpvClaimEvent::class,
+		))->invite(role: 'trainer', personRef: self::TRAINER, organisation: 'esdoorn');
+
+		self::assertSame('person-unknown', $result['reason']);
+	}//end testARowThatIsNotTheOneAskedForIsSkipped()
 }//end class
