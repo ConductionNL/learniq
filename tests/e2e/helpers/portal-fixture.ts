@@ -106,6 +106,50 @@ export async function createRow(
 }
 
 /**
+ * Create an object the instance may not know yet, and say so instead of
+ * failing the whole suite.
+ *
+ * WHY THIS EXISTS. A fixture built in `beforeAll` takes every step of the
+ * suite down with it. An instance whose learniq predates the schema a new step
+ * needs is a correct instance for its own build, so the seed reports that it
+ * could not be made and the steps that need it skip, the way the trainer suite
+ * already skips an assessment its instance still asks `substantial` for.
+ *
+ * @param {APIRequestContext} api The caller.
+ * @param {SeededRow[]} created The cleanup ledger, appended to on success.
+ * @param {string} register The register.
+ * @param {string} schema The schema slug.
+ * @param {object} data The object.
+ * @return {Promise<Record<string, any> | undefined>} The created object, or undefined when the instance refused it.
+ */
+export async function createRowIfSupported(
+	api: APIRequestContext,
+	created: SeededRow[],
+	register: string,
+	schema: string,
+	data: Record<string, unknown>,
+): Promise<Record<string, any> | undefined> {
+	const res = await api
+		.post(`/apps/openregister/api/objects/${register}/${schema}`, { data })
+		.catch(() => null)
+	if (!res || res.status() >= 300) {
+		console.log(
+			`fixture: this instance would not create a ${schema}${res ? ` (${res.status()}: ${(await res.text()).slice(0, 200)})` : ''}`,
+		)
+		return undefined
+	}
+
+	const row = await res.json()
+	const id = String(row?.id ?? row?.uuid ?? '')
+	if (id === '') {
+		return undefined
+	}
+
+	created.push({ register, schema, id })
+	return row
+}
+
+/**
  * Remove everything a run created, newest first, and report what stayed.
  *
  * A refusal is reported and never thrown: the suite's verdict is the tests',

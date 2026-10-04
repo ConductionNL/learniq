@@ -55,6 +55,7 @@ import {
 	borrowPublishedHomework,
 	createNextcloudAccount,
 	createRow,
+	createRowIfSupported,
 	grantPortalAccount,
 	nextcloudAccountExists,
 	offerSignInMode,
@@ -203,15 +204,23 @@ test.describe('trainer: an invited workplace trainer', () => {
 		// One week of his hours, waiting for her. The server stamps who
 		// entered it, when, which student and which school from the placement
 		// (HourWeekSubmissionStamp), so the suite sends only the three fields
-		// the pupil's own form sends plus the required learner.
-		const week = await createRow(admin, created, 'learniq', 'bpv-hour-week', {
-			bpvPlacementId: placementId,
-			learnerRef,
-			isoWeek: ISO_WEEK,
-			hoursSubmitted: HOURS_SUBMITTED,
-			lifecycle: 'submitted',
-		})
-		hourWeekId = String(week.id)
+		// the pupil's own form sends plus the required learner. An instance
+		// whose learniq predates internship-hours has no such schema, and says
+		// so rather than taking the whole suite down.
+		const week = await createRowIfSupported(
+			admin,
+			created,
+			'learniq',
+			'bpv-hour-week',
+			{
+				bpvPlacementId: placementId,
+				learnerRef,
+				isoWeek: ISO_WEEK,
+				hoursSubmitted: HOURS_SUBMITTED,
+				lifecycle: 'submitted',
+			},
+		)
+		hourWeekId = String(week?.id ?? '')
 
 		// The claim her collections and her assessment are scoped by. This is
 		// what `occ learniq:portal:invite-trainer` writes (learniq#1680); a
@@ -394,6 +403,11 @@ test.describe('trainer: an invited workplace trainer', () => {
 	})
 
 	test('f. she approves another number, and both numbers stay', async () => {
+		test.skip(
+			hourWeekId === '',
+			"this instance's learniq has no BpvHourWeek, so it predates internship-hours",
+		)
+
 		// The week reaches her through the reverse join over her placements, so
 		// this read is also the proof that the join resolves at all: the first
 		// version of it named a field bpv-placement does not have and would
@@ -460,6 +474,11 @@ test.describe('trainer: an invited workplace trainer', () => {
 	})
 
 	test('g. her overview counts the hours against the agreed total', async () => {
+		test.skip(
+			hourWeekId === '',
+			'no week was approved on this build, so there is no total to count',
+		)
+
 		// The rollup keeps the placement's own total equal to the sum of its
 		// approved weeks, because the card reads one row and a total that lived
 		// only in a query could never reach it.

@@ -139,6 +139,9 @@ test.describe('pupil: her own portal', () => {
 	// that must be refused has something real to point at.
 	let placementId = ''
 	let foreignPlacementId = ''
+	// What the instance's own learniq declares, read from the manifest in step
+	// f: an older build has no hour weeks and steps f and g skip.
+	let hoursSupported = false
 
 	test.beforeAll(async ({ browser }) => {
 		test.setTimeout(300_000)
@@ -583,7 +586,6 @@ test.describe('pupil: her own portal', () => {
 			['grade-entry', 'studentGrades'],
 			['submission', 'studentSubmissions'],
 			['attendance-record', 'studentAttendance'],
-			['bpv-placement', 'studentBpvPlacements'],
 		]) {
 			const rows = await portalRows(pupil, schema, collection)
 			for (const row of rows) {
@@ -593,6 +595,24 @@ test.describe('pupil: her own portal', () => {
 	})
 
 	test('f. she enters a week of her own BPV hours', async () => {
+		// An instance whose learniq predates internship-hours declares neither
+		// the collection nor the action, and says so rather than failing for
+		// its own build.
+		const manifest = await pupil.page.request.get(
+			'/apps/portaliq/portal/api/contributions',
+			{ headers: { Authorization: `Bearer ${pupil.token}` } },
+		)
+		const actions = ((await manifest.json()).contributions ?? []).flatMap(
+			(contribution: Record<string, any>) => contribution.actions ?? [],
+		)
+		hoursSupported = actions.some(
+			(action: Record<string, any>) => action.id === 'submitHourWeek',
+		)
+		test.skip(
+			hoursSupported === false || placementId === '',
+			"this instance's learniq has no hour weeks, so it predates internship-hours",
+		)
+
 		// Her placement is what the form's picker reads, so it must be hers and
 		// readable before the form can be filled at all.
 		await openRoute(pupil.page, PORTAL, 'learniq/studentBpvPlacements')
@@ -600,6 +620,19 @@ test.describe('pupil: her own portal', () => {
 		await expect(pupil.page.getByText(COMPANY).first()).toBeVisible({
 			timeout: 20_000,
 		})
+
+		// Her placement list is hers alone. It is asserted here and not with
+		// the other collections in step e, because an instance whose learniq
+		// predates this change does not declare it and answers 403.
+		const placements = await portalRows(
+			pupil,
+			'bpv-placement',
+			'studentBpvPlacements',
+		)
+		expect(placements.map((row) => String(row.id))).toContain(placementId)
+		expect(new Set(placements.map((row) => row.learnerRef))).toEqual(
+			new Set([profileRef]),
+		)
 
 		// What her form sends: the placement, the week, the hours. Who she is,
 		// when she sent it and which school it belongs to are the server's
@@ -655,8 +688,8 @@ test.describe('pupil: her own portal', () => {
 
 	test("g. a week on another pupil's placement is refused", async () => {
 		test.skip(
-			foreignPlacementId === '',
-			'this instance had no second pupil to put another placement on',
+			hoursSupported === false || foreignPlacementId === '',
+			'this build has no hour weeks, or the instance had no second pupil to put another placement on',
 		)
 
 		// Portaliq stamps her own learnerRef, so without the cross-reference
