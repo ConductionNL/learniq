@@ -46,7 +46,7 @@
 import type { APIRequestContext } from '@playwright/test'
 import type { PortalLogin, SeededRow } from './helpers/portal-fixture.ts'
 
-import { expect, test } from '@playwright/test'
+import { expect, request, test } from '@playwright/test'
 import * as path from 'node:path'
 import {
 	asUser,
@@ -326,7 +326,7 @@ test.describe('pupil: her own portal', () => {
 	// readable from the outside — the guard logs it at `info` and the
 	// instance logs at `warning` — so the diagnosis stops here rather than
 	// guessing, and the test stays as the thing that will prove the fix.
-	test.fixme('c. she hands in her draft', async () => {
+	test('c. she hands in her draft', async () => {
 		const handIn = await pupil.page.request.post(
 			`/apps/portaliq/portal/api/collections/learniq/submission/${submissionId}/actions/handIn`,
 			{
@@ -377,10 +377,36 @@ test.describe('pupil: her own portal', () => {
 	// `fields` while the pupil's relies on portaliq stamping the scope field.
 	// Which of the three conditions fails is not readable from outside, so the
 	// diagnosis stops at the two candidates rather than guessing.
-	test.fixme('d. she reports herself absent through the form', async () => {
+	test('d. she reports herself absent through the form', async () => {
 		const reason = `Griep (${RUN})`
 		await openRoute(pupil.page, PORTAL, 'learniq/studentExcuseRequests')
 		await shot(pupil.page, SHOTS, 'd1-absence-form')
+
+		// THE CONTROL THAT NAMED THE BUG. The same request with the same bearer
+		// from a context that carries no Nextcloud cookie: it succeeded while
+		// the one from her own browser was refused, which is how the session —
+		// and not the bearer, the claim or the payload — was identified as
+		// what the listener was branching on (learniq, 4 October 2026). Both
+		// must work; if only this one does, the old rule is back.
+		const cookieless = await request.newContext({
+			baseURL: process.env.PLAYWRIGHT_BASE_URL,
+		})
+		const withoutCookies = await cookieless.post(
+			'/apps/portaliq/portal/api/collections/learniq/excuse-request',
+			{
+				headers: { Authorization: `Bearer ${pupil.token}` },
+				data: {
+					dateFrom: '2026-10-05',
+					dateTo: '2026-10-06',
+					reason: `Griep, zonder cookie (${RUN})`,
+					reasonKind: 'illness',
+				},
+			},
+		)
+		expect(withoutCookies.status(), await withoutCookies.text()).toBeLessThan(
+			300,
+		)
+		await cookieless.dispose()
 
 		const sent = await pupil.page.request.post(
 			'/apps/portaliq/portal/api/collections/learniq/excuse-request',
@@ -401,15 +427,23 @@ test.describe('pupil: her own portal', () => {
 			'excuse-request',
 			'studentExcuseRequests',
 		)
+		for (const row of rows) {
+			if (String(row.reason ?? '').includes(RUN) === true) {
+				created.push({
+					register: 'learniq',
+					schema: 'excuse-request',
+					id: String(row.id),
+				})
+			}
+		}
+
 		const mine = rows.find((row) => row.reason === reason)
 		expect(mine, 'her own absence report').toBeTruthy()
 		// Portaliq stamps the learner from her claim, never from the body.
 		expect(mine?.learnerRef).toBe(profileRef)
-		created.push({
-			register: 'learniq',
-			schema: 'excuse-request',
-			id: String(mine?.id),
-		})
+		// Her report is attributed to her, not to whoever happened to be
+		// signed in: the pupil is the submitter of her own absence.
+		expect(mine?.submittedByRef ?? profileRef).toBe(profileRef)
 
 		await expect(pupil.page.getByText(reason).first()).toBeVisible({
 			timeout: 20_000,
