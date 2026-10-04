@@ -4833,8 +4833,8 @@
                 },
                 "slug": "learner-profile",
                 "icon": "AccountOutline",
-                "version": "0.3.4",
-                "title": "LearnerProfile",
+                "version": "0.3.5",
+                "title": "Learner profile",
                 "description": "Learniq learner profile. Owns role assignment and is the actor reference for enrolments, credentials, and attestations.",
                 "type": "object",
                 "required": [
@@ -20871,7 +20871,7 @@
             "ConferenceRound": {
                 "slug": "conference-round",
                 "icon": "CalendarMultiselectOutline",
-                "version": "0.2.0",
+                "version": "0.2.1",
                 "title": "Conference Round",
                 "description": "One oudergesprekken-cyclus (parent-teacher conference round) for a report period: scope (cohorts, teachers), slot duration/buffer, and a booking window. Drives invitations, guardian/self signup, and the ConferenceScheduleGenerator's greedy conflict-free slot generation.",
                 "type": "object",
@@ -20966,7 +20966,16 @@
                             "cancelled"
                         ],
                         "default": "draft",
-                        "title": "Lifecycle State"
+                        "title": "Status",
+                        "x-enum-labels": {
+                            "draft": "Draft",
+                            "invitations-sent": "Invitations sent",
+                            "booking-open": "Booking open",
+                            "booking-closed": "Booking closed",
+                            "scheduled": "Scheduled",
+                            "completed": "Completed",
+                            "cancelled": "Cancelled"
+                        }
                     },
                     "invitedLearnerRefs": {
                         "type": "array",
@@ -21121,7 +21130,7 @@
             "TeacherAvailability": {
                 "slug": "teacher-availability",
                 "icon": "AccountClockOutline",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "Teacher Availability",
                 "description": "A teacher's declared free blocks for one ConferenceRound. Consumed by ConferenceScheduleGenerator when the round transitions to generate/regenerate; locked afterwards to prevent a race between a late edit and a running solve.",
                 "type": "object",
@@ -21190,7 +21199,12 @@
                             "locked"
                         ],
                         "default": "draft",
-                        "title": "Lifecycle State"
+                        "title": "Lifecycle State",
+                        "x-enum-labels": {
+                            "draft": "Draft",
+                            "submitted": "Submitted",
+                            "locked": "Locked"
+                        }
                     }
                 },
                 "x-openregister-lifecycle": {
@@ -21392,7 +21406,7 @@
             "ConferenceSlot": {
                 "slug": "conference-slot",
                 "icon": "CalendarCheckOutline",
-                "version": "0.2.0",
+                "version": "0.2.1",
                 "title": "Conference Slot",
                 "description": "One parent-teacher conversation time. In a round with preference booking the ConferenceScheduleGenerator writes it for a signup (proposed, then confirmed). In a round with direct booking it starts free, a parent books it from the portal, and the teacher acknowledges or declines it.",
                 "type": "object",
@@ -21414,7 +21428,7 @@
                         "format": "uuid",
                         "$ref": "ConferenceRound",
                         "description": "UUID of the ConferenceRound this slot belongs to.",
-                        "title": "Conference Round ID"
+                        "title": "Conference round"
                     },
                     "teacherId": {
                         "type": "string",
@@ -21446,13 +21460,13 @@
                         "type": "string",
                         "format": "date-time",
                         "description": "ISO 8601 start timestamp of the conversation.",
-                        "title": "Start Time"
+                        "title": "Starts"
                     },
                     "endsAt": {
                         "type": "string",
                         "format": "date-time",
                         "description": "ISO 8601 end timestamp of the conversation.",
-                        "title": "End Time"
+                        "title": "Ends"
                     },
                     "location": {
                         "type": "string",
@@ -21532,7 +21546,7 @@
                             "cancelled"
                         ],
                         "default": "proposed",
-                        "title": "Lifecycle State",
+                        "title": "Status",
                         "x-enum-labels": {
                             "proposed": "Proposed",
                             "confirmed": "Confirmed",

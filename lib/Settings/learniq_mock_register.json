@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.48",
+    "version": "1.1.49",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -30379,6 +30379,186 @@
         "testedOn": "2026-09-01",
         "testedBy": "Voorbeeld Testedby 3",
         "tenant_id": "00000000-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "attendance-summary",
+          "slug": "attendance-summary-voorbeeld-1"
+        },
+        "learnerId": "Voorbeeld Learnerid 1",
+        "learnerRef": "00000000-0000-4000-8000-000000000000",
+        "schoolYear": "2025-2026",
+        "absentDays": 4,
+        "absentAuthorisedDays": 3,
+        "absentUnauthorisedDays": 1,
+        "lateCount": 2,
+        "lateMinutes": 15,
+        "updatedAt": "2026-03-01T09:00:00+00:00",
+        "teacherIds": [],
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "attendance-summary",
+          "slug": "attendance-summary-voorbeeld-2"
+        },
+        "learnerId": "Voorbeeld Learnerid 2",
+        "learnerRef": "00000000-0000-4000-8000-000000000000",
+        "schoolYear": "2025-2026",
+        "absentDays": 1,
+        "absentAuthorisedDays": 1,
+        "absentUnauthorisedDays": 0,
+        "lateCount": 0,
+        "lateMinutes": 0,
+        "updatedAt": "2026-03-02T09:00:00+00:00",
+        "teacherIds": [],
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "attendance-summary",
+          "slug": "attendance-summary-voorbeeld-3"
+        },
+        "learnerId": "Voorbeeld Learnerid 3",
+        "learnerRef": "00000000-0000-4000-8000-000000000000",
+        "schoolYear": "2025-2026",
+        "absentDays": 7,
+        "absentAuthorisedDays": 4,
+        "absentUnauthorisedDays": 3,
+        "lateCount": 5,
+        "lateMinutes": 42,
+        "updatedAt": "2026-03-03T09:00:00+00:00",
+        "teacherIds": [],
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "school-event",
+          "slug": "school-event-voorbeeld-1"
+        },
+        "title": "Sportdag",
+        "description": "Sportdag op het veld. Neem gymkleren en een fles water mee.",
+        "startsAt": "2026-05-20",
+        "kind": "sports-day",
+        "audience": "school",
+        "schoolId": "00000000-0000-4000-8000-000000000000",
+        "cohortIds": [],
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "school-event",
+          "slug": "school-event-voorbeeld-2"
+        },
+        "title": "Studiedag",
+        "description": "De leerlingen zijn deze dag vrij.",
+        "startsAt": "2026-03-11",
+        "kind": "study-day",
+        "audience": "school",
+        "schoolId": "00000000-0000-4000-8000-000000000000",
+        "cohortIds": [],
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "school-event",
+          "slug": "school-event-voorbeeld-3"
+        },
+        "title": "Schoolreisje",
+        "description": "We vertrekken om half negen en zijn om vier uur terug.",
+        "startsAt": "2026-06-10T08:30:00+02:00",
+        "kind": "trip",
+        "audience": "groups",
+        "schoolId": "00000000-0000-4000-8000-000000000000",
+        "cohortIds": [
+          "00000000-0000-4000-8000-000000000000"
+        ],
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "endsAt": "2026-06-10T16:00:00+02:00"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "xapi-document",
+          "slug": "xapi-document-voorbeeld-1"
+        },
+        "kind": "state",
+        "documentId": "suspend_data",
+        "activityId": "https://example.invalid/xapi/activity/1",
+        "registration": "",
+        "agent": {
+          "objectType": "Agent",
+          "account": {
+            "homePage": "https://example.invalid",
+            "name": "Voorbeeld Learnerid 1"
+          }
+        },
+        "contents": "{\"progress\": 0.25, \"bookmark\": \"page-1\"}",
+        "contentEncoding": "utf-8",
+        "contentType": "application/json",
+        "etag": "\"b5ae914cea90d8906fe2b34f4816a4b8e60df1e7\"",
+        "updated": "2026-03-01T09:00:00+00:00",
+        "verified_actor_id": "Voorbeeld Learnerid 1",
+        "lessonId": "00000000-0000-4000-8000-000000000000",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "xapi-document",
+          "slug": "xapi-document-voorbeeld-2"
+        },
+        "kind": "state",
+        "documentId": "suspend_data",
+        "activityId": "https://example.invalid/xapi/activity/2",
+        "registration": "",
+        "agent": {
+          "objectType": "Agent",
+          "account": {
+            "homePage": "https://example.invalid",
+            "name": "Voorbeeld Learnerid 2"
+          }
+        },
+        "contents": "{\"progress\": 0.5, \"bookmark\": \"page-2\"}",
+        "contentEncoding": "utf-8",
+        "contentType": "application/json",
+        "etag": "\"376b675706c03baca06c9286cd8ce453685d8ded\"",
+        "updated": "2026-03-02T09:00:00+00:00",
+        "verified_actor_id": "Voorbeeld Learnerid 2",
+        "lessonId": "00000000-0000-4000-8000-000000000000",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "xapi-document",
+          "slug": "xapi-document-voorbeeld-3"
+        },
+        "kind": "state",
+        "documentId": "cmi5LearnerPreferences",
+        "activityId": "https://example.invalid/xapi/activity/3",
+        "registration": "",
+        "agent": {
+          "objectType": "Agent",
+          "account": {
+            "homePage": "https://example.invalid",
+            "name": "Voorbeeld Learnerid 3"
+          }
+        },
+        "contents": "{\"progress\": 0.75, \"bookmark\": \"page-3\"}",
+        "contentEncoding": "utf-8",
+        "contentType": "application/json",
+        "etag": "\"e4310415efd59e947a1e590dcc8d405926d3afda\"",
+        "updated": "2026-03-03T09:00:00+00:00",
+        "verified_actor_id": "Voorbeeld Learnerid 3",
+        "lessonId": "00000000-0000-4000-8000-000000000000",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
       }
     ]
   }

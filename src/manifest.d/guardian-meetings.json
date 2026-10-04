@@ -144,7 +144,29 @@
 			"title": "Conference rounds",
 			"config": {
 				"register": "learniq",
-				"schema": "conference-round"
+				"schema": "conference-round",
+				"columns": [
+					{
+						"key": "name",
+						"label": "Round"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					},
+					{
+						"key": "bookingOpensAt",
+						"label": "Booking opens"
+					},
+					{
+						"key": "bookingClosesAt",
+						"label": "Booking closes"
+					},
+					{
+						"key": "bookingMode",
+						"label": "Booking mode"
+					}
+				]
 			}
 		},
 		{
@@ -226,7 +248,11 @@
 							"limit": 50,
 							"columns": [
 								{
-									"key": "teacherId",
+									"key": "slotLabel",
+									"label": "Time"
+								},
+								{
+									"key": "teacherName",
 									"label": "Teacher"
 								},
 								{
@@ -236,10 +262,6 @@
 								{
 									"key": "startsAt",
 									"label": "Starts"
-								},
-								{
-									"key": "endsAt",
-									"label": "Ends"
 								},
 								{
 									"key": "lifecycle",
@@ -403,7 +425,29 @@
 			"title": "Conference slots",
 			"config": {
 				"register": "learniq",
-				"schema": "conference-slot"
+				"schema": "conference-slot",
+				"columns": [
+					{
+						"key": "slotLabel",
+						"label": "Time"
+					},
+					{
+						"key": "teacherName",
+						"label": "Teacher"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					},
+					{
+						"key": "startsAt",
+						"label": "Starts"
+					},
+					{
+						"key": "location",
+						"label": "Location"
+					}
+				]
 			}
 		},
 		{
@@ -424,7 +468,51 @@
 						"type": "data",
 						"title": "Data",
 						"content": {
-							"columns": 2
+							"columns": 2,
+							"include": [
+								"slotLabel",
+								"teacherName",
+								"lifecycle",
+								"startsAt",
+								"endsAt",
+								"location",
+								"conferenceRoundId",
+								"declineNote",
+								"bookedAt",
+								"acknowledgedAt"
+							],
+							"overrides": {
+								"slotLabel": {
+									"order": 0
+								},
+								"teacherName": {
+									"order": 1
+								},
+								"lifecycle": {
+									"order": 2
+								},
+								"startsAt": {
+									"order": 3
+								},
+								"endsAt": {
+									"order": 4
+								},
+								"location": {
+									"order": 5
+								},
+								"conferenceRoundId": {
+									"order": 6
+								},
+								"declineNote": {
+									"order": 7
+								},
+								"bookedAt": {
+									"order": 8
+								},
+								"acknowledgedAt": {
+									"order": 9
+								}
+							}
 						},
 						"icon": "Calendar"
 					},

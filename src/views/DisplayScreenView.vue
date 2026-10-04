@@ -111,6 +111,11 @@ export default {
 		},
 	},
 
+	/**
+	 * Load the screen and refresh it on a timer.
+	 *
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
+	 */
 	mounted() {
 		this.refresh()
 		this.timer = setInterval(this.refresh, REFRESH_MS)

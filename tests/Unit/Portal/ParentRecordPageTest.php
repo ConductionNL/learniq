@@ -131,6 +131,23 @@ class ParentRecordPageTest extends TestCase {
 	}//end testTheFigureCardsReadTheAttendanceSummary()
 
 	/**
+	 * A card names its unit singular and plural, so a guardian reads "1 dag"
+	 * and "5 dagen", never "1 dagen" (portaliq kpi-unit-singular-and-plural).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/parent-figures-singular-and-plural/specs/portal-contribution/spec.md#requirement-the-figure-cards-count-in-singular-and-plural
+	 */
+	public function testTheFigureCardsCountInSingularAndPlural(): void {
+		$cards = (array_column($this->manifest['pages'], null, 'id')['parentChildren'])['blocks'][1]['cards'];
+
+		self::assertSame(['one' => 'day', 'other' => 'days'], $cards[0]['unit']);
+		self::assertSame(['one' => 'time', 'other' => 'times'], $cards[1]['unit']);
+		self::assertSame(['one' => 'minute in total', 'other' => 'minutes in total'], $cards[1]['details'][0]['label']);
+		self::assertSame(['one' => 'day', 'other' => 'days'], $cards[2]['unit']);
+	}//end testTheFigureCardsCountInSingularAndPlural()
+
+	/**
 	 * Homework is the published assignments of the child's group, scoped by
 	 * the server-stamped pupils list, which never leaves for the portal.
 	 *
