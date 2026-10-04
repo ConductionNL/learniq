@@ -81,7 +81,7 @@ class ParentRecordPageTest extends TestCase {
 	 * @spec openspec/changes/portal-parent-child-record/specs/portal-contribution/spec.md#requirement-a-guardian-opens-one-child-and-sees-everything-about-them
 	 */
 	public function testMyChildrenIsTheRecordPageOfEachChild(): void {
-		$page = $this->manifest['pages'][0];
+		$page = array_column($this->manifest['pages'], null, 'id')['parentChildren'];
 
 		self::assertSame('parentChildren', $page['id']);
 		self::assertSame(['collection' => 'parentChildren', 'titleFields' => ['givenName', 'familyName']], $page['record']);
@@ -113,7 +113,7 @@ class ParentRecordPageTest extends TestCase {
 	 * @spec openspec/changes/portal-parent-child-record/specs/portal-contribution/spec.md#requirement-a-guardian-reads-her-childs-attendance-figures
 	 */
 	public function testTheFigureCardsReadTheAttendanceSummary(): void {
-		$kpi = $this->manifest['pages'][0]['blocks'][1];
+		$kpi = (array_column($this->manifest['pages'], null, 'id')['parentChildren'])['blocks'][1];
 		$summary = $this->schemas['AttendanceSummary']['properties'];
 
 		self::assertSame(['field' => 'schoolYear', 'direction' => 'desc'], $kpi['pick']);
@@ -147,7 +147,7 @@ class ParentRecordPageTest extends TestCase {
 		self::assertNotContains('learnerRefs', $homework['fields'], 'no guardian reads another pupil\'s uuid');
 		self::assertTrue($this->schemas['Assignment']['properties']['learnerRefs']['readOnly']);
 
-		$lookup = $this->manifest['pages'][0]['blocks'][4]['lookups'][0];
+		$lookup = (array_column($this->manifest['pages'], null, 'id')['parentChildren'])['blocks'][4]['lookups'][0];
 		self::assertSame('parentSubmissions', $lookup['collection']);
 		self::assertSame('learnerRef', $lookup['recordField']);
 		self::assertSame('Open', $lookup['fallback']);
@@ -172,7 +172,7 @@ class ParentRecordPageTest extends TestCase {
 
 		self::assertContains('schoolId', $this->collection('parentChildren')['fields']);
 
-		$sources = $this->manifest['pages'][0]['blocks'][6]['sources'];
+		$sources = (array_column($this->manifest['pages'], null, 'id')['parentChildren'])['blocks'][6]['sources'];
 		self::assertSame(['parentSchoolEvents', 'parentSchoolCalendar', 'parentSchoolCalendar', 'parentConferenceSlots'], array_column($sources, 'collection'));
 		self::assertSame('cohortIds', $sources[0]['recordGroupsField']);
 		self::assertSame(['field' => 'holidays', 'startField' => 'startDate', 'endField' => 'endDate', 'titleField' => 'name'], $sources[1]['expand']);
@@ -217,8 +217,16 @@ class ParentRecordPageTest extends TestCase {
 		// The conference sections keep their own forms (direct-conference-booking).
 		self::assertSame(['type' => 'action', 'action' => 'bookConferenceSlot'], $pages['parentConferenceFreeSlots']['blocks'][0]);
 		self::assertSame(['type' => 'action', 'action' => 'createConferenceSignup'], $pages['parentConferenceSignups']['blocks'][0]);
-		self::assertSame(['parentChildren', 'parentCalendar'], array_slice(array_column($this->manifest['pages'], 'id'), 0, 2));
+		// site-guardian-portal-design: the overview, the per-child pages and the
+		// calendar first; every collection page after them, out of the menu.
+		self::assertSame(
+			['parentOverview', 'parentChildren', 'parentAbsence', 'parentConferences', 'parentCalendar'],
+			array_slice(array_column($this->manifest['pages'], 'id'), 0, 5)
+		);
 		self::assertCount(1, array_filter($this->manifest['pages'], static fn (array $page): bool => $page['id'] === 'parentChildren'));
+		foreach (array_slice($this->manifest['pages'], 5) as $page) {
+			self::assertFalse($page['menu'], $page['id'] . ' leaves the menu');
+		}
 	}//end testEveryOtherSectionKeepsItsPage()
 
 	/**

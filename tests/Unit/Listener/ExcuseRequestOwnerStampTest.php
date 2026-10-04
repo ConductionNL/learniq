@@ -26,6 +26,7 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
+use OCA\Learniq\Service\Portal\PortalWriteSubject;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\PupilGroupTeachers;
@@ -83,6 +84,7 @@ class ExcuseRequestOwnerStampTest extends TestCase {
 	private function makeStamp(
 		string $schemaSlug = 'excuse-request',
 		bool $hasUser = false,
+		string $uid = 'mentor-1',
 		bool $lookupThrows = false,
 		bool $cohortsThrow = false,
 	): ExcuseRequestOwnerStamp {
@@ -111,7 +113,7 @@ class ExcuseRequestOwnerStampTest extends TestCase {
 		);
 
 		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('mentor-1');
+		$user->method('getUID')->willReturn($uid);
 		$session = $this->createMock(IUserSession::class);
 		$session->method('getUser')->willReturn($hasUser === true ? $user : null);
 
@@ -128,9 +130,14 @@ class ExcuseRequestOwnerStampTest extends TestCase {
 		return new ExcuseRequestOwnerStamp(
 			schemaResolver: $resolver,
 			profiles: $lookup,
-			userSession: $session,
 			logger: new NullLogger(),
 			groupTeachers: new PupilGroupTeachers(objectService: $objectService),
+			// The real collaborator, over the same lookup and the same session.
+			writers: new PortalWriteSubject(
+				profiles: $lookup,
+				userSession: $session,
+				logger: new NullLogger()
+			),
 		);
 	}//end makeStamp()
 
@@ -201,6 +208,45 @@ class ExcuseRequestOwnerStampTest extends TestCase {
 			)
 		);
 	}//end portalCreate()
+
+	/**
+	 * The pupil's own session still takes the portal path, and a guardian's
+	 * does too; anybody else's does not.
+	 *
+	 * WHY THIS TEST EXISTS. The portal branch used to be chosen by "nobody is
+	 * signed in", which was right while every portal citizen was a DigiD
+	 * guardian with no Nextcloud account. A PUPIL signs in to her portal with
+	 * her school account, so her browser carries a Nextcloud session cookie
+	 * and her own absence report was read as a staff write and refused with
+	 * `excuse-owner-missing`. Measured on a live instance on 4 October 2026
+	 * (pupil-flows.spec.ts, step d): the identical request with the identical
+	 * bearer succeeded from a cookie-less context and failed from her browser.
+	 *
+	 * @return void
+	 */
+	public function testThePortalPathBelongsToWhoeverTheReportIsAttributedTo(): void {
+		$this->seedFamily();
+		$this->seedGroups();
+
+		$hers = $this->portalCreate(extra: ['learnerRef' => 'lp-1']);
+		$this->makeStamp(hasUser: true, uid: 'pupil-1')->handle($hers);
+		self::assertFalse($hers->isPropagationStopped());
+		self::assertSame('pupil-1', $hers->getModifiedData()['submittedBy']);
+
+		$guardians = $this->portalCreate(extra: ['learnerRef' => 'lp-1', 'submittedByRef' => 'gp-1']);
+		$this->makeStamp(hasUser: true, uid: 'ouder-1')->handle($guardians);
+		self::assertFalse($guardians->isPropagationStopped());
+		// `submittedByRef` came in with the body, so the stamp adds the
+		// guardian's account and the level it was written at.
+		self::assertSame('ouder-1', $guardians->getModifiedData()['submittedBy']);
+
+		// A mentor's session is not the portal's: the report is not about them,
+		// so the staff branch applies and the write needs a learnerId.
+		$mentors = $this->portalCreate(extra: ['learnerRef' => 'lp-1']);
+		$this->makeStamp(hasUser: true, uid: 'mentor-1')->handle($mentors);
+		self::assertTrue($mentors->isPropagationStopped());
+		self::assertSame('excuse-owner-missing', $mentors->getErrors()['reason']);
+	}//end testThePortalPathBelongsToWhoeverTheReportIsAttributedTo()
 
 	/**
 	 * A pupil's own report gets the pupil, the pupil as submitter, the

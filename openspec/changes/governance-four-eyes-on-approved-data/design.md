@@ -42,7 +42,7 @@ Admin, team leads and administration managers kept their role, but it moves from
 
 ### D6: Applied is recorded on both objects
 
-After the republish, `CorrectionAppliedHandler` moves the request to `applied` with `appliedBy` and `appliedAt`, and sets `GradeEntry.correctionRequestId`. Both writes run as the system: a teacher may not update a request, and the link is a fact of the publish. The `apply` transition names no group for that reason; its guard allows it only when the grade is published with the approved value. The grade's history then shows the value change and the request that holds requester, approver and reason.
+In the republish's own save, the `republish` transition's `LinkCoveringCorrectionAction` sets `GradeEntry.correctionRequestId` to the approved request that covers it. After the republish, `CorrectionAppliedHandler` moves the request to `applied` through its `apply` transition, whose `StampTransitionActorAction` writes `appliedBy` (the publisher, the session user) and `appliedAt`. The move runs as the system: a teacher may not update a request. `appliedBy`, `appliedAt` and `correctionRequestId` are readOnly and OpenRegister refuses an update that changes one whoever saves, so only the declared actions write them; they run on the save path after the readOnly check (live pass D10: a handler that wrote them itself was refused). The `apply` transition names no group for that reason; its guard allows it only when the grade is published with the approved value. The grade's history then shows the value change and the request that holds requester, approver and reason.
 
 ### Follow-ups
 
