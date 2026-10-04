@@ -336,7 +336,46 @@ class GuardianSitePagesTest extends TestCase {
 		foreach (['hoursApprovedTotal', 'agreedHours'] as $field) {
 			self::assertContains($field, $placements['fields'], $field);
 		}
+
+		// AND THE CARD SAYS WHAT IT IS. Found on a live instance on 4 October
+		// 2026: the row was returned and in scope, and the card showed a bar
+		// and a number and nothing identifying, because portaliq's renderer
+		// falls back to `name`, `title` and `givenName` and bpv-placement has
+		// none of the three. Needs ConductionNL/portaliq#1178, which keeps
+		// `titleFields` on a cards block; an older portaliq drops the key and
+		// the card is nameless again.
+		self::assertSame(['trainingCompanyName'], $cards['titleFields']);
+		self::assertContains('trainingCompanyName', $placements['fields']);
 	}//end testTheTrainerSeesHoursAgainstTheAgreedTotal()
+
+	/**
+	 * The pupil reads when she sent a week, and not who sent it.
+	 *
+	 * WHY THE TWO ARE DIFFERENT. `submittedAt` answers "have I actually handed
+	 * in this week?" while it waits for her trainer, so it is projected and
+	 * columned. `submittedBy` on her own page is always her own profile uuid,
+	 * because the server derives it from the placement, so it is a value that
+	 * never varies and tells her nothing; it stays what the school reads
+	 * afterwards. pupil-flows asserts it from an admin read, where it is the
+	 * evidence that HourWeekSubmissionStamp ran at all.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 */
+	public function testThePupilReadsWhenSheSentAWeekAndNotWhoSentIt(): void {
+		$weeks = array_column(self::manifest(audience: 'student')['collections'], null, 'id')['studentHourWeeks'];
+
+		self::assertContains('submittedAt', $weeks['fields']);
+		self::assertNotContains('submittedBy', $weeks['fields']);
+		self::assertContains('submittedAt', array_column($weeks['columns'], 'field'));
+
+		// A column over a field the collection does not project is a column
+		// that can only ever be empty.
+		foreach (array_column($weeks['columns'], 'field') as $field) {
+			self::assertContains($field, $weeks['fields'], $field);
+		}
+	}//end testThePupilReadsWhenSheSentAWeekAndNotWhoSentIt()
 
 	/**
 	 * The week the trainer approves is picked from the weeks waiting for her,

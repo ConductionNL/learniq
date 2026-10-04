@@ -187,6 +187,14 @@ class TrainerSitePages {
 					// `agreedHours` shows its hours and no bar
 					// (internship-hours).
 					'display' => 'cards',
+					// What each card is called. A card that cannot name itself
+					// is merely unhelpful with one placement and unusable with
+					// several, because she cannot tell which company a bar
+					// belongs to: portaliq's renderer falls back to `name`,
+					// `title` and `givenName`, and bpv-placement has none of
+					// the three (found live, 4 October 2026; needs
+					// ConductionNL/portaliq#1178).
+					'titleFields' => ['trainingCompanyName'],
 					'progress' => [
 						'valueField' => 'hoursApprovedTotal',
 						'totalField' => 'agreedHours',

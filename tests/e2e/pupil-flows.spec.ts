@@ -665,12 +665,34 @@ test.describe('pupil: her own portal', () => {
 		expect(mine, 'the week she just entered').toBeTruthy()
 		expect(Number(mine?.hoursSubmitted)).toBe(HOURS_WORKED)
 		expect(mine?.learnerRef).toBe(profileRef)
-		// The server said who entered it and when, from the placement.
-		expect(mine?.submittedBy).toBe(profileRef)
+		// She reads WHEN she sent it, which is what answers "have I actually
+		// handed in this week?" while it waits for her trainer.
 		expect(String(mine?.submittedAt ?? '')).not.toBe('')
+		// But not WHO sent it: on her own page that is always herself, so the
+		// collection does not project it. It is asserted below, from an admin
+		// read, where it is evidence rather than decoration.
+		expect(mine?.submittedBy).toBeUndefined()
 		// Nobody has decided it yet, so her trainer's number is still empty.
 		expect(mine?.lifecycle).toBe('submitted')
 		expect(mine?.hoursApproved ?? null).toBeFalsy()
+
+		// WHAT THIS PROVES, AND WHY IT IS READ AS ADMIN. HourWeekSubmissionStamp
+		// is the only thing that writes `submittedBy`, `submittedAt`,
+		// `learnerRef` and `tenant_id`, all four from the placement the week
+		// names. `tenant_id` is required by the schema and sent by nobody, so
+		// if the stamp ever stops running every submission above is refused
+		// outright. None of that is visible through her own collection, so
+		// without this read the stamp would have a unit test and no live
+		// evidence at all.
+		const stored = await admin.get(
+			`/apps/openregister/api/objects/learniq/bpv-hour-week/${String(mine?.id)}`,
+		)
+		expect(stored.status(), await stored.text()).toBe(200)
+		const row = await stored.json()
+		expect(row.submittedBy).toBe(profileRef)
+		expect(String(row.submittedAt ?? '')).not.toBe('')
+		expect(row.learnerRef).toBe(profileRef)
+		expect(String(row.tenant_id ?? '')).toBe(TENANT)
 		// Every week she reads is her own.
 		expect(new Set(weeks.map((row) => row.learnerRef))).toEqual(
 			new Set([profileRef]),

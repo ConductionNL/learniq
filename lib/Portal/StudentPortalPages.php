@@ -137,14 +137,22 @@ class StudentPortalPages {
 			'label' => 'My hours',
 			'listable' => true,
 			'minTrust' => 'low',
-			// She reads her own number, the number her trainer approved,
-			// the note and who approved it: being overruled is visible
-			// rather than silent (internship-hours).
+			// She reads her own number, when she sent it, the number her
+			// trainer approved, the note and who approved it: being overruled
+			// is visible rather than silent (internship-hours).
+			//
+			// `submittedBy` is deliberately NOT projected. On her own page it
+			// is always her own profile uuid, because the schema holds a
+			// LearnerProfile and the server derives it from the placement, so
+			// it is a value that never varies and tells her nothing. It stays
+			// what the school reads afterwards, and the e2e asserts it from an
+			// admin read, where it is evidence that the stamp ran.
 			'fields' => [
 				'learnerRef',
 				'bpvPlacementId',
 				'isoWeek',
 				'hoursSubmitted',
+				'submittedAt',
 				'hoursApproved',
 				'approvedByName',
 				'approvedAt',
@@ -154,6 +162,9 @@ class StudentPortalPages {
 			'columns' => [
 				['field' => 'isoWeek', 'label' => 'Week'],
 				['field' => 'hoursSubmitted', 'label' => 'Hours you entered'],
+				// When she sent it, which is what answers "have I actually
+				// handed in week 39?" while the week waits.
+				['field' => 'submittedAt', 'label' => 'Sent on', 'render' => 'date'],
 				['field' => 'hoursApproved', 'label' => 'Hours approved'],
 				// A corrected week says so in words. Reading "approved"
 				// over a number she did not write is exactly how a

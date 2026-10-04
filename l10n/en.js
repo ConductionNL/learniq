@@ -3393,7 +3393,8 @@ OC.L10N.register(
         "Why the hours were corrected, in the trainer’s own words.": "Why the hours were corrected, in the trainer’s own words.",
         "`submitted` while it waits for the trainer, `approved` when she approved what the student entered, `corrected` when she approved another number, `rejected` when she approved none.": "`submitted` while it waits for the trainer, `approved` when she approved what the student entered, `corrected` when she approved another number, `rejected` when she approved none.",
         "The school this week belongs to.": "The school this week belongs to.",
-        "Submitted at": "Submitted at"
+        "Submitted at": "Submitted at",
+        "Sent on": "Sent on"
     },
     "nplurals=2; plural=(n != 1);"
 )

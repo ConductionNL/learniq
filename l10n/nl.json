@@ -3896,7 +3896,8 @@
         "How sure the school is who approved: the eIDAS level the trainer’s portal session reached. `basic` is an invitation or a Nextcloud account, `substantial` an eHerkenning or DigiD sign-in. The server writes it from the session; a value sent for it is replaced.": "Hoe zeker de school weet wie goedkeurde: het eIDAS-niveau dat de portaalsessie van de praktijkopleider haalde. `basic` is een uitnodiging of een Nextcloud-account, `substantial` een aanmelding met eHerkenning of DigiD. De server schrijft dit vanuit de sessie; een meegestuurde waarde wordt vervangen.",
         "Why the hours were corrected, in the trainer’s own words.": "Waarom de uren zijn gecorrigeerd, in de woorden van de praktijkopleider zelf.",
         "`submitted` while it waits for the trainer, `approved` when she approved what the student entered, `corrected` when she approved another number, `rejected` when she approved none.": "`submitted` zolang het op de praktijkopleider wacht, `approved` als zij goedkeurde wat de student invulde, `corrected` als zij een ander aantal goedkeurde, `rejected` als zij er geen goedkeurde.",
-        "The school this week belongs to.": "De school waar deze week bij hoort."
+        "The school this week belongs to.": "De school waar deze week bij hoort.",
+        "Sent on": "Verstuurd op"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
