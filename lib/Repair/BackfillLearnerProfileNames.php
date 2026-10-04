@@ -13,7 +13,8 @@
  * family name is not saved, so a second run saves nothing, and a profile with
  * neither name is left alone. Runs without a session, so every read and write
  * passes `_rbac: false` and `_multitenancy: false`; that also reaches merged
- * and deleted profiles and every tenant.
+ * and deleted profiles and every tenant. The save writes the stored profile
+ * unchanged, so it skips validation (`_validation: false`).
  *
  * @category Repair
  * @package  OCA\Learniq\Repair
@@ -190,13 +191,18 @@ class BackfillLearnerProfileNames implements IRepairStep {
 			$object = $row;
 			unset($object['@self']);
 
+			// The payload is the stored profile, unchanged: validating it again
+			// adds nothing, and it refuses a profile whose undecided image
+			// consent holds nulls OpenRegister does not accept in a nested
+			// object (live on the primary school set: 60 of 468 profiles).
 			$this->objectService->saveObject(
 				object: $object,
 				register: self::REGISTER,
 				schema: self::SCHEMA,
 				uuid: $uuid,
 				_rbac: false,
-				_multitenancy: false
+				_multitenancy: false,
+				_validation: false
 			);
 		} catch (Throwable $exception) {
 			$this->logger->warning(

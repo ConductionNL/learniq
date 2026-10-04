@@ -51,7 +51,7 @@ class BackfillLearnerProfileNamesTest extends TestCase {
 	/**
 	 * Every _rbac/_multitenancy pair the step passed to a save.
 	 *
-	 * @var array<int, array{rbac: bool, multitenancy: bool}>
+	 * @var array<int, array{rbac: bool, multitenancy: bool, validation: bool}>
 	 */
 	private array $saveFlags = [];
 
@@ -102,12 +102,19 @@ class BackfillLearnerProfileNamesTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null, bool $_rbac = true, bool $_multitenancy = true) use ($failSaveFor) {
+			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null, bool $_rbac = true, bool $_multitenancy = true, bool $silent = false, bool $_validation = true) use ($failSaveFor) {
 				if ($uuid === $failSaveFor) {
 					throw new RuntimeException('locked');
 				}
 
-				$this->saveFlags[] = ['rbac' => $_rbac, 'multitenancy' => $_multitenancy];
+				// OpenRegister refuses a null inside a nested object, whatever
+				// the fragment's `nullable` says; only an unvalidated save
+				// writes such a stored profile.
+				if ($_validation === true && in_array(null, (array)($object['beeldmateriaalConsent'] ?? []), true) === true) {
+					throw new RuntimeException("Property 'beeldmateriaalConsent.website' should be type 'boolean' but is 'null'.");
+				}
+
+				$this->saveFlags[] = ['rbac' => $_rbac, 'multitenancy' => $_multitenancy, 'validation' => $_validation];
 				return $this->store->save((string)$schema, $object, $uuid);
 			}
 		);
@@ -198,12 +205,30 @@ class BackfillLearnerProfileNamesTest extends TestCase {
 		}
 
 		self::assertSame(
-			[['rbac' => false, 'multitenancy' => false], ['rbac' => false, 'multitenancy' => false]],
+			[
+				['rbac' => false, 'multitenancy' => false, 'validation' => false],
+				['rbac' => false, 'multitenancy' => false, 'validation' => false],
+			],
 			$this->saveFlags
 		);
 		self::assertSame('Vera Hulstkamp', $this->nameOf(id: 'p-merged'));
 		self::assertSame('Vera Hulstkamp', $this->nameOf(id: 'p-other'));
 	}//end testItReadsAndWritesWithoutASession()
+
+	/**
+	 * A profile whose undecided image consent holds nulls is named too: the
+	 * step writes the stored profile unchanged and does not validate it again.
+	 *
+	 * @return void
+	 */
+	public function testAProfileWithUndecidedConsentIsNamed(): void {
+		$consent = ['website' => null, 'socialMedia' => null, 'schoolgids' => true, 'classPhoto' => null, 'video' => null];
+		$this->makeStep([self::profile('p-453', ['beeldmateriaalConsent' => $consent])])->run($this->recorder());
+
+		self::assertSame('Vera Hulstkamp', $this->nameOf(id: 'p-453'));
+		self::assertSame($consent, $this->store->saves[0]['object']['beeldmateriaalConsent']);
+		self::assertContains('BackfillLearnerProfileNames: 1 named, 0 failed, of 1 scanned.', $this->messages);
+	}//end testAProfileWithUndecidedConsentIsNamed()
 
 	/**
 	 * A second run saves nothing.
