@@ -3773,7 +3773,14 @@ OC.L10N.register(
         "KvK number": "KvK-nummer",
         "The KvK number of that leerbedrijf, copied by the server, so the company behind an assessment can be identified years later.": "Het KvK-nummer van dat leerbedrijf, overgenomen door de server, zodat jaren later nog vast te stellen is welk bedrijf achter een beoordeling zat.",
         "Assurance level": "Betrouwbaarheidsniveau",
-        "How sure the school is who assessed: the eIDAS level the assessor's portal session reached. `basic` is an invitation or a Nextcloud account, `substantial` an eHerkenning or DigiD sign-in. The server writes it from the session; a value sent for it is replaced. Same vocabulary as PokSignature.assuranceLevel.": "Hoe zeker de school weet wie heeft beoordeeld: het eIDAS-niveau dat de portaalsessie van de beoordelaar haalde. `basic` is een uitnodiging of een Nextcloud-account, `substantial` een aanmelding met eHerkenning of DigiD. De server schrijft dit vanuit de sessie; een meegestuurde waarde wordt overschreven. Zelfde begrippen als PokSignature.assuranceLevel."
+        "How sure the school is who assessed: the eIDAS level the assessor's portal session reached. `basic` is an invitation or a Nextcloud account, `substantial` an eHerkenning or DigiD sign-in. The server writes it from the session; a value sent for it is replaced. Same vocabulary as PokSignature.assuranceLevel.": "Hoe zeker de school weet wie heeft beoordeeld: het eIDAS-niveau dat de portaalsessie van de beoordelaar haalde. `basic` is een uitnodiging of een Nextcloud-account, `substantial` een aanmelding met eHerkenning of DigiD. De server schrijft dit vanuit de sessie; een meegestuurde waarde wordt overschreven. Zelfde begrippen als PokSignature.assuranceLevel.",
+        "First day you are absent": "Eerste dag dat u afwezig bent",
+        "Last day you are absent": "Laatste dag dat u afwezig bent",
+        "Choose the last day you are absent.": "Kies de laatste dag dat u afwezig bent.",
+        "Report your absence": "Afwezigheid melden",
+        "The school has your report. You see the decision in the list of absence reports.": "De school heeft uw melding. U ziet het besluit in de lijst met afwezigheidsmeldingen.",
+        "The work you are handing in": "Het werk dat u inlevert",
+        "Hand in your work": "Werk inleveren"
     },
     "nplurals=2; plural=(n != 1);"
 )

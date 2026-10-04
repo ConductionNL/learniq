@@ -204,6 +204,39 @@ class GuardianSitePagesTest extends TestCase {
 	}//end testThePupilOverviewAndShortMenu()
 
 	/**
+	 * Every field of the pupil's two forms carries a label.
+	 *
+	 * WHY THIS TEST EXISTS. Measured on a live instance (pupil-flows.spec.ts):
+	 * her absence form drew `dateFrom`, `dateTo`, `reason` and `reasonKind` as
+	 * their own field names, because portaliq names a field it was given no
+	 * label for after the field itself. Her guardian's identical form reads
+	 * Dutch sentences. A form a twelve-year-old cannot read is not a form.
+	 *
+	 * @return void
+	 */
+	public function testThePupilsFormsLabelEveryFieldTheyAskFor(): void {
+		$actions = self::actions(audience: 'student');
+
+		foreach (['createExcuseRequest', 'createSubmission'] as $id) {
+			$action = $actions[$id];
+			$configs = ($action['fieldConfigs'] ?? []);
+			foreach ($action['fields'] as $field) {
+				self::assertNotSame(
+					'',
+					(string)($configs[$field]['label'] ?? ''),
+					$id . ' leaves ' . $field . ' without a label, so the form shows the field name'
+				);
+			}
+		}
+
+		// The same widgets her guardian gets, addressed to her.
+		$absence = $actions['createExcuseRequest']['fieldConfigs'];
+		self::assertSame('dateChoices', $absence['dateFrom']['widget']);
+		self::assertSame('choices', $absence['reasonKind']['widget']);
+		self::assertSame('Choose the last day you are absent.', $absence['dateTo']['requiredMessage']);
+	}//end testThePupilsFormsLabelEveryFieldTheyAskFor()
+
+	/**
 	 * A collection that is not listable gets no page, as portaliq builds none.
 	 *
 	 * @return void

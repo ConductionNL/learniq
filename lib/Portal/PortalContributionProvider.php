@@ -523,6 +523,9 @@ class PortalContributionProvider {
 					'attachmentRefs',
 				],
 				'fieldConfigs' => [
+					// Same reason as the absence form below: an unlabelled field
+					// is drawn as `assignmentId`.
+					'assignmentId' => ['label' => 'The work you are handing in', 'required' => true],
 					'attachmentRefs' => [
 						'type' => 'file',
 						'label' => 'Your work',
@@ -531,6 +534,7 @@ class PortalContributionProvider {
 						'maxSizeMb' => 20,
 					],
 				],
+				'submitLabel' => 'Hand in your work',
 			],
 			[
 				'id' => 'createExcuseRequest',
@@ -548,7 +552,33 @@ class PortalContributionProvider {
 					'reasonKind',
 					'attachmentRef',
 				],
-				'fieldConfigs' => ['attachmentRef' => (new ExcuseAttachmentField())->config()],
+				// A field portaliq is given no label for is drawn under its own
+				// name, so the pupil's form read `dateFrom`, `reason`,
+				// `reasonKind` where her guardian's reads Dutch sentences
+				// (measured on a live instance, pupil-flows.spec.ts). She gets
+				// the same labels and the same widgets, addressed to her.
+				'fieldConfigs' => [
+					'dateFrom' => ['label' => 'First day you are absent', 'required' => true, 'widget' => 'dateChoices', 'dateChoices' => 2],
+					'dateTo' => [
+						'label' => 'Last day you are absent',
+						'required' => true,
+						'widget' => 'dateChoices',
+						'dateChoices' => 2,
+						'requiredMessage' => 'Choose the last day you are absent.',
+					],
+					'reason' => ['label' => 'Reason', 'required' => true],
+					'reasonKind' => [
+						'label' => 'Kind of absence',
+						'required' => true,
+						'valueLabels' => PortalValueLabels::ABSENCE_KIND,
+						'widget' => 'choices',
+						'choiceOptions' => ['illness', 'medical-appointment'],
+						'otherLabel' => 'Another reason',
+					],
+					'attachmentRef' => (new ExcuseAttachmentField())->config(),
+				],
+				'submitLabel' => 'Report your absence',
+				'successMessage' => 'The school has your report. You see the decision in the list of absence reports.',
 			],
 		];
 
