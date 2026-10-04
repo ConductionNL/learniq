@@ -2933,8 +2933,13 @@
 							"limit": 25,
 							"columns": [
 								{
-									"key": "learnerId",
-									"label": "Learner ID"
+									"key": "learnerRef",
+									"label": "Learner",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "learner-profile"
+									}
 								},
 								{
 									"key": "status",
