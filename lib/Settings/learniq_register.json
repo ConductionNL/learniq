@@ -4833,9 +4833,12 @@
                 },
                 "slug": "learner-profile",
                 "icon": "AccountOutline",
-                "version": "0.3.5",
+                "version": "0.3.6",
                 "title": "Learner profile",
                 "description": "Learniq learner profile. Owns role assignment and is the actor reference for enrolments, credentials, and attestations.",
+                "configuration": {
+                    "objectNameField": "{{ givenName }} {{ familyName }}"
+                },
                 "type": "object",
                 "required": [
                     "ncUserId",
@@ -17236,7 +17239,7 @@
                 },
                 "slug": "attendance-record",
                 "icon": "ClipboardCheckOutline",
-                "version": "0.4.0",
+                "version": "0.4.1",
                 "title": "AttendanceRecord",
                 "description": "Per-Session per-learner attendance fact. Records whether a learner was present, absent, late, or left early. Not appendOnly — a teacher may correct a mis-marked record; OR's update audit trail is sufficient.",
                 "type": "object",
@@ -17292,7 +17295,14 @@
                             "left-early"
                         ],
                         "description": "Attendance status for this Session.",
-                        "title": "Attendance Status"
+                        "title": "Attendance Status",
+                        "x-enum-labels": {
+                            "present": "Present",
+                            "absent-unexcused": "Absent without permission",
+                            "absent-excused": "Absent with permission",
+                            "late": "Late",
+                            "left-early": "Left early"
+                        }
                     },
                     "minutesAttended": {
                         "type": "integer",
@@ -17474,7 +17484,7 @@
             "ExcuseRequest": {
                 "slug": "excuse-request",
                 "icon": "FileDocumentEditOutline",
-                "version": "0.4.1",
+                "version": "0.4.2",
                 "title": "ExcuseRequest",
                 "description": "Absence excuse submitted by a learner, parent, or 18+ learner-self for a date range. On approval, matching AttendanceRecords are flipped to absent-excused by ExcuseApprovalHandler.",
                 "type": "object",
@@ -17544,7 +17554,15 @@
                             "other"
                         ],
                         "description": "Structured reason category for reporting purposes.",
-                        "title": "Reason Category"
+                        "title": "Reason Category",
+                        "x-enum-labels": {
+                            "illness": "Illness",
+                            "medical-appointment": "Medical appointment",
+                            "family-circumstance": "Family circumstance",
+                            "religious-observance": "Religious observance",
+                            "bereavement": "Bereavement",
+                            "other": "Other"
+                        }
                     },
                     "attachmentRef": {
                         "type": "string",
@@ -17592,7 +17610,12 @@
                         ],
                         "default": "submitted",
                         "description": "Lifecycle state. Managed by OR lifecycle engine.",
-                        "title": "Lifecycle State"
+                        "title": "Lifecycle State",
+                        "x-enum-labels": {
+                            "submitted": "Submitted",
+                            "approved": "Approved",
+                            "rejected": "Rejected"
+                        }
                     },
                     "tenant_id": {
                         "type": "string",
@@ -21130,8 +21153,8 @@
             "TeacherAvailability": {
                 "slug": "teacher-availability",
                 "icon": "AccountClockOutline",
-                "version": "0.1.1",
-                "title": "Teacher Availability",
+                "version": "0.1.2",
+                "title": "Teacher availability",
                 "description": "A teacher's declared free blocks for one ConferenceRound. Consumed by ConferenceScheduleGenerator when the round transitions to generate/regenerate; locked afterwards to prevent a race between a late edit and a running solve.",
                 "type": "object",
                 "x-openregister": {
@@ -21151,12 +21174,18 @@
                         "format": "uuid",
                         "$ref": "ConferenceRound",
                         "description": "UUID of the ConferenceRound this availability applies to.",
-                        "title": "Conference Round ID"
+                        "title": "Conference round"
                     },
                     "teacherId": {
                         "type": "string",
                         "description": "Nextcloud user ID of the declaring teacher.",
                         "title": "Teacher ID"
+                    },
+                    "teacherName": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The teacher's name, as a list reads it. The server copies it from the teacher's account on every save; a value sent for it is replaced.",
+                        "title": "Teacher"
                     },
                     "blocks": {
                         "type": "array",
@@ -21182,7 +21211,7 @@
                                 }
                             }
                         },
-                        "title": "Availability Blocks"
+                        "title": "Times"
                     },
                     "tenant_id": {
                         "type": "string",

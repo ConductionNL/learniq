@@ -217,8 +217,13 @@
 									"label": "Teacher"
 								},
 								{
-									"key": "learnerId",
-									"label": "Learner"
+									"key": "learnerRef",
+									"label": "Learner",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "learner-profile"
+									}
 								},
 								{
 									"key": "lifecycle",
@@ -256,8 +261,13 @@
 									"label": "Teacher"
 								},
 								{
-									"key": "learnerId",
-									"label": "Learner"
+									"key": "learnerRef",
+									"label": "Learner",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "learner-profile"
+									}
 								},
 								{
 									"key": "startsAt",
@@ -348,7 +358,31 @@
 			"title": "Teacher availability",
 			"config": {
 				"register": "learniq",
-				"schema": "teacher-availability"
+				"schema": "teacher-availability",
+				"columns": [
+					{
+						"key": "conferenceRoundId",
+						"label": "Round",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "conference-round"
+						}
+					},
+					{
+						"key": "teacherName",
+						"label": "Teacher"
+					},
+					{
+						"key": "blocks",
+						"label": "Times",
+						"formatter": "timeBlocks"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					}
+				]
 			}
 		},
 		{
@@ -369,7 +403,27 @@
 						"type": "data",
 						"title": "Data",
 						"content": {
-							"columns": 2
+							"columns": 2,
+							"include": [
+								"teacherName",
+								"conferenceRoundId",
+								"lifecycle",
+								"blocks"
+							],
+							"overrides": {
+								"teacherName": {
+									"order": 0
+								},
+								"conferenceRoundId": {
+									"order": 1
+								},
+								"lifecycle": {
+									"order": 2
+								},
+								"blocks": {
+									"order": 3
+								}
+							}
 						},
 						"icon": "Account"
 					},

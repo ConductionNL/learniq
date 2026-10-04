@@ -3796,6 +3796,8 @@ OC.L10N.register(
         "Conference Report": "Gespreksverslag",
         "Conference Round": "Oudergespreksronde",
         "Conference Slot": "Oudergespreksslot",
+        "Times": "Tijden",
+        "The teacher's name, as a list reads it. The server copies it from the teacher's account on every save; a value sent for it is replaced.": "De naam van de docent, zoals een lijst die toont. De server neemt die bij elke opslag over uit het account van de docent; een meegestuurde waarde wordt vervangen.",
         "My placement": "Mijn stageplaats",
         "My hours": "Mijn uren",
         "Week": "Week",

@@ -3345,6 +3345,8 @@ OC.L10N.register(
         "Conference Report": "Conference Report",
         "Conference Round": "Conference Round",
         "Conference Slot": "Conference Slot",
+        "Times": "Times",
+        "The teacher's name, as a list reads it. The server copies it from the teacher's account on every save; a value sent for it is replaced.": "The teacher's name, as a list reads it. The server copies it from the teacher's account on every save; a value sent for it is replaced.",
         "My placement": "My placement",
         "My hours": "My hours",
         "Week": "Week",
