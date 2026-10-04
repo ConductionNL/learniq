@@ -56,7 +56,7 @@ class PaymentsToShillinqRegisterTest extends TestCase {
 		foreach (['lib/Settings/learniq_register.json', 'lib/Settings/learniq_mock_register.json'] as $file) {
 			$register = self::json($file);
 			foreach (self::RETIRED as $name => $slug) {
-				self::assertArrayNotHasKey($name, $register['components']['schemas'], "$file $name");
+				self::assertArrayNotHasKey($name, ($register['components']['schemas'] ?? []), "$file $name");
 				foreach (($register['components']['registers'] ?? []) as $declared) {
 					self::assertNotContains($slug, ($declared['schemas'] ?? []), "$file register list $slug");
 				}

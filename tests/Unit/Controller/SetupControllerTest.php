@@ -312,6 +312,27 @@ class SetupControllerTest extends TestCase {
 	}//end testLoadingImportsThePickedSetAndNamesTheCount()
 
 	/**
+	 * A load that skipped objects says how many did not arrive.
+	 *
+	 * Live on 2026-10-04 the reply read "Imported 490 example object(s)." while
+	 * OpenRegister skipped 302 of them.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-imports-exactly-its-descriptor
+	 */
+	public function testALoadThatSkippedObjectsSaysHowManyDidNotArrive(): void {
+		$this->captureWrites();
+		$this->profiles->method('install')->willReturn(['objects' => 490, 'skipped' => 302, 'profile' => 'demo']);
+
+		$data = $this->controller(stored: ['example_profile' => 'demo'])->runAction('load-example-set')->getData();
+
+		self::assertStringContainsString('Imported 188 of 490', $data['message']);
+		self::assertStringContainsString('302 could not be imported', $data['message']);
+		self::assertSame(302, $data['skipped']);
+	}//end testALoadThatSkippedObjectsSaysHowManyDidNotArrive()
+
+	/**
 	 * A per-set step removes the set it names, not the wizard's answer.
 	 *
 	 * @return void

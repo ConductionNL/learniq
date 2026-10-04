@@ -194,7 +194,7 @@ class DemoDataService {
 	 * outcome to an operator who just asked for this, so "nothing happened" must
 	 * not be presentable as success.
 	 *
-	 * @return array{objects: integer, registers: integer, schemas: integer} What was imported.
+	 * @return array{objects: integer, skipped: integer, registers: integer, schemas: integer} What was imported.
 	 *
 	 * @throws RuntimeException When the descriptor is missing, unreadable, or OpenRegister is absent.
 	 *
@@ -216,10 +216,9 @@ class DemoDataService {
 			throw new RuntimeException('The demo dataset is not valid JSON: ' . $path);
 		}
 
-		// Counted from the FILE, not the importer's reply, so the number reported
-		// is the number ASKED FOR. An object whose schema does not resolve is
-		// SKIPPED rather than errored, so a discrepancy here is a real condition
-		// an operator should be able to see.
+		// Counted from the FILE, so the number reported is the number ASKED FOR.
+		// An object the importer cannot place is SKIPPED rather than errored, so
+		// the skips are read from its reply below and travel next to this count.
 		$objects = 0;
 		$components = ($data['components'] ?? []);
 		if (is_array($components) === true && is_array(($components['objects'] ?? null)) === true) {
@@ -235,13 +234,15 @@ class DemoDataService {
 
 		$imported = [
 			'objects'   => $objects,
+			'skipped'   => $this->skippedIn(result: $result),
 			'registers' => count((array)($result['registers'] ?? [])),
 			'schemas'   => count((array)($result['schemas'] ?? [])),
 		];
 
 		$this->logger->info(
 			'[DemoDataService] imported demo data: '
-			. $imported['objects'] . ' object(s), '
+			. $imported['objects'] . ' object(s) asked, '
+			. $imported['skipped'] . ' skipped, '
 			. $imported['registers'] . ' register(s), '
 			. $imported['schemas'] . ' schema(s).',
 			['app' => Application::APP_ID]
@@ -249,6 +250,31 @@ class DemoDataService {
 
 		return $imported;
 	}//end install()
+
+	/**
+	 * How many objects an OpenRegister import reply says it skipped.
+	 *
+	 * 🔴 THE REPLY, NOT THE LOG. OpenRegister skips an object it cannot place
+	 * (an unresolved schema, a failed validation) and keeps going, so a reply
+	 * that counted only what was asked said "Imported 490" while 302 of them
+	 * never arrived. The importer counts every skip in `skipped.objects` (the
+	 * `components.objects` bucket) and `skipped.seedObjects` (the
+	 * `x-openregister.seedData` bucket), so both are read.
+	 *
+	 * @param array<string, mixed> $result The reply of ConfigurationService::importFromApp().
+	 *
+	 * @return integer The number of objects that did not arrive.
+	 *
+	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-imports-exactly-its-descriptor
+	 */
+	public function skippedIn(array $result): int {
+		$skipped = ($result['skipped'] ?? []);
+		if (is_array($skipped) === false) {
+			return 0;
+		}
+
+		return (int)($skipped['objects'] ?? 0) + (int)($skipped['seedObjects'] ?? 0);
+	}//end skippedIn()
 
 	/**
 	 * Absolute path to the shipped descriptor.

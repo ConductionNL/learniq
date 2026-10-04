@@ -119,8 +119,14 @@ class GoalAlignmentDepthRegisterTest extends TestCase {
 		$path  = __DIR__ . '/../../../lib/Settings/learniq_mock_register.json';
 		$mock  = json_decode((string) file_get_contents($path), true);
 		$found = [];
+		$keyBySlug = [];
+		foreach ($this->schemas as $key => $definition) {
+			$keyBySlug[(string)($definition['slug'] ?? $key)] = $key;
+		}
+
 		foreach ($mock['components']['objects'] as $object) {
-			$schema = ($object['@self']['schema'] ?? '');
+			// Demo rows name the schema by slug (`exam`); VERSIONS is keyed by definition key (`Assessment`).
+			$schema = ($keyBySlug[(string)($object['@self']['schema'] ?? '')] ?? '');
 			if (isset(self::VERSIONS[$schema]) === false || empty($object['competencyAlignments']) === true) {
 				continue;
 			}
