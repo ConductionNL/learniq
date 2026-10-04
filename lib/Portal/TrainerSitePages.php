@@ -148,11 +148,19 @@ class TrainerSitePages {
 	private function collectionPage(array $collection, array $actions): array {
 		$id = (string)$collection['id'];
 		$blocks = [];
+		// The assessment form posts to learniq's endpoint, so it carries no
+		// schema to match a page on; it belongs to the assessments page.
+		$forms = ['poWerkprocesAssessments' => 'createWerkprocesAssessment'];
+		$form = ($forms[$id] ?? null);
 		foreach ($actions as $action) {
-			if (($action['type'] ?? '') === 'create' && ($action['schema'] ?? '') === ($collection['schema'] ?? '')) {
-				$blocks[] = ['type' => 'action', 'action' => $action['id']];
+			if ($form === null && ($action['type'] ?? '') === 'create' && ($action['schema'] ?? '') === ($collection['schema'] ?? '')) {
+				$form = (string)$action['id'];
 				break;
 			}
+		}
+
+		if ($form !== null) {
+			$blocks[] = ['type' => 'action', 'action' => $form];
 		}
 
 		$blocks[] = ['type' => 'collection', 'collection' => $id];
@@ -251,46 +259,7 @@ class TrainerSitePages {
 					],
 				],
 			],
-			'actions' => [
-				[
-					'id' => 'createWerkprocesAssessment',
-					'type' => 'create',
-					'label' => 'Submit a werkproces assessment',
-					'register' => self::REGISTER,
-					'schema' => 'werkproces-assessment',
-					'scopeField' => 'assessorId',
-					'scopeClaim' => 'practicalTrainerId',
-					'minTrust' => 'substantial',
-					'fields' => [
-						'bpvPlacementId',
-						'curriculumPlanId',
-						'componentId',
-						'kwalificatiedossierCode',
-						'coreTaskCode',
-						'werkprocesCode',
-						'werkprocesLabel',
-						'assessment',
-						'notes',
-					],
-				],
-				[
-					'id' => 'signPraktijkovereenkomst',
-					'type' => 'create',
-					'label' => 'Sign the praktijkovereenkomst',
-					'register' => self::REGISTER,
-					'schema' => 'pok-signature',
-					'scopeField' => 'signerId',
-					'scopeClaim' => 'practicalTrainerId',
-					'minTrust' => 'substantial',
-					'fields' => [
-						'subjectId',
-						'subjectVersion',
-						'assuranceLevel',
-						'method',
-						'evidenceRef',
-					],
-				],
-			],
+			'actions' => $this->actions(),
 			'notifications' => [],
 		];
 		$contribution['collections'][] = $this->assessmentsCollection();
@@ -300,4 +269,62 @@ class TrainerSitePages {
 		return $contribution;
 
 	}//end contribution()
+
+	/**
+	 * What the trainer may do: submit a werkproces assessment through
+	 * learniq's own endpoint, and sign a praktijkovereenkomst.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-invited-trainer-may-submit-a-werkproces-assessment
+	 */
+	private function actions(): array {
+		return [
+			[
+				'id' => 'createWerkprocesAssessment',
+				// Through learniq's own endpoint: a portal create carries no
+				// assertion, and the assertion is where the sign-in level is
+				// (an-invited-trainer-may-assess).
+				'type' => 'endpoint-forward',
+				'label' => 'Submit a werkproces assessment',
+				'endpoint' => '/apps/learniq/api/portal/werkproces-assessments',
+				'method' => 'POST',
+				// An invited trainer may assess (Ruben, 4 October 2026). What
+				// she signs in with is recorded on the assessment, and a school
+				// may demand more through `bpv_assessment_min_assurance`.
+				'minTrust' => 'low',
+				'subjectField' => 'practicalTrainerId',
+				'scopeClaim' => 'practicalTrainerId',
+				'fields' => [
+					'bpvPlacementId',
+					'curriculumPlanId',
+					'componentId',
+					'kwalificatiedossierCode',
+					'coreTaskCode',
+					'werkprocesCode',
+					'werkprocesLabel',
+					'competencyId',
+					'assessment',
+					'notes',
+				],
+			],
+			[
+				'id' => 'signPraktijkovereenkomst',
+				'type' => 'create',
+				'label' => 'Sign the praktijkovereenkomst',
+				'register' => self::REGISTER,
+				'schema' => 'pok-signature',
+				'scopeField' => 'signerId',
+				'scopeClaim' => 'practicalTrainerId',
+				'minTrust' => 'substantial',
+				'fields' => [
+					'subjectId',
+					'subjectVersion',
+					'assuranceLevel',
+					'method',
+					'evidenceRef',
+				],
+			],
+		];
+	}//end actions()
 }//end class

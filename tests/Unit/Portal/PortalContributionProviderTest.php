@@ -842,12 +842,17 @@ class PortalContributionProviderTest extends TestCase {
 
 		$this->assertSame(['createWerkprocesAssessment', 'signPraktijkovereenkomst'], array_column($actions, 'id'));
 
+		// an-invited-trainer-may-assess: the assessment posts to learniq's own
+		// endpoint, because only a forward carries the sign-in level, and an
+		// invited trainer may assess.
 		$assessment = $actions[0];
-		$this->assertSame('create', $assessment['type']);
-		$this->assertSame('werkproces-assessment', $assessment['schema']);
-		$this->assertSame('assessorId', $assessment['scopeField']);
+		$this->assertSame('endpoint-forward', $assessment['type']);
+		$this->assertSame('/apps/learniq/api/portal/werkproces-assessments', $assessment['endpoint']);
+		$this->assertSame('POST', $assessment['method']);
+		$this->assertArrayNotHasKey('schema', $assessment);
+		$this->assertSame('practicalTrainerId', $assessment['subjectField']);
 		$this->assertSame('practicalTrainerId', $assessment['scopeClaim']);
-		$this->assertSame('substantial', $assessment['minTrust']);
+		$this->assertSame('low', $assessment['minTrust']);
 		$this->assertSame(
 			[
 				'bpvPlacementId',
@@ -857,11 +862,20 @@ class PortalContributionProviderTest extends TestCase {
 				'coreTaskCode',
 				'werkprocesCode',
 				'werkprocesLabel',
+				'competencyId',
 				'assessment',
 				'notes',
 			],
 			$assessment['fields']
 		);
+		// Who assessed and how sure the school is are never client-writable.
+		foreach (['assessorId', 'assessorName', 'assessorCompany', 'assessorCompanyKvkNumber', 'assuranceLevel'] as $server) {
+			$this->assertNotContains($server, $assessment['fields'], $server);
+		}
+
+		// The POK signature is a contract signature, not an assessment: it keeps
+		// its substantial floor until Ruben says otherwise.
+		$this->assertSame('substantial', $actions[1]['minTrust']);
 
 		$signature = $actions[1];
 		$this->assertSame('create', $signature['type']);
