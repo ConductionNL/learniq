@@ -3322,7 +3322,14 @@ OC.L10N.register(
         "KvK number": "KvK number",
         "The KvK number of that leerbedrijf, copied by the server, so the company behind an assessment can be identified years later.": "The KvK number of that leerbedrijf, copied by the server, so the company behind an assessment can be identified years later.",
         "Assurance level": "Assurance level",
-        "How sure the school is who assessed: the eIDAS level the assessor's portal session reached. `basic` is an invitation or a Nextcloud account, `substantial` an eHerkenning or DigiD sign-in. The server writes it from the session; a value sent for it is replaced. Same vocabulary as PokSignature.assuranceLevel.": "How sure the school is who assessed: the eIDAS level the assessor's portal session reached. `basic` is an invitation or a Nextcloud account, `substantial` an eHerkenning or DigiD sign-in. The server writes it from the session; a value sent for it is replaced. Same vocabulary as PokSignature.assuranceLevel."
+        "How sure the school is who assessed: the eIDAS level the assessor's portal session reached. `basic` is an invitation or a Nextcloud account, `substantial` an eHerkenning or DigiD sign-in. The server writes it from the session; a value sent for it is replaced. Same vocabulary as PokSignature.assuranceLevel.": "How sure the school is who assessed: the eIDAS level the assessor's portal session reached. `basic` is an invitation or a Nextcloud account, `substantial` an eHerkenning or DigiD sign-in. The server writes it from the session; a value sent for it is replaced. Same vocabulary as PokSignature.assuranceLevel.",
+        "First day you are absent": "First day you are absent",
+        "Last day you are absent": "Last day you are absent",
+        "Choose the last day you are absent.": "Choose the last day you are absent.",
+        "Report your absence": "Report your absence",
+        "The school has your report. You see the decision in the list of absence reports.": "The school has your report. You see the decision in the list of absence reports.",
+        "The work you are handing in": "The work you are handing in",
+        "Hand in your work": "Hand in your work"
     },
     "nplurals=2; plural=(n != 1);"
 )

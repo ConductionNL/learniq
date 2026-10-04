@@ -344,7 +344,9 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('low', $submission['minTrust']);
 		$this->assertSame('learnerRef', $submission['scopeClaim']);
 		$this->assertArrayHasKey('fieldConfigs', $submission);
-		$this->assertSame(['attachmentRefs'], array_keys($submission['fieldConfigs']));
+		// Every field she is asked for carries a label, the file field included
+		// (pupil-flows.spec.ts found the form drawn with its field names).
+		$this->assertSame(['assignmentId', 'attachmentRefs'], array_keys($submission['fieldConfigs']));
 
 		$file = $submission['fieldConfigs']['attachmentRefs'];
 		$this->assertContains('attachmentRefs', $submission['fields']);
