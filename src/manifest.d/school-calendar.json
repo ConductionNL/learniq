@@ -31,7 +31,14 @@
 			"title": "School calendar",
 			"config": {
 				"register": "learniq",
-				"schema": "school-event"
+				"schema": "school-event",
+				"columns": [
+					{ "key": "title", "label": "Title" },
+					{ "key": "kind", "label": "Kind" },
+					{ "key": "audience", "label": "For" },
+					{ "key": "startsAt", "label": "Starts", "formatter": "date" },
+					{ "key": "endsAt", "label": "Ends", "formatter": "date" }
+				]
 			}
 		},
 		{

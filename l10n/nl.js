@@ -3780,7 +3780,19 @@ OC.L10N.register(
         "Report your absence": "Afwezigheid melden",
         "The school has your report. You see the decision in the list of absence reports.": "De school heeft uw melding. U ziet het besluit in de lijst met afwezigheidsmeldingen.",
         "The work you are handing in": "Het werk dat u inlevert",
-        "Hand in your work": "Werk inleveren"
+        "Hand in your work": "Werk inleveren",
+        "Round": "Ronde",
+        "Booking opens": "Boeken kan vanaf",
+        "Booking closes": "Boeken kan tot",
+        "Invitations sent": "Uitnodigingen verstuurd",
+        "Booking open": "Boeken geopend",
+        "Booking closed": "Boeken gesloten",
+        "Locked": "Vastgezet",
+        "Learner profile": "Leerlingprofiel",
+        "Conference Signup": "Aanmelding oudergesprek",
+        "Conference Report": "Gespreksverslag",
+        "Conference Round": "Oudergespreksronde",
+        "Conference Slot": "Oudergespreksslot"
     },
     "nplurals=2; plural=(n != 1);"
 )
