@@ -317,7 +317,7 @@ In `rotating-qr` mode the code MUST be derived from the window id and the curren
 
 #### Scenario: An old photo of the code does not work
 
-<!-- @e2e exclude Time-based code rule; covered by CheckInCodeServiceTest with a fixed clock. -->
+<!-- @e2e exclude Time-based code rule; covered by CheckInServiceTest::testTheRotatingCodeLivesTwoSteps with a fixed clock. -->
 
 - **GIVEN** a code taken from the board two minutes ago
 - **WHEN** a learner of the group sends it
@@ -336,7 +336,7 @@ A signed-in learner who is in the `learnerIds` of the session's cohort MUST be a
 
 #### Scenario: A learner checks in after the grace period
 
-<!-- @e2e exclude Status rule on the endpoint; covered by CheckInControllerTest::testLateAfterThreshold. -->
+<!-- @e2e exclude Status rule in the service; covered by CheckInServiceTest::testAfterTheGracePeriodTheRecordIsLate. -->
 
 - **GIVEN** a session starting at 08:30 with `lateAfterMinutes: 5`
 - **WHEN** a learner of the cohort checks in at 08:41
@@ -344,7 +344,7 @@ A signed-in learner who is in the `learnerIds` of the session's cohort MUST be a
 
 #### Scenario: A learner of another group is refused
 
-<!-- @e2e exclude Access rule on the endpoint; covered by CheckInControllerTest::testRefusesCallerOutsideCohort. -->
+<!-- @e2e exclude Access rule in the service; covered by CheckInServiceTest::testRefusalsWriteNothing (the not-in-group refusal). -->
 
 - **GIVEN** a learner who is not in the session's cohort
 - **WHEN** they post a valid code to `POST /api/check-in/{windowId}`
