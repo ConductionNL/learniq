@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Portal;
 
 use OCA\Learniq\Portal\PortalContributionProvider;
+use OCA\Learniq\Portal\StudentPortalPages;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -200,4 +201,21 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame(['type' => 'action', 'action' => 'createExcuseRequest'], $pages['studentExcuseRequests']['blocks'][0]);
 		self::assertFalse($pages['studentEnrolments']['menu']);
 	}//end testThePupilOverviewAndShortMenu()
+
+	/**
+	 * A collection that is not listable gets no page, as portaliq builds none.
+	 *
+	 * @return void
+	 */
+	public function testAnUnlistedCollectionGetsNoPage(): void {
+		$pages = (new StudentPortalPages())->pages(
+			collections: [
+				['id' => 'studentGrades', 'schema' => 'grade-entry', 'label' => 'My grades'],
+				['id' => 'studentHidden', 'schema' => 'grade-entry', 'label' => 'Hidden', 'listable' => false],
+			],
+			actions: []
+		);
+
+		self::assertSame(['studentOverview', 'studentGrades'], array_column($pages, 'id'));
+	}//end testAnUnlistedCollectionGetsNoPage()
 }//end class
