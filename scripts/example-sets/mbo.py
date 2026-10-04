@@ -82,6 +82,10 @@ SCHEMAS = [
     "subjectteacherassignment",
     "report-period",
     "praktijkopleider",
+    "external-assessor",
+    "portfolio",
+    "portfolio-entry",
+    "portfolio-share",
     "bpv-placement",
     "praktijkovereenkomst",
     "pok-signature",
@@ -1443,6 +1447,40 @@ def build() -> dict:
                 "periodsPerYear": [{"periodCode": "S1", "label": "Semester 1"}, {"periodCode": "S2", "label": "Semester 2"}],
                 "lines": lines, "yearNorms": norms, "lifecycle": lifecycle,
             })
+
+    # --- an external assessor, and the portfolios shared with him -------------
+    # The examenportaal needs a person to sign in as and something to read:
+    # without a share the assessor's portal is empty (invite-a-trainer-and-an-assessor).
+    assessor = b.add("external-assessor", {
+        "givenName": "Ruud", "familyName": "Jansen",
+        "email": "ruud.jansen@examinering-vaartdam.example",
+        "organisationName": "Examinering Vaartdam", "active": True,
+    })
+    # Two students who are actually on a placement, so the portfolios belong to
+    # people the rest of the set knows.
+    shared_students = [p["student"] for p in placements][:2]
+    for index, s in enumerate(shared_students, start=1):
+        portfolio = b.add("portfolio", {
+            "learnerId": s["nc"], "learnerRef": s["profile"]["uuid"], "kind": "course-bound",
+            "title": f"Proeve van bekwaamheid {index}", "description": "Bewijsstukken voor de proeve.",
+            "lifecycle": "submitted",
+        })
+        b.add("portfolio-entry", {
+            "portfolioId": portfolio["uuid"], "learnerId": s["nc"],
+            "title": "Reflectie op de proeve", "evidenceKind": "reflection",
+            "reflectionText": "Ik heb de meterkast aangesloten en daarna zelf nagemeten.",
+        })
+        b.add("portfolio-share", {
+            "portfolioId": portfolio["uuid"],
+            # The readable copies ReadableCopyStamp writes on a live save.
+            "portfolioTitle": portfolio["title"],
+            "learnerName": f"{s['given']} {s['surname']}",
+            "entryIds": [], "sharedWithKind": "external-assessor",
+            "sharedWithExternalAssessorId": assessor["uuid"],
+            "sharedBy": EXAM_SECRETARY,
+            "expiresAt": stamp(dt.date(2026, 10, 16), 23, 59),
+            "lifecycle": "active",
+        })
 
     # --- assemble -------------------------------------------------------------
     objects = {name: rows for name, rows in b.buckets.items() if rows}

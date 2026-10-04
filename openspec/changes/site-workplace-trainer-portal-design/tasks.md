@@ -16,8 +16,8 @@ Built in waves. A key is declared only once portaliq development keeps it; porta
 - [x] **T7**: the manifest through `PortalLabelTranslator`; Dutch "u" entries
   - PHPUnit `PortalLabelTranslatorTest`; `npm run check:l10n`
 - [ ] **T7b**: a one-line explanation beside each school term (praktijkovereenkomst, werkproces, BPV) on first use
-- [ ] **T8**: mbo example set: one praktijkopleider with a portal account and two active placements
-  - `python3 scripts/example-sets/mbo.py --check`
+- [x] **T8**: a praktijkopleider can be given a portal account (`occ learniq:portal:invite-trainer`); the mbo set already seeds 36 trainers and 151 placements (`invite-a-trainer-and-an-assessor`)
+  - PHPUnit `BpvPortalInvitationTest`; `python3 scripts/example-sets/mbo.py --check`
 - [ ] **T9**: e2e: the trainer opens a student, saves an assessment halfway and finishes it later
   - `tests/e2e/mbo-trainer-flows.spec.ts`
 
