@@ -44,13 +44,18 @@ class ParentPortalCollections {
 	/**
 	 * The groups the guardian's children are enrolled in, not listed in the
 	 * portal menu. Portaliq reads it to know which group news reaches the
-	 * guardian (`guardianAudience.groups`).
+	 * guardian (`guardianAudience.groups`, on `cohortId`). The column shows
+	 * the enrolment's readable copy of the group's name, `cohortName`
+	 * (ReadableCopyStamp): portaliq leaves a uuid out of a cell, so a
+	 * `cohortId` column read empty, and the copy lets the guardian read the
+	 * name without reading the cohort itself (parent-groups-read-by-name).
 	 *
 	 * @param array<string, mixed> $childJoin The shared reverse `via` join descriptor.
 	 *
 	 * @return array<string, mixed> The collection.
 	 *
 	 * @spec openspec/changes/portal-parent-conference-booking/specs/portal-contribution/spec.md
+	 * @spec openspec/changes/parent-groups-read-by-name/specs/portal-contribution/spec.md#requirement-the-guardian-reads-the-name-of-the-childs-group
 	 */
 	public function groupMembershipsCollection(array $childJoin): array {
 		return [
@@ -67,9 +72,10 @@ class ParentPortalCollections {
 			'fields' => [
 				'learnerRef',
 				'cohortId',
+				'cohortName',
 			],
 			'columns' => [
-				['field' => 'cohortId', 'label' => 'Group'],
+				['field' => 'cohortName', 'label' => 'Group'],
 			],
 		];
 
