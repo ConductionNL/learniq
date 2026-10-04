@@ -633,7 +633,7 @@ A learner of the cohort MUST be able to see the cohort's open work groups with t
 
 #### Scenario: A full group takes nobody more
 
-<!-- @e2e exclude Race and cap rule in the service; covered by WorkGroupMembershipServiceTest::testLastPlaceGoesToOneLearnerOnly. -->
+<!-- @e2e exclude Cap rule in the service; covered by WorkGroupMembershipServiceTest::testAFullGroupTakesNobodyMore. -->
 
 - **GIVEN** "Groep 1" with four of four places taken
 - **WHEN** a learner of the cohort posts to `POST /api/work-groups/{id}/join`

@@ -286,7 +286,7 @@ Users in `hr` or `compliance-officers` MUST be able to reissue every `issued` cr
 
 #### Scenario: An instructor cannot start a reissue
 
-<!-- @e2e exclude Access rule on an endpoint; covered by CredentialReissueControllerTest::testInstructorIsRefused. -->
+<!-- @e2e exclude Access rule on an endpoint; covered by CredentialReissueControllerTest::testAnInstructorIsRefused. -->
 
 - **GIVEN** a user in `instructors` only
 - **WHEN** they post to `POST /api/courses/{courseId}/credentials/reissue`
@@ -341,7 +341,7 @@ The learner a credential belongs to, and staff who may read the credential, MUST
 
 #### Scenario: Another learner cannot download it
 
-<!-- @e2e exclude Access rule on an endpoint; covered by CredentialEuropassControllerTest::testOtherLearnerGetsNotFound. -->
+<!-- @e2e exclude Access rule on an endpoint; covered by CredentialEuropassControllerTest::testAnotherLearnerGetsNotFound. -->
 
 - **GIVEN** a certificate that belongs to f.elamrani
 - **WHEN** another learner requests `GET /api/credentials/{id}/europass`
@@ -363,7 +363,7 @@ The verification route MUST accept a Europass file for a credential, check its s
 
 #### Scenario: A tampered file fails verification
 
-<!-- @e2e exclude Signature check on a public route; covered by CredentialVerifyControllerTest::testTamperedEdciFails. -->
+<!-- @e2e exclude Signature check on a public route; covered by CredentialVerifyControllerTest::testATamperedEuropassFileFailsVerification. -->
 
 - **GIVEN** a downloaded Europass file whose achievement title was edited after download
 - **WHEN** an employer sends it to `POST /api/credentials/{id}/verify`
