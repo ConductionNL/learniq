@@ -58,6 +58,8 @@ class PortalInviteTrainerCommand extends Command {
 	 * Name, description and arguments.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/invite-a-trainer-and-an-assessor/specs/portal-identity/spec.md#requirement-a-school-invites-a-trainer-or-an-assessor-it-already-created
 	 */
 	protected function configure(): void {
 		$this->setName(name: 'learniq:portal:invite-trainer')
@@ -74,6 +76,8 @@ class PortalInviteTrainerCommand extends Command {
 	 * @param OutputInterface $output The output.
 	 *
 	 * @return int
+	 *
+	 * @spec openspec/changes/invite-a-trainer-and-an-assessor/specs/portal-identity/spec.md#requirement-a-school-invites-a-trainer-or-an-assessor-it-already-created
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		$result = $this->invitations->invite(
