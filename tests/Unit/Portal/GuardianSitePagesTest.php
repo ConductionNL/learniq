@@ -218,4 +218,69 @@ class GuardianSitePagesTest extends TestCase {
 
 		self::assertSame(['studentOverview', 'studentGrades'], array_column($pages, 'id'));
 	}//end testAnUnlistedCollectionGetsNoPage()
+
+	/**
+	 * The trainer lands on an overview with her placements, her last
+	 * assessments and the two things she may do; every section keeps a page.
+	 *
+	 * @return void
+	 */
+	public function testTheTrainerOverviewAndMenu(): void {
+		$manifest = self::manifest(audience: 'praktijkopleider');
+		$pages = array_column($manifest['pages'], null, 'id');
+		$overview = $pages['poOverview'];
+
+		self::assertTrue($overview['home']);
+		self::assertSame('My space', $overview['group']);
+		self::assertSame(['collection', 'collection', 'cta', 'cta', 'inbox'], array_column($overview['blocks'], 'type'));
+		self::assertSame(['field' => 'assessedAt', 'direction' => 'desc'], $overview['blocks'][1]['sort']);
+		self::assertSame(3, $overview['blocks'][1]['limit']);
+
+		// A collection block carries no heading on portaliq, so none is declared.
+		foreach ($overview['blocks'] as $block) {
+			if ($block['type'] === 'collection') {
+				self::assertArrayNotHasKey('label', $block);
+			}
+		}
+
+		self::assertSame(
+			['poOverview', 'poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments'],
+			array_keys($pages)
+		);
+
+		// Her own assessments, matched on the claim the create action stamps.
+		$assessments = array_column($manifest['collections'], null, 'id')['poWerkprocesAssessments'];
+		self::assertSame('assessorId', $assessments['scopeField']);
+		self::assertSame('practicalTrainerId', $assessments['scopeClaim']);
+		self::assertSame('low', $assessments['minTrust']);
+		self::assertSame('Assessments I wrote', $assessments['label']);
+	}//end testTheTrainerOverviewAndMenu()
+
+	/**
+	 * The assessor lands on his shares, longest access first, each naming the
+	 * candidate and the portfolio.
+	 *
+	 * @return void
+	 */
+	public function testTheAssessorOverviewNamesCandidates(): void {
+		$manifest = self::manifest(audience: 'external-assessor');
+		$pages = array_column($manifest['pages'], null, 'id');
+		$overview = $pages['eaOverview'];
+
+		self::assertTrue($overview['home']);
+		self::assertSame(['collection', 'inbox'], array_column($overview['blocks'], 'type'));
+		self::assertSame(['field' => 'expiresAt', 'direction' => 'desc'], $overview['blocks'][0]['sort']);
+		self::assertSame(['eaOverview', 'eaSharedPortfolios'], array_keys($pages));
+
+		$shares = $manifest['collections'][0];
+		foreach (['portfolioTitle', 'learnerName', 'expiresAt'] as $field) {
+			self::assertContains($field, $shares['fields'], $field);
+		}
+
+		// The sort field is projected, or portaliq drops the sort.
+		self::assertSame(['Candidate', 'Portfolio', 'Access until'], array_column($shares['columns'], 'label'));
+		// Only an active grant resolves, and the audience stays read-only.
+		self::assertSame(['lifecycle' => 'active'], $shares['filter']);
+		self::assertSame([], $manifest['actions']);
+	}//end testTheAssessorOverviewNamesCandidates()
 }//end class

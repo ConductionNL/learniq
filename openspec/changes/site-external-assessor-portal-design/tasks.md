@@ -1,16 +1,19 @@
 # Tasks: site-external-assessor-portal-design
 
-Specs only so far. Build starts after Ruben approves the specs. T3 waits on portaliq's `via.when` and `via.validUntilField` (REQ-SMO-023, wave 1 of `site-mijn-omgeving-components`).
+Built in waves. T3 waits on portaliq's `via.when` and `via.validUntilField`, which are not on development.
+
+**Trust:** his reads stay `minTrust: low`, and the audience writes nothing. A freelance assessor signs in by invitation or with eHerkenning; only a broker mints `substantial` (portaliq `SessionController.php:666`), so a `substantial` floor would lock out an invited assessor. The rows are already narrowed to the shares granted to him, and only while they are active.
 
 - [x] **T1**: register: `PortfolioShare.portfolioTitle`, `PortfolioShare.learnerName`, a server stamp on create, a back-fill for existing shares
   - PHPUnit for the stamp; `npm run check:register`
-- [ ] **T2**: `eaSharedPortfolios` projects both copies
-  - PHPUnit `PortalContributionProviderTest`
+- [x] **T2**: `eaSharedPortfolios` projects both copies and names its columns Kandidaat, Portfolio and Toegang tot en met
+  - PHPUnit `GuardianSitePagesTest`, `PortalLabelTranslatorTest`
 - [ ] **T3**: `eaSharedPortfolioEntries` through the share's `entryIds` (and `portfolioId` for a whole-portfolio share), with `via.when` and `via.validUntilField: expiresAt`
   - PHPUnit `PortalContributionProviderTest`; portaliq reader test for the joined filter
-- [ ] **T4**: `AssessorPortalPages`: overview (`home: true`) with the access block; a share record page with the `template` sentence and `whenEmpty`; "Gedeeld met mij", under `group: Mijn omgeving`; default pages `menu: false`
-  - PHPUnit for the new class
-- [ ] **T5**: the manifest through `PortalLabelTranslator`; Dutch "u" entries
+- [x] **T4a**: `AssessorSitePages`: the overview (`home: true`, `group`) listing his shares with the longest access first (`sort`), and the "Met u gedeeld" page
+  - PHPUnit `GuardianSitePagesTest`; run through portaliq's own resolvers: nothing dropped
+- [ ] **T4b** (waits for portaliq `richText` `template` and `whenEmpty`): the access sentence "U heeft toegang tot en met …". Until then each row names the date his access runs to.
+- [x] **T5**: the manifest through `PortalLabelTranslator`; Dutch "u" entries
   - PHPUnit `PortalLabelTranslatorTest`; `npm run check:l10n`
 - [ ] **T6**: mbo example set: one external assessor with a portal account and two portfolio shares
   - `python3 scripts/example-sets/mbo.py --check`

@@ -3803,7 +3803,22 @@
         "Choose a time": "Kies een tijd",
         "Send your preference": "Stuur uw voorkeur",
         "Send my preference": "Voorkeur versturen",
-        "Your preference is in. The school plans the times, and you see yours under your conference times.": "Uw voorkeur is ontvangen. De school plant de tijden. U ziet uw tijd bij uw gesprekstijden."
+        "Your preference is in. The school plans the times, and you see yours under your conference times.": "Uw voorkeur is ontvangen. De school plant de tijden. U ziet uw tijd bij uw gesprekstijden.",
+        "My BPV placements": "Mijn stageplaatsen",
+        "Portfolios shared with me": "Portfolio's die met u zijn gedeeld",
+        "Assessments I wrote": "Beoordelingen die u schreef",
+        "Work process": "Werkproces",
+        "Judgement": "Oordeel",
+        "Not yet competent": "Nog niet competent",
+        "Competent": "Competent",
+        "Assessed on": "Beoordeeld op",
+        "Submit a werkproces assessment": "Beoordeling van een werkproces versturen",
+        "Sign the praktijkovereenkomst": "Praktijkovereenkomst ondertekenen",
+        "Fill in an assessment": "Beoordeling invullen",
+        "Sign the placement agreement": "Praktijkovereenkomst ondertekenen",
+        "Shared with me": "Met u gedeeld",
+        "Candidate": "Kandidaat",
+        "Access until": "Toegang tot en met"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

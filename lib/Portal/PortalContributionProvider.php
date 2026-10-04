@@ -141,11 +141,13 @@ class PortalContributionProvider {
 		}
 
 		if ($audience === 'praktijkopleider') {
-			return $this->practicalTrainerContribution();
+			// The trainer and the assessor read their labels in their language too.
+			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new TrainerSitePages())->contribution());
 		}
 
 		if ($audience === 'external-assessor') {
-			return $this->externalAssessorContribution();
+			// The trainer and the assessor read their labels in their language too.
+			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new AssessorSitePages())->contribution());
 		}
 
 		// Any audience Learniq does not serve → null (fail-closed; ADR-005).
@@ -884,183 +886,5 @@ class PortalContributionProvider {
 
 	}//end parentWelfareCollections()
 
-	/**
-	 * Manifest for the `praktijkopleider` audience (the workplace supervisor conducting BPV).
-	 *
-	 * `subject.subjectRef` is the praktijkopleider's own `Praktijkopleider` object UUID — a
-	 * DIRECT scope key on `BpvPlacement` (`praktijkopleiderId == subject.subjectRef`), unlike
-	 * `parent`'s reverse one-hop join, because the placement literally belongs to that
-	 * praktijkopleider (no join required). This follows the `student` shape (direct match,
-	 * safe to ship create-actions), not the `parent` shape (no create yet, pending a
-	 * cross-ref-validating writer). Both create-actions are `minTrust: substantial` — an
-	 * official werkproces assessment and a POK signature both feed diploma-track evidence,
-	 * the same trust floor `portal-parent` set for guardian actions over minor data.
-	 *
-	 * Field projection: the read collection excludes `schoolCoachId` (internal staff
-	 * identity) and `leerbedrijfVerification.raw` (the SBB provider's raw payload may carry
-	 * more than the erkenning status) — mirrors the staff-only-column drop table in
-	 * portal-contribution/design.md.
-	 *
-	 * eportfolio: gains one new direct-matched collection, `poSharedPortfolios`, over
-	 * `portfolio-share` (NOT a `via` join — `PortfolioShare` itself carries
-	 * `sharedWithPraktijkopleiderId`, so no cross-object resolution is needed, exactly the
-	 * same direct-scope shape `poBpvPlacements` above already uses). `filter: {lifecycle:
-	 * active}` is applied BEFORE the scope filter (mirrors `parentReportCards`'s own
-	 * `filter` usage) so a `revoked` share resolves no rows. The collection exposes the
-	 * grant's own `portfolioId`/`entryIds` pointer fields — resolving those into the
-	 * referenced `Portfolio`/`PortfolioEntry` content is downstream of this manifest (this
-	 * class stays a pure, I/O-free declaration per its own class docblock); it does not
-	 * declare a second `via`-joined collection here because the documented `via` contract
-	 * (`openspec/changes/archive/2026-09-28-portal-parent/design.md`'s `isValidVia()` key set — exactly
-	 * `{register, schema, scopeField, targetField, match}`) has no hook to filter the
-	 * *joined* schema by its own lifecycle, so a `via`-based `portfolio`/`portfolio-entry`
-	 * collection could not honour "a revoked share resolves no rows". Resolving
-	 * `portfolioId`/`entryIds` into the referenced `Portfolio`/`PortfolioEntry` content is
-	 * therefore left to the portal client reading those objects directly, out of this
-	 * manifest's declarative scope — flagged as a follow-up once portaliq's `via` contract
-	 * grows a joined-schema filter hook.
-	 *
-	 * @return array<string, mixed> The praktijkopleider manifest.
-	 *
-	 * @spec openspec/specs/bpv/spec.md#requirement-praktijkopleider-portal-access-is-a-direct-scope-portalcontributionprovider-audience
-	 * @spec openspec/specs/bpv/spec.md#requirement-praktijkopleider-portal-actions-never-trust-client-supplied-identity
-	 * @spec openspec/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
-	 */
-	private function practicalTrainerContribution(): array {
-		return [
-			'label' => 'Learniq',
-			'collections' => [
-				[
-					'id' => 'poBpvPlacements',
-					'register' => self::REGISTER,
-					'schema' => 'bpv-placement',
-					'scopeField' => 'practicalTrainerId',
-					'scopeClaim' => 'practicalTrainerId',
-					'label' => 'My BPV placements',
-					'listable' => true,
-					'minTrust' => 'low',
-					'fields' => [
-						'practicalTrainerId',
-						'learnerRef',
-						'curriculumPlanId',
-						'trainingCompanyName',
-						'periodFrom',
-						'periodTo',
-						'lifecycle',
-					],
-				],
-				[
-					'id' => 'poSharedPortfolios',
-					'register' => self::REGISTER,
-					'schema' => 'portfolio-share',
-					'scopeField' => 'sharedWithPracticalTrainerId',
-					'scopeClaim' => 'practicalTrainerId',
-					'label' => 'Portfolios shared with me',
-					'listable' => true,
-					'minTrust' => 'low',
-					// Only active grants resolve — a revoked share must return no rows.
-					'filter' => ['lifecycle' => 'active'],
-					'fields' => [
-						'portfolioId',
-						'entryIds',
-						'sharedWithKind',
-						'sharedBy',
-						'expiresAt',
-						'lifecycle',
-					],
-				],
-			],
-			'actions' => [
-				[
-					'id' => 'createWerkprocesAssessment',
-					'type' => 'create',
-					'label' => 'Submit a werkproces assessment',
-					'register' => self::REGISTER,
-					'schema' => 'werkproces-assessment',
-					'scopeField' => 'assessorId',
-					'scopeClaim' => 'practicalTrainerId',
-					'minTrust' => 'substantial',
-					'fields' => [
-						'bpvPlacementId',
-						'curriculumPlanId',
-						'componentId',
-						'kwalificatiedossierCode',
-						'coreTaskCode',
-						'werkprocesCode',
-						'werkprocesLabel',
-						'assessment',
-						'notes',
-					],
-				],
-				[
-					'id' => 'signPraktijkovereenkomst',
-					'type' => 'create',
-					'label' => 'Sign the praktijkovereenkomst',
-					'register' => self::REGISTER,
-					'schema' => 'pok-signature',
-					'scopeField' => 'signerId',
-					'scopeClaim' => 'practicalTrainerId',
-					'minTrust' => 'substantial',
-					'fields' => [
-						'subjectId',
-						'subjectVersion',
-						'assuranceLevel',
-						'method',
-						'evidenceRef',
-					],
-				],
-			],
-			'notifications' => [],
-		];
 
-	}//end praktijkopleiderContribution()
-
-	/**
-	 * Manifest for the `external-assessor` audience (a non-BPV external assessor granted
-	 * read-only portfolio access, no Nextcloud account — `ExternalAssessor` schema).
-	 *
-	 * The fourth audience, added following the exact mechanism `bpv-praktijkovereenkomst`
-	 * used to add `praktijkopleider` as the third: one more `getAudiences()` value, one
-	 * more `getContribution()` branch, and this method. `subject.subjectRef` is the
-	 * assessor's own `ExternalAssessor` object UUID — a DIRECT scope key on
-	 * `PortfolioShare.sharedWithExternalAssessorId`, the same direct-match shape
-	 * `praktijkopleiderContribution()`'s new `poSharedPortfolios` collection uses (see that
-	 * method's docblock for why this stays a direct `portfolio-share` read rather than a
-	 * `via`-joined `portfolio` one). Zero create-actions — external-assessor access is
-	 * read-only per the brief.
-	 *
-	 * @return array<string, mixed> The external-assessor manifest.
-	 *
-	 * @spec openspec/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
-	 */
-	private function externalAssessorContribution(): array {
-		return [
-			'label' => 'Learniq',
-			'collections' => [
-				[
-					'id' => 'eaSharedPortfolios',
-					'register' => self::REGISTER,
-					'schema' => 'portfolio-share',
-					'scopeField' => 'sharedWithExternalAssessorId',
-					'scopeClaim' => 'externalAssessorId',
-					'label' => 'Portfolios shared with me',
-					'listable' => true,
-					'minTrust' => 'low',
-					// Only active grants resolve — a revoked share must return no rows.
-					'filter' => ['lifecycle' => 'active'],
-					'fields' => [
-						'portfolioId',
-						'entryIds',
-						'sharedWithKind',
-						'sharedBy',
-						'expiresAt',
-						'lifecycle',
-					],
-				],
-			],
-			'actions' => [],
-			'notifications' => [],
-		];
-
-	}//end externalAssessorContribution()
 }//end class

@@ -3337,7 +3337,22 @@
         "Choose a time": "Choose a time",
         "Send your preference": "Send your preference",
         "Send my preference": "Send my preference",
-        "Your preference is in. The school plans the times, and you see yours under your conference times.": "Your preference is in. The school plans the times, and you see yours under your conference times."
+        "Your preference is in. The school plans the times, and you see yours under your conference times.": "Your preference is in. The school plans the times, and you see yours under your conference times.",
+        "My BPV placements": "My BPV placements",
+        "Portfolios shared with me": "Portfolios shared with me",
+        "Assessments I wrote": "Assessments I wrote",
+        "Work process": "Work process",
+        "Judgement": "Judgement",
+        "Not yet competent": "Not yet competent",
+        "Competent": "Competent",
+        "Assessed on": "Assessed on",
+        "Submit a werkproces assessment": "Submit a werkproces assessment",
+        "Sign the praktijkovereenkomst": "Sign the praktijkovereenkomst",
+        "Fill in an assessment": "Fill in an assessment",
+        "Sign the placement agreement": "Sign the placement agreement",
+        "Shared with me": "Shared with me",
+        "Candidate": "Candidate",
+        "Access until": "Access until"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

@@ -207,6 +207,34 @@ class PortalLabelTranslatorTest extends TestCase {
 	}//end testTheStudentManifestArrivesInDutch()
 
 	/**
+	 * Every visible string of the trainer's and the assessor's manifests has a
+	 * Dutch entry, and both arrive in Dutch through the container's factory.
+	 *
+	 * @return void
+	 */
+	public function testTheTrainerAndAssessorReadDutch(): void {
+		foreach (['praktijkopleider', 'external-assessor'] as $audience) {
+			$english = (new PortalContributionProvider())->getContribution(['audience' => $audience]);
+			$strings = self::visibleStrings(manifest: $english);
+			self::assertNotEmpty($strings, $audience);
+			$missing = array_values(array_filter($strings, fn (string $text): bool => isset($this->dutch[$text]) === false));
+			self::assertSame([], $missing, $audience . ' strings without a Dutch entry in l10n/nl.json');
+		}
+
+		$factory = $this->createMock(IFactory::class);
+		$factory->method('get')->with('learniq')->willReturn($this->dutchL10n());
+		$provider = new PortalContributionProvider(l10nFactory: $factory);
+
+		$trainer = array_column($provider->getContribution(['audience' => 'praktijkopleider'])['collections'], 'label', 'id');
+		self::assertSame('Mijn stageplaatsen', $trainer['poBpvPlacements']);
+		self::assertSame('Beoordelingen die u schreef', $trainer['poWerkprocesAssessments']);
+
+		$assessor = $provider->getContribution(['audience' => 'external-assessor'])['collections'][0];
+		self::assertSame('Met u gedeeld', $assessor['label']);
+		self::assertSame(['Kandidaat', 'Portfolio', 'Toegang tot en met'], array_column($assessor['columns'], 'label'));
+	}//end testTheTrainerAndAssessorReadDutch()
+
+	/**
 	 * Only visible strings move: ids, field names, schemas, the `labelField`
 	 * a dropdown reads, and every scope value stay exactly as they were.
 	 *
@@ -283,6 +311,7 @@ class PortalLabelTranslatorTest extends TestCase {
 			[PortalValueLabels::ATTENDANCE_STATUS, 'attendance-record', 'status'],
 			[PortalValueLabels::SIGNUP_STATUS, 'conference-signup', 'lifecycle'],
 			[PortalValueLabels::SLOT_STATUS, 'conference-slot', 'lifecycle'],
+			[PortalValueLabels::WERKPROCES_ASSESSMENT, 'werkproces-assessment', 'assessment'],
 		];
 		foreach ($labelSets as [$labels, $schema, $property]) {
 			self::assertSame($enumOf($schema, $property), array_keys($labels), $schema.'.'.$property);
