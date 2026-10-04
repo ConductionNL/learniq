@@ -82,6 +82,15 @@ class HourWeekTotalRollup implements IEventListener {
 	 *
 	 * @return void
 	 *
+	 * @listener-placement inline correctness — the trainer approves a week and
+	 * the page she lands on next reads the placement row she approved it
+	 * against. Deferring the total to a queue would show her the figure from
+	 * before her own decision for however long the queue takes, which is the
+	 * one thing a progress figure must never do: it is read as "this is where
+	 * your student stands". The work is bounded too: one filtered read of the
+	 * weeks of ONE placement, capped at 500, a sum over them, and a write only
+	 * when the number actually moved.
+	 *
 	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
 	 */
 	public function handle(Event $event): void {

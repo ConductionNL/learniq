@@ -31054,13 +31054,15 @@
                         "type": "string",
                         "title": "Placement",
                         "description": "The BpvPlacement this week belongs to.",
-                        "format": "uuid"
+                        "format": "uuid",
+                        "$ref": "BpvPlacement"
                     },
                     "learnerRef": {
                         "type": "string",
                         "title": "Student",
                         "description": "The LearnerProfile uuid of the student whose week this is. The server derives it from the placement; a value sent for it is replaced.",
-                        "format": "uuid"
+                        "format": "uuid",
+                        "$ref": "LearnerProfile"
                     },
                     "isoWeek": {
                         "type": "string",
@@ -31079,7 +31081,8 @@
                         "type": "string",
                         "title": "Submitted by",
                         "description": "The LearnerProfile uuid of whoever entered the hours.",
-                        "format": "uuid"
+                        "format": "uuid",
+                        "$ref": "LearnerProfile"
                     },
                     "submittedAt": {
                         "type": "string",
@@ -31098,7 +31101,8 @@
                         "type": "string",
                         "title": "Approved by",
                         "description": "The Praktijkopleider uuid of the trainer who approved. The server writes it from the session; a value sent for it is replaced.",
-                        "format": "uuid"
+                        "format": "uuid",
+                        "$ref": "Praktijkopleider"
                     },
                     "approvedByName": {
                         "type": "string",
