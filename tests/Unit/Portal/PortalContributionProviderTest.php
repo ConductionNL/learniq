@@ -740,7 +740,12 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(2, $collections);
+		// Her placements, the portfolios shared with her, and the assessments
+		// she wrote (site-workplace-trainer-portal-design).
+		$this->assertSame(
+			['poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments'],
+			array_column($collections, 'id')
+		);
 		$collection = $collections[0];
 
 		$this->assertSame('poBpvPlacements', $collection['id']);

@@ -112,4 +112,14 @@ class PortalValueLabels {
 		'no-show'   => 'Did not attend',
 		'cancelled' => 'Conversation cancelled',
 	];
+
+	/**
+	 * `werkproces-assessment.assessment`: how a trainer judged a work process.
+	 *
+	 * @var array<string, string>
+	 */
+	public const WERKPROCES_ASSESSMENT = [
+		'nog-niet-competent' => 'Not yet competent',
+		'competent'          => 'Competent',
+	];
 }//end class

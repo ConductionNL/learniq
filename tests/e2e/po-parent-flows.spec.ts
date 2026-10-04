@@ -126,6 +126,8 @@ test.describe('po: teacher and parent flows', () => {
 	let token = ''
 	let admin: APIRequestContext
 	let teacher: APIRequestContext
+	// What this run wrote, newest last, so afterAll can take it away again.
+	const created: Array<{ schema: string; id: string }> = []
 
 	test.beforeAll(async ({ browser }) => {
 		// Room for the sign-in's retries (see signInAsGuardian).
@@ -151,6 +153,31 @@ test.describe('po: teacher and parent flows', () => {
 	})
 
 	test.afterAll(async () => {
+		// Take this run's rows away again. A conference round left behind stays
+		// `booking-open` and keeps showing as a task on the guardian's overview,
+		// so every run added one more. Newest first, because a slot points at
+		// its round. A refusal is reported, never thrown: the suite's verdict is
+		// the tests', not the cleanup's.
+		const failed: string[] = []
+		for (const row of [...created].reverse()) {
+			const res = await teacher
+				.delete(
+					`/apps/openregister/api/objects/learniq/${row.schema}/${row.id}`,
+				)
+				.catch(() => null)
+			if (!res || res.status() >= 300) {
+				failed.push(
+					`${row.schema}/${row.id}${res ? ` (${res.status()})` : ''}`,
+				)
+			}
+		}
+		console.log(
+			`po-flow cleanup: removed ${created.length - failed.length} of ${created.length} row(s)`,
+		)
+		if (failed.length > 0) {
+			console.warn(`po-flow cleanup could not remove: ${failed.join(', ')}`)
+		}
+		created.length = 0
 		await stub?.close()
 	})
 
@@ -864,7 +891,12 @@ test.describe('po: teacher and parent flows', () => {
 			{ data },
 		)
 		expect(res.status(), await res.text()).toBeLessThan(300)
-		return await res.json()
+		const row = await res.json()
+		const id = String(row?.id ?? row?.uuid ?? '')
+		if (id !== '') {
+			created.push({ schema, id })
+		}
+		return row
 	}
 
 	/**
