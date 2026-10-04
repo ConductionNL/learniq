@@ -22,6 +22,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service\Portal;
 
 use OCA\Learniq\Service\Portal\PortalWerkprocesAssessment;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
 use OCA\OpenRegister\Service\ObjectService;
@@ -256,4 +257,52 @@ class PortalWerkprocesAssessmentTest extends TestCase {
 			'control: the assurance is one of the eIDAS levels'
 		);
 	}//end testTheStoredRowPassesTheRealSchema()
+
+	/**
+	 * A floor nobody set, and one set to a word that is not an eIDAS level,
+	 * both read as `basic`: an unreadable setting never locks a school out.
+	 *
+	 * @return void
+	 */
+	public function testAnUnknownFloorReadsAsBasic(): void {
+		foreach (['', 'eHerkenning', 'STRICT'] as $declared) {
+			$outcome = $this->service(floor: $declared)->submit(trainerRef: self::TRAINER, trust: 'low', body: self::form());
+			self::assertSame(201, $outcome->status, $declared);
+		}
+	}//end testAnUnknownFloorReadsAsBasic()
+
+	/**
+	 * The reader takes plain array rows as well as entities, and skips a row
+	 * that is neither.
+	 *
+	 * @return void
+	 */
+	public function testPlainArrayRowsAreRead(): void {
+		$rows = [
+			'praktijkopleider' => [['id' => self::TRAINER, 'givenName' => 'Karin', 'familyName' => 'Smit', 'tenant_id' => self::TENANT]],
+			'bpv-placement' => ['not-a-row', ['id' => self::PLACEMENT, 'practicalTrainerId' => self::TRAINER]],
+		];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			static fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => ($rows[$config['filters']['schema']] ?? [])
+		);
+		$saved = [];
+		$objectService->method('saveObject')->willReturnCallback(
+			static function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use (&$saved) {
+				$saved[] = $object;
+				// The real saveObject() answers an entity, never an array.
+				return OrEntityFactory::make(['id' => 'assessment-1'], 'werkproces-assessment');
+			}
+		);
+		$appConfig = $this->createMock(IAppConfig::class);
+		$appConfig->method('getValueString')->willReturn('basic');
+
+		$outcome = (new PortalWerkprocesAssessment(objectService: $objectService, appConfig: $appConfig, logger: new NullLogger()))
+			->submit(trainerRef: self::TRAINER, trust: 'low', body: self::form());
+
+		self::assertSame(201, $outcome->status);
+		self::assertSame('assessment-1', $outcome->body['assessmentId']);
+		// No company on the record means no company on the row, not an empty string.
+		self::assertNull($saved[0]['assessorCompany']);
+	}//end testPlainArrayRowsAreRead()
 }//end class

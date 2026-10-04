@@ -30,6 +30,7 @@ namespace OCA\Learniq\Tests\Unit\Portal;
 
 use OCA\Learniq\Portal\PortalContributionProvider;
 use OCA\Learniq\Portal\StudentPortalPages;
+use OCA\Learniq\Portal\TrainerSitePages;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -283,4 +284,23 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame(['lifecycle' => 'active'], $shares['filter']);
 		self::assertSame([], $manifest['actions']);
 	}//end testTheAssessorOverviewNamesCandidates()
+
+	/**
+	 * A trainer collection whose schema has a create action gets that form on
+	 * its page, the way portaliq builds a default page.
+	 *
+	 * @return void
+	 */
+	public function testACreateActionLandsOnItsOwnCollectionPage(): void {
+		$pages = array_column(
+			(new TrainerSitePages())->pages(
+				collections: [['id' => 'poPokSignatures', 'schema' => 'pok-signature', 'label' => 'Signatures']],
+				actions: [['id' => 'signPraktijkovereenkomst', 'type' => 'create', 'schema' => 'pok-signature']]
+			),
+			null,
+			'id'
+		);
+
+		self::assertSame(['type' => 'action', 'action' => 'signPraktijkovereenkomst'], $pages['poPokSignatures']['blocks'][0]);
+	}//end testACreateActionLandsOnItsOwnCollectionPage()
 }//end class
