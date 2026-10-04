@@ -168,21 +168,27 @@ class PortalContributionProvider {
 	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	private function studentContribution(): array {
+		$site = new StudentPortalPages();
+		$collections = array_merge(
+			$this->studentResultCollections(),
+			$this->studentActivityCollections(),
+			[$this->studentTestsCollection(), $site->homeworkCollection()]
+		);
+		$actions = array_merge(
+			$this->studentActions(),
+			$this->studentTestActions(),
+			[$this->handInAction()],
+			(new CatalogueFlowActions())->actions(),
+			(new WorkGroupFlowActions())->actions(),
+			(new StudentFlowActions())->actions()
+		);
+
 		return [
 			'label' => 'Learniq',
-			'collections' => array_merge(
-				$this->studentResultCollections(),
-				$this->studentActivityCollections(),
-				[$this->studentTestsCollection()]
-			),
-			'actions' => array_merge(
-				$this->studentActions(),
-				$this->studentTestActions(),
-				[$this->handInAction()],
-				(new CatalogueFlowActions())->actions(),
-				(new WorkGroupFlowActions())->actions(),
-				(new StudentFlowActions())->actions()
-			),
+			'collections' => $collections,
+			'actions' => $actions,
+			// The overview and a short menu (site-pupil-portal-design).
+			'pages' => $site->pages(collections: $collections, actions: $actions),
 			'notifications' => [],
 		];
 
@@ -680,10 +686,27 @@ class PortalContributionProvider {
 				'optionsProviders' => ['learnerRef' => (new ParentPortalCollections())->childOptions()],
 				'fieldConfigs' => [
 					'learnerRef' => ['label' => 'Child', 'required' => true],
-					'dateFrom' => ['label' => 'First day absent', 'required' => true],
-					'dateTo' => ['label' => 'Last day absent', 'required' => true],
+					// Today and the next day as cards, then "Een andere dag" (portaliq
+					// site-multi-step-forms REQ-SMF-005, LearniqAbsence.dc.html).
+					'dateFrom' => ['label' => 'First day absent', 'required' => true, 'widget' => 'dateChoices', 'dateChoices' => 2],
+					'dateTo' => [
+						'label' => 'Last day absent',
+						'required' => true,
+						'widget' => 'dateChoices',
+						'dateChoices' => 2,
+						'requiredMessage' => 'Choose the last day your child is absent.',
+					],
 					'reason' => ['label' => 'Reason', 'required' => true],
-					'reasonKind' => ['label' => 'Kind of absence', 'required' => true, 'valueLabels' => PortalValueLabels::ABSENCE_KIND],
+					// Two cards and "Een andere reden" for the other four kinds, as the
+					// approved mockup shows.
+					'reasonKind' => [
+						'label' => 'Kind of absence',
+						'required' => true,
+						'valueLabels' => PortalValueLabels::ABSENCE_KIND,
+						'widget' => 'choices',
+						'choiceOptions' => ['illness', 'medical-appointment'],
+						'otherLabel' => 'Another reason',
+					],
 					'attachmentRef' => (new ExcuseAttachmentField())->config(),
 				],
 				'submitLabel' => 'Report the absence',
