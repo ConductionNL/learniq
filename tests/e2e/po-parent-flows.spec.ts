@@ -24,6 +24,17 @@
  *     "loaMap":{"urn:etoegang:core:assurance-class:loa3":"substantial"}}}}'
  *   occ config:app:set portaliq oidc_secret_<orgUuid>_digid --value=<any> --sensitive
  *
+ * A fresh instance needs four more steps. Found on a clean instance, 2026-10-04:
+ *
+ *   - the wizard's segment is `po` (`POST /apps/learniq/api/setup/config`
+ *     `{"segment":"po"}`), or a new conference round books by preference and d2 fails;
+ *   - the `wilgenboom` portal names the organisation by slug (`organisation:
+ *     "default-organisation"`), because the example portal is created without one;
+ *   - `occ config:system:set allow_local_remote_servers --value=true --type=boolean`,
+ *     or Nextcloud refuses to reach the stub broker;
+ *   - the teacher account exists: `OC_PASS=<PO_FLOW_TEACHER_PASS> occ user:add
+ *     --password-from-env -g instructors po-leerkracht-09`.
+ *
  * Flows:
  *   a. a guardian sees her own child, attendance and report cards, and nothing of another child;
  *   b. she reports her child absent, the group teacher approves it in learniq, she sees the outcome;
@@ -102,6 +113,8 @@ const CHILD = {
 const SIBLING = { ref: 'ee010008-0000-4000-8000-000000000467', name: 'Sami' }
 const OTHER_CHILD = 'ee010008-0000-4000-8000-000000000411'
 const GROUP_7 = 'ee010006-0000-4000-8000-000000000006'
+// Sami's group, groep 3.
+const GROUP_3 = 'ee010006-0000-4000-8000-000000000003'
 const REPORT_PERIOD_1 = 'ee01000b-0000-4000-8000-000000000001'
 const SCHOOL = 'ee010001-0000-4000-8000-000000000001'
 const TENANT = '00000000-0000-4000-8000-000000000000'
@@ -668,14 +681,13 @@ test.describe('po: teacher and parent flows', () => {
 		expect(draft.lifecycle ?? 'draft').toBe('draft')
 
 		const rows = await portalRows('report-card', 'parentReportCardGrades')
-		// Vera's published report cards, and nothing of another child.
-		expect(new Set(rows.map((row) => row.learnerRef))).toEqual(
-			new Set([CHILD.ref]),
-		)
-		expect(rows.map((row) => row.periodName)).toEqual(
+		// Her children's published report cards, and nothing of another child.
+		expectOwnChildrenOnly(rows.map((row) => row.learnerRef))
+		const vera = rows.filter((row) => row.learnerRef === CHILD.ref)
+		expect(vera.map((row) => row.periodName)).toEqual(
 			expect.arrayContaining(['Rapport 1', 'Rapport 2']),
 		)
-		const rapport1 = rows.find((row) => row.periodName === 'Rapport 1')
+		const rapport1 = vera.find((row) => row.periodName === 'Rapport 1')
 		expect(rapport1?.gradeLines).toContain('Rekenen: 7,9')
 		expect(rapport1?.gradeLines).toHaveLength(6)
 		// Only the readable copies leave the server: no nested grades with
@@ -737,11 +749,14 @@ test.describe('po: teacher and parent flows', () => {
 			),
 		).toContain('Herfstvakantie')
 
-		// Homework is her child's group's, and no other pupil's uuid leaves.
+		// Homework is her children's groups', and no other pupil's uuid leaves.
+		// Vera's groep 7 is there; Sami's groep 3 may be (see expectOwnChildrenOnly).
 		const assignments = await portalRows('assignment', 'parentHomework')
 		expect(assignments.length).toBeGreaterThan(0)
-		expect(new Set(assignments.map((row) => row.cohortId))).toEqual(
-			new Set([GROUP_7]),
+		const groups = new Set(assignments.map((row) => row.cohortId))
+		expect(groups.has(GROUP_7)).toBe(true)
+		expect([...groups].filter((id) => id !== GROUP_7 && id !== GROUP_3)).toEqual(
+			[],
 		)
 		expect(assignments.every((row) => row.learnerRefs === undefined)).toBe(true)
 
@@ -1016,7 +1031,7 @@ function expectOwnChildrenOnly(learnerRefs: unknown[]): void {
 }
 
 /**
- * Close the first-visit walkthrough if it is open.
+ * Close the first-visit support note and walkthrough if they are open.
  *
  * @param {Page} page The page.
  * @return {Promise<void>}
@@ -1026,6 +1041,14 @@ async function dismissTour(page: Page): Promise<void> {
 		.waitForLoadState('domcontentloaded', { timeout: 10_000 })
 		.catch(() => undefined)
 	await page.waitForTimeout(3_000)
+	// A user's first visit opens the support note, and the walkthrough waits
+	// until it is closed. Its modal catches every click on the page beneath.
+	const support = page.locator('[data-testid-modal="cn-support-dialog"]')
+	if (await support.isVisible({ timeout: 2_000 }).catch(() => false)) {
+		await support.getByRole('button', { name: 'Close' }).first().click()
+		await support.waitFor({ state: 'hidden', timeout: 10_000 })
+		await page.waitForTimeout(1_000)
+	}
 	const close = page.locator('.cn-walkthrough button[aria-label]').first()
 	if (await close.isVisible({ timeout: 5_000 }).catch(() => false)) {
 		await close.click()
