@@ -1,0 +1,230 @@
+{
+    "HourPlan": {
+        "slug": "hour-plan",
+        "icon": "TableClock",
+        "version": "0.1.0",
+        "title": "Hour plan",
+        "description": "How many hours a group gets per course, year of the programme and period, over the whole length of a programme, for the groups that start it in one school year. The teaching activities a school year needs are derived from it.",
+        "type": "object",
+        "x-openregister": {
+            "active": true,
+            "hardDelete": false,
+            "searchable": true
+        },
+        "required": [
+            "programmeId",
+            "intakeYear",
+            "durationYears",
+            "tenant_id"
+        ],
+        "properties": {
+            "name": {
+                "type": "string",
+                "nullable": true,
+                "description": "A short name for the plan, for example the programme and intake year.",
+                "title": "Name"
+            },
+            "programmeId": {
+                "type": "string",
+                "format": "uuid",
+                "$ref": "Programme",
+                "description": "The programme this plan is for.",
+                "title": "Programme"
+            },
+            "intakeYear": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{4}$",
+                "description": "The school year in which the groups on this plan start the programme, for example 2026-2027.",
+                "title": "Intake year"
+            },
+            "durationYears": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 6,
+                "description": "How many years the programme takes.",
+                "title": "Duration in years"
+            },
+            "periodsPerYear": {
+                "type": "array",
+                "default": [],
+                "description": "The periods of every year of the programme, for example four periods.",
+                "title": "Periods per year",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "periodCode": {
+                            "type": "string",
+                            "description": "A short code for the period, the same as the report period code where the school uses one.",
+                            "title": "Period code"
+                        },
+                        "label": {
+                            "type": "string",
+                            "description": "The name of the period.",
+                            "title": "Period name"
+                        }
+                    }
+                }
+            },
+            "lines": {
+                "type": "array",
+                "default": [],
+                "description": "One line per course, year of the programme and period, with its hours.",
+                "title": "Lines",
+                "items": {
+                    "type": "object",
+                    "required": [
+                        "courseId",
+                        "programmeYear",
+                        "contactHours"
+                    ],
+                    "properties": {
+                        "courseId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "$ref": "Course",
+                            "description": "The course the hours are for.",
+                            "title": "Course"
+                        },
+                        "programmeYear": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "description": "The year of the programme the hours fall in.",
+                            "title": "Year of the programme"
+                        },
+                        "periodCode": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "The period the hours fall in. Empty means spread over the whole year.",
+                            "title": "Period"
+                        },
+                        "contactHours": {
+                            "type": "number",
+                            "minimum": 0,
+                            "description": "Hours of guided teaching the group gets.",
+                            "title": "Contact hours"
+                        },
+                        "otherHours": {
+                            "type": "number",
+                            "minimum": 0,
+                            "default": 0,
+                            "description": "Other hours, such as work placement or self study.",
+                            "title": "Other hours"
+                        },
+                        "activityKind": {
+                            "type": "string",
+                            "enum": [
+                                "lesson",
+                                "practical",
+                                "work-placement",
+                                "self-study",
+                                "exam"
+                            ],
+                            "x-enum-labels": {
+                                "lesson": "Lesson",
+                                "practical": "Practical",
+                                "work-placement": "Work placement",
+                                "self-study": "Self study",
+                                "exam": "Exam"
+                            },
+                            "default": "lesson",
+                            "description": "What kind of teaching the hours are.",
+                            "title": "Kind of activity"
+                        },
+                        "note": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "A remark for the timetabler.",
+                            "title": "Remark"
+                        }
+                    }
+                }
+            },
+            "yearNorms": {
+                "type": "array",
+                "default": [],
+                "description": "The norm per year of the programme: the contact hours and the total hours a year must reach.",
+                "title": "Norms per year",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "programmeYear": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "description": "The year of the programme the norm is for.",
+                            "title": "Year of the programme"
+                        },
+                        "contactHours": {
+                            "type": "number",
+                            "minimum": 0,
+                            "description": "The contact hours this year must reach.",
+                            "title": "Contact hours norm"
+                        },
+                        "totalHours": {
+                            "type": "number",
+                            "minimum": 0,
+                            "nullable": true,
+                            "description": "The total hours this year must reach.",
+                            "title": "Total hours norm"
+                        }
+                    }
+                }
+            },
+            "lifecycle": {
+                "type": "string",
+                "enum": [
+                    "draft",
+                    "active",
+                    "archived"
+                ],
+                "x-enum-labels": {
+                    "draft": "Draft",
+                    "active": "Active",
+                    "archived": "Archived"
+                },
+                "default": "draft",
+                "description": "A draft is being written, an active plan is the one the activity list reads, an archived plan is kept for reference.",
+                "title": "Status"
+            },
+            "tenant_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Tenant identifier for multi-tenant isolation.",
+                "title": "Tenant ID"
+            }
+        },
+        "x-openregister-lifecycle": {
+            "property": "lifecycle",
+            "initial": "draft",
+            "transitions": {
+                "activate": {
+                    "from": "draft",
+                    "to": "active",
+                    "requires": "OCA\\Learniq\\Lifecycle\\HourPlanActivationGuard"
+                },
+                "archive": {
+                    "from": "active",
+                    "to": "archived"
+                },
+                "reopen": {
+                    "from": "archived",
+                    "to": "draft"
+                }
+            }
+        },
+        "authorization": {
+            "read": [
+                "authenticated"
+            ],
+            "create": [
+                "instructors",
+                "team-leads",
+                "compliance-officers"
+            ],
+            "update": [
+                "instructors",
+                "team-leads",
+                "compliance-officers"
+            ]
+        }
+    }
+}

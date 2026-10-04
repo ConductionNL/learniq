@@ -1,0 +1,111 @@
+{
+    "LessonNote": {
+        "slug": "lesson-note",
+        "icon": "NoteTextOutline",
+        "version": "0.1.0",
+        "title": "Lesson note",
+        "description": "A short note on one lesson: the topic, what to bring, homework, or instructions for whoever covers the lesson. Learners see notes for learners in their timetable; a note for the covering teacher reaches staff and the substitute only.",
+        "type": "object",
+        "x-openregister": {
+            "active": true,
+            "hardDelete": false,
+            "searchable": true
+        },
+        "required": [
+            "cohortId",
+            "text",
+            "audience",
+            "tenant_id"
+        ],
+        "properties": {
+            "sessionId": {
+                "type": "string",
+                "format": "uuid",
+                "nullable": true,
+                "$ref": "Session",
+                "description": "The learniq lesson this note belongs to. Empty when the lesson comes from the school timetable in planninq.",
+                "title": "Lesson"
+            },
+            "timetableSessionRef": {
+                "type": "object",
+                "nullable": true,
+                "description": "The school timetable lesson this note belongs to, when the timetable comes from planninq: its source system and its reference there.",
+                "title": "Timetable lesson",
+                "properties": {
+                    "sourceSystem": {
+                        "type": "string",
+                        "description": "The timetabling system the lesson came from.",
+                        "title": "Source system"
+                    },
+                    "externalRef": {
+                        "type": "string",
+                        "description": "The lesson's reference in that system.",
+                        "title": "Reference"
+                    }
+                }
+            },
+            "cohortId": {
+                "type": "string",
+                "format": "uuid",
+                "$ref": "Cohort",
+                "description": "The group of the lesson, copied from the lesson when the note is made.",
+                "title": "Group"
+            },
+            "topic": {
+                "type": "string",
+                "nullable": true,
+                "maxLength": 120,
+                "description": "The topic of the lesson, shown on the lesson in the timetable.",
+                "title": "Topic"
+            },
+            "text": {
+                "type": "string",
+                "maxLength": 2000,
+                "description": "The note itself: what to bring, homework, or instructions.",
+                "title": "Note"
+            },
+            "audience": {
+                "type": "string",
+                "enum": [
+                    "learners",
+                    "cover"
+                ],
+                "x-enum-labels": {
+                    "learners": "For learners",
+                    "cover": "For the covering teacher"
+                },
+                "default": "learners",
+                "description": "Who reads the note. A note for the covering teacher is never shown to learners.",
+                "title": "Audience"
+            },
+            "authorId": {
+                "type": "string",
+                "description": "Nextcloud user id of the teacher who wrote the note. The server writes it when the note is made.",
+                "title": "Author"
+            },
+            "tenant_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Tenant identifier for multi-tenant isolation.",
+                "title": "Tenant ID"
+            }
+        },
+        "authorization": {
+            "read": [
+                "instructors",
+                "team-leads",
+                "compliance-officers"
+            ],
+            "create": [
+                "instructors",
+                "team-leads",
+                "compliance-officers"
+            ],
+            "update": [
+                "instructors",
+                "team-leads",
+                "compliance-officers"
+            ]
+        }
+    }
+}

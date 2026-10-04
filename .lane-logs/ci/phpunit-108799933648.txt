@@ -1,0 +1,25 @@
+OCA\Learniq\Tests\Unit\Controller\CourseSharingControllerTest::testARefusalCarriesTheBlockers
+OCA\Learniq\Tests\Unit\Controller\StoreControllerTest::testARefusedPublishCarriesTheBlockers
+OCA\Learniq\Tests\Unit\Controller\StoreControllerTest::testASearchFailureIsUnreachable
+OCA\Learniq\Tests\Unit\Controller\StoreControllerTest::testAnonymousCallsAreRefused
+OCA\Learniq\Tests\Unit\Controller\StoreControllerTest::testEveryPlaneOutcomeMapsToAStatus with data set "not_publishable" ('not_publishable', 500)
+OCA\Learniq\Tests\Unit\Controller\StoreControllerTest::testEveryPlaneOutcomeMapsToAStatus with data set "ok" ('ok', 200)
+OCA\Learniq\Tests\Unit\Controller\StoreControllerTest::testEveryPlaneOutcomeMapsToAStatus with data set "rate_limited" ('rate_limited', 429)
+OCA\Learniq\Tests\Unit\Controller\StoreControllerTest::testEveryPlaneOutcomeMapsToAStatus with data set "store_rejected" ('store_rejected', 502)
+OCA\Learniq\Tests\Unit\Controller\StoreControllerTest::testInstallReturnsTheReport
+OCA\Learniq\Tests\Unit\Controller\StoreControllerTest::testThePlaneRefusesBeforeAnythingIsBuilt
+OCA\Learniq\Tests\Unit\Register\DeclaredAudienceEnforcedTest::testEverySelfMatchIsEnforced
+OCA\Learniq\Tests\Unit\Register\DeclaredAudienceEnforcedTest::testGroupOnlyBlocksAddThePersonTheRowIsAbout
+OCA\Learniq\Tests\Unit\Register\DeclaredAudienceEnforcedTest::testNoSchemaDeclaresAnAudienceWithoutAnAuthorizationBlock
+OCA\Learniq\Tests\Unit\Register\GuardGroupsAreDeclaredTest::testEveryGroupAGuardTestsIsDeclared
+OCA\Learniq\Tests\Unit\Register\LifecycleSchemasAreNotAppendOnlyTest::testNoSchemaIsAppendOnlyAndTransitions
+OCA\Learniq\Tests\Unit\Service\CourseShareExportServiceTest::testAFailedConsentFailsTheShare
+OCA\Learniq\Tests\Unit\Service\CourseShareExportServiceTest::testARefusedCourseRecordsNothing
+OCA\Learniq\Tests\Unit\Service\CourseStore\CourseMetadataFilterTest::testAJsonImportKeepsTheCredit
+OCA\Learniq\Tests\Unit\Settings\AttendanceThresholdRegisterTest::testThresholdCrossedNotificationNotifiesMentorAndCoordinator
+OCA\Learniq\Tests\Unit\Settings\DataMappingProfilePresetsRegisterTest::testExistingSeedsUnchangedAndFiveAdded
+OCA\Learniq\Tests\Unit\Settings\LvsResultRegisterTest::testDataExchangeJobTargetDescribesLvsResults
+OCA\Learniq\Tests\Unit\Settings\OsoImportDossierRegisterTest::testDataExchangeJobTargetDescribesOsoImport
+OCA\Learniq\Tests\Unit\Settings\RbacScopeKindsRegisterTest::testDossierNoteGainsCareTeamPropertyAndReadEntry
+OCA\Learniq\Tests\Unit\Settings\UwlrEduvBasispoortRegisterTest::testExistingTimetableImportSeedsUnchanged
+OCA\Learniq\Tests\Unit\Settings\UwlrEduvBasispoortRegisterTest::testTargetDescriptionsNameNewConnections
