@@ -15,7 +15,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/specs/data-exchange/spec.md#requirement-a-learners-personal-number-is-encrypted-and-readable-only-by-administration-and-compliance
+ * @spec openspec/specs/data-exchange/spec.md#requirement-a-learners-personal-number-is-readable-only-by-administration-and-compliance
  */
 
 declare(strict_types=1);

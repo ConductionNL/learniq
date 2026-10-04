@@ -38,10 +38,13 @@ use OCA\Learniq\Listener\ReportCardGradeLinesStamp;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Listener\AssignmentLearnerRefsStamp;
 use OCA\Learniq\Listener\CohortNameCascade;
+use OCA\Learniq\Listener\HourWeekSubmissionStamp;
+use OCA\Learniq\Listener\HourWeekTotalRollup;
 use OCA\Learniq\Listener\ReadableCopyStamp;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
 use OCA\Learniq\Listener\SubmissionOwnerStamp;
 use OCA\Learniq\Listener\SubmissionResubmissionDateListener;
+use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -268,6 +271,28 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatedEvent::class,
 			listener: CohortNameCascade::class
+		);
+		// Who entered a week of hours, when, for which student and for which
+		// school, all from the placement the week names: the pupil's form may
+		// send none of it (internship-hours).
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: HourWeekSubmissionStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: HourWeekSubmissionStamp::class
+		);
+		// A placement's approved hours stay equal to the sum of its weeks,
+		// because the trainer's progress card reads one row and a total that
+		// lived only in a query could never reach it (internship-hours).
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: HourWeekTotalRollup::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: HourWeekTotalRollup::class
 		);
 	}//end registerReadableCopies()
 }//end class

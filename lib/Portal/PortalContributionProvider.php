@@ -173,11 +173,11 @@ class PortalContributionProvider {
 		$site = new StudentPortalPages();
 		$collections = array_merge(
 			$this->studentResultCollections(),
-			$this->studentActivityCollections(),
+			$this->studentActivityCollections(site: $site),
 			[$this->studentTestsCollection(), $site->homeworkCollection()]
 		);
 		$actions = array_merge(
-			$this->studentActions(),
+			$this->studentActions(site: $site),
 			$this->studentTestActions(),
 			[$this->handInAction()],
 			(new CatalogueFlowActions())->actions(),
@@ -284,11 +284,31 @@ class PortalContributionProvider {
 	 * (assignment-portal-wiring). The inbox entry carries `kind: inbox` so portaliq renders it
 	 * in the shared inbox surface rather than as a plain collection.
 	 *
+	 * @param StudentPortalPages $site The pupil's own declarations.
+	 *
 	 * @return array<int, array<string, mixed>> Student activity collections.
 	 *
 	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
-	private function studentActivityCollections(): array {
+	private function studentActivityCollections(StudentPortalPages $site): array {
+		return array_merge(
+			$this->studentEnrolmentAndSubmissionCollections(),
+			// Her placement and her weeks of hours sit between them, which is
+			// the order the pupil's pages read (internship-hours).
+			$site->bpvCollections(),
+			$this->studentWelfareAndInboxCollections()
+		);
+
+	}//end studentActivityCollections()
+
+	/**
+	 * What she is enrolled in and what she has handed in.
+	 *
+	 * @return array<int, array<string, mixed>> Two collections.
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md
+	 */
+	private function studentEnrolmentAndSubmissionCollections(): array {
 		return [
 			[
 				'id' => 'studentEnrolments',
@@ -328,6 +348,20 @@ class PortalContributionProvider {
 					'lifecycle',
 				],
 			],
+		];
+
+	}//end studentEnrolmentAndSubmissionCollections()
+
+
+	/**
+	 * Her absence reports and her inbox.
+	 *
+	 * @return array<int, array<string, mixed>> Two collections.
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md
+	 */
+	private function studentWelfareAndInboxCollections(): array {
+		return [
 			[
 				'id' => 'studentExcuseRequests',
 				'register' => self::REGISTER,
@@ -367,7 +401,7 @@ class PortalContributionProvider {
 			],
 		];
 
-	}//end studentActivityCollections()
+	}//end studentWelfareAndInboxCollections()
 
 	/**
 	 * The learner's tests as a portaliq timed task (ConductionNL/portaliq#749).
@@ -502,87 +536,117 @@ class PortalContributionProvider {
 	 * learners and tenant a portal create cannot send are stamped by
 	 * `SubmissionOwnerStamp` from the pupil's LearnerProfile.
 	 *
+	 * @param StudentPortalPages $site The pupil's own declarations.
+	 *
 	 * @return array<int, array<string, mixed>> Student create-actions.
 	 *
 	 * @spec openspec/specs/portal-contribution/spec.md
 	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-work-through-the-portal-with-a-real-file-req-pcon-007
 	 */
-	private function studentActions(): array {
+	private function studentActions(StudentPortalPages $site): array {
 		return [
-			[
-				'id' => 'createSubmission',
-				'type' => 'create',
-				'label' => 'Hand in an assignment',
-				'register' => self::REGISTER,
-				'schema' => 'submission',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'minTrust' => 'low',
-				'fields' => [
-					'assignmentId',
-					'attachmentRefs',
-				],
-				'fieldConfigs' => [
-					// Same reason as the absence form below: an unlabelled field
-					// is drawn as `assignmentId`.
-					'assignmentId' => ['label' => 'The work you are handing in', 'required' => true],
-					'attachmentRefs' => [
-						'type' => 'file',
-						'label' => 'Your work',
-						'multiple' => true,
-						'accept' => ['.pdf', '.doc', '.docx', '.odt', '.pptx', '.jpg', '.png'],
-						'maxSizeMb' => 20,
-					],
-				],
-				'submitLabel' => 'Hand in your work',
-			],
-			[
-				'id' => 'createExcuseRequest',
-				'type' => 'create',
-				'label' => 'Report an absence',
-				'register' => self::REGISTER,
-				'schema' => 'excuse-request',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'minTrust' => 'low',
-				'fields' => [
-					'dateFrom',
-					'dateTo',
-					'reason',
-					'reasonKind',
-					'attachmentRef',
-				],
-				// A field portaliq is given no label for is drawn under its own
-				// name, so the pupil's form read `dateFrom`, `reason`,
-				// `reasonKind` where her guardian's reads Dutch sentences
-				// (measured on a live instance, pupil-flows.spec.ts). She gets
-				// the same labels and the same widgets, addressed to her.
-				'fieldConfigs' => [
-					'dateFrom' => ['label' => 'First day you are absent', 'required' => true, 'widget' => 'dateChoices', 'dateChoices' => 2],
-					'dateTo' => [
-						'label' => 'Last day you are absent',
-						'required' => true,
-						'widget' => 'dateChoices',
-						'dateChoices' => 2,
-						'requiredMessage' => 'Choose the last day you are absent.',
-					],
-					'reason' => ['label' => 'Reason', 'required' => true],
-					'reasonKind' => [
-						'label' => 'Kind of absence',
-						'required' => true,
-						'valueLabels' => PortalValueLabels::ABSENCE_KIND,
-						'widget' => 'choices',
-						'choiceOptions' => ['illness', 'medical-appointment'],
-						'otherLabel' => 'Another reason',
-					],
-					'attachmentRef' => (new ExcuseAttachmentField())->config(),
-				],
-				'submitLabel' => 'Report your absence',
-				'successMessage' => 'The school has your report. You see the decision in the list of absence reports.',
-			],
+			$this->submissionAction(),
+			// Between them, in the order her pages read (internship-hours).
+			$site->hourWeekAction(),
+			$this->absenceAction(),
 		];
 
 	}//end studentActions()
+
+
+	/**
+	 * She hands in a piece of work.
+	 *
+	 * @return array<string, mixed> The create action.
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md
+	 */
+	private function submissionAction(): array {
+		return [
+			'id' => 'createSubmission',
+			'type' => 'create',
+			'label' => 'Hand in an assignment',
+			'register' => self::REGISTER,
+			'schema' => 'submission',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'minTrust' => 'low',
+			'fields' => [
+				'assignmentId',
+				'attachmentRefs',
+			],
+			'fieldConfigs' => [
+				// Same reason as the absence form below: an unlabelled field
+				// is drawn as `assignmentId`.
+				'assignmentId' => ['label' => 'The work you are handing in', 'required' => true],
+				'attachmentRefs' => [
+					'type' => 'file',
+					'label' => 'Your work',
+					'multiple' => true,
+					'accept' => ['.pdf', '.doc', '.docx', '.odt', '.pptx', '.jpg', '.png'],
+					'maxSizeMb' => 20,
+				],
+			],
+			'submitLabel' => 'Hand in your work',
+		];
+
+	}//end submissionAction()
+
+	/**
+	 * She reports herself absent, with the same widgets her guardian gets.
+	 *
+	 * @return array<string, mixed> The create action.
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md
+	 */
+	private function absenceAction(): array {
+		return [
+		'id' => 'createExcuseRequest',
+		'type' => 'create',
+		'label' => 'Report an absence',
+		'register' => self::REGISTER,
+		'schema' => 'excuse-request',
+		'scopeField' => 'learnerRef',
+		'scopeClaim' => 'learnerRef',
+		'minTrust' => 'low',
+		'fields' => [
+			'dateFrom',
+			'dateTo',
+			'reason',
+			'reasonKind',
+			'attachmentRef',
+		],
+		// A field portaliq is given no label for is drawn under its own
+		// name, so the pupil's form read `dateFrom`, `reason`,
+		// `reasonKind` where her guardian's reads Dutch sentences
+		// (measured on a live instance, pupil-flows.spec.ts). She gets
+		// the same labels and the same widgets, addressed to her.
+		'fieldConfigs' => [
+			'dateFrom' => ['label' => 'First day you are absent', 'required' => true, 'widget' => 'dateChoices', 'dateChoices' => 2],
+			'dateTo' => [
+				'label' => 'Last day you are absent',
+				'required' => true,
+				'widget' => 'dateChoices',
+				'dateChoices' => 2,
+				'requiredMessage' => 'Choose the last day you are absent.',
+			],
+			'reason' => ['label' => 'Reason', 'required' => true],
+			'reasonKind' => [
+				'label' => 'Kind of absence',
+				'required' => true,
+				'valueLabels' => PortalValueLabels::ABSENCE_KIND,
+				'widget' => 'choices',
+				'choiceOptions' => ['illness', 'medical-appointment'],
+				'otherLabel' => 'Another reason',
+			],
+			'attachmentRef' => (new ExcuseAttachmentField())->config(),
+		],
+		'submitLabel' => 'Report your absence',
+		'successMessage' => 'The school has your report. You see the decision in the list of absence reports.',
+		];
+
+	}//end absenceAction()
+
 
 	/**
 	 * Manifest for the `parent` audience (a guardian of the learner).

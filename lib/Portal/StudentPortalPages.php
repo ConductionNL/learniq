@@ -35,7 +35,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Portal;
 
 /**
- * Builds the pupil's homework collection, overview and menu.
+ * Builds the pupil's homework collection, her BPV placement and hour weeks,
+ * her overview and her menu.
  *
  * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-a-pupil-lands-on-an-overview-of-today
  */
@@ -81,6 +82,157 @@ class StudentPortalPages {
 			],
 		];
 	}//end homeworkCollection()
+
+	/**
+	 * Her own BPV placement and her weeks of realised hours.
+	 *
+	 * Both are declared because one needs the other: portaliq fills a
+	 * `collection` option provider from the subject-scoped collection over that
+	 * schema, so without a placement collection the week form could only ask
+	 * her to type a uuid.
+	 *
+	 * @return array<int, array<string, mixed>> Two collections.
+	 *
+	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 */
+	public function bpvCollections(): array {
+		return [
+		[
+			// Her own placement, so her hours have something to be about.
+			// Without it the week form could only ask her to type a uuid:
+			// portaliq fills a `collection` option provider from the
+			// subject-scoped collection over that schema, and a pupil had
+			// none (internship-hours).
+			'id' => 'studentBpvPlacements',
+			'register' => self::REGISTER,
+			'schema' => 'bpv-placement',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'label' => 'My placement',
+			'listable' => true,
+			'minTrust' => 'low',
+			// The school's own people and the SBB payload stay out, the same
+			// projection her trainer reads.
+			'fields' => [
+				'learnerRef',
+				'trainingCompanyName',
+				'periodFrom',
+				'periodTo',
+				'agreedHours',
+				'hoursApprovedTotal',
+				'lifecycle',
+			],
+			'columns' => [
+				['field' => 'trainingCompanyName', 'label' => 'Training company'],
+				['field' => 'hoursApprovedTotal', 'label' => 'Hours approved'],
+				['field' => 'agreedHours', 'label' => 'Agreed hours'],
+			],
+		],
+		[
+			'id' => 'studentHourWeeks',
+			'register' => self::REGISTER,
+			'schema' => 'bpv-hour-week',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'label' => 'My hours',
+			'listable' => true,
+			'minTrust' => 'low',
+			// She reads her own number, when she sent it, the number her
+			// trainer approved, the note and who approved it: being overruled
+			// is visible rather than silent (internship-hours).
+			//
+			// `submittedBy` is deliberately NOT projected. On her own page it
+			// is always her own profile uuid, because the schema holds a
+			// LearnerProfile and the server derives it from the placement, so
+			// it is a value that never varies and tells her nothing. It stays
+			// what the school reads afterwards, and the e2e asserts it from an
+			// admin read, where it is evidence that the stamp ran.
+			'fields' => [
+				'learnerRef',
+				'bpvPlacementId',
+				'isoWeek',
+				'hoursSubmitted',
+				'submittedAt',
+				'hoursApproved',
+				'approvedByName',
+				'approvedAt',
+				'note',
+				'lifecycle',
+			],
+			'columns' => [
+				['field' => 'isoWeek', 'label' => 'Week'],
+				['field' => 'hoursSubmitted', 'label' => 'Hours you entered'],
+				// When she sent it, which is what answers "have I actually
+				// handed in week 39?" while the week waits.
+				['field' => 'submittedAt', 'label' => 'Sent on', 'render' => 'date'],
+				['field' => 'hoursApproved', 'label' => 'Hours approved'],
+				// A corrected week says so in words. Reading "approved"
+				// over a number she did not write is exactly how a
+				// correction becomes silent.
+				['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::HOUR_WEEK_STATUS],
+			],
+		],
+		];
+
+	}//end bpvCollections()
+
+	/**
+	 * She enters a week of her own placement's hours.
+	 *
+	 * Only the placement, the week and the hours: who she is, when she sent it,
+	 * which school it belongs to, the hours her trainer approves and the state
+	 * are all server-written (HourWeekSubmissionStamp, PortalHourWeekApproval).
+	 *
+	 * @return array<string, mixed> The create action.
+	 *
+	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 */
+	public function hourWeekAction(): array {
+		return [
+		'id' => 'submitHourWeek',
+		'type' => 'create',
+		'label' => 'Enter the hours of a week',
+		'register' => self::REGISTER,
+		'schema' => 'bpv-hour-week',
+		'scopeField' => 'learnerRef',
+		'scopeClaim' => 'learnerRef',
+		'minTrust' => 'low',
+		'fields' => ['bpvPlacementId', 'isoWeek', 'hoursSubmitted'],
+		// The placement must be her own. Portaliq stamps `learnerRef`
+		// from her claim, but `bpvPlacementId` comes from the form, so
+		// without this guard she could file hours against another
+		// student's placement and HourWeekTotalRollup would add them to
+		// that placement's total.
+		'crossRefs' => [
+			'bpvPlacementId' => [
+				'register' => self::REGISTER,
+				'schema' => 'bpv-placement',
+				'scopeField' => 'learnerRef',
+				'scopeClaim' => 'learnerRef',
+				'required' => true,
+			],
+		],
+		// And she picks it from her own placements rather than typing a
+		// uuid, the way her guardian picks a child.
+		'optionsProviders' => [
+			'bpvPlacementId' => [
+				'type' => 'collection',
+				'register' => self::REGISTER,
+				'schema' => 'bpv-placement',
+				'labelField' => 'trainingCompanyName',
+				'valueField' => 'id',
+			],
+		],
+		'fieldConfigs' => [
+			'bpvPlacementId' => ['label' => 'Your placement', 'required' => true],
+			'isoWeek' => ['label' => 'The week, as 2026-W39', 'required' => true],
+			'hoursSubmitted' => ['label' => 'Hours you worked', 'required' => true],
+		],
+		'submitLabel' => 'Send these hours',
+		'successMessage' => 'Your hours are with your workplace trainer. You see her decision in the list.',
+		];
+
+	}//end hourWeekAction()
 
 	/**
 	 * The pupil's pages: the overview, the menu pages, then every other
