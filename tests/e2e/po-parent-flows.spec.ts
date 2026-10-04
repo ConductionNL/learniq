@@ -165,9 +165,15 @@ test.describe('po: teacher and parent flows', () => {
 		await openPage(parent, 'learniq/parentReportCards')
 		await shot(parent, 'a4-report-cards')
 
+		// She reads her own children and nobody else's. Sami is in the po set
+		// since learniq#1647, but an instance seeded before it has only Vera,
+		// so the test pins the rule, not how often the set was loaded.
 		const children = await portalRows('learner-profile', 'parentChildren')
-		expect(children.map((row) => row.id).sort()).toEqual(
-			[CHILD.ref, SIBLING.ref].sort(),
+		const ids = children.map((row) => row.id)
+		expect(ids).toContain(CHILD.ref)
+		expect(ids).not.toContain(OTHER_CHILD)
+		expect(ids.filter((id) => id !== CHILD.ref && id !== SIBLING.ref)).toEqual(
+			[],
 		)
 
 		const attendance = await portalRows('attendance-record', 'parentAttendance')
@@ -692,6 +698,14 @@ test.describe('po: teacher and parent flows', () => {
 		)
 		expect(new Set(events.map((row) => row.schoolId))).toEqual(new Set([SCHOOL]))
 		const periods = await portalRows('report-period', 'parentSchoolCalendar')
+		// The join is on the child's school, so a ReportPeriod seeded before
+		// `schoolId` existed (portal-parent-child-record) reaches nobody. The
+		// precondition is named here, or the next reader reads an empty
+		// holidays list as a broken calendar.
+		expect(
+			periods.map((row) => row.id),
+			'no report period reached the guardian: reload the po example set, whose periods name their school',
+		).not.toEqual([])
 		expect(
 			periods.flatMap((row) =>
 				row.holidays.map((h: { name: string }) => h.name),
@@ -987,11 +1001,16 @@ async function openPage(page: Page, route: string): Promise<void> {
 /**
  * Wait until the signed-in area of the site shows its page title.
  *
+ * Every signed-in page heads itself with `#site-account-title`: a contributed
+ * page with its label (portaliq `AccountArea.vue`), and the `/mijn` home with
+ * the greeting (`MijnHome.vue`), which renders the id but no `data-testid`.
+ * The id is what both share, so the wait reads it rather than the test id.
+ *
  * @param {Page} page The site page.
  * @return {Promise<void>}
  */
 async function waitForAccountPage(page: Page): Promise<void> {
-	await page.getByTestId('site-account-title').first().waitFor({ timeout: 20_000 })
+	await page.locator('#site-account-title').first().waitFor({ timeout: 20_000 })
 	await page
 		.waitForLoadState('networkidle', { timeout: 10_000 })
 		.catch(() => undefined)
