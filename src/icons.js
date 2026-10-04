@@ -49,6 +49,7 @@ import CalendarClockOutline from 'vue-material-design-icons/CalendarClockOutline
 import CalendarMultiselectOutline from 'vue-material-design-icons/CalendarMultiselectOutline.vue'
 import CalendarRangeOutline from 'vue-material-design-icons/CalendarRangeOutline.vue'
 import CalendarRemoveOutline from 'vue-material-design-icons/CalendarRemoveOutline.vue'
+import CalendarStar from 'vue-material-design-icons/CalendarStar.vue'
 import CalendarSyncOutline from 'vue-material-design-icons/CalendarSyncOutline.vue'
 import CartOutline from 'vue-material-design-icons/CartOutline.vue'
 import Cash from 'vue-material-design-icons/Cash.vue'
@@ -84,6 +85,7 @@ import EmoticonOutline from 'vue-material-design-icons/EmoticonOutline.vue'
 import ExportVariant from 'vue-material-design-icons/ExportVariant.vue'
 import Eye from 'vue-material-design-icons/Eye.vue'
 import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
+import FileAccountOutline from 'vue-material-design-icons/FileAccountOutline.vue'
 import FileCertificateOutline from 'vue-material-design-icons/FileCertificateOutline.vue'
 import FileChartOutline from 'vue-material-design-icons/FileChartOutline.vue'
 import FileDocument from 'vue-material-design-icons/FileDocument.vue'
@@ -208,6 +210,7 @@ export default {
 	CalendarMultiselectOutline,
 	CalendarRangeOutline,
 	CalendarRemoveOutline,
+	CalendarStar,
 	CalendarSyncOutline,
 	CartOutline,
 	Cash,
@@ -243,6 +246,7 @@ export default {
 	ExportVariant,
 	Eye,
 	EyeOutline,
+	FileAccountOutline,
 	FileCertificateOutline,
 	FileChartOutline,
 	FileDocument,

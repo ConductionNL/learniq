@@ -134,6 +134,16 @@ class ConferenceSlotBookingSync implements IEventListener {
 	 *
 	 * @return void
 	 *
+	 * @listener-placement inline correctness — the booking must follow the
+	 * slot in the order the slot moved. A teacher can acknowledge and then
+	 * decline, or a parent can cancel an acknowledged time, within moments;
+	 * deferred, the two follow-ups are separate jobs that nothing orders, and
+	 * the booking can end on the earlier state while the slot shows the later
+	 * one. The portal and the teacher's slot list also read the booking back
+	 * right after the write. The work is bounded: it runs only when a
+	 * conference slot changes state in a direct-booking round, and does two
+	 * reads and at most two saves.
+	 *
 	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
 	 */
 	public function handle(Event $event): void {

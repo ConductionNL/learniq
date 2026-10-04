@@ -158,20 +158,26 @@ class LrsController extends Controller {
 	/**
 	 * Resolve the caller through the shared resolver, keeping the launch keys a statement stores.
 	 *
+	 * The credential is the launch token, or a session with a valid request
+	 * token. XapiCallerResolver reads it from the request.
+	 *
 	 * @return array{actorId: string, launch: array{lessonId: string, courseId: string}}|null The identity, or null.
 	 */
 	private function authenticate(): ?array {
-		$caller = $this->callers->resolve(request: $this->request);
-		if ($caller === null) {
+		$callerFromCredential = $this->callers->resolve(request: $this->request);
+		if ($callerFromCredential === null) {
 			return null;
 		}
 
 		$launch = [];
-		if ($caller['launch'] !== []) {
-			$launch = ['lessonId' => $caller['launch']['lessonId'] ?? '', 'courseId' => $caller['launch']['courseId'] ?? ''];
+		if ($callerFromCredential['launch'] !== []) {
+			$launch = [
+				'lessonId' => $callerFromCredential['launch']['lessonId'] ?? '',
+				'courseId' => $callerFromCredential['launch']['courseId'] ?? '',
+			];
 		}
 
-		return ['actorId' => $caller['actorId'], 'launch' => $launch];
+		return ['actorId' => $callerFromCredential['actorId'], 'launch' => $launch];
 	}//end authenticate()
 
 	/**

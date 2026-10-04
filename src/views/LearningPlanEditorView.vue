@@ -132,6 +132,11 @@ export default {
 		},
 	},
 
+	/**
+	 * Load the learning plan and its goals.
+	 *
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
+	 */
 	async mounted() {
 		try {
 			this.plan = oneObject(

@@ -1006,7 +1006,7 @@ async function signInToNextcloud(
  */
 async function dismissTour(page: Page): Promise<void> {
 	await page
-		.waitForLoadState('networkidle', { timeout: 10_000 })
+		.waitForLoadState('domcontentloaded', { timeout: 10_000 })
 		.catch(() => undefined)
 	await page.waitForTimeout(3_000)
 	const close = page.locator('.cn-walkthrough button[aria-label]').first()
@@ -1044,7 +1044,7 @@ async function openPage(page: Page, route: string): Promise<void> {
 async function waitForAccountPage(page: Page): Promise<void> {
 	await page.locator('#site-account-title').first().waitFor({ timeout: 20_000 })
 	await page
-		.waitForLoadState('networkidle', { timeout: 10_000 })
+		.waitForLoadState('domcontentloaded', { timeout: 10_000 })
 		.catch(() => undefined)
 }
 

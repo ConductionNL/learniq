@@ -200,6 +200,11 @@ export default {
 		},
 	},
 
+	/**
+	 * Load the courses, groups and learner profiles the form offers.
+	 *
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
+	 */
 	async mounted() {
 		try {
 			const [courses, cohorts, profiles] = await Promise.all([

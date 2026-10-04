@@ -176,9 +176,7 @@ TimeEdit's own field names).
   the same field set (`externalRef`, `cohortId`, `title`, `startsAt`, `endsAt`, `location`) the
   Zermelo/Untis/Xedule seeds already map
 
-<!-- @e2e exclude Declarative seed-data shape verified by
-     DataMappingProfilePresetsRegisterTest::testTimeEditMatchesExistingRosteringSeedShape; no DOM surface —
-     mirrors the existing Zermelo/Untis/Xedule seed-shape assertions. -->
+<!-- @e2e exclude The mapping-profile seeds left the learniq register when the exchanges moved to integriq (learniq#1157), and the learniq register test that pinned this shape was retired with them. No learniq test covers it now. No DOM surface. -->
 
 ### Requirement: migration-import job type and payload mappings
 
@@ -194,8 +192,7 @@ ESIS, Magister, SOMtoday), each `sourceSchema: learner-profile`, mapping at mini
 - **THEN** each is `target: migration-import`, `direction: import`, `sourceSchema: learner-profile`, and
   maps `eckId`
 
-<!-- @e2e exclude Declarative seed-data shape verified by
-     DataMappingProfilePresetsRegisterTest::testEachMigrationSourceCarriesEckId; no DOM surface. -->
+<!-- @e2e exclude The mapping-profile seeds left the learniq register when the exchanges moved to integriq (learniq#1157), and the learniq register test that pinned this shape was retired with them. No learniq test covers it now. No DOM surface. -->
 
 #### Scenario: DataExchangeJob.target documents the migration-import connection
 
@@ -203,9 +200,7 @@ ESIS, Magister, SOMtoday), each `sourceSchema: learner-profile`, mapping at mini
 - **WHEN** this change lands
 - **THEN** it names `migration-import` as a valid connection
 
-<!-- @e2e exclude Declarative documentation-string shape verified by
-     DataMappingProfilePresetsRegisterTest::testDataExchangeJobTargetDescribesMigrationImport; no DOM
-     surface. -->
+<!-- @e2e exclude The DataExchangeJob schema left the learniq register when the exchanges moved to integriq (learniq#1157), and the learniq register test that pinned this description was retired with it. No learniq test covers it now. No DOM surface. -->
 
 ### Requirement: UWLR and Edu-V job types and payload mappings
 
@@ -224,8 +219,7 @@ certification per data service, per product, not once per connection.
 - **WHEN** the `uwlr` pupil and teacher export profiles are loaded
 - **THEN** both map `eckId` as a `fieldMappings` entry
 
-<!-- @e2e exclude Declarative seed-data shape verified by
-     UwlrEduvBasispoortRegisterTest::testUwlrPupilAndTeacherExportsCarryEckId; no DOM surface. -->
+<!-- @e2e exclude The mapping-profile seeds left the learniq register when the exchanges moved to integriq (learniq#1157), and the learniq register test that pinned this shape was retired with them. No learniq test covers it now. No DOM surface. -->
 
 #### Scenario: The UWLR results-import seed reuses LvsResult
 
@@ -233,8 +227,7 @@ certification per data service, per product, not once per connection.
 - **WHEN** the `uwlr` (direction: import) profile is loaded
 - **THEN** its `sourceSchema` is `lvs-result`
 
-<!-- @e2e exclude Declarative seed-data shape verified by
-     UwlrEduvBasispoortRegisterTest::testUwlrResultsImportReusesLvsResult; no DOM surface. -->
+<!-- @e2e exclude The mapping-profile seeds left the learniq register when the exchanges moved to integriq (learniq#1157), and the learniq register test that pinned this shape was retired with them. No learniq test covers it now. No DOM surface. -->
 
 #### Scenario: Edu-V ships one export seed per qualified data service
 
@@ -243,8 +236,7 @@ certification per data service, per product, not once per connection.
 - **THEN** each names a distinct `targetSchema` (`EduV:Onderwijsdeelnemers`, `EduV:Onderwijsgroepen`,
   `EduV:Onderwijsmedewerkers`)
 
-<!-- @e2e exclude Declarative seed-data shape verified by
-     UwlrEduvBasispoortRegisterTest::testEduVSeedsCoverThreeDataServices; no DOM surface. -->
+<!-- @e2e exclude The mapping-profile seeds left the learniq register when the exchanges moved to integriq (learniq#1157), and the learniq register test that pinned this shape was retired with them. No learniq test covers it now. No DOM surface. -->
 
 ### Requirement: Basispoort and Entree content SSO hand-off
 
@@ -261,8 +253,7 @@ hand a pupil off to a THIRD-PARTY method/publisher site, not learniq's own authe
 - **WHEN** the `basispoort` and `entree-content` profiles are loaded
 - **THEN** both declare `direction: sync`
 
-<!-- @e2e exclude Declarative seed-data shape verified by
-     UwlrEduvBasispoortRegisterTest::testBasispoortAndEntreeContentAreSync; no DOM surface. -->
+<!-- @e2e exclude The mapping-profile seeds left the learniq register when the exchanges moved to integriq (learniq#1157), and the learniq register test that pinned this shape was retired with them. No learniq test covers it now. No DOM surface. -->
 
 ### Requirement: Persist LvsResult linked to AssessmentResult
 
@@ -319,8 +310,7 @@ confirms it once, mirroring `AssessmentResult`'s own `submit → graded` human-c
 - **WHEN** they attempt the `verify` transition on an `LvsResult`
 - **THEN** `LvsResultVerifyGuard` denies the transition
 
-<!-- @e2e exclude Role-gate logic verified by PHPUnit LvsResultVerifyGuardTest::testDeniesNonCoordinator,
-     mirroring RejectionResubmitGuardTest's coverage shape; no scholiq DOM surface for the guard itself. -->
+<!-- @e2e exclude Role-gate logic verified by PHPUnit LvsResultVerifyGuardTest::testUnauthorisedActorIsDenied; no learniq DOM surface for the guard itself. -->
 
 ### Requirement: lvs-results job type and payload mapping
 
@@ -337,8 +327,7 @@ The system MUST ship a `DataMappingProfile` seed for `target: lvs-results`, `dir
 - **THEN** its `fieldMappings` cover `provider`, `instrument`, `moment`, `rawScore`, `vaardigheidsscore`,
   `niveau`, `referentieniveau`, and `dle`
 
-<!-- @e2e exclude Declarative seed-data shape verified by LvsResultRegisterTest::testLvsResultsMappingProfileSeedShape;
-     no DOM surface — mirrors the existing Zermelo/Untis/Xedule seed-shape assertions. -->
+<!-- @e2e exclude The mapping-profile seeds left the learniq register when the exchanges moved to integriq (learniq#1157), and the learniq register test that pinned this shape was retired with them. No learniq test covers it now. No DOM surface. -->
 
 ### Requirement: Persist OsoImportDossier for inbound overstapdossiers
 
@@ -379,8 +368,7 @@ or complete for this school's record, and a human confirms it once.
 - **WHEN** it is created
 - **THEN** its lifecycle state is `received`, not `accepted`
 
-<!-- @e2e exclude Declarative lifecycle initial-state shape verified by
-     OsoImportDossierRegisterTest::testInitialLifecycleStateIsReceived; no DOM surface. -->
+<!-- @e2e exclude Declarative lifecycle initial-state shape verified by OsoImportDossierRegisterTest::testLifecycleTransitionShape (asserts the initial state is received); no DOM surface. -->
 
 #### Scenario: A non admin/coordinator actor cannot accept or reject an OsoImportDossier
 
@@ -415,8 +403,7 @@ already use (`scholiqField` names the learniq side, `targetField` the external s
 - **WHEN** the `oso` (direction: import) profile is loaded
 - **THEN** its `fieldMappings` cover `learnerEckId` and `sourceSchoolBrin`
 
-<!-- @e2e exclude Declarative seed-data shape verified by
-     OsoImportDossierRegisterTest::testOsoImportMappingProfileSeedShape; no DOM surface. -->
+<!-- @e2e exclude The mapping-profile seeds left the learniq register when the exchanges moved to integriq (learniq#1157), and the learniq register test that pinned this shape was retired with them. No learniq test covers it now. No DOM surface. -->
 
 ### Requirement: The connection field names every connection learniq hands to OpenConnector
 
@@ -433,7 +420,7 @@ The `target` property of `DataExchangeJob` and of `DataMappingProfile` MUST name
 A test that reads a schema's seed rows MUST find a row by its name or id and MUST assert a minimum count, never an exact count or a position, because other changes append seed rows to the same list.
 
 #### Scenario: A sibling change adds a mapping preset
-@e2e exclude Test-suite invariant; pinned by tests/Unit/Settings/DataMappingProfilePresetsRegisterTest.php and UwlrEduvBasispoortRegisterTest.php.
+@e2e exclude Test-suite invariant. The two register tests that pinned it were retired when the mapping-profile seeds moved to integriq (learniq#1157); no learniq test pins it now.
 - **GIVEN** 23 `DataMappingProfile` seed rows, more than the 12 and 16 two changes counted
 - **WHEN** the suite runs
 - **THEN** both tests pass, because they assert a floor
