@@ -16,8 +16,9 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 
-const readJson = (rel) =>
-	JSON.parse(readFileSync(new URL(rel, import.meta.url), 'utf8'))
+function readJson (rel) {
+  return JSON.parse(readFileSync(new URL(rel, import.meta.url), 'utf8'))
+}
 const REGISTER = readJson('../../lib/Settings/learniq_register.json')
 const NL = readJson('../../l10n/nl.json').translations
 const PAGES = [
@@ -28,8 +29,9 @@ const SCHEMAS = Object.fromEntries(
 	Object.values(REGISTER.components.schemas).map((s) => [s.slug, s]),
 )
 const page = (id) => PAGES.find((p) => p.id === id)
-const widget = (pageId, widgetId) =>
-	page(pageId).config.widgets.find((w) => w.id === widgetId)
+function widget (pageId, widgetId) {
+  return page(pageId).config.widgets.find((w) => w.id === widgetId)
+}
 
 /**
  * Whether a property holds a code a teacher cannot read: the tenant, a uuid
