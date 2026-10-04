@@ -578,7 +578,10 @@
           "ee00005d-0000-4000-8000-000000000001"
         ],
         "ectsCredits": 0.0,
-        "competencyIds": [],
+        "competencyIds": [
+          "ee000018-0000-4000-8000-000000000001",
+          "ee000018-0000-4000-8000-000000000002"
+        ],
         "prerequisiteCourseIds": [],
         "license": "all-rights-reserved",
         "subject": "Nederlandse taal",
@@ -587,41 +590,7 @@
           "vwo"
         ],
         "selfEnrolment": "on-request",
-        "author": "Go1"
-      },
-      {
-        "@self": {
-          "register": "learniq",
-          "schema": "course",
-          "slug": "course-voorbeeld-name-1-1",
-          "id": "ee00001f-0000-4000-8000-000000000002"
-        },
-        "code": "Voorbeeld Code 1",
-        "name": "Voorbeeld Name 1",
-        "level": "po",
-        "language": "ab",
-        "tenant_id": "00000000-0000-4000-8000-000000000000",
-        "name_nl": "Voorbeeld Name Nl 1",
-        "description": "Voorbeeld Description 1",
-        "tags": [
-          "Voorbeeld Tags 1"
-        ],
-        "mandatoryTraining": false,
-        "regulationSlug": "Voorbeeld Regulationslug 1",
-        "renewalCourseSlug": "Voorbeeld Renewalcourseslug 1",
-        "certificateTemplate": "Voorbeeld Certificatetemplate 1",
-        "lifecycle": "draft",
-        "parentCourseId": "ee00001f-0000-4000-8000-000000000001",
-        "order": 1,
-        "curriculumPlanId": "ee000025-0000-4000-8000-000000000001",
-        "programmeIds": [
-          "ee00005d-0000-4000-8000-000000000001"
-        ],
-        "ectsCredits": 0.0,
-        "competencyIds": [
-          "ee000018-0000-4000-8000-000000000001",
-          "ee000018-0000-4000-8000-000000000002"
-        ],
+        "author": "Go1",
         "competencyAlignments": [
           {
             "competencyId": "ee000018-0000-4000-8000-000000000001",
@@ -631,16 +600,14 @@
             "competencyId": "ee000018-0000-4000-8000-000000000002",
             "depth": null
           }
-        ],
-        "prerequisiteCourseIds": [],
-        "selfEnrolment": "on-request"
+        ]
       },
       {
         "@self": {
           "register": "learniq",
           "schema": "course",
           "slug": "course-voorbeeld-name-2-2",
-          "id": "ee00001f-0000-4000-8000-000000000003"
+          "id": "ee00001f-0000-4000-8000-000000000002"
         },
         "code": "Voorbeeld Code 2",
         "name": "Voorbeeld Name 2",
@@ -674,7 +641,7 @@
           "register": "learniq",
           "schema": "course",
           "slug": "course-voorbeeld-name-3-3",
-          "id": "ee00001f-0000-4000-8000-000000000004"
+          "id": "ee00001f-0000-4000-8000-000000000003"
         },
         "code": "Voorbeeld Code 3",
         "name": "Voorbeeld Name 3",
@@ -822,7 +789,8 @@
           "Voorbeeld Learnerids 1"
         ],
         "ncGroupId": "Voorbeeld Ncgroupid 1",
-        "lifecycle": "planned"
+        "lifecycle": "planned",
+        "reportCardTemplateId": "ee00007b-0000-4000-8000-000000000001"
       },
       {
         "@self": {
@@ -867,29 +835,6 @@
         ],
         "ncGroupId": "Voorbeeld Ncgroupid 3",
         "lifecycle": "completed"
-      },
-      {
-        "@self": {
-          "register": "learniq",
-          "schema": "cohort",
-          "slug": "cohort-voorbeeld-name-1-1",
-          "id": "ee000017-0000-4000-8000-000000000004"
-        },
-        "name": "Voorbeeld Name 1",
-        "period": "Voorbeeld Period 1",
-        "academicYear": "Voorbeeld Academicyear 1",
-        "tenant_id": "00000000-0000-4000-8000-000000000000",
-        "programmeId": "ee00005d-0000-4000-8000-000000000001",
-        "courseId": "ee00001f-0000-4000-8000-000000000001",
-        "teacherIds": [
-          "Voorbeeld Teacherids 1"
-        ],
-        "learnerIds": [
-          "Voorbeeld Learnerids 1"
-        ],
-        "ncGroupId": "Voorbeeld Ncgroupid 1",
-        "lifecycle": "planned",
-        "reportCardTemplateId": "ee00007b-0000-4000-8000-000000000001"
       },
       {
         "@self": {
@@ -1483,7 +1428,10 @@
         "learningObjectives": [
           "Voorbeeld Learningobjectives 1"
         ],
-        "competencyIds": [],
+        "competencyIds": [
+          "ee000018-0000-4000-8000-000000000001",
+          "ee000018-0000-4000-8000-000000000002"
+        ],
         "releaseConditions": [],
         "availableAfterDays": 0,
         "mandatoryTraining": false,
@@ -1492,29 +1440,6 @@
         "subject": "Nederlandse taal",
         "educationalLevels": [
           "havo"
-        ]
-      },
-      {
-        "@self": {
-          "register": "learniq",
-          "schema": "lesson",
-          "slug": "lesson-voorbeeld-name-1-1",
-          "id": "ee00004c-0000-4000-8000-000000000002"
-        },
-        "courseId": "ee00001f-0000-4000-8000-000000000001",
-        "name": "Voorbeeld Name 1",
-        "order": 1,
-        "contentType": "text",
-        "tenant_id": "00000000-0000-4000-8000-000000000000",
-        "contentRef": "Voorbeeld Contentref 1",
-        "blocks": [],
-        "durationMinutes": 1,
-        "learningObjectives": [
-          "Voorbeeld Learningobjectives 1"
-        ],
-        "competencyIds": [
-          "ee000018-0000-4000-8000-000000000001",
-          "ee000018-0000-4000-8000-000000000002"
         ],
         "competencyAlignments": [
           {
@@ -1525,19 +1450,14 @@
             "competencyId": "ee000018-0000-4000-8000-000000000002",
             "depth": null
           }
-        ],
-        "releaseConditions": [],
-        "availableAfterDays": 0,
-        "mandatoryTraining": false,
-        "regulationSlug": "Voorbeeld Regulationslug 1",
-        "lifecycle": "draft"
+        ]
       },
       {
         "@self": {
           "register": "learniq",
           "schema": "lesson",
           "slug": "lesson-voorbeeld-name-2-2",
-          "id": "ee00004c-0000-4000-8000-000000000003"
+          "id": "ee00004c-0000-4000-8000-000000000002"
         },
         "courseId": "ee00001f-0000-4000-8000-000000000002",
         "name": "Voorbeeld Name 2",
@@ -1562,7 +1482,7 @@
           "register": "learniq",
           "schema": "lesson",
           "slug": "lesson-voorbeeld-name-3-3",
-          "id": "ee00004c-0000-4000-8000-000000000004"
+          "id": "ee00004c-0000-4000-8000-000000000003"
         },
         "courseId": "ee00001f-0000-4000-8000-000000000003",
         "name": "Voorbeeld Name 3",
@@ -2691,7 +2611,8 @@
         "grader": "Voorbeeld Grader 1",
         "gradedAt": "2026-03-01T09:00:00+00:00",
         "comment": "Voorbeeld Comment 1",
-        "visibleFrom": "2026-03-01T09:00:00+00:00"
+        "visibleFrom": "2026-03-01T09:00:00+00:00",
+        "lifecycle": "published"
       },
       {
         "@self": {
@@ -2723,7 +2644,8 @@
         "grader": "Voorbeeld Grader 2",
         "gradedAt": "2026-03-02T09:00:00+00:00",
         "comment": "Voorbeeld Comment 2",
-        "visibleFrom": "2026-03-02T09:00:00+00:00"
+        "visibleFrom": "2026-03-02T09:00:00+00:00",
+        "lifecycle": "published"
       },
       {
         "@self": {
@@ -2755,7 +2677,8 @@
         "grader": "Voorbeeld Grader 3",
         "gradedAt": "2026-03-03T09:00:00+00:00",
         "comment": "Voorbeeld Comment 3",
-        "visibleFrom": "2026-03-03T09:00:00+00:00"
+        "visibleFrom": "2026-03-03T09:00:00+00:00",
+        "lifecycle": "published"
       },
       {
         "@self": {
@@ -3213,8 +3136,16 @@
           "name": "Voorbeeld leerling 1",
           "mbox": "mailto:voorbeeld1@example.invalid"
         },
-        "verb": {},
-        "object": {},
+        "verb": {
+          "id": "http://adlnet.gov/expapi/verbs/completed",
+          "display": {
+            "nl-NL": "voltooid"
+          }
+        },
+        "object": {
+          "objectType": "Activity",
+          "id": "https://example.invalid/activity/1"
+        },
         "stored": "2026-03-01T09:00:00+00:00",
         "tenant_id": "00000000-0000-4000-8000-000000000000",
         "result": {},
@@ -3238,8 +3169,16 @@
           "name": "Voorbeeld leerling 2",
           "mbox": "mailto:voorbeeld2@example.invalid"
         },
-        "verb": {},
-        "object": {},
+        "verb": {
+          "id": "http://adlnet.gov/expapi/verbs/completed",
+          "display": {
+            "nl-NL": "voltooid"
+          }
+        },
+        "object": {
+          "objectType": "Activity",
+          "id": "https://example.invalid/activity/2"
+        },
         "stored": "2026-03-02T09:00:00+00:00",
         "tenant_id": "00000000-0000-4000-8000-000000000001",
         "result": {},
@@ -3263,8 +3202,16 @@
           "name": "Voorbeeld leerling 3",
           "mbox": "mailto:voorbeeld3@example.invalid"
         },
-        "verb": {},
-        "object": {},
+        "verb": {
+          "id": "http://adlnet.gov/expapi/verbs/completed",
+          "display": {
+            "nl-NL": "voltooid"
+          }
+        },
+        "object": {
+          "objectType": "Activity",
+          "id": "https://example.invalid/activity/3"
+        },
         "stored": "2026-03-03T09:00:00+00:00",
         "tenant_id": "00000000-0000-4000-8000-000000000002",
         "result": {},
@@ -3624,7 +3571,20 @@
         "nextReviewAt": "2026-03-01",
         "version": 1,
         "supersedesId": "ee000046-0000-4000-8000-000000000001",
-        "lifecycle": "draft"
+        "lifecycle": "draft",
+        "sixWeekDeadline": "2026-02-15",
+        "uitstroombestemming": "Praktijkonderwijs",
+        "outflowBandwidth": {
+          "lowerVaardigheidsscore": 45.0,
+          "upperVaardigheidsscore": 60.0,
+          "scale": "Cito rekenen-wiskunde"
+        },
+        "trackedGrowth": [
+          {
+            "recordedAt": "2026-01-10",
+            "vaardigheidsscore": 47.5
+          }
+        ]
       },
       {
         "@self": {
@@ -3713,63 +3673,6 @@
         "version": 1,
         "supersedesId": "ee000046-0000-4000-8000-000000000003",
         "lifecycle": "under-evaluation"
-      },
-      {
-        "@self": {
-          "register": "learniq",
-          "schema": "learning-plan",
-          "slug": "learningplan-learningplan-1-1",
-          "id": "ee000046-0000-4000-8000-000000000004"
-        },
-        "learnerId": "Voorbeeld Learnerid 1",
-        "kind": "opp",
-        "coordinatorId": "Voorbeeld Coordinatorid 1",
-        "tenant_id": "Voorbeeld Tenant Id 1",
-        "templateId": "ee000048-0000-4000-8000-000000000001",
-        "cohortId": "ee000017-0000-4000-8000-000000000001",
-        "courseId": "ee00001f-0000-4000-8000-000000000001",
-        "goals": [
-          {
-            "goalId": "Voorbeeld Goalid 1",
-            "description": "Voorbeeld Description 1",
-            "domain": "Voorbeeld Domain 1",
-            "baseline": "Voorbeeld Baseline 1",
-            "target": "Voorbeeld Target 1",
-            "targetDate": "2026-03-01",
-            "status": "open",
-            "evidenceRefs": [
-              "00000000-0000-4000-8000-000000000000"
-            ]
-          }
-        ],
-        "supportMeasures": [
-          {
-            "measureId": "Voorbeeld Measureid 1",
-            "description": "Voorbeeld Description 1",
-            "responsibleId": "Voorbeeld Responsibleid 1",
-            "startDate": "2026-03-01",
-            "endDate": "2026-03-01"
-          }
-        ],
-        "period": "Voorbeeld Period 1",
-        "reviewCadenceMonths": 3,
-        "nextReviewAt": "2026-03-01",
-        "version": 1,
-        "supersedesId": "ee000046-0000-4000-8000-000000000001",
-        "lifecycle": "draft",
-        "sixWeekDeadline": "2026-02-15",
-        "uitstroombestemming": "Praktijkonderwijs",
-        "outflowBandwidth": {
-          "lowerVaardigheidsscore": 45.0,
-          "upperVaardigheidsscore": 60.0,
-          "scale": "Cito rekenen-wiskunde"
-        },
-        "trackedGrowth": [
-          {
-            "recordedAt": "2026-01-10",
-            "vaardigheidsscore": 47.5
-          }
-        ]
       },
       {
         "@self": {
@@ -7285,7 +7188,8 @@
         "docudeskRequestedAt": "2026-03-01T09:00:00+00:00",
         "docudeskDocumentRef": "Voorbeeld Docudeskdocumentref 1",
         "docudeskRenderError": "Voorbeeld Docudeskrendererror 1",
-        "lifecycle": "draft"
+        "lifecycle": "draft",
+        "templateId": "ee00007b-0000-4000-8000-000000000001"
       },
       {
         "@self": {
@@ -7346,37 +7250,6 @@
         "docudeskDocumentRef": "Voorbeeld Docudeskdocumentref 3",
         "docudeskRenderError": "Voorbeeld Docudeskrendererror 3",
         "lifecycle": "finalised"
-      },
-      {
-        "@self": {
-          "register": "learniq",
-          "schema": "report-card",
-          "slug": "reportcard-reportcard-1-1",
-          "id": "ee00005f-0000-4000-8000-000000000004"
-        },
-        "learnerId": "Voorbeeld Learnerid 1",
-        "reportPeriodId": "ee000061-0000-4000-8000-000000000001",
-        "tenant_id": "00000000-0000-4000-8000-000000000000",
-        "learnerRef": "ee000045-0000-4000-8000-000000000001",
-        "cohortId": "ee000017-0000-4000-8000-000000000001",
-        "subjectGrades": [],
-        "attendanceSummary": {
-          "presentCount": 1,
-          "absentUnexcusedCount": 1,
-          "absentExcusedCount": 1,
-          "lateCount": 1,
-          "leftEarlyCount": 1,
-          "attendancePercent": 1.0
-        },
-        "mentorComment": "Voorbeeld Mentorcomment 1",
-        "competencyAttainment": {},
-        "composedAt": "2026-03-01T09:00:00+00:00",
-        "docudeskRenderStatus": "requested",
-        "docudeskRequestedAt": "2026-03-01T09:00:00+00:00",
-        "docudeskDocumentRef": "Voorbeeld Docudeskdocumentref 1",
-        "docudeskRenderError": "Voorbeeld Docudeskrendererror 1",
-        "lifecycle": "draft",
-        "templateId": "ee00007b-0000-4000-8000-000000000001"
       },
       {
         "@self": {
@@ -9960,42 +9833,6 @@
       {
         "@self": {
           "register": "learniq",
-          "schema": "invigilator-assignment",
-          "slug": "invigilator-assignment-invigilatorassignment-1-1",
-          "id": "ee000098-0000-4000-8000-000000000001"
-        },
-        "examSittingId": "ee000097-0000-4000-8000-000000000001",
-        "invigilatorId": "Voorbeeld Invigilatorid 1",
-        "tenant_id": "00000000-0000-4000-8000-000000000000",
-        "lifecycle": "pending"
-      },
-      {
-        "@self": {
-          "register": "learniq",
-          "schema": "invigilator-assignment",
-          "slug": "invigilator-assignment-invigilatorassignment-2-2",
-          "id": "ee000098-0000-4000-8000-000000000002"
-        },
-        "examSittingId": "ee000097-0000-4000-8000-000000000002",
-        "invigilatorId": "Voorbeeld Invigilatorid 2",
-        "tenant_id": "00000000-0000-4000-8000-000000000001",
-        "lifecycle": "confirmed"
-      },
-      {
-        "@self": {
-          "register": "learniq",
-          "schema": "invigilator-assignment",
-          "slug": "invigilator-assignment-invigilatorassignment-3-3",
-          "id": "ee000098-0000-4000-8000-000000000003"
-        },
-        "examSittingId": "ee000097-0000-4000-8000-000000000003",
-        "invigilatorId": "Voorbeeld Invigilatorid 3",
-        "tenant_id": "00000000-0000-4000-8000-000000000002",
-        "lifecycle": "declined"
-      },
-      {
-        "@self": {
-          "register": "learniq",
           "schema": "invigilator-availability",
           "slug": "invigilator-availability-invigilatoravailability-1-1",
           "id": "ee000099-0000-4000-8000-000000000001"
@@ -10031,6 +9868,42 @@
         "availableFrom": "2026-03-03T09:00:00+00:00",
         "availableUntil": "2026-03-03T17:00:00+00:00",
         "tenant_id": "00000000-0000-4000-8000-000000000002"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "invigilator-assignment",
+          "slug": "invigilator-assignment-invigilatorassignment-1-1",
+          "id": "ee000098-0000-4000-8000-000000000001"
+        },
+        "examSittingId": "ee000097-0000-4000-8000-000000000001",
+        "invigilatorId": "Voorbeeld Invigilatorid 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "lifecycle": "pending"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "invigilator-assignment",
+          "slug": "invigilator-assignment-invigilatorassignment-2-2",
+          "id": "ee000098-0000-4000-8000-000000000002"
+        },
+        "examSittingId": "ee000097-0000-4000-8000-000000000002",
+        "invigilatorId": "Voorbeeld Invigilatorid 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "lifecycle": "confirmed"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "invigilator-assignment",
+          "slug": "invigilator-assignment-invigilatorassignment-3-3",
+          "id": "ee000098-0000-4000-8000-000000000003"
+        },
+        "examSittingId": "ee000097-0000-4000-8000-000000000003",
+        "invigilatorId": "Voorbeeld Invigilatorid 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "lifecycle": "declined"
       },
       {
         "@self": {

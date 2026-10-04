@@ -87,8 +87,15 @@ class DemoDescriptorContractTest extends TestCase {
 		self::assertNotEmpty($objects);
 
 		$unresolved = [];
+		$slugsSeen = [];
 		foreach ($objects as $object) {
 			$ref = ($object['@self'] ?? []);
+			// Two objects under one slug collapse into one at import, so the
+			// count the wizard promises would not be the count that lands.
+			$key = (string)($ref['schema'] ?? '') . '/' . (string)($ref['slug'] ?? '');
+			self::assertArrayNotHasKey($key, $slugsSeen, 'Demo slug used twice: ' . $key);
+			$slugsSeen[$key] = true;
+
 			if (($ref['register'] ?? null) !== 'learniq' || isset($slugs[(string)($ref['schema'] ?? '')]) === false) {
 				$unresolved[(string)($ref['schema'] ?? '(none)')] = true;
 			}
