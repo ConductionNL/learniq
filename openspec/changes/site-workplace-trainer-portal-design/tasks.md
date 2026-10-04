@@ -2,12 +2,14 @@
 
 Built in waves. A key is declared only once portaliq development keeps it; portaliq drops an unknown key without a word.
 
-**Trust:** her reads are `minTrust: low` and her writes `substantial`. Only an OIDC broker mints `substantial` (portaliq `SessionController.php:666`), so a trainer who signs in by invitation or with a Nextcloud account can read her placements and assessments but cannot submit one. Whether every leerbedrijf gets eHerkenning is a decision for Ruben.
+**Trust:** her reads are `minTrust: low`. Her assessment is `low` too since `an-invited-trainer-may-assess` (Ruben, 4 October 2026): an invited trainer may assess, the row records who assessed and at what assurance, and a school may demand eHerkenning through `bpv_assessment_min_assurance`. Her POK signature still asks for `substantial`, which is a separate decision.
 
 - [ ] **T1** (waits for portaliq `via.when`): `poLearners` over `learner-profile`, forward join on her placements with `via.when` (every state but `terminated`), names only. Without the filter a terminated placement would still reveal a name, which this change refuses; until then the trainer reads her placements without the pupils' names.
 - [x] **T2**: `poWerkprocesAssessments`, direct scope on `assessorId`, with the judgement in words
   - PHPUnit `PortalContributionProviderTest`, `GuardianSitePagesTest`, `PortalLabelTranslatorTest`
-- [ ] **T3** (waits for portaliq `steps`, `draft` and `confirmation` on an action, none of which is on development): the assessment form in steps, with a review step and a saved draft. `widget: choices` on the judgement can land with it.
+- [ ] **T3** (waits for portaliq `steps`, `draft` and `confirmation` on an action): the assessment form in steps, with a review step and a saved draft. `widget: choices` on the judgement can land with it. The werkproces is still picked by code, not by label: that waits on the same wave.
+- [x] **T3a**: the assessment posts to learniq's own endpoint, which records who assessed and at what assurance (`an-invited-trainer-may-assess`)
+  - PHPUnit `PortalWerkprocesControllerTest`, `PortalWerkprocesAssessmentTest`
 - [ ] **T5**: the trainer's open steps as portal tasks through OpenRegister's portal-task seam, raised and completed server-side; check first that a praktijkopleider subject is addressable
   - PHPUnit for the step derivation
 - [x] **T6a**: `TrainerSitePages`: the overview (`home: true`, `group`), her placements, her three latest assessments (`limit`, `sort`), two `cta` tiles and the inbox; a page per section

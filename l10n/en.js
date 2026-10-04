@@ -3314,7 +3314,15 @@ OC.L10N.register(
         "Sign the placement agreement": "Sign the placement agreement",
         "Shared with me": "Shared with me",
         "Candidate": "Candidate",
-        "Access until": "Access until"
+        "Access until": "Access until",
+        "Assessor": "Assessor",
+        "The name of the person who assessed, as the school reads it afterwards. The server copies it from the Praktijkopleider record the portal subject resolves to; a value sent for it is replaced.": "The name of the person who assessed, as the school reads it afterwards. The server copies it from the Praktijkopleider record the portal subject resolves to; a value sent for it is replaced.",
+        "Training company": "Training company",
+        "The leerbedrijf the assessor works for. The server copies it from the same Praktijkopleider record; a value sent for it is replaced.": "The leerbedrijf the assessor works for. The server copies it from the same Praktijkopleider record; a value sent for it is replaced.",
+        "KvK number": "KvK number",
+        "The KvK number of that leerbedrijf, copied by the server, so the company behind an assessment can be identified years later.": "The KvK number of that leerbedrijf, copied by the server, so the company behind an assessment can be identified years later.",
+        "Assurance level": "Assurance level",
+        "How sure the school is who assessed: the eIDAS level the assessor's portal session reached. `basic` is an invitation or a Nextcloud account, `substantial` an eHerkenning or DigiD sign-in. The server writes it from the session; a value sent for it is replaced. Same vocabulary as PokSignature.assuranceLevel.": "How sure the school is who assessed: the eIDAS level the assessor's portal session reached. `basic` is an invitation or a Nextcloud account, `substantial` an eHerkenning or DigiD sign-in. The server writes it from the session; a value sent for it is replaced. Same vocabulary as PokSignature.assuranceLevel."
     },
     "nplurals=2; plural=(n != 1);"
 )
