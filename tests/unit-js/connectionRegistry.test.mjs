@@ -20,6 +20,7 @@ import {
 	createConnectionHandlers,
 	INTEGRIQ_CONNECTIONS_PATH,
 } from '../../src/utils/connectionRegistry.js'
+import { createFormatters } from '../../src/utils/timeBlocks.js'
 
 // The built-ins translate through @nextcloud/l10n, which reads the browser
 // session on import. Plain node has no window, so lend it the global scope.
@@ -37,8 +38,12 @@ const appShell = () => fs.readFileSync(path.join(ROOT, 'src/App.vue'), 'utf8')
 describe('connection formatters', () => {
 	test('labels a switched-off connection through the nextcloud-vue built-in', () => {
 		// CnAppRoot lets an app formatter win over a built-in, so a local copy
-		// passed to the shell would shadow the library's labels.
-		assert.doesNotMatch(appShell(), /:formatters=/, 'App.vue passes its own formatters')
+		// passed to the shell would shadow the library's labels. The shell
+		// passes learniq's own formatters (timeBlocks), none of them a built-in.
+		assert.match(appShell(), /:formatters="formatters"/)
+		for (const id of Object.keys(createFormatters(() => 'nl-NL'))) {
+			assert.equal(id in BUILT_IN_FORMATTERS, false, `App.vue shadows the built-in ${id}`)
+		}
 		assert.equal(BUILT_IN_FORMATTERS.connectionStatus('disabled'), 'Switched off')
 	})
 

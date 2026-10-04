@@ -3,9 +3,9 @@
 /**
  * Learniq BackfillReadableCopies
  *
- * Writes on every existing grade entry, enrolment and portfolio share what
- * ReadableCopyStamp stores today: `courseName`, `cohortName`, `portfolioTitle`
- * and `learnerName`. A row written before the stamp existed would otherwise
+ * Writes on every existing grade entry, enrolment, portfolio share and
+ * teacher availability what ReadableCopyStamp stores today: `courseName`,
+ * `cohortName`, `portfolioTitle`, `learnerName` and `teacherName`. A row written before the stamp existed would otherwise
  * show a guardian, pupil or assessor no name. Idempotent: a row whose stored
  * copies already equal the derived ones is not saved, so a second run saves
  * nothing. A failed lookup skips the row and never overwrites a stored value.
@@ -48,7 +48,7 @@ class BackfillReadableCopies implements IRepairStep {
 
 	private const REGISTER = 'learniq';
 
-	private const SCHEMAS = ['grade-entry', 'enrolment', 'portfolio-share'];
+	private const SCHEMAS = ['grade-entry', 'enrolment', 'portfolio-share', 'teacher-availability'];
 
 	private const PAGE_SIZE = 200;
 
@@ -81,7 +81,8 @@ class BackfillReadableCopies implements IRepairStep {
 	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
 	 */
 	public function getName(): string {
-		return 'Write the readable course, group, portfolio and learner names on existing grades, enrolments and portfolio shares';
+		return 'Write the readable course, group, portfolio, learner and teacher names on existing grades, enrolments, '
+			. 'portfolio shares and teacher availability';
 	}//end getName()
 
 	/**

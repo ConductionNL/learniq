@@ -32,6 +32,7 @@ use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\IUserManager;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\EventDispatcher\Event;
 use Opis\JsonSchema\Validator;
@@ -52,6 +53,20 @@ class ReadableCopyStampTest extends TestCase {
 	 * @var RegisterFaithfulStore
 	 */
 	private RegisterFaithfulStore $store;
+
+	/**
+	 * A user manager that knows one teacher's display name.
+	 *
+	 * @return IUserManager
+	 */
+	private function users(): IUserManager {
+		$users = $this->createMock(IUserManager::class);
+		$users->method('getDisplayName')->willReturnCallback(
+			static fn (string $uid): ?string => ['po-leerkracht-09' => 'Meester Daan'][$uid] ?? null
+		);
+
+		return $users;
+	}//end users()
 
 	/**
 	 * Build the listener over a real ReadableCopies and the fake store.
@@ -79,7 +94,7 @@ class ReadableCopyStampTest extends TestCase {
 
 		return new ReadableCopyStamp(
 			schemaResolver: $schemaResolver,
-			copies: new ReadableCopies(objectService: $objectService),
+			copies: new ReadableCopies(objectService: $objectService, users: $this->users()),
 			logger: new NullLogger(),
 		);
 	}//end makeStamp()
@@ -135,6 +150,24 @@ class ReadableCopyStampTest extends TestCase {
 
 		self::assertSame(['portfolioTitle' => 'Proeve meterkast', 'learnerName' => 'Daan Visser'], $event->getModifiedData());
 	}//end testAShareNamesItsPortfolioAndLearner()
+
+	/**
+	 * A teacher availability gets the teacher's display name, and a name a
+	 * client sends is replaced; an unknown teacher stores none.
+	 *
+	 * @return void
+	 */
+	public function testAnAvailabilityNamesItsTeacher(): void {
+		$event = new ObjectCreatingEvent(
+			OrEntityFactory::make(['teacherId' => 'po-leerkracht-09', 'teacherName' => 'Iemand anders', 'blocks' => []], 'teacher-availability')
+		);
+		$this->makeStamp(slug: 'teacher-availability')->handle($event);
+		self::assertSame(['teacherName' => 'Meester Daan'], $event->getModifiedData());
+
+		$unknown = new ObjectCreatingEvent(OrEntityFactory::make(['teacherId' => 'nobody', 'blocks' => []], 'teacher-availability'));
+		$this->makeStamp(slug: 'teacher-availability')->handle($unknown);
+		self::assertSame(['teacherName' => null], $unknown->getModifiedData());
+	}//end testAnAvailabilityNamesItsTeacher()
 
 	/**
 	 * A pointer to nothing stores no name, not the old one or a guess.
@@ -207,7 +240,7 @@ class ReadableCopyStampTest extends TestCase {
 		$objectService->expects(self::never())->method('findAll');
 		$resolver = $this->createMock(ListenerSchemaResolver::class);
 		$resolver->method('guardSchemaSlug')->willThrowException(new RuntimeException('unknown schema'));
-		$stamp = new ReadableCopyStamp(schemaResolver: $resolver, copies: new ReadableCopies(objectService: $objectService), logger: new NullLogger());
+		$stamp = new ReadableCopyStamp(schemaResolver: $resolver, copies: new ReadableCopies(objectService: $objectService, users: $this->users()), logger: new NullLogger());
 
 		$stamp->handle(new Event());
 
@@ -242,7 +275,7 @@ class ReadableCopyStampTest extends TestCase {
 				return ($rows[$schema] ?? []);
 			}
 		);
-		$copies = new ReadableCopies(objectService: $objectService);
+		$copies = new ReadableCopies(objectService: $objectService, users: $this->users());
 
 		self::assertFalse($copies->covers(slug: 'final-grade'));
 		self::assertSame([], $copies->derive(slug: 'final-grade', row: ['courseId' => 'course-blank']));
@@ -291,6 +324,7 @@ class ReadableCopyStampTest extends TestCase {
 			'GradeEntry' => ['learnerId' => 'pupil-1', 'curriculumPlanId' => 'ee010005-0000-4000-8000-000000000001', 'componentId' => 'c-1', 'gradeScaleId' => 'ee010006-0000-4000-8000-000000000001', 'courseId' => 'ee010004-0000-4000-8000-000000000001', 'courseName' => 'Rekenen', 'value' => 8.0, 'weight' => 2, 'tenant_id' => self::TENANT],
 			'Enrolment' => ['learnerId' => 'pupil-1', 'courseId' => 'ee010004-0000-4000-8000-000000000001', 'source' => 'admission', 'cohortId' => 'ee010003-0000-4000-8000-000000000007', 'cohortName' => 'Groep 6', 'tenant_id' => self::TENANT],
 			'PortfolioShare' => ['portfolioId' => 'ee010009-0000-4000-8000-000000000001', 'portfolioTitle' => 'Proeve meterkast', 'learnerName' => 'Daan Visser', 'sharedWithKind' => 'external-assessor', 'sharedBy' => 'teacher-1', 'tenant_id' => self::TENANT],
+			'TeacherAvailability' => ['conferenceRoundId' => 'ee010020-0000-4000-8000-000000000001', 'teacherId' => 'po-leerkracht-09', 'teacherName' => 'Meester Daan', 'blocks' => [['startsAt' => '2026-10-15T16:00:00+00:00', 'endsAt' => '2026-10-15T18:00:00+00:00']], 'tenant_id' => self::TENANT, 'lifecycle' => 'submitted'],
 		];
 
 		foreach ($rows as $schema => $row) {
@@ -299,7 +333,7 @@ class ReadableCopyStampTest extends TestCase {
 			self::assertTrue($result->isValid(), $schema . ': ' . json_encode($result->error()?->message()));
 
 			$nulls = $row;
-			foreach (['courseName', 'cohortName', 'portfolioTitle', 'learnerName'] as $copy) {
+			foreach (['courseName', 'cohortName', 'portfolioTitle', 'learnerName', 'teacherName'] as $copy) {
 				if (array_key_exists($copy, $nulls) === true) {
 					$nulls[$copy] = null;
 				}

@@ -3795,7 +3795,9 @@ OC.L10N.register(
         "Conference Signup": "Aanmelding oudergesprek",
         "Conference Report": "Gespreksverslag",
         "Conference Round": "Oudergespreksronde",
-        "Conference Slot": "Oudergespreksslot"
+        "Conference Slot": "Oudergespreksslot",
+        "Times": "Tijden",
+        "The teacher's name, as a list reads it. The server copies it from the teacher's account on every save; a value sent for it is replaced.": "De naam van de docent, zoals een lijst die toont. De server neemt die bij elke opslag over uit het account van de docent; een meegestuurde waarde wordt vervangen."
     },
     "nplurals=2; plural=(n != 1);"
 )
