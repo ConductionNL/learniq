@@ -51,7 +51,7 @@ class PortalLabelTranslator {
 	 *
 	 * @var array<int, string>
 	 */
-	private const VISIBLE_KEYS = ['label', 'submitLabel', 'successMessage', 'unit', 'fallback'];
+	private const VISIBLE_KEYS = ['label', 'submitLabel', 'successMessage', 'unit', 'fallback', 'group', 'otherLabel', 'requiredMessage'];
 
 	/**
 	 * Keys a reader sees only inside a calendar source (portal-parent-child-record):

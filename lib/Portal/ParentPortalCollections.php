@@ -371,7 +371,8 @@ class ParentPortalCollections {
 		return [
 			'id' => 'bookConferenceSlot',
 			'type' => 'create',
-			'label' => 'Book a time',
+			// "Kies een tijd": a free time in a round with direct booking.
+			'label' => 'Choose a time',
 			'register' => self::REGISTER,
 			'schema' => 'conference-signup',
 			'scopeField' => 'guardianRef',
@@ -382,6 +383,10 @@ class ParentPortalCollections {
 				'slotId',
 				'notes',
 			],
+			// A booking without a time is no booking: portaliq requires both on
+			// this form and refuses an empty one before the write (portaliq#1139),
+			// while a preference request keeps no time at all.
+			'requiredFields' => ['learnerRef', 'slotId'],
 			'crossRefs' => ['learnerRef' => $this->childCrossRef()],
 			'optionsProviders' => [
 				'learnerRef' => $this->childOptions(),
@@ -461,7 +466,8 @@ class ParentPortalCollections {
 		return [
 			'id' => 'createConferenceSignup',
 			'type' => 'create',
-			'label' => 'Ask for a parent-teacher conversation',
+			// "Stuur uw voorkeur": the school plans the time, so no time field.
+			'label' => 'Send your preference',
 			'register' => self::REGISTER,
 			'schema' => 'conference-signup',
 			'scopeField' => 'guardianRef',
@@ -472,6 +478,7 @@ class ParentPortalCollections {
 				'learnerRef',
 				'notes',
 			],
+			'requiredFields' => ['conferenceRoundId', 'learnerRef'],
 			'crossRefs' => ['learnerRef' => $this->childCrossRef()],
 			'optionsProviders' => [
 				'learnerRef' => $this->childOptions(),
@@ -488,8 +495,8 @@ class ParentPortalCollections {
 				'learnerRef' => ['label' => 'Child', 'required' => true],
 				'notes' => ['label' => 'Anything the teacher should know beforehand'],
 			],
-			'submitLabel' => 'Book',
-			'successMessage' => 'Your booking is in. The school plans the times, and you see yours under your conference times.',
+			'submitLabel' => 'Send my preference',
+			'successMessage' => 'Your preference is in. The school plans the times, and you see yours under your conference times.',
 		];
 
 	}//end conferenceSignupAction()

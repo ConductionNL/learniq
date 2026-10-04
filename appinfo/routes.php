@@ -192,6 +192,9 @@ return [
         ['name' => 'portalAssessment#result',    'url' => '/api/portal/assessments/result', 'verb' => 'POST'],
         // portal-assignment-hand-in-endpoint: a pupil hands in a portal draft; same assertion receiver pattern.
         ['name' => 'portalSubmission#handIn',    'url' => '/api/portal/submissions/hand-in', 'verb' => 'POST'],
+        // an-invited-trainer-may-assess: the trainer's assessment goes through
+        // learniq, because only a forward carries the sign-in level.
+        ['name' => 'portalWerkproces#submit',    'url' => '/api/portal/werkproces-assessments', 'verb' => 'POST'],
 
         // Personal timetable — the caller's own sessions for a window, resolved
         // from cohort membership (teacher/learner) via ObjectService (RBAC-scoped).

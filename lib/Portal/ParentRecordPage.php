@@ -175,12 +175,21 @@ class ParentRecordPage {
 	 * @return array<int, array<string, mixed>>
 	 *
 	 * @spec openspec/changes/portal-parent-child-record/specs/portal-contribution/spec.md#requirement-a-guardian-opens-one-child-and-sees-everything-about-them
+	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
 	 */
 	public function pages(array $collections, array $actions, ParentPortalCollections $sections): array {
-		$pages = [$this->recordPage(), $this->calendarPage()];
+		$site = new ParentSitePages();
+		$pages = [
+			$site->overviewPage(sources: $this->childSources(), figures: $this->attendanceFigures()),
+			$site->perChild(page: $this->recordPage()),
+			$site->absencePage(figures: $this->attendanceFigures()),
+			$site->conferencesPage(),
+			$site->inGroup(page: $this->calendarPage()),
+		];
+		// Every collection keeps its own page and route, out of the menu.
 		foreach ($sections->pages(collections: $collections, actions: $actions) as $page) {
 			if (($page['id'] ?? '') !== 'parentChildren') {
-				$pages[] = $page;
+				$pages[] = $site->offMenu(page: $page);
 			}
 		}
 
@@ -199,7 +208,7 @@ class ParentRecordPage {
 	private function recordPage(): array {
 		return [
 			'id' => 'parentChildren',
-			'label' => 'My children',
+			'label' => 'Grades and report cards',
 			'icon' => 'AccountChild',
 			'record' => ['collection' => 'parentChildren', 'titleFields' => ['givenName', 'familyName']],
 			'blocks' => [

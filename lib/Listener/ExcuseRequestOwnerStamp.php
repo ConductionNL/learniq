@@ -50,6 +50,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\LearnerRefResolver;
+use OCA\Learniq\Service\Portal\PortalWriteSubject;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Service\PupilGroupTeachers;
 use OCA\OpenRegister\Db\ObjectEntity;
@@ -57,7 +58,6 @@ use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -101,18 +101,18 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 	 *
 	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
 	 * @param LearnerRefResolver $profiles LearnerProfile by uuid, uuid by user.
-	 * @param IUserSession $userSession Tells a portal write (no session) from an app write.
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param PupilGroupTeachers $groupTeachers The teachers of a pupil's current groups.
+	 * @param PortalWriteSubject $writers Whether the portal's own subject is writing.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ListenerSchemaResolver $schemaResolver,
 		private readonly LearnerRefResolver $profiles,
-		private readonly IUserSession $userSession,
 		private readonly LoggerInterface $logger,
 		private readonly PupilGroupTeachers $groupTeachers,
+		private readonly PortalWriteSubject $writers,
 	) {
 	}//end __construct()
 
@@ -236,11 +236,24 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 	 * @return bool
 	 */
 	private function isPortalReport(array $payload): bool {
-		if ($this->userSession->getUser() !== null || $this->text(value: ($payload['learnerId'] ?? null)) !== '') {
+		if ($this->text(value: ($payload['learnerId'] ?? null)) !== '') {
 			return false;
 		}
 
-		return $this->text(value: ($payload['learnerRef'] ?? null)) !== '';
+		$learnerRef = $this->text(value: ($payload['learnerRef'] ?? null));
+		if ($learnerRef === '') {
+			return false;
+		}
+
+		// Who wrote it decides the branch, not whether anybody is signed in:
+		// a pupil signs in to her own portal with her school account
+		// (PortalWriteSubject).
+		$ref = $this->text(value: ($payload['submittedByRef'] ?? null));
+		if ($ref === '') {
+			$ref = $learnerRef;
+		}
+
+		return $this->writers->wroteItThemselves(ref: $ref);
 	}//end isPortalReport()
 
 	/**

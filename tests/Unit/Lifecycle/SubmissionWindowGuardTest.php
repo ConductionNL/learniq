@@ -71,6 +71,62 @@ class SubmissionWindowGuardTest extends TestCase {
 	}//end makeGuard()
 
 	/**
+	 * The guard reads the assignment the way the portal receiver needs it:
+	 * with RBAC and multi-tenancy off, and its own tenant filter kept.
+	 *
+	 * WHY THIS TEST EXISTS. `PortalSubmissionController::handIn()` is
+	 * `#[PublicPage]` and has no Nextcloud session, so with RBAC on the guard
+	 * read nothing here and answered "Assignment not found" — every hand-in
+	 * from the portal was refused with a message about the deadline. Measured
+	 * on a live instance on 4 October 2026 (pupil-flows.spec.ts step c, and
+	 * the log line `[SubmissionWindowGuard] Assignment <uuid> not found`).
+	 * This double answers only the session-less read, so the old call can
+	 * never pass it again.
+	 *
+	 * @return void
+	 */
+	public function testTheAssignmentIsReadWithoutASession(): void {
+		$assignment = $this->assignment(offset: '+1 hour');
+		$seen = [];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config = [], bool $_rbac = true, bool $_multitenancy = true) use ($assignment, &$seen): array {
+				$seen[] = ['config' => $config, 'rbac' => $_rbac, 'multitenancy' => $_multitenancy];
+				if ($_rbac === true || $_multitenancy === true) {
+					// What OpenRegister does for a caller with no session.
+					return [];
+				}
+
+				return [$assignment];
+			}
+		);
+
+		$groups = $this->createMock(IGroupManager::class);
+		$groups->method('isAdmin')->willReturn(false);
+
+		$guard = new SubmissionWindowGuard(
+			objectService: $objectService,
+			logger: $this->createMock(LoggerInterface::class),
+			groupManager: $groups
+		);
+
+		$verdict = $guard->check(
+			array_merge($this->submission(target: 'submitted'), ['tenant_id' => 'tenant-1']),
+			'submit',
+			'alice'
+		);
+
+		self::assertTrue($verdict->isAllowed(), (string)$verdict->getMessage());
+		self::assertCount(1, $seen);
+		self::assertFalse($seen[0]['rbac']);
+		self::assertFalse($seen[0]['multitenancy']);
+		// The tenant stays the boundary, applied explicitly rather than left
+		// to whoever happens to be signed in.
+		self::assertSame('tenant-1', $seen[0]['config']['filters']['tenant_id']);
+		self::assertSame(['assignment-1'], $seen[0]['config']['ids']);
+	}//end testTheAssignmentIsReadWithoutASession()
+
+	/**
 	 * A draft Submission as OpenRegister hands it to the guard: at its target state.
 	 *
 	 * @param string $target The target lifecycle state of the transition.

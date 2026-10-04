@@ -196,7 +196,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(8, $collections);
+		$this->assertCount(9, $collections);
 		$this->assertSame(
 			[
 				'studentGrades',
@@ -207,6 +207,7 @@ class PortalContributionProviderTest extends TestCase {
 				'studentExcuseRequests',
 				'studentInbox',
 				'studentTests',
+				'studentHomework',
 			],
 			array_column($collections, 'id')
 		);
@@ -215,9 +216,18 @@ class PortalContributionProviderTest extends TestCase {
 			$this->assertSame('learniq', $collection['register']);
 			$this->assertSame('learnerRef', $collection['scopeClaim']);
 			$this->assertNotEmpty($collection['fields']);
-			// Every collection, Submission included, is scoped by the scalar
-			// learnerRef: portaliq's direct scope compares one value, so an
-			// array scope field never matches (assignment-portal-wiring).
+			if ($collection['id'] === 'studentHomework') {
+				// The pupil's uuid is one of the group's pupils on the
+				// assignment; portaliq matches list membership (portaliq#750).
+				// The list itself is never projected.
+				$this->assertSame('learnerRefs', $collection['scopeField']);
+				$this->assertNotContains('learnerRefs', $collection['fields']);
+				$this->assertSame(['lifecycle' => 'published'], $collection['filter']);
+				continue;
+			}
+
+			// Every other collection, Submission included, is scoped by the
+			// scalar learnerRef (assignment-portal-wiring).
 			$this->assertSame('learnerRef', $collection['scopeField']);
 		}
 
@@ -334,7 +344,9 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('low', $submission['minTrust']);
 		$this->assertSame('learnerRef', $submission['scopeClaim']);
 		$this->assertArrayHasKey('fieldConfigs', $submission);
-		$this->assertSame(['attachmentRefs'], array_keys($submission['fieldConfigs']));
+		// Every field she is asked for carries a label, the file field included
+		// (pupil-flows.spec.ts found the form drawn with its field names).
+		$this->assertSame(['assignmentId', 'attachmentRefs'], array_keys($submission['fieldConfigs']));
 
 		$file = $submission['fieldConfigs']['attachmentRefs'];
 		$this->assertContains('attachmentRefs', $submission['fields']);
@@ -491,10 +503,19 @@ class PortalContributionProviderTest extends TestCase {
 		}
 
 		// Parent grade/attendance/excuse projections mirror the student ones.
-		$this->assertSame(
-			['learnerRef', 'courseId', 'curriculumPlanId', 'componentId', 'value', 'gradeScaleId', 'period', 'gradedAt'],
-			$byId['parentGrades']['fields']
-		);
+		// site-guardian-portal-design: a grade names its subject, its test and its weight.
+		$gradeFields = ['learnerRef', 'courseId', 'courseName', 'methodName', 'methodBlock', 'weight', 'curriculumPlanId', 'componentId', 'value', 'gradeScaleId', 'period', 'gradedAt'];
+		$this->assertSame($gradeFields, $byId['parentGrades']['fields']);
+		$student = [];
+		foreach ((new PortalContributionProvider())->getContribution(['audience' => 'student'])['collections'] as $collection) {
+			$student[$collection['id']] = $collection;
+		}
+
+		$this->assertSame($gradeFields, $student['studentGrades']['fields']);
+		// Every projected grade field is declared by the shipped GradeEntry schema.
+		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
+		$declared = array_keys($register['components']['schemas']['GradeEntry']['properties']);
+		$this->assertSame([], array_values(array_diff($gradeFields, $declared)));
 		$this->assertSame(
 			['learnerRef', 'sessionId', 'cohortId', 'status', 'minutesAttended', 'markedAt'],
 			$byId['parentAttendance']['fields']
@@ -721,7 +742,12 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(2, $collections);
+		// Her placements, the portfolios shared with her, and the assessments
+		// she wrote (site-workplace-trainer-portal-design).
+		$this->assertSame(
+			['poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments'],
+			array_column($collections, 'id')
+		);
 		$collection = $collections[0];
 
 		$this->assertSame('poBpvPlacements', $collection['id']);
@@ -818,12 +844,17 @@ class PortalContributionProviderTest extends TestCase {
 
 		$this->assertSame(['createWerkprocesAssessment', 'signPraktijkovereenkomst'], array_column($actions, 'id'));
 
+		// an-invited-trainer-may-assess: the assessment posts to learniq's own
+		// endpoint, because only a forward carries the sign-in level, and an
+		// invited trainer may assess.
 		$assessment = $actions[0];
-		$this->assertSame('create', $assessment['type']);
-		$this->assertSame('werkproces-assessment', $assessment['schema']);
-		$this->assertSame('assessorId', $assessment['scopeField']);
+		$this->assertSame('endpoint-forward', $assessment['type']);
+		$this->assertSame('/apps/learniq/api/portal/werkproces-assessments', $assessment['endpoint']);
+		$this->assertSame('POST', $assessment['method']);
+		$this->assertArrayNotHasKey('schema', $assessment);
+		$this->assertSame('practicalTrainerId', $assessment['subjectField']);
 		$this->assertSame('practicalTrainerId', $assessment['scopeClaim']);
-		$this->assertSame('substantial', $assessment['minTrust']);
+		$this->assertSame('low', $assessment['minTrust']);
 		$this->assertSame(
 			[
 				'bpvPlacementId',
@@ -833,11 +864,20 @@ class PortalContributionProviderTest extends TestCase {
 				'coreTaskCode',
 				'werkprocesCode',
 				'werkprocesLabel',
+				'competencyId',
 				'assessment',
 				'notes',
 			],
 			$assessment['fields']
 		);
+		// Who assessed and how sure the school is are never client-writable.
+		foreach (['assessorId', 'assessorName', 'assessorCompany', 'assessorCompanyKvkNumber', 'assuranceLevel'] as $server) {
+			$this->assertNotContains($server, $assessment['fields'], $server);
+		}
+
+		// The POK signature is a contract signature, not an assessment: it keeps
+		// its substantial floor until Ruben says otherwise.
+		$this->assertSame('substantial', $actions[1]['minTrust']);
 
 		$signature = $actions[1];
 		$this->assertSame('create', $signature['type']);
