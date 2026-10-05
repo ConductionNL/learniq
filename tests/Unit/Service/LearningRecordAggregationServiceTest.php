@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\LearningRecordAggregationService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -92,7 +93,12 @@ class LearningRecordAggregationServiceTest extends TestCase {
 			}
 		);
 
-		$this->service = new LearningRecordAggregationService(objectService: $this->objectService);
+		// No profile row behind find(): the service scopes by learnerRef, the
+		// fallback for a profile that names no active user.
+		$this->service = new LearningRecordAggregationService(
+			objectService: $this->objectService,
+			learnerRefs: new LearnerRefResolver(objectService: $this->objectService),
+		);
 	}//end setUp()
 
 	/**

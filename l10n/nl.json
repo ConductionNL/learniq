@@ -3929,7 +3929,8 @@
         "Next visit due": "Volgend bezoek gepland",
         "Days until the provisional advice deadline": "Dagen tot de termijn voor het voorlopig advies",
         "Days until the final advice deadline": "Dagen tot de termijn voor het definitief advies",
-        "Calculated automatically from this record; it cannot be edited.": "Wordt automatisch berekend uit dit record en kan niet worden bewerkt."
+        "Calculated automatically from this record; it cannot be edited.": "Wordt automatisch berekend uit dit record en kan niet worden bewerkt.",
+        "The Nextcloud user id of the student on the placement. The server copies it from the placement on every save, so the student can read their own confirmed assessments.": "De Nextcloud-gebruikersnaam van de student op de stageplaats. De server neemt die bij elke opslag over van de stageplaats, zodat de student de eigen bevestigde beoordelingen kan lezen."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

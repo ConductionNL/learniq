@@ -39,6 +39,7 @@ use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Listener\AssignmentLearnerRefsStamp;
 use OCA\Learniq\Listener\CohortNameCascade;
 use OCA\Learniq\Listener\HourWeekSubmissionStamp;
+use OCA\Learniq\Listener\WerkprocesAssessmentLearnerStamp;
 use OCA\Learniq\Listener\HourWeekTotalRollup;
 use OCA\Learniq\Listener\ReadableCopyStamp;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
@@ -282,6 +283,17 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: HourWeekSubmissionStamp::class
+		);
+		// The student a werkproces assessment is about, copied from its
+		// placement on every write, so the student's own read rule can match
+		// it (learning-record-own-rows). A stamp, not a veto.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: WerkprocesAssessmentLearnerStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: WerkprocesAssessmentLearnerStamp::class
 		);
 		// A placement's approved hours stay equal to the sum of its weeks,
 		// because the trainer's progress card reads one row and a total that
