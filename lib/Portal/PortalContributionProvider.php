@@ -68,6 +68,9 @@ use OCP\L10N\IFactory;
  * openspec/changes/archive/2026-09-28-portal-parent/design.md.
  *
  * @spec openspec/specs/portal-contribution/spec.md
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) The provider is the one place portaliq meets every
+ *   audience, so it names each audience's declaration class.
  */
 class PortalContributionProvider {
 	/**

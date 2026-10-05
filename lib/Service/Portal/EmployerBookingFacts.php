@@ -34,7 +34,6 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Portal;
 
 use DateTimeImmutable;
-use DateTimeZone;
 
 /**
  * Derives a booking's readable copies and status, and its participants' tasks.
@@ -46,7 +45,7 @@ class EmployerBookingFacts {
 	/**
 	 * The time zone the institute's days are in.
 	 */
-	public const ZONE = 'Europe/Amsterdam';
+	public const ZONE = CourseDayLines::ZONE;
 
 	/**
 	 * Course tags that mean the course ends in an exam the exam institution
@@ -56,71 +55,76 @@ class EmployerBookingFacts {
 	 */
 	public const EXAM_TAGS = ['examen', 'certificaat'];
 
-	private const WEEKDAYS = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
+	/**
+	 * The states in which a booking still asks something of the employer.
+	 *
+	 * @var array<int, string>
+	 */
+	private const OPEN = ['received', 'confirmed'];
 
-	private const MONTHS = [
-		'januari',
-		'februari',
-		'maart',
-		'april',
-		'mei',
-		'juni',
-		'juli',
-		'augustus',
-		'september',
-		'oktober',
-		'november',
-		'december',
-	];
+	/**
+	 * The day and time lines.
+	 *
+	 * @var CourseDayLines
+	 */
+	private CourseDayLines $lines;
+
+	/**
+	 * Constructor.
+	 *
+	 * @return void
+	 */
+	public function __construct() {
+		$this->lines = new CourseDayLines();
+	}//end __construct()
 
 	/**
 	 * The booking's copies and status, and each enrolment's employer fields.
 	 *
-	 * @param array<string, mixed>                                                    $booking      The stored booking.
-	 * @param array<string, mixed>                                                    $course       The course of the edition (name, tags), or [].
-	 * @param array<int, array<string, mixed>>                                        $sessions     The edition's sessions.
-	 * @param array<int, array{enrolment: array<string, mixed>, profile: array<string, mixed>}> $participants The enrolments that point at the booking, with their profiles.
-	 * @param array<string, array<string, mixed>>                                     $renewed      The certificate each enrolment renews, by enrolment id.
-	 * @param array{trainerName?: string|null, placeLabel?: string|null}              $context      Names read elsewhere.
+	 * @param array<string, mixed>                $booking      The stored booking.
+	 * @param array<string, mixed>                $course       The course of the edition (name, tags), or [].
+	 * @param array<int, array<string, mixed>>    $sessions     The edition's sessions.
+	 * @param array<int, array<string, mixed>>    $participants Each `{enrolment, profile}` that points at the booking.
+	 * @param array<string, array<string, mixed>> $renewed      The certificate each enrolment renews, by enrolment id.
+	 * @param array<string, string|null>          $context      `trainerName` and `placeLabel`, read elsewhere.
 	 *
 	 * @return array{booking: array<string, mixed>, enrolments: array<string, array<string, mixed>>}
 	 *
 	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function derive(array $booking, array $course, array $sessions, array $participants, array $renewed=[], array $context=[]): array {
-		$days = $this->days(sessions: $sessions);
+		$days = $this->lines->days(sessions: $sessions);
 		$firstDay = ($days[0] ?? null);
-		usort($participants, static fn (array $one, array $two): int => strcmp((string)($one['enrolment']['id'] ?? ''), (string)($two['enrolment']['id'] ?? '')));
-		$participants = array_values(array_filter($participants, static fn (array $row): bool => ($row['enrolment']['lifecycle'] ?? '') !== 'withdrawn'));
-
+		$participants = $this->present(participants: $participants);
 		$lifecycle = $this->lifecycle(participants: $participants, current: (string)($booking['lifecycle'] ?? 'received'));
-		$needsBirthDate = $this->needsBirthDate(course: $course);
+		$needsBirthDate = $this->needsBirthDate(course: $course) && in_array($lifecycle, self::OPEN, true) === true;
+
 		$enrolments = [];
 		$names = [];
 		$refs = [];
 		$missing = 0;
 		foreach ($participants as $row) {
-			$fields = $this->participant(row: $row, needsBirthDate: $needsBirthDate && in_array($lifecycle, ['received', 'confirmed'], true) === true, firstDay: $firstDay, renewed: $renewed);
+			$fields = $this->participant(row: $row, needsBirthDate: $needsBirthDate, firstDay: $firstDay, renewed: $renewed);
 			$enrolments[(string)($row['enrolment']['id'] ?? '')] = $fields;
 			$names[] = $this->fullName(profile: $row['profile']);
 			$refs[] = (string)($row['profile']['id'] ?? ($row['enrolment']['learnerRef'] ?? ''));
-			if ($fields['detailsStatus'] === 'birth-date-missing') {
-				$missing++;
-			}
+			$missing += (int)($fields['detailsStatus'] === 'birth-date-missing');
 		}
 
 		$places = max(1, (int)($booking['participantCount'] ?? count($participants)));
 		$open = max(0, ($places - count($participants)));
 		$status = $this->employerStatus(lifecycle: $lifecycle, openPlaces: $open, missing: $missing);
+		$dayLabel = $this->lines->dayLabel(days: $days);
+		$courseName = trim((string)($course['name'] ?? ''));
 
 		return [
 			'booking' => [
-				'courseName' => $this->orNull(value: (string)($course['name'] ?? '')),
-				'bookingLabel' => $this->orNull(value: implode(', ', array_filter([trim((string)($course['name'] ?? '')), (string)$this->dayLabel(days: $days)]))),
-				'upcoming' => in_array($lifecycle, ['received', 'confirmed'], true),
+				'courseName' => $this->orNull(value: $courseName),
+				'bookingLabel' => $this->orNull(value: implode(', ', array_filter([$courseName, (string)$dayLabel]))),
+				'upcoming' => in_array($lifecycle, self::OPEN, true),
 				'firstDay' => $firstDay?->format('Y-m-d'),
-				'dayLabel' => $this->dayLabel(days: $days),
-				'timeLabel' => $this->timeLabel(sessions: $sessions, firstDay: $firstDay),
+				'dayLabel' => $dayLabel,
+				'timeLabel' => $this->lines->timeLabel(sessions: $sessions, firstDay: $firstDay),
 				'placeLabel' => ($context['placeLabel'] ?? null),
 				'trainerName' => ($context['trainerName'] ?? null),
 				'participantRefs' => $refs,
@@ -128,8 +132,13 @@ class EmployerBookingFacts {
 				'missingDetailsCount' => $missing,
 				'lifecycle' => $lifecycle,
 				'employerStatus' => $status,
-				'statusNote' => $this->statusNote(status: $status, lifecycle: $lifecycle, openPlaces: $open, missing: $missing, places: $places, requestedAt: (string)($booking['requestedAt'] ?? '')),
-				'detailsDueAt' => $this->detailsDueAt(firstDay: $firstDay),
+				'statusNote' => $this->statusNote(
+					status: $status,
+					lifecycle: $lifecycle,
+					counts: ['open' => $open, 'missing' => $missing, 'places' => $places],
+					requestedAt: (string)($booking['requestedAt'] ?? '')
+				),
+				'detailsDueAt' => $this->lines->detailsDueAt(firstDay: $firstDay),
 			],
 			'enrolments' => $enrolments,
 		];
@@ -141,6 +150,8 @@ class EmployerBookingFacts {
 	 * @param array<string, mixed> $course The course.
 	 *
 	 * @return bool
+	 *
+	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function needsBirthDate(array $course): bool {
 		$tags = array_map(static fn (mixed $tag): string => strtolower(trim((string)$tag)), (array)($course['tags'] ?? []));
@@ -149,41 +160,47 @@ class EmployerBookingFacts {
 	}//end needsBirthDate()
 
 	/**
-	 * 12.00 on the working day before the first course day: until then the
-	 * employer may still supply names and details.
+	 * 12.00 on the working day before the first course day.
 	 *
 	 * @param DateTimeImmutable|null $firstDay The first course day.
 	 *
-	 * @return string|null An ISO date-time, or null without a day.
+	 * @return string|null
+	 *
+	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function detailsDueAt(?DateTimeImmutable $firstDay): ?string {
-		if ($firstDay === null) {
-			return null;
-		}
-
-		$day = $firstDay->modify('-1 day');
-		while ((int)$day->format('N') > 5) {
-			$day = $day->modify('-1 day');
-		}
-
-		return $day->setTime(12, 0)->format(DATE_ATOM);
+		return $this->lines->detailsDueAt(firstDay: $firstDay);
 	}//end detailsDueAt()
+
+	/**
+	 * The participants not withdrawn, in the order of their enrolments.
+	 *
+	 * @param array<int, array<string, mixed>> $participants Each `{enrolment, profile}`.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function present(array $participants): array {
+		usort(
+			$participants,
+			static fn (array $one, array $two): int => strcmp((string)($one['enrolment']['id'] ?? ''), (string)($two['enrolment']['id'] ?? ''))
+		);
+
+		return array_values(array_filter($participants, static fn (array $row): bool => ($row['enrolment']['lifecycle'] ?? '') !== 'withdrawn'));
+	}//end present()
 
 	/**
 	 * A participant's employer fields: are the details complete, what is
 	 * still to do, and which certificate the course renews.
 	 *
-	 * @param array{enrolment: array<string, mixed>, profile: array<string, mixed>} $row            The enrolment and profile.
-	 * @param bool                                                                  $needsBirthDate Whether the booking still needs birth dates.
-	 * @param DateTimeImmutable|null                                                $firstDay       The first course day.
-	 * @param array<string, array<string, mixed>>                                   $renewed        The certificate each enrolment renews.
+	 * @param array<string, mixed>                $row            The `{enrolment, profile}`.
+	 * @param bool                                $needsBirthDate Whether the booking still needs birth dates.
+	 * @param DateTimeImmutable|null              $firstDay       The first course day.
+	 * @param array<string, array<string, mixed>> $renewed        The certificate each enrolment renews.
 	 *
-	 * @return array{detailsStatus: string, openTask: string|null, openTaskNote: string|null, openTaskDueAt: string|null, certificateLine: string|null}
+	 * @return array<string, string|null>
 	 */
 	private function participant(array $row, bool $needsBirthDate, ?DateTimeImmutable $firstDay, array $renewed): array {
-		$profile = $row['profile'];
-		$missing = $needsBirthDate && trim((string)($profile['birthDate'] ?? '')) === '';
-		$given = trim((string)($profile['givenName'] ?? ''));
+		$profile = (array)$row['profile'];
 		$fields = [
 			'detailsStatus' => 'complete',
 			'openTask' => null,
@@ -191,19 +208,25 @@ class EmployerBookingFacts {
 			'openTaskDueAt' => null,
 			'certificateLine' => $this->certificateLine(credential: ($renewed[(string)($row['enrolment']['id'] ?? '')] ?? null)),
 		];
-		if ($missing === true) {
-			$day = '';
-			if ($firstDay !== null) {
-				$day = ' ' . self::WEEKDAYS[((int)$firstDay->format('N') - 1)];
-			}
-
-			$fields['detailsStatus'] = 'birth-date-missing';
-			$fields['openTask'] = 'Vul de geboortedatum van ' . $this->fullName(profile: $profile) . ' in';
-			$fields['openTaskNote'] = $given . ' doet' . $day . ' examen. Zonder geboortedatum kunnen wij ' . $given . ' niet aanmelden.';
-			$fields['openTaskDueAt'] = $this->detailsDueAt(firstDay: $firstDay);
+		if ($needsBirthDate === false || trim((string)($profile['birthDate'] ?? '')) !== '') {
+			return $fields;
 		}
 
-		return $fields;
+		$given = trim((string)($profile['givenName'] ?? ''));
+		$day = '';
+		if ($firstDay !== null) {
+			$day = ' ' . $this->lines->weekday(day: $firstDay);
+		}
+
+		return array_merge(
+			$fields,
+			[
+				'detailsStatus' => 'birth-date-missing',
+				'openTask' => 'Vul de geboortedatum van ' . $this->fullName(profile: $profile) . ' in',
+				'openTaskNote' => $given . ' doet' . $day . ' examen. Zonder geboortedatum kunnen wij ' . $given . ' niet aanmelden.',
+				'openTaskDueAt' => $this->lines->detailsDueAt(firstDay: $firstDay),
+			]
+		);
 	}//end participant()
 
 	/**
@@ -214,35 +237,39 @@ class EmployerBookingFacts {
 	 * @return string|null
 	 */
 	private function certificateLine(?array $credential): ?string {
-		$date = $this->date(value: ($credential['expiresAt'] ?? null));
+		$date = $this->lines->date(value: ($credential['expiresAt'] ?? null));
 		if ($date === null) {
 			return null;
 		}
 
-		return 'Certificaat geldig tot ' . $this->longDate(day: $date);
+		return 'Certificaat geldig tot ' . $this->lines->longDate(day: $date);
 	}//end certificateLine()
 
 	/**
 	 * The booking's state, from its participants' enrolments: completed when
-	 * every one completed, confirmed when one is active, cancelled when the
-	 * booking had people and none is left, received otherwise.
+	 * every one completed, confirmed when one is active, received otherwise.
+	 * A booking without people keeps a stored cancelled or confirmed.
 	 *
-	 * @param array<int, array{enrolment: array<string, mixed>, profile: array<string, mixed>}> $participants Participants not withdrawn.
-	 * @param string                                                                            $current      The stored state.
+	 * @param array<int, array<string, mixed>> $participants Participants not withdrawn.
+	 * @param string                           $current      The stored state.
 	 *
 	 * @return string
 	 */
 	private function lifecycle(array $participants, string $current): string {
 		$states = array_map(static fn (array $row): string => (string)($row['enrolment']['lifecycle'] ?? 'pending'), $participants);
-		if ($states === []) {
-			return in_array($current, ['cancelled', 'confirmed'], true) === true ? $current : 'received';
+		if ($states === [] && in_array($current, ['cancelled', 'confirmed'], true) === true) {
+			return $current;
 		}
 
-		if (array_diff($states, ['completed', 'failed']) === []) {
+		if ($states !== [] && array_diff($states, ['completed', 'failed']) === []) {
 			return 'completed';
 		}
 
-		return in_array('active', $states, true) === true ? 'confirmed' : 'received';
+		if (in_array('active', $states, true) === true) {
+			return 'confirmed';
+		}
+
+		return 'received';
 	}//end lifecycle()
 
 	/**
@@ -255,210 +282,71 @@ class EmployerBookingFacts {
 	 * @return string
 	 */
 	private function employerStatus(string $lifecycle, int $openPlaces, int $missing): string {
-		if (in_array($lifecycle, ['completed', 'cancelled'], true) === true) {
-			return $lifecycle;
+		if (in_array($lifecycle, self::OPEN, true) === true && ($openPlaces > 0 || $missing > 0)) {
+			return 'waiting-for-you';
 		}
 
-		return ($openPlaces > 0 || $missing > 0) ? 'waiting-for-you' : $lifecycle;
+		return $lifecycle;
 	}//end employerStatus()
 
 	/**
 	 * The line under the status.
 	 *
-	 * @param string $status      The employer status.
-	 * @param string $lifecycle   The booking's state.
-	 * @param int    $openPlaces  Places without a name.
-	 * @param int    $missing     Participants without a needed detail.
-	 * @param int    $places      Places booked.
-	 * @param string $requestedAt When the booking was made.
+	 * @param string             $status      The employer status.
+	 * @param string             $lifecycle   The booking's state.
+	 * @param array<string, int> $counts      `open` places, `missing` details, booked `places`.
+	 * @param string             $requestedAt When the booking was made.
 	 *
 	 * @return string|null
 	 */
-	private function statusNote(string $status, string $lifecycle, int $openPlaces, int $missing, int $places, string $requestedAt): ?string {
-		if ($status === 'waiting-for-you' && $openPlaces > 0) {
-			return $openPlaces === 1 ? 'Vul de naam van 1 deelnemer in' : 'Vul de namen van ' . $openPlaces . ' deelnemers in';
+	private function statusNote(string $status, string $lifecycle, array $counts, string $requestedAt): ?string {
+		if ($status === 'waiting-for-you') {
+			return $this->waitingNote(open: $counts['open'], missing: $counts['missing']);
 		}
 
-		if ($status === 'waiting-for-you') {
-			return 'Geboortedatum van ' . $missing . ' ' . ($missing === 1 ? 'deelnemer' : 'deelnemers') . ' ontbreekt';
+		if ($lifecycle === 'confirmed' && $counts['places'] === 1) {
+			return 'De plek staat vast';
 		}
 
 		if ($lifecycle === 'confirmed') {
-			return $places === 1 ? 'De plek staat vast' : 'De plekken staan vast';
+			return 'De plekken staan vast';
 		}
 
-		$requested = $this->date(value: $requestedAt);
+		$requested = $this->lines->date(value: $requestedAt);
 		if ($lifecycle === 'received' && $requested !== null) {
-			return 'Bevestiging uiterlijk ' . $this->dayAndDate(day: $this->workingDaysAfter(day: $requested, count: 2));
+			return 'Bevestiging uiterlijk ' . $this->lines->dayAndDate(day: $this->lines->workingDaysAfter(day: $requested, count: 2));
 		}
 
-		return $lifecycle === 'completed' ? 'Afgerond' : null;
+		if ($lifecycle === 'completed') {
+			return 'Afgerond';
+		}
+
+		return null;
 	}//end statusNote()
 
 	/**
-	 * The distinct course days of the sessions, in order.
+	 * What waits: names first, then birth dates.
 	 *
-	 * @param array<int, array<string, mixed>> $sessions The sessions.
-	 *
-	 * @return array<int, DateTimeImmutable>
-	 */
-	private function days(array $sessions): array {
-		$days = [];
-		foreach ($sessions as $session) {
-			$start = $this->date(value: ($session['startsAt'] ?? null));
-			if ($start !== null) {
-				$days[$start->format('Y-m-d')] = $start->setTime(0, 0);
-			}
-		}
-
-		ksort($days);
-
-		return array_values($days);
-	}//end days()
-
-	/**
-	 * "donderdag 8 oktober", "dinsdag 20 en woensdag 21 oktober" or "3, 4 en 10 november".
-	 *
-	 * @param array<int, DateTimeImmutable> $days The course days.
-	 *
-	 * @return string|null
-	 */
-	private function dayLabel(array $days): ?string {
-		if ($days === []) {
-			return null;
-		}
-
-		if (count($days) <= 2) {
-			$parts = [];
-			foreach ($days as $index => $day) {
-				$sameMonth = isset($days[$index + 1]) === true && $days[$index + 1]->format('Y-m') === $day->format('Y-m');
-				$parts[] = $sameMonth === true ? self::WEEKDAYS[((int)$day->format('N') - 1)] . ' ' . $day->format('j') : $this->dayAndDate(day: $day);
-			}
-
-			return implode(' en ', $parts);
-		}
-
-		$byMonth = [];
-		foreach ($days as $day) {
-			$byMonth[self::MONTHS[((int)$day->format('n') - 1)]][] = $day->format('j');
-		}
-
-		$parts = [];
-		foreach ($byMonth as $month => $numbers) {
-			$parts[] = $this->listOf(items: $numbers) . ' ' . $month;
-		}
-
-		return $this->listOf(items: $parts);
-	}//end dayLabel()
-
-	/**
-	 * "08.30 tot 16.30 uur": the first day's start to its end.
-	 *
-	 * @param array<int, array<string, mixed>> $sessions The sessions.
-	 * @param DateTimeImmutable|null           $firstDay The first course day.
-	 *
-	 * @return string|null
-	 */
-	private function timeLabel(array $sessions, ?DateTimeImmutable $firstDay): ?string {
-		if ($firstDay === null) {
-			return null;
-		}
-
-		$starts = [];
-		$ends = [];
-		foreach ($sessions as $session) {
-			$start = $this->date(value: ($session['startsAt'] ?? null));
-			$end = $this->date(value: ($session['endsAt'] ?? null));
-			if ($start === null || $end === null || $start->format('Y-m-d') !== $firstDay->format('Y-m-d')) {
-				continue;
-			}
-
-			$starts[] = $start->format('H.i');
-			$ends[] = $end->format('H.i');
-		}
-
-		if ($starts === []) {
-			return null;
-		}
-
-		return min($starts) . ' tot ' . max($ends) . ' uur';
-	}//end timeLabel()
-
-	/**
-	 * "a, b en c".
-	 *
-	 * @param array<int, string> $items The items.
+	 * @param int $open    Places without a name.
+	 * @param int $missing Participants without a birth date.
 	 *
 	 * @return string
 	 */
-	private function listOf(array $items): string {
-		$last = array_pop($items);
-		if ($items === []) {
-			return (string)$last;
+	private function waitingNote(int $open, int $missing): string {
+		if ($open === 1) {
+			return 'Vul de naam van 1 deelnemer in';
 		}
 
-		return implode(', ', $items) . ' en ' . $last;
-	}//end listOf()
-
-	/**
-	 * The day a number of working days after another.
-	 *
-	 * @param DateTimeImmutable $day   The day.
-	 * @param int               $count How many working days.
-	 *
-	 * @return DateTimeImmutable
-	 */
-	private function workingDaysAfter(DateTimeImmutable $day, int $count): DateTimeImmutable {
-		while ($count > 0) {
-			$day = $day->modify('+1 day');
-			if ((int)$day->format('N') <= 5) {
-				$count--;
-			}
+		if ($open > 1) {
+			return 'Vul de namen van ' . $open . ' deelnemers in';
 		}
 
-		return $day;
-	}//end workingDaysAfter()
-
-	/**
-	 * "dinsdag 6 oktober".
-	 *
-	 * @param DateTimeImmutable $day The day.
-	 *
-	 * @return string
-	 */
-	private function dayAndDate(DateTimeImmutable $day): string {
-		return self::WEEKDAYS[((int)$day->format('N') - 1)] . ' ' . $day->format('j') . ' ' . self::MONTHS[((int)$day->format('n') - 1)];
-	}//end dayAndDate()
-
-	/**
-	 * "30 november 2026".
-	 *
-	 * @param DateTimeImmutable $day The day.
-	 *
-	 * @return string
-	 */
-	private function longDate(DateTimeImmutable $day): string {
-		return $day->format('j') . ' ' . self::MONTHS[((int)$day->format('n') - 1)] . ' ' . $day->format('Y');
-	}//end longDate()
-
-	/**
-	 * A date or date-time in the institute's zone, or null.
-	 *
-	 * @param mixed $value The stored value.
-	 *
-	 * @return DateTimeImmutable|null
-	 */
-	private function date(mixed $value): ?DateTimeImmutable {
-		if (is_string($value) === false || trim($value) === '') {
-			return null;
+		if ($missing === 1) {
+			return 'Geboortedatum van 1 deelnemer ontbreekt';
 		}
 
-		try {
-			return (new DateTimeImmutable($value, new DateTimeZone(self::ZONE)))->setTimezone(new DateTimeZone(self::ZONE));
-		} catch (\Exception) {
-			return null;
-		}
-	}//end date()
+		return 'Geboortedatum van ' . $missing . ' deelnemers ontbreekt';
+	}//end waitingNote()
 
 	/**
 	 * Given and family name.
@@ -480,7 +368,10 @@ class EmployerBookingFacts {
 	 */
 	private function orNull(string $value): ?string {
 		$value = trim($value);
+		if ($value === '') {
+			return null;
+		}
 
-		return $value === '' ? null : $value;
+		return $value;
 	}//end orNull()
 }//end class

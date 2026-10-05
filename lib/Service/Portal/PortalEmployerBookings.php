@@ -287,11 +287,12 @@ class PortalEmployerBookings {
 	 * @return string|null `yyyy-mm-dd`.
 	 */
 	private function birthDate(string $value): ?string {
-		$date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
-		if ($date === false || $date->format('Y-m-d') !== $value) {
+		$parts = [];
+		if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $parts) !== 1 || checkdate((int)$parts[2], (int)$parts[3], (int)$parts[1]) === false) {
 			return null;
 		}
 
+		$date = new DateTimeImmutable($value);
 		$today = new DateTimeImmutable('today');
 		if ($date > $today->modify('-14 years') || $date < $today->modify('-100 years')) {
 			return null;
@@ -347,11 +348,8 @@ class PortalEmployerBookings {
 	 */
 	private function save(string $schema, array $row): array {
 		$saved = $this->objectService->saveObject(object: $row, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false);
-		if (is_object($saved) === true && method_exists($saved, 'jsonSerialize') === true) {
-			$saved = $saved->jsonSerialize();
-		}
 
-		return is_array($saved) === true ? $saved : [];
+		return (array)$saved->jsonSerialize();
 	}//end save()
 
 	/**
@@ -362,6 +360,10 @@ class PortalEmployerBookings {
 	 * @return string
 	 */
 	private function text(mixed $value): string {
-		return is_string($value) === true ? trim($value) : '';
+		if (is_string($value) === false) {
+			return '';
+		}
+
+		return trim($value);
 	}//end text()
 }//end class

@@ -332,7 +332,14 @@ class EmployerSitePages {
 				'label' => 'Still to do',
 				'menu' => false,
 				'blocks' => [
-					['type' => 'collection', 'collection' => 'employerOpenTasks', 'display' => 'rows', 'titleFields' => ['openTask'], 'subtitleField' => 'openTaskNote', 'dateField' => 'openTaskDueAt'],
+					[
+						'type' => 'collection',
+						'collection' => 'employerOpenTasks',
+						'display' => 'rows',
+						'titleFields' => ['openTask'],
+						'subtitleField' => 'openTaskNote',
+						'dateField' => 'openTaskDueAt',
+					],
 					['type' => 'action', 'action' => 'supplyBirthDate'],
 				],
 			],

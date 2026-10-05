@@ -50,7 +50,7 @@ class EmployerBookingRestampJob extends ActorForwardedJob {
 	 * @param IUserSession              $userSession  The acting user, forwarded.
 	 * @param IUserManager              $userManager  Resolves the forwarded user.
 	 * @param OrganisationService       $organisation The acting organisation, forwarded.
-	 * @param LoggerInterface           $logger       Logger.
+	 * @param LoggerInterface           $log          Logger.
 	 * @param EmployerBookingProjection $projection   Re-derives one booking.
 	 *
 	 * @return void

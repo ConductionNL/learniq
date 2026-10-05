@@ -122,20 +122,30 @@ class EmployerBookingCascade implements IEventListener {
 	 * @param bool                 $created Whether the row is new.
 	 *
 	 * @return array<string, string>|null
+	 *
+	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public static function entry(string $slug, array $row, bool $created): ?array {
 		if ($slug === 'enrolment') {
 			$booking = (string)($row['bookingRef'] ?? '');
-			return $booking === '' ? null : ['bookingRef' => $booking];
+			if ($booking === '') {
+				return null;
+			}
+
+			return ['bookingRef' => $booking];
+		}
+
+		// A new booking is derived by whoever made it; a new profile is on no booking yet.
+		$id = (string)($row['id'] ?? '');
+		if ($created === true || $id === '') {
+			return null;
 		}
 
 		if ($slug === 'course-booking') {
-			// A new booking is derived by whoever made it.
-			return ($created === true || (string)$row['id'] === '') ? null : ['bookingRef' => (string)$row['id']];
+			return ['bookingRef' => $id];
 		}
 
-		// A person who is on no booking yet has nothing to re-derive; a new profile is on none.
-		return ($created === true || (string)$row['id'] === '') ? null : ['learnerRef' => (string)$row['id']];
+		return ['learnerRef' => $id];
 	}//end entry()
 
 	/**

@@ -162,12 +162,14 @@ class ReadableCopies {
 	private function participantCopies(array $row): array {
 		$learner = $this->read(schema: 'learner-profile', id: $row['learnerRef'] ?? null);
 		$organisation = null;
+		$name = null;
 		if ($learner !== null) {
 			$organisation = $this->orNull(value: $this->text(value: $learner['organisationRef'] ?? null));
+			$name = $this->personName(profile: $learner);
 		}
 
 		return [
-			'learnerName'     => $learner === null ? null : $this->personName(profile: $learner),
+			'learnerName'     => $name,
 			'courseName'      => $this->nameOf(schema: 'course', id: $row['courseId'] ?? null, field: 'name'),
 			'organisationRef' => $organisation,
 		];

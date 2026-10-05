@@ -92,31 +92,106 @@ class EmployerBookingSteps {
 	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function stepsOf(array $booking, ?IL10N $l10n): array {
-		$t = static fn (string $text, array $parameters=[]): string => $l10n === null ? vsprintf($text, $parameters) : $l10n->t($text, $parameters);
-		$lifecycle = (string)($booking['lifecycle'] ?? 'received');
-		$status = (string)($booking['employerStatus'] ?? $lifecycle);
-		$confirmed = in_array($lifecycle, ['confirmed', 'completed'], true);
-		$completed = $lifecycle === 'completed';
-		$detailsDone = $confirmed === true && $status !== 'waiting-for-you';
+		$note = (string)($booking['statusNote'] ?? '');
 		$places = (int)($booking['participantCount'] ?? 0);
+		$placesText = $this->text(l10n: $l10n, text: '%s places', parameters: [$places]);
+		if ($places === 1) {
+			$placesText = $this->text(l10n: $l10n, text: '%s place', parameters: [$places]);
+		}
 
-		return [
-			$this->step(label: $t('Booked'), state: 'done', description: (string)($booking['requestedByName'] ?? ''), date: ($booking['requestedAt'] ?? null)),
-			$this->step(
-				label: $t('Confirmed'),
-				state: $confirmed === true ? 'done' : 'current',
-				description: $confirmed === true ? $t($places === 1 ? '%s place' : '%s places', [$places]) : (string)($booking['statusNote'] ?? ''),
-				date: ($booking['confirmedAt'] ?? null)
-			),
-			$this->step(
-				label: $t('Details complete'),
-				state: $detailsDone === true ? 'done' : ($confirmed === true ? 'current' : 'todo'),
-				description: $detailsDone === true ? '' : (string)($booking['statusNote'] ?? '')
-			),
-			$this->step(label: $t('Course day'), state: $completed === true ? 'done' : ($detailsDone === true ? 'current' : 'todo'), description: (string)($booking['dayLabel'] ?? '')),
-			$this->step(label: $t('Result and certificate'), state: $completed === true ? 'current' : 'todo', description: $t('Within 10 working days after the course')),
+		$stage = $this->stage(booking: $booking);
+		$confirmedText = $note;
+		$detailsText = $note;
+		if ($stage > 1) {
+			$confirmedText = $placesText;
+		}
+
+		if ($stage > 2) {
+			$detailsText = '';
+		}
+
+		$steps = [
+			['Booked', (string)($booking['requestedByName'] ?? ''), ($booking['requestedAt'] ?? null)],
+			['Confirmed', $confirmedText, ($booking['confirmedAt'] ?? null)],
+			['Details complete', $detailsText, null],
+			['Course day', (string)($booking['dayLabel'] ?? ''), null],
+			['Result and certificate', $this->text(l10n: $l10n, text: 'Within 10 working days after the course'), null],
 		];
+
+		$out = [];
+		foreach ($steps as $index => [$label, $description, $date]) {
+			$out[] = $this->step(
+				label: $this->text(l10n: $l10n, text: $label),
+				state: $this->state(index: $index, stage: $stage),
+				description: $description,
+				date: $date
+			);
+		}
+
+		return $out;
 	}//end stepsOf()
+
+	/**
+	 * Which step a booking is at: 1 waiting for the planner, 2 waiting for
+	 * the employer's details, 3 waiting for the course day, 4 after it.
+	 *
+	 * @param array<string, mixed> $booking The booking.
+	 *
+	 * @return int
+	 */
+	private function stage(array $booking): int {
+		$lifecycle = (string)($booking['lifecycle'] ?? 'received');
+		if ($lifecycle === 'completed') {
+			return 4;
+		}
+
+		if ($lifecycle !== 'confirmed') {
+			return 1;
+		}
+
+		if (($booking['employerStatus'] ?? '') === 'waiting-for-you') {
+			return 2;
+		}
+
+		return 3;
+	}//end stage()
+
+	/**
+	 * A step's state: done before the stage, current at it, todo after it.
+	 *
+	 * @param int $index The step.
+	 * @param int $stage The stage.
+	 *
+	 * @return string
+	 */
+	private function state(int $index, int $stage): string {
+		if ($index < $stage) {
+			return 'done';
+		}
+
+		if ($index === $stage) {
+			return 'current';
+		}
+
+		return 'todo';
+	}//end state()
+
+	/**
+	 * A text in the reader's language, or English.
+	 *
+	 * @param IL10N|null          $l10n       The language.
+	 * @param string              $text       The English text.
+	 * @param array<int, mixed>   $parameters Its parameters.
+	 *
+	 * @return string
+	 */
+	private function text(?IL10N $l10n, string $text, array $parameters=[]): string {
+		if ($l10n === null) {
+			return vsprintf($text, $parameters);
+		}
+
+		return $l10n->t($text, $parameters);
+	}//end text()
 
 	/**
 	 * One step, without empty parts.

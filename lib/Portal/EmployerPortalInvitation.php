@@ -101,7 +101,10 @@ class EmployerPortalInvitation {
 		try {
 			$company = $this->company(organisationRef: trim($organisationRef));
 		} catch (Throwable $exception) {
-			$this->logger->warning('[EmployerPortalInvitation] Could not read company {ref}: {msg}', ['ref' => $organisationRef, 'msg' => $exception->getMessage()]);
+			$this->logger->warning(
+				'[EmployerPortalInvitation] Could not read company {ref}: {msg}',
+				['ref' => $organisationRef, 'msg' => $exception->getMessage()]
+			);
 			return self::refused(reason: 'portal-unavailable');
 		}
 
@@ -109,17 +112,34 @@ class EmployerPortalInvitation {
 			return self::refused(reason: 'company-unknown');
 		}
 
-		$address = trim($email) === '' ? trim((string)($company['contactEmail'] ?? '')) : trim($email);
+		$address = trim($email);
+		if ($address === '') {
+			$address = trim((string)($company['contactEmail'] ?? ''));
+		}
+
 		if (filter_var($address, FILTER_VALIDATE_EMAIL) === false) {
 			return self::refused(reason: 'email-invalid');
 		}
 
+		return $this->provisionAndClaim(company: $company, email: $address, organisation: $organisation);
+	}//end invite()
+
+	/**
+	 * Ask portaliq for the account, then write each claim on it.
+	 *
+	 * @param array<string, mixed> $company      The company.
+	 * @param string               $email        The address to invite.
+	 * @param string               $organisation The portal organisation.
+	 *
+	 * @return array{status: string, reason?: string, subjectRef?: string}
+	 */
+	private function provisionAndClaim(array $company, string $email, string $organisation): array {
 		if (class_exists($this->provisionEventClass) === false || class_exists($this->claimEventClass) === false) {
 			return self::refused(reason: 'portal-unavailable');
 		}
 
 		try {
-			$subjectRef = $this->provision(company: $company, email: $address, organisation: $organisation);
+			$subjectRef = $this->provision(company: $company, email: $email, organisation: $organisation);
 			if ($subjectRef === '') {
 				return self::refused(reason: 'provision-refused');
 			}
@@ -130,12 +150,15 @@ class EmployerPortalInvitation {
 				}
 			}
 		} catch (Throwable $exception) {
-			$this->logger->warning('[EmployerPortalInvitation] Could not invite company {ref}: {msg}', ['ref' => $organisationRef, 'msg' => $exception->getMessage()]);
+			$this->logger->warning(
+				'[EmployerPortalInvitation] Could not invite company {ref}: {msg}',
+				['ref' => ($company['id'] ?? '?'), 'msg' => $exception->getMessage()]
+			);
 			return self::refused(reason: 'portal-unavailable');
 		}
 
 		return ['status' => 'invited', 'subjectRef' => $subjectRef];
-	}//end invite()
+	}//end provisionAndClaim()
 
 	/**
 	 * The claims an employer account carries, by name.
@@ -184,8 +207,8 @@ class EmployerPortalInvitation {
 				$row = (array)$object->jsonSerialize();
 			}
 
-			if (is_array($row) === true && ($row['id'] ?? ($row['uuid'] ?? null)) === $organisationRef) {
-				return ($row['lifecycle'] ?? 'active') === 'active' ? $row : null;
+			if (is_array($row) === true && ($row['id'] ?? ($row['uuid'] ?? null)) === $organisationRef && ($row['lifecycle'] ?? 'active') === 'active') {
+				return $row;
 			}
 		}
 
@@ -202,12 +225,17 @@ class EmployerPortalInvitation {
 	 * @return string
 	 */
 	private function provision(array $company, string $email, string $organisation): string {
-		$identityRef = trim((string)($company['eherkenningRef'] ?? ''));
+		$identityRef  = trim((string)($company['eherkenningRef'] ?? ''));
+		$identityType = '';
+		if ($identityRef !== '') {
+			$identityType = 'eherkenning';
+		}
+
 		$event = new ($this->provisionEventClass)(
 			appId: self::APP_ID,
 			audience: EmployerSitePages::AUDIENCE,
 			organisation: $organisation,
-			identityType: $identityRef === '' ? '' : 'eherkenning',
+			identityType: $identityType,
 			identityRef: $identityRef,
 			email: $email,
 			verifiedEmail: true,

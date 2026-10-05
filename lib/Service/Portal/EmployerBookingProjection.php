@@ -108,7 +108,12 @@ class EmployerBookingProjection {
 			$this->saveWhenMoved(schema: 'enrolment', row: $row['enrolment'], fields: ($facts['enrolments'][$id] ?? []));
 		}
 
-		return $this->saveWhenMoved(schema: 'course-booking', row: $booking, fields: ($facts['booking'] + ['courseId' => ($courseId === '' ? null : $courseId)]));
+		$fields = $facts['booking'];
+		if ($courseId !== '') {
+			$fields['courseId'] = $courseId;
+		}
+
+		return $this->saveWhenMoved(schema: 'course-booking', row: $booking, fields: $fields);
 	}//end project()
 
 	/**
@@ -125,8 +130,11 @@ class EmployerBookingProjection {
 		}
 
 		$name = trim((string)$this->users->getDisplayName($uid));
+		if ($name === '' || $name === $uid) {
+			return null;
+		}
 
-		return ($name === '' || $name === $uid) ? null : $name;
+		return $name;
 	}//end trainerName()
 
 	/**
@@ -146,7 +154,11 @@ class EmployerBookingProjection {
 
 		$parts = array_filter([trim((string)($location['name'] ?? '')), trim((string)($location['street'] ?? ''))]);
 
-		return $parts === [] ? null : implode(', ', $parts);
+		if ($parts === []) {
+			return null;
+		}
+
+		return implode(', ', $parts);
 	}//end placeLabel()
 
 	/**
@@ -193,6 +205,8 @@ class EmployerBookingProjection {
 	 * @return array<string, mixed>|null
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
+	 *
+	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function one(string $schema, string $id): ?array {
 		if ($id === '') {
@@ -223,6 +237,8 @@ class EmployerBookingProjection {
 	 * @return array<int, array<string, mixed>>
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
+	 *
+	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function many(string $schema, array $filters): array {
 		if (in_array('', $filters, true) === true) {
