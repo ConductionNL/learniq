@@ -62,6 +62,28 @@ class GuardianPortalInvitation {
 	public const CLAIM_EVENT = 'OCA\\Portaliq\\Event\\PortalAccountClaimRequestedEvent';
 
 	/**
+	 * Portaliq's invitation event: portaliq mails the guardian a one-time
+	 * link (invitation-secret-joins-the-signed-in-account REQ-PIS-007).
+	 */
+	public const INVITATION_EVENT = 'OCA\\Portaliq\\Event\\PortalAccountInvitationRequestedEvent';
+
+	/**
+	 * The invitation mail left.
+	 */
+	public const MAIL_SENT = 'sent';
+
+	/**
+	 * Portaliq made the invitation but its mail did not leave.
+	 */
+	public const MAIL_NOT_SENT = 'not-sent';
+
+	/**
+	 * This portaliq sends no invitation mail (an older version), or it
+	 * refused this account.
+	 */
+	public const MAIL_UNAVAILABLE = 'unavailable';
+
+	/**
 	 * The claim the parent contribution scopes by.
 	 */
 	public const CLAIM_NAME = 'guardianRef';
@@ -84,6 +106,7 @@ class GuardianPortalInvitation {
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param string $provisionEventClass The provision event class (overridable in tests).
 	 * @param string $claimEventClass The claim event class (overridable in tests).
+	 * @param string $invitationEventClass The invitation event class (overridable in tests).
 	 *
 	 * @return void
 	 */
@@ -93,6 +116,7 @@ class GuardianPortalInvitation {
 		private readonly LoggerInterface $logger,
 		private readonly string $provisionEventClass=self::PROVISION_EVENT,
 		private readonly string $claimEventClass=self::CLAIM_EVENT,
+		private readonly string $invitationEventClass=self::INVITATION_EVENT,
 	) {
 	}//end __construct()
 
@@ -104,13 +128,21 @@ class GuardianPortalInvitation {
 	 * login find the account). Returns `status: invited` with the account's
 	 * `subjectRef`, or `status: refused` with a `reason`.
 	 *
+	 * Once the account is linked, portaliq is asked to mail the guardian a
+	 * one-time link. `invitation` says what came of it: `sent`, `not-sent`
+	 * (the mail did not leave; inviting again sends a new one) or
+	 * `unavailable` (this portaliq sends none). The link never comes back
+	 * here, so nobody at the school sees it. The guardian is linked either
+	 * way: a first sign-in with the verified address still finds the account.
+	 *
 	 * @param string $guardianRef The guardian's LearnerProfile uuid.
 	 * @param string $email The guardian's verified email address.
 	 * @param string $organisation The portal organisation slug.
 	 *
-	 * @return array{status: string, reason?: string, subjectRef?: string}
+	 * @return array{status: string, reason?: string, subjectRef?: string, invitation?: string}
 	 *
 	 * @spec openspec/changes/portal-guardian-invitation/specs/portal-identity/spec.md
+	 * @spec openspec/changes/portal-guardian-invitation-mail/specs/portal-identity/spec.md
 	 */
 	public function invite(string $guardianRef, string $email, string $organisation): array {
 		$email = trim($email);
@@ -141,6 +173,8 @@ class GuardianPortalInvitation {
 			if ($this->claim(subjectRef: $subjectRef, guardianRef: (string)$guardian['id']) === false) {
 				return self::refused(reason: 'claim-refused');
 			}
+
+			$invitation = $this->mailInvitation(subjectRef: $subjectRef);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
 				'[GuardianPortalInvitation] Could not invite guardian {guardian}: {msg}',
@@ -152,6 +186,7 @@ class GuardianPortalInvitation {
 		return [
 			'status' => 'invited',
 			'subjectRef' => $subjectRef,
+			'invitation' => $invitation,
 		];
 	}//end invite()
 
@@ -222,6 +257,41 @@ class GuardianPortalInvitation {
 
 		return $event->getResult() === 'ok';
 	}//end claim()
+
+	/**
+	 * Ask portaliq to mail the guardian the one-time link of the account.
+	 *
+	 * A portaliq without the event (an older version) sends nothing, and
+	 * the invitation stands without a mail.
+	 *
+	 * @param string $subjectRef The account's subjectRef.
+	 *
+	 * @return string One of the MAIL_* constants.
+	 *
+	 * @spec openspec/changes/portal-guardian-invitation-mail/specs/portal-identity/spec.md
+	 */
+	private function mailInvitation(string $subjectRef): string {
+		if (class_exists($this->invitationEventClass) === false) {
+			return self::MAIL_UNAVAILABLE;
+		}
+
+		$event = new ($this->invitationEventClass)(
+			appId: self::APP_ID,
+			subjectRef: $subjectRef,
+		);
+		$this->dispatch(event: $event);
+
+		$result = (string)$event->getResult();
+		if ($result === 'sent') {
+			return self::MAIL_SENT;
+		}
+
+		if ($result === 'not_sent') {
+			return self::MAIL_NOT_SENT;
+		}
+
+		return self::MAIL_UNAVAILABLE;
+	}//end mailInvitation()
 
 	/**
 	 * Dispatch one typed event.
