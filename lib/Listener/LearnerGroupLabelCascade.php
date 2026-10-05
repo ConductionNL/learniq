@@ -82,12 +82,7 @@ class LearnerGroupLabelCascade implements IEventListener {
 			return;
 		}
 
-		$entity = $event->getObject();
-		$old    = [];
-		if ($event instanceof ObjectUpdatedEvent === true) {
-			$entity = $event->getNewObject();
-			$old    = ($event->getOldObject()?->getObject() ?? []);
-		}
+		[$entity, $old] = self::sides(event: $event);
 
 		try {
 			if ($this->schemaResolver->guardSchemaSlug(entity: $entity) !== self::ENROLMENT_SCHEMA) {
@@ -109,6 +104,21 @@ class LearnerGroupLabelCascade implements IEventListener {
 			dedupeKey: 'learner-group-label:' . $ref
 		);
 	}//end handle()
+
+	/**
+	 * The saved object and, for an update, the data before the save.
+	 *
+	 * @param ObjectCreatedEvent|ObjectUpdatedEvent $event The event.
+	 *
+	 * @return array{0: \OCA\OpenRegister\Db\ObjectEntity, 1: array<string, mixed>}
+	 */
+	private static function sides(ObjectCreatedEvent|ObjectUpdatedEvent $event): array {
+		if ($event instanceof ObjectUpdatedEvent === true) {
+			return [$event->getNewObject(), ($event->getOldObject()?->getObject() ?? [])];
+		}
+
+		return [$event->getObject(), []];
+	}//end sides()
 
 	/**
 	 * Whether none of the watched fields moved.

@@ -72,11 +72,12 @@ class ReportSubjectGradeRows {
 	public static function rowsFor(array $card, array $names, string $group): array {
 		$caption = implode(' · ', array_values(array_filter([
 			trim((string)($card['periodName'] ?? '')),
-			self::monthOf(at: (string)($card['composedAt'] ?? '')),
+			self::monthOf(dateTime: (string)($card['composedAt'] ?? '')),
 			$group,
 		], static fn (string $part): bool => $part !== '')));
 
-		$rows = [];
+		$caption = self::orNull(text: $caption);
+		$rows    = [];
 		foreach ((array)($card['subjectGrades'] ?? []) as $grade) {
 			$name = ($names[(string)($grade['courseId'] ?? '')] ?? ($names[(string)($grade['curriculumPlanId'] ?? '')] ?? ''));
 			if ($name === '') {
@@ -91,7 +92,7 @@ class ReportSubjectGradeRows {
 				'periodAverage' => ($grade['periodAverage'] ?? null),
 				'passed'        => ($grade['passed'] ?? null),
 				'position'      => count($rows),
-				'caption'       => ($caption === '' ? null : $caption),
+				'caption'       => $caption,
 				'mentorComment' => ($card['mentorComment'] ?? null),
 				'tenant_id'     => (string)($card['tenant_id'] ?? ''),
 			];
@@ -145,14 +146,29 @@ class ReportSubjectGradeRows {
 	}//end replace()
 
 	/**
+	 * The text, or null when it is empty.
+	 *
+	 * @param string $text The text.
+	 *
+	 * @return string|null
+	 */
+	private static function orNull(string $text): ?string {
+		if ($text === '') {
+			return null;
+		}
+
+		return $text;
+	}//end orNull()
+
+	/**
 	 * "juni 2026" from an ISO date-time, or ''.
 	 *
-	 * @param string $at The date-time.
+	 * @param string $dateTime The date-time.
 	 *
 	 * @return string
 	 */
-	private static function monthOf(string $at): string {
-		if (preg_match('/^(\d{4})-(\d{2})/', $at, $match) !== 1) {
+	private static function monthOf(string $dateTime): string {
+		if (preg_match('/^(\d{4})-(\d{2})/', $dateTime, $match) !== 1) {
 			return '';
 		}
 
@@ -186,7 +202,12 @@ class ReportSubjectGradeRows {
 	private function names(array $card): array {
 		$names = [];
 		foreach (['course' => 'courseId', 'curriculum-plan' => 'curriculumPlanId'] as $schema => $field) {
-			$ids = array_values(array_unique(array_filter(array_map(static fn ($g): string => (string)(((array)$g)[$field] ?? ''), (array)($card['subjectGrades'] ?? [])))));
+			$ids = [];
+			foreach ((array)($card['subjectGrades'] ?? []) as $grade) {
+				$ids[] = (string)(((array)$grade)[$field] ?? '');
+			}
+
+			$ids = array_values(array_unique(array_filter($ids)));
 			if ($ids === []) {
 				continue;
 			}

@@ -110,7 +110,10 @@ class ParentRecordPage {
 	public function collections(array $childJoin): array {
 		$schoolJoin = array_merge($childJoin, ['targetField' => 'schoolId']);
 
-		return [
+		// The guardian's inboxes travel with the child's own collections (school-portals-use-the-new-blocks).
+		return array_merge(
+			(new ParentInboxCollections())->collections(childJoin: $childJoin),
+			[
 			$this->hidden(
 				id: 'parentAttendanceSummary',
 				schema: 'attendance-summary',
@@ -161,7 +164,8 @@ class ParentRecordPage {
 				label: 'Holidays',
 				fields: ['name', 'academicYear', 'schoolId', 'holidays', 'studyDays']
 			),
-		];
+			]
+		);
 
 	}//end collections()
 

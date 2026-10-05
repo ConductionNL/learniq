@@ -94,6 +94,11 @@ class PortalLabelTranslator {
 	private const COUNTED_KEYS = ['unit', 'label'];
 
 	/**
+	 * The keys whose children are read in a context named after the key.
+	 */
+	private const NESTED_CONTEXTS = ['sources', 'values', 'phrases', 'confirmation'];
+
+	/**
 	 * The two forms of a counted word.
 	 *
 	 * @var array<int, string>
@@ -155,17 +160,15 @@ class PortalLabelTranslator {
 	 * @return string
 	 */
 	private function contextOf(int|string $key, string $context): string {
-		if ($key === 'sources' || $key === 'values' || $key === 'phrases' || $key === 'confirmation') {
+		if (in_array($key, self::NESTED_CONTEXTS, true) === true) {
 			return (string)$key;
 		}
 
-		// A summary's phrases are maps of answer to words, one per field: every word is read.
-		if ($context === 'phrases') {
-			return 'values';
-		}
-
-		if ($context === 'sources' && is_int($key) === true) {
-			return 'source';
+		// A summary's phrases are maps of answer to words, one per field; a
+		// calendar's sources are a list of sources.
+		$byParent = ['phrases' => 'values', 'sources' => 'source'];
+		if (isset($byParent[$context]) === true && ($context === 'phrases' || is_int($key) === true)) {
+			return $byParent[$context];
 		}
 
 		if (is_string($key) === true && in_array($key, self::COUNTED_KEYS, true) === true) {

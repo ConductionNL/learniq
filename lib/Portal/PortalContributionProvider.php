@@ -713,7 +713,6 @@ class PortalContributionProvider {
 			$this->parentWelfareCollections(childJoin: $childJoin),
 			$extras->conferenceCollections(childJoin: $childJoin),
 			[$extras->groupMembershipsCollection(childJoin: $childJoin)],
-			[$extras->inboxCollection(childJoin: $childJoin), $extras->gradeInboxCollection(childJoin: $childJoin)],
 			[$extras->reportSubjectGradesCollection(childJoin: $childJoin)],
 			$record->collections(childJoin: $childJoin)
 		);
