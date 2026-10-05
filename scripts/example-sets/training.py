@@ -13,7 +13,9 @@ editions, a morning and an afternoon session per training day with every
 participant marked present or not, knowledge tests with resits, signed
 attestations, certificates with their expiry and renewal, course evaluations
 per quarter with the quality scores and improvement actions they led to, and
-the course package imports and exports the institute ran.
+the course package imports and exports the institute ran. On top of that year sits
+the story of the portal designs (add_story): Jansen Installatietechniek BV and its
+four installers in week 41 of 2026.
 
 WHY A SCRIPT. The set is several thousand objects that must agree with each
 other: a participant who misses a morning of a certificate course is rebooked
@@ -594,6 +596,250 @@ class Scheduler:
                             return days
                 day += dt.timedelta(days=1)
         raise RuntimeError(f"no room for {course['key']} in {year}-{month}")
+
+
+# --- the story layer: Jansen Installatietechniek in week 41 of 2026 -----------------
+# The Warmtepompacademie portal designs tell one story, pinned to Monday 5 October
+# 2026 (week 41). It sits on top of the 2025-2026 year: add_story() runs after every
+# other object is built and draws no random number, so no existing uuid or value moves.
+# Spec: openspec/changes/example-sets-are-the-four-schools/specs/example-sets/spec.md
+STORY_TODAY = dt.date(2026, 10, 5)
+STORY_YEAR = "2026-2027"
+STORY_COMPANY = "Jansen Installatietechniek BV"
+# Staff names live in Nextcloud display names, not in the register.
+STORY_STAFF = {
+    PLANNER: "Sophie van Dam",
+    "training-administratie-01": "Rob Maas",
+    "training-trainer-10": "Henk Dekker",
+    "training-trainer-11": "Fatima Ouali",
+}
+HENK = "training-trainer-10"
+FATIMA = "training-trainer-11"
+# A day in the praktijkhal: theory in the morning, the hall after lunch.
+HALL_SLOTS = {"ochtend": ((8, 30), (12, 0)), "middag": ((12, 45), (16, 30))}
+# The external exam institution; the same name and DID as in corporate.py.
+EXAM_COOLING = ("Voorbeeld Examencentrum Koudetechniek", "did:web:examencentrum-koudetechniek.example")
+
+STORY_COURSES = {
+    "FGAS-1": {"name": "F-gassen categorie 1", "regulation": "FGASSEN", "mandatory": True, "tags": ["warmtepompen", "f-gassen", "certificaat"],
+               "description": "De opleiding met examen voor wie aan koelcircuits van warmtepompen werkt. Het certificaat verleng je met de herhaling.",
+               "lessons": []},
+    "BRL6000": {"name": "BRL 6000-21, bovengronds deel", "regulation": None, "mandatory": False, "tags": ["bodemenergie", "certificaat"],
+                "description": "Voor monteurs die bodemenergiesystemen aanleggen: het bovengrondse deel van de installatie, met examen.",
+                "lessons": []},
+    "FGAS-H": {"name": "F-gassen: herhaling en examen", "regulation": "FGASSEN", "mandatory": True, "tags": ["warmtepompen", "f-gassen", "herhaling"],
+               "description": "Een dag om je F-gassencertificaat categorie 1 te verlengen: de regels en de lekcontrole opnieuw, daarna het examen in theorie en praktijk.",
+               "lessons": [("Theorie: regels, koudemiddelen en lekcontrole", 1, "ochtend",
+                            "Wat de regels vragen, welke koudemiddelen er zijn en hoe je een lekcontrole doet en vastlegt."),
+                           ("Examen: theorie en praktijk in de hal", 1, "middag",
+                            "Het examen van de exameninstelling: eerst de vragen, daarna de praktijkopdracht aan een opstelling in de hal.")]},
+    "WP-B": {"name": "Warmtepompen installeren: basis", "regulation": None, "mandatory": False, "tags": ["warmtepompen", "basis"],
+             "description": "Twee dagen voor monteurs die beginnen met warmtepompen: plaatsen, aansluiten en opstarten op echte opstellingen in de praktijkhal.",
+             "lessons": [("Dag 1: zo werkt een warmtepomp", 1, None,
+                          "De koudekringloop, de soorten warmtepompen en een buitenunit plaatsen in de praktijkhal."),
+                         ("Dag 2: aansluiten en opstarten", 2, None,
+                          "Een warmtepomp aansluiten op de cv-installatie, vullen, ontluchten en voor het eerst opstarten.")]},
+    "WP-LW": {"name": "Lucht-water warmtepomp: ontwerp en inbedrijfstelling", "regulation": None, "mandatory": False,
+              "tags": ["warmtepompen", "lucht-water", "gevorderd"],
+              "description": "Drie dagen: het juiste vermogen kiezen, de installatie ontwerpen, hem in bedrijf stellen en overdragen aan de bewoner.",
+              "lessons": [("Dag 1: warmteverlies en het juiste vermogen", 1, None,
+                           "Het warmteverlies van een woning berekenen en een lucht-water warmtepomp kiezen die past."),
+                          ("Dag 2: het ontwerp van de installatie", 2, None,
+                           "Afgifte, buffervat en warm tapwater: een ontwerp maken voor een echte woning."),
+                          ("Dag 3: inbedrijfstelling en overdracht", 3, None,
+                           "De installatie in bedrijf stellen, de instellingen vastleggen en de bewoner uitleggen hoe hij werkt.")]},
+    "WZI": {"name": "Waterzijdig inregelen", "regulation": None, "mandatory": False, "tags": ["warmtepompen", "inregelen", "basis"],
+            "description": "Een dag inregelen: het debiet per radiator of groep berekenen, instellen en meten, zodat het hele huis warm wordt.",
+            "lessons": [("Waterzijdig inregelen in de praktijk", 1, None,
+                         "Het debiet per radiator of groep berekenen, de installatie inregelen en het resultaat meten.")]},
+}
+
+# The four employees of Jansen Installatietechniek. Youssef's birth date is missing on
+# purpose: the portal asks Linda for it before the F-gassen exam (birthDate absent).
+STORY_PEOPLE = [
+    ("tom", "Tom", "Verbeek", "1988-06-12"),
+    ("youssef", "Youssef", "El Amrani", None),
+    ("sanne", "Sanne", "Kok", "1993-02-27"),
+    ("daan", "Daan", "Visser", "2001-09-04"),
+]
+
+# The editions: (course, inschrijving number, trainer, days, people, enrolment lifecycle, enrolled at).
+# The inschrijving number I-2026-NNNN has no field of its own; Enrolment.volgnummer carries NNNN.
+STORY_EDITIONS = [
+    ("WZI", 377, FATIMA, [dt.date(2026, 10, 1)], ["sanne"], "completed", (dt.date(2026, 9, 8), 10, 20)),
+    ("FGAS-H", 412, HENK, [dt.date(2026, 10, 8)], ["tom", "youssef", "sanne"], "active", (dt.date(2026, 9, 14), 9, 40)),
+    ("WZI", None, FATIMA, [dt.date(2026, 10, 15)], [], None, None),
+    ("WP-B", 425, FATIMA, [dt.date(2026, 10, 20), dt.date(2026, 10, 21)], ["daan"], "active", (dt.date(2026, 9, 21), 14, 5)),
+    ("WP-LW", 431, HENK, [dt.date(2026, 11, 3), dt.date(2026, 11, 4), dt.date(2026, 11, 10)], ["tom", "sanne"], "pending",
+     (dt.date(2026, 10, 2), 15, 20)),
+]
+
+
+def story_credential(b: Builder, profile: dict, course: dict, kind: str, issued: str, issuer: tuple[str, str], fields: dict) -> dict:
+    """A credential in the shape the set's own credential() writes, for a story course and any issuer."""
+    name, did = issuer
+    domain = did.removeprefix("did:web:")
+    obj = b.add("credential", {
+        "learnerId": profile["uuid"], "learnerUserId": profile["ncUserId"], "courseId": course["uuid"], "kind": kind,
+        "issuedAt": issued, "issuerDid": did, "signature": "", "openbadges3Payload": {}, "issuedBy": name, **fields,
+    })
+    obj["signature"] = f"voorbeeld.{obj['slug']}.niet-geldig"
+    obj["verificationUrl"] = f"https://{domain}/verify/{obj['uuid']}"
+    obj["openbadges3Payload"] = {
+        "@context": ["https://www.w3.org/ns/credentials/v2", "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json"],
+        "id": f"urn:uuid:{obj['uuid']}", "type": ["VerifiableCredential", "OpenBadgeCredential"],
+        "issuer": {"id": did, "type": ["Profile"], "name": name}, "validFrom": issued,
+        "credentialSubject": {"type": ["AchievementSubject"], "achievement": {
+            "id": f"https://{domain}/achievements/{course['code'].lower()}", "type": ["Achievement"], "name": course["name"],
+            "description": course["description"]}},
+    }
+    if obj.get("expiresAt"):
+        obj["openbadges3Payload"]["validUntil"] = obj["expiresAt"]
+    return obj
+
+
+def add_story(b: Builder, school: dict, location: dict) -> None:
+    """Jansen Installatietechniek BV and its four installers at the Warmtepompacademie, week 41 of 2026.
+
+    Linda Jansen is the employer and training contact. The set models a client
+    company as a contact person (a learner profile with the manager role and the
+    company as department) whose ncUserId is the managerId of its employees, so
+    Linda is that, and the four installers are participants. Every date is
+    absolute and comes from the portal designs.
+    """
+    # Rooms in the praktijkhal.
+    lokaal = b.add("room", {"name": "Lokaal 2", "code": "WPA-L2", "capacity": 12, "kind": "classroom",
+                            "facilities": ["beamer", "whiteboard"], "buildingCode": "00X600", "floor": "0"})
+    hal = b.add("room", {"name": "Praktijkhal", "code": "WPA-HAL", "capacity": 12, "kind": "other",
+                         "facilities": ["werkende lucht-water warmtepompen", "hybride opstellingen", "bodemwarmtepomp", "meetapparatuur"],
+                         "buildingCode": "00X600", "floor": "0"})
+    room_of = {"ochtend": lokaal, "middag": hal}
+
+    # The catalogue courses of the story, with their lessons.
+    courses: dict[str, dict] = {}
+    lessons: dict[str, list[tuple[dict, int, str | None]]] = {}
+    for key, spec in STORY_COURSES.items():
+        fields = {
+            "code": f"{key}-2627", "name": spec["name"], "name_nl": spec["name"], "description": spec["description"], "level": "corporate",
+            "language": "nl", "tags": list(spec["tags"]), "mandatoryTraining": spec["mandatory"], "lifecycle": "published",
+        }
+        if spec["regulation"]:
+            fields["regulationSlug"] = spec["regulation"]
+        courses[key] = b.add("course", fields)
+        lessons[key] = []
+        for order, (title, day, part, text) in enumerate(spec["lessons"], start=1):
+            if part is None:
+                minutes = sum((h2 * 60 + m2) - (h1 * 60 + m1) for (h1, m1), (h2, m2) in HALL_SLOTS.values())
+            else:
+                (h1, m1), (h2, m2) = HALL_SLOTS[part]
+                minutes = (h2 * 60 + m2) - (h1 * 60 + m1)
+            row = b.add("lesson", {
+                "courseId": courses[key]["uuid"], "name": title, "order": order, "contentType": "text",
+                "blocks": [{"blockId": "b1", "type": "richText", "order": 1, "text": text}],
+                "durationMinutes": minutes, "learningObjectives": [text], "mandatoryTraining": spec["mandatory"], "lifecycle": "published",
+            })
+            if spec["regulation"]:
+                row["regulationSlug"] = spec["regulation"]
+            lessons[key].append((row, day, part))
+    courses["FGAS-1"]["renewalCourseSlug"] = courses["FGAS-H"]["slug"]
+
+    # Linda Jansen and her four installers.
+    contacts = [p for p in b.buckets["learner-profile"] if p["ncUserId"].startswith("training-contactpersoon-")]
+    participants = [p for p in b.buckets["learner-profile"] if p["ncUserId"].startswith("training-deelnemer-")]
+    linda = b.add("learner-profile", {
+        "ncUserId": f"training-contactpersoon-{len(contacts) + 1:03d}", "givenName": "Linda", "familyName": "Jansen",
+        "roles": ["manager"], "eduPersonAffiliation": ["affiliate"], "department": STORY_COMPANY,
+        "parentIds": [], "guardianRefs": [], "lifecycle": "active",
+    })
+    people: dict[str, dict] = {}
+    for n, (key, given, family, birth) in enumerate(STORY_PEOPLE, start=len(participants) + 1):
+        fields = {"ncUserId": f"training-deelnemer-{n:03d}", "givenName": given, "familyName": family}
+        if birth is not None:
+            fields["birthDate"] = birth
+        fields.update({
+            "schoolId": school["uuid"], "roles": ["learner"], "eduPersonAffiliation": ["affiliate"], "managerId": linda["ncUserId"],
+            "department": f"{STORY_COMPANY}/Montage", "parentIds": [], "guardianRefs": [], "lifecycle": "active",
+        })
+        people[key] = b.add("learner-profile", fields)
+
+    # Staff: the planner and the administration exist; the two trainers are new.
+    working: dict[str, set[int]] = {}
+    for _key, _number, trainer, days, _who, _state, _at in STORY_EDITIONS:
+        working.setdefault(trainer, set()).update(d.weekday() for d in days)
+    for trainer, quals in ((HENK, ["trainer F-gassen en koudetechniek", "trainer warmtepompen"]),
+                           (FATIMA, ["trainer warmtepompen", "trainer inregelen en hydrauliek"])):
+        b.add("staff", {"ncUserId": trainer, "roles": ["teacher"], "qualifications": quals,
+                        "workingDays": [WEEKDAYS[i] for i in sorted(working[trainer])]})
+
+    # Editions: a cohort, who teaches it, a morning and an afternoon session per day, the enrolments.
+    enrolments: dict[tuple[int, str], dict] = {}
+    for key, number, trainer, days, who, state, enrolled in STORY_EDITIONS:
+        course = courses[key]
+        done = days[-1] < STORY_TODAY
+        first = days[0]
+        cohort = b.add("cohort", {
+            "name": f"{course['name']}, {first.day} {MAAND[first.month - 1]} {first.year}",
+            "period": f"{MAAND[first.month - 1].capitalize()} {first.year}", "academicYear": STORY_YEAR,
+            "teacherIds": [trainer], "learnerIds": [people[p]["ncUserId"] for p in who],
+            "lifecycle": "completed" if done else "planned", "locationId": location["uuid"],
+            "notes": "In de praktijkhal: theorie in Lokaal 2, na de lunch in de hal.", "kind": "teaching", "courseId": course["uuid"],
+        })
+        b.add("subjectteacherassignment", {"cohortId": cohort["uuid"], "courseId": course["uuid"], "teacherId": trainer})
+        sessions = []
+        for day_number, d in enumerate(days, start=1):
+            for part in ("ochtend", "middag"):
+                (h1, m1), (h2, m2) = HALL_SLOTS[part]
+                lesson = next((row for row, day, p in lessons[key] if day == day_number and p in (None, part)), None)
+                when = f"{d.day} {MAAND[d.month - 1]} {d.year}"
+                title = f"{course['name']}, {part} ({when})" if len(days) == 1 else f"{course['name']}, dag {day_number} {part} ({when})"
+                sessions.append((b.add("session", {
+                    "cohortId": cohort["uuid"], "courseId": course["uuid"], "lessonId": lesson["uuid"] if lesson else None, "title": title,
+                    "startsAt": stamp(d, h1, m1), "endsAt": stamp(d, h2, m2), "location": f"{room_of[part]['name']}, {location['name']}",
+                    "roomId": room_of[part]["uuid"], "lifecycle": "completed" if done else "scheduled",
+                }), d, part))
+        for p in who:
+            profile = people[p]
+            fields = {
+                "learnerId": profile["ncUserId"], "learnerRef": profile["uuid"], "courseId": course["uuid"], "source": "hr",
+                "mandatory": bool(STORY_COURSES[key]["mandatory"]), "managerId": linda["ncUserId"], "cohortId": cohort["uuid"],
+                "lifecycle": state, "locationId": location["uuid"], "volgnummer": number,
+                "requestedAt": stamp(*enrolled),
+            }
+            if STORY_COURSES[key]["regulation"]:
+                fields["regulationSlug"] = STORY_COURSES[key]["regulation"]
+            enrolments[(number, p)] = b.add("enrolment", fields)
+            if not done:
+                continue
+            for session, d, part in sessions:
+                (h1, m1), (h2, m2) = HALL_SLOTS[part]
+                b.add("attendance-record", {
+                    "sessionId": session["uuid"], "learnerId": profile["ncUserId"], "learnerRef": profile["uuid"], "cohortId": cohort["uuid"],
+                    "status": "present", "minutesAttended": (h2 * 60 + m2) - (h1 * 60 + m1), "markedBy": trainer,
+                    "markedAt": stamp(d, h1, m1 + 10), "reason": None, "excuseRequestId": None,
+                })
+
+    # Sanne's proof of participation for Waterzijdig inregelen, ready on Thursday 1 October at 16.52.
+    story_credential(b, people["sanne"], courses["WZI"], "badge", stamp(dt.date(2026, 10, 1), 16, 52), (INSTITUTE, ISSUER_DID),
+                     {"source": "auto", "enrolmentId": enrolments[(377, "sanne")]["uuid"], "lifecycle": "issued"})
+    # The certificates the company holds. F-gassen categorie 1 runs out on 30 November 2026, eight weeks after
+    # today; the herhaling on 8 October is its renewal. OpenRegister computes expiryStatus from expiresAt.
+    for p in ("tom", "youssef", "sanne"):
+        story_credential(b, people[p], courses["FGAS-1"], "certificate", stamp(dt.date(2021, 11, 30), 10, 0), EXAM_COOLING, {
+            "expiresAt": stamp(dt.date(2026, 11, 30), 23, 59), "source": "manual", "regulationSlug": "FGASSEN",
+            "renewalEnrolmentId": enrolments[(412, p)]["uuid"], "lifecycle": "issued",
+        })
+    story_credential(b, people["sanne"], courses["BRL6000"], "certificate", stamp(dt.date(2023, 3, 12), 10, 0), EXAM_COOLING, {
+        "expiresAt": stamp(dt.date(2028, 3, 12), 23, 59), "source": "manual", "lifecycle": "issued",
+    })
+
+    # The regulation the F-gassen courses answer to, with the code and name corporate.py uses.
+    b.add("regulation", {
+        "slug": "FGASSEN", "name": "F-gassen, EU-verordening 2024/573",
+        "description": "Werken aan koelcircuits van warmtepompen mag alleen met een F-gassencertificaat.",
+        "applicabilityCriteria": "Monteurs die koelcircuits openen, als hun werkgever het vraagt.",
+        "audienceScope": "role-specific", "audienceRoles": [], "requiresAnnualRenewal": False,
+        "active": True, "ragRedThreshold": 70, "ragAmberThreshold": 90, "lifecycle": "published",
+    })
 
 
 def build() -> dict:
@@ -1384,6 +1630,8 @@ def build() -> dict:
                "Wat de NIS2-richtlijn van medewerkers vraagt: phishing herkennen, incidenten melden en veilig werken.",
                "Medewerkers van organisaties die onder NIS2 vallen, zoals zorg en gemeenten.", 12, True)
 
+    add_story(b, school, location)
+
     shipped = {r["slug"] for r in b.buckets["regulation"]}
     for rows in b.buckets.values():
         for row in rows:
@@ -1398,7 +1646,8 @@ def build() -> dict:
         "info": {
             "title": "Learniq example set: Training institute",
             "version": "1.2.0",
-            "description": f"{INSTITUTE}, a fictional training institute in the fictional town of {TOWN}, through the 2025-2026 year.",
+            "description": (f"{INSTITUTE}, a fictional trade academy for installers in the fictional town of {TOWN}, through the 2025-2026 year, "
+                            "and the autumn of 2026 for one client company, Jansen Installatietechniek BV, as the portal designs show it."),
         },
         "x-openregister": {
             "type": "profile",
@@ -1427,7 +1676,8 @@ def build() -> dict:
                     "an afternoon session per training day with every participant marked, knowledge tests with resits, signed attestations, "
                     "certificates with expiry and renewal, a leadership programme with intake rounds and a waiting list, quarterly course "
                     "evaluations with quality scores and improvement actions, the course package imports and export round trips, "
-                    "and the regulations the certificates answer to."
+                    "the regulations the certificates answer to, and the autumn of 2026 for one client company: Jansen Installatietechniek BV, "
+                    "its four installers, their F-gassen and heat pump courses in October and November, and the certificates they hold."
                 ),
                 "objects": objects,
             },
