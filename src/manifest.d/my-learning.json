@@ -185,7 +185,25 @@
 			"_note": "portable-learning-record: read-only history of LearningRecordExport rows — a learner-initiated, signed, dual-shaped bundle of the learner's own trajectory. No create/edit actions beyond the declarative generate lifecycle action.",
 			"config": {
 				"register": "learniq",
-				"schema": "learning-record-export"
+				"schema": "learning-record-export",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"bundleRef",
+					"bundleSignature",
+					"coverageReport",
+					"errorMessage",
+					"generatedAt",
+					"issuerDid",
+					"lifecycle",
+					"periodFrom",
+					"periodTo",
+					"requestedAt",
+					"requestedBy"
+				]
 			}
 		},
 		{
@@ -269,7 +287,25 @@
 			"_note": "portable-learning-record: read-only history of LearningRecordShare rows — a time-boxed, revocable grant of one generated export to a named external recipient. No create/edit actions beyond the declarative grant/revoke lifecycle actions.",
 			"config": {
 				"register": "learniq",
-				"schema": "learning-record-share"
+				"schema": "learning-record-share",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"accessCount",
+					"expiresAt",
+					"isExpired",
+					"lastAccessedAt",
+					"learningRecordExportId",
+					"lifecycle",
+					"recipientEmail",
+					"recipientName",
+					"revocationReason",
+					"revokedAt",
+					"sharedBy"
+				]
 			}
 		},
 		{

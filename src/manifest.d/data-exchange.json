@@ -222,7 +222,24 @@
 			"config": {
 				"register": "learniq",
 				"schema": "dossier-review",
-				"showAdd": false
+				"showAdd": false,
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "learner-profile"
+						}
+					},
+					"exchangeJobId",
+					"note",
+					"reviewedAt",
+					"reviewedBy",
+					"status",
+					"target"
+				]
 			}
 		},
 		{

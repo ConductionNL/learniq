@@ -130,6 +130,40 @@
 						"handler": "navigate",
 						"route": "ExternalTrainingBulkRecord"
 					}
+				],
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "learner-profile"
+						}
+					},
+					"batchId",
+					"completedAt",
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					"credentialId",
+					"evidenceNote",
+					"kind",
+					"lifecycle",
+					"provider",
+					"regulationSlug",
+					"rejectionReason",
+					"submittedBy",
+					"title",
+					"validUntil",
+					"verifiedAt",
+					"verifiedBy"
 				]
 			}
 		},

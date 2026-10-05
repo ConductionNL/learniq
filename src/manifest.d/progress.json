@@ -930,7 +930,22 @@
 			"config": {
 				"register": "learniq",
 				"schema": "competency-attainment",
-				"readOnly": true
+				"readOnly": true,
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"assessmentResultIds",
+					"competencyId",
+					"frameworkId",
+					"gradeEntryIds",
+					"lastRecomputedAt",
+					"proficiencyLevelId",
+					"submissionIds",
+					"werkprocesAssessmentIds"
+				]
 			}
 		},
 		{
@@ -1013,7 +1028,29 @@
 			"title": "Lesson completions",
 			"config": {
 				"register": "learniq",
-				"schema": "lesson-completion"
+				"schema": "lesson-completion",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"completedAt",
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					"enrolmentId",
+					"lessonId",
+					"score",
+					"source",
+					"verb"
+				]
 			}
 		},
 		{
@@ -1088,7 +1125,28 @@
 			"config": {
 				"register": "learniq",
 				"schema": "engagement-score",
-				"readOnly": true
+				"readOnly": true,
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"activityCount",
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					"lastActivityAt",
+					"recencyDays",
+					"score",
+					"timeOnTaskMinutes"
+				]
 			}
 		},
 		{
@@ -1319,7 +1377,28 @@
 			"config": {
 				"register": "learniq",
 				"schema": "engagement-risk-flag",
-				"readOnly": true
+				"readOnly": true,
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					"engagementRiskThresholdId",
+					"engagementScoreId",
+					"flaggedAt",
+					"lifecycle",
+					"metricValueAtFlag"
+				]
 			}
 		},
 		{
@@ -1415,7 +1494,33 @@
 			"title": "Portfolios",
 			"config": {
 				"register": "learniq",
-				"schema": "portfolio"
+				"schema": "portfolio",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					"curriculumPlanComponentId",
+					"curriculumPlanId",
+					"description",
+					"dueAt",
+					"gradeEntryId",
+					"gradeValue",
+					"kind",
+					"lifecycle",
+					"templateId",
+					"title"
+				]
 			}
 		},
 		{
@@ -1425,7 +1530,26 @@
 			"title": "Portfolio entries",
 			"config": {
 				"register": "learniq",
-				"schema": "portfolio-entry"
+				"schema": "portfolio-entry",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"attachmentRef",
+					"competencyId",
+					"credentialId",
+					"criterionId",
+					"evidenceKind",
+					"externalTrainingRecordId",
+					"portfolioId",
+					"reflectionText",
+					"sectionId",
+					"submissionId",
+					"title",
+					"werkprocesAssessmentId"
+				]
 			}
 		},
 		{
@@ -2110,7 +2234,19 @@
 			"config": {
 				"register": "learniq",
 				"schema": "point-award",
-				"readOnly": true
+				"readOnly": true,
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"awardedAt",
+					"pointRuleId",
+					"points",
+					"sourceKind",
+					"sourceObjectId"
+				]
 			}
 		},
 		{
@@ -2186,7 +2322,20 @@
 			"config": {
 				"register": "learniq",
 				"schema": "learner-engagement",
-				"readOnly": true
+				"readOnly": true,
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"currentStreakDays",
+					"lastActivityDate",
+					"lastRecomputedAt",
+					"levelId",
+					"longestStreakDays",
+					"totalPoints"
+				]
 			}
 		},
 		{

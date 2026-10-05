@@ -2845,7 +2845,52 @@
 			"title": "Sessions",
 			"config": {
 				"register": "learniq",
-				"schema": "Session"
+				"schema": "Session",
+				"columns": [
+					{
+						"key": "affectedLearnerIds",
+						"label": "Affected learners",
+						"widget": "learnerName"
+					},
+					"affectedParentIds",
+					"assignmentIds",
+					"changeBatchId",
+					"changedAt",
+					"changeReason",
+					"changeReasonKind",
+					{
+						"key": "cohortId",
+						"label": "Group",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "cohort"
+						}
+					},
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					"durationMinutes",
+					"endsAt",
+					"externalRef",
+					"isPast",
+					"lessonId",
+					"lifecycle",
+					"location",
+					"materialIds",
+					"onlineMeetingUrl",
+					"roomId",
+					"sessionDayBucket",
+					"startsAt",
+					"substituteTeacherId",
+					"title"
+				]
 			}
 		},
 		{
@@ -2861,7 +2906,52 @@
 						"gte": "@today",
 						"lt": "@today+1d"
 					}
-				}
+				},
+				"columns": [
+					{
+						"key": "affectedLearnerIds",
+						"label": "Affected learners",
+						"widget": "learnerName"
+					},
+					"affectedParentIds",
+					"assignmentIds",
+					"changeBatchId",
+					"changedAt",
+					"changeReason",
+					"changeReasonKind",
+					{
+						"key": "cohortId",
+						"label": "Group",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "cohort"
+						}
+					},
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					"durationMinutes",
+					"endsAt",
+					"externalRef",
+					"isPast",
+					"lessonId",
+					"lifecycle",
+					"location",
+					"materialIds",
+					"onlineMeetingUrl",
+					"roomId",
+					"sessionDayBucket",
+					"startsAt",
+					"substituteTeacherId",
+					"title"
+				]
 			}
 		},
 		{
@@ -2877,7 +2967,52 @@
 						"gte": "@today",
 						"lt": "@today+7d"
 					}
-				}
+				},
+				"columns": [
+					{
+						"key": "affectedLearnerIds",
+						"label": "Affected learners",
+						"widget": "learnerName"
+					},
+					"affectedParentIds",
+					"assignmentIds",
+					"changeBatchId",
+					"changedAt",
+					"changeReason",
+					"changeReasonKind",
+					{
+						"key": "cohortId",
+						"label": "Group",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "cohort"
+						}
+					},
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					"durationMinutes",
+					"endsAt",
+					"externalRef",
+					"isPast",
+					"lessonId",
+					"lifecycle",
+					"location",
+					"materialIds",
+					"onlineMeetingUrl",
+					"roomId",
+					"sessionDayBucket",
+					"startsAt",
+					"substituteTeacherId",
+					"title"
+				]
 			}
 		},
 		{
@@ -3725,7 +3860,26 @@
 			"title": "Exam accommodations",
 			"config": {
 				"register": "learniq",
-				"schema": "exam-accommodation"
+				"schema": "exam-accommodation",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"accommodationKind",
+					"value",
+					{
+						"key": "assessmentId",
+						"label": "Assessment",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "assessment"
+						}
+					},
+					"lifecycle"
+				]
 			}
 		},
 		{
@@ -4214,7 +4368,34 @@
 				"schema": "Submission",
 				"filter": {
 					"assignmentId": "@route.assignmentId"
-				}
+				},
+				"columns": [
+					{
+						"key": "learnerIds",
+						"label": "Learner",
+						"widget": "learnerName",
+						"widgetProps": {
+							"refField": "learnerRefs"
+						}
+					},
+					"assignmentId",
+					"attachmentRefs",
+					"effectiveGrade",
+					"feedbackText",
+					"finalGradeRuleApplied",
+					"finalGradeSetBy",
+					"gradeEntryId",
+					"isLate",
+					"lifecycle",
+					"markerIds",
+					"plagiarismCheckedAt",
+					"plagiarismScore",
+					"plagiarismStatus",
+					"proposedGrade",
+					"resubmissionDueAt",
+					"rubricScores",
+					"submittedAt"
+				]
 			}
 		},
 		{
@@ -4438,7 +4619,21 @@
 				"schema": "self-assessment",
 				"filter": {
 					"assignmentId": "@route.assignmentId"
-				}
+				},
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"assignmentId",
+					"comments",
+					"lifecycle",
+					"rubricScores",
+					"submissionId",
+					"timing",
+					"totalScore"
+				]
 			}
 		},
 		{
@@ -5405,7 +5600,21 @@
 			"config": {
 				"register": "learniq",
 				"schema": "proctoring-session",
-				"readOnly": true
+				"readOnly": true,
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"assessmentResultId",
+					"flags",
+					"lifecycle",
+					"provider",
+					"providerSessionId",
+					"recordedArtefactRefs",
+					"status"
+				]
 			}
 		},
 		{
@@ -7073,7 +7282,20 @@
 				"showDeleteAction": false,
 				"showMassImport": false,
 				"showMassCopy": false,
-				"showMassDelete": false
+				"showMassDelete": false,
+				"columns": [
+					{
+						"key": "learnerIds",
+						"label": "Learners",
+						"widget": "learnerName"
+					},
+					"approach",
+					"differentiatedGoal",
+					"groupPlanId",
+					"instructieniveau",
+					"intendedOutcome",
+					"name"
+				]
 			}
 		},
 		{
@@ -7330,7 +7552,22 @@
 			"title": "Support requests",
 			"config": {
 				"register": "learniq",
-				"schema": "support-request"
+				"schema": "support-request",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"dataExchangeJobId",
+					"description",
+					"learningPlanId",
+					"lifecycle",
+					"originGroupPlanSubgroupId",
+					"raisedBy",
+					"supportDomain",
+					"urgency"
+				]
 			}
 		},
 		{
@@ -7693,7 +7930,18 @@
 			"title": "Trajectories",
 			"config": {
 				"register": "learniq",
-				"schema": "trajectory"
+				"schema": "trajectory",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"lifecycle",
+					"referredAt",
+					"supportRequestId",
+					"voorzieningType"
+				]
 			}
 		},
 		{
@@ -7890,7 +8138,18 @@
 			"title": "Observation instruments",
 			"config": {
 				"register": "learniq",
-				"schema": "observation-instrument"
+				"schema": "observation-instrument",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"academicYear",
+					"entries",
+					"lifecycle",
+					"period"
+				]
 			}
 		},
 		{
@@ -8288,7 +8547,23 @@
 			"title": "Subject choices",
 			"config": {
 				"register": "learniq",
-				"schema": "subject-choice"
+				"schema": "subject-choice",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"academicYear",
+					"curriculumPlanId",
+					"guardianConsentBy",
+					"guardianConsentByRef",
+					"guardianConsentGiven",
+					"lifecycle",
+					"programmeId",
+					"selectedElectiveCourseIds",
+					"validationErrors"
+				]
 			}
 		},
 		{
