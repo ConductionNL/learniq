@@ -3,8 +3,8 @@
 # Copyright (C) 2026 Conduction B.V.
 """Build lib/Settings/profiles/vo.json, the secondary school example set.
 
-One fictional havo/vwo school, Voorbeeldcollege Esdoornveen in the fictional
-town of Esdoornveen, through one complete school year (2025-2026): an
+One fictional havo/vwo school, Vaartveld College in the fictional town of
+Zuiddrecht, through one complete school year (2025-2026): an
 onderbouw building for years 1 and 2 and a main building for years 3 to 6,
 eleven classes from the havo/vwo brugklas to havo 5 and vwo 6, about 300
 pupils with their guardians, a mentor and subject teachers per class, a school
@@ -13,6 +13,16 @@ secondary school records, three verzuim flags, three report periods ending in
 three toetsweken, the leerjaar 3 profielkeuze, the exam classes' schoolexamen
 (SE) grades on a PTA with their SE final grades, one schooladvies received at
 intake, and the decaan, zorgcoordinator and attendance desk at work.
+
+THE STORY LAYER. On top of that year sits one pupil's autumn of 2026-2027,
+pinned to Monday 5 October 2026 (week 41), the day the Vaartveld portal
+designs show: Noor Bakker of havo 3 (class H3b) moved up to 4 havo, class H4b,
+with the economie en maatschappij profile she chose in the spring. Her mentor
+Sanne Kramer, her Monday lessons with a room change and a cancelled lesson,
+the grades behind her averages, this week's homework and tests, her absence,
+the H4b mentor-talk round and the school calendar are added by add_story()
+after every other object, with no draw from the main random stream, so no
+earlier uuid or value moves. See openspec/changes/example-sets-are-the-four-schools/specs/example-sets/spec.md.
 
 WHY A SCRIPT. The set is several thousand objects that must agree with each
 other: an absence falls on a school day of the pupil's own class, a late
@@ -102,6 +112,13 @@ SCHEMAS = [
     "elective-offer",
     "elective-sign-up",
     "enrolment-forecast",
+    # The story layer (example-sets-are-the-four-schools): appended for the same reason.
+    "attendance-summary",
+    "conference-round",
+    "teacher-availability",
+    "conference-slot",
+    "school-event",
+    "assignment",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -244,6 +261,13 @@ CLASSES = [
     ("6V1", 6, "vwo", 25, "hoofd", "H1.07", [8, 7, 6, 8, 5]),
 ]
 EXAM_CLASSES = {"5H1": "havo 5", "6V1": "vwo 6"}
+# The class name people read, in Vaartveld College's scheme (stream, leerjaar,
+# letter: H4b). Only a display string: the keys above stay the script's own.
+# Havo 3 is H3b because its pupils move up to H4b in the story layer.
+CLASS_NAMES = {
+    "1HV1": "HV1a", "1HV2": "HV1b", "2H1": "H2a", "2V1": "V2a", "3H1": "H3b", "3V1": "V3a",
+    "4H1": "H4a", "4V1": "V4a", "5H1": "H5a", "5V1": "V5a", "6V1": "V6a",
+}
 MENTORS = {
     "1HV1": "vo-docent-02", "1HV2": "vo-docent-16", "2H1": "vo-docent-04", "2V1": "vo-docent-11",
     "3H1": "vo-docent-08", "3V1": "vo-docent-12", "4H1": "vo-docent-13", "4V1": "vo-docent-15",
@@ -251,27 +275,27 @@ MENTORS = {
 }
 # Teachers: user id, display name, subjects, degree (1 = eerstegraads), working days.
 TEACHERS = [
-    ("vo-docent-01", "Marloes Varenkamp", ["NE"], 1, WEEKDAYS),
+    ("vo-docent-01", "Sanne Kramer", ["NE"], 1, WEEKDAYS),
     ("vo-docent-02", "Jeroen Bremhof", ["NE"], 2, ["monday", "tuesday", "wednesday", "thursday"]),
-    ("vo-docent-03", "Ingrid Tijmveld", ["EN"], 1, WEEKDAYS),
+    ("vo-docent-03", "Ingrid Jansen", ["EN"], 1, WEEKDAYS),
     ("vo-docent-04", "Karim Saliedal", ["EN"], 2, ["monday", "tuesday", "thursday", "friday"]),
     ("vo-docent-05", "Esther Lavendelmeer", ["FA"], 1, ["monday", "tuesday", "wednesday", "thursday"]),
     ("vo-docent-06", "Pieter Vlasbrink", ["DU"], 1, ["tuesday", "wednesday", "thursday", "friday"]),
-    ("vo-docent-07", "Samira Roggestein", ["WB", "WA"], 1, WEEKDAYS),
+    ("vo-docent-07", "Emre Demir", ["WB", "WA"], 1, WEEKDAYS),
     ("vo-docent-08", "Bas Kamillehorst", ["WI"], 2, WEEKDAYS),
     ("vo-docent-09", "Laura Hopgaard", ["WA", "WI"], 1, ["monday", "wednesday", "thursday", "friday"]),
-    ("vo-docent-10", "Arjen Mosberg", ["GS"], 1, WEEKDAYS),
-    ("vo-docent-11", "Naima Heuvelrode", ["GS", "MA"], 2, ["monday", "tuesday", "wednesday", "friday"]),
-    ("vo-docent-12", "Wouter Kreeklaan", ["AK"], 1, WEEKDAYS),
-    ("vo-docent-13", "Petra Schelpwijk", ["EC"], 1, ["monday", "tuesday", "thursday", "friday"]),
-    ("vo-docent-14", "Tarik Duinriethof", ["BE", "EC"], 1, ["monday", "tuesday", "wednesday", "thursday"]),
+    ("vo-docent-10", "Arjen Willems", ["GS"], 1, WEEKDAYS),
+    ("vo-docent-11", "Naima Vos", ["GS", "MA"], 2, ["monday", "tuesday", "wednesday", "friday"]),
+    ("vo-docent-12", "Wouter Mulder", ["AK"], 1, WEEKDAYS),
+    ("vo-docent-13", "Thomas de Boer", ["EC"], 1, ["monday", "tuesday", "thursday", "friday"]),
+    ("vo-docent-14", "Ellen Hendriks", ["BE", "EC"], 1, ["monday", "tuesday", "wednesday", "thursday"]),
     ("vo-docent-15", "Judith Zeggeveld", ["BI"], 1, WEEKDAYS),
     ("vo-docent-16", "Niels Wederikdal", ["BI"], 2, ["tuesday", "wednesday", "thursday", "friday"]),
     ("vo-docent-17", "Mirjam Boekweitkamp", ["NA", "NASK"], 1, WEEKDAYS),
     ("vo-docent-18", "Ricardo Munthout", ["SK"], 1, ["monday", "tuesday", "wednesday", "thursday"]),
-    ("vo-docent-19", "Eline Klaverbrink", ["BV", "CKV"], 1, ["monday", "tuesday", "thursday", "friday"]),
+    ("vo-docent-19", "Bart Dijkstra", ["BV", "CKV"], 1, ["monday", "tuesday", "thursday", "friday"]),
     ("vo-docent-20", "Maarten Esdoornhorst", ["MU"], 2, ["monday", "wednesday", "friday"]),
-    ("vo-docent-21", "Chantal Varenmeer", ["LO"], 1, WEEKDAYS),
+    ("vo-docent-21", "Youssef El Idrissi", ["LO"], 1, WEEKDAYS),
     ("vo-docent-22", "Edwin Bremstein", ["LO"], 2, ["monday", "tuesday", "wednesday", "thursday"]),
 ]
 TEACHER_BY_ID = {t[0]: t for t in TEACHERS}
@@ -406,21 +430,21 @@ def build() -> dict:
         return class_by_name[name][6][day.weekday()] * LESSON
 
     # --- school, locations, rooms -------------------------------------------
-    school = b.add("school", {"brin": "00X2", "name": "Voorbeeldcollege Esdoornveen", "pedagogicalConcept": "regular"})
+    school = b.add("school", {"brin": "00X2", "name": "Vaartveld College", "pedagogicalConcept": "regular"})
     locations = {
         "hoofd": b.add("vestiging", {
             "schoolId": school["uuid"], "vestigingscode": "00X200", "onderwijslocatiecode": None,
-            "name": "Hoofdgebouw", "street": "Esdoornlaan 40", "postalCode": "0531 EL", "city": "Esdoornveen",
+            "name": "Hoofdgebouw", "street": "Vaartlaan 40", "postalCode": "0531 VL", "city": "Zuiddrecht",
         }),
         "onderbouw": b.add("vestiging", {
             "schoolId": school["uuid"], "vestigingscode": "00X201", "onderwijslocatiecode": "00X201-A",
-            "name": "Onderbouwlocatie Varenhof", "street": "Varenhof 3", "postalCode": "0534 VH", "city": "Esdoornveen",
+            "name": "Onderbouwlocatie Varenhof", "street": "Varenhof 3", "postalCode": "0534 VH", "city": "Zuiddrecht",
         }),
     }
     rooms = {}
     for name, _lj, _stream, _size, loc, room, _hours in CLASSES:
         rooms[room] = b.add("room", {
-            "name": f"Lokaal {room} ({name})", "code": room, "capacity": 32, "kind": "classroom",
+            "name": f"Lokaal {room} ({CLASS_NAMES[name]})", "code": room, "capacity": 32, "kind": "classroom",
             "facilities": ["digibord", "chromebookkar"], "buildingCode": locations[loc]["vestigingscode"],
             "floor": room[1],
         })
@@ -514,7 +538,7 @@ def build() -> dict:
                 break
         address = {"street": rng.choice(STREETS), "houseNumber": str(rng.randint(1, 160)),
                    "postalCode": f"05{rng.randint(30, 49)} {rng.choice('ABDEGHKLMNPRSTWZ')}{rng.choice('ABDEGHKLMNPRSTWZ')}",
-                   "city": "Esdoornveen", "country": "NL"}
+                   "city": "Zuiddrecht", "country": "NL"}
         single = rng.random() < 0.2
         guardians = []
         for g in range(1 if single else 2):
@@ -684,7 +708,7 @@ def build() -> dict:
     for name, leerjaar, stream, _size, loc, room, _hours in CLASSES:
         mentor = MENTORS[name]
         cohorts[name] = b.add("cohort", {
-            "name": name, "programmeId": programmes[stream]["uuid"], "courseId": streams[stream]["uuid"],
+            "name": CLASS_NAMES[name], "programmeId": programmes[stream]["uuid"], "courseId": streams[stream]["uuid"],
             "teacherIds": class_teachers[name],
             "learnerIds": [p["nc"] for p in pupils if p["class"] == name],
             "period": "Schooljaar", "academicYear": YEAR, "lifecycle": "active", "locationId": locations[loc]["uuid"],
@@ -698,9 +722,9 @@ def build() -> dict:
     staff_rows = [
         ("vo-rector-01", "Anouk Tijmdal", ["administrator"], ["rector"], WEEKDAYS),
         (TEAMLEIDER_OB, "Hasan Kreekveld", ["coordinator"], ["teamleider onderbouw"], WEEKDAYS),
-        (TEAMLEIDER_BB, "Monique Salielaan", ["coordinator"], ["teamleider bovenbouw"], WEEKDAYS),
-        (DECAAN, "Vincent Heuvelhof", ["coordinator", "teacher"], ["decaan", "loopbaanoriëntatie en -begeleiding"], ["monday", "tuesday", "thursday", "friday"]),
-        (ZORG, "Carolien Mosbrink", ["coordinator"], ["zorgcoördinator", "orthopedagoog"], ["monday", "tuesday", "wednesday", "thursday"]),
+        (TEAMLEIDER_BB, "Jeroen Smit", ["coordinator"], ["teamleider bovenbouw"], WEEKDAYS),
+        (DECAAN, "Marloes Peters", ["coordinator", "teacher"], ["decaan", "loopbaanoriëntatie en -begeleiding"], ["monday", "tuesday", "thursday", "friday"]),
+        (ZORG, "Anouk Visser", ["coordinator"], ["zorgcoördinator", "orthopedagoog"], ["monday", "tuesday", "wednesday", "thursday"]),
         (DESK, "Wendy Vlashof", ["administrator"], ["verzuimcoördinator"], WEEKDAYS),
         (EXAMSEC, "Erik Roggebrink", ["administrator"], ["examensecretaris"], ["monday", "tuesday", "wednesday", "thursday"]),
         (ADMIN, "Hatice Kamilleveld", ["administrator"], ["leerlingadministratie"], ["monday", "wednesday", "thursday", "friday"]),
@@ -877,7 +901,7 @@ def build() -> dict:
             label = ", toetsweek, " if in_toetsweek else ", "
             sessions[(name, day)] = b.add("session", {
                 "cohortId": cohort["uuid"], "courseId": streams[class_by_name[name][2]]["uuid"],
-                "title": f"{name}{label}{dutch_date(day)}",
+                "title": f"{CLASS_NAMES[name]}{label}{dutch_date(day)}",
                 "startsAt": stamp(day, 8, 30), "endsAt": stamp(day, end_h, end_m),
                 "location": room["name"], "roomId": room["uuid"], "lifecycle": "completed",
             })
@@ -1197,7 +1221,7 @@ def build() -> dict:
                         title = f"SE{number} {subject.lower()} {EXAM_CLASSES[cname]}"
                         minutes = 100 if cname == "5H1" else 120
                     else:
-                        title = f"Toetsweek {number}: {subject.lower()}, {cname}"
+                        title = f"Toetsweek {number}: {subject.lower()}, {CLASS_NAMES[cname]}"
                         minutes = 90
                     papers[(cname, s, comp)] = b.add("exam", {
                         "title": title,
@@ -1450,6 +1474,9 @@ def build() -> dict:
         "instructorSeesGroups": "all", "instructorSeesTeachers": "all", "instructorSeesRooms": "all",
     })
 
+    # --- the story layer, after every other object ---------------------------------------------------
+    add_story(b, school, locations, rooms, courses, streams, programmes, cohorts, pupils)
+
     # --- assemble ------------------------------------------------------------------------------------
     for rows in b.buckets.values():
         for row in rows:
@@ -1462,7 +1489,7 @@ def build() -> dict:
         "info": {
             "title": "Learniq example set: Secondary school",
             "version": "1.0.0",
-            "description": "Voorbeeldcollege Esdoornveen, a fictional havo and vwo school in the fictional town of Esdoornveen, through the 2025-2026 school year.",
+            "description": "Vaartveld College, a fictional havo and vwo school in the fictional town of Zuiddrecht, through the 2025-2026 school year, with one pupil's autumn of 2026-2027 on top.",
         },
         "x-openregister": {
             "type": "profile",
@@ -1498,6 +1525,349 @@ def build() -> dict:
         "paths": {},
         "components": {},
     }
+
+
+# --- the story layer: Noor Bakker's autumn of 2026-2027 (example-sets-are-the-four-schools) -----------
+STORY_YEAR = "2026-2027"
+STORY_FIRST_DAY = dt.date(2026, 8, 17)
+TODAY = dt.date(2026, 10, 5)
+# The H4b teacher per subject: an existing teacher of that subject, so no new account is needed.
+STORY_TEACHERS = {
+    "NE": "vo-docent-01", "EN": "vo-docent-03", "WA": "vo-docent-07", "EC": "vo-docent-13", "GS": "vo-docent-10",
+    "BE": "vo-docent-14", "AK": "vo-docent-12", "MA": "vo-docent-11", "CKV": "vo-docent-19", "LO": "vo-docent-21",
+}
+STORY_MENTOR = "vo-docent-01"
+# Rooms of the main building in the Vaartveld numbering (floor, then number).
+STORY_ROOMS = ["1.12", "2.14", "0.21", "1.08", "1.05", "2.03"]
+# H4b's Monday: lesson hour, subject (None for the mentor hour), room code.
+H4B_MONDAY = [(1, "NE", "1.12"), (2, "WA", "2.14"), (3, "EC", "1.08"), (4, "EN", "1.05"), (5, "GS", "2.03"),
+              (6, None, "1.12"), (7, "LO", "H-GYM")]
+# Period 1 of 2026-2027 per subject: (componentId, label, weight, kind, date, grade or None for one still to come).
+# The grades give the averages on the boards: Nederlands 7,0, Engels 7,1, wiskunde A 5,2, economie 6,4,
+# geschiedenis 7,8, bedrijfseconomie 6,3, aardrijkskunde 6,9, maatschappijleer 7,2; 6,7 over these eight.
+STORY_COMPONENTS = {
+    "NE": [("toets-fictie", "Toets fictie en leesvaardigheid", 1, "assessment", dt.date(2026, 9, 3), 7.1),
+           ("betoog", "Schrijfopdracht betoog", 1, "assignment", dt.date(2026, 9, 22), 6.8)],
+    "EN": [("so-grammatica-u1", "SO grammatica unit 1", 1, "assessment", dt.date(2026, 9, 16), 7.4),
+           ("leestoets", "Leestoets", 2, "assessment", dt.date(2026, 10, 2), 6.9),
+           ("so-woordjes-u2", "SO woordjes unit 2", 1, "assessment", dt.date(2026, 10, 5), None)],
+    "WA": [("so-h1", "SO hoofdstuk 1", 1, "assessment", dt.date(2026, 9, 10), 6.1),
+           ("toets-h12", "Toets hoofdstuk 1 en 2", 3, "assessment", dt.date(2026, 9, 24), 4.7),
+           ("so-h3", "SO hoofdstuk 3", 1, "assessment", dt.date(2026, 10, 1), 5.8),
+           ("toets-h34", "Toets hoofdstuk 3 en 4", 3, "assessment", dt.date(2026, 11, 10), None)],
+    "EC": [("po-huishoudboekje", "Praktische opdracht huishoudboekje", 2, "assignment", dt.date(2026, 9, 11), 6.3),
+           ("so-h1", "SO hoofdstuk 1", 1, "assessment", dt.date(2026, 9, 30), 6.6)],
+    "GS": [("toets-t12", "Toets tijdvak 1 en 2", 3, "assessment", dt.date(2026, 9, 17), 7.8),
+           ("toets-t34", "Toets tijdvak 3 en 4", 3, "assessment", dt.date(2026, 10, 8), None)],
+    "BE": [("so-h1", "SO hoofdstuk 1", 1, "assessment", dt.date(2026, 9, 8), 6.0),
+           ("so-h2", "SO hoofdstuk 2", 1, "assessment", dt.date(2026, 9, 29), 6.5)],
+    "AK": [("so-h1", "SO hoofdstuk 1", 1, "assessment", dt.date(2026, 9, 18), 6.9)],
+    "MA": [("po-nieuwsanalyse", "Praktische opdracht nieuwsanalyse", 1, "assignment", dt.date(2026, 9, 23), 7.2)],
+}
+# CKV and LO are judged in words, on the O/V/G scale: (componentId, label, date, value 1 O, 2 V, 3 G).
+STORY_JUDGED = {
+    "CKV": ("kunstdossier-1", "Kunstdossier deel 1", dt.date(2026, 9, 21), 2),
+    "LO": ("atletiek", "Atletiek", dt.date(2026, 9, 25), 3),
+}
+# Homework and tests of week 41 and the toetsweek: (subject, title, due, lesson hour on that day or None,
+# componentId when it is a test, instructions).
+STORY_HOMEWORK = [
+    ("NE", "Leesverslag inleveren", stamp(TODAY, 8, 30), 1, None,
+     "Lever je leesverslag in bij mevrouw Kramer. Neem ook je leesboek mee."),
+    ("WA", "Paragraaf 3.2, opgave 14 tot en met 22", stamp(TODAY, 9, 20), 2, None, "Maak de opgaven en neem ze mee naar de les."),
+    ("EN", "SO woordjes unit 2", stamp(TODAY, 11, 20), 4, "so-woordjes-u2", "Leer de woorden van unit 2. Het SO telt 1 keer mee."),
+    ("EC", "Hoofdstuk 2, opgave 8 tot en met 15", stamp(dt.date(2026, 10, 6), 8, 30), 1, None, "Maak de opgaven en neem ze mee naar de les."),
+    ("GS", "Toets tijdvak 3 en 4", stamp(dt.date(2026, 10, 8), 8, 30), None, "toets-t34", "Leer tijdvak 3 en 4. De toets telt 3 keer mee."),
+    ("WA", "Paragraaf 3.3, opgave 23 tot en met 31", stamp(dt.date(2026, 10, 8), 8, 30), None, None, "Maak de opgaven en neem ze mee naar de les."),
+    ("WA", "Toets hoofdstuk 3 en 4", stamp(dt.date(2026, 11, 10), 8, 30), None, "toets-h34", "In de toetsweek. De toets telt 3 keer mee."),
+]
+
+
+def story_weighted(entries: list[tuple[str, float, float]]) -> tuple[float, dict]:
+    """weighted_average() for the story's (componentId, value, weight) rows, all in period 1."""
+    total = sum(v * w for _c, v, w in entries)
+    weight_sum = sum(w for _c, _v, w in entries)
+    breakdown = {
+        "periods": {"1": round(total / weight_sum, 4)},
+        "components": {c: {"value": v, "weight": float(w), "contribution": v * w} for c, v, w in entries},
+    }
+    return round(total / weight_sum, 4), breakdown
+
+
+def add_story(b: Builder, school: dict, locations: dict, rooms: dict, courses: dict, streams: dict, programmes: dict,
+              cohorts: dict, pupils: list[dict]) -> dict:
+    """Noor Bakker in 4 havo, class H4b, on Monday 5 October 2026 (example-sets-are-the-four-schools).
+
+    Added after every other object and drawing no random number, so no
+    existing uuid or value moves. The only edits to earlier objects are values:
+    one havo 3 pupil and her parents get the story's names, her profielkeuze
+    gets geschiedenis as the fifth subject the boards show, her report cards
+    use her new first name, and the havo 3 enrolments are completed because the
+    class moved up to H4b.
+
+    @spec openspec/changes/example-sets-are-the-four-schools/specs/example-sets/spec.md
+    """
+    havo3 = sorted((p for p in pupils if p["class"] == "3H1"), key=lambda p: p["nc"])
+    noor = next(p for p in havo3 if p["given"] == "Vera" and p["surname"] == "Kamillemeer")
+    profile = noor["profile_obj"]
+    mother, father = noor["guardians"]
+    assert len(noor["guardians"]) == 2 and noor["family"] not in {q["family"] for q in pupils if q is not noor}
+    old_given = noor["given"]
+    noor["given"], noor["surname"] = "Noor", "Bakker"
+    profile.update({"givenName": "Noor", "familyName": "Bakker"})
+    mother["familyName"] = "Bakker"
+    father.update({"givenName": "Erik", "familyName": "Bakker"})
+    for card in b.buckets["report-card"]:
+        if card["learnerId"] == noor["nc"]:
+            card["mentorComment"] = card["mentorComment"].replace(old_given, "Noor")
+    # Her profielkeuze of last spring: economie en maatschappij with bedrijfseconomie and aardrijkskunde,
+    # and geschiedenis, the five subjects on her grade list. Signed by her father.
+    noor["choice"].update({
+        "selectedElectiveCourseIds": [courses[c]["uuid"] for c in ["EC", "WA", "GS", "BE", "AK"]],
+        "guardianConsentBy": father["ncUserId"], "guardianConsentByRef": father["uuid"],
+        "validationErrors": [], "lifecycle": "approved",
+    })
+
+    # --- rooms, the band scale, the class -----------------------------------------------------------------
+    hoofd = locations["hoofd"]
+    story_rooms = dict(rooms)
+    for code in STORY_ROOMS:
+        story_rooms[code] = b.add("room", {
+            "name": f"Lokaal {code}", "code": code, "capacity": 30, "kind": "classroom",
+            "facilities": ["digibord"], "buildingCode": hoofd["vestigingscode"], "floor": code[0],
+        })
+    words = b.add("grade-scale", {
+        "name": "Beoordeling onvoldoende, voldoende, goed", "kind": "band", "min": 1, "max": 3, "passThreshold": 2,
+        "roundingRule": "half-up-int", "lifecycle": "active",
+        "bands": [
+            {"bandId": "O", "label": "Onvoldoende", "minValue": 1, "maxValue": 1, "pass": False},
+            {"bandId": "V", "label": "Voldoende", "minValue": 2, "maxValue": 2, "pass": True},
+            {"bandId": "G", "label": "Goed", "minValue": 3, "maxValue": 3, "pass": True},
+        ],
+    })
+    numeric = b.buckets["grade-scale"][0]
+    subjects = list(STORY_TEACHERS)
+    teacher_ids = [STORY_MENTOR] + [t for s, t in STORY_TEACHERS.items() if t != STORY_MENTOR]
+    h4b = b.add("cohort", {
+        "name": "H4b", "programmeId": programmes["havo"]["uuid"], "courseId": streams["havo"]["uuid"],
+        "teacherIds": list(dict.fromkeys(teacher_ids)), "learnerIds": [p["nc"] for p in havo3],
+        "period": "Schooljaar", "academicYear": STORY_YEAR, "lifecycle": "active", "locationId": hoofd["uuid"],
+        "teacherAssignments": [{"teacherId": STORY_MENTOR, "role": "primary", "days": list(WEEKDAYS)}],
+        "notes": "Havo 4, de klas van mevrouw Kramer. De hele klas H3b is overgegaan.", "kind": "teaching", "programmeYear": 4,
+    })
+    learner_refs = [p["profile_obj"]["uuid"] for p in havo3]
+    parent_ids = sorted({g["ncUserId"] for p in havo3 for g in p["guardians"]})
+    for p in havo3:
+        # Last year's enrolment is done; the school year rollover puts the class in H4b.
+        p["enrolment"]["lifecycle"] = "completed"
+        b.add("enrolment", {
+            "learnerId": p["nc"], "learnerRef": p["profile_obj"]["uuid"], "courseId": streams["havo"]["uuid"],
+            "source": "system", "cohortId": h4b["uuid"], "cohortName": "H4b", "lifecycle": "active",
+            "inschrijvingDate": p["enrolment"]["inschrijvingDate"], "volgnummer": p["volgnummer"],
+            "locationId": hoofd["uuid"], "leerjaar": 4,
+        })
+    for s in subjects:
+        b.add("subjectteacherassignment", {"cohortId": h4b["uuid"], "courseId": courses[s]["uuid"], "teacherId": STORY_TEACHERS[s]})
+
+    # --- toetsplannen and period 1 of 2026-2027 ---------------------------------------------------------------
+    plans = {}
+    for s in subjects:
+        name = SUBJECTS[s][0]
+        if s in STORY_JUDGED:
+            comp_id, label, _date, _value = STORY_JUDGED[s]
+            components = [{"componentId": comp_id, "label": label, "weight": 1, "period": "1", "kind": "assignment"}]
+            scale_id = words["uuid"]
+        else:
+            components = [{"componentId": c, "label": label, "weight": w, "period": "1", "kind": kind}
+                          for c, label, w, kind, _d, _v in STORY_COMPONENTS[s]]
+            scale_id = numeric["uuid"]
+        plans[s] = b.add("curriculum-plan", {
+            "name": f"Toetsplan {name.lower()} havo 4, {STORY_YEAR}", "kind": "generic", "formula": "weighted-average",
+            "requiredCourseIds": [courses[s]["uuid"]], "electiveCourseIds": [], "gradeScaleId": scale_id,
+            "components": components, "passRules": [{"componentId": None, "minValue": 5.5 if s not in STORY_JUDGED else 2}],
+            "periods": [{"periodId": "1", "label": "Periode 1", "startDate": STORY_FIRST_DAY.isoformat(), "endDate": "2026-11-27"}],
+            "lifecycle": "published",
+        })
+    b.add("report-period", {
+        "name": "Periode 1", "academicYear": STORY_YEAR, "periodCode": "1", "startDate": STORY_FIRST_DAY.isoformat(),
+        "endDate": "2026-11-27", "curriculumPlanIds": [plans[s]["uuid"] for s in subjects], "cohortIds": [h4b["uuid"]],
+        "lockDate": stamp(dt.date(2026, 12, 4), 17, 0), "attendanceIncluded": True, "lifecycle": "open",
+        "holidays": [{"name": "Herfstvakantie", "startDate": "2026-10-17", "endDate": "2026-10-25"}],
+        "studyDays": [], "schoolId": school["uuid"],
+    })
+
+    # --- lessons: the Mondays her absence and late arrivals fall on, Monday 5 and Tuesday 6 October -----------
+    def lesson(day: dt.date, hour: int, s: str | None, code: str, lifecycle: str) -> dict:
+        (sh, sm), (eh, em) = BELL[hour - 1]
+        room = story_rooms[code]
+        return b.add("session", {
+            "cohortId": h4b["uuid"], "courseId": courses[s]["uuid"] if s else None,
+            "title": SUBJECTS[s][0] if s else "Mentoruur",
+            "startsAt": stamp(day, sh, sm), "endsAt": stamp(day, eh, em),
+            "location": room["name"], "roomId": room["uuid"], "lifecycle": lifecycle,
+        })
+
+    mondays = {}
+    for day in (dt.date(2026, 9, 7), dt.date(2026, 9, 14), dt.date(2026, 9, 28), TODAY):
+        mondays[day] = {hour: lesson(day, hour, s, code, "completed" if day < TODAY else "scheduled")
+                        for hour, s, code in H4B_MONDAY}
+    today = mondays[TODAY]
+    moved = story_rooms["0.21"]
+    today[3].update({
+        "roomId": moved["uuid"], "location": moved["name"], "changeReasonKind": "room-unavailable",
+        "changeReason": "Lokaal 1.08 is vandaag niet beschikbaar; economie is in lokaal 0.21.",
+        "affectedLearnerIds": list(h4b["learnerIds"]), "affectedParentIds": parent_ids,
+    })
+    today[7].update({
+        "lifecycle": "cancelled", "changeReasonKind": "teacher-absence", "changeReason": "De docent is afwezig.",
+        "affectedLearnerIds": list(h4b["learnerIds"]), "affectedParentIds": parent_ids,
+    })
+    tuesday = dt.date(2026, 10, 6)
+    tuesday_first = lesson(tuesday, 1, "EC", "1.08", "scheduled")
+    steunles = lesson(tuesday, 8, "WA", "2.14", "scheduled")
+    steunles["title"] = "Steunles wiskunde"
+    lesson_on = {(TODAY, hour): s for hour, s in today.items()}
+    lesson_on[(tuesday, 1)] = tuesday_first
+
+    # --- grades ------------------------------------------------------------------------------------------------
+    finals = {}
+    for s in subjects:
+        course = courses[s]
+        if s in STORY_JUDGED:
+            comp_id, _label, day, value = STORY_JUDGED[s]
+            rows = [(comp_id, day, value, 1, words)]
+        else:
+            rows = [(c, d, v, w, numeric) for c, _l, w, _k, d, v in STORY_COMPONENTS[s] if v is not None]
+        stored = []
+        for comp_id, day, value, weight, scale in rows:
+            # The English reading test is the newest grade, entered on Friday 2 October at 15.42.
+            when = stamp(day, 15, 42) if (s, comp_id) == ("EN", "leestoets") else stamp(day, 16, 0)
+            stored.append(b.add("grade-entry", {
+                "learnerId": noor["nc"], "learnerRef": profile["uuid"], "curriculumPlanId": plans[s]["uuid"],
+                "componentId": comp_id, "courseId": course["uuid"], "courseName": course["name"], "cohortId": h4b["uuid"],
+                "sourceKind": "manual", "value": value, "gradeScaleId": scale["uuid"], "weight": weight, "period": "1",
+                "grader": STORY_TEACHERS[s], "gradedAt": when, "visibleFrom": when, "lifecycle": "published",
+            }))
+        if s in STORY_JUDGED:
+            continue
+        value, breakdown = story_weighted([(e["componentId"], e["value"], e["weight"]) for e in stored])
+        finals[s] = b.add("final-grade", {
+            "learnerId": noor["nc"], "learnerRef": profile["uuid"], "courseId": course["uuid"],
+            "programmeId": programmes["havo"]["uuid"], "curriculumPlanId": plans[s]["uuid"], "gradeScaleId": numeric["uuid"],
+            "value": value, "passed": value >= 5.5, "breakdown": breakdown,
+            "lastRecomputedAt": max(e["gradedAt"] for e in stored),
+        })
+
+    # --- absence: one day ill (reported by her father), late twice in the first hour ---------------------------
+    ill = dt.date(2026, 9, 14)
+    excuse = b.add("excuse-request", {
+        "learnerId": noor["nc"], "learnerRef": profile["uuid"], "submittedBy": father["ncUserId"], "submittedByRef": father["uuid"],
+        "dateFrom": ill.isoformat(), "dateTo": ill.isoformat(), "reason": "Noor is ziek", "reasonKind": "illness",
+        "submittedAuthLevel": "basic", "decidedBy": DESK, "decidedAt": stamp(ill, 8, 15), "decisionNote": None,
+        "lifecycle": "approved",
+    })
+    for hour in sorted(mondays[ill]):
+        b.add("attendance-record", {
+            "sessionId": mondays[ill][hour]["uuid"], "learnerId": noor["nc"], "learnerRef": profile["uuid"],
+            "cohortId": h4b["uuid"], "status": "absent-excused", "minutesAttended": 0, "markedBy": DESK,
+            "markedAt": stamp(ill, 8, 20), "reason": "Ziek gemeld door vader", "excuseRequestId": excuse["uuid"],
+            "absenceReasonKind": "illness",
+        })
+    late_minutes = {dt.date(2026, 9, 7): 10, dt.date(2026, 9, 28): 5}
+    for day, minutes in late_minutes.items():
+        b.add("attendance-record", {
+            "sessionId": mondays[day][1]["uuid"], "learnerId": noor["nc"], "learnerRef": profile["uuid"],
+            "cohortId": h4b["uuid"], "status": "late", "minutesAttended": LESSON - minutes, "markedBy": STORY_MENTOR,
+            "markedAt": stamp(day, 8, 40), "reason": "Te laat in het eerste uur", "lateMinutes": minutes,
+        })
+    b.add("attendance-summary", {
+        "learnerId": noor["nc"], "learnerRef": profile["uuid"], "schoolYear": STORY_YEAR,
+        "absentDays": 1, "absentAuthorisedDays": 1, "absentUnauthorisedDays": 0,
+        "lateCount": len(late_minutes), "lateMinutes": sum(late_minutes.values()),
+        "updatedAt": stamp(TODAY, 7, 0), "teacherIds": list(h4b["teacherIds"]),
+    })
+
+    # --- steunles wiskunde: Tuesday's 8th hour, 12 places, 6 taken ------------------------------------------------
+    offer = b.add("elective-offer", {
+        "name": "Steunles wiskunde",
+        "description": "Elke dinsdag het 8e uur, van 15.20 tot 16.10 uur in lokaal 2.14. Meneer Demir legt uit wat je lastig vindt.",
+        "sessionIds": [steunles["uuid"]], "timetableSessionRefs": [], "capacityPerLesson": 12,
+        "eligibleCohortIds": [h4b["uuid"]], "windowMode": "relative", "opensDaysBefore": 7, "closesHoursBefore": 12,
+        "lifecycle": "open",
+    })
+    others = [p for p in havo3 if p is not noor]
+    for p in others[:6]:
+        b.add("elective-sign-up", {
+            "offerId": offer["uuid"], "sessionId": steunles["uuid"], "timetableSessionRef": None, "learnerId": p["nc"],
+            "status": "signed-up", "madeBy": p["nc"], "madeVia": "learner",
+        })
+
+    # --- mentor talks: Tuesday 13 October after school and Thursday 15 October in the evening ----------------------
+    mentor_name = TEACHER_BY_ID[STORY_MENTOR][1]
+    talks = b.add("conference-round", {
+        "name": "Mentorgesprekken H4b, oktober 2026", "cohortIds": [h4b["uuid"]], "teacherIds": [STORY_MENTOR],
+        "slotDurationMinutes": 10, "bufferMinutes": 10,
+        "bookingOpensAt": stamp(TODAY, 7, 50), "bookingClosesAt": stamp(dt.date(2026, 10, 9), 23, 59),
+        "invitedLearnerIds": list(h4b["learnerIds"]), "invitedLearnerRefs": learner_refs,
+        "bookingMode": "direct", "maxBookingsPerChild": 1, "lifecycle": "booking-open",
+    })
+    blocks = [(dt.date(2026, 10, 13), (16, 10), (17, 20)), (dt.date(2026, 10, 15), (18, 30), (19, 40))]
+    b.add("teacher-availability", {
+        "conferenceRoundId": talks["uuid"], "teacherId": STORY_MENTOR,
+        "blocks": [{"startsAt": stamp(d, *s), "endsAt": stamp(d, *e)} for d, s, e in blocks], "lifecycle": "submitted",
+    })
+    # Two times are taken already: Tuesday 16.10 and Thursday 18.50, by the parents of two classmates.
+    taken = {(dt.date(2026, 10, 13), 16, 10): (others[0], stamp(TODAY, 8, 5)),
+             (dt.date(2026, 10, 15), 18, 50): (others[1], stamp(TODAY, 9, 40))}
+    for day, (sh, sm), (eh, em) in blocks:
+        start = dt.datetime(day.year, day.month, day.day, sh, sm, tzinfo=AMS)
+        end_of_block = dt.datetime(day.year, day.month, day.day, eh, em, tzinfo=AMS)
+        while start + dt.timedelta(minutes=10) <= end_of_block:
+            end = start + dt.timedelta(minutes=10)
+            slot = {
+                "conferenceRoundId": talks["uuid"], "teacherId": STORY_MENTOR, "teacherName": mentor_name,
+                "startsAt": start.isoformat(), "endsAt": end.isoformat(),
+                "slotLabel": f"{start:%d-%m-%Y %H:%M}-{end:%H:%M}, {mentor_name}",
+                "eligibleLearnerRefs": learner_refs, "location": "Lokaal 1.12", "lifecycle": "free",
+            }
+            booked = taken.get((day, start.hour, start.minute))
+            if booked is not None:
+                pupil, at = booked
+                slot.update({"learnerId": pupil["nc"], "learnerRef": pupil["profile_obj"]["uuid"],
+                             "guardianRef": pupil["guardians"][0]["uuid"], "bookedAt": at, "lifecycle": "booked"})
+            b.add("conference-slot", slot)
+            start = end + dt.timedelta(minutes=10)
+
+    # --- the school calendar ---------------------------------------------------------------------------------
+    events = [
+        ("Mentorgesprekken", "2026-10-13", "2026-10-15", "event", None,
+         "Op dinsdag 13 oktober na school en donderdag 15 oktober in de avond. Kies een tijd in Mijn Vaartveld."),
+        ("Herfstvakantie", "2026-10-17", "2026-10-25", "other", None, "De school is dicht."),
+        ("Informatieavond profielkeuze, klas 3", "2026-11-03T19:30:00+01:00", "2026-11-03T21:00:00+01:00", "event", None,
+         "Voor leerlingen van klas 3 havo en vwo en hun ouders, in de aula. Je hoort hoe de profielkeuze gaat en wat je met elk profiel kunt."),
+        ("Toetsweek 1, bovenbouw", "2026-11-09", "2026-11-13", "other", [h4b],
+         "Het toetsrooster staat in Mijn Vaartveld. Kijk goed welke toetsen meetellen voor je schoolexamen."),
+    ]
+    for title, starts, ends, kind, groups, description in events:
+        b.add("school-event", {
+            "title": title, "description": description, "startsAt": starts, "endsAt": ends, "kind": kind,
+            "audience": "groups" if groups else "school", "schoolId": school["uuid"],
+            "cohortIds": [g["uuid"] for g in groups or []],
+        })
+
+    # --- homework and tests: the class's work, named for every pupil of H4b ------------------------------------
+    for s, title, due, hour, comp_id, instructions in STORY_HOMEWORK:
+        session = lesson_on.get((dt.date.fromisoformat(due[:10]), hour)) if hour else None
+        b.add("assignment", {
+            "title": title, "instructions": instructions, "courseId": courses[s]["uuid"],
+            "sessionId": session["uuid"] if session else None, "cohortId": h4b["uuid"],
+            "curriculumPlanComponentId": comp_id, "dueAt": due, "maxPoints": 10,
+            "allowLateSubmission": comp_id is None, "lifecycle": "published",
+            # What AssignmentLearnerRefsStamp writes on a live save: the group's pupils.
+            "learnerRefs": list(learner_refs),
+        })
+
+    return {"noor": noor["nc"], "father": father["ncUserId"]}
 
 
 def render(data: dict) -> str:
