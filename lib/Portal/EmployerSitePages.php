@@ -165,7 +165,7 @@ class EmployerSitePages {
 					'fieldConfigs' => $statusConfig,
 					'columns' => [
 						['field' => 'firstDay', 'label' => 'First day', 'render' => 'date'],
-						['field' => 'courseName', 'label' => 'Course'],
+						['field' => 'courseName', 'label' => 'Course name'],
 						['field' => 'participantNames', 'label' => 'Participants'],
 						['field' => 'employerStatus', 'label' => 'Status', 'valueLabels' => self::BOOKING_STATUS],
 					],
