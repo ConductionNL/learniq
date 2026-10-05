@@ -156,7 +156,7 @@ class CourseEvaluationDraftCleanupJob extends TimedJob {
 	 * @return bool
 	 */
 	private function isStaleDraft(mixed $draft, int $cutoff): bool {
-		// getCreated() is an Entity magic accessor, so method_exists() cannot see it.
+		// The accessor getCreated() is Entity magic, so method_exists() cannot see it.
 		if ($draft instanceof ObjectEntity === false) {
 			return false;
 		}
