@@ -913,6 +913,9 @@ class PortalContributionProvider {
 				'scopeClaim' => 'guardianRef',
 				'via' => $childJoin,
 				'groupByField' => 'learnerRef',
+				// The newest absence first: a guardian looks for the report
+				// they just sent, not for the oldest one on file.
+				'defaultSort' => ['field' => 'dateFrom', 'direction' => 'desc'],
 				'label' => "My child's absence excuses",
 				'listable' => true,
 				'minTrust' => 'substantial',
