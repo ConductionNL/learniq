@@ -368,7 +368,7 @@ const SIMPLE_MAIN_ORDER = [
 	'MyTimetableMenu',
 	'TimetablesMenu',
 	'GroupLearning',
-	'MarkingSimple',
+	'GradesSimple',
 	'CatalogueMenu',
 	'MyLearningRecordMenu',
 	'CheckInMenu',
@@ -400,7 +400,7 @@ const SIMPLE_MAIN_BY_ROLE = {
 		'GroupsSimple',
 		'MyTimetableMenu',
 		'GroupLearning',
-		'MarkingSimple',
+		'GradesSimple',
 		'LearnersSimple',
 		'AttendanceSimple',
 		'GroupProgress',
@@ -457,7 +457,7 @@ const SIMPLE_MAIN_BY_ROLE = {
 		'MyTimetableMenu',
 		'TimetablesMenu',
 		'GroupLearning',
-		'MarkingSimple',
+		'GradesSimple',
 		'LearnersSimple',
 		'AttendanceSimple',
 		'GroupProgress',
@@ -466,8 +466,8 @@ const SIMPLE_MAIN_BY_ROLE = {
 	],
 }
 
-/** The two pages that gain a menu entry they never had. Everything else mirrors the full menu. */
-const NEW_DOORS = ['Cohorts', 'Submissions']
+/** The one page that gains a menu entry it never had. Everything else mirrors the full menu. */
+const NEW_DOORS = ['Cohorts']
 
 test('the full profile is exactly the plain manifest build', () => {
 	const plain = buildManifest(
@@ -698,28 +698,38 @@ test('the simple menu never shows a role a page the full menu does not show it',
 	}
 })
 
-test('the two new doors open for the roles that already had the pages next to them', () => {
-	// Cohorts and Submissions had no menu entry. They borrow the gate of the
-	// entry they sit beside, or a narrower one.
-	const allowed = {
-		GroupsSimple: [
-			'instructor',
-			'coordinator',
-			'administration-manager',
-			'admin',
-		],
-		MarkingSimple: [
-			'instructor',
-			'coordinator',
-			'administration-manager',
-			'admin',
-		],
-	}
-	for (const [id, roles] of Object.entries(allowed)) {
-		const entry = SIMPLE.menu.find((item) => item.id === id)
-		for (const role of entry.visibleIf['user.primaryRole'].in) {
-			assert.ok(roles.includes(role), `${id} opens for ${role}`)
+test('the new door opens for the roles that already had the pages next to it', () => {
+	// Cohorts had no menu entry. It borrows the gate of Learning, the entry
+	// its lists sit under in the full menu.
+	const entry = SIMPLE.menu.find((item) => item.id === 'GroupsSimple')
+	assert.deepEqual(entry.visibleIf['user.primaryRole'].in, [
+		'instructor',
+		'coordinator',
+		'administration-manager',
+		'admin',
+	])
+})
+
+test('no entry and no link opens a page that needs something in its address', () => {
+	// A route with a parameter cannot be opened from a menu: vue-router
+	// refuses to build the address and the click does nothing. Submissions
+	// (`/assignments/:assignmentId/submissions`) is why this test exists.
+	const simple = build(SIMPLE, 'admin')
+	const routeOf = (id) => simple.pages.find((page) => page.id === id)?.route
+	const targets = simple.menu
+		.filter((item) => item.route)
+		.map((item) => item.route)
+	for (const overlay of SIMPLE.pages) {
+		for (const items of Object.values(overlay.configAppend)) {
+			targets.push(...items.map((item) => item.route))
 		}
+	}
+	assert.ok(targets.length > 40)
+	for (const target of targets) {
+		assert.ok(
+			typeof routeOf(target) === 'string' && !routeOf(target).includes(':'),
+			`${target} opens ${routeOf(target)}`,
+		)
 	}
 })
 

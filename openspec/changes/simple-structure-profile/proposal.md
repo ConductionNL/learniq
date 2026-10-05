@@ -21,16 +21,16 @@ learniq already knows a user's role: `user.primaryRole`, resolved on the server 
 
 | role | main entries |
 | --- | --- |
-| teacher (`instructor`) | Dashboard, My learning, Groups, My timetable, Lessons and assignments, Marking, Learners, Attendance, Progress, Care and dossier |
-| care coordinator (`coordinator`) | the same without Marking, with Timetables |
-| administration (`administration-manager`) | the same without Marking and Care, with Timetables and People |
+| teacher (`instructor`) | Dashboard, My learning, Groups, My timetable, Lessons and assignments, Grades, Learners, Attendance, Progress, Care and dossier |
+| care coordinator (`coordinator`) | the same without Grades, with Timetables |
+| administration (`administration-manager`) | the same without Grades and Care, with Timetables and People |
 | learner | Dashboard, My learning, My timetable, Course catalogue, My learning record, Check in, My work groups, My evaluations, Optional lessons, Pick electives |
 | guardian | Dashboard, My learning, My timetable, My learning record, Pick electives, Book a conversation |
 
 ### Where the rest goes
 
 - **Settings.** The set-up lists (templates, periods, rooms, screens, locations, schools, staff, fees, rounds) and the import, export and exchange tools move to the settings foldout. Each keeps its own gate.
-- **Header links.** Groups, Marking, Learners, Attendance and Care and dossier each gain links to the lists that used to sit next to them.
+- **Header links.** Groups, Grades, Learners, Attendance and Care and dossier each gain links to the lists that used to sit next to them.
 - **Report cards.** Three readings become cards on the Reports page.
 - **Existing landing pages.** Progress and Compliance already card their retired entries. Lessons and assignments and People already list theirs.
 
@@ -50,12 +50,13 @@ Also unlinked: Subject choices, People for teachers and coordinators, Book a con
 ### What the design names and learniq does not have
 
 - **Berichten.** learniq has no messages page. The entry is left out.
+- **Nakijken.** learniq lists submissions per assignment only (`/assignments/:assignmentId/submissions`). There is no page with everything that waits for marking, so there is no entry. Grades takes its place for teachers, and marking starts from an assignment.
 - **Mijn groepen.** The Groups entry opens the Cohorts list, which shows every group the user may read, not only their own.
 - **Mentor, examencommissie, directie.** These are not roles the server resolves. The resolver knows admin, compliance officer, HR, administration manager, team lead, coordinator, instructor, confidential counsellor, guardian and learner. The simple menu follows those.
 
 ## What the library cannot express
 
-- Lifting a child entry to the top level without a relocation step. A relocation step drops the captions. The profile adds five top-level twins instead (ids ending in `Simple`).
+- Lifting a child entry to the top level without a relocation step. A relocation step drops the captions. The profile adds six top-level twins instead (ids ending in `Simple`).
 - Appending cards to a `nav-card-grid` widget: the cards sit inside a widget's content, below what a page overlay can reach.
 - A role gate on a header link.
 - Active state that respects `query`.

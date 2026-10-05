@@ -15,8 +15,8 @@ There is no `relocations` key. Any relocation object makes the library drop entr
 
 1. **The role signal is the existing one.** `user.primaryRole` comes from `DashboardRoleService` and is already initial state. No new role, group or setting.
 2. **A simple gate only narrows.** Menu visibility is not a permission, and the server decides what a user may read. But a menu that shows a role a page it never had invites a refusal. The test compares per role, per segment.
-3. **Twins instead of relocations.** Learners, Attendance, Dossier notes, Pick electives and Book a conversation are children of groups. They get a top-level twin with a new id and the same route, icon and gate.
-4. **Two new doors.** Cohorts and Submissions had pages and no menu entry. Groups opens for the roles that see Learning. Marking opens for teachers.
+3. **Twins instead of relocations.** Learners, Attendance, Grades, Dossier notes, Pick electives and Book a conversation are children of groups. They get a top-level twin with a new id and the same route, icon and gate.
+4. **One new door.** Cohorts had a page and no menu entry. Groups opens for the roles that see Learning. Submissions also has no entry, but its address needs an assignment, so it cannot get one.
 5. **Ten is the ceiling, twelve for an administrator.** An administrator holds every role's rights. Their menu is the teacher's plus Timetables and Compliance. The learner's own entries are not shown to an administrator.
 6. **No hub page.** A hub would link what is unlinked today. It is left for the typed link-cards page. Until then the unlinked entries are counted and named in the test.
 7. **The setting is read through the settings endpoint on the admin page.** The admin page is rendered by OpenRegister's generic settings class, which provides no initial state of learniq's own. The section reads `GET /api/settings` and writes `PUT /api/settings`, both admin-guarded.

@@ -4,7 +4,7 @@
 		"spdx-copyright": "2026 Conduction B.V.",
 		"description": "The SIMPLE structure profile, and the default one (openspec/changes/simple-structure-profile). `menu-layout.json` is the FULL profile and is untouched: an administrator brings it back with the setting `menu_structure`. Both profiles are built from the same manifest and the same fragments, so nothing is deleted and every page stays routable; this file only decides what the navigation offers first. THE STANDARD KEYS (`removals`, `settingsSection`) go to the library's buildManifest exactly as the full file's do. `relocations` is ABSENT on purpose, and must stay absent rather than become `{}`: the simple menu is flat, and the library's relocation step ends by dropping every entry that has no route, no href, no action and no children, which is what a caption is. THE TWO PROFILE KEYS are read by src/utils/structureProfile.js. `menu` is merged BEFORE the manifest's own menu. buildManifest merges entries by id and the FIRST definition of a key wins, so an entry here that carries only `id` and `order` takes its label, icon, route and visibleIf from the manifest, and an entry the manifest does not know (the three captions, the entries whose id ends in Simple) is added as written. `pages` holds page overlays: `configAppend` appends header links and report cards to pages the simple menu opens.",
 		"roleNote": "THE MENU FOLLOWS THE ROLE, with the signal learniq already has: `user.primaryRole`, resolved on the server by DashboardRoleService from the Nextcloud groups. A `visibleIf` written here may only NARROW the one the manifest has for that route, never widen it. tests/unit-js/structureProfile.test.mjs builds both profiles for every role and fails when an entry here shows to a role the full menu does not show that page to. The ceiling is ten main entries for every role, twelve for a Nextcloud administrator (who sees the teacher's menu plus Timetables and Compliance), and two more for somebody who is also the confidential counsellor or a line manager.",
-		"simpleIdsNote": "Five entries end in `Simple`. Without a relocation step a child stays under its group, so Learners and Attendance (children of People), Dossier notes (child of the pupil dossier group), Pick electives and Book a conversation (children of groups this profile empties) cannot be lifted to the top level by id. Each gets a top-level twin here with its own id, and the original is removed by name. GroupsSimple and MarkingSimple open two pages that had no menu entry at all: Cohorts and Submissions.",
+		"simpleIdsNote": "Six entries end in `Simple`. Without a relocation step a child stays under its group, so Learners and Attendance (children of People), Grades (child of Learning), Dossier notes (child of the pupil dossier group), Pick electives and Book a conversation (children of groups this profile empties) cannot be lifted to the top level by id. Each gets a top-level twin here with its own id, and the original is removed by name. GroupsSimple opens a page that had no menu entry at all: Cohorts. The design's Nakijken has no entry: learniq lists submissions per assignment only (`/assignments/:assignmentId/submissions`), so there is no page a menu entry could open.",
 		"removalsNote": "Every leaf of the manifest menu that is not in this profile's main menu, footer or settings. A group with no route disappears once its children are gone. Removed is not unreachable: the header links and report cards in `pages`, the cards on Progress and Compliance and the lists on Lessons and assignments and People link most of them. The ones nothing links yet are listed by name in KNOWN_UNLINKED in the test, per role, waiting for the link-cards hub page.",
 		"settingsNote": "The full profile lifts two entries into the settings foldout. This profile adds the set-up lists (templates, periods, rooms, screens, locations, schools, staff, fees, rounds) and the import, export and exchange tools. Each keeps its own visibleIf."
 	},
@@ -196,10 +196,10 @@
 			"order": 24
 		},
 		{
-			"id": "MarkingSimple",
-			"label": "Marking",
-			"icon": "CheckCircleOutline",
-			"route": "Submissions",
+			"id": "GradesSimple",
+			"label": "Grades",
+			"icon": "Gauge",
+			"route": "GradeEntries",
 			"order": 26,
 			"visibleIf": {
 				"user.primaryRole": {
@@ -483,7 +483,7 @@
 			}
 		},
 		{
-			"id": "Submissions",
+			"id": "GradeEntries",
 			"configAppend": {
 				"headerActions": [
 					{

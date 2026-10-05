@@ -3430,7 +3430,6 @@ OC.L10N.register(
         "The Nextcloud user id of the student on the placement. The server copies it from the placement on every save, so the student can read their own confirmed assessments.": "The Nextcloud user id of the student on the placement. The server copies it from the placement on every save, so the student can read their own confirmed assessments.",
         "Home": "Home",
         "Lessons and assignments": "Lessons and assignments",
-        "Marking": "Marking",
         "Care and dossier": "Care and dossier",
         "What came in with each imported course package, and what was left out.": "What came in with each imported course package, and what was left out.",
         "Which learning goals the lessons cover, and which they miss.": "Which learning goals the lessons cover, and which they miss.",

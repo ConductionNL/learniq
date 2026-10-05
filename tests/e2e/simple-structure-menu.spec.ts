@@ -38,7 +38,7 @@ const MAIN = [
 	'cn-nav-entry-MyTimetableMenu',
 	'cn-nav-entry-TimetablesMenu',
 	'cn-nav-entry-GroupLearning',
-	'cn-nav-entry-MarkingSimple',
+	'cn-nav-entry-GradesSimple',
 	'cn-nav-caption-LearnersCaption',
 	'cn-nav-entry-LearnersSimple',
 	'cn-nav-entry-AttendanceSimple',

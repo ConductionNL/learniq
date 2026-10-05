@@ -24,14 +24,14 @@ In the simple structure the main menu MUST be flat and MUST sit under the captio
 #### Scenario: An administrator opens learniq on the simple structure
 - **GIVEN** `menu_structure` is unset or `simple`
 - **WHEN** a Nextcloud administrator opens learniq
-- **THEN** the main menu MUST show, in this order: the caption Home with Dashboard, My learning and Groups; the caption Teaching with My timetable, Timetables, Lessons and assignments and Marking; the caption Learners with Learners, Attendance, Progress, Care and dossier and Compliance
+- **THEN** the main menu MUST show, in this order: the caption Home with Dashboard, My learning and Groups; the caption Teaching with My timetable, Timetables, Lessons and assignments and Grades; the caption Learners with Learners, Attendance, Progress, Care and dossier and Compliance
 - **AND** it MUST NOT show Courses, Assignments, Today's register or Enrolments as menu entries
 
 #### Scenario: A teacher sees the teacher's ten
 @e2e exclude Menu gating per role; asserted in tests/unit-js/structureProfile.test.mjs, which builds the menu with the library's buildManifest and visibleIf evaluator for every role.
 - **GIVEN** a user whose primary role is `instructor`
 - **WHEN** the simple menu is built
-- **THEN** it MUST show Dashboard, My learning, Groups, My timetable, Lessons and assignments, Marking, Learners, Attendance, Progress and Care and dossier, and nothing else in the main list
+- **THEN** it MUST show Dashboard, My learning, Groups, My timetable, Lessons and assignments, Grades, Learners, Attendance, Progress and Care and dossier, and nothing else in the main list
 
 #### Scenario: A learner keeps their own entries
 @e2e exclude Menu gating per role; asserted in tests/unit-js/structureProfile.test.mjs.
@@ -49,7 +49,7 @@ In the simple structure the main menu MUST be flat and MUST sit under the captio
 @e2e exclude A comparison of two built menus per role; asserted in tests/unit-js/structureProfile.test.mjs.
 - **GIVEN** any primary role
 - **WHEN** both menus are built
-- **THEN** every page a simple menu entry opens for that role MUST be a page the full menu opens for that role, except Cohorts and Submissions, which had no entry
+- **THEN** every page a simple menu entry opens for that role MUST be a page the full menu opens for that role, except Cohorts, which had no entry
 
 ### Requirement: REQ-SSP-003 What leaves the menu is linked or named
 
@@ -111,7 +111,7 @@ learniq MUST show the simple structure unless the app setting `menu_structure` h
 
 ### Requirement: REQ-SSP-005 A profile may change a page and never add or remove one
 
-A structure profile MAY overlay a page by id. An overlay that names a page the manifest does not have MUST be skipped and reported. In this change an overlay MUST only append header links to a list page or cards to the Reports page, and each link MUST name an existing page.
+A structure profile MAY overlay a page by id. An overlay that names a page the manifest does not have MUST be skipped and reported. In this change an overlay MUST only append header links to a list page or cards to the Reports page, and each link MUST name an existing page whose address needs no parameter.
 
 #### Scenario: An overlay only appends
 @e2e exclude A comparison of built pages; asserted in tests/unit-js/structureProfile.test.mjs.

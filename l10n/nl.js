@@ -3880,7 +3880,6 @@ OC.L10N.register(
         "The Nextcloud user id of the student on the placement. The server copies it from the placement on every save, so the student can read their own confirmed assessments.": "De Nextcloud-gebruikersnaam van de student op de stageplaats. De server neemt die bij elke opslag over van de stageplaats, zodat de student de eigen bevestigde beoordelingen kan lezen.",
         "Home": "Start",
         "Lessons and assignments": "Lessen en opdrachten",
-        "Marking": "Nakijken",
         "Care and dossier": "Zorg en dossier",
         "What came in with each imported course package, and what was left out.": "Wat er met elk geïmporteerd cursuspakket binnenkwam, en wat is weggelaten.",
         "Which learning goals the lessons cover, and which they miss.": "Welke leerdoelen de lessen dekken, en welke ontbreken.",
