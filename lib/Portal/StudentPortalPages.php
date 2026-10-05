@@ -121,7 +121,7 @@ class StudentPortalPages {
 			],
 			'columns' => [
 				['field' => 'startsAt', 'label' => 'Starts at', 'render' => 'datetime'],
-				['field' => 'title', 'label' => 'Lesson'],
+				['field' => 'title', 'label' => 'Subject'],
 				['field' => 'location', 'label' => 'Room'],
 			],
 		];
