@@ -3742,7 +3742,7 @@ OC.L10N.register(
         "Hand in work": "Werk inleveren",
         "Messages": "Berichten",
         "Tests": "Toetsen",
-        "Still to do": "Dit moet u nog doen",
+        "Still to do": "Wat u nog moet doen",
         "Report sick or absent": "Ziek of afwezig melden",
         "Messages from school": "Berichten van school",
         "Grades and report cards": "Cijfers en rapporten",
@@ -3909,7 +3909,13 @@ OC.L10N.register(
         "The lists you manage: courses, assignments, sessions and groups": "De lijsten die je beheert: cursussen, opdrachten, lessen en groepen",
         "Your own mandatory training": "Je eigen verplichte scholing",
         "Figures and lists for the whole organisation": "Cijfers en lijsten voor de hele organisatie",
-        "Assignments due": "Opdrachten deze week"
+        "Assignments due": "Opdrachten deze week",
+        "Report absent": "Afwezig melden",
+        "New from school": "Nieuw van school",
+        "This month": "Deze maand",
+        "Your reports": "Uw meldingen",
+        "The report of %s is ready": "Het rapport van %s staat klaar",
+        "The line a guardian reads in the portal inbox, in the instance's language, for example \"Het rapport van Vera staat klaar\". Stamped by ReportCardPublishHandler. It names the child and what happened, never a grade.": "De regel die een ouder leest in de inbox van het portaal, in de taal van de installatie, bijvoorbeeld \"Het rapport van Vera staat klaar\". Gezet door ReportCardPublishHandler. Hij noemt het kind en wat er gebeurde, nooit een cijfer."
     },
     "nplurals=2; plural=(n != 1);"
 )

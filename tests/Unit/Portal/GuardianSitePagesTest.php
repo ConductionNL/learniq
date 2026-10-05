@@ -85,8 +85,15 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame('My space', $overview['group']);
 		self::assertSame(['collection' => 'parentChildren', 'titleFields' => ['givenName']], $overview['records']);
 		self::assertSame('parentOverview', $manifest['pages'][0]['id']);
-		self::assertSame(['tasks', 'cta', 'cta', 'calendar', 'kpi', 'collection', 'collection', 'inbox'], array_column($overview['blocks'], 'type'));
-		self::assertSame(['type' => 'tasks', 'label' => 'Still to do', 'collection' => 'parentConferenceRounds', 'dueField' => 'bookingClosesAt', 'titleFields' => ['name']], $overview['blocks'][0]);
+		// The board's order (school-design wilgenboom MijnOverzicht): greeting, the task, the children, news, this month.
+		self::assertSame(['greeting', 'tasks', 'collection', 'news', 'calendar', 'cta', 'cta', 'kpi', 'collection', 'collection', 'inbox'], array_column($overview['blocks'], 'type'));
+		self::assertSame(['type' => 'greeting', 'action' => 'createExcuseRequest', 'actionLabel' => 'Report absent'], $overview['blocks'][0]);
+		self::assertSame(['type' => 'tasks', 'label' => 'Still to do', 'display' => 'highlight', 'collection' => 'parentConferenceRounds', 'dueField' => 'bookingClosesAt', 'titleFields' => ['name']], $overview['blocks'][1]);
+		self::assertSame(['parentChildren', 'cards'], [$overview['blocks'][2]['collection'], $overview['blocks'][2]['display']]);
+		self::assertSame('tiles', $overview['blocks'][4]['display']);
+		$absence = self::pages(audience: 'parent')['parentAbsence'];
+		$reports = array_values(array_filter($absence['blocks'], static fn (array $b): bool => ($b['collection'] ?? '') === 'parentExcuseRequests'))[0];
+		self::assertSame(['rows', 'dateFrom', 'lifecycle', 'decidedBy'], [$reports['display'], $reports['dateField'], $reports['statusField'], $reports['statusNoteField']]);
 
 		$collections = array_column($manifest['collections'], null, 'id');
 		$actionIds = array_column($manifest['actions'], 'id');

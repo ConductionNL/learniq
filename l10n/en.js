@@ -3459,7 +3459,13 @@ OC.L10N.register(
         "The lists you manage: courses, assignments, sessions and groups": "The lists you manage: courses, assignments, sessions and groups",
         "Your own mandatory training": "Your own mandatory training",
         "Figures and lists for the whole organisation": "Figures and lists for the whole organisation",
-        "Assignments due": "Assignments due"
+        "Assignments due": "Assignments due",
+        "Report absent": "Report absent",
+        "New from school": "New from school",
+        "This month": "This month",
+        "Your reports": "Your reports",
+        "The report of %s is ready": "The report of %s is ready",
+        "The line a guardian reads in the portal inbox, in the instance's language, for example \"Het rapport van Vera staat klaar\". Stamped by ReportCardPublishHandler. It names the child and what happened, never a grade.": "The line a guardian reads in the portal inbox, in the instance's language, for example \"Het rapport van Vera staat klaar\". Stamped by ReportCardPublishHandler. It names the child and what happened, never a grade."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -45,6 +45,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\L10N\IFactory;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -69,6 +70,7 @@ class ReportCardPublishHandler implements IEventListener {
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param IFactory $l10nFactory The instance's language, for the readable subject of the notice.
 	 *
 	 * @return void
 	 */
@@ -77,6 +79,7 @@ class ReportCardPublishHandler implements IEventListener {
 		private readonly ITimeFactory $timeFactory,
 		private readonly LoggerInterface $logger,
 		private readonly ListenerSchemaResolver $schemas,
+		private readonly IFactory $l10nFactory,
 	) {
 	}//end __construct()
 
@@ -152,6 +155,10 @@ class ReportCardPublishHandler implements IEventListener {
 		}
 
 		$learnerRef = $reportCard['learnerRef'] ?? null;
+		// The readable line a guardian reads in the portal inbox (site-guardian-portal-design T3), in the
+		// instance's language: "Het rapport van Vera staat klaar". It names the child, never a grade.
+		$subject = $this->l10nFactory->get('learniq', $this->l10nFactory->findGenericLanguage())
+			->t('The report of %s is ready', [trim((string)($profile['givenName'] ?? ''))]);
 		$tenantId = (string)($reportCard['tenant_id'] ?? '');
 		$visibleFrom = $this->timeFactory->getDateTime()->format(\DATE_ATOM);
 
@@ -173,6 +180,7 @@ class ReportCardPublishHandler implements IEventListener {
 					'learnerRef' => $learnerRef,
 					'idempotencyKey' => $reportCardId . '-parent-' . $parentId,
 					'visibleFrom' => $visibleFrom,
+					'subject' => $subject,
 					'tenant_id' => $tenantId,
 				]
 			);
