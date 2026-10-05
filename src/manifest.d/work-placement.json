@@ -174,7 +174,25 @@
 			"title": "BPV placements",
 			"config": {
 				"register": "learniq",
-				"schema": "bpv-placement"
+				"schema": "bpv-placement",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"agreedHours",
+					"curriculumPlanId",
+					"hoursApprovedTotal",
+					"lifecycle",
+					"periodFrom",
+					"periodTo",
+					"practicalTrainerId",
+					"programmeId",
+					"schoolCoachId",
+					"trainingCompanyKvkNumber",
+					"trainingCompanyName"
+				]
 			}
 		},
 		{
@@ -204,7 +222,31 @@
 			"title": "Werkproces assessments",
 			"config": {
 				"register": "learniq",
-				"schema": "werkproces-assessment"
+				"schema": "werkproces-assessment",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"assessedAt",
+					"assessment",
+					"assessorCompany",
+					"assessorCompanyKvkNumber",
+					"assessorId",
+					"assessorName",
+					"assuranceLevel",
+					"bpvPlacementId",
+					"competencyId",
+					"componentId",
+					"coreTaskCode",
+					"curriculumPlanId",
+					"kwalificatiedossierCode",
+					"lifecycle",
+					"notes",
+					"werkprocesCode",
+					"werkprocesLabel"
+				]
 			}
 		},
 		{

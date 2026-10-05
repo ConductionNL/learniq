@@ -263,7 +263,58 @@
 			"title": "Credentials",
 			"config": {
 				"register": "learniq",
-				"schema": "Credential"
+				"schema": "Credential",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "learner-profile"
+						}
+					},
+					"competencyIds",
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					"daysUntilExpiry",
+					"enrolmentId",
+					"expiresAt",
+					"expiryStatus",
+					"isExpired",
+					"isExpiringIn30Days",
+					"isExpiringIn90Days",
+					"isOpenBadgesV3Signed",
+					"issuedAt",
+					"issuedBy",
+					"issuerDid",
+					"kind",
+					"lifecycle",
+					"regulationSlug",
+					"reissueCount",
+					"reissuedAt",
+					"reissuedBy",
+					"reissueReason",
+					"reissueRunId",
+					"renewalEnrolmentId",
+					"revocationReason",
+					"signature",
+					"source",
+					"verificationUrl",
+					"walletAttestationRef",
+					"walletClaimedAt",
+					"walletOfferedAt",
+					"walletOfferError",
+					"walletOfferNote",
+					"walletOfferStatus"
+				]
 			}
 		},
 		{
@@ -1334,7 +1385,37 @@
 			"title": "Attendance thresholds",
 			"config": {
 				"register": "learniq",
-				"schema": "attendance-threshold"
+				"schema": "attendance-threshold",
+				"columns": [
+					"active",
+					"checkedBreachingRecordIds",
+					{
+						"key": "checkedLearnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"checkedMetricValue",
+					"checkedWindowEnd",
+					"checkedWindowStart",
+					{
+						"key": "cohortId",
+						"label": "Group",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "cohort"
+						}
+					},
+					"isThresholdCrossed",
+					"kind",
+					"lessonHourMinutes",
+					"lifecycle",
+					"limit",
+					"metric",
+					"name",
+					"scope",
+					"unexcusedLesuren"
+				]
 			}
 		},
 		{
@@ -1499,7 +1580,30 @@
 			"config": {
 				"register": "learniq",
 				"schema": "attendance-flag",
-				"readOnly": true
+				"readOnly": true,
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					{
+						"key": "cohortId",
+						"label": "Group",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "cohort"
+						}
+					},
+					"flagKind",
+					"metricValue",
+					"windowStart",
+					"windowEnd",
+					"reportDeadlineAt",
+					"reportOverdue",
+					"lifecycle"
+				]
 			}
 		},
 		{

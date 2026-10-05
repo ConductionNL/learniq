@@ -196,7 +196,12 @@ test('every learnerName column reads its schema\'s own learner fields', () => {
 			if (refField) {
 				assert.ok(refField in schema.properties, `${list.where}: ${refField} not on ${list.schema}`)
 			}
-			assert.equal(c.label, 'Learner', `${list.where}`)
+			// One pupil reads "Learner"; a list of them may say what they are
+			// to the row (remaining-lists-read-pupil-names).
+			const labels = Array.isArray(schema.properties[c.key].items) || schema.properties[c.key].type === 'array'
+				? ['Learner', 'Learners', 'Affected learners']
+				: ['Learner']
+			assert.ok(labels.includes(c.label), `${list.where}: ${c.key} is headed "${c.label}"`)
 		}
 	}
 })

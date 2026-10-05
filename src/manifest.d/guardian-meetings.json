@@ -623,7 +623,21 @@
 			"title": "Conference reports",
 			"config": {
 				"register": "learniq",
-				"schema": "conference-report"
+				"schema": "conference-report",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"attendeeIds",
+					"conferenceSlotId",
+					"lifecycle",
+					"narrative",
+					"recordedAt",
+					"recordedBy",
+					"teacherId"
+				]
 			}
 		},
 		{

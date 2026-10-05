@@ -542,6 +542,10 @@ class PortalContributionProviderTest extends TestCase {
 			['learnerRef', 'dateFrom', 'dateTo', 'reason', 'reasonKind', 'attachmentRef', 'lifecycle', 'decidedAt', 'decidedBy'],
 			$byId['parentExcuseRequests']['fields']
 		);
+		// The newest absence first, on a field the collection projects (the
+		// portal drops a sort on a field it does not hand out).
+		$this->assertSame(['field' => 'dateFrom', 'direction' => 'desc'], $byId['parentExcuseRequests']['defaultSort']);
+		$this->assertContains('dateFrom', $byId['parentExcuseRequests']['fields']);
 		$this->assertSame(
 			['learnerRef', 'reportPeriodId', 'periodName', 'gradeLines', 'attendanceSummary', 'mentorComment', 'docudeskDocumentRef'],
 			$byId['parentReportCards']['fields']
