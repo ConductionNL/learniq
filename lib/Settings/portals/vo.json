@@ -14,6 +14,7 @@
     ],
     "authentication": {
       "modes": [
+        "public",
         "nextcloud",
         "digid"
       ],
