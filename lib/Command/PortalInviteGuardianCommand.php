@@ -38,6 +38,16 @@ use Symfony\Component\Console\Output\OutputInterface;
 class PortalInviteGuardianCommand extends Command {
 
 	/**
+	 * What the command says about the invitation mail.
+	 */
+	private const MAIL_LINES = [
+		GuardianPortalInvitation::MAIL_SENT => 'The portal mailed the guardian a link. It works once, for seven days.',
+		GuardianPortalInvitation::MAIL_NOT_SENT => '<comment>The invitation mail did not leave. Check the mail settings and invite again.</comment>',
+		GuardianPortalInvitation::MAIL_UNAVAILABLE => '<comment>No invitation mail was sent: this portal does not send one.'
+			. ' The guardian is still linked on the verified address.</comment>',
+	];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param GuardianPortalInvitation $invitations Provisions and links the account.
@@ -74,6 +84,7 @@ class PortalInviteGuardianCommand extends Command {
 	 * @return int
 	 *
 	 * @spec openspec/changes/portal-guardian-invitation/specs/portal-identity/spec.md#requirement-the-school-links-a-guardian-to-the-parent-portal-req-pid-004
+	 * @spec openspec/changes/portal-guardian-invitation-mail/specs/portal-identity/spec.md
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		$result = $this->invitations->invite(
@@ -88,6 +99,7 @@ class PortalInviteGuardianCommand extends Command {
 		}
 
 		$output->writeln('Invited. Portal account: ' . ($result['subjectRef'] ?? ''));
+		$output->writeln(self::MAIL_LINES[($result['invitation'] ?? '')] ?? self::MAIL_LINES[GuardianPortalInvitation::MAIL_UNAVAILABLE]);
 		return self::SUCCESS;
 	}//end execute()
 }//end class
