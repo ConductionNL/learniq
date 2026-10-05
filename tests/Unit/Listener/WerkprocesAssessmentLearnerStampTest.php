@@ -232,4 +232,102 @@ class WerkprocesAssessmentLearnerStampTest extends TestCase {
 		self::assertTrue($store->callerMay('werkproces-assessment', 'read', ['learnerId' => 'jan', 'lifecycle' => 'draft']));
 		self::assertTrue($store->callerMay('werkproces-assessment', 'update', ['learnerId' => 'jan', 'lifecycle' => 'draft']));
 	}//end testTheReadRuleIsTheStudentsOwnConfirmedAssessment()
+
+	/**
+	 * An event that is not a create or update is ignored.
+	 *
+	 * @return void
+	 */
+	public function testAnotherEventIsIgnored(): void {
+		$event = $this->createMock(\OCP\EventDispatcher\Event::class);
+		$event->expects(self::never())->method('isPropagationStopped');
+
+		$this->makeStamp()->handle($event);
+	}//end testAnotherEventIsIgnored()
+
+	/**
+	 * When the schema of the entity cannot be resolved, the write is left alone.
+	 *
+	 * @return void
+	 */
+	public function testAnUnresolvableSchemaIsLeftAlone(): void {
+		$schemaResolver = $this->createMock(ListenerSchemaResolver::class);
+		$schemaResolver->method('guardSchemaSlug')->willThrowException(new RuntimeException('schema gone'));
+		$stamp = new WerkprocesAssessmentLearnerStamp(
+			schemaResolver: $schemaResolver,
+			objectService: $this->createMock(ObjectService::class),
+			logger: new NullLogger(),
+		);
+		$event = new ObjectCreatingEvent(OrEntityFactory::make(self::assessment(['learnerId' => 'piet']), 'werkproces-assessment'));
+
+		$stamp->handle($event);
+
+		self::assertSame([], $event->getModifiedData());
+	}//end testAnUnresolvableSchemaIsLeftAlone()
+
+	/**
+	 * No placement, or a placement that does not exist, gives null.
+	 *
+	 * @return void
+	 */
+	public function testAMissingPlacementGivesNull(): void {
+		$stamp = $this->makeStamp();
+
+		self::assertNull($stamp->learnerOfPlacement(''));
+		self::assertNull($stamp->learnerOfPlacement('3c2b1a09-8f7e-4d6c-9b5a-4f3e2d1c0b9a'));
+
+		$event = new ObjectCreatingEvent(OrEntityFactory::make(self::assessment(['bpvPlacementId' => null, 'learnerId' => 'piet']), 'werkproces-assessment'));
+		$stamp->handle($event);
+		self::assertNull($event->getModifiedData()['learnerId']);
+	}//end testAMissingPlacementGivesNull()
+
+	/**
+	 * The lookup reads array rows and entities alike, and skips a row that
+	 * is not the asked placement or cannot be read as a row.
+	 *
+	 * @return void
+	 */
+	public function testTheLookupSkipsRowsThatAreNotThePlacement(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturn(
+			[
+				'not a row',
+				new \ArrayObject(['id' => self::PLACEMENT]),
+				['id' => 'bp-other', 'learnerId' => 'piet'],
+				['id' => self::PLACEMENT, 'learnerId' => 'jan'],
+			]
+		);
+		$stamp = new WerkprocesAssessmentLearnerStamp(
+			schemaResolver: $this->createMock(ListenerSchemaResolver::class),
+			objectService: $objectService,
+			logger: new NullLogger(),
+		);
+
+		self::assertSame('jan', $stamp->learnerOfPlacement(self::PLACEMENT));
+	}//end testTheLookupSkipsRowsThatAreNotThePlacement()
+
+	/**
+	 * After a failed lookup, an update that moves the placement, or whose
+	 * stored row names nobody, gets null (fail closed).
+	 *
+	 * @return void
+	 */
+	public function testAFailedLookupOnAMovedOrEmptyRowGivesNull(): void {
+		$stamp = $this->makeStamp();
+		$this->store->failReads = 'database gone';
+
+		$moved = new ObjectUpdatingEvent(
+			OrEntityFactory::make(self::assessment(['bpvPlacementId' => 'bp-nobody']), 'werkproces-assessment'),
+			OrEntityFactory::make(self::assessment(['learnerId' => 'jan']), 'werkproces-assessment')
+		);
+		$stamp->handle($moved);
+		self::assertNull($moved->getModifiedData()['learnerId']);
+
+		$empty = new ObjectUpdatingEvent(
+			OrEntityFactory::make(self::assessment(['lifecycle' => 'submitted']), 'werkproces-assessment'),
+			OrEntityFactory::make(self::assessment(['learnerId' => '']), 'werkproces-assessment')
+		);
+		$stamp->handle($empty);
+		self::assertNull($empty->getModifiedData()['learnerId']);
+	}//end testAFailedLookupOnAMovedOrEmptyRowGivesNull()
 }//end class
