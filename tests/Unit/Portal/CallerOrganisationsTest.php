@@ -108,10 +108,16 @@ class FakeOrganisationService {
 				}
 
 				/**
-				 * @return string
+				 * Answers getSlug() through __call, as a Nextcloud Entity does:
+				 * method_exists() does not see it (found live on 2026-10-05).
+				 *
+				 * @param string $name The method.
+				 * @param array<int, mixed> $arguments The arguments.
+				 *
+				 * @return mixed
 				 */
-				public function getSlug(): string {
-					return $this->slug;
+				public function __call(string $name, array $arguments): mixed {
+					return $name === 'getSlug' ? $this->slug : null;
 				}
 			},
 			$this->slugs

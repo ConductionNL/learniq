@@ -99,7 +99,9 @@ class CallerOrganisations {
 
 		$slugs = [];
 		foreach ((array)$organisations as $organisation) {
-			if (is_object($organisation) === true && method_exists($organisation, 'getSlug') === true) {
+			// OpenRegister's Organisation is an Entity: getSlug() is answered by
+			// __call, which method_exists() does not see.
+			if (is_object($organisation) === true && is_callable([$organisation, 'getSlug']) === true) {
 				$slugs[] = (string)$organisation->getSlug();
 			}
 		}
