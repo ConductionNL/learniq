@@ -859,11 +859,17 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "cohortId",
-									"label": "Cohort ID"
+									"label": "Group",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "cohort"
+									}
 								},
 								{
 									"key": "mandatory",
@@ -1769,11 +1775,17 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "courseId",
-									"label": "Course ID"
+									"label": "Course",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "course"
+									}
 								},
 								{
 									"key": "value",
@@ -2041,7 +2053,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "componentId",
@@ -2084,11 +2097,17 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "courseId",
-									"label": "Course ID"
+									"label": "Course",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "course"
+									}
 								},
 								{
 									"key": "value",
@@ -2415,7 +2434,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "leerjaar",
@@ -2423,7 +2443,12 @@
 								},
 								{
 									"key": "courseId",
-									"label": "Course ID"
+									"label": "Course",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "course"
+									}
 								},
 								{
 									"key": "mandatory",
@@ -2461,7 +2486,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "metricValue",
@@ -4004,7 +4030,11 @@
 							"columns": [
 								{
 									"key": "learnerIds",
-									"label": "Learner Ids"
+									"label": "Learner",
+									"widget": "learnerName",
+									"widgetProps": {
+										"refField": "learnerRefs"
+									}
 								},
 								{
 									"key": "submittedAt",
@@ -4867,7 +4897,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "attemptNumber",
@@ -4916,7 +4947,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "accommodationKind",
@@ -5011,6 +5043,27 @@
 			"config": {
 				"register": "learniq",
 				"schema": "assessment-result",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					{
+						"key": "assessmentTitle",
+						"label": "Assessment"
+					},
+					{
+						"key": "attemptNumber",
+						"label": "Attempt Number"
+					},
+					"lifecycle",
+					{
+						"key": "submittedAt",
+						"label": "Submitted At",
+						"formatter": "date"
+					}
+				],
 				"filter": {
 					"assessmentId": "@route.assessmentId"
 				},
@@ -5538,7 +5591,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "componentId",
@@ -5710,7 +5764,31 @@
 			"title": "Grade entries",
 			"config": {
 				"register": "learniq",
-				"schema": "grade-entry"
+				"schema": "grade-entry",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					{
+						"key": "courseName",
+						"label": "Course"
+					},
+					{
+						"key": "value",
+						"label": "Grade"
+					},
+					{
+						"key": "period",
+						"label": "Period"
+					},
+					{
+						"key": "gradedAt",
+						"label": "Graded At",
+						"formatter": "date"
+					}
+				]
 			}
 		},
 		{
@@ -5875,6 +5953,30 @@
 			"config": {
 				"register": "learniq",
 				"schema": "final-grade",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					{
+						"key": "value",
+						"label": "Final grade"
+					},
+					{
+						"key": "passed",
+						"label": "Passed"
+					}
+				],
 				"readOnly": true
 			}
 		},
@@ -6190,7 +6292,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "kind",
@@ -6287,7 +6390,11 @@
 				"schema": "learning-plan",
 				"_note": "care-and-support-index: columns[] added so the care team's own read (learner, kind, coordinator, lifecycle, next review date) does not need a second index page over the same schema (ADR-097 Decision 5, ratchet gate-68 duplicate-index-pages). The CareTeamOverviewMenu nav entry deep-links here with a lifecycle=active query preset (menu[].query, the documented role-lens mechanism) rather than duplicating this page.",
 				"columns": [
-					"learnerId",
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
 					"kind",
 					"coordinatorId",
 					"lifecycle",
@@ -7911,7 +8018,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "lifecycle",
@@ -7996,8 +8104,20 @@
 				"schema": "report-card",
 				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly, see Cohorts' note.",
 				"columns": [
-					"learnerId",
-					"cohortId",
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					{
+						"key": "cohortId",
+						"label": "Group",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "cohort"
+						}
+					},
 					"lifecycle",
 					"composedAt"
 				],

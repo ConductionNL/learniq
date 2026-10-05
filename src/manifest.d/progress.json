@@ -1226,7 +1226,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "metricValueAtFlag",
