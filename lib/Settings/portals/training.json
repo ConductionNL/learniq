@@ -1,0 +1,857 @@
+{
+  "$comment": "Portal declaration of the training example set (openspec/changes/example-portal-declares-its-site). Read by ExamplePortalProvisioner on every example-set load. A portal, menu, page, news item or account that already exists is never changed; only what is missing is written.",
+  "set": "training",
+  "portal": {
+    "slug": "warmtepompacademie",
+    "title": "Mijn academie",
+    "tagline": "Warmtepompacademie",
+    "theme": "warmtepompacademie",
+    "themeFallback": "example-opleider",
+    "headerVariant": "double",
+    "locales": [
+      "nl",
+      "en"
+    ],
+    "authentication": {
+      "modes": [
+        "public",
+        "nextcloud",
+        "eherkenning"
+      ],
+      "minTrust": "low",
+      "modeLabels": {
+        "nextcloud": {
+          "title": "Als deelnemer",
+          "text": "Voor uw cursusdagen en certificaten. U logt in met het account uit uw uitnodiging.",
+          "button": "Inloggen als deelnemer"
+        },
+        "eherkenning": {
+          "title": "Als werkgever",
+          "text": "Voor inschrijvingen en de certificaten van uw medewerkers.",
+          "button": "Inloggen met eHerkenning"
+        }
+      }
+    },
+    "headerSearch": {
+      "label": "Zoek een cursus",
+      "route": "/cursusaanbod"
+    },
+    "footer": {
+      "description": "Twijfelt u welke cursus past? Bel de planning. U krijgt iemand aan de lijn die de cursussen kent.",
+      "colophon": "De Warmtepompacademie is een voorbeeldorganisatie. Deze website laat zien hoe portaliq, learniq en Nextcloud samen werken.",
+      "cta": {
+        "label": "Contact en route",
+        "href": "/contact"
+      }
+    }
+  },
+  "legacyTitles": [],
+  "menus": [
+    {
+      "position": 0,
+      "title": "Hoofdmenu",
+      "items": [
+        {
+          "order": 1,
+          "name": "Home",
+          "link": "/"
+        },
+        {
+          "order": 2,
+          "name": "Cursusaanbod",
+          "link": "/cursusaanbod"
+        },
+        {
+          "order": 3,
+          "name": "Certificaten",
+          "link": "/certificaten"
+        },
+        {
+          "order": 4,
+          "name": "Voor werkgevers",
+          "link": "/voor-werkgevers"
+        },
+        {
+          "order": 5,
+          "name": "Incompany",
+          "link": "/incompany"
+        },
+        {
+          "order": 6,
+          "name": "Praktijkhal",
+          "link": "/praktijkhal"
+        },
+        {
+          "order": 7,
+          "name": "Contact",
+          "link": "/contact"
+        }
+      ]
+    },
+    {
+      "position": 1,
+      "title": "Contact",
+      "items": [
+        {
+          "order": 1,
+          "name": "Praktijkhal: Energieweg 8, Zuiddrecht",
+          "link": "/contact"
+        },
+        {
+          "order": 2,
+          "name": "Planning: [telefoonnummer]",
+          "link": "/contact"
+        },
+        {
+          "order": 3,
+          "name": "E-mail: [e-mailadres]",
+          "link": "/contact"
+        },
+        {
+          "order": 4,
+          "name": "Werkdagen 08.00 tot 17.00 uur",
+          "link": "/contact"
+        }
+      ]
+    },
+    {
+      "position": 1,
+      "title": "Snel naar",
+      "items": [
+        {
+          "order": 1,
+          "name": "Cursusaanbod en data",
+          "link": "/cursusaanbod"
+        },
+        {
+          "order": 2,
+          "name": "F-gassen: herhaling en examen",
+          "link": "/cursusaanbod"
+        },
+        {
+          "order": 3,
+          "name": "Medewerkers inschrijven",
+          "link": "/voor-werkgevers/medewerkers-inschrijven"
+        },
+        {
+          "order": 4,
+          "name": "Mijn academie",
+          "link": "/mijn"
+        }
+      ]
+    },
+    {
+      "position": 1,
+      "title": "Over deze website",
+      "items": [
+        {
+          "order": 1,
+          "name": "Algemene voorwaarden",
+          "link": "/algemene-voorwaarden"
+        },
+        {
+          "order": 2,
+          "name": "Annuleren en verplaatsen",
+          "link": "/voor-werkgevers/medewerkers-inschrijven"
+        },
+        {
+          "order": 3,
+          "name": "Privacy",
+          "link": "/privacy"
+        },
+        {
+          "order": 4,
+          "name": "Toegankelijkheid",
+          "link": "/toegankelijkheid"
+        }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "route": "/",
+      "title": "Home",
+      "summary": "Cursussen voor wie warmtepompen installeert, in de praktijkhal in Zuiddrecht.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wa-home-01-hero",
+            "widgetKey": "hero",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 4,
+            "props": {
+              "title": "Cursussen voor wie warmtepompen installeert",
+              "subtitle": "Van de eerste hybride tot F-gassen en BRL 6000-21. Elke cursus heeft een datum, een plaats en een certificaat.",
+              "search": true,
+              "searchLabel": "Zoek een cursus",
+              "searchPlaceholder": "Zoek op cursus of certificaat",
+              "searchSubmitLabel": "Zoeken"
+            }
+          },
+          {
+            "id": "wa-home-02-nleventlist",
+            "widgetKey": "nlEventList",
+            "gridX": 0,
+            "gridY": 4,
+            "gridWidth": 12,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Eerstvolgende cursusdagen",
+              "subtitle": "Praktijkhal Zuiddrecht",
+              "display": "tiles",
+              "upcomingOnly": false,
+              "limit": 3,
+              "items": [
+                {
+                  "date": "2026-10-08",
+                  "title": "F-gassen: herhaling en examen",
+                  "meta": "Donderdag · 1 dag · certificaat",
+                  "note": "Nog 1 plek",
+                  "noteTone": "warning"
+                },
+                {
+                  "date": "2026-10-15",
+                  "title": "Waterzijdig inregelen",
+                  "meta": "Donderdag · 1 dag · basis",
+                  "note": "6 plekken vrij",
+                  "noteTone": "positive"
+                },
+                {
+                  "date": "2026-10-20",
+                  "endDate": "2026-10-21",
+                  "title": "Warmtepompen installeren: basis",
+                  "meta": "Dinsdag en woensdag · 2 dagen · basis",
+                  "note": "Nog 3 plekken",
+                  "noteTone": "warning"
+                }
+              ],
+              "moreLabel": "Alle cursussen en data",
+              "moreHref": "/cursusaanbod"
+            }
+          },
+          {
+            "id": "wa-home-03-nllist",
+            "widgetKey": "nlList",
+            "gridX": 0,
+            "gridY": 7,
+            "gridWidth": 8,
+            "gridHeight": 4,
+            "props": {
+              "display": "steps",
+              "ordered": true,
+              "items": [
+                {
+                  "title": "Kies de cursus en een datum",
+                  "text": "Bij elke datum ziet u hoeveel plekken er nog vrij zijn."
+                },
+                {
+                  "title": "Schrijf een of meer medewerkers in",
+                  "text": "Eén formulier voor de hele ploeg. Binnen twee werkdagen krijgt u een bevestiging."
+                },
+                {
+                  "title": "Het certificaat staat in Mijn academie",
+                  "text": "Met de datum waarop het verloopt. Drie maanden van tevoren krijgt u een bericht."
+                }
+              ]
+            }
+          },
+          {
+            "id": "wa-home-04-nlsignin",
+            "widgetKey": "nlSignIn",
+            "gridX": 8,
+            "gridY": 7,
+            "gridWidth": 4,
+            "gridHeight": 4,
+            "props": {
+              "heading": "Mijn academie",
+              "display": "card",
+              "points": [
+                "Zie wie wanneer op cursus gaat",
+                "Download certificaten en zie wanneer ze verlopen"
+              ],
+              "buttonLabel": "Inloggen",
+              "signInHref": "/mijn",
+              "note": "Werkgevers loggen in met eHerkenning.",
+              "tone": "inverse"
+            }
+          },
+          {
+            "id": "wa-home-05-nlbuttonlink",
+            "widgetKey": "nlButtonLink",
+            "gridX": 0,
+            "gridY": 11,
+            "gridWidth": 4,
+            "gridHeight": 1,
+            "props": {
+              "label": "Medewerkers inschrijven",
+              "href": "/voor-werkgevers/medewerkers-inschrijven",
+              "kind": "primary"
+            }
+          },
+          {
+            "id": "wa-home-06-markdown",
+            "widgetKey": "markdown",
+            "gridX": 0,
+            "gridY": 12,
+            "gridWidth": 12,
+            "gridHeight": 3,
+            "props": {
+              "markdown": "## U oefent op echte opstellingen\n\nIn de praktijkhal staan werkende warmtepompen: lucht-water, hybride en bodem. U sluit aan, regelt in en zoekt storingen die de trainer heeft klaargezet. Een groep is nooit groter dan twaalf.\n\n[Bekijk de praktijkhal](/praktijkhal). Liever bij u op de zaak? [Lees over incompany](/incompany)."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/voor-werkgevers/medewerkers-inschrijven",
+      "title": "Medewerkers inschrijven",
+      "summary": "Schrijf een of meer medewerkers in met één formulier.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wa-inschrijven-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Medewerkers inschrijven",
+              "level": 1
+            }
+          },
+          {
+            "id": "wa-inschrijven-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "U schrijft een of meer medewerkers in met één formulier. Uw medewerker krijgt zelf een e-mail met de dag, de plaats en wat hij moet meenemen."
+            }
+          },
+          {
+            "id": "wa-inschrijven-03-nldescriptionlist",
+            "widgetKey": "nlDescriptionList",
+            "gridX": 0,
+            "gridY": 2,
+            "gridWidth": 12,
+            "gridHeight": 3,
+            "props": {
+              "items": [
+                {
+                  "term": "Naam",
+                  "description": "Precies zoals op het legitimatiebewijs. Zo komt de naam ook op het certificaat."
+                },
+                {
+                  "term": "Geboortedatum",
+                  "description": "Alleen bij een cursus met examen. De exameninstelling vraagt erom."
+                },
+                {
+                  "term": "E-mailadres",
+                  "description": "Van de deelnemer zelf. Daarmee logt hij in op Mijn academie."
+                }
+              ]
+            }
+          },
+          {
+            "id": "wa-inschrijven-04-nlalert",
+            "widgetKey": "nlAlert",
+            "gridX": 0,
+            "gridY": 5,
+            "gridWidth": 12,
+            "gridHeight": 2,
+            "props": {
+              "kind": "info",
+              "heading": "Weet u nog niet wie er gaat?",
+              "text": "Reserveer de plekken en vul de namen later in. Dat kan tot 12.00 uur op de werkdag voor de cursus."
+            }
+          },
+          {
+            "id": "wa-inschrijven-05-nltable",
+            "widgetKey": "nlTable",
+            "gridX": 0,
+            "gridY": 7,
+            "gridWidth": 12,
+            "gridHeight": 4,
+            "props": {
+              "caption": "Verplaatsen of annuleren. Een collega mag altijd in de plaats van een zieke monteur komen. Geef de nieuwe naam door in Mijn academie.",
+              "columns": [
+                "Wanneer u het doorgeeft",
+                "Verplaatsen",
+                "Annuleren"
+              ],
+              "rows": [
+                [
+                  "Meer dan 10 werkdagen vooraf",
+                  "Kosteloos",
+                  "Kosteloos"
+                ],
+                [
+                  "5 tot 10 werkdagen vooraf",
+                  "Kosteloos, één keer",
+                  "[PERCENTAGE] van de prijs"
+                ],
+                [
+                  "Minder dan 5 werkdagen vooraf",
+                  "Kan niet meer",
+                  "De hele prijs"
+                ]
+              ]
+            }
+          },
+          {
+            "id": "wa-inschrijven-06-nlbuttonlink",
+            "widgetKey": "nlButtonLink",
+            "gridX": 0,
+            "gridY": 11,
+            "gridWidth": 4,
+            "gridHeight": 1,
+            "props": {
+              "label": "Kies een cursus en datum",
+              "href": "/cursusaanbod",
+              "kind": "primary"
+            }
+          },
+          {
+            "id": "wa-inschrijven-07-markdown",
+            "widgetKey": "markdown",
+            "gridX": 0,
+            "gridY": 12,
+            "gridWidth": 8,
+            "gridHeight": 4,
+            "props": {
+              "markdown": "## Betalen\n\nNa de bevestiging krijgt u een factuur. De betaaltermijn is [AANTAL] dagen.\n\n## Overleggen met de planning\n\nSophie van Dam plant de cursusdagen. Zij weet waar nog plek is. [telefoonnummer], [e-mailadres]"
+            }
+          },
+          {
+            "id": "wa-inschrijven-08-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 8,
+            "gridY": 12,
+            "gridWidth": 4,
+            "gridHeight": 4,
+            "props": {
+              "heading": "Meer voor werkgevers",
+              "links": [
+                {
+                  "label": "Wanneer verloopt een certificaat?",
+                  "href": "/certificaten"
+                },
+                {
+                  "label": "Incompany: een eigen cursusdag",
+                  "href": "/incompany"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/cursusaanbod",
+      "title": "Cursusaanbod",
+      "summary": "Alle cursusdagen in de praktijkhal in Zuiddrecht.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wa-aanbod-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Cursusaanbod",
+              "level": 1
+            }
+          },
+          {
+            "id": "wa-aanbod-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Alle cursusdagen in de praktijkhal in Zuiddrecht, met het aantal vrije plekken."
+            }
+          },
+          {
+            "id": "wa-aanbod-03-nleventlist",
+            "widgetKey": "nlEventList",
+            "gridX": 0,
+            "gridY": 2,
+            "gridWidth": 12,
+            "gridHeight": 5,
+            "props": {
+              "heading": "Cursusdagen",
+              "subtitle": "Praktijkhal Zuiddrecht",
+              "display": "tiles",
+              "upcomingOnly": false,
+              "limit": 20,
+              "items": [
+                {
+                  "date": "2026-10-08",
+                  "title": "F-gassen: herhaling en examen",
+                  "meta": "Donderdag · 1 dag · certificaat",
+                  "note": "Nog 1 plek",
+                  "noteTone": "warning"
+                },
+                {
+                  "date": "2026-10-15",
+                  "title": "Waterzijdig inregelen",
+                  "meta": "Donderdag · 1 dag · basis",
+                  "note": "6 plekken vrij",
+                  "noteTone": "positive"
+                },
+                {
+                  "date": "2026-10-20",
+                  "endDate": "2026-10-21",
+                  "title": "Warmtepompen installeren: basis",
+                  "meta": "Dinsdag en woensdag · 2 dagen · basis",
+                  "note": "Nog 3 plekken",
+                  "noteTone": "warning"
+                },
+                {
+                  "date": "2026-11-03",
+                  "endDate": "2026-11-10",
+                  "dateLabel": "3, 4 en 10 nov",
+                  "title": "Lucht-water warmtepomp: ontwerp en inbedrijfstelling",
+                  "meta": "3 dagen · gevorderd"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/certificaten",
+      "title": "Certificaten",
+      "summary": "Zonder geldig certificaat mag een monteur niet aan het koudemiddel werken. In Mijn academie ziet u wanneer een certificaat verloopt.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wa-certificaten-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Certificaten",
+              "level": 1
+            }
+          },
+          {
+            "id": "wa-certificaten-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Zonder geldig certificaat mag een monteur niet aan het koudemiddel werken. In Mijn academie ziet u wanneer een certificaat verloopt."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/voor-werkgevers",
+      "title": "Voor werkgevers",
+      "summary": "Schrijf uw medewerkers in, zie wie wanneer op cursus gaat en houd hun certificaten bij.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wa-voor-werkgevers-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Voor werkgevers",
+              "level": 1
+            }
+          },
+          {
+            "id": "wa-voor-werkgevers-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Schrijf uw medewerkers in, zie wie wanneer op cursus gaat en houd hun certificaten bij."
+            }
+          },
+          {
+            "id": "wa-voor-werkgevers-03-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 0,
+            "gridY": 2,
+            "gridWidth": 6,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Voor werkgevers",
+              "links": [
+                {
+                  "label": "Medewerkers inschrijven",
+                  "href": "/voor-werkgevers/medewerkers-inschrijven"
+                },
+                {
+                  "label": "Certificaten",
+                  "href": "/certificaten"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/incompany",
+      "title": "Incompany",
+      "summary": "Liever een cursusdag bij u op de zaak? Overleg met de planning wat er kan.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wa-incompany-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Incompany",
+              "level": 1
+            }
+          },
+          {
+            "id": "wa-incompany-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Liever een cursusdag bij u op de zaak? Overleg met de planning wat er kan."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/praktijkhal",
+      "title": "Praktijkhal",
+      "summary": "In de praktijkhal aan de Energieweg 8 in Zuiddrecht staan werkende warmtepompen: lucht-water, hybride en bodem.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wa-praktijkhal-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Praktijkhal",
+              "level": 1
+            }
+          },
+          {
+            "id": "wa-praktijkhal-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "In de praktijkhal aan de Energieweg 8 in Zuiddrecht staan werkende warmtepompen: lucht-water, hybride en bodem."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/contact",
+      "title": "Contact en route",
+      "summary": "Praktijkhal: Energieweg 8, Zuiddrecht. Planning: [telefoonnummer]. E-mail: [e-mailadres]. Werkdagen 08.00 tot 17.00 uur.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wa-contact-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Contact en route",
+              "level": 1
+            }
+          },
+          {
+            "id": "wa-contact-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Praktijkhal: Energieweg 8, Zuiddrecht. Planning: [telefoonnummer]. E-mail: [e-mailadres]. Werkdagen 08.00 tot 17.00 uur."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/algemene-voorwaarden",
+      "title": "Algemene voorwaarden",
+      "summary": "De Warmtepompacademie is een voorbeeldorganisatie. Er gelden geen echte voorwaarden of prijzen.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wa-algemene-voorwaarden-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Algemene voorwaarden",
+              "level": 1
+            }
+          },
+          {
+            "id": "wa-algemene-voorwaarden-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "De Warmtepompacademie is een voorbeeldorganisatie. Er gelden geen echte voorwaarden of prijzen."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/privacy",
+      "title": "Privacy",
+      "summary": "De Warmtepompacademie is een voorbeeldorganisatie. Op deze website staan geen echte gegevens van deelnemers of bedrijven.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wa-privacy-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Privacy",
+              "level": 1
+            }
+          },
+          {
+            "id": "wa-privacy-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "De Warmtepompacademie is een voorbeeldorganisatie. Op deze website staan geen echte gegevens van deelnemers of bedrijven."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/toegankelijkheid",
+      "title": "Toegankelijkheid",
+      "summary": "Deze website is gemaakt volgens de NL Design System richtlijnen en toegankelijk volgens WCAG 2.2 niveau AA.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wa-toegankelijkheid-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Toegankelijkheid",
+              "level": 1
+            }
+          },
+          {
+            "id": "wa-toegankelijkheid-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Deze website is gemaakt volgens de NL Design System richtlijnen en toegankelijk volgens WCAG 2.2 niveau AA."
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "news": [],
+  "accounts": [
+    {
+      "userId": "training-trainer-10",
+      "displayName": "Henk Dekker",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
+      "userId": "training-trainer-11",
+      "displayName": "Fatima Ouali",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
+      "userId": "training-planner-01",
+      "displayName": "Sophie van Dam",
+      "groups": [
+        "coordinators"
+      ]
+    },
+    {
+      "userId": "training-administratie-01",
+      "displayName": "Rob Maas",
+      "groups": [
+        "administration-managers"
+      ]
+    },
+    {
+      "userId": "training-deelnemer-151",
+      "displayName": "Tom Verbeek",
+      "groups": []
+    }
+  ]
+}

@@ -44,7 +44,7 @@ class ExampleSetPortalCommand extends Command {
 	/**
 	 * The answers that mean nothing went wrong.
 	 */
-	private const SUCCESS_STATUSES = ['created', 'themed', 'kept', 'unchanged'];
+	public const SUCCESS_STATUSES = ['created', 'filled', 'unchanged', 'kept-legacy'];
 
 	/**
 	 * Constructor.
@@ -68,7 +68,7 @@ class ExampleSetPortalCommand extends Command {
 	 */
 	protected function configure(): void {
 		$this->setName(name: 'learniq:example-set:portal')
-			->setDescription(description: 'Give a loaded example set its portal, themed with the matching thematiq example set')
+			->setDescription(description: 'Give a loaded example set its portal and the site its declaration names; writes only what is missing')
 			->addArgument(
 				name: 'set',
 				mode: InputArgument::REQUIRED,
@@ -90,12 +90,7 @@ class ExampleSetPortalCommand extends Command {
 		$result = $this->portals->provision(profileId: (string)$input->getArgument('set'));
 		$status = $result['status'];
 
-		$line = 'Portal ' . ($result['slug'] ?? '-') . ': ' . $status;
-		if (isset($result['theme']) === true) {
-			$line .= ' (example theme ' . $result['theme'] . ')';
-		}
-
-		$output->writeln($line);
+		$output->writeln($this->portals->describe(result: $result));
 
 		if (in_array($status, self::SUCCESS_STATUSES, true) === true) {
 			return self::SUCCESS;
