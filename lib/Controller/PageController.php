@@ -30,6 +30,7 @@ use OCA\Learniq\Service\DashboardRoleService;
 use OCA\Learniq\Service\LineManagerCheck;
 use OCA\Learniq\Service\LoadedExampleSets;
 use OCA\Learniq\Service\SegmentService;
+use OCA\Learniq\Service\Settings\MenuStructure;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -116,6 +117,9 @@ class PageController extends Controller {
 			// The caller's tenant, for nextcloud-vue's tenant context: the
 			// shared create dialog fills a hidden `tenant_id` from it.
 			$this->initialState->provideInitialState('callerTenant', $this->resolveCallerTenant());
+			// Which structure `src/main.js` builds: the simple menu (the default)
+			// or the full one (simple-structure-profile).
+			$this->initialState->provideInitialState(MenuStructure::KEY, $this->resolveMenuStructure());
 		}
 
 		return new TemplateResponse(Application::APP_ID, 'index');
@@ -142,6 +146,25 @@ class PageController extends Controller {
 			return ['segment' => SegmentService::DEFAULT_SEGMENT, 'chosenSegment' => null];
 		}
 	}//end resolveWorkspace()
+
+	/**
+	 * Which structure the app shows: `simple` (the default) or `full`.
+	 *
+	 * Resolved lazily and degraded to the default on failure, like the other
+	 * values this page provides: this is the app's default route, and a start
+	 * screen that fails over a menu setting helps nobody.
+	 *
+	 * @return string `simple` or `full`.
+	 *
+	 * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
+	 */
+	private function resolveMenuStructure(): string {
+		try {
+			return $this->container->get(MenuStructure::class)->current();
+		} catch (Throwable $e) {
+			return MenuStructure::SIMPLE;
+		}
+	}//end resolveMenuStructure()
 
 	/**
 	 * Which course store actions the signed-in user may take, for the Store page and
