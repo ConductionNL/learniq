@@ -31390,8 +31390,8 @@
             },
             "BpvHourWeek": {
                 "slug": "bpv-hour-week",
-                "icon": "clock-outline",
-                "version": "0.2.0",
+                "icon": "ClockOutline",
+                "version": "0.2.1",
                 "title": "BpvHourWeek",
                 "description": "One week of realised BPV hours for one placement. The hours the student submitted and the hours the trainer approved are kept as two values, so a correction is readable afterwards instead of overwriting what the student said.",
                 "type": "object",
