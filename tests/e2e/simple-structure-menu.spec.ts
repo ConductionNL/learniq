@@ -163,6 +163,12 @@ test.describe('The simple structure', () => {
 		await expect(
 			page.getByRole('heading', { name: /^(Today|Vandaag)$/ }).first(),
 		).toBeVisible({ timeout: 60_000 })
+		// The greeting carries today's date. An empty header card is what a
+		// build against a library without the greeting looks like.
+		await expect(page.getByTestId('cn-header-widget-date')).toBeVisible({
+			timeout: 60_000,
+		})
+		await expect(page.locator('.cn-dashboard-page__unknown')).toHaveCount(0)
 		// The week strip is a widget only the Today dashboard has. The role
 		// dashboard it replaces for an administrator never renders one.
 		await expect(page.getByTestId('cn-week-strip')).toBeVisible({

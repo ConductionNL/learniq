@@ -1040,6 +1040,181 @@ test('the First today card counts with a flat filter', () => {
 	assert.ok(lifecycle.includes(card.content.visibleWhen.source.filter.lifecycle))
 })
 
+test('the First today card is not collapsed before its condition is read', () => {
+	// nextcloud-vue 2.60.0, CnDashboardPage.isCollapsedWidget: a banner whose
+	// `content.text` is empty gives up its cell BEFORE `visibleWhen` is looked
+	// at. The attention layout draws `title`, so a card with a title and no
+	// text reads fine in the file and can never show. This mirrors that rule
+	// (it lives in a .vue file node cannot import) and pins the source text,
+	// so the mirror fails when the library changes the rule.
+	const page = readText(
+		'node_modules/@conduction/nextcloud-vue/src/components/CnDashboardPage/CnDashboardPage.vue',
+	)
+	assert.match(
+		page,
+		/if \(this\.isBannerDef\(def\) && text === ''\) \{\s*return true/,
+		'the library changed its collapse rule; read it again',
+	)
+	assert.match(page, /text: content\.text \|\| props\.text \|\| ''/)
+	for (const widget of TODAY.config.widgets) {
+		if (widget.type !== 'banner') {
+			continue
+		}
+		const text = widget.content.text || widget.props?.text || ''
+		assert.notEqual(text, '', `${widget.id} has no text and would never show`)
+		assert.equal(widget.content.text, widget.content.title)
+	}
+})
+
+/**
+ * The library's own visibleWhen functions, loaded with the few browser
+ * globals their imports touch at module load.
+ *
+ * @return {Promise<object>} The module.
+ */
+async function libraryVisibleWhen() {
+	const memory = () => {
+		const map = new Map()
+		return {
+			getItem: (key) => map.get(key) ?? null,
+			setItem: (key, value) => map.set(key, String(value)),
+			removeItem: (key) => map.delete(key),
+		}
+	}
+	const head = { getAttribute: () => null, dataset: {} }
+	globalThis.window ??= globalThis
+	globalThis.localStorage ??= memory()
+	globalThis.sessionStorage ??= memory()
+	globalThis.location ??= { pathname: '/index.php/apps/learniq/' }
+	globalThis.addEventListener ??= () => {}
+	globalThis.document ??= {
+		head,
+		documentElement: { getAttribute: () => 'en', dataset: {} },
+		getElementsByTagName: () => [head],
+		querySelector: () => null,
+		getElementById: () => null,
+		addEventListener: () => {},
+	}
+	return import('../../node_modules/@conduction/nextcloud-vue/src/utils/visibleWhen.js')
+}
+
+test('the First today card shows for open flags and hides for none, by the library own rule', async () => {
+	const { compareVisibleWhen, readVisibleWhenValue } = await libraryVisibleWhen()
+	const card = TODAY.config.widgets.find((widget) => widget.type === 'banner')
+	const condition = card.content.visibleWhen
+	const realFetch = globalThis.fetch
+	const asked = []
+	const answerWith = (total) => {
+		globalThis.fetch = async (url) => {
+			asked.push(String(url))
+			return {
+				ok: true,
+				status: 200,
+				json: async () => ({ results: total > 0 ? [1] : [], total }),
+			}
+		}
+	}
+	try {
+		answerWith(3)
+		const open = await readVisibleWhenValue(condition, {})
+		assert.equal(open, 3)
+		assert.equal(compareVisibleWhen(open, condition.op, condition.value), true)
+
+		answerWith(0)
+		const none = await readVisibleWhenValue(condition, {})
+		assert.equal(none, 0)
+		assert.equal(compareVisibleWhen(none, condition.op, condition.value), false)
+	} finally {
+		globalThis.fetch = realFetch
+	}
+	// The address the count is read from: the flat filter, as written.
+	assert.equal(asked.length, 2)
+	assert.ok(
+		asked[0].endsWith(
+			'/apps/openregister/api/objects/learniq/attendance-flag?lifecycle=open&_limit=1',
+		),
+		asked[0],
+	)
+})
+
+test('every widget type on Today is one the installed library build registers', () => {
+	// The dashboard page resolves a type in this order: the app's registry,
+	// the library's dashboard catalog (registerDashboardWidget), then
+	// BUILT_IN_WIDGETS. A type in none of them renders "Widget not available".
+	// The catalog is read from the BUILD the app bundles (dist/esm), not from
+	// the source tree or a list of names, and the registration module must be
+	// on the package's sideEffects list or a bundler may drop it.
+	const lib = 'node_modules/@conduction/nextcloud-vue/'
+	const registered = new Set()
+	const walk = (dir) => {
+		for (const entry of readdirSync(new URL(dir, root), {
+			withFileTypes: true,
+		})) {
+			if (entry.isDirectory()) {
+				walk(`${dir}${entry.name}/`)
+			} else if (entry.name.endsWith('.js')) {
+				const source = readText(dir + entry.name)
+				for (const match of source.matchAll(
+					/registerDashboardWidget\(\s*['"]([a-z-]+)['"]/g,
+				)) {
+					registered.add(match[1])
+				}
+			}
+		}
+	}
+	walk(`${lib}dist/esm/components/`)
+	assert.ok(registered.size > 30, `only ${registered.size} catalog widgets found`)
+
+	const builtInSource = readText(
+		`${lib}dist/esm/components/CnWidgetGrid/builtInWidgets.js`,
+	)
+	const builtIn = builtInSource.match(/const BUILT_IN_WIDGETS = \{([\s\S]*?)\n\}/)
+	assert.ok(builtIn, 'BUILT_IN_WIDGETS not found in the build')
+	const builtInKeys = new Set(
+		[...builtIn[1].matchAll(/^\s*['"]?([a-z-]+)['"]?\s*:/gm)].map((m) => m[1]),
+	)
+
+	const appRegistry = readText('src/registry.js')
+	for (const widget of TODAY.config.widgets) {
+		assert.ok(
+			!new RegExp(`^\\s*['"]?${widget.type}['"]?\\s*:`, 'm').test(appRegistry),
+			`${widget.type} is overridden by the app registry`,
+		)
+		assert.ok(
+			registered.has(widget.type) || builtInKeys.has(widget.type),
+			`${widget.id}: no renderer for type ${widget.type} in the installed build`,
+		)
+	}
+	// The two that only exist since 2.60.0, by name, in the catalog itself.
+	assert.ok(registered.has('week-strip'))
+	assert.ok(registered.has('header'))
+	const greeting = readText(
+		`${lib}dist/esm/components/CnHeaderWidget/CnHeaderWidget.vue2.js`,
+	)
+	assert.ok(greeting.includes('greetingText'), 'this build has no greeting header')
+
+	const pkg = readJson(`${lib}package.json`)
+	assert.ok(
+		pkg.sideEffects.includes('**/CnWidgetGrid/registerDashboardWidgets.js'),
+	)
+	const [major, minor] = pkg.version.split('.').map(Number)
+	assert.ok(
+		major === 2 && minor >= 60,
+		`installed nextcloud-vue is ${pkg.version}`,
+	)
+	const range = readJson('package.json').dependencies['@conduction/nextcloud-vue']
+	const floor = range.match(/^\^2\.(\d+)\./)
+	assert.ok(
+		floor && Number(floor[1]) >= 60,
+		`the declared range ${range} allows a build without these widgets`,
+	)
+	assert.match(
+		readText('src/main.js'),
+		/^registerBuiltinDashboardWidgets\(\)$/m,
+		'main.js no longer registers the catalog',
+	)
+})
+
 test('the week strip reads real fields and opens a lesson', () => {
 	const strip = TODAY.config.widgets.find((widget) => widget.type === 'week-strip')
 	const properties = schemaOf(strip.content.source.schema).properties
