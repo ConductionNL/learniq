@@ -24,7 +24,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import App from './App.vue'
 import appIcons from './icons.js'
 import bundledManifest from './manifest.json'
-import menuLayout from './menu-layout.json'
+import menuLayoutFull from './menu-layout.json'
+import menuLayoutSimple from './menu-layout.simple.json'
 import pinia from './pinia.js'
 import registry from './registry.js'
 import { normaliseCallerTenant } from './utils/callerTenant.js'
@@ -32,6 +33,12 @@ import { applyExampleSetRemovalSteps } from './utils/exampleSetSteps.js'
 import { applyIntegrationTitles } from './utils/integrationTitles.js'
 import { applyReportCardGates } from './utils/reportCardGates.js'
 import { applyStoreAccess } from './utils/storeAccess.js'
+import {
+	buildProfiledManifest,
+	resolveStructureProfile,
+	STRUCTURE_FULL,
+	STRUCTURE_SETTING,
+} from './utils/structureProfile.js'
 import { buildWorkspaceRuntime, DEFAULT_SEGMENT } from './utils/workspaceRuntime.js'
 
 // Library CSS — must be explicit import (webpack tree-shakes side-effect imports from aliased packages)
@@ -210,8 +217,19 @@ const fragments = fragmentCtx
 // CnReportsPage ignores a card's `visibleIf` (CnAppNav and CnNavCardGrid
 // honour it), so the Reports cards are filtered here against the runtime
 // built above, with the library's own evaluator (company-segment-menu-gating).
+//
+// THE STRUCTURE PROFILE picks the layout file. PageController provides
+// `menu_structure` as initial state: `simple` (the default) or `full` (the
+// navigation as it was). Both are built from the same manifest and the same
+// fragments, so every page stays routable in either. See
+// `utils/structureProfile.js` for what a profile file may hold.
+const structureProfile = resolveStructureProfile(
+	loadState('learniq', STRUCTURE_SETTING, ''),
+)
+const menuLayout =
+	structureProfile === STRUCTURE_FULL ? menuLayoutFull : menuLayoutSimple
 const mergedManifest = applyReportCardGates(
-	buildManifest(bundledManifest, fragments, menuLayout),
+	buildProfiledManifest(buildManifest, bundledManifest, fragments, menuLayout),
 )
 
 // Who sees Install and Publish on the Store page is learniq's answer, resolved

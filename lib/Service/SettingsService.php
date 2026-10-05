@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\Settings\MenuStructure;
 use OCP\App\IAppManager;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
@@ -45,6 +46,10 @@ class SettingsService {
 		'register',
 		// The integriq event subscription the LTI grade pull reads (content-lti-launch-through-integriq).
 		'lti_ags_subscription_id',
+		// Which structure the app shows (simple-structure-profile). A key that
+		// is not on this list is dropped by updateSettings() while the write
+		// still answers success.
+		MenuStructure::KEY,
 	];
 
 	/**
