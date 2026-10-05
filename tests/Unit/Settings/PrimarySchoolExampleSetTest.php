@@ -292,7 +292,7 @@ class PrimarySchoolExampleSetTest extends TestCase {
 	 * @spec openspec/specs/example-sets/spec.md#requirement-the-register-no-longer-carries-dark-primary-school-seeds
 	 */
 	public function testThePromotedSeedMovedOutOfTheRegister(): void {
-		self::assertContains('Voorbeeldschool De Wilgenboom', array_column(self::of('school'), 'name'));
+		self::assertContains('Basisschool De Wilgenboom', array_column(self::of('school'), 'name'));
 		self::assertContains('Dependance Noorderpark', array_column(self::of('vestiging'), 'name'));
 		self::assertContains('technisch lezen', array_column(self::of('group-plan'), 'subject'));
 
@@ -305,4 +305,88 @@ class PrimarySchoolExampleSetTest extends TestCase {
 			self::assertSame([], ($register['components']['schemas'][$schema]['x-openregister-seed'] ?? []), $schema . ' still carries seed rows');
 		}
 	}//end testThePromotedSeedMovedOutOfTheRegister()
+
+	/**
+	 * The designed portal's story is in the data: the Hulstkamp family on
+	 * Monday 5 October 2026, with the numbers the boards show.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-sets-are-the-four-schools/specs/example-sets/spec.md#requirement-each-example-set-is-the-school-its-portal-was-designed-for
+	 */
+	public function testTheWilgenboomStoryIsInTheData(): void {
+		self::assertSame('Basisschool De Wilgenboom', self::of('school')[0]['name']);
+		self::assertSame(['Zuiddrecht'], array_values(array_unique(array_column(self::of('vestiging'), 'city'))));
+
+		$profiles = self::of('learner-profile');
+		$find     = static function (string $given) use ($profiles): array {
+			$hits = array_values(array_filter($profiles, static fn (array $p): bool => $p['givenName'] === $given && $p['familyName'] === 'Hulstkamp'));
+			self::assertCount(1, $hits, $given . ' Hulstkamp exists once');
+			return $hits[0];
+		};
+		$fatima  = $find('Fatima');
+		$vera    = $find('Vera');
+		$sami    = $find('Sami');
+		$cohorts = self::by(self::of('cohort'), 'uuid');
+		$groupOf = [];
+		foreach (self::of('enrolment') as $enrolment) {
+			$groupOf[$enrolment['learnerRef']] = $cohorts[$enrolment['cohortId']];
+		}
+
+		self::assertSame('Groep 7', $groupOf[$vera['uuid']]['name']);
+		self::assertSame(['po-leerkracht-09'], $groupOf[$vera['uuid']]['teacherIds']);
+		self::assertSame('Groep 4', $groupOf[$sami['uuid']]['name']);
+		self::assertSame(['po-leerkracht-07'], $groupOf[$sami['uuid']]['teacherIds']);
+		self::assertContains($fatima['uuid'], $sami['guardianRefs']);
+
+		// Today's report: Sami, buikgriep, not decided yet; the teacher marked him at 8.12.
+		$today = array_values(array_filter(self::of('excuse-request'), static fn (array $e): bool => $e['learnerRef'] === $sami['uuid'] && $e['dateFrom'] === '2026-10-05'));
+		self::assertCount(1, $today);
+		self::assertSame('Sami heeft buikgriep', $today[0]['reason']);
+		self::assertSame('submitted', $today[0]['lifecycle']);
+		self::assertSame($fatima['uuid'], $today[0]['submittedByRef']);
+		$marks = array_values(array_filter(self::of('attendance-record'), static fn (array $m): bool => $m['excuseRequestId'] === $today[0]['uuid']));
+		self::assertCount(1, $marks);
+		self::assertSame('2026-10-05T08:12:00+02:00', $marks[0]['markedAt']);
+
+		// The figures for 2026-2027 on the board: Vera 1 day and late once for 10 minutes, Sami 2 days.
+		$summaries = [];
+		foreach (self::of('attendance-summary') as $summary) {
+			if ($summary['schoolYear'] === '2026-2027') {
+				$summaries[$summary['learnerRef']] = $summary;
+			}
+		}
+
+		self::assertSame([1, 1, 10], [$summaries[$vera['uuid']]['absentDays'], $summaries[$vera['uuid']]['lateCount'], $summaries[$vera['uuid']]['lateMinutes']]);
+		self::assertSame([2, 0], [$summaries[$sami['uuid']]['absentDays'], $summaries[$sami['uuid']]['lateCount']]);
+
+		// Vera's parent-evening time: Thursday 29 October, 18.00 to 18.10, confirmed by the teacher.
+		$booked = array_values(array_filter(self::of('conference-slot'), static fn (array $s): bool => ($s['learnerRef'] ?? null) === $vera['uuid']));
+		self::assertCount(1, $booked);
+		self::assertSame('2026-10-29T18:00:00+01:00', $booked[0]['startsAt']);
+		self::assertSame('2026-10-29T18:10:00+01:00', $booked[0]['endsAt']);
+		self::assertSame('acknowledged', $booked[0]['lifecycle']);
+
+		// Groep 4's round closes on Friday 16 October; Sami is invited and has no time yet.
+		$round4 = array_values(array_filter(self::of('conference-round'), static fn (array $r): bool => $r['name'] === 'Oudergesprekken groep 4, oktober 2026'));
+		self::assertCount(1, $round4);
+		self::assertSame('2026-10-16T17:00:00+02:00', $round4[0]['bookingClosesAt']);
+		self::assertContains($sami['uuid'], $round4[0]['invitedLearnerRefs']);
+
+		// The calendar of October 2026.
+		$events = [];
+		foreach (self::of('school-event') as $event) {
+			$events[$event['title']] = substr($event['startsAt'], 0, 10);
+		}
+
+		self::assertSame('2026-10-07', $events['Schoolfotograaf']);
+		self::assertSame('2026-10-07', $events['Naar de kinderboerderij']);
+		self::assertSame('2026-10-09', $events['Studiedag']);
+		self::assertSame('2026-10-29', $events['Ouderavond']);
+
+		// Vera's last report, June 2026, with the grades on the board.
+		$cards = array_values(array_filter(self::of('report-card'), static fn (array $c): bool => $c['learnerRef'] === $vera['uuid'] && $c['periodName'] === 'Rapport 2'));
+		self::assertCount(1, $cards);
+		self::assertSame([7.9, 8.3, 7.9, 7.7, 7.7, 8.2], array_column($cards[0]['subjectGrades'], 'periodAverage'));
+	}//end testTheWilgenboomStoryIsInTheData()
 }//end class
