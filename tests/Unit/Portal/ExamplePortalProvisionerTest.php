@@ -171,10 +171,11 @@ class ExamplePortalProvisionerTest extends TestCase {
 	 */
 	public function testEveryDesignedSchoolDeclaresItsSite(): void {
 		$expected = [
-			'po'       => ['wilgenboom', 'wilgenboom', 'example-basisschool', 'Mijn Wilgenboom', ['digid']],
-			'vo'       => ['vaartveld', 'vaartveld', 'example-voortgezet', 'Mijn Vaartveld', ['nextcloud', 'digid']],
-			'mbo'      => ['esdoornveen', 'esdoornveen', 'example-college', 'Mijn Esdoornveen', ['nextcloud', 'eherkenning']],
-			'training' => ['warmtepompacademie', 'warmtepompacademie', 'example-opleider', 'Mijn academie', ['nextcloud', 'eherkenning']],
+			// `public` first: portaliq serves no site content to a visitor on a portal without it (lane L2, live).
+			'po'       => ['wilgenboom', 'wilgenboom', 'example-basisschool', 'Mijn Wilgenboom', ['public', 'digid']],
+			'vo'       => ['vaartveld', 'vaartveld', 'example-voortgezet', 'Mijn Vaartveld', ['public', 'nextcloud', 'digid']],
+			'mbo'      => ['esdoornveen', 'esdoornveen', 'example-college', 'Mijn Esdoornveen', ['public', 'nextcloud', 'eherkenning']],
+			'training' => ['warmtepompacademie', 'warmtepompacademie', 'example-opleider', 'Mijn academie', ['public', 'nextcloud', 'eherkenning']],
 		];
 		self::assertSame(['mbo', 'po', 'training', 'vo'], (new ExamplePortalDeclarations())->declaredSets());
 		foreach ($expected as $set => [$slug, $theme, $fallback, $title, $modes]) {
@@ -234,7 +235,7 @@ class ExamplePortalProvisionerTest extends TestCase {
 		$portal = $this->store['portal'][0];
 		self::assertSame('Mijn Wilgenboom', $portal['title']);
 		self::assertSame('published', $portal['status']);
-		self::assertSame(['digid'], $portal['authentication']['modes']);
+		self::assertSame(['public', 'digid'], $portal['authentication']['modes']);
 		self::assertSame('Contact en schooltijden', $portal['footer']['cta']['label']);
 		self::assertArrayNotHasKey('themeFallback', $portal);
 		self::assertArrayNotHasKey('domains', $portal);
@@ -317,6 +318,8 @@ class ExamplePortalProvisionerTest extends TestCase {
 		self::assertSame('Ouderportaal De Wilgenboom', $portal['title']);
 		self::assertSame('rijkshuisstijl', $portal['theme']);
 		self::assertSame(['digid', 'nextcloud'], $portal['authentication']['modes']);
+		// The chosen list is kept; the answer names what the declaration wanted and the portal lacks.
+		self::assertSame(['public'], $result['missingModes']);
 		self::assertSame('Ouder of verzorger', $portal['authentication']['modeLabels']['digid']['title'], 'a missing setting inside authentication is filled');
 		self::assertSame('Gemaakt door de school', $portal['footer']['colophon']);
 		self::assertSame('Heeft u een vraag? Loop binnen, bel of mail ons. De deur staat open.', $portal['footer']['description']);
@@ -379,7 +382,7 @@ class ExamplePortalProvisionerTest extends TestCase {
 		self::assertSame(['created' => 0, 'kept' => 0], $result['pages']);
 		self::assertCount(1, $this->writes);
 		self::assertSame('esdoornstad', $this->writes[0]['object']['slug']);
-		self::assertSame(['digid'], $this->writes[0]['object']['authentication']['modes']);
+		self::assertSame(['public', 'digid'], $this->writes[0]['object']['authentication']['modes']);
 	}//end testASetWithoutADeclarationGetsThePlainThemedPortal()
 
 	/**
