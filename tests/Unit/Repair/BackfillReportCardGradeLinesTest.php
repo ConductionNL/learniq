@@ -218,4 +218,31 @@ class BackfillReportCardGradeLinesTest extends TestCase {
 			$this->warnings[0]
 		);
 	}//end testARefusedWriteNamesItsReasonInTheOutput()
+
+	/**
+	 * Past three distinct reasons the warning names the three most frequent
+	 * and counts the rest, so the upgrade output stays one readable line. A
+	 * card without an id is skipped, not counted.
+	 *
+	 * @return void
+	 */
+	public function testMoreThanThreeReasonsAreSummarised(): void {
+		$step = $this->makeStep();
+		foreach (['a', 'b', 'c'] as $suffix) {
+			$this->store->rows['report-card'][] = [
+				'id' => 'card-' . $suffix,
+				'reportPeriodId' => 'period-1',
+				'subjectGrades' => [['curriculumPlanId' => 'plan-rekenen', 'courseId' => 'course-rekenen', 'periodAverage' => 5.0]],
+			];
+		}
+
+		$this->store->rows['report-card'][] = ['reportPeriodId' => 'period-1', 'subjectGrades' => []];
+		$this->refuseSaves = static fn (array $object): string => 'Refused ' . $object['id'] . '.';
+
+		$step->run($this->recorder());
+
+		self::assertSame('BackfillReportCardGradeLines: 0 stamped, 4 failed, of 6 scanned.', $this->messages[0]);
+		self::assertStringContainsString('and 1 other reason(s), see the log', $this->warnings[0]);
+		self::assertStringContainsString('Write the readable period', $step->getName());
+	}//end testMoreThanThreeReasonsAreSummarised()
 }//end class
