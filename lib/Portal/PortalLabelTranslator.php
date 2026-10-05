@@ -65,6 +65,8 @@ class PortalLabelTranslator {
 		'eyebrow',
 		'soonLabel',
 		'noteLabel',
+		// A form field's hint under its label (employer-portal-audience).
+		'help',
 	];
 
 	/**
