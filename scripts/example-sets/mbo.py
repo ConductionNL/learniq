@@ -3,8 +3,8 @@
 # Copyright (C) 2026 Conduction B.V.
 """Build lib/Settings/profiles/mbo.json, the vocational college (MBO) example set.
 
-One fictional college, Voorbeeldcollege Vaartveld in the fictional town of
-Vaartdam, through one complete school year (2025-2026): two locations, three
+One fictional college, Esdoornveen in the fictional town of
+Zuiddrecht, through one complete school year (2025-2026): two locations, three
 programmes (Logistiek medewerker niveau 2, Verzorgende IG niveau 3, Software
 developer niveau 4) with a kwalificatiedossier-style framework each, eight
 classes (one per programme and leerjaar), 250 students, staff with a
@@ -155,10 +155,10 @@ ADULT_F = ["Linda", "Esther", "Marloes", "Anouk", "Kim", "Fatima", "Laura", "Nic
 SURNAME_HEAD = ["Vaart", "Sluis", "Kade", "Polder", "Kreek", "Haven", "Brug", "Wetering", "Schor", "Plas", "Grift", "Kolk", "Waard", "Zijl", "Tocht", "Rietland", "Veer", "Stroom", "Gors", "Ley"]
 SURNAME_TAIL = ["zicht", "oord", "werf", "rand", "stee", "hoeve", "wijde", "lint", "kant", "hoek", "velde", "dijk", "burg", "weer"]
 STREETS = ["Kadestraat", "Sluisweg", "Havenkade", "Brugstraat", "Polderlaan", "Dijkgraafpad", "Weteringpad", "Schippersweg", "Lichtbaken", "Jaagpad", "Molenvliet", "Veerpont", "Kreekrug", "Zijlstroom"]
-TOWNS = ["Vaartdam", "Vaartdam", "Vaartdam", "Vaartveld", "Oosterkade"]
+TOWNS = ["Zuiddrecht", "Zuiddrecht", "Zuiddrecht", "Zuiddrecht", "Oosterkade"]
 
 LOCATIONS = {
-    "centrum": ("Locatie Centrum", "00X300", None, "Stationsplein 4", "0510 VD"),
+    "centrum": ("Locatie Centrum", "00X300", None, "Esdoornlaan 40", "0510 EZ"),
     "techniekpark": ("Locatie Techniekpark", "00X301", "00X301-A", "Werkplaatsweg 10", "0514 TP"),
 }
 
@@ -272,16 +272,16 @@ ASSESSMENT_WINDOWS = {
 }
 
 COMPANIES = {
-    "LOG": [("Distributiecentrum Vaartdam", "distributiecentrum-vaartdam"), ("Groothandel Vaartkade", "groothandel-vaartkade"),
-            ("Koeltransport Vaartdam", "koeltransport-vaartdam"), ("Bouwmaterialen Vaartveld", "bouwmaterialen-vaartveld"),
+    "LOG": [("Distributiecentrum Zuiddrecht", "distributiecentrum-zuiddrecht"), ("Groothandel Vaartkade", "groothandel-vaartkade"),
+            ("Koeltransport Zuiddrecht", "koeltransport-zuiddrecht"), ("Bouwmaterialen Zuiddrecht", "bouwmaterialen-zuiddrecht"),
             ("Webwinkel Oosterkade", "webwinkel-oosterkade")],
     "VIG": [("Zorgcentrum De Vaartoever", "zorgcentrum-vaartoever"), ("Woonzorg Vaarthof", "woonzorg-vaarthof"),
-            ("Thuiszorg Vaartdam", "thuiszorg-vaartdam"), ("Verpleeghuis De Sluiswachter", "verpleeghuis-sluiswachter"),
+            ("Thuiszorg Zuiddrecht", "thuiszorg-zuiddrecht"), ("Verpleeghuis De Sluiswachter", "verpleeghuis-sluiswachter"),
             ("Revalidatiecentrum Oosterkade", "revalidatie-oosterkade"), ("Woongroep Polderrand", "woongroep-polderrand"),
-            ("Zorgboerderij Vaartveld", "zorgboerderij-vaartveld")],
-    "SD": [("Softwarehuis Vaartdam", "softwarehuis-vaartdam"), ("Webbureau Vaartsluis", "webbureau-vaartsluis"),
-           ("Appstudio Oosterkade", "appstudio-oosterkade"), ("Datakade Vaartdam", "datakade-vaartdam"),
-           ("Automatisering Vaartveld", "automatisering-vaartveld"), ("ICT-afdeling Ziekenhuis Vaartdam", "ziekenhuis-vaartdam")],
+            ("Zorgboerderij Zuiddrecht", "zorgboerderij-zuiddrecht")],
+    "SD": [("Softwarehuis Zuiddrecht", "softwarehuis-zuiddrecht"), ("Webbureau Vaartsluis", "webbureau-vaartsluis"),
+           ("Appstudio Oosterkade", "appstudio-oosterkade"), ("Datakade Zuiddrecht", "datakade-zuiddrecht"),
+           ("Automatisering Zuiddrecht", "automatisering-zuiddrecht"), ("ICT-afdeling Ziekenhuis Zuiddrecht", "ziekenhuis-zuiddrecht")],
 }
 
 # Staff: ncUserId => (display name, roles, qualifications). Working days follow
@@ -291,7 +291,7 @@ STAFF = {
     "mbo-teamleider-02": ("Erik Sluisoord", ["administrator"], ["teamleider opleidingen zorg"], WEEKDAYS),
     "mbo-stagecoordinator-01": ("Mirjam Polderrand", ["coordinator"], ["stagecoördinator", "BPV-coördinatie alle opleidingen"], [MON, TUE, WED, THU]),
     "mbo-examencommissie-01": ("Arjen Kreekstee", ["coordinator"], ["voorzitter examencommissie"], [MON, WED, THU]),
-    "mbo-examencommissie-02": ("Samira Havenzicht", ["coordinator"], ["secretaris examencommissie"], [MON, TUE, THU]),
+    "mbo-examencommissie-02": ("Karin de Boer", ["coordinator"], ["secretaris examencommissie"], [MON, TUE, THU]),
     "mbo-studentbegeleider-01": ("Judith Wetering", ["support-staff"], ["studentbegeleider", "zorgcoördinator"], [MON, TUE, WED, THU]),
     "mbo-verzuimcoordinator-01": ("Ronald Veerkant", ["support-staff"], ["verzuimcoördinator"], [MON, TUE, WED, THU, FRI]),
     "mbo-administratie-01": ("Wendy Grifthoek", ["administrator"], ["onderwijsadministratie"], [MON, TUE, THU, FRI]),
@@ -446,12 +446,12 @@ def build() -> dict:
     days = school_days()
 
     # --- college, locations, rooms ------------------------------------------
-    school = b.add("school", {"brin": "00X3", "name": "Voorbeeldcollege Vaartveld", "pedagogicalConcept": "regular"})
+    school = b.add("school", {"brin": "00X3", "name": "Esdoornveen", "pedagogicalConcept": "regular"})
     locations = {}
     for key, (name, code, olc, street, postcode) in LOCATIONS.items():
         locations[key] = b.add("vestiging", {
             "schoolId": school["uuid"], "vestigingscode": code, "onderwijslocatiecode": olc, "name": name,
-            "street": street, "postalCode": postcode, "city": "Vaartdam",
+            "street": street, "postalCode": postcode, "city": "Zuiddrecht",
         })
     rooms = {}
     for cname, programme, *_rest in COHORTS:
@@ -1116,7 +1116,7 @@ def build() -> dict:
         "groundsDescription": "Havodiploma 2024 met Engels op havoniveau, hoger dan het niveau dat de opleiding vraagt.",
         "submittedAt": stamp(dt.date(2025, 9, 15), 10, 12),
         "decisionRationale": "Het diploma toont Engels aan op een hoger niveau dan de exameneis; vrijstelling voor het onderdeel Engels.",
-        "policyReference": "Examenreglement Voorbeeldcollege Vaartveld 2025-2026, artikel 7.3", "decidedBy": EXAM_CHAIR,
+        "policyReference": "Examenreglement Esdoornveen 2025-2026, artikel 7.3", "decidedBy": EXAM_CHAIR,
         "decidedAt": stamp(dt.date(2025, 10, 6), 16, 0), "lifecycle": "granted",
     })
     exemption_rows[sd3_exempt["nc"]] = b.add("exemption-case", {
@@ -1124,7 +1124,7 @@ def build() -> dict:
         "groundsKind": "certificate", "groundsDescription": "Certificaat Engels op niveau B2 van het Europees referentiekader, behaald in 2025.",
         "submittedAt": stamp(dt.date(2025, 9, 22), 9, 40),
         "decisionRationale": "Het certificaat is recent en ligt boven het vereiste niveau; vrijstelling voor het onderdeel Engels.",
-        "policyReference": "Examenreglement Voorbeeldcollege Vaartveld 2025-2026, artikel 7.3", "decidedBy": EXAM_CHAIR,
+        "policyReference": "Examenreglement Esdoornveen 2025-2026, artikel 7.3", "decidedBy": EXAM_CHAIR,
         "decidedAt": stamp(dt.date(2025, 10, 6), 16, 0), "lifecycle": "granted",
     })
     log_request = by_class["LOG2-2A"][7]
@@ -1133,7 +1133,7 @@ def build() -> dict:
         "groundsKind": "work-experience", "groundsDescription": "Twee zomers vakantiewerk in een distributiecentrum.",
         "submittedAt": stamp(dt.date(2025, 9, 29), 14, 3),
         "decisionRationale": "De werkervaring dekt het opslaan van goederen, maar niet het ontvangen en controleren of het voorraadbeheer. De proeve blijft nodig.",
-        "policyReference": "Examenreglement Voorbeeldcollege Vaartveld 2025-2026, artikel 7.4", "decidedBy": EXAM_CHAIR,
+        "policyReference": "Examenreglement Esdoornveen 2025-2026, artikel 7.4", "decidedBy": EXAM_CHAIR,
         "decidedAt": stamp(dt.date(2025, 10, 20), 16, 0), "lifecycle": "rejected",
     })
     vig_request = by_class["VIG3-2A"][9]
@@ -1142,7 +1142,7 @@ def build() -> dict:
         "groundsKind": "prior-diploma", "groundsDescription": "Diploma Helpende zorg en welzijn (niveau 2), behaald in 2024.",
         "submittedAt": stamp(dt.date(2025, 9, 8), 11, 20),
         "decisionRationale": "Het diploma dekt Nederlands op het vereiste niveau, maar niet het burgerschapsdeel van deze eenheid. Geen vrijstelling.",
-        "policyReference": "Examenreglement Voorbeeldcollege Vaartveld 2025-2026, artikel 7.3", "decidedBy": EXAM_CHAIR,
+        "policyReference": "Examenreglement Esdoornveen 2025-2026, artikel 7.3", "decidedBy": EXAM_CHAIR,
         "decidedAt": stamp(dt.date(2025, 9, 29), 16, 0), "lifecycle": "rejected",
     })
 
@@ -1465,8 +1465,8 @@ def build() -> dict:
     # without a share the assessor's portal is empty (invite-a-trainer-and-an-assessor).
     assessor = b.add("external-assessor", {
         "givenName": "Ruud", "familyName": "Jansen",
-        "email": "ruud.jansen@examinering-vaartdam.example",
-        "organisationName": "Examinering Vaartdam", "active": True,
+        "email": "ruud.jansen@examinering-zuiddrecht.example",
+        "organisationName": "Examinering Zuiddrecht", "active": True,
     })
     # Two students who are actually on a placement, so the portfolios belong to
     # people the rest of the set knows.
@@ -1560,7 +1560,7 @@ def build() -> dict:
         "info": {
             "title": "Learniq example set: Vocational college",
             "version": "1.0.0",
-            "description": "Voorbeeldcollege Vaartveld, a fictional MBO college in the fictional town of Vaartdam, through the 2025-2026 school year.",
+            "description": "Esdoornveen, a fictional MBO college in the fictional town of Zuiddrecht, through the 2025-2026 school year, with a story student on his work placement in October 2026.",
         },
         "x-openregister": {
             "type": "profile",
