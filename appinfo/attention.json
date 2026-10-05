@@ -1,0 +1,24 @@
+{
+	"version": 1,
+	"items": [
+		{
+			"id": "attendance-flags-open",
+			"title": "Attendance flags nobody has picked up",
+			"reason": "{value} attendance flags are still open. Open one to start the follow-up.",
+			"severity": "warning",
+			"source": {
+				"register": "learniq",
+				"schema": "attendance-flag",
+				"filter": {
+					"lifecycle": "open"
+				}
+			},
+			"op": "gt",
+			"value": 0,
+			"action": {
+				"label": "Open the flags",
+				"path": "/attendance/flags"
+			}
+		}
+	]
+}
