@@ -9,7 +9,9 @@
  * attendance desk or a teacher on duty, a grade falls on a toetsweek day the
  * pupil was in school, an SE final grade is the weighted average of its SE
  * grades, a report card counts exactly its marks and shows exactly its grades,
- * and the removal list covers every object once.
+ * and the removal list covers every object once. Those checks hold for the
+ * 2025-2026 school year; the story layer (Noor Bakker of H4b on Monday 5
+ * October 2026) is asserted by its own two tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Settings
@@ -48,14 +50,14 @@ class SecondarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @var string[]
 	 */
-	private const CLASSES = ['1HV1', '1HV2', '2H1', '2V1', '3H1', '3V1', '4H1', '4V1', '5H1', '5V1', '6V1'];
+	private const CLASSES = ['HV1a', 'HV1b', 'H2a', 'V2a', 'H3b', 'V3a', 'H4a', 'V4a', 'H5a', 'V5a', 'V6a'];
 
 	/**
 	 * The exam classes and their last lesson day.
 	 *
 	 * @var array<string, string>
 	 */
-	private const EXAM_CLASSES = ['5H1' => '2026-04-17', '6V1' => '2026-04-17'];
+	private const EXAM_CLASSES = ['H5a' => '2026-04-17', 'V6a' => '2026-04-17'];
 
 	/**
 	 * The weeks in which papers are sat: the three toetsweken and the exam
@@ -69,6 +71,12 @@ class SecondarySchoolExampleSetTest extends TestCase {
 		['2026-03-30', '2026-04-02'],
 		['2026-06-15', '2026-06-19'],
 	];
+
+	/**
+	 * The school year the set is built around. The story layer adds Noor
+	 * Bakker's class H4b of 2026-2027 on top, asserted on its own.
+	 */
+	private const YEAR = '2025-2026';
 
 	/**
 	 * Weekday names by ISO day number minus one.
@@ -99,6 +107,36 @@ class SecondarySchoolExampleSetTest extends TestCase {
 
 		return (self::$objects[$schema] ?? []);
 	}//end of()
+
+	/**
+	 * The objects of one schema in the base school year: a row with an
+	 * academicYear in that year, or a row whose cohort is a class of it.
+	 *
+	 * @param string $schema The schema slug.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private static function base(string $schema): array {
+		$classes = [];
+		foreach (self::of('cohort') as $cohort) {
+			if ($cohort['academicYear'] === self::YEAR) {
+				$classes[$cohort['uuid']] = true;
+			}
+		}
+
+		return array_values(
+			array_filter(
+				self::of($schema),
+				static function (array $row) use ($classes): bool {
+					if (isset($row['academicYear']) === true) {
+						return $row['academicYear'] === self::YEAR;
+					}
+
+					return isset($classes[($row['cohortId'] ?? '')]) === true;
+				}
+			)
+		);
+	}//end base()
 
 	/**
 	 * Index a list of objects by one field.
@@ -175,7 +213,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 		self::assertCount(1, self::of('school'));
 		self::assertMatchesRegularExpression('/^[0-9]{2}[A-Z][0-9]$/', self::of('school')[0]['brin']);
 		self::assertCount(2, self::of('vestiging'));
-		self::assertSame(self::CLASSES, array_column(self::of('cohort'), 'name'));
+		self::assertSame(self::CLASSES, array_column(self::base('cohort'), 'name'));
 
 		$profiles = self::by(self::of('learner-profile'), 'uuid');
 		$pupils   = self::pupils();
@@ -205,13 +243,13 @@ class SecondarySchoolExampleSetTest extends TestCase {
 		}
 
 		$cohorts   = self::by(self::of('cohort'), 'uuid');
-		$enrolment = self::groupBy(self::of('enrolment'), ['learnerId']);
+		$enrolment = self::groupBy(self::base('enrolment'), ['learnerId']);
 		self::assertEqualsCanonicalizing(array_column($pupils, 'ncUserId'), array_keys($enrolment));
 		$leerjaren = [];
 		foreach ($enrolment as $learner => $rows) {
 			self::assertCount(1, $rows, $learner . ' has one enrolment');
 			$class = $cohorts[$rows[0]['cohortId']];
-			self::assertSame((int)$class['name'][0], $rows[0]['leerjaar'], $learner . ' sits in a class of its leerjaar');
+			self::assertSame((int)preg_replace('/\D/', '', $class['name']), $rows[0]['leerjaar'], $learner . ' sits in a class of its leerjaar');
 			self::assertContains($learner, $class['learnerIds']);
 			$leerjaren[$rows[0]['leerjaar']] = true;
 		}
@@ -229,7 +267,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 
 		self::assertNotSame('', self::staffWith('decaan'));
 		self::assertNotSame('', self::staffWith('zorgcoördinator'));
-		self::assertCount(3, self::of('report-period'));
+		self::assertCount(3, self::base('report-period'));
 	}//end testTheSchoolHasItsPromisedShape()
 
 	/**
@@ -245,13 +283,13 @@ class SecondarySchoolExampleSetTest extends TestCase {
 	public function testEveryMarkBelongsToThePupilsOwnClassAndATeacherOnDuty(): void {
 		$sessions  = self::by(self::of('session'), 'uuid');
 		$cohorts   = self::by(self::of('cohort'), 'uuid');
-		$enrolment = self::by(self::of('enrolment'), 'learnerId');
+		$enrolment = self::by(self::base('enrolment'), 'learnerId');
 		$staff     = self::by(self::of('staff'), 'ncUserId');
 		$desk      = self::staffWith('verzuimcoördinator');
 
-		self::assertGreaterThan(1000, count(self::of('attendance-record')));
+		self::assertGreaterThan(1000, count(self::base('attendance-record')));
 		$lates = 0;
-		foreach (self::of('attendance-record') as $mark) {
+		foreach (self::base('attendance-record') as $mark) {
 			$session = $sessions[$mark['sessionId']];
 			self::assertSame($enrolment[$mark['learnerId']]['cohortId'], $session['cohortId'], $mark['slug']);
 			self::assertSame($session['cohortId'], $mark['cohortId'], $mark['slug']);
@@ -296,7 +334,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 
 		$names = array_column(self::of('cohort'), 'name', 'uuid');
 		self::assertNotEmpty($closed);
-		foreach (self::of('session') as $session) {
+		foreach (self::base('session') as $session) {
 			$day = substr($session['startsAt'], 0, 10);
 			self::assertArrayNotHasKey($day, $closed, $session['title'] . ' falls on a day the school is closed');
 			$lastDay = (self::EXAM_CLASSES[$names[$session['cohortId']]] ?? '2026-07-10');
@@ -314,9 +352,9 @@ class SecondarySchoolExampleSetTest extends TestCase {
 	 */
 	public function testReportCardsCountTheMarksOfTheirPeriod(): void {
 		$sessions = self::by(self::of('session'), 'uuid');
-		$periods  = self::by(self::of('report-period'), 'uuid');
+		$periods  = self::by(self::base('report-period'), 'uuid');
 		$counted  = [];
-		foreach (self::of('attendance-record') as $mark) {
+		foreach (self::base('attendance-record') as $mark) {
 			$day = substr($sessions[$mark['sessionId']]['startsAt'], 0, 10);
 			foreach ($periods as $uuid => $period) {
 				if ($day >= $period['startDate'] && $day <= $period['endDate']) {
@@ -326,7 +364,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 			}
 		}
 
-		$enrolment = self::by(self::of('enrolment'), 'learnerId');
+		$enrolment = self::by(self::base('enrolment'), 'learnerId');
 		$cards     = self::groupBy(self::of('report-card'), ['learnerId', 'reportPeriodId']);
 		foreach (self::pupils() as $pupil) {
 			foreach ($periods as $uuid => $period) {
@@ -359,20 +397,20 @@ class SecondarySchoolExampleSetTest extends TestCase {
 	public function testEveryGradeSitsOnAToetsweekDayThePupilWasInSchool(): void {
 		$plans     = self::by(self::of('curriculum-plan'), 'uuid');
 		$sessions  = self::by(self::of('session'), 'uuid');
-		$enrolment = self::by(self::of('enrolment'), 'learnerId');
+		$enrolment = self::by(self::base('enrolment'), 'learnerId');
 		$papers    = self::by(
 			array_map(static fn (array $e): array => $e + ['key' => $e['cohortId'] . '|' . $e['courseId'] . '|' . $e['curriculumPlanComponentId']], self::of('exam')),
 			'key'
 		);
 		$absent    = [];
-		foreach (self::of('attendance-record') as $mark) {
+		foreach (self::base('attendance-record') as $mark) {
 			if (str_starts_with($mark['status'], 'absent') === true) {
 				$absent[$mark['learnerId'] . '|' . substr($sessions[$mark['sessionId']]['startsAt'], 0, 10)] = true;
 			}
 		}
 
-		self::assertGreaterThan(1000, count(self::of('grade-entry')));
-		foreach (self::of('grade-entry') as $grade) {
+		self::assertGreaterThan(1000, count(self::base('grade-entry')));
+		foreach (self::base('grade-entry') as $grade) {
 			$components = array_column($plans[$grade['curriculumPlanId']]['components'], null, 'componentId');
 			self::assertArrayHasKey($grade['componentId'], $components, $grade['slug']);
 			self::assertSame((string)$components[$grade['componentId']]['period'], $grade['period'], $grade['slug']);
@@ -437,7 +475,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 		}//end foreach
 
 		$cohorts   = self::by(self::of('cohort'), 'uuid');
-		$enrolment = self::by(self::of('enrolment'), 'learnerId');
+		$enrolment = self::by(self::base('enrolment'), 'learnerId');
 		$finals    = self::groupBy(self::of('final-grade'), ['learnerId']);
 		foreach (self::pupils() as $pupil) {
 			$class = $cohorts[$enrolment[$pupil['ncUserId']]['cohortId']]['name'];
@@ -505,7 +543,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 	 */
 	public function testTheProfielkeuzeFollowsThePackageRules(): void {
 		$plans     = self::by(self::of('curriculum-plan'), 'uuid');
-		$third     = array_keys(array_filter(self::by(self::of('enrolment'), 'learnerId'), static fn (array $e): bool => $e['leerjaar'] === 3));
+		$third     = array_keys(array_filter(self::by(self::base('enrolment'), 'learnerId'), static fn (array $e): bool => $e['leerjaar'] === 3));
 		$choices   = self::by(self::of('subject-choice'), 'learnerId');
 		self::assertEqualsCanonicalizing($third, array_keys($choices));
 
@@ -549,12 +587,12 @@ class SecondarySchoolExampleSetTest extends TestCase {
 	public function testTheIncomingSchooladviesBelongsToABrugklasPupil(): void {
 		self::assertCount(1, self::of('school-advies'));
 		$advies    = self::of('school-advies')[0];
-		$enrolment = self::by(self::of('enrolment'), 'learnerId')[$advies['learnerId']];
+		$enrolment = self::by(self::base('enrolment'), 'learnerId')[$advies['learnerId']];
 		$profile   = self::by(self::pupils(), 'ncUserId')[$advies['learnerId']];
 		$cohorts   = self::by(self::of('cohort'), 'uuid');
 
 		self::assertSame(1, $enrolment['leerjaar']);
-		self::assertStringStartsWith('1HV', $cohorts[$enrolment['cohortId']]['name']);
+		self::assertStringStartsWith('HV1', $cohorts[$enrolment['cohortId']]['name']);
 
 		$converted = array_values(array_filter(
 			self::of('admission'),
@@ -612,6 +650,232 @@ class SecondarySchoolExampleSetTest extends TestCase {
 		self::assertContains('leerplicht-16uur', $kinds);
 		self::assertContains('generic', $kinds);
 	}//end testTheVerzuimFlagsListTheirRecords()
+
+	/**
+	 * A weighted average as the boards show it: one decimal, rounded half up,
+	 * with a decimal comma.
+	 *
+	 * @param array<int, array<string, mixed>> $entries Grade entries with a value and a weight.
+	 *
+	 * @return string
+	 */
+	private static function shown(array $entries): string {
+		$sum   = 0.0;
+		$total = 0.0;
+		foreach ($entries as $entry) {
+			$sum   += ($entry['value'] * $entry['weight']);
+			$total += $entry['weight'];
+		}
+
+		return number_format(round($sum / $total, 4), 1, ',', '');
+	}//end shown()
+
+	/**
+	 * Vaartveld College on Monday 5 October 2026: Noor Bakker of H4b, her
+	 * father Erik, her mentor Sanne Kramer, her seven lessons with the room
+	 * change and the cancelled lesson, and the people on the boards.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-sets-are-the-four-schools/specs/example-sets/spec.md
+	 */
+	public function testNoorBakkersMondayInH4bComesOutOfTheData(): void {
+		self::assertSame('Vaartveld College', self::of('school')[0]['name']);
+		self::assertContains('Vaartlaan 40', array_column(self::of('vestiging'), 'street'));
+		self::assertSame(['Zuiddrecht'], array_values(array_unique(array_column(self::of('vestiging'), 'city'))));
+
+		$noor = array_values(array_filter(self::pupils(), static fn (array $p): bool => ($p['givenName'] ?? '') === 'Noor' && ($p['familyName'] ?? '') === 'Bakker'));
+		self::assertCount(1, $noor);
+		$noor     = $noor[0];
+		$profiles = self::by(self::of('learner-profile'), 'uuid');
+		$fathers  = array_filter(
+			$noor['guardianRefs'],
+			static fn (string $ref): bool => $profiles[$ref]['givenName'] === 'Erik' && $profiles[$ref]['familyName'] === 'Bakker'
+		);
+		self::assertCount(1, $fathers, 'Erik Bakker is her guardian');
+		self::assertContains($profiles[array_values($fathers)[0]]['ncUserId'], $noor['parentIds']);
+
+		$classes = array_values(array_filter(self::of('cohort'), static fn (array $c): bool => $c['name'] === 'H4b'));
+		self::assertCount(1, $classes);
+		$h4b = $classes[0];
+		self::assertSame('2026-2027', $h4b['academicYear']);
+		self::assertCount(27, $h4b['learnerIds']);
+		self::assertContains($noor['ncUserId'], $h4b['learnerIds']);
+		$enrolment = array_values(array_filter(self::of('enrolment'), static fn (array $e): bool => $e['learnerId'] === $noor['ncUserId'] && $e['lifecycle'] === 'active'));
+		self::assertCount(1, $enrolment);
+		self::assertSame($h4b['uuid'], $enrolment[0]['cohortId']);
+		self::assertSame(4, $enrolment[0]['leerjaar']);
+
+		$staff = array_column(self::of('staff'), 'name', 'ncUserId');
+		$names = [
+			'Sanne Kramer',
+			'Jeroen Smit',
+			'Anouk Visser',
+			'Marloes Peters',
+			'Emre Demir',
+			'Thomas de Boer',
+			'Ingrid Jansen',
+			'Arjen Willems',
+			'Ellen Hendriks',
+			'Wouter Mulder',
+			'Naima Vos',
+			'Bart Dijkstra',
+			'Youssef El Idrissi',
+		];
+		foreach ($names as $name) {
+			self::assertContains($name, $staff);
+		}
+
+		self::assertSame('Sanne Kramer', $staff[$h4b['teacherAssignments'][0]['teacherId']], 'her mentor');
+
+		// Monday's lessons: subject, times, room and teacher as on the boards.
+		$courses  = array_column(self::of('course'), 'name', 'uuid');
+		$rooms    = array_column(self::of('room'), 'code', 'uuid');
+		$teachers = [];
+		foreach (self::of('subjectteacherassignment') as $assignment) {
+			if ($assignment['cohortId'] === $h4b['uuid']) {
+				$teachers[$assignment['courseId']] = $assignment['teacherId'];
+			}
+		}
+
+		$monday = array_values(array_filter(self::of('session'), static fn (array $s): bool => $s['cohortId'] === $h4b['uuid'] && str_starts_with($s['startsAt'], '2026-10-05')));
+		usort($monday, static fn (array $a, array $b): int => strcmp($a['startsAt'], $b['startsAt']));
+		$seen = [];
+		foreach ($monday as $session) {
+			$teacher = ($session['courseId'] === null) ? $h4b['teacherAssignments'][0]['teacherId'] : $teachers[$session['courseId']];
+			$seen[]  = implode(' | ', [$session['title'], substr($session['startsAt'], 11, 5), substr($session['endsAt'], 11, 5), $rooms[$session['roomId']], $staff[$teacher]]);
+		}
+
+		self::assertSame(
+			[
+				'Nederlands | 08:30 | 09:20 | 1.12 | Sanne Kramer',
+				'Wiskunde A | 09:20 | 10:10 | 2.14 | Emre Demir',
+				'Economie | 10:30 | 11:20 | 0.21 | Thomas de Boer',
+				'Engels | 11:20 | 12:10 | 1.05 | Ingrid Jansen',
+				'Geschiedenis | 12:40 | 13:30 | 2.03 | Arjen Willems',
+				'Mentoruur | 13:30 | 14:20 | 1.12 | Sanne Kramer',
+				'Lichamelijke opvoeding | 14:30 | 15:20 | H-GYM | Youssef El Idrissi',
+			],
+			$seen
+		);
+		self::assertSame('room-unavailable', $monday[2]['changeReasonKind']);
+		self::assertStringContainsString('1.08', $monday[2]['changeReason']);
+		self::assertSame('cancelled', $monday[6]['lifecycle']);
+		self::assertSame('teacher-absence', $monday[6]['changeReasonKind']);
+		$tuesday = array_values(array_filter(self::of('session'), static fn (array $s): bool => $s['cohortId'] === $h4b['uuid'] && $s['startsAt'] === '2026-10-06T08:30:00+02:00'));
+		self::assertSame(['Economie', '1.08'], [$tuesday[0]['title'], $rooms[$tuesday[0]['roomId']]]);
+	}//end testNoorBakkersMondayInH4bComesOutOfTheData()
+
+	/**
+	 * Noor's grades, homework, absence, mentor talk and calendar give the
+	 * numbers on the boards: the averages per subject and overall, the three
+	 * newest grades, this week's work, 1 day ill and 2 times late, and the
+	 * free times for the mentor talk.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-sets-are-the-four-schools/specs/example-sets/spec.md
+	 */
+	public function testNoorBakkersNumbersComeOutOfTheData(): void {
+		$noor    = array_values(array_filter(self::pupils(), static fn (array $p): bool => ($p['givenName'] ?? '') === 'Noor' && ($p['familyName'] ?? '') === 'Bakker'))[0];
+		$h4b     = array_values(array_filter(self::of('cohort'), static fn (array $c): bool => $c['name'] === 'H4b'))[0];
+		$scales  = array_column(self::of('grade-scale'), 'kind', 'uuid');
+		$grades  = array_values(array_filter(self::of('grade-entry'), static fn (array $g): bool => $g['learnerId'] === $noor['ncUserId'] && $g['cohortId'] === $h4b['uuid']));
+		$numeric = [];
+		foreach ($grades as $grade) {
+			if ($scales[$grade['gradeScaleId']] === 'numeric') {
+				$numeric[$grade['courseName']][] = $grade;
+			}
+		}
+
+		$averages = array_map(static fn (array $rows): string => self::shown($rows), $numeric);
+		ksort($averages);
+		self::assertSame(
+			[
+				'Aardrijkskunde'   => '6,9',
+				'Bedrijfseconomie' => '6,3',
+				'Economie'         => '6,4',
+				'Engels'           => '7,1',
+				'Geschiedenis'     => '7,8',
+				'Maatschappijleer' => '7,2',
+				'Nederlands'       => '7,0',
+				'Wiskunde A'       => '5,2',
+			],
+			$averages
+		);
+		$overall = array_sum(array_map(static fn (string $a): float => (float)str_replace(',', '.', $a), $averages)) / count($averages);
+		self::assertSame('6,7', number_format(round($overall, 4), 1, ',', ''));
+
+		usort($numeric['Wiskunde A'], static fn (array $a, array $b): int => strcmp($a['gradedAt'], $b['gradedAt']));
+		self::assertSame(
+			[['2026-09-10', 1, 6.1], ['2026-09-24', 3, 4.7], ['2026-10-01', 1, 5.8]],
+			array_map(static fn (array $g): array => [substr($g['gradedAt'], 0, 10), $g['weight'], $g['value']], $numeric['Wiskunde A'])
+		);
+		usort($grades, static fn (array $a, array $b): int => strcmp($b['gradedAt'], $a['gradedAt']));
+		self::assertSame(
+			[['Engels', '2026-10-02', 6.9], ['Wiskunde A', '2026-10-01', 5.8], ['Economie', '2026-09-30', 6.6]],
+			array_map(static fn (array $g): array => [$g['courseName'], substr($g['gradedAt'], 0, 10), $g['value']], array_slice($grades, 0, 3)),
+			'the three newest grades'
+		);
+
+		$homework = array_values(array_filter(self::of('assignment'), static fn (array $a): bool => in_array($noor['uuid'], $a['learnerRefs'], true)));
+		self::assertSame(
+			[
+				'Leesverslag inleveren 2026-10-05',
+				'Paragraaf 3.2, opgave 14 tot en met 22 2026-10-05',
+				'SO woordjes unit 2 2026-10-05',
+				'Hoofdstuk 2, opgave 8 tot en met 15 2026-10-06',
+				'Toets tijdvak 3 en 4 2026-10-08',
+				'Paragraaf 3.3, opgave 23 tot en met 31 2026-10-08',
+				'Toets hoofdstuk 3 en 4 2026-11-10',
+			],
+			array_map(static fn (array $a): string => $a['title'] . ' ' . substr($a['dueAt'], 0, 10), $homework)
+		);
+
+		$sessions = self::by(self::of('session'), 'uuid');
+		$marks    = array_values(array_filter(self::of('attendance-record'), static fn (array $m): bool => $m['learnerId'] === $noor['ncUserId'] && $m['cohortId'] === $h4b['uuid']));
+		$illDays  = [];
+		$lates    = 0;
+		foreach ($marks as $mark) {
+			self::assertNotSame('absent-unexcused', $mark['status'], $mark['slug']);
+			$lates += (int)($mark['status'] === 'late');
+			if ($mark['status'] === 'absent-excused') {
+				$illDays[substr($sessions[$mark['sessionId']]['startsAt'], 0, 10)] = true;
+			}
+		}
+
+		self::assertSame(['2026-09-14'], array_keys($illDays));
+		self::assertSame(2, $lates);
+		$summary = array_values(array_filter(self::of('attendance-summary'), static fn (array $s): bool => $s['learnerId'] === $noor['ncUserId']))[0];
+		self::assertSame(['2026-2027', 1, 0, 2], [$summary['schoolYear'], $summary['absentDays'], $summary['absentUnauthorisedDays'], $summary['lateCount']]);
+
+		$slots = array_filter(self::of('conference-slot'), static fn (array $s): bool => in_array($noor['uuid'], $s['eligibleLearnerRefs'], true));
+		$times = [];
+		foreach ($slots as $slot) {
+			$times[substr($slot['startsAt'], 5, 11)] = $slot['lifecycle'];
+		}
+
+		ksort($times);
+		self::assertSame(
+			[
+				'10-13T16:10' => 'booked',
+				'10-13T16:30' => 'free',
+				'10-13T16:50' => 'free',
+				'10-13T17:10' => 'free',
+				'10-15T18:30' => 'free',
+				'10-15T18:50' => 'booked',
+				'10-15T19:10' => 'free',
+				'10-15T19:30' => 'free',
+			],
+			$times
+		);
+
+		$events = array_column(self::of('school-event'), 'startsAt', 'title');
+		self::assertSame('2026-10-17', $events['Herfstvakantie']);
+		self::assertSame('2026-11-09', $events['Toetsweek 1, bovenbouw']);
+		self::assertSame('2026-11-03T19:30:00+01:00', $events['Informatieavond profielkeuze, klas 3']);
+		self::assertSame('2026-10-13', $events['Mentorgesprekken']);
+	}//end testNoorBakkersNumbersComeOutOfTheData()
 
 	/**
 	 * Loads and removes cleanly: the service offers the set with its true
