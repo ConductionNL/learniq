@@ -16,6 +16,17 @@ werkproces assessments, the
 first-year study advice (flags, warnings, a decision per first-year student),
 exam board cases and a stagecoordinator on Staff.
 
+THE STORY (example-sets-are-the-four-schools). On top of that year sits the
+esdoornveen design's story, pinned to Monday 5 October 2026: a fourth
+programme, Mechatronica niveau 4 (crebo 25743, the code the design board
+names), with class MT4-2A in leerjaar 2; Milan de Groot on his work placement
+at Bakker Techniek BV with praktijkopleider Petra Bakker and BPV-begeleider
+Ruud Hermans; his weeks of hours (96 approved, 16 waiting, 8 sent back); his
+tussenbeoordeling, voortgangsgesprek, exam and this week's lessons; and Aylin
+Demir as Petra's second student. add_story() builds it after every other
+object and draws no random number, so no earlier uuid or value moves. The
+spec: openspec/changes/example-sets-are-the-four-schools/specs/example-sets/spec.md.
+
 WHY A SCRIPT. The objects must agree with each other: a session only falls on a
 school day of its class (never on a placement day), an absence is marked by the
 teacher of that session's unit, a final grade is what the grade engine computes
@@ -36,8 +47,9 @@ Usage:
 Nothing here is real: no real college, BRIN, company, person, address or phone
 number. Postcodes start with 0 and phone numbers with 06-0000, which the
 Netherlands never issues; the BRIN 00X3 ends in a digit, which DUO never
-assigns; crebo codes start with 9, outside the range of the SBB dossiers;
-company e-mail addresses use the reserved .example domain.
+assigns; crebo codes start with 9, outside the range of the SBB dossiers,
+except the story programme's 25743, which the design board prints; company
+e-mail addresses use the reserved .example domain.
 """
 
 from __future__ import annotations
@@ -115,6 +127,14 @@ SCHEMAS = [
     # name the rows it loaded. Its parent, bpv-placement, is already above it,
     # and removal runs in reverse, so the load order still holds.
     "bpv-hour-week",
+    # example-sets-are-the-four-schools: the Esdoornveen story's conversation
+    # with the studieloopbaanbegeleider and its exam sitting. Appended for the
+    # same reason; each parent sits above its child.
+    "conference-round",
+    "conference-slot",
+    "exam-period",
+    "exam",
+    "exam-sitting",
 ]
 
 HOLIDAYS = [
@@ -1552,6 +1572,9 @@ def build() -> dict:
 
             p["row"]["hoursApprovedTotal"] = approved_total
 
+    # --- the Esdoornveen story (after everything else, so nothing moves) -------
+    add_story(b, school, locations, numeric, competent_scale)
+
     # --- assemble -------------------------------------------------------------
     objects = {name: rows for name, rows in b.buckets.items() if rows}
     total = sum(len(rows) for rows in objects.values())
@@ -1588,7 +1611,10 @@ def build() -> dict:
                     "classes, 250 students, staff with a studieloopbaanbegeleider per class, a school day per class around the placement days "
                     "of 2025-2026 with the absences recorded, unit results with resits and final grades, work placements with signed "
                     "praktijkovereenkomsten, weeks of realised BPV hours with one still waiting for the praktijkopleider and one she "
-                    "corrected, visit reports and werkproces assessments, first-year study advice and exam board cases."
+                    "corrected, visit reports and werkproces assessments, first-year study advice and exam board cases. On top of that "
+                    "year, the Esdoornveen story of October 2026: Mechatronica niveau 4 with class MT4-2A, Milan de Groot and Aylin "
+                    "Demir on their work placement at Bakker Techniek BV with weeks of hours, a planned tussenbeoordeling, a "
+                    "voortgangsgesprek, an exam sitting and the lessons of week 41."
                 ),
                 "objects": objects,
             },
@@ -1596,6 +1622,365 @@ def build() -> dict:
         "paths": {},
         "components": {},
     }
+
+
+# --- the Esdoornveen story (example-sets-are-the-four-schools) --------------
+# Monday 5 October 2026, ISO week 41. Milan de Groot is in leerjaar 2 of
+# Mechatronica niveau 4 and on his work placement at Bakker Techniek BV. These
+# objects sit on top of the 2025-2026 year: they are added after every other
+# object and draw no random number, so no earlier uuid or value moves.
+STORY_YEAR = "2026-2027"
+STORY_CREBO = "25743"  # the crebo the design board names; the rest of the set uses fictional 9xxxx codes
+STORY_STAFF = {
+    # ncUserId => (display name, roles, qualifications, working days)
+    "mbo-docent-15": ("Ruud Hermans", ["teacher"], ["tweedegraads bevoegdheid techniek", "BPV-docent mechatronica"],
+                      [MON, TUE, WED, THU]),
+    "mbo-docent-16": ("Fenna Yilmaz", ["teacher", "mentor"], ["studieloopbaanbegeleider", "tweedegraads bevoegdheid techniek"],
+                      [MON, TUE, THU, FRI]),
+}
+STORY_COACH = "mbo-docent-15"
+STORY_SLB = "mbo-docent-16"
+STORY_KERNTAKEN = [
+    ("B1-K1", "Realiseert mechatronische systemen", [
+        "Bereidt het werk voor", "Maakt onderdelen", "Bouwt mechatronische systemen op", "Test en stelt systemen af"]),
+    ("B1-K2", "Onderhoudt mechatronische systemen en verhelpt storingen", [
+        "Lokaliseert storingen", "Voert onderhoud uit"]),
+]
+# Units of leerjaar 2: code, name, credits, teachers, kerntaken, components.
+STORY_UNITS = [
+    ("MT-2.1", "PLC-programmeren", 10, [STORY_COACH], ["B1-K1"], None),
+    ("MT-2.2", "Elektrotechniek", 10, [STORY_COACH], ["B1-K1"], None),
+    ("MT-2.3", "Pneumatiek en hydrauliek", 5, [STORY_COACH], ["B1-K2"], None),
+    ("MT-2.4", "Loopbaan en burgerschap", 5, [STORY_SLB], [], None),
+    ("MT-2.5", "Nederlands", 5, ["mbo-docent-13"], [], [("LL", "Lezen en luisteren"), ("SC", "Schrijven"), ("SP", "Spreken en gesprekken voeren")]),
+    ("MT-2.6", "Engels", 5, ["mbo-docent-14"], [], None),
+    ("MT-2.7", "Rekenen", 5, ["mbo-docent-11"], [], None),
+]
+
+
+def add_story(b: Builder, school: dict, locations: dict, numeric: dict, competent_scale: dict) -> dict:
+    """Milan de Groot's autumn at Esdoornveen, as the esdoornveen boards show it.
+
+    Returns the story objects by name, for the report and for nothing else.
+    """
+    techniekpark, centrum = locations["techniekpark"], locations["centrum"]
+    s1 = (dt.date(2026, 8, 31), dt.date(2027, 1, 29))
+    s2 = (dt.date(2027, 2, 1), dt.date(2027, 7, 9))
+    period_rows = [{"periodId": "S1", "label": "Semester 1", "startDate": s1[0].isoformat(), "endDate": s1[1].isoformat()},
+                   {"periodId": "S2", "label": "Semester 2", "startDate": s2[0].isoformat(), "endDate": s2[1].isoformat()}]
+
+    # Staff: the BPV-begeleider and the studieloopbaanbegeleider. Their names
+    # live in Nextcloud display names; the exam board secretary is the existing
+    # mbo-examencommissie-02 (display name Karin de Boer).
+    for nc, (_name, roles, quals, working) in STORY_STAFF.items():
+        b.add("staff", {"ncUserId": nc, "roles": roles, "qualifications": quals, "workingDays": list(working)})
+
+    rooms = {
+        "T0.14": b.add("room", {"name": "Mechatronicalab T0.14", "code": "T0.14", "capacity": 24, "kind": "lab",
+                                "facilities": ["PLC-trainers", "pneumatiekpanelen", "transportbandopstelling"],
+                                "buildingCode": techniekpark["vestigingscode"], "floor": "0"}),
+        "B1.08": b.add("room", {"name": "Lokaal B1.08", "code": "B1.08", "capacity": 32, "kind": "classroom",
+                                "facilities": ["digibord"], "buildingCode": centrum["vestigingscode"], "floor": "1"}),
+        "B2.11": b.add("room", {"name": "Spreekkamer B2.11", "code": "B2.11", "capacity": 4, "kind": "other",
+                                "facilities": ["tafel voor gesprekken"], "buildingCode": centrum["vestigingscode"], "floor": "2"}),
+    }
+
+    # The programme, its kwalificatiedossier, courses and plans.
+    framework = b.add("competency-framework", {
+        "name": "Kwalificatiedossier Mechatronica", "sourceAuthority": "sbb-kwalificatiedossier", "sourceRef": STORY_CREBO,
+        "edition": "2026", "level": "mbo",
+        "description": "Kerntaken en werkprocessen van de opleiding Mechatronica (niveau 4), in de codering van een kwalificatiedossier. Een verzonnen voorbeeld, geen officieel dossier.",
+        "proficiencyLevels": [
+            {"levelId": "nog-niet-competent", "label": "Nog niet competent", "order": 1, "minPercent": 0},
+            {"levelId": "competent", "label": "Competent", "order": 2, "minPercent": 100},
+        ],
+        "lifecycle": "published",
+    })
+    competencies: dict[str, dict] = {}
+    order = 0
+    for code, title, werkprocessen in STORY_KERNTAKEN:
+        order += 1
+        parent = b.add("competency", {
+            "frameworkId": framework["uuid"], "code": code, "title": title,
+            "description": f"Kerntaak {code} van de opleiding Mechatronica.", "order": order,
+            "requiredForRoles": ["learner"], "lifecycle": "published",
+        })
+        competencies[code] = parent
+        for i, wp in enumerate(werkprocessen, start=1):
+            order += 1
+            competencies[f"{code}-W{i}"] = b.add("competency", {
+                "frameworkId": framework["uuid"], "parentId": parent["uuid"], "code": f"{code}-W{i}", "title": wp,
+                "description": f"Werkproces {code}-W{i}, beoordeeld in de beroepspraktijk.", "order": order,
+                "requiredForRoles": ["learner"], "lifecycle": "published",
+            })
+    programme = b.add("programme", {
+        "name": "Mechatronica", "code": "MT4", "level": "mbo",
+        "description": f"Niveau 4, beroepsopleidende leerweg (bol) en beroepsbegeleidende leerweg (bbl), 4 jaar. Kerntaken en werkprocessen volgens het kwalificatiedossier met crebo {STORY_CREBO}.",
+        "courseIds": [], "requiredCompetencyIds": [c["uuid"] for code, c in competencies.items() if "-W" in code],
+        "lifecycle": "published",
+    })
+    courses: dict[str, dict] = {}
+    courses["MT-OPL"] = b.add("course", {
+        "code": "MT-OPL", "name": "Mechatronica (niveau 4)", "name_nl": "Mechatronica (niveau 4)",
+        "description": f"Inschrijving voor de opleiding Mechatronica, crebo {STORY_CREBO}, 4 jaar.", "level": "mbo", "language": "nl",
+        "tags": ["mbo", "niveau 4", "bol", "bbl"], "lifecycle": "published", "order": 0,
+        "programmeIds": [programme["uuid"]], "competencyIds": [], "prerequisiteCourseIds": [],
+    })
+    for n, (code, name, credits, _teachers, kerntaken, _parts) in enumerate(STORY_UNITS, start=1):
+        courses[code] = b.add("course", {
+            "code": code, "name": name, "name_nl": name, "description": f"Onderwijseenheid in leerjaar 2 van Mechatronica, schooljaar {STORY_YEAR}.",
+            "level": "mbo", "language": "nl", "tags": ["mbo", "niveau 4", "leerjaar 2"], "lifecycle": "published",
+            "parentCourseId": courses["MT-OPL"]["uuid"], "order": n, "programmeIds": [programme["uuid"]], "ectsCredits": credits,
+            "competencyIds": [competencies[k]["uuid"] for k in kerntaken], "prerequisiteCourseIds": [],
+        })
+    courses["MT-BPV2"] = b.add("course", {
+        "code": "MT-BPV2", "name": "Beroepspraktijkvorming mechatronica leerjaar 2", "name_nl": "Beroepspraktijkvorming mechatronica leerjaar 2",
+        "description": "Beroepspraktijkvorming in leerjaar 2: werkprocessen van B1-K1 en B1-K2 bij een erkend leerbedrijf.",
+        "level": "mbo", "language": "nl", "tags": ["mbo", "bpv", "leerjaar 2"], "lifecycle": "published",
+        "parentCourseId": courses["MT-OPL"]["uuid"], "order": len(STORY_UNITS) + 1, "programmeIds": [programme["uuid"]],
+        "ectsCredits": 20, "competencyIds": [competencies["B1-K1"]["uuid"], competencies["B1-K2"]["uuid"]], "prerequisiteCourseIds": [],
+    })
+
+    plans: dict[str, dict] = {}
+    unit_components: dict[str, list[dict]] = {}
+    for code, name, _credits, _teachers, _kerntaken, parts in STORY_UNITS:
+        if parts:
+            unit_components[code] = [{"componentId": f"{code}-{key}", "label": label, "weight": 1, "period": "S1", "kind": "assessment"}
+                                     for key, label in parts]
+        else:
+            unit_components[code] = [{"componentId": f"{code}-EB", "label": f"{code} {name}", "weight": 1, "period": "S1",
+                                      "kind": "assessment"}]
+    pvb_components = [{"componentId": f"MT-BPV2-PVB-{k}", "label": f"Proeve van bekwaamheid {k}", "weight": 1, "period": "S2",
+                       "kind": "assessment"} for k, _t, _w in STORY_KERNTAKEN]
+    plans["MT-OER"] = b.add("curriculum-plan", {
+        "name": f"Examenplan Mechatronica, {STORY_YEAR}", "kind": "oer",
+        "requiredCourseIds": [courses[c[0]]["uuid"] for c in STORY_UNITS] + [courses["MT-BPV2"]["uuid"]], "electiveCourseIds": [],
+        "components": [{"componentId": f"{c[0]}-EB", "label": f"{c[0]} {c[1]}", "weight": 1, "period": "S1", "kind": "assessment"} for c in STORY_UNITS] + pvb_components,
+        "formula": "all-must-pass", "gradeScaleId": numeric["uuid"], "passRules": [], "periods": period_rows, "lifecycle": "published",
+    })
+    for code, name, _credits, _teachers, _kerntaken, _parts in STORY_UNITS:
+        plans[code] = b.add("curriculum-plan", {
+            "name": f"{code} {name}, {STORY_YEAR}", "kind": "oer", "requiredCourseIds": [courses[code]["uuid"]], "electiveCourseIds": [],
+            "components": unit_components[code], "formula": "last-attempt", "gradeScaleId": numeric["uuid"],
+            "passRules": [{"componentId": c["componentId"], "minValue": 5.5} for c in unit_components[code]],
+            "periods": period_rows[:1], "lifecycle": "published",
+        })
+        courses[code]["curriculumPlanId"] = plans[code]["uuid"]
+    plans["MT-BPV2"] = b.add("curriculum-plan", {
+        "name": f"Proeven van bekwaamheid Mechatronica leerjaar 2, {STORY_YEAR}", "kind": "oer",
+        "requiredCourseIds": [courses["MT-BPV2"]["uuid"]], "electiveCourseIds": [], "components": pvb_components,
+        "formula": "all-must-pass", "gradeScaleId": competent_scale["uuid"],
+        "passRules": [{"componentId": c["componentId"], "minValue": 1} for c in pvb_components], "periods": period_rows,
+        "lifecycle": "published",
+    })
+    courses["MT-BPV2"]["curriculumPlanId"] = plans["MT-BPV2"]["uuid"]
+    courses["MT-OPL"]["curriculumPlanId"] = plans["MT-OER"]["uuid"]
+    programme["curriculumPlanId"] = plans["MT-OER"]["uuid"]
+    programme["courseIds"] = [c["uuid"] for c in courses.values()]
+
+    # The class and its two students.
+    milan_nc, aylin_nc = "mbo-student-251", "mbo-student-252"
+    cohort = b.add("cohort", {
+        "name": "MT4-2A", "programmeId": programme["uuid"], "courseId": courses["MT-OPL"]["uuid"],
+        "teacherIds": [STORY_SLB, STORY_COACH, "mbo-docent-13", "mbo-docent-14", "mbo-docent-11"],
+        "learnerIds": [milan_nc, aylin_nc], "period": "Schooljaar", "academicYear": STORY_YEAR, "lifecycle": "active",
+        "locationId": techniekpark["uuid"],
+        "teacherAssignments": [{"teacherId": STORY_SLB, "role": "primary", "days": [THU, FRI]}],
+        "notes": ("Beroepspraktijkvorming op maandag, dinsdag en woensdag van maandag 31 augustus 2026 tot en met vrijdag 29 januari 2027; "
+                  "op die dagen staan geen lessen op het rooster. Lessen op donderdag (Techniekpark) en vrijdag (Centrum)."),
+        "kind": "teaching", "programmeYear": 2,
+    })
+    people = {
+        milan_nc: ("Milan", "de Groot", "2008-03-14",
+                   {"street": "Esdoornlaan", "houseNumber": "112", "postalCode": "0511 KM", "city": "Zuiddrecht", "country": "NL"},
+                   [{"name": "Sandra de Groot", "relationship": "ouder", "phone": "06-00004417", "priority": 1}]),
+        aylin_nc: ("Aylin", "Demir", "2005-06-02",
+                   {"street": "Lindehof", "houseNumber": "7", "postalCode": "0512 AD", "city": "Zuiddrecht", "country": "NL"},
+                   [{"name": "Emre Demir", "relationship": "partner", "phone": "06-00006230", "priority": 1}]),
+    }
+    profiles: dict[str, dict] = {}
+    for volgnummer, (nc, (given, family, birth, address, contacts)) in enumerate(people.items(), start=251):
+        profiles[nc] = b.add("learner-profile", {
+            "ncUserId": nc, "givenName": given, "familyName": family, "birthDate": birth, "schoolId": school["uuid"],
+            "eduPersonAffiliation": ["student"], "roles": ["learner"], "parentIds": [], "guardianRefs": [], "address": address,
+            "emergencyContacts": contacts, "allergies": None, "medicalConditions": None,
+            "beeldmateriaalConsent": {"website": True, "socialMedia": False, "schoolgids": True, "classPhoto": True, "video": False},
+            "lifecycle": "active",
+        })
+        b.add("enrolment", {
+            "learnerId": nc, "learnerRef": profiles[nc]["uuid"], "courseId": courses["MT-OPL"]["uuid"], "source": "admission",
+            "cohortId": cohort["uuid"], "lifecycle": "active", "inschrijvingDate": "2025-08-18", "volgnummer": volgnummer,
+            "locationId": techniekpark["uuid"], "leerjaar": 2,
+        })
+
+    for code, _name, _credits, teachers, _kerntaken, _parts in STORY_UNITS:
+        for teacher in teachers:
+            b.add("subjectteacherassignment", {"cohortId": cohort["uuid"], "courseId": courses[code]["uuid"], "teacherId": teacher})
+    b.add("subjectteacherassignment", {"cohortId": cohort["uuid"], "courseId": courses["MT-BPV2"]["uuid"], "teacherId": STORY_COACH})
+
+    # The leerbedrijf and its praktijkopleider. An active row with an e-mail
+    # address, so `occ learniq:portal:invite-trainer` can invite her.
+    kvk, erkenning = "00000019", "00000059"
+    petra = b.add("praktijkopleider", {
+        "givenName": "Petra", "familyName": "Bakker", "email": "petra.bakker@bakker-techniek.example", "phone": "06-00002851",
+        "trainingCompanyName": "Bakker Techniek BV", "trainingCompanyKvkNumber": kvk, "active": True,
+    })
+
+    def place(nc: str, start: dt.date, end: dt.date, agreed: int, weekdays: list[str], terms: str, signed: dt.date) -> tuple[dict, dict]:
+        placement = b.add("bpv-placement", {
+            "learnerId": nc, "learnerRef": profiles[nc]["uuid"], "programmeId": programme["uuid"],
+            "curriculumPlanId": plans["MT-BPV2"]["uuid"], "practicalTrainerId": petra["uuid"], "schoolCoachId": STORY_COACH,
+            "trainingCompanyName": "Bakker Techniek BV", "trainingCompanyKvkNumber": kvk,
+            "periodFrom": start.isoformat(), "periodTo": end.isoformat(), "agreedHours": agreed, "hoursApprovedTotal": 0,
+            "trainingCompanyVerification": {"provider": "sbb", "status": "verified", "erkenningNumber": erkenning,
+                                            "verifiedAt": stamp(dt.date(2026, 8, 10), 10, 0),
+                                            "expiresAt": stamp(dt.date(2028, 12, 31), 23, 59)},
+            "lifecycle": "active",
+        })
+        pok = b.add("praktijkovereenkomst", {
+            "bpvPlacementId": placement["uuid"], "periodFrom": start.isoformat(), "periodTo": end.isoformat(), "terms": terms,
+            "version": 1, "parentSignatureRequired": False, "lifecycle": "active",
+        })
+        for signer, role, hour, level, method in [(nc, "student", 10, "basic", "Nextcloud-account"),
+                                                  (STORY_COACH, "school", 11, "substantial", "Nextcloud-account met tweestapsverificatie"),
+                                                  (petra["uuid"], "praktijkopleider", 14, "basic", "Ondertekenlink per e-mail")]:
+            b.add("pok-signature", {"subjectId": pok["uuid"], "subjectVersion": 1, "signerId": signer, "signerRole": role,
+                                    "signedAt": stamp(signed, hour, 5), "assuranceLevel": level, "method": method})
+        return placement, pok
+
+    milan_placement, _milan_pok = place(
+        milan_nc, dt.date(2026, 8, 31), dt.date(2027, 1, 29), 480, [MON, TUE, WED],
+        ("Beroepspraktijkvorming bij Bakker Techniek BV van maandag 31 augustus 2026 tot en met vrijdag 29 januari 2027, "
+         "op maandag, dinsdag en woensdag van 08.00 tot 16.30 uur, samen 480 uur. Praktijkopleider Petra Bakker, BPV-begeleider "
+         "Ruud Hermans. Het leerbedrijf is erkend door SBB; de student volgt de werktijden en huisregels van het leerbedrijf."),
+        dt.date(2026, 8, 27))
+    aylin_placement, _aylin_pok = place(
+        aylin_nc, dt.date(2026, 8, 24), dt.date(2027, 7, 2), 640, [MON, TUE, WED, THU],
+        ("Beroepspraktijkvorming in de beroepsbegeleidende leerweg (bbl) bij Bakker Techniek BV, als eerste monteur mechatronica, "
+         "van maandag 24 augustus 2026 tot en met vrijdag 2 juli 2027, op maandag tot en met donderdag, samen 640 uur. "
+         "Praktijkopleider Petra Bakker, BPV-begeleider Ruud Hermans."),
+        dt.date(2026, 8, 17))
+
+    # Visits: the werkplan on 9 September, the tussenbeoordeling on 13 October
+    # (still a draft: it has not happened yet).
+    attendees = [{"role": "student", "name": "Milan de Groot"}, {"role": "praktijkopleider", "name": "Petra Bakker"},
+                 {"role": "bpv-docent", "name": "Ruud Hermans"}]
+    b.add("bpv-visit-report", {
+        "bpvPlacementId": milan_placement["uuid"], "learnerRef": profiles[milan_nc]["uuid"], "visitDate": "2026-09-09",
+        "visitKind": "voortgangsbezoek", "attendees": attendees, "schoolCoachId": STORY_COACH,
+        "narrative": "Eerste bezoek op de werkplek. Samen het werkplan gemaakt: welke werkprocessen Milan tot januari oefent en bij welke opdrachten.",
+        "actionPoints": "Milan schrijft zijn uren per dag en noemt het werkproces erbij. Tussenbeoordeling op dinsdag 13 oktober om 10.00 uur.",
+        "lifecycle": "finalized",
+    })
+    b.add("bpv-visit-report", {
+        "bpvPlacementId": milan_placement["uuid"], "learnerRef": profiles[milan_nc]["uuid"], "visitDate": "2026-10-13",
+        "visitKind": "tussentijds-gesprek", "attendees": attendees, "schoolCoachId": STORY_COACH,
+        "narrative": "Tussenbeoordeling om 10.00 uur bij Bakker Techniek BV. Milan en Petra Bakker vullen vooraf elk een beoordeling in.",
+        "lifecycle": "draft",
+    })
+
+    # Weeks of BPV hours. Milan: weeks 36 to 39 approved (4 x 24 = 96). Week
+    # 40 is two records, because a week record has no per-day lines (D-7):
+    # Monday and Wednesday (16 hours) still wait for Petra, and the Tuesday
+    # (8 hours) she sent back with her question. Approving none of a record is
+    # `rejected`; her note names the day. Aylin: weeks 35 to 39 approved
+    # (5 x 32 = 160) and week 40 waiting.
+    def week(placement: dict, nc: str, monday: dt.date, hours: float, last_day: int, decided: dict | None) -> dict:
+        iso_year, iso_week, _d = monday.isocalendar()
+        fields = {
+            "bpvPlacementId": placement["uuid"], "learnerRef": profiles[nc]["uuid"], "isoWeek": f"{iso_year}-W{iso_week:02d}",
+            "hoursSubmitted": hours, "submittedBy": profiles[nc]["uuid"],
+            "submittedAt": stamp(monday + dt.timedelta(days=last_day), 17, 10),
+        }
+        if decided is None:
+            fields["lifecycle"] = "submitted"
+        else:
+            fields.update({"hoursApproved": decided["approved"], "approvedBy": petra["uuid"], "approvedByName": "Petra Bakker",
+                           "approvedAt": decided["at"], "assuranceLevel": "basic", "lifecycle": decided["lifecycle"]})
+            if decided.get("note"):
+                fields["note"] = decided["note"]
+        return b.add("bpv-hour-week", fields)
+
+    approved = 0
+    for i in range(4):
+        monday = dt.date(2026, 8, 31) + dt.timedelta(weeks=i)
+        week(milan_placement, milan_nc, monday, 24, 2,
+             {"approved": 24, "at": stamp(monday + dt.timedelta(days=4), 9, 20), "lifecycle": "approved"})
+        approved += 24
+    week(milan_placement, milan_nc, dt.date(2026, 9, 28), 16, 2, None)
+    week(milan_placement, milan_nc, dt.date(2026, 9, 28), 8, 1, {
+        "approved": 0, "at": stamp(dt.date(2026, 10, 2), 16, 42), "lifecycle": "rejected",
+        "note": ("Dinsdag 29 september: je schreef 8 uur. Volgens mij ging je om 14.00 uur naar de tandarts. "
+                 "Wil je de uren aanpassen? Dan keur ik de hele week goed."),
+    })
+    milan_placement["hoursApprovedTotal"] = approved
+    approved = 0
+    for i in range(5):
+        monday = dt.date(2026, 8, 24) + dt.timedelta(weeks=i)
+        week(aylin_placement, aylin_nc, monday, 32, 3,
+             {"approved": 32, "at": stamp(monday + dt.timedelta(days=4), 9, 30), "lifecycle": "approved"})
+        approved += 32
+    week(aylin_placement, aylin_nc, dt.date(2026, 9, 28), 32, 3, None)
+    aylin_placement["hoursApprovedTotal"] = approved
+
+    # This week's school days: Thursday 8 October (4 lessons) and Friday
+    # 9 October (3 lessons, Engels cancelled on Wednesday 30 September).
+    lessons = [
+        (dt.date(2026, 10, 8), (8, 30), (10, 0), "MT-2.1", "T0.14", None),
+        (dt.date(2026, 10, 8), (10, 15), (11, 45), "MT-2.2", "T0.14", None),
+        (dt.date(2026, 10, 8), (12, 30), (13, 45), "MT-2.3", "T0.14", None),
+        (dt.date(2026, 10, 8), (14, 0), (15, 0), "MT-2.4", "T0.14", None),
+        (dt.date(2026, 10, 9), (8, 30), (9, 45), "MT-2.5", "B1.08", None),
+        (dt.date(2026, 10, 9), (10, 0), (11, 0), "MT-2.6", "B1.08", "cancelled"),
+        (dt.date(2026, 10, 9), (11, 15), (12, 15), "MT-2.7", "B1.08", None),
+    ]
+    names = {c[0]: c[1] for c in STORY_UNITS}
+    for day, (h1, m1), (h2, m2), unit, room, state in lessons:
+        fields = {
+            "cohortId": cohort["uuid"], "courseId": courses[unit]["uuid"], "title": f"MT4-2A, {names[unit]}, {dutch_date(day)}",
+            "startsAt": stamp(day, h1, m1), "endsAt": stamp(day, h2, m2), "location": rooms[room]["name"],
+            "roomId": rooms[room]["uuid"], "lifecycle": "scheduled",
+        }
+        if state == "cancelled":
+            fields.update({"lifecycle": "cancelled", "changeReasonKind": "teacher-absence",
+                           "changeReason": "De docent Engels is afwezig. De les vervalt.",
+                           "affectedLearnerIds": [milan_nc, aylin_nc], "affectedParentIds": [],
+                           "changedAt": stamp(dt.date(2026, 9, 30), 11, 30)})
+        b.add("session", fields)
+
+    # The voortgangsgesprek with the studieloopbaanbegeleider.
+    round_row = b.add("conference-round", {
+        "name": "Voortgangsgesprekken MT4-2A, oktober 2026", "cohortIds": [cohort["uuid"]], "teacherIds": [STORY_SLB],
+        "slotDurationMinutes": 30, "bufferMinutes": 0, "bookingOpensAt": stamp(dt.date(2026, 9, 28), 8, 0),
+        "bookingClosesAt": stamp(dt.date(2026, 10, 9), 17, 0), "invitedLearnerIds": [milan_nc, aylin_nc],
+        "invitedLearnerRefs": [profiles[milan_nc]["uuid"], profiles[aylin_nc]["uuid"]], "lifecycle": "scheduled",
+    })
+    b.add("conference-slot", {
+        "conferenceRoundId": round_row["uuid"], "teacherId": STORY_SLB, "learnerId": milan_nc, "learnerRef": profiles[milan_nc]["uuid"],
+        "startsAt": stamp(dt.date(2026, 10, 15), 15, 15), "endsAt": stamp(dt.date(2026, 10, 15), 15, 45),
+        "location": rooms["B2.11"]["name"], "teacherName": "Fenna Yilmaz",
+        "slotLabel": "donderdag 15 oktober 2026, 15.15 uur, Fenna Yilmaz", "lifecycle": "confirmed",
+    })
+
+    # The exam: Nederlands lezen en luisteren, Tuesday 3 November 09.00 in B1.08.
+    period = b.add("exam-period", {
+        "name": "Examenweek november 2026", "startsOn": "2026-11-02", "endsOn": "2026-11-06", "cohortIds": [cohort["uuid"]],
+        "courseIds": [courses["MT-2.5"]["uuid"]], "lifecycle": "published",
+    })
+    exam = b.add("exam", {
+        "title": "Examen Nederlands lezen en luisteren", "description": "Centraal examen Nederlands, onderdelen lezen en luisteren. Neem je ID-bewijs mee.",
+        "courseId": courses["MT-2.5"]["uuid"], "cohortId": cohort["uuid"], "curriculumPlanComponentId": "MT-2.5-LL",
+        "gradeEntryComponentId": "MT-2.5-LL", "scoringScheme": "passMark", "passMark": 5.5, "timeLimitMinutes": 90, "maxAttempts": 1,
+        "lifecycle": "published",
+    })
+    b.add("exam-sitting", {
+        "examPeriodId": period["uuid"], "assessmentId": exam["uuid"], "cohortIds": [cohort["uuid"]],
+        "startsAt": stamp(dt.date(2026, 11, 3), 9, 0), "endsAt": stamp(dt.date(2026, 11, 3), 10, 30),
+        "roomIds": [rooms["B1.08"]["uuid"]], "headcount": 2, "invigilatorsNeeded": 1, "lifecycle": "planned",
+    })
+
+    return {"milan": profiles[milan_nc], "aylin": profiles[aylin_nc], "petra": petra, "cohort": cohort,
+            "milan_placement": milan_placement, "aylin_placement": aylin_placement}
 
 
 def sessions_by_uuid_date(sessions: dict[tuple[str, dt.date], dict], uuid: str) -> str:
