@@ -834,6 +834,8 @@ def build() -> dict:
     add_sami(b, pupils, cohorts, sessions, days, periods, plans, subject_courses, names_by_uuid)
     add_story(b, pupils, cohorts, school, subject_courses, names_by_uuid)
 
+    stamp_group_labels(b)
+
     # --- assemble -----------------------------------------------------------
     for cohort in cohorts.values():
         del cohort["_room"]
@@ -1120,6 +1122,34 @@ def add_story(b: Builder, pupils: list[dict], cohorts: dict, school: dict, subje
             "cohortId": group7["uuid"], "dueAt": stamp(dt.date.fromisoformat(due), 8, 30), "maxPoints": 10,
             "allowLateSubmission": True, "lifecycle": "published", "learnerRefs": members7,
         })
+
+
+def stamp_group_labels(b: Builder) -> None:
+    """Every pupil's group line, as LearnerGroupLabel writes it on a live save
+    (school-portals-use-the-new-blocks): the group of the newest active enrolment,
+    and " · " with the first teacher's display name when the portal declaration
+    names that teacher (lib/Settings/portals/<set>.json accounts; the load command
+    gives those accounts that name). Runs last and draws no random number."""
+    declaration = os.path.join(ROOT, "lib", "Settings", "portals", f"{SET}.json")
+    names = {}
+    if os.path.exists(declaration):
+        with open(declaration, encoding="utf-8") as handle:
+            names = {a["userId"]: a["displayName"] for a in json.load(handle).get("accounts", [])}
+    cohorts = {c["uuid"]: c for c in b.buckets.get("cohort", [])}
+    newest: dict[str, dict] = {}
+    for enrolment in b.buckets.get("enrolment", []):
+        ref = enrolment.get("learnerRef")
+        if enrolment.get("lifecycle") != "active" or not ref or enrolment.get("cohortId") not in cohorts:
+            continue
+        if ref not in newest or str(enrolment.get("inschrijvingDate", "")) > str(newest[ref].get("inschrijvingDate", "")):
+            newest[ref] = enrolment
+    for profile in b.buckets.get("learner-profile", []):
+        enrolment = newest.get(profile["uuid"])
+        if "learner" not in (profile.get("roles") or []) or enrolment is None:
+            continue
+        cohort = cohorts[enrolment["cohortId"]]
+        teacher = names.get(((cohort.get("teacherIds") or [None])[0]) or "")
+        profile["groupLabel"] = cohort["name"] + (" · " + teacher if teacher else "")
 
 
 def render(data: dict) -> str:

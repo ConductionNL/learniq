@@ -130,7 +130,7 @@ class ExamplePortalProvisioner {
 	 * Portal fields filled on an existing portal when they are empty. The
 	 * title, slug, status, domains and organisation are never touched.
 	 */
-	private const FILLABLE = ['tagline', 'theme', 'headerVariant', 'locales', 'authentication', 'headerSearch', 'footer'];
+	private const FILLABLE = ['tagline', 'theme', 'headerVariant', 'locales', 'authentication', 'headerSearch', 'footer', 'accountLabel', 'residentMenu'];
 
 	/**
 	 * Constructor.

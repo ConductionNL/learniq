@@ -3482,7 +3482,9 @@ OC.L10N.register(
         "BPV hours": "BPV hours",
         "Hours per week": "Hours per week",
         "Hours entered": "Hours entered",
-        "No hours entered yet.": "No hours entered yet."
+        "No hours entered yet.": "No hours entered yet.",
+        "Group line": "Group line",
+        "The pupil's group and its teacher as one line, for example \"Groep 7 · Meester Daan\": the line under the child's name in the guardian's portal menu. A readable copy the server writes from the active enrolment; a value sent for it is replaced.": "The pupil's group and its teacher as one line, for example \"Groep 7 · Meester Daan\": the line under the child's name in the guardian's portal menu. A readable copy the server writes from the active enrolment; a value sent for it is replaced."
     },
     "nplurals=2; plural=(n != 1);"
 )

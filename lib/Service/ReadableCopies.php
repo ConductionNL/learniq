@@ -55,6 +55,8 @@ class ReadableCopies {
 		'enrolment'       => ['cohortName' => null],
 		'portfolio-share' => ['portfolioTitle' => null, 'learnerName' => null],
 		'teacher-availability' => ['teacherName' => null],
+		// The line under a child's name in the guardian's menu (school-portals-use-the-new-blocks).
+		'learner-profile' => ['groupLabel' => null],
 	];
 
 	/**
@@ -113,6 +115,7 @@ class ReadableCopies {
 	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
 	 * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-new-a-share-names-its-candidate-and-portfolio
 	 * @spec openspec/changes/teacher-availability-reads-words/specs/parent-conferences/spec.md#requirement-the-teacher-availability-list-reads-words
+	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
 	 */
 	public function derive(string $slug, array $row): array {
 		if ($slug === 'grade-entry') {
@@ -129,6 +132,10 @@ class ReadableCopies {
 
 		if ($slug === 'teacher-availability') {
 			return ['teacherName' => $this->userName(uid: $row['teacherId'] ?? null)];
+		}
+
+		if ($slug === 'learner-profile') {
+			return ['groupLabel' => (new LearnerGroupLabel(objectService: $this->objectService, users: $this->users))->derive(profile: $row)];
 		}
 
 		return [];

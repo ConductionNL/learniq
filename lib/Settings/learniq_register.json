@@ -5383,6 +5383,12 @@
                         "default": null,
                         "title": "Beeldmateriaal Consent Review Due At",
                         "description": "When this learner’s beeldmateriaal consent should next be reviewed with guardians (PA-new-3’s yearly reminder pattern), or null if not scheduled. Reminder delivery itself is portaliq’s job — this is only the date a future notification would read."
+                    },
+                    "groupLabel": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "Group line",
+                        "description": "The pupil's group and its teacher as one line, for example \"Groep 7 · Meester Daan\": the line under the child's name in the guardian's portal menu. A readable copy the server writes from the active enrolment; a value sent for it is replaced."
                     }
                 },
                 "x-openregister-lifecycle": {

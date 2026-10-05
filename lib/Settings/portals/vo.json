@@ -24,7 +24,8 @@
           "title": "Ik ben leerling",
           "text": "Voor je rooster, je huiswerk, je cijfers en berichten van je mentor.",
           "button": "Inloggen met je schoolaccount",
-          "hint": "Je leerlingnummer en het wachtwoord van school."
+          "hint": "Je leerlingnummer en het wachtwoord van school.",
+          "icon": "School"
         },
         "digid": {
           "title": "Ik ben ouder of verzorger",
@@ -32,11 +33,19 @@
           "button": "Inloggen met DigiD",
           "hint": "U ziet alleen de gegevens van uw eigen kind."
         }
+      },
+      "signInPage": {
+        "title": "Inloggen op Mijn Vaartveld",
+        "intro": "Kies wie je bent. Leerlingen loggen in met hun schoolaccount, ouders en verzorgers met DigiD.",
+        "notice": {
+          "text": "Wachtwoord vergeten? Vraag bij de receptie een nieuw wachtwoord aan. Geen DigiD? Bel [telefoonnummer], dan helpen wij u op een andere manier."
+        }
       }
     },
     "headerSearch": {
       "label": "Zoeken op de website",
-      "route": "/zoeken"
+      "route": "/zoeken",
+      "placeholder": "Zoeken"
     },
     "footer": {
       "description": "Een vraag? Bel of mail de school. Op schooldagen zijn we bereikbaar van 08.00 tot 16.30 uur.",
@@ -44,8 +53,24 @@
       "cta": {
         "label": "Contact en lestijden",
         "href": "/contact"
+      },
+      "contact": {
+        "title": "Contact",
+        "lines": [
+          {
+            "text": "Vaartlaan 40, Zuiddrecht"
+          },
+          {
+            "text": "Telefoon: [telefoonnummer]"
+          },
+          {
+            "text": "E-mail: [e-mailadres]",
+            "href": "mailto:info@example.org"
+          }
+        ]
       }
-    }
+    },
+    "accountLabel": "Mijn Vaartveld"
   },
   "legacyTitles": [
     "Studentenportaal Vaartveld"
@@ -224,47 +249,47 @@
                 {
                   "label": "Rooster en wijzigingen",
                   "href": "/mijn",
-                  "icon": "Calendar"
+                  "icon": "calendarLines"
                 },
                 {
                   "label": "Ziek melden en verlof",
                   "href": "/praktisch/ziek-melden",
-                  "icon": "AlertCircleOutline"
+                  "icon": "alert"
                 },
                 {
                   "label": "Vakanties en vrije dagen",
                   "href": "/praktisch/vakanties",
-                  "icon": "WeatherSunny"
+                  "icon": "sun"
                 },
                 {
                   "label": "Cijfers en huiswerk",
                   "href": "/mijn",
-                  "icon": "Pencil"
+                  "icon": "pencil"
                 },
                 {
                   "label": "Lestijden en pauzes",
                   "href": "/praktisch/lestijden",
-                  "icon": "ClockOutline"
+                  "icon": "clock"
                 },
                 {
                   "label": "Aanmelden voor klas 1",
                   "href": "/aanmelden",
-                  "icon": "AccountPlusOutline"
+                  "icon": "personPlus"
                 },
                 {
                   "label": "Schoolgids en PTA",
                   "href": "/zoeken",
-                  "icon": "BookOpenPageVariantOutline"
+                  "icon": "book"
                 },
                 {
                   "label": "Contact met de school",
                   "href": "/contact",
-                  "icon": "Email"
+                  "icon": "chat"
                 },
                 {
                   "label": "Boeken en schoolkosten",
                   "href": "/praktisch",
-                  "icon": "CashMultiple"
+                  "icon": "card"
                 }
               ],
               "moreLabel": "Alle praktische informatie",
@@ -1054,7 +1079,8 @@
       "target": {
         "schoolRef": "ee020001-0000-4000-8000-000000000001"
       },
-      "body": "In klas 3 kies je een profiel: de vakken waarin je examen doet. Op deze avond hoor je met je ouders hoe dat gaat en wat je met elk profiel kunt.\n\n- **Wanneer:** dinsdag 3 november 2026, 19.30 tot 21.00 uur\n- **Waar:** aula van Vaartveld College, Vaartlaan 40\n- **Voor wie:** leerlingen van 3 havo en 3 vwo en hun ouders\n- **Aanmelden:** tot en met vrijdag 30 oktober\n\nDe decaan legt uit wat een profiel is en wanneer je kiest. Daarna loop je langs de vier profielen. Je kiest niet op deze avond. In december en januari praat je met je mentor en de decaan. Je voorlopige keuze geef je door in februari. Een vraag? Mail de decaan, Marloes Peters, via [e-mailadres decaan]."
+      "body": "In klas 3 kies je een profiel: de vakken waarin je examen doet. Op deze avond hoor je met je ouders hoe dat gaat en wat je met elk profiel kunt.\n\n- **Wanneer:** dinsdag 3 november 2026, 19.30 tot 21.00 uur\n- **Waar:** aula van Vaartveld College, Vaartlaan 40\n- **Voor wie:** leerlingen van 3 havo en 3 vwo en hun ouders\n- **Aanmelden:** tot en met vrijdag 30 oktober\n\nDe decaan legt uit wat een profiel is en wanneer je kiest. Daarna loop je langs de vier profielen. Je kiest niet op deze avond. In december en januari praat je met je mentor en de decaan. Je voorlopige keuze geef je door in februari. Een vraag? Mail de decaan, Marloes Peters, via [e-mailadres decaan].",
+      "audienceLabel": "klas 3 havo en vwo"
     },
     {
       "title": "Toetsweek 1: het rooster staat online",
@@ -1064,7 +1090,8 @@
       "target": {
         "schoolRef": "ee020001-0000-4000-8000-000000000001"
       },
-      "body": "De eerste toetsweek is van 9 tot en met 13 november. Je vindt je eigen rooster in Mijn Vaartveld."
+      "body": "De eerste toetsweek is van 9 tot en met 13 november. Je vindt je eigen rooster in Mijn Vaartveld.",
+      "audienceLabel": "klas 4, 5 en 6"
     },
     {
       "title": "Klas 2 wint het debattoernooi van Zuiddrecht",

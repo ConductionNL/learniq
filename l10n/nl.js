@@ -3932,7 +3932,9 @@ OC.L10N.register(
         "BPV hours": "BPV-uren",
         "Hours per week": "Uren per week",
         "Hours entered": "Ingevulde uren",
-        "No hours entered yet.": "Nog geen uren ingevuld."
+        "No hours entered yet.": "Nog geen uren ingevuld.",
+        "Group line": "Groepsregel",
+        "The pupil's group and its teacher as one line, for example \"Groep 7 · Meester Daan\": the line under the child's name in the guardian's portal menu. A readable copy the server writes from the active enrolment; a value sent for it is replaced.": "De groep van de leerling en de leerkracht van die groep op één regel, bijvoorbeeld \"Groep 7 · Meester Daan\": de regel onder de naam van het kind in het menu van het ouderportaal. Een leesbare kopie die de server schrijft uit de actieve inschrijving; een meegestuurde waarde wordt vervangen."
     },
     "nplurals=2; plural=(n != 1);"
 )

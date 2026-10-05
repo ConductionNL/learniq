@@ -24,11 +24,55 @@
           "text": "Met de DigiD-app of met een sms-code",
           "button": "Inloggen met DigiD"
         }
+      },
+      "signInPage": {
+        "title": "Inloggen bij Mijn Wilgenboom",
+        "intro": "Voor ouders en verzorgers. U logt in met uw eigen DigiD, zodat alleen u de gegevens van uw kind ziet.",
+        "notice": {
+          "title": "Logt u voor het eerst in?",
+          "text": "U heeft een uitnodiging van school nodig. Die krijgt u per e-mail als uw kind bij ons start. Geen uitnodiging gehad, of geen DigiD? Bel [telefoonnummer] of loop even langs bij de administratie."
+        },
+        "staffLink": {
+          "text": "Werkt u bij De Wilgenboom?",
+          "label": "Log in op de werkplek",
+          "href": "/index.php/login"
+        },
+        "panel": {
+          "title": "Alles over school op één plek",
+          "items": [
+            {
+              "title": "Afwezig melden",
+              "text": "In een halve minuut, en u ziet dat de leerkracht het weet",
+              "icon": "CheckboxMarkedOutline"
+            },
+            {
+              "title": "Nieuws uit de groep",
+              "text": "Wat de klas deze week doet, met de foto's erbij",
+              "icon": "Newspaper"
+            },
+            {
+              "title": "Oudergesprek",
+              "text": "Kies zelf een tijd die u past",
+              "icon": "CalendarMonth"
+            },
+            {
+              "title": "Rapport en aanwezigheid",
+              "text": "Hoe het gaat, per kind",
+              "icon": "ChartBox"
+            },
+            {
+              "title": "Berichten",
+              "text": "Stel de leerkracht een vraag wanneer het u uitkomt",
+              "icon": "MessageTextOutline"
+            }
+          ]
+        }
       }
     },
     "headerSearch": {
       "label": "Zoeken op de website",
-      "route": "/zoeken"
+      "route": "/zoeken",
+      "placeholder": "Zoeken"
     },
     "footer": {
       "description": "Heeft u een vraag? Loop binnen, bel of mail ons. De deur staat open.",
@@ -36,8 +80,24 @@
       "cta": {
         "label": "Contact en schooltijden",
         "href": "/contact"
+      },
+      "contact": {
+        "title": "Contact",
+        "lines": [
+          {
+            "text": "Wilgenlaan 12, Zuiddrecht"
+          },
+          {
+            "text": "Telefoon: [telefoonnummer]"
+          },
+          {
+            "text": "E-mail: [e-mailadres]",
+            "href": "mailto:info@example.org"
+          }
+        ]
       }
-    }
+    },
+    "accountLabel": "Mijn Wilgenboom"
   },
   "legacyTitles": [],
   "menus": [
@@ -214,42 +274,42 @@
                 {
                   "label": "Kind afwezig melden",
                   "href": "/praktisch/afwezig-melden",
-                  "icon": "AlertCircleOutline"
+                  "icon": "alert"
                 },
                 {
                   "label": "Oudergesprek plannen",
                   "href": "/mijn",
-                  "icon": "MessageTextOutline"
+                  "icon": "chat"
                 },
                 {
                   "label": "Schoolkalender",
                   "href": "/kalender",
-                  "icon": "CalendarMonth"
+                  "icon": "calendar"
                 },
                 {
                   "label": "Schooltijden en vakanties",
                   "href": "/praktisch/vakanties",
-                  "icon": "ClockOutline"
+                  "icon": "clock"
                 },
                 {
                   "label": "Verlof aanvragen",
                   "href": "/praktisch/afwezig-melden",
-                  "icon": "FileDocumentEditOutline"
+                  "icon": "pencil"
                 },
                 {
                   "label": "Overblijven en opvang",
                   "href": "/praktisch/opvang",
-                  "icon": "HomeOutline"
+                  "icon": "home"
                 },
                 {
                   "label": "Schoolgids",
                   "href": "/zoeken",
-                  "icon": "BookOpenPageVariantOutline"
+                  "icon": "book"
                 },
                 {
                   "label": "Uw kind aanmelden",
                   "href": "/aanmelden",
-                  "icon": "AccountPlusOutline"
+                  "icon": "personPlus"
                 }
               ],
               "moreLabel": "Alles over praktische zaken",
@@ -1113,7 +1173,8 @@
         "schoolRef": "ee010001-0000-4000-8000-000000000001"
       },
       "authorRef": "po-directeur-01",
-      "body": "Groep 8 las voor aan de kleuters, en de hal hangt vol tekeningen van lievelingsboeken. Tot en met vrijdag 16 oktober staat de school in het teken van lezen.\n\nWoensdagochtend opende juf Hanneke de Kinderboekenweek op het plein. Daarna ging groep 8 naar de kleuterklassen. Elk kind uit groep 8 las een eigen gekozen prentenboek voor aan een groepje kleuters.\n\nDe komende twee weken leest elke groep elke dag een kwartier langer. In de hal staat een leestafel met nieuwe boeken uit de bibliotheek van Zuiddrecht. Kinderen mogen daar in de pauze lezen.\n\n## Boekenmarkt op het plein\n\nOp woensdag 14 oktober is de boekenmarkt. Kinderen verkopen en ruilen boeken die ze uit hebben. Heeft u thuis kinderboeken over? Uw kind mag ze die dag meenemen.\n\n- **Wanneer:** woensdag 14 oktober, 12.30 tot 14.00 uur\n- **Waar:** op het grote plein. Bij regen in de hal\n- **Meenemen:** boeken om te ruilen, en een kleed om op te zitten\n- **Helpen:** we zoeken nog vier ouders. Meld u aan bij de leerkracht"
+      "body": "Groep 8 las voor aan de kleuters, en de hal hangt vol tekeningen van lievelingsboeken. Tot en met vrijdag 16 oktober staat de school in het teken van lezen.\n\nWoensdagochtend opende juf Hanneke de Kinderboekenweek op het plein. Daarna ging groep 8 naar de kleuterklassen. Elk kind uit groep 8 las een eigen gekozen prentenboek voor aan een groepje kleuters.\n\nDe komende twee weken leest elke groep elke dag een kwartier langer. In de hal staat een leestafel met nieuwe boeken uit de bibliotheek van Zuiddrecht. Kinderen mogen daar in de pauze lezen.\n\n## Boekenmarkt op het plein\n\nOp woensdag 14 oktober is de boekenmarkt. Kinderen verkopen en ruilen boeken die ze uit hebben. Heeft u thuis kinderboeken over? Uw kind mag ze die dag meenemen.\n\n- **Wanneer:** woensdag 14 oktober, 12.30 tot 14.00 uur\n- **Waar:** op het grote plein. Bij regen in de hal\n- **Meenemen:** boeken om te ruilen, en een kleed om op te zitten\n- **Helpen:** we zoeken nog vier ouders. Meld u aan bij de leerkracht",
+      "audienceLabel": "hele school"
     },
     {
       "title": "Ouderavond op donderdag 29 oktober",
@@ -1123,7 +1184,8 @@
         "schoolRef": "ee010001-0000-4000-8000-000000000001"
       },
       "authorRef": "po-directeur-01",
-      "body": "U praat tien minuten met de leerkracht over hoe het met uw kind gaat. U kiest zelf een tijd in Mijn Wilgenboom, tot en met vrijdag 16 oktober."
+      "body": "U praat tien minuten met de leerkracht over hoe het met uw kind gaat. U kiest zelf een tijd in Mijn Wilgenboom, tot en met vrijdag 16 oktober.",
+      "audienceLabel": "hele school"
     },
     {
       "title": "Groep 7 gaat woensdag naar de kinderboerderij",
@@ -1135,7 +1197,8 @@
         ]
       },
       "authorRef": "po-leerkracht-09",
-      "body": "Woensdag 7 oktober gaat groep 7 naar de kinderboerderij. We vertrekken na de schoolfoto. Laarzen en een regenjas mee."
+      "body": "Woensdag 7 oktober gaat groep 7 naar de kinderboerderij. We vertrekken na de schoolfoto. Laarzen en een regenjas mee.",
+      "audienceLabel": "groep 7"
     },
     {
       "title": "De schoolfotograaf komt op woensdag 7 oktober",
@@ -1145,7 +1208,8 @@
         "schoolRef": "ee010001-0000-4000-8000-000000000001"
       },
       "authorRef": "po-directeur-01",
-      "body": "De schoolfotograaf maakt in de ochtend individuele foto's en groepsfoto's. Broertjes en zusjes kunnen samen op de foto."
+      "body": "De schoolfotograaf maakt in de ochtend individuele foto's en groepsfoto's. Broertjes en zusjes kunnen samen op de foto.",
+      "audienceLabel": "hele school"
     },
     {
       "title": "Nieuwe speeltoestellen op het kleuterplein",
@@ -1155,7 +1219,8 @@
         "schoolRef": "ee010001-0000-4000-8000-000000000001"
       },
       "authorRef": "po-directeur-01",
-      "body": "Het kleuterplein heeft een nieuwe klimtoren en een zandbak met water. De ouderraad heeft meebetaald."
+      "body": "Het kleuterplein heeft een nieuwe klimtoren en een zandbak met water. De ouderraad heeft meebetaald.",
+      "audienceLabel": "hele school"
     },
     {
       "title": "Zo werkt de ouderavond dit jaar",
@@ -1165,7 +1230,8 @@
         "schoolRef": "ee010001-0000-4000-8000-000000000001"
       },
       "authorRef": "po-directeur-01",
-      "body": "Geen briefjes meer: u boekt een vrije tijd en de leerkracht bevestigt die. Lukt geen enkele tijd, stuur dan een bericht."
+      "body": "Geen briefjes meer: u boekt een vrije tijd en de leerkracht bevestigt die. Lukt geen enkele tijd, stuur dan een bericht.",
+      "audienceLabel": "hele school"
     },
     {
       "title": "Woensdag naar de kinderboerderij: dit moet mee",
@@ -1177,7 +1243,8 @@
         ]
       },
       "authorRef": "po-leerkracht-09",
-      "body": "Woensdag gaan we na de schoolfoto naar de kinderboerderij. Geef uw kind laarzen, een regenjas en iets te drinken mee. We zijn om 12.15 uur terug op school."
+      "body": "Woensdag gaan we na de schoolfoto naar de kinderboerderij. Geef uw kind laarzen, een regenjas en iets te drinken mee. We zijn om 12.15 uur terug op school.",
+      "audienceLabel": "groep 7"
     },
     {
       "title": "Wij leren de tafel van 2 en 5",
@@ -1189,7 +1256,8 @@
         ]
       },
       "authorRef": "po-leerkracht-07",
-      "body": "Deze weken oefenen we de tafel van 2 en 5. Thuis samen oefenen helpt, bijvoorbeeld in de auto of aan tafel."
+      "body": "Deze weken oefenen we de tafel van 2 en 5. Thuis samen oefenen helpt, bijvoorbeeld in de auto of aan tafel.",
+      "audienceLabel": "groep 4"
     }
   ],
   "accounts": [
