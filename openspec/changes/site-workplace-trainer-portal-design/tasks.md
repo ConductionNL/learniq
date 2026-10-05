@@ -14,7 +14,9 @@ Built in waves. A key is declared only once portaliq development keeps it; porta
   - PHPUnit for the step derivation
 - [x] **T6a**: `TrainerSitePages`: the overview (`home: true`, `group`), her placements, her three latest assessments (`limit`, `sort`), two `cta` tiles and the inbox; a page per section
   - PHPUnit `GuardianSitePagesTest`; run through portaliq's own resolvers (development 29a17ba): nothing dropped
-- [ ] **T6b** (waits for portaliq `display: cards` with `progress`, and a heading on a `collection` block): the student cards of the mockup. A collection block carries no label today, so the lists stand on their columns.
+- [x] **T6b**: the placement cards carry their heading ("Mijn stageplaatsen") and project the waiting and returned hours; the overview opens with the greeting and the hours to approve as a highlight (lane L2's block contract)
+  - PHPUnit `GuardianSitePagesTest`
+  - the cards still name the company, not the student: a student's name waits for T1 (`via.when`), so two students at one company read alike
 - [x] **T7**: the manifest through `PortalLabelTranslator`; Dutch "u" entries
   - PHPUnit `PortalLabelTranslatorTest`; `npm run check:l10n`
 - [ ] **T7b**: a one-line explanation beside each school term (praktijkovereenkomst, werkproces, BPV) on first use

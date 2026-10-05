@@ -3919,7 +3919,20 @@ OC.L10N.register(
         "Homework and tests": "Huiswerk en toetsen",
         "Latest grades": "Laatste cijfers",
         "Absence this school year": "Afwezigheid dit schooljaar",
-        "Without a report": "Zonder melding"
+        "Without a report": "Zonder melding",
+        "Hours waiting for approval": "Uren die wachten op goedkeuring",
+        "The hours of the weeks of this placement that still wait for the trainer. The server recomputes it whenever a week is written; a value sent for it is replaced.": "De uren van de weken van deze BPV die nog wachten op de praktijkopleider. De server rekent dit opnieuw uit als een week wordt opgeslagen; een meegestuurde waarde wordt vervangen.",
+        "Hours sent back": "Teruggestuurde uren",
+        "The hours of the weeks of this placement that the trainer sent back without approving them. The server recomputes it whenever a week is written; a value sent for it is replaced.": "De uren van de weken van deze BPV die de praktijkopleider terugstuurde zonder ze goed te keuren. De server rekent dit opnieuw uit als een week wordt opgeslagen; een meegestuurde waarde wordt vervangen.",
+        "Waiting": "Wacht op goedkeuring",
+        "Sent back": "Teruggestuurd",
+        "My BPV hours": "Mijn BPV-uren",
+        "hour": "uur",
+        "hours": "uur",
+        "BPV hours": "BPV-uren",
+        "Hours per week": "Uren per week",
+        "Hours entered": "Ingevulde uren",
+        "No hours entered yet.": "Nog geen uren ingevuld."
     },
     "nplurals=2; plural=(n != 1);"
 )

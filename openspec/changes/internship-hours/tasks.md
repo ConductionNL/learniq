@@ -14,8 +14,10 @@
   - `studentBpvPlacements` is declared so the placement picker has something to read; its page stays out of her short menu
 - [x] **T5**: the trainer's overview shows hours done against `agreedHours`, and shows hours alone when no total is agreed
   - the card is `display: cards` with `progress: {valueField, totalField, label}`, and both fields are projected: portaliq drops a progress whose fields the collection does not project
-- [ ] **T6**: learniq's own screens: hours on the placement detail page, and a per-cohort list for the school coach
-  - not built. The portal half is what the mockup and the e2e need; the mentor's own screens are the next round.
+- [x] **T6**: learniq's own screens: hours on the placement detail page, and a list for the school coach
+  - `src/manifest.d/work-placement.json`: an "Hours per week" list on `BpvPlacementDetail`, and the index page `BpvHourWeeks` (`/bpv/hours`, menu "BPV hours") with the pupil read by name, newest week first. A list per cohort is the same page filtered; a week carries no cohort, so a cohort filter would need one (not added).
+- [x] **T9**: the placement keeps waiting and returned hours beside the approved ones; the student's hours page opens with the segmented bar; the mbo set seeds the totals
+  - PHPUnit `HourWeekListenersTest`, `GuardianSitePagesTest::testTheStudentHoursPageOpensWithTheBar`, `VocationalCollegeExampleSetTest`
 - [x] **T7**: e2e: the trainer approves a week in `trainer-flows.spec.ts`, and the pupil submits one in `pupil-flows.spec.ts`
   - both suites clean up every row they create; both steps skip on an instance whose learniq predates this change, and said so when run against :8090
   - NOT yet seen pass live: :8090 still runs learniq 0.3.8, which has no `BpvHourWeek`
