@@ -4117,7 +4117,21 @@
         "Whether the company is a current client.": "Of het bedrijf nu klant is.",
         "Whether the participant's details are complete for this course: complete, or birth-date-missing when the course ends in an exam and the profile has no birth date. Written by the server.": "Of de gegevens van de deelnemer compleet zijn voor deze cursus: complete, of birth-date-missing als de cursus eindigt met een examen en het profiel geen geboortedatum heeft. De server schrijft dit.",
         "Why the task matters, as one sentence. Written by the server.": "Waarom de taak belangrijk is, in één zin. De server schrijft dit.",
-        "received until the planner confirms the places, then confirmed; completed after the last course day; cancelled when withdrawn. Follows the participants' enrolments and is written by the server.": "received tot de planning de plekken bevestigt, daarna confirmed; completed na de laatste cursusdag; cancelled als de inschrijving is ingetrokken. Volgt de inschrijvingen van de deelnemers; de server schrijft dit."
+        "received until the planner confirms the places, then confirmed; completed after the last course day; cancelled when withdrawn. Follows the participants' enrolments and is written by the server.": "received tot de planning de plekken bevestigt, daarna confirmed; completed na de laatste cursusdag; cancelled als de inschrijving is ingetrokken. Volgt de inschrijvingen van de deelnemers; de server schrijft dit.",
+        "Certificates in your company": "Certificaten in uw bedrijf",
+        "Valid": "Geldig",
+        "Renewal": "Herhaling",
+        "Check or download": "Controleren of downloaden",
+        "All certificates": "Alle certificaten",
+        "Certificates": "Certificaten",
+        "Expiry": "Verloopt",
+        "Holder": "Houder",
+        "Weeks until expiry": "Weken tot het verloopt",
+        "The booked renewal, for example \"Herhaling op 8 oktober\". A readable copy the server writes from renewalEnrolmentId.": "De geboekte herhaling, bijvoorbeeld \"Herhaling op 8 oktober\". Een leesbare kopie die de server schrijft vanuit renewalEnrolmentId.",
+        "The holder's employer, copied from the learner profile when the certificate is saved. The employer's portal reads the certificate by it. A readable copy the server writes.": "De werkgever van de houder, overgenomen uit het leerlingprofiel als het certificaat wordt opgeslagen. Het portaal van de werkgever leest het certificaat hiermee. Een leesbare kopie die de server schrijft.",
+        "The holder's name. A readable copy the server writes; a value sent for it is replaced.": "De naam van de houder. Een leesbare kopie die de server schrijft; een meegestuurde waarde wordt vervangen.",
+        "The name of the course the certificate is for, for example \"F-gassen categorie 1\". A readable copy the server writes.": "De naam van de cursus waar het certificaat voor is, bijvoorbeeld \"F-gassen categorie 1\". Een leesbare kopie die de server schrijft.",
+        "Until when the certificate is valid, as one line, for example \"Geldig tot 30 november 2026\". A readable copy the server writes.": "Tot wanneer het certificaat geldig is, op één regel, bijvoorbeeld \"Geldig tot 30 november 2026\". Een leesbare kopie die de server schrijft."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

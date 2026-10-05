@@ -3652,7 +3652,21 @@
         "Whether the company is a current client.": "Whether the company is a current client.",
         "Whether the participant's details are complete for this course: complete, or birth-date-missing when the course ends in an exam and the profile has no birth date. Written by the server.": "Whether the participant's details are complete for this course: complete, or birth-date-missing when the course ends in an exam and the profile has no birth date. Written by the server.",
         "Why the task matters, as one sentence. Written by the server.": "Why the task matters, as one sentence. Written by the server.",
-        "received until the planner confirms the places, then confirmed; completed after the last course day; cancelled when withdrawn. Follows the participants' enrolments and is written by the server.": "received until the planner confirms the places, then confirmed; completed after the last course day; cancelled when withdrawn. Follows the participants' enrolments and is written by the server."
+        "received until the planner confirms the places, then confirmed; completed after the last course day; cancelled when withdrawn. Follows the participants' enrolments and is written by the server.": "received until the planner confirms the places, then confirmed; completed after the last course day; cancelled when withdrawn. Follows the participants' enrolments and is written by the server.",
+        "Certificates in your company": "Certificates in your company",
+        "Valid": "Valid",
+        "Renewal": "Renewal",
+        "Check or download": "Check or download",
+        "All certificates": "All certificates",
+        "Certificates": "Certificates",
+        "Expiry": "Expiry",
+        "Holder": "Holder",
+        "Weeks until expiry": "Weeks until expiry",
+        "The booked renewal, for example \"Herhaling op 8 oktober\". A readable copy the server writes from renewalEnrolmentId.": "The booked renewal, for example \"Herhaling op 8 oktober\". A readable copy the server writes from renewalEnrolmentId.",
+        "The holder's employer, copied from the learner profile when the certificate is saved. The employer's portal reads the certificate by it. A readable copy the server writes.": "The holder's employer, copied from the learner profile when the certificate is saved. The employer's portal reads the certificate by it. A readable copy the server writes.",
+        "The holder's name. A readable copy the server writes; a value sent for it is replaced.": "The holder's name. A readable copy the server writes; a value sent for it is replaced.",
+        "The name of the course the certificate is for, for example \"F-gassen categorie 1\". A readable copy the server writes.": "The name of the course the certificate is for, for example \"F-gassen categorie 1\". A readable copy the server writes.",
+        "Until when the certificate is valid, as one line, for example \"Geldig tot 30 november 2026\". A readable copy the server writes.": "Until when the certificate is valid, as one line, for example \"Geldig tot 30 november 2026\". A readable copy the server writes."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

@@ -833,6 +833,36 @@ def stamp_employer_copies(b: Builder) -> None:
         e["organisationRef"] = p.get("organisationRef") if p else None
 
 
+def stamp_certificate_copies(b: Builder) -> None:
+    """The readable copies CertificateCopies writes on a live save (portal-certificates): holder, course,
+    employer, "Geldig tot ..." and the booked renewal. Runs last; no random number."""
+    profiles = {p["uuid"]: p for p in b.buckets["learner-profile"]}
+    courses = {c["uuid"]: c for c in b.buckets["course"]}
+    enrolments = {e["uuid"]: e for e in b.buckets["enrolment"]}
+    first_day: dict[str, dt.date] = {}
+    for x in b.buckets["session"]:
+        d = dt.datetime.fromisoformat(x["startsAt"]).astimezone(AMS).date()
+        if x["cohortId"] not in first_day or d < first_day[x["cohortId"]]:
+            first_day[x["cohortId"]] = d
+    for c in b.buckets["credential"]:
+        p = profiles.get(c.get("learnerId") or "")
+        name = f"{p.get('givenName', '')} {p.get('familyName', '')}".strip() if p else ""
+        c["learnerName"] = name or None
+        c["courseName"] = (courses.get(c.get("courseId") or "", {}).get("name") or "").strip() or None
+        c["organisationRef"] = p.get("organisationRef") if p else None
+        valid = None
+        if c.get("expiresAt"):
+            x = dt.datetime.fromisoformat(c["expiresAt"]).astimezone(AMS)
+            valid = f"Geldig tot {x.day} {MAAND[x.month - 1]} {x.year}"
+        c["validUntilLabel"] = valid
+        renewal = None
+        e = enrolments.get(c.get("renewalEnrolmentId") or "")
+        if e and e.get("lifecycle") in ("pending", "active") and e.get("cohortId") in first_day:
+            d = first_day[e["cohortId"]]
+            renewal = f"Herhaling op {d.day} {MAAND[d.month - 1]}"
+        c["renewalLine"] = renewal
+
+
 def add_story(b: Builder, school: dict, location: dict) -> None:
     """Jansen Installatietechniek BV and its four installers at the Warmtepompacademie, week 41 of 2026.
 
@@ -1792,6 +1822,7 @@ def build() -> dict:
 
     add_story(b, school, location)
     stamp_employer_copies(b)
+    stamp_certificate_copies(b)
 
     shipped = {r["slug"] for r in b.buckets["regulation"]}
     for rows in b.buckets.values():

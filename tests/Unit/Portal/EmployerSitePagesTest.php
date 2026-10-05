@@ -141,7 +141,7 @@ class EmployerSitePagesTest extends TestCase {
 		self::assertContains('employer', (new PortalContributionProvider())->getAudiences());
 		$pages = array_column(self::manifest()['pages'], null, 'id');
 		self::assertTrue($pages['employerOverview']['home']);
-		self::assertSame(['greeting', 'tasks', 'collection', 'cta'], array_column($pages['employerOverview']['blocks'], 'type'));
+		self::assertSame(['greeting', 'tasks', 'collection', 'cta', 'collection', 'cta'], array_column($pages['employerOverview']['blocks'], 'type'));
 		self::assertSame('employerBookings', $pages['employerBookings']['record']['collection']);
 	}//end testLearniqServesTheEmployer()
 
@@ -253,6 +253,30 @@ class EmployerSitePagesTest extends TestCase {
 		self::assertSame('cases', $collections['employerBookings']['kind']);
 		self::assertTrue(method_exists(PortalContributionProvider::class, EmployerSitePages::STEPS_PROVIDER));
 	}//end testEveryBlockReadsWhatExists()
+
+	/**
+	 * Her people's issued certificates, the first to expire first, with the
+	 * expiry as a pill and in words (portal-certificates).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md#requirement-an-employer-sees-her-peoples-certificates-the-first-to-expire-first
+	 */
+	public function testHerPeoplesCertificatesExpireFirstOnTop(): void {
+		$manifest = self::manifest();
+		$certificates = array_column($manifest['collections'], null, 'id')['employerCertificates'];
+		self::assertSame('credential', $certificates['schema']);
+		self::assertSame(['lifecycle' => 'issued', 'kind' => 'certificate'], $certificates['filter']);
+		self::assertSame(['field' => 'expiresAt', 'direction' => 'asc'], $certificates['defaultSort']);
+		self::assertNotContains('signature', $certificates['fields']);
+		self::assertNotContains('openbadges3Payload', $certificates['fields']);
+
+		$overview = array_column($manifest['pages'], null, 'id')['employerOverview'];
+		$rows = array_values(array_filter($overview['blocks'], static fn (array $b): bool => ($b['collection'] ?? '') === 'employerCertificates'))[0];
+		self::assertSame(['expiryStatus', 'expiryLabel', 'renewalLine'], [$rows['statusField'], $rows['statusNoteField'], $rows['quoteField']]);
+		self::assertSame('warning', $rows['statusTones']['expiring']);
+		self::assertArrayHasKey('employerCertificates', array_column($manifest['pages'], null, 'id'));
+	}//end testHerPeoplesCertificatesExpireFirstOnTop()
 
 	/**
 	 * The steps provider answers through the service, and nothing without it.

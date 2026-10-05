@@ -10,6 +10,7 @@
  *
  * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
  * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md
+ * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md
  */
 
 import { test } from '@playwright/test'
@@ -131,6 +132,10 @@ test.describe('warmtepompacademie: Mijn academie (Linda Jansen, employer)', () =
 			'Warmtepompen installeren: basis',
 			'De plek staat vast',
 			'Bevestiging uiterlijk dinsdag 6 oktober',
+			'F-gassen categorie 1',
+			'Verloopt over 8 weken',
+			'Herhaling op 8 oktober',
+			'BRL 6000-21, bovengronds deel',
 		])
 		if (info.project.name === 'phone') {
 			await expectNoHorizontalScroll(page)
