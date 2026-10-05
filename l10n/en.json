@@ -3482,7 +3482,22 @@
         "Saved. People see the change the next time they open Learniq.": "Saved. People see the change the next time they open Learniq.",
         "No page is removed. Both menus open the same pages.": "No page is removed. Both menus open the same pages.",
         "The menu structure could not be loaded. Reload the page to try again.": "The menu structure could not be loaded. Reload the page to try again.",
-        "The menu could not be saved. Try again.": "The menu could not be saved. Try again."
+        "The menu could not be saved. Try again.": "The menu could not be saved. Try again.",
+        "Your lessons and what needs you today": "Your lessons and what needs you today",
+        "Greeting": "Greeting",
+        "First today": "First today",
+        "Attendance flags nobody has picked up": "Attendance flags nobody has picked up",
+        "{value} attendance flags are still open. Open one to start the follow-up.": "{value} attendance flags are still open. Open one to start the follow-up.",
+        "Open the flags": "Open the flags",
+        "Lessons today": "Lessons today",
+        "Lessons this week": "Lessons this week",
+        "Unexcused today": "Unexcused today",
+        "No lessons": "No lessons",
+        "Other dashboards": "Other dashboards",
+        "The lists you manage: courses, assignments, sessions and groups": "The lists you manage: courses, assignments, sessions and groups",
+        "Your own mandatory training": "Your own mandatory training",
+        "Figures and lists for the whole organisation": "Figures and lists for the whole organisation",
+        "Assignments due": "Assignments due"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

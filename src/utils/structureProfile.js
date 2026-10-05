@@ -30,8 +30,13 @@
  *           `null` takes the item out), `configAppend` appends items, and
  *           `configOrder` moves the named items to the front. They apply in
  *           that order. A name is the item's `id`, else its `key`, else its
- *           `label`. `slots` adds entries to the page's slot map. An overlay never
- *           adds a page and never removes one.
+ *           `label`. `slots` adds entries to the page's slot map. `page`
+ *           replaces the page's own `type`, `title` or `component` (a `null`
+ *           takes the key out), which is how a page changes kind in one
+ *           profile and stays what it was in the other. `when` is a predicate
+ *           on the manifest runtime: the overlay applies only for a signed-in
+ *           user it passes for. An overlay never adds a page and never
+ *           removes one.
  *
  * Nothing here deletes anything. The pages, the routes and the fragments are
  * the same in both profiles, which is what keeps every deep link working.
@@ -57,6 +62,12 @@ const LAYOUT_KEYS = [
 ]
 
 /**
+ * The keys of a page itself an overlay may replace. The id and the route are
+ * not among them: an overlay never moves a page and never renames one.
+ */
+const PAGE_KEYS = ['type', 'title', 'component']
+
+/**
  * The profile a stored value stands for.
  *
  * Only the exact word `full` selects the full structure. Anything else, an
@@ -76,7 +87,7 @@ export function resolveStructureProfile(raw) {
  * Apply one page overlay to one built page, without touching the original.
  *
  * @param {object} page The built page.
- * @param {object} overlay `{ id, config?, configPatch?, configAppend?, configOrder? }`.
+ * @param {object} overlay `{ id, when?, page?, config?, configPatch?, configAppend?, configOrder?, slots? }`.
  *   The order is fixed: replace keys, patch items by name, append, then order.
  * @return {object} A new page object.
  *
@@ -112,16 +123,21 @@ export function applyPageOverlay(page, overlay) {
 			.filter((item) => item !== undefined)
 		config[key] = [...lead, ...current.filter((item) => !lead.includes(item))]
 	}
+	const out = { ...page, config }
+	const own = overlay.page || {}
+	for (const key of PAGE_KEYS) {
+		if (own[key] === null) {
+			delete out[key]
+		} else if (own[key] !== undefined) {
+			out[key] = own[key]
+		}
+	}
 	if (overlay.slots && typeof overlay.slots === 'object') {
 		// A `custom` widget resolves through the page's own top-level `slots`
 		// map, so a page that gains one needs its slot beside it.
-		return {
-			...page,
-			config,
-			slots: { ...(page.slots || {}), ...overlay.slots },
-		}
+		out.slots = { ...(page.slots || {}), ...overlay.slots }
 	}
-	return { ...page, config }
+	return out
 }
 
 /**
@@ -161,11 +177,21 @@ export function overlayItemName(item) {
  * @param {object} base The bundled manifest.
  * @param {Array<object>} fragments The `manifest.d` fragments, in order.
  * @param {object} profileFile The profile's layout file.
+ * @param {(predicate: object, runtime: object) => boolean} [passes] The
+ *   library's `passesContextPredicates`. An overlay with a `when` is applied
+ *   only when it passes for `base.runtime`. Without an evaluator such an
+ *   overlay is skipped: the page then stays what it was, which is the safe side.
  * @return {object} The built manifest.
  *
  * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
-export function buildProfiledManifest(buildManifest, base, fragments, profileFile) {
+export function buildProfiledManifest(
+	buildManifest,
+	base,
+	fragments,
+	profileFile,
+	passes,
+) {
 	const file = profileFile || {}
 	const layout = {}
 	for (const key of LAYOUT_KEYS) {
@@ -203,6 +229,12 @@ export function buildProfiledManifest(buildManifest, base, fragments, profileFil
 				'[learniq] structureProfile: page overlay names a page the manifest does not have; skipped.',
 				{ page: overlay?.id },
 			)
+			continue
+		}
+		if (
+			overlay.when !== undefined
+			&& !(typeof passes === 'function' && passes(overlay.when, base.runtime))
+		) {
 			continue
 		}
 		pages[at] = applyPageOverlay(pages[at], overlay)

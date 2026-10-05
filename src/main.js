@@ -12,6 +12,7 @@ import {
 	registerLeafIntegrations,
 	registerTranslations,
 } from '@conduction/nextcloud-vue'
+import { passesContextPredicates } from '@conduction/nextcloud-vue/src/utils/visibleIfContext.js'
 import { loadState } from '@nextcloud/initial-state'
 import {
 	loadTranslations,
@@ -229,7 +230,15 @@ const structureProfile = resolveStructureProfile(
 const menuLayout =
 	structureProfile === STRUCTURE_FULL ? menuLayoutFull : menuLayoutSimple
 const mergedManifest = applyReportCardGates(
-	buildProfiledManifest(buildManifest, bundledManifest, fragments, menuLayout),
+	buildProfiledManifest(
+		buildManifest,
+		bundledManifest,
+		fragments,
+		menuLayout,
+		// An overlay with a `when` (the Today dashboard) applies only for the
+		// roles it names, judged against the runtime built above.
+		passesContextPredicates,
+	),
 )
 
 // Who sees Install and Publish on the Store page is learniq's answer, resolved

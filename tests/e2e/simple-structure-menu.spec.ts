@@ -152,6 +152,55 @@ test.describe('The simple structure', () => {
 		}
 	})
 
+	// @e2e openspec/changes/simple-today-dashboard/specs/dashboard/spec.md#an-administrator-opens-learniq-on-the-simple-structure-and-lands-on-today
+	test('the start page is the Today dashboard', async ({ page }) => {
+		await page.goto(`${APP_BASE}/`, { waitUntil: 'domcontentloaded' })
+		await expect(page.locator('[data-testid="cn-nav"]')).toBeVisible({
+			timeout: 60_000,
+		})
+		await dismissSetupWizard(page)
+
+		await expect(
+			page.getByRole('heading', { name: /^(Today|Vandaag)$/ }).first(),
+		).toBeVisible({ timeout: 60_000 })
+		// The greeting carries today's date. An empty header card is what a
+		// build against a library without the greeting looks like.
+		await expect(page.getByTestId('cn-header-widget-date')).toBeVisible({
+			timeout: 60_000,
+		})
+		await expect(page.locator('.cn-dashboard-page__unknown')).toHaveCount(0)
+		// The week strip is a widget only the Today dashboard has. The role
+		// dashboard it replaces for an administrator never renders one.
+		await expect(page.getByTestId('cn-week-strip')).toBeVisible({
+			timeout: 60_000,
+		})
+		for (const label of [
+			/Lessons today|Lessen vandaag/,
+			/Lessons this week|Lessen deze week/,
+			/Assignments due|Opdrachten deze week/,
+			/Unexcused today|Ongeoorloofd vandaag/,
+		]) {
+			await expect(page.getByText(label).first()).toBeVisible({
+				timeout: 30_000,
+			})
+		}
+
+		// A count opens its list by address, not a page that does not exist.
+		await page
+			.getByText(/Lessons today|Lessen vandaag/)
+			.first()
+			.click()
+		await expect(page).toHaveURL(/\/sessions\/today/, { timeout: 30_000 })
+		await page.goBack()
+
+		// The role dashboards are one card away.
+		await page
+			.getByRole('link', { name: /Teaching|Lesgeven/ })
+			.first()
+			.click()
+		await expect(page).toHaveURL(/\/dashboards\/teaching/, { timeout: 30_000 })
+	})
+
 	// @e2e openspec/changes/simple-structure-profile/specs/navigation/spec.md#a-list-that-left-the-menu-is-one-link-away
 	test("today's register is one link away from Attendance, and a page still opens by address", async ({
 		page,
