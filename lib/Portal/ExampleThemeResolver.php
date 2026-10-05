@@ -102,7 +102,12 @@ class ExampleThemeResolver {
 			return false;
 		}
 
-		$sets = json_decode((string)@file_get_contents($path . '/token-sets.json'), true);
+		$registry = $path . '/token-sets.json';
+		if (is_file($registry) === false || is_readable($registry) === false) {
+			return false;
+		}
+
+		$sets = json_decode((string)file_get_contents($registry), true);
 		if (is_array($sets) === false) {
 			return false;
 		}
