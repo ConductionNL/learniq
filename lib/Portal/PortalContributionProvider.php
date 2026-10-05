@@ -705,6 +705,7 @@ class PortalContributionProvider {
 			$this->parentWelfareCollections(childJoin: $childJoin),
 			$extras->conferenceCollections(childJoin: $childJoin),
 			[$extras->groupMembershipsCollection(childJoin: $childJoin)],
+			[$extras->inboxCollection(childJoin: $childJoin)],
 			$record->collections(childJoin: $childJoin)
 		);
 		$actions = array_merge(
