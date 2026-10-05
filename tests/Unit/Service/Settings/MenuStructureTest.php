@@ -212,10 +212,12 @@ final class MenuStructureTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheSettingsWriteStoresTheKey(): void {
-		$stored  = [];
+		$stored     = [];
+		$appManager = $this->createMock(IAppManager::class);
+		$appManager->method('isInstalled')->willReturn(true);
 		$service = new SettingsService(
 			$this->appConfig($stored),
-			$this->createMock(IAppManager::class),
+			$appManager,
 			$this->createMock(ContainerInterface::class),
 			$this->createMock(IGroupManager::class),
 			$this->createMock(IUserSession::class),
