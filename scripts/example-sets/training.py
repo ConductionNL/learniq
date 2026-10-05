@@ -620,14 +620,16 @@ HALL_SLOTS = {"ochtend": ((8, 30), (12, 0)), "middag": ((12, 45), (16, 30))}
 # The external exam institution; the same name and DID as in corporate.py.
 EXAM_COOLING = ("Voorbeeld Examencentrum Koudetechniek", "did:web:examencentrum-koudetechniek.example")
 
+# No regulationSlug on the story: corporate.py ships the FGASSEN regulation, and the
+# shared-code rule (SharedCodeFilterTest) pins the codes the two sets share to VCA and NIS2.
 STORY_COURSES = {
-    "FGAS-1": {"name": "F-gassen categorie 1", "regulation": "FGASSEN", "mandatory": True, "tags": ["warmtepompen", "f-gassen", "certificaat"],
+    "FGAS-1": {"name": "F-gassen categorie 1", "regulation": None, "mandatory": True, "tags": ["warmtepompen", "f-gassen", "certificaat"],
                "description": "De opleiding met examen voor wie aan koelcircuits van warmtepompen werkt. Het certificaat verleng je met de herhaling.",
                "lessons": []},
     "BRL6000": {"name": "BRL 6000-21, bovengronds deel", "regulation": None, "mandatory": False, "tags": ["bodemenergie", "certificaat"],
                 "description": "Voor monteurs die bodemenergiesystemen aanleggen: het bovengrondse deel van de installatie, met examen.",
                 "lessons": []},
-    "FGAS-H": {"name": "F-gassen: herhaling en examen", "regulation": "FGASSEN", "mandatory": True, "tags": ["warmtepompen", "f-gassen", "herhaling"],
+    "FGAS-H": {"name": "F-gassen: herhaling en examen", "regulation": None, "mandatory": True, "tags": ["warmtepompen", "f-gassen", "herhaling"],
                "description": "Een dag om je F-gassencertificaat categorie 1 te verlengen: de regels en de lekcontrole opnieuw, daarna het examen in theorie en praktijk.",
                "lessons": [("Theorie: regels, koudemiddelen en lekcontrole", 1, "ochtend",
                             "Wat de regels vragen, welke koudemiddelen er zijn en hoe je een lekcontrole doet en vastlegt."),
@@ -825,20 +827,11 @@ def add_story(b: Builder, school: dict, location: dict) -> None:
     # today; the herhaling on 8 October is its renewal. OpenRegister computes expiryStatus from expiresAt.
     for p in ("tom", "youssef", "sanne"):
         story_credential(b, people[p], courses["FGAS-1"], "certificate", stamp(dt.date(2021, 11, 30), 10, 0), EXAM_COOLING, {
-            "expiresAt": stamp(dt.date(2026, 11, 30), 23, 59), "source": "manual", "regulationSlug": "FGASSEN",
+            "expiresAt": stamp(dt.date(2026, 11, 30), 23, 59), "source": "manual",
             "renewalEnrolmentId": enrolments[(412, p)]["uuid"], "lifecycle": "issued",
         })
     story_credential(b, people["sanne"], courses["BRL6000"], "certificate", stamp(dt.date(2023, 3, 12), 10, 0), EXAM_COOLING, {
         "expiresAt": stamp(dt.date(2028, 3, 12), 23, 59), "source": "manual", "lifecycle": "issued",
-    })
-
-    # The regulation the F-gassen courses answer to, with the code and name corporate.py uses.
-    b.add("regulation", {
-        "slug": "FGASSEN", "name": "F-gassen, EU-verordening 2024/573",
-        "description": "Werken aan koelcircuits van warmtepompen mag alleen met een F-gassencertificaat.",
-        "applicabilityCriteria": "Monteurs die koelcircuits openen, als hun werkgever het vraagt.",
-        "audienceScope": "role-specific", "audienceRoles": [], "requiresAnnualRenewal": False,
-        "active": True, "ragRedThreshold": 70, "ragAmberThreshold": 90, "lifecycle": "published",
     })
 
 
