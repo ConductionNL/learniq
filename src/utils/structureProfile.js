@@ -5,11 +5,10 @@
  * The structure profile: two shapes of the same app, built from one manifest.
  *
  * learniq ships `simple` and `full`. `full` is the navigation and the pages as
- * they were before this file existed. `simple` is what somebody who prepares,
- * takes or follows up decisions needs on a working day: eight menu entries
- * under three captions, with everything else one level down. `simple` is the
- * default, and an administrator brings `full` back with the app setting
- * `menu_structure`.
+ * they were before this file existed. `simple` is what one role needs on a
+ * working day: at most ten menu entries under three captions, with everything
+ * else one level down. `simple` is the default, and an administrator brings
+ * `full` back with the app setting `menu_structure`.
  *
  * A profile is a layout file next to the manifest:
  *
@@ -37,7 +36,7 @@
  * Nothing here deletes anything. The pages, the routes and the fragments are
  * the same in both profiles, which is what keeps every deep link working.
  *
- * @spec openspec/changes/simple-structure-profile/specs/app-navigation/spec.md
+ * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md
  */
 
 /** The profile a fresh instance gets. */
@@ -67,7 +66,7 @@ const LAYOUT_KEYS = [
  * @param {unknown} raw The stored setting, as initial state hands it over.
  * @return {string} `simple` or `full`.
  *
- * @spec openspec/changes/simple-structure-profile/specs/app-navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
+ * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
  */
 export function resolveStructureProfile(raw) {
 	return raw === STRUCTURE_FULL ? STRUCTURE_FULL : STRUCTURE_SIMPLE
@@ -81,7 +80,7 @@ export function resolveStructureProfile(raw) {
  *   The order is fixed: replace keys, patch items by name, append, then order.
  * @return {object} A new page object.
  *
- * @spec openspec/changes/simple-structure-profile/specs/app-navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 export function applyPageOverlay(page, overlay) {
 	const config = { ...(page.config || {}), ...(overlay.config || {}) }
@@ -135,7 +134,7 @@ export function applyPageOverlay(page, overlay) {
  * @param {unknown} item A list item from a page config.
  * @return {string|undefined} Its name, or undefined when it has none.
  *
- * @spec openspec/changes/simple-structure-profile/specs/app-navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 export function overlayItemName(item) {
 	if (typeof item === 'string') {
@@ -164,7 +163,7 @@ export function overlayItemName(item) {
  * @param {object} profileFile The profile's layout file.
  * @return {object} The built manifest.
  *
- * @spec openspec/changes/simple-structure-profile/specs/app-navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 export function buildProfiledManifest(buildManifest, base, fragments, profileFile) {
 	const file = profileFile || {}
