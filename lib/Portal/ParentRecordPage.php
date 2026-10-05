@@ -222,6 +222,21 @@ class ParentRecordPage {
 				['type' => 'collection', 'collection' => 'parentChildren'],
 				$this->attendanceFigures(),
 				['type' => 'collection', 'collection' => 'parentReportCards', 'recordField' => 'learnerRef'],
+				// The latest report as a bar per subject, with the teacher's words (board Detail).
+				[
+					'type' => 'collection',
+					'label' => 'Latest report',
+					'collection' => 'parentReportSubjectGrades',
+					'recordField' => 'learnerRef',
+					'display' => 'bars',
+					'labelField' => 'subjectName',
+					'valueField' => 'periodAverage',
+					'max' => 10,
+					'captionField' => 'caption',
+					'noteField' => 'mentorComment',
+					'noteLabel' => 'From the teacher',
+					'sort' => ['field' => 'position', 'direction' => 'asc'],
+				],
 				['type' => 'collection', 'collection' => 'parentReportCardGrades', 'recordField' => 'learnerRef'],
 				[
 					'type' => 'collection',

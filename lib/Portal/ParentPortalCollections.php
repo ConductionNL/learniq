@@ -82,6 +82,40 @@ class ParentPortalCollections {
 	}//end groupMembershipsCollection()
 
 	/**
+	 * The child's latest report, one row per subject, for the bars of the
+	 * child's page (board Detail "Laatste rapport"). Only a published card
+	 * ever has rows (ReportSubjectGradeRows writes them on publish), so a
+	 * draft never reaches a guardian.
+	 *
+	 * @param array<string, mixed> $childJoin The shared reverse `via` join descriptor.
+	 *
+	 * @return array<string, mixed> The collection.
+	 *
+	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
+	 */
+	public function reportSubjectGradesCollection(array $childJoin): array {
+		return [
+			'id' => 'parentReportSubjectGrades',
+			'register' => self::REGISTER,
+			'schema' => 'report-subject-grade',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'guardianRef',
+			'via' => $childJoin,
+			'groupByField' => 'learnerRef',
+			'defaultSort' => ['field' => 'position', 'direction' => 'asc'],
+			'label' => 'Latest report',
+			'listable' => false,
+			'minTrust' => 'substantial',
+			'fields' => ['learnerRef', 'subjectName', 'periodAverage', 'passed', 'position', 'caption', 'mentorComment'],
+			'columns' => [
+				['field' => 'subjectName', 'label' => 'Subject'],
+				['field' => 'periodAverage', 'label' => 'Grade'],
+			],
+		];
+
+	}//end reportSubjectGradesCollection()
+
+	/**
 	 * The guardian's inbox: a notice for each published report card of her
 	 * own children (site-guardian-portal-design T3).
 	 *

@@ -189,6 +189,30 @@ class GuardianSitePagesTest extends TestCase {
 	}//end testTheAbsenceFormUsesCardsAndNamedDays()
 
 	/**
+	 * The child's page draws the latest report as a bar per subject, over
+	 * fields the collection projects (portaliq drops a key whose field it does not).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
+	 */
+	public function testTheChildPageDrawsTheLatestReportAsBars(): void {
+		$manifest = self::manifest(audience: 'parent');
+		$page     = array_column($manifest['pages'], null, 'id')['parentChildren'];
+		$bars     = array_values(array_filter($page['blocks'], static fn (array $b): bool => ($b['display'] ?? '') === 'bars'))[0];
+		$rows     = array_column($manifest['collections'], null, 'id')['parentReportSubjectGrades'];
+
+		self::assertSame(['parentReportSubjectGrades', 'learnerRef'], [$bars['collection'], $bars['recordField']]);
+		foreach (['labelField', 'valueField', 'captionField', 'noteField'] as $key) {
+			self::assertContains($bars[$key], $rows['fields'], $key);
+		}
+
+		self::assertSame('report-subject-grade', $rows['schema']);
+		self::assertSame('learnerRef', $rows['scopeField']);
+		self::assertSame('guardianRef', $rows['scopeClaim']);
+	}//end testTheChildPageDrawsTheLatestReportAsBars()
+
+	/**
 	 * The absence form sums up the answers in one sentence and confirms what
 	 * happens next (board MobielDetail: "U meldt: Sami is vandaag ziek.").
 	 *

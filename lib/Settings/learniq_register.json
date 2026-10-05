@@ -31728,6 +31728,103 @@
                     }
                 },
                 "x-openregister-seed": []
+            },
+            "ReportSubjectGrade": {
+                "slug": "report-subject-grade",
+                "icon": "ChartBar",
+                "version": "0.1.0",
+                "title": "ReportSubjectGrade",
+                "description": "One subject's grade on a pupil's latest published report card, one row per subject. Written by ReportSubjectGradeRows when a report card is published to parents, and replaced when a newer one is published. Portaliq draws a list of rows, and a report card keeps its subjects in one nested list, so the parent portal's bars read these rows (school-portals-use-the-new-blocks). The report card itself is never changed.",
+                "type": "object",
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": true,
+                    "searchable": false,
+                    "readOnly": true
+                },
+                "required": [
+                    "learnerRef",
+                    "reportCardId",
+                    "subjectName",
+                    "tenant_id"
+                ],
+                "properties": {
+                    "learnerRef": {
+                        "type": "string",
+                        "format": "uuid",
+                        "$ref": "LearnerProfile",
+                        "title": "Learner Ref",
+                        "description": "The pupil's profile, the key the parent portal reads this row by."
+                    },
+                    "learnerId": {
+                        "type": "string",
+                        "title": "Learner ID",
+                        "description": "The pupil's Nextcloud user id."
+                    },
+                    "reportCardId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "$ref": "ReportCard",
+                        "title": "Report card",
+                        "description": "The published report card this row is one subject of."
+                    },
+                    "subjectName": {
+                        "type": "string",
+                        "title": "Subject",
+                        "description": "The subject's name, as the report card names it."
+                    },
+                    "periodAverage": {
+                        "type": "number",
+                        "nullable": true,
+                        "title": "Grade",
+                        "description": "The grade for this subject on the report card."
+                    },
+                    "passed": {
+                        "type": "boolean",
+                        "nullable": true,
+                        "title": "Passed",
+                        "description": "Whether the grade is sufficient."
+                    },
+                    "position": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "title": "Position",
+                        "description": "The subject's place on the report card, first is 0."
+                    },
+                    "caption": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "Report",
+                        "description": "Which report this is, as one line, for example \"Rapport 2 · juni 2026 · Groep 6\"."
+                    },
+                    "mentorComment": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "From the teacher",
+                        "description": "The teacher's words on the report card."
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Tenant",
+                        "description": "The school the row belongs to."
+                    }
+                },
+                "x-openregister-seed": [],
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "coordinators",
+                        "administration-managers"
+                    ]
+                },
+                "x-openregister-archival": {
+                    "retention": {
+                        "default": "P5Y"
+                    },
+                    "category": "A copy of a published report card's grades, kept as long as the card",
+                    "action": "destroy"
+                }
             }
         },
         "securitySchemes": {

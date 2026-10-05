@@ -91,6 +91,8 @@ SCHEMAS = [
     "school-event",
     "assignment",
     "submission",
+    # Appended last (school-portals-use-the-new-blocks): every earlier schema keeps its uuid namespace.
+    "report-subject-grade",
 ]
 
 # School events a parent sees in the portal calendar: (title, start, end, kind, groups or None for the whole
@@ -835,6 +837,7 @@ def build() -> dict:
     add_story(b, pupils, cohorts, school, subject_courses, names_by_uuid)
 
     stamp_group_labels(b)
+    add_report_subject_grades(b)
 
     # --- assemble -----------------------------------------------------------
     for cohort in cohorts.values():
@@ -1150,6 +1153,39 @@ def stamp_group_labels(b: Builder) -> None:
         cohort = cohorts[enrolment["cohortId"]]
         teacher = names.get(((cohort.get("teacherIds") or [None])[0]) or "")
         profile["groupLabel"] = cohort["name"] + (" · " + teacher if teacher else "")
+
+
+MONTHS_NL = ["januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"]
+
+
+def add_report_subject_grades(b: Builder) -> None:
+    """Each pupil's latest published report card as one row per subject, as
+    ReportSubjectGradeRows writes them on publish (school-portals-use-the-new-blocks):
+    the subject's name, the grade, its place on the card, the caption
+    ("Rapport 2 · juni 2026 · Groep 7") and the teacher's words. The cards are not changed."""
+    names = {c["uuid"]: c["name"] for c in b.buckets["course"]}
+    groups = {c["uuid"]: c["name"] for c in b.buckets["cohort"]}
+    latest: dict[str, dict] = {}
+    for card in b.buckets["report-card"]:
+        if card.get("lifecycle") != "published-to-parents":
+            continue
+        ref = card["learnerRef"]
+        if ref not in latest or card["composedAt"] > latest[ref]["composedAt"]:
+            latest[ref] = card
+    for ref, card in sorted(latest.items()):
+        year, month = card["composedAt"][:4], int(card["composedAt"][5:7])
+        caption = " · ".join(p for p in (card.get("periodName") or "", f"{MONTHS_NL[month - 1]} {year}", groups.get(card.get("cohortId"), "")) if p)
+        position = 0
+        for grade in card.get("subjectGrades") or []:
+            name = names.get(grade.get("courseId"))
+            if not name:
+                continue
+            b.add("report-subject-grade", {
+                "learnerRef": ref, "learnerId": card["learnerId"], "reportCardId": card["uuid"], "subjectName": name,
+                "periodAverage": grade.get("periodAverage"), "passed": grade.get("passed"), "position": position,
+                "caption": caption, "mentorComment": card.get("mentorComment"),
+            })
+            position += 1
 
 
 def render(data: dict) -> str:

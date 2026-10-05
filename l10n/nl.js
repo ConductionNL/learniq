@@ -3950,7 +3950,22 @@ OC.L10N.register(
         "Pick a time": "Tijd kiezen",
         "Subject name": "Naam van het vak",
         "The name of the grade's subject, copied from the grade when the notice is written, so the portal inbox can say which subject has a new grade without the grade itself.": "De naam van het vak van het cijfer, overgenomen uit het cijfer als de melding wordt geschreven, zodat de inbox van het portaal kan zeggen voor welk vak er een nieuw cijfer is, zonder het cijfer zelf.",
-        "New grades": "Nieuwe cijfers"
+        "New grades": "Nieuwe cijfers",
+        "ReportSubjectGrade": "Vakcijfer op het rapport",
+        "One subject's grade on a pupil's latest published report card, one row per subject. Written by ReportSubjectGradeRows when a report card is published to parents, and replaced when a newer one is published. Portaliq draws a list of rows, and a report card keeps its subjects in one nested list, so the parent portal's bars read these rows (school-portals-use-the-new-blocks). The report card itself is never changed.": "Het cijfer voor één vak op het laatste gepubliceerde rapport van een leerling, één regel per vak. Geschreven door ReportSubjectGradeRows als een rapport naar de ouders gaat, en vervangen als er een nieuwer rapport komt. Portaliq tekent een lijst van regels en een rapport bewaart de vakken in één geneste lijst, dus de balken in het ouderportaal lezen deze regels. Het rapport zelf verandert nooit.",
+        "The pupil's profile, the key the parent portal reads this row by.": "Het profiel van de leerling, de sleutel waarmee het ouderportaal deze regel leest.",
+        "The pupil's Nextcloud user id.": "De Nextcloud-gebruikersnaam van de leerling.",
+        "The published report card this row is one subject of.": "Het gepubliceerde rapport waar deze regel één vak van is.",
+        "The subject's name, as the report card names it.": "De naam van het vak, zoals het rapport het noemt.",
+        "The grade for this subject on the report card.": "Het cijfer voor dit vak op het rapport.",
+        "Whether the grade is sufficient.": "Of het cijfer voldoende is.",
+        "The subject's place on the report card, first is 0.": "De plaats van het vak op het rapport, de eerste is 0.",
+        "Report": "Rapport",
+        "Which report this is, as one line, for example \"Rapport 2 · juni 2026 · Groep 6\".": "Welk rapport dit is, op één regel, bijvoorbeeld \"Rapport 2 · juni 2026 · Groep 6\".",
+        "From the teacher": "Van de leerkracht",
+        "The teacher's words on the report card.": "Wat de leerkracht op het rapport schreef.",
+        "The school the row belongs to.": "De school waar deze regel bij hoort.",
+        "Latest report": "Laatste rapport"
     },
     "nplurals=2; plural=(n != 1);"
 )
