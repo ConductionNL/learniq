@@ -77,7 +77,7 @@ const ASSESSOR = {
 	pass: `Lq-e2e-${RUN}-beoordelaar!`,
 	given: 'Ruud',
 	family: 'Jansen',
-	organisationName: `Examinering Vaartdam (${RUN})`,
+	organisationName: `Examinering Zuiddrecht (${RUN})`,
 }
 const PORTFOLIO_TITLE = `Examenportfolio installatietechniek (${RUN})`
 
