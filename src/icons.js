@@ -71,6 +71,7 @@ import ClipboardListOutline from 'vue-material-design-icons/ClipboardListOutline
 import ClipboardOutline from 'vue-material-design-icons/ClipboardOutline.vue'
 import ClipboardTextClockOutline from 'vue-material-design-icons/ClipboardTextClockOutline.vue'
 import ClipboardTextOutline from 'vue-material-design-icons/ClipboardTextOutline.vue'
+import ClockOutline from 'vue-material-design-icons/ClockOutline.vue'
 import CloseCircleOutline from 'vue-material-design-icons/CloseCircleOutline.vue'
 import CommentOutline from 'vue-material-design-icons/CommentOutline.vue'
 import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
@@ -232,6 +233,7 @@ export default {
 	ClipboardOutline,
 	ClipboardTextClockOutline,
 	ClipboardTextOutline,
+	ClockOutline,
 	CloseCircleOutline,
 	CommentOutline,
 	ContentCopy,

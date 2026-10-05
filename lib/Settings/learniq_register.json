@@ -453,30 +453,40 @@
                     },
                     "daysUntilExpiry": {
                         "type": "integer",
+                        "title": "Days until expiry",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the daysUntilExpiry calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
                     "expiryStatus": {
                         "type": "string",
+                        "title": "Expiry status",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the expiryStatus calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
                     "isOpenBadgesV3Signed": {
                         "type": "boolean",
+                        "title": "Signed as Open Badge 3.0",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isOpenBadgesV3Signed calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
                     "isExpiringIn90Days": {
                         "type": "boolean",
+                        "title": "Expires within 90 days",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isExpiringIn90Days calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
                     "isExpiringIn30Days": {
                         "type": "boolean",
+                        "title": "Expires within 30 days",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isExpiringIn30Days calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -484,6 +494,7 @@
                     "isExpired": {
                         "type": "boolean",
                         "title": "Expired",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isExpired calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -1375,6 +1386,7 @@
                     "lessonCount": {
                         "type": "integer",
                         "title": "Lessons",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the lessonCount calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -1382,6 +1394,7 @@
                     "isPublished": {
                         "type": "boolean",
                         "title": "Published",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isPublished calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -3078,12 +3091,16 @@
                     },
                     "completedLessonCount": {
                         "type": "integer",
+                        "title": "Completed lessons",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the completedLessonCount calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
                     "totalPublishedLessonCount": {
                         "type": "integer",
+                        "title": "Published lessons",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the totalPublishedLessonCount calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -3091,18 +3108,23 @@
                     "isOverdue": {
                         "type": "boolean",
                         "title": "Overdue",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isOverdue calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
                     "daysRemaining": {
                         "type": "integer",
+                        "title": "Days remaining",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the daysRemaining calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
                     "ragStatus": {
                         "type": "string",
+                        "title": "Traffic light status",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the ragStatus calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -4162,12 +4184,15 @@
                     "coveragePercent": {
                         "type": "number",
                         "title": "Coverage",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the coveragePercent calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
                     "ragStatus": {
                         "type": "string",
+                        "title": "Traffic light status",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the ragStatus calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -7113,18 +7138,24 @@
                     },
                     "durationMinutes": {
                         "type": "integer",
+                        "title": "Duration in minutes",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the durationMinutes calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
                     "isPast": {
                         "type": "boolean",
+                        "title": "In the past",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isPast calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
                     "sessionDayBucket": {
                         "type": "integer",
+                        "title": "Day number",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the sessionDayBucket calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -9033,12 +9064,15 @@
                     "isOverdue": {
                         "type": "boolean",
                         "title": "Overdue",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isOverdue calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
                     "submissionCount": {
                         "type": "integer",
+                        "title": "Number of submissions",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the submissionCount calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -9371,6 +9405,7 @@
                     "isLate": {
                         "type": "boolean",
                         "title": "Late",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isLate calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -9378,6 +9413,7 @@
                     "effectiveGrade": {
                         "type": "number",
                         "title": "Grade",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the effectiveGrade calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -12692,6 +12728,7 @@
                     "isLocked": {
                         "type": "boolean",
                         "title": "Locked",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isLocked calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -13539,12 +13576,16 @@
                     },
                     "childCount": {
                         "type": "integer",
+                        "title": "Number of sub-competencies",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the childCount calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
                     "isLeaf": {
                         "type": "boolean",
+                        "title": "Has no sub-competencies",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isLeaf calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -15230,6 +15271,8 @@
                     },
                     "daysUntilSixWeekDeadline": {
                         "type": "integer",
+                        "title": "Days until the six-week deadline",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the daysUntilSixWeekDeadline calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -15237,12 +15280,15 @@
                     "isOverdueForActivation": {
                         "type": "boolean",
                         "title": "Overdue",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isOverdueForActivation calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
                     "sixWeekDeadlineApproaching": {
                         "type": "boolean",
+                        "title": "Six-week deadline approaching",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the sixWeekDeadlineApproaching calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -16414,12 +16460,16 @@
                     },
                     "daysUntilValidUntil": {
                         "type": "integer",
+                        "title": "Days until it ends",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the daysUntilValidUntil calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
                     "tlvExpiringSoon": {
                         "type": "boolean",
+                        "title": "Expires soon",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the tlvExpiringSoon calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -17575,12 +17625,15 @@
                     "isUnexcusedAbsence": {
                         "type": "boolean",
                         "title": "Unexcused absence",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isUnexcusedAbsence calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
                     "lesuren": {
                         "type": "number",
+                        "title": "Lesson hours",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the lesuren calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -18160,12 +18213,16 @@
                     },
                     "unexcusedLesuren": {
                         "type": "number",
+                        "title": "Unexcused lesson hours",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the unexcusedLesuren calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
                     "isThresholdCrossed": {
                         "type": "boolean",
+                        "title": "Threshold crossed",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isThresholdCrossed calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -18550,6 +18607,8 @@
                     },
                     "daysSinceFlag": {
                         "type": "integer",
+                        "title": "Days since the signal",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the daysSinceFlag calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -18557,6 +18616,7 @@
                     "reportOverdue": {
                         "type": "boolean",
                         "title": "Overdue",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the reportOverdue calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -18565,6 +18625,7 @@
                         "type": "string",
                         "format": "date",
                         "title": "Deadline",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the reportDeadlineAt calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -18874,6 +18935,7 @@
                         "type": "string",
                         "format": "date",
                         "title": "Opens at",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the windowOpensAt calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -19175,12 +19237,16 @@
                     },
                     "activityCount": {
                         "type": "integer",
+                        "title": "Number of activities",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the activityCount calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
                     "recencyDays": {
                         "type": "integer",
+                        "title": "Days since last activity",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the recencyDays calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -20588,6 +20654,8 @@
                     },
                     "isFullySigned": {
                         "type": "boolean",
+                        "title": "Signed by everyone",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isFullySigned calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -21096,6 +21164,8 @@
                     },
                     "nextVisitDue": {
                         "type": "string",
+                        "title": "Next visit due",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the nextVisitDue calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -21300,6 +21370,7 @@
                     "isBookingClosed": {
                         "type": "boolean",
                         "title": "Booking closed",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isBookingClosed calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -23205,6 +23276,7 @@
                     "isExpired": {
                         "type": "boolean",
                         "title": "Expired",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isExpired calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -25338,6 +25410,7 @@
                     "reviewOverdue": {
                         "type": "boolean",
                         "title": "Overdue",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the reviewOverdue calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -27709,6 +27782,8 @@
                     },
                     "daysUntilVoorlopigDeadline": {
                         "type": "integer",
+                        "title": "Days until the provisional advice deadline",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the daysUntilVoorlopigDeadline calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -27716,12 +27791,15 @@
                     "isVoorlopigOverdue": {
                         "type": "boolean",
                         "title": "Overdue",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isVoorlopigOverdue calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
                     "daysUntilDefinitiefDeadline": {
                         "type": "integer",
+                        "title": "Days until the final advice deadline",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the daysUntilDefinitiefDeadline calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
@@ -27729,6 +27807,7 @@
                     "isDefinitiefOverdue": {
                         "type": "boolean",
                         "title": "Overdue",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the isDefinitiefOverdue calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
