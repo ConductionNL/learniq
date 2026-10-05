@@ -142,7 +142,12 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 		}
 
 		// Only hasResponded/respondedAt change — no field referencing the
-		// response's identity or content is ever added.
+		// response's identity or content is ever added. Written as the system
+		// (live pass D12): the learner reads their own invitation but holds no
+		// update right on it, and must not, or they could set hasResponded
+		// back to false and answer again. The invitation was found with the
+		// caller's own rights, filtered on the session uid, so this write
+		// only ever touches the caller's invitation.
 		$this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::EVALUATION_INVITATION_SCHEMA,
@@ -152,7 +157,8 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 					'hasResponded' => true,
 					'respondedAt' => (new DateTimeImmutable())->format(\DATE_ATOM),
 				]
-			)
+			),
+			_rbac: false
 		);
 
 	}//end handle()
@@ -218,6 +224,12 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 		$invitation = $invitations[0];
 		if (is_array($invitation) === false) {
 			$invitation = $invitation->jsonSerialize();
+		}
+
+		// The flip is written without RBAC, so the row must name the caller
+		// whatever the query did with its filters.
+		if (($invitation['learnerId'] ?? null) !== $callerUid) {
+			return null;
 		}
 
 		return (array)$invitation;

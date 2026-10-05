@@ -35,6 +35,7 @@ use OCA\Learniq\Lifecycle\CourseEvaluationEligibilityGuard;
 use OCA\Learniq\Listener\CourseEvaluationResponseSubmittedHandler;
 use OCA\Learniq\Service\CourseEvaluationAnswerService;
 use OCA\Learniq\Service\CourseEvaluationResponseBuilder;
+use OCA\Learniq\Tests\Support\CapturingLogger;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
@@ -64,6 +65,13 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	private RegisterFaithfulStore $store;
 
 	/**
+	 * What the service logged.
+	 *
+	 * @var CapturingLogger
+	 */
+	private CapturingLogger $logger;
+
+	/**
 	 * Every saveObject call: object, owner opt-out and rbac flag.
 	 *
 	 * @var array<int, array<string, mixed>>
@@ -90,12 +98,15 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 * The service for a session caller, with an open campaign c-1 (two
 	 * questions), a closed campaign c-2 and invitations for jan and piet.
 	 *
-	 * @param string $caller The session caller.
+	 * @param string                  $caller The session caller.
+	 * @param array<int, string>|null $groups The caller's groups; null leaves read and write rights unchecked.
 	 *
 	 * @return CourseEvaluationAnswerService
 	 */
-	private function service(string $caller = 'jan'): CourseEvaluationAnswerService {
+	private function service(string $caller = 'jan', ?array $groups = null): CourseEvaluationAnswerService {
 		$this->store = new RegisterFaithfulStore();
+		$this->store->actingUser = $caller;
+		$this->store->callerGroups = $groups;
 		$this->saveCalls = [];
 		$this->deleted = [];
 		$questions = [
@@ -143,7 +154,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 				$object = (array)$named['object'];
 				$schema = (string)($named['schema'] ?? '');
 				$this->saveCalls[] = ['schema' => $schema, 'object' => $object, 'rbac' => ($named['_rbac'] ?? true), 'unowned' => ($named['_unowned'] ?? false)];
-				return $this->store->save($schema, $object, ($named['uuid'] ?? ($object['id'] ?? null)));
+				return $this->store->save($schema, $object, ($named['uuid'] ?? ($object['id'] ?? null)), (bool)($named['_rbac'] ?? true));
 			}
 		);
 		$objects->method('deleteObject')->willReturnCallback(
@@ -162,8 +173,11 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 		$guard = new CourseEvaluationEligibilityGuard(userSession: $session, objectService: $objects, logger: new NullLogger());
 		$handler = new CourseEvaluationResponseSubmittedHandler($session, $objects, new NullLogger(), TransitionScope::resolver());
 
-		// The engine does what OpenRegister's does for this schema: run the
-		// declared guard, move draft to submitted, dispatch the event.
+		// The engine does what OpenRegister's TransitionEngine does for this
+		// schema: find the subject as the caller (not found when the caller
+		// may not read it), require the caller's update right on it, run the
+		// declared guard, save draft to submitted as the caller, dispatch the
+		// event.
 		$engine = $this->createMock(TransitionEngine::class);
 		$engine->method('transition')->willReturnCallback(
 			function (string $objectId, string $action, array $data = []) use ($guard, $handler, $caller): ObjectEntity {
@@ -172,6 +186,14 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 					if ($candidate['id'] === $objectId) {
 						$row = $candidate;
 					}
+				}
+
+				if ($row === null || $this->store->callerMay(schema: 'course-evaluation-response', action: 'read', row: $row) === false) {
+					throw new RuntimeException('Object "' . $objectId . '" not found.');
+				}
+
+				if ($this->store->callerMay(schema: 'course-evaluation-response', action: 'update', row: $row) === false) {
+					throw new RuntimeException('You do not have permission to transition object "' . $objectId . '".');
 				}
 
 				$verdict = $guard->check(object: $row, action: $action, userId: $caller);
@@ -187,7 +209,8 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 			}
 		);
 
-		return new CourseEvaluationAnswerService(objectService: $objects, transitionEngine: $engine, builder: new CourseEvaluationResponseBuilder());
+		$this->logger = new CapturingLogger();
+		return new CourseEvaluationAnswerService(objectService: $objects, transitionEngine: $engine, builder: new CourseEvaluationResponseBuilder(), logger: $this->logger);
 	}//end service()
 
 	/**
@@ -353,4 +376,77 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 		self::assertNull($service->results(campaignId: 'c-gone'));
 		self::assertNull($service->results(campaignId: ''));
 	}//end testSmallGroupsAreProtected()
+
+	/**
+	 * Live pass D12: a learner in no group (lp-learner) reads with their own
+	 * rights. They see their own open invitation, answer it through the
+	 * guarded submit, and the invitation is marked answered.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 */
+	public function testALearnerInNoGroupSeesAndAnswersTheirOwnInvitation(): void {
+		$service = $this->service(caller: 'jan', groups: []);
+
+		$open = $service->openInvitations(learnerId: 'jan', now: self::now());
+		self::assertSame(['i-jan-forms', 'i-jan'], array_column($open, 'invitationId'), 'My evaluations lists the learner\'s own open invitations');
+
+		$result = $service->answer(learnerId: 'jan', invitationId: 'i-jan', answers: ['q1' => 4, 'q5' => 4], now: self::now());
+
+		self::assertSame(['status' => 201], $result, $this->logger->dump());
+		self::assertSame([], $this->deleted, 'the submitted response is kept');
+		self::assertSame('submitted', $this->responses()[0]['lifecycle']);
+		$invitation = array_values(array_filter($this->store->rows['evaluation-invitation'], static fn (array $row): bool => $row['id'] === 'i-jan'))[0];
+		self::assertTrue($invitation['hasResponded'], 'the invitation is marked answered');
+		self::assertSame(['i-jan-forms'], array_column($service->openInvitations(learnerId: 'jan', now: self::now()), 'invitationId'));
+	}//end testALearnerInNoGroupSeesAndAnswersTheirOwnInvitation()
+
+	/**
+	 * A learner reads no other learner's invitation, and a learner who is not
+	 * invited is refused by the guard itself, with their own rights.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
+	 */
+	public function testALearnerReadsNoOtherLearnersInvitation(): void {
+		$service = $this->service(caller: 'jan', groups: []);
+
+		$all = $this->store->findAll(['filters' => ['register' => 'learniq', 'schema' => 'evaluation-invitation']]);
+		$learners = array_unique(array_map(static fn (ObjectEntity $row): string => (string)($row->jsonSerialize()['learnerId'] ?? ''), $all));
+		self::assertSame(['jan'], array_values($learners), 'jan reads only invitations naming jan');
+		self::assertSame([], $this->store->findAll(['filters' => ['register' => 'learniq', 'schema' => 'evaluation-invitation', 'learnerId' => 'piet']]));
+		self::assertSame([], $service->openInvitations(learnerId: 'piet', now: self::now()));
+		self::assertFalse($this->store->callerMay(schema: 'evaluation-invitation', action: 'update', row: $this->store->rows['evaluation-invitation'][0]), 'a learner cannot set their own invitation back to unanswered');
+		self::assertFalse($this->store->callerMay(schema: 'course-evaluation-response', action: 'read', row: ['lifecycle' => 'submitted']), 'a learner reads no submitted response');
+		self::assertFalse($this->store->callerMay(schema: 'course-evaluation-response', action: 'update', row: ['lifecycle' => 'submitted']), 'a learner changes no submitted response');
+
+		// klaas, invited nowhere, in no group: the service refuses before a
+		// write, and the guard (reading with klaas's rights) denies the submit.
+		$klaas = $this->service(caller: 'klaas', groups: []);
+		self::assertSame([], $klaas->openInvitations(learnerId: 'klaas', now: self::now()));
+		self::assertSame(404, $klaas->answer(learnerId: 'klaas', invitationId: 'i-jan', answers: ['q1' => 4, 'q5' => 4], now: self::now())['status']);
+		$refused = $klaas->answer(learnerId: 'jan', invitationId: 'i-jan', answers: ['q1' => 4, 'q5' => 4], now: self::now());
+		self::assertSame(403, $refused['status']);
+		self::assertSame('You have no open invitation for this course evaluation.', $refused['error']);
+		self::assertStringContainsString('You have no open invitation', $this->logger->dump(), 'the refused submit is logged with its cause');
+		self::assertSame([], $this->responses());
+		$invitation = array_values(array_filter($this->store->rows['evaluation-invitation'], static fn (array $row): bool => $row['id'] === 'i-jan'))[0];
+		self::assertFalse($invitation['hasResponded']);
+	}//end testALearnerReadsNoOtherLearnersInvitation()
+
+	/**
+	 * Staff keep the reads the register gave them: an instructor reads every
+	 * invitation and the campaign's figures.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
+	 */
+	public function testStaffKeepTheirReads(): void {
+		$service = $this->service(caller: 'docent', groups: ['instructors']);
+		self::assertCount(5, $this->store->findAll(['filters' => ['register' => 'learniq', 'schema' => 'evaluation-invitation']]));
+		self::assertSame(2, $service->results(campaignId: self::CAMPAIGN)['invitationCount']);
+	}//end testStaffKeepTheirReads()
 }//end class
