@@ -107,7 +107,7 @@ class ExampleSetLoadCommand extends Command {
 
 		$exit = self::SUCCESS;
 		if (isset($result['portal']) === true) {
-			$output->writeln(ExampleSetPortalCommand::describe(result: $result['portal']));
+			$output->writeln($this->portals->describe(result: $result['portal']));
 			$known = array_merge(ExampleSetPortalCommand::SUCCESS_STATUSES, ['unmapped', 'portaliq-absent']);
 			if (in_array($result['portal']['status'], $known, true) === false) {
 				$exit = self::FAILURE;

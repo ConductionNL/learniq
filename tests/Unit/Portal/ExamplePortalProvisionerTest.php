@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Portal;
 
 use OCA\Learniq\Portal\ExampleAccountProvisioner;
+use OCA\Learniq\Portal\ExamplePortalContent;
 use OCA\Learniq\Portal\ExamplePortalDeclarations;
 use OCA\Learniq\Portal\ExamplePortalProvisioner;
 use OCA\Learniq\Portal\ExampleThemeResolver;
@@ -122,7 +123,6 @@ class ExamplePortalProvisionerTest extends TestCase {
 
 		return new ExamplePortalProvisioner(
 			$appManager,
-			$objects,
 			$logger,
 			new ExamplePortalDeclarations(),
 			new ExampleThemeResolver($appManager),
@@ -131,7 +131,8 @@ class ExamplePortalProvisionerTest extends TestCase {
 				$this->createMock(IGroupManager::class),
 				$this->createMock(ISecureRandom::class),
 				$logger
-			)
+			),
+			new ExamplePortalContent($objects)
 		);
 	}//end provisioner()
 
