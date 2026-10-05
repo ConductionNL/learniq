@@ -3515,7 +3515,11 @@ OC.L10N.register(
         "From the teacher": "From the teacher",
         "The teacher's words on the report card.": "The teacher's words on the report card.",
         "The school the row belongs to.": "The school the row belongs to.",
-        "Latest report": "Latest report"
+        "Latest report": "Latest report",
+        "A message to the teacher": "A message to the teacher",
+        "The teacher usually answers within two school days. Is it urgent? Call the school.": "The teacher usually answers within two school days. Is it urgent? Call the school.",
+        "A message to your teacher": "A message to your teacher",
+        "Your teacher usually answers within two school days.": "Your teacher usually answers within two school days."
     },
     "nplurals=2; plural=(n != 1);"
 )

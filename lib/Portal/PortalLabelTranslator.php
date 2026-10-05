@@ -65,6 +65,9 @@ class PortalLabelTranslator {
 		'eyebrow',
 		'soonLabel',
 		'noteLabel',
+		// The heading and help text of the messages form (portal-message-contacts).
+		'composeLabel',
+		'composeHint',
 	];
 
 	/**

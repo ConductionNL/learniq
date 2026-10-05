@@ -3965,7 +3965,11 @@ OC.L10N.register(
         "From the teacher": "Van de leerkracht",
         "The teacher's words on the report card.": "Wat de leerkracht op het rapport schreef.",
         "The school the row belongs to.": "De school waar deze regel bij hoort.",
-        "Latest report": "Laatste rapport"
+        "Latest report": "Laatste rapport",
+        "A message to the teacher": "Een bericht aan de leerkracht",
+        "The teacher usually answers within two school days. Is it urgent? Call the school.": "De leerkracht antwoordt meestal binnen twee schooldagen. Is het dringend? Bel de school.",
+        "A message to your teacher": "Een bericht aan je docent",
+        "Your teacher usually answers within two school days.": "Je docent antwoordt meestal binnen twee schooldagen."
     },
     "nplurals=2; plural=(n != 1);"
 )

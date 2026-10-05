@@ -136,7 +136,8 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame(0, $constructor->getNumberOfRequiredParameters());
 		foreach ($constructor->getParameters() as $parameter) {
 			$this->assertTrue($parameter->allowsNull());
-			$this->assertStringStartsWith('OCP\\', (string) $parameter->getType()?->getName());
+			// Nextcloud's own or learniq's own (portal-message-contacts), never a portaliq class.
+			$this->assertMatchesRegularExpression('/^(OCP\\\\|OCA\\\\Learniq\\\\)/', (string) $parameter->getType()?->getName());
 		}
 
 	}//end testClassIsPlainAndDependencyFree()

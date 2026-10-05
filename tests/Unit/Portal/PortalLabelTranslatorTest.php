@@ -116,7 +116,7 @@ class PortalLabelTranslatorTest extends TestCase {
 	 * @return bool
 	 */
 	private static function isVisible(string $path): bool {
-		return preg_match('#/(label|submitLabel|successMessage|unit|fallback|group|otherLabel|requiredMessage|buttonLabel|template|eyebrow|soonLabel|noteLabel)$#', $path) === 1
+		return preg_match('#/(label|submitLabel|successMessage|unit|fallback|group|otherLabel|requiredMessage|buttonLabel|template|eyebrow|soonLabel|noteLabel|composeLabel|composeHint)$#', $path) === 1
 			|| preg_match('#/confirmation/(title|body|next)$#', $path) === 1
 			|| preg_match('#/phrases/[^/]+/[^/]+$#', $path) === 1
 			|| preg_match('#/(label|unit)/(one|other)$#', $path) === 1

@@ -79,10 +79,45 @@ class PortalContributionProvider {
 	/**
 	 * Constructor; the container hands in the factory, `new` with no arguments answers in English.
 	 *
-	 * @param IFactory|null $l10nFactory Puts parent labels in the request's language (PortalLabelTranslator).
+	 * @param IFactory|null              $l10nFactory     Puts parent labels in the request's language (PortalLabelTranslator).
+	 * @param PortalMessageContacts|null $messageContacts Who a resident may write to (portal-message-contacts).
 	 */
-	public function __construct(private readonly ?IFactory $l10nFactory=null) {
+	public function __construct(
+		private readonly ?IFactory $l10nFactory=null,
+		private readonly ?PortalMessageContacts $messageContacts=null,
+	) {
 	}//end __construct()
+
+	/**
+	 * Who a guardian may write to about one child (the `contacts` provider
+	 * of `parentChildren`): the teachers of the child's current groups.
+	 * Portaliq calls this only for a child it read through the guardian's
+	 * own scoped collection (portal-message-contacts).
+	 *
+	 * @param string $id The child's learner profile id.
+	 *
+	 * @return array<int, array{staffRef: string, name: string, role: string}>
+	 *
+	 * @spec openspec/changes/portal-message-contacts/specs/portal-contribution/spec.md#requirement-a-guardian-and-a-pupil-may-write-to-the-teachers-of-the-pupils-current-groups
+	 */
+	public function childMessageContacts(string $id): array {
+		return ($this->messageContacts?->childContacts(profileId: $id) ?? []);
+	}//end childMessageContacts()
+
+	/**
+	 * Who a pupil may write to from one of her own enrolments (the `contacts`
+	 * provider of `studentEnrolments`): the teachers of that group, while the
+	 * enrolment is active (portal-message-contacts).
+	 *
+	 * @param string $id The enrolment id.
+	 *
+	 * @return array<int, array{staffRef: string, name: string, role: string}>
+	 *
+	 * @spec openspec/changes/portal-message-contacts/specs/portal-contribution/spec.md#requirement-a-guardian-and-a-pupil-may-write-to-the-teachers-of-the-pupils-current-groups
+	 */
+	public function ownMessageContacts(string $id): array {
+		return ($this->messageContacts?->ownContacts(enrolmentId: $id) ?? []);
+	}//end ownMessageContacts()
 
 	/**
 	 * The audiences this provider contributes to (contract v2, preferred).
@@ -326,6 +361,13 @@ class PortalContributionProvider {
 					'source',
 					'regulationSlug',
 					'cohortId',
+				],
+				// Who she may write to: the teachers of each active group
+				// (portal-message-contacts, portaliq site-messages-per-record).
+				'contacts' => [
+					'provider' => 'ownMessageContacts',
+					'composeLabel' => 'A message to your teacher',
+					'composeHint' => 'Your teacher usually answers within two school days.',
 				],
 			],
 			[
