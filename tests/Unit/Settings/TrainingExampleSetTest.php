@@ -239,13 +239,16 @@ class TrainingExampleSetTest extends TestCase {
 			$teacher[$assignment['cohortId'] . '|' . $assignment['courseId']] = $assignment['teacherId'];
 		}
 
+		$cohorts   = self::by(self::of('cohort'), 'uuid');
 		$booked    = [];
 		$cancelled = [];
 		foreach (self::of('session') as $session) {
 			$start = new DateTimeImmutable($session['startsAt']);
 			self::assertLessThan(6, (int)$start->format('N'), $session['title'] . ' is on a weekday');
-			self::assertGreaterThanOrEqual('2025-08-18', $start->format('Y-m-d'));
-			self::assertLessThanOrEqual('2026-07-10', $start->format('Y-m-d'));
+			// The 2025-2026 year, and the autumn 2026 story of the portal designs on top of it.
+			$story = ($cohorts[$session['cohortId']]['academicYear'] === '2026-2027');
+			self::assertGreaterThanOrEqual($story === true ? '2026-09-01' : '2025-08-18', $start->format('Y-m-d'), $session['title']);
+			self::assertLessThanOrEqual($story === true ? '2026-11-30' : '2026-07-10', $start->format('Y-m-d'), $session['title']);
 			if ($session['lifecycle'] === 'cancelled') {
 				self::assertNotEmpty($session['changeReasonKind'], $session['title'] . ' says why it was cancelled');
 				$cancelled[$session['uuid']] = true;
@@ -320,6 +323,12 @@ class TrainingExampleSetTest extends TestCase {
 			$regulated = (($courses[$enrolment['courseId']]['regulationSlug'] ?? null) !== null);
 			$exam      = ($exams[$enrolment['cohortId'] . '|' . $enrolment['courseId']] ?? null);
 			$tried     = ($exam === null ? [] : ($scores[$exam['uuid'] . '|' . $enrolment['learnerId']] ?? []));
+			if (in_array($enrolment['lifecycle'], ['pending', 'active'], true) === true) {
+				// An enrolment of the autumn 2026 story that is still running has earned nothing yet.
+				self::assertArrayNotHasKey($uuid, $awarded, $enrolment['slug'] . ' earned nothing yet');
+				continue;
+			}
+
 			if ($enrolment['lifecycle'] !== 'completed') {
 				self::assertArrayNotHasKey($uuid, $awarded, $enrolment['slug'] . ' earned no certificate');
 				self::assertNotEmpty($enrolment['reason'], $enrolment['slug'] . ' says why');
@@ -645,4 +654,182 @@ class TrainingExampleSetTest extends TestCase {
 			self::assertContains($item['correctResponse']['value'], $order, $item['slug']);
 		}
 	}//end testEveryItemIsQti21TheAppCanRead()
+
+	/**
+	 * A learner profile found by given and family name.
+	 *
+	 * @param string $given  The given name.
+	 * @param string $family The family name.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function person(string $given, string $family): array {
+		$found = array_values(
+			array_filter(
+				self::of('learner-profile'),
+				static fn (array $p): bool => ($p['givenName'] ?? null) === $given && ($p['familyName'] ?? null) === $family
+			)
+		);
+		self::assertCount(1, $found, $given . ' ' . $family . ' is in the set once');
+
+		return $found[0];
+	}//end person()
+
+	/**
+	 * The enrolments of one inschrijving of the story, by its number (volgnummer).
+	 *
+	 * @param int $number The NNNN of I-2026-NNNN.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private static function inschrijving(int $number): array {
+		return array_values(array_filter(self::of('enrolment'), static fn (array $e): bool => ($e['volgnummer'] ?? null) === $number));
+	}//end inschrijving()
+
+	/**
+	 * The institute is the Warmtepompacademie at Praktijkhal Zuiddrecht, and
+	 * Jansen Installatietechniek BV is a client company: Linda Jansen as its
+	 * contact person and four installers who report to her. Youssef's birth
+	 * date is missing on purpose; Tom has a portal account.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-sets-are-the-four-schools/specs/example-sets/spec.md
+	 */
+	public function testTheWarmtepompacademieAndJansenInstallatietechniek(): void {
+		self::assertSame('Warmtepompacademie', self::of('school')[0]['name']);
+		$location = self::of('vestiging')[0];
+		self::assertSame('Praktijkhal Zuiddrecht', $location['name']);
+		self::assertSame('Energieweg 8', $location['street']);
+		self::assertSame('Zuiddrecht', $location['city']);
+		self::named('room', 'Praktijkhal');
+		self::named('room', 'Lokaal 2');
+
+		$linda = self::person(given: 'Linda', family: 'Jansen');
+		self::assertSame(['manager'], $linda['roles']);
+		self::assertSame('Jansen Installatietechniek BV', $linda['department']);
+
+		$employees = array_filter(
+			self::participants(),
+			static fn (array $p): bool => str_starts_with((string)$p['department'], 'Jansen Installatietechniek BV/')
+		);
+		self::assertCount(4, $employees, 'Jansen Installatietechniek has four employees');
+		foreach ([['Tom', 'Verbeek'], ['Youssef', 'El Amrani'], ['Sanne', 'Kok'], ['Daan', 'Visser']] as [$given, $family]) {
+			$employee = self::person(given: $given, family: $family);
+			self::assertSame($linda['ncUserId'], $employee['managerId'], $given . ' reports to Linda');
+			self::assertContains($employee, $employees);
+			if ($given === 'Youssef') {
+				self::assertEmpty(($employee['birthDate'] ?? null), 'Youssef\'s birth date is missing on purpose');
+			} else {
+				self::assertNotEmpty($employee['birthDate'], $given . ' has a birth date');
+			}
+		}
+
+		self::assertSame('training-deelnemer-151', self::person(given: 'Tom', family: 'Verbeek')['ncUserId'], 'Tom logs in to the participant portal');
+
+		$staff = array_column(self::of('staff'), null, 'ncUserId');
+		foreach (['training-trainer-10', 'training-trainer-11'] as $trainer) {
+			self::assertContains('teacher', $staff[$trainer]['roles'], $trainer . ' is a trainer');
+		}
+
+		self::assertContains('coordinator', $staff['training-planner-01']['roles']);
+		self::assertContains('administrator', $staff['training-administratie-01']['roles']);
+	}//end testTheWarmtepompacademieAndJansenInstallatietechniek()
+
+	/**
+	 * The four inschrijvingen of week 41 of 2026: who, which course, which
+	 * days, which state, and the trainer who teaches them, in a morning and
+	 * an afternoon session per day from 08.30 to 16.30.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-sets-are-the-four-schools/specs/example-sets/spec.md
+	 */
+	public function testTheFourInschrijvingenOfWeek41(): void {
+		$courses  = self::by(self::of('course'), 'uuid');
+		$profiles = self::by(self::of('learner-profile'), 'ncUserId');
+		$teacher  = [];
+		foreach (self::of('subjectteacherassignment') as $assignment) {
+			$teacher[$assignment['cohortId']] = $assignment['teacherId'];
+		}
+
+		$expected = [
+			412 => ['F-gassen: herhaling en examen', ['Tom', 'Youssef', 'Sanne'], 'active', ['2026-10-08'], 'training-trainer-10'],
+			425 => ['Warmtepompen installeren: basis', ['Daan'], 'active', ['2026-10-20', '2026-10-21'], 'training-trainer-11'],
+			431 => ['Lucht-water warmtepomp: ontwerp en inbedrijfstelling', ['Tom', 'Sanne'], 'pending', ['2026-11-03', '2026-11-04', '2026-11-10'], 'training-trainer-10'],
+			377 => ['Waterzijdig inregelen', ['Sanne'], 'completed', ['2026-10-01'], 'training-trainer-11'],
+		];
+		foreach ($expected as $number => [$course, $names, $state, $days, $trainer]) {
+			$rows = self::inschrijving(number: $number);
+			self::assertCount(count($names), $rows, 'I-2026-0' . $number . ' has ' . count($names) . ' participant(s)');
+			$given = [];
+			foreach ($rows as $row) {
+				self::assertSame($course, $courses[$row['courseId']]['name'], 'I-2026-0' . $number);
+				self::assertSame($state, $row['lifecycle'], 'I-2026-0' . $number);
+				self::assertSame($rows[0]['cohortId'], $row['cohortId'], 'I-2026-0' . $number . ' is one edition');
+				$given[] = $profiles[$row['learnerId']]['givenName'];
+			}
+
+			self::assertEqualsCanonicalizing($names, $given, 'I-2026-0' . $number);
+			self::assertSame($trainer, $teacher[$rows[0]['cohortId']], 'I-2026-0' . $number . ' is taught by ' . $trainer);
+
+			$sessions = array_values(array_filter(self::of('session'), static fn (array $s): bool => $s['cohortId'] === $rows[0]['cohortId']));
+			self::assertCount(2 * count($days), $sessions, 'a morning and an afternoon per day');
+			$dates = array_values(array_unique(array_map(static fn (array $s): string => substr($s['startsAt'], 0, 10), $sessions)));
+			sort($dates);
+			self::assertSame($days, $dates, 'I-2026-0' . $number . ' runs on its days');
+			foreach ($sessions as $session) {
+				self::assertSame($state === 'completed' ? 'completed' : 'scheduled', $session['lifecycle'], $session['title']);
+			}
+		}//end foreach
+
+		$fgas = array_values(array_filter(self::of('session'), static fn (array $s): bool => $s['cohortId'] === self::inschrijving(number: 412)[0]['cohortId']));
+		usort($fgas, static fn (array $a, array $b): int => strcmp($a['startsAt'], $b['startsAt']));
+		self::assertSame('2026-10-08T08:30:00+02:00', $fgas[0]['startsAt'], 'the F-gassen day starts at 08.30');
+		self::assertSame('2026-10-08T16:30:00+02:00', end($fgas)['endsAt'], 'and ends at 16.30');
+	}//end testTheFourInschrijvingenOfWeek41()
+
+	/**
+	 * The certificates in the company: F-gassen categorie 1 for Tom, Youssef
+	 * and Sanne until 30 November 2026, eight weeks after Monday 5 October,
+	 * renewed by the herhaling on 8 October; BRL 6000-21 for Sanne until
+	 * 12 March 2028; nothing for Daan. Sanne's day on 1 October earned her a
+	 * proof of participation.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-sets-are-the-four-schools/specs/example-sets/spec.md
+	 */
+	public function testTheCertificatesInTheCompany(): void {
+		$courses    = self::by(self::of('course'), 'uuid');
+		$enrolments = self::by(self::of('enrolment'), 'uuid');
+		$held       = [];
+		foreach (self::of('credential') as $credential) {
+			$held[$credential['learnerUserId']][$courses[$credential['courseId']]['name'] ?? ''] = $credential;
+		}
+
+		$today = new DateTimeImmutable('2026-10-05T12:00:00+02:00');
+		foreach (['Tom' => 'Verbeek', 'Youssef' => 'El Amrani', 'Sanne' => 'Kok'] as $given => $family) {
+			$user = self::person(given: $given, family: $family)['ncUserId'];
+			self::assertArrayHasKey('F-gassen categorie 1', ($held[$user] ?? []), $given . ' holds F-gassen categorie 1');
+			$fgas = $held[$user]['F-gassen categorie 1'];
+			self::assertSame('2026-11-30', substr($fgas['expiresAt'], 0, 10));
+			self::assertSame('issued', $fgas['lifecycle']);
+			$days = (int)$today->diff(new DateTimeImmutable($fgas['expiresAt']))->days;
+			self::assertSame(8, intdiv($days, 7), $given . '\'s certificate expires in eight weeks');
+			self::assertGreaterThan(30, $days, 'expiring, not yet within 30 days');
+			$renewal = $enrolments[$fgas['renewalEnrolmentId']];
+			self::assertSame(412, $renewal['volgnummer'], 'the herhaling of 8 October renews it');
+			self::assertSame($user, $renewal['learnerId']);
+		}
+
+		$sanne = self::person(given: 'Sanne', family: 'Kok')['ncUserId'];
+		self::assertSame('2028-03-12', substr($held[$sanne]['BRL 6000-21, bovengronds deel']['expiresAt'], 0, 10));
+		$proof = $held[$sanne]['Waterzijdig inregelen'];
+		self::assertSame('auto', $proof['source']);
+		self::assertSame(377, $enrolments[$proof['enrolmentId']]['volgnummer']);
+
+		$daan = self::person(given: 'Daan', family: 'Visser')['ncUserId'];
+		self::assertArrayNotHasKey($daan, $held, 'Daan has no certificate yet');
+	}//end testTheCertificatesInTheCompany()
 }//end class
