@@ -54,6 +54,18 @@ class BackfillReportCardGradeLines implements IRepairStep {
 	private const MAX_PAGES = 10000;
 
 	/**
+	 * How many distinct refusal reasons the summary names.
+	 */
+	private const REASONS_SHOWN = 3;
+
+	/**
+	 * Refusal reasons of the current run, normalised, with their counts.
+	 *
+	 * @var array<string, int>
+	 */
+	private array $refusals = [];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService        $objectService OpenRegister object access.
@@ -91,6 +103,7 @@ class BackfillReportCardGradeLines implements IRepairStep {
 	 */
 	public function run(IOutput $output): void {
 		$counts = ['scanned' => 0, 'stamped' => 0, 'failed' => 0];
+		$this->refusals = [];
 
 		try {
 			for ($page = 0; $page < self::MAX_PAGES; $page++) {
@@ -120,7 +133,51 @@ class BackfillReportCardGradeLines implements IRepairStep {
 			'BackfillReportCardGradeLines: ' . $counts['stamped'] . ' stamped, ' . $counts['failed']
 			. ' failed, of ' . $counts['scanned'] . ' scanned.'
 		);
+
+		// Live pass lane 10: "0 stamped, 294 failed" said nothing about why;
+		// the reasons were only in the log, one warning per row. The upgrade
+		// output now names them, grouped, so the cause shows where it is read.
+		if ($this->refusals !== []) {
+			$output->warning('BackfillReportCardGradeLines: report cards refused: ' . $this->refusalSummary());
+		}
 	}//end run()
+
+	/**
+	 * The most frequent refusal reasons, as "N x reason; ...".
+	 *
+	 * @return string
+	 */
+	private function refusalSummary(): string {
+		arsort($this->refusals);
+		$parts = [];
+		foreach (array_slice($this->refusals, 0, self::REASONS_SHOWN, true) as $reason => $count) {
+			$parts[] = $count . ' x ' . $reason;
+		}
+
+		$others = (count($this->refusals) - count($parts));
+		if ($others > 0) {
+			$parts[] = 'and ' . $others . ' other reason(s), see the log';
+		}
+
+		return implode('; ', $parts);
+	}//end refusalSummary()
+
+	/**
+	 * Count one refusal under its reason, with uuids and list positions
+	 * replaced so the same cause on many rows groups into one line.
+	 *
+	 * @param string $message The exception message.
+	 *
+	 * @return void
+	 */
+	private function recordRefusal(string $message): void {
+		$reason = (string)preg_replace(
+			['/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i', '/\.\d+\./'],
+			['<uuid>', '.N.'],
+			$message
+		);
+		$this->refusals[$reason] = (($this->refusals[$reason] ?? 0) + 1);
+	}//end recordRefusal()
 
 	/**
 	 * One page of ReportCard rows as arrays.
@@ -199,6 +256,7 @@ class BackfillReportCardGradeLines implements IRepairStep {
 				'[BackfillReportCardGradeLines] Could not write report card {id}: {msg}',
 				['id' => $uuid, 'msg' => $exception->getMessage()]
 			);
+			$this->recordRefusal(message: $exception->getMessage());
 			return 'failed';
 		}//end try
 

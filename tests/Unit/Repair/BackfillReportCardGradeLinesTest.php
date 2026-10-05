@@ -51,6 +51,21 @@ class BackfillReportCardGradeLinesTest extends TestCase {
 	private array $messages = [];
 
 	/**
+	 * Warnings the step reported.
+	 *
+	 * @var array<int, string>
+	 */
+	private array $warnings = [];
+
+	/**
+	 * When set, every save is refused with the message it returns for the
+	 * object, the way OpenRegister's validation throws.
+	 *
+	 * @var (callable(array<string, mixed>): string)|null
+	 */
+	private $refuseSaves = null;
+
+	/**
 	 * Build the step over the fake store: one period, one course, and two
 	 * report cards, one composed before the stamp and one already stamped.
 	 *
@@ -85,7 +100,13 @@ class BackfillReportCardGradeLinesTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) => $this->store->save((string)$schema, $object, $uuid)
+			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) {
+				if ($this->refuseSaves !== null) {
+					throw new \RuntimeException(($this->refuseSaves)($object));
+				}
+
+				return $this->store->save((string)$schema, $object, $uuid);
+			}
 		);
 
 		return new BackfillReportCardGradeLines(
@@ -105,6 +126,11 @@ class BackfillReportCardGradeLinesTest extends TestCase {
 		$output->method('info')->willReturnCallback(
 			function (string $message): void {
 				$this->messages[] = $message;
+			}
+		);
+		$output->method('warning')->willReturnCallback(
+			function (string $message): void {
+				$this->warnings[] = $message;
 			}
 		);
 		return $output;
@@ -157,4 +183,39 @@ class BackfillReportCardGradeLinesTest extends TestCase {
 		self::assertSame([], $this->store->saves);
 		self::assertSame(['BackfillReportCardGradeLines: 0 stamped, 0 failed, of 0 scanned.'], $this->messages);
 	}//end testAnUnreadableRegisterWritesNothing()
+
+	/**
+	 * A refused write names its reason in the step's own output, grouped,
+	 * not only in the log: "0 stamped, 294 failed" said nothing about why.
+	 *
+	 * Live pass lane 10 (5 Oct): every refusal on the instance was OpenRegister
+	 * refusing a null subjectGrades[].teacherComment (declared nullable, but
+	 * openregister before #4296 did not widen nested nullable properties).
+	 * The message below is OpenRegister's, copied from that log.
+	 *
+	 * @return void
+	 */
+	public function testARefusedWriteNamesItsReasonInTheOutput(): void {
+		$step = $this->makeStep();
+		$this->store->rows['report-card'][] = [
+			'id' => 'card-old-2',
+			'reportPeriodId' => 'period-1',
+			'lifecycle' => 'published-to-parents',
+			'subjectGrades' => [
+				['curriculumPlanId' => 'plan-rekenen', 'courseId' => 'course-rekenen', 'periodAverage' => 7.0, 'teacherComment' => null],
+				['curriculumPlanId' => 'plan-taal', 'courseId' => null, 'periodAverage' => 6.5, 'teacherComment' => null],
+			],
+		];
+		$this->refuseSaves = static fn (array $object): string => "Property 'subjectGrades." . (count($object['subjectGrades']) - 1)
+			. ".teacherComment' should be type 'string' but is 'null'. Please provide a value of the correct type.";
+
+		$step->run($this->recorder());
+
+		self::assertSame('BackfillReportCardGradeLines: 0 stamped, 2 failed, of 3 scanned.', $this->messages[0]);
+		self::assertCount(1, $this->warnings);
+		self::assertStringContainsString(
+			"2 x Property 'subjectGrades.N.teacherComment' should be type 'string' but is 'null'",
+			$this->warnings[0]
+		);
+	}//end testARefusedWriteNamesItsReasonInTheOutput()
 }//end class
