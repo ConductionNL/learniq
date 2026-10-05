@@ -45,11 +45,11 @@ import {
 	createRow,
 	grantPortalAccount,
 	nextcloudAccountExists,
-	offerSignInMode,
 	openRoute,
 	portalRows,
 	removeNextcloudAccount,
 	removeRows,
+	requireSignInMode,
 	shot,
 	signInWithNextcloudAccount,
 } from './helpers/portal-fixture.ts'
@@ -77,7 +77,7 @@ const ASSESSOR = {
 	pass: `Lq-e2e-${RUN}-beoordelaar!`,
 	given: 'Ruud',
 	family: 'Jansen',
-	organisationName: `Examinering Vaartdam (${RUN})`,
+	organisationName: `Examinering Zuiddrecht (${RUN})`,
 }
 const PORTFOLIO_TITLE = `Examenportfolio installatietechniek (${RUN})`
 
@@ -91,7 +91,6 @@ test.describe('assessor: a portfolio shared with an external assessor', () => {
 
 	const created: SeededRow[] = []
 	let admin: APIRequestContext
-	let restoreModes: () => Promise<void> = async () => undefined
 	let assessor: PortalLogin
 	let assessorRef = ''
 	let activeShareId = ''
@@ -103,8 +102,7 @@ test.describe('assessor: a portfolio shared with an external assessor', () => {
 		test.setTimeout(300_000)
 		admin = await asUser(ADMIN)
 
-		const mode = await offerSignInMode(admin, PORTAL, 'nextcloud')
-		restoreModes = mode.restore
+		const mode = await requireSignInMode(admin, PORTAL, 'nextcloud')
 		const organisation = mode.organisation
 
 		test.skip(
@@ -246,7 +244,6 @@ test.describe('assessor: a portfolio shared with an external assessor', () => {
 	})
 
 	test.afterAll(async () => {
-		await restoreModes()
 		await removeRows(admin, created, 'assessor-flow')
 		if (createdAccount === true) {
 			await removeNextcloudAccount(admin, ASSESSOR.user)

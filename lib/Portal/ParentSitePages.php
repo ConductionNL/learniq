@@ -49,10 +49,17 @@ class ParentSitePages {
 	private const CHILDREN = 'parentChildren';
 
 	/**
-	 * The overview: open tasks, quick actions, the coming weeks, the figures,
-	 * the latest absence reports, the grades and the messages of the chosen
-	 * child. `tasks` is not narrowed to the child: a round names its invited
-	 * pupils in a list that is never projected.
+	 * The overview, in the order of the board (school-design wilgenboom,
+	 * MijnOverzicht): the greeting with today's date and the absence action,
+	 * what the guardian still has to do, the children as cards, the newest
+	 * school news, this month's calendar, then the chosen child's figures,
+	 * absence reports, grades and messages.
+	 *
+	 * The greeting, the highlight display, the cards keys and the calendar
+	 * tiles are the block contract of lane L2 (portaliq `site-school-blocks`);
+	 * portaliq drops a key it does not know yet, so the page still renders.
+	 * `tasks` is not narrowed to the child: a round names its invited pupils
+	 * in a list that is never projected.
 	 *
 	 * @param array<int, array<string, mixed>> $sources The child's calendar sources.
 	 * @param array<string, mixed>             $figures The attendance figure block.
@@ -61,6 +68,7 @@ class ParentSitePages {
 	 *
 	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-a-guardian-lands-on-an-overview-of-one-child-at-a-time
 	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-overview-puts-open-tasks-first
+	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-overview-follows-the-designed-board
 	 */
 	public function overviewPage(array $sources, array $figures): array {
 		return [
@@ -71,16 +79,27 @@ class ParentSitePages {
 			'home' => true,
 			'records' => ['collection' => self::CHILDREN, 'titleFields' => ['givenName']],
 			'blocks' => [
+				['type' => 'greeting', 'action' => 'createExcuseRequest', 'actionLabel' => 'Report absent'],
 				[
 					'type' => 'tasks',
 					'label' => 'Still to do',
+					'display' => 'highlight',
 					'collection' => 'parentConferenceRounds',
 					'dueField' => 'bookingClosesAt',
 					'titleFields' => ['name'],
 				],
+				[
+					'type' => 'collection',
+					'label' => 'My children',
+					'collection' => self::CHILDREN,
+					'display' => 'cards',
+					'titleFields' => ['givenName'],
+					'avatar' => true,
+				],
+				['type' => 'news', 'label' => 'New from school', 'limit' => 3],
+				['type' => 'calendar', 'label' => 'This month', 'display' => 'tiles', 'sources' => $sources],
 				['type' => 'cta', 'action' => 'createExcuseRequest', 'label' => 'Report sick or absent'],
 				['type' => 'cta', 'action' => 'bookConferenceSlot', 'label' => 'Book a parent-teacher conversation'],
-				['type' => 'calendar', 'label' => 'Coming up', 'sources' => $sources],
 				$figures,
 				['type' => 'collection', 'collection' => 'parentExcuseRequests', 'recordField' => 'learnerRef'],
 				['type' => 'collection', 'collection' => 'parentGrades', 'recordField' => 'learnerRef'],
@@ -90,7 +109,9 @@ class ParentSitePages {
 	}//end overviewPage()
 
 	/**
-	 * The absence page of one child: the form, that child's reports and figures.
+	 * The absence page of one child: the form, that child's figures, then the
+	 * reports as rows with a date tile, the reason, the status and who decided
+	 * (board MijnLijst; the `rows` display is lane L2's contract).
 	 *
 	 * @param array<string, mixed> $figures The attendance figure block.
 	 *
@@ -107,8 +128,19 @@ class ParentSitePages {
 			'perRecord' => self::CHILDREN,
 			'blocks' => [
 				['type' => 'action', 'action' => 'createExcuseRequest'],
-				['type' => 'collection', 'collection' => 'parentExcuseRequests', 'recordField' => 'learnerRef'],
 				$figures,
+				[
+					'type' => 'collection',
+					'label' => 'Your reports',
+					'collection' => 'parentExcuseRequests',
+					'recordField' => 'learnerRef',
+					'display' => 'rows',
+					'dateField' => 'dateFrom',
+					'titleFields' => ['reasonKind'],
+					'quoteField' => 'reason',
+					'statusField' => 'lifecycle',
+					'statusNoteField' => 'decidedBy',
+				],
 			],
 		];
 	}//end absencePage()

@@ -177,7 +177,7 @@ class BpvPortalInvitationTest extends TestCase {
 					'givenName' => 'Ruud',
 					'familyName' => 'Jansen',
 					'email' => 'ruud.jansen@examinering.example',
-					'organisationName' => 'Examinering Vaartdam',
+					'organisationName' => 'Examinering Zuiddrecht',
 					'active' => $activeAssessor,
 				],
 			],

@@ -13265,6 +13265,12 @@
                         "format": "uuid",
                         "description": "Tenant identifier for multi-tenant isolation.",
                         "title": "Tenant ID"
+                    },
+                    "subject": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The line a guardian reads in the portal inbox, in the instance's language, for example \"Het rapport van Vera staat klaar\". Stamped by ReportCardPublishHandler. It names the child and what happened, never a grade.",
+                        "title": "Subject"
                     }
                 },
                 "x-openregister-notifications": {

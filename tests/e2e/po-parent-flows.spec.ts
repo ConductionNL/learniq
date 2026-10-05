@@ -109,12 +109,12 @@ const CHILD = {
 	name: 'Vera',
 	userId: 'po-leerling-147',
 }
-// Vera's younger brother in groep 3 (po example set, learniq#1647).
+// Vera's younger brother in groep 4 (po example set, learniq#1647, example-sets-are-the-four-schools).
 const SIBLING = { ref: 'ee010008-0000-4000-8000-000000000467', name: 'Sami' }
 const OTHER_CHILD = 'ee010008-0000-4000-8000-000000000411'
 const GROUP_7 = 'ee010006-0000-4000-8000-000000000006'
-// Sami's group, groep 3.
-const GROUP_3 = 'ee010006-0000-4000-8000-000000000003'
+// Sami's group, groep 4.
+const GROUP_4 = 'ee010006-0000-4000-8000-000000000004'
 const REPORT_PERIOD_1 = 'ee01000b-0000-4000-8000-000000000001'
 const SCHOOL = 'ee010001-0000-4000-8000-000000000001'
 const TENANT = '00000000-0000-4000-8000-000000000000'
@@ -750,12 +750,12 @@ test.describe('po: teacher and parent flows', () => {
 		).toContain('Herfstvakantie')
 
 		// Homework is her children's groups', and no other pupil's uuid leaves.
-		// Vera's groep 7 is there; Sami's groep 3 may be (see expectOwnChildrenOnly).
+		// Vera's groep 7 is there; Sami's groep 4 may be (see expectOwnChildrenOnly).
 		const assignments = await portalRows('assignment', 'parentHomework')
 		expect(assignments.length).toBeGreaterThan(0)
 		const groups = new Set(assignments.map((row) => row.cohortId))
 		expect(groups.has(GROUP_7)).toBe(true)
-		expect([...groups].filter((id) => id !== GROUP_7 && id !== GROUP_3)).toEqual(
+		expect([...groups].filter((id) => id !== GROUP_7 && id !== GROUP_4)).toEqual(
 			[],
 		)
 		expect(assignments.every((row) => row.learnerRefs === undefined)).toBe(true)

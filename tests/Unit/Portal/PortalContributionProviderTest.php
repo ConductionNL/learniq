@@ -483,9 +483,9 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame(['conference.answered'], array_column($manifest['notifications'], 'ruleKey'), 'one rule: the teacher answered a booking');
 
 		$collections = $manifest['collections'];
-		$this->assertCount(16, $collections);
+		$this->assertCount(17, $collections);
 		$this->assertSame(
-			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar'],
+			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentInbox', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar'],
 			array_column($collections, 'id')
 		);
 
