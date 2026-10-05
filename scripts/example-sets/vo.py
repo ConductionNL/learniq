@@ -3,8 +3,8 @@
 # Copyright (C) 2026 Conduction B.V.
 """Build lib/Settings/profiles/vo.json, the secondary school example set.
 
-One fictional havo/vwo school, Voorbeeldcollege Esdoornveen in the fictional
-town of Esdoornveen, through one complete school year (2025-2026): an
+One fictional havo/vwo school, Vaartveld College in the fictional town of
+Zuiddrecht, through one complete school year (2025-2026): an
 onderbouw building for years 1 and 2 and a main building for years 3 to 6,
 eleven classes from the havo/vwo brugklas to havo 5 and vwo 6, about 300
 pupils with their guardians, a mentor and subject teachers per class, a school
@@ -13,6 +13,16 @@ secondary school records, three verzuim flags, three report periods ending in
 three toetsweken, the leerjaar 3 profielkeuze, the exam classes' schoolexamen
 (SE) grades on a PTA with their SE final grades, one schooladvies received at
 intake, and the decaan, zorgcoordinator and attendance desk at work.
+
+THE STORY LAYER. On top of that year sits one pupil's autumn of 2026-2027,
+pinned to Monday 5 October 2026 (week 41), the day the Vaartveld portal
+designs show: Noor Bakker of havo 3 (class H3b) moved up to 4 havo, class H4b,
+with the economie en maatschappij profile she chose in the spring. Her mentor
+Sanne Kramer, her Monday lessons with a room change and a cancelled lesson,
+the grades behind her averages, this week's homework and tests, her absence,
+the H4b mentor-talk round and the school calendar are added by add_story()
+after every other object, with no draw from the main random stream, so no
+earlier uuid or value moves. See openspec/changes/example-sets-are-the-four-schools/specs/example-sets/spec.md.
 
 WHY A SCRIPT. The set is several thousand objects that must agree with each
 other: an absence falls on a school day of the pupil's own class, a late
@@ -244,6 +254,13 @@ CLASSES = [
     ("6V1", 6, "vwo", 25, "hoofd", "H1.07", [8, 7, 6, 8, 5]),
 ]
 EXAM_CLASSES = {"5H1": "havo 5", "6V1": "vwo 6"}
+# The class name people read, in Vaartveld College's scheme (stream, leerjaar,
+# letter: H4b). Only a display string: the keys above stay the script's own.
+# Havo 3 is H3b because its pupils move up to H4b in the story layer.
+CLASS_NAMES = {
+    "1HV1": "HV1a", "1HV2": "HV1b", "2H1": "H2a", "2V1": "V2a", "3H1": "H3b", "3V1": "V3a",
+    "4H1": "H4a", "4V1": "V4a", "5H1": "H5a", "5V1": "V5a", "6V1": "V6a",
+}
 MENTORS = {
     "1HV1": "vo-docent-02", "1HV2": "vo-docent-16", "2H1": "vo-docent-04", "2V1": "vo-docent-11",
     "3H1": "vo-docent-08", "3V1": "vo-docent-12", "4H1": "vo-docent-13", "4V1": "vo-docent-15",
@@ -251,27 +268,27 @@ MENTORS = {
 }
 # Teachers: user id, display name, subjects, degree (1 = eerstegraads), working days.
 TEACHERS = [
-    ("vo-docent-01", "Marloes Varenkamp", ["NE"], 1, WEEKDAYS),
+    ("vo-docent-01", "Sanne Kramer", ["NE"], 1, WEEKDAYS),
     ("vo-docent-02", "Jeroen Bremhof", ["NE"], 2, ["monday", "tuesday", "wednesday", "thursday"]),
-    ("vo-docent-03", "Ingrid Tijmveld", ["EN"], 1, WEEKDAYS),
+    ("vo-docent-03", "Ingrid Jansen", ["EN"], 1, WEEKDAYS),
     ("vo-docent-04", "Karim Saliedal", ["EN"], 2, ["monday", "tuesday", "thursday", "friday"]),
     ("vo-docent-05", "Esther Lavendelmeer", ["FA"], 1, ["monday", "tuesday", "wednesday", "thursday"]),
     ("vo-docent-06", "Pieter Vlasbrink", ["DU"], 1, ["tuesday", "wednesday", "thursday", "friday"]),
-    ("vo-docent-07", "Samira Roggestein", ["WB", "WA"], 1, WEEKDAYS),
+    ("vo-docent-07", "Emre Demir", ["WB", "WA"], 1, WEEKDAYS),
     ("vo-docent-08", "Bas Kamillehorst", ["WI"], 2, WEEKDAYS),
     ("vo-docent-09", "Laura Hopgaard", ["WA", "WI"], 1, ["monday", "wednesday", "thursday", "friday"]),
-    ("vo-docent-10", "Arjen Mosberg", ["GS"], 1, WEEKDAYS),
-    ("vo-docent-11", "Naima Heuvelrode", ["GS", "MA"], 2, ["monday", "tuesday", "wednesday", "friday"]),
-    ("vo-docent-12", "Wouter Kreeklaan", ["AK"], 1, WEEKDAYS),
-    ("vo-docent-13", "Petra Schelpwijk", ["EC"], 1, ["monday", "tuesday", "thursday", "friday"]),
-    ("vo-docent-14", "Tarik Duinriethof", ["BE", "EC"], 1, ["monday", "tuesday", "wednesday", "thursday"]),
+    ("vo-docent-10", "Arjen Willems", ["GS"], 1, WEEKDAYS),
+    ("vo-docent-11", "Naima Vos", ["GS", "MA"], 2, ["monday", "tuesday", "wednesday", "friday"]),
+    ("vo-docent-12", "Wouter Mulder", ["AK"], 1, WEEKDAYS),
+    ("vo-docent-13", "Thomas de Boer", ["EC"], 1, ["monday", "tuesday", "thursday", "friday"]),
+    ("vo-docent-14", "Ellen Hendriks", ["BE", "EC"], 1, ["monday", "tuesday", "wednesday", "thursday"]),
     ("vo-docent-15", "Judith Zeggeveld", ["BI"], 1, WEEKDAYS),
     ("vo-docent-16", "Niels Wederikdal", ["BI"], 2, ["tuesday", "wednesday", "thursday", "friday"]),
     ("vo-docent-17", "Mirjam Boekweitkamp", ["NA", "NASK"], 1, WEEKDAYS),
     ("vo-docent-18", "Ricardo Munthout", ["SK"], 1, ["monday", "tuesday", "wednesday", "thursday"]),
-    ("vo-docent-19", "Eline Klaverbrink", ["BV", "CKV"], 1, ["monday", "tuesday", "thursday", "friday"]),
+    ("vo-docent-19", "Bart Dijkstra", ["BV", "CKV"], 1, ["monday", "tuesday", "thursday", "friday"]),
     ("vo-docent-20", "Maarten Esdoornhorst", ["MU"], 2, ["monday", "wednesday", "friday"]),
-    ("vo-docent-21", "Chantal Varenmeer", ["LO"], 1, WEEKDAYS),
+    ("vo-docent-21", "Youssef El Idrissi", ["LO"], 1, WEEKDAYS),
     ("vo-docent-22", "Edwin Bremstein", ["LO"], 2, ["monday", "tuesday", "wednesday", "thursday"]),
 ]
 TEACHER_BY_ID = {t[0]: t for t in TEACHERS}
@@ -406,21 +423,21 @@ def build() -> dict:
         return class_by_name[name][6][day.weekday()] * LESSON
 
     # --- school, locations, rooms -------------------------------------------
-    school = b.add("school", {"brin": "00X2", "name": "Voorbeeldcollege Esdoornveen", "pedagogicalConcept": "regular"})
+    school = b.add("school", {"brin": "00X2", "name": "Vaartveld College", "pedagogicalConcept": "regular"})
     locations = {
         "hoofd": b.add("vestiging", {
             "schoolId": school["uuid"], "vestigingscode": "00X200", "onderwijslocatiecode": None,
-            "name": "Hoofdgebouw", "street": "Esdoornlaan 40", "postalCode": "0531 EL", "city": "Esdoornveen",
+            "name": "Hoofdgebouw", "street": "Vaartlaan 40", "postalCode": "0531 VL", "city": "Zuiddrecht",
         }),
         "onderbouw": b.add("vestiging", {
             "schoolId": school["uuid"], "vestigingscode": "00X201", "onderwijslocatiecode": "00X201-A",
-            "name": "Onderbouwlocatie Varenhof", "street": "Varenhof 3", "postalCode": "0534 VH", "city": "Esdoornveen",
+            "name": "Onderbouwlocatie Varenhof", "street": "Varenhof 3", "postalCode": "0534 VH", "city": "Zuiddrecht",
         }),
     }
     rooms = {}
     for name, _lj, _stream, _size, loc, room, _hours in CLASSES:
         rooms[room] = b.add("room", {
-            "name": f"Lokaal {room} ({name})", "code": room, "capacity": 32, "kind": "classroom",
+            "name": f"Lokaal {room} ({CLASS_NAMES[name]})", "code": room, "capacity": 32, "kind": "classroom",
             "facilities": ["digibord", "chromebookkar"], "buildingCode": locations[loc]["vestigingscode"],
             "floor": room[1],
         })
@@ -514,7 +531,7 @@ def build() -> dict:
                 break
         address = {"street": rng.choice(STREETS), "houseNumber": str(rng.randint(1, 160)),
                    "postalCode": f"05{rng.randint(30, 49)} {rng.choice('ABDEGHKLMNPRSTWZ')}{rng.choice('ABDEGHKLMNPRSTWZ')}",
-                   "city": "Esdoornveen", "country": "NL"}
+                   "city": "Zuiddrecht", "country": "NL"}
         single = rng.random() < 0.2
         guardians = []
         for g in range(1 if single else 2):
@@ -684,7 +701,7 @@ def build() -> dict:
     for name, leerjaar, stream, _size, loc, room, _hours in CLASSES:
         mentor = MENTORS[name]
         cohorts[name] = b.add("cohort", {
-            "name": name, "programmeId": programmes[stream]["uuid"], "courseId": streams[stream]["uuid"],
+            "name": CLASS_NAMES[name], "programmeId": programmes[stream]["uuid"], "courseId": streams[stream]["uuid"],
             "teacherIds": class_teachers[name],
             "learnerIds": [p["nc"] for p in pupils if p["class"] == name],
             "period": "Schooljaar", "academicYear": YEAR, "lifecycle": "active", "locationId": locations[loc]["uuid"],
@@ -698,9 +715,9 @@ def build() -> dict:
     staff_rows = [
         ("vo-rector-01", "Anouk Tijmdal", ["administrator"], ["rector"], WEEKDAYS),
         (TEAMLEIDER_OB, "Hasan Kreekveld", ["coordinator"], ["teamleider onderbouw"], WEEKDAYS),
-        (TEAMLEIDER_BB, "Monique Salielaan", ["coordinator"], ["teamleider bovenbouw"], WEEKDAYS),
-        (DECAAN, "Vincent Heuvelhof", ["coordinator", "teacher"], ["decaan", "loopbaanoriëntatie en -begeleiding"], ["monday", "tuesday", "thursday", "friday"]),
-        (ZORG, "Carolien Mosbrink", ["coordinator"], ["zorgcoördinator", "orthopedagoog"], ["monday", "tuesday", "wednesday", "thursday"]),
+        (TEAMLEIDER_BB, "Jeroen Smit", ["coordinator"], ["teamleider bovenbouw"], WEEKDAYS),
+        (DECAAN, "Marloes Peters", ["coordinator", "teacher"], ["decaan", "loopbaanoriëntatie en -begeleiding"], ["monday", "tuesday", "thursday", "friday"]),
+        (ZORG, "Anouk Visser", ["coordinator"], ["zorgcoördinator", "orthopedagoog"], ["monday", "tuesday", "wednesday", "thursday"]),
         (DESK, "Wendy Vlashof", ["administrator"], ["verzuimcoördinator"], WEEKDAYS),
         (EXAMSEC, "Erik Roggebrink", ["administrator"], ["examensecretaris"], ["monday", "tuesday", "wednesday", "thursday"]),
         (ADMIN, "Hatice Kamilleveld", ["administrator"], ["leerlingadministratie"], ["monday", "wednesday", "thursday", "friday"]),
@@ -877,7 +894,7 @@ def build() -> dict:
             label = ", toetsweek, " if in_toetsweek else ", "
             sessions[(name, day)] = b.add("session", {
                 "cohortId": cohort["uuid"], "courseId": streams[class_by_name[name][2]]["uuid"],
-                "title": f"{name}{label}{dutch_date(day)}",
+                "title": f"{CLASS_NAMES[name]}{label}{dutch_date(day)}",
                 "startsAt": stamp(day, 8, 30), "endsAt": stamp(day, end_h, end_m),
                 "location": room["name"], "roomId": room["uuid"], "lifecycle": "completed",
             })
@@ -1197,7 +1214,7 @@ def build() -> dict:
                         title = f"SE{number} {subject.lower()} {EXAM_CLASSES[cname]}"
                         minutes = 100 if cname == "5H1" else 120
                     else:
-                        title = f"Toetsweek {number}: {subject.lower()}, {cname}"
+                        title = f"Toetsweek {number}: {subject.lower()}, {CLASS_NAMES[cname]}"
                         minutes = 90
                     papers[(cname, s, comp)] = b.add("exam", {
                         "title": title,
@@ -1462,7 +1479,7 @@ def build() -> dict:
         "info": {
             "title": "Learniq example set: Secondary school",
             "version": "1.0.0",
-            "description": "Voorbeeldcollege Esdoornveen, a fictional havo and vwo school in the fictional town of Esdoornveen, through the 2025-2026 school year.",
+            "description": "Vaartveld College, a fictional havo and vwo school in the fictional town of Zuiddrecht, through the 2025-2026 school year, with one pupil's autumn of 2026-2027 on top.",
         },
         "x-openregister": {
             "type": "profile",
