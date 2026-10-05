@@ -84,6 +84,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Support;
 
+use DateTime;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
@@ -184,6 +185,22 @@ final class RegisterFaithfulStore {
 	public array $names = [];
 
 	/**
+	 * When a row was created, by schema slug and row id (OpenRegister's
+	 * `created` column, surfaced as ObjectEntity::getCreated()). A row with
+	 * no entry has no creation time, as an unsaved entity does.
+	 *
+	 * @var array<string, array<string, DateTime>>
+	 */
+	public array $created = [];
+
+	/**
+	 * Every deleteObject() received: schema, uuid and the flags.
+	 *
+	 * @var array<int, array{schema: string, uuid: string, rbac: bool, multitenancy: bool, permanent: bool}>
+	 */
+	public array $deletes = [];
+
+	/**
 	 * Schema definitions by slug, read once from the shipped register.
 	 *
 	 * @var array<string, array<string, mixed>>|null
@@ -251,10 +268,53 @@ final class RegisterFaithfulStore {
 			if ($name !== null) {
 				$entity->setName($name);
 			}
+
+			$created = ($this->created[$schema][(string)$entity->getUuid()] ?? null);
+			if ($created !== null) {
+				$entity->setCreated($created);
+			}
 		}
 
 		return $entities;
 	}//end findAll()
+
+	/**
+	 * Apply a deleteObject(): remove the row, the way a scoped delete does.
+	 *
+	 * With `_rbac` true the caller needs the shipped `delete` right on the
+	 * stored row. A uuid not in the schema raises, as a scoped
+	 * ObjectService::deleteObject() does (DoesNotExistException).
+	 *
+	 * @param string $schema       Schema slug.
+	 * @param string $uuid         The row id.
+	 * @param bool   $rbac         The _rbac flag.
+	 * @param bool   $multitenancy The _multitenancy flag.
+	 * @param bool   $permanent    The permanent flag (recorded only).
+	 *
+	 * @return bool
+	 *
+	 * @throws RuntimeException When the row is absent or the caller may not delete it.
+	 */
+	public function delete(string $schema, string $uuid, bool $rbac = true, bool $multitenancy = true, bool $permanent = false): bool {
+		$this->deletes[] = ['schema' => $schema, 'uuid' => $uuid, 'rbac' => $rbac, 'multitenancy' => $multitenancy, 'permanent' => $permanent];
+		foreach (($this->rows[$schema] ?? []) as $index => $row) {
+			if (($row['id'] ?? null) !== $uuid) {
+				continue;
+			}
+
+			if ($rbac === true && $this->callerMay(schema: $schema, action: 'delete', row: $row) === false) {
+				throw new RuntimeException(
+					"User '" . $this->actingUser . "' does not have permission to 'delete' objects in schema '" . $schema . "'"
+				);
+			}
+
+			unset($this->rows[$schema][$index]);
+			$this->rows[$schema] = array_values($this->rows[$schema]);
+			return true;
+		}
+
+		throw new RuntimeException('Object ' . $uuid . ' does not exist in schema ' . $schema . '.');
+	}//end delete()
 
 	/**
 	 * Apply a saveObject(): replace the row with the same id, or append.

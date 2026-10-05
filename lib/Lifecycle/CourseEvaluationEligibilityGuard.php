@@ -78,6 +78,17 @@ class CourseEvaluationEligibilityGuard implements LifecycleGuardInterface {
 	private const EVALUATION_INVITATION_SCHEMA = 'evaluation-invitation';
 
 	/**
+	 * The fields of a response that must equal the caller's invitation.
+	 *
+	 * Read from the shipped fragments: evaluation-invitation carries these
+	 * (plus campaignId and tenant_id, which the lookup already filters on)
+	 * and CourseEvaluationResponseBuilder copies exactly these onto the row.
+	 *
+	 * @var array<int, string>
+	 */
+	private const PINNED_FIELDS = ['courseId', 'cohortId', 'academicYear', 'period'];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IUserSession $userSession Current NC user session (server-resolved caller identity).
@@ -201,6 +212,64 @@ class CourseEvaluationEligibilityGuard implements LifecycleGuardInterface {
 			return false;
 		}
 
-		return true;
+		foreach ($invitations as $invitation) {
+			if (self::describes(invitation: $invitation, object: $object) === true) {
+				return true;
+			}
+		}
+
+		$this->logger->info(
+			'[CourseEvaluationEligibilityGuard] The response submitted by {caller} for campaign {campaignId} does not '
+			. 'match any of their open invitations (course, cohort, teacher, year or period differs); blocking submit.',
+			['caller' => $callerUid, 'campaignId' => $campaignId]
+		);
+		return false;
 	}//end allows()
+
+	/**
+	 * Whether the response row is the one this invitation describes.
+	 *
+	 * An invitation pins the course, the cohort, the academic year and the
+	 * period (campaignId and tenant are already in the lookup). It names no
+	 * teacher, and the answer page writes none, so a row naming a teacher is
+	 * not one an invitation describes. Without this, a left-over draft that the
+	 * draft rule lets any signed-in user change could be pointed at another
+	 * course, cohort or teacher of the same campaign and submitted.
+	 *
+	 * @param mixed               $invitation An open invitation of the caller (entity or array).
+	 * @param array<string,mixed> $object     The response row at its target state.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+	 */
+	private static function describes(mixed $invitation, array $object): bool {
+		$data = $invitation;
+		if (is_array($invitation) === false) {
+			$data = $invitation->jsonSerialize();
+		}
+
+		foreach (self::PINNED_FIELDS as $field) {
+			if (self::text(value: ($data[$field] ?? null)) !== self::text(value: ($object[$field] ?? null))) {
+				return false;
+			}
+		}
+
+		return self::text(value: ($object['teacherId'] ?? null)) === '';
+	}//end describes()
+
+	/**
+	 * A field value as comparable text; absent, null and '' are all ''.
+	 *
+	 * @param mixed $value The stored value.
+	 *
+	 * @return string
+	 */
+	private static function text(mixed $value): string {
+		if (is_scalar($value) === false) {
+			return '';
+		}
+
+		return trim((string)$value);
+	}//end text()
 }//end class

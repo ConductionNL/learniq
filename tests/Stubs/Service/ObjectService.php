@@ -119,6 +119,9 @@ abstract class ObjectService {
 	 * @param Schema|string|int|null   $schema        Schema context.
 	 * @param bool                     $_rbac         Apply RBAC.
 	 * @param bool                     $_multitenancy Apply multitenancy.
+	 * @param bool                     $_retentionSweep Internal retention-sweep flag.
+	 * @param IUser|null               $currentUser   Explicit acting user.
+	 * @param bool                     $permanent     Destroy the row rather than tombstone it.
 	 *
 	 * @return bool
 	 */
@@ -128,6 +131,9 @@ abstract class ObjectService {
 		Schema|string|int|null $schema = null,
 		bool $_rbac = true,
 		bool $_multitenancy = true,
+		bool $_retentionSweep = false,
+		?IUser $currentUser = null,
+		bool $permanent = false,
 	): bool;
 
 	/**
