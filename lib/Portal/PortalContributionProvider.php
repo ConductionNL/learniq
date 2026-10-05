@@ -172,6 +172,8 @@ class PortalContributionProvider {
 	private function studentContribution(): array {
 		$site = new StudentPortalPages();
 		$collections = array_merge(
+			// Her timetable first, so its page follows the overview in the menu.
+			[$site->sessionsCollection()],
 			$this->studentResultCollections(),
 			$this->studentActivityCollections(site: $site),
 			[$this->studentTestsCollection(), $site->homeworkCollection(), $site->attendanceSummaryCollection()]

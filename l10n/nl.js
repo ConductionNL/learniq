@@ -3965,7 +3965,11 @@ OC.L10N.register(
         "From the teacher": "Van de leerkracht",
         "The teacher's words on the report card.": "Wat de leerkracht op het rapport schreef.",
         "The school the row belongs to.": "De school waar deze regel bij hoort.",
-        "Latest report": "Laatste rapport"
+        "Latest report": "Laatste rapport",
+        "Your timetable today": "Je rooster vandaag",
+        "Whole week": "Hele week",
+        "Your first lesson": "Je eerste les",
+        "Changed": "Gewijzigd"
     },
     "nplurals=2; plural=(n != 1);"
 )

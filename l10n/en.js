@@ -3515,7 +3515,11 @@ OC.L10N.register(
         "From the teacher": "From the teacher",
         "The teacher's words on the report card.": "The teacher's words on the report card.",
         "The school the row belongs to.": "The school the row belongs to.",
-        "Latest report": "Latest report"
+        "Latest report": "Latest report",
+        "Your timetable today": "Your timetable today",
+        "Whole week": "Whole week",
+        "Your first lesson": "Your first lesson",
+        "Changed": "Changed"
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -65,6 +65,8 @@ class PortalLabelTranslator {
 		'eyebrow',
 		'soonLabel',
 		'noteLabel',
+		// A timetable's label over the first lesson (portaliq calendar-timetable-display).
+		'firstLabel',
 	];
 
 	/**
