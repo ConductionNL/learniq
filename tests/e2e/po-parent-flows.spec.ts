@@ -765,6 +765,61 @@ test.describe('po: teacher and parent flows', () => {
 		await shot(parent, 'f2-calendar')
 	})
 
+	test('h. the guardian switches child, reads the task and reports Vera sick from the overview', async () => {
+		// site-guardian-portal-design T10, on the overview of the board
+		// (school-design wilgenboom MijnOverzicht): greeting, the task, the switcher.
+		await parent.goto(`${SITE}&route=${encodeURIComponent('/mijn')}`)
+		await waitForAccountPage(parent)
+		await expect(parent.getByTestId('mijn-greeting')).toContainText('Fatima')
+
+		// The switcher lists both children with their group line; Sami first, then back to Vera.
+		const switcher = parent.getByTestId('mijn-record-switcher')
+		await expect(switcher).toContainText('Groep 7')
+		await switcher.getByText(SIBLING.name, { exact: true }).click()
+		await expect(parent).toHaveURL(new RegExp(SIBLING.ref))
+		await switcher.getByText(CHILD.name, { exact: true }).click()
+		await expect(parent).toHaveURL(new RegExp(CHILD.ref))
+
+		// "Wat u nog moet doen": a conference round that is still open for booking.
+		await expect(
+			parent.getByTestId('mijn-task-highlight').first(),
+		).toContainText('Oudergesprekken')
+		await shot(parent, 'h1-overview')
+
+		// The greeting's one button opens the absence form; the sentence sums it up.
+		await parent.getByTestId('mijn-greeting-action').click()
+		const form = parent.getByTestId('schema-form').first()
+		const reason = `Koorts, vanaf het overzicht (${RUN})`
+		await form
+			.getByRole('combobox', { name: 'Kind', exact: true })
+			.selectOption({ label: CHILD.name })
+		await fillDate(form, 'Eerste dag afwezig', '2026-10-09')
+		await fillDate(form, 'Laatste dag afwezig', '2026-10-09')
+		await form.getByRole('textbox', { name: 'Reden', exact: true }).fill(reason)
+		await form
+			.getByRole('group', { name: 'Soort afwezigheid', exact: true })
+			.getByRole('radio', { name: 'Ziekte', exact: true })
+			.check()
+		await expect(form).toContainText('U meldt')
+		await expect(form).toContainText(`${CHILD.name} is`)
+		await form.getByRole('button', { name: 'Afwezigheid melden' }).click()
+
+		// The confirmation, and the report really stored for Vera.
+		await expect(
+			parent.getByTestId('schema-form-confirmation-heading'),
+		).toContainText('Uw melding is verstuurd', { timeout: 15_000 })
+		await expect
+			.poll(async () => (await excuseFor(reason))?.learnerRef, {
+				timeout: 15_000,
+			})
+			.toBe(CHILD.ref)
+		const sent = await excuseFor(reason)
+		if (sent?.id) {
+			created.push({ schema: 'excuse-request', id: sent.id })
+		}
+		await shot(parent, 'h2-confirmation')
+	})
+
 	test("g. the guardian reads her child's teacher by name", async () => {
 		// A teacher reads as a name, never as a Nextcloud user id
 		// (parent-portal-teacher-names, portaliq render: user).
