@@ -26,6 +26,7 @@
 
 import assert from 'node:assert/strict'
 import { readdirSync, readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { test } from 'node:test'
 import { buildManifest } from '../../node_modules/@conduction/nextcloud-vue/src/utils/buildManifest.js'
 import { passesContextPredicates } from '../../node_modules/@conduction/nextcloud-vue/src/utils/visibleIfContext.js'
@@ -137,9 +138,17 @@ function build(layout, role, state = NEVER, flags = {}) {
 			base,
 			structuredClone(FRAGMENTS),
 			structuredClone(layout),
+			passesContextPredicates,
 		),
 	)
 }
+
+/** The overlays that only append links: header links on lists, cards on Reports. */
+const LINK_OVERLAYS = SIMPLE.pages.filter((overlay) => overlay.configAppend)
+/** The overlay that turns the page at `/` into the Today dashboard. */
+const TODAY = SIMPLE.pages.find((overlay) => overlay.id === 'Dashboard')
+/** The roles the Today dashboard is for. */
+const TODAY_ROLES = ['instructor', 'coordinator', 'administration-manager', 'admin']
 
 function flat(items) {
 	return items.flatMap((item) => [item, ...flat(item.children || [])])
@@ -181,6 +190,34 @@ const COMPONENT_LINKS = {
 }
 
 /**
+ * The route name behind a widget's `route`, which is a name or `{ name, query }`.
+ *
+ * @param {(string|object|undefined)} route The route.
+ * @return {(string|undefined)} The route name.
+ */
+function routeName(route) {
+	return typeof route === 'string' ? route : route?.name
+}
+
+/**
+ * The pages a dashboard's tiles and cards open: a tile's `route` and a
+ * banner's action routes.
+ *
+ * @param {object} page A built page.
+ * @return {Array<string>} The route names.
+ */
+function dashboardLinks(page) {
+	const names = []
+	for (const widget of page.config?.widgets || []) {
+		names.push(routeName(widget.content?.route))
+		for (const action of widget.content?.actions || []) {
+			names.push(routeName(action.route))
+		}
+	}
+	return names.filter(Boolean)
+}
+
+/**
  * Every page id a signed-in user reaches in at most one step from the menu:
  * the entries they see, plus the cards, header links and lists on the pages
  * those entries open.
@@ -214,6 +251,12 @@ function reachable(manifest) {
 			if (action.handler === 'navigate' && action.route) {
 				reach.add(action.route)
 			}
+			if (action.type === 'open-page' && action.target) {
+				reach.add(action.target)
+			}
+		}
+		for (const name of dashboardLinks(page)) {
+			reach.add(name)
 		}
 		for (const linked of COMPONENT_LINKS[route]?.pages || []) {
 			reach.add(linked)
@@ -265,12 +308,6 @@ const KNOWN_UNLINKED = {
 		'CatalogueMenu',
 		'CheckInMenu',
 		'ConferenceScheduleBoardMenu',
-		'DashboardAdmin',
-		'DashboardDirectorMenu',
-		'DashboardIbMenu',
-		'DashboardMentorMenu',
-		'DashboardStudent',
-		'DashboardTeacher',
 		'ExamAccommodationsMenu',
 		'GroupPeople',
 		'HourPlanActivitiesMenu',
@@ -298,9 +335,6 @@ const KNOWN_UNLINKED = {
 		'AdmissionsReviewBoardMenu',
 		'CatalogueMenu',
 		'ConferenceScheduleBoardMenu',
-		'DashboardDirectorMenu',
-		'DashboardStudent',
-		'DashboardTeacher',
 		'ExamAccommodationsMenu',
 		'GradeCorrectionsMenu',
 		'GroupPlans',
@@ -325,9 +359,6 @@ const KNOWN_UNLINKED = {
 		...PLANNING,
 		'AdmissionsReviewBoardMenu',
 		'CatalogueMenu',
-		'DashboardIbMenu',
-		'DashboardStudent',
-		'DashboardTeacher',
 		'ExamAccommodationsMenu',
 		'GroupPeople',
 		'HourPlanActivitiesMenu',
@@ -343,9 +374,6 @@ const KNOWN_UNLINKED = {
 	instructor: [
 		...PLANNING,
 		'CatalogueMenu',
-		'DashboardMentorMenu',
-		'DashboardStudent',
-		'DashboardTeacher',
 		'GroupPeople',
 		'HourPlanActivitiesMenu',
 		'MyLearningRecordMenu',
@@ -509,9 +537,15 @@ test('both profiles hold the same pages, and an overlay only appends', () => {
 		simple.pages.map((page) => page.id),
 		full.pages.map((page) => page.id),
 	)
-	const overlaid = new Set(SIMPLE.pages.map((overlay) => overlay.id))
+	const overlaid = new Set(LINK_OVERLAYS.map((overlay) => overlay.id))
 	for (const [index, page] of full.pages.entries()) {
 		const twin = simple.pages[index]
+		if (page.id === TODAY.id) {
+			// The Today dashboard changes the page's kind for the roles it is
+			// for. Its own tests are further down; the address must not move.
+			assert.equal(twin.route, page.route)
+			continue
+		}
 		if (!overlaid.has(page.id)) {
 			assert.deepEqual(twin, page, `${page.id} differs with no overlay`)
 			continue
@@ -537,7 +571,7 @@ test('both profiles hold the same pages, and an overlay only appends', () => {
 test('every overlay names a page, and every link in it names a page', () => {
 	const full = build(FULL, 'admin')
 	const pageIds = new Set(full.pages.map((page) => page.id))
-	for (const overlay of SIMPLE.pages) {
+	for (const overlay of LINK_OVERLAYS) {
 		const page = full.pages.find((candidate) => candidate.id === overlay.id)
 		assert.ok(page, `overlay names no page: ${overlay.id}`)
 		assert.deepEqual(Object.keys(overlay).sort(), ['configAppend', 'id'])
@@ -649,7 +683,7 @@ test('every simple entry has a label, a registered icon and a page', () => {
 			`${item.id} opens no page: ${item.route}`,
 		)
 	}
-	for (const overlay of SIMPLE.pages) {
+	for (const overlay of LINK_OVERLAYS) {
 		for (const items of Object.values(overlay.configAppend)) {
 			for (const item of items) {
 				assert.ok(registered(item.icon), `${overlay.id}: ${item.icon}`)
@@ -719,7 +753,7 @@ test('no entry and no link opens a page that needs something in its address', ()
 	const targets = simple.menu
 		.filter((item) => item.route)
 		.map((item) => item.route)
-	for (const overlay of SIMPLE.pages) {
+	for (const overlay of LINK_OVERLAYS) {
 		for (const items of Object.values(overlay.configAppend)) {
 			targets.push(...items.map((item) => item.route))
 		}
@@ -769,13 +803,35 @@ test('every string of the simple profile has a Dutch one', () => {
 			strings.push(item.label)
 		}
 	}
-	for (const overlay of SIMPLE.pages) {
+	for (const overlay of LINK_OVERLAYS) {
 		for (const items of Object.values(overlay.configAppend)) {
 			for (const item of items) {
 				strings.push(item.label)
 				if (item.description) {
 					strings.push(item.description)
 				}
+			}
+		}
+	}
+	strings.push(TODAY.page.title, TODAY.config.description)
+	for (const action of TODAY.config.headerActions) {
+		strings.push(action.label)
+	}
+	for (const widget of TODAY.config.widgets) {
+		const content = widget.content
+		strings.push(widget.title)
+		for (const key of ['label', 'kicker', 'title', 'reason', 'emptyText']) {
+			if (content[key]) {
+				strings.push(content[key])
+			}
+		}
+		for (const item of [
+			...(content.actions || []),
+			...(content.entries || []),
+		]) {
+			strings.push(item.label)
+			if (item.description) {
+				strings.push(item.description)
 			}
 		}
 	}
@@ -790,6 +846,265 @@ test('every string of the simple profile has a Dutch one', () => {
 			`nl.json misses: ${text}`,
 		)
 	}
+})
+
+/**
+ * The schema a widget source names, from the register.
+ *
+ * @param {string} name The schema key or slug, as a page or widget writes it.
+ * @return {object} The schema.
+ */
+function schemaOf(name) {
+	const schemas = readJson('lib/Settings/learniq_register.json').components.schemas
+	const wanted = name.toLowerCase()
+	const found = Object.entries(schemas).find(
+		([key, schema]) =>
+			key.toLowerCase() === wanted
+			|| String(schema.slug).toLowerCase() === wanted,
+	)
+	assert.ok(found, `no schema ${name}`)
+	return found[1]
+}
+
+/**
+ * A filter as an address carries it: `{ a: { gte: x } }` becomes `a[gte]=x`.
+ *
+ * @param {object} filter A widget filter.
+ * @return {object} The flat map of strings.
+ */
+function asQuery(filter) {
+	const query = {}
+	for (const [field, value] of Object.entries(filter)) {
+		if (value !== null && typeof value === 'object') {
+			for (const [op, operand] of Object.entries(value)) {
+				query[`${field}[${op}]`] = String(operand)
+			}
+		} else {
+			query[field] = String(value)
+		}
+	}
+	return query
+}
+
+/** Every widget of the Today dashboard that counts records, with its filter and where it leads. */
+function todayCounts() {
+	const counts = []
+	for (const widget of TODAY.config.widgets) {
+		if (widget.type === 'stat') {
+			counts.push({
+				id: widget.id,
+				source: widget.content.source,
+				routes: [widget.content.route],
+			})
+		}
+		if (widget.type === 'banner') {
+			counts.push({
+				id: widget.id,
+				source: widget.content.visibleWhen.source,
+				routes: widget.content.actions.map((action) => action.route),
+			})
+		}
+	}
+	return counts
+}
+
+test('the page at / is the Today dashboard for the teaching roles, in the simple structure only', () => {
+	const manifestPage = build(FULL, 'admin').pages.find(
+		(page) => page.id === 'Dashboard',
+	)
+	assert.equal(manifestPage.type, 'custom')
+	assert.deepEqual(TODAY.when, { 'user.primaryRole': { in: TODAY_ROLES } })
+	for (const role of ROLES) {
+		const page = build(SIMPLE, role).pages.find(
+			(candidate) => candidate.id === 'Dashboard',
+		)
+		const full = build(FULL, role).pages.find(
+			(candidate) => candidate.id === 'Dashboard',
+		)
+		assert.deepEqual(
+			full,
+			manifestPage,
+			`the full structure changed for ${role}`,
+		)
+		assert.equal(page.route, '/')
+		if (TODAY_ROLES.includes(role)) {
+			assert.equal(page.type, 'dashboard', role)
+			assert.equal(page.title, 'Today')
+			assert.equal(Object.hasOwn(page, 'component'), false)
+			assert.deepEqual(page.config, TODAY.config)
+		} else {
+			assert.deepEqual(page, manifestPage, `${role} lost the role dashboard`)
+		}
+	}
+})
+
+test('an overlay with a condition is skipped when nothing can judge the condition', () => {
+	const built = buildProfiledManifest(
+		buildManifest,
+		structuredClone(BASE),
+		structuredClone(FRAGMENTS),
+		structuredClone(SIMPLE),
+	)
+	assert.equal(built.pages.find((page) => page.id === 'Dashboard').type, 'custom')
+})
+
+test('the Today dashboard holds library widgets only, each laid out once, none overlapping', () => {
+	const catalog = readText(
+		'node_modules/@conduction/nextcloud-vue/src/utils/libraryWidgetKeys.js',
+	)
+	const ids = TODAY.config.widgets.map((widget) => widget.id)
+	assert.equal(new Set(ids).size, ids.length)
+	for (const widget of TODAY.config.widgets) {
+		assert.notEqual(widget.type, 'custom', `${widget.id} is a custom widget`)
+		assert.ok(
+			catalog.includes(`'${widget.type}'`),
+			`${widget.id}: ${widget.type}`,
+		)
+	}
+	assert.deepEqual(
+		TODAY.config.layout.map((item) => item.widgetId).sort(),
+		[...ids].sort(),
+	)
+	const taken = new Set()
+	for (const item of TODAY.config.layout) {
+		assert.ok(item.gridX + item.gridWidth <= 12, `${item.widgetId} is too wide`)
+		for (let x = item.gridX; x < item.gridX + item.gridWidth; x++) {
+			for (let y = item.gridY; y < item.gridY + item.gridHeight; y++) {
+				assert.ok(
+					!taken.has(`${x},${y}`),
+					`${item.widgetId} overlaps at ${x},${y}`,
+				)
+				taken.add(`${x},${y}`)
+			}
+		}
+	}
+})
+
+test('a tile label is at most eighteen characters', () => {
+	const tiles = TODAY.config.widgets.filter((widget) => widget.type === 'stat')
+	assert.equal(tiles.length, 4)
+	for (const tile of tiles) {
+		assert.ok(tile.content.label.length <= 18, tile.content.label)
+		assert.equal(tile.title, tile.content.label)
+	}
+})
+
+test('every number on Today uses the filter of the list it opens', () => {
+	const pages = build(FULL, 'admin').pages
+	const counts = todayCounts()
+	assert.equal(counts.length, 5)
+	for (const { id, source, routes } of counts) {
+		const properties = schemaOf(source.schema).properties
+		for (const field of Object.keys(source.filter)) {
+			assert.ok(Object.hasOwn(properties, field), `${id}: no field ${field}`)
+		}
+		assert.ok(routes.length > 0, `${id} opens nothing`)
+		for (const route of routes) {
+			const page = pages.find((candidate) => candidate.id === routeName(route))
+			assert.ok(page, `${id} opens no page`)
+			assert.equal(page.type, 'index', `${id} does not open a list`)
+			assert.ok(!page.route.includes(':'), `${id}: ${page.route}`)
+			assert.equal(page.config.register, source.register, id)
+			assert.equal(
+				schemaOf(page.config.schema).slug,
+				schemaOf(source.schema).slug,
+				`${id} counts another schema than its list shows`,
+			)
+			if (typeof route === 'string') {
+				// No filter in the address: the list must carry the same one itself.
+				assert.deepEqual(page.config.filter, source.filter, id)
+			} else {
+				assert.equal(
+					page.config.filter,
+					undefined,
+					`${id}: the list adds a filter`,
+				)
+				assert.deepEqual(route.query, asQuery(source.filter), id)
+			}
+		}
+	}
+})
+
+test('the First today card counts with a flat filter', () => {
+	// The library's count source writes a nested operator as JSON, and
+	// OpenRegister answers that with a 500. A card's filter stays flat.
+	const card = TODAY.config.widgets.find((widget) => widget.type === 'banner')
+	for (const value of Object.values(card.content.visibleWhen.source.filter)) {
+		assert.notEqual(typeof value, 'object')
+	}
+	assert.deepEqual(
+		[card.content.visibleWhen.op, card.content.visibleWhen.value],
+		['gt', 0],
+	)
+	const lifecycle = schemaOf('attendance-flag').properties.lifecycle.enum
+	assert.ok(lifecycle.includes(card.content.visibleWhen.source.filter.lifecycle))
+})
+
+test('the week strip reads real fields and opens a lesson', () => {
+	const strip = TODAY.config.widgets.find((widget) => widget.type === 'week-strip')
+	const properties = schemaOf(strip.content.source.schema).properties
+	for (const field of [
+		strip.content.dateField,
+		strip.content.titleField,
+		...strip.content.metaFields,
+		...Object.keys(strip.content.source.filter),
+	]) {
+		assert.ok(Object.hasOwn(properties, field), `no field ${field}`)
+	}
+	const detail = build(FULL, 'admin').pages.find(
+		(page) => page.id === strip.content.itemRoute,
+	)
+	assert.equal(detail.type, 'detail')
+	assert.ok(detail.route.endsWith('/:id'))
+	// A lesson that has been is not late. The rule can never be true.
+	assert.ok(strip.content.lateWhen.value < -1000)
+})
+
+test('Today links no page the full menu keeps from a role it is for', () => {
+	for (const role of TODAY_ROLES) {
+		const offered = reachable(build(FULL, role))
+		const simple = build(SIMPLE, role)
+		const page = simple.pages.find((candidate) => candidate.id === 'Dashboard')
+		const links = [
+			...dashboardLinks(page),
+			...page.config.headerActions.map((action) => action.target),
+		]
+		for (const widget of page.config.widgets) {
+			for (const entry of widget.content?.entries || []) {
+				if (passesContextPredicates(entry.visibleIf, simple.runtime)) {
+					links.push(entry.route)
+				}
+			}
+		}
+		assert.ok(links.length >= 7, `${role}: ${links.length} links`)
+		for (const link of links) {
+			assert.ok(offered.has(link), `${role} gets a link to ${link}`)
+		}
+	}
+})
+
+test('the Today page is a valid page of the installed manifest schema', () => {
+	const require = createRequire(import.meta.url)
+	const Ajv = require('ajv/dist/2020').default || require('ajv/dist/2020')
+	const schema = readJson(
+		'node_modules/@conduction/nextcloud-vue/src/schemas/app-manifest-v2.schema.json',
+	)
+	const validate = new Ajv({ allErrors: true, strict: false }).compile(schema)
+	const page = {
+		id: 'Dashboard',
+		route: '/',
+		type: TODAY.page.type,
+		title: TODAY.page.title,
+		config: TODAY.config,
+	}
+	// The control: the manifest itself is valid, so a failure below is the page.
+	assert.equal(validate(structuredClone(BASE)), true)
+	const withToday = { ...structuredClone(BASE), pages: [page], menu: [] }
+	assert.equal(
+		validate(withToday),
+		true,
+		JSON.stringify(validate.errors?.slice(0, 5)),
+	)
 })
 
 test('only the word full selects the full structure', () => {

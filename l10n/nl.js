@@ -3894,7 +3894,22 @@ OC.L10N.register(
         "Saved. People see the change the next time they open Learniq.": "Opgeslagen. Mensen zien de wijziging als ze Learniq opnieuw openen.",
         "No page is removed. Both menus open the same pages.": "Er verdwijnt geen pagina. Beide menu's openen dezelfde pagina's.",
         "The menu structure could not be loaded. Reload the page to try again.": "De menu-indeling kon niet worden geladen. Laad de pagina opnieuw om het nog eens te proberen.",
-        "The menu could not be saved. Try again.": "Het menu kon niet worden opgeslagen. Probeer het opnieuw."
+        "The menu could not be saved. Try again.": "Het menu kon niet worden opgeslagen. Probeer het opnieuw.",
+        "Your lessons and what needs you today": "Je lessen en wat vandaag je aandacht vraagt",
+        "Greeting": "Begroeting",
+        "First today": "Vandaag eerst",
+        "Attendance flags nobody has picked up": "Verzuimsignalen die nog niemand heeft opgepakt",
+        "{value} attendance flags are still open. Open one to start the follow-up.": "Er staan nog {value} verzuimsignalen open. Open er een om de opvolging te starten.",
+        "Open the flags": "Signalen openen",
+        "Lessons today": "Lessen vandaag",
+        "Lessons this week": "Lessen deze week",
+        "Unexcused today": "Ongeoorloofd vandaag",
+        "No lessons": "Geen lessen",
+        "Other dashboards": "Andere dashboards",
+        "The lists you manage: courses, assignments, sessions and groups": "De lijsten die je beheert: cursussen, opdrachten, lessen en groepen",
+        "Your own mandatory training": "Je eigen verplichte scholing",
+        "Figures and lists for the whole organisation": "Cijfers en lijsten voor de hele organisatie",
+        "Assignments due": "Opdrachten deze week"
     },
     "nplurals=2; plural=(n != 1);"
 )
