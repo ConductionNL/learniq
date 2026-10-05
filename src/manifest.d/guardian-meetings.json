@@ -421,7 +421,8 @@
 									"order": 2
 								},
 								"blocks": {
-									"order": 3
+									"order": 3,
+									"formatter": "timeBlocks"
 								}
 							}
 						},
