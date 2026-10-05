@@ -48,7 +48,6 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
-use OCA\OpenRegister\Service\ObjectService;
 use OCP\App\IAppManager;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
@@ -137,21 +136,21 @@ class ExamplePortalProvisioner {
 	 * Constructor.
 	 *
 	 * @param IAppManager                $appManager    Tells whether portaliq is installed.
-	 * @param ObjectService              $objectService Reads and writes portaliq's objects.
 	 * @param LoggerInterface            $logger        Records what happened.
 	 * @param ExamplePortalDeclarations  $declarations  The per-set portal declarations.
 	 * @param ExampleThemeResolver       $themes        Picks the designed theme or its fallback.
 	 * @param ExampleAccountProvisioner  $accounts      Creates or names the declared accounts.
+	 * @param ExamplePortalContent       $content       Reads and writes the portal's objects in portaliq.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly IAppManager $appManager,
-		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
 		private readonly ExamplePortalDeclarations $declarations,
 		private readonly ExampleThemeResolver $themes,
 		private readonly ExampleAccountProvisioner $accounts,
+		private readonly ExamplePortalContent $content,
 	) {
 	}//end __construct()
 
@@ -225,6 +224,35 @@ class ExamplePortalProvisioner {
 	}//end provision()
 
 	/**
+	 * One line that says what the portal step did.
+	 *
+	 * @param array<string, mixed> $result The provisioner's answer.
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md#requirement-loading-a-set-writes-its-declared-site-once
+	 */
+	public function describe(array $result): string {
+		$line = 'Portal ' . ($result['slug'] ?? '-') . ': ' . (string)$result['status'];
+		if (isset($result['theme']) === true) {
+			$fallback = '';
+			if (($result['themeFallback'] ?? false) === true) {
+				$fallback = ', fallback';
+			}
+
+			$line .= ' (theme ' . $result['theme'] . $fallback . ')';
+		}
+
+		foreach (['menus', 'pages', 'news'] as $part) {
+			if (isset($result[$part]) === true) {
+				$line .= '; ' . $part . ' ' . (int)$result[$part]['created'] . ' created, ' . (int)$result[$part]['kept'] . ' kept';
+			}
+		}
+
+		return $line;
+	}//end describe()
+
+	/**
 	 * Create or name the accounts the set's declaration lists.
 	 *
 	 * Separate from provision(): the setup wizard loads a set without making
@@ -283,7 +311,7 @@ class ExamplePortalProvisioner {
 		$portal['theme'] = $theme;
 		unset($portal['themeFallback']);
 
-		$existing = $this->findOne(schema: self::SCHEMA, match: static fn (array $row): bool => ($row['slug'] ?? null) === $portal['slug']);
+		$existing = $this->content->findOne(schema: self::SCHEMA, match: static fn (array $row): bool => ($row['slug'] ?? null) === $portal['slug']);
 		if ($existing !== null && in_array((string)($existing['title'] ?? ''), (array)($declaration['legacyTitles'] ?? []), true) === true) {
 			$this->logger->info(
 				'[ExamplePortalProvisioner] portal "{slug}" is "{title}" from an older example set; it is left as it is.',
@@ -292,23 +320,24 @@ class ExamplePortalProvisioner {
 			return ['status' => 'kept-legacy'];
 		}
 
-		$refs = [$portal['slug']];
+		$refs   = [$portal['slug']];
+		$status = 'created';
 		if ($existing === null) {
-			$saved  = $this->save(schema: self::SCHEMA, object: $this->newPortal(portal: $portal));
-			$status = 'created';
-			$refs[] = $saved;
-		} else {
+			$refs[] = $this->content->save(schema: self::SCHEMA, object: $this->newPortal(portal: $portal));
+		}
+
+		if ($existing !== null) {
 			$status = $this->fill(existing: $existing, portal: $portal);
-			$refs[] = self::idOf(row: $existing);
+			$refs[] = $this->content->idOf(row: $existing);
 		}
 
 		$refs = array_values(array_filter($refs, static fn ($ref): bool => is_string($ref) && $ref !== ''));
 
 		return [
 			'status' => $status,
-			'menus'  => $this->menus(declaration: $declaration, refs: $refs),
-			'pages'  => $this->pages(declaration: $declaration, refs: $refs),
-			'news'   => $this->news(declaration: $declaration),
+			'menus'  => $this->content->menus(declaration: $declaration, refs: $refs),
+			'pages'  => $this->content->pages(declaration: $declaration, refs: $refs),
+			'news'   => $this->content->news(declaration: $declaration),
 		];
 	}//end apply()
 
@@ -372,14 +401,14 @@ class ExamplePortalProvisioner {
 			return 'unchanged';
 		}
 
-		$uuid = self::idOf(row: $existing);
+		$uuid = $this->content->idOf(row: $existing);
 		if ($uuid === '') {
 			// Saving without the uuid would create a second portal.
 			throw new RuntimeException('portal "' . (string)($existing['slug'] ?? '') . '" carries no id');
 		}
 
 		unset($merged['@self']);
-		$this->save(schema: self::SCHEMA, object: $merged, uuid: $uuid);
+		$this->content->save(schema: self::SCHEMA, object: $merged, uuid: $uuid);
 
 		return 'filled';
 	}//end fill()
@@ -410,169 +439,6 @@ class ExamplePortalProvisioner {
 	}//end fillValue()
 
 	/**
-	 * Create every declared menu the portal does not have, matched by position and title.
-	 *
-	 * @param array<string, mixed> $declaration The set's declaration.
-	 * @param array<int, string>   $refs        The portal's slug and id, either of which a menu may name.
-	 *
-	 * @return array{created: int, kept: int}
-	 */
-	private function menus(array $declaration, array $refs): array {
-		$stored = $this->findAll(schema: 'menu', match: static fn (array $row): bool => in_array((string)($row['portal'] ?? ''), $refs, true));
-		$have   = [];
-		foreach ($stored as $menu) {
-			$have[((int)($menu['position'] ?? 0)) . '|' . (string)($menu['title'] ?? '')] = true;
-		}
-
-		$counts = ['created' => 0, 'kept' => 0];
-		foreach ((array)($declaration['menus'] ?? []) as $menu) {
-			$key = ((int)($menu['position'] ?? 0)) . '|' . (string)($menu['title'] ?? '');
-			if (isset($have[$key]) === true) {
-				$counts['kept']++;
-				continue;
-			}
-
-			$this->save(schema: 'menu', object: ['portal' => $refs[0]] + $menu);
-			$have[$key] = true;
-			$counts['created']++;
-		}
-
-		return $counts;
-	}//end menus()
-
-	/**
-	 * Create every declared page the portal does not have, matched by route.
-	 *
-	 * @param array<string, mixed> $declaration The set's declaration.
-	 * @param array<int, string>   $refs        The portal's slug and id.
-	 *
-	 * @return array{created: int, kept: int}
-	 */
-	private function pages(array $declaration, array $refs): array {
-		$stored = $this->findAll(schema: 'page', match: static fn (array $row): bool => in_array((string)($row['portal'] ?? ''), $refs, true));
-		$routes = array_flip(array_map(static fn (array $row): string => (string)($row['route'] ?? ''), $stored));
-
-		$counts = ['created' => 0, 'kept' => 0];
-		foreach ((array)($declaration['pages'] ?? []) as $page) {
-			$route = (string)($page['route'] ?? '');
-			if ($route === '' || isset($routes[$route]) === true) {
-				$counts['kept']++;
-				continue;
-			}
-
-			$this->save(schema: 'page', object: $page + ['portal' => $refs[0], 'status' => 'published', 'locale' => 'nl']);
-			$routes[$route] = true;
-			$counts['created']++;
-		}
-
-		return $counts;
-	}//end pages()
-
-	/**
-	 * Create every declared news item that does not exist yet, matched by title.
-	 *
-	 * A news item carries the portal slug (`portal`) so the public news
-	 * widgets can find it; an item marked `public: false` is read only in
-	 * the signed-in area, through the guardian's audience.
-	 *
-	 * @param array<string, mixed> $declaration The set's declaration.
-	 *
-	 * @return array{created: int, kept: int}
-	 */
-	private function news(array $declaration): array {
-		$items = (array)($declaration['news'] ?? []);
-		if ($items === []) {
-			return ['created' => 0, 'kept' => 0];
-		}
-
-		$stored = $this->findAll(schema: 'newsItem', match: static fn (array $row): bool => true);
-		$titles = array_flip(array_map(static fn (array $row): string => (string)($row['title'] ?? ''), $stored));
-		$counts = ['created' => 0, 'kept' => 0];
-		foreach ($items as $item) {
-			$title = (string)($item['title'] ?? '');
-			if ($title === '' || isset($titles[$title]) === true) {
-				$counts['kept']++;
-				continue;
-			}
-
-			$this->save(schema: 'newsItem', object: $item + ['status' => 'published', 'portal' => (string)$declaration['portal']['slug']]);
-			$titles[$title] = true;
-			$counts['created']++;
-		}
-
-		return $counts;
-	}//end news()
-
-	/**
-	 * The first stored row of a schema that matches.
-	 *
-	 * @param string   $schema The portaliq schema slug.
-	 * @param callable $match  Decides whether a row is the one.
-	 *
-	 * @return array<string, mixed>|null
-	 */
-	private function findOne(string $schema, callable $match): ?array {
-		return ($this->findAll(schema: $schema, match: $match)[0] ?? null);
-	}//end findOne()
-
-	/**
-	 * Every stored row of a schema that matches.
-	 *
-	 * Reads the schema and matches here, so a filter OpenRegister might drop
-	 * can never turn "found" into "missing" and write a duplicate.
-	 *
-	 * @param string   $schema The portaliq schema slug.
-	 * @param callable $match  Decides whether a row counts.
-	 *
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function findAll(string $schema, callable $match): array {
-		$rows = $this->objectService->findAll(
-			config: [
-				'filters' => [
-					'register' => self::REGISTER,
-					'schema'   => $schema,
-				],
-				'limit'   => 2000,
-			],
-			_rbac: false,
-			_multitenancy: false
-		);
-
-		$found = [];
-		foreach ($rows as $row) {
-			$data = self::asArray(row: $row);
-			if ($data !== [] && $match($data) === true) {
-				$found[] = $data;
-			}
-		}
-
-		return $found;
-	}//end findAll()
-
-	/**
-	 * Save one portaliq object and answer its id.
-	 *
-	 * @param string               $schema The portaliq schema slug.
-	 * @param array<string, mixed> $object The object.
-	 * @param string|null          $uuid   The id to update, or null to create.
-	 *
-	 * @return string The id, or '' when OpenRegister answered without one.
-	 */
-	private function save(string $schema, array $object, ?string $uuid = null): string {
-		$saved = $this->objectService->saveObject(
-			object: $object,
-			register: self::REGISTER,
-			schema: $schema,
-			uuid: $uuid,
-			_rbac: false,
-			_multitenancy: false
-		);
-
-		return self::idOf(row: self::asArray(row: $saved));
-	}//end save()
-
-	/**
 	 * Whether a stored value counts as not set.
 	 *
 	 * @param mixed $value The value.
@@ -583,36 +449,4 @@ class ExamplePortalProvisioner {
 		return ($value === null || $value === '' || $value === []);
 	}//end isEmpty()
 
-	/**
-	 * The id of a stored row.
-	 *
-	 * @param array<string, mixed> $row The row.
-	 *
-	 * @return string
-	 */
-	private static function idOf(array $row): string {
-		return (string)($row['@self']['id'] ?? ($row['id'] ?? ($row['uuid'] ?? '')));
-	}//end idOf()
-
-	/**
-	 * One OpenRegister row as an array.
-	 *
-	 * @param mixed $row An ObjectEntity or an array.
-	 *
-	 * @return array<string, mixed>
-	 */
-	private static function asArray(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			$data = $row->jsonSerialize();
-			if (is_array($data) === true) {
-				return $data;
-			}
-		}
-
-		return [];
-	}//end asArray()
 }//end class

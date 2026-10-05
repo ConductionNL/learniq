@@ -90,7 +90,7 @@ class ExampleSetPortalCommand extends Command {
 		$result = $this->portals->provision(profileId: (string)$input->getArgument('set'));
 		$status = $result['status'];
 
-		$output->writeln(self::describe(result: $result));
+		$output->writeln($this->portals->describe(result: $result));
 
 		if (in_array($status, self::SUCCESS_STATUSES, true) === true) {
 			return self::SUCCESS;
@@ -98,33 +98,4 @@ class ExampleSetPortalCommand extends Command {
 
 		return self::FAILURE;
 	}//end execute()
-
-	/**
-	 * One line that says what the portal step did.
-	 *
-	 * @param array<string, mixed> $result The provisioner's answer.
-	 *
-	 * @return string
-	 *
-	 * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md#requirement-loading-a-set-writes-its-declared-site-once
-	 */
-	public static function describe(array $result): string {
-		$line = 'Portal ' . ($result['slug'] ?? '-') . ': ' . (string)$result['status'];
-		if (isset($result['theme']) === true) {
-			$fallback = '';
-			if (($result['themeFallback'] ?? false) === true) {
-				$fallback = ', fallback';
-			}
-
-			$line .= ' (theme ' . $result['theme'] . $fallback . ')';
-		}
-
-		foreach (['menus', 'pages', 'news'] as $part) {
-			if (isset($result[$part]) === true) {
-				$line .= '; ' . $part . ' ' . (int)$result[$part]['created'] . ' created, ' . (int)$result[$part]['kept'] . ' kept';
-			}
-		}
-
-		return $line;
-	}//end describe()
 }//end class
