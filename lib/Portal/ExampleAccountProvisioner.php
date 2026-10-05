@@ -34,6 +34,7 @@ use OCP\IGroupManager;
 use OCP\IUserManager;
 use OCP\Security\ISecureRandom;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -122,7 +123,7 @@ class ExampleAccountProvisioner {
 				$this->random->generate(72, ISecureRandom::CHAR_ALPHANUMERIC . ISecureRandom::CHAR_SYMBOLS)
 			);
 			if ($user === false) {
-				throw new \RuntimeException('the user backend refused to create it');
+				throw new RuntimeException('the user backend refused to create it');
 			}
 
 			$user->setDisplayName($displayName);
