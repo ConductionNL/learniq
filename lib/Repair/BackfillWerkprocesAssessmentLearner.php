@@ -166,16 +166,12 @@ class BackfillWerkprocesAssessmentLearner implements IRepairStep {
 	 * @return string|null Counter to bump, or null when the row needed nothing.
 	 */
 	private function stampRow(array $row, array &$cache): ?string {
-		$existing = ($row['learnerId'] ?? null);
-		$placementId = ($row['bpvPlacementId'] ?? null);
-		$uuid = ($row['id'] ?? ($row['uuid'] ?? null));
-		if ((is_string($existing) === true && $existing !== '')
-			|| is_string($placementId) === false || $placementId === ''
-			|| is_string($uuid) === false || $uuid === ''
-		) {
+		$candidate = $this->candidate(row: $row);
+		if ($candidate === null) {
 			return null;
 		}
 
+		[$placementId, $uuid] = $candidate;
 		try {
 			if (array_key_exists($placementId, $cache) === false) {
 				$cache[$placementId] = $this->stamp->learnerOfPlacement(placementId: $placementId);
@@ -203,4 +199,27 @@ class BackfillWerkprocesAssessmentLearner implements IRepairStep {
 
 		return 'stamped';
 	}//end stampRow()
+
+	/**
+	 * The placement id and uuid of a row that still needs a learnerId, or
+	 * null when it already has one or lacks either value.
+	 *
+	 * @param array<string, mixed> $row The WerkprocesAssessment.
+	 *
+	 * @return array{0: string, 1: string}|null
+	 */
+	private function candidate(array $row): ?array {
+		$existing = ($row['learnerId'] ?? null);
+		if (is_string($existing) === true && $existing !== '') {
+			return null;
+		}
+
+		$placementId = ($row['bpvPlacementId'] ?? null);
+		$uuid = ($row['id'] ?? ($row['uuid'] ?? null));
+		if (is_string($placementId) === false || $placementId === '' || is_string($uuid) === false || $uuid === '') {
+			return null;
+		}
+
+		return [$placementId, $uuid];
+	}//end candidate()
 }//end class
