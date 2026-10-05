@@ -160,6 +160,31 @@ class CourseEvaluationResponseSubmittedHandlerTest extends TestCase {
 	}//end testFlipsCallersOwnInvitationOnly()
 
 	/**
+	 * The flip is written without RBAC (live pass D12), so when the query
+	 * hands back another learner's row (a filter OpenRegister dropped, or a
+	 * staff caller who reads every invitation), nothing is written.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-submitting-flips-the-caller-s-own-invitation-not-anyone-else-s
+	 */
+	public function testAnotherLearnersRowIsNeverFlipped(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('learner-1');
+		$userSession = $this->createMock(IUserSession::class);
+		$userSession->method('getUser')->willReturn($user);
+
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturn(
+			[['id' => 'inv-2', 'campaignId' => 'campaign-1', 'learnerId' => 'learner-2', 'hasResponded' => false]]
+		);
+		$objectService->expects(self::never())->method('saveObject');
+
+		$handler = new CourseEvaluationResponseSubmittedHandler($userSession, $objectService, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
+		$handler->handle($this->makeEvent(['campaignId' => 'campaign-1', 'courseId' => 'course-1', 'answers' => []]));
+	}//end testAnotherLearnersRowIsNeverFlipped()
+
+	/**
 	 * The updated EvaluationInvitation gains no field referencing the
 	 * submitted response's identity or content — only hasResponded/
 	 * respondedAt change relative to the pre-existing row.

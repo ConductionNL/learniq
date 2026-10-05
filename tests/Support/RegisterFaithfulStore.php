@@ -48,6 +48,22 @@
  *   that was never saved keeps the uuid, as a stored object does until it is
  *   saved again.
  *
+ * - When a test names the caller's groups (`$callerGroups`, with
+ *   `$actingUser` as the uid), a read with `_rbac` true returns only the rows
+ *   the shipped authorization lets that caller read, and a save with `_rbac`
+ *   true is refused unless the caller may create or update, the way
+ *   MagicRbacHandler (list) and PermissionHandler (write) do: the schema's
+ *   own `authorization` block when it has one, else the register's, with
+ *   `roles` expanded through the register's role definitions; `admin`
+ *   bypasses; a plain group, `authenticated` and `public` grant outright;
+ *   `{group, match}` grants a row whose properties equal the match, with
+ *   `$userId` resolved to the caller and an unresolved variable denying. A
+ *   block without the action denies; an empty block is open. Live pass D12:
+ *   the learner's own evaluation invitations listed empty because the
+ *   schema gave the learner no read. Rows here carry no owner, so the
+ *   owner-admits rule is not modelled. With `$callerGroups` null (the
+ *   default) no rights are checked, as before.
+ *
  * Saves are applied, so a test can read back what a call site wrote.
  *
  * @category Tests
@@ -154,6 +170,13 @@ final class RegisterFaithfulStore {
 	public string $actingUser = '';
 
 	/**
+	 * The caller's Nextcloud groups; null leaves rights unchecked.
+	 *
+	 * @var array<int, string>|null
+	 */
+	public ?array $callerGroups = null;
+
+	/**
 	 * `@self.name` per schema slug and object id, as the last save hydrated it.
 	 *
 	 * @var array<string, array<string, string>>
@@ -209,6 +232,10 @@ final class RegisterFaithfulStore {
 				continue;
 			}
 
+			if ($rbac === true && $this->callerMay(schema: $schema, action: 'read', row: $row) === false) {
+				continue;
+			}
+
 			if ($this->matches(row: $row, filters: $filters, declared: $declared) === true) {
 				$matches[] = $row;
 			}
@@ -235,10 +262,13 @@ final class RegisterFaithfulStore {
 	 * @param string $schema Schema slug.
 	 * @param array<string, mixed> $object The object data.
 	 * @param string|null $uuid The uuid argument.
+	 * @param bool $rbac The _rbac flag: true checks the caller's create/update right.
 	 *
 	 * @return ObjectEntity
+	 *
+	 * @throws RuntimeException When the caller may not write, or a readOnly key changes.
 	 */
-	public function save(string $schema, array $object, ?string $uuid): ObjectEntity {
+	public function save(string $schema, array $object, ?string $uuid, bool $rbac = true): ObjectEntity {
 		$this->saves[] = ['schema' => $schema, 'object' => $object, 'uuid' => $uuid];
 		foreach (self::encryptedProperties(schema: $schema) as $encrypted) {
 			unset($object[$encrypted]);
@@ -250,6 +280,13 @@ final class RegisterFaithfulStore {
 			if (($row['id'] ?? null) === $id) {
 				$stored = $row;
 			}
+		}
+
+		$action = ($stored === null ? 'create' : 'update');
+		if ($rbac === true && $this->callerMay(schema: $schema, action: $action, row: ($stored ?? $object)) === false) {
+			throw new RuntimeException(
+				"User '" . $this->actingUser . "' does not have permission to '" . $action . "' objects in schema '" . $schema . "'"
+			);
 		}
 
 		if ($stored !== null) {
@@ -274,6 +311,140 @@ final class RegisterFaithfulStore {
 		$this->rows[$schema][] = $object;
 		return $this->entity(schema: $schema, object: $object, name: $name);
 	}//end save()
+
+	/**
+	 * Whether the caller may do an action on a row, by the shipped authorization.
+	 *
+	 * True when no caller groups are set (rights not modelled for this test).
+	 *
+	 * @param string               $schema The schema slug.
+	 * @param string               $action read, create, update or delete.
+	 * @param array<string, mixed> $row    The stored row (or, for a create, the payload).
+	 *
+	 * @return bool
+	 */
+	public function callerMay(string $schema, string $action, array $row): bool {
+		if ($this->callerGroups === null || in_array('admin', $this->callerGroups, true) === true) {
+			return true;
+		}
+
+		$authorization = self::effectiveAuthorization(schema: $schema);
+		if ($authorization === []) {
+			return true;
+		}
+
+		foreach ((array)($authorization[$action] ?? []) as $rule) {
+			if (is_string($rule) === true) {
+				if ($this->qualifies(group: $rule) === true) {
+					return true;
+				}
+
+				continue;
+			}
+
+			if (is_array($rule) === false || $this->qualifies(group: (string)($rule['group'] ?? '')) === false) {
+				continue;
+			}
+
+			if ($this->rowMatches(row: $row, match: (array)($rule['match'] ?? [])) === true) {
+				return true;
+			}
+		}
+
+		return false;
+	}//end callerMay()
+
+	/**
+	 * Whether the caller qualifies for a group named in a rule.
+	 *
+	 * @param string $group The group, `authenticated` or `public`.
+	 *
+	 * @return bool
+	 */
+	private function qualifies(string $group): bool {
+		if ($group === 'public') {
+			return true;
+		}
+
+		if ($group === 'authenticated') {
+			return $this->actingUser !== '';
+		}
+
+		return in_array($group, (array)$this->callerGroups, true);
+	}//end qualifies()
+
+	/**
+	 * Whether a row satisfies a rule's match: every key equal, `$userId` the caller.
+	 *
+	 * An unresolved `$variable` or an operator object denies (fail closed,
+	 * as MagicRbacHandler emits the impossible predicate for an unresolved
+	 * variable); this store models equality only.
+	 *
+	 * @param array<string, mixed> $row   The row.
+	 * @param array<string, mixed> $match The rule's match.
+	 *
+	 * @return bool
+	 */
+	private function rowMatches(array $row, array $match): bool {
+		foreach ($match as $property => $expected) {
+			if ($expected === '$userId' || $expected === '$user') {
+				$expected = $this->actingUser;
+				if ($expected === '') {
+					return false;
+				}
+			} elseif (is_string($expected) === true && str_starts_with($expected, '$') === true) {
+				return false;
+			} elseif (is_array($expected) === true) {
+				return false;
+			}
+
+			if (($row[$property] ?? null) !== $expected) {
+				return false;
+			}
+		}
+
+		return true;
+	}//end rowMatches()
+
+	/**
+	 * The authorization OpenRegister applies to a schema: its own block, else
+	 * the register's, with `roles` expanded to actions through the register's
+	 * role definitions (PermissionHandler::resolveAuthorizationRaw/expandRoles).
+	 *
+	 * @param string $schema The schema slug.
+	 *
+	 * @return array<string, array<int, mixed>>
+	 */
+	public static function effectiveAuthorization(string $schema): array {
+		$register = json_decode(
+			(string)file_get_contents(__DIR__ . '/../../lib/Settings/learniq_register.json'),
+			true
+		);
+		$learniq = ($register['components']['registers']['learniq'] ?? []);
+		$block = (array)(self::definition(schema: $schema)['authorization'] ?? []);
+		if ($block === []) {
+			$block = (array)($learniq['authorization'] ?? []);
+		}
+
+		$roles = (array)($block['roles'] ?? []);
+		unset($block['roles']);
+		$definitions = [];
+		foreach ((array)($learniq['configuration']['roles'] ?? []) as $definition) {
+			$definitions[(string)($definition['name'] ?? '')] = (array)($definition['actions'] ?? []);
+		}
+
+		foreach ($roles as $role => $groups) {
+			foreach (($definitions[$role] ?? []) as $action) {
+				foreach ((array)$groups as $group) {
+					if (in_array($group, ($block[$action] ?? []), true) === false) {
+						$block[$action][] = $group;
+					}
+				}
+			}
+		}
+
+		return $block;
+	}//end effectiveAuthorization()
 
 	/**
 	 * The entity a save answers with, carrying its hydrated name.
