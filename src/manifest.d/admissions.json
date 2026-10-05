@@ -369,7 +369,11 @@
 				"register": "learniq",
 				"schema": "school-advies",
 				"columns": [
-					"learnerId",
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
 					"academicYear",
 					"voorlopigAdviesLevel",
 					"definitiefAdviesLevel",

@@ -222,7 +222,38 @@
 			"title": "Enrolments",
 			"config": {
 				"register": "learniq",
-				"schema": "Enrolment"
+				"schema": "Enrolment",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					{
+						"key": "cohortId",
+						"label": "Group",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "cohort"
+						}
+					},
+					"lifecycle",
+					{
+						"key": "dueDate",
+						"label": "Due Date",
+						"formatter": "date"
+					}
+				]
 			}
 		},
 		{
@@ -1366,11 +1397,17 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "cohortId",
-									"label": "Cohort ID"
+									"label": "Group",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "cohort"
+									}
 								},
 								{
 									"key": "metricValue",
