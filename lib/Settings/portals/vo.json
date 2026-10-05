@@ -1,0 +1,1207 @@
+{
+  "$comment": "Portal declaration of the vo example set (openspec/changes/example-portal-declares-its-site). Read by ExamplePortalProvisioner on every example-set load. A portal, menu, page, news item or account that already exists is never changed; only what is missing is written.",
+  "set": "vo",
+  "portal": {
+    "slug": "vaartveld",
+    "title": "Mijn Vaartveld",
+    "tagline": "Vaartveld College",
+    "theme": "vaartveld",
+    "themeFallback": "example-voortgezet",
+    "headerVariant": "double",
+    "locales": [
+      "nl",
+      "en"
+    ],
+    "authentication": {
+      "modes": [
+        "nextcloud",
+        "digid"
+      ],
+      "minTrust": "low",
+      "modeLabels": {
+        "nextcloud": {
+          "title": "Ik ben leerling",
+          "text": "Voor je rooster, je huiswerk, je cijfers en berichten van je mentor.",
+          "button": "Inloggen met je schoolaccount",
+          "hint": "Je leerlingnummer en het wachtwoord van school."
+        },
+        "digid": {
+          "title": "Ik ben ouder of verzorger",
+          "text": "Om uw kind ziek te melden, cijfers en afwezigheid te zien en een mentorgesprek te plannen.",
+          "button": "Inloggen met DigiD",
+          "hint": "U ziet alleen de gegevens van uw eigen kind."
+        }
+      }
+    },
+    "headerSearch": {
+      "label": "Zoeken op de website",
+      "route": "/zoeken"
+    },
+    "footer": {
+      "description": "Een vraag? Bel of mail de school. Op schooldagen zijn we bereikbaar van 08.00 tot 16.30 uur.",
+      "colophon": "Vaartveld College is een voorbeeldschool. Deze website laat zien hoe portaliq, learniq en Nextcloud samen werken.",
+      "cta": {
+        "label": "Contact en lestijden",
+        "href": "/contact"
+      }
+    }
+  },
+  "legacyTitles": [
+    "Studentenportaal Vaartveld"
+  ],
+  "menus": [
+    {
+      "position": 0,
+      "title": "Hoofdmenu",
+      "items": [
+        {
+          "order": 1,
+          "name": "Home",
+          "link": "/"
+        },
+        {
+          "order": 2,
+          "name": "Onze school",
+          "link": "/onze-school"
+        },
+        {
+          "order": 3,
+          "name": "Onderwijs",
+          "link": "/onderwijs"
+        },
+        {
+          "order": 4,
+          "name": "Praktisch",
+          "link": "/praktisch"
+        },
+        {
+          "order": 5,
+          "name": "Nieuws",
+          "link": "/zoeken"
+        },
+        {
+          "order": 6,
+          "name": "Agenda",
+          "link": "/praktisch/vakanties"
+        },
+        {
+          "order": 7,
+          "name": "Aanmelden",
+          "link": "/aanmelden"
+        }
+      ]
+    },
+    {
+      "position": 1,
+      "title": "Contact",
+      "items": [
+        {
+          "order": 1,
+          "name": "Vaartlaan 40, Zuiddrecht",
+          "link": "/contact"
+        },
+        {
+          "order": 2,
+          "name": "Telefoon: [telefoonnummer]",
+          "link": "/contact"
+        },
+        {
+          "order": 3,
+          "name": "E-mail: [e-mailadres]",
+          "link": "/contact"
+        }
+      ]
+    },
+    {
+      "position": 1,
+      "title": "Snel naar",
+      "items": [
+        {
+          "order": 1,
+          "name": "Ziek melden en verlof",
+          "link": "/praktisch/ziek-melden"
+        },
+        {
+          "order": 2,
+          "name": "Vakanties en vrije dagen",
+          "link": "/praktisch/vakanties"
+        },
+        {
+          "order": 3,
+          "name": "Nieuws en documenten",
+          "link": "/zoeken"
+        },
+        {
+          "order": 4,
+          "name": "Aanmelden voor klas 1",
+          "link": "/aanmelden"
+        }
+      ]
+    },
+    {
+      "position": 1,
+      "title": "Over deze website",
+      "items": [
+        {
+          "order": 1,
+          "name": "Toegankelijkheid",
+          "link": "/toegankelijkheid"
+        },
+        {
+          "order": 2,
+          "name": "Privacy",
+          "link": "/privacy"
+        },
+        {
+          "order": 3,
+          "name": "Cookies",
+          "link": "/cookies"
+        },
+        {
+          "order": 4,
+          "name": "Klacht of zorg melden",
+          "link": "/klacht"
+        }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "route": "/",
+      "title": "Home",
+      "summary": "Vaartveld College, havo en vwo aan de vaart in Zuiddrecht.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "vv-home-01-nlbanner",
+            "widgetKey": "nlBanner",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "kind": "info",
+              "text": "Herfstvakantie: van zaterdag 17 tot en met zondag 25 oktober is de school dicht.",
+              "closable": true
+            }
+          },
+          {
+            "id": "vv-home-02-hero",
+            "widgetKey": "hero",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 4,
+            "props": {
+              "title": "Kijk ver vooruit.",
+              "subtitle": "Vaartveld College is de school voor havo en vwo aan de vaart in Zuiddrecht. Hier leer je kiezen, proberen en doorzetten.",
+              "actions": [
+                {
+                  "label": "Kom kennismaken",
+                  "href": "/aanmelden"
+                },
+                {
+                  "label": "Lees wat er speelt op school",
+                  "href": "/zoeken"
+                }
+              ]
+            }
+          },
+          {
+            "id": "vv-home-03-nlquicktasks",
+            "widgetKey": "nlQuickTasks",
+            "gridX": 0,
+            "gridY": 5,
+            "gridWidth": 12,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Direct regelen",
+              "columns": 3,
+              "overlap": true,
+              "items": [
+                {
+                  "label": "Rooster en wijzigingen",
+                  "href": "/mijn",
+                  "icon": "Calendar"
+                },
+                {
+                  "label": "Ziek melden en verlof",
+                  "href": "/praktisch/ziek-melden",
+                  "icon": "AlertCircleOutline"
+                },
+                {
+                  "label": "Vakanties en vrije dagen",
+                  "href": "/praktisch/vakanties",
+                  "icon": "WeatherSunny"
+                },
+                {
+                  "label": "Cijfers en huiswerk",
+                  "href": "/mijn",
+                  "icon": "Pencil"
+                },
+                {
+                  "label": "Lestijden en pauzes",
+                  "href": "/praktisch/lestijden",
+                  "icon": "ClockOutline"
+                },
+                {
+                  "label": "Aanmelden voor klas 1",
+                  "href": "/aanmelden",
+                  "icon": "AccountPlusOutline"
+                },
+                {
+                  "label": "Schoolgids en PTA",
+                  "href": "/zoeken",
+                  "icon": "BookOpenPageVariantOutline"
+                },
+                {
+                  "label": "Contact met de school",
+                  "href": "/contact",
+                  "icon": "Email"
+                },
+                {
+                  "label": "Boeken en schoolkosten",
+                  "href": "/praktisch",
+                  "icon": "CashMultiple"
+                }
+              ],
+              "moreLabel": "Alle praktische informatie",
+              "moreHref": "/praktisch"
+            }
+          },
+          {
+            "id": "vv-home-04-nlnewslist",
+            "widgetKey": "nlNewsList",
+            "gridX": 0,
+            "gridY": 8,
+            "gridWidth": 8,
+            "gridHeight": 5,
+            "props": {
+              "heading": "Nieuws",
+              "limit": 6,
+              "featured": true,
+              "showAudience": true,
+              "moreLabel": "Al het nieuws",
+              "moreHref": "/zoeken",
+              "articleRoute": "/nieuws"
+            }
+          },
+          {
+            "id": "vv-home-05-nlsignin",
+            "widgetKey": "nlSignIn",
+            "gridX": 8,
+            "gridY": 8,
+            "gridWidth": 4,
+            "gridHeight": 5,
+            "props": {
+              "heading": "Mijn Vaartveld",
+              "display": "card",
+              "points": [
+                "Je rooster en wat er vandaag wijzigt",
+                "Huiswerk, toetsen en cijfers",
+                "Ouders melden hier hun kind ziek"
+              ],
+              "buttonLabel": "Inloggen",
+              "signInHref": "/mijn",
+              "tone": "inverse"
+            }
+          },
+          {
+            "id": "vv-home-06-nleventlist",
+            "widgetKey": "nlEventList",
+            "gridX": 0,
+            "gridY": 13,
+            "gridWidth": 12,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Agenda",
+              "display": "labels",
+              "upcomingOnly": false,
+              "limit": 6,
+              "items": [
+                {
+                  "date": "2026-10-13",
+                  "endDate": "2026-10-15",
+                  "dateLabel": "13 en 15 okt",
+                  "title": "Mentorgesprekken"
+                },
+                {
+                  "date": "2026-10-17",
+                  "endDate": "2026-10-25",
+                  "dateLabel": "17 - 25 okt",
+                  "title": "Herfstvakantie"
+                },
+                {
+                  "date": "2026-11-03",
+                  "title": "Informatieavond profielkeuze, klas 3",
+                  "href": "/nieuws"
+                },
+                {
+                  "date": "2026-11-09",
+                  "endDate": "2026-11-13",
+                  "dateLabel": "9 - 13 nov",
+                  "title": "Toetsweek 1, bovenbouw"
+                }
+              ],
+              "moreLabel": "Hele jaaragenda",
+              "moreHref": "/praktisch/vakanties"
+            }
+          },
+          {
+            "id": "vv-home-07-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 0,
+            "gridY": 16,
+            "gridWidth": 6,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Havo",
+              "links": [
+                {
+                  "label": "De brugklas",
+                  "href": "/onderwijs"
+                },
+                {
+                  "label": "Profielkeuze in klas 3",
+                  "href": "/onderwijs"
+                },
+                {
+                  "label": "Examen en doorstromen naar hbo of vwo",
+                  "href": "/onderwijs"
+                }
+              ]
+            }
+          },
+          {
+            "id": "vv-home-08-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 6,
+            "gridY": 16,
+            "gridWidth": 6,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Vwo",
+              "links": [
+                {
+                  "label": "De brugklas",
+                  "href": "/onderwijs"
+                },
+                {
+                  "label": "Profielkeuze in klas 3",
+                  "href": "/onderwijs"
+                },
+                {
+                  "label": "Examen en doorstromen naar de universiteit",
+                  "href": "/onderwijs"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/praktisch/ziek-melden",
+      "title": "Ziek melden en verlof",
+      "summary": "Meld uw kind voor 08.15 uur ziek in Mijn Vaartveld.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "vv-ziek-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Ziek melden en verlof",
+              "level": 1
+            }
+          },
+          {
+            "id": "vv-ziek-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Is uw kind ziek? Meld het voor 08.15 uur. Dat gaat het snelst in Mijn Vaartveld: de mentor en de docenten zien uw melding meteen."
+            }
+          },
+          {
+            "id": "vv-ziek-03-nlalert",
+            "widgetKey": "nlAlert",
+            "gridX": 0,
+            "gridY": 2,
+            "gridWidth": 8,
+            "gridHeight": 2,
+            "props": {
+              "kind": "info",
+              "heading": "Melden duurt een minuut",
+              "text": "U logt in met DigiD. Liever bellen? Dat kan op schooldagen vanaf 07.45 uur via [telefoonnummer]."
+            }
+          },
+          {
+            "id": "vv-ziek-04-nlbuttonlink",
+            "widgetKey": "nlButtonLink",
+            "gridX": 8,
+            "gridY": 2,
+            "gridWidth": 4,
+            "gridHeight": 2,
+            "props": {
+              "label": "Ziek melden",
+              "href": "/mijn",
+              "kind": "primary"
+            }
+          },
+          {
+            "id": "vv-ziek-05-nltable",
+            "widgetKey": "nlTable",
+            "gridX": 0,
+            "gridY": 4,
+            "gridWidth": 12,
+            "gridHeight": 4,
+            "props": {
+              "caption": "Wat meldt u hoe?",
+              "columns": [
+                "Wat is er",
+                "Wat u doet",
+                "Wanneer"
+              ],
+              "rows": [
+                [
+                  "Uw kind is ziek",
+                  "Ziek melden in Mijn Vaartveld of bellen",
+                  "Op de eerste dag, voor 08.15 uur"
+                ],
+                [
+                  "Uw kind is weer beter",
+                  "Beter melden in Mijn Vaartveld",
+                  "Op de dag dat uw kind weer naar school gaat"
+                ],
+                [
+                  "Dokter, tandarts of orthodontist",
+                  "De afspraak doorgeven in Mijn Vaartveld",
+                  "Minstens een dag van tevoren"
+                ],
+                [
+                  "Een bijzondere dag, zoals een bruiloft",
+                  "Verlof aanvragen bij de teamleider",
+                  "Minstens twee weken van tevoren"
+                ]
+              ]
+            }
+          },
+          {
+            "id": "vv-ziek-06-markdown",
+            "widgetKey": "markdown",
+            "gridX": 0,
+            "gridY": 8,
+            "gridWidth": 8,
+            "gridHeight": 6,
+            "props": {
+              "markdown": "## Ziek op de dag van een toets\n\nMeld uw kind ziek voordat de toets begint. Dan mag uw kind de toets inhalen. De docent spreekt daarvoor een moment af. Zonder melding telt de toets als gemist.\n\n## Afwezig zonder melding\n\nStaat uw kind afwezig en hebben wij geen melding? Dan krijgt u dezelfde dag een bericht in Mijn Vaartveld. De mentor neemt contact op als het vaker gebeurt. Bij 16 uur afwezigheid zonder geldige reden in vier weken moet de school dit melden bij de leerplichtambtenaar van de gemeente Zuiddrecht.\n\n## 18 jaar of ouder?\n\nDan meld je jezelf ziek, met je schoolaccount in Mijn Vaartveld.\n\n## Is uw kind lang ziek?\n\nDan denkt de zorgcoördinator, Anouk Visser, met u mee over schoolwerk en terugkomen."
+            }
+          },
+          {
+            "id": "vv-ziek-07-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 8,
+            "gridY": 8,
+            "gridWidth": 4,
+            "gridHeight": 6,
+            "props": {
+              "heading": "Meer praktische zaken",
+              "links": [
+                {
+                  "label": "Lestijden en pauzes",
+                  "href": "/praktisch/lestijden"
+                },
+                {
+                  "label": "Vakanties en vrije dagen",
+                  "href": "/praktisch/vakanties"
+                },
+                {
+                  "label": "Te laat komen",
+                  "href": "/praktisch"
+                },
+                {
+                  "label": "Schoolregels",
+                  "href": "/praktisch"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/nieuws",
+      "title": "Nieuws",
+      "summary": "Nieuws van Vaartveld College.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "vv-nieuws-01-nlnewsarticle",
+            "widgetKey": "nlNewsArticle",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 8,
+            "gridHeight": 8,
+            "props": {
+              "backLabel": "Terug naar het nieuws"
+            }
+          },
+          {
+            "id": "vv-nieuws-02-nlnewslist",
+            "widgetKey": "nlNewsList",
+            "gridX": 8,
+            "gridY": 0,
+            "gridWidth": 4,
+            "gridHeight": 8,
+            "props": {
+              "heading": "Meer nieuws",
+              "limit": 3,
+              "featured": false,
+              "display": "compact",
+              "articleRoute": "/nieuws"
+            }
+          },
+          {
+            "id": "vv-nieuws-03-nlsignin",
+            "widgetKey": "nlSignIn",
+            "gridX": 0,
+            "gridY": 8,
+            "gridWidth": 12,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Kom je ook?",
+              "display": "card",
+              "intro": "Meld je aan met je ouders, dan weten wij hoeveel stoelen er nodig zijn. Je logt eerst in bij Mijn Vaartveld.",
+              "buttonLabel": "Aanmelden voor de avond",
+              "signInHref": "/mijn",
+              "tone": "plain"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/zoeken",
+      "title": "Nieuws en documenten",
+      "summary": "Het nieuws, de toetsroosters, brieven aan ouders en de schoolgids.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "vv-zoeken-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Nieuws en documenten",
+              "level": 1
+            }
+          },
+          {
+            "id": "vv-zoeken-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Het nieuws van de school, de toetsroosters, brieven aan ouders, de schoolgids en de regels voor het examen."
+            }
+          },
+          {
+            "id": "vv-zoeken-03-nlnewslist",
+            "widgetKey": "nlNewsList",
+            "gridX": 0,
+            "gridY": 2,
+            "gridWidth": 12,
+            "gridHeight": 6,
+            "props": {
+              "heading": "Nieuws",
+              "limit": 12,
+              "featured": false,
+              "showAudience": true,
+              "articleRoute": "/nieuws"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/praktisch",
+      "title": "Praktisch",
+      "summary": "Alles wat je nodig hebt voor een gewone schooldag.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "vv-praktisch-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Praktisch",
+              "level": 1
+            }
+          },
+          {
+            "id": "vv-praktisch-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Alles wat je nodig hebt voor een gewone schooldag."
+            }
+          },
+          {
+            "id": "vv-praktisch-03-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 0,
+            "gridY": 2,
+            "gridWidth": 6,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Praktische zaken",
+              "links": [
+                {
+                  "label": "Ziek melden en verlof",
+                  "href": "/praktisch/ziek-melden"
+                },
+                {
+                  "label": "Vakanties en vrije dagen",
+                  "href": "/praktisch/vakanties"
+                },
+                {
+                  "label": "Lestijden en pauzes",
+                  "href": "/praktisch/lestijden"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/praktisch/vakanties",
+      "title": "Vakanties en vrije dagen",
+      "summary": "Herfstvakantie van zaterdag 17 tot en met zondag 25 oktober 2026. Toetsweek 1 voor de bovenbouw is van 9 tot en met 13 november.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "vv-praktisch-vakanties-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Vakanties en vrije dagen",
+              "level": 1
+            }
+          },
+          {
+            "id": "vv-praktisch-vakanties-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Herfstvakantie van zaterdag 17 tot en met zondag 25 oktober 2026. Toetsweek 1 voor de bovenbouw is van 9 tot en met 13 november."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/praktisch/lestijden",
+      "title": "Lestijden en pauzes",
+      "summary": "Het eerste uur begint om 08.30 uur. Een lesuur duurt 50 minuten. De pauzes zijn van 10.10 tot 10.30 uur en van 12.10 tot 12.40 uur.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "vv-praktisch-lestijden-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Lestijden en pauzes",
+              "level": 1
+            }
+          },
+          {
+            "id": "vv-praktisch-lestijden-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Het eerste uur begint om 08.30 uur. Een lesuur duurt 50 minuten. De pauzes zijn van 10.10 tot 10.30 uur en van 12.10 tot 12.40 uur."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/onze-school",
+      "title": "Onze school",
+      "summary": "Vaartveld College is de school voor havo en vwo aan de vaart in Zuiddrecht. Hier leer je kiezen, proberen en doorzetten.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "vv-onze-school-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Onze school",
+              "level": 1
+            }
+          },
+          {
+            "id": "vv-onze-school-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Vaartveld College is de school voor havo en vwo aan de vaart in Zuiddrecht. Hier leer je kiezen, proberen en doorzetten."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/onderwijs",
+      "title": "Onderwijs",
+      "summary": "Havo en vwo, van de brugklas tot het examen. In klas 3 kies je een profiel.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "vv-onderwijs-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Onderwijs",
+              "level": 1
+            }
+          },
+          {
+            "id": "vv-onderwijs-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Havo en vwo, van de brugklas tot het examen. In klas 3 kies je een profiel."
+            }
+          },
+          {
+            "id": "vv-onderwijs-03-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 0,
+            "gridY": 2,
+            "gridWidth": 6,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Profielkeuze",
+              "links": [
+                {
+                  "label": "Informatieavond profielkeuze op dinsdag 3 november",
+                  "href": "/nieuws"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/aanmelden",
+      "title": "Aanmelden voor klas 1",
+      "summary": "Kom kennismaken op een open dag of loop een ochtend mee in de brugklas.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "vv-aanmelden-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Aanmelden voor klas 1",
+              "level": 1
+            }
+          },
+          {
+            "id": "vv-aanmelden-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Kom kennismaken op een open dag of loop een ochtend mee in de brugklas."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/contact",
+      "title": "Contact en lestijden",
+      "summary": "Vaartlaan 40, Zuiddrecht. Telefoon: [telefoonnummer]. E-mail: [e-mailadres]. Op schooldagen zijn we bereikbaar van 08.00 tot 16.30 uur.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "vv-contact-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Contact en lestijden",
+              "level": 1
+            }
+          },
+          {
+            "id": "vv-contact-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Vaartlaan 40, Zuiddrecht. Telefoon: [telefoonnummer]. E-mail: [e-mailadres]. Op schooldagen zijn we bereikbaar van 08.00 tot 16.30 uur."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/toegankelijkheid",
+      "title": "Toegankelijkheid",
+      "summary": "Deze website is gemaakt volgens de NL Design System richtlijnen en toegankelijk volgens WCAG 2.2 niveau AA.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "vv-toegankelijkheid-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Toegankelijkheid",
+              "level": 1
+            }
+          },
+          {
+            "id": "vv-toegankelijkheid-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Deze website is gemaakt volgens de NL Design System richtlijnen en toegankelijk volgens WCAG 2.2 niveau AA."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/privacy",
+      "title": "Privacy",
+      "summary": "Vaartveld College is een voorbeeldschool. Op deze website staan geen echte gegevens van leerlingen of ouders.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "vv-privacy-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Privacy",
+              "level": 1
+            }
+          },
+          {
+            "id": "vv-privacy-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Vaartveld College is een voorbeeldschool. Op deze website staan geen echte gegevens van leerlingen of ouders."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/cookies",
+      "title": "Cookies",
+      "summary": "Deze website gebruikt alleen cookies die nodig zijn om in te loggen.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "vv-cookies-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Cookies",
+              "level": 1
+            }
+          },
+          {
+            "id": "vv-cookies-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Deze website gebruikt alleen cookies die nodig zijn om in te loggen."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/klacht",
+      "title": "Klacht of zorg melden",
+      "summary": "Heeft u een klacht of maakt u zich zorgen? Praat eerst met de mentor. Komt u er samen niet uit, neem dan contact op met de teamleider.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "vv-klacht-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Klacht of zorg melden",
+              "level": 1
+            }
+          },
+          {
+            "id": "vv-klacht-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Heeft u een klacht of maakt u zich zorgen? Praat eerst met de mentor. Komt u er samen niet uit, neem dan contact op met de teamleider."
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "news": [
+    {
+      "title": "Informatieavond profielkeuze op dinsdag 3 november",
+      "publishedAt": "2026-10-02T12:00:00+02:00",
+      "public": true,
+      "authorRef": "vo-decaan-01",
+      "target": {
+        "schoolRef": "ee020001-0000-4000-8000-000000000001"
+      },
+      "body": "In klas 3 kies je een profiel: de vakken waarin je examen doet. Op deze avond hoor je met je ouders hoe dat gaat en wat je met elk profiel kunt.\n\n- **Wanneer:** dinsdag 3 november 2026, 19.30 tot 21.00 uur\n- **Waar:** aula van Vaartveld College, Vaartlaan 40\n- **Voor wie:** leerlingen van 3 havo en 3 vwo en hun ouders\n- **Aanmelden:** tot en met vrijdag 30 oktober\n\nDe decaan legt uit wat een profiel is en wanneer je kiest. Daarna loop je langs de vier profielen. Je kiest niet op deze avond. In december en januari praat je met je mentor en de decaan. Je voorlopige keuze geef je door in februari. Een vraag? Mail de decaan, Marloes Peters, via [e-mailadres decaan]."
+    },
+    {
+      "title": "Toetsweek 1: het rooster staat online",
+      "publishedAt": "2026-09-30T12:05:00+02:00",
+      "public": true,
+      "authorRef": "vo-teamleider-02",
+      "target": {
+        "schoolRef": "ee020001-0000-4000-8000-000000000001"
+      },
+      "body": "De eerste toetsweek is van 9 tot en met 13 november. Je vindt je eigen rooster in Mijn Vaartveld."
+    },
+    {
+      "title": "Klas 2 wint het debattoernooi van Zuiddrecht",
+      "publishedAt": "2026-09-24T12:00:00+02:00",
+      "public": true,
+      "authorRef": "vo-teamleider-02",
+      "target": {
+        "schoolRef": "ee020001-0000-4000-8000-000000000001"
+      },
+      "body": "Het team van klas 2 won de finale van het debattoernooi voor scholen in Zuiddrecht."
+    },
+    {
+      "title": "De nieuwe fietsenstalling aan de Vaartlaan is open",
+      "publishedAt": "2026-09-17T12:00:00+02:00",
+      "public": true,
+      "authorRef": "vo-teamleider-02",
+      "target": {
+        "schoolRef": "ee020001-0000-4000-8000-000000000001"
+      },
+      "body": "De nieuwe fietsenstalling heeft plek voor 600 fietsen en is overdekt."
+    },
+    {
+      "title": "Zo werkt de steunles voor wiskunde, Engels en Nederlands",
+      "publishedAt": "2026-09-10T12:00:00+02:00",
+      "public": true,
+      "authorRef": "vo-teamleider-02",
+      "target": {
+        "schoolRef": "ee020001-0000-4000-8000-000000000001"
+      },
+      "body": "Elke week is er steunles voor wiskunde, Engels en Nederlands. Je schrijft je in via Mijn Vaartveld."
+    },
+    {
+      "title": "Welkom terug: de eerste schoolweek in het kort",
+      "publishedAt": "2026-09-01T12:00:00+02:00",
+      "public": true,
+      "authorRef": "vo-teamleider-02",
+      "target": {
+        "schoolRef": "ee020001-0000-4000-8000-000000000001"
+      },
+      "body": "Een korte terugblik op de eerste schoolweek, met de belangrijkste data van dit jaar."
+    }
+  ],
+  "accounts": [
+    {
+      "userId": "vo-docent-01",
+      "displayName": "Sanne Kramer",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
+      "userId": "vo-docent-07",
+      "displayName": "Emre Demir",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
+      "userId": "vo-docent-13",
+      "displayName": "Thomas de Boer",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
+      "userId": "vo-docent-03",
+      "displayName": "Ingrid Jansen",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
+      "userId": "vo-docent-10",
+      "displayName": "Arjen Willems",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
+      "userId": "vo-docent-14",
+      "displayName": "Ellen Hendriks",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
+      "userId": "vo-docent-12",
+      "displayName": "Wouter Mulder",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
+      "userId": "vo-docent-11",
+      "displayName": "Naima Vos",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
+      "userId": "vo-docent-19",
+      "displayName": "Bart Dijkstra",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
+      "userId": "vo-docent-21",
+      "displayName": "Youssef El Idrissi",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
+      "userId": "vo-teamleider-02",
+      "displayName": "Jeroen Smit",
+      "groups": [
+        "team-leads"
+      ]
+    },
+    {
+      "userId": "vo-zorgcoordinator-01",
+      "displayName": "Anouk Visser",
+      "groups": [
+        "coordinators"
+      ]
+    },
+    {
+      "userId": "vo-decaan-01",
+      "displayName": "Marloes Peters",
+      "groups": [
+        "coordinators"
+      ]
+    },
+    {
+      "userId": "vo-leerling-121",
+      "displayName": "Noor Bakker",
+      "groups": []
+    }
+  ]
+}

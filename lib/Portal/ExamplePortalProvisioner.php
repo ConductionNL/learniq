@@ -33,7 +33,15 @@
  *
  * @link https://conduction.nl
  *
+ * Since example-portal-declares-its-site the four designed schools (po, vo,
+ * mbo, training) declare their whole site in `lib/Settings/portals/<set>.json`:
+ * the portal with its designed theme and a fallback, its sign-in modes and
+ * footer, its menus, website pages and news. Everything is written only when
+ * it is missing, so a second load writes nothing and an editor's change is
+ * never undone.
+ *
  * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md
+ * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
  */
 
 declare(strict_types=1);
@@ -70,13 +78,13 @@ class ExamplePortalProvisioner {
 	public const SCHEMA = 'portal';
 
 	/**
-	 * The portal each example set gets.
+	 * The portal of a set that ships no declaration (he and corporate), and
+	 * the slug and fallback theme of the four that do.
 	 *
-	 * The theme ids are thematiq's example token sets (thematiq#765).
-	 * "College" is the mbo set; he borrows it and corporate borrows the
-	 * training provider's, as the closest match. The po slug is `wilgenboom`
-	 * because that portal already exists on test instances, made by hand,
-	 * and loading the set must find it rather than add a second one.
+	 * The theme ids are thematiq's example token sets (thematiq#765). The
+	 * four designed schools prefer their own token set and fall back to these
+	 * (their declaration names both). he borrows "college" and corporate the
+	 * training provider's set, as the closest match.
 	 *
 	 * @var array<string, array{slug: string, theme: string, title: string, tagline: string}>
 	 */
@@ -84,20 +92,20 @@ class ExamplePortalProvisioner {
 		'po'        => [
 			'slug'    => 'wilgenboom',
 			'theme'   => 'example-basisschool',
-			'title'   => 'Ouderportaal De Wilgenboom',
-			'tagline' => 'Alles over school voor ouders en verzorgers',
+			'title'   => 'Mijn Wilgenboom',
+			'tagline' => 'Basisschool De Wilgenboom',
 		],
 		'vo'        => [
-			'slug'    => 'esdoornveen',
+			'slug'    => 'vaartveld',
 			'theme'   => 'example-voortgezet',
-			'title'   => 'Ouderportaal Esdoornveen',
-			'tagline' => 'Rooster, cijfers en afwezigheid voor ouders en leerlingen',
+			'title'   => 'Mijn Vaartveld',
+			'tagline' => 'Vaartveld College',
 		],
 		'mbo'       => [
-			'slug'    => 'vaartveld',
+			'slug'    => 'esdoornveen',
 			'theme'   => 'example-college',
-			'title'   => 'Studentenportaal Vaartveld',
-			'tagline' => 'Je rooster, stage en resultaten op één plek',
+			'title'   => 'Mijn Esdoornveen',
+			'tagline' => 'Esdoornveen, mbo college',
 		],
 		'he'        => [
 			'slug'    => 'esdoornstad',
@@ -106,10 +114,10 @@ class ExamplePortalProvisioner {
 			'tagline' => 'Je vakken, studiepunten en resultaten op één plek',
 		],
 		'training'  => [
-			'slug'    => 'kompas',
+			'slug'    => 'warmtepompacademie',
 			'theme'   => 'example-opleider',
-			'title'   => 'Deelnemersportaal Het Kompas',
-			'tagline' => 'Je trainingen, toetsen en certificaten op één plek',
+			'title'   => 'Mijn academie',
+			'tagline' => 'Warmtepompacademie',
 		],
 		'corporate' => [
 			'slug'    => 'esdoorn-techniek',
@@ -120,11 +128,20 @@ class ExamplePortalProvisioner {
 	];
 
 	/**
+	 * Portal fields filled on an existing portal when they are empty. The
+	 * title, slug, status, domains and organisation are never touched.
+	 */
+	private const FILLABLE = ['tagline', 'theme', 'headerVariant', 'locales', 'authentication', 'headerSearch', 'footer'];
+
+	/**
 	 * Constructor.
 	 *
-	 * @param IAppManager     $appManager    Tells whether portaliq is installed.
-	 * @param ObjectService   $objectService Reads and writes the portal object.
-	 * @param LoggerInterface $logger        Records what happened.
+	 * @param IAppManager                $appManager    Tells whether portaliq is installed.
+	 * @param ObjectService              $objectService Reads and writes portaliq's objects.
+	 * @param LoggerInterface            $logger        Records what happened.
+	 * @param ExamplePortalDeclarations  $declarations  The per-set portal declarations.
+	 * @param ExampleThemeResolver       $themes        Picks the designed theme or its fallback.
+	 * @param ExampleAccountProvisioner  $accounts      Creates or names the declared accounts.
 	 *
 	 * @return void
 	 */
@@ -132,186 +149,450 @@ class ExamplePortalProvisioner {
 		private readonly IAppManager $appManager,
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly ExamplePortalDeclarations $declarations,
+		private readonly ExampleThemeResolver $themes,
+		private readonly ExampleAccountProvisioner $accounts,
 	) {
 	}//end __construct()
 
 	/**
-	 * Give one example set its themed portal.
+	 * Give one example set its portal and, when it declares one, its site.
 	 *
 	 * Never throws: a portal that could not be written must not fail the
 	 * import of the set itself. The answer names what happened.
 	 *
 	 * - `unmapped`: the set has no portal (the generated set).
 	 * - `portaliq-absent`: portaliq is not installed; nothing was written.
-	 * - `created`: a new portal with the example theme.
-	 * - `themed`: an existing portal without a theme got the example theme.
-	 * - `kept`: an existing portal has another theme; it was left alone.
-	 * - `unchanged`: the portal already has the example theme.
-	 * - `failed`: OpenRegister refused the read or the write.
+	 * - `created`: a new portal, with the whole declaration.
+	 * - `filled`: an existing portal had empty fields; only those were set.
+	 * - `unchanged`: the portal already had every declared field.
+	 * - `kept-legacy`: the slug belongs to the portal of an older example set
+	 *   (the old vo and mbo sets used each other's slugs); nothing was
+	 *   written into it, and no menu, page or news item was added.
+	 * - `failed`: OpenRegister refused a read or a write.
+	 *
+	 * Menus, pages and news are counted as `created` and `kept`; a second
+	 * load reports zero created.
 	 *
 	 * @param string $profileId The example set id.
 	 *
-	 * @return array{status: string, slug?: string, theme?: string}
+	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md#requirement-loading-an-example-set-gives-its-school-a-themed-portal
+	 * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md#requirement-loading-a-set-writes-its-declared-site-once
 	 */
 	public function provision(string $profileId): array {
-		$portal = (self::PORTALS[$profileId] ?? null);
-		if ($portal === null) {
+		$declaration = $this->declarationFor(profileId: $profileId);
+		if ($declaration === null) {
 			return ['status' => 'unmapped'];
 		}
 
+		$slug = (string)$declaration['portal']['slug'];
 		if ($this->appManager->isInstalled(self::PORTALIQ_APP_ID) === false) {
 			$this->logger->info(
 				'[ExamplePortalProvisioner] portaliq is not installed, so example set "{set}" gets no portal.',
 				['set' => $profileId]
 			);
-			return ['status' => 'portaliq-absent', 'slug' => $portal['slug']];
+			return ['status' => 'portaliq-absent', 'slug' => $slug];
+		}
+
+		$theme = $this->themes->resolve(
+			preferred: (string)($declaration['portal']['theme'] ?? ''),
+			fallback: (string)($declaration['portal']['themeFallback'] ?? ($declaration['portal']['theme'] ?? ''))
+		);
+		if ($theme['fallback'] === true && ($declaration['portal']['theme'] ?? '') !== $theme['theme']) {
+			$this->logger->info(
+				'[ExamplePortalProvisioner] thematiq has no token set "{wanted}" yet; portal "{slug}" gets "{theme}".',
+				['wanted' => (string)($declaration['portal']['theme'] ?? ''), 'slug' => $slug, 'theme' => $theme['theme']]
+			);
 		}
 
 		try {
-			$status = $this->apply(portal: $portal);
+			$result = $this->apply(declaration: $declaration, theme: $theme['theme']);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
 				'[ExamplePortalProvisioner] could not provision portal "{slug}" for example set "{set}": {msg}',
-				['slug' => $portal['slug'], 'set' => $profileId, 'msg' => $exception->getMessage()]
+				['slug' => $slug, 'set' => $profileId, 'msg' => $exception->getMessage()]
 			);
-			return ['status' => 'failed', 'slug' => $portal['slug']];
+			return ['status' => 'failed', 'slug' => $slug];
 		}
 
 		$this->logger->info(
 			'[ExamplePortalProvisioner] example set "{set}": portal "{slug}" {status}.',
-			['set' => $profileId, 'slug' => $portal['slug'], 'status' => $status]
+			['set' => $profileId, 'slug' => $slug, 'status' => $result['status']]
 		);
 
-		return [
-			'status' => $status,
-			'slug'   => $portal['slug'],
-			'theme'  => $portal['theme'],
-		];
+		return ['slug' => $slug, 'theme' => $theme['theme'], 'themeFallback' => $theme['fallback']] + $result;
 	}//end provision()
 
 	/**
-	 * Create the portal, or theme the one that already has its slug.
+	 * Create or name the accounts the set's declaration lists.
 	 *
-	 * @param array{slug: string, theme: string, title: string, tagline: string} $portal The portal.
+	 * Separate from provision(): the setup wizard loads a set without making
+	 * Nextcloud accounts, `occ learniq:example-set:load` makes them unless
+	 * told not to.
 	 *
-	 * @return string `created`, `themed`, `kept` or `unchanged`.
+	 * @param string $profileId The example set id.
+	 *
+	 * @return array{created: int, named: int, kept: int, failed: int}
+	 *
+	 * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md#requirement-the-staff-a-portal-names-have-accounts-with-those-names
 	 */
-	private function apply(array $portal): string {
-		$existing = $this->findBySlug(slug: $portal['slug']);
-		if ($existing === null) {
-			return $this->create(portal: $portal);
-		}
+	public function provisionAccounts(string $profileId): array {
+		$declaration = $this->declarations->forSet(setId: $profileId);
 
-		return $this->theme(existing: $existing, theme: $portal['theme']);
-	}//end apply()
+		return $this->accounts->provision(accounts: (array)($declaration['accounts'] ?? []));
+	}//end provisionAccounts()
 
 	/**
-	 * The portal with this slug, or null.
+	 * The declaration of a set: its file, else the plain portal of PORTALS.
 	 *
-	 * Reads every portal and matches the slug here, so a filter OpenRegister
-	 * might drop can never turn "not found" into a duplicate portal.
-	 *
-	 * @param string $slug The portal slug.
+	 * @param string $profileId The example set id.
 	 *
 	 * @return array<string, mixed>|null
 	 */
-	private function findBySlug(string $slug): ?array {
-		$rows = $this->objectService->findAll(
-			config: [
-				'filters' => [
-					'register' => self::REGISTER,
-					'schema'   => self::SCHEMA,
-				],
-				'limit'   => 500,
-			],
-			_rbac: false,
-			_multitenancy: false
-		);
-
-		foreach ($rows as $row) {
-			$data = self::asArray(row: $row);
-			if (($data['slug'] ?? null) === $slug) {
-				return $data;
-			}
+	private function declarationFor(string $profileId): ?array {
+		$declared = $this->declarations->forSet(setId: $profileId);
+		if ($declared !== null) {
+			return $declared;
 		}
 
-		return null;
-	}//end findBySlug()
+		$portal = (self::PORTALS[$profileId] ?? null);
+		if ($portal === null) {
+			return null;
+		}
+
+		return [
+			'set'    => $profileId,
+			'portal' => $portal + [
+				'locales'        => ['nl', 'en'],
+				'authentication' => ['modes' => ['digid'], 'minTrust' => 'low'],
+			],
+		];
+	}//end declarationFor()
 
 	/**
-	 * Write a new, published portal with the example theme.
+	 * Write the portal, then its menus, pages and news.
+	 *
+	 * @param array<string, mixed> $declaration The set's declaration.
+	 * @param string               $theme       The theme to write.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function apply(array $declaration, string $theme): array {
+		$portal          = $declaration['portal'];
+		$portal['theme'] = $theme;
+		unset($portal['themeFallback']);
+
+		$existing = $this->findOne(schema: self::SCHEMA, match: static fn (array $row): bool => ($row['slug'] ?? null) === $portal['slug']);
+		if ($existing !== null && in_array((string)($existing['title'] ?? ''), (array)($declaration['legacyTitles'] ?? []), true) === true) {
+			$this->logger->info(
+				'[ExamplePortalProvisioner] portal "{slug}" is "{title}" from an older example set; it is left as it is.',
+				['slug' => $portal['slug'], 'title' => (string)$existing['title']]
+			);
+			return ['status' => 'kept-legacy'];
+		}
+
+		$refs = [$portal['slug']];
+		if ($existing === null) {
+			$saved  = $this->save(schema: self::SCHEMA, object: $this->newPortal(portal: $portal));
+			$status = 'created';
+			$refs[] = $saved;
+		} else {
+			$status = $this->fill(existing: $existing, portal: $portal);
+			$refs[] = self::idOf(row: $existing);
+		}
+
+		$refs = array_values(array_filter($refs, static fn ($ref): bool => is_string($ref) && $ref !== ''));
+
+		return [
+			'status' => $status,
+			'menus'  => $this->menus(declaration: $declaration, refs: $refs),
+			'pages'  => $this->pages(declaration: $declaration, refs: $refs),
+			'news'   => $this->news(declaration: $declaration),
+		];
+	}//end apply()
+
+	/**
+	 * The object a new portal is saved as.
 	 *
 	 * No `domains` and no `organisation`: binding a hostname and an identity
 	 * provider is a deployment decision, so the portal answers by slug at
 	 * `/apps/portaliq/site?portal=<slug>` until an operator does that.
 	 *
-	 * @param array{slug: string, theme: string, title: string, tagline: string} $portal The portal.
+	 * @param array<string, mixed> $portal The declared portal, theme resolved.
 	 *
-	 * @return string `created`.
+	 * @return array<string, mixed>
 	 */
-	private function create(array $portal): string {
-		$this->objectService->saveObject(
-			object: [
-				'title'          => $portal['title'],
-				'tagline'        => $portal['tagline'],
-				'slug'           => $portal['slug'],
-				'status'         => 'published',
-				'kind'           => 'site',
-				'theme'          => $portal['theme'],
-				'locales'        => ['nl', 'en'],
-				'authentication' => ['modes' => ['digid'], 'minTrust' => 'low'],
-			],
-			register: self::REGISTER,
-			schema: self::SCHEMA,
-			_rbac: false,
-			_multitenancy: false
-		);
+	private function newPortal(array $portal): array {
+		$object = [
+			'title'  => (string)$portal['title'],
+			'slug'   => (string)$portal['slug'],
+			'status' => 'published',
+			'kind'   => 'site',
+		];
+		foreach (self::FILLABLE as $key) {
+			if (self::isEmpty(value: ($portal[$key] ?? null)) === false) {
+				$object[$key] = $portal[$key];
+			}
+		}
 
-		return 'created';
-	}//end create()
+		return $object;
+	}//end newPortal()
 
 	/**
-	 * Set the example theme on an existing portal that has none.
+	 * Set the declared value of every empty field of an existing portal.
+	 *
+	 * Nested settings (authentication, footer) are filled key by key, so a
+	 * portal with modes but no footer keeps its modes and gets the footer.
+	 * A theme, a mode list or a footer line somebody set is never replaced.
 	 *
 	 * @param array<string, mixed> $existing The portal as stored.
-	 * @param string               $theme    The example theme.
+	 * @param array<string, mixed> $portal   The declared portal, theme resolved.
 	 *
-	 * @return string `themed`, `kept` or `unchanged`.
+	 * @return string `filled` or `unchanged`.
 	 *
 	 * @throws RuntimeException When the stored portal carries no id.
 	 */
-	private function theme(array $existing, string $theme): string {
-		$current = trim((string)($existing['theme'] ?? ''));
-		if ($current === $theme) {
+	private function fill(array $existing, array $portal): string {
+		$merged  = $existing;
+		$changed = false;
+		foreach (self::FILLABLE as $key) {
+			if (array_key_exists($key, $portal) === false) {
+				continue;
+			}
+
+			$next = self::fillValue(current: ($existing[$key] ?? null), declared: $portal[$key]);
+			if ($next !== ($existing[$key] ?? null)) {
+				$merged[$key] = $next;
+				$changed      = true;
+			}
+		}
+
+		if ($changed === false) {
 			return 'unchanged';
 		}
 
-		if ($current !== '') {
-			return 'kept';
-		}
-
-		$uuid = (string)($existing['@self']['id'] ?? ($existing['id'] ?? ''));
+		$uuid = self::idOf(row: $existing);
 		if ($uuid === '') {
 			// Saving without the uuid would create a second portal.
 			throw new RuntimeException('portal "' . (string)($existing['slug'] ?? '') . '" carries no id');
 		}
 
-		unset($existing['@self']);
-		$existing['theme'] = $theme;
+		unset($merged['@self']);
+		$this->save(schema: self::SCHEMA, object: $merged, uuid: $uuid);
 
-		$this->objectService->saveObject(
-			object: $existing,
+		return 'filled';
+	}//end fill()
+
+	/**
+	 * The value a field gets: the declared one when the stored one is empty,
+	 * key by key for a settings object.
+	 *
+	 * @param mixed $current  The stored value.
+	 * @param mixed $declared The declared value.
+	 *
+	 * @return mixed
+	 */
+	private static function fillValue(mixed $current, mixed $declared): mixed {
+		if (self::isEmpty(value: $current) === true) {
+			return $declared;
+		}
+
+		if (is_array($current) === true && is_array($declared) === true
+			&& array_is_list($current) === false && array_is_list($declared) === false
+		) {
+			foreach ($declared as $key => $value) {
+				$current[$key] = self::fillValue(current: ($current[$key] ?? null), declared: $value);
+			}
+		}
+
+		return $current;
+	}//end fillValue()
+
+	/**
+	 * Create every declared menu the portal does not have, matched by position and title.
+	 *
+	 * @param array<string, mixed> $declaration The set's declaration.
+	 * @param array<int, string>   $refs        The portal's slug and id, either of which a menu may name.
+	 *
+	 * @return array{created: int, kept: int}
+	 */
+	private function menus(array $declaration, array $refs): array {
+		$stored = $this->findAll(schema: 'menu', match: static fn (array $row): bool => in_array((string)($row['portal'] ?? ''), $refs, true));
+		$have   = [];
+		foreach ($stored as $menu) {
+			$have[((int)($menu['position'] ?? 0)) . '|' . (string)($menu['title'] ?? '')] = true;
+		}
+
+		$counts = ['created' => 0, 'kept' => 0];
+		foreach ((array)($declaration['menus'] ?? []) as $menu) {
+			$key = ((int)($menu['position'] ?? 0)) . '|' . (string)($menu['title'] ?? '');
+			if (isset($have[$key]) === true) {
+				$counts['kept']++;
+				continue;
+			}
+
+			$this->save(schema: 'menu', object: ['portal' => $refs[0]] + $menu);
+			$have[$key] = true;
+			$counts['created']++;
+		}
+
+		return $counts;
+	}//end menus()
+
+	/**
+	 * Create every declared page the portal does not have, matched by route.
+	 *
+	 * @param array<string, mixed> $declaration The set's declaration.
+	 * @param array<int, string>   $refs        The portal's slug and id.
+	 *
+	 * @return array{created: int, kept: int}
+	 */
+	private function pages(array $declaration, array $refs): array {
+		$stored = $this->findAll(schema: 'page', match: static fn (array $row): bool => in_array((string)($row['portal'] ?? ''), $refs, true));
+		$routes = array_flip(array_map(static fn (array $row): string => (string)($row['route'] ?? ''), $stored));
+
+		$counts = ['created' => 0, 'kept' => 0];
+		foreach ((array)($declaration['pages'] ?? []) as $page) {
+			$route = (string)($page['route'] ?? '');
+			if ($route === '' || isset($routes[$route]) === true) {
+				$counts['kept']++;
+				continue;
+			}
+
+			$this->save(schema: 'page', object: $page + ['portal' => $refs[0], 'status' => 'published', 'locale' => 'nl']);
+			$routes[$route] = true;
+			$counts['created']++;
+		}
+
+		return $counts;
+	}//end pages()
+
+	/**
+	 * Create every declared news item that does not exist yet, matched by title.
+	 *
+	 * A news item carries the portal slug (`portal`) so the public news
+	 * widgets can find it; an item marked `public: false` is read only in
+	 * the signed-in area, through the guardian's audience.
+	 *
+	 * @param array<string, mixed> $declaration The set's declaration.
+	 *
+	 * @return array{created: int, kept: int}
+	 */
+	private function news(array $declaration): array {
+		$items = (array)($declaration['news'] ?? []);
+		if ($items === []) {
+			return ['created' => 0, 'kept' => 0];
+		}
+
+		$stored = $this->findAll(schema: 'newsItem', match: static fn (array $row): bool => true);
+		$titles = array_flip(array_map(static fn (array $row): string => (string)($row['title'] ?? ''), $stored));
+		$counts = ['created' => 0, 'kept' => 0];
+		foreach ($items as $item) {
+			$title = (string)($item['title'] ?? '');
+			if ($title === '' || isset($titles[$title]) === true) {
+				$counts['kept']++;
+				continue;
+			}
+
+			$this->save(schema: 'newsItem', object: $item + ['status' => 'published', 'portal' => (string)$declaration['portal']['slug']]);
+			$titles[$title] = true;
+			$counts['created']++;
+		}
+
+		return $counts;
+	}//end news()
+
+	/**
+	 * The first stored row of a schema that matches.
+	 *
+	 * @param string   $schema The portaliq schema slug.
+	 * @param callable $match  Decides whether a row is the one.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function findOne(string $schema, callable $match): ?array {
+		return ($this->findAll(schema: $schema, match: $match)[0] ?? null);
+	}//end findOne()
+
+	/**
+	 * Every stored row of a schema that matches.
+	 *
+	 * Reads the schema and matches here, so a filter OpenRegister might drop
+	 * can never turn "found" into "missing" and write a duplicate.
+	 *
+	 * @param string   $schema The portaliq schema slug.
+	 * @param callable $match  Decides whether a row counts.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function findAll(string $schema, callable $match): array {
+		$rows = $this->objectService->findAll(
+			config: [
+				'filters' => [
+					'register' => self::REGISTER,
+					'schema'   => $schema,
+				],
+				'limit'   => 2000,
+			],
+			_rbac: false,
+			_multitenancy: false
+		);
+
+		$found = [];
+		foreach ($rows as $row) {
+			$data = self::asArray(row: $row);
+			if ($data !== [] && $match($data) === true) {
+				$found[] = $data;
+			}
+		}
+
+		return $found;
+	}//end findAll()
+
+	/**
+	 * Save one portaliq object and answer its id.
+	 *
+	 * @param string               $schema The portaliq schema slug.
+	 * @param array<string, mixed> $object The object.
+	 * @param string|null          $uuid   The id to update, or null to create.
+	 *
+	 * @return string The id, or '' when OpenRegister answered without one.
+	 */
+	private function save(string $schema, array $object, ?string $uuid = null): string {
+		$saved = $this->objectService->saveObject(
+			object: $object,
 			register: self::REGISTER,
-			schema: self::SCHEMA,
+			schema: $schema,
 			uuid: $uuid,
 			_rbac: false,
 			_multitenancy: false
 		);
 
-		return 'themed';
-	}//end theme()
+		return self::idOf(row: self::asArray(row: $saved));
+	}//end save()
+
+	/**
+	 * Whether a stored value counts as not set.
+	 *
+	 * @param mixed $value The value.
+	 *
+	 * @return bool
+	 */
+	private static function isEmpty(mixed $value): bool {
+		return ($value === null || $value === '' || $value === []);
+	}//end isEmpty()
+
+	/**
+	 * The id of a stored row.
+	 *
+	 * @param array<string, mixed> $row The row.
+	 *
+	 * @return string
+	 */
+	private static function idOf(array $row): string {
+		return (string)($row['@self']['id'] ?? ($row['id'] ?? ($row['uuid'] ?? '')));
+	}//end idOf()
 
 	/**
 	 * One OpenRegister row as an array.

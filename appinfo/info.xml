@@ -382,6 +382,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
         <!-- example-sets-themed-portal: gives a loaded example set its themed portal
              without importing the set again. -->
         <command>OCA\Learniq\Command\ExampleSetPortalCommand</command>
+        <command>OCA\Learniq\Command\ExampleSetLoadCommand</command>
     </commands>
 
     <settings>

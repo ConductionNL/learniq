@@ -1,0 +1,1231 @@
+{
+  "$comment": "Portal declaration of the po example set (openspec/changes/example-portal-declares-its-site). Read by ExamplePortalProvisioner on every example-set load. A portal, menu, page, news item or account that already exists is never changed; only what is missing is written.",
+  "set": "po",
+  "portal": {
+    "slug": "wilgenboom",
+    "title": "Mijn Wilgenboom",
+    "tagline": "Basisschool De Wilgenboom",
+    "theme": "wilgenboom",
+    "themeFallback": "example-basisschool",
+    "headerVariant": "double",
+    "locales": [
+      "nl",
+      "en"
+    ],
+    "authentication": {
+      "modes": [
+        "digid"
+      ],
+      "minTrust": "low",
+      "modeLabels": {
+        "digid": {
+          "title": "Ouder of verzorger",
+          "text": "Met de DigiD-app of met een sms-code",
+          "button": "Inloggen met DigiD"
+        }
+      }
+    },
+    "headerSearch": {
+      "label": "Zoeken op de website",
+      "route": "/zoeken"
+    },
+    "footer": {
+      "description": "Heeft u een vraag? Loop binnen, bel of mail ons. De deur staat open.",
+      "colophon": "Basisschool De Wilgenboom is een voorbeeldschool. Deze website laat zien hoe portaliq, learniq en Nextcloud samen werken.",
+      "cta": {
+        "label": "Contact en schooltijden",
+        "href": "/contact"
+      }
+    }
+  },
+  "legacyTitles": [],
+  "menus": [
+    {
+      "position": 0,
+      "title": "Hoofdmenu",
+      "items": [
+        {
+          "order": 1,
+          "name": "Home",
+          "link": "/"
+        },
+        {
+          "order": 2,
+          "name": "Onze school",
+          "link": "/onze-school"
+        },
+        {
+          "order": 3,
+          "name": "Groepen",
+          "link": "/groepen"
+        },
+        {
+          "order": 4,
+          "name": "Praktisch",
+          "link": "/praktisch"
+        },
+        {
+          "order": 5,
+          "name": "Nieuws",
+          "link": "/zoeken"
+        },
+        {
+          "order": 6,
+          "name": "Kalender",
+          "link": "/kalender"
+        },
+        {
+          "order": 7,
+          "name": "Aanmelden",
+          "link": "/aanmelden"
+        }
+      ]
+    },
+    {
+      "position": 1,
+      "title": "Contact",
+      "items": [
+        {
+          "order": 1,
+          "name": "Wilgenlaan 12, Zuiddrecht",
+          "link": "/contact"
+        },
+        {
+          "order": 2,
+          "name": "Telefoon: [telefoonnummer]",
+          "link": "/contact"
+        },
+        {
+          "order": 3,
+          "name": "E-mail: [e-mailadres]",
+          "link": "/contact"
+        }
+      ]
+    },
+    {
+      "position": 1,
+      "title": "Snel naar",
+      "items": [
+        {
+          "order": 1,
+          "name": "Kind ziek melden",
+          "link": "/praktisch/afwezig-melden"
+        },
+        {
+          "order": 2,
+          "name": "Schooltijden en vakanties",
+          "link": "/praktisch/vakanties"
+        },
+        {
+          "order": 3,
+          "name": "Nieuws en schoolgids",
+          "link": "/zoeken"
+        },
+        {
+          "order": 4,
+          "name": "Uw kind aanmelden",
+          "link": "/aanmelden"
+        }
+      ]
+    },
+    {
+      "position": 1,
+      "title": "Over deze website",
+      "items": [
+        {
+          "order": 1,
+          "name": "Toegankelijkheid",
+          "link": "/toegankelijkheid"
+        },
+        {
+          "order": 2,
+          "name": "Privacy",
+          "link": "/privacy"
+        },
+        {
+          "order": 3,
+          "name": "Cookies",
+          "link": "/cookies"
+        },
+        {
+          "order": 4,
+          "name": "Klacht of zorg melden",
+          "link": "/klacht"
+        }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "route": "/",
+      "title": "Home",
+      "summary": "Basisschool De Wilgenboom in Zuiddrecht, voor kinderen van 4 tot 12 jaar.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wb-home-01-nlbanner",
+            "widgetKey": "nlBanner",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "kind": "warning",
+              "text": "Let op: vrijdag 9 oktober is een studiedag. Alle kinderen zijn die dag vrij.",
+              "closable": true
+            }
+          },
+          {
+            "id": "wb-home-02-hero",
+            "widgetKey": "hero",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 4,
+            "props": {
+              "title": "Een school waar elk kind kan groeien",
+              "subtitle": "De Wilgenboom is een basisschool in Zuiddrecht, voor kinderen van 4 tot 12 jaar. Op deze website regelt u wat er te regelen is, en leest u wat er speelt.",
+              "actions": [
+                {
+                  "label": "Kind afwezig melden",
+                  "href": "/praktisch/afwezig-melden"
+                },
+                {
+                  "label": "Kom kennismaken",
+                  "href": "/aanmelden"
+                }
+              ]
+            }
+          },
+          {
+            "id": "wb-home-03-nlquicktasks",
+            "widgetKey": "nlQuickTasks",
+            "gridX": 0,
+            "gridY": 5,
+            "gridWidth": 12,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Direct regelen",
+              "columns": 4,
+              "overlap": true,
+              "items": [
+                {
+                  "label": "Kind afwezig melden",
+                  "href": "/praktisch/afwezig-melden",
+                  "icon": "AlertCircleOutline"
+                },
+                {
+                  "label": "Oudergesprek plannen",
+                  "href": "/mijn",
+                  "icon": "MessageTextOutline"
+                },
+                {
+                  "label": "Schoolkalender",
+                  "href": "/kalender",
+                  "icon": "CalendarMonth"
+                },
+                {
+                  "label": "Schooltijden en vakanties",
+                  "href": "/praktisch/vakanties",
+                  "icon": "ClockOutline"
+                },
+                {
+                  "label": "Verlof aanvragen",
+                  "href": "/praktisch/afwezig-melden",
+                  "icon": "FileDocumentEditOutline"
+                },
+                {
+                  "label": "Overblijven en opvang",
+                  "href": "/praktisch/opvang",
+                  "icon": "HomeOutline"
+                },
+                {
+                  "label": "Schoolgids",
+                  "href": "/zoeken",
+                  "icon": "BookOpenPageVariantOutline"
+                },
+                {
+                  "label": "Uw kind aanmelden",
+                  "href": "/aanmelden",
+                  "icon": "AccountPlusOutline"
+                }
+              ],
+              "moreLabel": "Alles over praktische zaken",
+              "moreHref": "/praktisch"
+            }
+          },
+          {
+            "id": "wb-home-04-nlnewslist",
+            "widgetKey": "nlNewsList",
+            "gridX": 0,
+            "gridY": 8,
+            "gridWidth": 8,
+            "gridHeight": 5,
+            "props": {
+              "heading": "Nieuws van school",
+              "limit": 4,
+              "featured": true,
+              "showAudience": true,
+              "moreLabel": "Al het nieuws",
+              "moreHref": "/zoeken",
+              "articleRoute": "/nieuws"
+            }
+          },
+          {
+            "id": "wb-home-05-nlsignin",
+            "widgetKey": "nlSignIn",
+            "gridX": 8,
+            "gridY": 8,
+            "gridWidth": 4,
+            "gridHeight": 5,
+            "props": {
+              "heading": "Mijn Wilgenboom",
+              "display": "card",
+              "intro": "Voor ouders en verzorgers van onze leerlingen.",
+              "points": [
+                "Lees het nieuws uit de groep van uw kind",
+                "Kies zelf een tijd voor het oudergesprek",
+                "Bekijk rapporten en aanwezigheid"
+              ],
+              "buttonLabel": "Inloggen met DigiD",
+              "tone": "inverse"
+            }
+          },
+          {
+            "id": "wb-home-06-nleventlist",
+            "widgetKey": "nlEventList",
+            "gridX": 0,
+            "gridY": 13,
+            "gridWidth": 12,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Deze maand op school",
+              "display": "tiles",
+              "upcomingOnly": false,
+              "limit": 6,
+              "items": [
+                {
+                  "date": "2026-10-07",
+                  "title": "Schoolfotograaf",
+                  "meta": "Woensdag, alle groepen"
+                },
+                {
+                  "date": "2026-10-09",
+                  "title": "Studiedag",
+                  "meta": "Vrijdag, alle kinderen vrij"
+                },
+                {
+                  "date": "2026-10-14",
+                  "title": "Boekenmarkt op het plein",
+                  "meta": "Woensdag 12.30 tot 14.00 uur"
+                },
+                {
+                  "date": "2026-10-29",
+                  "title": "Ouderavond",
+                  "meta": "Donderdag, kies een tijd in Mijn Wilgenboom",
+                  "href": "/mijn"
+                }
+              ],
+              "moreLabel": "De hele schoolkalender",
+              "moreHref": "/kalender"
+            }
+          },
+          {
+            "id": "wb-home-07-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 0,
+            "gridY": 16,
+            "gridWidth": 4,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Over onze school",
+              "links": [
+                {
+                  "label": "Onderwijs",
+                  "href": "/onze-school"
+                },
+                {
+                  "label": "Zo werken wij",
+                  "href": "/onze-school"
+                },
+                {
+                  "label": "Groepen en leerkrachten",
+                  "href": "/groepen"
+                },
+                {
+                  "label": "Zorg en begeleiding",
+                  "href": "/onze-school"
+                }
+              ]
+            }
+          },
+          {
+            "id": "wb-home-08-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 4,
+            "gridY": 16,
+            "gridWidth": 4,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Praktisch",
+              "links": [
+                {
+                  "label": "Schooltijden",
+                  "href": "/praktisch/vakanties"
+                },
+                {
+                  "label": "Vakanties en vrije dagen",
+                  "href": "/praktisch/vakanties"
+                },
+                {
+                  "label": "Overblijven en opvang",
+                  "href": "/praktisch/opvang"
+                }
+              ]
+            }
+          },
+          {
+            "id": "wb-home-09-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 8,
+            "gridY": 16,
+            "gridWidth": 4,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Meedoen",
+              "links": [
+                {
+                  "label": "Ouderraad",
+                  "href": "/onze-school"
+                },
+                {
+                  "label": "Medezeggenschapsraad",
+                  "href": "/onze-school"
+                },
+                {
+                  "label": "Helpen bij activiteiten",
+                  "href": "/onze-school"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/praktisch/afwezig-melden",
+      "title": "Uw kind afwezig melden",
+      "summary": "Meld uw kind voor half negen afwezig. De leerkracht ziet het meteen.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wb-afwezig-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Uw kind afwezig melden",
+              "level": 1
+            }
+          },
+          {
+            "id": "wb-afwezig-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Is uw kind ziek, of moet het naar de dokter of de tandarts? Meld het voor half negen. De leerkracht ziet uw melding meteen in de klas."
+            }
+          },
+          {
+            "id": "wb-afwezig-03-nlalert",
+            "widgetKey": "nlAlert",
+            "gridX": 0,
+            "gridY": 2,
+            "gridWidth": 6,
+            "gridHeight": 2,
+            "props": {
+              "kind": "info",
+              "heading": "Online melden",
+              "text": "Het snelst. U logt in met DigiD, kiest uw kind en de dag, en u bent klaar. U ziet daarna of de leerkracht het heeft gezien."
+            }
+          },
+          {
+            "id": "wb-afwezig-04-nlalert",
+            "widgetKey": "nlAlert",
+            "gridX": 6,
+            "gridY": 2,
+            "gridWidth": 6,
+            "gridHeight": 2,
+            "props": {
+              "kind": "info",
+              "heading": "Liever bellen?",
+              "text": "Dat kan op schooldagen tussen 8.00 en 8.30 uur. De administratie zet uw melding dan voor u in het systeem. [telefoonnummer]"
+            }
+          },
+          {
+            "id": "wb-afwezig-05-nlbuttonlink",
+            "widgetKey": "nlButtonLink",
+            "gridX": 0,
+            "gridY": 4,
+            "gridWidth": 4,
+            "gridHeight": 1,
+            "props": {
+              "label": "Afwezig melden",
+              "href": "/mijn",
+              "kind": "primary"
+            }
+          },
+          {
+            "id": "wb-afwezig-06-nltable",
+            "widgetKey": "nlTable",
+            "gridX": 0,
+            "gridY": 5,
+            "gridWidth": 12,
+            "gridHeight": 4,
+            "props": {
+              "caption": "Wat meldt u hoe?",
+              "columns": [
+                "Wat is er",
+                "Wat doet u",
+                "Wanneer"
+              ],
+              "rows": [
+                [
+                  "Ziek",
+                  "Afwezig melden. Elke dag opnieuw, of in één keer voor meer dagen",
+                  "Voor 8.30 uur"
+                ],
+                [
+                  "Dokter of tandarts",
+                  "Afwezig melden, met de tijd erbij",
+                  "Een dag van tevoren als dat kan"
+                ],
+                [
+                  "Te laat",
+                  "Niets. De leerkracht schrijft het op",
+                  "-"
+                ],
+                [
+                  "Bruiloft, begrafenis, geloofsdag",
+                  "Verlof aanvragen bij de directeur",
+                  "Zo vroeg als u het weet"
+                ]
+              ]
+            }
+          },
+          {
+            "id": "wb-afwezig-07-markdown",
+            "widgetKey": "markdown",
+            "gridX": 0,
+            "gridY": 9,
+            "gridWidth": 8,
+            "gridHeight": 5,
+            "props": {
+              "markdown": "## Verlof buiten de vakanties\n\nKinderen vanaf 5 jaar zijn leerplichtig. Vrij buiten de schoolvakanties mag alleen bij een bijzondere reden, zoals een bruiloft of een begrafenis in de familie. Vakantie buiten de schoolvakanties mag bijna nooit.\n\nU vraagt verlof aan bij de directeur, Hanneke Postma. Zij beslist binnen vijf schooldagen. Bent u het niet eens met het besluit, dan leest u in de schoolgids wat u kunt doen.\n\nIs uw kind afwezig zonder melding? Dan belt de leerkracht u dezelfde ochtend. Blijft uw kind vaker weg zonder reden, dan moet de school dat melden bij de leerplichtambtenaar van Zuiddrecht."
+            }
+          },
+          {
+            "id": "wb-afwezig-08-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 8,
+            "gridY": 9,
+            "gridWidth": 4,
+            "gridHeight": 5,
+            "props": {
+              "heading": "Meer over praktische zaken",
+              "links": [
+                {
+                  "label": "Schooltijden",
+                  "href": "/praktisch/vakanties"
+                },
+                {
+                  "label": "Vakanties en vrije dagen",
+                  "href": "/praktisch/vakanties"
+                },
+                {
+                  "label": "Overblijven en opvang",
+                  "href": "/praktisch/opvang"
+                },
+                {
+                  "label": "De schoolgids",
+                  "href": "/zoeken"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/nieuws",
+      "title": "Nieuws",
+      "summary": "Nieuws van Basisschool De Wilgenboom.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wb-nieuws-01-nlnewsarticle",
+            "widgetKey": "nlNewsArticle",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 8,
+            "gridHeight": 8,
+            "props": {
+              "backLabel": "Terug naar het nieuws"
+            }
+          },
+          {
+            "id": "wb-nieuws-02-nlnewslist",
+            "widgetKey": "nlNewsList",
+            "gridX": 8,
+            "gridY": 0,
+            "gridWidth": 4,
+            "gridHeight": 8,
+            "props": {
+              "heading": "Meer nieuws",
+              "limit": 3,
+              "featured": false,
+              "display": "compact",
+              "moreLabel": "Al het nieuws",
+              "moreHref": "/zoeken",
+              "articleRoute": "/nieuws"
+            }
+          },
+          {
+            "id": "wb-nieuws-03-nlsignin",
+            "widgetKey": "nlSignIn",
+            "gridX": 0,
+            "gridY": 8,
+            "gridWidth": 12,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Nieuws uit de groep van uw kind",
+              "display": "card",
+              "intro": "De leerkracht schrijft ook nieuws voor alleen de eigen groep. Dat leest u na het inloggen.",
+              "buttonLabel": "Inloggen bij Mijn Wilgenboom",
+              "tone": "plain"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/zoeken",
+      "title": "Nieuws en documenten",
+      "summary": "Het nieuws van school, de nieuwsbrieven, de schoolgids en de formulieren.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wb-zoeken-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Nieuws en documenten",
+              "level": 1
+            }
+          },
+          {
+            "id": "wb-zoeken-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Het nieuws van school, de nieuwsbrieven, de schoolgids en de formulieren. Nieuws uit de groep van uw kind leest u in Mijn Wilgenboom."
+            }
+          },
+          {
+            "id": "wb-zoeken-03-nlnewslist",
+            "widgetKey": "nlNewsList",
+            "gridX": 0,
+            "gridY": 2,
+            "gridWidth": 12,
+            "gridHeight": 6,
+            "props": {
+              "heading": "Nieuws",
+              "limit": 12,
+              "featured": false,
+              "showAudience": true,
+              "articleRoute": "/nieuws"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/praktisch",
+      "title": "Praktisch",
+      "summary": "Alles wat u nodig heeft om de schooldag goed te laten verlopen.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wb-praktisch-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Praktisch",
+              "level": 1
+            }
+          },
+          {
+            "id": "wb-praktisch-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Alles wat u nodig heeft om de schooldag goed te laten verlopen."
+            }
+          },
+          {
+            "id": "wb-praktisch-03-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 0,
+            "gridY": 2,
+            "gridWidth": 6,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Praktische zaken",
+              "links": [
+                {
+                  "label": "Uw kind afwezig melden",
+                  "href": "/praktisch/afwezig-melden"
+                },
+                {
+                  "label": "Schooltijden en vakanties",
+                  "href": "/praktisch/vakanties"
+                },
+                {
+                  "label": "Overblijven en opvang",
+                  "href": "/praktisch/opvang"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/praktisch/vakanties",
+      "title": "Schooltijden en vakanties",
+      "summary": "De school begint om 8.30 uur. Op woensdag zijn de kinderen om 12.15 uur uit, op de andere dagen om 14.15 uur. Vrijdag 9 oktober is een studiedag.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wb-praktisch-vakanties-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Schooltijden en vakanties",
+              "level": 1
+            }
+          },
+          {
+            "id": "wb-praktisch-vakanties-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "De school begint om 8.30 uur. Op woensdag zijn de kinderen om 12.15 uur uit, op de andere dagen om 14.15 uur. Vrijdag 9 oktober is een studiedag."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/praktisch/opvang",
+      "title": "Overblijven en opvang",
+      "summary": "Uw kind kan tussen de middag op school overblijven. Voor opvang na school werken we samen met de kinderopvang in de buurt.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wb-praktisch-opvang-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Overblijven en opvang",
+              "level": 1
+            }
+          },
+          {
+            "id": "wb-praktisch-opvang-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Uw kind kan tussen de middag op school overblijven. Voor opvang na school werken we samen met de kinderopvang in de buurt."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/onze-school",
+      "title": "Onze school",
+      "summary": "De Wilgenboom is een basisschool in Zuiddrecht, voor kinderen van 4 tot 12 jaar. Elk kind kan hier groeien, in zijn eigen tempo.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wb-onze-school-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Onze school",
+              "level": 1
+            }
+          },
+          {
+            "id": "wb-onze-school-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "De Wilgenboom is een basisschool in Zuiddrecht, voor kinderen van 4 tot 12 jaar. Elk kind kan hier groeien, in zijn eigen tempo."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/groepen",
+      "title": "Groepen",
+      "summary": "De school heeft groep 1 tot en met 8. Groep 5 en 6 zitten samen in één klas. Elke groep heeft een eigen leerkracht.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wb-groepen-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Groepen",
+              "level": 1
+            }
+          },
+          {
+            "id": "wb-groepen-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "De school heeft groep 1 tot en met 8. Groep 5 en 6 zitten samen in één klas. Elke groep heeft een eigen leerkracht."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/kalender",
+      "title": "Kalender",
+      "summary": "De belangrijke data van dit schooljaar. In Mijn Wilgenboom ziet u ook de data van de groep van uw kind.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wb-kalender-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Kalender",
+              "level": 1
+            }
+          },
+          {
+            "id": "wb-kalender-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "De belangrijke data van dit schooljaar. In Mijn Wilgenboom ziet u ook de data van de groep van uw kind."
+            }
+          },
+          {
+            "id": "wb-kalender-03-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 0,
+            "gridY": 2,
+            "gridWidth": 6,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Deze maand",
+              "links": [
+                {
+                  "label": "Ouderavond op donderdag 29 oktober",
+                  "href": "/zoeken"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/aanmelden",
+      "title": "Uw kind aanmelden",
+      "summary": "Wilt u uw kind aanmelden of eerst komen kijken? Maak een afspraak met de directeur, Hanneke Postma.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wb-aanmelden-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Uw kind aanmelden",
+              "level": 1
+            }
+          },
+          {
+            "id": "wb-aanmelden-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Wilt u uw kind aanmelden of eerst komen kijken? Maak een afspraak met de directeur, Hanneke Postma."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/contact",
+      "title": "Contact en schooltijden",
+      "summary": "Wilgenlaan 12, Zuiddrecht. Telefoon: [telefoonnummer]. E-mail: [e-mailadres]. Loop gerust binnen, de deur staat open.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wb-contact-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Contact en schooltijden",
+              "level": 1
+            }
+          },
+          {
+            "id": "wb-contact-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Wilgenlaan 12, Zuiddrecht. Telefoon: [telefoonnummer]. E-mail: [e-mailadres]. Loop gerust binnen, de deur staat open."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/toegankelijkheid",
+      "title": "Toegankelijkheid",
+      "summary": "Deze website is gemaakt volgens de NL Design System richtlijnen en toegankelijk volgens WCAG 2.2 niveau AA.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wb-toegankelijkheid-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Toegankelijkheid",
+              "level": 1
+            }
+          },
+          {
+            "id": "wb-toegankelijkheid-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Deze website is gemaakt volgens de NL Design System richtlijnen en toegankelijk volgens WCAG 2.2 niveau AA."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/privacy",
+      "title": "Privacy",
+      "summary": "Basisschool De Wilgenboom is een voorbeeldschool. Op deze website staan geen echte gegevens van kinderen of ouders.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wb-privacy-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Privacy",
+              "level": 1
+            }
+          },
+          {
+            "id": "wb-privacy-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Basisschool De Wilgenboom is een voorbeeldschool. Op deze website staan geen echte gegevens van kinderen of ouders."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/cookies",
+      "title": "Cookies",
+      "summary": "Deze website gebruikt alleen cookies die nodig zijn om in te loggen.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wb-cookies-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Cookies",
+              "level": 1
+            }
+          },
+          {
+            "id": "wb-cookies-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Deze website gebruikt alleen cookies die nodig zijn om in te loggen."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/klacht",
+      "title": "Klacht of zorg melden",
+      "summary": "Heeft u een klacht of maakt u zich zorgen? Praat eerst met de leerkracht. Komt u er samen niet uit, neem dan contact op met de directeur.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "wb-klacht-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Klacht of zorg melden",
+              "level": 1
+            }
+          },
+          {
+            "id": "wb-klacht-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Heeft u een klacht of maakt u zich zorgen? Praat eerst met de leerkracht. Komt u er samen niet uit, neem dan contact op met de directeur."
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "news": [
+    {
+      "title": "De Kinderboekenweek is begonnen",
+      "publishedAt": "2026-10-02T09:00:00+02:00",
+      "public": true,
+      "target": {
+        "schoolRef": "ee010001-0000-4000-8000-000000000001"
+      },
+      "authorRef": "po-directeur-01",
+      "body": "Groep 8 las voor aan de kleuters, en de hal hangt vol tekeningen van lievelingsboeken. Tot en met vrijdag 16 oktober staat de school in het teken van lezen.\n\nWoensdagochtend opende juf Hanneke de Kinderboekenweek op het plein. Daarna ging groep 8 naar de kleuterklassen. Elk kind uit groep 8 las een eigen gekozen prentenboek voor aan een groepje kleuters.\n\nDe komende twee weken leest elke groep elke dag een kwartier langer. In de hal staat een leestafel met nieuwe boeken uit de bibliotheek van Zuiddrecht. Kinderen mogen daar in de pauze lezen.\n\n## Boekenmarkt op het plein\n\nOp woensdag 14 oktober is de boekenmarkt. Kinderen verkopen en ruilen boeken die ze uit hebben. Heeft u thuis kinderboeken over? Uw kind mag ze die dag meenemen.\n\n- **Wanneer:** woensdag 14 oktober, 12.30 tot 14.00 uur\n- **Waar:** op het grote plein. Bij regen in de hal\n- **Meenemen:** boeken om te ruilen, en een kleed om op te zitten\n- **Helpen:** we zoeken nog vier ouders. Meld u aan bij de leerkracht"
+    },
+    {
+      "title": "Ouderavond op donderdag 29 oktober",
+      "publishedAt": "2026-10-01T12:00:00+02:00",
+      "public": true,
+      "target": {
+        "schoolRef": "ee010001-0000-4000-8000-000000000001"
+      },
+      "authorRef": "po-directeur-01",
+      "body": "U praat tien minuten met de leerkracht over hoe het met uw kind gaat. U kiest zelf een tijd in Mijn Wilgenboom, tot en met vrijdag 16 oktober."
+    },
+    {
+      "title": "Groep 7 gaat woensdag naar de kinderboerderij",
+      "publishedAt": "2026-09-30T15:00:00+02:00",
+      "public": true,
+      "target": {
+        "groupRefs": [
+          "ee010006-0000-4000-8000-000000000006"
+        ]
+      },
+      "authorRef": "po-leerkracht-09",
+      "body": "Woensdag 7 oktober gaat groep 7 naar de kinderboerderij. We vertrekken na de schoolfoto. Laarzen en een regenjas mee."
+    },
+    {
+      "title": "De schoolfotograaf komt op woensdag 7 oktober",
+      "publishedAt": "2026-09-25T12:00:00+02:00",
+      "public": true,
+      "target": {
+        "schoolRef": "ee010001-0000-4000-8000-000000000001"
+      },
+      "authorRef": "po-directeur-01",
+      "body": "De schoolfotograaf maakt in de ochtend individuele foto's en groepsfoto's. Broertjes en zusjes kunnen samen op de foto."
+    },
+    {
+      "title": "Nieuwe speeltoestellen op het kleuterplein",
+      "publishedAt": "2026-09-18T12:00:00+02:00",
+      "public": true,
+      "target": {
+        "schoolRef": "ee010001-0000-4000-8000-000000000001"
+      },
+      "authorRef": "po-directeur-01",
+      "body": "Het kleuterplein heeft een nieuwe klimtoren en een zandbak met water. De ouderraad heeft meebetaald."
+    },
+    {
+      "title": "Zo werkt de ouderavond dit jaar",
+      "publishedAt": "2026-09-04T12:00:00+02:00",
+      "public": true,
+      "target": {
+        "schoolRef": "ee010001-0000-4000-8000-000000000001"
+      },
+      "authorRef": "po-directeur-01",
+      "body": "Geen briefjes meer: u boekt een vrije tijd en de leerkracht bevestigt die. Lukt geen enkele tijd, stuur dan een bericht."
+    },
+    {
+      "title": "Woensdag naar de kinderboerderij: dit moet mee",
+      "publishedAt": "2026-10-05T07:45:00+02:00",
+      "public": false,
+      "target": {
+        "groupRefs": [
+          "ee010006-0000-4000-8000-000000000006"
+        ]
+      },
+      "authorRef": "po-leerkracht-09",
+      "body": "Woensdag gaan we na de schoolfoto naar de kinderboerderij. Geef uw kind laarzen, een regenjas en iets te drinken mee. We zijn om 12.15 uur terug op school."
+    },
+    {
+      "title": "Wij leren de tafel van 2 en 5",
+      "publishedAt": "2026-10-01T15:30:00+02:00",
+      "public": false,
+      "target": {
+        "groupRefs": [
+          "ee010006-0000-4000-8000-000000000004"
+        ]
+      },
+      "authorRef": "po-leerkracht-07",
+      "body": "Deze weken oefenen we de tafel van 2 en 5. Thuis samen oefenen helpt, bijvoorbeeld in de auto of aan tafel."
+    }
+  ],
+  "accounts": [
+    {
+      "userId": "po-leerkracht-09",
+      "displayName": "Meester Daan",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
+      "userId": "po-leerkracht-07",
+      "displayName": "Juf Esra",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
+      "userId": "po-leerkracht-05",
+      "displayName": "Juf Marloes",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
+      "userId": "po-ib-01",
+      "displayName": "Marieke de Wit",
+      "groups": [
+        "coordinators"
+      ]
+    },
+    {
+      "userId": "po-directeur-01",
+      "displayName": "Hanneke Postma",
+      "groups": [
+        "administration-managers"
+      ]
+    }
+  ]
+}

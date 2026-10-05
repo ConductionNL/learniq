@@ -59,11 +59,11 @@ import {
 	createRow,
 	grantPortalAccount,
 	nextcloudAccountExists,
-	offerSignInMode,
 	openRoute,
 	portalRows,
 	removeNextcloudAccount,
 	removeRows,
+	requireSignInMode,
 	shot,
 	signInWithNextcloudAccount,
 } from './helpers/portal-fixture.ts'
@@ -124,7 +124,6 @@ test.describe('pupil: her own portal', () => {
 
 	const created: SeededRow[] = []
 	let admin: APIRequestContext
-	let restoreModes: () => Promise<void> = async () => undefined
 	let pupil: PortalLogin
 	let profileRef = ''
 	let submissionId = ''
@@ -147,10 +146,8 @@ test.describe('pupil: her own portal', () => {
 		test.setTimeout(300_000)
 		admin = await asUser(ADMIN)
 
-		// The portal must offer the mode she signs in with; the original list
-		// goes back in afterAll.
-		const mode = await offerSignInMode(admin, PORTAL, 'nextcloud')
-		restoreModes = mode.restore
+		// The portal must offer the mode she signs in with; the suite never adds it.
+		const mode = await requireSignInMode(admin, PORTAL, 'nextcloud')
 		const organisation = mode.organisation
 
 		// The work she has to hand in is an assignment the school really
@@ -343,7 +340,6 @@ test.describe('pupil: her own portal', () => {
 	})
 
 	test.afterAll(async () => {
-		await restoreModes()
 		await removeRows(admin, created, 'pupil-flow')
 		if (createdAccount === true) {
 			await removeNextcloudAccount(admin, PUPIL.user)

@@ -94,3 +94,20 @@ Planned integrations include:
 - **DUO BRON/ROD**: student registration exchange
 
 Follow Codeberg issue #73 (pre-migration, not migrated to GitHub) for progress.
+
+## Portaliq: who signs in how
+
+Learniq contributes pages to a portaliq portal for four audiences. Each audience can only reach its pages through a sign-in mode the portal offers, so a portal must offer the mode of every audience it serves. The example portals declare these modes in `lib/Settings/portals/<set>.json`.
+
+| Audience | Who | Sign-in mode | How the account is made |
+|---|---|---|---|
+| `parent` | A guardian | `digid` | The school invites the guardian (`occ learniq:portal:invite-guardian`) |
+| `student` | A pupil or student | `nextcloud` | The school account the pupil already has |
+| `praktijkopleider` | A workplace trainer | `nextcloud` (eHerkenning once the portal has a broker for it) | `occ learniq:portal:invite-trainer` |
+| `external-assessor` | An outside assessor | `nextcloud` | `occ learniq:portal:invite-assessor` |
+
+The example portals: po `wilgenboom` offers `digid`; vo `vaartveld` offers `nextcloud` and `digid`; mbo `esdoornveen` and training `warmtepompacademie` offer `nextcloud` and `eherkenning`. A school may change its own portal's modes. If it removes a mode, the audience that uses it has no way in.
+
+### Loading an example set from the command line
+
+`occ learniq:example-set:load <set>` loads an example set the way the setup wizard does: the objects, then the portal with its menus, pages and news. It also gives the staff the portal names a Nextcloud account with their display name (skip that with `--no-accounts`). A new account gets a random password; set a real one or send an invitation. Run it again and it adds nothing.
