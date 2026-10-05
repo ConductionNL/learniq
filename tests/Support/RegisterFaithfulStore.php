@@ -64,6 +64,12 @@
  *   owner-admits rule is not modelled. With `$callerGroups` null (the
  *   default) no rights are checked, as before.
  *
+ * - `transition()` runs a named transition as TransitionEngine does: the
+ *   caller's read and update rights on the subject first, then the save
+ *   above (guard and actions). With `$asSystem` true it models
+ *   `transitionAsSystem()` (openregister #4327): only those rights and the
+ *   save's RBAC are skipped; the guard still gets the session user.
+ *
  * Saves are applied, so a test can read back what a call site wrote.
  *
  * @category Tests
@@ -141,6 +147,13 @@ final class RegisterFaithfulStore {
 	 * @var array<int, array{schema: string, object: array<string, mixed>, uuid: string|null}>
 	 */
 	public array $saves = [];
+
+	/**
+	 * Every transition() received: schema, id, action and whether it ran as the system.
+	 *
+	 * @var array<int, array{schema: string, id: string, action: string, asSystem: bool}>
+	 */
+	public array $transitions = [];
 
 	/**
 	 * When set, every read throws this message.
@@ -371,6 +384,57 @@ final class RegisterFaithfulStore {
 		$this->rows[$schema][] = $object;
 		return $this->entity(schema: $schema, object: $object, name: $name);
 	}//end save()
+
+	/**
+	 * Run a named transition the way OpenRegister's TransitionEngine does.
+	 *
+	 * `transition()` (asSystem false): the subject is found with the caller's
+	 * rights (not found when the caller may not read it), the caller must hold
+	 * `update` on it, and the save that moves the lifecycle field runs with
+	 * RBAC on. `transitionAsSystem()` (asSystem true, openregister #4327):
+	 * those three checks are skipped and nothing else is. The move must still
+	 * be declared from the current state, and the save still runs the
+	 * declared `requires` guard with the session user ($actingUser, never
+	 * "system") and the declared actions, exactly as on the ordinary path.
+	 *
+	 * @param string $schema   The schema slug.
+	 * @param string $objectId The object id.
+	 * @param string $action   The transition action name.
+	 * @param bool   $asSystem True for transitionAsSystem().
+	 *
+	 * @return ObjectEntity The saved object.
+	 *
+	 * @throws RuntimeException As OpenRegister refuses: not found, no update right, undeclared move, guard denial.
+	 */
+	public function transition(string $schema, string $objectId, string $action, bool $asSystem = false): ObjectEntity {
+		$this->transitions[] = ['schema' => $schema, 'id' => $objectId, 'action' => $action, 'asSystem' => $asSystem];
+
+		$row = null;
+		foreach (($this->rows[$schema] ?? []) as $candidate) {
+			if (($candidate['id'] ?? null) === $objectId) {
+				$row = $candidate;
+			}
+		}
+
+		if ($row === null || ($asSystem === false && $this->callerMay(schema: $schema, action: 'read', row: $row) === false)) {
+			throw new RuntimeException('Object "' . $objectId . '" not found.');
+		}
+
+		if ($asSystem === false && $this->callerMay(schema: $schema, action: 'update', row: $row) === false) {
+			throw new RuntimeException('You do not have permission to transition object "' . $objectId . '".');
+		}
+
+		$annotation = (array)(self::definition(schema: $schema)['x-openregister-lifecycle'] ?? []);
+		$field = (string)($annotation['field'] ?? ($annotation['property'] ?? ''));
+		$spec = ($annotation['transitions'][$action] ?? null);
+		if ($field === '' || is_array($spec) === false || in_array(($row[$field] ?? null), (array)($spec['from'] ?? []), true) === false) {
+			throw new RuntimeException(sprintf('Transition "%s" is not allowed from the current state.', $action));
+		}
+
+		$row[$field] = (string)($spec['to'] ?? '');
+
+		return $this->save(schema: $schema, object: $row, uuid: $objectId, rbac: ($asSystem === false));
+	}//end transition()
 
 	/**
 	 * Whether the caller may do an action on a row, by the shipped authorization.

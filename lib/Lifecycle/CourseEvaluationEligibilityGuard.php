@@ -232,9 +232,10 @@ class CourseEvaluationEligibilityGuard implements LifecycleGuardInterface {
 	 * An invitation pins the course, the cohort, the academic year and the
 	 * period (campaignId and tenant are already in the lookup). It names no
 	 * teacher, and the answer page writes none, so a row naming a teacher is
-	 * not one an invitation describes. Without this, a left-over draft that the
-	 * draft rule lets any signed-in user change could be pointed at another
-	 * course, cohort or teacher of the same campaign and submitted.
+	 * not one an invitation describes. Without this, a draft pointed at another
+	 * course, cohort or teacher of the same campaign could be submitted. Since
+	 * the submit runs as the system (DECISIONS row 63) this guard is the only
+	 * caller check inside the transition, so it stays strict.
 	 *
 	 * @param mixed               $invitation An open invitation of the caller (entity or array).
 	 * @param array<string,mixed> $object     The response row at its target state.

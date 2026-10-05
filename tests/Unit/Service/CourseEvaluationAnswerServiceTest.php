@@ -86,6 +86,13 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	private array $deleted = [];
 
 	/**
+	 * The app named on every transitionAsSystem() call.
+	 *
+	 * @var array<int, string>
+	 */
+	private array $systemApps = [];
+
+	/**
 	 * The fixed moment the tests judge closing dates by.
 	 *
 	 * @return DateTimeImmutable
@@ -100,10 +107,11 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @param string                  $caller The session caller.
 	 * @param array<int, string>|null $groups The caller's groups; null leaves read and write rights unchecked.
+	 * @param bool                    $oldOpenRegister True for an OpenRegister without transitionAsSystem().
 	 *
 	 * @return CourseEvaluationAnswerService
 	 */
-	private function service(string $caller = 'jan', ?array $groups = null): CourseEvaluationAnswerService {
+	private function service(string $caller = 'jan', ?array $groups = null, bool $oldOpenRegister = false): CourseEvaluationAnswerService {
 		$this->store = new RegisterFaithfulStore();
 		$this->store->actingUser = $caller;
 		$this->store->callerGroups = $groups;
@@ -173,45 +181,59 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 		$guard = new CourseEvaluationEligibilityGuard(userSession: $session, objectService: $objects, logger: new NullLogger());
 		$handler = new CourseEvaluationResponseSubmittedHandler($session, $objects, new NullLogger(), TransitionScope::resolver());
 
-		// The engine does what OpenRegister's TransitionEngine does for this
-		// schema: find the subject as the caller (not found when the caller
-		// may not read it), require the caller's update right on it, run the
-		// declared guard, save draft to submitted as the caller, dispatch the
-		// event.
+		// The engine is RegisterFaithfulStore::transition(), which does what
+		// OpenRegister's TransitionEngine does for this schema. transition():
+		// find the subject as the caller, require the caller's update right,
+		// save with RBAC on. transitionAsSystem() (#4327): skip those three,
+		// nothing else. Both run the declared guard on the save with the
+		// session user, and the transitioned event reaches the real handler.
+		$this->store->lifecycleGuards[CourseEvaluationEligibilityGuard::class] = $guard;
+		$this->systemApps = [];
 		$engine = $this->createMock(TransitionEngine::class);
 		$engine->method('transition')->willReturnCallback(
-			function (string $objectId, string $action, array $data = []) use ($guard, $handler, $caller): ObjectEntity {
-				$row = null;
-				foreach ($this->store->rows['course-evaluation-response'] as $candidate) {
-					if ($candidate['id'] === $objectId) {
-						$row = $candidate;
-					}
-				}
-
-				if ($row === null || $this->store->callerMay(schema: 'course-evaluation-response', action: 'read', row: $row) === false) {
-					throw new RuntimeException('Object "' . $objectId . '" not found.');
-				}
-
-				if ($this->store->callerMay(schema: 'course-evaluation-response', action: 'update', row: $row) === false) {
-					throw new RuntimeException('You do not have permission to transition object "' . $objectId . '".');
-				}
-
-				$verdict = $guard->check(object: $row, action: $action, userId: $caller);
-				if ($verdict->isAllowed() === false) {
-					throw new RuntimeException((string)$verdict->getMessage());
-				}
-
-				$row['lifecycle'] = 'submitted';
-				$saved = $this->store->save('course-evaluation-response', $row, $objectId);
-				$handler->handle(new ObjectTransitionedEvent($saved, $action, 'draft', 'submitted', $caller, 'learniq', 'course-evaluation-response'));
-
-				return $saved;
+			fn (string $objectId, string $action, array $data = []): ObjectEntity => $this->runTransition(handler: $handler, caller: $caller, objectId: $objectId, action: $action, asSystem: false)
+		);
+		$engine->method('transitionAsSystem')->willReturnCallback(
+			function (string $objectId, string $action, string $app, array $data = []) use ($handler, $caller): ObjectEntity {
+				$this->systemApps[] = $app;
+				return $this->runTransition(handler: $handler, caller: $caller, objectId: $objectId, action: $action, asSystem: true);
 			}
 		);
 
 		$this->logger = new CapturingLogger();
+		if ($oldOpenRegister === true) {
+			return new class(objectService: $objects, transitionEngine: $engine, builder: new CourseEvaluationResponseBuilder(), logger: $this->logger) extends CourseEvaluationAnswerService {
+				/**
+				 * An OpenRegister from before #4327: no transitionAsSystem().
+				 *
+				 * @return bool
+				 */
+				protected function systemTransitionAvailable(): bool {
+					return false;
+				}//end systemTransitionAvailable()
+			};
+		}
+
 		return new CourseEvaluationAnswerService(objectService: $objects, transitionEngine: $engine, builder: new CourseEvaluationResponseBuilder(), logger: $this->logger);
 	}//end service()
+
+	/**
+	 * One transition through the faithful store, then the transitioned event.
+	 *
+	 * @param CourseEvaluationResponseSubmittedHandler $handler  The real handler.
+	 * @param string                                   $caller   The session user.
+	 * @param string                                   $objectId The response id.
+	 * @param string                                   $action   The action.
+	 * @param bool                                     $asSystem Whether it runs as transitionAsSystem().
+	 *
+	 * @return ObjectEntity
+	 */
+	private function runTransition(CourseEvaluationResponseSubmittedHandler $handler, string $caller, string $objectId, string $action, bool $asSystem): ObjectEntity {
+		$saved = $this->store->transition(schema: 'course-evaluation-response', objectId: $objectId, action: $action, asSystem: $asSystem);
+		$handler->handle(new ObjectTransitionedEvent($saved, $action, 'draft', 'submitted', $caller, 'learniq', 'course-evaluation-response'));
+
+		return $saved;
+	}//end runTransition()
 
 	/**
 	 * The stored responses.
@@ -449,4 +471,120 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 		self::assertCount(5, $this->store->findAll(['filters' => ['register' => 'learniq', 'schema' => 'evaluation-invitation']]));
 		self::assertSame(2, $service->results(campaignId: self::CAMPAIGN)['invitationCount']);
 	}//end testStaffKeepTheirReads()
+
+	/**
+	 * DECISIONS row 63: with no rule for signed-in users on the response
+	 * schema, an invited learner in no group still submits, because the
+	 * submit runs through transitionAsSystem() after learniq's checks, named
+	 * for learniq, and the guard still ran with the learner as caller.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 */
+	public function testAnInvitedLearnerSubmitsThroughTheSystemTransition(): void {
+		$service = $this->service(caller: 'jan', groups: []);
+
+		$result = $service->answer(learnerId: 'jan', invitationId: 'i-jan', answers: ['q1' => 4, 'q5' => 4], now: self::now());
+
+		self::assertSame(['status' => 201], $result, $this->logger->dump());
+		self::assertSame('submitted', $this->responses()[0]['lifecycle']);
+		self::assertSame(['learniq'], $this->systemApps, 'the submit names learniq as the app that approved the caller');
+		self::assertSame([true], array_column($this->store->transitions, 'asSystem'), 'the submit never takes the caller-rights path');
+		$invitation = array_values(array_filter($this->store->rows['evaluation-invitation'], static fn (array $row): bool => $row['id'] === 'i-jan'))[0];
+		self::assertTrue($invitation['hasResponded'], 'the invitation is marked answered');
+	}//end testAnInvitedLearnerSubmitsThroughTheSystemTransition()
+
+	/**
+	 * A second signed-in user can neither read nor change a learner's draft,
+	 * not through a list, not as a single row, and not by transitioning it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
+	 */
+	public function testAnotherSignedInUserCanNeitherReadNorUpdateADraft(): void {
+		$this->service(caller: 'piet', groups: []);
+		$draft = ['id' => 'r-draft', 'campaignId' => self::CAMPAIGN, 'courseId' => self::COURSE, 'cohortId' => null, 'academicYear' => '2026-2027', 'period' => 'Q1', 'answers' => [], 'lifecycle' => 'draft', 'tenant_id' => self::TENANT];
+		$this->store->rows['course-evaluation-response'] = [$draft];
+
+		self::assertFalse($this->store->callerMay(schema: 'course-evaluation-response', action: 'read', row: $draft), 'a signed-in user reads no draft');
+		self::assertFalse($this->store->callerMay(schema: 'course-evaluation-response', action: 'update', row: $draft), 'a signed-in user changes no draft');
+		self::assertSame([], $this->store->findAll(['filters' => ['register' => 'learniq', 'schema' => 'course-evaluation-response']]), 'the draft is not listed');
+
+		try {
+			$this->store->save('course-evaluation-response', array_merge($draft, ['courseId' => 'another-course']), 'r-draft', true);
+			self::fail('the update was not refused');
+		} catch (RuntimeException $exception) {
+			self::assertStringContainsString("does not have permission to 'update'", $exception->getMessage());
+		}
+
+		try {
+			$this->store->transition(schema: 'course-evaluation-response', objectId: 'r-draft', action: 'submit');
+			self::fail('the transition was not refused');
+		} catch (RuntimeException $exception) {
+			self::assertSame('Object "r-draft" not found.', $exception->getMessage(), 'the draft does not even exist for them');
+		}
+
+		self::assertSame(self::COURSE, $this->responses()[0]['courseId']);
+		self::assertSame('draft', $this->responses()[0]['lifecycle']);
+	}//end testAnotherSignedInUserCanNeitherReadNorUpdateADraft()
+
+	/**
+	 * The system path skips only OpenRegister's rights. An uninvited caller
+	 * is still refused by learniq (404 before a write, and by the guard on a
+	 * forged call), and a draft pointed at another course is refused by the
+	 * guard even on the system path.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
+	 */
+	public function testTheGuardStillRefusesOnTheSystemPath(): void {
+		$klaas = $this->service(caller: 'klaas', groups: []);
+		self::assertSame(404, $klaas->answer(learnerId: 'klaas', invitationId: 'i-jan', answers: ['q1' => 4, 'q5' => 4], now: self::now())['status']);
+		$refused = $klaas->answer(learnerId: 'jan', invitationId: 'i-jan', answers: ['q1' => 4, 'q5' => 4], now: self::now());
+		self::assertSame(['status' => 403, 'error' => 'You have no open invitation for this course evaluation.'], $refused);
+		self::assertSame([true], array_column($this->store->transitions, 'asSystem'), 'the refusal came from the guard on the system path');
+		self::assertSame([], $this->responses(), 'the refused draft is removed');
+
+		// jan holds an open invitation for the course; a draft naming another
+		// course is refused by the guard although RBAC is skipped.
+		$this->service(caller: 'jan', groups: []);
+		$this->store->rows['course-evaluation-response'] = [
+			['id' => 'r-wrong', 'campaignId' => self::CAMPAIGN, 'courseId' => 'another-course', 'cohortId' => null, 'academicYear' => '2026-2027', 'period' => 'Q1', 'answers' => [], 'lifecycle' => 'draft', 'tenant_id' => self::TENANT],
+		];
+		try {
+			$this->store->transition(schema: 'course-evaluation-response', objectId: 'r-wrong', action: 'submit', asSystem: true);
+			self::fail('the wrong-course submit was not refused');
+		} catch (RuntimeException $exception) {
+			self::assertStringContainsString('no open invitation', $exception->getMessage());
+		}
+
+		self::assertSame('draft', $this->responses()[0]['lifecycle']);
+	}//end testTheGuardStillRefusesOnTheSystemPath()
+
+	/**
+	 * On an OpenRegister without transitionAsSystem() (before #4327) the
+	 * answer is refused before anything is written, with a message that says
+	 * why, and learniq never falls back to the caller-rights transition.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 */
+	public function testAnOldOpenRegisterRefusesTheSubmit(): void {
+		$service = $this->service(caller: 'jan', groups: [], oldOpenRegister: true);
+
+		$result = $service->answer(learnerId: 'jan', invitationId: 'i-jan', answers: ['q1' => 4, 'q5' => 4], now: self::now());
+
+		self::assertSame(503, $result['status']);
+		self::assertStringContainsString('OpenRegister', (string)($result['error'] ?? ''));
+		self::assertSame([], $this->store->transitions, 'no transition of any kind was tried');
+		self::assertSame([], $this->saveCalls, 'nothing was written');
+		self::assertSame([], $this->responses());
+		self::assertStringContainsString('transitionAsSystem', $this->logger->dump(), 'the administrator can see what is missing');
+		$invitation = array_values(array_filter($this->store->rows['evaluation-invitation'], static fn (array $row): bool => $row['id'] === 'i-jan'))[0];
+		self::assertFalse($invitation['hasResponded']);
+	}//end testAnOldOpenRegisterRefusesTheSubmit()
 }//end class
