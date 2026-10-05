@@ -24293,7 +24293,7 @@
             "EvaluationInvitation": {
                 "slug": "evaluation-invitation",
                 "icon": "AccountCheckOutline",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "EvaluationInvitation",
                 "description": "One system-provisioned row per learner per EvaluationCampaign, created when the campaign opens (EvaluationInvitationProvisioningHandler). The ONLY place a learner's identity and their evaluation-response status co-exist -- it never references which CourseEvaluationResponse satisfied it (no responseId field). CourseEvaluationEligibilityGuard and CourseEvaluationResponseSubmittedHandler are the only code paths that read/write it, both resolving the caller transiently via IUserSession (design.md Decision 2). System-provisioned -- no user-initiated lifecycle, no dedicated authoring UI.",
                 "type": "object",
@@ -24301,6 +24301,32 @@
                     "active": true,
                     "hardDelete": false,
                     "searchable": true
+                },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
                 },
                 "required": [
                     "campaignId",
@@ -24412,7 +24438,7 @@
                 "slug": "course-evaluation-response",
                 "appendOnly": false,
                 "icon": "MessageTextOutline",
-                "version": "0.1.1",
+                "version": "0.1.2",
                 "title": "CourseEvaluationResponse",
                 "description": "An anonymous course/module evaluation response, appendOnly. MUST NOT declare any property identifying the responding learner (no learnerId/submittedBy/equivalent) -- anonymity is enforced by the absence of such a property in the schema, not by an x-property-rbac rule hiding an existing one (design.md Decision 2). The draft -> submitted transition requires CourseEvaluationEligibilityGuard, which resolves the caller's identity server-side via IUserSession and never writes it onto this object.",
                 "type": "object",
@@ -24420,6 +24446,38 @@
                     "active": true,
                     "hardDelete": false,
                     "searchable": true
+                },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "lifecycle": "draft"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "lifecycle": "draft"
+                            }
+                        }
+                    ]
                 },
                 "required": [
                     "campaignId",
