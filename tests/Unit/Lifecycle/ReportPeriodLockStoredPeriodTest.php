@@ -132,15 +132,18 @@ class ReportPeriodLockStoredPeriodTest extends TestCase {
 	}//end guard()
 
 	/**
-	 * The register does not declare `isLocked` as a property, so it is never
-	 * part of a stored period: the guards must not depend on reading it.
+	 * `isLocked` is now declared so OpenRegister stores its materialised
+	 * value, but only readOnly: no client can set it, and a stored value is
+	 * as old as the period's last save, so the guards still decide from the
+	 * period itself (the tests below store periods without it).
 	 *
 	 * @return void
 	 */
-	public function testTheRegisterNeverStoresIsLocked(): void {
-		self::assertArrayNotHasKey('isLocked', self::shippedSchema('report-period')['properties']);
-		self::assertNotContains('isLocked', RegisterFaithfulStore::declaredProperties()['report-period']);
-	}//end testTheRegisterNeverStoresIsLocked()
+	public function testIsLockedIsStoredOnlyAsAReadOnlyCalculation(): void {
+		$property = self::shippedSchema('report-period')['properties']['isLocked'];
+		self::assertTrue($property['readOnly']);
+		self::assertArrayHasKey('isLocked', self::shippedSchema('report-period')['x-openregister-calculations']);
+	}//end testIsLockedIsStoredOnlyAsAReadOnlyCalculation()
 
 	/**
 	 * Live pass D2: a teacher republishes into a period whose lock date has

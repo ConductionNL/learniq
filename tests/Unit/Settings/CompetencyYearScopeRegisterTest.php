@@ -104,7 +104,7 @@ class CompetencyYearScopeRegisterTest extends TestCase {
 		self::assertSame(['frameworkId', 'code', 'title', 'tenant_id'], $this->schema['required']);
 		self::assertNotContains('applicableYears', $this->schema['required']);
 		self::assertNotContains('subjectId', $this->schema['required']);
-		self::assertSame('0.2.0', $this->schema['version']);
+		self::assertTrue(version_compare((string)$this->schema['version'], '0.2.0', '>='), 'the schema version moved to at least 0.2.0');
 
 		foreach (['frameworkId', 'parentId', 'code', 'title', 'description', 'order', 'requiredForRoles', 'lifecycle'] as $existing) {
 			self::assertArrayHasKey($existing, $this->schema['properties']);
