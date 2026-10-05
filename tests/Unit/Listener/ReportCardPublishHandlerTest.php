@@ -118,7 +118,7 @@ class ReportCardPublishHandlerTest extends TestCase {
 		$l10nFactory->method('findGenericLanguage')->willReturn('nl');
 		$l10nFactory->method('get')->with('learniq', 'nl')->willReturn($l10n);
 
-		return new ReportCardPublishHandler($objectService, $timeFactory, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver(), $l10nFactory);
+		return new ReportCardPublishHandler($objectService, $timeFactory, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver(), $l10nFactory, new \OCA\Learniq\Service\ReportSubjectGradeRows($objectService));
 	}//end makeHandler()
 
 	/**

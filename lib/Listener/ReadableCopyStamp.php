@@ -97,7 +97,8 @@ class ReadableCopyStamp implements IEventListener {
 			return;
 		}
 
-		$payload = array_merge(($entity->getObject() ?? []), $event->getModifiedData());
+		// The object's own id travels with it: a learner profile's group line is found through its enrolments.
+		$payload = array_merge(['id' => (string)$entity->getUuid()], ($entity->getObject() ?? []), $event->getModifiedData());
 		$event->setModifiedData(array_merge($event->getModifiedData(), $this->stampFor(event: $event, slug: $slug, payload: $payload)));
 	}//end handle()
 

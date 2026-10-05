@@ -41,6 +41,7 @@ use OCA\Learniq\Listener\CohortNameCascade;
 use OCA\Learniq\Listener\HourWeekSubmissionStamp;
 use OCA\Learniq\Listener\WerkprocesAssessmentLearnerStamp;
 use OCA\Learniq\Listener\HourWeekTotalRollup;
+use OCA\Learniq\Listener\LearnerGroupLabelCascade;
 use OCA\Learniq\Listener\ReadableCopyStamp;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
 use OCA\Learniq\Listener\SubmissionOwnerStamp;
@@ -272,6 +273,15 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatedEvent::class,
 			listener: CohortNameCascade::class
+		);
+		// A pupil's group line in the guardian's menu follows the enrolment (school-portals-use-the-new-blocks).
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: LearnerGroupLabelCascade::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: LearnerGroupLabelCascade::class
 		);
 		// Who entered a week of hours, when, for which student and for which
 		// school, all from the placement the week names: the pupil's form may

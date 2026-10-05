@@ -23,18 +23,28 @@
         "nextcloud": {
           "title": "Als deelnemer",
           "text": "Voor uw cursusdagen en certificaten. U logt in met het account uit uw uitnodiging.",
-          "button": "Inloggen als deelnemer"
+          "button": "Inloggen als deelnemer",
+          "hint": "U krijgt uw account via de uitnodiging per e-mail.",
+          "icon": "EmailOutline"
         },
         "eherkenning": {
           "title": "Als werkgever",
           "text": "Voor inschrijvingen en de certificaten van uw medewerkers.",
           "button": "Inloggen met eHerkenning"
         }
+      },
+      "signInPage": {
+        "title": "Inloggen op Mijn academie",
+        "intro": "Volgt u zelf een cursus? Dan krijgt u een uitnodiging per e-mail. Regelt u cursussen voor uw bedrijf? Dan gebruikt u eHerkenning.",
+        "notice": {
+          "text": "Nog niet ingeschreven? U krijgt toegang zodra uw eerste inschrijving is bevestigd. Lukt het inloggen niet, bel dan [telefoonnummer]."
+        }
       }
     },
     "headerSearch": {
       "label": "Zoek een cursus",
-      "route": "/cursusaanbod"
+      "route": "/cursusaanbod",
+      "placeholder": "Zoek een cursus"
     },
     "footer": {
       "description": "Twijfelt u welke cursus past? Bel de planning. U krijgt iemand aan de lijn die de cursussen kent.",
@@ -42,7 +52,29 @@
       "cta": {
         "label": "Contact en route",
         "href": "/contact"
+      },
+      "contact": {
+        "title": "Contact",
+        "lines": [
+          {
+            "text": "Praktijkhal: Energieweg 8, Zuiddrecht"
+          },
+          {
+            "text": "Planning: [telefoonnummer]"
+          },
+          {
+            "text": "E-mail: [e-mailadres]",
+            "href": "mailto:info@example.org"
+          },
+          {
+            "text": "Werkdagen 08.00 tot 17.00 uur"
+          }
+        ]
       }
+    },
+    "accountLabel": "Mijn academie",
+    "residentMenu": {
+      "cardLabel": "U regelt het voor"
     }
   },
   "legacyTitles": [],

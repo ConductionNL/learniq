@@ -397,6 +397,14 @@ class PortalContributionProvider {
 					'learnerRef',
 					'event',
 					'courseId',
+					'courseName',
+					'visibleFrom',
+				],
+				// A grade held back by the teacher stays out until its moment (portaliq #1198).
+				'visibleFromField' => 'visibleFrom',
+				'messageFields' => [
+					'subject' => 'courseName',
+					'receivedAt' => 'visibleFrom',
 				],
 			],
 		];
@@ -705,7 +713,7 @@ class PortalContributionProvider {
 			$this->parentWelfareCollections(childJoin: $childJoin),
 			$extras->conferenceCollections(childJoin: $childJoin),
 			[$extras->groupMembershipsCollection(childJoin: $childJoin)],
-			[$extras->inboxCollection(childJoin: $childJoin)],
+			[$extras->reportSubjectGradesCollection(childJoin: $childJoin)],
 			$record->collections(childJoin: $childJoin)
 		);
 		$actions = array_merge(
@@ -808,6 +816,28 @@ class PortalContributionProvider {
 				],
 				'submitLabel' => 'Report the absence',
 				'successMessage' => "The school has your report. You see the teacher's decision in the list of absence reports.",
+				// The sentence above the send button and on the confirmation (board MobielDetail:
+				// "Sami is vandaag de hele dag ziek."). A date answer reads as "vandaag", "morgen" or
+				// a weekday in the page language; the child reads as the option's own label (L2-3).
+				'summary' => [
+					'label' => 'You report',
+					'template' => '{learnerRef} is {reasonKind} {dateFrom}.',
+					'phrases' => [
+						'reasonKind' => [
+							'illness' => 'ill',
+							'medical-appointment' => 'at the doctor or dentist',
+							'family-circumstance' => 'away for a family reason',
+							'religious-observance' => 'away for a religious holiday',
+							'bereavement' => 'away for a funeral',
+							'other' => 'away for another reason',
+						],
+					],
+				],
+				// What she reads after sending (site-guardian-portal-design T6b, REQ-SMF-022).
+				'confirmation' => [
+					'title' => 'Your report has been sent',
+					'body' => 'The teacher sees it in the class right away. In the list of absence reports you see when the teacher has decided.',
+				],
 			],
 		];
 

@@ -91,6 +91,8 @@ SCHEMAS = [
     "school-event",
     "assignment",
     "submission",
+    # Appended last (school-portals-use-the-new-blocks): every earlier schema keeps its uuid namespace.
+    "report-subject-grade",
 ]
 
 # School events a parent sees in the portal calendar: (title, start, end, kind, groups or None for the whole
@@ -834,6 +836,9 @@ def build() -> dict:
     add_sami(b, pupils, cohorts, sessions, days, periods, plans, subject_courses, names_by_uuid)
     add_story(b, pupils, cohorts, school, subject_courses, names_by_uuid)
 
+    stamp_group_labels(b)
+    add_report_subject_grades(b)
+
     # --- assemble -----------------------------------------------------------
     for cohort in cohorts.values():
         del cohort["_room"]
@@ -1120,6 +1125,67 @@ def add_story(b: Builder, pupils: list[dict], cohorts: dict, school: dict, subje
             "cohortId": group7["uuid"], "dueAt": stamp(dt.date.fromisoformat(due), 8, 30), "maxPoints": 10,
             "allowLateSubmission": True, "lifecycle": "published", "learnerRefs": members7,
         })
+
+
+def stamp_group_labels(b: Builder) -> None:
+    """Every pupil's group line, as LearnerGroupLabel writes it on a live save
+    (school-portals-use-the-new-blocks): the group of the newest active enrolment,
+    and " · " with the first teacher's display name when the portal declaration
+    names that teacher (lib/Settings/portals/<set>.json accounts; the load command
+    gives those accounts that name). Runs last and draws no random number."""
+    declaration = os.path.join(ROOT, "lib", "Settings", "portals", f"{SET}.json")
+    names = {}
+    if os.path.exists(declaration):
+        with open(declaration, encoding="utf-8") as handle:
+            names = {a["userId"]: a["displayName"] for a in json.load(handle).get("accounts", [])}
+    cohorts = {c["uuid"]: c for c in b.buckets.get("cohort", [])}
+    newest: dict[str, dict] = {}
+    for enrolment in b.buckets.get("enrolment", []):
+        ref = enrolment.get("learnerRef")
+        if enrolment.get("lifecycle") != "active" or not ref or enrolment.get("cohortId") not in cohorts:
+            continue
+        if ref not in newest or str(enrolment.get("inschrijvingDate", "")) > str(newest[ref].get("inschrijvingDate", "")):
+            newest[ref] = enrolment
+    for profile in b.buckets.get("learner-profile", []):
+        enrolment = newest.get(profile["uuid"])
+        if "learner" not in (profile.get("roles") or []) or enrolment is None:
+            continue
+        cohort = cohorts[enrolment["cohortId"]]
+        teacher = names.get(((cohort.get("teacherIds") or [None])[0]) or "")
+        profile["groupLabel"] = cohort["name"] + (" · " + teacher if teacher else "")
+
+
+MONTHS_NL = ["januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"]
+
+
+def add_report_subject_grades(b: Builder) -> None:
+    """Each pupil's latest published report card as one row per subject, as
+    ReportSubjectGradeRows writes them on publish (school-portals-use-the-new-blocks):
+    the subject's name, the grade, its place on the card, the caption
+    ("Rapport 2 · juni 2026 · Groep 7") and the teacher's words. The cards are not changed."""
+    names = {c["uuid"]: c["name"] for c in b.buckets["course"]}
+    groups = {c["uuid"]: c["name"] for c in b.buckets["cohort"]}
+    latest: dict[str, dict] = {}
+    for card in b.buckets["report-card"]:
+        if card.get("lifecycle") != "published-to-parents":
+            continue
+        ref = card["learnerRef"]
+        if ref not in latest or card["composedAt"] > latest[ref]["composedAt"]:
+            latest[ref] = card
+    for ref, card in sorted(latest.items()):
+        year, month = card["composedAt"][:4], int(card["composedAt"][5:7])
+        caption = " · ".join(p for p in (card.get("periodName") or "", f"{MONTHS_NL[month - 1]} {year}", groups.get(card.get("cohortId"), "")) if p)
+        position = 0
+        for grade in card.get("subjectGrades") or []:
+            name = names.get(grade.get("courseId"))
+            if not name:
+                continue
+            b.add("report-subject-grade", {
+                "learnerRef": ref, "learnerId": card["learnerId"], "reportCardId": card["uuid"], "subjectName": name,
+                "periodAverage": grade.get("periodAverage"), "passed": grade.get("passed"), "position": position,
+                "caption": caption, "mentorComment": card.get("mentorComment"),
+            })
+            position += 1
 
 
 def render(data: dict) -> str:

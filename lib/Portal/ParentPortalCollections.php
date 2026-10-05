@@ -82,50 +82,38 @@ class ParentPortalCollections {
 	}//end groupMembershipsCollection()
 
 	/**
-	 * The guardian's inbox: a notice for each published report card of her
-	 * own children (site-guardian-portal-design T3).
-	 *
-	 * Rows are read through the same reverse join as every parent read, so a
-	 * notice about another family's child never shows. The publish handler
-	 * writes a notice the moment the card is published (`visibleFrom` is that
-	 * moment), and only for a card in `published-to-parents`, so every notice
-	 * is already visible. The line she reads is the stamped `subject`
-	 * ("Het rapport van Vera staat klaar"); a grade is never part of it.
-	 * Grade notices stay out: their `visibleFrom` may lie in the future and
-	 * portaliq cannot yet hide a row until a date (requested from lane L2).
+	 * The child's latest report, one row per subject, for the bars of the
+	 * child's page (board Detail "Laatste rapport"). Only a published card
+	 * ever has rows (ReportSubjectGradeRows writes them on publish), so a
+	 * draft never reaches a guardian.
 	 *
 	 * @param array<string, mixed> $childJoin The shared reverse `via` join descriptor.
 	 *
 	 * @return array<string, mixed> The collection.
 	 *
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-school-notices-about-a-child-reach-the-guardians-inbox
+	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
 	 */
-	public function inboxCollection(array $childJoin): array {
+	public function reportSubjectGradesCollection(array $childJoin): array {
 		return [
-			'id' => 'parentInbox',
-			'kind' => 'inbox',
+			'id' => 'parentReportSubjectGrades',
 			'register' => self::REGISTER,
-			'schema' => 'report-card-parent-notification',
+			'schema' => 'report-subject-grade',
 			'scopeField' => 'learnerRef',
 			'scopeClaim' => 'guardianRef',
 			'via' => $childJoin,
 			'groupByField' => 'learnerRef',
-			'label' => 'Messages from school',
-			'listable' => true,
+			'defaultSort' => ['field' => 'position', 'direction' => 'asc'],
+			'label' => 'Latest report',
+			'listable' => false,
 			'minTrust' => 'substantial',
-			'fields' => [
-				'learnerRef',
-				'event',
-				'subject',
-				'visibleFrom',
-			],
-			'messageFields' => [
-				'subject' => 'subject',
-				'receivedAt' => 'visibleFrom',
+			'fields' => ['learnerRef', 'subjectName', 'periodAverage', 'passed', 'position', 'caption', 'mentorComment'],
+			'columns' => [
+				['field' => 'subjectName', 'label' => 'Subject'],
+				['field' => 'periodAverage', 'label' => 'Grade'],
 			],
 		];
 
-	}//end inboxCollection()
+	}//end reportSubjectGradesCollection()
 
 	/**
 	 * The grades on the child's published report cards, for the guardian.

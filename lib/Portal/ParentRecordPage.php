@@ -82,6 +82,8 @@ class ParentRecordPage {
 			'fields' => [
 				'givenName',
 				'familyName',
+				// The group line under the child's name (school-portals-use-the-new-blocks).
+				'groupLabel',
 				'guardianRefs',
 				// The record page joins the school's calendar and news on it.
 				'schoolId',
@@ -108,7 +110,10 @@ class ParentRecordPage {
 	public function collections(array $childJoin): array {
 		$schoolJoin = array_merge($childJoin, ['targetField' => 'schoolId']);
 
-		return [
+		// The guardian's inboxes travel with the child's own collections (school-portals-use-the-new-blocks).
+		return array_merge(
+			(new ParentInboxCollections())->collections(childJoin: $childJoin),
+			[
 			$this->hidden(
 				id: 'parentAttendanceSummary',
 				schema: 'attendance-summary',
@@ -159,7 +164,8 @@ class ParentRecordPage {
 				label: 'Holidays',
 				fields: ['name', 'academicYear', 'schoolId', 'holidays', 'studyDays']
 			),
-		];
+			]
+		);
 
 	}//end collections()
 
@@ -211,10 +217,30 @@ class ParentRecordPage {
 			'label' => 'Grades and report cards',
 			'icon' => 'AccountChild',
 			'record' => ['collection' => 'parentChildren', 'titleFields' => ['givenName', 'familyName']],
+			// In the menu: "Mijn kinderen" with one entry per child and the group line under the name
+			// (lane L1 resident menu: `group` + `records.subtitleFields` on a perRecord page; portaliq
+			// keeps `subtitleFields` on `records`, not on `record`, so the page declares both).
+			'group' => 'My children',
+			'records' => ['collection' => 'parentChildren', 'titleFields' => ['givenName'], 'subtitleFields' => ['groupLabel']],
 			'blocks' => [
 				['type' => 'collection', 'collection' => 'parentChildren'],
 				$this->attendanceFigures(),
 				['type' => 'collection', 'collection' => 'parentReportCards', 'recordField' => 'learnerRef'],
+				// The latest report as a bar per subject, with the teacher's words (board Detail).
+				[
+					'type' => 'collection',
+					'label' => 'Latest report',
+					'collection' => 'parentReportSubjectGrades',
+					'recordField' => 'learnerRef',
+					'display' => 'bars',
+					'labelField' => 'subjectName',
+					'valueField' => 'periodAverage',
+					'max' => 10,
+					'captionField' => 'caption',
+					'noteField' => 'mentorComment',
+					'noteLabel' => 'From the teacher',
+					'sort' => ['field' => 'position', 'direction' => 'asc'],
+				],
 				['type' => 'collection', 'collection' => 'parentReportCardGrades', 'recordField' => 'learnerRef'],
 				[
 					'type' => 'collection',

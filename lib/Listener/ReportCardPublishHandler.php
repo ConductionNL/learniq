@@ -40,6 +40,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Service\ReportSubjectGradeRows;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -71,6 +72,7 @@ class ReportCardPublishHandler implements IEventListener {
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
 	 * @param IFactory $l10nFactory The instance's language, for the readable subject of the notice.
+	 * @param ReportSubjectGradeRows $subjectRows Writes the card's per-subject rows for the parent portal.
 	 *
 	 * @return void
 	 */
@@ -80,6 +82,7 @@ class ReportCardPublishHandler implements IEventListener {
 		private readonly LoggerInterface $logger,
 		private readonly ListenerSchemaResolver $schemas,
 		private readonly IFactory $l10nFactory,
+		private readonly ReportSubjectGradeRows $subjectRows,
 	) {
 	}//end __construct()
 
@@ -105,7 +108,19 @@ class ReportCardPublishHandler implements IEventListener {
 			return;
 		}
 
-		$this->fanOutParentNotifications(reportCard: $event->getObject()->jsonSerialize());
+		$card = $event->getObject()->jsonSerialize();
+		$this->fanOutParentNotifications(reportCard: $card);
+
+		// The parent portal's bars read one row per subject of the latest report
+		// (school-portals-use-the-new-blocks). A failure here never stops the notices.
+		try {
+			$this->subjectRows->replace(card: $card);
+		} catch (\Throwable $exception) {
+			$this->logger->warning(
+				'[ReportCardPublishHandler] The subject rows of report card {id} could not be written: {msg}',
+				['id' => (string)($card['id'] ?? ''), 'msg' => $exception->getMessage()]
+			);
+		}
 
 	}//end handle()
 

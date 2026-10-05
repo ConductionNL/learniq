@@ -129,6 +129,40 @@ class ExamplePortalDeclarationsTest extends TestCase {
 	}//end testAccountsAndAudiencesExistInTheSet()
 
 	/**
+	 * The chrome keys lane L1 renders are declared, the quick-task icons are
+	 * line-icon names portaliq draws, and every public news item names its audience.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-each-portal-declares-the-chrome-its-board-shows
+	 */
+	public function testTheChromeIconsAndNewsAudienceAreDeclared(): void {
+		$lineIcons    = ['alert', 'chat', 'calendar', 'calendarLines', 'clock', 'document', 'documentGrade', 'home', 'book', 'bookLines', 'bookStack', 'personPlus', 'heartPlus', 'sun', 'pencil', 'card', 'plusBox', 'building'];
+		$declarations = new ExamplePortalDeclarations();
+		foreach ($declarations->declaredSets() as $set) {
+			$portal = $declarations->forSet(setId: $set)['portal'];
+			self::assertSame('public', $portal['authentication']['modes'][0], $set . ': the website is public');
+			self::assertNotSame('', (string)($portal['accountLabel'] ?? ''), $set . ': accountLabel');
+			self::assertNotEmpty($portal['footer']['contact']['lines'] ?? [], $set . ': footer.contact');
+			self::assertNotSame('', (string)($portal['authentication']['signInPage']['title'] ?? ''), $set . ': signInPage');
+			foreach ($declarations->forSet(setId: $set)['pages'] as $page) {
+				foreach (($page['body']['widgets'] ?? []) as $widget) {
+					foreach (($widget['widgetKey'] === 'nlQuickTasks' ? $widget['props']['items'] : []) as $item) {
+						self::assertContains($item['icon'], $lineIcons, $set . ' ' . $item['label']);
+					}
+				}
+			}
+		}
+
+		self::assertSame('U regelt het voor', $declarations->forSet(setId: 'training')['portal']['residentMenu']['cardLabel']);
+		foreach ($declarations->forSet(setId: 'po')['news'] as $item) {
+			if ($item['public'] === true) {
+				self::assertNotSame('', (string)($item['audienceLabel'] ?? ''), $item['title']);
+			}
+		}
+	}//end testTheChromeIconsAndNewsAudienceAreDeclared()
+
+	/**
 	 * The copy follows the writing rules: no em or en dashes.
 	 *
 	 * @return void

@@ -24,7 +24,8 @@
           "title": "Ik ben student",
           "text": "Voor je rooster, je BPV-uren, je examens en je berichten.",
           "button": "Inloggen met je schoolaccount",
-          "hint": "Je schoolaccount is je studentnummer en je wachtwoord."
+          "hint": "Je schoolaccount is je studentnummer en je wachtwoord.",
+          "icon": "School"
         },
         "eherkenning": {
           "title": "Ik ben praktijkopleider",
@@ -32,11 +33,19 @@
           "button": "Inloggen met eHerkenning",
           "hint": "De beheerder van eHerkenning in uw bedrijf kan u machtigen."
         }
+      },
+      "signInPage": {
+        "title": "Inloggen op Mijn Esdoornveen",
+        "intro": "Kies hoe je inlogt. Studenten gebruiken hun schoolaccount. Leerbedrijven gebruiken eHerkenning.",
+        "notice": {
+          "text": "Lukt inloggen niet? De Servicedesk helpt studenten en leerbedrijven: [telefoonnummer], op werkdagen van 08.00 tot 17.00 uur."
+        }
       }
     },
     "headerSearch": {
       "label": "Zoeken op de website",
-      "route": "/zoeken"
+      "route": "/zoeken",
+      "placeholder": "Zoeken"
     },
     "footer": {
       "description": "Vraag over een opleiding, je stage of je rooster? De Servicedesk helpt je verder.",
@@ -44,8 +53,27 @@
       "cta": {
         "label": "Contact en openingstijden",
         "href": "/contact"
+      },
+      "contact": {
+        "title": "Contact",
+        "lines": [
+          {
+            "text": "Esdoornlaan 40, Zuiddrecht"
+          },
+          {
+            "text": "Telefoon: [telefoonnummer]"
+          },
+          {
+            "text": "E-mail: [e-mailadres]",
+            "href": "mailto:info@example.org"
+          },
+          {
+            "text": "Servicedesk: gebouw A, begane grond"
+          }
+        ]
       }
-    }
+    },
+    "accountLabel": "Mijn Esdoornveen"
   },
   "legacyTitles": [
     "Ouderportaal Esdoornveen"
@@ -223,42 +251,42 @@
                 {
                   "label": "Alle opleidingen",
                   "href": "/opleidingen",
-                  "icon": "School"
+                  "icon": "bookStack"
                 },
                 {
                   "label": "Open dag en meelopen",
                   "href": "/aanmelden",
-                  "icon": "CalendarMonth"
+                  "icon": "calendar"
                 },
                 {
                   "label": "Aanmelden",
                   "href": "/aanmelden",
-                  "icon": "AccountPlusOutline"
+                  "icon": "personPlus"
                 },
                 {
                   "label": "Kosten en lesgeld",
                   "href": "/voor-studenten",
-                  "icon": "CashMultiple"
+                  "icon": "card"
                 },
                 {
                   "label": "Rooster en vakanties",
                   "href": "/vakanties",
-                  "icon": "Calendar"
+                  "icon": "calendarLines"
                 },
                 {
                   "label": "Ziek melden",
                   "href": "/voor-studenten/ziek-melden",
-                  "icon": "AlertCircleOutline"
+                  "icon": "alert"
                 },
                 {
                   "label": "Leerbedrijf worden",
                   "href": "/voor-bedrijven",
-                  "icon": "Briefcase"
+                  "icon": "building"
                 },
                 {
                   "label": "Contact",
                   "href": "/contact",
-                  "icon": "Email"
+                  "icon": "chat"
                 }
               ]
             }
