@@ -67,3 +67,19 @@ A new portal MUST get the declaration's `theme` when the installed thematiq name
 - **WHEN** a script runs `occ learniq:example-set:load` for po, vo, mbo and training
 - **THEN** each exits 0 and prints the object count, the portal status with its theme, and the menus, pages, news and accounts created
 - @e2e exclude an occ command; its parts are covered by PHPUnit, the result by `tests/e2e/portal-design/`
+
+### Requirement: The website of an example portal is public
+
+Every example portal declaration MUST list `public` first among its sign-in modes, because portaliq serves no site content to a signed-out visitor on a portal without it. A portal that already exists keeps the mode list somebody chose; when it lacks a declared mode the load MUST name the missing modes in its answer and its log, and MUST NOT add them.
+
+#### Scenario: A fresh portal is public
+- **GIVEN** a fresh instance
+- **WHEN** the operator loads the po set
+- **THEN** portal `wilgenboom` offers `public` and `digid`, and its home page is served to a visitor who is not signed in
+- @e2e tests/e2e/portal-design/wilgenboom.spec.ts
+
+#### Scenario: A chosen mode list is kept and the gap is named
+- **GIVEN** portal `wilgenboom` with modes `digid` and `nextcloud`
+- **WHEN** the operator loads the po set
+- **THEN** the modes stay as they are and the answer says the portal does not offer `public`
+- @e2e exclude covered by PHPUnit `ExamplePortalProvisionerTest::testAnExistingPortalKeepsItsChoicesAndGetsWhatIsEmpty`
