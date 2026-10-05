@@ -23,3 +23,14 @@ OpenRegister's seed import matches every object by its fixed uuid. Reloading a s
 - Staff display names live in Nextcloud accounts, not in the register. The accounts are created by the example-set load in `example-portal-declares-its-site`.
 - News, messages, documents and invoices have no learniq schema; news is portaliq content, written by the portal step.
 - "Gezien door de leerkracht" on an absence report has no field in the register (a staff action that does not exist yet). The teacher's mark at 8.12 is the nearest true thing.
+
+## Where the data cannot match a board, and why
+
+- **Week 40 of Milan's hours is two records** (16 hours waiting, 8 hours returned with a note naming Tuesday 29 September): a `bpv-hour-week` has no lines per day (accepted deviation D-7).
+- **Werkproces hours and Milan's self-assessment are not seeded.** `werkproces-assessment` is the trainer's judgement (competent or not yet); nothing in the register holds a student's own estimate per werkproces.
+- **An inschrijving number such as I-2026-0412 has no field.** The enrolment's `volgnummer` holds 412; the "I-2026-" prefix is display.
+- **"Wacht op u" and the deadline of Wednesday 7 October 12.00 have no field**: the waiting follows from Youssef's missing birth date.
+- **Vera's June report was in groep 6 on the board**; in the set's base year she is in Groep 7, so the report carries the board's grades and words under Groep 7.
+- **Noor's earlier report PDFs, messages, documents, invoices, keuzedelen and places left per course date** have no schema and are not seeded.
+- **CKV and LO grades are on the O/V/G scale**; an average over all grades of Noor would include them unless the portal averages numeric grades only.
+- **Story absences exist only on story days** (the Mondays and the days on the boards); there is no full 2026-2027 timetable.
