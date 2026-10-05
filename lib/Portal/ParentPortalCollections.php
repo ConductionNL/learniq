@@ -123,9 +123,46 @@ class ParentPortalCollections {
 				'subject' => 'subject',
 				'receivedAt' => 'visibleFrom',
 			],
+			// A notice waits until its moment has come (lane L2, portaliq #1198).
+			'visibleFromField' => 'visibleFrom',
 		];
 
 	}//end inboxCollection()
+
+	/**
+	 * The guardian's inbox of new grades: a notice per published grade of her
+	 * own children, shown from the grade's `visibleFrom` and never before
+	 * (a teacher may hold a grade back). The line is the subject's name; the
+	 * grade itself is never part of a notice.
+	 *
+	 * @param array<string, mixed> $childJoin The shared reverse `via` join descriptor.
+	 *
+	 * @return array<string, mixed> The collection.
+	 *
+	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
+	 */
+	public function gradeInboxCollection(array $childJoin): array {
+		return [
+			'id' => 'parentGradeInbox',
+			'kind' => 'inbox',
+			'register' => self::REGISTER,
+			'schema' => 'grade-notification',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'guardianRef',
+			'via' => $childJoin,
+			'groupByField' => 'learnerRef',
+			'label' => 'New grades',
+			'listable' => true,
+			'minTrust' => 'substantial',
+			'fields' => ['learnerRef', 'event', 'courseName', 'visibleFrom'],
+			'messageFields' => [
+				'subject' => 'courseName',
+				'receivedAt' => 'visibleFrom',
+			],
+			'visibleFromField' => 'visibleFrom',
+		];
+
+	}//end gradeInboxCollection()
 
 	/**
 	 * The grades on the child's published report cards, for the guardian.

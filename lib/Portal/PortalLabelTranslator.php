@@ -60,7 +60,8 @@ class PortalLabelTranslator {
 		'group',
 		'otherLabel',
 		'requiredMessage',
-		'actionLabel',
+		'buttonLabel',
+		'template',
 		'eyebrow',
 		'soonLabel',
 		'noteLabel',
@@ -154,8 +155,13 @@ class PortalLabelTranslator {
 	 * @return string
 	 */
 	private function contextOf(int|string $key, string $context): string {
-		if ($key === 'sources' || $key === 'values') {
+		if ($key === 'sources' || $key === 'values' || $key === 'phrases' || $key === 'confirmation') {
 			return (string)$key;
+		}
+
+		// A summary's phrases are maps of answer to words, one per field: every word is read.
+		if ($context === 'phrases') {
+			return 'values';
 		}
 
 		if ($context === 'sources' && is_int($key) === true) {
@@ -184,6 +190,10 @@ class PortalLabelTranslator {
 
 		if ($context === 'counted') {
 			return in_array($key, self::COUNTED_FORMS, true) === true;
+		}
+
+		if ($context === 'confirmation') {
+			return in_array($key, ['title', 'body', 'next'], true) === true;
 		}
 
 		if (is_string($key) === false) {

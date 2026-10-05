@@ -3934,7 +3934,23 @@ OC.L10N.register(
         "Hours entered": "Ingevulde uren",
         "No hours entered yet.": "Nog geen uren ingevuld.",
         "Group line": "Groepsregel",
-        "The pupil's group and its teacher as one line, for example \"Groep 7 · Meester Daan\": the line under the child's name in the guardian's portal menu. A readable copy the server writes from the active enrolment; a value sent for it is replaced.": "De groep van de leerling en de leerkracht van die groep op één regel, bijvoorbeeld \"Groep 7 · Meester Daan\": de regel onder de naam van het kind in het menu van het ouderportaal. Een leesbare kopie die de server schrijft uit de actieve inschrijving; een meegestuurde waarde wordt vervangen."
+        "The pupil's group and its teacher as one line, for example \"Groep 7 · Meester Daan\": the line under the child's name in the guardian's portal menu. A readable copy the server writes from the active enrolment; a value sent for it is replaced.": "De groep van de leerling en de leerkracht van die groep op één regel, bijvoorbeeld \"Groep 7 · Meester Daan\": de regel onder de naam van het kind in het menu van het ouderportaal. Een leesbare kopie die de server schrijft uit de actieve inschrijving; een meegestuurde waarde wordt vervangen.",
+        "Grades and report cards of {title}": "Cijfers en rapporten van {title}",
+        "{count} to choose": "{count} te kiezen",
+        "You report": "U meldt",
+        "{learnerRef} is {reasonKind} {dateFrom}.": "{learnerRef} is {dateFrom} {reasonKind}.",
+        "ill": "ziek",
+        "at the doctor or dentist": "bij de dokter of tandarts",
+        "away for a family reason": "afwezig om een familiereden",
+        "away for a religious holiday": "afwezig voor een religieuze feestdag",
+        "away for a funeral": "afwezig voor een begrafenis",
+        "away for another reason": "om een andere reden afwezig",
+        "Your report has been sent": "Uw melding is verstuurd",
+        "The teacher sees it in the class right away. In the list of absence reports you see when the teacher has decided.": "De leerkracht ziet het meteen in de klas. In de lijst met meldingen ziet u wanneer de leerkracht heeft besloten.",
+        "Pick a time": "Tijd kiezen",
+        "Subject name": "Naam van het vak",
+        "The name of the grade's subject, copied from the grade when the notice is written, so the portal inbox can say which subject has a new grade without the grade itself.": "De naam van het vak van het cijfer, overgenomen uit het cijfer als de melding wordt geschreven, zodat de inbox van het portaal kan zeggen voor welk vak er een nieuw cijfer is, zonder het cijfer zelf.",
+        "New grades": "Nieuwe cijfers"
     },
     "nplurals=2; plural=(n != 1);"
 )

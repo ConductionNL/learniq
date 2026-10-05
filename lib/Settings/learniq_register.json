@@ -20198,6 +20198,12 @@
                         "format": "uuid",
                         "description": "Tenant identifier for multi-tenant isolation.",
                         "title": "Tenant ID"
+                    },
+                    "courseName": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "Subject name",
+                        "description": "The name of the grade's subject, copied from the grade when the notice is written, so the portal inbox can say which subject has a new grade without the grade itself."
                     }
                 },
                 "x-openregister-notifications": {

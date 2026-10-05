@@ -455,7 +455,11 @@ class GradeRollupHandler implements IEventListener {
 					'recipient' => $parentId,
 					'sourceId' => $sourceId,
 					'learnerId' => $gradeEntry['learnerId'] ?? '',
+					// The portal inbox reads a notice through the child it is about, and shows the
+					// subject's name, never the grade (school-portals-use-the-new-blocks).
+					'learnerRef' => ($profile['id'] ?? ($profile['uuid'] ?? ($gradeEntry['learnerRef'] ?? null))),
 					'courseId' => $gradeEntry['courseId'] ?? null,
+					'courseName' => $gradeEntry['courseName'] ?? null,
 					'idempotencyKey' => $sourceId . '-parent-' . $parentId,
 					'visibleFrom' => $visibleFrom,
 					'tenant_id' => $gradeEntry['tenant_id'] ?? '',

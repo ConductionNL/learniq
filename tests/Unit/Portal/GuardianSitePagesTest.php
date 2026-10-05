@@ -83,12 +83,18 @@ class GuardianSitePagesTest extends TestCase {
 
 		self::assertTrue($overview['home']);
 		self::assertSame('My space', $overview['group']);
-		self::assertSame(['collection' => 'parentChildren', 'titleFields' => ['givenName']], $overview['records']);
+		self::assertSame(['collection' => 'parentChildren', 'titleFields' => ['givenName'], 'subtitleFields' => ['groupLabel']], $overview['records']);
 		self::assertSame('parentOverview', $manifest['pages'][0]['id']);
 		// The board's order (school-design wilgenboom MijnOverzicht): greeting, the task, the children, news, this month.
-		self::assertSame(['greeting', 'tasks', 'collection', 'news', 'calendar', 'cta', 'cta', 'kpi', 'collection', 'collection', 'inbox'], array_column($overview['blocks'], 'type'));
-		self::assertSame(['type' => 'greeting', 'action' => 'createExcuseRequest', 'actionLabel' => 'Report absent'], $overview['blocks'][0]);
-		self::assertSame(['type' => 'tasks', 'label' => 'Still to do', 'display' => 'highlight', 'collection' => 'parentConferenceRounds', 'dueField' => 'bookingClosesAt', 'titleFields' => ['name']], $overview['blocks'][1]);
+		self::assertSame(['greeting', 'tasks', 'collection', 'news', 'calendar', 'cta', 'cta', 'cta', 'kpi', 'collection', 'collection', 'inbox'], array_column($overview['blocks'], 'type'));
+		// Lane L2's greeting: `label` plus exactly one target.
+		self::assertSame(['type' => 'greeting', 'label' => 'Report absent', 'action' => 'createExcuseRequest'], $overview['blocks'][0]);
+		self::assertSame(['groupLabel'], $overview['blocks'][2]['subtitleFields']);
+		// T4b: the open child's page from a tile, and the messages about the open child only.
+		self::assertSame(['page' => 'parentChildren', 'withRecord' => true], array_intersect_key($overview['blocks'][7], ['page' => 1, 'withRecord' => 1]));
+		self::assertSame('learnerRef', $overview['blocks'][11]['recordField']);
+		self::assertArrayNotHasKey('collection', $overview['blocks'][11], 'the block reads both inboxes: report cards and new grades');
+		self::assertSame(['type' => 'tasks', 'label' => 'Still to do', 'display' => 'highlight', 'collection' => 'parentConferenceRounds', 'dueField' => 'bookingClosesAt', 'titleFields' => ['name'], 'buttonLabel' => 'Pick a time'], $overview['blocks'][1]);
 		self::assertSame(['parentChildren', 'cards'], [$overview['blocks'][2]['collection'], $overview['blocks'][2]['display']]);
 		self::assertSame('tiles', $overview['blocks'][4]['display']);
 		$absence = self::pages(audience: 'parent')['parentAbsence'];
@@ -126,6 +132,11 @@ class GuardianSitePagesTest extends TestCase {
 		}
 
 		self::assertSame('My space', $pages['parentCalendar']['group']);
+		// The child's own page sits in "Mijn kinderen" with the group line under the name (lane L1).
+		self::assertSame('My children', $pages['parentChildren']['group']);
+		self::assertSame(['groupLabel'], $pages['parentChildren']['records']['subtitleFields']);
+		// The conversations page counts the rounds still open (lane L1 badge).
+		self::assertSame('parentConferenceRounds', $pages['parentConferences']['badge']['collection']);
 		foreach (['parentExcuseRequests', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentGrades'] as $id) {
 			self::assertFalse($pages[$id]['menu'], $id);
 		}
@@ -176,6 +187,24 @@ class GuardianSitePagesTest extends TestCase {
 		$kinds = $register['components']['schemas']['ExcuseRequest']['properties']['reasonKind']['enum'];
 		self::assertSame([], array_values(array_diff($configs['reasonKind']['choiceOptions'], $kinds)));
 	}//end testTheAbsenceFormUsesCardsAndNamedDays()
+
+	/**
+	 * The absence form sums up the answers in one sentence and confirms what
+	 * happens next (board MobielDetail: "U meldt: Sami is vandaag ziek.").
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-absence-form-says-in-one-sentence-what-the-guardian-reports
+	 */
+	public function testTheAbsenceFormSumsUpAndConfirms(): void {
+		$action = self::actions(audience: 'parent')['createExcuseRequest'];
+
+		preg_match_all('/\{([A-Za-z]+)\}/', $action['summary']['template'], $named);
+		self::assertSame([], array_diff($named[1], $action['fields']), 'the sentence names only fields of the form, or portaliq drops it');
+		self::assertSame('ill', $action['summary']['phrases']['reasonKind']['illness']);
+		self::assertSame([], array_diff(array_keys($action['summary']['phrases']['reasonKind']), ['illness', 'medical-appointment', 'family-circumstance', 'religious-observance', 'bereavement', 'other']));
+		self::assertNotSame('', $action['confirmation']['title']);
+	}//end testTheAbsenceFormSumsUpAndConfirms()
 
 	/**
 	 * The pupil lands on an overview with the work to hand in first, and the

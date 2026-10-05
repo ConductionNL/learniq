@@ -77,9 +77,10 @@ class ParentSitePages {
 			'icon' => 'ViewDashboard',
 			'group' => self::GROUP,
 			'home' => true,
-			'records' => ['collection' => self::CHILDREN, 'titleFields' => ['givenName']],
+			'records' => ['collection' => self::CHILDREN, 'titleFields' => ['givenName'], 'subtitleFields' => ['groupLabel']],
 			'blocks' => [
-				['type' => 'greeting', 'action' => 'createExcuseRequest', 'actionLabel' => 'Report absent'],
+				// The greeting's one button opens the absence form (lane L2: `label` plus one target).
+				['type' => 'greeting', 'label' => 'Report absent', 'action' => 'createExcuseRequest'],
 				[
 					'type' => 'tasks',
 					'label' => 'Still to do',
@@ -87,6 +88,7 @@ class ParentSitePages {
 					'collection' => 'parentConferenceRounds',
 					'dueField' => 'bookingClosesAt',
 					'titleFields' => ['name'],
+					'buttonLabel' => 'Pick a time',
 				],
 				[
 					'type' => 'collection',
@@ -94,16 +96,32 @@ class ParentSitePages {
 					'collection' => self::CHILDREN,
 					'display' => 'cards',
 					'titleFields' => ['givenName'],
+					'subtitleFields' => ['groupLabel'],
 					'avatar' => true,
 				],
 				['type' => 'news', 'label' => 'New from school', 'limit' => 3],
 				['type' => 'calendar', 'label' => 'This month', 'display' => 'tiles', 'sources' => $sources],
 				['type' => 'cta', 'action' => 'createExcuseRequest', 'label' => 'Report sick or absent'],
 				['type' => 'cta', 'action' => 'bookConferenceSlot', 'label' => 'Book a parent-teacher conversation'],
+				// The open child's grades and report cards, from the child's own page (T4b).
+				['type' => 'cta', 'page' => self::CHILDREN, 'withRecord' => true, 'label' => 'Grades and report cards of {title}'],
 				$figures,
-				['type' => 'collection', 'collection' => 'parentExcuseRequests', 'recordField' => 'learnerRef'],
-				['type' => 'collection', 'collection' => 'parentGrades', 'recordField' => 'learnerRef'],
-				['type' => 'inbox', 'label' => 'Messages from school', 'limit' => 2],
+				[
+					'type' => 'collection',
+					'collection' => 'parentExcuseRequests',
+					'recordField' => 'learnerRef',
+					'limit' => 3,
+					'sort' => ['field' => 'dateFrom', 'direction' => 'desc'],
+				],
+				[
+					'type' => 'collection',
+					'collection' => 'parentGrades',
+					'recordField' => 'learnerRef',
+					'limit' => 3,
+					'sort' => ['field' => 'gradedAt', 'direction' => 'desc'],
+				],
+				// Every inbox of the contribution (report cards and new grades), about the open child only.
+				['type' => 'inbox', 'label' => 'Messages from school', 'recordField' => 'learnerRef', 'limit' => 2],
 			],
 		];
 	}//end overviewPage()
@@ -139,6 +157,7 @@ class ParentSitePages {
 					'titleFields' => ['reasonKind'],
 					'quoteField' => 'reason',
 					'statusField' => 'lifecycle',
+					'statusTones' => ['submitted' => 'neutral', 'approved' => 'success', 'rejected' => 'error'],
 					'statusNoteField' => 'decidedBy',
 				],
 			],
@@ -159,6 +178,8 @@ class ParentSitePages {
 			'id' => 'parentConferences',
 			'label' => 'Parent-teacher conversations',
 			'icon' => 'AccountVoice',
+			// The menu's count of rounds still open for booking (board MijnMenu: "Oudergesprekken 1").
+			'badge' => ['collection' => 'parentConferenceRounds', 'label' => '{count} to choose'],
 			'record' => ['collection' => self::CHILDREN, 'titleFields' => ['givenName', 'familyName']],
 			'perRecord' => self::CHILDREN,
 			'blocks' => [
