@@ -92,6 +92,30 @@ class FakeClaimEvent extends Event {
 }//end class
 
 /**
+ * Stand-in for portaliq's invitation event, same constructor and answer API
+ * (portaliq `PortalAccountInvitationRequestedEvent`: `appId`, `subjectRef`,
+ * `getResult()` answering `sent`, `not_sent` or `refused`).
+ */
+class FakeInvitationEvent extends Event {
+	public string $result = '';
+
+	/**
+	 * @param string $appId
+	 * @param string $subjectRef
+	 */
+	public function __construct(
+		public readonly string $appId,
+		public readonly string $subjectRef,
+	) {
+		parent::__construct();
+	}//end __construct()
+
+	public function getResult(): string {
+		return $this->result;
+	}//end getResult()
+}//end class
+
+/**
  * The invitation provisions the account and writes the claim the parent
  * contribution scopes by.
  */
@@ -113,7 +137,7 @@ class GuardianPortalInvitationTest extends TestCase {
 		$result = $this->invitation(profile: $this->guardianProfile())
 			->invite(guardianRef: self::GUARDIAN, email: 'fatima@example.org', organisation: 'de-wilgenboom');
 
-		$this->assertSame(['status' => 'invited', 'subjectRef' => 'subject-1'], $result);
+		$this->assertSame(['status' => 'invited', 'subjectRef' => 'subject-1', 'invitation' => 'sent'], $result);
 
 		$provision = $this->dispatched[0];
 		$this->assertInstanceOf(FakeProvisionEvent::class, $provision);
@@ -127,6 +151,13 @@ class GuardianPortalInvitationTest extends TestCase {
 		$claim = $this->dispatched[1];
 		$this->assertInstanceOf(FakeClaimEvent::class, $claim);
 		$this->assertSame(['learniq', 'subject-1', 'guardianRef', self::GUARDIAN], [$claim->appId, $claim->subjectRef, $claim->claimName, $claim->value]);
+
+		// portal-guardian-invitation-mail: once linked, portaliq is asked to
+		// mail the one-time link for that same account, under learniq's id.
+		$this->assertCount(3, $this->dispatched);
+		$mail = $this->dispatched[2];
+		$this->assertInstanceOf(FakeInvitationEvent::class, $mail);
+		$this->assertSame(['learniq', 'subject-1'], [$mail->appId, $mail->subjectRef]);
 
 		$parent = (new PortalContributionProvider())->getContribution(['audience' => 'parent']);
 		foreach ($parent['collections'] as $collection) {
@@ -181,6 +212,65 @@ class GuardianPortalInvitationTest extends TestCase {
 	}//end testAnUnconfirmedClaimIsRefused()
 
 	/**
+	 * portal-guardian-invitation-mail: a mail that did not leave, and a
+	 * portaliq that refuses, are reported; the guardian stays linked.
+	 *
+	 * @return void
+	 */
+	public function testAMailThatDidNotLeaveIsReportedAndTheGuardianStaysLinked(): void {
+		$notSent = $this->invitation(profile: $this->guardianProfile(), mailResult: 'not_sent')->invite(self::GUARDIAN, 'a@example.org', 'org');
+		$refused = $this->invitation(profile: $this->guardianProfile(), mailResult: 'refused')->invite(self::GUARDIAN, 'a@example.org', 'org');
+		$silent  = $this->invitation(profile: $this->guardianProfile(), mailResult: '')->invite(self::GUARDIAN, 'a@example.org', 'org');
+
+		$this->assertSame(['status' => 'invited', 'subjectRef' => 'subject-1', 'invitation' => 'not-sent'], $notSent);
+		$this->assertSame(['status' => 'invited', 'subjectRef' => 'subject-1', 'invitation' => 'unavailable'], $refused);
+		$this->assertSame(['status' => 'invited', 'subjectRef' => 'subject-1', 'invitation' => 'unavailable'], $silent);
+	}//end testAMailThatDidNotLeaveIsReportedAndTheGuardianStaysLinked()
+
+	/**
+	 * A portaliq from before the invitation event still links the guardian;
+	 * no mail is asked for and the answer says so.
+	 *
+	 * @return void
+	 */
+	public function testAnOlderPortaliqLinksTheGuardianWithoutAMail(): void {
+		$invitation = new GuardianPortalInvitation(
+			$this->profiles(profile: $this->guardianProfile()),
+			$this->dispatcher(),
+			$this->createMock(LoggerInterface::class),
+			FakeProvisionEvent::class,
+			FakeClaimEvent::class,
+			'OCA\\Portaliq\\Event\\NoSuchInvitationEvent'
+		);
+
+		$result = $invitation->invite(self::GUARDIAN, 'a@example.org', 'org');
+
+		$this->assertSame(['status' => 'invited', 'subjectRef' => 'subject-1', 'invitation' => 'unavailable'], $result);
+		$this->assertCount(2, $this->dispatched);
+	}//end testAnOlderPortaliqLinksTheGuardianWithoutAMail()
+
+	/**
+	 * No mail is asked for when the claim did not land: an invitation for an
+	 * account without the claim would show the guardian nothing.
+	 *
+	 * @return void
+	 */
+	public function testNoMailIsAskedForWhenTheClaimWasRefused(): void {
+		$this->invitation(profile: $this->guardianProfile(), claimResult: 'refused')->invite(self::GUARDIAN, 'a@example.org', 'org');
+
+		$this->assertCount(2, $this->dispatched);
+	}//end testNoMailIsAskedForWhenTheClaimWasRefused()
+
+	/**
+	 * The event class this app names is the one portaliq ships.
+	 *
+	 * @return void
+	 */
+	public function testTheInvitationEventNamedIsPortaliqsOwn(): void {
+		$this->assertSame('OCA\\Portaliq\\Event\\PortalAccountInvitationRequestedEvent', GuardianPortalInvitation::INVITATION_EVENT);
+	}//end testTheInvitationEventNamedIsPortaliqsOwn()
+
+	/**
 	 * The guardian's profile from the po example set.
 	 *
 	 * @return array<string, mixed>
@@ -199,16 +289,19 @@ class GuardianPortalInvitationTest extends TestCase {
 	 *
 	 * @param array<string, mixed>|null $profile What byRef() answers.
 	 * @param string $claimResult What portaliq answers the claim with.
+	 * @param string $mailResult What portaliq answers the invitation with.
 	 *
 	 * @return GuardianPortalInvitation
 	 */
-	private function invitation(?array $profile, string $claimResult='ok'): GuardianPortalInvitation {
+	private function invitation(?array $profile, string $claimResult='ok', string $mailResult='sent'): GuardianPortalInvitation {
+		$this->dispatched = [];
 		return new GuardianPortalInvitation(
 			$this->profiles(profile: $profile),
-			$this->dispatcher(claimResult: $claimResult),
+			$this->dispatcher(claimResult: $claimResult, mailResult: $mailResult),
 			$this->createMock(LoggerInterface::class),
 			FakeProvisionEvent::class,
-			FakeClaimEvent::class
+			FakeClaimEvent::class,
+			FakeInvitationEvent::class
 		);
 	}//end invitation()
 
@@ -227,13 +320,14 @@ class GuardianPortalInvitationTest extends TestCase {
 	 * A dispatcher that answers the events the way portaliq's listeners do.
 	 *
 	 * @param string $claimResult What the claim listener answers.
+	 * @param string $mailResult What the invitation listener answers.
 	 *
 	 * @return IEventDispatcher
 	 */
-	private function dispatcher(string $claimResult='ok'): IEventDispatcher {
+	private function dispatcher(string $claimResult='ok', string $mailResult='sent'): IEventDispatcher {
 		$dispatcher = $this->createMock(IEventDispatcher::class);
 		$dispatcher->method('dispatchTyped')->willReturnCallback(
-			function (Event $event) use ($claimResult): void {
+			function (Event $event) use ($claimResult, $mailResult): void {
 				$this->dispatched[] = $event;
 				if ($event instanceof FakeProvisionEvent) {
 					$event->subjectRef = 'subject-1';
@@ -241,6 +335,10 @@ class GuardianPortalInvitationTest extends TestCase {
 
 				if ($event instanceof FakeClaimEvent) {
 					$event->result = $claimResult;
+				}
+
+				if ($event instanceof FakeInvitationEvent) {
+					$event->result = $mailResult;
 				}
 			}
 		);
