@@ -185,6 +185,14 @@ test.describe('The simple structure', () => {
 			})
 		}
 
+		// A count opens its list by address, not a page that does not exist.
+		await page
+			.getByText(/Lessons today|Lessen vandaag/)
+			.first()
+			.click()
+		await expect(page).toHaveURL(/\/sessions\/today/, { timeout: 30_000 })
+		await page.goBack()
+
 		// The role dashboards are one card away.
 		await page
 			.getByRole('link', { name: /Teaching|Lesgeven/ })
@@ -205,10 +213,13 @@ test.describe('The simple structure', () => {
 		})
 		await dismissSetupWizard(page)
 
+		// A list keeps its header links in the Actions menu of its toolbar.
+		await page
+			.locator('[data-testid="cn-actions-bar"] .action-item button')
+			.first()
+			.click()
 		const name = /^(Today's register|Presentie van vandaag)$/i
-		const link = page
-			.getByRole('link', { name })
-			.or(page.getByRole('button', { name }))
+		const link = page.getByRole('link', { name })
 		await expect(link.first()).toBeVisible({ timeout: 60_000 })
 		await link.first().click()
 		await expect(page).toHaveURL(/\/attendance\/roll-call/, { timeout: 30_000 })

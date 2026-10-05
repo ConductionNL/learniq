@@ -1010,7 +1010,11 @@ test('every number on Today uses the filter of the list it opens', () => {
 				schemaOf(source.schema).slug,
 				`${id} counts another schema than its list shows`,
 			)
-			if (typeof route === 'string') {
+			// A bare string is read as a PATH by the tile, not as a page name:
+			// `SessionsToday` opened `/apps/learniq/SessionsToday`.
+			assert.equal(typeof route, 'object', `${id}: route must be { name }`)
+			assert.equal(typeof route.name, 'string', id)
+			if (route.query === undefined) {
 				// No filter in the address: the list must carry the same one itself.
 				assert.deepEqual(page.config.filter, source.filter, id)
 			} else {
