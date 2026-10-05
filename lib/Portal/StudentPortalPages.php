@@ -144,6 +144,9 @@ class StudentPortalPages {
 				'periodTo',
 				'agreedHours',
 				'hoursApprovedTotal',
+				// The bar on her hours page: approved, waiting and sent back (bpv-hours-match-the-board).
+				'hoursWaitingTotal',
+				'hoursReturnedTotal',
 				'lifecycle',
 			],
 			'columns' => [
@@ -371,6 +374,10 @@ class StudentPortalPages {
 		}
 
 		$blocks = [];
+		if ($id === 'studentHourWeeks') {
+			$blocks[] = $this->hoursBar(collection: 'studentBpvPlacements');
+		}
+
 		$form = $this->firstCreateFor(schema: $schema, actions: $actions);
 		if ($form !== null) {
 			$blocks[] = ['type' => 'action', 'action' => $form];
@@ -386,6 +393,39 @@ class StudentPortalPages {
 
 		return array_merge($page, ['label' => self::MENU_PAGES[$id], 'group' => ParentSitePages::GROUP]);
 	}//end collectionPage()
+
+	/**
+	 * The hours bar of the board (school-design esdoornveen, MijnLijst and
+	 * MijnOverzicht): approved, waiting and sent-back hours against the hours
+	 * agreed for the placement, read from the placement's own totals, which
+	 * HourWeekTotalRollup keeps. `display: segmented` is lane L2's contract.
+	 *
+	 * @param string $collection The placement collection of the audience.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
+	 */
+	public function hoursBar(string $collection): array {
+		return [
+			'type' => 'kpi',
+			'collection' => $collection,
+			'label' => 'My BPV hours',
+			'display' => 'segmented',
+			'segments' => [
+				['field' => 'hoursApprovedTotal', 'label' => 'Approved', 'tone' => 'positive'],
+				['field' => 'hoursWaitingTotal', 'label' => 'Waiting', 'tone' => 'waiting'],
+				['field' => 'hoursReturnedTotal', 'label' => 'Sent back', 'tone' => 'warning'],
+			],
+			'totalField' => 'agreedHours',
+			'unit' => 'hours',
+			'cards' => [
+				['field' => 'hoursApprovedTotal', 'label' => 'Approved', 'unit' => ['one' => 'hour', 'other' => 'hours']],
+				['field' => 'hoursWaitingTotal', 'label' => 'Waiting', 'unit' => ['one' => 'hour', 'other' => 'hours']],
+				['field' => 'hoursReturnedTotal', 'label' => 'Sent back', 'unit' => ['one' => 'hour', 'other' => 'hours'], 'highlight' => true],
+			],
+		];
+	}//end hoursBar()
 
 	/**
 	 * The first create action for a schema, as portaliq picks it.

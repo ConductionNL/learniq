@@ -1574,6 +1574,7 @@ def build() -> dict:
 
     # --- the Esdoornveen story (after everything else, so nothing moves) -------
     add_story(b, school, locations, numeric, competent_scale)
+    stamp_hour_totals(b)
 
     # --- assemble -------------------------------------------------------------
     objects = {name: rows for name, rows in b.buckets.items() if rows}
@@ -1657,6 +1658,17 @@ STORY_UNITS = [
     ("MT-2.7", "Rekenen", 5, ["mbo-docent-11"], [], None),
 ]
 
+
+
+def stamp_hour_totals(b: Builder) -> None:
+    """Every placement's waiting and returned hours, as HourWeekTotalRollup keeps them on a live save
+    (bpv-hours-match-the-board): waiting is the hours submitted on a week still `submitted`, returned the
+    hours submitted on a `rejected` week less what was approved. Runs last and draws no random number, so
+    it only adds two values to each placement."""
+    for placement in b.buckets["bpv-placement"]:
+        weeks = [w for w in b.buckets["bpv-hour-week"] if w["bpvPlacementId"] == placement["uuid"]]
+        placement["hoursWaitingTotal"] = sum(w["hoursSubmitted"] for w in weeks if w["lifecycle"] == "submitted")
+        placement["hoursReturnedTotal"] = sum(max(0, w["hoursSubmitted"] - (w.get("hoursApproved") or 0)) for w in weeks if w["lifecycle"] == "rejected")
 
 def add_story(b: Builder, school: dict, locations: dict, numeric: dict, competent_scale: dict) -> dict:
     """Milan de Groot's autumn at Esdoornveen, as the esdoornveen boards show it.

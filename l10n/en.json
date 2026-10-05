@@ -3507,7 +3507,20 @@
         "Homework and tests": "Homework and tests",
         "Latest grades": "Latest grades",
         "Absence this school year": "Absence this school year",
-        "Without a report": "Without a report"
+        "Without a report": "Without a report",
+        "Hours waiting for approval": "Hours waiting for approval",
+        "The hours of the weeks of this placement that still wait for the trainer. The server recomputes it whenever a week is written; a value sent for it is replaced.": "The hours of the weeks of this placement that still wait for the trainer. The server recomputes it whenever a week is written; a value sent for it is replaced.",
+        "Hours sent back": "Hours sent back",
+        "The hours of the weeks of this placement that the trainer sent back without approving them. The server recomputes it whenever a week is written; a value sent for it is replaced.": "The hours of the weeks of this placement that the trainer sent back without approving them. The server recomputes it whenever a week is written; a value sent for it is replaced.",
+        "Waiting": "Waiting",
+        "Sent back": "Sent back",
+        "My BPV hours": "My BPV hours",
+        "hour": "hour",
+        "hours": "hours",
+        "BPV hours": "BPV hours",
+        "Hours per week": "Hours per week",
+        "Hours entered": "Hours entered",
+        "No hours entered yet.": "No hours entered yet."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

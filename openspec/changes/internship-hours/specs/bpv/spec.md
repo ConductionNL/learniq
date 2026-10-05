@@ -43,3 +43,13 @@ A placement MAY state `agreedHours`. Where it does, the portal and learniq's own
 - WHEN Karin opens her overview
 - THEN her card names the hours approved and shows no progress bar
 - @e2e exclude asserted on the page declaration, which is where the decision lives
+
+### Requirement: The hours bar shows approved, waiting and returned hours
+
+A placement MUST carry `hoursWaitingTotal` (the hours submitted on its weeks that are still `submitted`) and `hoursReturnedTotal` (the hours submitted on its `rejected` weeks less what was approved of them) next to `hoursApprovedTotal`, recomputed by the server whenever one of its weeks is written and written only when one of the three moved. The student's hours page MUST open with a `kpi` block with `display: segmented` over her placement: approved, waiting and sent back, against `agreedHours`. The school MUST have its own list of weeks of hours (`/bpv/hours`) and the placement's detail page MUST list its weeks. Design of record: school-design `esdoornveen/preview/MijnLijst.png` ("96 uur goedgekeurd, 16 uur wacht, 8 uur teruggestuurd, nog 360 uur").
+
+#### Scenario: Milan's bar reads the board's numbers
+- GIVEN Milan de Groot's placement with weeks 36 to 39 approved at 24 hours, 16 hours of week 40 waiting and 8 hours of week 40 sent back
+- WHEN a week of his is written
+- THEN the placement holds 96 approved, 16 waiting and 8 returned hours, against 480 agreed
+- @e2e exclude server rollup, covered by PHPUnit `HourWeekListenersTest::testWaitingAndReturnedHoursAreKeptBesideTheApprovedOnes`; the bar is checked by `tests/e2e/portal-design/esdoornveen.spec.ts`

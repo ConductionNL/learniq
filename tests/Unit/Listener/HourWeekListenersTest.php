@@ -336,7 +336,34 @@ class HourWeekListenersTest extends TestCase {
 		$placement = $this->placement(id: self::PLACEMENT);
 		self::assertSame(54.0, (float)$placement['hoursApprovedTotal']);
 		self::assertSame(640, $placement['agreedHours']);
+		// bpv-hours-match-the-board: the waiting week is the waiting part of the bar; nothing was returned.
+		self::assertSame(40.0, (float)$placement['hoursWaitingTotal']);
+		self::assertSame(0.0, (float)$placement['hoursReturnedTotal']);
 	}//end testTheTotalIsTheSumOfTheApprovedWeeks()
+
+	/**
+	 * Milan's week 40 on the board: 16 hours waiting and 8 sent back with a
+	 * question. The bar reads 96 approved, 16 waiting, 8 returned.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
+	 */
+	public function testWaitingAndReturnedHoursAreKeptBesideTheApprovedOnes(): void {
+		$this->store->rows['bpv-hour-week'] = [];
+		foreach (['2026-W36', '2026-W37', '2026-W38', '2026-W39'] as $n => $week) {
+			$this->store->rows['bpv-hour-week'][] = ['id' => 'a' . $n, 'bpvPlacementId' => self::PLACEMENT, 'isoWeek' => $week, 'hoursSubmitted' => 24, 'hoursApproved' => 24, 'lifecycle' => 'approved'];
+		}
+
+		$this->store->rows['bpv-hour-week'][] = ['id' => 'w40a', 'bpvPlacementId' => self::PLACEMENT, 'isoWeek' => '2026-W40', 'hoursSubmitted' => 16, 'lifecycle' => 'submitted'];
+		$this->store->rows['bpv-hour-week'][] = ['id' => 'w40b', 'bpvPlacementId' => self::PLACEMENT, 'isoWeek' => '2026-W40', 'hoursSubmitted' => 8, 'hoursApproved' => 0, 'lifecycle' => 'rejected'];
+
+		$week = OrEntityFactory::make($this->store->rows['bpv-hour-week'][5], 'bpv-hour-week');
+		$this->rollup()->handle(new ObjectUpdatedEvent($week, $week));
+
+		$placement = $this->placement(id: self::PLACEMENT);
+		self::assertSame([96.0, 16.0, 8.0], [(float)$placement['hoursApprovedTotal'], (float)$placement['hoursWaitingTotal'], (float)$placement['hoursReturnedTotal']]);
+	}//end testWaitingAndReturnedHoursAreKeptBesideTheApprovedOnes()
 
 	/**
 	 * A placement that agreed no total still gets its sum: the card then shows
@@ -365,6 +392,8 @@ class HourWeekListenersTest extends TestCase {
 	 */
 	public function testAnUnchangedTotalIsNotWrittenAgain(): void {
 		$this->store->rows['bpv-placement'][0]['hoursApprovedTotal'] = 30;
+		$this->store->rows['bpv-placement'][0]['hoursWaitingTotal']  = 0;
+		$this->store->rows['bpv-placement'][0]['hoursReturnedTotal'] = 0;
 		$this->store->rows['bpv-hour-week'] = [
 			['id' => 'w1', 'bpvPlacementId' => self::PLACEMENT, 'hoursApproved' => 30, 'lifecycle' => 'approved'],
 		];
