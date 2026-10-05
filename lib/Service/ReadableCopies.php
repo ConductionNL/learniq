@@ -52,11 +52,12 @@ class ReadableCopies {
 	 */
 	private const EMPTY = [
 		'grade-entry'     => ['courseName' => null],
-		'enrolment'       => ['cohortName' => null],
+		// The employer's portal reads a participant's name, course and company on the row (employer-portal-audience).
+		'enrolment'       => ['cohortName' => null, 'learnerName' => null, 'courseName' => null, 'organisationRef' => null],
 		'portfolio-share' => ['portfolioTitle' => null, 'learnerName' => null],
 		'teacher-availability' => ['teacherName' => null],
 		// The line under a child's name in the guardian's menu (school-portals-use-the-new-blocks).
-		'learner-profile' => ['groupLabel' => null],
+		'learner-profile' => ['groupLabel' => null, 'fullName' => null],
 	];
 
 	/**
@@ -123,7 +124,10 @@ class ReadableCopies {
 		}
 
 		if ($slug === 'enrolment') {
-			return ['cohortName' => $this->nameOf(schema: 'cohort', id: $row['cohortId'] ?? null, field: 'name')];
+			return array_merge(
+				['cohortName' => $this->nameOf(schema: 'cohort', id: $row['cohortId'] ?? null, field: 'name')],
+				$this->participantCopies(row: $row)
+			);
 		}
 
 		if ($slug === 'portfolio-share') {
@@ -135,11 +139,50 @@ class ReadableCopies {
 		}
 
 		if ($slug === 'learner-profile') {
-			return ['groupLabel' => (new LearnerGroupLabel(objectService: $this->objectService, users: $this->users))->derive(profile: $row)];
+			return [
+				'groupLabel' => (new LearnerGroupLabel(objectService: $this->objectService, users: $this->users))->derive(profile: $row),
+				'fullName'   => $this->personName(profile: $row),
+			];
 		}
 
 		return [];
 	}//end derive()
+
+	/**
+	 * The participant's name, the course's name and the participant's employer, for an enrolment.
+	 *
+	 * @param array<string, mixed> $row The enrolment as it will be stored.
+	 *
+	 * @return array{learnerName: string|null, courseName: string|null, organisationRef: string|null}
+	 *
+	 * @throws \Throwable When OpenRegister cannot be read.
+	 *
+	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
+	 */
+	private function participantCopies(array $row): array {
+		$learner = $this->read(schema: 'learner-profile', id: $row['learnerRef'] ?? null);
+		$organisation = null;
+		if ($learner !== null) {
+			$organisation = $this->orNull(value: $this->text(value: $learner['organisationRef'] ?? null));
+		}
+
+		return [
+			'learnerName'     => $learner === null ? null : $this->personName(profile: $learner),
+			'courseName'      => $this->nameOf(schema: 'course', id: $row['courseId'] ?? null, field: 'name'),
+			'organisationRef' => $organisation,
+		];
+	}//end participantCopies()
+
+	/**
+	 * Given and family name as one line, or null.
+	 *
+	 * @param array<string, mixed> $profile A learner profile.
+	 *
+	 * @return string|null
+	 */
+	private function personName(array $profile): ?string {
+		return $this->orNull(value: trim($this->text(value: $profile['givenName'] ?? null) . ' ' . $this->text(value: $profile['familyName'] ?? null)));
+	}//end personName()
 
 	/**
 	 * The portfolio title and the learner's name for a share.
