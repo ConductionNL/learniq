@@ -68,7 +68,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
 
 **Ondersteuning:** support@conduction.nl
     ]]></description>
-    <version>0.3.9-beta.20261004203000</version>
+    <version>0.3.9-beta.20261005130000</version>
     <licence>EUPL-1.2</licence>
     <author mail="info@conduction.nl" homepage="https://www.conduction.nl/">Conduction</author>
     <namespace>Learniq</namespace>
@@ -121,6 +121,11 @@ Vrij en open source onder de EUPL-1.2-licentie.
              of the last EUDI wallet offer. Sends nothing when integriq is not
              installed. -->
         <job>OCA\Learniq\BackgroundJob\ConnectionReportJob</job>
+        <!-- Every 15 minutes: removes course-evaluation-response rows left in
+             draft for longer than learniq.evaluation_draft_max_age_seconds
+             (default 3600, floor 600). A draft lives for one request; one a
+             crash leaves behind is readable by every signed-in user. -->
+        <job>OCA\Learniq\BackgroundJob\CourseEvaluationDraftCleanupJob</job>
     </background-jobs>
 
     <repair-steps>
