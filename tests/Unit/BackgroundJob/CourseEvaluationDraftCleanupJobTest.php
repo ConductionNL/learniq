@@ -223,6 +223,32 @@ class CourseEvaluationDraftCleanupJobTest extends TestCase {
 	}//end testADraftWithoutACreationTimeStays()
 
 	/**
+	 * A delete that fails is logged and not counted; a row that is not an
+	 * entity is skipped; the run does not stop.
+	 *
+	 * @return void
+	 */
+	public function testAFailedDeleteIsLoggedAndNotCounted(): void {
+		$stale = \OCA\Learniq\Tests\Support\OrEntityFactory::make(['id' => 'stale-draft', 'lifecycle' => 'draft'], 'course-evaluation-response');
+		$stale->setCreated(new DateTime('2026-10-05T10:00:00+00:00'));
+		$objects = $this->createMock(ObjectService::class);
+		$objects->method('findAll')->willReturn(['not an entity', $stale]);
+		$objects->expects($this->once())->method('deleteObject')->willThrowException(new \RuntimeException('lock timeout'));
+
+		$time = $this->createMock(ITimeFactory::class);
+		$time->method('now')->willReturn(new DateTimeImmutable(self::NOW));
+		$appConfig = $this->createMock(IAppConfig::class);
+		$appConfig->method('getValueInt')->willReturnArgument(2);
+
+		self::runJob(new CourseEvaluationDraftCleanupJob(time: $time, objectService: $objects, appConfig: $appConfig, logger: $this->logger));
+
+		$contexts = array_column($this->logger->records, 'context');
+		$this->assertContains(['uuid' => 'stale-draft', 'error' => 'lock timeout'], $contexts);
+		$removed = array_values(array_filter($contexts, static fn (array $context): bool => array_key_exists('removed', $context)));
+		$this->assertSame(0, $removed[0]['removed']);
+	}//end testAFailedDeleteIsLoggedAndNotCounted()
+
+	/**
 	 * The job is registered in appinfo/info.xml, or Nextcloud never schedules
 	 * it (a job with a full test suite and no registration does nothing).
 	 *
