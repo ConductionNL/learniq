@@ -188,9 +188,14 @@ class GuardianSitePagesTest extends TestCase {
 		$overview = $pages['studentOverview'];
 
 		self::assertTrue($overview['home']);
-		self::assertSame(['tasks', 'cta', 'cta', 'collection', 'inbox'], array_column($overview['blocks'], 'type'));
-		self::assertSame('studentHomework', $overview['blocks'][0]['collection']);
-		self::assertSame('dueAt', $overview['blocks'][0]['dueField']);
+		// The board's order (school-design vaartveld MijnOverzicht): greeting, homework and tests, grades, absence.
+		self::assertSame(['greeting', 'tasks', 'collection', 'kpi', 'cta', 'cta', 'inbox'], array_column($overview['blocks'], 'type'));
+		self::assertSame('studentHomework', $overview['blocks'][1]['collection']);
+		self::assertSame('dueAt', $overview['blocks'][1]['dueField']);
+		self::assertSame('highlight', $overview['blocks'][1]['display']);
+		self::assertSame(['studentGrades', 3], [$overview['blocks'][2]['collection'], $overview['blocks'][2]['limit']]);
+		self::assertSame('studentAttendanceSummary', $overview['blocks'][3]['collection']);
+		self::assertSame(['absentDays', 'lateCount', 'absentUnauthorisedDays'], array_column($overview['blocks'][3]['cards'], 'field'));
 
 		$inMenu = [];
 		foreach ($pages as $id => $page) {

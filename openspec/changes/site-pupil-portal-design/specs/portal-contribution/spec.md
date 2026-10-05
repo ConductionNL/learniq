@@ -79,3 +79,13 @@ The student manifest MUST pass through `PortalLabelTranslator`. Every student la
 - WHEN Noa opens any of her pages
 - THEN every heading, button and menu entry from learniq is Dutch
 - @e2e exclude planned: written with the build in tests/e2e/vo-pupil-flows.spec.ts (specs-only change)
+
+### Requirement: The pupil overview follows the designed board
+
+The pupil's overview MUST open, in this order, with: a `greeting` block (today's date and "Goedemorgen, {first name}"); her homework and tests as a `tasks` block over `studentHomework` with `display: highlight`, labelled "Huiswerk en toetsen"; her three newest grades, labelled "Laatste cijfers"; and her absence this school year as a `kpi` block over a new collection `studentAttendanceSummary` (her own `attendance-summary` rows, scoped on `learnerRef`): days absent, times late and days without a report. The quick actions and the messages MUST follow. Today's timetable belongs between the greeting and the homework and MUST NOT be faked: it is added with the pupil's sessions (T1, T5b). Design of record: school-design `vaartveld/preview/MijnOverzicht.png`.
+
+#### Scenario: Noor opens her overview
+- GIVEN Noor Bakker of H4b signs in with her school account
+- WHEN she opens `/mijn`
+- THEN she reads "Goedemorgen, Noor", then "Huiswerk en toetsen" with her leesverslag, then "Laatste cijfers", then her absence this school year: 1 day absent, 2 times late
+- @e2e tests/e2e/portal-design/vaartveld.spec.ts

@@ -16,8 +16,11 @@ Built in waves. A key is declared only once portaliq development keeps it.
 - [ ] **T5b** (waits for portaliq wave 6 and T1): the timetable on the overview (`calendar` `range: day`) and the "Rooster" page, `cta` tiles with `page` for Cijfers and Toetsen
 - [x] **T6**: the student manifest through `PortalLabelTranslator`; Dutch "je" entries
   - PHPUnit `PortalLabelTranslatorTest`; `npm run check:l10n`
-- [ ] **T7**: vo example set: a pupil portal account for one havo 3 pupil, with assignments due this week
+- [x] **T7**: vo example set: a pupil portal account for one pupil, with assignments due this week
   - `python3 scripts/example-sets/vo.py --check`
+  - done by `example-sets-are-the-four-schools`: Noor Bakker (vo-leerling-121) in H4b, seven assignments due in week 41, her account named by `learniq:example-set:load vo` (havo 4, as the design draws her, not havo 3)
+- [x] **T9**: the overview follows the board: greeting, homework and tests as a highlight, the newest grades, the absence strip over the new `studentAttendanceSummary`
+  - PHPUnit `GuardianSitePagesTest`, `PortalContributionProviderTest`
 - [ ] **T8**: e2e: the pupil reads today's lessons and hands in from the overview
   - `tests/e2e/vo-pupil-flows.spec.ts`
 
