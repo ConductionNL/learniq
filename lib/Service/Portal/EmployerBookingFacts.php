@@ -87,7 +87,7 @@ class EmployerBookingFacts {
 	 *
 	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
-	public function derive(array $booking, array $course, array $sessions, array $participants, array $renewed, array $context=[]): array {
+	public function derive(array $booking, array $course, array $sessions, array $participants, array $renewed=[], array $context=[]): array {
 		$days = $this->days(sessions: $sessions);
 		$firstDay = ($days[0] ?? null);
 		usort($participants, static fn (array $one, array $two): int => strcmp((string)($one['enrolment']['id'] ?? ''), (string)($two['enrolment']['id'] ?? '')));
