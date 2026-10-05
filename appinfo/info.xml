@@ -68,7 +68,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
 
 **Ondersteuning:** support@conduction.nl
     ]]></description>
-    <version>0.3.9-beta.20261004203000</version>
+    <version>0.3.9-beta.20261005120000</version>
     <licence>EUPL-1.2</licence>
     <author mail="info@conduction.nl" homepage="https://www.conduction.nl/">Conduction</author>
     <namespace>Learniq</namespace>
@@ -258,6 +258,15 @@ Vrij en open source onder de EUPL-1.2-licentie.
                 upgrade.
             -->
             <step>OCA\Learniq\Repair\BackfillLvsResultLearnerRef</step>
+            <!--
+                learning-record-own-rows: stamps the student's user id on
+                werkproces assessments written before the server did it on
+                every write, so the student can read their own confirmed
+                assessments. After InitializeSettings (the register must
+                exist). Idempotent; a row whose placement names nobody is
+                left alone.
+            -->
+            <step>OCA\Learniq\Repair\BackfillWerkprocesAssessmentLearner</step>
             <!--
                 default-tenant fallback (Ruben, 2026-09-29, option A): an unbound
                 user's tenant used to be the instance id, which is not a UUID and

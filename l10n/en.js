@@ -3426,7 +3426,8 @@ OC.L10N.register(
         "Next visit due": "Next visit due",
         "Days until the provisional advice deadline": "Days until the provisional advice deadline",
         "Days until the final advice deadline": "Days until the final advice deadline",
-        "Calculated automatically from this record; it cannot be edited.": "Calculated automatically from this record; it cannot be edited."
+        "Calculated automatically from this record; it cannot be edited.": "Calculated automatically from this record; it cannot be edited.",
+        "The Nextcloud user id of the student on the placement. The server copies it from the placement on every save, so the student can read their own confirmed assessments.": "The Nextcloud user id of the student on the placement. The server copies it from the placement on every save, so the student can read their own confirmed assessments."
     },
     "nplurals=2; plural=(n != 1);"
 )

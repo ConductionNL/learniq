@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\LearningRecordAggregationService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -92,7 +93,12 @@ class LearningRecordAggregationServiceTest extends TestCase {
 			}
 		);
 
-		$this->service = new LearningRecordAggregationService(objectService: $this->objectService);
+		// No profile row behind find(): the service scopes by learnerRef, the
+		// fallback for a profile that names no active user.
+		$this->service = new LearningRecordAggregationService(
+			objectService: $this->objectService,
+			learnerRefs: new LearnerRefResolver(objectService: $this->objectService),
+		);
 	}//end setUp()
 
 	/**
@@ -259,4 +265,44 @@ class LearningRecordAggregationServiceTest extends TestCase {
 
 		self::assertNull($this->service->resolveLearnerRefForUser(ncUserId: 'nobody'));
 	}//end testResolveLearnerRefForUserReturnsNullWhenUnbound()
+
+	/**
+	 * An empty user id, or a profile row without an id, resolves to null.
+	 *
+	 * @return void
+	 */
+	public function testResolveLearnerRefForUserReturnsNullForNoUserOrNoProfileId(): void {
+		$this->rowsBySchema = ['learner-profile' => [['ncUserId' => 'anna']]];
+
+		self::assertNull($this->service->resolveLearnerRefForUser(ncUserId: ''));
+		self::assertNull($this->service->resolveLearnerRefForUser(ncUserId: 'anna'));
+	}//end testResolveLearnerRefForUserReturnsNullForNoUserOrNoProfileId()
+
+	/**
+	 * Rows missing the id or course a join needs are skipped, not guessed:
+	 * a portfolio or placement without an id joins nothing, an enrolment
+	 * without a course gives no percentage, and a completion without a
+	 * course counts under no course.
+	 *
+	 * @return void
+	 */
+	public function testRowsWithoutAJoinKeyAreSkipped(): void {
+		$this->rowsBySchema = [
+			'enrolment' => [['id' => 'e1', 'learnerRef' => self::LEARNER_REF, 'progressPercent' => 50.0]],
+			'portfolio' => [['learnerRef' => self::LEARNER_REF, 'title' => 'No id']],
+			'portfolio-entry' => [['id' => 'pe1', 'portfolioId' => 'p1']],
+			'bpv-placement' => [['learnerRef' => self::LEARNER_REF, 'trainingCompanyName' => 'No id']],
+			'werkproces-assessment' => [['id' => 'wpa1', 'bpvPlacementId' => 'bpv1']],
+			'lesson-completion' => [['id' => 'lc1', 'learnerRef' => self::LEARNER_REF]],
+		];
+
+		$composition = $this->service->compose(learnerRef: self::LEARNER_REF);
+
+		self::assertSame([], $composition['portfolioEntries']);
+		self::assertSame([], $composition['werkprocesAssessments']);
+		self::assertCount(1, $composition['lessonCompletions']);
+		self::assertNull($composition['lessonCompletions'][0]['courseId']);
+		self::assertSame(1, $composition['lessonCompletions'][0]['completedCount']);
+		self::assertNull($composition['lessonCompletions'][0]['percentage']);
+	}//end testRowsWithoutAJoinKeyAreSkipped()
 }//end class

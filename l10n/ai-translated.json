@@ -2220,6 +2220,7 @@
         "{present} present, {late} late, {authorised} absent with permission, {unauthorised} absent without permission",
         "{programme}, intake {year}, {status}",
         "{revoked} revoked and {expired} expired certificates are left as they are. Learners keep their certificate number, issue date and expiry.",
-        "{shown} of {total} strings"
+        "{shown} of {total} strings",
+        "The Nextcloud user id of the student on the placement. The server copies it from the placement on every save, so the student can read their own confirmed assessments."
     ]
 }
