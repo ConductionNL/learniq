@@ -196,9 +196,11 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(12, $collections);
+		$this->assertCount(13, $collections);
 		$this->assertSame(
 			[
+				// site-pupil-portal-design T1: her timetable, first so its page follows the overview.
+				'studentSessions',
 				'studentGrades',
 				'studentFinalGrades',
 				'studentAttendance',
@@ -229,6 +231,14 @@ class PortalContributionProviderTest extends TestCase {
 				$this->assertSame('learnerRefs', $collection['scopeField']);
 				$this->assertNotContains('learnerRefs', $collection['fields']);
 				$this->assertSame(['lifecycle' => 'published'], $collection['filter']);
+				continue;
+			}
+
+			if ($collection['id'] === 'studentSessions') {
+				// A lesson belongs to her group: reached through her own live
+				// enrolments, never by a field on the lesson (StudentTimetableTest).
+				$this->assertSame('cohortId', $collection['scopeField']);
+				$this->assertSame('learnerRef', $collection['via']['scopeField']);
 				continue;
 			}
 
