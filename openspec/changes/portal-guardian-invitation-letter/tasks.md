@@ -4,3 +4,5 @@
 - [x] 1.2 The invite endpoint passes `channel` on and answers the code to the administration. Verify: PHPUnit `PortalGuardianControllerTest::testAnAdministrationManagerInvites`.
 - [x] 1.3 `occ learniq:portal:invite-guardian --letter` prints the code. Verify: live on a test instance.
 - [x] 1.4 Live with portaliq's change checked out: the command prints a code, the guardian signs in without an address, types it and sees her child. Verify: live on a test instance.
+- [x] 2.1 Security review L5: every issued invitation is recorded (issuer, guardian, channel, organisation; never the code) in the audit log and the app log. Verify: PHPUnit `GuardianPortalInvitationTest::testWhoIssuedTheInvitationIsRecordedWithoutTheCode`; live on a test instance.
+- [x] 2.2 Security review L5: the endpoint refuses an organisation the caller does not belong to in OpenRegister (`403 organisation-not-yours`). Verify: PHPUnit `PortalGuardianControllerTest::testTheOrganisationMustBeTheCallersOwnAndTheIssuerIsRecorded`, `CallerOrganisationsTest`; live on a test instance.

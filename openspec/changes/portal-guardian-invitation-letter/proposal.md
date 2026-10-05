@@ -15,8 +15,13 @@ An invited guardian now gets a mail with a one-time link (`portal-guardian-invit
 
 The administration that sends the letter: the same people who may invite (`admin`, `administration-managers`). A mailed link is still seen by nobody at the school, and stays the first choice.
 
+## Who issued it, and where (security review L5)
+
+- Every invitation that goes out is recorded in Nextcloud's audit log (`admin_audit`) and the app log: who issued it (the staff user's uid, or `occ`), the guardian, the channel and the organisation. Never the code or the link.
+- The organisation is no longer a free parameter on the endpoint. A portal organisation slug is the slug of an OpenRegister organisation, so the caller must belong to that organisation in OpenRegister. Otherwise the answer is `403 organisation-not-yours` and nothing is dispatched. Without OpenRegister nobody belongs anywhere and every invitation is refused. The `occ` command runs as the server operator and keeps the organisation as an argument.
+
 ## Not changed
 
-- The invitation still needs an e-mail address the school verified, also for a letter. Portaliq refuses a waiting account without an address or an identity. A guardian without any address cannot be invited yet.
+- The invitation still needs an e-mail address the school verified, also for a letter. Portaliq refuses a waiting account without an address or an identity (portaliq REQ-PIS-001), so learniq refuses a letter without a valid address before it asks. Issuing the code itself needs no address on portaliq's side; lifting REQ-PIS-001 is a separate decision. A guardian without any address cannot be invited yet.
 - A portaliq without the code answers `invitation: unavailable`, and the guardian stays linked on the verified address.
 - No BSN is read or stored.

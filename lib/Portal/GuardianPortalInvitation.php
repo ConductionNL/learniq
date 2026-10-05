@@ -41,6 +41,7 @@ namespace OCA\Learniq\Portal;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\Log\Audit\CriticalActionPerformedEvent;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -159,6 +160,7 @@ class GuardianPortalInvitation {
 	 * @param string $email The guardian's verified email address.
 	 * @param string $organisation The portal organisation slug.
 	 * @param string $channel CHANNEL_MAIL or CHANNEL_LETTER.
+	 * @param string $issuedBy Who issued it: the staff user's uid, or `occ`.
 	 *
 	 * @return array{status: string, reason?: string, subjectRef?: string, invitation?: string, code?: string, expiresAt?: string}
 	 *
@@ -166,7 +168,7 @@ class GuardianPortalInvitation {
 	 * @spec openspec/changes/portal-guardian-invitation-mail/specs/portal-identity/spec.md
 	 * @spec openspec/changes/portal-guardian-invitation-letter/specs/portal-identity/spec.md
 	 */
-	public function invite(string $guardianRef, string $email, string $organisation, string $channel=self::CHANNEL_MAIL): array {
+	public function invite(string $guardianRef, string $email, string $organisation, string $channel=self::CHANNEL_MAIL, string $issuedBy=''): array {
 		$email = trim($email);
 		$organisation = trim($organisation);
 		$inputRefusal = $this->inputRefusal(email: $email, organisation: $organisation, channel: $channel);
@@ -202,11 +204,46 @@ class GuardianPortalInvitation {
 			return self::refused(reason: 'portal-unavailable');
 		}
 
+		$this->recordIssue(issuedBy: $issuedBy, guardianRef: (string)$guardian['id'], channel: $channel, organisation: $organisation);
+
 		return ([
 			'status' => 'invited',
 			'subjectRef' => $subjectRef,
 		] + $sent);
 	}//end invite()
+
+	/**
+	 * Record who issued an invitation (security review L5): the issuer, the
+	 * guardian, the channel and the organisation, never the code or the
+	 * link. Nextcloud's audit log (admin_audit) takes the event; the app log
+	 * gets the same line.
+	 *
+	 * @param string $issuedBy The staff user's uid, `occ`, or '' when unknown.
+	 * @param string $guardianRef The guardian's LearnerProfile uuid.
+	 * @param string $channel The channel.
+	 * @param string $organisation The portal organisation slug.
+	 *
+	 * @return void
+	 */
+	private function recordIssue(string $issuedBy, string $guardianRef, string $channel, string $organisation): void {
+		if ($issuedBy === '') {
+			$issuedBy = 'unknown';
+		}
+
+		$facts = [
+			'issuedBy' => $issuedBy,
+			'guardianRef' => $guardianRef,
+			'channel' => $channel,
+			'organisation' => $organisation,
+		];
+		$this->dispatcher->dispatchTyped(
+			new CriticalActionPerformedEvent(
+				'Portal invitation issued by "%s" for guardian "%s" on channel "%s" in organisation "%s"',
+				$facts
+			)
+		);
+		$this->logger->info('[GuardianPortalInvitation] Portal invitation issued', $facts);
+	}//end recordIssue()
 
 	/**
 	 * Why the caller's input is refused, or '' when it is usable.

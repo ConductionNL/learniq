@@ -27,3 +27,19 @@ The invitation of REQ-PID-004 MUST take a channel, `mail` or `letter`, with `mai
 - **WHEN** they invite on the channel `sms`
 - **THEN** the answer is `channel-unknown` with status 400 and nothing is dispatched
 - @e2e exclude covered by PHPUnit `GuardianPortalInvitationTest::testAnUnknownChannelIsRefusedWithoutDispatching`
+
+### Requirement: An invitation records who issued it, into the caller's own organisation (REQ-PID-007)
+
+Learniq MUST record every invitation it issues, on either channel, in Nextcloud's audit log through `CriticalActionPerformedEvent` and in the app log, with the issuer (the staff user's uid, or `occ` for the command), the guardian's reference, the channel and the organisation. The record MUST NOT contain the code or the link. A refused invitation MUST record nothing. The endpoint MUST refuse with `403 organisation-not-yours`, before anything is dispatched, an organisation slug that is not the slug of an OpenRegister organisation the caller belongs to; when OpenRegister cannot answer, every slug MUST be refused.
+
+#### Scenario: The issuer is recorded and the code is not
+- **GIVEN** a member of the administration of `de-wilgenboom`
+- **WHEN** they invite a guardian by letter
+- **THEN** the audit log holds one line naming them, the guardian, `letter` and `de-wilgenboom`, and no part of the code
+- @e2e exclude an audit log line; covered by PHPUnit `GuardianPortalInvitationTest::testWhoIssuedTheInvitationIsRecordedWithoutTheCode` and checked live on a test instance
+
+#### Scenario: Another school's portal is refused
+- **GIVEN** a member of the administration who belongs to the OpenRegister organisation `de-wilgenboom` only
+- **WHEN** they invite a guardian into `vaartveld-college`
+- **THEN** the answer is `403 organisation-not-yours` and nothing is dispatched
+- @e2e exclude covered by PHPUnit `PortalGuardianControllerTest::testTheOrganisationMustBeTheCallersOwnAndTheIssuerIsRecorded` and `CallerOrganisationsTest`, and checked live on a test instance

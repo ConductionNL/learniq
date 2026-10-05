@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\PortalGuardianController;
+use OCA\Learniq\Portal\CallerOrganisations;
 use OCA\Learniq\Portal\GuardianPortalInvitation;
 use OCP\IGroupManager;
 use OCP\IRequest;
@@ -79,14 +80,38 @@ class PortalGuardianControllerTest extends TestCase {
 	}//end testAnAdministrationManagerInvites()
 
 	/**
+	 * Security review L5: the organisation is the caller's own. A member of
+	 * the administration cannot invite into a portal organisation they do
+	 * not belong to, and an invitation they may make names them as issuer.
+	 *
+	 * @return void
+	 */
+	public function testTheOrganisationMustBeTheCallersOwnAndTheIssuerIsRecorded(): void {
+		$invitations = $this->createMock(GuardianPortalInvitation::class);
+		$invitations->expects($this->once())->method('invite')
+			->with('g-1', 'a@example.org', 'de-wilgenboom', 'letter', 'someone')
+			->willReturn(['status' => 'invited', 'subjectRef' => 's-1', 'invitation' => 'code', 'code' => 'ABCD-EFGH-2345']);
+		$controller = $this->controller(invitations: $invitations, groups: ['administration-managers'], organisations: ['de-wilgenboom']);
+
+		$elsewhere = $controller->invite('g-1', 'a@example.org', 'vaartveld-college', 'letter');
+		$this->assertSame(403, $elsewhere->getStatus());
+		$this->assertSame(['error' => 'organisation-not-yours'], $elsewhere->getData());
+		$this->assertSame(403, $controller->invite('g-1', 'a@example.org', '', 'letter')->getStatus());
+
+		$this->assertSame(200, $controller->invite('g-1', 'a@example.org', 'de-wilgenboom', 'letter')->getStatus());
+
+	}//end testTheOrganisationMustBeTheCallersOwnAndTheIssuerIsRecorded()
+
+	/**
 	 * The controller for a user in the given groups.
 	 *
 	 * @param GuardianPortalInvitation $invitations The invitation double.
 	 * @param array<int, string> $groups The user's groups.
+	 * @param array<int, string> $organisations The organisation slugs the user belongs to.
 	 *
 	 * @return PortalGuardianController
 	 */
-	private function controller(GuardianPortalInvitation $invitations, array $groups): PortalGuardianController {
+	private function controller(GuardianPortalInvitation $invitations, array $groups, array $organisations=['org']): PortalGuardianController {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('someone');
 		$session = $this->createMock(IUserSession::class);
@@ -96,6 +121,11 @@ class PortalGuardianControllerTest extends TestCase {
 			static fn (string $uid, string $group): bool => in_array($group, $groups, true)
 		);
 
-		return new PortalGuardianController($this->createMock(IRequest::class), $invitations, $session, $groupManager);
+		$callerOrganisations = $this->createMock(CallerOrganisations::class);
+		$callerOrganisations->method('includes')->willReturnCallback(
+			static fn (string $slug): bool => in_array($slug, $organisations, true)
+		);
+
+		return new PortalGuardianController($this->createMock(IRequest::class), $invitations, $session, $groupManager, $callerOrganisations);
 	}//end controller()
 }//end class

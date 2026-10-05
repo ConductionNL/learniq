@@ -31,6 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Portal\CallerOrganisations;
 use OCA\Learniq\Portal\GuardianPortalInvitation;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -65,6 +66,7 @@ class PortalGuardianController extends Controller {
 	 * @param GuardianPortalInvitation $invitations Provisions and links the account.
 	 * @param IUserSession $userSession The signed-in user.
 	 * @param IGroupManager $groups Checks who may invite.
+	 * @param CallerOrganisations $organisations The organisations the caller belongs to.
 	 *
 	 * @return void
 	 */
@@ -73,6 +75,7 @@ class PortalGuardianController extends Controller {
 		private readonly GuardianPortalInvitation $invitations,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groups,
+		private readonly CallerOrganisations $organisations,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -96,7 +99,20 @@ class PortalGuardianController extends Controller {
 			return new JSONResponse(['error' => 'forbidden'], Http::STATUS_FORBIDDEN);
 		}
 
-		$result = $this->invitations->invite(guardianRef: $guardianRef, email: $email, organisation: $organisation, channel: $channel);
+		// The organisation is the caller's own, not a free parameter: a member
+		// of one school's administration cannot invite into another school's
+		// portal (security review L5).
+		if ($this->organisations->includes(slug: $organisation) === false) {
+			return new JSONResponse(['error' => 'organisation-not-yours'], Http::STATUS_FORBIDDEN);
+		}
+
+		$result = $this->invitations->invite(
+			guardianRef: $guardianRef,
+			email: $email,
+			organisation: $organisation,
+			channel: $channel,
+			issuedBy: (string)$this->userSession->getUser()?->getUID()
+		);
 		if ($result['status'] === 'invited') {
 			return new JSONResponse($result);
 		}

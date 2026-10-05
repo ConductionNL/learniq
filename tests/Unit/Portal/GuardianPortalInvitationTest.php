@@ -28,6 +28,7 @@ use OCA\Learniq\Portal\PortalContributionProvider;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\Log\Audit\CriticalActionPerformedEvent;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -163,6 +164,9 @@ class GuardianPortalInvitationTest extends TestCase {
 
 	/** @var array<int, Event> */
 	private array $dispatched = [];
+
+	/** @var array<int, CriticalActionPerformedEvent> */
+	private array $audited = [];
 
 	/**
 	 * A guardian is provisioned with a verified email and gets the
@@ -328,6 +332,32 @@ class GuardianPortalInvitationTest extends TestCase {
 	}//end testALetterAnswersTheCodeToPrint()
 
 	/**
+	 * Security review L5: who issued an invitation is recorded in
+	 * Nextcloud's audit log: the issuer, the guardian, the channel and the
+	 * organisation. Never the code. A refused invitation records nothing.
+	 *
+	 * @return void
+	 */
+	public function testWhoIssuedTheInvitationIsRecordedWithoutTheCode(): void {
+		$this->invitation(profile: $this->guardianProfile(), mailResult: 'code')
+			->invite(self::GUARDIAN, 'a@example.org', 'de-wilgenboom', GuardianPortalInvitation::CHANNEL_LETTER, 'po-directeur-01');
+
+		$this->assertCount(1, $this->audited);
+		$this->assertSame(
+			['issuedBy' => 'po-directeur-01', 'guardianRef' => self::GUARDIAN, 'channel' => 'letter', 'organisation' => 'de-wilgenboom'],
+			$this->audited[0]->getParameters()
+		);
+		$this->assertSame(
+			'Portal invitation issued by "po-directeur-01" for guardian "' . self::GUARDIAN . '" on channel "letter" in organisation "de-wilgenboom"',
+			vsprintf($this->audited[0]->getLogMessage(), array_values($this->audited[0]->getParameters()))
+		);
+		$this->assertStringNotContainsString('ABCD', (string)json_encode([$this->audited[0]->getLogMessage(), $this->audited[0]->getParameters()]));
+
+		$this->invitation(profile: null)->invite(self::GUARDIAN, 'a@example.org', 'de-wilgenboom', GuardianPortalInvitation::CHANNEL_LETTER, 'po-directeur-01');
+		$this->assertSame([], $this->audited);
+	}//end testWhoIssuedTheInvitationIsRecordedWithoutTheCode()
+
+	/**
 	 * A mailed invitation never carries a code back, whatever portaliq says.
 	 *
 	 * @return void
@@ -410,6 +440,7 @@ class GuardianPortalInvitationTest extends TestCase {
 	 */
 	private function invitation(?array $profile, string $claimResult='ok', string $mailResult='sent'): GuardianPortalInvitation {
 		$this->dispatched = [];
+		$this->audited = [];
 		return new GuardianPortalInvitation(
 			$this->profiles(profile: $profile),
 			$this->dispatcher(claimResult: $claimResult, mailResult: $mailResult),
@@ -443,6 +474,11 @@ class GuardianPortalInvitationTest extends TestCase {
 		$dispatcher = $this->createMock(IEventDispatcher::class);
 		$dispatcher->method('dispatchTyped')->willReturnCallback(
 			function (Event $event) use ($claimResult, $mailResult): void {
+				if ($event instanceof CriticalActionPerformedEvent) {
+					$this->audited[] = $event;
+					return;
+				}
+
 				$this->dispatched[] = $event;
 				if ($event instanceof FakeProvisionEvent) {
 					$event->subjectRef = 'subject-1';

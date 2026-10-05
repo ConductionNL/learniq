@@ -95,7 +95,8 @@ class PortalInviteGuardianCommand extends Command {
 			guardianRef: (string)$input->getArgument('guardianRef'),
 			email: (string)$input->getArgument('email'),
 			organisation: (string)$input->getArgument('organisation'),
-			channel: $this->channel(input: $input)
+			channel: $this->channel(input: $input),
+			issuedBy: 'occ'
 		);
 
 		if ($result['status'] !== 'invited') {
