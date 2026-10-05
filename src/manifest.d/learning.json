@@ -2857,10 +2857,8 @@
 				"register": "learniq",
 				"schema": "Session",
 				"filter": {
-					"startsAt": {
-						"gte": "@today",
-						"lt": "@today+1d"
-					}
+					"startsAt[gte]": "@today",
+					"startsAt[lt]": "@today+1d"
 				}
 			}
 		},
@@ -2873,10 +2871,8 @@
 				"register": "learniq",
 				"schema": "Session",
 				"filter": {
-					"startsAt": {
-						"gte": "@today",
-						"lt": "@today+7d"
-					}
+					"startsAt[gte]": "@today",
+					"startsAt[lt]": "@today+7d"
 				}
 			}
 		},

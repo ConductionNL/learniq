@@ -980,6 +980,18 @@ test('the Today dashboard holds library widgets only, each laid out once, none o
 	}
 })
 
+test('the Other dashboards card has one frame and one title', () => {
+	// The card grid wraps itself in a titled card. Left alone it reads
+	// "Other dashboards / Actions / Explore / Actions".
+	const grid = TODAY.config.widgets.find(
+		(widget) => widget.type === 'nav-card-grid',
+	)
+	const placed = TODAY.config.layout.find((item) => item.widgetId === grid.id)
+	assert.equal(grid.content.title, grid.title)
+	assert.equal(placed.showTitle, false)
+	assert.equal(placed.showActions, false)
+})
+
 test('a tile label is at most eighteen characters', () => {
 	const tiles = TODAY.config.widgets.filter((widget) => widget.type === 'stat')
 	assert.equal(tiles.length, 4)
@@ -1016,7 +1028,14 @@ test('every number on Today uses the filter of the list it opens', () => {
 			assert.equal(typeof route.name, 'string', id)
 			if (route.query === undefined) {
 				// No filter in the address: the list must carry the same one itself.
-				assert.deepEqual(page.config.filter, source.filter, id)
+				// The same filter, whichever way each side writes an operator:
+				// a tile nests it (the count flattens it itself), a list must
+				// write it flat (see the address test below).
+				assert.deepEqual(
+					asQuery(page.config.filter),
+					asQuery(source.filter),
+					id,
+				)
 			} else {
 				assert.equal(
 					page.config.filter,
@@ -1071,12 +1090,11 @@ test('the First today card is not collapsed before its condition is read', () =>
 })
 
 /**
- * The library's own visibleWhen functions, loaded with the few browser
- * globals their imports touch at module load.
+ * The few browser globals the library's utility modules touch at module load.
  *
- * @return {Promise<object>} The module.
+ * @return {void}
  */
-async function libraryVisibleWhen() {
+function browserGlobals() {
 	const memory = () => {
 		const map = new Map()
 		return {
@@ -1099,6 +1117,15 @@ async function libraryVisibleWhen() {
 		getElementById: () => null,
 		addEventListener: () => {},
 	}
+}
+
+/**
+ * The library's own visibleWhen functions.
+ *
+ * @return {Promise<object>} The module.
+ */
+async function libraryVisibleWhen() {
+	browserGlobals()
 	return import('../../node_modules/@conduction/nextcloud-vue/src/utils/visibleWhen.js')
 }
 
@@ -1139,6 +1166,71 @@ test('the First today card shows for open flags and hides for none, by the libra
 		),
 		asked[0],
 	)
+})
+
+test('no address a Today number asks or opens carries an operator as JSON', async () => {
+	// nextcloud-vue 2.60.0 writes a NESTED operator in a list filter as JSON
+	// (`startsAt={"gte":…}`), and OpenRegister answers that with a 500: the
+	// list then reads "No items found" under a tile that says 1 (seen live,
+	// 5 October 2026, on /sessions/week). A flat key (`startsAt[gte]`) goes out
+	// as written. So every list a Today number opens is serialised here with
+	// the library's own functions, and so is every count.
+	browserGlobals()
+	const utils = '../../node_modules/@conduction/nextcloud-vue/src/utils/'
+	const { resolveFilterMap, resolveQueryFilters } = await import(
+		`${utils}routeFilters.js`
+	)
+	const { buildQueryString } = await import(`${utils}headers.js`)
+	const { flattenAggFilter } = await import(`${utils}fetchAggregate.js`)
+	const { resolveFilterTokens } = await import(`${utils}resolveFilterTokens.js`)
+	const pages = build(FULL, 'admin').pages
+	const hasJson = (text) => /[{}]|%7B|%7D/i.test(text)
+
+	// The control: the nested form really is what breaks.
+	assert.ok(
+		hasJson(
+			buildQueryString(resolveFilterMap({ a: { gte: '@today' } }, {}, {})),
+		),
+		'the library no longer writes a nested operator as JSON; this test can go',
+	)
+
+	let lists = 0
+	for (const { id, source, routes } of todayCounts()) {
+		for (const route of routes) {
+			const page = pages.find((candidate) => candidate.id === routeName(route))
+			const address = buildQueryString({
+				...resolveQueryFilters(route.query || {}, {}),
+				...resolveFilterMap(page.config.filter || {}, {}, {}),
+			})
+			assert.ok(!hasJson(address), `${id} opens ${page.route}${address}`)
+			// And it still filters on every field the count filters on.
+			for (const field of Object.keys(source.filter)) {
+				assert.ok(
+					decodeURIComponent(address).includes(`${field}`),
+					`${id}: ${field} is not in ${address}`,
+				)
+			}
+			lists++
+		}
+		const isCard =
+			TODAY.config.widgets.find((w) => w.id === id).type === 'banner'
+		if (isCard) {
+			const asked = buildQueryString(resolveFilterTokens(source.filter, {}))
+			assert.ok(!hasJson(asked), `${id} asks ${asked}`)
+		} else {
+			const params = {}
+			flattenAggFilter(params, source.filter, {})
+			for (const [key, value] of Object.entries(params)) {
+				assert.notEqual(typeof value, 'object', `${id}: ${key}`)
+				assert.match(
+					key,
+					/^filter\[[A-Za-z_]+\](\[[a-z]+\])?$/,
+					`${id}: ${key}`,
+				)
+			}
+		}
+	}
+	assert.equal(lists, 5)
 })
 
 test('every widget type on Today is one the installed library build registers', () => {

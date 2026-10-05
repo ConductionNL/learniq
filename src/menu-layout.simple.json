@@ -457,7 +457,7 @@
 	"pages": [
 		{
 			"id": "Dashboard",
-			"_note": "The Today dashboard (openspec/changes/simple-today-dashboard). In the simple structure the page at `/` becomes a typed dashboard for the four roles that teach or run teaching, and stays the role dashboard it was for everybody else and in the full structure. `when` names those roles, `page` changes the page's kind, `config` holds library widgets only. EVERY NUMBER IS A FILTER ON REAL FIELDS, AND THE SAME FILTER AS THE LIST IT OPENS: Lessons today and Lessons this week open the two session lists that carry the same filter themselves; Due this week, Unexcused today and the First today card pass their filter in the address. The card's count filter is written flat, because the library's count source writes a nested operator as JSON. WHAT THE DESIGN SHOWS AND THIS DOES NOT, because learniq has no data or page for it: to mark (submissions are listed per assignment), the present percentage, signals per pupil by name, messages from parents, the filled-in state per lesson and the Docent / Mentor switch. The three role dashboards stay one card away. THE CARD CARRIES `text` EQUAL TO ITS TITLE: nextcloud-vue 2.60.0 collapses any banner whose `content.text` is empty before it looks at `visibleWhen` (CnDashboardPage isCollapsedWidget), so a card with a title and no text could never show. The attention layout draws the title, not the text. A TILE'S `route` IS ALWAYS `{ name }`: a bare string is read as a path, so `SessionsToday` opened `/apps/learniq/SessionsToday`, which is no page (seen in a browser, 5 October 2026).",
+			"_note": "The Today dashboard (openspec/changes/simple-today-dashboard). In the simple structure the page at `/` becomes a typed dashboard for the four roles that teach or run teaching, and stays the role dashboard it was for everybody else and in the full structure. `when` names those roles, `page` changes the page's kind, `config` holds library widgets only. EVERY NUMBER IS A FILTER ON REAL FIELDS, AND THE SAME FILTER AS THE LIST IT OPENS: Lessons today and Lessons this week open the two session lists that carry the same filter themselves; Due this week, Unexcused today and the First today card pass their filter in the address. The card's count filter is written flat, because the library's count source writes a nested operator as JSON. WHAT THE DESIGN SHOWS AND THIS DOES NOT, because learniq has no data or page for it: to mark (submissions are listed per assignment), the present percentage, signals per pupil by name, messages from parents, the filled-in state per lesson and the Docent / Mentor switch. The three role dashboards stay one card away. THE CARD CARRIES `text` EQUAL TO ITS TITLE: nextcloud-vue 2.60.0 collapses any banner whose `content.text` is empty before it looks at `visibleWhen` (CnDashboardPage isCollapsedWidget), so a card with a title and no text could never show. The attention layout draws the title, not the text. A TILE'S `route` IS ALWAYS `{ name }`: a bare string is read as a path, so `SessionsToday` opened `/apps/learniq/SessionsToday`, which is no page (seen in a browser, 5 October 2026). THE OTHER DASHBOARDS CARD DRAWS ITS OWN FRAME: the card grid wraps itself in a titled card (default title Explore), so the dashboard's frame around it is switched off (`showTitle` and `showActions` false on the layout item) and the title is passed to the grid. The grid's own Actions menu has no switch.",
 			"when": {
 				"user.primaryRole": {
 					"in": [
@@ -685,6 +685,7 @@
 						"type": "nav-card-grid",
 						"title": "Other dashboards",
 						"content": {
+							"title": "Other dashboards",
 							"entries": [
 								{
 									"id": "DashboardTeacher",
@@ -805,7 +806,8 @@
 						"gridY": 10,
 						"gridWidth": 12,
 						"gridHeight": 3,
-						"showTitle": true
+						"showTitle": false,
+						"showActions": false
 					}
 				]
 			}
