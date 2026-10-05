@@ -106,7 +106,7 @@ Learniq contributes pages to a portaliq portal for four audiences. Each audience
 | `praktijkopleider` | A workplace trainer | `nextcloud` (eHerkenning once the portal has a broker for it) | `occ learniq:portal:invite-trainer` |
 | `external-assessor` | An outside assessor | `nextcloud` | `occ learniq:portal:invite-assessor` |
 
-The example portals: po `wilgenboom` offers `digid`; vo `vaartveld` offers `nextcloud` and `digid`; mbo `esdoornveen` and training `warmtepompacademie` offer `nextcloud` and `eherkenning`. A school may change its own portal's modes. If it removes a mode, the audience that uses it has no way in.
+The example portals all offer `public` (without it portaliq serves the website to nobody who is signed out), and: po `wilgenboom` `digid`; vo `vaartveld` `nextcloud` and `digid`; mbo `esdoornveen` and training `warmtepompacademie` `nextcloud` and `eherkenning`. A school may change its own portal's modes. If it removes a mode, the audience that uses it has no way in.
 
 ### Loading an example set from the command line
 

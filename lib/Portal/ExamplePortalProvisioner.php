@@ -243,6 +243,10 @@ class ExamplePortalProvisioner {
 			$line .= ' (theme ' . $result['theme'] . $fallback . ')';
 		}
 
+		if (($result['missingModes'] ?? []) !== []) {
+			$line .= '; does not offer ' . implode(', ', $result['missingModes']);
+		}
+
 		foreach (['menus', 'pages', 'news'] as $part) {
 			if (isset($result[$part]) === true) {
 				$line .= '; ' . $part . ' ' . (int)$result[$part]['created'] . ' created, ' . (int)$result[$part]['kept'] . ' kept';
@@ -293,7 +297,7 @@ class ExamplePortalProvisioner {
 			'set'    => $profileId,
 			'portal' => $portal + [
 				'locales'        => ['nl', 'en'],
-				'authentication' => ['modes' => ['digid'], 'minTrust' => 'low'],
+				'authentication' => ['modes' => ['public', 'digid'], 'minTrust' => 'low'],
 			],
 		];
 	}//end declarationFor()
@@ -326,20 +330,56 @@ class ExamplePortalProvisioner {
 			$refs[] = $this->content->save(schema: self::SCHEMA, object: $this->newPortal(portal: $portal));
 		}
 
+		$missing = [];
 		if ($existing !== null) {
-			$status = $this->fill(existing: $existing, portal: $portal);
-			$refs[] = $this->content->idOf(row: $existing);
+			$status  = $this->fill(existing: $existing, portal: $portal);
+			$refs[]  = $this->content->idOf(row: $existing);
+			$missing = $this->missingModes(existing: $existing, portal: $portal);
 		}
 
 		$refs = array_values(array_filter($refs, static fn ($ref): bool => is_string($ref) && $ref !== ''));
 
 		return [
-			'status' => $status,
-			'menus'  => $this->content->menus(declaration: $declaration, refs: $refs),
-			'pages'  => $this->content->pages(declaration: $declaration, refs: $refs),
-			'news'   => $this->content->news(declaration: $declaration),
+			'status'       => $status,
+			'missingModes' => $missing,
+			'menus'        => $this->content->menus(declaration: $declaration, refs: $refs),
+			'pages'        => $this->content->pages(declaration: $declaration, refs: $refs),
+			'news'         => $this->content->news(declaration: $declaration),
 		];
 	}//end apply()
+
+	/**
+	 * The declared sign-in modes an existing portal does not offer.
+	 *
+	 * A mode list somebody chose is never changed. When it lacks `public`
+	 * the portal serves its website to nobody who is signed out, so the
+	 * answer names the missing modes and the load logs them: the operator
+	 * decides.
+	 *
+	 * @param array<string, mixed> $existing The portal as stored.
+	 * @param array<string, mixed> $portal   The declared portal.
+	 *
+	 * @return array<int, string>
+	 *
+	 * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md#requirement-the-website-of-an-example-portal-is-public
+	 */
+	private function missingModes(array $existing, array $portal): array {
+		$stored  = (array)($existing['authentication']['modes'] ?? []);
+		$missing = array_values(array_diff((array)($portal['authentication']['modes'] ?? []), $stored));
+		if ($missing !== [] && $stored !== []) {
+			$this->logger->warning(
+				'[ExamplePortalProvisioner] portal "{slug}" keeps its own sign-in modes and does not offer: {modes}.',
+				['slug' => (string)($portal['slug'] ?? ''), 'modes' => implode(', ', $missing)]
+			);
+		}
+
+		if ($stored === []) {
+			// An empty list was filled with the declared one.
+			return [];
+		}
+
+		return $missing;
+	}//end missingModes()
 
 	/**
 	 * The object a new portal is saved as.
