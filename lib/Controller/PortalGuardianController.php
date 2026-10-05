@@ -56,7 +56,7 @@ class PortalGuardianController extends Controller {
 	/**
 	 * Refusals that are the caller's input, answered 400; the rest are 502.
 	 */
-	private const BAD_INPUT = ['email-invalid', 'organisation-missing', 'guardian-unknown'];
+	private const BAD_INPUT = ['email-invalid', 'organisation-missing', 'guardian-unknown', 'channel-unknown'];
 
 	/**
 	 * Constructor.
@@ -83,18 +83,20 @@ class PortalGuardianController extends Controller {
 	 * @param string $guardianRef The guardian's LearnerProfile uuid.
 	 * @param string $email The address the school verified with the guardian.
 	 * @param string $organisation The portal organisation slug.
+	 * @param string $channel `mail` for a mailed link, `letter` for a code to print.
 	 *
 	 * @return JSONResponse
 	 *
 	 * @spec openspec/changes/portal-guardian-invitation/specs/portal-identity/spec.md
+	 * @spec openspec/changes/portal-guardian-invitation-letter/specs/portal-identity/spec.md
 	 */
 	#[NoAdminRequired]
-	public function invite(string $guardianRef, string $email='', string $organisation=''): JSONResponse {
+	public function invite(string $guardianRef, string $email='', string $organisation='', string $channel='mail'): JSONResponse {
 		if ($this->mayInvite() === false) {
 			return new JSONResponse(['error' => 'forbidden'], Http::STATUS_FORBIDDEN);
 		}
 
-		$result = $this->invitations->invite(guardianRef: $guardianRef, email: $email, organisation: $organisation);
+		$result = $this->invitations->invite(guardianRef: $guardianRef, email: $email, organisation: $organisation, channel: $channel);
 		if ($result['status'] === 'invited') {
 			return new JSONResponse($result);
 		}

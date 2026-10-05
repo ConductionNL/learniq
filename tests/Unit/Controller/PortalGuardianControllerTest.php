@@ -58,14 +58,24 @@ class PortalGuardianControllerTest extends TestCase {
 	public function testAnAdministrationManagerInvites(): void {
 		$invitations = $this->createMock(GuardianPortalInvitation::class);
 		$invitations->method('invite')->willReturnCallback(
-			static fn (string $guardianRef, string $email, string $organisation): array => $email === 'bad'
-				? ['status' => 'refused', 'reason' => 'email-invalid']
-				: ['status' => 'invited', 'subjectRef' => 's-1']
+			static fn (string $guardianRef, string $email, string $organisation, string $channel='mail'): array => match (true) {
+				$email === 'bad' => ['status' => 'refused', 'reason' => 'email-invalid'],
+				$channel === 'sms' => ['status' => 'refused', 'reason' => 'channel-unknown'],
+				$channel === 'letter' => ['status' => 'invited', 'subjectRef' => 's-1', 'invitation' => 'code', 'code' => 'ABCD-EFGH-2345'],
+				default => ['status' => 'invited', 'subjectRef' => 's-1', 'invitation' => 'sent'],
+			}
 		);
 		$controller = $this->controller(invitations: $invitations, groups: ['administration-managers']);
 
 		$this->assertSame(200, $controller->invite('g-1', 'a@example.org', 'org')->getStatus());
 		$this->assertSame(400, $controller->invite('g-1', 'bad', 'org')->getStatus());
+		// portal-guardian-invitation-letter: the channel is passed on, and the
+		// code comes back to the administration that prints the letter.
+		$letter = $controller->invite('g-1', 'a@example.org', 'org', 'letter');
+		$this->assertSame(200, $letter->getStatus());
+		$this->assertSame('ABCD-EFGH-2345', $letter->getData()['code']);
+		$this->assertArrayNotHasKey('code', $controller->invite('g-1', 'a@example.org', 'org')->getData());
+		$this->assertSame(400, $controller->invite('g-1', 'a@example.org', 'org', 'sms')->getStatus());
 	}//end testAnAdministrationManagerInvites()
 
 	/**

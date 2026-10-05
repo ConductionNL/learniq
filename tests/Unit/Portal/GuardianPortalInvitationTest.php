@@ -99,6 +99,44 @@ class FakeClaimEvent extends Event {
 class FakeInvitationEvent extends Event {
 	public string $result = '';
 
+	public string $code = '';
+
+	public string $expiresAt = '';
+
+	/**
+	 * @param string $appId
+	 * @param string $subjectRef
+	 * @param string $channel
+	 */
+	public function __construct(
+		public readonly string $appId,
+		public readonly string $subjectRef,
+		public readonly string $channel='mail',
+	) {
+		parent::__construct();
+	}//end __construct()
+
+	public function getResult(): string {
+		return $this->result;
+	}//end getResult()
+
+	public function getCode(): string {
+		return $this->code;
+	}//end getCode()
+
+	public function getExpiresAt(): string {
+		return $this->expiresAt;
+	}//end getExpiresAt()
+}//end class
+
+/**
+ * Stand-in for portaliq's invitation event from BEFORE it had a channel
+ * (portaliq `invitation-secret-joins-the-signed-in-account` without
+ * `invitation-code-from-a-letter`): two constructor parameters, no code.
+ */
+class FakeMailOnlyInvitationEvent extends Event {
+	public string $result = '';
+
 	/**
 	 * @param string $appId
 	 * @param string $subjectRef
@@ -157,7 +195,7 @@ class GuardianPortalInvitationTest extends TestCase {
 		$this->assertCount(3, $this->dispatched);
 		$mail = $this->dispatched[2];
 		$this->assertInstanceOf(FakeInvitationEvent::class, $mail);
-		$this->assertSame(['learniq', 'subject-1'], [$mail->appId, $mail->subjectRef]);
+		$this->assertSame(['learniq', 'subject-1', 'mail'], [$mail->appId, $mail->subjectRef, $mail->channel]);
 
 		$parent = (new PortalContributionProvider())->getContribution(['audience' => 'parent']);
 		foreach ($parent['collections'] as $collection) {
@@ -271,6 +309,83 @@ class GuardianPortalInvitationTest extends TestCase {
 	}//end testTheInvitationEventNamedIsPortaliqsOwn()
 
 	/**
+	 * portal-guardian-invitation-letter: on the channel `letter` portaliq is
+	 * asked for a code, and the answer carries it for the school to print.
+	 *
+	 * @return void
+	 */
+	public function testALetterAnswersTheCodeToPrint(): void {
+		$result = $this->invitation(profile: $this->guardianProfile(), mailResult: 'code')
+			->invite(self::GUARDIAN, 'a@example.org', 'org', GuardianPortalInvitation::CHANNEL_LETTER);
+
+		$this->assertSame(
+			['status' => 'invited', 'subjectRef' => 'subject-1', 'invitation' => 'code', 'code' => 'ABCD-EFGH-2345', 'expiresAt' => '2026-10-12T09:00:00+00:00'],
+			$result
+		);
+		$asked = $this->dispatched[2];
+		$this->assertInstanceOf(FakeInvitationEvent::class, $asked);
+		$this->assertSame(['learniq', 'subject-1', 'letter'], [$asked->appId, $asked->subjectRef, $asked->channel]);
+	}//end testALetterAnswersTheCodeToPrint()
+
+	/**
+	 * A mailed invitation never carries a code back, whatever portaliq says.
+	 *
+	 * @return void
+	 */
+	public function testAMailedInvitationCarriesNoCode(): void {
+		$result = $this->invitation(profile: $this->guardianProfile())->invite(self::GUARDIAN, 'a@example.org', 'org');
+
+		$this->assertArrayNotHasKey('code', $result);
+		$this->assertArrayNotHasKey('expiresAt', $result);
+	}//end testAMailedInvitationCarriesNoCode()
+
+	/**
+	 * A portaliq that refuses the code, answers none, or ships the event from
+	 * before it had a channel: no code, and the guardian stays linked.
+	 *
+	 * @return void
+	 */
+	public function testALetterWithoutACodeSaysSoAndTheGuardianStaysLinked(): void {
+		$expected = ['status' => 'invited', 'subjectRef' => 'subject-1', 'invitation' => 'unavailable'];
+
+		$refused = $this->invitation(profile: $this->guardianProfile(), mailResult: 'refused')->invite(self::GUARDIAN, 'a@example.org', 'org', 'letter');
+		$this->assertSame($expected, $refused);
+
+		$older = new GuardianPortalInvitation(
+			$this->profiles(profile: $this->guardianProfile()),
+			$this->dispatcher(),
+			$this->createMock(LoggerInterface::class),
+			FakeProvisionEvent::class,
+			FakeClaimEvent::class,
+			FakeMailOnlyInvitationEvent::class
+		);
+		$this->assertSame($expected, $older->invite(self::GUARDIAN, 'a@example.org', 'org', 'letter'));
+
+		$none = new GuardianPortalInvitation(
+			$this->profiles(profile: $this->guardianProfile()),
+			$this->dispatcher(),
+			$this->createMock(LoggerInterface::class),
+			FakeProvisionEvent::class,
+			FakeClaimEvent::class,
+			'OCA\\Portaliq\\Event\\NoSuchInvitationEvent'
+		);
+		$this->assertSame($expected, $none->invite(self::GUARDIAN, 'a@example.org', 'org', 'letter'));
+	}//end testALetterWithoutACodeSaysSoAndTheGuardianStaysLinked()
+
+	/**
+	 * A channel that is neither mail nor letter is refused before anything
+	 * is dispatched.
+	 *
+	 * @return void
+	 */
+	public function testAnUnknownChannelIsRefusedWithoutDispatching(): void {
+		$result = $this->invitation(profile: $this->guardianProfile())->invite(self::GUARDIAN, 'a@example.org', 'org', 'sms');
+
+		$this->assertSame(['status' => 'refused', 'reason' => 'channel-unknown'], $result);
+		$this->assertSame([], $this->dispatched);
+	}//end testAnUnknownChannelIsRefusedWithoutDispatching()
+
+	/**
 	 * The guardian's profile from the po example set.
 	 *
 	 * @return array<string, mixed>
@@ -339,6 +454,10 @@ class GuardianPortalInvitationTest extends TestCase {
 
 				if ($event instanceof FakeInvitationEvent) {
 					$event->result = $mailResult;
+					if ($mailResult === 'code') {
+						$event->code = 'ABCD-EFGH-2345';
+						$event->expiresAt = '2026-10-12T09:00:00+00:00';
+					}
 				}
 			}
 		);
