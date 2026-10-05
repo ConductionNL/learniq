@@ -37,6 +37,7 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
@@ -62,11 +63,17 @@ class CourseEvaluationAnswerService {
 	private const READ_LIMIT = 5000;
 
 	/**
+	 * The reason CourseEvaluationEligibilityGuard gives when it refuses a submit.
+	 */
+	private const GUARD_DENIAL = 'You have no open invitation for this course evaluation.';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService                   $objectService    OpenRegister object access.
 	 * @param TransitionEngine                $transitionEngine OpenRegister lifecycle engine, runs the guarded submit.
 	 * @param CourseEvaluationResponseBuilder $builder          Checks the answers and builds the response object.
+	 * @param LoggerInterface                 $logger           Records why a submit was refused.
 	 *
 	 * @return void
 	 */
@@ -74,6 +81,7 @@ class CourseEvaluationAnswerService {
 		private readonly ObjectService $objectService,
 		private readonly TransitionEngine $transitionEngine,
 		private readonly CourseEvaluationResponseBuilder $builder,
+		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
 
@@ -182,9 +190,21 @@ class CourseEvaluationAnswerService {
 
 		try {
 			$this->transitionEngine->transition(objectId: $responseId, action: 'submit');
-		} catch (Throwable) {
+		} catch (Throwable $exception) {
+			// Live pass D12: a refused submit was reported as "no open
+			// invitation" whatever refused it, and nothing was logged, so a
+			// permission error read exactly like the guard's denial.
+			$this->logger->warning(
+				'[CourseEvaluationAnswerService] The submit of an evaluation answer was refused; the draft is removed: {error}',
+				['error' => $exception->getMessage(), 'exception' => $exception, 'invitationId' => $invitationId]
+			);
 			$this->objectService->deleteObject(uuid: $responseId, register: self::REGISTER, schema: 'course-evaluation-response', _rbac: false);
-			return ['status' => 403, 'error' => 'You have no open invitation for this course evaluation.'];
+			$error = 'Your answer could not be submitted.';
+			if (str_contains($exception->getMessage(), self::GUARD_DENIAL) === true) {
+				$error = self::GUARD_DENIAL;
+			}
+
+			return ['status' => 403, 'error' => $error];
 		}
 
 		return ['status' => 201];
