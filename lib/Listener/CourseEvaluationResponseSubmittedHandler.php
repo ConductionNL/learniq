@@ -226,6 +226,12 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 			$invitation = $invitation->jsonSerialize();
 		}
 
+		// The flip is written without RBAC, so the row must name the caller
+		// whatever the query did with its filters.
+		if (($invitation['learnerId'] ?? null) !== $callerUid) {
+			return null;
+		}
+
 		return (array)$invitation;
 	}//end findInvitation()
 }//end class
