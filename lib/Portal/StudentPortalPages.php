@@ -84,6 +84,30 @@ class StudentPortalPages {
 	}//end homeworkCollection()
 
 	/**
+	 * Her own absence and lateness per school year, the strip at the bottom
+	 * of the board's overview ("1 dag ziek, 2 keer te laat, 0 uur zonder
+	 * melding"). Scoped on her own learnerRef, the same as her attendance
+	 * marks; the summary holds counts only, never a reason.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-the-pupil-overview-follows-the-designed-board
+	 */
+	public function attendanceSummaryCollection(): array {
+		return [
+			'id' => 'studentAttendanceSummary',
+			'register' => self::REGISTER,
+			'schema' => 'attendance-summary',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'label' => 'Absence this school year',
+			'listable' => false,
+			'minTrust' => 'low',
+			'fields' => ['learnerRef', 'schoolYear', 'absentDays', 'absentAuthorisedDays', 'absentUnauthorisedDays', 'lateCount', 'lateMinutes'],
+		];
+	}//end attendanceSummaryCollection()
+
+	/**
 	 * Her own BPV placement and her weeks of realised hours.
 	 *
 	 * Both are declared because one needs the other: portaliq fills a
@@ -120,6 +144,9 @@ class StudentPortalPages {
 				'periodTo',
 				'agreedHours',
 				'hoursApprovedTotal',
+				// The bar on her hours page: approved, waiting and sent back (bpv-hours-match-the-board).
+				'hoursWaitingTotal',
+				'hoursReturnedTotal',
 				'lifecycle',
 			],
 			'columns' => [
@@ -260,12 +287,20 @@ class StudentPortalPages {
 	}//end pages()
 
 	/**
-	 * The overview: what to hand in, two quick actions, the newest grades and
-	 * the newest messages.
+	 * The overview, in the order of the board (school-design vaartveld,
+	 * MijnOverzicht): the greeting with today's date, homework and tests as
+	 * the first thing to do, the newest grades, then the absence strip, the
+	 * two quick actions and the messages. Today's timetable belongs between
+	 * the greeting and the homework; it waits for the pupil's sessions
+	 * (site-pupil-portal-design T1, T5b).
+	 *
+	 * The greeting and the highlight display are lane L2's block contract;
+	 * portaliq drops a key it does not know yet.
 	 *
 	 * @return array<string, mixed>
 	 *
 	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-a-pupil-lands-on-an-overview-of-today
+	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-the-pupil-overview-follows-the-designed-board
 	 */
 	private function overviewPage(): array {
 		return [
@@ -275,14 +310,51 @@ class StudentPortalPages {
 			'group' => ParentSitePages::GROUP,
 			'home' => true,
 			'blocks' => [
-				['type' => 'tasks', 'label' => 'To hand in', 'collection' => 'studentHomework', 'dueField' => 'dueAt', 'titleFields' => ['title']],
+				['type' => 'greeting'],
+				[
+					'type' => 'tasks',
+					'label' => 'Homework and tests',
+					'display' => 'highlight',
+					'collection' => 'studentHomework',
+					'dueField' => 'dueAt',
+					'titleFields' => ['title'],
+				],
+				[
+					'type' => 'collection',
+					'label' => 'Latest grades',
+					'collection' => 'studentGrades',
+					'limit' => 3,
+					'sort' => ['field' => 'gradedAt', 'direction' => 'desc'],
+				],
+				$this->absenceFigures(),
 				['type' => 'cta', 'action' => 'createSubmission', 'label' => 'Hand in work'],
 				['type' => 'cta', 'action' => 'createExcuseRequest', 'label' => 'Report an absence'],
-				['type' => 'collection', 'collection' => 'studentGrades'],
 				['type' => 'inbox', 'label' => 'Messages', 'collection' => 'studentInbox', 'limit' => 2],
 			],
 		];
 	}//end overviewPage()
+
+	/**
+	 * The absence strip: days absent, times late, days without a report, for
+	 * her latest school year.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function absenceFigures(): array {
+		$days = ['one' => 'day', 'other' => 'days'];
+
+		return [
+			'type' => 'kpi',
+			'collection' => 'studentAttendanceSummary',
+			'label' => 'Absence this school year',
+			'pick' => ['field' => 'schoolYear', 'direction' => 'desc'],
+			'cards' => [
+				['field' => 'absentDays', 'label' => 'Absent', 'unit' => $days],
+				['field' => 'lateCount', 'label' => 'Late', 'unit' => ['one' => 'time', 'other' => 'times']],
+				['field' => 'absentUnauthorisedDays', 'label' => 'Without a report', 'unit' => $days, 'highlight' => true],
+			],
+		];
+	}//end absenceFigures()
 
 	/**
 	 * One collection's page, built the way portaliq builds a default page (its
@@ -302,6 +374,10 @@ class StudentPortalPages {
 		}
 
 		$blocks = [];
+		if ($id === 'studentHourWeeks') {
+			$blocks[] = $this->hoursBar(collection: 'studentBpvPlacements');
+		}
+
 		$form = $this->firstCreateFor(schema: $schema, actions: $actions);
 		if ($form !== null) {
 			$blocks[] = ['type' => 'action', 'action' => $form];
@@ -317,6 +393,39 @@ class StudentPortalPages {
 
 		return array_merge($page, ['label' => self::MENU_PAGES[$id], 'group' => ParentSitePages::GROUP]);
 	}//end collectionPage()
+
+	/**
+	 * The hours bar of the board (school-design esdoornveen, MijnLijst and
+	 * MijnOverzicht): approved, waiting and sent-back hours against the hours
+	 * agreed for the placement, read from the placement's own totals, which
+	 * HourWeekTotalRollup keeps. `display: segmented` is lane L2's contract.
+	 *
+	 * @param string $collection The placement collection of the audience.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
+	 */
+	public function hoursBar(string $collection): array {
+		return [
+			'type' => 'kpi',
+			'collection' => $collection,
+			'label' => 'My BPV hours',
+			'display' => 'segmented',
+			'segments' => [
+				['field' => 'hoursApprovedTotal', 'label' => 'Approved', 'tone' => 'positive'],
+				['field' => 'hoursWaitingTotal', 'label' => 'Waiting', 'tone' => 'waiting'],
+				['field' => 'hoursReturnedTotal', 'label' => 'Sent back', 'tone' => 'warning'],
+			],
+			'totalField' => 'agreedHours',
+			'unit' => 'hours',
+			'cards' => [
+				['field' => 'hoursApprovedTotal', 'label' => 'Approved', 'unit' => ['one' => 'hour', 'other' => 'hours']],
+				['field' => 'hoursWaitingTotal', 'label' => 'Waiting', 'unit' => ['one' => 'hour', 'other' => 'hours']],
+				['field' => 'hoursReturnedTotal', 'label' => 'Sent back', 'unit' => ['one' => 'hour', 'other' => 'hours'], 'highlight' => true],
+			],
+		];
+	}//end hoursBar()
 
 	/**
 	 * The first create action for a schema, as portaliq picks it.

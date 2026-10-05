@@ -13265,6 +13265,12 @@
                         "format": "uuid",
                         "description": "Tenant identifier for multi-tenant isolation.",
                         "title": "Tenant ID"
+                    },
+                    "subject": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The line a guardian reads in the portal inbox, in the instance's language, for example \"Het rapport van Vera staat klaar\". Stamped by ReportCardPublishHandler. It names the child and what happened, never a grade.",
+                        "title": "Subject"
                     }
                 },
                 "x-openregister-notifications": {
@@ -20490,6 +20496,18 @@
                         "type": "number",
                         "title": "Hours approved so far",
                         "description": "The sum of the approved hours of every week of this placement. The server recomputes it whenever a week is decided; a value sent for it is replaced.",
+                        "minimum": 0
+                    },
+                    "hoursWaitingTotal": {
+                        "type": "number",
+                        "title": "Hours waiting for approval",
+                        "description": "The hours of the weeks of this placement that still wait for the trainer. The server recomputes it whenever a week is written; a value sent for it is replaced.",
+                        "minimum": 0
+                    },
+                    "hoursReturnedTotal": {
+                        "type": "number",
+                        "title": "Hours sent back",
+                        "description": "The hours of the weeks of this placement that the trainer sent back without approving them. The server recomputes it whenever a week is written; a value sent for it is replaced.",
                         "minimum": 0
                     }
                 },

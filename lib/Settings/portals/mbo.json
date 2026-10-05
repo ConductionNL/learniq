@@ -1,0 +1,1253 @@
+{
+  "$comment": "Portal declaration of the mbo example set (openspec/changes/example-portal-declares-its-site). Read by ExamplePortalProvisioner on every example-set load. A portal, menu, page, news item or account that already exists is never changed; only what is missing is written.",
+  "set": "mbo",
+  "portal": {
+    "slug": "esdoornveen",
+    "title": "Mijn Esdoornveen",
+    "tagline": "Esdoornveen, mbo college",
+    "theme": "esdoornveen",
+    "themeFallback": "example-college",
+    "headerVariant": "double",
+    "locales": [
+      "nl",
+      "en"
+    ],
+    "authentication": {
+      "modes": [
+        "public",
+        "nextcloud",
+        "eherkenning"
+      ],
+      "minTrust": "low",
+      "modeLabels": {
+        "nextcloud": {
+          "title": "Ik ben student",
+          "text": "Voor je rooster, je BPV-uren, je examens en je berichten.",
+          "button": "Inloggen met je schoolaccount",
+          "hint": "Je schoolaccount is je studentnummer en je wachtwoord."
+        },
+        "eherkenning": {
+          "title": "Ik ben praktijkopleider",
+          "text": "Voor praktijkopleiders. U keurt uren goed, vult beoordelingen in en tekent de praktijkovereenkomst.",
+          "button": "Inloggen met eHerkenning",
+          "hint": "De beheerder van eHerkenning in uw bedrijf kan u machtigen."
+        }
+      }
+    },
+    "headerSearch": {
+      "label": "Zoeken op de website",
+      "route": "/zoeken"
+    },
+    "footer": {
+      "description": "Vraag over een opleiding, je stage of je rooster? De Servicedesk helpt je verder.",
+      "colophon": "Esdoornveen is een voorbeeldschool in Zuiddrecht. Deze website laat zien hoe portaliq, learniq en Nextcloud samen werken.",
+      "cta": {
+        "label": "Contact en openingstijden",
+        "href": "/contact"
+      }
+    }
+  },
+  "legacyTitles": [
+    "Ouderportaal Esdoornveen"
+  ],
+  "menus": [
+    {
+      "position": 0,
+      "title": "Hoofdmenu",
+      "items": [
+        {
+          "order": 1,
+          "name": "Home",
+          "link": "/"
+        },
+        {
+          "order": 2,
+          "name": "Opleidingen",
+          "link": "/opleidingen"
+        },
+        {
+          "order": 3,
+          "name": "Aanmelden",
+          "link": "/aanmelden"
+        },
+        {
+          "order": 4,
+          "name": "Voor studenten",
+          "link": "/voor-studenten"
+        },
+        {
+          "order": 5,
+          "name": "Voor bedrijven",
+          "link": "/voor-bedrijven"
+        },
+        {
+          "order": 6,
+          "name": "Nieuws",
+          "link": "/zoeken"
+        },
+        {
+          "order": 7,
+          "name": "Over Esdoornveen",
+          "link": "/over-esdoornveen"
+        }
+      ]
+    },
+    {
+      "position": 1,
+      "title": "Contact",
+      "items": [
+        {
+          "order": 1,
+          "name": "Esdoornlaan 40, Zuiddrecht",
+          "link": "/contact"
+        },
+        {
+          "order": 2,
+          "name": "Telefoon: [telefoonnummer]",
+          "link": "/contact"
+        },
+        {
+          "order": 3,
+          "name": "E-mail: [e-mailadres]",
+          "link": "/contact"
+        },
+        {
+          "order": 4,
+          "name": "Servicedesk: gebouw A, begane grond",
+          "link": "/contact"
+        }
+      ]
+    },
+    {
+      "position": 1,
+      "title": "Snel naar",
+      "items": [
+        {
+          "order": 1,
+          "name": "Alle opleidingen",
+          "link": "/opleidingen"
+        },
+        {
+          "order": 2,
+          "name": "Ziek melden",
+          "link": "/voor-studenten/ziek-melden"
+        },
+        {
+          "order": 3,
+          "name": "Vakanties en roosters",
+          "link": "/vakanties"
+        },
+        {
+          "order": 4,
+          "name": "Leerbedrijf worden",
+          "link": "/voor-bedrijven"
+        }
+      ]
+    },
+    {
+      "position": 1,
+      "title": "Over deze website",
+      "items": [
+        {
+          "order": 1,
+          "name": "Toegankelijkheid",
+          "link": "/toegankelijkheid"
+        },
+        {
+          "order": 2,
+          "name": "Privacy",
+          "link": "/privacy"
+        },
+        {
+          "order": 3,
+          "name": "Cookies",
+          "link": "/cookies"
+        },
+        {
+          "order": 4,
+          "name": "Klacht melden",
+          "link": "/klacht"
+        }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "route": "/",
+      "title": "Home",
+      "summary": "Esdoornveen, mbo college in Zuiddrecht. Leren op school en in een bedrijf.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "ev-home-01-nlbanner",
+            "widgetKey": "nlBanner",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "kind": "info",
+              "text": "Open dag: zaterdag 7 november 2026, van 10.00 tot 14.00 uur. Kom kijken in de werkplaatsen en praktijklokalen.",
+              "closable": true
+            }
+          },
+          {
+            "id": "ev-home-02-hero",
+            "widgetKey": "hero",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 4,
+            "props": {
+              "title": "Een vak leer je door het te doen",
+              "subtitle": "Bij Esdoornveen leer je op school en in een bedrijf. Kies een mbo-opleiding in Zuiddrecht, van niveau 1 tot en met 4.",
+              "search": true,
+              "searchLabel": "Zoek een opleiding",
+              "searchPlaceholder": "Zoek een opleiding, bijvoorbeeld mechatronica of verpleegkundige",
+              "searchSubmitLabel": "Zoeken"
+            }
+          },
+          {
+            "id": "ev-home-03-nlquicktasks",
+            "widgetKey": "nlQuickTasks",
+            "gridX": 0,
+            "gridY": 5,
+            "gridWidth": 12,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Direct regelen",
+              "columns": 4,
+              "overlap": true,
+              "items": [
+                {
+                  "label": "Alle opleidingen",
+                  "href": "/opleidingen",
+                  "icon": "School"
+                },
+                {
+                  "label": "Open dag en meelopen",
+                  "href": "/aanmelden",
+                  "icon": "CalendarMonth"
+                },
+                {
+                  "label": "Aanmelden",
+                  "href": "/aanmelden",
+                  "icon": "AccountPlusOutline"
+                },
+                {
+                  "label": "Kosten en lesgeld",
+                  "href": "/voor-studenten",
+                  "icon": "CashMultiple"
+                },
+                {
+                  "label": "Rooster en vakanties",
+                  "href": "/vakanties",
+                  "icon": "Calendar"
+                },
+                {
+                  "label": "Ziek melden",
+                  "href": "/voor-studenten/ziek-melden",
+                  "icon": "AlertCircleOutline"
+                },
+                {
+                  "label": "Leerbedrijf worden",
+                  "href": "/voor-bedrijven",
+                  "icon": "Briefcase"
+                },
+                {
+                  "label": "Contact",
+                  "href": "/contact",
+                  "icon": "Email"
+                }
+              ]
+            }
+          },
+          {
+            "id": "ev-home-04-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 0,
+            "gridY": 8,
+            "gridWidth": 3,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Techniek en ICT",
+              "links": [
+                {
+                  "label": "Mechatronica",
+                  "href": "/opleidingen/mechatronica"
+                },
+                {
+                  "label": "Elektrotechniek",
+                  "href": "/opleidingen"
+                },
+                {
+                  "label": "Software developer",
+                  "href": "/opleidingen"
+                }
+              ]
+            }
+          },
+          {
+            "id": "ev-home-05-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 3,
+            "gridY": 8,
+            "gridWidth": 3,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Zorg en welzijn",
+              "links": [
+                {
+                  "label": "Verpleegkundige",
+                  "href": "/opleidingen"
+                },
+                {
+                  "label": "Verzorgende IG",
+                  "href": "/opleidingen"
+                },
+                {
+                  "label": "Pedagogisch medewerker",
+                  "href": "/opleidingen"
+                }
+              ]
+            }
+          },
+          {
+            "id": "ev-home-06-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 6,
+            "gridY": 8,
+            "gridWidth": 3,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Economie en logistiek",
+              "links": [
+                {
+                  "label": "Manager retail",
+                  "href": "/opleidingen"
+                },
+                {
+                  "label": "Financieel administratief medewerker",
+                  "href": "/opleidingen"
+                },
+                {
+                  "label": "Logistiek teamleider",
+                  "href": "/opleidingen"
+                }
+              ]
+            }
+          },
+          {
+            "id": "ev-home-07-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 9,
+            "gridY": 8,
+            "gridWidth": 3,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Horeca en facilitair",
+              "links": [
+                {
+                  "label": "Zelfstandig werkend kok",
+                  "href": "/opleidingen"
+                },
+                {
+                  "label": "Gastheer of gastvrouw",
+                  "href": "/opleidingen"
+                },
+                {
+                  "label": "Facilitair leidinggevende",
+                  "href": "/opleidingen"
+                }
+              ]
+            }
+          },
+          {
+            "id": "ev-home-08-nlnewslist",
+            "widgetKey": "nlNewsList",
+            "gridX": 0,
+            "gridY": 11,
+            "gridWidth": 12,
+            "gridHeight": 5,
+            "props": {
+              "heading": "Nieuws",
+              "limit": 4,
+              "featured": true,
+              "showAudience": false,
+              "moreLabel": "Al het nieuws",
+              "moreHref": "/zoeken",
+              "articleRoute": "/nieuws"
+            }
+          },
+          {
+            "id": "ev-home-09-nlsignin",
+            "widgetKey": "nlSignIn",
+            "gridX": 0,
+            "gridY": 16,
+            "gridWidth": 6,
+            "gridHeight": 4,
+            "props": {
+              "heading": "Mijn Esdoornveen",
+              "display": "card",
+              "points": [
+                "Je rooster en wijzigingen",
+                "BPV-uren schrijven en laten goedkeuren",
+                "Examens, resultaten en keuzedelen"
+              ],
+              "buttonLabel": "Inloggen",
+              "signInHref": "/mijn",
+              "tone": "inverse"
+            }
+          },
+          {
+            "id": "ev-home-10-nlsignin",
+            "widgetKey": "nlSignIn",
+            "gridX": 6,
+            "gridY": 16,
+            "gridWidth": 6,
+            "gridHeight": 4,
+            "props": {
+              "heading": "Voor leerbedrijven",
+              "display": "card",
+              "intro": "Werkt er een student van ons bij u? Keur uren goed en vul beoordelingen in. U logt in met eHerkenning.",
+              "buttonLabel": "Inloggen als leerbedrijf",
+              "signInHref": "/mijn",
+              "tone": "plain"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/voor-studenten/ziek-melden",
+      "title": "Ziek melden en beter melden",
+      "summary": "Meld je ziek voor 08.30 uur in Mijn Esdoornveen.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "ev-ziek-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Ziek melden en beter melden",
+              "level": 1
+            }
+          },
+          {
+            "id": "ev-ziek-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Ben je ziek? Meld het voor 08.30 uur in Mijn Esdoornveen. Je docenten zien het meteen in hun presentielijst. Het kan vanaf je telefoon en kost een halve minuut."
+            }
+          },
+          {
+            "id": "ev-ziek-03-nlbuttonlink",
+            "widgetKey": "nlButtonLink",
+            "gridX": 0,
+            "gridY": 2,
+            "gridWidth": 4,
+            "gridHeight": 1,
+            "props": {
+              "label": "Inloggen en ziek melden",
+              "href": "/mijn",
+              "kind": "primary"
+            }
+          },
+          {
+            "id": "ev-ziek-04-nllist",
+            "widgetKey": "nlList",
+            "gridX": 0,
+            "gridY": 3,
+            "gridWidth": 12,
+            "gridHeight": 3,
+            "props": {
+              "display": "steps",
+              "ordered": true,
+              "items": [
+                "Meld je ziek op de eerste dag, voor 08.30 uur. Je hoeft dat niet elke dag opnieuw te doen.",
+                "Heb je die dag BPV? Bel dan ook je praktijkopleider, voor je werktijd begint.",
+                "Weer beter? Meld je beter in Mijn Esdoornveen, voor je eerste les of werkdag."
+              ]
+            }
+          },
+          {
+            "id": "ev-ziek-05-nltable",
+            "widgetKey": "nlTable",
+            "gridX": 0,
+            "gridY": 6,
+            "gridWidth": 12,
+            "gridHeight": 4,
+            "props": {
+              "caption": "Wat meld je waar?",
+              "columns": [
+                "Je bent ziek op een",
+                "Wat je doet",
+                "Wie het ziet"
+              ],
+              "rows": [
+                [
+                  "Lesdag",
+                  "Ziek melden in Mijn Esdoornveen",
+                  "Je docenten en je studieloopbaanbegeleider"
+                ],
+                [
+                  "BPV-dag",
+                  "Ziek melden en je praktijkopleider bellen",
+                  "Je leerbedrijf en je BPV-begeleider"
+                ],
+                [
+                  "Examendag",
+                  "Ziek melden en het examenbureau bellen voor het examen begint",
+                  "Het examenbureau. Je krijgt een nieuwe datum."
+                ]
+              ]
+            }
+          },
+          {
+            "id": "ev-ziek-06-nlalert",
+            "widgetKey": "nlAlert",
+            "gridX": 0,
+            "gridY": 10,
+            "gridWidth": 8,
+            "gridHeight": 3,
+            "props": {
+              "kind": "info",
+              "heading": "Ben je jonger dan 18?",
+              "text": "Dan krijgt je ouder of verzorger een bericht van je ziekmelding. Mis je in vier weken 16 uur of meer zonder geldige reden, dan melden wij dat bij de leerplichtambtenaar van de gemeente Zuiddrecht."
+            }
+          },
+          {
+            "id": "ev-ziek-07-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 8,
+            "gridY": 10,
+            "gridWidth": 4,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Meer over aanwezigheid",
+              "links": [
+                {
+                  "label": "Verlof aanvragen",
+                  "href": "/voor-studenten"
+                },
+                {
+                  "label": "Te laat of eerder weg",
+                  "href": "/voor-studenten"
+                },
+                {
+                  "label": "Afwezig bij een examen",
+                  "href": "/voor-studenten"
+                },
+                {
+                  "label": "Vakanties en vrije dagen",
+                  "href": "/vakanties"
+                }
+              ]
+            }
+          },
+          {
+            "id": "ev-ziek-08-nlalert",
+            "widgetKey": "nlAlert",
+            "gridX": 0,
+            "gridY": 13,
+            "gridWidth": 12,
+            "gridHeight": 2,
+            "props": {
+              "kind": "info",
+              "heading": "Lukt inloggen niet?",
+              "text": "Bel de Servicedesk op [telefoonnummer]. Zij melden je ziek en helpen je met je account."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/opleidingen",
+      "title": "Opleidingen",
+      "summary": "De mbo-opleidingen van Esdoornveen.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "ev-opleidingen-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Opleidingen",
+              "level": 1
+            }
+          },
+          {
+            "id": "ev-opleidingen-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Zoek op een beroep of een vak. Kies hieronder een opleiding om te lezen wat je leert, hoe lang het duurt en hoe je je aanmeldt."
+            }
+          },
+          {
+            "id": "ev-opleidingen-03-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 0,
+            "gridY": 2,
+            "gridWidth": 12,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Techniek en ICT",
+              "links": [
+                {
+                  "label": "Mechatronica",
+                  "href": "/opleidingen/mechatronica",
+                  "description": "Niveau 4, BOL of BBL, 4 jaar, crebo 25743"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/opleidingen/mechatronica",
+      "title": "Mechatronica",
+      "summary": "Mbo niveau 4, 4 jaar, BOL of BBL, crebo 25743.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "ev-mechatronica-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Mechatronica",
+              "level": 1
+            }
+          },
+          {
+            "id": "ev-mechatronica-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Je bouwt, test en onderhoudt machines waarin mechanica, elektronica en besturing samenkomen. Vanaf leerjaar 2 doe je dat drie dagen per week bij een leerbedrijf."
+            }
+          },
+          {
+            "id": "ev-mechatronica-03-nldescriptionlist",
+            "widgetKey": "nlDescriptionList",
+            "gridX": 0,
+            "gridY": 2,
+            "gridWidth": 6,
+            "gridHeight": 4,
+            "props": {
+              "items": [
+                {
+                  "term": "Niveau",
+                  "description": "Mbo niveau 4"
+                },
+                {
+                  "term": "Duur",
+                  "description": "4 jaar"
+                },
+                {
+                  "term": "Leerweg",
+                  "description": "BOL of BBL"
+                },
+                {
+                  "term": "Start",
+                  "description": "Augustus 2027"
+                },
+                {
+                  "term": "Locatie",
+                  "description": "Esdoornlaan 40, Zuiddrecht"
+                },
+                {
+                  "term": "Crebonummer",
+                  "description": "25743"
+                }
+              ]
+            }
+          },
+          {
+            "id": "ev-mechatronica-04-nllist",
+            "widgetKey": "nlList",
+            "gridX": 6,
+            "gridY": 2,
+            "gridWidth": 6,
+            "gridHeight": 4,
+            "props": {
+              "items": [
+                "Onderdelen maken en machines opbouwen uit een tekening.",
+                "Besturingen programmeren met een PLC.",
+                "Pneumatiek, hydrauliek en elektrische aandrijvingen aansluiten en afstellen.",
+                "Storingen zoeken en onderhoud plannen."
+              ]
+            }
+          },
+          {
+            "id": "ev-mechatronica-05-nltable",
+            "widgetKey": "nlTable",
+            "gridX": 0,
+            "gridY": 6,
+            "gridWidth": 12,
+            "gridHeight": 3,
+            "props": {
+              "caption": "Zo ziet je week eruit. Dit is de BOL. In de BBL werk je vier dagen en ga je één dag naar school.",
+              "columns": [
+                "Leerjaar",
+                "Op school",
+                "Bij een leerbedrijf (BPV)"
+              ],
+              "rows": [
+                [
+                  "1",
+                  "5 dagen per week",
+                  "10 weken stage in het voorjaar"
+                ],
+                [
+                  "2 en 3",
+                  "2 dagen per week",
+                  "3 dagen per week"
+                ],
+                [
+                  "4",
+                  "1 dag per week",
+                  "4 dagen per week, met je proeve van bekwaamheid"
+                ]
+              ]
+            }
+          },
+          {
+            "id": "ev-mechatronica-06-markdown",
+            "widgetKey": "markdown",
+            "gridX": 0,
+            "gridY": 9,
+            "gridWidth": 12,
+            "gridHeight": 5,
+            "props": {
+              "markdown": "## Toelating\n\nJe hebt een vmbo-diploma van de kaderberoepsgerichte, gemengde of theoretische leerweg. Of een mbo-diploma op niveau 3.\n\n## Na je diploma\n\nJe gaat aan het werk als mechatronicus of servicetechnicus. Of je studeert door op het hbo, bijvoorbeeld Mechatronica of Werktuigbouwkunde.\n\n## Aanmelden\n\nDe opleiding start in augustus 2027. Meld je aan voor 1 april 2027, dan heb je recht op een plek.\n\n## Eerst komen kijken?\n\nOpen dag: zaterdag 7 november 2026, 10.00 tot 14.00 uur. Of loop een dag mee met een tweedejaars.\n\nVraag over deze opleiding? Ruud Hermans, docent mechatronica, helpt je verder: [e-mailadres]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/nieuws",
+      "title": "Nieuws",
+      "summary": "Nieuws van Esdoornveen.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "ev-nieuws-01-nlnewsarticle",
+            "widgetKey": "nlNewsArticle",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 8,
+            "gridHeight": 8,
+            "props": {
+              "backLabel": "Terug naar het nieuws"
+            }
+          },
+          {
+            "id": "ev-nieuws-02-nlnewslist",
+            "widgetKey": "nlNewsList",
+            "gridX": 8,
+            "gridY": 0,
+            "gridWidth": 4,
+            "gridHeight": 8,
+            "props": {
+              "heading": "Meer nieuws",
+              "limit": 3,
+              "featured": false,
+              "display": "compact",
+              "articleRoute": "/nieuws"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/zoeken",
+      "title": "Nieuws",
+      "summary": "Nieuws van Esdoornveen.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "ev-zoeken-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Nieuws",
+              "level": 1
+            }
+          },
+          {
+            "id": "ev-zoeken-02-nlnewslist",
+            "widgetKey": "nlNewsList",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 6,
+            "props": {
+              "heading": "",
+              "limit": 12,
+              "featured": false,
+              "showAudience": false,
+              "articleRoute": "/nieuws"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/aanmelden",
+      "title": "Aanmelden",
+      "summary": "Meld je aan voor 1 april, dan heb je recht op een plek. Kom eerst kijken op de open dag van zaterdag 7 november 2026.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "ev-aanmelden-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Aanmelden",
+              "level": 1
+            }
+          },
+          {
+            "id": "ev-aanmelden-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Meld je aan voor 1 april, dan heb je recht op een plek. Kom eerst kijken op de open dag van zaterdag 7 november 2026."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/voor-studenten",
+      "title": "Voor studenten",
+      "summary": "Alles over je opleiding, je rooster en je BPV.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "ev-voor-studenten-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Voor studenten",
+              "level": 1
+            }
+          },
+          {
+            "id": "ev-voor-studenten-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Alles over je opleiding, je rooster en je BPV."
+            }
+          },
+          {
+            "id": "ev-voor-studenten-03-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 0,
+            "gridY": 2,
+            "gridWidth": 6,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Regelen",
+              "links": [
+                {
+                  "label": "Ziek melden",
+                  "href": "/voor-studenten/ziek-melden"
+                },
+                {
+                  "label": "Vakanties en roosters",
+                  "href": "/vakanties"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/voor-bedrijven",
+      "title": "Voor bedrijven",
+      "summary": "Werkt er een student van ons bij u? In Mijn Esdoornveen keurt u uren goed en vult u beoordelingen in. U logt in met eHerkenning.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "ev-voor-bedrijven-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Voor bedrijven",
+              "level": 1
+            }
+          },
+          {
+            "id": "ev-voor-bedrijven-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Werkt er een student van ons bij u? In Mijn Esdoornveen keurt u uren goed en vult u beoordelingen in. U logt in met eHerkenning."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/vakanties",
+      "title": "Vakanties en roosters",
+      "summary": "De herfstvakantie is van zaterdag 17 tot en met zondag 25 oktober 2026. Je rooster staat in Mijn Esdoornveen.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "ev-vakanties-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Vakanties en roosters",
+              "level": 1
+            }
+          },
+          {
+            "id": "ev-vakanties-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "De herfstvakantie is van zaterdag 17 tot en met zondag 25 oktober 2026. Je rooster staat in Mijn Esdoornveen."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/over-esdoornveen",
+      "title": "Over Esdoornveen",
+      "summary": "Esdoornveen is een mbo college in Zuiddrecht. Je leert op school en in een bedrijf.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "ev-over-esdoornveen-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Over Esdoornveen",
+              "level": 1
+            }
+          },
+          {
+            "id": "ev-over-esdoornveen-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Esdoornveen is een mbo college in Zuiddrecht. Je leert op school en in een bedrijf."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/contact",
+      "title": "Contact en openingstijden",
+      "summary": "Esdoornlaan 40, Zuiddrecht. Telefoon: [telefoonnummer]. E-mail: [e-mailadres]. De Servicedesk zit in gebouw A, op de begane grond.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "ev-contact-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Contact en openingstijden",
+              "level": 1
+            }
+          },
+          {
+            "id": "ev-contact-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Esdoornlaan 40, Zuiddrecht. Telefoon: [telefoonnummer]. E-mail: [e-mailadres]. De Servicedesk zit in gebouw A, op de begane grond."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/toegankelijkheid",
+      "title": "Toegankelijkheid",
+      "summary": "Deze website is gemaakt volgens de NL Design System richtlijnen en toegankelijk volgens WCAG 2.2 niveau AA.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "ev-toegankelijkheid-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Toegankelijkheid",
+              "level": 1
+            }
+          },
+          {
+            "id": "ev-toegankelijkheid-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Deze website is gemaakt volgens de NL Design System richtlijnen en toegankelijk volgens WCAG 2.2 niveau AA."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/privacy",
+      "title": "Privacy",
+      "summary": "Esdoornveen is een voorbeeldschool. Op deze website staan geen echte gegevens van studenten of bedrijven.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "ev-privacy-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Privacy",
+              "level": 1
+            }
+          },
+          {
+            "id": "ev-privacy-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Esdoornveen is een voorbeeldschool. Op deze website staan geen echte gegevens van studenten of bedrijven."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/cookies",
+      "title": "Cookies",
+      "summary": "Deze website gebruikt alleen cookies die nodig zijn om in te loggen.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "ev-cookies-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Cookies",
+              "level": 1
+            }
+          },
+          {
+            "id": "ev-cookies-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Deze website gebruikt alleen cookies die nodig zijn om in te loggen."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "route": "/klacht",
+      "title": "Klacht melden",
+      "summary": "Heb je een klacht? Praat eerst met je studieloopbaanbegeleider. Komen jullie er niet uit, bel dan de Servicedesk.",
+      "body": {
+        "type": "grid",
+        "widgets": [
+          {
+            "id": "ev-klacht-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Klacht melden",
+              "level": 1
+            }
+          },
+          {
+            "id": "ev-klacht-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Heb je een klacht? Praat eerst met je studieloopbaanbegeleider. Komen jullie er niet uit, bel dan de Servicedesk."
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "news": [
+    {
+      "title": "Studenten mechatronica bouwen sorteermachine voor de kringloop",
+      "publishedAt": "2026-10-01T10:00:00+02:00",
+      "public": true,
+      "target": {
+        "schoolRef": "ee030001-0000-4000-8000-000000000001"
+      },
+      "authorRef": "mbo-docent-15",
+      "body": "Tweedejaars ontwierpen en bouwden de machine in acht weken. Hij sorteert schroeven en bouten op maat."
+    },
+    {
+      "title": "Het programma van de open dag op 7 november staat online",
+      "publishedAt": "2026-09-28T10:00:00+02:00",
+      "public": true,
+      "target": {
+        "schoolRef": "ee030001-0000-4000-8000-000000000001"
+      },
+      "authorRef": "mbo-docent-15",
+      "body": "Op zaterdag 7 november 2026 zijn de werkplaatsen en praktijklokalen open van 10.00 tot 14.00 uur."
+    },
+    {
+      "title": "Herfstvakantie: de school is dicht van 17 tot en met 25 oktober",
+      "publishedAt": "2026-09-24T10:00:00+02:00",
+      "public": true,
+      "target": {
+        "schoolRef": "ee030001-0000-4000-8000-000000000001"
+      },
+      "authorRef": "mbo-docent-15",
+      "body": "In de herfstvakantie is de school dicht. Heb je BPV in die weken? Spreek met je leerbedrijf af wanneer je werkt."
+    },
+    {
+      "title": "Twaalf nieuwe leerbedrijven in de techniek sinds de zomer",
+      "publishedAt": "2026-09-17T10:00:00+02:00",
+      "public": true,
+      "target": {
+        "schoolRef": "ee030001-0000-4000-8000-000000000001"
+      },
+      "authorRef": "mbo-docent-15",
+      "body": "Sinds de zomer bieden twaalf nieuwe bedrijven in Zuiddrecht een BPV-plek in de techniek."
+    }
+  ],
+  "accounts": [
+    {
+      "userId": "mbo-docent-15",
+      "displayName": "Ruud Hermans",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
+      "userId": "mbo-docent-16",
+      "displayName": "Fenna Yilmaz",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
+      "userId": "mbo-examencommissie-02",
+      "displayName": "Karin de Boer",
+      "groups": [
+        "coordinators"
+      ]
+    },
+    {
+      "userId": "mbo-student-251",
+      "displayName": "Milan de Groot",
+      "groups": []
+    },
+    {
+      "userId": "mbo-student-252",
+      "displayName": "Aylin Demir",
+      "groups": []
+    }
+  ]
+}

@@ -173,14 +173,26 @@ class TrainerSitePages {
 			'group' => ParentSitePages::GROUP,
 			'home' => true,
 			'blocks' => [
+				// The board (school-design esdoornveen, MobielHome of the
+				// company): today's date and her name first (lane L2's
+				// greeting), then what waits for her as a highlight.
+				['type' => 'greeting'],
 				// What is waiting for her comes first: the weeks of hours her
 				// students entered and nobody has decided yet.
-				['type' => 'tasks', 'label' => 'Hours to approve', 'collection' => 'poHourWeeks', 'dueField' => 'submittedAt', 'titleFields' => ['isoWeek']],
+				[
+					'type' => 'tasks',
+					'label' => 'Hours to approve',
+					'display' => 'highlight',
+					'collection' => 'poHourWeeks',
+					'dueField' => 'submittedAt',
+					'titleFields' => ['isoWeek'],
+				],
 				// A collection block carries no heading of its own on portaliq
 				// today, so the two lists stand on their columns: the placements
 				// first, then the three assessments she wrote last.
 				[
 					'type' => 'collection',
+					'label' => 'My BPV placements',
 					'collection' => 'poBpvPlacements',
 					// The progress card portaliq ships, but only where the
 					// placement really agreed a total: a placement without
@@ -319,6 +331,10 @@ class TrainerSitePages {
 						// with no bar (internship-hours).
 						'agreedHours',
 						'hoursApprovedTotal',
+						// What still waits for her and what she sent back
+						// (bpv-hours-match-the-board).
+						'hoursWaitingTotal',
+						'hoursReturnedTotal',
 						'lifecycle',
 					],
 				],

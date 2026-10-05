@@ -174,7 +174,7 @@ class PortalContributionProvider {
 		$collections = array_merge(
 			$this->studentResultCollections(),
 			$this->studentActivityCollections(site: $site),
-			[$this->studentTestsCollection(), $site->homeworkCollection()]
+			[$this->studentTestsCollection(), $site->homeworkCollection(), $site->attendanceSummaryCollection()]
 		);
 		$actions = array_merge(
 			$this->studentActions(site: $site),
@@ -705,6 +705,7 @@ class PortalContributionProvider {
 			$this->parentWelfareCollections(childJoin: $childJoin),
 			$extras->conferenceCollections(childJoin: $childJoin),
 			[$extras->groupMembershipsCollection(childJoin: $childJoin)],
+			[$extras->inboxCollection(childJoin: $childJoin)],
 			$record->collections(childJoin: $childJoin)
 		);
 		$actions = array_merge(

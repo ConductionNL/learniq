@@ -163,3 +163,13 @@ Every label this change adds (page, menu group, block, card, task, quick action,
 - WHEN the guardian opens "Overzicht"
 - THEN every heading, button and menu entry from learniq is Dutch
 - @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
+
+### Requirement: The overview follows the designed board
+
+The guardian's overview MUST open, in this order, with: a `greeting` block whose action is `createExcuseRequest` labelled "Afwezig melden"; the open tasks as a `tasks` block with `display: highlight` labelled "Wat u nog moet doen"; the guardian's children as a `collection` block over `parentChildren` with `display: cards`, labelled "Mijn kinderen"; the newest school news labelled "Nieuw van school"; and this month's calendar with `display: tiles`, labelled "Deze maand". The blocks of the chosen child (figures, absence reports, grades, messages) MUST follow. The absence page MUST show the child's reports with `display: rows` (date tile from `dateFrom`, the reason kind, the reason in quotes, the status and who decided), labelled "Uw meldingen". Design of record: school-design `wilgenboom/preview/MijnOverzicht.png` and `MijnLijst.png`. The greeting, highlight, cards, rows and tiles are lane L2's block contract; until portaliq knows them it drops the key and the page still renders.
+
+#### Scenario: The overview opens with the greeting and the task
+- GIVEN Fatima Hulstkamp signs in on Monday 5 October 2026
+- WHEN she opens `/mijn`
+- THEN she reads "Goedemorgen, Fatima", the button "Afwezig melden", then "Wat u nog moet doen" with the conference round of groep 4, then "Mijn kinderen" with Vera and Sami
+- @e2e tests/e2e/portal-design/wilgenboom.spec.ts
