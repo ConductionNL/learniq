@@ -3,8 +3,9 @@
 # Copyright (C) 2026 Conduction B.V.
 """Build lib/Settings/profiles/training.json, the training institute example set.
 
-One fictional training institute, Voorbeeld Opleidingscentrum Het Kompas in the
-fictional town of Kompasveen, through one complete year (2025-2026): one
+One fictional training institute, the Warmtepompacademie (a trade academy for
+installers, "De Warmtepompacademie" on its site) in the fictional town of
+Zuiddrecht, through one complete year (2025-2026): one
 location, a public catalogue of fourteen courses with prices and editions,
 a leadership programme with an intake and a waiting list, 150 participants
 sent by six client companies or enrolled on their own, trainers who teach the
@@ -43,7 +44,7 @@ Usage:
     python3 scripts/example-sets/training.py --check    exit 1 when the file on disk differs
 
 Nothing here is real: no real institute, company, person, address or code. The
-town and every company carry the invented name Kompasveen, postcodes start with
+town Zuiddrecht and every company named after it are invented, postcodes start with
 0 (never issued), web addresses end in .example (reserved), IP addresses come
 from the documentation ranges, and signatures read "voorbeeld" and verify
 nothing. A private training institute has no DUO BRIN; School.brin is required,
@@ -72,9 +73,10 @@ FIRST_DAY = dt.date(2025, 8, 18)
 LAST_DAY = dt.date(2026, 7, 10)
 FIRST_TRAINING_DAY = dt.date(2025, 9, 1)
 LAST_TRAINING_DAY = dt.date(2026, 7, 3)
-INSTITUTE = "Voorbeeld Opleidingscentrum Het Kompas"
-TOWN = "Kompasveen"
-DOMAIN = "opleidingen-kompasveen.example"
+# The DID agrees with scripts/example-sets/corporate.py, where the same academy is an outside provider.
+INSTITUTE = "Warmtepompacademie"
+TOWN = "Zuiddrecht"
+DOMAIN = "warmtepompacademie.example"
 ISSUER_DID = f"did:web:{DOMAIN}"
 PLANNER = "training-planner-01"
 QUALITY = "training-kwaliteit-01"
@@ -349,17 +351,17 @@ PROGRAMME = {
 # Client companies: name, employees, units, contact person, and how many
 # enrolments per course they buy. Private individuals come last.
 CLIENTS = [
-    ("Bouwbedrijf Kompasveen B.V.", 30, ["Uitvoering", "Werkvoorbereiding", "Kantoor"], ("Marloes", "Kadestede"),
+    ("Bouwbedrijf Zuiddrecht B.V.", 30, ["Uitvoering", "Werkvoorbereiding", "Kantoor"], ("Marloes", "Kadestede"),
      {"VCA-B": 20, "BHV-B": 12, "BHV-H": 8, "HEF": 6, "PREV": 4, "LG": 2, "PLAN": 2}),
-    ("Voorbeeld Logistiek Kompasveen B.V.", 28, ["Magazijn", "Transport", "Planning"], ("Hasan", "Roerbrink"),
+    ("Voorbeeld Logistiek Zuiddrecht B.V.", 28, ["Magazijn", "Transport", "Planning"], ("Hasan", "Roerbrink"),
      {"HEF": 12, "VCA-B": 14, "BHV-B": 10, "BHV-H": 8, "PREV": 4, "LG": 3, "PLAN": 4, "SPR": 4}),
-    ("Zorggroep Kompasveen", 30, ["Locatie De Veenhoeve", "Thuiszorg", "Facilitair"], ("Esther", "Baakhoven"),
+    ("Zorggroep Zuiddrecht", 30, ["Locatie De Veenhoeve", "Thuiszorg", "Facilitair"], ("Esther", "Baakhoven"),
      {"AVG": 22, "BHV-B": 14, "BHV-H": 14, "NIS2": 10, "GESP": 8, "LG": 5, "PRES": 2}),
-    ("Gemeente Kompasveen", 24, ["Publiekszaken", "Ruimte", "Bedrijfsvoering"], ("Pieter", "Getijwerf"),
+    ("Gemeente Zuiddrecht", 24, ["Publiekszaken", "Ruimte", "Bedrijfsvoering"], ("Pieter", "Getijwerf"),
      {"NIS2": 18, "AVG": 16, "PROJ": 8, "SPR": 8, "BHV-H": 8, "LG": 6, "BHV-B": 6, "PRES": 4, "PLAN": 4}),
-    ("Installatietechniek Kompasveen B.V.", 16, ["Montage", "Service"], ("Kim", "Ankerhorst"),
+    ("Installatietechniek Zuiddrecht B.V.", 16, ["Montage", "Service"], ("Kim", "Ankerhorst"),
      {"VCA-B": 16, "BHV-B": 6, "BHV-H": 6, "PREV": 4, "HEF": 2, "LG": 2}),
-    ("Stichting Welzijn Kompasveen", 12, ["Buurtwerk", "Jongerenwerk"], ("Naima", "Sluisgaard"),
+    ("Stichting Welzijn Zuiddrecht", 12, ["Buurtwerk", "Jongerenwerk"], ("Naima", "Sluisgaard"),
      {"AVG": 12, "GESP": 6, "BHV-B": 6, "BHV-H": 6, "NIS2": 6, "PLAN": 4, "PRES": 2, "LG": 2}),
     (None, 10, [], None,
      {"SPR": 8, "PROJ": 6, "PLAN": 4, "PRES": 4, "LG": 4, "PREV": 2, "GESP": 2}),
@@ -603,7 +605,7 @@ def build() -> dict:
     school = b.add("school", {"brin": "00X6", "name": INSTITUTE, "pedagogicalConcept": "other"})
     location = b.add("vestiging", {
         "schoolId": school["uuid"], "vestigingscode": "00X600", "onderwijslocatiecode": None,
-        "name": "Hoofdlocatie Havenkade", "street": "Havenkade 14", "postalCode": "0612 HK", "city": TOWN,
+        "name": "Praktijkhal Zuiddrecht", "street": "Energieweg 8", "postalCode": "0612 EW", "city": TOWN,
     })
     rooms = {key: b.add("room", dict(spec)) for key, spec in ROOMS.items()}
 
