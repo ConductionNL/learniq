@@ -196,7 +196,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(11, $collections);
+		$this->assertCount(12, $collections);
 		$this->assertSame(
 			[
 				'studentGrades',
@@ -212,6 +212,8 @@ class PortalContributionProviderTest extends TestCase {
 				'studentInbox',
 				'studentTests',
 				'studentHomework',
+				// site-pupil-portal-design: the absence strip of her overview.
+				'studentAttendanceSummary',
 			],
 			array_column($collections, 'id')
 		);
