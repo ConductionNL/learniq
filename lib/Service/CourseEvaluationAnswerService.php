@@ -332,6 +332,8 @@ class CourseEvaluationAnswerService {
 	 * analysers read the current OpenRegister and call the check redundant.
 	 *
 	 * @return bool
+	 *
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 	 */
 	protected function systemTransitionAvailable(): bool {
 		return (new ReflectionClass($this->transitionEngine))->hasMethod('transitionAsSystem');
