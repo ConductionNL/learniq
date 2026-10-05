@@ -73,9 +73,10 @@ const ROLES = [
 /** An install that never chose a segment: every segment gate passes. */
 const NEVER = { segment: 'corporate', chosen: null }
 /** The states after an admin chose a segment in the wizard. */
-const CHOSEN = ['corporate', 'training', 'po', 'vo', 'mbo', 'he'].map(
-	(code) => ({ segment: code, chosen: code }),
-)
+const CHOSEN = ['corporate', 'training', 'po', 'vo', 'mbo', 'he'].map((code) => ({
+	segment: code,
+	chosen: code,
+}))
 
 /**
  * The dashboard views a role may open, as DashboardRoleService::resolveViews()
@@ -93,9 +94,12 @@ function viewsOf(role) {
 		views.push('admin')
 	}
 	if (
-		['administration-manager', 'team-lead', 'coordinator', 'instructor'].includes(
-			role,
-		)
+		[
+			'administration-manager',
+			'team-lead',
+			'coordinator',
+			'instructor',
+		].includes(role)
 	) {
 		views.push('teacher')
 	}
@@ -137,18 +141,21 @@ function build(layout, role, state = NEVER, flags = {}) {
 	)
 }
 
-const flat = (items) =>
-	items.flatMap((item) => [item, ...flat(item.children || [])])
+function flat(items) {
+	return items.flatMap((item) => [item, ...flat(item.children || [])])
+}
 const sectionOf = (item) => item.section ?? 'main'
 const isCaption = (item) => item.type === 'caption'
-const shown = (manifest) =>
-	flat(manifest.menu).filter((item) =>
+function shown(manifest) {
+	return flat(manifest.menu).filter((item) =>
 		passesContextPredicates(item.visibleIf, manifest.runtime),
 	)
-const mainOf = (manifest) =>
-	shown(manifest).filter(
+}
+function mainOf(manifest) {
+	return shown(manifest).filter(
 		(item) => sectionOf(item) === 'main' && !isCaption(item),
 	)
+}
 
 /**
  * Pages a custom dashboard links from lists its own component declares. The
@@ -538,7 +545,10 @@ test('every overlay names a page, and every link in it names a page', () => {
 			const existing = new Set((page.config[key] || []).map((item) => item.id))
 			for (const item of items) {
 				assert.ok(pageIds.has(item.route), `${overlay.id}: ${item.route}`)
-				assert.ok(!existing.has(item.id), `${overlay.id}: id ${item.id} taken`)
+				assert.ok(
+					!existing.has(item.id),
+					`${overlay.id}: id ${item.id} taken`,
+				)
 				assert.ok(item.label && item.icon, `${overlay.id}: ${item.id}`)
 				if (key === 'headerActions') {
 					assert.equal(item.handler, 'navigate')
@@ -607,10 +617,16 @@ test('no role gets more than ten main entries, an administrator twelve, a flag t
 			const where = `${role} in ${state.chosen ?? 'no segment chosen'}`
 			const plain = mainOf(build(SIMPLE, role, state)).length
 			assert.ok(plain <= ceiling, `${where}: ${plain}`)
-			assert.ok(plain >= 4, `${where}: only ${plain}, the menu is nearly empty`)
+			assert.ok(
+				plain >= 4,
+				`${where}: only ${plain}, the menu is nearly empty`,
+			)
 			for (const flags of [{ counsellor: true }, { manager: true }]) {
 				const flagged = mainOf(build(SIMPLE, role, state, flags)).length
-				assert.ok(flagged <= ceiling + 2, `${where} ${JSON.stringify(flags)}`)
+				assert.ok(
+					flagged <= ceiling + 2,
+					`${where} ${JSON.stringify(flags)}`,
+				)
 			}
 		}
 	}
@@ -686,8 +702,18 @@ test('the two new doors open for the roles that already had the pages next to th
 	// Cohorts and Submissions had no menu entry. They borrow the gate of the
 	// entry they sit beside, or a narrower one.
 	const allowed = {
-		GroupsSimple: ['instructor', 'coordinator', 'administration-manager', 'admin'],
-		MarkingSimple: ['instructor', 'coordinator', 'administration-manager', 'admin'],
+		GroupsSimple: [
+			'instructor',
+			'coordinator',
+			'administration-manager',
+			'admin',
+		],
+		MarkingSimple: [
+			'instructor',
+			'coordinator',
+			'administration-manager',
+			'admin',
+		],
 	}
 	for (const [id, roles] of Object.entries(allowed)) {
 		const entry = SIMPLE.menu.find((item) => item.id === id)
@@ -722,8 +748,10 @@ test('the lists a custom dashboard is credited with are in its component', () =>
 	}
 })
 
-test('every new English string has a Dutch one', () => {
-	const english = readJson('l10n/en.json').translations
+test('every string of the simple profile has a Dutch one', () => {
+	// en.json is a partial catalogue here: an English source string is its
+	// own fallback. Dutch is the strict locale (check:l10n), so Dutch is what
+	// a new string must have.
 	const dutch = readJson('l10n/nl.json').translations
 	const strings = []
 	for (const item of SIMPLE.menu) {
@@ -747,7 +775,6 @@ test('every new English string has a Dutch one', () => {
 	}
 	assert.ok(strings.length > 30)
 	for (const text of strings) {
-		assert.ok(Object.hasOwn(english, text), `en.json misses: ${text}`)
 		assert.ok(
 			typeof dutch[text] === 'string' && dutch[text].trim() !== '',
 			`nl.json misses: ${text}`,
@@ -785,7 +812,12 @@ test('the admin section reads the stored structure and refuses a save that store
 		},
 		put: async (url, body) => {
 			calls.push(['put', url, body])
-			return { data: { success: true, config: { menu_structure: body.menu_structure } } }
+			return {
+				data: {
+					success: true,
+					config: { menu_structure: body.menu_structure },
+				},
+			}
 		},
 	}
 	assert.equal(await loadMenuStructure(http, '/s'), 'full')
