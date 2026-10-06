@@ -3565,7 +3565,8 @@
         "Venue": "Venue",
         "Level %s": "Level %s",
         "Learning path": "Learning path",
-        "or": "or"
+        "or": "or",
+        "Training course": "Training course"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

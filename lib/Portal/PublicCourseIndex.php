@@ -187,7 +187,7 @@ class PublicCourseIndex {
 		$item = [
 			'id'      => 'course:' . $this->reads->idOf(row: $course),
 			'type'    => 'course',
-			'kind'    => $this->reads->word(text: 'Course'),
+			'kind'    => $this->reads->word(text: 'Training course'),
 			'title'   => $title,
 			'summary' => (string)($course['description'] ?? ''),
 			'date'    => $first['days'][0],

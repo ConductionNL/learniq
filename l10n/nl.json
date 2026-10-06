@@ -4030,7 +4030,8 @@
         "Venue": "Plaats",
         "Level %s": "Niveau %s",
         "Learning path": "Leerweg",
-        "or": "of"
+        "or": "of",
+        "Training course": "Cursus"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

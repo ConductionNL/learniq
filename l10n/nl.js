@@ -3977,7 +3977,8 @@ OC.L10N.register(
         "Venue": "Plaats",
         "Level %s": "Niveau %s",
         "Learning path": "Leerweg",
-        "or": "of"
+        "or": "of",
+        "Training course": "Cursus"
     },
     "nplurals=2; plural=(n != 1);"
 )
