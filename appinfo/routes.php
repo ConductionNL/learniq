@@ -330,6 +330,8 @@ return [
         ['name' => 'portalCatalogue#withdraw', 'url' => '/api/portal/catalogue/withdraw', 'verb' => 'POST'],
         // portal-guardian-invitation: the school invites a guardian to the parent portal.
         ['name' => 'portalGuardian#invite', 'url' => '/api/portal/guardians/{guardianRef}/invite', 'verb' => 'POST'],
+        // employer-signs-in-with-eherkenning: the institute invites a client company's contact person.
+        ['name' => 'portalEmployerInvite#invite', 'url' => '/api/portal/employers/{organisationRef}/invite', 'verb' => 'POST'],
         // Double marking (assignments-double-marking): the teacher in charge
         // allocates markers to the handed-in submissions (instructors,
         // compliance officers, team leads or admin, checked in the method), and

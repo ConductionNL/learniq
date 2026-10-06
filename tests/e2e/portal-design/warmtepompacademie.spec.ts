@@ -6,16 +6,27 @@
  * The website boards, and the employer's boards (Linda Jansen of Jansen
  * Installatietechniek BV, employer-portal-audience). Linda signs in here with
  * the `nextcloud` mode as a stand-in for eHerkenning, on a portal account
- * with the employer audience and the claims the invitation writes.
+ * with the employer audience and the claims the invitation writes. When
+ * `PORTAL_DESIGN_EHERKENNING_ISSUER` is set she also signs in the real way:
+ * the institute invites her company (`POST /api/portal/employers/{ref}/invite`)
+ * and she signs in with eHerkenning through the stub broker, which answers
+ * with the company's eHerkenning reference (employer-signs-in-with-eherkenning).
+ * The organisation's eHerkenning issuer and client must point at that stub:
+ * `org_presentation_<organisation uuid>.oidc.eherkenning = {issuer, clientId}`
+ * in portaliq's app config, and `oidc_secret_<organisation uuid>_eherkenning`.
  *
  * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
  * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md
  * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md
  * @spec openspec/changes/participant-portal/specs/portal-contribution/spec.md
+ * @spec openspec/changes/employer-signs-in-with-eherkenning/specs/portal-identity/spec.md
  */
 
-import { test } from '@playwright/test'
+import { expect, request, test } from '@playwright/test'
+import path from 'node:path'
+import { baseUrl } from '../base-url.ts'
 import { siteUrl } from '../helpers/portal-fixture.ts'
+import { ACR_SUBSTANTIAL, startStubDigid } from '../helpers/stub-digid.ts'
 import {
 	boardShot,
 	ensurePortalAccount,
@@ -25,6 +36,7 @@ import {
 	expectTheme,
 	expectWidgetOrder,
 	openSitePage,
+	SHOTS,
 	signInAs,
 } from './boards.ts'
 
@@ -49,6 +61,11 @@ const TOM = {
 	user: 'training-deelnemer-151',
 	ref: 'ee06000c-0000-4000-8000-000000000158',
 	name: 'Tom Verbeek',
+}
+const JANSEN = {
+	ref: 'ee06001f-0000-4000-8000-000000000001',
+	eherkenning: 'eherkenning-jansen-installatietechniek',
+	email: 'linda.jansen@jansen-installatietechniek.example',
 }
 const FOOTER = [
 	'Twijfelt u welke cursus past? Bel de planning.',
@@ -211,5 +228,81 @@ test.describe('warmtepompacademie: Mijn academie (Tom Verbeek, participant)', ()
 			info.project.name === 'phone' ? 'MobielHome' : 'MobielHome-desktop',
 			info,
 		)
+	})
+})
+
+test.describe('warmtepompacademie: Linda signs in with eHerkenning', () => {
+	const issuer = process.env.PORTAL_DESIGN_EHERKENNING_ISSUER ?? ''
+
+	test('Inloggen met eHerkenning lands on Mijn academie for Jansen', async ({
+		browser,
+	}, info) => {
+		test.skip(
+			issuer === '',
+			'PORTAL_DESIGN_EHERKENNING_ISSUER is not set: the employer signs in with eHerkenning through the stub broker',
+		)
+		test.setTimeout(300_000)
+		const stub = await startStubDigid(
+			issuer,
+			process.env.PORTAL_DESIGN_EHERKENNING_CLIENT
+				?? 'warmtepompacademie-portal',
+			path.join(SHOTS, 'stub-key-eherkenning.pem'),
+		)
+		try {
+			const admin = await request.newContext({
+				baseURL: baseUrl(),
+				httpCredentials: {
+					username: process.env.NC_ADMIN_USER ?? 'admin',
+					password: process.env.NC_ADMIN_PASS ?? 'admin',
+				},
+				extraHTTPHeaders: { 'OCS-APIRequest': 'true' },
+			})
+			const invite = await admin.post(
+				`/apps/learniq/api/portal/employers/${JANSEN.ref}/invite`,
+				{
+					data: {
+						organisation:
+							process.env.PORTAL_DESIGN_ORGANISATION
+							?? 'default-organisation',
+					},
+				},
+			)
+			expect(invite.status(), await invite.text()).toBeLessThan(300)
+			await admin.dispose()
+
+			const viewport = info.project.use.viewport ?? {
+				width: 1440,
+				height: 1000,
+			}
+			const page = await (
+				await browser.newContext({ locale: 'nl-NL', viewport })
+			).newPage()
+			stub.nextLogin({
+				sub: JANSEN.eherkenning,
+				email: JANSEN.email,
+				acr: ACR_SUBSTANTIAL,
+			})
+			await page.goto(
+				`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn')}`,
+			)
+			await page
+				.getByTestId('site-account-signin')
+				.waitFor({ timeout: 20_000 })
+			await page
+				.getByRole('link', { name: /eHerkenning/ })
+				.or(page.getByRole('button', { name: /eHerkenning/ }))
+				.first()
+				.click()
+			await page.waitForURL(/\/apps\/portaliq\/site[^#]*route=%2Fmijn/, {
+				timeout: 30_000,
+			})
+			await expectTexts(page, [
+				'Jansen Installatietechniek BV',
+				'Vul de geboortedatum van Youssef El Amrani in',
+			])
+			await boardShot(page, PORTAL, 'Inloggen-eherkenning', info)
+		} finally {
+			await stub.close()
+		}
 	})
 })
