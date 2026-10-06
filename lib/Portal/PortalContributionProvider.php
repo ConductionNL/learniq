@@ -45,6 +45,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Portal;
 
 use OCA\Learniq\Service\Portal\BpvPlacementSteps;
+use OCA\Learniq\Service\Portal\EmployerBookingSteps;
 use OCP\L10N\IFactory;
 
 /**
@@ -83,11 +84,13 @@ class PortalContributionProvider {
 	/**
 	 * Constructor; the container hands in the factory, `new` with no arguments answers in English.
 	 *
-	 * @param IFactory|null          $l10nFactory    Puts parent labels in the request's language (PortalLabelTranslator).
-	 * @param BpvPlacementSteps|null $placementSteps Answers a work placement's steps (site-workplace-trainer-portal-design).
+	 * @param IFactory|null             $l10nFactory    Puts parent labels in the request's language (PortalLabelTranslator).
+	 * @param EmployerBookingSteps|null $bookingSteps   Answers a company booking's steps (employer-portal-audience).
+	 * @param BpvPlacementSteps|null    $placementSteps Answers a work placement's steps (site-workplace-trainer-portal-design).
 	 */
 	public function __construct(
 		private readonly ?IFactory $l10nFactory=null,
+		private readonly ?EmployerBookingSteps $bookingSteps=null,
 		private readonly ?BpvPlacementSteps $placementSteps=null,
 	) {
 	}//end __construct()
@@ -120,9 +123,10 @@ class PortalContributionProvider {
 	 * @spec openspec/specs/portal-contribution/spec.md
 	 * @spec openspec/specs/bpv/spec.md#requirement-praktijkopleider-portal-access-is-a-direct-scope-portalcontributionprovider-audience
 	 * @spec openspec/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
+	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
 	 */
 	public function getAudiences(): array {
-		return ['student', 'parent', 'praktijkopleider', 'external-assessor'];
+		return ['student', 'parent', 'praktijkopleider', 'external-assessor', EmployerSitePages::AUDIENCE, ParticipantSitePages::AUDIENCE];
 	}//end getAudiences()
 
 	/**
@@ -175,9 +179,37 @@ class PortalContributionProvider {
 			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new AssessorSitePages())->contribution());
 		}
 
+		if ($audience === EmployerSitePages::AUDIENCE) {
+			// A company that sends its people to the courses (employer-portal-audience).
+			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new EmployerSitePages())->contribution());
+		}
+
+		if ($audience === ParticipantSitePages::AUDIENCE) {
+			// A course participant at a training institute (participant-portal).
+			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new ParticipantSitePages())->contribution());
+		}
+
 		// Any audience Learniq does not serve → null (fail-closed; ADR-005).
 		return null;
 	}//end getContribution()
+
+	/**
+	 * The steps of a company booking, for the employer's booking page.
+	 *
+	 * Portaliq calls the provider named by `employerBookings.steps.provider`
+	 * with the booking's id, after it checked that the employer may see that
+	 * booking. Without the service (a test, an older container) there are no
+	 * steps, never an error.
+	 *
+	 * @param string $id The booking's uuid.
+	 *
+	 * @return array<int, array<string, string>>
+	 *
+	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 */
+	public function employerBookingSteps(string $id): array {
+		return ($this->bookingSteps?->forBooking(bookingId: $id) ?? []);
+	}//end employerBookingSteps()
 
 	/**
 	 * Manifest for the `student` audience (the learner themself).

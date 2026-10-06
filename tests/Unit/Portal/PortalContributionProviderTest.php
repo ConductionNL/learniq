@@ -120,9 +120,10 @@ class PortalContributionProviderTest extends TestCase {
 
 	/**
 	 * The class is plain: no interfaces, no parent, and no required
-	 * constructor deps. Its one optional dependency is Nextcloud's own l10n
-	 * factory (never a portaliq class), so `new` with no arguments still
-	 * builds an inert, English provider.
+	 * constructor deps. Its optional dependencies are Nextcloud's own l10n
+	 * factory and learniq's own booking steps (employer-portal-audience),
+	 * never a portaliq class, so `new` with no arguments still builds an
+	 * inert, English provider.
 	 *
 	 * @return void
 	 */
@@ -146,13 +147,14 @@ class PortalContributionProviderTest extends TestCase {
 	 * 'external-assessor'] and getAudience() (v1 fallback) is one of them. The `parent`
 	 * audience is re-enabled now that portaliq ships the reverse / scope-value `via` join
 	 * (match: 'scopeField'); `praktijkopleider` is the bpv-praktijkovereenkomst change's third
-	 * audience; `external-assessor` is the eportfolio change's fourth audience.
+	 * audience; `external-assessor` is the eportfolio change's fourth audience; `employer`
+	 * (a client company of a training institute) is employer-portal-audience's fifth.
 	 *
 	 * @return void
 	 */
 	public function testAudienceContract(): void {
 		$this->assertSame(
-			['student', 'parent', 'praktijkopleider', 'external-assessor'],
+			['student', 'parent', 'praktijkopleider', 'external-assessor', 'employer', 'participant'],
 			$this->provider->getAudiences()
 		);
 		$this->assertSame('student', $this->provider->getAudience());
