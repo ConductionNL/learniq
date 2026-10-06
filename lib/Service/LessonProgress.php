@@ -130,8 +130,10 @@ class LessonProgress {
 	}//end resolveVerifiedLearnerId()
 
 	/**
-	 * Resolve the Lesson referenced by the xAPI statement's object id — the
-	 * same xapiObjectId lookup XapiCompletionHandler already uses.
+	 * Resolve the Lesson the statement belongs to.
+	 *
+	 * The ingest stamps `lessonId` from the launch context; the xAPI object IRI
+	 * is not a Lesson property, so a lookup on it can never match (#1116).
 	 *
 	 * @param array<string, mixed> $payload The XapiStatement payload.
 	 * @param string $tenantId Tenant scope for the lookup.
@@ -139,18 +141,19 @@ class LessonProgress {
 	 * @return array<string, mixed>|null
 	 */
 	private function resolveLesson(array $payload, string $tenantId): ?array {
-		$lessonObjectId = $payload['object']['id'] ?? null;
-		if ($lessonObjectId === null) {
+		$lessonId = (string)($payload['lessonId'] ?? '');
+		if ($lessonId === '') {
 			return null;
 		}
 
-		$lessonFilters = ['xapiObjectId' => $lessonObjectId];
+		$lessonFilters = [];
 		if ($tenantId !== '') {
 			$lessonFilters['tenant_id'] = $tenantId;
 		}
 
 		$lessons = $this->objectService->findAll(
 			[
+				'ids' => [$lessonId],
 				'filters' => array_merge(
 					$lessonFilters,
 					[

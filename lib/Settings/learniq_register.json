@@ -26055,7 +26055,7 @@
             "AccessibilityFeedback": {
                 "slug": "accessibility-feedback",
                 "icon": "MessageAlertOutline",
-                "version": "0.1.2",
+                "version": "0.1.3",
                 "title": "AccessibilityFeedback",
                 "description": "A user-reported accessibility barrier — the BDTO's required feedback mechanism, reachable by any authenticated user (the opposite RBAC posture from AccessibilityStatement/AccessibilityLimitation, deliberately: restricting who may report a barrier would defeat the requirement's own purpose). Lifecycle: submitted → acknowledged → resolved.",
                 "type": "object",
@@ -26065,16 +26065,15 @@
                     "searchable": true
                 },
                 "required": [
-                    "reporterUserId",
                     "affectedSurface",
                     "description",
-                    "severity",
-                    "tenant_id"
+                    "severity"
                 ],
                 "properties": {
                     "reporterUserId": {
                         "type": "string",
-                        "description": "Nextcloud user ID of the person reporting the barrier.",
+                        "readOnly": true,
+                        "description": "Nextcloud user ID of the person reporting the barrier. Filled in by the app from the signed-in user, never changed.",
                         "title": "Reporter User ID"
                     },
                     "affectedSurface": {
@@ -26121,7 +26120,8 @@
                     "tenant_id": {
                         "type": "string",
                         "format": "uuid",
-                        "description": "Tenant UUID (multi-tenant isolation).",
+                        "readOnly": true,
+                        "description": "Tenant UUID (multi-tenant isolation). Filled in by the app from the reporter's tenant.",
                         "title": "Tenant ID"
                     }
                 },
