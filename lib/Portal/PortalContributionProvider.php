@@ -94,9 +94,7 @@ class PortalContributionProvider {
 	}//end __construct()
 
 	/**
-	 * What a visitor of a portal may find without signing in: the school's
-	 * published courses with a run to come, its programmes and its
-	 * school-wide days (portal-public-index, portaliq portal-public-catalogue).
+	 * What a portal's visitor may find without signing in (portal-public-index).
 	 *
 	 * @param string $portal The portal slug.
 	 *
@@ -109,10 +107,7 @@ class PortalContributionProvider {
 	}//end getPublicIndex()
 
 	/**
-	 * Who a guardian may write to about one child (the `contacts` provider
-	 * of `parentChildren`): the teachers of the child's current groups.
-	 * Portaliq calls this only for a child it read through the guardian's
-	 * own scoped collection (portal-message-contacts).
+	 * The `contacts` provider of `parentChildren`: the teachers of a child's current groups.
 	 *
 	 * @param string $id The child's learner profile id.
 	 *
@@ -125,9 +120,7 @@ class PortalContributionProvider {
 	}//end childMessageContacts()
 
 	/**
-	 * Who a pupil may write to from one of her own enrolments (the `contacts`
-	 * provider of `studentEnrolments`): the teachers of that group, while the
-	 * enrolment is active (portal-message-contacts).
+	 * The `contacts` provider of `studentEnrolments`: the teachers of an active enrolment's group.
 	 *
 	 * @param string $id The enrolment id.
 	 *
@@ -382,8 +375,7 @@ class PortalContributionProvider {
 					'regulationSlug',
 					'cohortId',
 				],
-				// Who she may write to: the teachers of each active group
-				// (portal-message-contacts, portaliq site-messages-per-record).
+				// Who she may write to: her active groups' teachers (portal-message-contacts).
 				'contacts' => [
 					'provider' => 'ownMessageContacts',
 					'composeLabel' => 'A message to your teacher',
