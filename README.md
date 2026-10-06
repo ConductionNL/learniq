@@ -135,6 +135,22 @@ npm run build           # production build
 Contact [support@conduction.nl](mailto:support@conduction.nl) for support.
 For an SLA, contact [sales@conduction.nl](mailto:sales@conduction.nl).
 
+<!-- discovery:start -->
+## Standards & federation
+
+| Standard | Role | Access |
+|---|---|---|
+| [Open Badges](https://www.imsglobal.org/spec/ob/v3p0) 3.0 | Provides | Public |
+| [W3C Verifiable Credentials Data Model](https://www.w3.org/TR/vc-data-model/) 1.1 | Provides | Public |
+| European Learning Model (Europass digital credentials) 3.2 | Provides | Public |
+| [xAPI Learning Record Store](https://github.com/adlnet/xAPI-Spec) 1.0.3 | Provides | Token, no login |
+| [cmi5 launch (LMS side)](https://github.com/AICC/CMI-5_Spec_Current) | Provides | Token, no login |
+| QTI item packages (import 2.1 and 3.0, export 3.0) 3.0 | Provides | Nextcloud login |
+| IMS Common Cartridge course packages (import and export) 1.3 | Provides | Nextcloud login |
+
+Other servers can read this list without logging in, from the Nextcloud capabilities endpoint (published by OpenRegister). Details, federation and admin switches: [docs/standards-and-federation.md](docs/standards-and-federation.md).
+<!-- discovery:end -->
+
 ## License
 
 [EUPL-1.2](LICENSE) — Built by [Conduction](https://conduction.nl).

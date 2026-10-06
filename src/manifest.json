@@ -645,5 +645,67 @@
         ]
       }
     ]
+  },
+  "discovery": {
+    "public": true,
+    "standards": [
+      {
+        "id": "open-badges",
+        "name": "Open Badges",
+        "version": "3.0",
+        "role": "provides",
+        "access": "public",
+        "endpoint": "/apps/learniq/api/credentials",
+        "specUrl": "https://www.imsglobal.org/spec/ob/v3p0"
+      },
+      {
+        "id": "w3c-vc",
+        "name": "W3C Verifiable Credentials Data Model",
+        "version": "1.1",
+        "role": "provides",
+        "access": "public",
+        "endpoint": "/apps/learniq/api/credentials",
+        "specUrl": "https://www.w3.org/TR/vc-data-model/"
+      },
+      {
+        "id": "elm",
+        "name": "European Learning Model (Europass digital credentials)",
+        "version": "3.2",
+        "role": "provides",
+        "access": "public",
+        "endpoint": "/apps/learniq/api/credentials"
+      },
+      {
+        "id": "xapi",
+        "name": "xAPI Learning Record Store",
+        "version": "1.0.3",
+        "role": "provides",
+        "access": "token",
+        "endpoint": "/apps/learniq/api/lrs",
+        "specUrl": "https://github.com/adlnet/xAPI-Spec"
+      },
+      {
+        "id": "cmi5",
+        "name": "cmi5 launch (LMS side)",
+        "role": "provides",
+        "access": "token",
+        "endpoint": "/apps/learniq/api/cmi5",
+        "specUrl": "https://github.com/AICC/CMI-5_Spec_Current"
+      },
+      {
+        "id": "qti",
+        "name": "QTI item packages (import 2.1 and 3.0, export 3.0)",
+        "version": "3.0",
+        "role": "provides",
+        "access": "authenticated"
+      },
+      {
+        "id": "common-cartridge",
+        "name": "IMS Common Cartridge course packages (import and export)",
+        "version": "1.3",
+        "role": "provides",
+        "access": "authenticated"
+      }
+    ]
   }
 }
