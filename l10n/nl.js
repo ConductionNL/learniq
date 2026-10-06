@@ -4078,7 +4078,17 @@ OC.L10N.register(
         "The holder's employer, copied from the learner profile when the certificate is saved. The employer's portal reads the certificate by it. A readable copy the server writes.": "De werkgever van de houder, overgenomen uit het leerlingprofiel als het certificaat wordt opgeslagen. Het portaal van de werkgever leest het certificaat hiermee. Een leesbare kopie die de server schrijft.",
         "The holder's name. A readable copy the server writes; a value sent for it is replaced.": "De naam van de houder. Een leesbare kopie die de server schrijft; een meegestuurde waarde wordt vervangen.",
         "The name of the course the certificate is for, for example \"F-gassen categorie 1\". A readable copy the server writes.": "De naam van de cursus waar het certificaat voor is, bijvoorbeeld \"F-gassen categorie 1\". Een leesbare kopie die de server schrijft.",
-        "Until when the certificate is valid, as one line, for example \"Geldig tot 30 november 2026\". A readable copy the server writes.": "Tot wanneer het certificaat geldig is, op één regel, bijvoorbeeld \"Geldig tot 30 november 2026\". Een leesbare kopie die de server schrijft."
+        "Until when the certificate is valid, as one line, for example \"Geldig tot 30 november 2026\". A readable copy the server writes.": "Tot wanneer het certificaat geldig is, op één regel, bijvoorbeeld \"Geldig tot 30 november 2026\". Een leesbare kopie die de server schrijft.",
+        "Your next course day": "Uw volgende cursusdag",
+        "My course days": "Mijn cursusdagen",
+        "My certificates": "Mijn certificaten",
+        "Everything about this day": "Alles over deze dag",
+        "The first course day of the participant's edition, copied from the company booking. Written by the server.": "De eerste cursusdag van de editie van de deelnemer, overgenomen uit de inschrijving van het bedrijf. De server schrijft dit.",
+        "The participant's course days as one line, for example \"donderdag 8 oktober\". Copied from the company booking. Written by the server.": "De cursusdagen van de deelnemer op één regel, bijvoorbeeld \"donderdag 8 oktober\". Overgenomen uit de inschrijving van het bedrijf. De server schrijft dit.",
+        "The times of the first course day, for example \"08.30 tot 16.30 uur\". Copied from the company booking. Written by the server.": "De tijden van de eerste cursusdag, bijvoorbeeld \"08.30 tot 16.30 uur\". Overgenomen uit de inschrijving van het bedrijf. De server schrijft dit.",
+        "The trainer of the edition. Copied from the company booking. Written by the server.": "De trainer van de editie. Overgenomen uit de inschrijving van het bedrijf. De server schrijft dit.",
+        "True while the participant's booking is received or confirmed, so the participant's portal lists what is still to come. Written by the server.": "Waar zolang de inschrijving van de deelnemer ontvangen of bevestigd is, zodat het portaal van de deelnemer toont wat nog komt. De server schrijft dit.",
+        "Where the course is held. Copied from the company booking. Written by the server.": "Waar de cursus wordt gegeven. Overgenomen uit de inschrijving van het bedrijf. De server schrijft dit."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -189,6 +189,19 @@ class PortalLabelTranslatorTest extends TestCase {
 	}//end testEveryEmployerLabelHasADutchEntry()
 
 	/**
+	 * Every visible string of the participant's manifest has a Dutch entry (participant-portal).
+	 *
+	 * @return void
+	 */
+	public function testEveryParticipantLabelHasADutchEntry(): void {
+		$strings = self::visibleStrings(manifest: (new PortalContributionProvider())->getContribution(['audience' => 'participant']));
+
+		self::assertNotEmpty($strings);
+		$missing = array_values(array_filter($strings, fn (string $text): bool => isset($this->dutch[$text]) === false));
+		self::assertSame([], $missing, 'Participant portal strings without a Dutch entry in l10n/nl.json');
+	}//end testEveryParticipantLabelHasADutchEntry()
+
+	/**
 	 * Every visible string of the student manifest has a Dutch entry
 	 * (site-pupil-portal-design).
 	 *

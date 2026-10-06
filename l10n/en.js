@@ -3628,7 +3628,17 @@ OC.L10N.register(
         "The holder's employer, copied from the learner profile when the certificate is saved. The employer's portal reads the certificate by it. A readable copy the server writes.": "The holder's employer, copied from the learner profile when the certificate is saved. The employer's portal reads the certificate by it. A readable copy the server writes.",
         "The holder's name. A readable copy the server writes; a value sent for it is replaced.": "The holder's name. A readable copy the server writes; a value sent for it is replaced.",
         "The name of the course the certificate is for, for example \"F-gassen categorie 1\". A readable copy the server writes.": "The name of the course the certificate is for, for example \"F-gassen categorie 1\". A readable copy the server writes.",
-        "Until when the certificate is valid, as one line, for example \"Geldig tot 30 november 2026\". A readable copy the server writes.": "Until when the certificate is valid, as one line, for example \"Geldig tot 30 november 2026\". A readable copy the server writes."
+        "Until when the certificate is valid, as one line, for example \"Geldig tot 30 november 2026\". A readable copy the server writes.": "Until when the certificate is valid, as one line, for example \"Geldig tot 30 november 2026\". A readable copy the server writes.",
+        "Your next course day": "Your next course day",
+        "My course days": "My course days",
+        "My certificates": "My certificates",
+        "Everything about this day": "Everything about this day",
+        "The first course day of the participant's edition, copied from the company booking. Written by the server.": "The first course day of the participant's edition, copied from the company booking. Written by the server.",
+        "The participant's course days as one line, for example \"donderdag 8 oktober\". Copied from the company booking. Written by the server.": "The participant's course days as one line, for example \"donderdag 8 oktober\". Copied from the company booking. Written by the server.",
+        "The times of the first course day, for example \"08.30 tot 16.30 uur\". Copied from the company booking. Written by the server.": "The times of the first course day, for example \"08.30 tot 16.30 uur\". Copied from the company booking. Written by the server.",
+        "The trainer of the edition. Copied from the company booking. Written by the server.": "The trainer of the edition. Copied from the company booking. Written by the server.",
+        "True while the participant's booking is received or confirmed, so the participant's portal lists what is still to come. Written by the server.": "True while the participant's booking is received or confirmed, so the participant's portal lists what is still to come. Written by the server.",
+        "Where the course is held. Copied from the company booking. Written by the server.": "Where the course is held. Copied from the company booking. Written by the server."
     },
     "nplurals=2; plural=(n != 1);"
 )
