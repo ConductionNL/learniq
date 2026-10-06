@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Learniq Audit Trail Period Reader
+ * Learniq Audit Period Reader
  *
  * Reads the OpenRegister audit entries written within an export period.
  * AuditTrailMapper::findAll() has no range filter, so the period is applied
@@ -37,7 +37,7 @@ use OCA\OpenRegister\Db\AuditTrailMapper;
  *
  * @spec openspec/specs/compliance-audit/spec.md#requirement-export-audit-ready-zip-per-regulation-and-date-range
  */
-class AuditTrailPeriodReader {
+class AuditPeriodReader {
 	/**
 	 * Audit entries read from the mapper per page.
 	 *

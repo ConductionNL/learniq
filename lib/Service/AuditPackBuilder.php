@@ -63,7 +63,7 @@ class AuditPackBuilder {
 	/**
 	 * Constructor.
 	 *
-	 * @param AuditTrailPeriodReader $period Reads the audit entries of the export period.
+	 * @param AuditPeriodReader $period Reads the audit entries of the export period.
 	 * @param AuditHashService $auditHashService OR HMAC chain verification service.
 	 * @param CallerTenantResolver $tenants Resolves the tenant: the per-user binding, else the default tenant.
 	 * @param CsvCellSanitizer $sanitizer CSV formula-injection neutraliser.
@@ -72,7 +72,7 @@ class AuditPackBuilder {
 	 * @param AuditEntryAttribution $attribution Keeps the entries whose object is in the caller's tenant.
 	 */
 	public function __construct(
-		private readonly AuditTrailPeriodReader $period,
+		private readonly AuditPeriodReader $period,
 		private readonly AuditHashService $auditHashService,
 		private readonly CallerTenantResolver $tenants,
 		private readonly CsvCellSanitizer $sanitizer,
@@ -104,7 +104,7 @@ class AuditPackBuilder {
 		// The trail has no tenant column, and AuditTrailMapper::findAll() drops
 		// every filter outside its column allowlist, so a tenant_id filter here
 		// returned every tenant's entries. The tenant is decided by the object
-		// each entry is about; the period by AuditTrailPeriodReader.
+		// each entry is about; the period by AuditPeriodReader.
 		$own = $this->attribution->ownEntries(
 			entries: $this->period->entries(dateFrom: $dateFrom, dateTo: $dateTo),
 			tenantId: $tenantId,

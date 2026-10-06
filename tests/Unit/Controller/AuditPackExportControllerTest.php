@@ -37,7 +37,7 @@ use OCA\Learniq\Controller\AuditPackExportController;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\AuditEntryAttribution;
 use OCA\Learniq\Service\AuditPackBuilder;
-use OCA\Learniq\Service\AuditTrailPeriodReader;
+use OCA\Learniq\Service\AuditPeriodReader;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CsvCellSanitizer;
 use OCA\Learniq\Service\ExternalTrainingCsvBuilder;
@@ -644,7 +644,7 @@ class AuditPackExportControllerTest extends TestCase {
 			userSession: $userSession,
 			actionAuth: $this->createMock(ActionAuthService::class),
 			packBuilder: $this->builder = new AuditPackBuilder(
-				new AuditTrailPeriodReader($mapper),
+				new AuditPeriodReader($mapper),
 				$hashService,
 				new CallerTenantResolver($config, $this->createMock(ObjectService::class)),
 				$sanitizer,
