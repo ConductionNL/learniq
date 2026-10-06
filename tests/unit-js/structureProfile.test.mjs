@@ -38,6 +38,7 @@ import { applyReportCardGates } from '../../src/utils/reportCardGates.js'
 import {
 	applyPageOverlay,
 	buildProfiledManifest,
+	navTheming,
 	resolveStructureProfile,
 	STRUCTURE_FULL,
 	STRUCTURE_SETTING,
@@ -1429,4 +1430,208 @@ test('the admin section reads the stored structure and refuses a save that store
 	// read as a save.
 	const deaf = { put: async () => ({ data: { success: true, config: {} } }) }
 	await assert.rejects(() => saveMenuStructure(deaf, '/s', 'full'))
+})
+
+// The navigation of the simple profile: a brand block and one primary button
+// (LqDashboard, AppZijbalk). The school's name and logo are the instance's
+// theming capabilities, read at boot; the app names no school.
+const THEMING = { name: 'Gemeente Zuiddrecht', logo: '/apps/theming/image/logo?v=1' }
+
+function buildNav(
+	layout,
+	role,
+	theming = THEMING,
+	passes = passesContextPredicates,
+) {
+	const base = structuredClone(BASE)
+	base.runtime = { user: { primaryRole: role }, workspace: {} }
+	return buildProfiledManifest(
+		buildManifest,
+		base,
+		structuredClone(FRAGMENTS),
+		structuredClone(layout),
+		passes,
+		{ theming },
+	).nav
+}
+
+test('the simple navigation opens with the brand block, named after the instance', () => {
+	assert.deepEqual(buildNav(SIMPLE, 'instructor').brand, {
+		name: 'learniq',
+		caption: 'Gemeente Zuiddrecht',
+		logo: '/apps/theming/image/logo?v=1',
+	})
+	assert.ok(!/Zuiddrecht|Gemeente|school/i.test(JSON.stringify(SIMPLE.nav.brand)))
+})
+
+test('a theming value the instance does not answer stays empty, never a guess', () => {
+	assert.deepEqual(buildNav(SIMPLE, 'instructor', null).brand, {
+		name: 'learniq',
+		caption: '',
+		logo: '',
+	})
+	assert.equal(buildNav(SIMPLE, 'instructor', { name: 'X' }).brand.logo, '')
+})
+
+test('the primary button opens the register of today, for the Today roles only', () => {
+	for (const role of TODAY_ROLES) {
+		const action = buildNav(SIMPLE, role).primaryAction
+		assert.deepEqual(
+			action,
+			{
+				label: 'Fill in attendance',
+				icon: 'ClipboardCheckOutline',
+				route: 'RollCall',
+			},
+			role,
+		)
+		const page = build(SIMPLE, role).pages.find(
+			(candidate) => candidate.id === action.route,
+		)
+		assert.ok(page && !page.route.includes(':'), role)
+	}
+	for (const role of ROLES.filter((role) => !TODAY_ROLES.includes(role))) {
+		assert.equal(buildNav(SIMPLE, role).primaryAction, undefined, role)
+	}
+	// Nothing to judge the gate with: no button, the safe side.
+	assert.equal(
+		buildNav(SIMPLE, 'instructor', THEMING, null).primaryAction,
+		undefined,
+	)
+	assert.ok(readText('src/icons.js').includes('ClipboardCheckOutline'))
+	assert.equal(
+		readJson('l10n/nl.json').translations['Fill in attendance'],
+		'Aanwezigheid invullen',
+	)
+})
+
+test('the full profile has no brand and no button, and main.js reads the theming capabilities', () => {
+	assert.equal(FULL.nav, undefined)
+	assert.equal(build(FULL, 'instructor').nav, BASE.nav)
+	assert.ok(readText('src/main.js').includes('navTheming(getCapabilities())'))
+})
+
+test('Today sits in two columns as the board draws it', () => {
+	const placed = (id) => TODAY.config.layout.find((item) => item.widgetId === id)
+	const main = ['today-lessons', 'today-week', 'today-signals']
+	for (const id of main) {
+		assert.equal(placed(id).gridX, 0, id)
+		assert.equal(placed(id).gridWidth, 8, id)
+	}
+	assert.equal(placed(main[0]).gridY, 4)
+	for (let at = 1; at < main.length; at++) {
+		assert.ok(placed(main[at]).gridY > placed(main[at - 1]).gridY, main[at])
+	}
+	const tiles = TODAY.config.widgets.filter((widget) => widget.type === 'stat')
+	for (const tile of tiles) {
+		const item = placed(tile.id)
+		// One under the other, the full side column wide: at two columns the
+		// stat card cut its label to "Assignm" (seen live, 6 October 2026).
+		assert.equal(item.gridX, 8, tile.id)
+		assert.equal(item.gridWidth, 4, tile.id)
+	}
+	const tileRows = tiles.map((tile) => placed(tile.id).gridY)
+	assert.deepEqual(tileRows, [4, 6, 8, 10])
+	const grid = placed('today-dashboards')
+	assert.equal(grid.gridWidth, 12)
+	assert.ok(
+		grid.gridY
+			>= Math.max(
+				...TODAY.config.layout
+					.filter((item) => item.id !== grid.id)
+					.map((item) => item.gridY + item.gridHeight),
+			),
+	)
+})
+
+test('the two lists on Today open what they show', () => {
+	const pages = build(SIMPLE, 'instructor').pages
+	const pageOf = (name) => pages.find((candidate) => candidate.id === name)
+	const lists = TODAY.config.widgets.filter(
+		(widget) => widget.type === 'object-table',
+	)
+	assert.equal(lists.length, 2)
+	for (const list of lists) {
+		const { source, columns, rowRoute, viewAllRoute } = list.content
+		const schema = schemaOf(source.schema)
+		for (const field of [
+			...Object.keys(source.filter),
+			...columns.map((column) => column.key),
+		]) {
+			assert.ok(
+				Object.hasOwn(schema.properties, field),
+				`${list.id}: no field ${field}`,
+			)
+		}
+		const detail = pageOf(rowRoute)
+		assert.equal(detail.type, 'detail', list.id)
+		assert.ok(detail.route.endsWith('/:id'), list.id)
+		assert.equal(schemaOf(detail.config.schema).slug, schema.slug, list.id)
+		const index = pageOf(viewAllRoute.name)
+		assert.equal(index.type, 'index', list.id)
+		assert.ok(!index.route.includes(':'), list.id)
+		assert.equal(schemaOf(index.config.schema).slug, schema.slug, list.id)
+		// The same filter: in the address, or carried by the list itself.
+		assert.deepEqual(
+			asQuery({
+				...(index.config.filter || {}),
+				...(viewAllRoute.query || {}),
+			}),
+			asQuery(source.filter),
+			list.id,
+		)
+		assert.equal(list.content.hideHeader, true, list.id)
+		assert.ok(list.content.emptyText, list.id)
+	}
+	// The flags list is the attention card's own count, opened the same way.
+	const flags = lists.find((list) => list.id === 'today-signals')
+	const card = TODAY.config.widgets.find((widget) => widget.type === 'banner')
+	assert.deepEqual(
+		flags.content.source.filter,
+		card.content.visibleWhen.source.filter,
+	)
+	assert.equal(flags.content.viewAllRoute.name, card.content.actions[0].route.name)
+})
+
+test('the brand block shows the emblem, not the whole wordmark, when the set ships one', () => {
+	// The board's brand block holds the shield only; the theming logo is the
+	// full wordmark, which then stood twice beside the app name (seen live on
+	// decidiq, 6 October 2026).
+	assert.equal(SIMPLE.nav.brand.logo, '@theming.emblem|@theming.logo')
+	const brand = buildNav(
+		SIMPLE,
+		'instructor',
+		navTheming({
+			theming: THEMING,
+			nldesign: { logos: { emblem: '/apps/thematiq/img/emblem.svg' } },
+		}),
+	).brand
+	assert.equal(brand.logo, '/apps/thematiq/img/emblem.svg')
+	assert.equal(brand.caption, 'Gemeente Zuiddrecht')
+})
+
+test('the brand block falls back to the theming logo without an emblem, and is empty without either', () => {
+	const fallback = buildNav(
+		SIMPLE,
+		'instructor',
+		navTheming({ theming: THEMING, nldesign: { logos: {} } }),
+	).brand
+	assert.equal(fallback.logo, '/apps/theming/image/logo?v=1')
+	const neither = buildNav(
+		SIMPLE,
+		'instructor',
+		navTheming({ theming: { name: 'X' } }),
+	).brand
+	assert.equal(neither.logo, '')
+})
+
+test('navTheming reads the emblem from thematiq, and an empty string when there is none', () => {
+	assert.equal(
+		navTheming({ nldesign: { logos: { emblem: '/e.svg' } } }).emblem,
+		'/e.svg',
+	)
+	assert.equal(navTheming({ theming: THEMING }).emblem, '')
+	assert.equal(navTheming({ nldesign: { logos: { emblem: 42 } } }).emblem, '')
+	assert.deepEqual(navTheming(null), { emblem: '' })
+	assert.equal(navTheming({ theming: THEMING }).name, 'Gemeente Zuiddrecht')
 })

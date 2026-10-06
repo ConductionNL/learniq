@@ -118,3 +118,36 @@ A structure profile MAY overlay a page by id. An overlay that names a page the m
 - **GIVEN** the simple structure
 - **WHEN** a page with an overlay is built
 - **THEN** every item the page had MUST still be there, unchanged and in the same place
+
+### Requirement: REQ-SSP-006 The simple navigation carries the brand of the instance and one primary action
+
+In the simple structure the navigation MUST open with a brand block (the instance's logo, the app name and the instance's name as caption) and, for the roles the Today dashboard is for, a primary button that opens the register of today. The instance's name MUST come from the theming capabilities at boot, and the logo MUST be the active set's emblem (thematiq's `nldesign.logos.emblem`) or, without one, the theming logo; the app MUST NOT name a school. A value the instance does not answer MUST stay empty. A reader the button's gate does not pass for, or whose gate nothing can judge, MUST NOT get the button. The full structure MUST keep the navigation without them.
+
+#### Scenario: The brand block names the instance
+@e2e exclude A reading of the built nav, asserted in structureProfile.test.mjs.
+- **GIVEN** the simple structure on an instance whose theming capabilities name it
+- **WHEN** the manifest is built
+- **THEN** `nav.brand` MUST carry the app name, the instance's name as caption and its logo
+
+#### Scenario: The button follows the role
+@e2e exclude A reading of the built nav per role, asserted in structureProfile.test.mjs.
+- **GIVEN** the simple structure
+- **WHEN** the manifest is built for a teacher
+- **THEN** `nav.primaryAction` MUST open the Today's register page
+- **WHEN** the manifest is built for a learner, or without an evaluator for the gate
+- **THEN** there MUST be no `nav.primaryAction`
+
+#### Scenario: The instance has no theming answer
+@e2e exclude A reading of the built nav, asserted in structureProfile.test.mjs.
+- **GIVEN** the simple structure on an instance without theming capabilities
+- **WHEN** the manifest is built
+- **THEN** the caption and the logo MUST be empty strings, not a guess
+
+#### Scenario: The brand block shows the emblem, not the wordmark
+@e2e exclude A reading of the built nav, asserted in the structure profile unit tests.
+- **GIVEN** the simple structure on an instance whose thematiq set ships an emblem
+- **WHEN** the manifest is built
+- **THEN** `nav.brand.logo` MUST be that emblem
+- **WHEN** the set ships no emblem
+- **THEN** `nav.brand.logo` MUST be the theming logo
+
