@@ -10277,7 +10277,7 @@
         "eherkenningRef": "Voorbeeld Eherkenningref 1",
         "contactName": "Voorbeeld Contactname 1",
         "contactEmail": "voorbeeld0@example.invalid",
-        "locationId": "00000000-0000-4000-8000-000000000000",
+        "locationId": "ee000075-0000-4000-8000-000000000001",
         "lifecycle": "active"
       },
       {
@@ -10293,7 +10293,7 @@
         "eherkenningRef": "Voorbeeld Eherkenningref 2",
         "contactName": "Voorbeeld Contactname 2",
         "contactEmail": "voorbeeld1@example.invalid",
-        "locationId": "00000000-0000-4000-8000-000000000001",
+        "locationId": "ee000075-0000-4000-8000-000000000001",
         "lifecycle": "inactive"
       },
       {
@@ -10309,7 +10309,7 @@
         "eherkenningRef": "Voorbeeld Eherkenningref 3",
         "contactName": "Voorbeeld Contactname 3",
         "contactEmail": "voorbeeld2@example.invalid",
-        "locationId": "00000000-0000-4000-8000-000000000002",
+        "locationId": "ee000075-0000-4000-8000-000000000001",
         "lifecycle": "active"
       },
       {
@@ -10319,12 +10319,12 @@
           "slug": "course-booking-coursebooking-1-1",
           "id": "ee00ffa2-0000-4000-8000-000000000001"
         },
-        "organisationRef": "00000000-0000-4000-8000-000000000000",
-        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "organisationRef": "ee00ffa1-0000-4000-8000-000000000001",
+        "cohortId": "ee000018-0000-4000-8000-000000000001",
         "participantCount": 1,
         "tenant_id": "00000000-0000-4000-8000-000000000000",
         "bookingNumber": "Voorbeeld Bookingnumber 1",
-        "courseId": "00000000-0000-4000-8000-000000000000",
+        "courseId": "ee000020-0000-4000-8000-000000000001",
         "courseName": "Voorbeeld Coursename 1",
         "firstDay": "2026-03-01",
         "dayLabel": "Voorbeeld Daylabel 1",
@@ -10334,7 +10334,7 @@
         "bookingLabel": "Voorbeeld Bookinglabel 1",
         "upcoming": true,
         "participantRefs": [
-          "00000000-0000-4000-8000-000000000000"
+          "ee000046-0000-4000-8000-000000000001"
         ],
         "participantNames": "Voorbeeld Participantnames 1",
         "missingDetailsCount": 0,
@@ -10353,12 +10353,12 @@
           "slug": "course-booking-coursebooking-2-2",
           "id": "ee00ffa2-0000-4000-8000-000000000002"
         },
-        "organisationRef": "00000000-0000-4000-8000-000000000001",
-        "cohortId": "00000000-0000-4000-8000-000000000001",
+        "organisationRef": "ee00ffa1-0000-4000-8000-000000000002",
+        "cohortId": "ee000018-0000-4000-8000-000000000002",
         "participantCount": 2,
         "tenant_id": "00000000-0000-4000-8000-000000000001",
         "bookingNumber": "Voorbeeld Bookingnumber 2",
-        "courseId": "00000000-0000-4000-8000-000000000001",
+        "courseId": "ee000020-0000-4000-8000-000000000002",
         "courseName": "Voorbeeld Coursename 2",
         "firstDay": "2026-03-02",
         "dayLabel": "Voorbeeld Daylabel 2",
@@ -10368,7 +10368,7 @@
         "bookingLabel": "Voorbeeld Bookinglabel 2",
         "upcoming": false,
         "participantRefs": [
-          "00000000-0000-4000-8000-000000000001"
+          "ee000046-0000-4000-8000-000000000001"
         ],
         "participantNames": "Voorbeeld Participantnames 2",
         "missingDetailsCount": 1,
@@ -10387,12 +10387,12 @@
           "slug": "course-booking-coursebooking-3-3",
           "id": "ee00ffa2-0000-4000-8000-000000000003"
         },
-        "organisationRef": "00000000-0000-4000-8000-000000000002",
-        "cohortId": "00000000-0000-4000-8000-000000000002",
+        "organisationRef": "ee00ffa1-0000-4000-8000-000000000003",
+        "cohortId": "ee000018-0000-4000-8000-000000000003",
         "participantCount": 3,
         "tenant_id": "00000000-0000-4000-8000-000000000002",
         "bookingNumber": "Voorbeeld Bookingnumber 3",
-        "courseId": "00000000-0000-4000-8000-000000000002",
+        "courseId": "ee000020-0000-4000-8000-000000000003",
         "courseName": "Voorbeeld Coursename 3",
         "firstDay": "2026-03-03",
         "dayLabel": "Voorbeeld Daylabel 3",
@@ -10402,7 +10402,7 @@
         "bookingLabel": "Voorbeeld Bookinglabel 3",
         "upcoming": true,
         "participantRefs": [
-          "00000000-0000-4000-8000-000000000002"
+          "ee000046-0000-4000-8000-000000000001"
         ],
         "participantNames": "Voorbeeld Participantnames 3",
         "missingDetailsCount": 2,
