@@ -117,7 +117,18 @@ class ParticipantSitePages {
 				id: 'participantCertificates',
 				schema: 'credential',
 				label: 'My certificates',
-				fields: ['learnerId', 'courseName', 'kind', 'validUntilLabel', 'expiresAt', 'expiryStatus', 'expiryLabel', 'renewalLine', 'verificationUrl', 'lifecycle'],
+				fields: [
+					'learnerId',
+					'courseName',
+					'kind',
+					'validUntilLabel',
+					'expiresAt',
+					'expiryStatus',
+					'expiryLabel',
+					'renewalLine',
+					'verificationUrl',
+					'lifecycle',
+				],
 				extra: [
 					// A certificate names its holder by the profile uuid in `learnerId`.
 					'scopeField' => 'learnerId',
