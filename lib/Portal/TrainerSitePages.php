@@ -254,14 +254,17 @@ class TrainerSitePages {
 		}
 
 		$blocks[] = ['type' => 'collection', 'collection' => $id];
-		$blocks[] = ['type' => 'detail', 'collection' => $id];
+		$page = ['id' => $id, 'label' => (string)($collection['label'] ?? $id), 'group' => ParentSitePages::GROUP];
+		// A collection with steps is a record page: the open placement's steps under the list.
+		if (isset($collection['steps']) === true) {
+			$page['record'] = ['collection' => $id, 'titleFields' => ['trainingCompanyName']];
+			$blocks[] = ['type' => 'steps', 'collection' => $id, 'label' => (string)($collection['steps']['label'] ?? '')];
+		}
 
-		return [
-			'id' => $id,
-			'label' => (string)($collection['label'] ?? $id),
-			'group' => ParentSitePages::GROUP,
-			'blocks' => $blocks,
-		];
+		$blocks[] = ['type' => 'detail', 'collection' => $id];
+		$page['blocks'] = $blocks;
+
+		return $page;
 	}//end collectionPage()
 	/**
 	 * Manifest for the `praktijkopleider` audience (the workplace supervisor conducting BPV).
@@ -318,6 +321,9 @@ class TrainerSitePages {
 					'label' => 'My BPV placements',
 					'listable' => true,
 					'minTrust' => 'low',
+					// Followed like a case: the placement has steps (placement-steps-and-assessment-draft).
+					'kind' => 'cases',
+					'steps' => ['label' => 'Where does the placement stand?', 'provider' => 'bpvPlacementSteps'],
 					'fields' => [
 						'practicalTrainerId',
 						'learnerRef',
@@ -372,6 +378,108 @@ class TrainerSitePages {
 	}//end contribution()
 
 	/**
+	 * The trainer submits a werkproces assessment through learniq's own
+	 * endpoint, in steps with a review and a draft she can finish later.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-invited-trainer-may-submit-a-werkproces-assessment
+	 * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md#requirement-new-a-trainer-assesses-a-werkproces-in-plain-words
+	 */
+	private function assessmentAction(): array {
+		return [
+			'id' => 'createWerkprocesAssessment',
+			// Through learniq's own endpoint: a portal create carries no
+			// assertion, and the assertion is where the sign-in level is
+			// (an-invited-trainer-may-assess).
+			'type' => 'endpoint-forward',
+			'label' => 'Submit a werkproces assessment',
+			'endpoint' => '/apps/learniq/api/portal/werkproces-assessments',
+			'method' => 'POST',
+			// An invited trainer may assess (Ruben, 4 October 2026). What
+			// she signs in with is recorded on the assessment, and a school
+			// may demand more through `bpv_assessment_min_assurance`.
+			'minTrust' => 'low',
+			'subjectField' => 'practicalTrainerId',
+			'scopeClaim' => 'practicalTrainerId',
+			'fields' => [
+				'bpvPlacementId',
+				'curriculumPlanId',
+				'componentId',
+				'kwalificatiedossierCode',
+				'coreTaskCode',
+				'werkprocesCode',
+				'werkprocesLabel',
+				'competencyId',
+				'assessment',
+				'notes',
+			],
+			// In two steps with a review, saved as a draft she can finish
+			// later (site-workplace-trainer-portal-design T3; portaliq
+			// site-multi-step-forms REQ-SMF-020). The draft is kept 30 days.
+			'steps' => [
+				[
+					'id' => 'werkproces',
+					'title' => 'Which work process',
+					'description' => 'Choose the placement and the work process you assess.',
+					'fields' => [
+						'bpvPlacementId',
+						'curriculumPlanId',
+						'componentId',
+						'kwalificatiedossierCode',
+						'coreTaskCode',
+						'werkprocesCode',
+						'werkprocesLabel',
+						'competencyId',
+					],
+				],
+				[
+					'id' => 'judgement',
+					'title' => 'Your judgement',
+					'description' => 'Say whether the student is competent in this work process, and why.',
+					'fields' => ['assessment', 'notes'],
+				],
+				['id' => 'check', 'title' => 'Check and send', 'review' => true],
+			],
+			'draft' => ['retentionDays' => 30],
+			'requiredFields' => ['bpvPlacementId', 'werkprocesCode', 'werkprocesLabel', 'assessment'],
+			'optionsProviders' => [
+				'bpvPlacementId' => [
+					'type' => 'collection',
+					'register' => self::REGISTER,
+					'schema' => 'bpv-placement',
+					'labelField' => 'trainingCompanyName',
+					'valueField' => 'id',
+				],
+				'assessment' => [
+					'type' => 'static',
+					'options' => [
+						['value' => 'competent', 'label' => 'Competent'],
+						['value' => 'nog-niet-competent', 'label' => 'Not yet competent'],
+					],
+				],
+			],
+			'fieldConfigs' => [
+				'bpvPlacementId' => ['label' => 'The placement', 'required' => true],
+				'werkprocesCode' => ['label' => 'Work process code', 'required' => true],
+				'werkprocesLabel' => ['label' => 'Work process', 'required' => true],
+				'assessment' => [
+					'label' => 'Your judgement',
+					'required' => true,
+					'widget' => 'choices',
+					'valueLabels' => PortalValueLabels::WERKPROCES_ASSESSMENT,
+				],
+				'notes' => ['label' => 'Why', 'size' => 'large'],
+			],
+			'submitLabel' => 'Send the assessment',
+			'confirmation' => [
+				'title' => 'Your assessment has been sent',
+				'body' => 'The school and your student see your judgement. A draft you saved is gone now.',
+			],
+		];
+	}//end assessmentAction()
+
+	/**
 	 * What the trainer may do: submit a werkproces assessment through learniq's
 	 * own endpoint, approve or correct a week of hours through the same kind of
 	 * endpoint, and sign a praktijkovereenkomst.
@@ -383,34 +491,7 @@ class TrainerSitePages {
 	 */
 	private function actions(): array {
 		return [
-			[
-				'id' => 'createWerkprocesAssessment',
-				// Through learniq's own endpoint: a portal create carries no
-				// assertion, and the assertion is where the sign-in level is
-				// (an-invited-trainer-may-assess).
-				'type' => 'endpoint-forward',
-				'label' => 'Submit a werkproces assessment',
-				'endpoint' => '/apps/learniq/api/portal/werkproces-assessments',
-				'method' => 'POST',
-				// An invited trainer may assess (Ruben, 4 October 2026). What
-				// she signs in with is recorded on the assessment, and a school
-				// may demand more through `bpv_assessment_min_assurance`.
-				'minTrust' => 'low',
-				'subjectField' => 'practicalTrainerId',
-				'scopeClaim' => 'practicalTrainerId',
-				'fields' => [
-					'bpvPlacementId',
-					'curriculumPlanId',
-					'componentId',
-					'kwalificatiedossierCode',
-					'coreTaskCode',
-					'werkprocesCode',
-					'werkprocesLabel',
-					'competencyId',
-					'assessment',
-					'notes',
-				],
-			],
+			$this->assessmentAction(),
 			[
 				'id' => 'approveHourWeek',
 				// Through learniq's own endpoint, for the reason the assessment

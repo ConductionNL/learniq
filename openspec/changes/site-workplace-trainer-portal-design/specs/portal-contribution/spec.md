@@ -59,6 +59,16 @@ The assessment form MUST let the trainer pick the student by name from her own p
 - THEN the save is refused
 - @e2e exclude server rule; covered by the bpv werkproces resolver tests
 
+### Requirement: NEW: A placement shows where it stands
+
+The student's and the trainer's placement collections MUST be followed like a case (`kind: cases`) with the steps provider `bpvPlacementSteps`, and their pages MUST show the open placement's steps. The five steps MUST be read from what the school records: the agreement signed (the last signature on the placement's praktijkovereenkomst), the work plan made (the first finalised `voortgangsbezoek`), the midterm review (`tussentijds-gesprek`), the final review (`eindgesprek`, else the month of `periodTo`), and the placement finished (`completed`, on `periodTo`). A finished step MUST be `done`, the first open one `current`, the rest `todo`.
+
+#### Scenario: Milan stands at his midterm review
+- GIVEN Milan de Groot's placement at Bakker Techniek BV: the agreement signed on 27 August, the work plan visit on 9 September, the midterm review planned for 13 October
+- WHEN he or Petra Bakker opens the placement on Monday 5 October 2026
+- THEN the steps read done, done, current ("13 oktober 2026"), todo ("januari 2027"), todo ("29 januari 2027")
+- @e2e exclude server derivation, covered by PHPUnit `BpvPlacementStepsTest`; the page by the proof run of `tests/e2e/portal-design/esdoornveen.spec.ts`
+
 ### Requirement: Every trainer label on the site reads in Dutch, school terms explained
 
 The `praktijkopleider` manifest MUST pass through `PortalLabelTranslator`. Every label MUST have a Dutch entry in the "u" form. The first use of a school term on a page (praktijkovereenkomst, werkproces, kwalificatiedossier, BPV) MUST carry a one-line explanation.

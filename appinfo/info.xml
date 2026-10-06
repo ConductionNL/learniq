@@ -379,6 +379,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
         <command>OCA\Learniq\Command\PortalInviteGuardianCommand</command>
         <command>OCA\Learniq\Command\PortalInviteTrainerCommand</command>
         <command>OCA\Learniq\Command\PortalInviteAssessorCommand</command>
+        <command>OCA\Learniq\Command\PortalInviteEmployerCommand</command>
         <!-- example-sets-themed-portal: gives a loaded example set its themed portal
              without importing the set again. -->
         <command>OCA\Learniq\Command\ExampleSetPortalCommand</command>
