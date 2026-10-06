@@ -205,6 +205,23 @@ class OpenRegisterAutoloaderTest extends TestCase {
 	}//end testRegistersNothingWhenDisabled()
 
 	/**
+	 * An enabled OpenRegister whose path has no `lib/` is not wired.
+	 *
+	 * @return void
+	 */
+	public function testRegistersNothingWhenLibIsMissing(): void {
+		$appManager = $this->createMock(IAppManager::class);
+		$appManager->method('isEnabledForAnyone')->willReturn(true);
+		$appManager->method('getAppPath')->willReturn($this->appPath.'/lib/Nc35Fake');
+
+		$before = count(spl_autoload_functions());
+		OpenRegisterAutoloader::register(appManager: $appManager);
+
+		$this->assertSame($before, count(spl_autoload_functions()));
+
+	}//end testRegistersNothingWhenLibIsMissing()
+
+	/**
 	 * An exception from the app manager is swallowed.
 	 *
 	 * @return void
