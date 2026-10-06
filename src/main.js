@@ -13,6 +13,7 @@ import {
 	registerTranslations,
 } from '@conduction/nextcloud-vue'
 import { passesContextPredicates } from '@conduction/nextcloud-vue/src/utils/visibleIfContext.js'
+import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
 import {
 	loadTranslations,
@@ -238,6 +239,9 @@ const mergedManifest = applyReportCardGates(
 		// An overlay with a `when` (the Today dashboard) applies only for the
 		// roles it names, judged against the runtime built above.
 		passesContextPredicates,
+		// The brand block names the school through the theming capabilities
+		// (`@theming.name`, `@theming.logo`): the app names no school itself.
+		{ theming: getCapabilities()?.theming ?? null },
 	),
 )
 

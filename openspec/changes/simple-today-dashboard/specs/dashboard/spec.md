@@ -55,3 +55,22 @@ Every page Today links for a role MUST be a page the full menu puts within one s
 - **GIVEN** one of the four roles
 - **WHEN** the links on Today are read
 - **THEN** each MUST open a page the full menu offers that role, in the menu or one step from it
+
+### Requirement: REQ-STD-004 Today is laid out in two columns as the board draws it
+
+Under the attention card, Today MUST show a main column eight of twelve wide with the lessons of today, the week strip and the open attendance flags, and a side column four wide with the four counters two by two. The lessons list MUST read sessions that start today and open a lesson and the Lessons today list; the flags list MUST read open flags and open a flag and the Attendance flags list with the same filter. Both lists MUST be library widgets. Other dashboards MUST follow below at full width.
+
+#### Scenario: The two lists open what they show
+@e2e exclude A reading of the two widgets against the pages, asserted in structureProfile.test.mjs.
+- **GIVEN** the Today dashboard
+- **WHEN** its lists are read
+- **THEN** each row opens a detail page of the schema the list reads
+- **AND** "View all" opens an index page of that schema with the same filter
+
+#### Scenario: The columns hold what the board draws
+@e2e exclude A reading of the layout, asserted in structureProfile.test.mjs.
+- **GIVEN** the Today dashboard
+- **WHEN** its layout is read
+- **THEN** the lessons, the week strip and the flags sit at the left, eight wide
+- **AND** the four counters sit at the right, two wide each, on two rows
+

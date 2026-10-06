@@ -37,6 +37,15 @@
  *           on the manifest runtime: the overlay applies only for a signed-in
  *           user it passes for. An overlay never adds a page and never
  *           removes one.
+ *   nav     Merged over the manifest's `nav` (the brand block and the primary
+ *           action CnAppNav draws). A string value `@theming.<key>` is read
+ *           from the instance's theming capabilities (`name`, `logo`, ...),
+ *           so a profile can show the school's own name and logo without
+ *           naming one; a placeholder the instance cannot answer is left
+ *           empty, never invented. The primary action may carry a `visibleIf`
+ *           on the runtime: it is judged once at boot and the action is
+ *           dropped for a reader it does not pass for (the library knows no
+ *           gate on a primary action).
  *
  * Nothing here deletes anything. The pages, the routes and the fragments are
  * the same in both profiles, which is what keeps every deep link working.
@@ -159,6 +168,87 @@ export function overlayItemName(item) {
 	return item?.id ?? item?.key ?? item?.label
 }
 
+/** The prefix of a `nav` value the instance's theming capabilities answer. */
+const THEMING_PLACEHOLDER = '@theming.'
+
+/**
+ * Resolve the `nav` block of a profile: `@theming.<key>` strings become the
+ * instance's own theming values, one level deep (`brand.caption`,
+ * `primaryAction.label`), so no school is written into the app.
+ *
+ * A placeholder the capabilities do not answer resolves to an empty string,
+ * which CnAppNav reads as "nothing to draw" for that field. The profile is
+ * not the place to guess an instance's name.
+ *
+ * @param {object} nav The profile's `nav` block.
+ * @param {object|null} theming The theming capabilities (`name`, `logo`, ...).
+ * @return {object} A new nav block with every placeholder resolved.
+ *
+ * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
+ */
+export function resolveNavPlaceholders(nav, theming) {
+	const resolveValue = (value) => {
+		if (typeof value !== 'string' || !value.startsWith(THEMING_PLACEHOLDER)) {
+			return value
+		}
+		const key = value.slice(THEMING_PLACEHOLDER.length)
+		const answer =
+			theming && typeof theming === 'object' ? theming[key] : undefined
+		return typeof answer === 'string' ? answer : ''
+	}
+	const out = {}
+	for (const [key, value] of Object.entries(nav || {})) {
+		if (key.startsWith('_')) {
+			// A note in the profile file is for its reader, not for the
+			// manifest schema (`nav` takes no extra keys).
+			continue
+		}
+		out[key] =
+			value && typeof value === 'object' && !Array.isArray(value)
+				? Object.fromEntries(
+						Object.entries(value).map(([inner, innerValue]) => [
+							inner,
+							resolveValue(innerValue),
+						]),
+					)
+				: resolveValue(value)
+	}
+	return out
+}
+
+/**
+ * The `nav` block a reader gets: placeholders resolved, and the primary
+ * action kept only for a reader its `visibleIf` passes for. The gate itself
+ * never reaches the library (the manifest schema has no word for it).
+ *
+ * Without an evaluator a gated action is dropped: a pupil shown a teacher's
+ * button is the mistake this guards against, so unknown means no.
+ *
+ * @param {object} nav The profile's `nav` block.
+ * @param {object} runtime The manifest runtime (`user`, `workspace`).
+ * @param {(predicate: object, runtime: object) => boolean} [passes] The
+ *   library's `passesContextPredicates`.
+ * @param {object|null} theming The theming capabilities.
+ * @return {object} The nav block for this reader.
+ *
+ * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
+ */
+export function resolveProfileNav(nav, runtime, passes, theming) {
+	const resolved = resolveNavPlaceholders(nav, theming)
+	const action = resolved.primaryAction
+	if (action && typeof action === 'object' && 'visibleIf' in action) {
+		const { visibleIf, ...rest } = action
+		const shown =
+			typeof passes === 'function' && passes(visibleIf, runtime || {})
+		if (shown) {
+			resolved.primaryAction = rest
+		} else {
+			delete resolved.primaryAction
+		}
+	}
+	return resolved
+}
+
 /**
  * Build the manifest for one structure profile.
  *
@@ -181,6 +271,8 @@ export function overlayItemName(item) {
  *   library's `passesContextPredicates`. An overlay with a `when` is applied
  *   only when it passes for `base.runtime`. Without an evaluator such an
  *   overlay is skipped: the page then stays what it was, which is the safe side.
+ * @param {object} [context] `{ theming }`: the instance's theming
+ *   capabilities, for the placeholders a profile's `nav` block may carry.
  * @return {object} The built manifest.
  *
  * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
@@ -191,6 +283,7 @@ export function buildProfiledManifest(
 	fragments,
 	profileFile,
 	passes,
+	context = {},
 ) {
 	const file = profileFile || {}
 	const layout = {}
@@ -214,7 +307,22 @@ export function buildProfiledManifest(
 				}
 			: base
 
-	const built = buildManifest(profiledBase, fragments, layout)
+	const builtPages = buildManifest(profiledBase, fragments, layout)
+	const built =
+		file.nav && typeof file.nav === 'object'
+			? {
+					...builtPages,
+					nav: {
+						...(builtPages.nav || {}),
+						...resolveProfileNav(
+							file.nav,
+							base.runtime,
+							passes,
+							context.theming ?? null,
+						),
+					},
+				}
+			: builtPages
 
 	const overlays = Array.isArray(file.pages) ? file.pages : []
 	if (overlays.length === 0) {
