@@ -168,6 +168,26 @@ export function overlayItemName(item) {
 	return item?.id ?? item?.key ?? item?.label
 }
 
+/**
+ * The theming values the simple profile's nav placeholders read.
+ *
+ * The brand block wants the emblem (the shield of the workplace boards), not
+ * the whole wordmark: thematiq exposes the active set's emblem as
+ * `nldesign.logos.emblem`. Without one, `@theming.emblem|@theming.logo` falls
+ * back to Nextcloud's own logo.
+ *
+ * @param {object|null} capabilities `getCapabilities()`.
+ * @return {object} Nextcloud's theming block plus `emblem`, '' when the set
+ *   ships none.
+ *
+ * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
+ */
+export function navTheming(capabilities) {
+	const theming = capabilities?.theming ?? {}
+	const emblem = capabilities?.nldesign?.logos?.emblem
+	return { ...theming, emblem: typeof emblem === 'string' ? emblem : '' }
+}
+
 /** The prefix of a `nav` value the instance's theming capabilities answer. */
 const THEMING_PLACEHOLDER = '@theming.'
 
@@ -175,6 +195,9 @@ const THEMING_PLACEHOLDER = '@theming.'
  * Resolve the `nav` block of a profile: `@theming.<key>` strings become the
  * instance's own theming values, one level deep (`brand.caption`,
  * `primaryAction.label`), so no school is written into the app.
+ *
+ * A value may list fallbacks with `|` (`@theming.emblem|@theming.logo`): the
+ * first one the instance answers wins.
  *
  * A placeholder the capabilities do not answer resolves to an empty string,
  * which CnAppNav reads as "nothing to draw" for that field. The profile is
@@ -187,14 +210,27 @@ const THEMING_PLACEHOLDER = '@theming.'
  * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
  */
 export function resolveNavPlaceholders(nav, theming) {
+	const resolveOne = (placeholder) => {
+		const key = placeholder.slice(THEMING_PLACEHOLDER.length)
+		const answer =
+			theming && typeof theming === 'object' ? theming[key] : undefined
+		return typeof answer === 'string' ? answer : ''
+	}
 	const resolveValue = (value) => {
 		if (typeof value !== 'string' || !value.startsWith(THEMING_PLACEHOLDER)) {
 			return value
 		}
-		const key = value.slice(THEMING_PLACEHOLDER.length)
-		const answer =
-			theming && typeof theming === 'object' ? theming[key] : undefined
-		return typeof answer === 'string' ? answer : ''
+		// `@theming.emblem|@theming.logo`: the first placeholder the instance
+		// answers wins, so a set with an emblem shows it and one without falls
+		// back to its wordmark. None answered: empty, never a guess.
+		return (
+			value
+				.split('|')
+				.map((part) => part.trim())
+				.filter((part) => part.startsWith(THEMING_PLACEHOLDER))
+				.map(resolveOne)
+				.find((answer) => answer !== '') ?? ''
+		)
 	}
 	const out = {}
 	for (const [key, value] of Object.entries(nav || {})) {

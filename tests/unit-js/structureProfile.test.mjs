@@ -38,6 +38,7 @@ import { applyReportCardGates } from '../../src/utils/reportCardGates.js'
 import {
 	applyPageOverlay,
 	buildProfiledManifest,
+	navTheming,
 	resolveStructureProfile,
 	STRUCTURE_FULL,
 	STRUCTURE_SETTING,
@@ -1507,7 +1508,7 @@ test('the primary button opens the register of today, for the Today roles only',
 test('the full profile has no brand and no button, and main.js reads the theming capabilities', () => {
 	assert.equal(FULL.nav, undefined)
 	assert.equal(build(FULL, 'instructor').nav, BASE.nav)
-	assert.ok(readText('src/main.js').includes('getCapabilities()?.theming'))
+	assert.ok(readText('src/main.js').includes('navTheming(getCapabilities())'))
 })
 
 test('Today sits in two columns as the board draws it', () => {
@@ -1587,4 +1588,47 @@ test('the two lists on Today open what they show', () => {
 		card.content.visibleWhen.source.filter,
 	)
 	assert.equal(flags.content.viewAllRoute.name, card.content.actions[0].route.name)
+})
+
+test('the brand block shows the emblem, not the whole wordmark, when the set ships one', () => {
+	// The board's brand block holds the shield only; the theming logo is the
+	// full wordmark, which then stood twice beside the app name (seen live on
+	// decidiq, 6 October 2026).
+	assert.equal(SIMPLE.nav.brand.logo, '@theming.emblem|@theming.logo')
+	const brand = buildNav(
+		SIMPLE,
+		'instructor',
+		navTheming({
+			theming: THEMING,
+			nldesign: { logos: { emblem: '/apps/thematiq/img/emblem.svg' } },
+		}),
+	).brand
+	assert.equal(brand.logo, '/apps/thematiq/img/emblem.svg')
+	assert.equal(brand.caption, 'Gemeente Zuiddrecht')
+})
+
+test('the brand block falls back to the theming logo without an emblem, and is empty without either', () => {
+	const fallback = buildNav(
+		SIMPLE,
+		'instructor',
+		navTheming({ theming: THEMING, nldesign: { logos: {} } }),
+	).brand
+	assert.equal(fallback.logo, '/apps/theming/image/logo?v=1')
+	const neither = buildNav(
+		SIMPLE,
+		'instructor',
+		navTheming({ theming: { name: 'X' } }),
+	).brand
+	assert.equal(neither.logo, '')
+})
+
+test('navTheming reads the emblem from thematiq, and an empty string when there is none', () => {
+	assert.equal(
+		navTheming({ nldesign: { logos: { emblem: '/e.svg' } } }).emblem,
+		'/e.svg',
+	)
+	assert.equal(navTheming({ theming: THEMING }).emblem, '')
+	assert.equal(navTheming({ nldesign: { logos: { emblem: 42 } } }).emblem, '')
+	assert.deepEqual(navTheming(null), { emblem: '' })
+	assert.equal(navTheming({ theming: THEMING }).name, 'Gemeente Zuiddrecht')
 })

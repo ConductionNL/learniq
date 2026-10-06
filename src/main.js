@@ -37,6 +37,7 @@ import { applyReportCardGates } from './utils/reportCardGates.js'
 import { applyStoreAccess } from './utils/storeAccess.js'
 import {
 	buildProfiledManifest,
+	navTheming,
 	resolveStructureProfile,
 	STRUCTURE_FULL,
 	STRUCTURE_SETTING,
@@ -241,7 +242,7 @@ const mergedManifest = applyReportCardGates(
 		passesContextPredicates,
 		// The brand block names the school through the theming capabilities
 		// (`@theming.name`, `@theming.logo`): the app names no school itself.
-		{ theming: getCapabilities()?.theming ?? null },
+		{ theming: navTheming(getCapabilities()) },
 	),
 )
 

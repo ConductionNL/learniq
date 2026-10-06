@@ -456,11 +456,11 @@
 		}
 	],
 	"nav": {
-		"_note": "The brand block and the primary button of the navigation (LqDashboard, AppZijbalk). The caption and the logo are the instance's own theming values, resolved at boot by structureProfile.js: no school is written here. The board captions the brand 'Voor docenten'; the caption here is the instance, the way the other apps' boards draw it, until that role caption is decided. Fill in attendance opens the register of today (RollCall), which the Today dashboard already offers, and only for the roles the Today dashboard is for: the library has no gate on a primary action, so the profile judges this one at boot.",
+		"_note": "The brand block and the primary button of the navigation (LqDashboard, AppZijbalk). The caption is the instance's own theming name and the logo its emblem (thematiq's `nldesign.logos.emblem`, the shield), falling back to the theming logo, resolved at boot by structureProfile.js: no school is written here. The board captions the brand 'Voor docenten'; the caption here is the instance, the way the other apps' boards draw it, until that role caption is decided. Fill in attendance opens the register of today (RollCall), which the Today dashboard already offers, and only for the roles the Today dashboard is for: the library has no gate on a primary action, so the profile judges this one at boot.",
 		"brand": {
 			"name": "learniq",
 			"caption": "@theming.name",
-			"logo": "@theming.logo"
+			"logo": "@theming.emblem|@theming.logo"
 		},
 		"primaryAction": {
 			"label": "Fill in attendance",
