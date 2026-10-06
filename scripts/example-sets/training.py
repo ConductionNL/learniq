@@ -805,6 +805,10 @@ def employer_booking_facts(booking: dict, course: dict, sessions: list[dict], pa
         time_label = (min(parse(x["startsAt"]).strftime("%H.%M") for x in first_sessions) + " tot "
                       + max(parse(x["endsAt"]).strftime("%H.%M") for x in first_sessions) + " uur")
     course_name = (course.get("name") or "").strip() or None
+    day = {"firstDay": first.isoformat() if first else None, "dayLabel": label, "timeLabel": time_label, "placeLabel": place,
+           "trainerName": trainer, "upcoming": lifecycle in ("received", "confirmed")}
+    for key in enrolments:
+        enrolments[key].update(day)
     return {
         "booking": {
             "courseName": course_name,
