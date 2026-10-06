@@ -39,7 +39,6 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
-use OCA\OpenRegister\Db\AuditTrailMapper;
 use OCA\OpenRegister\Service\AuditHashService;
 use OCP\IUser;
 use ZipArchive;
@@ -64,7 +63,7 @@ class AuditPackBuilder {
 	/**
 	 * Constructor.
 	 *
-	 * @param AuditTrailMapper $auditTrailMapper OR audit-trail database mapper.
+	 * @param AuditTrailPeriodReader $period Reads the audit entries of the export period.
 	 * @param AuditHashService $auditHashService OR HMAC chain verification service.
 	 * @param CallerTenantResolver $tenants Resolves the tenant: the per-user binding, else the default tenant.
 	 * @param CsvCellSanitizer $sanitizer CSV formula-injection neutraliser.
@@ -73,7 +72,7 @@ class AuditPackBuilder {
 	 * @param AuditEntryAttribution $attribution Keeps the entries whose object is in the caller's tenant.
 	 */
 	public function __construct(
-		private readonly AuditTrailMapper $auditTrailMapper,
+		private readonly AuditTrailPeriodReader $period,
 		private readonly AuditHashService $auditHashService,
 		private readonly CallerTenantResolver $tenants,
 		private readonly CsvCellSanitizer $sanitizer,
@@ -87,8 +86,8 @@ class AuditPackBuilder {
 	/**
 	 * Build the audit-pack ZIP bytes for one request.
 	 *
-	 * #184: the audit-trail query is always scoped to the requesting user's own
-	 * tenant so entries from other tenants are never returned.
+	 * #184: only entries about objects in the requesting user's own tenant are
+	 * exported (AuditEntryAttribution); entries from other tenants never are.
 	 *
 	 * @param IUser $user Authenticated user whose tenant scopes the pack.
 	 * @param string $regulationSlug Regulation slug to filter (e.g. 'NIS2').
@@ -104,15 +103,10 @@ class AuditPackBuilder {
 
 		// The trail has no tenant column, and AuditTrailMapper::findAll() drops
 		// every filter outside its column allowlist, so a tenant_id filter here
-		// returned every tenant's entries. The period is filtered by the
-		// mapper; the tenant is decided by the object each entry is about.
-		$entries = $this->auditTrailMapper->findAll(
-			filters: ['created' => $dateFrom . ',' . $dateTo],
-			sort: ['created' => 'ASC']
-		);
-
+		// returned every tenant's entries. The tenant is decided by the object
+		// each entry is about; the period by AuditTrailPeriodReader.
 		$own = $this->attribution->ownEntries(
-			entries: $this->serialise(entries: $entries),
+			entries: $this->period->entries(dateFrom: $dateFrom, dateTo: $dateTo),
 			tenantId: $tenantId,
 			regulationSlug: $regulationSlug
 		);
@@ -155,22 +149,19 @@ class AuditPackBuilder {
 	}//end resolveTenantId()
 
 	/**
-	 * Serialise the audit-trail entities, in mapper order.
+	 * Whether both bounds of the export period are dates.
 	 *
-	 * @param array<int,mixed> $entries AuditTrail entities from the OR mapper.
+	 * @param string $dateFrom ISO-8601 lower bound.
+	 * @param string $dateTo ISO-8601 upper bound.
 	 *
-	 * @return array<int,array<string,mixed>> Serialised entries.
+	 * @return bool True when both parse.
 	 *
 	 * @spec openspec/specs/compliance-audit/spec.md#requirement-export-audit-ready-zip-per-regulation-and-date-range
 	 */
-	private function serialise(array $entries): array {
-		$rows = [];
-		foreach ($entries as $entry) {
-			$rows[] = (array)$entry->jsonSerialize();
-		}
-
-		return $rows;
-	}//end serialise()
+	public function isPeriod(string $dateFrom, string $dateTo): bool {
+		return $this->period->parseBound(value: $dateFrom, endOfDay: false) !== null
+			&& $this->period->parseBound(value: $dateTo, endOfDay: true) !== null;
+	}//end isPeriod()
 
 	/**
 	 * Find the lowest and highest audit-entry ID among the exported events.
