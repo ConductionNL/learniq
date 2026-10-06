@@ -58,7 +58,7 @@ Every page Today links for a role MUST be a page the full menu puts within one s
 
 ### Requirement: REQ-STD-004 Today is laid out in two columns as the board draws it
 
-Under the attention card, Today MUST show a main column eight of twelve wide with the lessons of today, the week strip and the open attendance flags, and a side column four wide with the four counters two by two. The lessons list MUST read sessions that start today and open a lesson and the Lessons today list; the flags list MUST read open flags and open a flag and the Attendance flags list with the same filter. Both lists MUST be library widgets. Other dashboards MUST follow below at full width.
+Under the attention card, Today MUST show a main column eight of twelve wide with the lessons of today, the week strip and the open attendance flags, and a side column four wide with the four counters one under the other, so no label is cut. The lessons list MUST read sessions that start today and open a lesson and the Lessons today list; the flags list MUST read open flags and open a flag and the Attendance flags list with the same filter. Both lists MUST be library widgets. Other dashboards MUST follow below at full width.
 
 #### Scenario: The two lists open what they show
 @e2e exclude A reading of the two widgets against the pages, asserted in structureProfile.test.mjs.
@@ -72,5 +72,5 @@ Under the attention card, Today MUST show a main column eight of twelve wide wit
 - **GIVEN** the Today dashboard
 - **WHEN** its layout is read
 - **THEN** the lessons, the week strip and the flags sit at the left, eight wide
-- **AND** the four counters sit at the right, two wide each, on two rows
+- **AND** the four counters sit at the right, four wide each, one under the other
 

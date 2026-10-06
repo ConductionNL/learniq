@@ -1525,10 +1525,13 @@ test('Today sits in two columns as the board draws it', () => {
 	const tiles = TODAY.config.widgets.filter((widget) => widget.type === 'stat')
 	for (const tile of tiles) {
 		const item = placed(tile.id)
-		assert.ok(item.gridX === 8 || item.gridX === 10, tile.id)
-		assert.equal(item.gridWidth, 2, tile.id)
-		assert.ok(item.gridY === 4 || item.gridY === 6, tile.id)
+		// One under the other, the full side column wide: at two columns the
+		// stat card cut its label to "Assignm" (seen live, 6 October 2026).
+		assert.equal(item.gridX, 8, tile.id)
+		assert.equal(item.gridWidth, 4, tile.id)
 	}
+	const tileRows = tiles.map((tile) => placed(tile.id).gridY)
+	assert.deepEqual(tileRows, [4, 6, 8, 10])
 	const grid = placed('today-dashboards')
 	assert.equal(grid.gridWidth, 12)
 	assert.ok(
