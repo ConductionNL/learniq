@@ -10263,6 +10263,156 @@
         "verified_actor_id": "Voorbeeld Learnerid 3",
         "lessonId": "ee00004d-0000-4000-8000-000000000001",
         "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "client-organisation",
+          "slug": "client-organisation-voorbeeld-name-1-1",
+          "id": "ee00ffa1-0000-4000-8000-000000000001"
+        },
+        "name": "Voorbeeld Name 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "kvkNumber": "Voorbeeld Kvknumber ",
+        "eherkenningRef": "Voorbeeld Eherkenningref 1",
+        "contactName": "Voorbeeld Contactname 1",
+        "contactEmail": "voorbeeld0@example.invalid",
+        "locationId": "ee000075-0000-4000-8000-000000000001",
+        "lifecycle": "active"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "client-organisation",
+          "slug": "client-organisation-voorbeeld-name-2-2",
+          "id": "ee00ffa1-0000-4000-8000-000000000002"
+        },
+        "name": "Voorbeeld Name 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "kvkNumber": "Voorbeeld Kvknumber ",
+        "eherkenningRef": "Voorbeeld Eherkenningref 2",
+        "contactName": "Voorbeeld Contactname 2",
+        "contactEmail": "voorbeeld1@example.invalid",
+        "locationId": "ee000075-0000-4000-8000-000000000001",
+        "lifecycle": "inactive"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "client-organisation",
+          "slug": "client-organisation-voorbeeld-name-3-3",
+          "id": "ee00ffa1-0000-4000-8000-000000000003"
+        },
+        "name": "Voorbeeld Name 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "kvkNumber": "Voorbeeld Kvknumber ",
+        "eherkenningRef": "Voorbeeld Eherkenningref 3",
+        "contactName": "Voorbeeld Contactname 3",
+        "contactEmail": "voorbeeld2@example.invalid",
+        "locationId": "ee000075-0000-4000-8000-000000000001",
+        "lifecycle": "active"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "course-booking",
+          "slug": "course-booking-coursebooking-1-1",
+          "id": "ee00ffa2-0000-4000-8000-000000000001"
+        },
+        "organisationRef": "ee00ffa1-0000-4000-8000-000000000001",
+        "cohortId": "ee000018-0000-4000-8000-000000000001",
+        "participantCount": 1,
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "bookingNumber": "Voorbeeld Bookingnumber 1",
+        "courseId": "ee000020-0000-4000-8000-000000000001",
+        "courseName": "Voorbeeld Coursename 1",
+        "firstDay": "2026-03-01",
+        "dayLabel": "Voorbeeld Daylabel 1",
+        "timeLabel": "Voorbeeld Timelabel 1",
+        "placeLabel": "Voorbeeld Placelabel 1",
+        "trainerName": "Voorbeeld Trainername 1",
+        "bookingLabel": "Voorbeeld Bookinglabel 1",
+        "upcoming": true,
+        "participantRefs": [
+          "ee000046-0000-4000-8000-000000000001"
+        ],
+        "participantNames": "Voorbeeld Participantnames 1",
+        "missingDetailsCount": 0,
+        "employerStatus": "waiting-for-you",
+        "statusNote": "Voorbeeld Statusnote 1",
+        "detailsDueAt": "2026-03-01T09:00:00+00:00",
+        "requestedAt": "2026-03-01T09:00:00+00:00",
+        "requestedByName": "Voorbeeld Requestedbyname 1",
+        "confirmedAt": "2026-03-01T09:00:00+00:00",
+        "lifecycle": "received"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "course-booking",
+          "slug": "course-booking-coursebooking-2-2",
+          "id": "ee00ffa2-0000-4000-8000-000000000002"
+        },
+        "organisationRef": "ee00ffa1-0000-4000-8000-000000000002",
+        "cohortId": "ee000018-0000-4000-8000-000000000002",
+        "participantCount": 2,
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "bookingNumber": "Voorbeeld Bookingnumber 2",
+        "courseId": "ee000020-0000-4000-8000-000000000002",
+        "courseName": "Voorbeeld Coursename 2",
+        "firstDay": "2026-03-02",
+        "dayLabel": "Voorbeeld Daylabel 2",
+        "timeLabel": "Voorbeeld Timelabel 2",
+        "placeLabel": "Voorbeeld Placelabel 2",
+        "trainerName": "Voorbeeld Trainername 2",
+        "bookingLabel": "Voorbeeld Bookinglabel 2",
+        "upcoming": false,
+        "participantRefs": [
+          "ee000046-0000-4000-8000-000000000001"
+        ],
+        "participantNames": "Voorbeeld Participantnames 2",
+        "missingDetailsCount": 1,
+        "employerStatus": "received",
+        "statusNote": "Voorbeeld Statusnote 2",
+        "detailsDueAt": "2026-03-02T09:00:00+00:00",
+        "requestedAt": "2026-03-02T09:00:00+00:00",
+        "requestedByName": "Voorbeeld Requestedbyname 2",
+        "confirmedAt": "2026-03-02T09:00:00+00:00",
+        "lifecycle": "confirmed"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "course-booking",
+          "slug": "course-booking-coursebooking-3-3",
+          "id": "ee00ffa2-0000-4000-8000-000000000003"
+        },
+        "organisationRef": "ee00ffa1-0000-4000-8000-000000000003",
+        "cohortId": "ee000018-0000-4000-8000-000000000003",
+        "participantCount": 3,
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "bookingNumber": "Voorbeeld Bookingnumber 3",
+        "courseId": "ee000020-0000-4000-8000-000000000003",
+        "courseName": "Voorbeeld Coursename 3",
+        "firstDay": "2026-03-03",
+        "dayLabel": "Voorbeeld Daylabel 3",
+        "timeLabel": "Voorbeeld Timelabel 3",
+        "placeLabel": "Voorbeeld Placelabel 3",
+        "trainerName": "Voorbeeld Trainername 3",
+        "bookingLabel": "Voorbeeld Bookinglabel 3",
+        "upcoming": true,
+        "participantRefs": [
+          "ee000046-0000-4000-8000-000000000001"
+        ],
+        "participantNames": "Voorbeeld Participantnames 3",
+        "missingDetailsCount": 2,
+        "employerStatus": "confirmed",
+        "statusNote": "Voorbeeld Statusnote 3",
+        "detailsDueAt": "2026-03-03T09:00:00+00:00",
+        "requestedAt": "2026-03-03T09:00:00+00:00",
+        "requestedByName": "Voorbeeld Requestedbyname 3",
+        "confirmedAt": "2026-03-03T09:00:00+00:00",
+        "lifecycle": "completed"
       }
     ]
   }

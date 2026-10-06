@@ -199,6 +199,12 @@ return [
         // student's hours. Same assertion receiver pattern: the assertion is
         // the only place her sign-in level can be read.
         ['name' => 'portalHourWeek#approve',     'url' => '/api/portal/hour-weeks/approve', 'verb' => 'POST'],
+        // employer-portal-audience: an employer books places, names a participant for a
+        // place and supplies a missing birth date. Same assertion receiver pattern;
+        // the company is the organisationRef claim portaliq stamps.
+        ['name' => 'portalEmployer#book',            'url' => '/api/portal/employer/bookings',     'verb' => 'POST'],
+        ['name' => 'portalEmployer#addParticipant',  'url' => '/api/portal/employer/participants', 'verb' => 'POST'],
+        ['name' => 'portalEmployer#supplyBirthDate', 'url' => '/api/portal/employer/birth-date',   'verb' => 'POST'],
 
         // Personal timetable — the caller's own sessions for a window, resolved
         // from cohort membership (teacher/learner) via ObjectService (RBAC-scoped).
