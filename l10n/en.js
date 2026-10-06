@@ -3516,6 +3516,8 @@ OC.L10N.register(
         "The teacher's words on the report card.": "The teacher's words on the report card.",
         "The school the row belongs to.": "The school the row belongs to.",
         "Latest report": "Latest report",
+        "Nextcloud user ID of the person reporting the barrier. Filled in by the app from the signed-in user, never changed.": "Nextcloud user ID of the person reporting the barrier. Filled in by the app from the signed-in user, never changed.",
+        "Tenant UUID (multi-tenant isolation). Filled in by the app from the reporter's tenant.": "Tenant UUID (multi-tenant isolation). Filled in by the app from the reporter's tenant.",
         "My academy": "My academy",
         "Coming course days": "Coming course days",
         "Waiting for you": "Waiting for you",

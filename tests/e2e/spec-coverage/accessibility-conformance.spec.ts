@@ -31,7 +31,7 @@
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '../fixtures.ts'
-import { createObject, seededTenantId } from '../or-api.ts'
+import { createObject } from '../or-api.ts'
 
 // ⚠️ NO `#` — the router is HISTORY mode, not hash mode.
 //
@@ -387,28 +387,10 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 				'choosing a severity must close the listbox',
 			).toBeHidden({ timeout: 10_000 })
 
-			const reporterField = page.getByLabel(/Reporter User Id/i).first()
-			if (
-				await reporterField.isVisible({ timeout: 2_000 }).catch(() => false)
-			) {
-				await reporterField.fill('admin')
-			}
-
-			// `tenant_id` is in AccessibilityFeedback's `required` list (as it
-			// is on 116 of the register's 118 schemas), so CnDetailPage keeps
-			// the Create button DISABLED until it is filled. Leaving it empty
-			// made the click below a silent no-op — the test then asserted on
-			// a submit that never happened.
-			//
-			// See scholiq#265: asking a barrier REPORTER to type a tenant UUID
-			// is a real product defect against this spec's "any authenticated
-			// user must be able to report a barrier" requirement. Until that is
-			// decided, the test supplies the same tenant the seeder stamps on
-			// every other row so the created record is coherent with them.
-			const tenantField = page.getByLabel(/Tenant Id/i).first()
-			if (await tenantField.isVisible({ timeout: 2_000 }).catch(() => false)) {
-				await tenantField.fill(await seededTenantId(page))
-			}
+			// Reporter and tenant are NOT asked for: AccessibilityFeedbackReporterStamp
+			// fills both from the signed-in user on the server, and the schema
+			// no longer lists them in `required` (learniq#268). Every field
+			// filled above is everything a barrier reporter has to give.
 
 			// The Create button leaving the disabled state is itself the proof
 			// that every required field is now satisfied — assert it rather
