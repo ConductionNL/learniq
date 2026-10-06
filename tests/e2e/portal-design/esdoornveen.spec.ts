@@ -9,6 +9,7 @@
  *
  * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
  * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
+ * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md
  */
 
 import { test } from '@playwright/test'
@@ -114,6 +115,35 @@ test.describe('esdoornveen: the website', () => {
 })
 
 test.describe('esdoornveen: Mijn Esdoornveen (Milan de Groot)', () => {
+	test('Detail: where his placement stands', async ({ browser }, info) => {
+		await ensurePortalAccount(
+			MILAN.user,
+			'student',
+			{ learnerRef: MILAN.ref },
+			MILAN.name,
+		)
+		const page = await signInAs(
+			browser,
+			PORTAL,
+			MILAN.user,
+			info.project.use.viewport ?? { width: 1440, height: 1000 },
+		)
+		await page.goto(
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/studentBpvPlacements')}`,
+		)
+		await expectTexts(page, [
+			'Bakker Techniek BV',
+			'Waar sta je?',
+			'Overeenkomst getekend',
+			'Werkplan gemaakt',
+			'Tussenbeoordeling',
+			'13 oktober 2026',
+			'januari 2027',
+		])
+		await expectNoSeriousAxeFinding(page)
+		await boardShot(page, PORTAL, 'Detail', info)
+	})
+
 	test('MijnLijst: the hours bar', async ({ browser }, info) => {
 		await ensurePortalAccount(
 			MILAN.user,
