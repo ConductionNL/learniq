@@ -3515,7 +3515,9 @@ OC.L10N.register(
         "From the teacher": "From the teacher",
         "The teacher's words on the report card.": "The teacher's words on the report card.",
         "The school the row belongs to.": "The school the row belongs to.",
-        "Latest report": "Latest report"
+        "Latest report": "Latest report",
+        "Nextcloud user ID of the person reporting the barrier. Filled in by the app from the signed-in user, never changed.": "Nextcloud user ID of the person reporting the barrier. Filled in by the app from the signed-in user, never changed.",
+        "Tenant UUID (multi-tenant isolation). Filled in by the app from the reporter's tenant.": "Tenant UUID (multi-tenant isolation). Filled in by the app from the reporter's tenant."
     },
     "nplurals=2; plural=(n != 1);"
 )

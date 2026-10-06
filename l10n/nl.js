@@ -3965,7 +3965,9 @@ OC.L10N.register(
         "From the teacher": "Van de leerkracht",
         "The teacher's words on the report card.": "Wat de leerkracht op het rapport schreef.",
         "The school the row belongs to.": "De school waar deze regel bij hoort.",
-        "Latest report": "Laatste rapport"
+        "Latest report": "Laatste rapport",
+        "Nextcloud user ID of the person reporting the barrier. Filled in by the app from the signed-in user, never changed.": "Nextcloud-gebruikers-ID van degene die de belemmering meldt. Wordt door de app ingevuld met de ingelogde gebruiker en verandert nooit.",
+        "Tenant UUID (multi-tenant isolation). Filled in by the app from the reporter's tenant.": "Tenant-UUID (scheiding tussen tenants). Wordt door de app ingevuld met de tenant van de melder."
     },
     "nplurals=2; plural=(n != 1);"
 )

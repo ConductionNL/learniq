@@ -133,31 +133,31 @@
     {
       "registerSlug": "learniq",
       "schemaSlug": "course",
-      "urlTemplate": "/apps/learniq/#/courses/{uuid}",
+      "urlTemplate": "/apps/learniq/courses/{uuid}",
       "displayName": "Course"
     },
     {
       "registerSlug": "learniq",
       "schemaSlug": "enrolment",
-      "urlTemplate": "/apps/learniq/#/enrolments/{uuid}",
+      "urlTemplate": "/apps/learniq/enrolments/{uuid}",
       "displayName": "Enrolment"
     },
     {
       "registerSlug": "learniq",
       "schemaSlug": "learner-profile",
-      "urlTemplate": "/apps/learniq/#/learner-profiles/{uuid}",
+      "urlTemplate": "/apps/learniq/learner-profiles/{uuid}",
       "displayName": "Learner"
     },
     {
       "registerSlug": "learniq",
       "schemaSlug": "credential",
-      "urlTemplate": "/apps/learniq/#/credentials/{uuid}",
+      "urlTemplate": "/apps/learniq/credentials/{uuid}",
       "displayName": "Credential"
     },
     {
       "registerSlug": "learniq",
       "schemaSlug": "support-request",
-      "urlTemplate": "/apps/learniq/#/support-requests/{uuid}",
+      "urlTemplate": "/apps/learniq/support-requests/{uuid}",
       "displayName": "Support request"
     }
   ],
