@@ -116,6 +116,18 @@ class EmployerBookingFacts {
 		$status = $this->employerStatus(lifecycle: $lifecycle, openPlaces: $open, missing: $missing);
 		$dayLabel = $this->lines->dayLabel(days: $days);
 		$courseName = trim((string)($course['name'] ?? ''));
+		// The participant reads his own course day on his enrolment (participant-portal).
+		$day = [
+			'firstDay' => $firstDay?->format('Y-m-d'),
+			'dayLabel' => $dayLabel,
+			'timeLabel' => $this->lines->timeLabel(sessions: $sessions, firstDay: $firstDay),
+			'placeLabel' => ($context['placeLabel'] ?? null),
+			'trainerName' => ($context['trainerName'] ?? null),
+			'upcoming' => in_array($lifecycle, self::OPEN, true),
+		];
+		foreach (array_keys($enrolments) as $id) {
+			$enrolments[$id] = array_merge($enrolments[$id], $day);
+		}
 
 		return [
 			'booking' => [

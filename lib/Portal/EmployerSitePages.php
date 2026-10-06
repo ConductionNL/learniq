@@ -97,6 +97,27 @@ class EmployerSitePages {
 	];
 
 	/**
+	 * How a certificate's expiry reads, and its tone (portal-certificates).
+	 *
+	 * @var array<string, string>
+	 */
+	public const EXPIRY_STATUS = [
+		'valid' => 'Valid',
+		'none' => 'Valid',
+		'expiring' => 'Expires soon',
+		'expiring-soon' => 'Expires soon',
+		'expired' => 'Expired',
+	];
+
+	private const EXPIRY_TONES = [
+		'valid' => 'success',
+		'none' => 'success',
+		'expiring' => 'warning',
+		'expiring-soon' => 'warning',
+		'expired' => 'error',
+	];
+
+	/**
 	 * How a participant's details read.
 	 *
 	 * @var array<string, string>
@@ -208,6 +229,7 @@ class EmployerSitePages {
 					],
 				]
 			),
+			$this->certificatesCollection(),
 			[
 				'id' => 'employerEditions',
 				'register' => self::REGISTER,
@@ -222,6 +244,49 @@ class EmployerSitePages {
 			],
 		];
 	}//end collections()
+
+	/**
+	 * The certificates her people hold, the first to expire first. Only
+	 * issued certificates: a proof of participation is a badge and lives on
+	 * the booking, a revoked or replaced one is history (portal-certificates).
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md#requirement-an-employer-sees-her-peoples-certificates-the-first-to-expire-first
+	 */
+	public function certificatesCollection(): array {
+		return $this->direct(
+			id: 'employerCertificates',
+			schema: 'credential',
+			label: 'Certificates in your company',
+			fields: [
+				'organisationRef',
+				'learnerName',
+				'courseName',
+				'kind',
+				'validUntilLabel',
+				'expiresAt',
+				'expiryStatus',
+				'expiryLabel',
+				'renewalLine',
+				'verificationUrl',
+				'lifecycle',
+			],
+			extra: [
+				'filter' => ['lifecycle' => 'issued', 'kind' => 'certificate'],
+				'defaultSort' => ['field' => 'expiresAt', 'direction' => 'asc'],
+				'fieldConfigs' => ['expiryStatus' => ['valueLabels' => self::EXPIRY_STATUS]],
+				'columns' => [
+					['field' => 'learnerName', 'label' => 'Employee'],
+					['field' => 'courseName', 'label' => 'Certificate'],
+					['field' => 'expiresAt', 'label' => 'Valid until', 'render' => 'date'],
+					['field' => 'expiryLabel', 'label' => 'Status'],
+					['field' => 'renewalLine', 'label' => 'Renewal'],
+					['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link'],
+				],
+			]
+		);
+	}//end certificatesCollection()
 
 	/**
 	 * What she may do: book places, name a participant, supply a birth date.
@@ -328,6 +393,13 @@ class EmployerSitePages {
 				],
 			],
 			[
+				'id' => 'employerCertificates',
+				'label' => 'Certificates',
+				'icon' => 'CertificateOutline',
+				'group' => self::GROUP_COURSES,
+				'blocks' => [['type' => 'collection', 'collection' => 'employerCertificates']],
+			],
+			[
 				'id' => 'employerOpenTasks',
 				'label' => 'Still to do',
 				'menu' => false,
@@ -388,6 +460,8 @@ class EmployerSitePages {
 					'sort' => ['field' => 'firstDay', 'direction' => 'asc'],
 				],
 				['type' => 'cta', 'page' => 'employerBookings', 'label' => 'All bookings'],
+				$this->certificateRows(),
+				['type' => 'cta', 'page' => 'employerCertificates', 'label' => 'All certificates'],
 			],
 		];
 	}//end overviewPage()
@@ -433,6 +507,31 @@ class EmployerSitePages {
 			],
 		];
 	}//end bookingsPage()
+
+	/**
+	 * The certificates on the overview (board MijnOverzicht): the course, who
+	 * holds it, the expiry as a pill and in words, and the booked renewal.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md#requirement-an-employer-sees-her-peoples-certificates-the-first-to-expire-first
+	 */
+	private function certificateRows(): array {
+		return [
+			'type' => 'collection',
+			'collection' => 'employerCertificates',
+			'display' => 'rows',
+			'dateField' => 'expiresAt',
+			'titleFields' => ['courseName'],
+			'subtitleField' => 'learnerName',
+			'quoteField' => 'renewalLine',
+			'statusField' => 'expiryStatus',
+			'statusTones' => self::EXPIRY_TONES,
+			'statusNoteField' => 'expiryLabel',
+			'limit' => 4,
+			'sort' => ['field' => 'expiresAt', 'direction' => 'asc'],
+		];
+	}//end certificateRows()
 
 	/**
 	 * What a booking row shows her.

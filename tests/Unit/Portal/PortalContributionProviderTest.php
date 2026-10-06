@@ -154,7 +154,7 @@ class PortalContributionProviderTest extends TestCase {
 	 */
 	public function testAudienceContract(): void {
 		$this->assertSame(
-			['student', 'parent', 'praktijkopleider', 'external-assessor', 'employer'],
+			['student', 'parent', 'praktijkopleider', 'external-assessor', 'employer', 'participant'],
 			$this->provider->getAudiences()
 		);
 		$this->assertSame('student', $this->provider->getAudience());

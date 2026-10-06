@@ -106,7 +106,7 @@ class PortalContributionProvider {
 	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
 	 */
 	public function getAudiences(): array {
-		return ['student', 'parent', 'praktijkopleider', 'external-assessor', EmployerSitePages::AUDIENCE];
+		return ['student', 'parent', 'praktijkopleider', 'external-assessor', EmployerSitePages::AUDIENCE, ParticipantSitePages::AUDIENCE];
 	}//end getAudiences()
 
 	/**
@@ -162,6 +162,11 @@ class PortalContributionProvider {
 		if ($audience === EmployerSitePages::AUDIENCE) {
 			// A company that sends its people to the courses (employer-portal-audience).
 			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new EmployerSitePages())->contribution());
+		}
+
+		if ($audience === ParticipantSitePages::AUDIENCE) {
+			// A course participant at a training institute (participant-portal).
+			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new ParticipantSitePages())->contribution());
 		}
 
 		// Any audience Learniq does not serve → null (fail-closed; ADR-005).

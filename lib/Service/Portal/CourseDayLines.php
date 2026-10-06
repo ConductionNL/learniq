@@ -229,6 +229,19 @@ class CourseDayLines {
 	}//end dayAndDate()
 
 	/**
+	 * "8 oktober".
+	 *
+	 * @param DateTimeImmutable $day The day.
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md#requirement-a-certificate-names-its-holder-its-course-and-its-renewal
+	 */
+	public function dayMonth(DateTimeImmutable $day): string {
+		return $day->format('j') . ' ' . self::MONTHS[((int)$day->format('n') - 1)];
+	}//end dayMonth()
+
+	/**
 	 * "30 november 2026".
 	 *
 	 * @param DateTimeImmutable $day The day.

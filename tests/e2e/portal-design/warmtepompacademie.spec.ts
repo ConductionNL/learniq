@@ -17,6 +17,8 @@
  *
  * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
  * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md
+ * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md
+ * @spec openspec/changes/participant-portal/specs/portal-contribution/spec.md
  * @spec openspec/changes/employer-signs-in-with-eherkenning/specs/portal-identity/spec.md
  */
 
@@ -54,6 +56,11 @@ const LINDA = {
 		organisationName: 'Jansen Installatietechniek BV',
 		editionLocationRef: 'ee060002-0000-4000-8000-000000000001',
 	},
+}
+const TOM = {
+	user: 'training-deelnemer-151',
+	ref: 'ee06000c-0000-4000-8000-000000000158',
+	name: 'Tom Verbeek',
 }
 const JANSEN = {
 	ref: 'ee06001f-0000-4000-8000-000000000001',
@@ -148,6 +155,10 @@ test.describe('warmtepompacademie: Mijn academie (Linda Jansen, employer)', () =
 			'Warmtepompen installeren: basis',
 			'De plek staat vast',
 			'Bevestiging uiterlijk dinsdag 6 oktober',
+			'F-gassen categorie 1',
+			'Verloopt over 8 weken',
+			'Herhaling op 8 oktober',
+			'BRL 6000-21, bovengronds deel',
 		])
 		if (info.project.name === 'phone') {
 			await expectNoHorizontalScroll(page)
@@ -178,6 +189,45 @@ test.describe('warmtepompacademie: Mijn academie (Linda Jansen, employer)', () =
 		])
 		await expectNoSeriousAxeFinding(page)
 		await boardShot(page, PORTAL, 'Detail', info)
+	})
+})
+
+test.describe('warmtepompacademie: Mijn academie (Tom Verbeek, participant)', () => {
+	test('MobielHome: his next course day and his certificate', async ({
+		browser,
+	}, info) => {
+		await ensurePortalAccount(
+			TOM.user,
+			'participant',
+			{ learnerRef: TOM.ref },
+			TOM.name,
+		)
+		const page = await signInAs(
+			browser,
+			PORTAL,
+			TOM.user,
+			info.project.use.viewport ?? { width: 1440, height: 1000 },
+		)
+		await expectTexts(page, [
+			'Tom',
+			'F-gassen: herhaling en examen',
+			'donderdag 8 oktober',
+			'08.30 tot 16.30 uur',
+			'Praktijkhal Zuiddrecht, Energieweg 8',
+			'F-gassen categorie 1',
+			'Verloopt over 8 weken',
+			'Lucht-water warmtepomp: ontwerp en inbedrijfstelling',
+		])
+		if (info.project.name === 'phone') {
+			await expectNoHorizontalScroll(page)
+		}
+		await expectNoSeriousAxeFinding(page)
+		await boardShot(
+			page,
+			PORTAL,
+			info.project.name === 'phone' ? 'MobielHome' : 'MobielHome-desktop',
+			info,
+		)
 	})
 })
 

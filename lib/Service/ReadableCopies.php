@@ -58,6 +58,8 @@ class ReadableCopies {
 		'teacher-availability' => ['teacherName' => null],
 		// The line under a child's name in the guardian's menu (school-portals-use-the-new-blocks).
 		'learner-profile' => ['groupLabel' => null, 'fullName' => null],
+		// The certificate lists of the employer's and the participant's portal (portal-certificates).
+		'credential'      => ['learnerName' => null, 'courseName' => null, 'organisationRef' => null, 'validUntilLabel' => null, 'renewalLine' => null],
 	];
 
 	/**
@@ -138,6 +140,15 @@ class ReadableCopies {
 			return ['teacherName' => $this->userName(uid: $row['teacherId'] ?? null)];
 		}
 
+		if ($slug === 'credential') {
+			$copies = new CertificateCopies(
+				rows: fn (string $schema, mixed $id): ?array => $this->read(schema: $schema, id: $id),
+				sessions: fn (string $cohortId): array => $this->sessionsOf(cohortId: $cohortId)
+			);
+
+			return $copies->derive(credential: $row);
+		}
+
 		if ($slug === 'learner-profile') {
 			return [
 				'groupLabel' => (new LearnerGroupLabel(objectService: $this->objectService, users: $this->users))->derive(profile: $row),
@@ -174,6 +185,29 @@ class ReadableCopies {
 			'organisationRef' => $organisation,
 		];
 	}//end participantCopies()
+
+	/**
+	 * The sessions of a cohort.
+	 *
+	 * @param string $cohortId The cohort.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @throws \Throwable When OpenRegister cannot be read.
+	 */
+	private function sessionsOf(string $cohortId): array {
+		if ($cohortId === '') {
+			return [];
+		}
+
+		$objects = $this->objectService->findAll(
+			config: ['filters' => ['register' => self::REGISTER, 'schema' => 'session', 'cohortId' => $cohortId], 'limit' => 100],
+			_rbac: false,
+			_multitenancy: false
+		);
+
+		return array_map(fn (mixed $object): array => $this->toRow(object: $object), $objects);
+	}//end sessionsOf()
 
 	/**
 	 * Given and family name as one line, or null.
