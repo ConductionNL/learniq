@@ -96,7 +96,7 @@ class PortalLabelTranslator {
 	/**
 	 * The keys whose children are read in a context named after the key.
 	 */
-	private const NESTED_CONTEXTS = ['sources', 'values', 'phrases', 'confirmation'];
+	private const NESTED_CONTEXTS = ['sources', 'values', 'phrases', 'confirmation', 'steps'];
 
 	/**
 	 * The two forms of a counted word.
@@ -166,7 +166,7 @@ class PortalLabelTranslator {
 
 		// A summary's phrases are maps of answer to words, one per field; a
 		// calendar's sources are a list of sources.
-		$byParent = ['phrases' => 'values', 'sources' => 'source'];
+		$byParent = ['phrases' => 'values', 'sources' => 'source', 'steps' => 'step'];
 		if (isset($byParent[$context]) === true && ($context === 'phrases' || is_int($key) === true)) {
 			return $byParent[$context];
 		}
@@ -197,6 +197,11 @@ class PortalLabelTranslator {
 
 		if ($context === 'confirmation') {
 			return in_array($key, ['title', 'body', 'next'], true) === true;
+		}
+
+		// A form step's title and description (placement-steps-and-assessment-draft).
+		if ($context === 'step') {
+			return in_array($key, ['title', 'description'], true) === true;
 		}
 
 		if (is_string($key) === false) {

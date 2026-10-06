@@ -44,6 +44,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Service\Portal\BpvPlacementSteps;
 use OCP\L10N\IFactory;
 
 /**
@@ -67,6 +68,9 @@ use OCP\L10N\IFactory;
  * openspec/changes/archive/2026-09-28-portal-parent/design.md.
  *
  * @spec openspec/specs/portal-contribution/spec.md
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) The provider is the one place portaliq meets every
+ *   audience, so it names each audience's declaration class.
  */
 class PortalContributionProvider {
 	/**
@@ -79,10 +83,31 @@ class PortalContributionProvider {
 	/**
 	 * Constructor; the container hands in the factory, `new` with no arguments answers in English.
 	 *
-	 * @param IFactory|null $l10nFactory Puts parent labels in the request's language (PortalLabelTranslator).
+	 * @param IFactory|null          $l10nFactory    Puts parent labels in the request's language (PortalLabelTranslator).
+	 * @param BpvPlacementSteps|null $placementSteps Answers a work placement's steps (site-workplace-trainer-portal-design).
 	 */
-	public function __construct(private readonly ?IFactory $l10nFactory=null) {
+	public function __construct(
+		private readonly ?IFactory $l10nFactory=null,
+		private readonly ?BpvPlacementSteps $placementSteps=null,
+	) {
 	}//end __construct()
+
+	/**
+	 * The steps of a work placement, for the student's and the trainer's placement page.
+	 *
+	 * Portaliq calls the provider named by the placement collection's
+	 * `steps.provider` with the placement's id, after it checked that the
+	 * reader may see that placement. Without the service there are no steps.
+	 *
+	 * @param string $id The placement's uuid.
+	 *
+	 * @return array<int, array<string, string>>
+	 *
+	 * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md#requirement-new-a-placement-shows-where-it-stands
+	 */
+	public function bpvPlacementSteps(string $id): array {
+		return ($this->placementSteps?->forPlacement(placementId: $id) ?? []);
+	}//end bpvPlacementSteps()
 
 	/**
 	 * The audiences this provider contributes to (contract v2, preferred).
