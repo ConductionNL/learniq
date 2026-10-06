@@ -44,6 +44,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Service\Portal\BpvPlacementSteps;
 use OCA\Learniq\Service\Portal\EmployerBookingSteps;
 use OCP\L10N\IFactory;
 
@@ -83,14 +84,31 @@ class PortalContributionProvider {
 	/**
 	 * Constructor; the container hands in the factory, `new` with no arguments answers in English.
 	 *
-	 * @param IFactory|null             $l10nFactory  Puts parent labels in the request's language (PortalLabelTranslator).
-	 * @param EmployerBookingSteps|null $bookingSteps Answers a company booking's steps (employer-portal-audience).
+	 * @param IFactory|null             $l10nFactory    Puts parent labels in the request's language (PortalLabelTranslator).
+	 * @param EmployerBookingSteps|null $bookingSteps   Answers a company booking's steps (employer-portal-audience).
+	 * @param BpvPlacementSteps|null    $placementSteps Answers a work placement's steps (site-workplace-trainer-portal-design).
 	 */
 	public function __construct(
 		private readonly ?IFactory $l10nFactory=null,
 		private readonly ?EmployerBookingSteps $bookingSteps=null,
+		private readonly ?BpvPlacementSteps $placementSteps=null,
 	) {
 	}//end __construct()
+
+	/**
+	 * The steps of a work placement, for the student's and the trainer's placement page.
+	 *
+	 * Called by portaliq with the placement's id after its visibility check; none without the service.
+	 *
+	 * @param string $id The placement's uuid.
+	 *
+	 * @return array<int, array<string, string>>
+	 *
+	 * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md#requirement-new-a-placement-shows-where-it-stands
+	 */
+	public function bpvPlacementSteps(string $id): array {
+		return ($this->placementSteps?->forPlacement(placementId: $id) ?? []);
+	}//end bpvPlacementSteps()
 
 	/**
 	 * The audiences this provider contributes to (contract v2, preferred).
