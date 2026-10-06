@@ -98,9 +98,7 @@ class PortalContributionProvider {
 	/**
 	 * The steps of a work placement, for the student's and the trainer's placement page.
 	 *
-	 * Portaliq calls the provider named by the placement collection's
-	 * `steps.provider` with the placement's id, after it checked that the
-	 * reader may see that placement. Without the service there are no steps.
+	 * Called by portaliq with the placement's id after its visibility check; none without the service.
 	 *
 	 * @param string $id The placement's uuid.
 	 *
