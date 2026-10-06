@@ -136,22 +136,9 @@ class PortalMessageContacts {
 	 * @return array<int, array{staffRef: string, name: string, role: string}>
 	 */
 	private function contactsOf(array $cohorts): array {
-		$ordered = [];
-		foreach ($cohorts as $cohort) {
-			foreach ((array)($cohort['teacherAssignments'] ?? []) as $assignment) {
-				if (is_array($assignment) === true && ($assignment['role'] ?? null) === 'primary') {
-					$ordered[] = ($assignment['teacherId'] ?? null);
-				}
-			}
-		}
-
-		foreach ($cohorts as $cohort) {
-			$ordered = array_merge($ordered, (array)($cohort['teacherIds'] ?? []));
-		}
-
 		$out  = [];
 		$seen = [];
-		foreach ($ordered as $userId) {
+		foreach ($this->orderedTeacherIds(cohorts: $cohorts) as $userId) {
 			if (is_string($userId) === false || $userId === '' || isset($seen[$userId]) === true) {
 				continue;
 			}
@@ -167,6 +154,32 @@ class PortalMessageContacts {
 
 		return $out;
 	}//end contactsOf()
+
+	/**
+	 * The teacher ids of some groups: every group's primary teachers first,
+	 * then all its teachers, duplicates and non-strings included (the caller
+	 * drops them).
+	 *
+	 * @param array<int, array<string, mixed>> $cohorts The groups.
+	 *
+	 * @return array<int, mixed>
+	 */
+	private function orderedTeacherIds(array $cohorts): array {
+		$ordered = [];
+		foreach ($cohorts as $cohort) {
+			foreach ((array)($cohort['teacherAssignments'] ?? []) as $assignment) {
+				if (is_array($assignment) === true && ($assignment['role'] ?? null) === 'primary') {
+					$ordered[] = ($assignment['teacherId'] ?? null);
+				}
+			}
+		}
+
+		foreach ($cohorts as $cohort) {
+			$ordered = array_merge($ordered, (array)($cohort['teacherIds'] ?? []));
+		}
+
+		return $ordered;
+	}//end orderedTeacherIds()
 
 	/**
 	 * A staff member's display name, or null when the account has none of its
