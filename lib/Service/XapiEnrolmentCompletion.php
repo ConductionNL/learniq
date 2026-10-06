@@ -173,7 +173,10 @@ class XapiEnrolmentCompletion {
 	}//end tenantScoped()
 
 	/**
-	 * Resolve the statement's object IRI to a mandatory-training Lesson.
+	 * Resolve the statement's stamped `lessonId` to a mandatory-training Lesson.
+	 *
+	 * The xAPI object IRI is not a Lesson property, so a lookup on it can
+	 * never match (#1116); the ingest stamps `lessonId` from the launch.
 	 *
 	 * @param array<string,mixed> $payload The xAPI statement payload.
 	 * @param string $tenantId Tenant UUID, or '' when unknown.
@@ -183,18 +186,18 @@ class XapiEnrolmentCompletion {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-19
 	 */
 	private function resolveMandatoryLesson(array $payload, string $tenantId): ?array {
-		$lessonId = $payload['object']['id'] ?? null;
-		if ($lessonId === null) {
+		$lessonId = (string)($payload['lessonId'] ?? '');
+		if ($lessonId === '') {
 			return null;
 		}
 
 		$lessons = $this->objectService->findAll(
 			[
+				'ids' => [$lessonId],
 				'filters' => $this->tenantScoped(
 					filters: [
 						'register' => self::LEARNIQ_REGISTER,
 						'schema' => 'lesson',
-						'xapiObjectId' => $lessonId,
 					],
 					tenantId: $tenantId
 				),

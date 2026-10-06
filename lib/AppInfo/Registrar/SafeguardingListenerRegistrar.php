@@ -32,6 +32,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\AppInfo\Registrar;
 
+use OCA\Learniq\Listener\AccessibilityFeedbackReporterStamp;
 use OCA\Learniq\Listener\ConcernReportReporterStamp;
 use OCA\Learniq\Listener\RegulationExemptionRequestStamp;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
@@ -64,6 +65,14 @@ class SafeguardingListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: ConcernReportReporterStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: AccessibilityFeedbackReporterStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: AccessibilityFeedbackReporterStamp::class
 		);
 		$context->registerEventListener(
 			event: ObjectCreatingEvent::class,

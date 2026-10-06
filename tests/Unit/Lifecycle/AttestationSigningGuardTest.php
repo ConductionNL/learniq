@@ -85,7 +85,7 @@ class AttestationSigningGuardTest extends TestCase {
 	 */
 	public function testCompletionAndKeyAllowSigning(): void {
 		$objectService = $this->createMock(ObjectService::class);
-		$objectService->method('findAll')->willReturn([['uuid' => 'xapi-1']]);
+		$objectService->method('findAll')->willReturn([['uuid' => 'xapi-1', 'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed']]]);
 
 		$tenantKeyService = $this->createMock(TenantKeyService::class);
 		$tenantKeyService->method('getCurrentTenantKey')->willReturn('super-secret-key');
@@ -124,12 +124,12 @@ class AttestationSigningGuardTest extends TestCase {
 			->method('findAll')
 			->with(
 				$this->callback(
-					static fn (array $config): bool => ($config['filters']['actor.id'] ?? null) === 'learner-7'
-						&& ($config['filters']['object.id'] ?? null) === 'lesson-3'
+					static fn (array $config): bool => ($config['filters']['verified_actor_id'] ?? null) === 'learner-7'
+						&& ($config['filters']['lessonId'] ?? null) === 'lesson-3'
 						&& ($config['filters']['tenant_id'] ?? null) === 'tenant-a'
 				)
 			)
-			->willReturn([['uuid' => 'xapi-1']]);
+			->willReturn([['uuid' => 'xapi-1', 'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed']]]);
 
 		$tenantKeyService = $this->createMock(TenantKeyService::class);
 		$tenantKeyService->method('getCurrentTenantKey')->willReturn('k');
@@ -144,7 +144,7 @@ class AttestationSigningGuardTest extends TestCase {
 	 */
 	public function testUnavailableTenantKeyIsDenied(): void {
 		$objectService = $this->createMock(ObjectService::class);
-		$objectService->method('findAll')->willReturn([['uuid' => 'xapi-1']]);
+		$objectService->method('findAll')->willReturn([['uuid' => 'xapi-1', 'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed']]]);
 
 		$tenantKeyService = $this->createMock(TenantKeyService::class);
 		$tenantKeyService->method('getCurrentTenantKey')->willReturn('');
