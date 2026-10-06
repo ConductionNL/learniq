@@ -75,6 +75,13 @@ class AttestationSigningGuard implements LifecycleGuardInterface {
 	];
 
 	/**
+	 * Most statements one learner holds for one lesson that the guard scans.
+	 *
+	 * @var int
+	 */
+	private const STATEMENT_SCAN_LIMIT = 1000;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object query service for
@@ -142,7 +149,12 @@ class AttestationSigningGuard implements LifecycleGuardInterface {
 	}//end check()
 
 	/**
-	 * Query OR for a cmi5.completed or cmi5.passed XapiStatement for the given pair.
+	 * Query OR for a completed or passed XapiStatement for the given pair.
+	 *
+	 * The read filters only on declared XapiStatement fields: the stamped
+	 * `lessonId` and the server-trusted `verified_actor_id` (C6). The verb is
+	 * a nested xAPI object, so it is matched here rather than in the filter,
+	 * which could never match an undeclared `verb.id` key (#1116).
 	 *
 	 * The query is always scoped to the tenant so that a crafted xAPI statement
 	 * in another tenant cannot satisfy this guard. Fixes #178.
@@ -156,35 +168,38 @@ class AttestationSigningGuard implements LifecycleGuardInterface {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-12
 	 */
 	private function xapiCompletionExists(string $learnerId, string $lessonId, string $tenantId): bool {
-		foreach (self::COMPLETION_VERBS as $verbId) {
-			$filters = [
-				'actor.id' => $learnerId,
-				'object.id' => $lessonId,
-				'verb.id' => $verbId,
-			];
+		$filters = [
+			'verified_actor_id' => $learnerId,
+			'lessonId' => $lessonId,
+		];
 
-			// #178: always scope to tenant_id to prevent cross-tenant forgery.
-			if ($tenantId !== '') {
-				$filters['tenant_id'] = $tenantId;
+		// #178: always scope to tenant_id to prevent cross-tenant forgery.
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
+
+		$results = $this->objectService->findAll(
+			[
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => 'learniq',
+						'schema' => 'xapi-statement',
+					]
+				),
+				'limit' => self::STATEMENT_SCAN_LIMIT,
+			]
+		);
+
+		foreach ($results as $row) {
+			if (is_array($row) === false) {
+				$row = $row->jsonSerialize();
 			}
 
-			$results = $this->objectService->findAll(
-				[
-					'filters' => array_merge(
-						$filters,
-						[
-							'register' => 'learniq',
-							'schema' => 'xapi-statement',
-						]
-					),
-					'limit' => 1,
-				]
-			);
-
-			if (count($results) > 0) {
+			if (in_array((string)($row['verb']['id'] ?? ''), self::COMPLETION_VERBS, true) === true) {
 				return true;
 			}
-		}//end foreach
+		}
 
 		return false;
 	}//end xapiCompletionExists()
