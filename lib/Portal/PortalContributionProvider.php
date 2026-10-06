@@ -84,12 +84,29 @@ class PortalContributionProvider {
 	 *
 	 * @param IFactory|null              $l10nFactory     Puts parent labels in the request's language (PortalLabelTranslator).
 	 * @param PortalMessageContacts|null $messageContacts Who a resident may write to (portal-message-contacts).
+	 * @param PortalPublicIndex|null     $publicIndex     What a visitor may find (portal-public-index).
 	 */
 	public function __construct(
 		private readonly ?IFactory $l10nFactory=null,
 		private readonly ?PortalMessageContacts $messageContacts=null,
+		private readonly ?PortalPublicIndex $publicIndex=null,
 	) {
 	}//end __construct()
+
+	/**
+	 * What a visitor of a portal may find without signing in: the school's
+	 * published courses with a run to come, its programmes and its
+	 * school-wide days (portal-public-index, portaliq portal-public-catalogue).
+	 *
+	 * @param string $portal The portal slug.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-a-school-offers-its-portal-an-index-of-its-public-courses-programmes-and-school-days
+	 */
+	public function getPublicIndex(string $portal): array {
+		return ($this->publicIndex?->forPortal(portal: $portal) ?? []);
+	}//end getPublicIndex()
 
 	/**
 	 * Who a guardian may write to about one child (the `contacts` provider
