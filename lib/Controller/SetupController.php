@@ -221,8 +221,8 @@ class SetupController extends Controller {
 
 		if ($profile !== null) {
 			$profileId = $this->scalarAnswer(value: $profile);
-			if ($profileId === null || $this->isSelectableProfile(profileId: $profileId) === false) {
-				return $this->badRequest(message: 'No example set is called "' . (string)$profileId . '".');
+			if ($this->isSelectableProfile(profileId: $profileId) === false) {
+				return $this->badRequest(message: 'No example set is called "' . $profileId . '".');
 			}
 
 			$this->appConfig->setValueString(Application::APP_ID, self::PROFILE_KEY, $profileId);
@@ -232,8 +232,8 @@ class SetupController extends Controller {
 		$segment = $this->request->getParam(self::SEGMENT_KEY);
 		if ($segment !== null) {
 			$code = $this->scalarAnswer(value: $segment);
-			if ($code === null || in_array($code, SegmentService::SEGMENTS, true) === false) {
-				return $this->badRequest(message: 'No kind of organisation is called "' . (string)$code . '".');
+			if (in_array($code, SegmentService::SEGMENTS, true) === false) {
+				return $this->badRequest(message: 'No kind of organisation is called "' . $code . '".');
 			}
 
 			if ($this->maySetSegment() === false) {
@@ -323,8 +323,8 @@ class SetupController extends Controller {
 		$posted = $this->request->getParam('dataset');
 		if ($posted !== null) {
 			$postedId = $this->scalarAnswer(value: $posted);
-			if ($postedId === null || $this->isSelectableProfile(profileId: $postedId) === false) {
-				return $this->badRequest(message: 'No example set is called "' . (string)$postedId . '".');
+			if ($this->isSelectableProfile(profileId: $postedId) === false) {
+				return $this->badRequest(message: 'No example set is called "' . $postedId . '".');
 			}
 
 			$picked = $postedId;
@@ -522,17 +522,20 @@ class SetupController extends Controller {
 	 * The steps are single-select, but the wizard's contract allows a list, so
 	 * both shapes are read rather than one of them reaching `(string)`.
 	 *
+	 * A value that is not a scalar reads as the empty answer, which names no
+	 * set and no segment, so every caller refuses it with one check.
+	 *
 	 * @param mixed $value The posted value.
 	 *
-	 * @return string|null The answer, or null when it is not a scalar.
+	 * @return string The answer, or '' when it is not a scalar.
 	 */
-	private function scalarAnswer(mixed $value): ?string {
+	private function scalarAnswer(mixed $value): string {
 		if (is_array($value) === true) {
 			$value = ($value[0] ?? null);
 		}
 
 		if (is_scalar($value) === false) {
-			return null;
+			return '';
 		}
 
 		return (string)$value;
@@ -548,6 +551,11 @@ class SetupController extends Controller {
 	private function isSelectableProfile(string $profileId): bool {
 		if ($profileId === SeedProfileService::NONE_PROFILE) {
 			return true;
+		}
+
+		// The empty answer names no set, whatever the set lookup would say.
+		if ($profileId === '') {
+			return false;
 		}
 
 		return $this->seedProfiles->isKnown(profileId: $profileId);
