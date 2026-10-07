@@ -1584,9 +1584,10 @@
         "state": "building",
         "evidence": "CredentialDetail (src/manifest.d/people.json:679, lifecycleActions :687) offers offerToWallet (lib/Settings/learniq_register.json:569, a self-loop issued to issued). Its requires guard never runs on a self-loop (openregister#4074, open), but the transition event does: lib/Listener/CredentialWalletTransitionListener.php:102 calls WalletOfferDelegationService::offer() (:194), which posts to integriq POST /api/eudi/credential-offers (integriq appinfo/routes.php:347; :320 here) and stores walletOfferStatus, walletOfferedAt and walletAttestationRef on the credential. Missing: no page shows the learner the offer link or QR code (the credential carries status fields only: walletOfferStatus, walletOfferedAt, walletOfferError), so no wallet can claim it; and lib/Settings/connections.json:35 needs openconnector_api_token set.",
         "owner": "ConductionNL/integriq",
-        "change": "2026-07-13-eudi-wallet-credential-push",
+        "change": "credential-wallet-offer-for-the-learner",
         "reachedOn": "/credentials/:id > Actions > offerToWallet (staff); nothing for the learner",
-        "readOn": "2026-10-07"
+        "readOn": "2026-10-07",
+        "note": "Spec round part 3 (7 Oct): the delivered part is 2026-07-13-eudi-wallet-credential-push; the missing part is specified in credential-wallet-offer-for-the-learner."
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -4314,9 +4315,12 @@
       "name": "Send the report card home as a PDF.",
       "built": {
         "state": "building",
-        "evidence": "lib/Service/ReportCardPdfDelegationService.php posts to filinq, which is a proposed endpoint and is not installed by default",
-        "owner": "ConductionNL/filinq",
-        "change": "filinq/filinq-configurable-report-templates"
+        "evidence": "On a finalised card renderToPdf (rerenderToPdf once published) has lib/Service/ReportCardPdfDelegationService.php post to filinq POST api/v1/documents/render, which filinq development serves (appinfo/routes.php:300, ReportRenderService) and stores docudeskDocumentRef. Missing: nothing renders on publishToParents, the PDF is not a file on the report card, and the guardian collection parentReportCards (lib/Portal/PortalContributionProvider.php:1030) has no filesDownload, so no guardian can download it.",
+        "owner": "ConductionNL/learniq",
+        "change": "report-card-pdf-to-guardians",
+        "note": "Spec round part 3 (7 Oct): the delivered part is filinq/filinq-configurable-report-templates; the missing part is specified in report-card-pdf-to-guardians.",
+        "readOn": "2026-10-07",
+        "reachedOn": "/report-cards/:id > Actions > renderToPdf (staff); nothing for the guardian"
       },
       "provider": "filinq",
       "providerHow": "read: this repository posts to Filinq and does not render the document itself",
@@ -5351,9 +5355,10 @@
         "state": "specified",
         "evidence": "Backend path built, no page starts it. A new flag asks integriq for a leerplicht job (lib/Lifecycle/AttendanceFlagCreationHandler.php:295 and :364 requestExchangeJob, IntegriqExchangeClient::requestJob), integriq routes it to the Verzuimloket adapter (integriq lib/EventListener/ExchangeJobRequestedListener.php:69, lib/Service/Exchange/ExchangeTargetDispatcher.php:314), and AttendanceFlagReportGuard.php:119 allows `report` once that job succeeded. But the job waits until a person takes the flag up (lib/Service/ExchangeGateService.php:179 refuses while the flag is open), and AttendanceFlagDetail (src/manifest.d/people.json:1610) is readOnly with no lifecycleActions, so no page offers startHandling or report. Missing: the lifecycle actions on the flag detail page. Learniq half: 2026-09-28-data-exchange-to-integriq; integriq half: integriq/2026-09-29-learniq-exchange-jobs-native (both archived). integriq connectors-data-exchange-dispatch is superseded except the acknowledgement.",
         "owner": "ConductionNL/integriq",
-        "change": "2026-09-28-data-exchange-to-integriq",
+        "change": "attendance-flag-report-actions",
         "reachedOn": "nothing: /attendance/flags/:id shows the flag but no transition",
-        "readOn": "2026-10-07"
+        "readOn": "2026-10-07",
+        "note": "Spec round part 3 (7 Oct): the delivered part is 2026-09-28-data-exchange-to-integriq; the missing part is specified in attendance-flag-report-actions."
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -8239,7 +8244,9 @@
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing: no page offers the merge transition; OpenRegister lifecycle API only",
         "spec": "openspec/specs/learner-account-merge",
-        "readOn": "2026-10-07"
+        "readOn": "2026-10-07",
+        "change": "learner-merge-page-action",
+        "note": "Spec round part 3 (7 Oct): the delivered part is openspec/specs/learner-account-merge; the missing part is specified in learner-merge-page-action."
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -8543,9 +8550,10 @@
         "state": "building",
         "evidence": "Pages ExamPeriods, ExamPeriodDetail, ExamSittings and ExamSittingDetail (src/manifest.d/exam-schedule.json, detail :217) plan the week; lib/Listener/ExamSittingPlacementCheck.php:102-112 records rooms, capacity and clashWarnings on save, and the sitting detail lists invigilation requests answered through InvigilatorAssignmentCheck and InvigilatorResponseGuard. Missing: the extra time per learner and the invigilators who are free. lib/Service/ExamSittingOverview.php:79 overview() computes each accommodated learner's end time and room, and :101 availableInvigilators() the free colleagues, served at GET /api/exam-sittings/{id}/overview and /available-invigilators (appinfo/routes.php:346-347, lib/Controller/ExamScheduleController.php:84, :107), but no page or component in src/ calls either route.",
         "owner": "ConductionNL/learniq",
-        "change": "2026-09-29-timetabling-exam-schedule",
+        "change": "exam-sitting-overview-section",
         "reachedOn": "/exam-periods, /exam-sittings/:id (rooms and clashes); extra time and free invigilators: nothing",
-        "readOn": "2026-10-07"
+        "readOn": "2026-10-07",
+        "note": "Spec round part 3 (7 Oct): the delivered part is 2026-09-29-timetabling-exam-schedule; the missing part is specified in exam-sitting-overview-section."
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
