@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+use OCA\Learniq\Controller\ExampleSetsController;
 use OCA\Learniq\Controller\SetupController;
 use OCA\Learniq\Service\LoadedExampleSets;
 use OCA\Learniq\Service\SeedProfileService;
@@ -141,6 +142,36 @@ class SetupControllerTest extends TestCase {
 			$groups
 		);
 	}//end controller()
+
+	/**
+	 * The admin page's example-sets endpoint, over the same stored config.
+	 *
+	 * @param array<string, string> $stored App-config values by key.
+	 *
+	 * @return ExampleSetsController The controller under test.
+	 */
+	private function exampleSetsController(array $stored = []): ExampleSetsController {
+		$this->appConfig->method('getValueString')->willReturnCallback(
+			static fn (string $app, string $key, string $default = ''): string => ($stored[$key] ?? $default)
+		);
+
+		return new ExampleSetsController($this->request, $this->profiles);
+	}//end exampleSetsController()
+
+	/**
+	 * SetupController no longer carries the admin list, which keeps it under
+	 * phpmd's class complexity threshold; the URL moved controllers, not paths.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/wizard-drops-the-removal-step/specs/example-sets/spec.md
+	 */
+	public function testTheExampleSetListLivesInItsOwnController(): void {
+		self::assertFalse(method_exists(SetupController::class, 'exampleSets'));
+		$routes = include __DIR__ . '/../../../appinfo/routes.php';
+		$names  = array_column($routes['routes'], 'name', 'url');
+		self::assertSame('example_sets#exampleSets', $names['/api/setup/example-sets']);
+	}//end testTheExampleSetListLivesInItsOwnController()
 
 	/**
 	 * Capture every app-config write.
@@ -676,7 +707,7 @@ class SetupControllerTest extends TestCase {
 	 * @spec openspec/changes/wizard-drops-the-removal-step/specs/example-sets/spec.md
 	 */
 	public function testTheAdminPageListsNothingWhenNothingWasLoaded(): void {
-		self::assertSame(['sets' => []], $this->controller()->exampleSets()->getData());
+		self::assertSame(['sets' => []], $this->exampleSetsController()->exampleSets()->getData());
 	}//end testTheAdminPageListsNothingWhenNothingWasLoaded()
 
 	/**
@@ -692,7 +723,7 @@ class SetupControllerTest extends TestCase {
 	public function testTheAdminPageReadsTheLoadedSets(): void {
 		$stored = ['example_sets_loaded' => json_encode([['id' => 'po', 'label' => 'Primary school'], ['id' => 'demo', 'label' => 'Generated']])];
 
-		$data = $this->controller(stored: $stored)->exampleSets()->getData();
+		$data = $this->exampleSetsController(stored: $stored)->exampleSets()->getData();
 
 		self::assertSame(
 			[['id' => 'po', 'label' => 'Primary school'], ['id' => 'demo', 'label' => 'Generated']],
