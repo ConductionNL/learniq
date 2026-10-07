@@ -7579,6 +7579,174 @@
       "chamilo": "yes",
       "ispring-learn": "yes",
       "note": "Demand-signal row added 2026-09-26 (changelog). totara changelog: https://totara.com/articles/whats-new-totara-version-20/ (Totara 20): \"Learners can now enrol to (and withdraw from) programs and certifications\" by browsing the catalogue themselves. Same row as the moodle-workplace candidate, second source."
+    },
+    {
+      "id": "grd-points-levels-leaderboard",
+      "area": "grading",
+      "name": "Reward learning activity with points and levels, with a leaderboard a group can opt into.",
+      "built": {
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.PointAward and .LearnerEngagement; lib/Listener/PointAwardTriggerHandler.php; lib/Service/PointEngagementEvaluator.php; lib/Controller/LeaderboardController.php",
+        "owner": "ConductionNL/learniq",
+        "change": "openspec/changes/archive/2026-07-16-engagement-gamification"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "learniq": "yes",
+      "moodle": "unchecked",
+      "moodle-workplace": "unchecked",
+      "ilias": "unchecked",
+      "totara": "unchecked",
+      "chamilo": "unchecked",
+      "ispring-learn": "unchecked",
+      "source": "spec-round-2026-10-07"
+    },
+    {
+      "id": "ass-plan-an-exam-week",
+      "area": "assessment",
+      "name": "Plan an exam week with rooms, extra time and invigilators, and see the clashes.",
+      "built": {
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.ExamPeriod and .ExamSitting; lib/Controller/ExamScheduleController.php; lib/Service/ExamSittingPlacementCheck.php and InvigilatorAssignmentCheck.php",
+        "owner": "ConductionNL/learniq",
+        "change": "openspec/changes/archive/2026-09-29-timetabling-exam-schedule"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "learniq": "yes",
+      "moodle": "unchecked",
+      "moodle-workplace": "unchecked",
+      "ilias": "unchecked",
+      "totara": "unchecked",
+      "chamilo": "unchecked",
+      "ispring-learn": "unchecked",
+      "source": "spec-round-2026-10-07"
+    },
+    {
+      "id": "gov-try-it-with-example-data",
+      "area": "governance",
+      "name": "Load a realistic example school or company to try the product, and remove it again.",
+      "built": {
+        "state": "built",
+        "evidence": "openspec/specs/example-sets/spec.md (37 requirements); the setup wizard lists the shipped sets and removes a loaded set exactly",
+        "owner": "ConductionNL/learniq",
+        "spec": "openspec/specs/example-sets"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "learniq": "yes",
+      "moodle": "unchecked",
+      "moodle-workplace": "unchecked",
+      "ilias": "unchecked",
+      "totara": "unchecked",
+      "chamilo": "unchecked",
+      "ispring-learn": "unchecked",
+      "source": "spec-round-2026-10-07"
+    },
+    {
+      "id": "gov-fill-profiles-from-sign-in",
+      "area": "governance",
+      "name": "Fill learner profiles from what the school sign-in sends along.",
+      "built": {
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.SsoAttributeMapping; lib/Service/SsoAttributeMappingApplier.php",
+        "owner": "ConductionNL/learniq",
+        "spec": "openspec/specs/identity-federation"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "learniq": "yes",
+      "moodle": "unchecked",
+      "moodle-workplace": "unchecked",
+      "ilias": "unchecked",
+      "totara": "unchecked",
+      "chamilo": "unchecked",
+      "ispring-learn": "unchecked",
+      "source": "spec-round-2026-10-07"
+    },
+    {
+      "id": "gov-related-calendar-contacts-forms",
+      "area": "governance",
+      "name": "Open the related calendar item, contact, form or task board from a lesson, assignment, certificate or placement.",
+      "built": {
+        "state": "built",
+        "evidence": "openspec/specs/integration-leaves/spec.md; leaves declared in src/manifest.d/ on Session, Assignment, Credential, LearnerProfile and BpvPlacement",
+        "owner": "ConductionNL/learniq",
+        "change": "openspec/changes/archive/2026-09-29-leaf-integrations"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "learniq": "yes",
+      "moodle": "unchecked",
+      "moodle-workplace": "unchecked",
+      "ilias": "unchecked",
+      "totara": "unchecked",
+      "chamilo": "unchecked",
+      "ispring-learn": "unchecked",
+      "source": "spec-round-2026-10-07"
+    },
+    {
+      "id": "gov-see-which-connections-work",
+      "area": "governance",
+      "name": "See which outside connections work, and what each one is missing.",
+      "built": {
+        "state": "built",
+        "evidence": "lib/Settings/connections.json; lib/Service/ConnectionReportService.php; the Integrations page in admin settings",
+        "owner": "ConductionNL/learniq",
+        "change": "openspec/changes/archive/2026-09-29-adopt-connection-registry"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "learniq": "yes",
+      "moodle": "unchecked",
+      "moodle-workplace": "unchecked",
+      "ilias": "unchecked",
+      "totara": "unchecked",
+      "chamilo": "unchecked",
+      "ispring-learn": "unchecked",
+      "source": "spec-round-2026-10-07"
+    },
+    {
+      "id": "gov-pages-update-live",
+      "area": "governance",
+      "name": "See a change someone else makes without reloading the page.",
+      "built": {
+        "state": "built",
+        "evidence": "openspec/specs/realtime-updates/spec.md; store-backed detail views subscribe to OpenRegister object push events",
+        "owner": "ConductionNL/learniq",
+        "change": "openspec/changes/archive/2026-09-28-adopt-live-updates-ui"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "learniq": "yes",
+      "moodle": "unchecked",
+      "moodle-workplace": "unchecked",
+      "ilias": "unchecked",
+      "totara": "unchecked",
+      "chamilo": "unchecked",
+      "ispring-learn": "unchecked",
+      "source": "spec-round-2026-10-07"
+    },
+    {
+      "id": "gov-review-machine-translations",
+      "area": "governance",
+      "name": "Review the labels a machine translated before they count as checked.",
+      "built": {
+        "state": "built",
+        "evidence": "lib/Service/AiTranslatedCatalogue.php; lib/Controller/AiTranslationReviewController.php; the list in admin settings",
+        "owner": "ConductionNL/learniq",
+        "change": "openspec/changes/archive/2026-09-28-ai-translated-catalogue-review"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "learniq": "yes",
+      "moodle": "unchecked",
+      "moodle-workplace": "unchecked",
+      "ilias": "unchecked",
+      "totara": "unchecked",
+      "chamilo": "unchecked",
+      "ispring-learn": "unchecked",
+      "source": "spec-round-2026-10-07"
     }
   ],
   "pending": [
