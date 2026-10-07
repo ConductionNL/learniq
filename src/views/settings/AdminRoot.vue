@@ -25,6 +25,7 @@
 
 		<MenuStructureSection />
 		<LearniqSettings v-if="storesReady" />
+		<ExampleDataSettingsSection />
 		<DataExchangeSettingsSection />
 		<TimetableExchangeSettingsSection />
 		<LtiSettingsSection />
@@ -41,6 +42,7 @@ import ActionAuthMatrix from '../../components/admin/ActionAuthMatrix.vue'
 import LearniqSettings from '../LearniqSettings.vue'
 import AiTranslationReviewSection from './AiTranslationReviewSection.vue'
 import DataExchangeSettingsSection from './DataExchangeSettingsSection.vue'
+import ExampleDataSettingsSection from './ExampleDataSettingsSection.vue'
 import LtiSettingsSection from './LtiSettingsSection.vue'
 import MenuStructureSection from './MenuStructureSection.vue'
 import StoreRegistrySettingsSection from './StoreRegistrySettingsSection.vue'
@@ -53,6 +55,7 @@ export default {
 		CnVersionInfoCard,
 		LearniqSettings,
 		DataExchangeSettingsSection,
+		ExampleDataSettingsSection,
 		StoreRegistrySettingsSection,
 		TimetableExchangeSettingsSection,
 		LtiSettingsSection,

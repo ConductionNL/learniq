@@ -23,12 +23,18 @@ October 2026: drop the separate step.
 - `docs/installation.md` names `occ learniq:example-set:remove` as the way
   to remove a set.
 
-The server side stays: `POST /api/setup/action/remove-example-set` and
-`remove-example-set-<id>` still remove a set for an administrator who calls
-them, and the setup status still reports them done. Nothing in the UI posts
-them any more.
+Removal moves to the admin page (Ruben, 7 October 2026):
 
-## Out of scope
+- An Example data section on learniq's admin settings page lists the loaded
+  example sets, each with a Remove button. The button asks first, then posts
+  the existing admin-only setup action `remove-example-set-<id>`, which moves
+  the set's objects to OpenRegister's trash (not the `occ` command's hard
+  delete), and shows the result.
+- New admin-only `GET /api/setup/example-sets` returns the loaded sets. The
+  admin page cannot read the `loadedExampleSets` initial state, which only
+  the app page provides.
+- `docs/installation.md` names the admin page, and the `occ` command for a
+  set that cannot be removed there.
 
-A removal button on learniq's admin settings page. There is none today; the
-settings page has no example data section.
+The setup status keeps reporting the removal actions done, so a browser that
+still holds the older manifest never starts one by itself.

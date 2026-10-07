@@ -592,8 +592,9 @@ class SetupControllerTest extends TestCase {
 	}//end testAnAdministrationManagerChoosesTheSegment()
 
 	/**
-	 * Every manifest step id is reported; the extra ids are the per-set
-	 * removal steps.
+	 * Every manifest step id is reported; the extra ids are the removal
+	 * actions, still reported done so a browser holding an older manifest
+	 * never starts one by itself (the wizard no longer declares them).
 	 *
 	 * @return void
 	 *
@@ -606,7 +607,8 @@ class SetupControllerTest extends TestCase {
 
 		self::assertSame([], array_values(array_diff($declared, $reported)), 'every manifest step is reported');
 		foreach (array_diff($reported, $declared) as $extra) {
-			self::assertStringStartsWith('remove-example-set-', $extra);
+			self::assertStringStartsWith('remove-example-set', $extra);
+			self::assertTrue($this->controller()->status()->getData()['steps'][$extra]['done']);
 		}
 
 		$steps = array_column($manifest['setup']['steps'], null, 'id');
@@ -665,4 +667,37 @@ class SetupControllerTest extends TestCase {
 		self::assertSame(500, $response->getStatus());
 		self::assertSame([], $written->getArrayCopy());
 	}//end testAFailedCardLoadStoresNothing()
+
+	/**
+	 * Nothing loaded, nothing listed.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/wizard-drops-the-removal-step/specs/example-sets/spec.md
+	 */
+	public function testTheAdminPageListsNothingWhenNothingWasLoaded(): void {
+		self::assertSame(['sets' => []], $this->controller()->exampleSets()->getData());
+	}//end testTheAdminPageListsNothingWhenNothingWasLoaded()
+
+	/**
+	 * The admin page lists the loaded example sets, with their labels.
+	 *
+	 * The wizard no longer removes example data; the admin page's Example
+	 * data section reads this list and offers a Remove button per set.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/wizard-drops-the-removal-step/specs/example-sets/spec.md
+	 */
+	public function testTheAdminPageReadsTheLoadedSets(): void {
+		$stored = ['example_sets_loaded' => json_encode([['id' => 'po', 'label' => 'Primary school'], ['id' => 'demo', 'label' => 'Generated']])];
+
+		$data = $this->controller(stored: $stored)->exampleSets()->getData();
+
+		self::assertSame(
+			[['id' => 'po', 'label' => 'Primary school'], ['id' => 'demo', 'label' => 'Generated']],
+			$data['sets']
+		);
+	}//end testTheAdminPageReadsTheLoadedSets()
 }//end class
+

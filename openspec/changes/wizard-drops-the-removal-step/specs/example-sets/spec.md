@@ -4,7 +4,33 @@
 
 **Reason**: The setup wizard no longer removes example data (live audit A1, Ruben 7 October 2026). The shared wizard card cannot remove, and a separate removal step is not what the other apps offer.
 
-**Migration**: Remove a set with `php occ learniq:example-set:remove <id> --apply`. `POST /api/setup/action/remove-example-set-<id>` stays for an administrator who calls it.
+**Migration**: An administrator removes a set from the Example data section on learniq's admin page (see the ADDED requirement below), or with `php occ learniq:example-set:remove <id> --apply`.
+
+## ADDED Requirements
+
+### Requirement: An administrator removes a loaded example set on the admin page
+
+learniq's admin settings page MUST show an Example data section that lists every loaded example set (`example_sets_loaded`) by its label, read through the admin-only `GET /api/setup/example-sets`. Each set MUST have its own Remove button. A click MUST ask for confirmation first, and only a confirmation MUST post `POST /api/setup/action/remove-example-set-<id>`, which moves the set's objects to OpenRegister's trash. The section MUST show the answer's message as a success or an error, and MUST read the list again, so a set removed without errors disappears and a set with errors stays. With no set loaded, the section MUST say so.
+
+#### Scenario: Removing the company set
+
+- **GIVEN** the company and training sets are loaded
+- **WHEN** the administrator clicks Remove next to "Company" and confirms
+- **THEN** `POST /api/setup/action/remove-example-set-corporate` is sent
+- **AND** the section shows how many objects moved to the trash
+- **AND** only the training set is still listed
+
+#### Scenario: The administrator changes their mind
+
+- **GIVEN** the company set is loaded
+- **WHEN** the administrator clicks Remove and cancels the question
+- **THEN** nothing is posted and the set stays listed
+
+#### Scenario: Nothing loaded
+
+- **GIVEN** no example set was loaded
+- **WHEN** the administrator opens the admin page
+- **THEN** the Example data section says no example set is loaded
 
 ## MODIFIED Requirements
 

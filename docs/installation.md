@@ -97,7 +97,9 @@ Loading a set twice adds nothing, because every example object has a fixed id. L
 
 The setup wizard only loads example data; it does not remove it. Only an administrator or a member of `administration-managers` can choose the kind of organisation in the wizard.
 
-To remove a set again, run the command on the server. It shows what it would remove; add `--apply` to remove it:
+To remove a set again, open the admin settings of learniq and go to **Example data**. Every set you loaded is listed with its own **Remove** button. After you confirm, its example objects move to the trash of OpenRegister, so you can restore them; anything you made yourself stays.
+
+On an OpenRegister that cannot remove imports from there, or for a set loaded before it could, run the command on the server instead. It shows what it would remove; add `--apply` to remove it:
 
 ```bash
 php occ learniq:example-set:remove po
