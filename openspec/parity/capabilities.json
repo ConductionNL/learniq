@@ -1917,7 +1917,7 @@
         "state": "building",
         "evidence": "The SCORM 1.2 runtime (src/utils/scorm12Runtime.js) reports completion to POST /api/lrs/statements (archived cmi5-xapi-lrs-ingest). Not built: unpacking an uploaded SCORM zip; the player serves one lesson file by contentRef. SCORM 2004 is a follow-up.",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest"
+        "change": "openspec/changes/content-scorm-package-upload"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
