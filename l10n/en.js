@@ -1813,6 +1813,7 @@ OC.L10N.register(
         "Intensive": "Intensive",
         "Previous plan": "Previous plan",
         "Pupils": "Pupils",
+        "Pupil": "Pupil",
         "Reader": "Reader",
         "Rest breaks": "Rest breaks",
         "School's own level": "School's own level",
