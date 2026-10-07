@@ -44,9 +44,18 @@ The setup wizard MUST NOT offer a step that removes example data. The setup acti
 - **WHEN** an administrator goes through it
 - **THEN** its steps are welcome, example data, kind of organisation and done, and none removes data
 
-#### Scenario: Removing the company set through the action
-
-- **GIVEN** OpenRegister records one import job for `learniq.profile.corporate` and the wizard's answer is the company set
-- **WHEN** an administrator posts `remove-example-set`
+#### Scenario: Removing the company set
+- **GIVEN** the wizard loaded the company set and OpenRegister records one import job for `learniq.profile.corporate`
+- **WHEN** an administrator posts the `remove-example-set` action
 - **THEN** `softDeleteAppImports('learniq.profile.corporate')` is called once
 - **AND** the answer says how many objects moved to the trash
+
+#### Scenario: An OpenRegister without the method
+- **GIVEN** OpenRegister's ConfigurationService has no `softDeleteAppImports`
+- **WHEN** an administrator posts the `remove-example-set` action for the company set
+- **THEN** the answer is `success: false` and names `php occ learniq:example-set:remove corporate --apply`
+
+#### Scenario: Nothing was loaded
+- **GIVEN** the wizard's example set answer is "None"
+- **WHEN** an administrator posts the `remove-example-set` action
+- **THEN** nothing is called and the answer says there is nothing to remove

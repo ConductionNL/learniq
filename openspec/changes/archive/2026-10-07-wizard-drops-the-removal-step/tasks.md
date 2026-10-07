@@ -1,6 +1,6 @@
 # Tasks: wizard-drops-the-removal-step
 
-> Archive pass 2026-10-07: code done; not archived: `openspec validate --strict` fails, the MODIFIED example-sets requirement omits three scenarios the main spec still has (Removing the company set, An OpenRegister without the method, Nothing was loaded); deciding whether they stay is a spec call.
+> Archive pass 2026-10-07: code done; not archived because the MODIFIED example-sets requirement dropped three scenarios the main spec still has. Delta fix-up 2026-10-07: the code still does all three (`SetupController::removeExampleSet()`, `SeedProfileService::remove()`; `SetupControllerTest::testRemovingTheLoadedSetReportsTheTrashedCount`, `testNothingLoadedRemovesNothing` and the no-method test), so the delta carries them over, worded as the server action instead of a wizard step.
 
 - [x] 1.1 Drop the `remove-example-set` step from `src/manifest.json`.
 - [x] 1.2 Remove the per-set step expansion (`src/utils/exampleSetSteps.js`, its call in `src/main.js`, `tests/unit-js/exampleSetSteps.test.mjs`).
