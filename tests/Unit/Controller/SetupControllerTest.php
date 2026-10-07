@@ -173,11 +173,10 @@ class SetupControllerTest extends TestCase {
 		self::assertSame(['none', 'po', 'demo'], array_column($data['profiles'], 'id'));
 		self::assertSame(['po'], array_column($data['segments'], 'id'));
 		self::assertSame(
-			['example-set', 'load-example-set', 'segment', 'remove-example-set', 'remove-example-set-po', 'remove-example-set-demo'],
+			['welcome', 'example-set', 'segment', 'remove-example-set', 'done', 'remove-example-set-po', 'remove-example-set-demo'],
 			array_keys($data['steps'])
 		);
 		self::assertFalse($data['steps']['example-set']['done']);
-		self::assertFalse($data['steps']['load-example-set']['done']);
 		self::assertFalse($data['steps']['segment']['done']);
 	}//end testStatusReportsEveryStepAndBothOptionLists()
 
@@ -195,17 +194,17 @@ class SetupControllerTest extends TestCase {
 	}//end testAStoredSegmentClosesTheSegmentStep()
 
 	/**
-	 * Choosing "None" closes both example steps; an answer given under the
+	 * Choosing "None" closes the example step; an answer given under the
 	 * legacy key still counts.
 	 *
 	 * @return void
 	 */
-	public function testChoosingNoneClosesBothExampleSteps(): void {
+	public function testChoosingNoneClosesTheExampleStep(): void {
 		$data = $this->controller(stored: ['demo_dataset' => 'none'])->status()->getData();
 
 		self::assertTrue($data['steps']['example-set']['done']);
-		self::assertTrue($data['steps']['load-example-set']['done']);
-	}//end testChoosingNoneClosesBothExampleSteps()
+		self::assertArrayNotHasKey('load-example-set', $data['steps']);
+	}//end testChoosingNoneClosesTheExampleStep()
 
 	/**
 	 * A set on offer is stored under the new key, also when posted under the
@@ -309,6 +308,7 @@ class SetupControllerTest extends TestCase {
 		self::assertTrue($data['success']);
 		self::assertStringContainsString('3', $data['message']);
 		self::assertSame('installed', $written['demo_data_decided']);
+		self::assertSame('po', $written['example_profile']);
 	}//end testLoadingImportsThePickedSetAndNamesTheCount()
 
 	/**
@@ -590,4 +590,79 @@ class SetupControllerTest extends TestCase {
 
 		self::assertSame(['segment' => 'po'], $data['config']);
 	}//end testAnAdministrationManagerChoosesTheSegment()
+
+	/**
+	 * Every manifest step id is reported; the extra ids are the per-set
+	 * removal steps.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/wizard-dataset-card-load/specs/first-time-setup/spec.md
+	 */
+	public function testStatusReportsEveryManifestStepId(): void {
+		$manifest = json_decode((string)file_get_contents(__DIR__ . '/../../../src/manifest.json'), true);
+		$declared = array_column($manifest['setup']['steps'], 'id');
+		$reported = array_keys($this->controller()->status()->getData()['steps']);
+
+		self::assertSame([], array_values(array_diff($declared, $reported)), 'every manifest step is reported');
+		foreach (array_diff($reported, $declared) as $extra) {
+			self::assertStringStartsWith('remove-example-set-', $extra);
+		}
+
+		$steps = array_column($manifest['setup']['steps'], null, 'id');
+		self::assertSame('load-example-set', $steps['example-set']['loadAction'] ?? null);
+		self::assertArrayNotHasKey('load-example-set', $steps);
+	}//end testStatusReportsEveryManifestStepId()
+
+	/**
+	 * The card's Load button posts `{ dataset }`; the load records the pick.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/wizard-dataset-card-load/specs/first-time-setup/spec.md
+	 */
+	public function testTheCardPostsItsSetAndTheLoadRecordsTheChoice(): void {
+		$written = $this->captureWrites();
+		$this->profiles->expects(self::once())->method('install')->with('po')->willReturn(['objects' => 3, 'profile' => 'po']);
+
+		$data = $this->controller(params: ['dataset' => 'po'])->runAction('load-example-set')->getData();
+
+		self::assertTrue($data['success']);
+		self::assertSame(['example_profile' => 'po', 'demo_data_decided' => 'installed'], $written->getArrayCopy());
+	}//end testTheCardPostsItsSetAndTheLoadRecordsTheChoice()
+
+	/**
+	 * A posted set no card offers is refused, and nothing loads.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/wizard-dataset-card-load/specs/first-time-setup/spec.md
+	 */
+	public function testAnUnknownPostedSetIsRefusedAndNothingLoads(): void {
+		$written = $this->captureWrites();
+		$this->profiles->expects(self::never())->method('install');
+
+		$response = $this->controller(params: ['dataset' => 'atlantis'], stored: ['example_profile' => 'po'])->runAction('load-example-set');
+
+		self::assertSame(400, $response->getStatus());
+		self::assertStringContainsString('atlantis', $response->getData()['message']);
+		self::assertSame([], $written->getArrayCopy());
+	}//end testAnUnknownPostedSetIsRefusedAndNothingLoads()
+
+	/**
+	 * A failed card load stores neither the pick nor the decision.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/wizard-dataset-card-load/specs/first-time-setup/spec.md
+	 */
+	public function testAFailedCardLoadStoresNothing(): void {
+		$written = $this->captureWrites();
+		$this->profiles->method('install')->willThrowException(new RuntimeException('OpenRegister is not installed'));
+
+		$response = $this->controller(params: ['dataset' => 'po'])->runAction('load-example-set');
+
+		self::assertSame(500, $response->getStatus());
+		self::assertSame([], $written->getArrayCopy());
+	}//end testAFailedCardLoadStoresNothing()
 }//end class

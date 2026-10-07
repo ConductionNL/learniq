@@ -16,18 +16,11 @@
         "display": "cards",
         "optionsSource": "profiles",
         "configKey": "example_profile",
+        "loadAction": "load-example-set",
         "multiple": false,
         "title": "Which example data do you want?",
         "required": false,
-        "body": "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Pick \"None\" on a production install."
-      },
-      {
-        "id": "load-example-set",
-        "type": "run-action",
-        "action": "load-example-set",
-        "title": "Load the example data",
-        "required": false,
-        "body": "Loads the set you picked. It is sample data, and running it twice adds nothing. You can remove it again at the end of this wizard."
+        "body": "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Each card has its own Load button. Pick \"None\" on a production install."
       },
       {
         "id": "segment",

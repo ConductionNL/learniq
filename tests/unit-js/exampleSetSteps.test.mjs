@@ -34,7 +34,6 @@ test('two loaded sets become two removal steps, each with its own action', () =>
 	assert.deepEqual(ids, [
 		'welcome',
 		'example-set',
-		'load-example-set',
 		'segment',
 		'remove-example-set-corporate',
 		'remove-example-set-training',
