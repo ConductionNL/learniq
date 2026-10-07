@@ -124,6 +124,7 @@ OC.L10N.register(
         "No ranked learners": "Geen gerangschikte leerlingen",
         "Every member of this cohort has opted out, or nobody has earned points yet.": "Alle leden van dit cohort hebben zich afgemeld, of niemand heeft nog punten verdiend.",
         "My points": "Mijn punten",
+        "Your concern is sent to the confidential counsellor.": "Uw melding is naar de vertrouwenspersoon gestuurd.",
         "{days}-day streak": "{days}-daagse reeks",
         "Data exchange": "Gegevensuitwisseling",
         "Data-exchange jobs": "Uitwisselingstaken",

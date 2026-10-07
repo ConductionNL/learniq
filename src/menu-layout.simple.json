@@ -90,6 +90,7 @@
 		"PraktijkovereenkomstenMenu",
 		"PrivacyGovernanceDashboardMenu",
 		"ReportCardsMenu",
+		"ReportConcernMenu",
 		"RollCallMenu",
 		"SchoolAdviezenMenu",
 		"SchoolEventsMenu",
@@ -443,11 +444,6 @@
 		{
 			"id": "ConcernReportsMenu",
 			"order": 61
-		},
-		{
-			"id": "ReportConcernMenu",
-			"section": "footer",
-			"order": 89
 		}
 	],
 	"nav": {
@@ -478,11 +474,9 @@
 			"href": "https://learniq.conduction.nl"
 		},
 		"footer": [
-			"ReportConcernMenu",
 			"settings",
 			"help"
-		],
-		"settingsLabel": "Settings"
+		]
 	},
 	"pages": [
 		{
@@ -1133,6 +1127,24 @@
 								]
 							}
 						}
+					}
+				]
+			}
+		},
+		{
+			"id": "LearnerProfileDetail",
+			"_note": "Report a concern (Ruben, 7 October 2026): the simple menu leaves it out of the footer, as LqDashboard draws it (Settings and Help only), and offers it here, on the pupil's page, where a teacher has the worry. It opens the same create form the Report a concern page offers (concern-report, the same register and schema). The report is NOT pre-filled with the pupil: the concern-report schema holds no learner field (topic, description, happenedOn, wantsConversation, status, reporterId), and the report is confidential to the counsellor, so nothing is invented and no pupil reference is written into it unasked. /report-a-concern stays a page in both profiles, so a link to it still works. The full profile keeps its menu entry and has no overlay here.",
+			"configAppend": {
+				"headerActions": [
+					{
+						"id": "report-a-concern",
+						"type": "open-form",
+						"label": "Report a concern",
+						"formTitle": "Report a concern",
+						"icon": "ShieldAlertOutline",
+						"register": "learniq",
+						"schema": "concern-report",
+						"successMessage": "Your concern is sent to the confidential counsellor."
 					}
 				]
 			}

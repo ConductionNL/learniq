@@ -146,7 +146,18 @@ function build(layout, role, state = NEVER, flags = {}) {
 }
 
 /** The overlays that only append links: header links on lists, cards on Reports. */
-const LINK_OVERLAYS = SIMPLE.pages.filter((overlay) => overlay.configAppend)
+/** An overlay that adds header actions to a page, not links. */
+function isActionOverlay(overlay) {
+	return (
+		!!overlay.configAppend
+		&& Object.keys(overlay.configAppend).every((key) => key === 'headerActions')
+	)
+}
+const LINK_OVERLAYS = SIMPLE.pages.filter(
+	(overlay) => overlay.configAppend && !isActionOverlay(overlay),
+)
+/** The overlays that add a header action (Report a concern on the pupil). */
+const ACTION_OVERLAYS = SIMPLE.pages.filter(isActionOverlay)
 /** The overlay that turns the page at `/` into the Today dashboard. */
 const TODAY = SIMPLE.pages.find((overlay) => overlay.id === 'Dashboard')
 /** The roles the Today dashboard is for. */
@@ -296,6 +307,14 @@ function unlinkedFor(role) {
  * a new unlinked entry must be put in, or the test fails. That is the point:
  * the list is the record of what a role loses, and it may not drift.
  */
+/**
+ * Report a concern left the simple menu for an action on the pupil's page
+ * (Ruben, 7 October 2026). Its page keeps its address, but no simple entry
+ * links it any more, so every role that saw it in the full menu loses that
+ * door. A pupil or a guardian has no pupil page of someone else to start
+ * from: their way in is the address /report-a-concern alone.
+ */
+const CONCERN = ['ReportConcernMenu']
 const PLANNING = [
 	'ElectiveOffersMenu',
 	'ExamSittingsMenu',
@@ -304,6 +323,7 @@ const PLANNING = [
 ]
 const KNOWN_UNLINKED = {
 	admin: [
+		...CONCERN,
 		...PLANNING,
 		'AdmissionsReviewBoardMenu',
 		'BookConferenceSlotsMenu',
@@ -327,12 +347,14 @@ const KNOWN_UNLINKED = {
 		'TimetableConflictQueueMenu',
 	],
 	'compliance-officer': [
+		...CONCERN,
 		'AbsenceReportsComplianceMenu',
 		'DashboardAdmin',
 		'DashboardStudent',
 	],
-	hr: ['DashboardAdmin', 'DashboardStudent'],
+	hr: [...CONCERN, 'DashboardAdmin', 'DashboardStudent'],
 	'administration-manager': [
+		...CONCERN,
 		...PLANNING,
 		'AdmissionsReviewBoardMenu',
 		'CatalogueMenu',
@@ -350,6 +372,7 @@ const KNOWN_UNLINKED = {
 		'TrajectoriesMenu',
 	],
 	'team-lead': [
+		...CONCERN,
 		...PLANNING,
 		'ConferenceScheduleBoardMenu',
 		'DashboardStudent',
@@ -358,6 +381,7 @@ const KNOWN_UNLINKED = {
 		'SchoolEventsMenu',
 	],
 	coordinator: [
+		...CONCERN,
 		...PLANNING,
 		'AdmissionsReviewBoardMenu',
 		'CatalogueMenu',
@@ -374,6 +398,7 @@ const KNOWN_UNLINKED = {
 		'TimetableConflictQueueMenu',
 	],
 	instructor: [
+		...CONCERN,
 		...PLANNING,
 		'CatalogueMenu',
 		'GroupPeople',
@@ -383,9 +408,14 @@ const KNOWN_UNLINKED = {
 		'TeacherAvailabilitiesMenu',
 		'TimetablesMenu',
 	],
-	'confidential-counsellor': ['DashboardStudent'],
-	guardian: ['DashboardStudent'],
-	learner: ['BookConferenceSlotsMenu', 'DashboardStudent', 'TimetablesMenu'],
+	'confidential-counsellor': [...CONCERN, 'DashboardStudent'],
+	guardian: [...CONCERN, 'DashboardStudent'],
+	learner: [
+		...CONCERN,
+		'BookConferenceSlotsMenu',
+		'DashboardStudent',
+		'TimetablesMenu',
+	],
 }
 
 /** The simple main menu, in order, captions included. */
@@ -558,7 +588,9 @@ test('both profiles hold the same pages, and an overlay only appends', () => {
 		simple.pages.map((page) => page.id),
 		full.pages.map((page) => page.id),
 	)
-	const overlaid = new Set(LINK_OVERLAYS.map((overlay) => overlay.id))
+	const overlaid = new Set(
+		[...LINK_OVERLAYS, ...ACTION_OVERLAYS].map((overlay) => overlay.id),
+	)
 	for (const [index, page] of full.pages.entries()) {
 		const twin = simple.pages[index]
 		if (page.id === TODAY.id) {
@@ -1676,9 +1708,48 @@ test('Today has one header, on the page ground, and the navigation ends in Setti
 	)) {
 		assert.equal(tile.content.layout, 'stacked', tile.id)
 	}
-	// Report a concern stays in sight: it is how a teacher raises a worry
-	// about a pupil, and the settings foldout would hide it.
-	assert.deepEqual(SIMPLE.nav.footer, ['ReportConcernMenu', 'settings', 'help'])
+	// Report a concern left the footer for the pupil's page (Ruben, 7 October
+	// 2026): the footer is Settings and Help, as the board draws it.
+	assert.deepEqual(SIMPLE.nav.footer, ['settings', 'help'])
 	assert.equal(SIMPLE.nav.help.href, 'https://learniq.conduction.nl')
 	assert.equal(FULL.nav, undefined)
+})
+
+test('Report a concern is an action on the pupil page, the same form, and its page stays', () => {
+	const full = build(FULL, 'admin')
+	const simple = build(SIMPLE, 'admin')
+	const reportPage = full.pages.find((page) => page.id === 'ReportConcern')
+	// The form the menu entry opened: the Report a concern page lists and
+	// creates concern-report objects in the learniq register.
+	assert.deepEqual(
+		{ register: reportPage.config.register, schema: reportPage.config.schema },
+		{ register: 'learniq', schema: 'concern-report' },
+	)
+	const pupil = simple.pages.find((page) => page.id === 'LearnerProfileDetail')
+	const action = pupil.config.headerActions.find(
+		(item) => item.id === 'report-a-concern',
+	)
+	assert.equal(action.type, 'open-form')
+	assert.equal(action.register, reportPage.config.register)
+	assert.equal(action.schema, reportPage.config.schema)
+	// Not pre-filled: the schema has no field that names a pupil, and the
+	// report is confidential to the counsellor.
+	const schema = schemaOf('concern-report')
+	assert.ok(
+		!('learner' in schema.properties) && !('learnerId' in schema.properties),
+	)
+	assert.equal(action.props, undefined)
+	// The page keeps its address in both profiles; the full menu keeps the
+	// entry, and the full pupil page has no new action.
+	assert.ok(
+		simple.pages.some(
+			(page) =>
+				page.id === 'ReportConcern' && page.route === '/report-a-concern',
+		),
+	)
+	assert.ok(flat(full.menu).some((item) => item.id === 'ReportConcernMenu'))
+	assert.ok(!flat(simple.menu).some((item) => item.id === 'ReportConcernMenu'))
+	const fullPupil = full.pages.find((page) => page.id === 'LearnerProfileDetail')
+	assert.equal(fullPupil.config.headerActions, undefined)
+	assert.deepEqual(Object.keys(ACTION_OVERLAYS[0]).sort(), ['configAppend', 'id'])
 })
