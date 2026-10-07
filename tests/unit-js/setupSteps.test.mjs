@@ -17,13 +17,12 @@ const manifest = JSON.parse(
 const steps = manifest.setup.steps
 const step = (id) => steps.find((s) => s.id === id)
 
-test('welcome, then the example-set offer, then load, segment, removal and done (gate 100)', () => {
+test('welcome, then the example-set offer, then segment, removal and done (gate 100)', () => {
 	assert.deepEqual(
 		steps.map((s) => s.id),
 		[
 			'welcome',
 			'example-set',
-			'load-example-set',
 			'segment',
 			'remove-example-set',
 			'done',
@@ -39,7 +38,9 @@ test('both choices are single-select and read their options from the server', ()
 	assert.equal(step('segment').optionsSource, 'segments')
 	assert.equal(step('segment').configKey, 'segment')
 	assert.equal(step('segment').multiple, false)
-	assert.equal(step('load-example-set').action, 'load-example-set')
+	// Each card loads itself (wizard-dataset-card-load); no load step.
+	assert.equal(step('example-set').loadAction, 'load-example-set')
+	assert.equal(step('load-example-set'), undefined)
 })
 
 test('the segment is pre-selected from the example set picked earlier', () => {
@@ -78,7 +79,7 @@ test('the removal step posts its own action and says it only runs on a click', (
 	const nl = JSON.parse(
 		readFileSync(new URL('../../l10n/nl.json', import.meta.url), 'utf8'),
 	).translations
-	for (const text of [remove.title, remove.body, step('load-example-set').body]) {
+	for (const text of [remove.title, remove.body, step('example-set').body]) {
 		assert.ok(nl[text], `"${text}" has a Dutch translation`)
 	}
 })
