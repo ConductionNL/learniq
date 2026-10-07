@@ -10,6 +10,9 @@
  * measures the cell's first child, and nextcloud-vue 2.65.0's widget wrapper
  * fills the cell (`height: 100%`), so the greeting on the ground kept two
  * rows and centred its date and heading in them. */
-.cn-dashboard-grid .grid-stack-item[gs-size-to-content] > .grid-stack-item-content > .cn-widget-wrapper {
+.cn-dashboard-grid
+	.grid-stack-item[gs-size-to-content]
+	> .grid-stack-item-content
+	> .cn-widget-wrapper {
 	height: auto;
 }

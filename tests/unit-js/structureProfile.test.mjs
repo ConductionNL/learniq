@@ -518,10 +518,13 @@ test('the full profile is exactly the plain manifest build', () => {
 	assert.equal(SIMPLE.pageDefaults, undefined)
 	for (const page of plain.pages) {
 		const now = profiled.pages.find((item) => item.id === page.id)
-		const held = page.type === 'index' && page.config?.headerFilters === undefined
+		const held =
+			page.type === 'index' && page.config?.headerFilters === undefined
 		assert.deepEqual(
 			now,
-			held ? { ...page, config: { ...page.config, headerFilters: false } } : page,
+			held
+				? { ...page, config: { ...page.config, headerFilters: false } }
+				: page,
 			page.id,
 		)
 	}
@@ -1652,13 +1655,25 @@ test('Today has one header, on the page ground, and the navigation ends in Setti
 	// (Today's register) is the navigation's primary action already.
 	assert.equal(TODAY.config.showHeader, false)
 	assert.equal(TODAY.config.showWidgetActions, false)
-	const greeting = TODAY.config.widgets.find((widget) => widget.id === 'today-greeting')
-	assert.deepEqual(greeting.content, { title: 'Today', showDate: true, ground: true })
-	const row = TODAY.config.layout.find((item) => item.widgetId === 'today-greeting')
+	const greeting = TODAY.config.widgets.find(
+		(widget) => widget.id === 'today-greeting',
+	)
+	assert.deepEqual(greeting.content, {
+		title: 'Today',
+		showDate: true,
+		ground: true,
+	})
+	const row = TODAY.config.layout.find(
+		(item) => item.widgetId === 'today-greeting',
+	)
 	assert.equal(row.gridHeight, 1)
-	const register = TODAY.config.headerActions.find((action) => action.id === 'open-roll-call')
+	const register = TODAY.config.headerActions.find(
+		(action) => action.id === 'open-roll-call',
+	)
 	assert.equal(SIMPLE.nav.primaryAction.route, register.target)
-	for (const tile of TODAY.config.widgets.filter((widget) => widget.type === 'stat')) {
+	for (const tile of TODAY.config.widgets.filter(
+		(widget) => widget.type === 'stat',
+	)) {
 		assert.equal(tile.content.layout, 'stacked', tile.id)
 	}
 	// Report a concern stays in sight: it is how a teacher raises a worry
