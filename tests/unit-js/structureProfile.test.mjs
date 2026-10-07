@@ -145,7 +145,6 @@ function build(layout, role, state = NEVER, flags = {}) {
 	)
 }
 
-/** The overlays that only append links: header links on lists, cards on Reports. */
 /** An overlay that adds header actions to a page, not links. */
 function isActionOverlay(overlay) {
 	return (
@@ -153,6 +152,7 @@ function isActionOverlay(overlay) {
 		&& Object.keys(overlay.configAppend).every((key) => key === 'headerActions')
 	)
 }
+/** The overlays that only append links: header links on lists, cards on Reports. */
 const LINK_OVERLAYS = SIMPLE.pages.filter(
 	(overlay) => overlay.configAppend && !isActionOverlay(overlay),
 )
