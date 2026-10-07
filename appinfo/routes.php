@@ -32,6 +32,7 @@ return [
         // SPA shell — bespoke PageController (role-aware initial state).
         // First-time setup wizard (ADR-042) - the standard CnSetupWizard contract.
         ['name' => 'setup#status',    'url' => '/api/setup/status',            'verb' => 'GET'],
+        ['name' => 'setup#exampleSets', 'url' => '/api/setup/example-sets',   'verb' => 'GET'],
         ['name' => 'setup#runAction', 'url' => '/api/setup/action/{actionId}', 'verb' => 'POST', 'requirements' => ['actionId' => '[a-z0-9\\-]+']],
         ['name' => 'setup#saveConfig', 'url' => '/api/setup/config',           'verb' => 'POST'],
         ['name' => 'page#index',     'url' => '/',            'verb' => 'GET'],

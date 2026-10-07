@@ -43,15 +43,6 @@
         "body": "Pick the one that fits best. The app shows the menus that fit it. You can change it later under App settings."
       },
       {
-        "id": "remove-example-set",
-        "type": "run-action",
-        "action": "remove-example-set",
-        "title": "Remove the example data",
-        "required": false,
-        "onDemand": true,
-        "body": "This only runs when you click the button. It moves the example set you loaded to the trash and keeps everything you made yourself. You can come back to it later."
-      },
-      {
         "id": "done",
         "type": "summary",
         "title": "All set"
