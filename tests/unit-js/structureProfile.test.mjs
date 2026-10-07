@@ -521,7 +521,7 @@ test('the full profile is exactly the plain manifest build', () => {
 	assert.equal(plain.menu.length, 25)
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[100, 4, 4],
+		[100, 3, 5],
 	)
 	// 351 since internship-hours T6 added the school's BPV hours list (BpvHourWeeks).
 	assert.equal(plain.pages.length, 351)
