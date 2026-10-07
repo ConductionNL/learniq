@@ -360,11 +360,12 @@ export function buildProfiledManifest(
 				}
 			: builtPages
 
+	const withDefaults = applyPageDefaults(built, file.pageDefaults)
 	const overlays = Array.isArray(file.pages) ? file.pages : []
 	if (overlays.length === 0) {
-		return built
+		return withDefaults
 	}
-	const pages = [...(built.pages || [])]
+	const pages = [...(withDefaults.pages || [])]
 	for (const overlay of overlays) {
 		const at = pages.findIndex((page) => page.id === overlay?.id)
 		if (at === -1) {
@@ -383,5 +384,39 @@ export function buildProfiledManifest(
 		}
 		pages[at] = applyPageOverlay(pages[at], overlay)
 	}
+	return { ...withDefaults, pages }
+}
+
+/**
+ * Config defaults per page type, from the profile file's `pageDefaults`
+ * (`{ "<page type>": { "<config key>": value } }`). A page of that type gets
+ * each key it does not set itself; a page that sets the key keeps its own
+ * value. The full profile uses this to hold back a look a newer library
+ * turns on by default (nextcloud-vue 2.62.0 gave every index table header a
+ * sort and filter control, `config.headerFilters`), so that profile renders
+ * as it did before. A file without `pageDefaults` returns `built` itself.
+ *
+ * @param {object} built The built manifest.
+ * @param {object|undefined} defaults The profile file's `pageDefaults`.
+ * @return {object} The manifest with the defaults filled in.
+ * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ */
+export function applyPageDefaults(built, defaults) {
+	if (!defaults || typeof defaults !== 'object' || Object.keys(defaults).length === 0) {
+		return built
+	}
+	const pages = (built.pages || []).map((page) => {
+		const forType = defaults[page.type]
+		if (!forType || typeof forType !== 'object') {
+			return page
+		}
+		const config = { ...(page.config || {}) }
+		for (const [key, value] of Object.entries(forType)) {
+			if (config[key] === undefined) {
+				config[key] = value
+			}
+		}
+		return { ...page, config }
+	})
 	return { ...built, pages }
 }

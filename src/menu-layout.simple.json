@@ -136,15 +136,10 @@
 	],
 	"menu": [
 		{
-			"id": "HomeCaption",
-			"type": "caption",
-			"label": "Home",
-			"order": 5
-		},
-		{
 			"id": "Dashboard",
 			"label": "Today",
-			"order": 10
+			"order": 10,
+			"icon": "HomeOutline"
 		},
 		{
 			"id": "GroupMyLearning",
@@ -476,7 +471,17 @@
 					]
 				}
 			}
-		}
+		},
+		"help": {
+			"label": "Help and explanation",
+			"href": "https://learniq.conduction.nl"
+		},
+		"footer": [
+			"ReportConcernMenu",
+			"settings",
+			"help"
+		],
+		"settingsLabel": "Settings"
 	},
 	"pages": [
 		{
@@ -515,9 +520,9 @@
 						"type": "header",
 						"title": "Greeting",
 						"content": {
-							"greeting": true,
+							"title": "Today",
 							"showDate": true,
-							"plain": true
+							"ground": true
 						}
 					},
 					{
@@ -579,7 +584,8 @@
 							},
 							"route": {
 								"name": "SessionsToday"
-							}
+							},
+							"layout": "stacked"
 						}
 					},
 					{
@@ -606,7 +612,8 @@
 							},
 							"route": {
 								"name": "SessionsThisWeek"
-							}
+							},
+							"layout": "stacked"
 						}
 					},
 					{
@@ -639,7 +646,8 @@
 									"dueAt[gte]": "@today",
 									"dueAt[lt]": "@today+7d"
 								}
-							}
+							},
+							"layout": "stacked"
 						}
 					},
 					{
@@ -671,7 +679,8 @@
 									"markedAt[gte]": "@today"
 								}
 							},
-							"variant": "warning"
+							"variant": "warning",
+							"layout": "stacked"
 						}
 					},
 					{
@@ -694,6 +703,16 @@
 								"limit": 8
 							},
 							"columns": [
+								{
+									"key": "startsAt",
+									"label": "Time",
+									"widget": "date",
+									"widgetProps": {
+										"timeOnly": true
+									},
+									"width": "6rem",
+									"cellClass": "cn-cell--strong"
+								},
 								{
 									"key": "title",
 									"label": "Lesson",
@@ -845,14 +864,15 @@
 						"gridX": 0,
 						"gridY": 0,
 						"gridWidth": 12,
-						"gridHeight": 2,
-						"showTitle": false
+						"gridHeight": 1,
+						"showTitle": false,
+						"sizeToContent": true
 					},
 					{
 						"id": "t2",
 						"widgetId": "today-first",
 						"gridX": 0,
-						"gridY": 2,
+						"gridY": 1,
 						"gridWidth": 12,
 						"gridHeight": 2,
 						"showTitle": false,
@@ -862,7 +882,7 @@
 						"id": "t3",
 						"widgetId": "today-lessons-today",
 						"gridX": 8,
-						"gridY": 4,
+						"gridY": 3,
 						"gridWidth": 4,
 						"gridHeight": 2,
 						"showTitle": false,
@@ -872,7 +892,7 @@
 						"id": "t4",
 						"widgetId": "today-lessons-week",
 						"gridX": 8,
-						"gridY": 6,
+						"gridY": 5,
 						"gridWidth": 4,
 						"gridHeight": 2,
 						"showTitle": false,
@@ -882,7 +902,7 @@
 						"id": "t5",
 						"widgetId": "today-due-week",
 						"gridX": 8,
-						"gridY": 8,
+						"gridY": 7,
 						"gridWidth": 4,
 						"gridHeight": 2,
 						"showTitle": false,
@@ -892,7 +912,7 @@
 						"id": "t6",
 						"widgetId": "today-unexcused",
 						"gridX": 8,
-						"gridY": 10,
+						"gridY": 9,
 						"gridWidth": 4,
 						"gridHeight": 2,
 						"showTitle": false,
@@ -902,16 +922,20 @@
 						"id": "t9",
 						"widgetId": "today-lessons",
 						"gridX": 0,
-						"gridY": 4,
+						"gridY": 3,
 						"gridWidth": 8,
 						"gridHeight": 4,
-						"showTitle": true
+						"showTitle": true,
+						"headerLink": {
+							"label": "Week timetable",
+							"route": "MyTimetable"
+						}
 					},
 					{
 						"id": "t7",
 						"widgetId": "today-week",
 						"gridX": 0,
-						"gridY": 8,
+						"gridY": 7,
 						"gridWidth": 8,
 						"gridHeight": 4,
 						"showTitle": true
@@ -920,22 +944,28 @@
 						"id": "t10",
 						"widgetId": "today-signals",
 						"gridX": 0,
-						"gridY": 12,
+						"gridY": 11,
 						"gridWidth": 8,
 						"gridHeight": 5,
-						"showTitle": true
+						"showTitle": true,
+						"headerLink": {
+							"label": "All learners",
+							"route": "LearnerProfiles"
+						}
 					},
 					{
 						"id": "t8",
 						"widgetId": "today-dashboards",
 						"gridX": 0,
-						"gridY": 17,
+						"gridY": 16,
 						"gridWidth": 12,
 						"gridHeight": 3,
 						"showTitle": false,
 						"showActions": false
 					}
-				]
+				],
+				"showHeader": false,
+				"showWidgetActions": false
 			}
 		},
 		{

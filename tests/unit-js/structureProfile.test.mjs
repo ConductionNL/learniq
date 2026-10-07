@@ -36,6 +36,7 @@ import {
 } from '../../src/services/menuStructureSetting.js'
 import { applyReportCardGates } from '../../src/utils/reportCardGates.js'
 import {
+	applyPageDefaults,
 	applyPageOverlay,
 	buildProfiledManifest,
 	navTheming,
@@ -389,7 +390,6 @@ const KNOWN_UNLINKED = {
 
 /** The simple main menu, in order, captions included. */
 const SIMPLE_MAIN_ORDER = [
-	'HomeCaption',
 	'Dashboard',
 	'GroupMyLearning',
 	'GroupsSimple',
@@ -510,7 +510,21 @@ test('the full profile is exactly the plain manifest build', () => {
 		structuredClone(FRAGMENTS),
 		structuredClone(FULL),
 	)
-	assert.deepEqual(profiled, plain)
+	// The one difference: every index page that did not choose keeps the
+	// plain header row it had before nextcloud-vue 2.62.0 gave every header a
+	// sort and filter control (menu-layout.json pageDefaults).
+	assert.deepEqual(profiled, applyPageDefaults(plain, FULL.pageDefaults))
+	assert.deepEqual(FULL.pageDefaults, { index: { headerFilters: false } })
+	assert.equal(SIMPLE.pageDefaults, undefined)
+	for (const page of plain.pages) {
+		const now = profiled.pages.find((item) => item.id === page.id)
+		const held = page.type === 'index' && page.config?.headerFilters === undefined
+		assert.deepEqual(
+			now,
+			held ? { ...page, config: { ...page.config, headerFilters: false } } : page,
+			page.id,
+		)
+	}
 
 	// The measured size of today's menu. A change here is a change to the
 	// full menu, which this profile work must never make.
@@ -533,7 +547,9 @@ test('menu-layout.json holds no profile key, so the full profile cannot gain an 
 })
 
 test('both profiles hold the same pages, and an overlay only appends', () => {
-	const full = build(FULL, 'admin')
+	// Compared without the full profile's pageDefaults, which hold back a
+	// library default the simple profile takes (tested above).
+	const full = build({ ...FULL, pageDefaults: undefined }, 'admin')
 	const simple = build(SIMPLE, 'admin')
 	assert.deepEqual(
 		simple.pages.map((page) => page.id),
@@ -614,7 +630,7 @@ test('the simple profile has no relocations key, and repeats what the full one r
 	}
 })
 
-test('the simple menu is flat, in order, and under three captions', () => {
+test('the simple menu is flat, in order, and under two captions', () => {
 	const simple = build(SIMPLE, 'admin')
 	for (const item of simple.menu) {
 		assert.ok(
@@ -631,7 +647,9 @@ test('the simple menu is flat, in order, and under three captions', () => {
 	)
 	assert.deepEqual(
 		main.filter(isCaption).map((item) => item.label),
-		['Home', 'Teaching', 'Learners'],
+		// LqDashboard: Today, My learning and Groups sit at the top with no
+		// caption above them; the board's first caption is Onderwijs.
+		['Teaching', 'Learners'],
 	)
 	const orders = main.map((item) => item.order)
 	assert.equal(new Set(orders).size, orders.length, 'two entries share an order')
@@ -1080,7 +1098,9 @@ test('the First today card is not collapsed before its condition is read', () =>
 		/if \(this\.isBannerDef\(def\) && text === ''\) \{\s*return true/,
 		'the library changed its collapse rule; read it again',
 	)
-	assert.match(page, /text: content\.text \|\| props\.text \|\| ''/)
+	// Since 2.64.0 a banner's text falls back to its title, so a card with a
+	// title no longer collapses; the card still carries both.
+	assert.match(page, /text: content\.text \|\| props\.text \|\| title \|\| ''/)
 	for (const widget of TODAY.config.widgets) {
 		if (widget.type !== 'banner') {
 			continue
@@ -1188,12 +1208,14 @@ test('no address a Today number asks or opens carries an operator as JSON', asyn
 	const pages = build(FULL, 'admin').pages
 	const hasJson = (text) => /[{}]|%7B|%7D/i.test(text)
 
-	// The control: the nested form really is what breaks.
+	// The control, turned round with nextcloud-vue 2.64.0: the library now
+	// writes a nested operator flat as well, so neither form carries JSON.
+	// The checks below stay, because a list that went out as JSON was a 500.
 	assert.ok(
-		hasJson(
+		!hasJson(
 			buildQueryString(resolveFilterMap({ a: { gte: '@today' } }, {}, {})),
 		),
-		'the library no longer writes a nested operator as JSON; this test can go',
+		'the library writes a nested operator as JSON again; read this test again',
 	)
 
 	let lists = 0
@@ -1518,7 +1540,8 @@ test('Today sits in two columns as the board draws it', () => {
 		assert.equal(placed(id).gridX, 0, id)
 		assert.equal(placed(id).gridWidth, 8, id)
 	}
-	assert.equal(placed(main[0]).gridY, 4)
+	// Row 3: the greeting on the ground is one row high (LqDashboard).
+	assert.equal(placed(main[0]).gridY, 3)
 	for (let at = 1; at < main.length; at++) {
 		assert.ok(placed(main[at]).gridY > placed(main[at - 1]).gridY, main[at])
 	}
@@ -1531,7 +1554,7 @@ test('Today sits in two columns as the board draws it', () => {
 		assert.equal(item.gridWidth, 4, tile.id)
 	}
 	const tileRows = tiles.map((tile) => placed(tile.id).gridY)
-	assert.deepEqual(tileRows, [4, 6, 8, 10])
+	assert.deepEqual(tileRows, [3, 5, 7, 9])
 	const grid = placed('today-dashboards')
 	assert.equal(grid.gridWidth, 12)
 	assert.ok(
@@ -1634,4 +1657,26 @@ test('navTheming reads the emblem from thematiq, and an empty string when there 
 	assert.equal(navTheming({ nldesign: { logos: { emblem: 42 } } }).emblem, '')
 	assert.deepEqual(navTheming(null), { emblem: '' })
 	assert.equal(navTheming({ theming: THEMING }).name, 'Gemeente Zuiddrecht')
+})
+
+test('Today has one header, on the page ground, and the navigation ends in Settings and Help', () => {
+	// LqDashboard: no page header above the greeting; the date and the
+	// heading sit on the page ground, one row high. The header's only button
+	// (Today's register) is the navigation's primary action already.
+	assert.equal(TODAY.config.showHeader, false)
+	assert.equal(TODAY.config.showWidgetActions, false)
+	const greeting = TODAY.config.widgets.find((widget) => widget.id === 'today-greeting')
+	assert.deepEqual(greeting.content, { title: 'Today', showDate: true, ground: true })
+	const row = TODAY.config.layout.find((item) => item.widgetId === 'today-greeting')
+	assert.equal(row.gridHeight, 1)
+	const register = TODAY.config.headerActions.find((action) => action.id === 'open-roll-call')
+	assert.equal(SIMPLE.nav.primaryAction.route, register.target)
+	for (const tile of TODAY.config.widgets.filter((widget) => widget.type === 'stat')) {
+		assert.equal(tile.content.layout, 'stacked', tile.id)
+	}
+	// Report a concern stays in sight: it is how a teacher raises a worry
+	// about a pupil, and the settings foldout would hide it.
+	assert.deepEqual(SIMPLE.nav.footer, ['ReportConcernMenu', 'settings', 'help'])
+	assert.equal(SIMPLE.nav.help.href, 'https://learniq.conduction.nl')
+	assert.equal(FULL.nav, undefined)
 })

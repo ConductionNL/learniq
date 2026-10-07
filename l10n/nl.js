@@ -1,7 +1,9 @@
 OC.L10N.register(
     "learniq",
     {
+        "All learners": "Alle leerlingen",
         "Fill in attendance": "Aanwezigheid invullen",
+        "Help and explanation": "Hulp en uitleg",
         "No lessons today": "Geen lessen vandaag",
         "No open attendance flags": "Geen openstaande aanwezigheidssignalen",
         "Pupil": "Leerling",
@@ -9,6 +11,7 @@ OC.L10N.register(
         "QTI 2.1 item XML, in the imsqti_v2p1 namespace.": "Item-XML volgens QTI 2.1, in de naamruimte imsqti_v2p1.",
         "Signal": "Signaal",
         "View all": "Alles bekijken",
+        "Week timetable": "Weekrooster",
         "When true, the presentation order of each choice-bearing item's answer options is independently permuted per attempt by AssessmentDrawResolver, respecting the QTI fixed attribute on individual simpleChoice options.": "Als dit aan staat, worden de antwoordopties van elk meerkeuze-item per poging in een andere volgorde getoond door AssessmentDrawResolver. Opties met het QTI-kenmerk fixed blijven op hun plaats.",
         "What this flag is about. The first three are school attendance concerns under the Leerplichtwet. Attendance requirement is for a course, programme, training or company that asks for a minimum presence.": "Waar deze melding over gaat. De eerste drie zijn zorgen over schoolverzuim onder de Leerplichtwet. Aanwezigheidseis is voor een cursus, opleiding, training of bedrijf dat een minimale aanwezigheid vraagt.",
         "Last Checked Learner ID": "ID van laatst gecontroleerde leerling",

@@ -1,8 +1,11 @@
 OC.L10N.register(
     "learniq",
     {
+        "All learners": "All learners",
+        "Help and explanation": "Help and explanation",
         "QTI 2.1 interaction type.": "QTI 2.1 interaction type.",
         "QTI 2.1 item XML, in the imsqti_v2p1 namespace.": "QTI 2.1 item XML, in the imsqti_v2p1 namespace.",
+        "Week timetable": "Week timetable",
         "When true, the presentation order of each choice-bearing item's answer options is independently permuted per attempt by AssessmentDrawResolver, respecting the QTI fixed attribute on individual simpleChoice options.": "When true, the presentation order of each choice-bearing item's answer options is independently permuted per attempt by AssessmentDrawResolver, respecting the QTI fixed attribute on individual simpleChoice options.",
         "What this flag is about. The first three are school attendance concerns under the Leerplichtwet. Attendance requirement is for a course, programme, training or company that asks for a minimum presence.": "What this flag is about. The first three are school attendance concerns under the Leerplichtwet. Attendance requirement is for a course, programme, training or company that asks for a minimum presence.",
         "Last Checked Learner ID": "Last Checked Learner ID",
