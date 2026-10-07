@@ -1582,9 +1582,11 @@
       "name": "Push a certificate into someone's European digital identity wallet.",
       "built": {
         "state": "building",
-        "evidence": "lib/Service/WalletOfferDelegationService.php delegates to openconnector; no adapter ships in this repo",
+        "evidence": "CredentialDetail (src/manifest.d/people.json:679, lifecycleActions :687) offers offerToWallet (lib/Settings/learniq_register.json:569, a self-loop issued to issued). Its requires guard never runs on a self-loop (openregister#4074, open), but the transition event does: lib/Listener/CredentialWalletTransitionListener.php:102 calls WalletOfferDelegationService::offer() (:194), which posts to integriq POST /api/eudi/credential-offers (integriq appinfo/routes.php:347; :320 here) and stores walletOfferStatus, walletOfferedAt and walletAttestationRef on the credential. Missing: no page shows the learner the offer link or QR code (the credential carries status fields only: walletOfferStatus, walletOfferedAt, walletOfferError), so no wallet can claim it; and lib/Settings/connections.json:35 needs openconnector_api_token set.",
         "owner": "ConductionNL/integriq",
-        "change": "2026-07-13-eudi-wallet-credential-push"
+        "change": "2026-07-13-eudi-wallet-credential-push",
+        "reachedOn": "/credentials/:id > Actions > offerToWallet (staff); nothing for the learner",
+        "readOn": "2026-10-07"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -1615,16 +1617,18 @@
       "area": "credentials",
       "name": "Make a withdrawal reach the wallet copy too.",
       "built": {
-        "state": "building",
-        "evidence": "lib/Service/WalletRevocationPropagationService.php, same unwired openconnector dependency",
+        "state": "built",
+        "evidence": "The revoke transition (lib/Settings/learniq_register.json:555, issued to revoked, from CredentialDetail's lifecycle actions, src/manifest.d/people.json:687) runs lib/Lifecycle/Action/WalletRevocationPropagationAction.php, which calls WalletRevocationPropagationService::propagate() (:168): for a credential with a walletAttestationRef it posts to integriq POST /api/eudi/credential-offers/{id}/revoke (integriq appinfo/routes.php:348), which updates integriq's status list (/api/eudi/status-lists/{id}). Fail-soft: the local revocation stands when integriq is down. Only reaches wallets that claimed the offer, which cred-push-to-eudi-wallet does not yet let a learner do.",
         "owner": "ConductionNL/integriq",
-        "change": "2026-07-13-eudi-wallet-credential-push"
+        "change": "2026-07-13-eudi-wallet-credential-push",
+        "reachedOn": "/credentials/:id > Actions > revoke",
+        "readOn": "2026-10-07"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
       "feature": "credentials",
       "featureConfidence": "medium",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "no",
       "moodle-workplace": "unknown",
       "ilias": "no",
@@ -3491,9 +3495,11 @@
       "name": "Give a learner extra time or a separate room, on record.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.ExamAccommodation; lib/Lifecycle/ExamAccommodationApprovalGuard.php",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.ExamAccommodation (kind, value, evidence) with lib/Lifecycle/ExamAccommodationApprovalGuard.php on approval; pages ExamAccommodations /exam-accommodations (src/manifest.d/learning.json:3853, menu :592) and ExamAccommodationDetail record it. The schedule does not show it per sitting yet: see ass-plan-an-exam-week.",
         "owner": "ConductionNL/learniq",
-        "spec": "openspec/specs/assessment"
+        "spec": "openspec/specs/assessment",
+        "reachedOn": "/exam-accommodations",
+        "readOn": "2026-10-07"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5343,9 +5349,11 @@
       "name": "Report persistent absence onward to the authority.",
       "built": {
         "state": "specified",
-        "evidence": "lib/Lifecycle/AttendanceFlagReportGuard.php gates the transition, but it rides the data-exchange path that lib/Settings/connections.json marks unavailable, so nothing is sent. Specified in ConductionNL/integriq openspec/changes/connectors-data-exchange-dispatch/ (integriq#2207, 413357ec). Learniq's half is built under D7 and D25 by round 3 (r3-exchange), not specified here. (OpenSpec pass 2026-09-27)",
+        "evidence": "Backend path built, no page starts it. A new flag asks integriq for a leerplicht job (lib/Lifecycle/AttendanceFlagCreationHandler.php:295 and :364 requestExchangeJob, IntegriqExchangeClient::requestJob), integriq routes it to the Verzuimloket adapter (integriq lib/EventListener/ExchangeJobRequestedListener.php:69, lib/Service/Exchange/ExchangeTargetDispatcher.php:314), and AttendanceFlagReportGuard.php:119 allows `report` once that job succeeded. But the job waits until a person takes the flag up (lib/Service/ExchangeGateService.php:179 refuses while the flag is open), and AttendanceFlagDetail (src/manifest.d/people.json:1610) is readOnly with no lifecycleActions, so no page offers startHandling or report. Missing: the lifecycle actions on the flag detail page. Learniq half: 2026-09-28-data-exchange-to-integriq; integriq half: integriq/2026-09-29-learniq-exchange-jobs-native (both archived). integriq connectors-data-exchange-dispatch is superseded except the acknowledgement.",
         "owner": "ConductionNL/integriq",
-        "change": "integriq/connectors-data-exchange-dispatch"
+        "change": "2026-09-28-data-exchange-to-integriq",
+        "reachedOn": "nothing: /attendance/flags/:id shows the flag but no transition",
+        "readOn": "2026-10-07"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -5512,16 +5520,18 @@
       "area": "attendance",
       "name": "Import a timetable from your scheduling software.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Timetabling/TimetableImportHandler.php exists, and lib/Settings/connections.json marks timetable unavailable: the import calls api/sources/timetable-import/run on integriq, which has no such endpoint, so no lesson arrives. Specified in ConductionNL/integriq openspec/changes/connectors-data-exchange-dispatch/ (integriq#2207, 413357ec). Learniq's half is built under D7 and D25 by round 3 (r3-exchange), not specified here. (OpenSpec pass 2026-09-27)",
+        "state": "built",
+        "evidence": "src/views/TimetableConflictQueue.vue:35-43 \"Import a timetable\" button (menu TimetableConflictQueueMenu, src/manifest.d/learning.json:574, admin and coordinator) opens src/dialogs/TimetableImportDialog.vue, which posts to POST /api/timetable/imports (appinfo/routes.php:436, lib/Controller/TimetableImportController.php:111). lib/Timetabling/PlanninqTimetableImport.php:119 deliver() raises integriq's RosterImportRequestedEvent; integriq lib/Sources/Roster/RosterDeliveryService.php hands the Zermelo, Untis, Xedule or TimeEdit lessons to planninq, and learniq reads them back from there and scans conflicts. Needs planninq and integriq installed: the button is disabled with a message otherwise (TimetableConflictQueue.vue:44-55); lib/Settings/connections.json reports the timetable connection. Integriq half: integriq/2026-09-28-rostering-adapter-targets-planninq.",
         "owner": "ConductionNL/integriq",
-        "change": "integriq/connectors-data-exchange-dispatch"
+        "change": "2026-09-28-timetable-connection-and-import-screen",
+        "reachedOn": "/timetable-conflict-queue > Import a timetable",
+        "readOn": "2026-10-07"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
       "feature": "timetabling",
       "featureConfidence": "medium",
-      "learniq": "no",
+      "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
       "ilias": "partial",
@@ -7113,16 +7123,18 @@
       "area": "governance",
       "name": "Push learner data to a national register or another system.",
       "built": {
-        "state": "specified",
-        "evidence": "The job and mapping models ship, but lib/Settings/connections.json marks data-exchange unavailable: a run calls api/sources/[target]/run on integriq, which has no such endpoint, so every run fails. Specified in ConductionNL/integriq openspec/changes/connectors-data-exchange-dispatch/ (integriq#2207, 413357ec). Learniq's half is built under D7 and D25 by round 3 (r3-exchange), not specified here. (OpenSpec pass 2026-09-27)",
+        "state": "built",
+        "evidence": "Page RequestExportModal /data-exchange/request (src/manifest.d/data-exchange.json:457, menu entry :80) posts to POST /api/exchange/requests (appinfo/routes.php:433, lib/Controller/ExchangeRequestController.php:108, action exchange.request), which asks integriq for a job (:134 IntegriqExchangeClient::requestJob). Integriq routes it to the ROD, Verzuimloket, OSO, SWV, UWLR or Edu-V adapter (integriq lib/EventListener/ExchangeJobRequestedListener.php:69, lib/Service/Exchange/ExchangeTargetDispatcher.php:89-90, :307-314). Page ExchangeJobs /data-exchange/jobs (data-exchange.json:104) lists integriq's jobs for learniq. lib/Settings/connections.json:10 marks data exchange available. Needs integriq installed and each target configured there. Integriq half: integriq/2026-09-29-learniq-exchange-jobs-native.",
         "owner": "ConductionNL/integriq",
-        "change": "integriq/connectors-data-exchange-dispatch"
+        "change": "2026-09-28-data-exchange-to-integriq",
+        "reachedOn": "/data-exchange/request; /data-exchange/jobs",
+        "readOn": "2026-10-07"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
       "feature": "data-exchange",
       "featureConfidence": "medium",
-      "learniq": "no",
+      "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
       "ilias": "partial",
@@ -7234,16 +7246,18 @@
       "area": "governance",
       "name": "Charge for a course or a school trip and take the payment.",
       "built": {
-        "state": "building",
-        "evidence": "FeeItem, Order and OrderLine record the charge, but lib/Settings/connections.json marks payment unavailable: initiating calls api/payments/initiate on integriq, which has no such endpoint, so no payment starts",
-        "owner": "ConductionNL/integriq",
-        "change": "2026-09-28-payments-to-shillinq-migration"
+        "state": "built",
+        "evidence": "FeeItemDetail /payments/fee-items/:id (src/manifest.d/payments.json:51) has the header action \"Raise contributions in shillinq\" (:60-68), which posts to POST /api/fee-items/{id}/contributions (appinfo/routes.php:444, lib/Controller/ContributionController.php:90, lib/Service/ContributionRaiser.php:179, lib/Service/ShillinqContributionClient.php raise()) and lands in shillinq's ContributionRaiseService, which invoices the contribution and takes the payment (shillinq PaymentRequestWebhookController, PortalPaymentInitiationController). When shillinq settles it, lib/Listener/ShillinqContributionSettledListener.php:116 grants the learner's Entitlement (EntitlementPaymentSettledGuard). Needs shillinq installed and shillinq_administration_id set (lib/Settings/connections.json:43). A voluntary fee grants nothing, as the Wet vrijwillige ouderbijdrage requires.",
+        "owner": "ConductionNL/shillinq",
+        "change": "2026-09-28-payments-to-shillinq-migration",
+        "reachedOn": "/payments/fee-items/:id > Raise contributions in shillinq",
+        "readOn": "2026-10-07"
       },
-      "provider": "integriq",
-      "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
+      "provider": "shillinq",
+      "providerHow": "read: learniq raises the fee and grants the entitlement; shillinq invoices and takes the payment",
       "feature": "payments",
       "featureConfidence": "medium",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "yes",
       "ilias": "no",
@@ -7724,10 +7738,11 @@
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
         "state": "specified",
-        "evidence": "lib/Settings/connections.json:5. Specified in ConductionNL/openregister openspec/changes/rapportage-bi-export/ (OData and scheduled exports for BI tools), as openregister's OpenSpec-pass lane recorded (OpenSpec pass 2026-09-27).",
+        "evidence": "lib/Settings/connections.json declares no BI feed. OpenRegister's object API and list export serve the data. The linked change ConductionNL/openregister openspec/changes/rapportage-bi-export (OData and scheduled exports) is still open on openregister development with 0 of 15 tasks ticked; the archived 2026-03-21 and 2026-05-01 rapportage-bi-export changes delivered the aggregation and export layer, not the BI feed.",
         "owner": "ConductionNL/openregister",
         "reachedOn": "web service only; list export",
-        "change": "openregister/rapportage-bi-export"
+        "change": "openregister/rapportage-bi-export",
+        "readOn": "2026-10-07"
       },
       "provider": "openregister",
       "providerHow": "OpenRegister's object API and export serve the data; learniq adds no BI feed.",
@@ -8523,14 +8538,16 @@
       "area": "assessment",
       "name": "Plan an exam week with rooms, extra time and invigilators, and see the clashes.",
       "built": {
-        "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.ExamPeriod and .ExamSitting; lib/Controller/ExamScheduleController.php; lib/Service/ExamSittingPlacementCheck.php and InvigilatorAssignmentCheck.php",
+        "state": "building",
+        "evidence": "Pages ExamPeriods, ExamPeriodDetail, ExamSittings and ExamSittingDetail (src/manifest.d/exam-schedule.json, detail :217) plan the week; lib/Listener/ExamSittingPlacementCheck.php:102-112 records rooms, capacity and clashWarnings on save, and the sitting detail lists invigilation requests answered through InvigilatorAssignmentCheck and InvigilatorResponseGuard. Missing: the extra time per learner and the invigilators who are free. lib/Service/ExamSittingOverview.php:79 overview() computes each accommodated learner's end time and room, and :101 availableInvigilators() the free colleagues, served at GET /api/exam-sittings/{id}/overview and /available-invigilators (appinfo/routes.php:346-347, lib/Controller/ExamScheduleController.php:84, :107), but no page or component in src/ calls either route.",
         "owner": "ConductionNL/learniq",
-        "change": "2026-09-29-timetabling-exam-schedule"
+        "change": "2026-09-29-timetabling-exam-schedule",
+        "reachedOn": "/exam-periods, /exam-sittings/:id (rooms and clashes); extra time and free invigilators: nothing",
+        "readOn": "2026-10-07"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "learniq": "yes",
+      "learniq": "partial",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
       "ilias": "unknown",
