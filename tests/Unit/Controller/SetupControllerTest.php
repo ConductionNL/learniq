@@ -170,7 +170,7 @@ class SetupControllerTest extends TestCase {
 		self::assertFalse(method_exists(SetupController::class, 'exampleSets'));
 		$routes = include __DIR__ . '/../../../appinfo/routes.php';
 		$names  = array_column($routes['routes'], 'name', 'url');
-		self::assertSame('example_sets#exampleSets', $names['/api/setup/example-sets']);
+		self::assertSame('exampleSets#exampleSets', $names['/api/setup/example-sets']);
 	}//end testTheExampleSetListLivesInItsOwnController()
 
 	/**

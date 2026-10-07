@@ -23,6 +23,7 @@ export const EXAMPLE_SETS_URL = '/apps/learniq/api/setup/example-sets'
  *
  * @param {string} setId The set id (`[a-z0-9-]+`).
  * @return {string} The action URL, before generateUrl.
+ * @spec openspec/changes/wizard-drops-the-removal-step/specs/example-sets/spec.md
  */
 export function removeActionUrl(setId) {
 	return `/apps/learniq/api/setup/action/remove-example-set-${encodeURIComponent(setId)}`
@@ -33,6 +34,7 @@ export function removeActionUrl(setId) {
  *
  * @param {object|null|undefined} data The answer, `{ sets: [{ id, label }] }`.
  * @return {Array<{id: string, label: string}>} The sets.
+ * @spec openspec/changes/wizard-drops-the-removal-step/specs/example-sets/spec.md
  */
 export function loadedSetsOf(data) {
 	const sets = Array.isArray(data?.sets) ? data.sets : []
@@ -54,6 +56,7 @@ export function loadedSetsOf(data) {
  * @param {(url: string) => Promise<{data: object}>} deps.post Posts the action.
  * @param {(text: string, vars?: object) => string} deps.t Translates.
  * @return {Promise<{status: 'cancelled'|'removed'|'failed', message: string}>} What happened.
+ * @spec openspec/changes/wizard-drops-the-removal-step/specs/example-sets/spec.md
  */
 export async function removeExampleSet(set, { confirm, post, t }) {
 	// Closing the question rejects in some @nextcloud/dialogs versions; that
