@@ -621,7 +621,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Regulation",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/compliance-audit"
+        "change": "compliance-audit"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -655,7 +655,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Course.properties.mandatoryTraining and .regulationSlug",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/compliance-audit"
+        "change": "compliance-audit"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -690,7 +690,7 @@
         "evidence": "src/views/BulkEnrolView.vue (department, cohort or picked learners into one course; learnersInDepartment in src/utils/customPages.js mirrors RegulationAudienceResolver)",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/enrolments/bulk",
-        "change": "openspec/changes/archive/enrolment"
+        "change": "enrolment"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -725,7 +725,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Enrolment.properties.dueDate",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/enrolment"
+        "change": "enrolment"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -759,7 +759,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Regulation.x-openregister-calculations.coveragePercent, materialised server side",
         "owner": "ConductionNL/openregister",
-        "change": "openspec/changes/archive/compliance-audit"
+        "change": "compliance-audit"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -793,7 +793,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Regulation.properties.ragRedThreshold and .ragAmberThreshold",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/compliance-audit"
+        "change": "compliance-audit"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -827,7 +827,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Attestation, signed by lib/Lifecycle/AttestationSigningGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/compliance-audit"
+        "change": "compliance-audit"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -861,7 +861,7 @@
         "state": "building",
         "evidence": "lib/Settings/learniq_register.json Attestation is no longer appendOnly (learniq#977): appendOnly refused the sign transition itself, so nothing was ever signed. lib/Lifecycle/AttestationSigningGuard.php HMAC signature plus signingKeyId makes an edit after signing detectable; nothing refuses it yet, since hr and compliance-officers keep update for revoke",
         "owner": "ConductionNL/openregister",
-        "change": "openspec/changes/compliance-attestation-locked-after-signing"
+        "change": "compliance-attestation-locked-after-signing"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -896,7 +896,7 @@
         "evidence": "lib/Controller/ExternalTrainingController.php learnerCoverage(), route /api/external-training/coverage, called per learner by src/views/ExternalTrainingBulkRecordView.vue Check coverage (learniq#952)",
         "reachedOn": "/compliance/external-training/record-for-group (batch table, Check coverage)",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-06-15-external-training-recording"
+        "change": "2026-06-15-external-training-recording"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -930,7 +930,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.ExternalTrainingRecord",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-06-15-external-training-recording"
+        "change": "2026-06-15-external-training-recording"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -964,7 +964,7 @@
         "state": "built",
         "evidence": "lib/Lifecycle/ExternalTrainingVerificationGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-06-15-external-training-recording"
+        "change": "2026-06-15-external-training-recording"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -999,7 +999,7 @@
         "evidence": "lib/Controller/ExternalTrainingController.php serves POST /api/external-training/import (dryRun preview, then one batch); lib/Service/ExternalTrainingLearnerMatch.php matches each row by email, learner reference or personal number within the caller's tenant; src/views/ExternalTrainingBulkRecordView.vue holds the Upload a spreadsheet dialog with its preview and result. Live flow passed on the dev instance 2026-10-04, recorded in the archived tasks.md.",
         "reachedOn": "/compliance/external-training/record-for-group (Upload a spreadsheet)",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-10-04-compliance-external-training-spreadsheet-upload"
+        "change": "2026-10-04-compliance-external-training-spreadsheet-upload"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1034,7 +1034,7 @@
         "state": "built",
         "evidence": "lib/Service/AuditPackBuilder.php, route /api/compliance/audit/export",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/compliance-audit"
+        "change": "compliance-audit"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1068,7 +1068,7 @@
         "state": "built",
         "evidence": "lib/Service/AuditPackBuilder.php builds signature-verification.txt from the HMAC chain check",
         "owner": "ConductionNL/openregister",
-        "change": "openspec/changes/archive/compliance-audit"
+        "change": "compliance-audit"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -1102,7 +1102,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Enrolment.x-openregister-notifications.overdue, recipients managerId plus the hr group",
         "owner": "ConductionNL/openregister",
-        "change": "openspec/changes/archive/2026-06-14-scholiq-notifications"
+        "change": "2026-06-14-scholiq-notifications"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -1137,7 +1137,7 @@
         "evidence": "lib/Settings/learniq_register.json Enrolment.x-openregister-notifications.dueReminder",
         "owner": "ConductionNL/openregister",
         "readOn": "2026-09-26",
-        "change": "openspec/changes/archive/2026-06-14-scholiq-notifications"
+        "change": "2026-06-14-scholiq-notifications"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -1171,7 +1171,7 @@
         "state": "built",
         "evidence": "lib/AppInfo/Registrar/TransitionBridgeListenerRegistrar.php:66-69 registers CredentialRenewalListener on ObjectTransitionedEvent -> lib/Listener/CredentialRenewalListener.php:89 handle creates the renewal Enrolment and writes Credential.renewalEnrolmentId (:171)",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-09-29-credential-renewal-listener"
+        "change": "2026-09-29-credential-renewal-listener"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1206,7 +1206,7 @@
         "evidence": "lib/Controller/ComplianceRollupController.php regulations() serves GET /api/compliance/coverage-by-regulation (department filter, 403 on denial); src/views/widgets/RegulationCoverageWidget.vue renders the per-rule table on /compliance. Live flow passed on the dev instance 2026-10-03, recorded in the archived tasks.md.",
         "reachedOn": "/compliance",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-10-03-compliance-rule-coverage-table"
+        "change": "2026-10-03-compliance-rule-coverage-table"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1240,7 +1240,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Regulation.properties.renewalCycleMonths and .requiresAnnualRenewal",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/compliance-audit"
+        "change": "compliance-audit"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1274,7 +1274,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Enrolment.x-openregister-calculations isOverdue, daysRemaining, ragStatus",
         "owner": "ConductionNL/openregister",
-        "change": "openspec/changes/archive/enrolment"
+        "change": "enrolment"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -1308,7 +1308,7 @@
         "state": "built",
         "evidence": "lib/Listener/CredentialIssuanceHandler.php. Corrections round 8 (2026-09-28), learniq#182 (reopened): the handler fires on completion but saves the Credential without the required signature, openbadges3Payload and issuerDid (lib/Listener/CredentialIssuanceHandler.php:133-147; required list at lib/Settings/learniq_register.json:363), and the signing guard it relies on never runs because the Credential lifecycle has no issue transition (lib/Settings/learniq_register.json:550-552), at 4429d54.",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/certification"
+        "change": "certification"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1343,7 +1343,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Credential.properties.openbadges3Payload, required; lib/Service/CredentialSigningService.php. Corrections round 8 (2026-09-28), learniq#182: only CredentialSigningService::check() fills openbadges3Payload (lib/Service/CredentialSigningService.php:93-157, written at :155), and nothing calls it: no Credential transition names it as requires, and both issue paths save without it (lib/Listener/CredentialIssuanceHandler.php:133-147, lib/Controller/ExternalTrainingController.php:184-190), at 4429d54.",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/certification"
+        "change": "certification"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1378,7 +1378,7 @@
         "state": "built",
         "evidence": "lib/Service/CredentialSigningService.php, RS256 compact JWS in Credential.properties.signature. Corrections round 8 (2026-09-28), learniq#182: signPayload() is called only from check() (lib/Service/CredentialSigningService.php:129), check() has no caller and no transition requires it, so issued certificates carry no signature and the verify endpoint treats them as unsigned (lib/Controller/CredentialVerifyController.php:234-236), at 4429d54.",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/certification"
+        "change": "certification"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1413,7 +1413,7 @@
         "state": "built",
         "evidence": "lib/Controller/CredentialVerifyController.php, route /api/credentials/{id}/verify",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/certification"
+        "change": "certification"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1447,7 +1447,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Credential.x-openregister-calculations.daysUntilExpiry and .expiryStatus",
         "owner": "ConductionNL/openregister",
-        "change": "openspec/changes/archive/certification"
+        "change": "certification"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -1482,7 +1482,7 @@
         "evidence": "lib/Settings/learniq_register.json Credential calculations isExpiringIn90Days, isExpiringIn30Days; notifications.expiringSoon",
         "owner": "ConductionNL/openregister",
         "readOn": "2026-09-26",
-        "change": "openspec/changes/archive/certification"
+        "change": "certification"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -1516,7 +1516,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Credential.x-openregister-lifecycle.transitions.revoke, properties.revocationReason",
         "owner": "ConductionNL/openregister",
-        "change": "openspec/changes/archive/certification"
+        "change": "certification"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -1584,7 +1584,7 @@
         "state": "building",
         "evidence": "lib/Service/WalletOfferDelegationService.php delegates to openconnector; no adapter ships in this repo",
         "owner": "ConductionNL/integriq",
-        "change": "openspec/changes/archive/2026-07-13-eudi-wallet-credential-push"
+        "change": "2026-07-13-eudi-wallet-credential-push"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -1618,7 +1618,7 @@
         "state": "building",
         "evidence": "lib/Service/WalletRevocationPropagationService.php, same unwired openconnector dependency",
         "owner": "ConductionNL/integriq",
-        "change": "openspec/changes/archive/2026-07-13-eudi-wallet-credential-push"
+        "change": "2026-07-13-eudi-wallet-credential-push"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -1652,7 +1652,7 @@
         "state": "built",
         "evidence": "lib/Controller/ExternalTrainingController.php issueCredential(), route /api/external-training/{recordId}/credential",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-06-15-external-training-recording"
+        "change": "2026-06-15-external-training-recording"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1686,7 +1686,7 @@
         "state": "built",
         "evidence": "lib/Service/KeyManagementService.php, lib/Controller/KeyAdminController.php routes generate-key and key-status",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/certification"
+        "change": "certification"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1720,7 +1720,7 @@
         "state": "built",
         "evidence": "lib/Controller/CredentialEuropassController.php:111 serves Credential.edciPayload (appinfo/routes.php:44-48); CredentialIssuanceHandler signs before save (#1178). Live issue 2026-09-29 recorded in the archived tasks.md.",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-09-30-credentials-europass-edci-export",
+        "change": "2026-09-30-credentials-europass-edci-export",
         "reachedOn": "nothing"
       },
       "provider": "self",
@@ -1755,7 +1755,7 @@
         "state": "building",
         "evidence": "lib/Settings/learniq_register.json Course.properties.certificateTemplate holds an nc:files path; no renderer in lib/ consumes it",
         "owner": "ConductionNL/filinq",
-        "change": "openspec/changes/credentials-certificate-pdf"
+        "change": "credentials-certificate-pdf"
       },
       "provider": "filinq",
       "providerHow": "read: this repository posts to Filinq and does not render the document itself",
@@ -1789,7 +1789,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Credential.properties.competencyIds referencing the Competency taxonomy",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-competency-framework"
+        "change": "2026-07-16-competency-framework"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1823,7 +1823,7 @@
         "state": "built",
         "evidence": "src/manifest.d/people.json page Credentials plus /my-learning.json MyLearningRecordView",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/certification"
+        "change": "certification"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1857,7 +1857,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Course.properties.parentCourseId makes Course recursive; src/manifest.d/learning.json CourseBuilder",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/course-management"
+        "change": "course-management"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1891,7 +1891,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Course.x-openregister-lifecycle draft, published, archived; lib/Lifecycle/CoursePublishGuard.php",
         "owner": "ConductionNL/openregister",
-        "change": "openspec/changes/archive/course-management"
+        "change": "course-management"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -1925,7 +1925,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.CourseTemplate; src/manifest.d/learning.json CourseTemplates",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-course-authoring-ux"
+        "change": "2026-07-16-course-authoring-ux"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1959,7 +1959,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Material; src/manifest.d/learning.json Materials",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-course-authoring-ux"
+        "change": "2026-07-16-course-authoring-ux"
       },
       "provider": "nextcloud",
       "providerHow": "read: the platform provides it and this repository consumes it",
@@ -1993,7 +1993,7 @@
         "state": "built",
         "evidence": "lib/Service/CoursePackageImportService.php, lib/Service/CommonCartridgeParser.php, route /api/course-management/course-package-import",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-course-package-import-export"
+        "change": "2026-07-16-course-package-import-export"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2027,7 +2027,7 @@
         "state": "built",
         "evidence": "lib/Service/MoodleBackupParser.php, lib/Service/MbzExtractor.php, lib/Service/MoodleQuizQuestionMapper.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-course-package-import-export"
+        "change": "2026-07-16-course-package-import-export"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2061,7 +2061,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.CoursePackageImportReport; src/manifest.d/learning.json CoursePackageImportReports",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-course-package-import-export"
+        "change": "2026-07-16-course-package-import-export"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2095,7 +2095,7 @@
         "state": "built",
         "evidence": "lib/Service/CoursePackageExportService.php, route /api/course-management/course-package-export",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-course-package-import-export"
+        "change": "2026-07-16-course-package-import-export"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2129,7 +2129,7 @@
         "state": "building",
         "evidence": "The SCORM 1.2 runtime (src/utils/scorm12Runtime.js) reports completion to POST /api/lrs/statements (archived cmi5-xapi-lrs-ingest). Not built: unpacking an uploaded SCORM zip; the player serves one lesson file by contentRef. SCORM 2004 is a follow-up.",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/content-scorm-package-upload"
+        "change": "content-scorm-package-upload"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2164,7 +2164,7 @@
         "evidence": "appinfo/routes.php:58-73 cmi5 launch (Cmi5LaunchController, token only through a single-use fetch URL) and the LRS statements and State routes; live statement POST and State round trip 2026-09-29 (#1519).",
         "owner": "ConductionNL/learniq",
         "readOn": "2026-09-26",
-        "change": "openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest"
+        "change": "2026-09-30-cmi5-xapi-lrs-ingest"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2199,7 +2199,7 @@
         "evidence": "appinfo/routes.php:67-68 lrs#postStatements and lrs#getStatements store every statement as an XapiStatement with a server-stamped verified_actor_id; live 2026-09-29 (#1519).",
         "owner": "ConductionNL/learniq",
         "readOn": "2026-09-26",
-        "change": "openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest"
+        "change": "2026-09-30-cmi5-xapi-lrs-ingest"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2233,7 +2233,7 @@
         "state": "built",
         "evidence": "lib/Controller/LtiToolPlacementController.php launches through integriq with a typed LtiLaunchRequestedEvent (appinfo/routes.php:158); integriq signs the id_token. Live 2026-09-30 on the shared instance with the 1EdTech-derived packbackbooks/lti-1p3-tool 6.4.4 in conformant mode: launch, OIDC login and id_token checks (state, nonce, RS256 against integriq's JWKS, deployment, message) passed, claims carried resource_link, roles, context and the AGS endpoint (#1546).",
         "owner": "ConductionNL/integriq",
-        "change": "openspec/changes/archive/2026-09-30-content-lti-launch-through-integriq",
+        "change": "2026-09-30-content-lti-launch-through-integriq",
         "reachedOn": "/courses/:courseId/lessons/:lessonId/play"
       },
       "provider": "integriq",
@@ -2268,7 +2268,7 @@
         "state": "built",
         "evidence": "The tool posts a score to integriq's AGS scores endpoint (HTTP 200, messagesCreated 1) and lib/BackgroundJob/LtiAgsScorePollJob.php pulls it in system context (#1534) into a GradeEntry on the placement that launched it: 8/10 on a 1-10 scale saved as 8.2 for the right learner, placement, plan and component. Live 2026-09-30 (#1546).",
         "owner": "ConductionNL/integriq",
-        "change": "openspec/changes/archive/2026-09-30-content-lti-launch-through-integriq",
+        "change": "2026-09-30-content-lti-launch-through-integriq",
         "reachedOn": "/grades/entries"
       },
       "provider": "integriq",
@@ -2303,7 +2303,7 @@
         "state": "built",
         "evidence": "src/views/LessonPlayer.vue MANUAL_COMPLETION_CONTENT_TYPES for text, video and quiz",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-learning-progress-and-analytics"
+        "change": "2026-07-16-learning-progress-and-analytics"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2337,7 +2337,7 @@
         "state": "built",
         "evidence": "lib/Service/LessonReleaseEvaluator.php, lib/Controller/LessonReleaseController.php route /api/lessons/{lessonId}/release-status",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-adaptive-release-and-prerequisites"
+        "change": "2026-07-16-adaptive-release-and-prerequisites"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2371,7 +2371,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Course.properties.prerequisiteCourseIds; lib/Listener/EnrolmentPrerequisiteListener.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-adaptive-release-and-prerequisites"
+        "change": "2026-07-16-adaptive-release-and-prerequisites"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2405,7 +2405,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Course.properties.name_nl and .language",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/course-management"
+        "change": "course-management"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2439,7 +2439,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Course.properties.ectsCredits",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-bsa-study-progress-guard"
+        "change": "2026-07-13-bsa-study-progress-guard"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2473,7 +2473,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Enrolment; src/manifest.d/people.json Enrolments",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/enrolment"
+        "change": "enrolment"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2510,7 +2510,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Cohort; lib/Lifecycle/CohortMembershipGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/school-structure"
+        "change": "school-structure"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2548,7 +2548,7 @@
         "state": "built",
         "evidence": "lib/Listener/CohortTalkMembershipHandler.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-talk-classroom-spaces"
+        "change": "2026-07-16-talk-classroom-spaces"
       },
       "provider": "nextcloud",
       "providerHow": "read: the platform provides it and this repository consumes it",
@@ -2582,7 +2582,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Enrolment.x-openregister-calculations completedLessonCount and totalPublishedLessonCount, property progressPercent",
         "owner": "ConductionNL/openregister",
-        "change": "openspec/changes/archive/2026-07-16-learning-progress-and-analytics"
+        "change": "2026-07-16-learning-progress-and-analytics"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -2616,7 +2616,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Enrolment.properties.reason set on withdrawal and failure transitions",
         "owner": "ConductionNL/openregister",
-        "change": "openspec/changes/archive/enrolment"
+        "change": "enrolment"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -2650,7 +2650,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Programme; lib/Lifecycle/ProgrammePublishGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/school-structure"
+        "change": "school-structure"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2684,7 +2684,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Application and .AdmissionsRound; src/manifest.d/admissions.json",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-admissions-and-subject-choice"
+        "change": "2026-07-16-admissions-and-subject-choice"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2718,7 +2718,7 @@
         "state": "built",
         "evidence": "src/manifest.d/admissions.json AdmissionsReviewBoard; lib/Lifecycle/AdmissionsDecisionGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-admissions-and-subject-choice"
+        "change": "2026-07-16-admissions-and-subject-choice"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2752,7 +2752,7 @@
         "state": "built",
         "evidence": "lib/Listener/AdmissionsWaitlistPromoter.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-admissions-and-subject-choice"
+        "change": "2026-07-16-admissions-and-subject-choice"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2786,7 +2786,7 @@
         "state": "built",
         "evidence": "lib/Listener/ApplicationConversionHandler.php; Enrolment.properties.source stamped admission",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-admissions-and-subject-choice"
+        "change": "2026-07-16-admissions-and-subject-choice"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2820,7 +2820,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.SubjectChoice; lib/Listener/SubjectChoiceValidator.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-admissions-and-subject-choice"
+        "change": "2026-07-16-admissions-and-subject-choice"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2854,7 +2854,7 @@
         "state": "built",
         "evidence": "lib/Lifecycle/SubjectChoiceConsentGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-admissions-and-subject-choice"
+        "change": "2026-07-16-admissions-and-subject-choice"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2888,7 +2888,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.RolloverPlan; src/views/RolloverWizard.vue; lib/Service/RolloverService.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-06-15-school-year-rollover"
+        "change": "2026-06-15-school-year-rollover"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2922,7 +2922,7 @@
         "state": "built",
         "evidence": "lib/Controller/RolloverController.php preview(), route /api/rollover/{planId}/preview, side effect free",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-06-15-school-year-rollover"
+        "change": "2026-06-15-school-year-rollover"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2956,7 +2956,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json RolloverPlan carries per-cohort mappings and per-learner overrides",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-06-15-school-year-rollover"
+        "change": "2026-06-15-school-year-rollover"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2990,7 +2990,7 @@
         "state": "built",
         "evidence": "lib/Controller/LearningRecordImportController.php upload(); lib/Service/LearningRecordImportIntakeService.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-portable-learning-record"
+        "change": "2026-07-16-portable-learning-record"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3024,7 +3024,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.ItemBank and .Item; src/manifest.d/learning.json ItemBanks",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/assessment"
+        "change": "assessment"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3058,7 +3058,7 @@
         "state": "built",
         "evidence": "lib/Service/QtiImportService.php, route /api/assessment/qti-import; QTI 2.x converts to 3.0 on import",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/assessment"
+        "change": "assessment"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3092,7 +3092,7 @@
         "state": "built",
         "evidence": "lib/Service/QtiExportService.php, route /api/assessment/qti-export",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/assessment"
+        "change": "assessment"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3126,7 +3126,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Assessment; lib/Lifecycle/AssessmentPublishGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/assessment"
+        "change": "assessment"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3163,7 +3163,7 @@
         "state": "built",
         "evidence": "lib/Listener/AssessmentDrawResolver.php, lib/Service/ItemPoolFilter.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-assessment-item-pools-and-analysis"
+        "change": "2026-07-16-assessment-item-pools-and-analysis"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3197,7 +3197,7 @@
         "state": "built",
         "evidence": "lib/Service/QtiChoiceOrderResolver.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-assessment-item-pools-and-analysis"
+        "change": "2026-07-16-assessment-item-pools-and-analysis"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3231,7 +3231,7 @@
         "state": "built",
         "evidence": "lib/Service/AssessmentScoringService.php, lib/Lifecycle/AssessmentScoringHandler.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/assessment"
+        "change": "assessment"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3265,7 +3265,7 @@
         "state": "built",
         "evidence": "src/manifest.d/learning.json TakeAssessmentView",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/assessment"
+        "change": "assessment"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3333,7 +3333,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.ItemStatistics; lib/Service/ItemAnalysisService.php computes p-value and item-total correlation",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-assessment-item-pools-and-analysis"
+        "change": "2026-07-16-assessment-item-pools-and-analysis"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3367,7 +3367,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.AssessmentReliability; lib/Service/ItemAnalysisService.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-assessment-item-pools-and-analysis"
+        "change": "2026-07-16-assessment-item-pools-and-analysis"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3401,7 +3401,7 @@
         "state": "built",
         "evidence": "lib/Listener/ItemAnalysisRecomputeHandler.php writes ItemRevisionFlag; src/manifest.d/assessment-board.json ItemRevisionFlags",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-assessment-item-pools-and-analysis"
+        "change": "2026-07-16-assessment-item-pools-and-analysis"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3527,7 +3527,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.ExemptionCase; lib/Lifecycle/ExemptionDecisionGuard.php; lib/Listener/ExemptionGrantHandler.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-exam-board-case-handling"
+        "change": "2026-07-13-exam-board-case-handling"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3561,7 +3561,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.FraudCase; lib/Lifecycle/FraudCaseHearingGuard.php and FraudCaseDecisionGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-exam-board-case-handling"
+        "change": "2026-07-13-exam-board-case-handling"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3595,7 +3595,7 @@
         "state": "built",
         "evidence": "lib/Lifecycle/FraudCaseInvalidationGuard.php, lib/Listener/FraudCaseDecisionHandler.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-exam-board-case-handling"
+        "change": "2026-07-13-exam-board-case-handling"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3629,7 +3629,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Assignment; lib/Lifecycle/AssignmentPublishGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/assignments"
+        "change": "assignments"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3666,7 +3666,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Submission references Nextcloud files; src/views/SubmitWorkView.vue creates the draft as the learner, which Submission.authorization allows since learniq#973 (create for signed-in users, update on the learner's own draft; SubmissionWindowGuard refuses a hand-in in another learner's name); src/manifest.d/learning.json SubmitWorkModal",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/assignments"
+        "change": "assignments"
       },
       "provider": "nextcloud",
       "providerHow": "read: the platform provides it and this repository consumes it",
@@ -3700,7 +3700,7 @@
         "state": "built",
         "evidence": "lib/Lifecycle/SubmissionWindowGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/assignments"
+        "change": "assignments"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3734,7 +3734,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Submission is described as a learner's or group's hand-in",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/assignments"
+        "change": "assignments"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3768,7 +3768,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Rubric; src/manifest.d/learning.json MarkSubmissionView; Submission.authorization grants instructors read and update since learniq#973",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/assignments"
+        "change": "assignments"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3802,7 +3802,7 @@
         "state": "built",
         "evidence": "lib/Lifecycle/RubricScoresCompletionGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/assignments"
+        "change": "assignments"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3836,7 +3836,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.PeerReview; lib/Service/PeerReviewAllocationService.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-peer-and-self-assessment"
+        "change": "2026-07-16-peer-and-self-assessment"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3870,7 +3870,7 @@
         "state": "built",
         "evidence": "lib/Controller/PeerReviewController.php allocate(), route /api/peer-review/{assignmentId}/allocate",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-peer-and-self-assessment"
+        "change": "2026-07-16-peer-and-self-assessment"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3904,7 +3904,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.SelfAssessment; src/manifest.d/learning.json SelfAssessmentView",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-peer-and-self-assessment"
+        "change": "2026-07-16-peer-and-self-assessment"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3938,7 +3938,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.PeerFeedbackSummary; lib/Listener/PeerFeedbackAggregator.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-peer-and-self-assessment"
+        "change": "2026-07-16-peer-and-self-assessment"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4001,7 +4001,7 @@
         "state": "built",
         "evidence": "lib/Listener/GradeRollupHandler.php; lib/Lifecycle/AssessmentGradeGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/grading"
+        "change": "grading"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4035,7 +4035,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.GradeScale with bands, rounding rule and pass threshold",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/grading"
+        "change": "grading"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4069,7 +4069,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json GradeEntry starts as concept and is published by the teacher",
         "owner": "ConductionNL/openregister",
-        "change": "openspec/changes/archive/grading"
+        "change": "grading"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -4106,7 +4106,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.CurriculumPlan carries weight per component; .FinalGrade recomputes on change",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/grading"
+        "change": "grading"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4140,7 +4140,7 @@
         "state": "built",
         "evidence": "src/manifest.d/learning.json GradeImpactDetail",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/grading"
+        "change": "grading"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4174,7 +4174,7 @@
         "state": "built",
         "evidence": "src/manifest.d/learning.json GradebookView",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/grading"
+        "change": "grading"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4208,7 +4208,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.ReportCard and .ReportPeriod; lib/Listener/ReportCardComposer.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-report-card-composer"
+        "change": "2026-07-16-report-card-composer"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4242,7 +4242,7 @@
         "state": "built",
         "evidence": "lib/Lifecycle/ReportPeriodLockGuard.php and ReportCardFinaliseGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-report-card-composer"
+        "change": "2026-07-16-report-card-composer"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4276,7 +4276,7 @@
         "state": "built",
         "evidence": "lib/Lifecycle/ReportCardReopenGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-report-card-composer"
+        "change": "2026-07-16-report-card-composer"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4344,7 +4344,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.ReportCardParentNotification; lib/Listener/ReportCardPublishHandler.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-report-card-composer"
+        "change": "2026-07-16-report-card-composer"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4378,7 +4378,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.CompetencyFramework and .Competency, recursive taxonomy",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-competency-framework"
+        "change": "2026-07-16-competency-framework"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4412,7 +4412,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.CompetencyAttainment; lib/Listener/CompetencyAttainmentRollupHandler.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-competency-framework"
+        "change": "2026-07-16-competency-framework"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4446,7 +4446,7 @@
         "state": "built",
         "evidence": "src/manifest.d/progress.json SkillsGapDashboard",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-competency-framework"
+        "change": "2026-07-16-competency-framework"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4480,7 +4480,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.BsaTrajectory; lib/Service/BsaProgressEvaluator.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-bsa-study-progress-guard"
+        "change": "2026-07-13-bsa-study-progress-guard"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4514,7 +4514,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.BsaWarning; lib/Lifecycle/BsaWarningSigningGuard.php and BsaDecisionGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-bsa-study-progress-guard"
+        "change": "2026-07-13-bsa-study-progress-guard"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4548,7 +4548,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.BsaDecision references the warnings and credits it used",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-bsa-study-progress-guard"
+        "change": "2026-07-13-bsa-study-progress-guard"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4582,7 +4582,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.EngagementScore and .EngagementRiskThreshold; lib/Service/EngagementScoreEvaluator.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-learning-progress-and-analytics"
+        "change": "2026-07-16-learning-progress-and-analytics"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4616,7 +4616,7 @@
         "state": "built",
         "evidence": "src/manifest.d/progress.json GroupTrendHeatmap",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-learning-progress-and-analytics"
+        "change": "2026-07-16-learning-progress-and-analytics"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4650,7 +4650,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.LearningPlan covering opp, handelingsplan, iep, pdp and idp",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/learning-plan"
+        "change": "learning-plan"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4684,7 +4684,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.LearningPlanTemplate; src/manifest.d/learning.json LearningPlanTemplates",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/learning-plan"
+        "change": "learning-plan"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4718,7 +4718,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json LearningPlan is versioned; a material revision creates a new version",
         "owner": "ConductionNL/openregister",
-        "change": "openspec/changes/archive/learning-plan"
+        "change": "learning-plan"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -4752,7 +4752,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Signature, appendOnly; lib/Lifecycle/LearningPlanSignatureGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/learning-plan"
+        "change": "learning-plan"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4786,7 +4786,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.LearningPlanEvaluation (not appendOnly since learniq#977, so its record transition runs); lib/Listener/LearningPlanEvaluationHandler.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/learning-plan"
+        "change": "learning-plan"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4820,7 +4820,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.GroupPlan and .GroupPlanSubgroup",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-groepsplan"
+        "change": "2026-07-16-groepsplan"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4854,7 +4854,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.GroupPlanEvaluation",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-groepsplan"
+        "change": "2026-07-16-groepsplan"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4888,7 +4888,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.DossierNote; src/manifest.d/pupil-record.json DossierNotes",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-pupil-dossier-notes"
+        "change": "2026-07-16-pupil-dossier-notes"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4926,7 +4926,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.BehaviourIncident with a follow-up log; not appendOnly since learniq#977, so its handling transitions run and the audit trail keeps each version",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-pupil-dossier-notes"
+        "change": "2026-07-16-pupil-dossier-notes"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4963,7 +4963,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.WellbeingCheckIn; lib/Lifecycle/PupilVoiceGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-pupil-dossier-notes"
+        "change": "2026-07-16-pupil-dossier-notes"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4997,7 +4997,7 @@
         "state": "built",
         "evidence": "src/manifest.d/pupil-record.json PupilDossierTimelineView",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-pupil-dossier-notes"
+        "change": "2026-07-16-pupil-dossier-notes"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5031,7 +5031,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.SupportRequest; lib/Listener/SupportRequestSubmitHandler.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain"
+        "change": "2026-07-13-zorgvraag-swv-tlv-chain"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5065,7 +5065,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.TlvApplication traces to the SupportRequest that triggered it",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain"
+        "change": "2026-07-13-zorgvraag-swv-tlv-chain"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5099,7 +5099,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.DeliberationRecord, corrected by a new record (correctsId); not appendOnly since learniq#977, so its record transition runs",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain"
+        "change": "2026-07-13-zorgvraag-swv-tlv-chain"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5133,7 +5133,7 @@
         "state": "built",
         "evidence": "lib/Lifecycle/MunicipalityFeedbackGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain"
+        "change": "2026-07-13-zorgvraag-swv-tlv-chain"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5168,7 +5168,7 @@
         "evidence": "src/views/AttendanceRegisterView.vue (one row per learner of the session cohort, one AttendanceRecord each)",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/sessions/:sessionId/attendance",
-        "change": "openspec/changes/archive/attendance"
+        "change": "attendance"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5206,7 +5206,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.ExcuseRequest; src/manifest.d/people.json SubmitExcuseModal",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/attendance"
+        "change": "attendance"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5240,7 +5240,7 @@
         "state": "built",
         "evidence": "lib/Lifecycle/ExcuseApprovalHandler.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/attendance"
+        "change": "attendance"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5274,7 +5274,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.AttendanceThreshold; lib/Service/AttendanceWindowAggregator.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/attendance"
+        "change": "attendance"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5308,7 +5308,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.AttendanceFlag (not appendOnly since learniq#977, so its handling transitions run); lib/Lifecycle/AttendanceFlagCreationHandler.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/attendance"
+        "change": "attendance"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5379,7 +5379,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Session; src/manifest.d/learning.json Sessions",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-timetabling-and-substitution"
+        "change": "2026-07-16-timetabling-and-substitution"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5413,7 +5413,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Room; lib/Timetabling/SessionOverlapEvaluator.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-timetabling-and-substitution"
+        "change": "2026-07-16-timetabling-and-substitution"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5447,7 +5447,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.TimetableConflict; lib/Timetabling/TimetableConflictDetector.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-timetabling-and-substitution"
+        "change": "2026-07-16-timetabling-and-substitution"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5481,7 +5481,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json TimetableConflict is described as detected, never auto-resolved; src/manifest.d/learning.json TimetableConflictQueue",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-timetabling-and-substitution"
+        "change": "2026-07-16-timetabling-and-substitution"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5549,7 +5549,7 @@
         "state": "built",
         "evidence": "lib/Listener/SessionChangeNoticeHandler.php; lib/Lifecycle/SessionChangeGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-timetabling-and-substitution"
+        "change": "2026-07-16-timetabling-and-substitution"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5586,7 +5586,7 @@
         "state": "built",
         "evidence": "lib/Controller/TimetableController.php mine(), route /api/timetable/mine; src/manifest.d/my-learning.json MyTimetable. Corrections round 8 (2026-09-28), learniq#1134: a substitute teacher does not see the lessons they cover, because resolveCallerCohortIds() matches only Cohort.teacherIds, Cohort.learnerIds and the caller's own enrolments, never Session.substituteTeacherId (lib/Controller/TimetableController.php:164-218), at 4429d54.",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-07-personal-timetable"
+        "change": "2026-07-07-personal-timetable"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5625,7 +5625,7 @@
         "evidence": "lib/Controller/TimetableFeedController.php:114 serves the personal iCalendar feed by token; src/dialogs/TimetableCalendarFeedDialog.vue makes, copies and resets the address. Live flow passed on the dev instance 2026-10-02, recorded in the archived tasks.md.",
         "reachedOn": "/my-timetable",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-10-02-attendance-timetable-calendar-feed"
+        "change": "2026-10-02-attendance-timetable-calendar-feed"
       },
       "provider": "nextcloud",
       "providerHow": "read: the platform provides it and this repository consumes it",
@@ -5659,7 +5659,7 @@
         "state": "built",
         "evidence": "src/views/LearniqLearnerHome.vue; src/manifest.d/my-learning.json LearnerHome",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/dashboard"
+        "change": "dashboard"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5693,7 +5693,7 @@
         "state": "building",
         "evidence": "openspec/specs/portal-identity/spec.md and lib/Portal/PortalContributionProvider.php define the seam; the portal itself ships in portaliq",
         "owner": "ConductionNL/portaliq",
-        "change": "openspec/changes/portal-parent-child-record"
+        "change": "portal-parent-child-record"
       },
       "provider": "portaliq",
       "providerHow": "read: this repository contributes to the portal, which ships in Portaliq",
@@ -5727,7 +5727,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.ConferenceRound; src/manifest.d/guardian-meetings.json",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-parent-evening-planner"
+        "change": "2026-07-13-parent-evening-planner"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5761,7 +5761,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.TeacherAvailability",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-parent-evening-planner"
+        "change": "2026-07-13-parent-evening-planner"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5795,7 +5795,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.ConferenceSignup; src/manifest.d/guardian-meetings.json BookConferenceSlotsView",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-parent-evening-planner"
+        "change": "2026-07-13-parent-evening-planner"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5829,7 +5829,7 @@
         "state": "built",
         "evidence": "lib/Listener/ConferenceScheduleGenerator.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-parent-evening-planner"
+        "change": "2026-07-13-parent-evening-planner"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5863,7 +5863,7 @@
         "state": "built",
         "evidence": "lib/Lifecycle/ConferenceSignupGuardianGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-parent-evening-planner"
+        "change": "2026-07-13-parent-evening-planner"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5897,7 +5897,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.ConferenceReport; not appendOnly since learniq#977, so its record transition runs",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-parent-evening-planner"
+        "change": "2026-07-13-parent-evening-planner"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5931,7 +5931,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.GradeNotification; lib/Listener/GradeRollupHandler.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-grade-visibility-scheduling"
+        "change": "2026-07-13-grade-visibility-scheduling"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5965,7 +5965,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Portfolio and .PortfolioEntry; src/manifest.d/progress.json PortfolioBuilder",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-eportfolio"
+        "change": "2026-07-16-eportfolio"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -5999,7 +5999,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json PortfolioEntry references, never copies, exactly one existing object per evidenceKind",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-eportfolio"
+        "change": "2026-07-16-eportfolio"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6033,7 +6033,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.PortfolioShare, revocable and read only; lib/Lifecycle/PortfolioShareGrantHandler.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-eportfolio"
+        "change": "2026-07-16-eportfolio"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6067,7 +6067,7 @@
         "state": "built",
         "evidence": "lib/Service/LearningRecordExportService.php and LearningRecordExportSigningService.php; route /api/learning-records/me",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-portable-learning-record"
+        "change": "2026-07-16-portable-learning-record"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6101,7 +6101,7 @@
         "state": "built",
         "evidence": "lib/Controller/LearningRecordShareVerifyController.php, route /api/learning-record-shares/{id}/verify",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-portable-learning-record"
+        "change": "2026-07-16-portable-learning-record"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6135,7 +6135,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json LearningRecordExport.properties.coverageReport, one row per source object resolved",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-portable-learning-record"
+        "change": "2026-07-16-portable-learning-record"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6169,7 +6169,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.BpvPlacement; src/manifest.d/work-placement.json",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-bpv-praktijkovereenkomst"
+        "change": "2026-07-13-bpv-praktijkovereenkomst"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6203,7 +6203,7 @@
         "state": "none",
         "evidence": "lib/Bpv/ProvidesLeerbedrijfVerification.php is an interface; lib/Settings/connections.json states no verification provider ships in learniq or integriq, so a placement cannot confirm its leerbedrijf",
         "owner": "ConductionNL/integriq",
-        "change": "openspec/changes/workplace-leerbedrijf-check-through-integriq"
+        "change": "workplace-leerbedrijf-check-through-integriq"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -6237,7 +6237,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Praktijkovereenkomst; lib/Lifecycle/PokActivationGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-bpv-praktijkovereenkomst"
+        "change": "2026-07-13-bpv-praktijkovereenkomst"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6271,7 +6271,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.PokSignature, append-only; src/manifest.d/work-placement.json SignPokModal",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-bpv-praktijkovereenkomst"
+        "change": "2026-07-13-bpv-praktijkovereenkomst"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6305,7 +6305,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.WerkprocesAssessment; lib/Listener/WerkprocesGradeEmitHandler.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-bpv-praktijkovereenkomst"
+        "change": "2026-07-13-bpv-praktijkovereenkomst"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6339,7 +6339,7 @@
         "state": "built",
         "evidence": "lib/Listener/WerkprocesGradeEmitHandler.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-bpv-praktijkovereenkomst"
+        "change": "2026-07-13-bpv-praktijkovereenkomst"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6373,7 +6373,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.BpvVisitReport, linked to the learner's dossier",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-bpv-praktijkovereenkomst"
+        "change": "2026-07-13-bpv-praktijkovereenkomst"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6407,7 +6407,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Praktijkopleider",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-bpv-praktijkovereenkomst"
+        "change": "2026-07-13-bpv-praktijkovereenkomst"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6441,7 +6441,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.ExternalAssessor and .PortfolioShare",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-eportfolio"
+        "change": "2026-07-16-eportfolio"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6475,7 +6475,7 @@
         "state": "built",
         "evidence": "lib/Lifecycle/BpvConfirmationGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-13-bpv-praktijkovereenkomst"
+        "change": "2026-07-13-bpv-praktijkovereenkomst"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6708,7 +6708,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json x-openregister-processing.logReads is true on 13 schemas including LearnerProfile, DossierNote, BehaviourIncident and AttendanceRecord",
         "owner": "ConductionNL/openregister",
-        "change": "openspec/changes/archive/2026-06-14-avg-verwerkingsregister"
+        "change": "2026-06-14-avg-verwerkingsregister"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -6742,7 +6742,7 @@
         "state": "building",
         "evidence": "lib/Settings/learniq_register.json only 14 of 118 schemas carry an x-openregister-processing block, so the record covers the sensitive schemas and not the whole data model",
         "owner": "ConductionNL/openregister",
-        "change": "openspec/changes/governance-processing-record-every-schema"
+        "change": "governance-processing-record-every-schema"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -6776,7 +6776,7 @@
         "state": "built",
         "evidence": "lib/Service/VerwerkingsregisterCsvBuilder.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-06-14-avg-verwerkingsregister"
+        "change": "2026-06-14-avg-verwerkingsregister"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6844,7 +6844,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json x-openregister-processing.reviewIntervalMonths and .nextReviewAt",
         "owner": "ConductionNL/openregister",
-        "change": "openspec/changes/archive/2026-06-14-avg-verwerkingsregister"
+        "change": "2026-06-14-avg-verwerkingsregister"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -6878,7 +6878,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.AccessibilityStatement; lib/Lifecycle/AccessibilityStatementPublishGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-accessibility-conformance-statement"
+        "change": "2026-07-16-accessibility-conformance-statement"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6912,7 +6912,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.AccessibilityLimitation",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-accessibility-conformance-statement"
+        "change": "2026-07-16-accessibility-conformance-statement"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6946,7 +6946,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.AccessibilityFeedback; src/manifest.d/dashboard.json AccessibilityFeedbackCreate",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-accessibility-conformance-statement"
+        "change": "2026-07-16-accessibility-conformance-statement"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6980,7 +6980,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.SovereigntyPolicy and .AiFeature; lib/Service/AiLocalityClassifier.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-sovereign-ai-guarantee"
+        "change": "2026-07-16-sovereign-ai-guarantee"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -7014,7 +7014,7 @@
         "state": "built",
         "evidence": "lib/Controller/AiProcessingDisclosureController.php, route /api/ai-processing-disclosure",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-sovereign-ai-guarantee"
+        "change": "2026-07-16-sovereign-ai-guarantee"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -7048,7 +7048,7 @@
         "state": "built",
         "evidence": "lib/Service/SovereigntyPolicyService.php with lib/Service/AiLocalityClassifier.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-sovereign-ai-guarantee"
+        "change": "2026-07-16-sovereign-ai-guarantee"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -7082,7 +7082,7 @@
         "state": "built",
         "evidence": "lib/Controller/AiProcessingDisclosureController.php degrades gracefully when hermiq is absent",
         "owner": "ConductionNL/hermiq",
-        "change": "openspec/changes/archive/2026-07-16-sovereign-ai-guarantee"
+        "change": "2026-07-16-sovereign-ai-guarantee"
       },
       "provider": "hermiq",
       "providerHow": "read: the AI work is delegated to Hermiq and the app degrades when it is absent",
@@ -7237,7 +7237,7 @@
         "state": "building",
         "evidence": "FeeItem, Order and OrderLine record the charge, but lib/Settings/connections.json marks payment unavailable: initiating calls api/payments/initiate on integriq, which has no such endpoint, so no payment starts",
         "owner": "ConductionNL/integriq",
-        "change": "openspec/changes/archive/2026-09-28-payments-to-shillinq-migration"
+        "change": "2026-09-28-payments-to-shillinq-migration"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -7271,7 +7271,7 @@
         "state": "built",
         "evidence": "lib/Lifecycle/FeeItemVoluntaryEntitlementGuard.php and EntitlementOrderPaidGuard.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-school-payments"
+        "change": "2026-07-16-school-payments"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -7305,7 +7305,7 @@
         "state": "built",
         "evidence": "lib/Mcp/LearniqToolProvider.php implements IMcpToolProvider with an admin check per call",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-09-29-scholiq-mcp-adoption"
+        "change": "2026-09-29-scholiq-mcp-adoption"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -7339,7 +7339,7 @@
         "state": "built",
         "evidence": "appinfo/routes.php health#index and metrics#index",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-06-16-adopt-apphost"
+        "change": "2026-06-16-adopt-apphost"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -7480,7 +7480,7 @@
         "evidence": "lib/Service/RegulationAssignmentService.php assign() + lib/Service/RegulationAudienceResolver.php covers(), run on Regulation publish (lib/Listener/RegulationAssignmentHandler.php) and POST /api/compliance/regulations/{id}/assign; tests/Unit/Service/DepartmentComplianceTest.php",
         "owner": "ConductionNL/integriq",
         "reachedOn": "/compliance/regulations/:id (publish action)",
-        "change": "openspec/changes/compliance-assign-from-hr-roles"
+        "change": "compliance-assign-from-hr-roles"
       },
       "provider": "integriq",
       "providerHow": "learniq assigns a regulation's mandatory courses from the department and roles on each LearnerProfile, honouring audienceScope; the HR feed that would fill those fields would come through integriq's data exchange, which connections.json marks unavailable, so the job and role data must be entered or imported by hand.",
@@ -7516,7 +7516,7 @@
         "evidence": "lib/Lifecycle/RegulationExemptionDecisionGuard.php:43. Live flow passed on the dev instance 2026-10-02, recorded in the archived tasks.md.",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/compliance/exemptions",
-        "change": "openspec/changes/archive/2026-10-02-compliance-exemption-record"
+        "change": "2026-10-02-compliance-exemption-record"
       },
       "provider": "self",
       "providerHow": "learniq's ExemptionCase lifecycle and guard handle the school exemption; the compliance side has none.",
@@ -7552,7 +7552,7 @@
         "evidence": "lib/Settings/learniq_register.json:445",
         "owner": "ConductionNL/openregister",
         "reachedOn": "/credentials (list import)",
-        "change": "openspec/changes/credentials-migrate-with-validity"
+        "change": "credentials-migrate-with-validity"
       },
       "provider": "openregister",
       "providerHow": "OpenRegister's generic object import on the index page carries the rows; learniq only supplies the schema with a migrated source value.",
@@ -7691,7 +7691,7 @@
         "evidence": "lib/Service/Programme/ProgrammeRequirements.php:50. Live flow passed on the dev instance 2026-10-02, recorded in the archived tasks.md.",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/curriculum/programmes (programme form), /enrolments (enrolment form), learner home My programmes widget",
-        "change": "openspec/changes/archive/2026-10-02-enrolment-programme-mandatory-per-person"
+        "change": "2026-10-02-enrolment-programme-mandatory-per-person"
       },
       "provider": "self",
       "providerHow": "learniq's Enrolment schema carries the per-person flag; paths have no per-person layer.",
@@ -7830,7 +7830,7 @@
         "evidence": "lib/Lifecycle/ReportPeriodLockGuard.php asks lib/Service/Grading/CorrectionApprovals.php: a grade in a locked report period is published only on a DataCorrectionRequest approved by someone other than the requester and the publisher, carrying the approved value; the lone role override is gone. DataCorrectionDecisionGuard, DataCorrectionRequestStamp, CorrectionAppliedHandler. Open: the Playwright flow (task 2.1b).",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/report-periods, /report-cards, /grades/entries (lifecycle actions), /grades/corrections",
-        "change": "openspec/changes/governance-four-eyes-on-approved-data"
+        "change": "governance-four-eyes-on-approved-data"
       },
       "provider": "self",
       "providerHow": "learniq's lifecycle guards enforce the lock; no dual control is built.",
@@ -7866,7 +7866,7 @@
         "evidence": "lib/Service/LessonReleaseEvaluator.php:357. Live flow passed on the dev instance 2026-10-02, recorded in the archived tasks.md.",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/courses/:courseId/lessons/:lessonId/play",
-        "change": "openspec/changes/archive/2026-10-02-content-adaptive-next-step-and-preview"
+        "change": "2026-10-02-content-adaptive-next-step-and-preview"
       },
       "provider": "self",
       "providerHow": "learniq's LessonReleaseEvaluator and LessonReleaseController decide release per learner at request time.",
@@ -7902,7 +7902,7 @@
         "evidence": "src/views/LessonComposer.vue:483. Live flow passed on the dev instance 2026-10-02, recorded in the archived tasks.md.",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/courses/:courseId/lessons/:lessonId/compose > Preview",
-        "change": "openspec/changes/archive/2026-10-02-content-adaptive-next-step-and-preview"
+        "change": "2026-10-02-content-adaptive-next-step-and-preview"
       },
       "provider": "self",
       "providerHow": "learniq's own composer and player views.",
@@ -7938,7 +7938,7 @@
         "evidence": "Built and covered end to end by tests/e2e/work-groups.spec.ts (#1487).",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing",
-        "change": "openspec/changes/archive/2026-09-29-enrolment-self-join-work-group"
+        "change": "2026-09-29-enrolment-self-join-work-group"
       },
       "provider": "self",
       "providerHow": "Would be a learniq group schema and flow; not built.",
@@ -8005,7 +8005,7 @@
         "evidence": "lib/Lifecycle/CourseEvaluationEligibilityGuard.php:110",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/course-evaluation/campaigns (staff); no learner answer page",
-        "change": "openspec/changes/assessment-course-evaluation-answer-page"
+        "change": "assessment-course-evaluation-answer-page"
       },
       "provider": "self",
       "providerHow": "learniq's evaluation schemas and handlers; Nextcloud Forms is only linked, not integrated.",
@@ -8072,7 +8072,7 @@
         "evidence": "lib/Lifecycle/AccessibilityStatementPublishGuard.php:134. Live flow passed on the dev instance 2026-10-02, recorded in the archived tasks.md.",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/accessibility; /accessibility/limitations",
-        "change": "openspec/changes/archive/2026-10-02-governance-wcag-evidence-report"
+        "change": "2026-10-02-governance-wcag-evidence-report"
       },
       "provider": "self",
       "providerHow": "learniq's accessibility statement schemas and guard, with the nextcloud-vue components carrying most of the markup.",
@@ -8108,7 +8108,7 @@
         "evidence": "lib/Settings/learniq_register.json:15717",
         "owner": "ConductionNL/integriq",
         "reachedOn": "nothing",
-        "change": "openspec/changes/enrolment-sync-classes-from-student-administration"
+        "change": "enrolment-sync-classes-from-student-administration"
       },
       "provider": "integriq",
       "providerHow": "Imports are meant to run through integriq sources, which do not exist yet.",
@@ -8147,7 +8147,7 @@
         "evidence": "src/manifest.d/learning.json:4269 AllocateMarkers page -> src/views/AllocateMarkersView.vue -> appinfo/routes.php:287-290 SubmissionMarkController -> lib/Service/SubmissionMarkAllocationService.php:86 allocate",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing",
-        "change": "openspec/changes/archive/2026-09-29-assignments-double-marking"
+        "change": "2026-09-29-assignments-double-marking"
       },
       "provider": "self",
       "providerHow": "Would be a learniq marking workflow; not built.",
@@ -8258,7 +8258,7 @@
         "evidence": "appinfo/routes.php:297-298 credentialReissue#preview and #start; src/manifest.d/learning.json:1201 reissue-certificates action",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing",
-        "change": "openspec/changes/archive/2026-09-29-credentials-bulk-reissue"
+        "change": "2026-09-29-credentials-bulk-reissue"
       },
       "provider": "self",
       "providerHow": "Would be a learniq bulk action over issued credentials; not built.",
@@ -8294,7 +8294,7 @@
         "evidence": "appinfo/routes.php:246-250 check-in routes -> lib/Controller/CheckInController.php:95 checkInWithCode -> lib/Service/CheckIn/CheckInService.php",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing",
-        "change": "openspec/changes/archive/2026-09-29-attendance-self-check-in"
+        "change": "2026-09-29-attendance-self-check-in"
       },
       "provider": "self",
       "providerHow": "Would be a learniq session check-in flow; not built.",
@@ -8330,7 +8330,7 @@
         "evidence": "lib/Settings/learniq_register.json:13551",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/attendance/records; /attendance/excuses",
-        "change": "openspec/changes/archive/attendance"
+        "change": "attendance"
       },
       "provider": "self",
       "providerHow": "learniq's AttendanceRecord and ExcuseRequest schemas on OpenRegister, with the excuse approval handler.",
@@ -8365,7 +8365,7 @@
         "state": "built",
         "evidence": "ConcernReport in lib/Settings/learniq_register.json (counsellors and the reporter read, anyone signed in creates, anonymous counsellor notification), lib/Listener/ConcernReportReporterStamp.php stamps the reporter, src/manifest.d/confidential-counsel.json menus. Live flow passed on the dev instance 2026-10-02, recorded in the archived tasks.md.",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-10-02-support-confidential-concern-report"
+        "change": "2026-10-02-support-confidential-concern-report"
       },
       "provider": "self",
       "providerHow": "Would be a learniq reporting flow; the pupil dossier is staff-facing.",
@@ -8468,7 +8468,7 @@
         "evidence": "appinfo/routes.php:272 course catalogue routes; end to end in tests/e2e/course-catalogue.spec.ts (#1487).",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing",
-        "change": "openspec/changes/archive/2026-09-29-enrolment-catalogue-self-signup"
+        "change": "2026-09-29-enrolment-catalogue-self-signup"
       },
       "provider": "self",
       "providerHow": "Would be a learniq learner catalogue and enrol action; not built.",
@@ -8501,7 +8501,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.PointAward and .LearnerEngagement; lib/Listener/PointAwardTriggerHandler.php; lib/Service/PointEngagementEvaluator.php; lib/Controller/LeaderboardController.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-07-16-engagement-gamification"
+        "change": "2026-07-16-engagement-gamification"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -8526,7 +8526,7 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.ExamPeriod and .ExamSitting; lib/Controller/ExamScheduleController.php; lib/Service/ExamSittingPlacementCheck.php and InvigilatorAssignmentCheck.php",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-09-29-timetabling-exam-schedule"
+        "change": "2026-09-29-timetabling-exam-schedule"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -8601,7 +8601,7 @@
         "state": "built",
         "evidence": "openspec/specs/integration-leaves/spec.md; leaves declared in src/manifest.d/ on Session, Assignment, Credential, LearnerProfile and BpvPlacement",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-09-29-leaf-integrations"
+        "change": "2026-09-29-leaf-integrations"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -8631,7 +8631,7 @@
         "state": "built",
         "evidence": "lib/Settings/connections.json; lib/Service/ConnectionReportService.php; the Integrations page in admin settings",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-09-29-adopt-connection-registry"
+        "change": "2026-09-29-adopt-connection-registry"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -8656,7 +8656,7 @@
         "state": "built",
         "evidence": "openspec/specs/realtime-updates/spec.md; store-backed detail views subscribe to OpenRegister object push events",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-09-28-adopt-live-updates-ui"
+        "change": "2026-09-28-adopt-live-updates-ui"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -8681,7 +8681,7 @@
         "state": "built",
         "evidence": "lib/Service/AiTranslatedCatalogue.php; lib/Controller/AiTranslationReviewController.php; the list in admin settings",
         "owner": "ConductionNL/learniq",
-        "change": "openspec/changes/archive/2026-09-28-ai-translated-catalogue-review"
+        "change": "2026-09-28-ai-translated-catalogue-review"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
