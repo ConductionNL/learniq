@@ -1136,12 +1136,12 @@ test('the First today card counts with a flat filter', () => {
 })
 
 test('the First today card is not collapsed before its condition is read', () => {
-	// nextcloud-vue 2.60.0, CnDashboardPage.isCollapsedWidget: a banner whose
-	// `content.text` is empty gives up its cell BEFORE `visibleWhen` is looked
-	// at. The attention layout draws `title`, so a card with a title and no
-	// text reads fine in the file and can never show. This mirrors that rule
-	// (it lives in a .vue file node cannot import) and pins the source text,
-	// so the mirror fails when the library changes the rule.
+	// nextcloud-vue CnDashboardPage.isCollapsedWidget: a banner whose text is
+	// empty gives up its cell BEFORE `visibleWhen` is looked at. Since 2.65.0
+	// an attention card's `title` counts as its text (widgetDisplayConfig);
+	// 2.60.0 read `text` alone. This mirrors that rule (it lives in a .vue
+	// file node cannot import) and pins the source text, so the mirror fails
+	// when the library changes the rule.
 	const page = readText(
 		'node_modules/@conduction/nextcloud-vue/src/components/CnDashboardPage/CnDashboardPage.vue',
 	)
@@ -1150,14 +1150,21 @@ test('the First today card is not collapsed before its condition is read', () =>
 		/if \(this\.isBannerDef\(def\) && text === ''\) \{\s*return true/,
 		'the library changed its collapse rule; read it again',
 	)
-	// Since 2.64.0 a banner's text falls back to its title, so a card with a
-	// title no longer collapses; the card still carries both.
+	assert.match(
+		page,
+		/const title = layout === 'attention' \? \(content\.title \|\| props\.title \|\| ''\) : ''/,
+	)
 	assert.match(page, /text: content\.text \|\| props\.text \|\| title \|\| ''/)
 	for (const widget of TODAY.config.widgets) {
 		if (widget.type !== 'banner') {
 			continue
 		}
-		const text = widget.content.text || widget.props?.text || ''
+		const layout = widget.content.layout || widget.props?.layout || ''
+		const title =
+			layout === 'attention'
+				? widget.content.title || widget.props?.title || ''
+				: ''
+		const text = widget.content.text || widget.props?.text || title || ''
 		assert.notEqual(text, '', `${widget.id} has no text and would never show`)
 		assert.equal(widget.content.text, widget.content.title)
 	}
@@ -1260,15 +1267,14 @@ test('no address a Today number asks or opens carries an operator as JSON', asyn
 	const pages = build(FULL, 'admin').pages
 	const hasJson = (text) => /[{}]|%7B|%7D/i.test(text)
 
-	// The control, turned round with nextcloud-vue 2.64.0: the library now
-	// writes a nested operator flat as well, so neither form carries JSON.
-	// The checks below stay, because a list that went out as JSON was a 500.
-	assert.ok(
-		!hasJson(
-			buildQueryString(resolveFilterMap({ a: { gte: '@today' } }, {}, {})),
-		),
-		'the library writes a nested operator as JSON again; read this test again',
+	// The control: since nextcloud-vue 2.65.0 the library writes a nested
+	// operator flat (`a[gte]=…`), so the sweep below guards against that
+	// fix regressing rather than against the 2.60.0 behaviour.
+	const nested = buildQueryString(
+		resolveFilterMap({ a: { gte: '@today' } }, {}, {}),
 	)
+	assert.ok(!hasJson(nested), `the library writes JSON again: ${nested}`)
+	assert.ok(decodeURIComponent(nested).includes('a[gte]'), nested)
 
 	let lists = 0
 	for (const { id, source, routes } of todayCounts()) {
