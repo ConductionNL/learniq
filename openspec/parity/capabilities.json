@@ -6682,12 +6682,13 @@
       "name": "Keep two schools or two departments apart in one instance.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json every schema carries tenant_id for multi-tenant isolation",
-        "owner": "ConductionNL/openregister",
-        "spec": "none"
+        "evidence": "lib/Service/CallerTenantResolver.php:82-150 resolves the caller's tenant (per-user learniq tenant_id, else the default tenant) and scopes id-taking endpoints to it (RolloverController:110 and :161, ExternalTrainingController:215 and :330 answer 404 for another tenant); PageController.php:119 feeds the create dialog's hidden tenant_id; lib/Repair/MoveInstanceIdTenantToDefaultTenant.php; tests/Unit/Service/CallerTenantResolverTest.php, tests/Unit/Controller/*CrossTenantTest.php; docs/Technical/tenants.md. List pages read through OpenRegister's object API without a tenant_id filter, so their separation rests on OpenRegister.",
+        "owner": "ConductionNL/learniq",
+        "spec": "openspec/specs/tenancy",
+        "readOn": "2026-10-07"
       },
-      "provider": "openregister",
-      "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "multi-tenancy",
       "featureConfidence": "medium",
       "learniq": "yes",
@@ -8233,15 +8234,16 @@
       "origin": "featureRequest",
       "originUrl": "https://moodle.atlassian.net/browse/MDL-24443",
       "built": {
-        "state": "built",
-        "evidence": "lib/Lifecycle/LearnerMergeGuard.php check() on the merge transition, lib/Listener/LearnerMergeHandler.php + lib/Service/LearnerMergeService.php moveRecords(); tests/Unit/Listener/LearnerMergeHandlerTest.php",
+        "state": "building",
+        "evidence": "lib/Lifecycle/LearnerMergeGuard.php:67 check() on the LearnerProfile merge transition (lib/Settings/learniq_register.json:5663) refuses a missing, inactive or self target and two open seats in one course (lib/Service/LearnerMergeService.php:136); lib/Listener/LearnerMergeHandler.php:77 then runs LearnerMergeService::moveRecords() (:177), which re-points every learner-owned record to the survivor; tests/Unit/Listener/LearnerMergeHandlerTest.php. Missing: LearnerProfileDetail (src/manifest.d/people.json:1760) declares no lifecycleActions, so no page offers the merge; it runs through OpenRegister's lifecycle API only.",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "/learner-profiles/:id (set mergedInto, then the merge lifecycle action)",
-        "spec": "none"
+        "reachedOn": "nothing: no page offers the merge transition; OpenRegister lifecycle API only",
+        "spec": "openspec/specs/learner-account-merge",
+        "readOn": "2026-10-07"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "learniq": "yes",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Searched public/ for mergeuser, merge_user, mergeaccount outside vendored libs and tests: no hits. Nearest is public/admin/user/user_bulk.php:1 (bulk delete, suspend, cohort add), which has no merge action. Marketplace tool_mergeusers adds it, not shipped.",
         "moodle-workplace": "read 2026-09-26: not documented: searched the Workplace release notes and Workplace user pages (https://docs.moodle.org/502/en/Upload_users_in_Moodle_Workplace); no merge-users feature is described.",
