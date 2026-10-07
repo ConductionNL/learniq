@@ -152,23 +152,6 @@ class SetupController extends Controller {
 	}//end __construct()
 
 	/**
-	 * The example sets that are loaded, for the admin page's Example data section.
-	 *
-	 * The setup wizard no longer removes example data (live audit A1), so the
-	 * admin page lists the loaded sets with a Remove button each, which posts
-	 * the existing `remove-example-set-<id>` action. The page cannot read the
-	 * `loadedExampleSets` initial state: only the app page provides it.
-	 *
-	 * @return JSONResponse `{ sets: [{ id, label }] }`.
-	 *
-	 * @spec openspec/changes/wizard-drops-the-removal-step/specs/example-sets/spec.md
-	 */
-	#[AuthorizedAdminSetting(AdminSettings::class)]
-	public function exampleSets(): JSONResponse {
-		return new JSONResponse(data: ['sets' => $this->seedProfiles->loadedSets()->all()]);
-	}//end exampleSets()
-
-	/**
 	 * Report per-step setup status for the wizard.
 	 *
 	 * `completed` is deliberately TRUE: this app declares no REQUIRED step, so
