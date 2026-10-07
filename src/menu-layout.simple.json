@@ -90,6 +90,7 @@
 		"PraktijkovereenkomstenMenu",
 		"PrivacyGovernanceDashboardMenu",
 		"ReportCardsMenu",
+		"ReportConcernMenu",
 		"RollCallMenu",
 		"SchoolAdviezenMenu",
 		"SchoolEventsMenu",
@@ -136,15 +137,10 @@
 	],
 	"menu": [
 		{
-			"id": "HomeCaption",
-			"type": "caption",
-			"label": "Home",
-			"order": 5
-		},
-		{
 			"id": "Dashboard",
 			"label": "Today",
-			"order": 10
+			"order": 10,
+			"icon": "HomeOutline"
 		},
 		{
 			"id": "GroupMyLearning",
@@ -448,11 +444,6 @@
 		{
 			"id": "ConcernReportsMenu",
 			"order": 61
-		},
-		{
-			"id": "ReportConcernMenu",
-			"section": "footer",
-			"order": 89
 		}
 	],
 	"nav": {
@@ -475,13 +466,22 @@
 						"admin"
 					]
 				}
-			}
-		}
+			},
+			"solid": true
+		},
+		"help": {
+			"label": "Help and explanation",
+			"href": "https://learniq.conduction.nl"
+		},
+		"footer": [
+			"settings",
+			"help"
+		]
 	},
 	"pages": [
 		{
 			"id": "Dashboard",
-			"_note": "The Today dashboard (openspec/changes/simple-today-dashboard). In the simple structure the page at `/` becomes a typed dashboard for the four roles that teach or run teaching, and stays the role dashboard it was for everybody else and in the full structure. `when` names those roles, `page` changes the page's kind, `config` holds library widgets only. EVERY NUMBER IS A FILTER ON REAL FIELDS, AND THE SAME FILTER AS THE LIST IT OPENS: Lessons today and Lessons this week open the two session lists that carry the same filter themselves; Due this week, Unexcused today and the First today card pass their filter in the address. The card's count filter is written flat, because the library's count source writes a nested operator as JSON. THE BOARD (LqDashboard, 6 October 2026) PUTS THE PAGE IN TWO COLUMNS under the card: a main column eight wide with the lessons of today (an object-table on Session, startsAt today, opening a lesson and the Lessons today list), the week strip and the open attendance flags (an object-table on attendance-flag, lifecycle open, opening a flag and the Attendance flags list with the same filter), and a side column four wide with the four counters one under the other (the board draws them two by two, but at two of twelve columns the library's stat card cut its labels to 'Assignm' and 'Unexcus', seen live 6 October 2026). The flags table carries no 'my groups': the flag names a cohort, not a teacher, and no filter says which cohorts are the reader's. WHAT THE DESIGN SHOWS AND THIS DOES NOT, because learniq has no data or page for it: to mark (submissions are listed per assignment), the present percentage, signals per pupil by name, messages from parents, the filled-in state per lesson and the Docent / Mentor switch. The three role dashboards stay one card away. THE CARD CARRIES `text` EQUAL TO ITS TITLE: nextcloud-vue 2.60.0 collapses any banner whose `content.text` is empty before it looks at `visibleWhen` (CnDashboardPage isCollapsedWidget), so a card with a title and no text could never show. The attention layout draws the title, not the text. A TILE'S `route` IS ALWAYS `{ name }`: a bare string is read as a path, so `SessionsToday` opened `/apps/learniq/SessionsToday`, which is no page (seen in a browser, 5 October 2026). THE OTHER DASHBOARDS CARD DRAWS ITS OWN FRAME: the card grid wraps itself in a titled card (default title Explore), so the dashboard's frame around it is switched off (`showTitle` and `showActions` false on the layout item) and the title is passed to the grid. The grid's own Actions menu has no switch.",
+			"_note": "The Today dashboard (openspec/changes/simple-today-dashboard). In the simple structure the page at `/` becomes a typed dashboard for the four roles that teach or run teaching, and stays the role dashboard it was for everybody else and in the full structure. `when` names those roles, `page` changes the page's kind, `config` holds library widgets only. EVERY NUMBER IS A FILTER ON REAL FIELDS, AND THE SAME FILTER AS THE LIST IT OPENS: Lessons today and Lessons this week open the two session lists that carry the same filter themselves; Due this week, Unexcused today and the First today card pass their filter in the address. The card's count filter is written flat, because the library's count source writes a nested operator as JSON. THE BOARD (LqDashboard, 6 October 2026) PUTS THE PAGE IN TWO COLUMNS under the card: a main column eight wide with the lessons of today (an object-table on Session, startsAt today, opening a lesson and the Lessons today list), and the open attendance flags (an object-table on attendance-flag, lifecycle open, opening a flag and the Attendance flags list with the same filter), and a side column four wide with the four counters two by two, as the board draws them (the stacked tile of nextcloud-vue 2.64.0 puts the label on its own line, so two columns hold it; the horizontal card cut it to 'Assignm' and 'Unexcus', seen live 6 October 2026). The board has no week strip, so the simple Today has none (7 October 2026). The flags table carries no 'my groups': the flag names a cohort, not a teacher, and no filter says which cohorts are the reader's. WHAT THE DESIGN SHOWS AND THIS DOES NOT, because learniq has no data or page for it: to mark (submissions are listed per assignment), the present percentage, signals per pupil by name, messages from parents, the filled-in state per lesson and the Docent / Mentor switch. The three role dashboards stay one card away. THE CARD CARRIES `text` EQUAL TO ITS TITLE: nextcloud-vue 2.60.0 collapses any banner whose `content.text` is empty before it looks at `visibleWhen` (CnDashboardPage isCollapsedWidget), so a card with a title and no text could never show. The attention layout draws the title, not the text. A TILE'S `route` IS ALWAYS `{ name }`: a bare string is read as a path, so `SessionsToday` opened `/apps/learniq/SessionsToday`, which is no page (seen in a browser, 5 October 2026). THE OTHER DASHBOARDS CARD DRAWS ITS OWN FRAME: the card grid wraps itself in a titled card (default title Explore), so the dashboard's frame around it is switched off (`showTitle` and `showActions` false on the layout item) and the title is passed to the grid. The grid's own Actions menu has no switch.",
 			"when": {
 				"user.primaryRole": {
 					"in": [
@@ -515,9 +515,9 @@
 						"type": "header",
 						"title": "Greeting",
 						"content": {
-							"greeting": true,
+							"title": "Today",
 							"showDate": true,
-							"plain": true
+							"ground": true
 						}
 					},
 					{
@@ -579,7 +579,8 @@
 							},
 							"route": {
 								"name": "SessionsToday"
-							}
+							},
+							"layout": "stacked"
 						}
 					},
 					{
@@ -606,7 +607,8 @@
 							},
 							"route": {
 								"name": "SessionsThisWeek"
-							}
+							},
+							"layout": "stacked"
 						}
 					},
 					{
@@ -639,7 +641,8 @@
 									"dueAt[gte]": "@today",
 									"dueAt[lt]": "@today+7d"
 								}
-							}
+							},
+							"layout": "stacked"
 						}
 					},
 					{
@@ -671,7 +674,8 @@
 									"markedAt[gte]": "@today"
 								}
 							},
-							"variant": "warning"
+							"variant": "warning",
+							"layout": "stacked"
 						}
 					},
 					{
@@ -695,6 +699,16 @@
 							},
 							"columns": [
 								{
+									"key": "startsAt",
+									"label": "Time",
+									"widget": "date",
+									"widgetProps": {
+										"timeOnly": true
+									},
+									"width": "6rem",
+									"cellClass": "cn-cell--strong"
+								},
+								{
 									"key": "title",
 									"label": "Lesson",
 									"cellClass": "cn-cell--strong"
@@ -713,36 +727,6 @@
 							"hideHeader": true,
 							"borderless": true,
 							"emptyText": "No lessons today"
-						}
-					},
-					{
-						"id": "today-week",
-						"type": "week-strip",
-						"title": "Lessons this week",
-						"content": {
-							"days": 5,
-							"source": {
-								"register": "learniq",
-								"schema": "Session",
-								"filter": {
-									"startsAt": {
-										"gte": "@today-7d",
-										"lt": "@today+7d"
-									}
-								},
-								"limit": 200
-							},
-							"dateField": "startsAt",
-							"titleField": "title",
-							"metaFields": [
-								"location"
-							],
-							"itemRoute": "SessionDetail",
-							"lateWhen": {
-								"op": "lt",
-								"value": -100000
-							},
-							"emptyText": "No lessons"
 						}
 					},
 					{
@@ -845,14 +829,15 @@
 						"gridX": 0,
 						"gridY": 0,
 						"gridWidth": 12,
-						"gridHeight": 2,
-						"showTitle": false
+						"gridHeight": 1,
+						"showTitle": false,
+						"sizeToContent": true
 					},
 					{
 						"id": "t2",
 						"widgetId": "today-first",
 						"gridX": 0,
-						"gridY": 2,
+						"gridY": 1,
 						"gridWidth": 12,
 						"gridHeight": 2,
 						"showTitle": false,
@@ -862,8 +847,8 @@
 						"id": "t3",
 						"widgetId": "today-lessons-today",
 						"gridX": 8,
-						"gridY": 4,
-						"gridWidth": 4,
+						"gridY": 3,
+						"gridWidth": 2,
 						"gridHeight": 2,
 						"showTitle": false,
 						"dateChip": false
@@ -871,9 +856,9 @@
 					{
 						"id": "t4",
 						"widgetId": "today-lessons-week",
-						"gridX": 8,
-						"gridY": 6,
-						"gridWidth": 4,
+						"gridX": 10,
+						"gridY": 3,
+						"gridWidth": 2,
 						"gridHeight": 2,
 						"showTitle": false,
 						"dateChip": false
@@ -882,8 +867,8 @@
 						"id": "t5",
 						"widgetId": "today-due-week",
 						"gridX": 8,
-						"gridY": 8,
-						"gridWidth": 4,
+						"gridY": 5,
+						"gridWidth": 2,
 						"gridHeight": 2,
 						"showTitle": false,
 						"dateChip": false
@@ -891,9 +876,9 @@
 					{
 						"id": "t6",
 						"widgetId": "today-unexcused",
-						"gridX": 8,
-						"gridY": 10,
-						"gridWidth": 4,
+						"gridX": 10,
+						"gridY": 5,
+						"gridWidth": 2,
 						"gridHeight": 2,
 						"showTitle": false,
 						"dateChip": false
@@ -902,40 +887,41 @@
 						"id": "t9",
 						"widgetId": "today-lessons",
 						"gridX": 0,
-						"gridY": 4,
+						"gridY": 3,
 						"gridWidth": 8,
 						"gridHeight": 4,
-						"showTitle": true
-					},
-					{
-						"id": "t7",
-						"widgetId": "today-week",
-						"gridX": 0,
-						"gridY": 8,
-						"gridWidth": 8,
-						"gridHeight": 4,
-						"showTitle": true
+						"showTitle": true,
+						"headerLink": {
+							"label": "Week timetable",
+							"route": "MyTimetable"
+						}
 					},
 					{
 						"id": "t10",
 						"widgetId": "today-signals",
 						"gridX": 0,
-						"gridY": 12,
+						"gridY": 7,
 						"gridWidth": 8,
 						"gridHeight": 5,
-						"showTitle": true
+						"showTitle": true,
+						"headerLink": {
+							"label": "All learners",
+							"route": "LearnerProfiles"
+						}
 					},
 					{
 						"id": "t8",
 						"widgetId": "today-dashboards",
 						"gridX": 0,
-						"gridY": 17,
+						"gridY": 12,
 						"gridWidth": 12,
 						"gridHeight": 3,
 						"showTitle": false,
 						"showActions": false
 					}
-				]
+				],
+				"showHeader": false,
+				"showWidgetActions": false
 			}
 		},
 		{
@@ -1141,6 +1127,57 @@
 								]
 							}
 						}
+					}
+				]
+			}
+		},
+		{
+			"id": "LearnerProfileDetail",
+			"_note": "Report a concern (Ruben, 7 October 2026): the simple menu leaves it out of the footer, as LqDashboard draws it (Settings and Help only), and offers it here, on the pupil's page, where a member of staff has the worry. It opens the same create form the Report a concern page offers (concern-report), pre-filled with this pupil through `learnerId` (concern-report 0.2.0, optional, so a pupil's own report and every existing report stay valid). The report stays confidential: its read rule is the counsellors and the person who filed it, and the reference opens nothing to anyone else. Pupils and guardians get the same form as a button on their own start page (the Dashboard overlay for those two roles), without the pupil field. /report-a-concern stays a page in both profiles, so a link to it still works. The full profile keeps its menu entry and has no overlay here.",
+			"configAppend": {
+				"headerActions": [
+					{
+						"id": "report-a-concern",
+						"type": "open-form",
+						"label": "Report a concern",
+						"formTitle": "Report a concern",
+						"icon": "ShieldAlertOutline",
+						"register": "learniq",
+						"schema": "concern-report",
+						"successMessage": "Your concern is sent to the confidential counsellor.",
+						"props": {
+							"learnerId": "@objectId"
+						}
+					}
+				]
+			}
+		},
+		{
+			"id": "Dashboard",
+			"_note": "Report a concern for pupils and guardians (Ruben, 7 October 2026): a button on their own start page instead of a menu entry. The page stays the role dashboard it is (LearniqDashboards), which hands `headerActions` to its CnDashboardPage. The same create form as the Report a concern page, without the pupil field: a pupil reports for themselves. Only for the learner and guardian roles; staff report from the pupil's page.",
+			"when": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"guardian"
+					]
+				}
+			},
+			"config": {
+				"headerActions": [
+					{
+						"id": "report-a-concern",
+						"type": "open-form",
+						"label": "Report a concern",
+						"formTitle": "Report a concern",
+						"icon": "ShieldAlertOutline",
+						"variant": "secondary",
+						"register": "learniq",
+						"schema": "concern-report",
+						"excludeFields": [
+							"learnerId"
+						],
+						"successMessage": "Your concern is sent to the confidential counsellor."
 					}
 				]
 			}

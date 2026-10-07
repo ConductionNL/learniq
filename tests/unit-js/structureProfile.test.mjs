@@ -36,6 +36,7 @@ import {
 } from '../../src/services/menuStructureSetting.js'
 import { applyReportCardGates } from '../../src/utils/reportCardGates.js'
 import {
+	applyPageDefaults,
 	applyPageOverlay,
 	buildProfiledManifest,
 	navTheming,
@@ -144,10 +145,25 @@ function build(layout, role, state = NEVER, flags = {}) {
 	)
 }
 
+/** An overlay that adds header actions to a page, not links. */
+function isActionOverlay(overlay) {
+	return (
+		!!overlay.configAppend
+		&& Object.keys(overlay.configAppend).every((key) => key === 'headerActions')
+	)
+}
 /** The overlays that only append links: header links on lists, cards on Reports. */
-const LINK_OVERLAYS = SIMPLE.pages.filter((overlay) => overlay.configAppend)
+const LINK_OVERLAYS = SIMPLE.pages.filter(
+	(overlay) => overlay.configAppend && !isActionOverlay(overlay),
+)
+/** The overlays that add a header action (Report a concern on the pupil). */
+const ACTION_OVERLAYS = SIMPLE.pages.filter(isActionOverlay)
 /** The overlay that turns the page at `/` into the Today dashboard. */
-const TODAY = SIMPLE.pages.find((overlay) => overlay.id === 'Dashboard')
+const TODAY = SIMPLE.pages.find(
+	(overlay) => overlay.id === 'Dashboard' && overlay.page,
+)
+/** The roles that get Report a concern as a button on their start page. */
+const CONCERN_ROLES = ['learner', 'guardian']
 /** The roles the Today dashboard is for. */
 const TODAY_ROLES = ['instructor', 'coordinator', 'administration-manager', 'admin']
 
@@ -295,6 +311,14 @@ function unlinkedFor(role) {
  * a new unlinked entry must be put in, or the test fails. That is the point:
  * the list is the record of what a role loses, and it may not drift.
  */
+/**
+ * Report a concern left the simple menu for an action on the pupil's page
+ * (Ruben, 7 October 2026). Its page keeps its address, but no simple entry
+ * links it any more, so every role that saw it in the full menu loses that
+ * door. A pupil or a guardian has no pupil page of someone else to start
+ * from: their way in is the address /report-a-concern alone.
+ */
+const CONCERN = ['ReportConcernMenu']
 const PLANNING = [
 	'ElectiveOffersMenu',
 	'ExamSittingsMenu',
@@ -303,6 +327,7 @@ const PLANNING = [
 ]
 const KNOWN_UNLINKED = {
 	admin: [
+		...CONCERN,
 		...PLANNING,
 		'AdmissionsReviewBoardMenu',
 		'BookConferenceSlotsMenu',
@@ -326,12 +351,14 @@ const KNOWN_UNLINKED = {
 		'TimetableConflictQueueMenu',
 	],
 	'compliance-officer': [
+		...CONCERN,
 		'AbsenceReportsComplianceMenu',
 		'DashboardAdmin',
 		'DashboardStudent',
 	],
-	hr: ['DashboardAdmin', 'DashboardStudent'],
+	hr: [...CONCERN, 'DashboardAdmin', 'DashboardStudent'],
 	'administration-manager': [
+		...CONCERN,
 		...PLANNING,
 		'AdmissionsReviewBoardMenu',
 		'CatalogueMenu',
@@ -349,6 +376,7 @@ const KNOWN_UNLINKED = {
 		'TrajectoriesMenu',
 	],
 	'team-lead': [
+		...CONCERN,
 		...PLANNING,
 		'ConferenceScheduleBoardMenu',
 		'DashboardStudent',
@@ -357,6 +385,7 @@ const KNOWN_UNLINKED = {
 		'SchoolEventsMenu',
 	],
 	coordinator: [
+		...CONCERN,
 		...PLANNING,
 		'AdmissionsReviewBoardMenu',
 		'CatalogueMenu',
@@ -373,6 +402,7 @@ const KNOWN_UNLINKED = {
 		'TimetableConflictQueueMenu',
 	],
 	instructor: [
+		...CONCERN,
 		...PLANNING,
 		'CatalogueMenu',
 		'GroupPeople',
@@ -382,14 +412,18 @@ const KNOWN_UNLINKED = {
 		'TeacherAvailabilitiesMenu',
 		'TimetablesMenu',
 	],
-	'confidential-counsellor': ['DashboardStudent'],
-	guardian: ['DashboardStudent'],
-	learner: ['BookConferenceSlotsMenu', 'DashboardStudent', 'TimetablesMenu'],
+	'confidential-counsellor': [...CONCERN, 'DashboardStudent'],
+	guardian: [...CONCERN, 'DashboardStudent'],
+	learner: [
+		...CONCERN,
+		'BookConferenceSlotsMenu',
+		'DashboardStudent',
+		'TimetablesMenu',
+	],
 }
 
 /** The simple main menu, in order, captions included. */
 const SIMPLE_MAIN_ORDER = [
-	'HomeCaption',
 	'Dashboard',
 	'GroupMyLearning',
 	'GroupsSimple',
@@ -510,7 +544,24 @@ test('the full profile is exactly the plain manifest build', () => {
 		structuredClone(FRAGMENTS),
 		structuredClone(FULL),
 	)
-	assert.deepEqual(profiled, plain)
+	// The one difference: every index page that did not choose keeps the
+	// plain header row it had before nextcloud-vue 2.62.0 gave every header a
+	// sort and filter control (menu-layout.json pageDefaults).
+	assert.deepEqual(profiled, applyPageDefaults(plain, FULL.pageDefaults))
+	assert.deepEqual(FULL.pageDefaults, { index: { headerFilters: false } })
+	assert.equal(SIMPLE.pageDefaults, undefined)
+	for (const page of plain.pages) {
+		const now = profiled.pages.find((item) => item.id === page.id)
+		const held =
+			page.type === 'index' && page.config?.headerFilters === undefined
+		assert.deepEqual(
+			now,
+			held
+				? { ...page, config: { ...page.config, headerFilters: false } }
+				: page,
+			page.id,
+		)
+	}
 
 	// The measured size of today's menu. A change here is a change to the
 	// full menu, which this profile work must never make.
@@ -533,13 +584,17 @@ test('menu-layout.json holds no profile key, so the full profile cannot gain an 
 })
 
 test('both profiles hold the same pages, and an overlay only appends', () => {
-	const full = build(FULL, 'admin')
+	// Compared without the full profile's pageDefaults, which hold back a
+	// library default the simple profile takes (tested above).
+	const full = build({ ...FULL, pageDefaults: undefined }, 'admin')
 	const simple = build(SIMPLE, 'admin')
 	assert.deepEqual(
 		simple.pages.map((page) => page.id),
 		full.pages.map((page) => page.id),
 	)
-	const overlaid = new Set(LINK_OVERLAYS.map((overlay) => overlay.id))
+	const overlaid = new Set(
+		[...LINK_OVERLAYS, ...ACTION_OVERLAYS].map((overlay) => overlay.id),
+	)
 	for (const [index, page] of full.pages.entries()) {
 		const twin = simple.pages[index]
 		if (page.id === TODAY.id) {
@@ -614,7 +669,7 @@ test('the simple profile has no relocations key, and repeats what the full one r
 	}
 })
 
-test('the simple menu is flat, in order, and under three captions', () => {
+test('the simple menu is flat, in order, and under two captions', () => {
 	const simple = build(SIMPLE, 'admin')
 	for (const item of simple.menu) {
 		assert.ok(
@@ -631,7 +686,9 @@ test('the simple menu is flat, in order, and under three captions', () => {
 	)
 	assert.deepEqual(
 		main.filter(isCaption).map((item) => item.label),
-		['Home', 'Teaching', 'Learners'],
+		// LqDashboard: Today, My learning and Groups sit at the top with no
+		// caption above them; the board's first caption is Onderwijs.
+		['Teaching', 'Learners'],
 	)
 	const orders = main.map((item) => item.order)
 	assert.equal(new Set(orders).size, orders.length, 'two entries share an order')
@@ -934,6 +991,19 @@ test('the page at / is the Today dashboard for the teaching roles, in the simple
 			assert.equal(page.title, 'Today')
 			assert.equal(Object.hasOwn(page, 'component'), false)
 			assert.deepEqual(page.config, TODAY.config)
+		} else if (CONCERN_ROLES.includes(role)) {
+			// Pupils and guardians keep their role dashboard, with one button
+			// in its header: Report a concern (Ruben, 7 October 2026).
+			const { headerActions, ...config } = page.config
+			const { config: _config, ...rest } = page
+			const before =
+				Object.keys(config).length > 0 ? { ...rest, config } : rest
+			assert.deepEqual(before, manifestPage, `${role} lost the role dashboard`)
+			assert.deepEqual(
+				headerActions.map((action) => action.id),
+				['report-a-concern'],
+				role,
+			)
 		} else {
 			assert.deepEqual(page, manifestPage, `${role} lost the role dashboard`)
 		}
@@ -1323,26 +1393,6 @@ test('every widget type on Today is one the installed library build registers', 
 	)
 })
 
-test('the week strip reads real fields and opens a lesson', () => {
-	const strip = TODAY.config.widgets.find((widget) => widget.type === 'week-strip')
-	const properties = schemaOf(strip.content.source.schema).properties
-	for (const field of [
-		strip.content.dateField,
-		strip.content.titleField,
-		...strip.content.metaFields,
-		...Object.keys(strip.content.source.filter),
-	]) {
-		assert.ok(Object.hasOwn(properties, field), `no field ${field}`)
-	}
-	const detail = build(FULL, 'admin').pages.find(
-		(page) => page.id === strip.content.itemRoute,
-	)
-	assert.equal(detail.type, 'detail')
-	assert.ok(detail.route.endsWith('/:id'))
-	// A lesson that has been is not late. The rule can never be true.
-	assert.ok(strip.content.lateWhen.value < -1000)
-})
-
 test('Today links no page the full menu keeps from a role it is for', () => {
 	for (const role of TODAY_ROLES) {
 		const offered = reachable(build(FULL, role))
@@ -1492,6 +1542,8 @@ test('the primary button opens the register of today, for the Today roles only',
 				label: 'Fill in attendance',
 				icon: 'ClipboardCheckOutline',
 				route: 'RollCall',
+				// Drawn as the board's solid button (nextcloud-vue 2.64.0).
+				solid: true,
 			},
 			role,
 		)
@@ -1523,25 +1575,31 @@ test('the full profile has no brand and no button, and main.js reads the theming
 
 test('Today sits in two columns as the board draws it', () => {
 	const placed = (id) => TODAY.config.layout.find((item) => item.widgetId === id)
-	const main = ['today-lessons', 'today-week', 'today-signals']
+	// LqDashboard has no week strip: the main column is the lessons of today
+	// and the signals in my groups.
+	const main = ['today-lessons', 'today-signals']
 	for (const id of main) {
 		assert.equal(placed(id).gridX, 0, id)
 		assert.equal(placed(id).gridWidth, 8, id)
 	}
-	assert.equal(placed(main[0]).gridY, 4)
+	// Row 3: the greeting on the ground is one row high (LqDashboard).
+	assert.equal(placed(main[0]).gridY, 3)
 	for (let at = 1; at < main.length; at++) {
 		assert.ok(placed(main[at]).gridY > placed(main[at - 1]).gridY, main[at])
 	}
 	const tiles = TODAY.config.widgets.filter((widget) => widget.type === 'stat')
 	for (const tile of tiles) {
 		const item = placed(tile.id)
-		// One under the other, the full side column wide: at two columns the
-		// stat card cut its label to "Assignm" (seen live, 6 October 2026).
-		assert.equal(item.gridX, 8, tile.id)
-		assert.equal(item.gridWidth, 4, tile.id)
+		// Two by two in the side column, as LqDashboard draws its tiles. The
+		// horizontal card cut its label to "Assignm" at two columns (seen
+		// live, 6 October 2026); the stacked tile puts the label on a line of
+		// its own above the number, so two columns hold it.
+		assert.equal(tile.content.layout, 'stacked', tile.id)
+		assert.ok(item.gridX === 8 || item.gridX === 10, tile.id)
+		assert.equal(item.gridWidth, 2, tile.id)
 	}
 	const tileRows = tiles.map((tile) => placed(tile.id).gridY)
-	assert.deepEqual(tileRows, [4, 6, 8, 10])
+	assert.deepEqual(tileRows, [3, 3, 5, 5])
 	const grid = placed('today-dashboards')
 	assert.equal(grid.gridWidth, 12)
 	assert.ok(
@@ -1644,4 +1702,127 @@ test('navTheming reads the emblem from thematiq, and an empty string when there 
 	assert.equal(navTheming({ nldesign: { logos: { emblem: 42 } } }).emblem, '')
 	assert.deepEqual(navTheming(null), { emblem: '' })
 	assert.equal(navTheming({ theming: THEMING }).name, 'Gemeente Zuiddrecht')
+})
+
+test('Today has one header, on the page ground, and the navigation ends in Settings and Help', () => {
+	// LqDashboard: no page header above the greeting; the date and the
+	// heading sit on the page ground, one row high. The header's only button
+	// (Today's register) is the navigation's primary action already.
+	assert.equal(TODAY.config.showHeader, false)
+	assert.equal(TODAY.config.showWidgetActions, false)
+	const greeting = TODAY.config.widgets.find(
+		(widget) => widget.id === 'today-greeting',
+	)
+	assert.deepEqual(greeting.content, {
+		title: 'Today',
+		showDate: true,
+		ground: true,
+	})
+	const row = TODAY.config.layout.find(
+		(item) => item.widgetId === 'today-greeting',
+	)
+	assert.equal(row.gridHeight, 1)
+	const register = TODAY.config.headerActions.find(
+		(action) => action.id === 'open-roll-call',
+	)
+	assert.equal(SIMPLE.nav.primaryAction.route, register.target)
+	for (const tile of TODAY.config.widgets.filter(
+		(widget) => widget.type === 'stat',
+	)) {
+		assert.equal(tile.content.layout, 'stacked', tile.id)
+	}
+	// Report a concern left the footer for the pupil's page (Ruben, 7 October
+	// 2026): the footer is Settings and Help, as the board draws it.
+	assert.deepEqual(SIMPLE.nav.footer, ['settings', 'help'])
+	assert.equal(SIMPLE.nav.help.href, 'https://learniq.conduction.nl')
+	assert.equal(FULL.nav, undefined)
+})
+
+test('Report a concern is an action on the pupil page, the same form pre-filled with the pupil, and its page stays', () => {
+	const full = build(FULL, 'admin')
+	const simple = build(SIMPLE, 'admin')
+	const reportPage = full.pages.find((page) => page.id === 'ReportConcern')
+	// The form the menu entry opened: the Report a concern page lists and
+	// creates concern-report objects in the learniq register.
+	assert.deepEqual(
+		{ register: reportPage.config.register, schema: reportPage.config.schema },
+		{ register: 'learniq', schema: 'concern-report' },
+	)
+	const pupil = simple.pages.find((page) => page.id === 'LearnerProfileDetail')
+	const action = pupil.config.headerActions.find(
+		(item) => item.id === 'report-a-concern',
+	)
+	assert.equal(action.type, 'open-form')
+	assert.equal(action.register, reportPage.config.register)
+	assert.equal(action.schema, reportPage.config.schema)
+	// Pre-filled with the pupil whose page it is.
+	assert.deepEqual(action.props, { learnerId: '@objectId' })
+	// The page keeps its address in both profiles; the full menu keeps the
+	// entry, and the full pupil page has no new action.
+	assert.ok(
+		simple.pages.some(
+			(page) =>
+				page.id === 'ReportConcern' && page.route === '/report-a-concern',
+		),
+	)
+	assert.ok(flat(full.menu).some((item) => item.id === 'ReportConcernMenu'))
+	assert.ok(!flat(simple.menu).some((item) => item.id === 'ReportConcernMenu'))
+	const fullPupil = full.pages.find((page) => page.id === 'LearnerProfileDetail')
+	assert.equal(fullPupil.config.headerActions, undefined)
+	assert.deepEqual(Object.keys(ACTION_OVERLAYS[0]).sort(), ['configAppend', 'id'])
+})
+
+test('the pupil field on a concern report is optional and opens nothing to anyone else', () => {
+	const schema = schemaOf('concern-report')
+	const field = schema.properties.learnerId
+	assert.equal(field.format, 'uuid')
+	assert.equal(field.$ref, 'LearnerProfile')
+	assert.ok(
+		!schema.required.includes('learnerId'),
+		"a pupil's own report has no pupil field",
+	)
+	assert.equal(schema.version, '0.2.0')
+	// Read stays with the counsellors and the person who filed it; the new
+	// field changes no rule and carries no property-level read of its own.
+	assert.deepEqual(schema.authorization.read, [
+		'confidential-counsellors',
+		{ group: 'authenticated', match: { reporterId: '$userId' } },
+	])
+	assert.equal(field.authorization, undefined)
+	// Nothing points back: the learner profile does not list reports.
+	const learner = schemaOf('learner-profile')
+	assert.ok(!JSON.stringify(learner).includes('ConcernReport'))
+	// Dutch label and help text.
+	const dutch = readJson('l10n/nl.json').translations
+	assert.equal(dutch[field.title], 'Leerling')
+	assert.ok(dutch[field.description])
+	// The pupil's own form asks no pupil: the Report a concern page and the
+	// start-page button leave the field out.
+	const page = build(FULL, 'learner').pages.find(
+		(item) => item.id === 'ReportConcern',
+	)
+	assert.deepEqual(page.config.excludeFields, ['learnerId'])
+})
+
+test('pupils and guardians get Report a concern as a button on their start page, nobody else does', () => {
+	for (const role of ROLES) {
+		const page = build(SIMPLE, role).pages.find(
+			(item) => item.id === 'Dashboard',
+		)
+		const ids = (page.config?.headerActions || []).map((action) => action.id)
+		if (CONCERN_ROLES.includes(role)) {
+			assert.deepEqual(ids, ['report-a-concern'], role)
+			const action = page.config.headerActions[0]
+			assert.equal(action.schema, 'concern-report')
+			assert.deepEqual(action.excludeFields, ['learnerId'])
+			assert.equal(action.props, undefined)
+		} else {
+			assert.ok(!ids.includes('report-a-concern'), role)
+		}
+		const full = build(FULL, role).pages.find((item) => item.id === 'Dashboard')
+		assert.equal(full.config?.headerActions, undefined, role)
+	}
+	// The start page hands the buttons to its dashboard.
+	const source = readText('src/views/LearniqDashboards.vue')
+	assert.match(source, /:headerActions="headerActions"/)
 })
