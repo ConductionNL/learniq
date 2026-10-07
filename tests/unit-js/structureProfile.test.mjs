@@ -1484,6 +1484,8 @@ test('the primary button opens the register of today, for the Today roles only',
 				label: 'Fill in attendance',
 				icon: 'ClipboardCheckOutline',
 				route: 'RollCall',
+				// Drawn as the board's solid button (nextcloud-vue 2.64.0).
+				solid: true,
 			},
 			role,
 		)
