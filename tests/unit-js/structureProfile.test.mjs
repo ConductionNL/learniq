@@ -159,7 +159,11 @@ const LINK_OVERLAYS = SIMPLE.pages.filter(
 /** The overlays that add a header action (Report a concern on the pupil). */
 const ACTION_OVERLAYS = SIMPLE.pages.filter(isActionOverlay)
 /** The overlay that turns the page at `/` into the Today dashboard. */
-const TODAY = SIMPLE.pages.find((overlay) => overlay.id === 'Dashboard')
+const TODAY = SIMPLE.pages.find(
+	(overlay) => overlay.id === 'Dashboard' && overlay.page,
+)
+/** The roles that get Report a concern as a button on their start page. */
+const CONCERN_ROLES = ['learner', 'guardian']
 /** The roles the Today dashboard is for. */
 const TODAY_ROLES = ['instructor', 'coordinator', 'administration-manager', 'admin']
 
@@ -987,6 +991,19 @@ test('the page at / is the Today dashboard for the teaching roles, in the simple
 			assert.equal(page.title, 'Today')
 			assert.equal(Object.hasOwn(page, 'component'), false)
 			assert.deepEqual(page.config, TODAY.config)
+		} else if (CONCERN_ROLES.includes(role)) {
+			// Pupils and guardians keep their role dashboard, with one button
+			// in its header: Report a concern (Ruben, 7 October 2026).
+			const { headerActions, ...config } = page.config
+			const { config: _config, ...rest } = page
+			const before =
+				Object.keys(config).length > 0 ? { ...rest, config } : rest
+			assert.deepEqual(before, manifestPage, `${role} lost the role dashboard`)
+			assert.deepEqual(
+				headerActions.map((action) => action.id),
+				['report-a-concern'],
+				role,
+			)
 		} else {
 			assert.deepEqual(page, manifestPage, `${role} lost the role dashboard`)
 		}
@@ -1715,7 +1732,7 @@ test('Today has one header, on the page ground, and the navigation ends in Setti
 	assert.equal(FULL.nav, undefined)
 })
 
-test('Report a concern is an action on the pupil page, the same form, and its page stays', () => {
+test('Report a concern is an action on the pupil page, the same form pre-filled with the pupil, and its page stays', () => {
 	const full = build(FULL, 'admin')
 	const simple = build(SIMPLE, 'admin')
 	const reportPage = full.pages.find((page) => page.id === 'ReportConcern')
@@ -1732,13 +1749,8 @@ test('Report a concern is an action on the pupil page, the same form, and its pa
 	assert.equal(action.type, 'open-form')
 	assert.equal(action.register, reportPage.config.register)
 	assert.equal(action.schema, reportPage.config.schema)
-	// Not pre-filled: the schema has no field that names a pupil, and the
-	// report is confidential to the counsellor.
-	const schema = schemaOf('concern-report')
-	assert.ok(
-		!('learner' in schema.properties) && !('learnerId' in schema.properties),
-	)
-	assert.equal(action.props, undefined)
+	// Pre-filled with the pupil whose page it is.
+	assert.deepEqual(action.props, { learnerId: '@objectId' })
 	// The page keeps its address in both profiles; the full menu keeps the
 	// entry, and the full pupil page has no new action.
 	assert.ok(
@@ -1752,4 +1764,59 @@ test('Report a concern is an action on the pupil page, the same form, and its pa
 	const fullPupil = full.pages.find((page) => page.id === 'LearnerProfileDetail')
 	assert.equal(fullPupil.config.headerActions, undefined)
 	assert.deepEqual(Object.keys(ACTION_OVERLAYS[0]).sort(), ['configAppend', 'id'])
+})
+
+test('the pupil field on a concern report is optional and opens nothing to anyone else', () => {
+	const schema = schemaOf('concern-report')
+	const field = schema.properties.learnerId
+	assert.equal(field.format, 'uuid')
+	assert.equal(field.$ref, 'LearnerProfile')
+	assert.ok(
+		!schema.required.includes('learnerId'),
+		"a pupil's own report has no pupil field",
+	)
+	assert.equal(schema.version, '0.2.0')
+	// Read stays with the counsellors and the person who filed it; the new
+	// field changes no rule and carries no property-level read of its own.
+	assert.deepEqual(schema.authorization.read, [
+		'confidential-counsellors',
+		{ group: 'authenticated', match: { reporterId: '$userId' } },
+	])
+	assert.equal(field.authorization, undefined)
+	// Nothing points back: the learner profile does not list reports.
+	const learner = schemaOf('learner-profile')
+	assert.ok(!JSON.stringify(learner).includes('ConcernReport'))
+	// Dutch label and help text.
+	const dutch = readJson('l10n/nl.json').translations
+	assert.equal(dutch[field.title], 'Leerling')
+	assert.ok(dutch[field.description])
+	// The pupil's own form asks no pupil: the Report a concern page and the
+	// start-page button leave the field out.
+	const page = build(FULL, 'learner').pages.find(
+		(item) => item.id === 'ReportConcern',
+	)
+	assert.deepEqual(page.config.excludeFields, ['learnerId'])
+})
+
+test('pupils and guardians get Report a concern as a button on their start page, nobody else does', () => {
+	for (const role of ROLES) {
+		const page = build(SIMPLE, role).pages.find(
+			(item) => item.id === 'Dashboard',
+		)
+		const ids = (page.config?.headerActions || []).map((action) => action.id)
+		if (CONCERN_ROLES.includes(role)) {
+			assert.deepEqual(ids, ['report-a-concern'], role)
+			const action = page.config.headerActions[0]
+			assert.equal(action.schema, 'concern-report')
+			assert.deepEqual(action.excludeFields, ['learnerId'])
+			assert.equal(action.props, undefined)
+		} else {
+			assert.ok(!ids.includes('report-a-concern'), role)
+		}
+		const full = build(FULL, role).pages.find((item) => item.id === 'Dashboard')
+		assert.equal(full.config?.headerActions, undefined, role)
+	}
+	// The start page hands the buttons to its dashboard.
+	const source = readText('src/views/LearniqDashboards.vue')
+	assert.match(source, /:headerActions="headerActions"/)
 })

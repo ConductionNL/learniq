@@ -1133,7 +1133,7 @@
 		},
 		{
 			"id": "LearnerProfileDetail",
-			"_note": "Report a concern (Ruben, 7 October 2026): the simple menu leaves it out of the footer, as LqDashboard draws it (Settings and Help only), and offers it here, on the pupil's page, where a teacher has the worry. It opens the same create form the Report a concern page offers (concern-report, the same register and schema). The report is NOT pre-filled with the pupil: the concern-report schema holds no learner field (topic, description, happenedOn, wantsConversation, status, reporterId), and the report is confidential to the counsellor, so nothing is invented and no pupil reference is written into it unasked. /report-a-concern stays a page in both profiles, so a link to it still works. The full profile keeps its menu entry and has no overlay here.",
+			"_note": "Report a concern (Ruben, 7 October 2026): the simple menu leaves it out of the footer, as LqDashboard draws it (Settings and Help only), and offers it here, on the pupil's page, where a member of staff has the worry. It opens the same create form the Report a concern page offers (concern-report), pre-filled with this pupil through `learnerId` (concern-report 0.2.0, optional, so a pupil's own report and every existing report stay valid). The report stays confidential: its read rule is the counsellors and the person who filed it, and the reference opens nothing to anyone else. Pupils and guardians get the same form as a button on their own start page (the Dashboard overlay for those two roles), without the pupil field. /report-a-concern stays a page in both profiles, so a link to it still works. The full profile keeps its menu entry and has no overlay here.",
 			"configAppend": {
 				"headerActions": [
 					{
@@ -1144,6 +1144,39 @@
 						"icon": "ShieldAlertOutline",
 						"register": "learniq",
 						"schema": "concern-report",
+						"successMessage": "Your concern is sent to the confidential counsellor.",
+						"props": {
+							"learnerId": "@objectId"
+						}
+					}
+				]
+			}
+		},
+		{
+			"id": "Dashboard",
+			"_note": "Report a concern for pupils and guardians (Ruben, 7 October 2026): a button on their own start page instead of a menu entry. The page stays the role dashboard it is (LearniqDashboards), which hands `headerActions` to its CnDashboardPage. The same create form as the Report a concern page, without the pupil field: a pupil reports for themselves. Only for the learner and guardian roles; staff report from the pupil's page.",
+			"when": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"guardian"
+					]
+				}
+			},
+			"config": {
+				"headerActions": [
+					{
+						"id": "report-a-concern",
+						"type": "open-form",
+						"label": "Report a concern",
+						"formTitle": "Report a concern",
+						"icon": "ShieldAlertOutline",
+						"variant": "secondary",
+						"register": "learniq",
+						"schema": "concern-report",
+						"excludeFields": [
+							"learnerId"
+						],
 						"successMessage": "Your concern is sent to the confidential counsellor."
 					}
 				]

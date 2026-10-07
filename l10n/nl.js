@@ -10,6 +10,7 @@ OC.L10N.register(
         "QTI 2.1 interaction type.": "Interactietype volgens QTI 2.1.",
         "QTI 2.1 item XML, in the imsqti_v2p1 namespace.": "Item-XML volgens QTI 2.1, in de naamruimte imsqti_v2p1.",
         "Signal": "Signaal",
+        "The pupil this report is about, when a member of staff filed it from the pupil's page. Empty for a report a pupil or a guardian files.": "De leerling over wie deze melding gaat, als een medewerker haar vanaf de pagina van de leerling deed. Leeg bij een melding van een leerling of ouder zelf.",
         "View all": "Alles bekijken",
         "Week timetable": "Weekrooster",
         "When true, the presentation order of each choice-bearing item's answer options is independently permuted per attempt by AssessmentDrawResolver, respecting the QTI fixed attribute on individual simpleChoice options.": "Als dit aan staat, worden de antwoordopties van elk meerkeuze-item per poging in een andere volgorde getoond door AssessmentDrawResolver. Opties met het QTI-kenmerk fixed blijven op hun plaats.",
