@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.49",
+    "version": "1.1.50",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -10413,6 +10413,60 @@
         "requestedByName": "Voorbeeld Requestedbyname 3",
         "confirmedAt": "2026-03-03T09:00:00+00:00",
         "lifecycle": "completed"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "report-subject-grade",
+          "slug": "report-subject-grade-voorbeeld-1",
+          "id": "ee0000a0-0000-4000-8000-000000000001"
+        },
+        "learnerRef": "ee000046-0000-4000-8000-000000000001",
+        "learnerId": "Voorbeeld Learnerid 1",
+        "reportCardId": "ee000060-0000-4000-8000-000000000001",
+        "subjectName": "Nederlands",
+        "periodAverage": 7.4,
+        "passed": true,
+        "position": 0,
+        "caption": "Rapport 1 · december 2025 · Groep 6",
+        "mentorComment": "Mooi gegroeid in begrijpend lezen.",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "report-subject-grade",
+          "slug": "report-subject-grade-voorbeeld-2",
+          "id": "ee0000a0-0000-4000-8000-000000000002"
+        },
+        "learnerRef": "ee000046-0000-4000-8000-000000000002",
+        "learnerId": "Voorbeeld Learnerid 2",
+        "reportCardId": "ee000060-0000-4000-8000-000000000002",
+        "subjectName": "Rekenen",
+        "periodAverage": 6.1,
+        "passed": true,
+        "position": 1,
+        "caption": "Rapport 1 · december 2025 · Groep 6",
+        "mentorComment": null,
+        "tenant_id": "00000000-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "report-subject-grade",
+          "slug": "report-subject-grade-voorbeeld-3",
+          "id": "ee0000a0-0000-4000-8000-000000000003"
+        },
+        "learnerRef": "ee000046-0000-4000-8000-000000000003",
+        "learnerId": "Voorbeeld Learnerid 3",
+        "reportCardId": "ee000060-0000-4000-8000-000000000003",
+        "subjectName": "Engels",
+        "periodAverage": 5.2,
+        "passed": false,
+        "position": 2,
+        "caption": "Rapport 1 · december 2025 · Groep 6",
+        "mentorComment": "Woordjes vaker oefenen.",
+        "tenant_id": "00000000-0000-4000-8000-000000000002"
       }
     ]
   }
