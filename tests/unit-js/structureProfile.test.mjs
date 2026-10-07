@@ -1335,26 +1335,6 @@ test('every widget type on Today is one the installed library build registers', 
 	)
 })
 
-test('the week strip reads real fields and opens a lesson', () => {
-	const strip = TODAY.config.widgets.find((widget) => widget.type === 'week-strip')
-	const properties = schemaOf(strip.content.source.schema).properties
-	for (const field of [
-		strip.content.dateField,
-		strip.content.titleField,
-		...strip.content.metaFields,
-		...Object.keys(strip.content.source.filter),
-	]) {
-		assert.ok(Object.hasOwn(properties, field), `no field ${field}`)
-	}
-	const detail = build(FULL, 'admin').pages.find(
-		(page) => page.id === strip.content.itemRoute,
-	)
-	assert.equal(detail.type, 'detail')
-	assert.ok(detail.route.endsWith('/:id'))
-	// A lesson that has been is not late. The rule can never be true.
-	assert.ok(strip.content.lateWhen.value < -1000)
-})
-
 test('Today links no page the full menu keeps from a role it is for', () => {
 	for (const role of TODAY_ROLES) {
 		const offered = reachable(build(FULL, role))
@@ -1535,7 +1515,9 @@ test('the full profile has no brand and no button, and main.js reads the theming
 
 test('Today sits in two columns as the board draws it', () => {
 	const placed = (id) => TODAY.config.layout.find((item) => item.widgetId === id)
-	const main = ['today-lessons', 'today-week', 'today-signals']
+	// LqDashboard has no week strip: the main column is the lessons of today
+	// and the signals in my groups.
+	const main = ['today-lessons', 'today-signals']
 	for (const id of main) {
 		assert.equal(placed(id).gridX, 0, id)
 		assert.equal(placed(id).gridWidth, 8, id)
@@ -1548,13 +1530,16 @@ test('Today sits in two columns as the board draws it', () => {
 	const tiles = TODAY.config.widgets.filter((widget) => widget.type === 'stat')
 	for (const tile of tiles) {
 		const item = placed(tile.id)
-		// One under the other, the full side column wide: at two columns the
-		// stat card cut its label to "Assignm" (seen live, 6 October 2026).
-		assert.equal(item.gridX, 8, tile.id)
-		assert.equal(item.gridWidth, 4, tile.id)
+		// Two by two in the side column, as LqDashboard draws its tiles. The
+		// horizontal card cut its label to "Assignm" at two columns (seen
+		// live, 6 October 2026); the stacked tile puts the label on a line of
+		// its own above the number, so two columns hold it.
+		assert.equal(tile.content.layout, 'stacked', tile.id)
+		assert.ok(item.gridX === 8 || item.gridX === 10, tile.id)
+		assert.equal(item.gridWidth, 2, tile.id)
 	}
 	const tileRows = tiles.map((tile) => placed(tile.id).gridY)
-	assert.deepEqual(tileRows, [3, 5, 7, 9])
+	assert.deepEqual(tileRows, [3, 3, 5, 5])
 	const grid = placed('today-dashboards')
 	assert.equal(grid.gridWidth, 12)
 	assert.ok(

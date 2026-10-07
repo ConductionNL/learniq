@@ -486,7 +486,7 @@
 	"pages": [
 		{
 			"id": "Dashboard",
-			"_note": "The Today dashboard (openspec/changes/simple-today-dashboard). In the simple structure the page at `/` becomes a typed dashboard for the four roles that teach or run teaching, and stays the role dashboard it was for everybody else and in the full structure. `when` names those roles, `page` changes the page's kind, `config` holds library widgets only. EVERY NUMBER IS A FILTER ON REAL FIELDS, AND THE SAME FILTER AS THE LIST IT OPENS: Lessons today and Lessons this week open the two session lists that carry the same filter themselves; Due this week, Unexcused today and the First today card pass their filter in the address. The card's count filter is written flat, because the library's count source writes a nested operator as JSON. THE BOARD (LqDashboard, 6 October 2026) PUTS THE PAGE IN TWO COLUMNS under the card: a main column eight wide with the lessons of today (an object-table on Session, startsAt today, opening a lesson and the Lessons today list), the week strip and the open attendance flags (an object-table on attendance-flag, lifecycle open, opening a flag and the Attendance flags list with the same filter), and a side column four wide with the four counters one under the other (the board draws them two by two, but at two of twelve columns the library's stat card cut its labels to 'Assignm' and 'Unexcus', seen live 6 October 2026). The flags table carries no 'my groups': the flag names a cohort, not a teacher, and no filter says which cohorts are the reader's. WHAT THE DESIGN SHOWS AND THIS DOES NOT, because learniq has no data or page for it: to mark (submissions are listed per assignment), the present percentage, signals per pupil by name, messages from parents, the filled-in state per lesson and the Docent / Mentor switch. The three role dashboards stay one card away. THE CARD CARRIES `text` EQUAL TO ITS TITLE: nextcloud-vue 2.60.0 collapses any banner whose `content.text` is empty before it looks at `visibleWhen` (CnDashboardPage isCollapsedWidget), so a card with a title and no text could never show. The attention layout draws the title, not the text. A TILE'S `route` IS ALWAYS `{ name }`: a bare string is read as a path, so `SessionsToday` opened `/apps/learniq/SessionsToday`, which is no page (seen in a browser, 5 October 2026). THE OTHER DASHBOARDS CARD DRAWS ITS OWN FRAME: the card grid wraps itself in a titled card (default title Explore), so the dashboard's frame around it is switched off (`showTitle` and `showActions` false on the layout item) and the title is passed to the grid. The grid's own Actions menu has no switch.",
+			"_note": "The Today dashboard (openspec/changes/simple-today-dashboard). In the simple structure the page at `/` becomes a typed dashboard for the four roles that teach or run teaching, and stays the role dashboard it was for everybody else and in the full structure. `when` names those roles, `page` changes the page's kind, `config` holds library widgets only. EVERY NUMBER IS A FILTER ON REAL FIELDS, AND THE SAME FILTER AS THE LIST IT OPENS: Lessons today and Lessons this week open the two session lists that carry the same filter themselves; Due this week, Unexcused today and the First today card pass their filter in the address. The card's count filter is written flat, because the library's count source writes a nested operator as JSON. THE BOARD (LqDashboard, 6 October 2026) PUTS THE PAGE IN TWO COLUMNS under the card: a main column eight wide with the lessons of today (an object-table on Session, startsAt today, opening a lesson and the Lessons today list), and the open attendance flags (an object-table on attendance-flag, lifecycle open, opening a flag and the Attendance flags list with the same filter), and a side column four wide with the four counters two by two, as the board draws them (the stacked tile of nextcloud-vue 2.64.0 puts the label on its own line, so two columns hold it; the horizontal card cut it to 'Assignm' and 'Unexcus', seen live 6 October 2026). The board has no week strip, so the simple Today has none (7 October 2026). The flags table carries no 'my groups': the flag names a cohort, not a teacher, and no filter says which cohorts are the reader's. WHAT THE DESIGN SHOWS AND THIS DOES NOT, because learniq has no data or page for it: to mark (submissions are listed per assignment), the present percentage, signals per pupil by name, messages from parents, the filled-in state per lesson and the Docent / Mentor switch. The three role dashboards stay one card away. THE CARD CARRIES `text` EQUAL TO ITS TITLE: nextcloud-vue 2.60.0 collapses any banner whose `content.text` is empty before it looks at `visibleWhen` (CnDashboardPage isCollapsedWidget), so a card with a title and no text could never show. The attention layout draws the title, not the text. A TILE'S `route` IS ALWAYS `{ name }`: a bare string is read as a path, so `SessionsToday` opened `/apps/learniq/SessionsToday`, which is no page (seen in a browser, 5 October 2026). THE OTHER DASHBOARDS CARD DRAWS ITS OWN FRAME: the card grid wraps itself in a titled card (default title Explore), so the dashboard's frame around it is switched off (`showTitle` and `showActions` false on the layout item) and the title is passed to the grid. The grid's own Actions menu has no switch.",
 			"when": {
 				"user.primaryRole": {
 					"in": [
@@ -735,36 +735,6 @@
 						}
 					},
 					{
-						"id": "today-week",
-						"type": "week-strip",
-						"title": "Lessons this week",
-						"content": {
-							"days": 5,
-							"source": {
-								"register": "learniq",
-								"schema": "Session",
-								"filter": {
-									"startsAt": {
-										"gte": "@today-7d",
-										"lt": "@today+7d"
-									}
-								},
-								"limit": 200
-							},
-							"dateField": "startsAt",
-							"titleField": "title",
-							"metaFields": [
-								"location"
-							],
-							"itemRoute": "SessionDetail",
-							"lateWhen": {
-								"op": "lt",
-								"value": -100000
-							},
-							"emptyText": "No lessons"
-						}
-					},
-					{
 						"id": "today-signals",
 						"type": "object-table",
 						"title": "Open attendance flags",
@@ -883,7 +853,7 @@
 						"widgetId": "today-lessons-today",
 						"gridX": 8,
 						"gridY": 3,
-						"gridWidth": 4,
+						"gridWidth": 2,
 						"gridHeight": 2,
 						"showTitle": false,
 						"dateChip": false
@@ -891,9 +861,9 @@
 					{
 						"id": "t4",
 						"widgetId": "today-lessons-week",
-						"gridX": 8,
-						"gridY": 5,
-						"gridWidth": 4,
+						"gridX": 10,
+						"gridY": 3,
+						"gridWidth": 2,
 						"gridHeight": 2,
 						"showTitle": false,
 						"dateChip": false
@@ -902,8 +872,8 @@
 						"id": "t5",
 						"widgetId": "today-due-week",
 						"gridX": 8,
-						"gridY": 7,
-						"gridWidth": 4,
+						"gridY": 5,
+						"gridWidth": 2,
 						"gridHeight": 2,
 						"showTitle": false,
 						"dateChip": false
@@ -911,9 +881,9 @@
 					{
 						"id": "t6",
 						"widgetId": "today-unexcused",
-						"gridX": 8,
-						"gridY": 9,
-						"gridWidth": 4,
+						"gridX": 10,
+						"gridY": 5,
+						"gridWidth": 2,
 						"gridHeight": 2,
 						"showTitle": false,
 						"dateChip": false
@@ -932,19 +902,10 @@
 						}
 					},
 					{
-						"id": "t7",
-						"widgetId": "today-week",
-						"gridX": 0,
-						"gridY": 7,
-						"gridWidth": 8,
-						"gridHeight": 4,
-						"showTitle": true
-					},
-					{
 						"id": "t10",
 						"widgetId": "today-signals",
 						"gridX": 0,
-						"gridY": 11,
+						"gridY": 7,
 						"gridWidth": 8,
 						"gridHeight": 5,
 						"showTitle": true,
@@ -957,7 +918,7 @@
 						"id": "t8",
 						"widgetId": "today-dashboards",
 						"gridX": 0,
-						"gridY": 16,
+						"gridY": 12,
 						"gridWidth": 12,
 						"gridHeight": 3,
 						"showTitle": false,
