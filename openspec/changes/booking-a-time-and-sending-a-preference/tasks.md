@@ -1,5 +1,7 @@
 # Tasks: booking-a-time-and-sending-a-preference
 
+> Archive pass 2026-10-07: code done; open: T3 (live check: po-parent-flows.spec.ts after portaliq#1139; #1673 gives the recipe, no run).
+
 - [x] **T1**: `bookConferenceSlot` "Kies een tijd" with `requiredFields: [learnerRef, slotId]`; `createConferenceSignup` "Stuur uw voorkeur" with `requiredFields: [conferenceRoundId, learnerRef]` and "Voorkeur versturen"
   - PHPUnit `GuardianSitePagesTest`, `PortalLabelTranslatorTest`
 - [x] **T2**: the child's "Oudergesprekken" page with both forms
