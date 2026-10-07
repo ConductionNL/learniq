@@ -6826,7 +6826,8 @@
         "state": "building",
         "evidence": "lib/Settings/learniq_register.json x-openregister-processing.subjectIdFields maps learnerId; the per-subject endpoint ships in openregister, not here",
         "owner": "ConductionNL/openregister",
-        "change": "openregister/data-subject-rights-across-the-instance"
+        "change": "openregister/dsar-finds-records-by-declared-subject-id",
+        "note": "The missing half (OpenRegister finding learner records by the declared subject id) is specified in openregister/dsar-finds-records-by-declared-subject-id (spec round part 3, 2026-10-07); previously linked openregister/data-subject-rights-across-the-instance."
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
