@@ -470,7 +470,8 @@
 						"admin"
 					]
 				}
-			}
+			},
+			"solid": true
 		},
 		"help": {
 			"label": "Help and explanation",
