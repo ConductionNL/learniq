@@ -1,5 +1,7 @@
 # Tasks: wizard-drops-the-removal-step
 
+> Archive pass 2026-10-07: code done; not archived: `openspec validate --strict` fails, the MODIFIED example-sets requirement omits three scenarios the main spec still has (Removing the company set, An OpenRegister without the method, Nothing was loaded); deciding whether they stay is a spec call.
+
 - [x] 1.1 Drop the `remove-example-set` step from `src/manifest.json`.
 - [x] 1.2 Remove the per-set step expansion (`src/utils/exampleSetSteps.js`, its call in `src/main.js`, `tests/unit-js/exampleSetSteps.test.mjs`).
 - [x] 1.3 `tests/unit-js/setupSteps.test.mjs` pins four steps and no removal step; fails on the old manifest.
