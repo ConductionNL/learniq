@@ -825,7 +825,8 @@
       "built": {
         "state": "building",
         "evidence": "lib/Settings/learniq_register.json Attestation is no longer appendOnly (learniq#977): appendOnly refused the sign transition itself, so nothing was ever signed. lib/Lifecycle/AttestationSigningGuard.php HMAC signature plus signingKeyId makes an edit after signing detectable; nothing refuses it yet, since hr and compliance-officers keep update for revoke",
-        "owner": "ConductionNL/openregister"
+        "owner": "ConductionNL/openregister",
+        "change": "openspec/changes/compliance-attestation-locked-after-signing"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -1446,7 +1447,8 @@
       "built": {
         "state": "building",
         "evidence": "lib/Service/WalletOfferDelegationService.php delegates to openconnector; no adapter ships in this repo",
-        "owner": "ConductionNL/integriq"
+        "owner": "ConductionNL/integriq",
+        "change": "openspec/changes/archive/2026-07-13-eudi-wallet-credential-push"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -1475,7 +1477,8 @@
       "built": {
         "state": "building",
         "evidence": "lib/Service/WalletRevocationPropagationService.php, same unwired openconnector dependency",
-        "owner": "ConductionNL/integriq"
+        "owner": "ConductionNL/integriq",
+        "change": "openspec/changes/archive/2026-07-13-eudi-wallet-credential-push"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -1593,7 +1596,8 @@
       "built": {
         "state": "building",
         "evidence": "lib/Settings/learniq_register.json Course.properties.certificateTemplate holds an nc:files path; no renderer in lib/ consumes it",
-        "owner": "ConductionNL/filinq"
+        "owner": "ConductionNL/filinq",
+        "change": "openspec/changes/credentials-certificate-pdf"
       },
       "provider": "filinq",
       "providerHow": "read: this repository posts to Filinq and does not render the document itself",
@@ -3777,7 +3781,8 @@
       "built": {
         "state": "building",
         "evidence": "lib/Service/ReportCardPdfDelegationService.php posts to filinq, which is a proposed endpoint and is not installed by default",
-        "owner": "ConductionNL/filinq"
+        "owner": "ConductionNL/filinq",
+        "change": "filinq/filinq-configurable-report-templates"
       },
       "provider": "filinq",
       "providerHow": "read: this repository posts to Filinq and does not render the document itself",
@@ -4649,7 +4654,8 @@
       "built": {
         "state": "specified",
         "evidence": "lib/Lifecycle/AttendanceFlagReportGuard.php gates the transition, but it rides the data-exchange path that lib/Settings/connections.json marks unavailable, so nothing is sent. Specified in ConductionNL/integriq openspec/changes/connectors-data-exchange-dispatch/ (integriq#2207, 413357ec). Learniq's half is built under D7 and D25 by round 3 (r3-exchange), not specified here. (OpenSpec pass 2026-09-27)",
-        "owner": "ConductionNL/integriq"
+        "owner": "ConductionNL/integriq",
+        "change": "integriq/connectors-data-exchange-dispatch"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -4794,7 +4800,8 @@
       "built": {
         "state": "specified",
         "evidence": "lib/Timetabling/TimetableImportHandler.php exists, and lib/Settings/connections.json marks timetable unavailable: the import calls api/sources/timetable-import/run on integriq, which has no such endpoint, so no lesson arrives. Specified in ConductionNL/integriq openspec/changes/connectors-data-exchange-dispatch/ (integriq#2207, 413357ec). Learniq's half is built under D7 and D25 by round 3 (r3-exchange), not specified here. (OpenSpec pass 2026-09-27)",
-        "owner": "ConductionNL/integriq"
+        "owner": "ConductionNL/integriq",
+        "change": "integriq/connectors-data-exchange-dispatch"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -4942,7 +4949,8 @@
       "built": {
         "state": "building",
         "evidence": "openspec/specs/portal-identity/spec.md and lib/Portal/PortalContributionProvider.php define the seam; the portal itself ships in portaliq",
-        "owner": "ConductionNL/portaliq"
+        "owner": "ConductionNL/portaliq",
+        "change": "openspec/changes/portal-parent-child-record"
       },
       "provider": "portaliq",
       "providerHow": "read: this repository contributes to the portal, which ships in Portaliq",
@@ -5377,7 +5385,8 @@
       "built": {
         "state": "none",
         "evidence": "lib/Bpv/ProvidesLeerbedrijfVerification.php is an interface; lib/Settings/connections.json states no verification provider ships in learniq or integriq, so a placement cannot confirm its leerbedrijf",
-        "owner": "ConductionNL/integriq"
+        "owner": "ConductionNL/integriq",
+        "change": "openspec/changes/workplace-leerbedrijf-check-through-integriq"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -5841,7 +5850,8 @@
       "built": {
         "state": "building",
         "evidence": "lib/Settings/learniq_register.json only 14 of 118 schemas carry an x-openregister-processing block, so the record covers the sensitive schemas and not the whole data model",
-        "owner": "ConductionNL/openregister"
+        "owner": "ConductionNL/openregister",
+        "change": "openspec/changes/governance-processing-record-every-schema"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -5899,7 +5909,8 @@
       "built": {
         "state": "building",
         "evidence": "lib/Settings/learniq_register.json x-openregister-processing.subjectIdFields maps learnerId; the per-subject endpoint ships in openregister, not here",
-        "owner": "ConductionNL/openregister"
+        "owner": "ConductionNL/openregister",
+        "change": "openregister/data-subject-rights-across-the-instance"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -6160,7 +6171,8 @@
       "built": {
         "state": "specified",
         "evidence": "The job and mapping models ship, but lib/Settings/connections.json marks data-exchange unavailable: a run calls api/sources/[target]/run on integriq, which has no such endpoint, so every run fails. Specified in ConductionNL/integriq openspec/changes/connectors-data-exchange-dispatch/ (integriq#2207, 413357ec). Learniq's half is built under D7 and D25 by round 3 (r3-exchange), not specified here. (OpenSpec pass 2026-09-27)",
-        "owner": "ConductionNL/integriq"
+        "owner": "ConductionNL/integriq",
+        "change": "integriq/connectors-data-exchange-dispatch"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -6276,7 +6288,8 @@
       "built": {
         "state": "building",
         "evidence": "FeeItem, Order and OrderLine record the charge, but lib/Settings/connections.json marks payment unavailable: initiating calls api/payments/initiate on integriq, which has no such endpoint, so no payment starts",
-        "owner": "ConductionNL/integriq"
+        "owner": "ConductionNL/integriq",
+        "change": "openspec/changes/archive/2026-09-28-payments-to-shillinq-migration"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -6484,7 +6497,8 @@
         "state": "building",
         "evidence": "lib/Service/RegulationAssignmentService.php assign() + lib/Service/RegulationAudienceResolver.php covers(), run on Regulation publish (lib/Listener/RegulationAssignmentHandler.php) and POST /api/compliance/regulations/{id}/assign; tests/Unit/Service/DepartmentComplianceTest.php",
         "owner": "ConductionNL/integriq",
-        "reachedOn": "/compliance/regulations/:id (publish action)"
+        "reachedOn": "/compliance/regulations/:id (publish action)",
+        "change": "openspec/changes/compliance-assign-from-hr-roles"
       },
       "provider": "integriq",
       "providerHow": "learniq assigns a regulation's mandatory courses from the department and roles on each LearnerProfile, honouring audienceScope; the HR feed that would fill those fields would come through integriq's data exchange, which connections.json marks unavailable, so the job and role data must be entered or imported by hand.",
@@ -6547,7 +6561,8 @@
         "state": "building",
         "evidence": "lib/Settings/learniq_register.json:445",
         "owner": "ConductionNL/openregister",
-        "reachedOn": "/credentials (list import)"
+        "reachedOn": "/credentials (list import)",
+        "change": "openspec/changes/credentials-migrate-with-validity"
       },
       "provider": "openregister",
       "providerHow": "OpenRegister's generic object import on the index page carries the rows; learniq only supplies the schema with a migrated source value.",
@@ -6703,7 +6718,8 @@
         "state": "specified",
         "evidence": "lib/Settings/connections.json:5. Specified in ConductionNL/openregister openspec/changes/rapportage-bi-export/ (OData and scheduled exports for BI tools), as openregister's OpenSpec-pass lane recorded (OpenSpec pass 2026-09-27).",
         "owner": "ConductionNL/openregister",
-        "reachedOn": "web service only; list export"
+        "reachedOn": "web service only; list export",
+        "change": "openregister/rapportage-bi-export"
       },
       "provider": "openregister",
       "providerHow": "OpenRegister's object API and export serve the data; learniq adds no BI feed.",
@@ -6734,7 +6750,8 @@
         "state": "specified",
         "evidence": "lib/Settings/connections.json:23. Specified in ConductionNL/integriq openspec/changes/connectors-course-marketplace/ (integriq#2207, 413357ec). Learniq's half: openspec/changes/enrolment-catalogue-self-signup/. (OpenSpec pass 2026-09-27)",
         "owner": "ConductionNL/integriq",
-        "reachedOn": "nothing"
+        "reachedOn": "nothing",
+        "change": "integriq/connectors-course-marketplace"
       },
       "provider": "integriq",
       "providerHow": "Launching outside courses would ride integriq's LTI adapter, which has no launch endpoint.",
@@ -7050,7 +7067,8 @@
         "state": "building",
         "evidence": "lib/Settings/learniq_register.json:15717",
         "owner": "ConductionNL/integriq",
-        "reachedOn": "nothing"
+        "reachedOn": "nothing",
+        "change": "openspec/changes/enrolment-sync-classes-from-student-administration"
       },
       "provider": "integriq",
       "providerHow": "Imports are meant to run through integriq sources, which do not exist yet.",
