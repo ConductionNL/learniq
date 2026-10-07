@@ -103,8 +103,8 @@ class Application extends App implements IBootstrap {
 		// `x-openregister-mcp` blocks in the register (ADR-063).
 		//
 		// LOAD-ORDER PRELUDE (ADR-040). OC_App::getEnabledApps() sort()s the app
-		// list, and Coordinator::registerApps() walks THAT sorted list calling
-		// OC_App::registerAutoloading($appId) and then $app->register() for one
+		// list, and Coordinator::registerApps() walks THAT sorted list registering
+		// each app's autoloader and then calling $app->register() for one
 		// app at a time — so every app registers BEFORE the PSR-4 prefix of every
 		// alphabetically-LATER app exists. This app's former id, `scholiq`, sorted
 		// after `openregister`, so OCA\OpenRegister\ happened to be autoloadable
@@ -118,10 +118,10 @@ class Application extends App implements IBootstrap {
 		// two registrars below silently never wired.
 		//
 		// Registering the prefix ourselves removes the dependency on ordering.
-		// OC_App::registerAutoloading() touches only the autoloader and is
-		// idempotent (it early-returns on an $alreadyRegistered key), so on the
-		// current ordering this call costs nothing. IAppManager::loadApp() would
-		// NOT be correct here: it marks OpenRegister loaded and calls
+		// OpenRegisterAutoloader touches only the autoloader, uses public API
+		// only (NC35 removed the private OC_App::registerAutoloading()) and is
+		// idempotent, so on the current ordering this call costs nothing.
+		// IAppManager::loadApp() would NOT be correct here: it marks OpenRegister loaded and calls
 		// Coordinator::bootApp(), booting it before its own register() has run.
 		OpenRegisterAutoloader::register();
 

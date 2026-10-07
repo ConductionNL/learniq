@@ -97,7 +97,20 @@
 			"title": "Dossier notes",
 			"config": {
 				"register": "learniq",
-				"schema": "dossier-note"
+				"schema": "dossier-note",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"authorId",
+					"body",
+					"careTeamUserIds",
+					"category",
+					"confidentiality",
+					"date"
+				]
 			}
 		},
 		{
@@ -172,7 +185,24 @@
 			"title": "Behaviour incidents",
 			"config": {
 				"register": "learniq",
-				"schema": "behaviour-incident"
+				"schema": "behaviour-incident",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"escalatedSupportRequestId",
+					"followUpActions",
+					"involvedUserIds",
+					"lifecycle",
+					"location",
+					"occurredAt",
+					"reportedBy",
+					"resolution",
+					"severity",
+					"what"
+				]
 			}
 		},
 		{
@@ -249,7 +279,17 @@
 			"title": "Wellbeing check-ins",
 			"config": {
 				"register": "learniq",
-				"schema": "wellbeing-check-in"
+				"schema": "wellbeing-check-in",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"comment",
+					"moodScale",
+					"submittedAt"
+				]
 			}
 		},
 		{
@@ -324,7 +364,23 @@
 			"title": "First aid incidents",
 			"config": {
 				"register": "learniq",
-				"schema": "first-aid-incident"
+				"schema": "first-aid-incident",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"followUpActions",
+					"lifecycle",
+					"notifiedGuardian",
+					"notifiedGuardianAt",
+					"occurredAt",
+					"reportedBy",
+					"resolution",
+					"treatmentGiven",
+					"whatHappened"
+				]
 			}
 		},
 		{

@@ -44,13 +44,18 @@ class ParentPortalCollections {
 	/**
 	 * The groups the guardian's children are enrolled in, not listed in the
 	 * portal menu. Portaliq reads it to know which group news reaches the
-	 * guardian (`guardianAudience.groups`).
+	 * guardian (`guardianAudience.groups`, on `cohortId`). The column shows
+	 * the enrolment's readable copy of the group's name, `cohortName`
+	 * (ReadableCopyStamp): portaliq leaves a uuid out of a cell, so a
+	 * `cohortId` column read empty, and the copy lets the guardian read the
+	 * name without reading the cohort itself (parent-groups-read-by-name).
 	 *
 	 * @param array<string, mixed> $childJoin The shared reverse `via` join descriptor.
 	 *
 	 * @return array<string, mixed> The collection.
 	 *
 	 * @spec openspec/changes/portal-parent-conference-booking/specs/portal-contribution/spec.md
+	 * @spec openspec/changes/parent-groups-read-by-name/specs/portal-contribution/spec.md#requirement-the-guardian-reads-the-name-of-the-childs-group
 	 */
 	public function groupMembershipsCollection(array $childJoin): array {
 		return [
@@ -67,13 +72,48 @@ class ParentPortalCollections {
 			'fields' => [
 				'learnerRef',
 				'cohortId',
+				'cohortName',
 			],
 			'columns' => [
-				['field' => 'cohortId', 'label' => 'Group'],
+				['field' => 'cohortName', 'label' => 'Group'],
 			],
 		];
 
 	}//end groupMembershipsCollection()
+
+	/**
+	 * The child's latest report, one row per subject, for the bars of the
+	 * child's page (board Detail "Laatste rapport"). Only a published card
+	 * ever has rows (ReportSubjectGradeRows writes them on publish), so a
+	 * draft never reaches a guardian.
+	 *
+	 * @param array<string, mixed> $childJoin The shared reverse `via` join descriptor.
+	 *
+	 * @return array<string, mixed> The collection.
+	 *
+	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
+	 */
+	public function reportSubjectGradesCollection(array $childJoin): array {
+		return [
+			'id' => 'parentReportSubjectGrades',
+			'register' => self::REGISTER,
+			'schema' => 'report-subject-grade',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'guardianRef',
+			'via' => $childJoin,
+			'groupByField' => 'learnerRef',
+			'defaultSort' => ['field' => 'position', 'direction' => 'asc'],
+			'label' => 'Latest report',
+			'listable' => false,
+			'minTrust' => 'substantial',
+			'fields' => ['learnerRef', 'subjectName', 'periodAverage', 'passed', 'position', 'caption', 'mentorComment'],
+			'columns' => [
+				['field' => 'subjectName', 'label' => 'Subject'],
+				['field' => 'periodAverage', 'label' => 'Grade'],
+			],
+		];
+
+	}//end reportSubjectGradesCollection()
 
 	/**
 	 * The grades on the child's published report cards, for the guardian.
@@ -371,7 +411,8 @@ class ParentPortalCollections {
 		return [
 			'id' => 'bookConferenceSlot',
 			'type' => 'create',
-			'label' => 'Book a time',
+			// "Kies een tijd": a free time in a round with direct booking.
+			'label' => 'Choose a time',
 			'register' => self::REGISTER,
 			'schema' => 'conference-signup',
 			'scopeField' => 'guardianRef',
@@ -382,6 +423,10 @@ class ParentPortalCollections {
 				'slotId',
 				'notes',
 			],
+			// A booking without a time is no booking: portaliq requires both on
+			// this form and refuses an empty one before the write (portaliq#1139),
+			// while a preference request keeps no time at all.
+			'requiredFields' => ['learnerRef', 'slotId'],
 			'crossRefs' => ['learnerRef' => $this->childCrossRef()],
 			'optionsProviders' => [
 				'learnerRef' => $this->childOptions(),
@@ -461,7 +506,8 @@ class ParentPortalCollections {
 		return [
 			'id' => 'createConferenceSignup',
 			'type' => 'create',
-			'label' => 'Ask for a parent-teacher conversation',
+			// "Stuur uw voorkeur": the school plans the time, so no time field.
+			'label' => 'Send your preference',
 			'register' => self::REGISTER,
 			'schema' => 'conference-signup',
 			'scopeField' => 'guardianRef',
@@ -472,6 +518,7 @@ class ParentPortalCollections {
 				'learnerRef',
 				'notes',
 			],
+			'requiredFields' => ['conferenceRoundId', 'learnerRef'],
 			'crossRefs' => ['learnerRef' => $this->childCrossRef()],
 			'optionsProviders' => [
 				'learnerRef' => $this->childOptions(),
@@ -488,8 +535,8 @@ class ParentPortalCollections {
 				'learnerRef' => ['label' => 'Child', 'required' => true],
 				'notes' => ['label' => 'Anything the teacher should know beforehand'],
 			],
-			'submitLabel' => 'Book',
-			'successMessage' => 'Your booking is in. The school plans the times, and you see yours under your conference times.',
+			'submitLabel' => 'Send my preference',
+			'successMessage' => 'Your preference is in. The school plans the times, and you see yours under your conference times.',
 		];
 
 	}//end conferenceSignupAction()

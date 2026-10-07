@@ -3,8 +3,9 @@
 # Copyright (C) 2026 Conduction B.V.
 """Build lib/Settings/profiles/training.json, the training institute example set.
 
-One fictional training institute, Voorbeeld Opleidingscentrum Het Kompas in the
-fictional town of Kompasveen, through one complete year (2025-2026): one
+One fictional training institute, the Warmtepompacademie (a trade academy for
+installers, "De Warmtepompacademie" on its site) in the fictional town of
+Zuiddrecht, through one complete year (2025-2026): one
 location, a public catalogue of fourteen courses with prices and editions,
 a leadership programme with an intake and a waiting list, 150 participants
 sent by six client companies or enrolled on their own, trainers who teach the
@@ -12,7 +13,9 @@ editions, a morning and an afternoon session per training day with every
 participant marked present or not, knowledge tests with resits, signed
 attestations, certificates with their expiry and renewal, course evaluations
 per quarter with the quality scores and improvement actions they led to, and
-the course package imports and exports the institute ran.
+the course package imports and exports the institute ran. On top of that year sits
+the story of the portal designs (add_story): Jansen Installatietechniek BV and its
+four installers in week 41 of 2026.
 
 WHY A SCRIPT. The set is several thousand objects that must agree with each
 other: a participant who misses a morning of a certificate course is rebooked
@@ -43,7 +46,7 @@ Usage:
     python3 scripts/example-sets/training.py --check    exit 1 when the file on disk differs
 
 Nothing here is real: no real institute, company, person, address or code. The
-town and every company carry the invented name Kompasveen, postcodes start with
+town Zuiddrecht and every company named after it are invented, postcodes start with
 0 (never issued), web addresses end in .example (reserved), IP addresses come
 from the documentation ranges, and signatures read "voorbeeld" and verify
 nothing. A private training institute has no DUO BRIN; School.brin is required,
@@ -72,9 +75,10 @@ FIRST_DAY = dt.date(2025, 8, 18)
 LAST_DAY = dt.date(2026, 7, 10)
 FIRST_TRAINING_DAY = dt.date(2025, 9, 1)
 LAST_TRAINING_DAY = dt.date(2026, 7, 3)
-INSTITUTE = "Voorbeeld Opleidingscentrum Het Kompas"
-TOWN = "Kompasveen"
-DOMAIN = "opleidingen-kompasveen.example"
+# The DID agrees with scripts/example-sets/corporate.py, where the same academy is an outside provider.
+INSTITUTE = "Warmtepompacademie"
+TOWN = "Zuiddrecht"
+DOMAIN = "warmtepompacademie.example"
 ISSUER_DID = f"did:web:{DOMAIN}"
 PLANNER = "training-planner-01"
 QUALITY = "training-kwaliteit-01"
@@ -115,6 +119,9 @@ SCHEMAS = [
     # inserting a schema would move every later uuid and a re-load would duplicate
     # the set on an install that already has it (example-set-regulation-rows).
     "regulation",
+    # The client company and its bookings (employer-portal-audience).
+    "client-organisation",
+    "course-booking",
 ]
 
 CLOSED = [
@@ -349,17 +356,17 @@ PROGRAMME = {
 # Client companies: name, employees, units, contact person, and how many
 # enrolments per course they buy. Private individuals come last.
 CLIENTS = [
-    ("Bouwbedrijf Kompasveen B.V.", 30, ["Uitvoering", "Werkvoorbereiding", "Kantoor"], ("Marloes", "Kadestede"),
+    ("Bouwbedrijf Zuiddrecht B.V.", 30, ["Uitvoering", "Werkvoorbereiding", "Kantoor"], ("Marloes", "Kadestede"),
      {"VCA-B": 20, "BHV-B": 12, "BHV-H": 8, "HEF": 6, "PREV": 4, "LG": 2, "PLAN": 2}),
-    ("Voorbeeld Logistiek Kompasveen B.V.", 28, ["Magazijn", "Transport", "Planning"], ("Hasan", "Roerbrink"),
+    ("Voorbeeld Logistiek Zuiddrecht B.V.", 28, ["Magazijn", "Transport", "Planning"], ("Hasan", "Roerbrink"),
      {"HEF": 12, "VCA-B": 14, "BHV-B": 10, "BHV-H": 8, "PREV": 4, "LG": 3, "PLAN": 4, "SPR": 4}),
-    ("Zorggroep Kompasveen", 30, ["Locatie De Veenhoeve", "Thuiszorg", "Facilitair"], ("Esther", "Baakhoven"),
+    ("Zorggroep Zuiddrecht", 30, ["Locatie De Veenhoeve", "Thuiszorg", "Facilitair"], ("Esther", "Baakhoven"),
      {"AVG": 22, "BHV-B": 14, "BHV-H": 14, "NIS2": 10, "GESP": 8, "LG": 5, "PRES": 2}),
-    ("Gemeente Kompasveen", 24, ["Publiekszaken", "Ruimte", "Bedrijfsvoering"], ("Pieter", "Getijwerf"),
+    ("Gemeente Zuiddrecht", 24, ["Publiekszaken", "Ruimte", "Bedrijfsvoering"], ("Pieter", "Getijwerf"),
      {"NIS2": 18, "AVG": 16, "PROJ": 8, "SPR": 8, "BHV-H": 8, "LG": 6, "BHV-B": 6, "PRES": 4, "PLAN": 4}),
-    ("Installatietechniek Kompasveen B.V.", 16, ["Montage", "Service"], ("Kim", "Ankerhorst"),
+    ("Installatietechniek Zuiddrecht B.V.", 16, ["Montage", "Service"], ("Kim", "Ankerhorst"),
      {"VCA-B": 16, "BHV-B": 6, "BHV-H": 6, "PREV": 4, "HEF": 2, "LG": 2}),
-    ("Stichting Welzijn Kompasveen", 12, ["Buurtwerk", "Jongerenwerk"], ("Naima", "Sluisgaard"),
+    ("Stichting Welzijn Zuiddrecht", 12, ["Buurtwerk", "Jongerenwerk"], ("Naima", "Sluisgaard"),
      {"AVG": 12, "GESP": 6, "BHV-B": 6, "BHV-H": 6, "NIS2": 6, "PLAN": 4, "PRES": 2, "LG": 2}),
     (None, 10, [], None,
      {"SPR": 8, "PROJ": 6, "PLAN": 4, "PRES": 4, "LG": 4, "PREV": 2, "GESP": 2}),
@@ -594,6 +601,439 @@ class Scheduler:
         raise RuntimeError(f"no room for {course['key']} in {year}-{month}")
 
 
+# --- the story layer: Jansen Installatietechniek in week 41 of 2026 -----------------
+# The Warmtepompacademie portal designs tell one story, pinned to Monday 5 October
+# 2026 (week 41). It sits on top of the 2025-2026 year: add_story() runs after every
+# other object is built and draws no random number, so no existing uuid or value moves.
+# Spec: openspec/changes/example-sets-are-the-four-schools/specs/example-sets/spec.md
+STORY_TODAY = dt.date(2026, 10, 5)
+STORY_YEAR = "2026-2027"
+STORY_COMPANY = "Jansen Installatietechniek BV"
+# Staff names live in Nextcloud display names, not in the register.
+STORY_STAFF = {
+    PLANNER: "Sophie van Dam",
+    "training-administratie-01": "Rob Maas",
+    "training-trainer-10": "Henk Dekker",
+    "training-trainer-11": "Fatima Ouali",
+}
+HENK = "training-trainer-10"
+FATIMA = "training-trainer-11"
+# A day in the praktijkhal: theory in the morning, the hall after lunch.
+HALL_SLOTS = {"ochtend": ((8, 30), (12, 0)), "middag": ((12, 45), (16, 30))}
+# The external exam institution; the same name and DID as in corporate.py.
+EXAM_COOLING = ("Voorbeeld Examencentrum Koudetechniek", "did:web:examencentrum-koudetechniek.example")
+
+# No regulationSlug on the story: corporate.py ships the FGASSEN regulation, and the
+# shared-code rule (SharedCodeFilterTest) pins the codes the two sets share to VCA and NIS2.
+STORY_COURSES = {
+    "FGAS-1": {"name": "F-gassen categorie 1", "regulation": None, "mandatory": True, "tags": ["warmtepompen", "f-gassen", "certificaat"],
+               "description": "De opleiding met examen voor wie aan koelcircuits van warmtepompen werkt. Het certificaat verleng je met de herhaling.",
+               "lessons": []},
+    "BRL6000": {"name": "BRL 6000-21, bovengronds deel", "regulation": None, "mandatory": False, "tags": ["bodemenergie", "certificaat"],
+                "description": "Voor monteurs die bodemenergiesystemen aanleggen: het bovengrondse deel van de installatie, met examen.",
+                "lessons": []},
+    "FGAS-H": {"name": "F-gassen: herhaling en examen", "regulation": None, "mandatory": True, "tags": ["warmtepompen", "f-gassen", "herhaling", "examen"],
+               "description": "Een dag om je F-gassencertificaat categorie 1 te verlengen: de regels en de lekcontrole opnieuw, daarna het examen in theorie en praktijk.",
+               "lessons": [("Theorie: regels, koudemiddelen en lekcontrole", 1, "ochtend",
+                            "Wat de regels vragen, welke koudemiddelen er zijn en hoe je een lekcontrole doet en vastlegt."),
+                           ("Examen: theorie en praktijk in de hal", 1, "middag",
+                            "Het examen van de exameninstelling: eerst de vragen, daarna de praktijkopdracht aan een opstelling in de hal.")]},
+    "WP-B": {"name": "Warmtepompen installeren: basis", "regulation": None, "mandatory": False, "tags": ["warmtepompen", "basis"],
+             "description": "Twee dagen voor monteurs die beginnen met warmtepompen: plaatsen, aansluiten en opstarten op echte opstellingen in de praktijkhal.",
+             "lessons": [("Dag 1: zo werkt een warmtepomp", 1, None,
+                          "De koudekringloop, de soorten warmtepompen en een buitenunit plaatsen in de praktijkhal."),
+                         ("Dag 2: aansluiten en opstarten", 2, None,
+                          "Een warmtepomp aansluiten op de cv-installatie, vullen, ontluchten en voor het eerst opstarten.")]},
+    "WP-LW": {"name": "Lucht-water warmtepomp: ontwerp en inbedrijfstelling", "regulation": None, "mandatory": False,
+              "tags": ["warmtepompen", "lucht-water", "gevorderd"],
+              "description": "Drie dagen: het juiste vermogen kiezen, de installatie ontwerpen, hem in bedrijf stellen en overdragen aan de bewoner.",
+              "lessons": [("Dag 1: warmteverlies en het juiste vermogen", 1, None,
+                           "Het warmteverlies van een woning berekenen en een lucht-water warmtepomp kiezen die past."),
+                          ("Dag 2: het ontwerp van de installatie", 2, None,
+                           "Afgifte, buffervat en warm tapwater: een ontwerp maken voor een echte woning."),
+                          ("Dag 3: inbedrijfstelling en overdracht", 3, None,
+                           "De installatie in bedrijf stellen, de instellingen vastleggen en de bewoner uitleggen hoe hij werkt.")]},
+    "WZI": {"name": "Waterzijdig inregelen", "regulation": None, "mandatory": False, "tags": ["warmtepompen", "inregelen", "basis"],
+            "description": "Een dag inregelen: het debiet per radiator of groep berekenen, instellen en meten, zodat het hele huis warm wordt.",
+            "lessons": [("Waterzijdig inregelen in de praktijk", 1, None,
+                         "Het debiet per radiator of groep berekenen, de installatie inregelen en het resultaat meten.")]},
+}
+
+# The company's register entries (invented: a KvK number starting with 0 is never issued).
+STORY_KVK = "09412000"
+# The identity reference the eHerkenning stub returns for Linda; the employer account is invited with it.
+STORY_EHERKENNING = "eherkenning-jansen-installatietechniek"
+# When the planner confirmed the places: (day, hour, minute) per booking number.
+STORY_CONFIRMED = {377: (dt.date(2026, 9, 9), 11, 0), 412: (dt.date(2026, 9, 16), 10, 15), 425: (dt.date(2026, 9, 23), 9, 30)}
+
+# The four employees of Jansen Installatietechniek. Youssef's birth date is missing on
+# purpose: the portal asks Linda for it before the F-gassen exam (birthDate absent).
+STORY_PEOPLE = [
+    ("tom", "Tom", "Verbeek", "1988-06-12"),
+    ("youssef", "Youssef", "El Amrani", None),
+    ("sanne", "Sanne", "Kok", "1993-02-27"),
+    ("daan", "Daan", "Visser", "2001-09-04"),
+]
+
+# The editions: (course, inschrijving number, trainer, days, people, enrolment lifecycle, enrolled at).
+# The inschrijving number I-2026-NNNN has no field of its own; Enrolment.volgnummer carries NNNN.
+STORY_EDITIONS = [
+    ("WZI", 377, FATIMA, [dt.date(2026, 10, 1)], ["sanne"], "completed", (dt.date(2026, 9, 8), 10, 20)),
+    ("FGAS-H", 412, HENK, [dt.date(2026, 10, 8)], ["tom", "youssef", "sanne"], "active", (dt.date(2026, 9, 14), 9, 40)),
+    ("WZI", None, FATIMA, [dt.date(2026, 10, 15)], [], None, None),
+    ("WP-B", 425, FATIMA, [dt.date(2026, 10, 20), dt.date(2026, 10, 21)], ["daan"], "active", (dt.date(2026, 9, 21), 14, 5)),
+    ("WP-LW", 431, HENK, [dt.date(2026, 11, 3), dt.date(2026, 11, 4), dt.date(2026, 11, 10)], ["tom", "sanne"], "pending",
+     (dt.date(2026, 10, 2), 15, 20)),
+]
+
+
+def story_credential(b: Builder, profile: dict, course: dict, kind: str, issued: str, issuer: tuple[str, str], fields: dict) -> dict:
+    """A credential in the shape the set's own credential() writes, for a story course and any issuer."""
+    name, did = issuer
+    domain = did.removeprefix("did:web:")
+    obj = b.add("credential", {
+        "learnerId": profile["uuid"], "learnerUserId": profile["ncUserId"], "courseId": course["uuid"], "kind": kind,
+        "issuedAt": issued, "issuerDid": did, "signature": "", "openbadges3Payload": {}, "issuedBy": name, **fields,
+    })
+    obj["signature"] = f"voorbeeld.{obj['slug']}.niet-geldig"
+    obj["verificationUrl"] = f"https://{domain}/verify/{obj['uuid']}"
+    obj["openbadges3Payload"] = {
+        "@context": ["https://www.w3.org/ns/credentials/v2", "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json"],
+        "id": f"urn:uuid:{obj['uuid']}", "type": ["VerifiableCredential", "OpenBadgeCredential"],
+        "issuer": {"id": did, "type": ["Profile"], "name": name}, "validFrom": issued,
+        "credentialSubject": {"type": ["AchievementSubject"], "achievement": {
+            "id": f"https://{domain}/achievements/{course['code'].lower()}", "type": ["Achievement"], "name": course["name"],
+            "description": course["description"]}},
+    }
+    if obj.get("expiresAt"):
+        obj["openbadges3Payload"]["validUntil"] = obj["expiresAt"]
+    return obj
+
+
+NL_WEEKDAYS = ["maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag", "zondag"]
+EXAM_TAGS = {"examen", "certificaat"}
+
+
+def employer_booking_facts(booking: dict, course: dict, sessions: list[dict], participants: list[tuple[dict, dict]],
+                           renewed: dict, trainer: str | None, place: str | None) -> dict:
+    """A port of lib/Service/Portal/EmployerBookingFacts.php::derive(); EmployerBookingFactsTest checks the two agree
+    on the seeded bookings (employer-portal-audience)."""
+    def parse(value):
+        return dt.datetime.fromisoformat(value).astimezone(AMS) if value else None
+
+    def day_and_date(d):
+        return f"{NL_WEEKDAYS[d.weekday()]} {d.day} {MAAND[d.month - 1]}"
+
+    def list_of(items):
+        return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " en " + items[-1]
+
+    def due(first):
+        if first is None:
+            return None
+        d = first - dt.timedelta(days=1)
+        while d.weekday() > 4:
+            d -= dt.timedelta(days=1)
+        return stamp(d, 12, 0)
+
+    days = sorted({parse(x["startsAt"]).date() for x in sessions})
+    first = days[0] if days else None
+    participants = sorted([p for p in participants if p[0].get("lifecycle") != "withdrawn"], key=lambda p: p[0]["uuid"])
+    states = [e.get("lifecycle", "pending") for e, _p in participants]
+    if not states:
+        lifecycle = booking.get("lifecycle") if booking.get("lifecycle") in ("cancelled", "confirmed") else "received"
+    elif all(x in ("completed", "failed") for x in states):
+        lifecycle = "completed"
+    else:
+        lifecycle = "confirmed" if "active" in states else "received"
+    needs = bool(EXAM_TAGS & {t.lower() for t in course.get("tags", [])}) and lifecycle in ("received", "confirmed")
+    enrolments, names, refs, missing = {}, [], [], 0
+    for e, p in participants:
+        name = f"{p.get('givenName', '')} {p.get('familyName', '')}".strip()
+        credential = renewed.get(e["uuid"])
+        line = None
+        if credential and credential.get("expiresAt"):
+            x = parse(credential["expiresAt"])
+            line = f"Certificaat geldig tot {x.day} {MAAND[x.month - 1]} {x.year}"
+        fields = {"detailsStatus": "complete", "openTask": None, "openTaskNote": None, "openTaskDueAt": None, "certificateLine": line}
+        if needs and not p.get("birthDate"):
+            given = p.get("givenName", "").strip()
+            weekday = f" {NL_WEEKDAYS[first.weekday()]}" if first else ""
+            fields.update({"detailsStatus": "birth-date-missing", "openTask": f"Vul de geboortedatum van {name} in",
+                           "openTaskNote": f"{given} doet{weekday} examen. Zonder geboortedatum kunnen wij {given} niet aanmelden.",
+                           "openTaskDueAt": due(first)})
+            missing += 1
+        enrolments[e["uuid"]] = fields
+        names.append(name)
+        refs.append(p["uuid"])
+    places = max(1, int(booking.get("participantCount") or len(participants)))
+    open_places = max(0, places - len(participants))
+    if lifecycle in ("completed", "cancelled"):
+        status = lifecycle
+    else:
+        status = "waiting-for-you" if open_places or missing else lifecycle
+    if status == "waiting-for-you" and open_places:
+        note = "Vul de naam van 1 deelnemer in" if open_places == 1 else f"Vul de namen van {open_places} deelnemers in"
+    elif status == "waiting-for-you":
+        note = f"Geboortedatum van {missing} {'deelnemer' if missing == 1 else 'deelnemers'} ontbreekt"
+    elif lifecycle == "confirmed":
+        note = "De plek staat vast" if places == 1 else "De plekken staan vast"
+    elif lifecycle == "received" and booking.get("requestedAt"):
+        d, count = parse(booking["requestedAt"]).date(), 2
+        while count:
+            d += dt.timedelta(days=1)
+            if d.weekday() < 5:
+                count -= 1
+        note = "Bevestiging uiterlijk " + day_and_date(d)
+    else:
+        note = "Afgerond" if lifecycle == "completed" else None
+    if not days:
+        label = None
+    elif len(days) <= 2:
+        parts = []
+        for i, d in enumerate(days):
+            same = i + 1 < len(days) and days[i + 1].strftime("%Y-%m") == d.strftime("%Y-%m")
+            parts.append(f"{NL_WEEKDAYS[d.weekday()]} {d.day}" if same else day_and_date(d))
+        label = " en ".join(parts)
+    else:
+        months: dict[str, list[str]] = {}
+        for d in days:
+            months.setdefault(MAAND[d.month - 1], []).append(str(d.day))
+        label = list_of([f"{list_of(v)} {k}" for k, v in months.items()])
+    first_sessions = [x for x in sessions if first and parse(x["startsAt"]).date() == first]
+    time_label = None
+    if first_sessions:
+        time_label = (min(parse(x["startsAt"]).strftime("%H.%M") for x in first_sessions) + " tot "
+                      + max(parse(x["endsAt"]).strftime("%H.%M") for x in first_sessions) + " uur")
+    course_name = (course.get("name") or "").strip() or None
+    day = {"firstDay": first.isoformat() if first else None, "dayLabel": label, "timeLabel": time_label, "placeLabel": place,
+           "trainerName": trainer, "upcoming": lifecycle in ("received", "confirmed")}
+    for key in enrolments:
+        enrolments[key].update(day)
+    return {
+        "booking": {
+            "courseName": course_name,
+            "bookingLabel": ", ".join(x for x in [course.get("name", "").strip(), label or ""] if x) or None,
+            "upcoming": lifecycle in ("received", "confirmed"),
+            "firstDay": first.isoformat() if first else None, "dayLabel": label, "timeLabel": time_label,
+            "placeLabel": place, "trainerName": trainer, "participantRefs": refs, "participantNames": ", ".join(names) or None,
+            "missingDetailsCount": missing, "lifecycle": lifecycle, "employerStatus": status, "statusNote": note,
+            "detailsDueAt": due(first),
+        },
+        "enrolments": enrolments,
+    }
+
+
+def stamp_employer_copies(b: Builder) -> None:
+    """The readable copies ReadableCopies writes on a live save (employer-portal-audience): every profile's
+    fullName, and every enrolment's learnerName, courseName and organisationRef. Runs last; no random number."""
+    profiles = {p["uuid"]: p for p in b.buckets["learner-profile"]}
+    courses = {c["uuid"]: c for c in b.buckets["course"]}
+    for p in profiles.values():
+        p["fullName"] = f"{p.get('givenName', '')} {p.get('familyName', '')}".strip() or None
+    for e in b.buckets["enrolment"]:
+        p = profiles.get(e.get("learnerRef") or "")
+        e["learnerName"] = p["fullName"] if p else None
+        e["courseName"] = (courses.get(e.get("courseId") or "", {}).get("name") or "").strip() or None
+        e["organisationRef"] = p.get("organisationRef") if p else None
+
+
+def stamp_certificate_copies(b: Builder) -> None:
+    """The readable copies CertificateCopies writes on a live save (portal-certificates): holder, course,
+    employer, "Geldig tot ..." and the booked renewal. Runs last; no random number."""
+    profiles = {p["uuid"]: p for p in b.buckets["learner-profile"]}
+    courses = {c["uuid"]: c for c in b.buckets["course"]}
+    enrolments = {e["uuid"]: e for e in b.buckets["enrolment"]}
+    first_day: dict[str, dt.date] = {}
+    for x in b.buckets["session"]:
+        d = dt.datetime.fromisoformat(x["startsAt"]).astimezone(AMS).date()
+        if x["cohortId"] not in first_day or d < first_day[x["cohortId"]]:
+            first_day[x["cohortId"]] = d
+    for c in b.buckets["credential"]:
+        p = profiles.get(c.get("learnerId") or "")
+        name = f"{p.get('givenName', '')} {p.get('familyName', '')}".strip() if p else ""
+        c["learnerName"] = name or None
+        c["courseName"] = (courses.get(c.get("courseId") or "", {}).get("name") or "").strip() or None
+        c["organisationRef"] = p.get("organisationRef") if p else None
+        valid = None
+        if c.get("expiresAt"):
+            x = dt.datetime.fromisoformat(c["expiresAt"]).astimezone(AMS)
+            valid = f"Geldig tot {x.day} {MAAND[x.month - 1]} {x.year}"
+        c["validUntilLabel"] = valid
+        renewal = None
+        e = enrolments.get(c.get("renewalEnrolmentId") or "")
+        if e and e.get("lifecycle") in ("pending", "active") and e.get("cohortId") in first_day:
+            d = first_day[e["cohortId"]]
+            renewal = f"Herhaling op {d.day} {MAAND[d.month - 1]}"
+        c["renewalLine"] = renewal
+
+
+def add_story(b: Builder, school: dict, location: dict) -> None:
+    """Jansen Installatietechniek BV and its four installers at the Warmtepompacademie, week 41 of 2026.
+
+    Linda Jansen is the employer and training contact. The set models a client
+    company as a contact person (a learner profile with the manager role and the
+    company as department) whose ncUserId is the managerId of its employees, so
+    Linda is that, and the four installers are participants. Every date is
+    absolute and comes from the portal designs.
+    """
+    # Rooms in the praktijkhal.
+    lokaal = b.add("room", {"name": "Lokaal 2", "code": "WPA-L2", "capacity": 12, "kind": "classroom",
+                            "facilities": ["beamer", "whiteboard"], "buildingCode": "00X600", "floor": "0"})
+    hal = b.add("room", {"name": "Praktijkhal", "code": "WPA-HAL", "capacity": 12, "kind": "other",
+                         "facilities": ["werkende lucht-water warmtepompen", "hybride opstellingen", "bodemwarmtepomp", "meetapparatuur"],
+                         "buildingCode": "00X600", "floor": "0"})
+    room_of = {"ochtend": lokaal, "middag": hal}
+
+    # The catalogue courses of the story, with their lessons.
+    courses: dict[str, dict] = {}
+    lessons: dict[str, list[tuple[dict, int, str | None]]] = {}
+    for key, spec in STORY_COURSES.items():
+        fields = {
+            "code": f"{key}-2627", "name": spec["name"], "name_nl": spec["name"], "description": spec["description"], "level": "corporate",
+            "language": "nl", "tags": list(spec["tags"]), "mandatoryTraining": spec["mandatory"], "lifecycle": "published",
+        }
+        if spec["regulation"]:
+            fields["regulationSlug"] = spec["regulation"]
+        courses[key] = b.add("course", fields)
+        lessons[key] = []
+        for order, (title, day, part, text) in enumerate(spec["lessons"], start=1):
+            if part is None:
+                minutes = sum((h2 * 60 + m2) - (h1 * 60 + m1) for (h1, m1), (h2, m2) in HALL_SLOTS.values())
+            else:
+                (h1, m1), (h2, m2) = HALL_SLOTS[part]
+                minutes = (h2 * 60 + m2) - (h1 * 60 + m1)
+            row = b.add("lesson", {
+                "courseId": courses[key]["uuid"], "name": title, "order": order, "contentType": "text",
+                "blocks": [{"blockId": "b1", "type": "richText", "order": 1, "text": text}],
+                "durationMinutes": minutes, "learningObjectives": [text], "mandatoryTraining": spec["mandatory"], "lifecycle": "published",
+            })
+            if spec["regulation"]:
+                row["regulationSlug"] = spec["regulation"]
+            lessons[key].append((row, day, part))
+    courses["FGAS-1"]["renewalCourseSlug"] = courses["FGAS-H"]["slug"]
+
+    # Linda Jansen and her four installers.
+    contacts = [p for p in b.buckets["learner-profile"] if p["ncUserId"].startswith("training-contactpersoon-")]
+    participants = [p for p in b.buckets["learner-profile"] if p["ncUserId"].startswith("training-deelnemer-")]
+    linda = b.add("learner-profile", {
+        "ncUserId": f"training-contactpersoon-{len(contacts) + 1:03d}", "givenName": "Linda", "familyName": "Jansen",
+        "roles": ["manager"], "eduPersonAffiliation": ["affiliate"], "department": STORY_COMPANY,
+        "parentIds": [], "guardianRefs": [], "lifecycle": "active",
+    })
+    company = b.add("client-organisation", {
+        "name": STORY_COMPANY, "kvkNumber": STORY_KVK, "eherkenningRef": STORY_EHERKENNING, "contactName": "Linda Jansen",
+        "contactEmail": "linda.jansen@jansen-installatietechniek.example", "locationId": location["uuid"], "lifecycle": "active",
+    })
+    people: dict[str, dict] = {}
+    for n, (key, given, family, birth) in enumerate(STORY_PEOPLE, start=len(participants) + 1):
+        fields = {"ncUserId": f"training-deelnemer-{n:03d}", "givenName": given, "familyName": family}
+        if birth is not None:
+            fields["birthDate"] = birth
+        fields.update({
+            "schoolId": school["uuid"], "roles": ["learner"], "eduPersonAffiliation": ["affiliate"], "managerId": linda["ncUserId"],
+            "department": f"{STORY_COMPANY}/Montage", "parentIds": [], "guardianRefs": [], "lifecycle": "active",
+            "organisationRef": company["uuid"],
+        })
+        people[key] = b.add("learner-profile", fields)
+
+    # Staff: the planner and the administration exist; the two trainers are new.
+    working: dict[str, set[int]] = {}
+    for _key, _number, trainer, days, _who, _state, _at in STORY_EDITIONS:
+        working.setdefault(trainer, set()).update(d.weekday() for d in days)
+    for trainer, quals in ((HENK, ["trainer F-gassen en koudetechniek", "trainer warmtepompen"]),
+                           (FATIMA, ["trainer warmtepompen", "trainer inregelen en hydrauliek"])):
+        b.add("staff", {"ncUserId": trainer, "roles": ["teacher"], "qualifications": quals,
+                        "workingDays": [WEEKDAYS[i] for i in sorted(working[trainer])]})
+
+    # Editions: a cohort, who teaches it, a morning and an afternoon session per day, the enrolments.
+    enrolments: dict[tuple[int, str], dict] = {}
+    bookings: list[tuple[dict, dict, list[dict], list[dict]]] = []
+    for key, number, trainer, days, who, state, enrolled in STORY_EDITIONS:
+        course = courses[key]
+        done = days[-1] < STORY_TODAY
+        first = days[0]
+        cohort = b.add("cohort", {
+            "name": f"{course['name']}, {first.day} {MAAND[first.month - 1]} {first.year}",
+            "period": f"{MAAND[first.month - 1].capitalize()} {first.year}", "academicYear": STORY_YEAR,
+            "teacherIds": [trainer], "learnerIds": [people[p]["ncUserId"] for p in who],
+            "lifecycle": "completed" if done else "planned", "locationId": location["uuid"],
+            "notes": "In de praktijkhal: theorie in Lokaal 2, na de lunch in de hal.", "kind": "teaching", "courseId": course["uuid"],
+        })
+        b.add("subjectteacherassignment", {"cohortId": cohort["uuid"], "courseId": course["uuid"], "teacherId": trainer})
+        sessions = []
+        for day_number, d in enumerate(days, start=1):
+            for part in ("ochtend", "middag"):
+                (h1, m1), (h2, m2) = HALL_SLOTS[part]
+                lesson = next((row for row, day, p in lessons[key] if day == day_number and p in (None, part)), None)
+                when = f"{d.day} {MAAND[d.month - 1]} {d.year}"
+                title = f"{course['name']}, {part} ({when})" if len(days) == 1 else f"{course['name']}, dag {day_number} {part} ({when})"
+                sessions.append((b.add("session", {
+                    "cohortId": cohort["uuid"], "courseId": course["uuid"], "lessonId": lesson["uuid"] if lesson else None, "title": title,
+                    "startsAt": stamp(d, h1, m1), "endsAt": stamp(d, h2, m2), "location": f"{room_of[part]['name']}, {location['name']}",
+                    "roomId": room_of[part]["uuid"], "lifecycle": "completed" if done else "scheduled",
+                }), d, part))
+        booking = None
+        if number is not None:
+            confirmed = STORY_CONFIRMED.get(number)
+            booking = b.add("course-booking", {
+                "organisationRef": company["uuid"], "bookingNumber": f"I-2026-{number:04d}", "cohortId": cohort["uuid"],
+                "courseId": course["uuid"], "participantCount": len(who), "requestedAt": stamp(*enrolled),
+                "requestedByName": "Linda Jansen", "confirmedAt": stamp(*confirmed) if confirmed else None, "lifecycle": "received",
+            })
+            bookings.append((booking, course, [s for s, _d, _p in sessions], []))
+        for p in who:
+            profile = people[p]
+            fields = {
+                "learnerId": profile["ncUserId"], "learnerRef": profile["uuid"], "courseId": course["uuid"], "source": "hr",
+                "mandatory": bool(STORY_COURSES[key]["mandatory"]), "managerId": linda["ncUserId"], "cohortId": cohort["uuid"],
+                "lifecycle": state, "locationId": location["uuid"], "volgnummer": number,
+                "requestedAt": stamp(*enrolled),
+            }
+            if STORY_COURSES[key]["regulation"]:
+                fields["regulationSlug"] = STORY_COURSES[key]["regulation"]
+            if booking is not None:
+                fields["bookingRef"] = booking["uuid"]
+                fields["organisationRef"] = company["uuid"]
+            enrolments[(number, p)] = b.add("enrolment", fields)
+            if booking is not None:
+                bookings[-1][3].append(enrolments[(number, p)])
+            if not done:
+                continue
+            for session, d, part in sessions:
+                (h1, m1), (h2, m2) = HALL_SLOTS[part]
+                b.add("attendance-record", {
+                    "sessionId": session["uuid"], "learnerId": profile["ncUserId"], "learnerRef": profile["uuid"], "cohortId": cohort["uuid"],
+                    "status": "present", "minutesAttended": (h2 * 60 + m2) - (h1 * 60 + m1), "markedBy": trainer,
+                    "markedAt": stamp(d, h1, m1 + 10), "reason": None, "excuseRequestId": None,
+                })
+
+    # Sanne's proof of participation for Waterzijdig inregelen, ready on Thursday 1 October at 16.52.
+    story_credential(b, people["sanne"], courses["WZI"], "badge", stamp(dt.date(2026, 10, 1), 16, 52), (INSTITUTE, ISSUER_DID),
+                     {"source": "auto", "enrolmentId": enrolments[(377, "sanne")]["uuid"], "lifecycle": "issued"})
+    # The certificates the company holds. F-gassen categorie 1 runs out on 30 November 2026, eight weeks after
+    # today; the herhaling on 8 October is its renewal. OpenRegister computes expiryStatus from expiresAt.
+    for p in ("tom", "youssef", "sanne"):
+        story_credential(b, people[p], courses["FGAS-1"], "certificate", stamp(dt.date(2021, 11, 30), 10, 0), EXAM_COOLING, {
+            "expiresAt": stamp(dt.date(2026, 11, 30), 23, 59), "source": "manual",
+            "renewalEnrolmentId": enrolments[(412, p)]["uuid"], "lifecycle": "issued",
+        })
+    story_credential(b, people["sanne"], courses["BRL6000"], "certificate", stamp(dt.date(2023, 3, 12), 10, 0), EXAM_COOLING, {
+        "expiresAt": stamp(dt.date(2028, 3, 12), 23, 59), "source": "manual", "lifecycle": "issued",
+    })
+
+    # What each booking says to Linda, as EmployerBookingProjection writes it.
+    renewed = {c["renewalEnrolmentId"]: c for c in b.buckets["credential"] if c.get("renewalEnrolmentId")}
+    trainers = {HENK: STORY_STAFF[HENK], FATIMA: STORY_STAFF[FATIMA]}
+    cohorts = {c["uuid"]: c for c in b.buckets["cohort"]}
+    for booking, course, sessions, rows in bookings:
+        cohort = cohorts[booking["cohortId"]]
+        facts = employer_booking_facts(booking, course, sessions, [(e, next(p for p in people.values() if p["uuid"] == e["learnerRef"])) for e in rows],
+                                       renewed, trainers.get(cohort["teacherIds"][0]), f"{location['name']}, {location['street']}")
+        booking.update(facts["booking"])
+        for e in rows:
+            e.update(facts["enrolments"][e["uuid"]])
+
+
 def build() -> dict:
     rng = random.Random(20250901)
     b = Builder()
@@ -603,7 +1043,7 @@ def build() -> dict:
     school = b.add("school", {"brin": "00X6", "name": INSTITUTE, "pedagogicalConcept": "other"})
     location = b.add("vestiging", {
         "schoolId": school["uuid"], "vestigingscode": "00X600", "onderwijslocatiecode": None,
-        "name": "Hoofdlocatie Havenkade", "street": "Havenkade 14", "postalCode": "0612 HK", "city": TOWN,
+        "name": "Praktijkhal Zuiddrecht", "street": "Energieweg 8", "postalCode": "0612 EW", "city": TOWN,
     })
     rooms = {key: b.add("room", dict(spec)) for key, spec in ROOMS.items()}
 
@@ -1348,6 +1788,8 @@ def build() -> dict:
             "findings": findings, "actionDescription": action, "targetPeriod": target, "lifecycle": state,
         })
 
+    stamp_group_labels(b)
+
     # --- assemble -----------------------------------------------------------------
     for rows in b.buckets.values():
         for obj in rows:
@@ -1382,6 +1824,10 @@ def build() -> dict:
                "Wat de NIS2-richtlijn van medewerkers vraagt: phishing herkennen, incidenten melden en veilig werken.",
                "Medewerkers van organisaties die onder NIS2 vallen, zoals zorg en gemeenten.", 12, True)
 
+    add_story(b, school, location)
+    stamp_employer_copies(b)
+    stamp_certificate_copies(b)
+
     shipped = {r["slug"] for r in b.buckets["regulation"]}
     for rows in b.buckets.values():
         for row in rows:
@@ -1396,7 +1842,8 @@ def build() -> dict:
         "info": {
             "title": "Learniq example set: Training institute",
             "version": "1.2.0",
-            "description": f"{INSTITUTE}, a fictional training institute in the fictional town of {TOWN}, through the 2025-2026 year.",
+            "description": (f"{INSTITUTE}, a fictional trade academy for installers in the fictional town of {TOWN}, through the 2025-2026 year, "
+                            "and the autumn of 2026 for one client company, Jansen Installatietechniek BV, as the portal designs show it."),
         },
         "x-openregister": {
             "type": "profile",
@@ -1425,7 +1872,8 @@ def build() -> dict:
                     "an afternoon session per training day with every participant marked, knowledge tests with resits, signed attestations, "
                     "certificates with expiry and renewal, a leadership programme with intake rounds and a waiting list, quarterly course "
                     "evaluations with quality scores and improvement actions, the course package imports and export round trips, "
-                    "and the regulations the certificates answer to."
+                    "the regulations the certificates answer to, and the autumn of 2026 for one client company: Jansen Installatietechniek BV, "
+                    "its four installers, their F-gassen and heat pump courses in October and November, and the certificates they hold."
                 ),
                 "objects": objects,
             },
@@ -1433,6 +1881,34 @@ def build() -> dict:
         "paths": {},
         "components": {},
     }
+
+
+def stamp_group_labels(b: Builder) -> None:
+    """Every pupil's group line, as LearnerGroupLabel writes it on a live save
+    (school-portals-use-the-new-blocks): the group of the newest active enrolment,
+    and " · " with the first teacher's display name when the portal declaration
+    names that teacher (lib/Settings/portals/<set>.json accounts; the load command
+    gives those accounts that name). Runs last and draws no random number."""
+    declaration = os.path.join(ROOT, "lib", "Settings", "portals", f"{SET}.json")
+    names = {}
+    if os.path.exists(declaration):
+        with open(declaration, encoding="utf-8") as handle:
+            names = {a["userId"]: a["displayName"] for a in json.load(handle).get("accounts", [])}
+    cohorts = {c["uuid"]: c for c in b.buckets.get("cohort", [])}
+    newest: dict[str, dict] = {}
+    for enrolment in b.buckets.get("enrolment", []):
+        ref = enrolment.get("learnerRef")
+        if enrolment.get("lifecycle") != "active" or not ref or enrolment.get("cohortId") not in cohorts:
+            continue
+        if ref not in newest or str(enrolment.get("inschrijvingDate", "")) > str(newest[ref].get("inschrijvingDate", "")):
+            newest[ref] = enrolment
+    for profile in b.buckets.get("learner-profile", []):
+        enrolment = newest.get(profile["uuid"])
+        if "learner" not in (profile.get("roles") or []) or enrolment is None:
+            continue
+        cohort = cohorts[enrolment["cohortId"]]
+        teacher = names.get(((cohort.get("teacherIds") or [None])[0]) or "")
+        profile["groupLabel"] = cohort["name"] + (" · " + teacher if teacher else "")
 
 
 def render(data: dict) -> str:

@@ -144,7 +144,29 @@
 			"title": "Conference rounds",
 			"config": {
 				"register": "learniq",
-				"schema": "conference-round"
+				"schema": "conference-round",
+				"columns": [
+					{
+						"key": "name",
+						"label": "Round"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					},
+					{
+						"key": "bookingOpensAt",
+						"label": "Booking opens"
+					},
+					{
+						"key": "bookingClosesAt",
+						"label": "Booking closes"
+					},
+					{
+						"key": "bookingMode",
+						"label": "Booking mode"
+					}
+				]
 			}
 		},
 		{
@@ -195,8 +217,13 @@
 									"label": "Teacher"
 								},
 								{
-									"key": "learnerId",
-									"label": "Learner"
+									"key": "learnerRef",
+									"label": "Learner",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "learner-profile"
+									}
 								},
 								{
 									"key": "lifecycle",
@@ -226,20 +253,25 @@
 							"limit": 50,
 							"columns": [
 								{
-									"key": "teacherId",
+									"key": "slotLabel",
+									"label": "Time"
+								},
+								{
+									"key": "teacherName",
 									"label": "Teacher"
 								},
 								{
-									"key": "learnerId",
-									"label": "Learner"
+									"key": "learnerRef",
+									"label": "Learner",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "learner-profile"
+									}
 								},
 								{
 									"key": "startsAt",
 									"label": "Starts"
-								},
-								{
-									"key": "endsAt",
-									"label": "Ends"
 								},
 								{
 									"key": "lifecycle",
@@ -326,7 +358,31 @@
 			"title": "Teacher availability",
 			"config": {
 				"register": "learniq",
-				"schema": "teacher-availability"
+				"schema": "teacher-availability",
+				"columns": [
+					{
+						"key": "conferenceRoundId",
+						"label": "Round",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "conference-round"
+						}
+					},
+					{
+						"key": "teacherName",
+						"label": "Teacher"
+					},
+					{
+						"key": "blocks",
+						"label": "Times",
+						"formatter": "timeBlocks"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					}
+				]
 			}
 		},
 		{
@@ -347,7 +403,28 @@
 						"type": "data",
 						"title": "Data",
 						"content": {
-							"columns": 2
+							"columns": 2,
+							"include": [
+								"teacherName",
+								"conferenceRoundId",
+								"lifecycle",
+								"blocks"
+							],
+							"overrides": {
+								"teacherName": {
+									"order": 0
+								},
+								"conferenceRoundId": {
+									"order": 1
+								},
+								"lifecycle": {
+									"order": 2
+								},
+								"blocks": {
+									"order": 3,
+									"formatter": "timeBlocks"
+								}
+							}
 						},
 						"icon": "Account"
 					},
@@ -403,7 +480,29 @@
 			"title": "Conference slots",
 			"config": {
 				"register": "learniq",
-				"schema": "conference-slot"
+				"schema": "conference-slot",
+				"columns": [
+					{
+						"key": "slotLabel",
+						"label": "Time"
+					},
+					{
+						"key": "teacherName",
+						"label": "Teacher"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					},
+					{
+						"key": "startsAt",
+						"label": "Starts"
+					},
+					{
+						"key": "location",
+						"label": "Location"
+					}
+				]
 			}
 		},
 		{
@@ -424,7 +523,51 @@
 						"type": "data",
 						"title": "Data",
 						"content": {
-							"columns": 2
+							"columns": 2,
+							"include": [
+								"slotLabel",
+								"teacherName",
+								"lifecycle",
+								"startsAt",
+								"endsAt",
+								"location",
+								"conferenceRoundId",
+								"declineNote",
+								"bookedAt",
+								"acknowledgedAt"
+							],
+							"overrides": {
+								"slotLabel": {
+									"order": 0
+								},
+								"teacherName": {
+									"order": 1
+								},
+								"lifecycle": {
+									"order": 2
+								},
+								"startsAt": {
+									"order": 3
+								},
+								"endsAt": {
+									"order": 4
+								},
+								"location": {
+									"order": 5
+								},
+								"conferenceRoundId": {
+									"order": 6
+								},
+								"declineNote": {
+									"order": 7
+								},
+								"bookedAt": {
+									"order": 8
+								},
+								"acknowledgedAt": {
+									"order": 9
+								}
+							}
 						},
 						"icon": "Calendar"
 					},
@@ -480,7 +623,21 @@
 			"title": "Conference reports",
 			"config": {
 				"register": "learniq",
-				"schema": "conference-report"
+				"schema": "conference-report",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"attendeeIds",
+					"conferenceSlotId",
+					"lifecycle",
+					"narrative",
+					"recordedAt",
+					"recordedBy",
+					"teacherId"
+				]
 			}
 		},
 		{

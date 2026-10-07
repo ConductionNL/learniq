@@ -51,7 +51,23 @@ class PortalLabelTranslator {
 	 *
 	 * @var array<int, string>
 	 */
-	private const VISIBLE_KEYS = ['label', 'submitLabel', 'successMessage', 'unit', 'fallback'];
+	private const VISIBLE_KEYS = [
+		'label',
+		'submitLabel',
+		'successMessage',
+		'unit',
+		'fallback',
+		'group',
+		'otherLabel',
+		'requiredMessage',
+		'buttonLabel',
+		'template',
+		'eyebrow',
+		'soonLabel',
+		'noteLabel',
+		// A form field's hint under its label (employer-portal-audience).
+		'help',
+	];
 
 	/**
 	 * Keys a reader sees only inside a calendar source (portal-parent-child-record):
@@ -71,6 +87,27 @@ class PortalLabelTranslator {
 	private const VALUE_LABELS_KEY = 'valueLabels';
 
 	/**
+	 * Keys whose value may be a word in two forms, `{one, other}`, both of
+	 * which a reader sees: a figure card's unit and a detail's label
+	 * (portaliq kpi-unit-singular-and-plural).
+	 *
+	 * @var array<int, string>
+	 */
+	private const COUNTED_KEYS = ['unit', 'label'];
+
+	/**
+	 * The keys whose children are read in a context named after the key.
+	 */
+	private const NESTED_CONTEXTS = ['sources', 'values', 'phrases', 'confirmation', 'steps'];
+
+	/**
+	 * The two forms of a counted word.
+	 *
+	 * @var array<int, string>
+	 */
+	private const COUNTED_FORMS = ['one', 'other'];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IL10N|null $l10n Learniq's catalogue in the reader's language, or null to keep the English source.
@@ -84,7 +121,7 @@ class PortalLabelTranslator {
 	 * The manifest with every visible string in the reader's language.
 	 *
 	 * @param array<array-key, mixed> $manifest The manifest, in English.
-	 * @param string $context Where the manifest sits: '' at the top, `sources`, `source` or `values` below.
+	 * @param string $context Where the manifest sits: '' at the top, `sources`, `source`, `values` or `counted` below.
 	 *
 	 * @return array<array-key, mixed> The same manifest, its visible strings translated.
 	 *
@@ -116,7 +153,8 @@ class PortalLabelTranslator {
 
 	/**
 	 * The context the children of a key are read in: `sources` items are
-	 * calendar sources, `values` holds a lookup's labels by value.
+	 * calendar sources, `values` holds a lookup's labels by value, and a
+	 * `unit` or `label` map holds a counted word's singular and plural.
 	 *
 	 * @param int|string $key The key of the nested array.
 	 * @param string $context The context of its parent.
@@ -124,12 +162,19 @@ class PortalLabelTranslator {
 	 * @return string
 	 */
 	private function contextOf(int|string $key, string $context): string {
-		if ($key === 'sources' || $key === 'values') {
+		if (in_array($key, self::NESTED_CONTEXTS, true) === true) {
 			return (string)$key;
 		}
 
-		if ($context === 'sources' && is_int($key) === true) {
-			return 'source';
+		// A summary's phrases are maps of answer to words, one per field; a
+		// calendar's sources are a list of sources.
+		$byParent = ['phrases' => 'values', 'sources' => 'source', 'steps' => 'step'];
+		if (isset($byParent[$context]) === true && ($context === 'phrases' || is_int($key) === true)) {
+			return $byParent[$context];
+		}
+
+		if (is_string($key) === true && in_array($key, self::COUNTED_KEYS, true) === true) {
+			return 'counted';
 		}
 
 		return '';
@@ -146,6 +191,19 @@ class PortalLabelTranslator {
 	private function isVisible(int|string $key, string $context): bool {
 		if ($context === 'values') {
 			return true;
+		}
+
+		if ($context === 'counted') {
+			return in_array($key, self::COUNTED_FORMS, true) === true;
+		}
+
+		if ($context === 'confirmation') {
+			return in_array($key, ['title', 'body', 'next'], true) === true;
+		}
+
+		// A form step's title and description (placement-steps-and-assessment-draft).
+		if ($context === 'step') {
+			return in_array($key, ['title', 'description'], true) === true;
 		}
 
 		if (is_string($key) === false) {

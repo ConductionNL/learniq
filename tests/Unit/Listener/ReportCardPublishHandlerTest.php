@@ -110,7 +110,15 @@ class ReportCardPublishHandlerTest extends TestCase {
 		$timeFactory = $this->createMock(ITimeFactory::class);
 		$timeFactory->method('getDateTime')->willReturn($now);
 
-		return new ReportCardPublishHandler($objectService, $timeFactory, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
+		$l10n = $this->createMock(\OCP\IL10N::class);
+		$l10n->method('t')->willReturnCallback(
+			static fn (string $text, array $parameters = []): string => ($text === 'The report of %s is ready' ? vsprintf('Het rapport van %s staat klaar', $parameters) : vsprintf($text, $parameters))
+		);
+		$l10nFactory = $this->createMock(\OCP\L10N\IFactory::class);
+		$l10nFactory->method('findGenericLanguage')->willReturn('nl');
+		$l10nFactory->method('get')->with('learniq', 'nl')->willReturn($l10n);
+
+		return new ReportCardPublishHandler($objectService, $timeFactory, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver(), $l10nFactory, new \OCA\Learniq\Service\ReportSubjectGradeRows($objectService));
 	}//end makeHandler()
 
 	/**
@@ -146,7 +154,7 @@ class ReportCardPublishHandlerTest extends TestCase {
 	public function testTwoParentsYieldTwoNotificationsWithDistinctIdempotencyKeys(): void {
 		$now = new DateTime('2026-07-13T09:00:00+00:00');
 		$handler = $this->makeHandler(
-			profiles: ['learner-1' => ['parentIds' => ['parent-1', 'parent-2']]],
+			profiles: ['learner-1' => ['parentIds' => ['parent-1', 'parent-2'], 'givenName' => 'Vera']],
 			now: $now
 		);
 
@@ -178,6 +186,8 @@ class ReportCardPublishHandlerTest extends TestCase {
 		self::assertSame('learner-1', $this->store->reads[0]['config']['filters']['ncUserId']);
 		self::assertFalse($this->store->reads[0]['rbac']);
 		self::assertNotEmpty($byRecipient['parent-1']['visibleFrom']);
+		// The guardian's inbox reads the child's name and what happened, never a grade (site-guardian-portal-design T3).
+		self::assertSame('Het rapport van Vera staat klaar', $byRecipient['parent-2']['subject']);
 
 	}//end testTwoParentsYieldTwoNotificationsWithDistinctIdempotencyKeys()
 

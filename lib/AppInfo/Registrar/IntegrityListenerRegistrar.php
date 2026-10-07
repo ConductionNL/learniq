@@ -37,10 +37,19 @@ use OCA\Learniq\Listener\LvsResultLearnerRefStamp;
 use OCA\Learniq\Listener\ReportCardGradeLinesStamp;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Listener\AssignmentLearnerRefsStamp;
+use OCA\Learniq\Listener\CohortNameCascade;
+use OCA\Learniq\Listener\HourWeekSubmissionStamp;
+use OCA\Learniq\Listener\WerkprocesAssessmentLearnerStamp;
+use OCA\Learniq\Listener\HourWeekTotalRollup;
+use OCA\Learniq\Listener\LearnerGroupLabelCascade;
+use OCA\Learniq\Listener\EmployerBookingCascade;
+use OCA\Learniq\Listener\ReadableCopyStamp;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
 use OCA\Learniq\Listener\SubmissionOwnerStamp;
 use OCA\Learniq\Listener\SubmissionResubmissionDateListener;
+use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
@@ -147,6 +156,7 @@ class IntegrityListenerRegistrar {
 		);
 
 		$this->registerHomeworkScope(context: $context);
+		$this->registerReadableCopies(context: $context);
 
 		// Submission resubmission date (submission-resubmission-action): the
 		// date moves the hand-in deadline, so only staff may write it. Drops
@@ -241,4 +251,81 @@ class IntegrityListenerRegistrar {
 			listener: AssignmentLearnerRefsStamp::class
 		);
 	}//end registerHomeworkScope()
+
+	/**
+	 * Readable copies (site-guardian-portal-design, site-external-assessor-portal-design):
+	 * the portal shows a course name on a grade, a group name on an enrolment
+	 * and a portfolio title and learner name on a share, so the server writes
+	 * them on every save and re-stamps the enrolments when a group is renamed.
+	 *
+	 * @param IRegistrationContext $context The registration context.
+	 *
+	 * @return void
+	 */
+	private function registerReadableCopies(IRegistrationContext $context): void {
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: ReadableCopyStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: ReadableCopyStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: CohortNameCascade::class
+		);
+		// A pupil's group line in the guardian's menu follows the enrolment (school-portals-use-the-new-blocks).
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: LearnerGroupLabelCascade::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: LearnerGroupLabelCascade::class
+		);
+		// A company booking follows its participants' enrolments, birth dates and
+		// names, deferred (employer-portal-audience).
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: EmployerBookingCascade::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: EmployerBookingCascade::class
+		);
+		// Who entered a week of hours, when, for which student and for which
+		// school, all from the placement the week names: the pupil's form may
+		// send none of it (internship-hours).
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: HourWeekSubmissionStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: HourWeekSubmissionStamp::class
+		);
+		// The student a werkproces assessment is about, copied from its
+		// placement on every write, so the student's own read rule can match
+		// it (learning-record-own-rows). A stamp, not a veto.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: WerkprocesAssessmentLearnerStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: WerkprocesAssessmentLearnerStamp::class
+		);
+		// A placement's approved hours stay equal to the sum of its weeks,
+		// because the trainer's progress card reads one row and a total that
+		// lived only in a query could never reach it (internship-hours).
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: HourWeekTotalRollup::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: HourWeekTotalRollup::class
+		);
+	}//end registerReadableCopies()
 }//end class

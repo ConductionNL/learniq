@@ -37,6 +37,7 @@ use OCA\Learniq\Controller\AuditPackExportController;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\AuditEntryAttribution;
 use OCA\Learniq\Service\AuditPackBuilder;
+use OCA\Learniq\Service\AuditPeriodReader;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CsvCellSanitizer;
 use OCA\Learniq\Service\ExternalTrainingCsvBuilder;
@@ -106,6 +107,13 @@ class AuditPackExportControllerTest extends TestCase {
 	private array $auditRows = [];
 
 	/**
+	 * Every call the audit-trail mapper received: limit, offset and filters.
+	 *
+	 * @var array<int, array{limit: int|null, offset: int|null, filters: array<string, mixed>}>
+	 */
+	private array $mapperCalls = [];
+
+	/**
 	 * External-training records of both tenants.
 	 *
 	 * @var array<int, array<string, mixed>>
@@ -162,8 +170,75 @@ class AuditPackExportControllerTest extends TestCase {
 			$this->trainingRow(learner: 'learner-of-b', tenant: self::OTHER_TENANT),
 		];
 		$this->queries = [];
+		$this->mapperCalls = [];
 		$this->registerHeaders = [];
 	}//end setUp()
+
+	/**
+	 * Only entries written within the period reach the pack, and a bare end
+	 * date includes the whole of that day. The mapper has no range filter (a
+	 * comma-joined `created` is an exact IN pair, #302), so the builder must
+	 * not send one.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/compliance-audit/spec.md#requirement-export-audit-ready-zip-per-regulation-and-date-range
+	 */
+	public function testOnlyEntriesWithinThePeriodReachThePack(): void {
+		$this->objects['before']   = $this->object(uuid: 'before', tenant: self::CALLER_TENANT);
+		$this->objects['last-day'] = $this->object(uuid: 'last-day', tenant: self::CALLER_TENANT);
+		$this->objects['after']    = $this->object(uuid: 'after', tenant: self::CALLER_TENANT);
+		$this->auditRows[] = $this->auditRow(id: 21, objectUuid: 'before', created: '2025-12-31T23:59:59+00:00');
+		$this->auditRows[] = $this->auditRow(id: 22, objectUuid: 'last-day', created: '2026-12-31T18:30:00+00:00');
+		$this->auditRows[] = $this->auditRow(id: 23, objectUuid: 'after', created: '2027-01-01T00:00:00+00:00');
+
+		$files = $this->exportAndUnzip();
+
+		self::assertStringContainsString('object-of-a', $files['audit-trail.ndjson']);
+		self::assertStringContainsString('last-day', $files['audit-trail.ndjson']);
+		self::assertStringNotContainsString('"before"', $files['audit-trail.ndjson']);
+		self::assertStringNotContainsString('"after"', $files['audit-trail.ndjson']);
+		self::assertSame(2, json_decode($files['manifest.json'], true)['event_count']);
+
+		foreach ($this->mapperCalls as $call) {
+			self::assertArrayNotHasKey('created', $call['filters']);
+		}
+	}//end testOnlyEntriesWithinThePeriodReachThePack()
+
+	/**
+	 * A trail longer than one page is read page by page, and reading stops
+	 * once an entry falls after the period.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/compliance-audit/spec.md#requirement-export-audit-ready-zip-per-regulation-and-date-range
+	 */
+	public function testALongTrailIsReadPageByPage(): void {
+		$this->auditRows = [];
+		for ($i = 0; $i < 600; $i++) {
+			$this->auditRows[] = $this->auditRow(id: 100 + $i, objectUuid: 'object-of-a', created: sprintf('2026-03-01T10:%02d:%02d+00:00', intdiv($i, 60), ($i % 60)));
+		}
+
+		$this->auditRows[] = $this->auditRow(id: 900, objectUuid: 'object-of-a', created: '2027-02-01T00:00:00+00:00');
+		$this->auditRows[] = $this->auditRow(id: 901, objectUuid: 'object-of-a', created: '2027-03-01T00:00:00+00:00');
+
+		$files = $this->exportAndUnzip();
+
+		self::assertSame(600, json_decode($files['manifest.json'], true)['event_count']);
+		self::assertSame([0, 500], array_column($this->mapperCalls, 'offset'));
+	}//end testALongTrailIsReadPageByPage()
+
+	/**
+	 * A bound that is not a date is refused before anything is read.
+	 *
+	 * @return void
+	 */
+	public function testABoundThatIsNotADateIsRefused(): void {
+		$response = $this->controller()->export(regulationSlug: 'nis2', dateFrom: 'yesterday-ish', dateTo: '2026-12-31');
+
+		self::assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		self::assertSame([], $this->mapperCalls);
+	}//end testABoundThatIsNotADateIsRefused()
 
 	/**
 	 * Every query is scoped to the caller's tenant and the pack holds only theirs.
@@ -429,10 +504,11 @@ class AuditPackExportControllerTest extends TestCase {
 	 * @param int $id Audit entry id.
 	 * @param string $objectUuid Object uuid the entry is about.
 	 * @param int $schema Schema id the object lives in.
+	 * @param string $created When the entry was written.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function auditRow(int $id, string $objectUuid, int $schema = self::ATTESTATION_SCHEMA): array {
+	private function auditRow(int $id, string $objectUuid, int $schema = self::ATTESTATION_SCHEMA, string $created = '2026-03-01T10:00:00+00:00'): array {
 		return [
 			'id' => $id,
 			'uuid' => 'audit-' . $id,
@@ -443,7 +519,7 @@ class AuditPackExportControllerTest extends TestCase {
 			'action' => 'update',
 			'changed' => ['status' => ['old' => 'draft', 'new' => 'signed']],
 			'user' => 'officer',
-			'created' => '2026-03-01T10:00:00+00:00',
+			'created' => $created,
 		];
 	}//end auditRow()
 
@@ -508,9 +584,18 @@ class AuditPackExportControllerTest extends TestCase {
 			function (?int $limit = null, ?int $offset = null, ?array $filters = [], ?array $sort = [], ?string $search = null): array {
 				// OpenRegister's real signature: filters is the third argument,
 				// and a filter outside the column allowlist is silently dropped.
-				$filters  = array_intersect_key(($filters ?? []), array_flip(self::MAPPER_FILTER_COLUMNS));
-				$equality = $filters;
-				unset($equality['created']);
+				// A comma-joined value is an IN list, never a range.
+				$filters = array_intersect_key(($filters ?? []), array_flip(self::MAPPER_FILTER_COLUMNS));
+				$this->mapperCalls[] = ['limit' => $limit, 'offset' => $offset, 'filters' => $filters];
+				$rows = self::matching(rows: $this->auditRows, filters: array_diff_key($filters, ['created' => true]));
+				if (isset($filters['created']) === true) {
+					$in   = array_map('trim', explode(',', (string)$filters['created']));
+					$rows = array_values(array_filter($rows, static fn (array $row): bool => in_array($row['created'], $in, true)));
+				}
+
+				// Sorted by `created` ascending, the only direction the mapper applies.
+				usort($rows, static fn (array $a, array $b): int => strcmp($a['created'], $b['created']));
+				$rows = array_slice($rows, (int)$offset, $limit);
 
 				return array_map(
 					static fn (array $row): JsonSerializable => new class($row) implements JsonSerializable {
@@ -531,7 +616,7 @@ class AuditPackExportControllerTest extends TestCase {
 							return $this->row;
 						}
 					},
-					self::matching(rows: $this->auditRows, filters: $equality)
+					$rows
 				);
 			}
 		);
@@ -559,7 +644,7 @@ class AuditPackExportControllerTest extends TestCase {
 			userSession: $userSession,
 			actionAuth: $this->createMock(ActionAuthService::class),
 			packBuilder: $this->builder = new AuditPackBuilder(
-				$mapper,
+				new AuditPeriodReader($mapper),
 				$hashService,
 				new CallerTenantResolver($config, $this->createMock(ObjectService::class)),
 				$sanitizer,

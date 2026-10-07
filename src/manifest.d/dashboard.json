@@ -664,11 +664,17 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "courseId",
-									"label": "Course ID"
+									"label": "Course",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "course"
+									}
 								},
 								{
 									"key": "score",
@@ -703,7 +709,12 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "learner-profile"
+									}
 								},
 								{
 									"key": "title",
@@ -863,7 +874,32 @@
 			"config": {
 				"register": "learniq",
 				"schema": "Attestation",
-				"readOnly": true
+				"readOnly": true,
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"actorIp",
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					"employeeId",
+					"lessonId",
+					"lifecycle",
+					"regulationSlug",
+					"score",
+					"signature",
+					"signingKeyId",
+					"xapiStatementId"
+				]
 			}
 		},
 		{

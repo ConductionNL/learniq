@@ -131,6 +131,7 @@ export function rollCallCounts(pupils) {
  *
  * @param {string|Date} value An ISO date-time or a Date.
  * @return {string} The date, or '' when it is not one.
+ * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-the-teacher-reaches-the-register-from-the-menu-and-the-dashboard
  */
 export function localDate(value) {
 	const date = value instanceof Date ? value : new Date(value)

@@ -106,7 +106,10 @@
 			"title": "Report a concern",
 			"config": {
 				"register": "learniq",
-				"schema": "concern-report"
+				"schema": "concern-report",
+				"excludeFields": [
+					"learnerId"
+				]
 			}
 		},
 		{

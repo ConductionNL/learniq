@@ -68,7 +68,7 @@ class DataExchangeToIntegriqRegisterTest extends TestCase {
 		foreach (['lib/Settings/learniq_register.json', 'lib/Settings/learniq_mock_register.json'] as $file) {
 			$register = self::json($file);
 			foreach (self::RETIRED as $key => $slug) {
-				$this->assertArrayNotHasKey($key, $register['components']['schemas'], $file . ' still declares ' . $key);
+				$this->assertArrayNotHasKey($key, ($register['components']['schemas'] ?? []), $file . ' still declares ' . $key);
 			}
 
 			foreach (($register['components']['objects'] ?? []) as $object) {

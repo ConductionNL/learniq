@@ -158,6 +158,37 @@ class CourseEvaluationRegisterTest extends TestCase {
 	}//end testCourseEvaluationResponseIsAppendOnlyAndGuardedOnSubmit()
 
 	/**
+	 * DECISIONS row 63: no learner holds any right on a response row. The
+	 * rule #1715 added, `{"group": "authenticated", "match": {"lifecycle":
+	 * "draft"}}` on read and update, let every signed-in user read and change
+	 * every draft; the submit now runs through transitionAsSystem() after
+	 * learniq's own guard. This fails if that rule, or any rule for every
+	 * signed-in user or the public, comes back in any action.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+	 */
+	public function testNoSignedInUserHoldsAnyRightOnAResponse(): void {
+		$schema = $this->config['components']['schemas']['CourseEvaluationResponse'] ?? null;
+		$this->assertIsArray($schema, 'CourseEvaluationResponse schema MUST exist');
+		$authorization = $schema['authorization'] ?? null;
+		$this->assertIsArray($authorization, 'CourseEvaluationResponse MUST keep its own authorization block (else the register block applies)');
+
+		foreach ($authorization as $action => $rules) {
+			foreach ((array)$rules as $rule) {
+				$group = is_array($rule) === true ? (string)($rule['group'] ?? '') : (string)$rule;
+				$this->assertNotContains(
+					$group,
+					['authenticated', 'public'],
+					"CourseEvaluationResponse.authorization.$action MUST NOT grant every signed-in user or the public (DECISIONS row 63): " . json_encode($rule)
+				);
+			}
+		}
+
+	}//end testNoSignedInUserHoldsAnyRightOnAResponse()
+
+	/**
 	 * EvaluationInvitation is the ONLY object carrying both learnerId and
 	 * hasResponded — and it declares no field referencing which response
 	 * satisfied it (no responseId, no answers).

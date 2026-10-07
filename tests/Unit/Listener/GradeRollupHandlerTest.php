@@ -253,10 +253,19 @@ class GradeRollupHandlerTest extends TestCase {
 					'curriculumPlanId' => 'plan-1',
 					'tenant_id' => 'tenant-a',
 					'courseId' => 'course-1',
+					'courseName' => 'Rekenen',
 					'lifecycle' => 'published',
 				]
 			)
 		);
+
+		// The portal inbox reads a notice through the child it is about and names the subject,
+		// never the grade (school-portals-use-the-new-blocks).
+		foreach (array_filter($this->savedObjects, static fn (array $s): bool => $s['schema'] === 'grade-notification') as $save) {
+			self::assertSame('profile-1', $save['object']['learnerRef']);
+			self::assertSame('Rekenen', $save['object']['courseName']);
+			self::assertArrayNotHasKey('value', $save['object']);
+		}
 
 		$recipients = array_map(
 			static fn (array $save): string => $save['object']['recipient'],

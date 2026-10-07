@@ -82,6 +82,8 @@ class ParentRecordPage {
 			'fields' => [
 				'givenName',
 				'familyName',
+				// The group line under the child's name (school-portals-use-the-new-blocks).
+				'groupLabel',
 				'guardianRefs',
 				// The record page joins the school's calendar and news on it.
 				'schoolId',
@@ -108,7 +110,10 @@ class ParentRecordPage {
 	public function collections(array $childJoin): array {
 		$schoolJoin = array_merge($childJoin, ['targetField' => 'schoolId']);
 
-		return [
+		// The guardian's inboxes travel with the child's own collections (school-portals-use-the-new-blocks).
+		return array_merge(
+			(new ParentInboxCollections())->collections(childJoin: $childJoin),
+			[
 			$this->hidden(
 				id: 'parentAttendanceSummary',
 				schema: 'attendance-summary',
@@ -159,7 +164,8 @@ class ParentRecordPage {
 				label: 'Holidays',
 				fields: ['name', 'academicYear', 'schoolId', 'holidays', 'studyDays']
 			),
-		];
+			]
+		);
 
 	}//end collections()
 
@@ -175,12 +181,21 @@ class ParentRecordPage {
 	 * @return array<int, array<string, mixed>>
 	 *
 	 * @spec openspec/changes/portal-parent-child-record/specs/portal-contribution/spec.md#requirement-a-guardian-opens-one-child-and-sees-everything-about-them
+	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
 	 */
 	public function pages(array $collections, array $actions, ParentPortalCollections $sections): array {
-		$pages = [$this->recordPage(), $this->calendarPage()];
+		$site = new ParentSitePages();
+		$pages = [
+			$site->overviewPage(sources: $this->childSources(), figures: $this->attendanceFigures()),
+			$site->perChild(page: $this->recordPage()),
+			$site->absencePage(figures: $this->attendanceFigures()),
+			$site->conferencesPage(),
+			$site->inGroup(page: $this->calendarPage()),
+		];
+		// Every collection keeps its own page and route, out of the menu.
 		foreach ($sections->pages(collections: $collections, actions: $actions) as $page) {
 			if (($page['id'] ?? '') !== 'parentChildren') {
-				$pages[] = $page;
+				$pages[] = $site->offMenu(page: $page);
 			}
 		}
 
@@ -199,13 +214,33 @@ class ParentRecordPage {
 	private function recordPage(): array {
 		return [
 			'id' => 'parentChildren',
-			'label' => 'My children',
+			'label' => 'Grades and report cards',
 			'icon' => 'AccountChild',
 			'record' => ['collection' => 'parentChildren', 'titleFields' => ['givenName', 'familyName']],
+			// In the menu: "Mijn kinderen" with one entry per child and the group line under the name
+			// (lane L1 resident menu: `group` + `records.subtitleFields` on a perRecord page; portaliq
+			// keeps `subtitleFields` on `records`, not on `record`, so the page declares both).
+			'group' => 'My children',
+			'records' => ['collection' => 'parentChildren', 'titleFields' => ['givenName'], 'subtitleFields' => ['groupLabel']],
 			'blocks' => [
 				['type' => 'collection', 'collection' => 'parentChildren'],
 				$this->attendanceFigures(),
 				['type' => 'collection', 'collection' => 'parentReportCards', 'recordField' => 'learnerRef'],
+				// The latest report as a bar per subject, with the teacher's words (board Detail).
+				[
+					'type' => 'collection',
+					'label' => 'Latest report',
+					'collection' => 'parentReportSubjectGrades',
+					'recordField' => 'learnerRef',
+					'display' => 'bars',
+					'labelField' => 'subjectName',
+					'valueField' => 'periodAverage',
+					'max' => 10,
+					'captionField' => 'caption',
+					'noteField' => 'mentorComment',
+					'noteLabel' => 'From the teacher',
+					'sort' => ['field' => 'position', 'direction' => 'asc'],
+				],
 				['type' => 'collection', 'collection' => 'parentReportCardGrades', 'recordField' => 'learnerRef'],
 				[
 					'type' => 'collection',
@@ -240,10 +275,16 @@ class ParentRecordPage {
 	 * The three figure cards Ruben chose (2026-10-02): absence this school
 	 * year with and without permission, late arrivals, and unexcused absence,
 	 * highlighted. The latest school year counts (lq-attendance CONTRACT.md).
+	 * Every unit names its singular and plural, so a card reads "1 dag" and
+	 * "5 dagen" (portaliq kpi-unit-singular-and-plural).
 	 *
 	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/parent-figures-singular-and-plural/specs/portal-contribution/spec.md#requirement-the-figure-cards-count-in-singular-and-plural
 	 */
 	private function attendanceFigures(): array {
+		$days = ['one' => 'day', 'other' => 'days'];
+
 		return [
 			'type' => 'kpi',
 			'collection' => 'parentAttendanceSummary',
@@ -255,7 +296,7 @@ class ParentRecordPage {
 				[
 					'field' => 'absentDays',
 					'label' => 'Absent',
-					'unit' => 'days',
+					'unit' => $days,
 					'details' => [
 						['field' => 'absentAuthorisedDays', 'label' => 'with permission'],
 						['field' => 'absentUnauthorisedDays', 'label' => 'without permission'],
@@ -264,13 +305,13 @@ class ParentRecordPage {
 				[
 					'field' => 'lateCount',
 					'label' => 'Late',
-					'unit' => 'times',
-					'details' => [['field' => 'lateMinutes', 'label' => 'minutes in total']],
+					'unit' => ['one' => 'time', 'other' => 'times'],
+					'details' => [['field' => 'lateMinutes', 'label' => ['one' => 'minute in total', 'other' => 'minutes in total']]],
 				],
 				[
 					'field' => 'absentUnauthorisedDays',
 					'label' => 'Unexcused absence',
-					'unit' => 'days',
+					'unit' => $days,
 					'highlight' => true,
 				],
 			],

@@ -7,7 +7,8 @@
  * A learner sees their own open invitations and answers each once: the
  * answers are checked against the campaign questions, stored as a
  * CourseEvaluationResponse owned by the system (never by the learner), and
- * moved to `submitted` through the guarded `submit` transition, so
+ * moved to `submitted` through the guarded `submit` transition (run as the
+ * system with TransitionEngine::transitionAsSystem(), DECISIONS row 63), so
  * CourseEvaluationEligibilityGuard stays the only way in and
  * CourseEvaluationResponseSubmittedHandler marks the invitation answered.
  * Staff get the invitation count, the response count and the mean overall
@@ -37,6 +38,8 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
+use Psr\Log\LoggerInterface;
+use ReflectionClass;
 use Throwable;
 
 /**
@@ -62,11 +65,32 @@ class CourseEvaluationAnswerService {
 	private const READ_LIMIT = 5000;
 
 	/**
+	 * The reason CourseEvaluationEligibilityGuard gives when it refuses a submit.
+	 */
+	private const GUARD_DENIAL = 'You have no open invitation for this course evaluation.';
+
+	/**
+	 * The app that takes responsibility for the caller check on the submit.
+	 */
+	private const APP = 'learniq';
+
+	/**
+	 * The first OpenRegister release with TransitionEngine::transitionAsSystem() (#4327).
+	 */
+	public const MIN_OPENREGISTER = '2.1.36-unstable.20261005083254';
+
+	/**
+	 * What the learner reads when OpenRegister is too old to submit.
+	 */
+	private const OLD_OPENREGISTER = 'Answers cannot be submitted until OpenRegister is updated. Please tell your administrator.';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService                   $objectService    OpenRegister object access.
 	 * @param TransitionEngine                $transitionEngine OpenRegister lifecycle engine, runs the guarded submit.
 	 * @param CourseEvaluationResponseBuilder $builder          Checks the answers and builds the response object.
+	 * @param LoggerInterface                 $logger           Records why a submit was refused.
 	 *
 	 * @return void
 	 */
@@ -74,6 +98,7 @@ class CourseEvaluationAnswerService {
 		private readonly ObjectService $objectService,
 		private readonly TransitionEngine $transitionEngine,
 		private readonly CourseEvaluationResponseBuilder $builder,
+		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
 
@@ -142,9 +167,11 @@ class CourseEvaluationAnswerService {
 	 * The answer is refused before anything is written when the invitation is
 	 * not the caller's (404, so its existence is not confirmed), was already
 	 * answered or its campaign is closed (409), or the answers do not fit the
-	 * questions (422). The response is stored without an owner, then
-	 * submitted through the guarded transition; a refused submit removes the
-	 * draft again.
+	 * questions (422), or OpenRegister is too old to submit as the system
+	 * (503). The response is stored without an owner, then submitted through
+	 * the guarded transition, run as the system because no learner holds a
+	 * right on response rows; the guard still judges the session user. A
+	 * refused submit removes the draft again.
 	 *
 	 * @param string            $learnerId    The caller's user id (from the session).
 	 * @param string            $invitationId The invitation being answered.
@@ -171,6 +198,20 @@ class CourseEvaluationAnswerService {
 			return ['status' => 422, 'error' => 'Answer every required question.', 'missing' => $checked['missing']];
 		}
 
+		// No learner holds a right on response rows (DECISIONS row 63), so the
+		// submit can only run as the system. An OpenRegister from before #4327
+		// cannot do that: refuse before writing, never fall back to a rule
+		// that opens drafts to every signed-in user.
+		if ($this->systemTransitionAvailable() === false) {
+			$this->logger->error(
+				'[CourseEvaluationAnswerService] Course evaluation answers cannot be submitted: this OpenRegister has no '
+				. 'TransitionEngine::transitionAsSystem(). Update OpenRegister to {minimum} or later.',
+				['minimum' => self::MIN_OPENREGISTER, 'invitationId' => $invitationId]
+			);
+
+			return ['status' => 503, 'error' => self::OLD_OPENREGISTER];
+		}
+
 		$response = $this->objectService->saveObject(
 			object: $this->builder->responsePayload(invitation: $invitation, answers: $checked['answers']),
 			register: self::REGISTER,
@@ -181,10 +222,22 @@ class CourseEvaluationAnswerService {
 		$responseId = (string)($response->getUuid() ?? '');
 
 		try {
-			$this->transitionEngine->transition(objectId: $responseId, action: 'submit');
-		} catch (Throwable) {
+			$this->transitionEngine->transitionAsSystem(objectId: $responseId, action: 'submit', app: self::APP);
+		} catch (Throwable $exception) {
+			// Live pass D12: a refused submit was reported as "no open
+			// invitation" whatever refused it, and nothing was logged, so a
+			// permission error read exactly like the guard's denial.
+			$this->logger->warning(
+				'[CourseEvaluationAnswerService] The submit of an evaluation answer was refused; the draft is removed: {error}',
+				['error' => $exception->getMessage(), 'exception' => $exception, 'invitationId' => $invitationId]
+			);
 			$this->objectService->deleteObject(uuid: $responseId, register: self::REGISTER, schema: 'course-evaluation-response', _rbac: false);
-			return ['status' => 403, 'error' => 'You have no open invitation for this course evaluation.'];
+			$error = 'Your answer could not be submitted.';
+			if (str_contains($exception->getMessage(), self::GUARD_DENIAL) === true) {
+				$error = self::GUARD_DENIAL;
+			}
+
+			return ['status' => 403, 'error' => $error];
 		}
 
 		return ['status' => 201];
@@ -270,6 +323,21 @@ class CourseEvaluationAnswerService {
 
 		return null;
 	}//end refusal()
+
+	/**
+	 * Whether OpenRegister can run a transition as the system (#4327).
+	 *
+	 * The OpenRegister constraint learniq declares still allows releases from
+	 * before that method existed. Reflection, not method_exists(): the static
+	 * analysers read the current OpenRegister and call the check redundant.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 */
+	protected function systemTransitionAvailable(): bool {
+		return (new ReflectionClass($this->transitionEngine))->hasMethod('transitionAsSystem');
+	}//end systemTransitionAvailable()
 
 	/**
 	 * Whether a campaign takes answers now.

@@ -202,7 +202,29 @@
 			"title": "Exemption requests",
 			"config": {
 				"register": "learniq",
-				"schema": "exemption-case"
+				"schema": "exemption-case",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "learner-profile"
+						}
+					},
+					"componentId",
+					"curriculumPlanId",
+					"decidedAt",
+					"decidedBy",
+					"decisionRationale",
+					"groundsDescription",
+					"groundsKind",
+					"lifecycle",
+					"policyReference",
+					"resultingGradeEntryId",
+					"submittedAt"
+				]
 			}
 		},
 		{
@@ -224,7 +246,39 @@
 			"title": "Fraud cases",
 			"config": {
 				"register": "learniq",
-				"schema": "fraud-case"
+				"schema": "fraud-case",
+				"columns": [
+					{
+						"key": "accusedLearnerId",
+						"label": "Accused learner",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "learner-profile"
+						}
+					},
+					"allegation",
+					"appealDeadline",
+					"appealLodged",
+					"appealOutcome",
+					"assessmentResultId",
+					"contestedGradeEntryId",
+					"decidedAt",
+					"decidedBy",
+					"decisionRationale",
+					"hearingDate",
+					"hearingRecords",
+					"lifecycle",
+					"reportedAt",
+					"reporterId",
+					"sanctionDurationMonths",
+					"sanctionScope",
+					"sanctionType",
+					"sessionId",
+					"sourceKind",
+					"submissionId",
+					"verdict"
+				]
 			}
 		},
 		{

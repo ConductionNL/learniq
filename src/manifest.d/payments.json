@@ -136,7 +136,22 @@
 			"title": "Entitlements",
 			"config": {
 				"register": "learniq",
-				"schema": "entitlement"
+				"schema": "entitlement",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"feeItemId",
+					"grantedAt",
+					"grantedResourceId",
+					"grantedResourceKind",
+					"lifecycle",
+					"paymentRequestRef",
+					"paymentSettledAt",
+					"paymentSettledVia"
+				]
 			}
 		},
 		{

@@ -114,6 +114,13 @@ class AuditPackExportController extends Controller {
 			);
 		}
 
+		if ($this->packBuilder->isPeriod(dateFrom: $dateFrom, dateTo: $dateTo) === false) {
+			return new JSONResponse(
+				data: ['error' => 'dateFrom and dateTo must be ISO-8601 dates'],
+				statusCode: Http::STATUS_BAD_REQUEST
+			);
+		}
+
 		$zipContent = $this->packBuilder->build(
 			user: $user,
 			regulationSlug: $regulationSlug,

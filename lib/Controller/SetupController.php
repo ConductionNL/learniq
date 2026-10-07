@@ -161,6 +161,7 @@ class SetupController extends Controller {
 	 * @return JSONResponse The status document.
 	 *
 	 * @spec exclude Setup status document; ADR-042 contract, specified in openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md.
+	 * @spec openspec/changes/wizard-dataset-card-load/specs/first-time-setup/spec.md
 	 */
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function status(): JSONResponse {
@@ -177,13 +178,12 @@ class SetupController extends Controller {
 				// missing from these lists is one nobody can pick.
 				'profiles'  => $profiles,
 				'segments'  => $this->segments->listChoices(),
+				// Every id of `manifest.setup.steps`, plus one removal step per
+				// loaded set. The cards load themselves (`loadAction`,
+				// wizard-dataset-card-load), so there is no load step.
 				'steps'     => [
-					'example-set'      => ['done' => ($picked !== '')],
-					// "None" is an ANSWER, so the load step is finished the moment
-					// it is chosen: there is nothing left for the operator to run.
-					'load-example-set' => [
-						'done' => ($demoDecided === true || $picked === SeedProfileService::NONE_PROFILE),
-					],
+					'welcome'            => ['done' => true],
+					'example-set'        => ['done' => ($demoDecided === true || $picked !== '')],
 					'segment'            => ['done' => $this->segments->hasSegment()],
 					// 🔴 ALWAYS DONE. CnSetupWizard starts an outstanding
 					// run-action step the moment it becomes current, and
@@ -192,6 +192,7 @@ class SetupController extends Controller {
 					// set as soon as someone paged onto it, or reopen the wizard
 					// on every page. Done, it runs only when the admin clicks it.
 					'remove-example-set' => ['done' => true],
+					'done'               => ['done' => true],
 				] + $this->seedProfiles->loadedSets()->removalSteps(choices: $profiles),
 			]
 		);
@@ -220,8 +221,8 @@ class SetupController extends Controller {
 
 		if ($profile !== null) {
 			$profileId = $this->scalarAnswer(value: $profile);
-			if ($profileId === null || $this->isSelectableProfile(profileId: $profileId) === false) {
-				return $this->badRequest(message: 'No example set is called "' . (string)$profileId . '".');
+			if ($this->isSelectableProfile(profileId: $profileId) === false) {
+				return $this->badRequest(message: 'No example set is called "' . $profileId . '".');
 			}
 
 			$this->appConfig->setValueString(Application::APP_ID, self::PROFILE_KEY, $profileId);
@@ -231,8 +232,8 @@ class SetupController extends Controller {
 		$segment = $this->request->getParam(self::SEGMENT_KEY);
 		if ($segment !== null) {
 			$code = $this->scalarAnswer(value: $segment);
-			if ($code === null || in_array($code, SegmentService::SEGMENTS, true) === false) {
-				return $this->badRequest(message: 'No kind of organisation is called "' . (string)$code . '".');
+			if (in_array($code, SegmentService::SEGMENTS, true) === false) {
+				return $this->badRequest(message: 'No kind of organisation is called "' . $code . '".');
 			}
 
 			if ($this->maySetSegment() === false) {
@@ -298,7 +299,8 @@ class SetupController extends Controller {
 	}//end runAction()
 
 	/**
-	 * Import the example set the operator picked in the previous step.
+	 * Import the example set a card's Load button posted as `dataset`, or the
+	 * stored pick when nothing is posted.
 	 *
 	 * Reports the FAILURE rather than a quiet success: an operator who asked for
 	 * example data and got none must be told, which is why
@@ -307,10 +309,26 @@ class SetupController extends Controller {
 	 * @param string $actionId The action that asked, which decides whether an
 	 *                         unanswered choice is refused or means the generated set.
 	 *
-	 * @return JSONResponse `{ success, message }`.
+	 * @return JSONResponse `{ success, message, objects, skipped }`.
+	 *
+	 * @spec openspec/changes/wizard-dataset-card-load/specs/first-time-setup/spec.md
 	 */
 	private function loadExampleSet(string $actionId): JSONResponse {
 		$picked = $this->pickedProfile();
+
+		// The card's Load button names its set in the body. An older wizard
+		// posts nothing and relies on the pick stored a step earlier. Nothing is
+		// stored before the load succeeds: a failed load must leave the step
+		// open for an operator who asked for data and got none.
+		$posted = $this->request->getParam('dataset');
+		if ($posted !== null) {
+			$postedId = $this->scalarAnswer(value: $posted);
+			if ($this->isSelectableProfile(profileId: $postedId) === false) {
+				return $this->badRequest(message: 'No example set is called "' . $postedId . '".');
+			}
+
+			$picked = $postedId;
+		}
 
 		// The legacy id carries no answer, so it means the generated set. A
 		// caller that posts it has said which one by posting it.
@@ -325,6 +343,7 @@ class SetupController extends Controller {
 		}
 
 		if ($picked === SeedProfileService::NONE_PROFILE) {
+			$this->appConfig->setValueString(Application::APP_ID, self::PROFILE_KEY, SeedProfileService::NONE_PROFILE);
 			$this->appConfig->setValueString(Application::APP_ID, self::DEMO_DECIDED_KEY, 'skipped');
 
 			return new JSONResponse(data: ['success' => true, 'message' => 'No example data was loaded.']);
@@ -344,12 +363,27 @@ class SetupController extends Controller {
 			);
 		}
 
+		// Loading IS choosing the set, so the pick is recorded too. The removal
+		// step reads it back.
+		$this->appConfig->setValueString(Application::APP_ID, self::PROFILE_KEY, $picked);
 		$this->appConfig->setValueString(Application::APP_ID, self::DEMO_DECIDED_KEY, 'installed');
+
+		// 🔴 SAY WHAT DID NOT ARRIVE. OpenRegister skips an object it cannot
+		// place and keeps going, so "Imported 490" was reported while 302 of
+		// them never landed. The skips come from the importer's own reply.
+		$skipped = (int)($imported['skipped'] ?? 0);
+		$message = 'Imported ' . $imported['objects'] . ' example object(s).';
+		if ($skipped > 0) {
+			$message = 'Imported ' . max(0, ($imported['objects'] - $skipped)) . ' of ' . $imported['objects']
+				. ' example object(s). ' . $skipped . ' could not be imported; the Nextcloud log names each one.';
+		}
 
 		return new JSONResponse(
 			data: [
 				'success' => true,
-				'message' => 'Imported ' . $imported['objects'] . ' example object(s).',
+				'message' => $message,
+				'objects' => $imported['objects'],
+				'skipped' => $skipped,
 			]
 		);
 	}//end loadExampleSet()
@@ -488,17 +522,20 @@ class SetupController extends Controller {
 	 * The steps are single-select, but the wizard's contract allows a list, so
 	 * both shapes are read rather than one of them reaching `(string)`.
 	 *
+	 * A value that is not a scalar reads as the empty answer, which names no
+	 * set and no segment, so every caller refuses it with one check.
+	 *
 	 * @param mixed $value The posted value.
 	 *
-	 * @return string|null The answer, or null when it is not a scalar.
+	 * @return string The answer, or '' when it is not a scalar.
 	 */
-	private function scalarAnswer(mixed $value): ?string {
+	private function scalarAnswer(mixed $value): string {
 		if (is_array($value) === true) {
 			$value = ($value[0] ?? null);
 		}
 
 		if (is_scalar($value) === false) {
-			return null;
+			return '';
 		}
 
 		return (string)$value;
@@ -514,6 +551,11 @@ class SetupController extends Controller {
 	private function isSelectableProfile(string $profileId): bool {
 		if ($profileId === SeedProfileService::NONE_PROFILE) {
 			return true;
+		}
+
+		// The empty answer names no set, whatever the set lookup would say.
+		if ($profileId === '') {
+			return false;
 		}
 
 		return $this->seedProfiles->isKnown(profileId: $profileId);

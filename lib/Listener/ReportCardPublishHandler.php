@@ -40,11 +40,13 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Service\ReportSubjectGradeRows;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\L10N\IFactory;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -69,6 +71,8 @@ class ReportCardPublishHandler implements IEventListener {
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param IFactory $l10nFactory The instance's language, for the readable subject of the notice.
+	 * @param ReportSubjectGradeRows $subjectRows Writes the card's per-subject rows for the parent portal.
 	 *
 	 * @return void
 	 */
@@ -77,6 +81,8 @@ class ReportCardPublishHandler implements IEventListener {
 		private readonly ITimeFactory $timeFactory,
 		private readonly LoggerInterface $logger,
 		private readonly ListenerSchemaResolver $schemas,
+		private readonly IFactory $l10nFactory,
+		private readonly ReportSubjectGradeRows $subjectRows,
 	) {
 	}//end __construct()
 
@@ -102,7 +108,19 @@ class ReportCardPublishHandler implements IEventListener {
 			return;
 		}
 
-		$this->fanOutParentNotifications(reportCard: $event->getObject()->jsonSerialize());
+		$card = $event->getObject()->jsonSerialize();
+		$this->fanOutParentNotifications(reportCard: $card);
+
+		// The parent portal's bars read one row per subject of the latest report
+		// (school-portals-use-the-new-blocks). A failure here never stops the notices.
+		try {
+			$this->subjectRows->replace(card: $card);
+		} catch (\Throwable $exception) {
+			$this->logger->warning(
+				'[ReportCardPublishHandler] The subject rows of report card {id} could not be written: {msg}',
+				['id' => (string)($card['id'] ?? ''), 'msg' => $exception->getMessage()]
+			);
+		}
 
 	}//end handle()
 
@@ -152,6 +170,10 @@ class ReportCardPublishHandler implements IEventListener {
 		}
 
 		$learnerRef = $reportCard['learnerRef'] ?? null;
+		// The readable line a guardian reads in the portal inbox (site-guardian-portal-design T3), in the
+		// instance's language: "Het rapport van Vera staat klaar". It names the child, never a grade.
+		$subject = $this->l10nFactory->get('learniq', $this->l10nFactory->findGenericLanguage())
+			->t('The report of %s is ready', [trim((string)($profile['givenName'] ?? ''))]);
 		$tenantId = (string)($reportCard['tenant_id'] ?? '');
 		$visibleFrom = $this->timeFactory->getDateTime()->format(\DATE_ATOM);
 
@@ -173,6 +195,7 @@ class ReportCardPublishHandler implements IEventListener {
 					'learnerRef' => $learnerRef,
 					'idempotencyKey' => $reportCardId . '-parent-' . $parentId,
 					'visibleFrom' => $visibleFrom,
+					'subject' => $subject,
 					'tenant_id' => $tenantId,
 				]
 			);

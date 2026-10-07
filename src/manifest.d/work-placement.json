@@ -42,6 +42,34 @@
 					}
 				},
 				{
+					"id": "BpvHourWeeksMenu",
+					"label": "BPV hours",
+					"icon": "ClockOutline",
+					"route": "BpvHourWeeks",
+					"order": 715,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
+						}
+					}
+				},
+				{
 					"id": "PraktijkovereenkomstenMenu",
 					"label": "Praktijkovereenkomsten",
 					"icon": "FileOutline",
@@ -174,7 +202,25 @@
 			"title": "BPV placements",
 			"config": {
 				"register": "learniq",
-				"schema": "bpv-placement"
+				"schema": "bpv-placement",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"agreedHours",
+					"curriculumPlanId",
+					"hoursApprovedTotal",
+					"lifecycle",
+					"periodFrom",
+					"periodTo",
+					"practicalTrainerId",
+					"programmeId",
+					"schoolCoachId",
+					"trainingCompanyKvkNumber",
+					"trainingCompanyName"
+				]
 			}
 		},
 		{
@@ -204,7 +250,31 @@
 			"title": "Werkproces assessments",
 			"config": {
 				"register": "learniq",
-				"schema": "werkproces-assessment"
+				"schema": "werkproces-assessment",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"assessedAt",
+					"assessment",
+					"assessorCompany",
+					"assessorCompanyKvkNumber",
+					"assessorId",
+					"assessorName",
+					"assuranceLevel",
+					"bpvPlacementId",
+					"competencyId",
+					"componentId",
+					"coreTaskCode",
+					"curriculumPlanId",
+					"kwalificatiedossierCode",
+					"lifecycle",
+					"notes",
+					"werkprocesCode",
+					"werkprocesLabel"
+				]
 			}
 		},
 		{
@@ -215,6 +285,56 @@
 			"config": {
 				"register": "learniq",
 				"schema": "bpv-visit-report"
+			}
+		},
+		{
+			"id": "BpvHourWeeks",
+			"route": "/bpv/hours",
+			"type": "index",
+			"title": "BPV hours",
+			"config": {
+				"register": "learniq",
+				"schema": "bpv-hour-week",
+				"_note": "internship-hours T6: the school's own list of weeks of BPV hours, so a BPV coach sees which weeks wait for the company, which were approved and which were sent back with a note. Newest week first.",
+				"columns": [
+					{
+						"key": "learnerRef",
+						"label": "Learner",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "learner-profile"
+						}
+					},
+					{
+						"key": "isoWeek",
+						"label": "Week"
+					},
+					{
+						"key": "hoursSubmitted",
+						"label": "Hours entered"
+					},
+					{
+						"key": "hoursApproved",
+						"label": "Hours approved"
+					},
+					{
+						"key": "approvedByName",
+						"label": "Approved by"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					},
+					{
+						"key": "note",
+						"label": "Note"
+					}
+				],
+				"defaultSort": {
+					"field": "isoWeek",
+					"direction": "desc"
+				}
 			}
 		},
 		{
@@ -244,6 +364,52 @@
 						"type": "related",
 						"title": "Related",
 						"icon": "LinkVariant"
+					},
+					{
+						"id": "bpv-hours",
+						"type": "object-list",
+						"title": "Hours per week",
+						"content": {
+							"register": "learniq",
+							"schema": "bpv-hour-week",
+							"filter": {
+								"bpvPlacementId": "@objectId"
+							},
+							"sort": {
+								"field": "isoWeek",
+								"dir": "desc"
+							},
+							"limit": 30,
+							"columns": [
+								{
+									"key": "isoWeek",
+									"label": "Week"
+								},
+								{
+									"key": "hoursSubmitted",
+									"label": "Hours entered"
+								},
+								{
+									"key": "hoursApproved",
+									"label": "Hours approved"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								},
+								{
+									"key": "note",
+									"label": "Note"
+								}
+							],
+							"viewAllRoute": "BpvHourWeeks",
+							"viewAllQuery": {
+								"bpvPlacementId": "@objectId"
+							},
+							"emptyText": "No hours entered yet.",
+							"allowCreate": false
+						},
+						"icon": "ClockOutline"
 					},
 					{
 						"id": "bpv-pok",

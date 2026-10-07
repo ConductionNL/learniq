@@ -859,11 +859,17 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "cohortId",
-									"label": "Cohort ID"
+									"label": "Group",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "cohort"
+									}
 								},
 								{
 									"key": "mandatory",
@@ -1769,11 +1775,17 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "courseId",
-									"label": "Course ID"
+									"label": "Course",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "course"
+									}
 								},
 								{
 									"key": "value",
@@ -2041,7 +2053,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "componentId",
@@ -2084,11 +2097,17 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "courseId",
-									"label": "Course ID"
+									"label": "Course",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "course"
+									}
 								},
 								{
 									"key": "value",
@@ -2415,7 +2434,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "leerjaar",
@@ -2423,7 +2443,12 @@
 								},
 								{
 									"key": "courseId",
-									"label": "Course ID"
+									"label": "Course",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "course"
+									}
 								},
 								{
 									"key": "mandatory",
@@ -2461,7 +2486,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "metricValue",
@@ -2819,7 +2845,52 @@
 			"title": "Sessions",
 			"config": {
 				"register": "learniq",
-				"schema": "Session"
+				"schema": "Session",
+				"columns": [
+					{
+						"key": "affectedLearnerIds",
+						"label": "Affected learners",
+						"widget": "learnerName"
+					},
+					"affectedParentIds",
+					"assignmentIds",
+					"changeBatchId",
+					"changedAt",
+					"changeReason",
+					"changeReasonKind",
+					{
+						"key": "cohortId",
+						"label": "Group",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "cohort"
+						}
+					},
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					"durationMinutes",
+					"endsAt",
+					"externalRef",
+					"isPast",
+					"lessonId",
+					"lifecycle",
+					"location",
+					"materialIds",
+					"onlineMeetingUrl",
+					"roomId",
+					"sessionDayBucket",
+					"startsAt",
+					"substituteTeacherId",
+					"title"
+				]
 			}
 		},
 		{
@@ -2831,11 +2902,54 @@
 				"register": "learniq",
 				"schema": "Session",
 				"filter": {
-					"startsAt": {
-						"gte": "@today",
-						"lt": "@today+1d"
-					}
-				}
+					"startsAt[gte]": "@today",
+					"startsAt[lt]": "@today+1d"
+				},
+				"columns": [
+					{
+						"key": "affectedLearnerIds",
+						"label": "Affected learners",
+						"widget": "learnerName"
+					},
+					"affectedParentIds",
+					"assignmentIds",
+					"changeBatchId",
+					"changedAt",
+					"changeReason",
+					"changeReasonKind",
+					{
+						"key": "cohortId",
+						"label": "Group",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "cohort"
+						}
+					},
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					"durationMinutes",
+					"endsAt",
+					"externalRef",
+					"isPast",
+					"lessonId",
+					"lifecycle",
+					"location",
+					"materialIds",
+					"onlineMeetingUrl",
+					"roomId",
+					"sessionDayBucket",
+					"startsAt",
+					"substituteTeacherId",
+					"title"
+				]
 			}
 		},
 		{
@@ -2847,11 +2961,54 @@
 				"register": "learniq",
 				"schema": "Session",
 				"filter": {
-					"startsAt": {
-						"gte": "@today",
-						"lt": "@today+7d"
-					}
-				}
+					"startsAt[gte]": "@today",
+					"startsAt[lt]": "@today+7d"
+				},
+				"columns": [
+					{
+						"key": "affectedLearnerIds",
+						"label": "Affected learners",
+						"widget": "learnerName"
+					},
+					"affectedParentIds",
+					"assignmentIds",
+					"changeBatchId",
+					"changedAt",
+					"changeReason",
+					"changeReasonKind",
+					{
+						"key": "cohortId",
+						"label": "Group",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "cohort"
+						}
+					},
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					"durationMinutes",
+					"endsAt",
+					"externalRef",
+					"isPast",
+					"lessonId",
+					"lifecycle",
+					"location",
+					"materialIds",
+					"onlineMeetingUrl",
+					"roomId",
+					"sessionDayBucket",
+					"startsAt",
+					"substituteTeacherId",
+					"title"
+				]
 			}
 		},
 		{
@@ -2933,8 +3090,13 @@
 							"limit": 25,
 							"columns": [
 								{
-									"key": "learnerId",
-									"label": "Learner ID"
+									"key": "learnerRef",
+									"label": "Learner",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "learner-profile"
+									}
 								},
 								{
 									"key": "status",
@@ -3153,7 +3315,7 @@
 						"id": "8",
 						"widgetId": "sess-calendar",
 						"gridX": 0,
-						"gridY": 23,
+						"gridY": 28,
 						"gridWidth": 12,
 						"gridHeight": 4
 					}
@@ -3694,7 +3856,26 @@
 			"title": "Exam accommodations",
 			"config": {
 				"register": "learniq",
-				"schema": "exam-accommodation"
+				"schema": "exam-accommodation",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"accommodationKind",
+					"value",
+					{
+						"key": "assessmentId",
+						"label": "Assessment",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "assessment"
+						}
+					},
+					"lifecycle"
+				]
 			}
 		},
 		{
@@ -3999,7 +4180,11 @@
 							"columns": [
 								{
 									"key": "learnerIds",
-									"label": "Learner Ids"
+									"label": "Learner",
+									"widget": "learnerName",
+									"widgetProps": {
+										"refField": "learnerRefs"
+									}
 								},
 								{
 									"key": "submittedAt",
@@ -4179,7 +4364,34 @@
 				"schema": "Submission",
 				"filter": {
 					"assignmentId": "@route.assignmentId"
-				}
+				},
+				"columns": [
+					{
+						"key": "learnerIds",
+						"label": "Learner",
+						"widget": "learnerName",
+						"widgetProps": {
+							"refField": "learnerRefs"
+						}
+					},
+					"assignmentId",
+					"attachmentRefs",
+					"effectiveGrade",
+					"feedbackText",
+					"finalGradeRuleApplied",
+					"finalGradeSetBy",
+					"gradeEntryId",
+					"isLate",
+					"lifecycle",
+					"markerIds",
+					"plagiarismCheckedAt",
+					"plagiarismScore",
+					"plagiarismStatus",
+					"proposedGrade",
+					"resubmissionDueAt",
+					"rubricScores",
+					"submittedAt"
+				]
 			}
 		},
 		{
@@ -4403,7 +4615,21 @@
 				"schema": "self-assessment",
 				"filter": {
 					"assignmentId": "@route.assignmentId"
-				}
+				},
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"assignmentId",
+					"comments",
+					"lifecycle",
+					"rubricScores",
+					"submissionId",
+					"timing",
+					"totalScore"
+				]
 			}
 		},
 		{
@@ -4862,7 +5088,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "attemptNumber",
@@ -4911,7 +5138,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "accommodationKind",
@@ -5006,6 +5234,27 @@
 			"config": {
 				"register": "learniq",
 				"schema": "assessment-result",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					{
+						"key": "assessmentTitle",
+						"label": "Assessment"
+					},
+					{
+						"key": "attemptNumber",
+						"label": "Attempt Number"
+					},
+					"lifecycle",
+					{
+						"key": "submittedAt",
+						"label": "Submitted At",
+						"formatter": "date"
+					}
+				],
 				"filter": {
 					"assessmentId": "@route.assessmentId"
 				},
@@ -5347,7 +5596,21 @@
 			"config": {
 				"register": "learniq",
 				"schema": "proctoring-session",
-				"readOnly": true
+				"readOnly": true,
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"assessmentResultId",
+					"flags",
+					"lifecycle",
+					"provider",
+					"providerSessionId",
+					"recordedArtefactRefs",
+					"status"
+				]
 			}
 		},
 		{
@@ -5533,7 +5796,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "componentId",
@@ -5705,7 +5969,31 @@
 			"title": "Grade entries",
 			"config": {
 				"register": "learniq",
-				"schema": "grade-entry"
+				"schema": "grade-entry",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					{
+						"key": "courseName",
+						"label": "Course"
+					},
+					{
+						"key": "value",
+						"label": "Grade"
+					},
+					{
+						"key": "period",
+						"label": "Period"
+					},
+					{
+						"key": "gradedAt",
+						"label": "Graded At",
+						"formatter": "date"
+					}
+				]
 			}
 		},
 		{
@@ -5870,6 +6158,30 @@
 			"config": {
 				"register": "learniq",
 				"schema": "final-grade",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					{
+						"key": "value",
+						"label": "Final grade"
+					},
+					{
+						"key": "passed",
+						"label": "Passed"
+					}
+				],
 				"readOnly": true
 			}
 		},
@@ -6185,7 +6497,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "kind",
@@ -6282,7 +6595,11 @@
 				"schema": "learning-plan",
 				"_note": "care-and-support-index: columns[] added so the care team's own read (learner, kind, coordinator, lifecycle, next review date) does not need a second index page over the same schema (ADR-097 Decision 5, ratchet gate-68 duplicate-index-pages). The CareTeamOverviewMenu nav entry deep-links here with a lifecycle=active query preset (menu[].query, the documented role-lens mechanism) rather than duplicating this page.",
 				"columns": [
-					"learnerId",
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
 					"kind",
 					"coordinatorId",
 					"lifecycle",
@@ -6961,7 +7278,20 @@
 				"showDeleteAction": false,
 				"showMassImport": false,
 				"showMassCopy": false,
-				"showMassDelete": false
+				"showMassDelete": false,
+				"columns": [
+					{
+						"key": "learnerIds",
+						"label": "Learners",
+						"widget": "learnerName"
+					},
+					"approach",
+					"differentiatedGoal",
+					"groupPlanId",
+					"instructieniveau",
+					"intendedOutcome",
+					"name"
+				]
 			}
 		},
 		{
@@ -7218,7 +7548,22 @@
 			"title": "Support requests",
 			"config": {
 				"register": "learniq",
-				"schema": "support-request"
+				"schema": "support-request",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"dataExchangeJobId",
+					"description",
+					"learningPlanId",
+					"lifecycle",
+					"originGroupPlanSubgroupId",
+					"raisedBy",
+					"supportDomain",
+					"urgency"
+				]
 			}
 		},
 		{
@@ -7581,7 +7926,18 @@
 			"title": "Trajectories",
 			"config": {
 				"register": "learniq",
-				"schema": "trajectory"
+				"schema": "trajectory",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"lifecycle",
+					"referredAt",
+					"supportRequestId",
+					"voorzieningType"
+				]
 			}
 		},
 		{
@@ -7778,7 +8134,18 @@
 			"title": "Observation instruments",
 			"config": {
 				"register": "learniq",
-				"schema": "observation-instrument"
+				"schema": "observation-instrument",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"academicYear",
+					"entries",
+					"lifecycle",
+					"period"
+				]
 			}
 		},
 		{
@@ -7906,7 +8273,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "lifecycle",
@@ -7991,8 +8359,20 @@
 				"schema": "report-card",
 				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly, see Cohorts' note.",
 				"columns": [
-					"learnerId",
-					"cohortId",
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					{
+						"key": "cohortId",
+						"label": "Group",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "cohort"
+						}
+					},
 					"lifecycle",
 					"composedAt"
 				],
@@ -8163,7 +8543,23 @@
 			"title": "Subject choices",
 			"config": {
 				"register": "learniq",
-				"schema": "subject-choice"
+				"schema": "subject-choice",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"academicYear",
+					"curriculumPlanId",
+					"guardianConsentBy",
+					"guardianConsentByRef",
+					"guardianConsentGiven",
+					"lifecycle",
+					"programmeId",
+					"selectedElectiveCourseIds",
+					"validationErrors"
+				]
 			}
 		},
 		{

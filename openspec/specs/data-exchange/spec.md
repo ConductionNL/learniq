@@ -176,9 +176,7 @@ TimeEdit's own field names).
   the same field set (`externalRef`, `cohortId`, `title`, `startsAt`, `endsAt`, `location`) the
   Zermelo/Untis/Xedule seeds already map
 
-<!-- @e2e exclude Declarative seed-data shape verified by
-     DataMappingProfilePresetsRegisterTest::testTimeEditMatchesExistingRosteringSeedShape; no DOM surface —
-     mirrors the existing Zermelo/Untis/Xedule seed-shape assertions. -->
+<!-- @e2e exclude The mapping-profile seeds left the learniq register when the exchanges moved to integriq (learniq#1157), and the learniq register test that pinned this shape was retired with them. No learniq test covers it now. No DOM surface. -->
 
 ### Requirement: migration-import job type and payload mappings
 
@@ -194,8 +192,7 @@ ESIS, Magister, SOMtoday), each `sourceSchema: learner-profile`, mapping at mini
 - **THEN** each is `target: migration-import`, `direction: import`, `sourceSchema: learner-profile`, and
   maps `eckId`
 
-<!-- @e2e exclude Declarative seed-data shape verified by
-     DataMappingProfilePresetsRegisterTest::testEachMigrationSourceCarriesEckId; no DOM surface. -->
+<!-- @e2e exclude The mapping-profile seeds left the learniq register when the exchanges moved to integriq (learniq#1157), and the learniq register test that pinned this shape was retired with them. No learniq test covers it now. No DOM surface. -->
 
 #### Scenario: DataExchangeJob.target documents the migration-import connection
 
@@ -203,9 +200,7 @@ ESIS, Magister, SOMtoday), each `sourceSchema: learner-profile`, mapping at mini
 - **WHEN** this change lands
 - **THEN** it names `migration-import` as a valid connection
 
-<!-- @e2e exclude Declarative documentation-string shape verified by
-     DataMappingProfilePresetsRegisterTest::testDataExchangeJobTargetDescribesMigrationImport; no DOM
-     surface. -->
+<!-- @e2e exclude The DataExchangeJob schema left the learniq register when the exchanges moved to integriq (learniq#1157), and the learniq register test that pinned this description was retired with it. No learniq test covers it now. No DOM surface. -->
 
 ### Requirement: UWLR and Edu-V job types and payload mappings
 
@@ -224,8 +219,7 @@ certification per data service, per product, not once per connection.
 - **WHEN** the `uwlr` pupil and teacher export profiles are loaded
 - **THEN** both map `eckId` as a `fieldMappings` entry
 
-<!-- @e2e exclude Declarative seed-data shape verified by
-     UwlrEduvBasispoortRegisterTest::testUwlrPupilAndTeacherExportsCarryEckId; no DOM surface. -->
+<!-- @e2e exclude The mapping-profile seeds left the learniq register when the exchanges moved to integriq (learniq#1157), and the learniq register test that pinned this shape was retired with them. No learniq test covers it now. No DOM surface. -->
 
 #### Scenario: The UWLR results-import seed reuses LvsResult
 
@@ -233,8 +227,7 @@ certification per data service, per product, not once per connection.
 - **WHEN** the `uwlr` (direction: import) profile is loaded
 - **THEN** its `sourceSchema` is `lvs-result`
 
-<!-- @e2e exclude Declarative seed-data shape verified by
-     UwlrEduvBasispoortRegisterTest::testUwlrResultsImportReusesLvsResult; no DOM surface. -->
+<!-- @e2e exclude The mapping-profile seeds left the learniq register when the exchanges moved to integriq (learniq#1157), and the learniq register test that pinned this shape was retired with them. No learniq test covers it now. No DOM surface. -->
 
 #### Scenario: Edu-V ships one export seed per qualified data service
 
@@ -243,8 +236,7 @@ certification per data service, per product, not once per connection.
 - **THEN** each names a distinct `targetSchema` (`EduV:Onderwijsdeelnemers`, `EduV:Onderwijsgroepen`,
   `EduV:Onderwijsmedewerkers`)
 
-<!-- @e2e exclude Declarative seed-data shape verified by
-     UwlrEduvBasispoortRegisterTest::testEduVSeedsCoverThreeDataServices; no DOM surface. -->
+<!-- @e2e exclude The mapping-profile seeds left the learniq register when the exchanges moved to integriq (learniq#1157), and the learniq register test that pinned this shape was retired with them. No learniq test covers it now. No DOM surface. -->
 
 ### Requirement: Basispoort and Entree content SSO hand-off
 
@@ -261,8 +253,7 @@ hand a pupil off to a THIRD-PARTY method/publisher site, not learniq's own authe
 - **WHEN** the `basispoort` and `entree-content` profiles are loaded
 - **THEN** both declare `direction: sync`
 
-<!-- @e2e exclude Declarative seed-data shape verified by
-     UwlrEduvBasispoortRegisterTest::testBasispoortAndEntreeContentAreSync; no DOM surface. -->
+<!-- @e2e exclude The mapping-profile seeds left the learniq register when the exchanges moved to integriq (learniq#1157), and the learniq register test that pinned this shape was retired with them. No learniq test covers it now. No DOM surface. -->
 
 ### Requirement: Persist LvsResult linked to AssessmentResult
 
@@ -319,8 +310,7 @@ confirms it once, mirroring `AssessmentResult`'s own `submit → graded` human-c
 - **WHEN** they attempt the `verify` transition on an `LvsResult`
 - **THEN** `LvsResultVerifyGuard` denies the transition
 
-<!-- @e2e exclude Role-gate logic verified by PHPUnit LvsResultVerifyGuardTest::testDeniesNonCoordinator,
-     mirroring RejectionResubmitGuardTest's coverage shape; no scholiq DOM surface for the guard itself. -->
+<!-- @e2e exclude Role-gate logic verified by PHPUnit LvsResultVerifyGuardTest::testUnauthorisedActorIsDenied; no learniq DOM surface for the guard itself. -->
 
 ### Requirement: lvs-results job type and payload mapping
 
@@ -337,8 +327,7 @@ The system MUST ship a `DataMappingProfile` seed for `target: lvs-results`, `dir
 - **THEN** its `fieldMappings` cover `provider`, `instrument`, `moment`, `rawScore`, `vaardigheidsscore`,
   `niveau`, `referentieniveau`, and `dle`
 
-<!-- @e2e exclude Declarative seed-data shape verified by LvsResultRegisterTest::testLvsResultsMappingProfileSeedShape;
-     no DOM surface — mirrors the existing Zermelo/Untis/Xedule seed-shape assertions. -->
+<!-- @e2e exclude The mapping-profile seeds left the learniq register when the exchanges moved to integriq (learniq#1157), and the learniq register test that pinned this shape was retired with them. No learniq test covers it now. No DOM surface. -->
 
 ### Requirement: Persist OsoImportDossier for inbound overstapdossiers
 
@@ -379,8 +368,7 @@ or complete for this school's record, and a human confirms it once.
 - **WHEN** it is created
 - **THEN** its lifecycle state is `received`, not `accepted`
 
-<!-- @e2e exclude Declarative lifecycle initial-state shape verified by
-     OsoImportDossierRegisterTest::testInitialLifecycleStateIsReceived; no DOM surface. -->
+<!-- @e2e exclude Declarative lifecycle initial-state shape verified by OsoImportDossierRegisterTest::testLifecycleTransitionShape (asserts the initial state is received); no DOM surface. -->
 
 #### Scenario: A non admin/coordinator actor cannot accept or reject an OsoImportDossier
 
@@ -415,8 +403,7 @@ already use (`scholiqField` names the learniq side, `targetField` the external s
 - **WHEN** the `oso` (direction: import) profile is loaded
 - **THEN** its `fieldMappings` cover `learnerEckId` and `sourceSchoolBrin`
 
-<!-- @e2e exclude Declarative seed-data shape verified by
-     OsoImportDossierRegisterTest::testOsoImportMappingProfileSeedShape; no DOM surface. -->
+<!-- @e2e exclude The mapping-profile seeds left the learniq register when the exchanges moved to integriq (learniq#1157), and the learniq register test that pinned this shape was retired with them. No learniq test covers it now. No DOM surface. -->
 
 ### Requirement: The connection field names every connection learniq hands to OpenConnector
 
@@ -433,7 +420,7 @@ The `target` property of `DataExchangeJob` and of `DataMappingProfile` MUST name
 A test that reads a schema's seed rows MUST find a row by its name or id and MUST assert a minimum count, never an exact count or a position, because other changes append seed rows to the same list.
 
 #### Scenario: A sibling change adds a mapping preset
-@e2e exclude Test-suite invariant; pinned by tests/Unit/Settings/DataMappingProfilePresetsRegisterTest.php and UwlrEduvBasispoortRegisterTest.php.
+@e2e exclude Test-suite invariant. The two register tests that pinned it were retired when the mapping-profile seeds moved to integriq (learniq#1157); no learniq test pins it now.
 - **GIVEN** 23 `DataMappingProfile` seed rows, more than the 12 and 16 two changes counted
 - **WHEN** the suite runs
 - **THEN** both tests pass, because they assert a floor
@@ -645,12 +632,14 @@ When a SchoolAdvies in `voorlopig` has `voorlopigAdviesLevel`, `voorlopigAdviesD
 - **AND** its id is stored as `voorlopigExchangeJobId`
 - **AND** saving the advice again requests nothing
 
-### Requirement: A learner's personal number is encrypted and readable only by administration and compliance
-LearnerProfile MUST hold the persoonsgebonden nummer in `personalNumber`, flagged
-`x-openregister-encrypted: true`, with its kind in `personalNumberType` (`bsn` or
+### Requirement: A learner's personal number is readable only by administration and compliance
+LearnerProfile MUST hold the persoonsgebonden nummer in `personalNumber`, a stored, filterable
+property (not `x-openregister-encrypted`: an encrypted property is not filterable, so an upload row
+could never be matched on it; DECISIONS row 54), with its kind in `personalNumberType` (`bsn` or
 `onderwijsnummer`). Both properties MUST carry a property authorization whose `read` and `update`
 name only `administration-managers` and `compliance-officers`, and `personalNumber` MUST ask for a
-reveal audit (`audit: true`). Neither property MAY be a filter, facet or search field.
+reveal audit (`audit: true`). Neither property MAY be a facet or search field; `personalNumber` MAY
+be filtered by a server-side match (the external-training upload).
 
 #### Scenario: a teacher reads a learner profile
 - GIVEN a learner profile with a `personalNumber`
@@ -660,7 +649,12 @@ reveal audit (`audit: true`). Neither property MAY be a filter, facet or search 
 #### Scenario: the register declares the protection
 - GIVEN the learniq register
 - WHEN LearnerProfile is loaded
-- THEN `personalNumber` is flagged encrypted, and both properties authorize only `administration-managers` and `compliance-officers`
+- THEN `personalNumber` is a stored property that is not flagged encrypted, and both properties authorize only `administration-managers` and `compliance-officers`
+
+#### Scenario: an upload row is matched on the personal number
+- GIVEN a learner profile whose `personalNumber` was set with an update
+- WHEN a compliance officer uploads a row whose learner column is that number
+- THEN the row is matched to that learner in the officer's tenant
 
 ### Requirement: The ROD learner record carries the personal number where DUO expects a BSN
 A `bron-rod` job with mapping `learniq-bron-rod-export-learner` MUST hand each record
@@ -757,6 +751,37 @@ When the gate allows a `lvs-results`, `oso` or `migration-import` import job, le
 - **GIVEN** a file larger than 10 MB
 - **WHEN** the gate reads the job's input
 - **THEN** it refuses with `import-input-too-large` without reading the content
+
+### Requirement: Every LvsResult names its pupil by LearnerProfile reference
+`LvsResult` MUST declare `learnerRef`: a string, format uuid, `$ref` LearnerProfile, nullable and not required. `LvsResultLearnerRefStamp` MUST set it on every create and update of an `lvs-result` object to the UUID of the LearnerProfile whose `ncUserId` equals the result's `learnerId`, looked up in the result's `tenant_id` when it has one. A `learnerRef` sent by the client MUST be ignored. A learner without a profile MUST get `learnerRef: null`. The stamp MUST NOT block a write: a failed lookup gives null on create and keeps the stored value on an update that keeps the same learner. Authorization and the read rule MUST keep scoping on `learnerId`. Every LVS result in a shipped example set MUST carry a `learnerRef` that names a learner profile of the same pupil in the same set.
+
+#### Scenario: An imported Cito result is linked to its pupil
+@e2e exclude Server-side write listener with no DOM surface; pinned by tests/Unit/Listener/LvsResultLearnerRefStampTest.php::testAnImportedResultIsLinkedToItsPupil.
+- **GIVEN** a learner profile `lp-3` for `pupil-1` in tenant B
+- **WHEN** an integriq `lvs-results` job for tenant B lands a Cito result for `pupil-1`
+- **THEN** the stored result carries `learnerRef: "lp-3"`
+
+#### Scenario: A forged learnerRef is replaced
+@e2e exclude Server-side write listener with no DOM surface; pinned by tests/Unit/Listener/LvsResultLearnerRefStampTest.php::testAForgedLearnerRefIsReplaced.
+- **GIVEN** a learner profile `lp-1` for `pupil-1`
+- **WHEN** a coordinator saves a result for `pupil-1` with `learnerRef: "lp-2"`
+- **THEN** the stored result carries `learnerRef: "lp-1"`
+
+#### Scenario: Every example LVS result names its pupil's profile
+@e2e exclude Register and example-set contract with no DOM surface; pinned by tests/Unit/Settings/LvsResultLearnerRefRegisterTest.php::testEveryExampleLvsResultResolvesToItsPupilsProfile.
+- **GIVEN** the primary-school example set
+- **WHEN** the contract test reads its LVS results
+- **THEN** each one carries a `learnerRef` that names a learner profile in the set whose `ncUserId` is the result's `learnerId`
+
+### Requirement: Existing LvsResults are back-filled once
+The `BackfillLvsResultLearnerRef` repair step MUST stamp `learnerRef` on every existing `lvs-result` object that has a `learnerId` and no `learnerRef`, looking the profile up in the result's tenant. It MUST skip rows that already carry a `learnerRef` and rows whose learner has no profile, MUST leave every other field as it was, and MUST be safe to run again: a second run writes nothing new.
+
+#### Scenario: The backfill stamps unstamped rows and skips the rest
+@e2e exclude Repair step with no DOM surface; pinned by tests/Unit/Repair/BackfillLvsResultLearnerRefTest.php::testStampsOnlyTheRowsThatNeedIt.
+- **GIVEN** three LVS results: one verified for `pupil-1` without `learnerRef`, one for `pupil-1` with `learnerRef: "lp-1"`, and one for `pupil-9` who has no profile
+- **WHEN** the repair step runs
+- **THEN** only the first result is saved, with `learnerRef: "lp-1"` and its score and lifecycle unchanged
+- **AND** a second run saves nothing
 
 ## Standards
 

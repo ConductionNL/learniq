@@ -273,6 +273,11 @@ export default {
 		},
 	},
 
+	/**
+	 * Load the choices the export form offers for its kind.
+	 *
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
+	 */
 	async mounted() {
 		try {
 			if (this.kind === 'audit-pack') {

@@ -133,6 +133,44 @@ if [ "$IMPORT_OK" != "true" ]; then
 	echo "::warning::The Learniq settings/load import returned HTTP 200 but did NOT report success. Falling back to the per-schema repair path below; the register/schema verification remains the gate."
 fi
 
+# ── 1b. THE SUITE RUNS AGAINST THE FULL STRUCTURE ────────────────────────────
+# learniq ships two structures from one manifest (simple-structure-profile).
+# `simple` is the default: at most ten menu entries per role. The specs here
+# were written against the full menu and reach pages through it, so the CI
+# instance is put on `full`, with the same switch an administrator has: the
+# admin-guarded settings write. `simple-structure-menu.spec.ts` turns the
+# setting to `simple` for its own run and puts back what it found.
+#
+# Only here, never in global-setup: this script runs on a throwaway CI
+# instance, and global-setup also runs against a shared instance people use.
+#
+# The write answers success for a key it does not know, so the stored value is
+# read back from the answer. HTTP 200 alone proves nothing.
+STRUCTURE_URL="${BASE}/index.php/apps/learniq/api/settings"
+STRUCTURE_BODY="$(mktemp)"
+STRUCTURE_CODE="$(
+	curl -sS -o "$STRUCTURE_BODY" -w '%{http_code}' \
+		-u "${USER_NAME}:${USER_PASS}" \
+		-X PUT \
+		-H 'Content-Type: application/json' \
+		-H 'OCS-APIRequest: true' \
+		--data '{"menu_structure":"full"}' \
+		"$STRUCTURE_URL" || echo 000
+)"
+STRUCTURE_VALUE="$(python3 -c "
+import json, sys
+try:
+    print(json.load(open(sys.argv[1])).get('config', {}).get('menu_structure', ''))
+except Exception:
+    print('')
+" "$STRUCTURE_BODY" 2>/dev/null | head -1 || true)"
+echo "[ci-seed] menu_structure -> '${STRUCTURE_VALUE}' (HTTP ${STRUCTURE_CODE})"
+if [ "$STRUCTURE_VALUE" != "full" ]; then
+	echo "::error::could not set learniq menu_structure=full (HTTP ${STRUCTURE_CODE}, stored '${STRUCTURE_VALUE}'). The suite would run against the simple menu, and every spec that walks the full navigation would fail naming a missing entry rather than this step."
+	head -c 600 "$STRUCTURE_BODY" >&2 || true
+	exit 1
+fi
+
 # ── 2. Seed the example dataset (and repair a partial import) ────────────────
 # seed-example-data.mjs re-runs the register import through OpenRegister's own
 # endpoints, POSTs individually any schema the bulk import dropped

@@ -5,9 +5,9 @@
 When portaliq is installed, loading an example set MUST leave its school with a portal in portaliq whose `theme` is the matching thematiq example set: po `example-basisschool`, vo `example-voortgezet`, mbo `example-college`, he `example-college`, training `example-opleider`, corporate `example-opleider`. The portal MUST be found by its slug (po `wilgenboom`). A missing portal MUST be created with `status: published`. An existing portal without a theme MUST get the example theme and keep every other field. A portal whose theme is set MUST NOT be changed. Without portaliq nothing MUST be read or written. A failure to write the portal MUST NOT fail the import of the set.
 
 #### Scenario: A set whose school has no portal gets a new themed one
-- **GIVEN** portaliq is installed and no portal has the slug `esdoornveen`
+- **GIVEN** portaliq is installed and no portal has the slug `vaartveld`
 - **WHEN** the operator loads the vo set
-- **THEN** a published portal `esdoornveen` titled "Ouderportaal Esdoornveen" exists with theme `example-voortgezet`
+- **THEN** a published portal `vaartveld` titled "Mijn Vaartveld" exists with theme `example-voortgezet`, or with `vaartveld` when thematiq ships that set (example-portal-declares-its-site)
 - @e2e exclude a write through OpenRegister with no screen of its own, covered by PHPUnit `ExamplePortalProvisionerTest::testAMissingPortalIsCreatedWithTheExampleTheme`
 
 #### Scenario: An existing portal without a theme gets the example theme

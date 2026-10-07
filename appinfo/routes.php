@@ -32,6 +32,7 @@ return [
         // SPA shell — bespoke PageController (role-aware initial state).
         // First-time setup wizard (ADR-042) - the standard CnSetupWizard contract.
         ['name' => 'setup#status',    'url' => '/api/setup/status',            'verb' => 'GET'],
+        ['name' => 'exampleSets#exampleSets', 'url' => '/api/setup/example-sets',   'verb' => 'GET'],
         ['name' => 'setup#runAction', 'url' => '/api/setup/action/{actionId}', 'verb' => 'POST', 'requirements' => ['actionId' => '[a-z0-9\\-]+']],
         ['name' => 'setup#saveConfig', 'url' => '/api/setup/config',           'verb' => 'POST'],
         ['name' => 'page#index',     'url' => '/',            'verb' => 'GET'],
@@ -192,6 +193,19 @@ return [
         ['name' => 'portalAssessment#result',    'url' => '/api/portal/assessments/result', 'verb' => 'POST'],
         // portal-assignment-hand-in-endpoint: a pupil hands in a portal draft; same assertion receiver pattern.
         ['name' => 'portalSubmission#handIn',    'url' => '/api/portal/submissions/hand-in', 'verb' => 'POST'],
+        // an-invited-trainer-may-assess: the trainer's assessment goes through
+        // learniq, because only a forward carries the sign-in level.
+        ['name' => 'portalWerkproces#submit',    'url' => '/api/portal/werkproces-assessments', 'verb' => 'POST'],
+        // internship-hours: the trainer approves or corrects one week of her
+        // student's hours. Same assertion receiver pattern: the assertion is
+        // the only place her sign-in level can be read.
+        ['name' => 'portalHourWeek#approve',     'url' => '/api/portal/hour-weeks/approve', 'verb' => 'POST'],
+        // employer-portal-audience: an employer books places, names a participant for a
+        // place and supplies a missing birth date. Same assertion receiver pattern;
+        // the company is the organisationRef claim portaliq stamps.
+        ['name' => 'portalEmployer#book',            'url' => '/api/portal/employer/bookings',     'verb' => 'POST'],
+        ['name' => 'portalEmployer#addParticipant',  'url' => '/api/portal/employer/participants', 'verb' => 'POST'],
+        ['name' => 'portalEmployer#supplyBirthDate', 'url' => '/api/portal/employer/birth-date',   'verb' => 'POST'],
 
         // Personal timetable — the caller's own sessions for a window, resolved
         // from cohort membership (teacher/learner) via ObjectService (RBAC-scoped).
@@ -317,6 +331,8 @@ return [
         ['name' => 'portalCatalogue#withdraw', 'url' => '/api/portal/catalogue/withdraw', 'verb' => 'POST'],
         // portal-guardian-invitation: the school invites a guardian to the parent portal.
         ['name' => 'portalGuardian#invite', 'url' => '/api/portal/guardians/{guardianRef}/invite', 'verb' => 'POST'],
+        // employer-signs-in-with-eherkenning: the institute invites a client company's contact person.
+        ['name' => 'portalEmployerInvite#invite', 'url' => '/api/portal/employers/{organisationRef}/invite', 'verb' => 'POST'],
         // Double marking (assignments-double-marking): the teacher in charge
         // allocates markers to the handed-in submissions (instructors,
         // compliance officers, team leads or admin, checked in the method), and

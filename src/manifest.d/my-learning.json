@@ -4,7 +4,11 @@
 		"spdx-copyright": "2026 Conduction B.V.",
 		"change": "manifest-fragment-split",
 		"adr": "ADR-037 modular manifest fragment — never edit src/manifest.json",
-		"description": "MyTimetableMenu, MyLearningRecordMenu — the learner self-service section."
+		"description": "MyTimetableMenu, MyLearningRecordMenu — the learner self-service section.",
+		"menuNotes": {
+			"ManagerSignUpRequestsMenu": "A line manager approves their reports' pending self sign-ups (the Enrolment update rule matches managerId) but has no staff role, so SignUpRequestsMenu under People never reaches them. PageController publishes user.managesLearners; the notIn list is the roles that already reach SignUpRequestsMenu (GroupPeople's gate intersected with its own), so nobody sees the entry twice. The admin reaches the requests under People, and a team lead through TeamLeadSignUpRequestsMenu, so both are excluded here too.",
+			"TeamLeadSignUpRequestsMenu": "Team leads may approve pending self sign-ups (the Enrolment update rule lists team-leads), but GroupPeople's gate leaves them out, so SignUpRequestsMenu under People never reaches them. Opening GroupPeople would show them the whole People landing, which is not wanted (Ruben, 2026-09-29); this entry gives them only the requests. A team lead who also manages someone sees only this entry: ManagerSignUpRequestsMenu excludes team-lead."
+		}
 	},
 	"menu": [
 		{
@@ -20,7 +24,6 @@
 			"icon": "AccountGroup",
 			"route": "Enrolments",
 			"order": 29,
-			"_note": "A line manager approves their reports' pending self sign-ups (the Enrolment update rule matches managerId) but has no staff role, so SignUpRequestsMenu under People never reaches them. PageController publishes user.managesLearners; the notIn list is the roles that already reach SignUpRequestsMenu (GroupPeople's gate intersected with its own), so nobody sees the entry twice. The admin reaches the requests under People, and a team lead through TeamLeadSignUpRequestsMenu, so both are excluded here too.",
 			"visibleIf": {
 				"user.managesLearners": true,
 				"user.primaryRole": {
@@ -45,7 +48,6 @@
 			"icon": "AccountGroup",
 			"route": "Enrolments",
 			"order": 30,
-			"_note": "Team leads may approve pending self sign-ups (the Enrolment update rule lists team-leads), but GroupPeople's gate leaves them out, so SignUpRequestsMenu under People never reaches them. Opening GroupPeople would show them the whole People landing, which is not wanted (Ruben, 2026-09-29); this entry gives them only the requests. A team lead who also manages someone sees only this entry: ManagerSignUpRequestsMenu excludes team-lead.",
 			"visibleIf": {
 				"user.primaryRole": {
 					"in": [
@@ -183,7 +185,25 @@
 			"_note": "portable-learning-record: read-only history of LearningRecordExport rows — a learner-initiated, signed, dual-shaped bundle of the learner's own trajectory. No create/edit actions beyond the declarative generate lifecycle action.",
 			"config": {
 				"register": "learniq",
-				"schema": "learning-record-export"
+				"schema": "learning-record-export",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"bundleRef",
+					"bundleSignature",
+					"coverageReport",
+					"errorMessage",
+					"generatedAt",
+					"issuerDid",
+					"lifecycle",
+					"periodFrom",
+					"periodTo",
+					"requestedAt",
+					"requestedBy"
+				]
 			}
 		},
 		{
@@ -267,7 +287,25 @@
 			"_note": "portable-learning-record: read-only history of LearningRecordShare rows — a time-boxed, revocable grant of one generated export to a named external recipient. No create/edit actions beyond the declarative grant/revoke lifecycle actions.",
 			"config": {
 				"register": "learniq",
-				"schema": "learning-record-share"
+				"schema": "learning-record-share",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"accessCount",
+					"expiresAt",
+					"isExpired",
+					"lastAccessedAt",
+					"learningRecordExportId",
+					"lifecycle",
+					"recipientEmail",
+					"recipientName",
+					"revocationReason",
+					"revokedAt",
+					"sharedBy"
+				]
 			}
 		},
 		{

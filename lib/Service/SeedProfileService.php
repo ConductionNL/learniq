@@ -199,7 +199,7 @@ class SeedProfileService {
 	 *
 	 * @param string $profileId The set to import.
 	 *
-	 * @return array{objects: int, profile: string, portal?: array{status: string, slug?: string, theme?: string}} What was imported.
+	 * @return array{objects: int, skipped: int, profile: string, portal?: array{status: string, slug?: string, theme?: string}} What was imported.
 	 *
 	 * @throws RuntimeException When the id is unknown or OpenRegister is absent.
 	 *
@@ -211,6 +211,7 @@ class SeedProfileService {
 			$this->loadedSets->recordFromChoices(setId: $profileId, choices: $this->demoData->listChoices());
 			return [
 				'objects' => (int)($imported['objects'] ?? 0),
+				'skipped' => (int)($imported['skipped'] ?? 0),
 				'profile' => $profileId,
 			];
 		}
@@ -221,7 +222,7 @@ class SeedProfileService {
 		// A second set that ships a regulation code the first one already
 		// created leaves its own row out, so the code stays one row (VCA and
 		// NIS2 in the company and training sets).
-		$this->configurationService()->importFromApp(
+		$result = $this->configurationService()->importFromApp(
 			appId: $this->importAppId(profileId: $profileId),
 			data: $this->sharedCodes->withoutCodesHeldElsewhere(data: $data),
 			version: $this->appManager->getAppVersion(Application::APP_ID),
@@ -242,6 +243,7 @@ class SeedProfileService {
 
 		return [
 			'objects' => $objects,
+			'skipped' => $this->demoData->skippedIn(result: (array)$result),
 			'profile' => $profileId,
 			'portal'  => $portal,
 		];

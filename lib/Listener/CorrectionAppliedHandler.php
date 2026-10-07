@@ -6,14 +6,22 @@
  * Listens for OpenRegister's ObjectTransitionedEvent on a GradeEntry
  * `publish` or `republish`. When an approved DataCorrectionRequest covered
  * that publish (the report period lock guard let it through on it), the
- * request moves to `applied` with who published it and when, and the grade
- * entry names the request in `correctionRequestId`. The grade entry's
- * history then shows the changed value next to the request that holds the
- * requester, the approver and the reason.
+ * request moves to `applied` with who published it and when. The grade
+ * entry already names the request in `correctionRequestId`: the republish
+ * transition's LinkCoveringCorrectionAction wrote it in the publish's own
+ * save. The grade entry's history then shows the changed value next to the
+ * request that holds the requester, the approver and the reason.
  *
- * Both writes run as the system: the publishing teacher may not update a
- * correction request, and the entry link is a fact of the publish, not an
- * edit by that teacher.
+ * The write runs as the system: the publishing teacher may not update a
+ * correction request.
+ *
+ * The move to `applied` is the register's own `apply` transition: its guard
+ * (DataCorrectionDecisionGuard) checks the entry is published with the
+ * approved value, and its StampTransitionActorAction writes appliedBy (the
+ * session user, who is the publisher in this request) and appliedAt. Both
+ * fields are readOnly, and OpenRegister refuses an update that changes a
+ * readOnly property whoever saves, so this handler never sends them (live
+ * pass D10: "Cannot modify readOnly properties: appliedAt, appliedBy").
  *
  * @category Listener
  * @package  OCA\Learniq\Listener
@@ -35,9 +43,6 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use DateTimeImmutable;
-use DateTimeInterface;
-use DateTimeZone;
 use OCA\Learniq\Service\Grading\CorrectionApprovals;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
@@ -105,7 +110,7 @@ class CorrectionAppliedHandler implements IEventListener {
 		}
 
 		try {
-			$this->markApplied(request: $request, entry: $entry, publisher: $publisher);
+			$this->markApplied(request: $request);
 		} catch (Throwable $e) {
 			// The grade is published and the request still reads approved: the
 			// history shows both, and a second publish on it is refused by the
@@ -118,34 +123,26 @@ class CorrectionAppliedHandler implements IEventListener {
 	}//end handle()
 
 	/**
-	 * Move the request to applied and link it from the grade entry.
+	 * Move the request to applied through its `apply` transition.
 	 *
-	 * @param array<string, mixed> $request   The approved correction request.
-	 * @param array<string, mixed> $entry     The published grade entry.
-	 * @param string               $publisher The uid of the person who published.
+	 * @param array<string, mixed> $request The approved correction request.
 	 *
 	 * @return void
 	 */
-	private function markApplied(array $request, array $entry, string $publisher): void {
+	private function markApplied(array $request): void {
 		$requestId = (string)($request['id'] ?? ($request['uuid'] ?? ''));
-		$now       = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
+
+		// The stamp is the `apply` transition's action, run on the save path
+		// after OpenRegister's readOnly check; a value sent here is refused.
+		$move = $request;
+		unset($move['appliedBy'], $move['appliedAt']);
+		$move['lifecycle'] = 'applied';
 
 		$this->objects->saveObject(
-			object: array_merge(
-				$request,
-				['lifecycle' => 'applied', 'appliedBy' => $publisher, 'appliedAt' => $now]
-			),
+			object: $move,
 			register: self::REGISTER,
 			schema: 'data-correction-request',
 			uuid: $requestId,
-			_rbac: false
-		);
-
-		$this->objects->saveObject(
-			object: array_merge($entry, ['correctionRequestId' => $requestId]),
-			register: self::REGISTER,
-			schema: 'grade-entry',
-			uuid: (string)($entry['id'] ?? ($entry['uuid'] ?? '')),
 			_rbac: false
 		);
 	}//end markApplied()

@@ -1,0 +1,1186 @@
+{
+	"_meta": {
+		"spdx-license": "EUPL-1.2",
+		"spdx-copyright": "2026 Conduction B.V.",
+		"description": "The SIMPLE structure profile, and the default one (openspec/changes/simple-structure-profile). `menu-layout.json` is the FULL profile and is untouched: an administrator brings it back with the setting `menu_structure`. Both profiles are built from the same manifest and the same fragments, so nothing is deleted and every page stays routable; this file only decides what the navigation offers first. THE STANDARD KEYS (`removals`, `settingsSection`) go to the library's buildManifest exactly as the full file's do. `relocations` is ABSENT on purpose, and must stay absent rather than become `{}`: the simple menu is flat, and the library's relocation step ends by dropping every entry that has no route, no href, no action and no children, which is what a caption is. THE TWO PROFILE KEYS are read by src/utils/structureProfile.js. `menu` is merged BEFORE the manifest's own menu. buildManifest merges entries by id and the FIRST definition of a key wins, so an entry here that carries only `id` and `order` takes its label, icon, route and visibleIf from the manifest, and an entry the manifest does not know (the three captions, the entries whose id ends in Simple) is added as written. `pages` holds page overlays: `configAppend` appends header links and report cards to pages the simple menu opens. One overlay is of another kind: `Dashboard` carries `when`, `page` and `config`, and turns the page at `/` into the Today dashboard for the roles it names (see its own _note).",
+		"roleNote": "THE MENU FOLLOWS THE ROLE, with the signal learniq already has: `user.primaryRole`, resolved on the server by DashboardRoleService from the Nextcloud groups. A `visibleIf` written here may only NARROW the one the manifest has for that route, never widen it. tests/unit-js/structureProfile.test.mjs builds both profiles for every role and fails when an entry here shows to a role the full menu does not show that page to. The ceiling is ten main entries for every role, twelve for a Nextcloud administrator (who sees the teacher's menu plus Timetables and Compliance), and two more for somebody who is also the confidential counsellor or a line manager.",
+		"simpleIdsNote": "Six entries end in `Simple`. Without a relocation step a child stays under its group, so Learners and Attendance (children of People), Grades (child of Learning), Dossier notes (child of the pupil dossier group), Pick electives and Book a conversation (children of groups this profile empties) cannot be lifted to the top level by id. Each gets a top-level twin here with its own id, and the original is removed by name. GroupsSimple opens a page that had no menu entry at all: Cohorts. The design's Nakijken has no entry: learniq lists submissions per assignment only (`/assignments/:assignmentId/submissions`), so there is no page a menu entry could open.",
+		"removalsNote": "Every leaf of the manifest menu that is not in this profile's main menu, footer or settings. A group with no route disappears once its children are gone. Removed is not unreachable: the header links and report cards in `pages`, the cards on Progress and Compliance and the lists on Lessons and assignments and People link most of them. The ones nothing links yet are listed by name in KNOWN_UNLINKED in the test, per role, waiting for the link-cards hub page.",
+		"settingsNote": "The full profile lifts two entries into the settings foldout. This profile adds the set-up lists (templates, periods, rooms, screens, locations, schools, staff, fees, rounds) and the import, export and exchange tools. Each keeps its own visibleIf."
+	},
+	"removals": [
+		"AbsenceReportsComplianceMenu",
+		"AbsenceReportsMenu",
+		"Accessibility",
+		"AccessibilityFeedbacksMenu",
+		"AccessibilityLimitationsMenu",
+		"AdmissionsReviewBoardMenu",
+		"AiProcessingDisclosureMenu",
+		"ApplicationsMenu",
+		"Assessments",
+		"Assignments",
+		"Attendance",
+		"BehaviourIncidentsMenu",
+		"BookConferenceSlotsMenu",
+		"BpvHourWeeksMenu",
+		"BpvPlacementsMenu",
+		"BpvVisitReportsMenu",
+		"BsaDecisionsMenu",
+		"BsaRiskDashboardMenu",
+		"BsaTrajectoriesMenu",
+		"BsaWarningsMenu",
+		"CareTeamOverviewMenu",
+		"CompetenciesMenu",
+		"CompetencyAttainmentsMenu",
+		"CompetencyFrameworksMenu",
+		"Compliance",
+		"ConferenceReportsMenu",
+		"ConferenceScheduleBoardMenu",
+		"CourseEvaluationResponsesMenu",
+		"CoursePackageImportReportsMenu",
+		"CourseQualityReportMenu",
+		"Courses",
+		"Credentials",
+		"Curriculum",
+		"CurriculumCoverageMenu",
+		"DashboardAdmin",
+		"DashboardDirectorMenu",
+		"DashboardIbMenu",
+		"DashboardMentorMenu",
+		"DashboardStudent",
+		"DashboardTeacher",
+		"DossierNotesMenu",
+		"ElectiveOffersMenu",
+		"EngagementLevelsMenu",
+		"EngagementRiskFlagsMenu",
+		"EngagementRiskThresholdsMenu",
+		"EngagementScoresMenu",
+		"Enrolments",
+		"EvaluationCampaignsMenu",
+		"ExamAccommodationsMenu",
+		"ExamSittingsMenu",
+		"ExemptionCasesMenu",
+		"ExternalAssessorsMenu",
+		"ExternalTraining",
+		"FirstAidIncidentsMenu",
+		"FraudCasesMenu",
+		"GradeCorrectionsMenu",
+		"Grades",
+		"GroupPlans",
+		"GroupTrendHeatmapMenu",
+		"HourPlanActivitiesMenu",
+		"ImportedCoursesMenu",
+		"ImprovementActionsMenu",
+		"InvigilatorAssignmentsMenu",
+		"InvigilatorAvailabilityMenu",
+		"ItemRevisionFlagsMenu",
+		"LeaderboardViewMenu",
+		"LeaderboardsMenu",
+		"LearnerEngagementsMenu",
+		"LearnerProfilesMenu",
+		"LearningPlans",
+		"LessonCompletionsMenu",
+		"PointAwardsMenu",
+		"PointRulesMenu",
+		"PortfolioEntriesMenu",
+		"PortfolioSharesMenu",
+		"PortfolioTemplatesMenu",
+		"PortfoliosMenu",
+		"PraktijkopleidersMenu",
+		"PraktijkovereenkomstenMenu",
+		"PrivacyGovernanceDashboardMenu",
+		"ReportCardsMenu",
+		"ReportConcernMenu",
+		"RollCallMenu",
+		"SchoolAdviezenMenu",
+		"SchoolEventsMenu",
+		"SessionsThisWeekMenu",
+		"SessionsTodayMenu",
+		"SignUpRequestsMenu",
+		"SkillsGapDashboardMenu",
+		"StandbyPlanningMenu",
+		"SubjectChoicePickerMenu",
+		"SubjectChoicesMenu",
+		"SupportRequests",
+		"TeacherAvailabilitiesMenu",
+		"TimetableConflictQueueMenu",
+		"TrajectoriesMenu",
+		"WellbeingCheckInsMenu",
+		"WerkprocesAssessmentsMenu"
+	],
+	"settingsSection": [
+		"XapiStatementsMenu",
+		"Rollover",
+		"LearniqSettingsMenu",
+		"CourseTemplatesMenu",
+		"ReportCardTemplatesMenu",
+		"ReportPeriodsMenu",
+		"ObservationInstrumentsMenu",
+		"LtiToolPlacementsMenu",
+		"RoomsMenu",
+		"DisplayScreensMenu",
+		"Locations",
+		"Schools",
+		"Staff",
+		"FeeItemsMenu",
+		"EntitlementsMenu",
+		"AdmissionsRoundsMenu",
+		"ConferenceRoundsMenu",
+		"ExamPeriodsMenu",
+		"ExchangeJobsMenu",
+		"ExchangeRejectionsMenu",
+		"TeldatumChecksMenu",
+		"ImportExportToolsMenu",
+		"DossierReviewsMenu",
+		"CoursePackageImportMenu",
+		"CoursePackageExportMenu"
+	],
+	"menu": [
+		{
+			"id": "Dashboard",
+			"label": "Today",
+			"order": 10,
+			"icon": "HomeOutline"
+		},
+		{
+			"id": "GroupMyLearning",
+			"order": 12
+		},
+		{
+			"id": "GroupsSimple",
+			"label": "Groups",
+			"icon": "AccountGroupOutline",
+			"route": "Cohorts",
+			"order": 14,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
+		},
+		{
+			"id": "TeachingCaption",
+			"type": "caption",
+			"label": "Teaching",
+			"order": 20
+		},
+		{
+			"id": "MyTimetableMenu",
+			"order": 22
+		},
+		{
+			"id": "TimetablesMenu",
+			"order": 23,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"coordinator",
+						"team-lead",
+						"compliance-officer",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
+		},
+		{
+			"id": "GroupLearning",
+			"label": "Lessons and assignments",
+			"order": 24
+		},
+		{
+			"id": "GradesSimple",
+			"label": "Grades",
+			"icon": "Gauge",
+			"route": "GradeEntries",
+			"order": 26,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"admin"
+					]
+				}
+			}
+		},
+		{
+			"id": "CatalogueMenu",
+			"order": 27,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"hr",
+						"team-lead",
+						"compliance-officer"
+					]
+				}
+			}
+		},
+		{
+			"id": "MyLearningRecordMenu",
+			"order": 28,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"guardian",
+						"hr",
+						"team-lead",
+						"compliance-officer",
+						"confidential-counsellor"
+					]
+				}
+			}
+		},
+		{
+			"id": "CheckInMenu",
+			"order": 29,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner"
+					]
+				}
+			}
+		},
+		{
+			"id": "MyWorkGroupsMenu",
+			"order": 30,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner"
+					]
+				}
+			}
+		},
+		{
+			"id": "MyEvaluationsMenu",
+			"order": 31,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner"
+					]
+				}
+			}
+		},
+		{
+			"id": "MyElectivesMenu",
+			"order": 32,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner"
+					]
+				}
+			}
+		},
+		{
+			"id": "SubjectChoicePickerSimple",
+			"label": "Pick electives",
+			"icon": "Check",
+			"route": "SubjectChoicePicker",
+			"order": 33,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"guardian"
+					]
+				},
+				"workspace.segment": {
+					"in": [
+						"vo",
+						"mbo",
+						"he",
+						"corporate"
+					]
+				},
+				"workspace.chosenSegment": {
+					"notIn": [
+						"corporate"
+					]
+				}
+			}
+		},
+		{
+			"id": "BookConversationSimple",
+			"label": "Book a conversation",
+			"icon": "Calendar",
+			"route": "BookConferenceSlotsView",
+			"order": 34,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"guardian"
+					]
+				},
+				"workspace.chosenSegment": {
+					"notIn": [
+						"corporate"
+					]
+				}
+			}
+		},
+		{
+			"id": "LearnersCaption",
+			"type": "caption",
+			"label": "Learners",
+			"order": 40
+		},
+		{
+			"id": "LearnersSimple",
+			"label": "Learners",
+			"icon": "AccountBox",
+			"route": "LearnerProfiles",
+			"order": 42,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"hr",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
+		},
+		{
+			"id": "AttendanceSimple",
+			"label": "Attendance",
+			"icon": "Calendar",
+			"route": "AttendanceRecords",
+			"order": 44,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"hr",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
+		},
+		{
+			"id": "GroupProgress",
+			"order": 46
+		},
+		{
+			"id": "CareSimple",
+			"label": "Care and dossier",
+			"icon": "AccountHeartOutline",
+			"route": "DossierNotes",
+			"order": 48,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"admin"
+					]
+				}
+			}
+		},
+		{
+			"id": "GroupPeople",
+			"order": 50,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"hr",
+						"administration-manager"
+					]
+				}
+			}
+		},
+		{
+			"id": "GroupCompliance",
+			"order": 52
+		},
+		{
+			"id": "TeamLeadSignUpRequestsMenu",
+			"order": 54
+		},
+		{
+			"id": "ManagerSignUpRequestsMenu",
+			"order": 55
+		},
+		{
+			"id": "RegulationExemptionsMenu",
+			"order": 56,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"compliance-officer",
+						"hr"
+					]
+				},
+				"workspace.segment": {
+					"in": [
+						"corporate",
+						"training"
+					]
+				}
+			}
+		},
+		{
+			"id": "RequestExemptionMenu",
+			"order": 57
+		},
+		{
+			"id": "ConfidentialNotesMenu",
+			"order": 60
+		},
+		{
+			"id": "ConcernReportsMenu",
+			"order": 61
+		}
+	],
+	"nav": {
+		"_note": "The brand block and the primary button of the navigation (LqDashboard, AppZijbalk). The caption is the instance's own theming name and the logo its emblem (thematiq's `nldesign.logos.emblem`, the shield), falling back to the theming logo, resolved at boot by structureProfile.js: no school is written here. The board captions the brand 'Voor docenten'; the caption here is the instance, the way the other apps' boards draw it, until that role caption is decided. Fill in attendance opens the register of today (RollCall), which the Today dashboard already offers, and only for the roles the Today dashboard is for: the library has no gate on a primary action, so the profile judges this one at boot.",
+		"brand": {
+			"name": "learniq",
+			"caption": "@theming.name",
+			"logo": "@theming.emblem|@theming.logo"
+		},
+		"primaryAction": {
+			"label": "Fill in attendance",
+			"icon": "ClipboardCheckOutline",
+			"route": "RollCall",
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"administration-manager",
+						"admin"
+					]
+				}
+			},
+			"solid": true
+		},
+		"help": {
+			"label": "Help and explanation",
+			"href": "https://learniq.conduction.nl"
+		},
+		"footer": [
+			"settings",
+			"help"
+		]
+	},
+	"pages": [
+		{
+			"id": "Dashboard",
+			"_note": "The Today dashboard (openspec/changes/simple-today-dashboard). In the simple structure the page at `/` becomes a typed dashboard for the four roles that teach or run teaching, and stays the role dashboard it was for everybody else and in the full structure. `when` names those roles, `page` changes the page's kind, `config` holds library widgets only. EVERY NUMBER IS A FILTER ON REAL FIELDS, AND THE SAME FILTER AS THE LIST IT OPENS: Lessons today and Lessons this week open the two session lists that carry the same filter themselves; Due this week, Unexcused today and the First today card pass their filter in the address. The card's count filter is written flat, because the library's count source writes a nested operator as JSON. THE BOARD (LqDashboard, 6 October 2026) PUTS THE PAGE IN TWO COLUMNS under the card: a main column eight wide with the lessons of today (an object-table on Session, startsAt today, opening a lesson and the Lessons today list), and the open attendance flags (an object-table on attendance-flag, lifecycle open, opening a flag and the Attendance flags list with the same filter), and a side column four wide with the four counters two by two, as the board draws them (the stacked tile of nextcloud-vue 2.64.0 puts the label on its own line, so two columns hold it; the horizontal card cut it to 'Assignm' and 'Unexcus', seen live 6 October 2026). The board has no week strip, so the simple Today has none (7 October 2026). The flags table carries no 'my groups': the flag names a cohort, not a teacher, and no filter says which cohorts are the reader's. WHAT THE DESIGN SHOWS AND THIS DOES NOT, because learniq has no data or page for it: to mark (submissions are listed per assignment), the present percentage, signals per pupil by name, messages from parents, the filled-in state per lesson and the Docent / Mentor switch. The three role dashboards stay one card away. THE CARD CARRIES `text` EQUAL TO ITS TITLE: nextcloud-vue 2.60.0 collapses any banner whose `content.text` is empty before it looks at `visibleWhen` (CnDashboardPage isCollapsedWidget), so a card with a title and no text could never show. The attention layout draws the title, not the text. A TILE'S `route` IS ALWAYS `{ name }`: a bare string is read as a path, so `SessionsToday` opened `/apps/learniq/SessionsToday`, which is no page (seen in a browser, 5 October 2026). THE OTHER DASHBOARDS CARD DRAWS ITS OWN FRAME: the card grid wraps itself in a titled card (default title Explore), so the dashboard's frame around it is switched off (`showTitle` and `showActions` false on the layout item) and the title is passed to the grid. The grid's own Actions menu has no switch.",
+			"when": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"administration-manager",
+						"admin"
+					]
+				}
+			},
+			"page": {
+				"type": "dashboard",
+				"title": "Today",
+				"component": null
+			},
+			"config": {
+				"allowEdit": false,
+				"description": "Your lessons and what needs you today",
+				"headerActions": [
+					{
+						"id": "open-roll-call",
+						"type": "open-page",
+						"label": "Today's register",
+						"icon": "ClipboardCheckOutline",
+						"target": "RollCall"
+					}
+				],
+				"widgets": [
+					{
+						"id": "today-greeting",
+						"type": "header",
+						"title": "Greeting",
+						"content": {
+							"title": "Today",
+							"showDate": true,
+							"ground": true
+						}
+					},
+					{
+						"id": "today-first",
+						"type": "banner",
+						"title": "First today",
+						"content": {
+							"layout": "attention",
+							"variant": "error",
+							"kicker": "First today",
+							"title": "Attendance flags nobody has picked up",
+							"text": "Attendance flags nobody has picked up",
+							"reason": "{value} attendance flags are still open. Open one to start the follow-up.",
+							"visibleWhen": {
+								"source": {
+									"register": "learniq",
+									"schema": "attendance-flag",
+									"filter": {
+										"lifecycle": "open"
+									}
+								},
+								"op": "gt",
+								"value": 0
+							},
+							"actions": [
+								{
+									"label": "Open the flags",
+									"route": {
+										"name": "AttendanceFlags",
+										"query": {
+											"lifecycle": "open"
+										}
+									}
+								}
+							]
+						}
+					},
+					{
+						"id": "today-lessons-today",
+						"type": "stat",
+						"title": "Lessons today",
+						"content": {
+							"label": "Lessons today",
+							"icon": "Calendar",
+							"format": {
+								"style": "decimal",
+								"decimals": 0
+							},
+							"source": {
+								"register": "learniq",
+								"schema": "Session",
+								"metric": "count",
+								"filter": {
+									"startsAt": {
+										"gte": "@today",
+										"lt": "@today+1d"
+									}
+								}
+							},
+							"route": {
+								"name": "SessionsToday"
+							},
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "today-lessons-week",
+						"type": "stat",
+						"title": "Lessons this week",
+						"content": {
+							"label": "Lessons this week",
+							"icon": "TableClock",
+							"format": {
+								"style": "decimal",
+								"decimals": 0
+							},
+							"source": {
+								"register": "learniq",
+								"schema": "Session",
+								"metric": "count",
+								"filter": {
+									"startsAt": {
+										"gte": "@today",
+										"lt": "@today+7d"
+									}
+								}
+							},
+							"route": {
+								"name": "SessionsThisWeek"
+							},
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "today-due-week",
+						"type": "stat",
+						"title": "Assignments due",
+						"content": {
+							"label": "Assignments due",
+							"icon": "ClipboardTextOutline",
+							"format": {
+								"style": "decimal",
+								"decimals": 0
+							},
+							"source": {
+								"register": "learniq",
+								"schema": "Assignment",
+								"metric": "count",
+								"filter": {
+									"lifecycle": "published",
+									"dueAt": {
+										"gte": "@today",
+										"lt": "@today+7d"
+									}
+								}
+							},
+							"route": {
+								"name": "Assignments",
+								"query": {
+									"lifecycle": "published",
+									"dueAt[gte]": "@today",
+									"dueAt[lt]": "@today+7d"
+								}
+							},
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "today-unexcused",
+						"type": "stat",
+						"title": "Unexcused today",
+						"content": {
+							"label": "Unexcused today",
+							"icon": "AccountAlertOutline",
+							"format": {
+								"style": "decimal",
+								"decimals": 0
+							},
+							"source": {
+								"register": "learniq",
+								"schema": "attendance-record",
+								"metric": "count",
+								"filter": {
+									"status": "absent-unexcused",
+									"markedAt": {
+										"gte": "@today"
+									}
+								}
+							},
+							"route": {
+								"name": "AttendanceRecords",
+								"query": {
+									"status": "absent-unexcused",
+									"markedAt[gte]": "@today"
+								}
+							},
+							"variant": "warning",
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "today-lessons",
+						"type": "object-table",
+						"title": "Lessons today",
+						"content": {
+							"source": {
+								"register": "learniq",
+								"schema": "Session",
+								"filter": {
+									"startsAt": {
+										"gte": "@today",
+										"lt": "@today+1d"
+									}
+								},
+								"order": {
+									"startsAt": "asc"
+								},
+								"limit": 8
+							},
+							"columns": [
+								{
+									"key": "startsAt",
+									"label": "Time",
+									"widget": "date",
+									"widgetProps": {
+										"timeOnly": true
+									},
+									"width": "6rem",
+									"cellClass": "cn-cell--strong"
+								},
+								{
+									"key": "title",
+									"label": "Lesson",
+									"cellClass": "cn-cell--strong"
+								},
+								{
+									"key": "location",
+									"label": "Room",
+									"cellClass": "cn-cell--muted"
+								}
+							],
+							"rowRoute": "SessionDetail",
+							"viewAllRoute": {
+								"name": "SessionsToday"
+							},
+							"viewAllLabel": "View all",
+							"hideHeader": true,
+							"borderless": true,
+							"emptyText": "No lessons today"
+						}
+					},
+					{
+						"id": "today-signals",
+						"type": "object-table",
+						"title": "Open attendance flags",
+						"content": {
+							"source": {
+								"register": "learniq",
+								"schema": "attendance-flag",
+								"filter": {
+									"lifecycle": "open"
+								},
+								"limit": 5
+							},
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Pupil",
+									"widget": "avatar"
+								},
+								{
+									"key": "flagKind",
+									"label": "Signal",
+									"widget": "badge"
+								},
+								{
+									"key": "daysSinceFlag",
+									"label": "Days",
+									"cellClass": "cn-cell--muted"
+								}
+							],
+							"rowRoute": "AttendanceFlagDetail",
+							"viewAllRoute": {
+								"name": "AttendanceFlags",
+								"query": {
+									"lifecycle": "open"
+								}
+							},
+							"viewAllLabel": "View all",
+							"hideHeader": true,
+							"borderless": true,
+							"emptyText": "No open attendance flags"
+						}
+					},
+					{
+						"id": "today-dashboards",
+						"type": "nav-card-grid",
+						"title": "Other dashboards",
+						"content": {
+							"title": "Other dashboards",
+							"entries": [
+								{
+									"id": "DashboardTeacher",
+									"label": "Teaching",
+									"route": "DashboardTeacher",
+									"order": 10,
+									"icon": "Home",
+									"description": "The lists you manage: courses, assignments, sessions and groups",
+									"visibleIf": {
+										"user.canTeachDashboard": {
+											"eq": true
+										}
+									}
+								},
+								{
+									"id": "DashboardStudent",
+									"label": "Learner",
+									"route": "DashboardStudent",
+									"order": 20,
+									"icon": "SchoolOutline",
+									"description": "Your own mandatory training",
+									"visibleIf": {
+										"user.canLearnDashboard": {
+											"eq": true
+										}
+									}
+								},
+								{
+									"id": "DashboardAdmin",
+									"label": "Administration",
+									"route": "DashboardAdmin",
+									"order": 30,
+									"icon": "ShieldAccountOutline",
+									"description": "Figures and lists for the whole organisation",
+									"visibleIf": {
+										"user.canAdminDashboard": {
+											"eq": true
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"layout": [
+					{
+						"id": "t1",
+						"widgetId": "today-greeting",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 1,
+						"showTitle": false,
+						"sizeToContent": true
+					},
+					{
+						"id": "t2",
+						"widgetId": "today-first",
+						"gridX": 0,
+						"gridY": 1,
+						"gridWidth": 12,
+						"gridHeight": 2,
+						"showTitle": false,
+						"sizeToContent": true
+					},
+					{
+						"id": "t3",
+						"widgetId": "today-lessons-today",
+						"gridX": 8,
+						"gridY": 3,
+						"gridWidth": 2,
+						"gridHeight": 2,
+						"showTitle": false,
+						"dateChip": false
+					},
+					{
+						"id": "t4",
+						"widgetId": "today-lessons-week",
+						"gridX": 10,
+						"gridY": 3,
+						"gridWidth": 2,
+						"gridHeight": 2,
+						"showTitle": false,
+						"dateChip": false
+					},
+					{
+						"id": "t5",
+						"widgetId": "today-due-week",
+						"gridX": 8,
+						"gridY": 5,
+						"gridWidth": 2,
+						"gridHeight": 2,
+						"showTitle": false,
+						"dateChip": false
+					},
+					{
+						"id": "t6",
+						"widgetId": "today-unexcused",
+						"gridX": 10,
+						"gridY": 5,
+						"gridWidth": 2,
+						"gridHeight": 2,
+						"showTitle": false,
+						"dateChip": false
+					},
+					{
+						"id": "t9",
+						"widgetId": "today-lessons",
+						"gridX": 0,
+						"gridY": 3,
+						"gridWidth": 8,
+						"gridHeight": 4,
+						"showTitle": true,
+						"headerLink": {
+							"label": "Week timetable",
+							"route": "MyTimetable"
+						}
+					},
+					{
+						"id": "t10",
+						"widgetId": "today-signals",
+						"gridX": 0,
+						"gridY": 7,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": true,
+						"headerLink": {
+							"label": "All learners",
+							"route": "LearnerProfiles"
+						}
+					},
+					{
+						"id": "t8",
+						"widgetId": "today-dashboards",
+						"gridX": 0,
+						"gridY": 12,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false,
+						"showActions": false
+					}
+				],
+				"showHeader": false,
+				"showWidgetActions": false
+			}
+		},
+		{
+			"id": "Cohorts",
+			"configAppend": {
+				"headerActions": [
+					{
+						"id": "open-sessions-today",
+						"label": "Today's sessions",
+						"icon": "Calendar",
+						"handler": "navigate",
+						"route": "SessionsToday"
+					},
+					{
+						"id": "open-sessions-this-week",
+						"label": "This week's sessions",
+						"icon": "Calendar",
+						"handler": "navigate",
+						"route": "SessionsThisWeek"
+					},
+					{
+						"id": "open-report-cards",
+						"label": "Report cards",
+						"icon": "ChartBoxOutline",
+						"handler": "navigate",
+						"route": "ReportCards"
+					}
+				]
+			}
+		},
+		{
+			"id": "GradeEntries",
+			"configAppend": {
+				"headerActions": [
+					{
+						"id": "open-grade-corrections",
+						"label": "Grade corrections",
+						"icon": "FileDocumentEditOutline",
+						"handler": "navigate",
+						"route": "DataCorrectionRequests"
+					}
+				]
+			}
+		},
+		{
+			"id": "LearnerProfiles",
+			"configAppend": {
+				"headerActions": [
+					{
+						"id": "open-enrolments",
+						"label": "Enrolments",
+						"icon": "AccountGroup",
+						"handler": "navigate",
+						"route": "Enrolments"
+					},
+					{
+						"id": "open-credentials",
+						"label": "Credentials",
+						"icon": "Check",
+						"handler": "navigate",
+						"route": "Credentials"
+					},
+					{
+						"id": "open-applications",
+						"label": "Applications",
+						"icon": "ApplicationOutline",
+						"handler": "navigate",
+						"route": "Applications"
+					}
+				]
+			}
+		},
+		{
+			"id": "AttendanceRecords",
+			"configAppend": {
+				"headerActions": [
+					{
+						"id": "open-roll-call",
+						"label": "Today's register",
+						"icon": "ClipboardCheckOutline",
+						"handler": "navigate",
+						"route": "RollCall"
+					},
+					{
+						"id": "open-absence-reports",
+						"label": "Absence reports",
+						"icon": "CalendarRemoveOutline",
+						"handler": "navigate",
+						"route": "ExcuseRequests"
+					}
+				]
+			}
+		},
+		{
+			"id": "DossierNotes",
+			"configAppend": {
+				"headerActions": [
+					{
+						"id": "open-support-requests",
+						"label": "Support requests",
+						"icon": "CommentOutline",
+						"handler": "navigate",
+						"route": "SupportRequests"
+					},
+					{
+						"id": "open-group-plans",
+						"label": "Group plans",
+						"icon": "AccountGroupOutline",
+						"handler": "navigate",
+						"route": "GroupPlans"
+					},
+					{
+						"id": "open-trajectories",
+						"label": "Trajectories",
+						"icon": "MapMarkerPath",
+						"handler": "navigate",
+						"route": "Trajectories"
+					},
+					{
+						"id": "open-behaviour-incidents",
+						"label": "Behaviour incidents",
+						"icon": "AlertOutline",
+						"handler": "navigate",
+						"route": "BehaviourIncidents"
+					},
+					{
+						"id": "open-wellbeing-check-ins",
+						"label": "Wellbeing check-ins",
+						"icon": "BriefcaseOutline",
+						"handler": "navigate",
+						"route": "WellbeingCheckIns"
+					},
+					{
+						"id": "open-first-aid-incidents",
+						"label": "First aid incidents",
+						"icon": "Bandage",
+						"handler": "navigate",
+						"route": "FirstAidIncidents"
+					}
+				]
+			}
+		},
+		{
+			"id": "Reports",
+			"configAppend": {
+				"cards": [
+					{
+						"id": "CoursePackageImportReports",
+						"label": "Course package import reports",
+						"description": "What came in with each imported course package, and what was left out.",
+						"icon": "DatabaseImportOutline",
+						"category": "quality",
+						"route": "CoursePackageImportReports",
+						"visibleIf": {
+							"user.primaryRole": {
+								"in": [
+									"instructor",
+									"coordinator",
+									"administration-manager",
+									"admin"
+								]
+							}
+						}
+					},
+					{
+						"id": "CurriculumCoverageMatrix",
+						"label": "Curriculum coverage",
+						"description": "Which learning goals the lessons cover, and which they miss.",
+						"icon": "TableCheck",
+						"category": "quality",
+						"route": "CurriculumCoverageMatrix",
+						"visibleIf": {
+							"user.primaryRole": {
+								"in": [
+									"instructor",
+									"coordinator",
+									"team-lead",
+									"administration-manager",
+									"admin"
+								]
+							}
+						}
+					},
+					{
+						"id": "ConferenceReports",
+						"label": "Conference reports",
+						"description": "What was agreed in each conversation with parents.",
+						"icon": "ChartBoxOutline",
+						"category": "results",
+						"route": "ConferenceReports",
+						"visibleIf": {
+							"user.primaryRole": {
+								"in": [
+									"instructor",
+									"coordinator",
+									"administration-manager",
+									"admin"
+								]
+							},
+							"workspace.chosenSegment": {
+								"notIn": [
+									"corporate"
+								]
+							}
+						}
+					}
+				]
+			}
+		},
+		{
+			"id": "LearnerProfileDetail",
+			"_note": "Report a concern (Ruben, 7 October 2026): the simple menu leaves it out of the footer, as LqDashboard draws it (Settings and Help only), and offers it here, on the pupil's page, where a member of staff has the worry. It opens the same create form the Report a concern page offers (concern-report), pre-filled with this pupil through `learnerId` (concern-report 0.2.0, optional, so a pupil's own report and every existing report stay valid). The report stays confidential: its read rule is the counsellors and the person who filed it, and the reference opens nothing to anyone else. Pupils and guardians get the same form as a button on their own start page (the Dashboard overlay for those two roles), without the pupil field. /report-a-concern stays a page in both profiles, so a link to it still works. The full profile keeps its menu entry and has no overlay here.",
+			"configAppend": {
+				"headerActions": [
+					{
+						"id": "report-a-concern",
+						"type": "open-form",
+						"label": "Report a concern",
+						"formTitle": "Report a concern",
+						"icon": "ShieldAlertOutline",
+						"register": "learniq",
+						"schema": "concern-report",
+						"successMessage": "Your concern is sent to the confidential counsellor.",
+						"props": {
+							"learnerId": "@objectId"
+						}
+					}
+				]
+			}
+		},
+		{
+			"id": "Dashboard",
+			"_note": "Report a concern for pupils and guardians (Ruben, 7 October 2026): a button on their own start page instead of a menu entry. The page stays the role dashboard it is (LearniqDashboards), which hands `headerActions` to its CnDashboardPage. The same create form as the Report a concern page, without the pupil field: a pupil reports for themselves. Only for the learner and guardian roles; staff report from the pupil's page.",
+			"when": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"guardian"
+					]
+				}
+			},
+			"config": {
+				"headerActions": [
+					{
+						"id": "report-a-concern",
+						"type": "open-form",
+						"label": "Report a concern",
+						"formTitle": "Report a concern",
+						"icon": "ShieldAlertOutline",
+						"variant": "secondary",
+						"register": "learniq",
+						"schema": "concern-report",
+						"excludeFields": [
+							"learnerId"
+						],
+						"successMessage": "Your concern is sent to the confidential counsellor."
+					}
+				]
+			}
+		}
+	]
+}

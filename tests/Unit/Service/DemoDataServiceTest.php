@@ -176,7 +176,7 @@ class DemoDataServiceTest extends TestCase {
 				// Deliberately reports FEWER than the file holds: an object whose
 				// schema does not resolve is skipped, and the operator is told
 				// what was ASKED FOR so the discrepancy stays visible.
-				return ['registers' => [1], 'schemas' => [1, 1]];
+				return ['registers' => [1], 'schemas' => [1, 1], 'skipped' => ['objects' => 0]];
 			}
 		};
 		$this->container->method('get')->willReturn($importer);
@@ -184,6 +184,7 @@ class DemoDataServiceTest extends TestCase {
 		$result = $this->service()->install();
 
 		$this->assertSame(3, $result['objects']);
+		$this->assertSame(0, $result['skipped']);
 		$this->assertSame(1, $result['registers']);
 		$this->assertSame(2, $result['schemas']);
 
@@ -191,5 +192,33 @@ class DemoDataServiceTest extends TestCase {
 		// masked by — a pending real configuration update.
 		$this->assertSame('learniq.demo', $importer->seen['appId']);
 		$this->assertTrue($importer->seen['force']);
+	}
+
+	public function testInstallReportsTheObjectsTheImporterSkipped(): void {
+		// 🔴 LIVE, 2026-10-04: the reply said "Imported 490" while OpenRegister
+		// skipped 302 of them for an unresolved schema. The skips are in the
+		// importer's reply, so the result has to carry them.
+		file_put_contents(
+			$this->descriptor(),
+			json_encode(['components' => ['objects' => [['a' => 1], ['b' => 2], ['c' => 3]]]])
+		);
+
+		$importer = new class {
+			public function importFromApp(string $appId, array $data, string $version, bool $force): array {
+				return ['registers' => [], 'schemas' => [], 'skipped' => ['objects' => 2, 'seedObjects' => 0]];
+			}
+		};
+		$this->container->method('get')->willReturn($importer);
+
+		$result = $this->service()->install();
+
+		$this->assertSame(3, $result['objects']);
+		$this->assertSame(2, $result['skipped']);
+	}
+
+	public function testSkippedInAddsBothObjectBucketsAndToleratesAMissingBlock(): void {
+		$this->assertSame(5, $this->service()->skippedIn(result: ['skipped' => ['objects' => 2, 'seedObjects' => 3]]));
+		$this->assertSame(0, $this->service()->skippedIn(result: []));
+		$this->assertSame(0, $this->service()->skippedIn(result: ['skipped' => 'none']));
 	}
 }

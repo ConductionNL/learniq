@@ -37,6 +37,8 @@
 		:registry="registry"
 		:pageTypes="pageTypes"
 		:customComponents="headerActionHandlers"
+		:formatters="formatters"
+		:cellWidgets="cellWidgets"
 		appId="learniq"
 		:translate="translateForApp"
 		:initialOrganisationUuid="callerTenant">
@@ -57,10 +59,13 @@
 
 <script>
 import { CnAppRoot } from '@conduction/nextcloud-vue'
-import { translate as ncT } from '@nextcloud/l10n'
+import { getCanonicalLocale, translate as ncT } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
+import { markRaw } from 'vue'
+import LearnerNameCell from './components/cells/LearnerNameCell.vue'
 import LearniqNotificationSettings from './views/LearniqNotificationSettings.vue'
 import { createConnectionHandlers } from './utils/connectionRegistry.js'
+import { createFormatters } from './utils/timeBlocks.js'
 
 export default {
 	name: 'App',
@@ -124,6 +129,19 @@ export default {
 				generateUrl,
 				assign: (url) => window.location.assign(url),
 			}),
+
+			/**
+			 * List column formatters learniq adds to the library's built-ins,
+			 * by the id a manifest column names in `formatter`.
+			 */
+			formatters: createFormatters(getCanonicalLocale),
+
+			/**
+			 * List cell widgets learniq adds, by the id a manifest column
+			 * names in `widget`. `learnerName` shows a pupil by the name on
+			 * their learner profile (lists-read-pupil-names).
+			 */
+			cellWidgets: { learnerName: markRaw(LearnerNameCell) },
 		}
 	},
 

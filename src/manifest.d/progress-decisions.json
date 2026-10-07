@@ -209,7 +209,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "ectsEarned",
@@ -305,7 +306,28 @@
 			"config": {
 				"register": "learniq",
 				"schema": "bsa-progress-flag",
-				"readOnly": true
+				"readOnly": true,
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					{
+						"key": "programmeId",
+						"label": "Programme",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "programme"
+						}
+					},
+					"academicYear",
+					"ectsEarned",
+					"ectsRequiredAtCheck",
+					"flaggedAt",
+					"lifecycle"
+				]
 			}
 		},
 		{
@@ -380,7 +402,25 @@
 			"title": "BSA warnings",
 			"config": {
 				"register": "learniq",
-				"schema": "bsa-warning"
+				"schema": "bsa-warning",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"academicYear",
+					"bsaProgressFlagId",
+					"ectsEarnedAtWarning",
+					"ectsNormAtWarning",
+					"lifecycle",
+					"offeredGuidance",
+					"personalCircumstancesNote",
+					"programmeId",
+					"signature",
+					"signingKeyId",
+					"warningDate"
+				]
 			}
 		},
 		{
@@ -457,7 +497,30 @@
 			"title": "BSA decisions",
 			"config": {
 				"register": "learniq",
-				"schema": "bsa-decision"
+				"schema": "bsa-decision",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"academicYear",
+					"decidedBy",
+					"decisionDate",
+					"decisionType",
+					"ectsAchieved",
+					"ectsNormRequired",
+					"lifecycle",
+					"personalCircumstancesConsidered",
+					"personalCircumstancesNote",
+					"programmeId",
+					"rationale",
+					"signature",
+					"signingKeyId",
+					"studentHeardAt",
+					"studentResponse",
+					"warningIds"
+				]
 			}
 		},
 		{

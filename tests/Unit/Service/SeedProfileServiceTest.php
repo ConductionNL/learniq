@@ -248,7 +248,7 @@ class SeedProfileServiceTest extends TestCase {
 
 		$result = $this->service(container: $container, portals: $portals)->install('po');
 
-		self::assertSame(['objects' => 3, 'profile' => 'po', 'portal' => $portalAnswer], $result);
+		self::assertSame(['objects' => 3, 'skipped' => 0, 'profile' => 'po', 'portal' => $portalAnswer], $result);
 		self::assertSame('learniq.profile.po', $importer->call['appId']);
 		self::assertSame('profile', $importer->call['data']['x-openregister']['type']);
 		self::assertTrue($importer->call['force']);
@@ -266,7 +266,7 @@ class SeedProfileServiceTest extends TestCase {
 			->onlyMethods(['provision'])
 			->getMock();
 		$portals->expects(self::never())->method('provision');
-		self::assertSame(['objects' => 405, 'profile' => 'demo'], $this->service(portals: $portals)->install('demo'));
+		self::assertSame(['objects' => 405, 'skipped' => 0, 'profile' => 'demo'], $this->service(portals: $portals)->install('demo'));
 
 		try {
 			$this->service()->install('vo');

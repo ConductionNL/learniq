@@ -26,7 +26,9 @@
     "check:menu-role-gates": "node tests/validate-menu-role-gates.js",
     "check:json-strict": "node tests/validate-json-strict.js",
     "check:l10n": "node tests/l10n/check-l10n-parity.js --ratchet",
-    "check:specs": "npm run check:json-strict && npm run check:manifest && npm run check:register && npm run check:menu-role-gates && npm run check:l10n",
+    "check:structure-profile": "node --test tests/unit-js/structureProfile.test.mjs",
+    "check:attention": "node --test tests/unit-js/attentionDeclaration.test.mjs",
+    "check:specs": "npm run check:json-strict && npm run check:manifest && npm run check:register && npm run check:menu-role-gates && npm run check:structure-profile && npm run check:attention && npm run check:l10n",
     "seed:e2e": "node tests/e2e/seed-example-data.mjs",
     "test:js-unit": "node --test tests/unit-js/*.test.mjs",
     "prepare": "git config core.hooksPath .githooks || true"
@@ -37,7 +39,7 @@
   "dependencies": {
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.5",
-    "@conduction/nextcloud-vue": "^2.58.0",
+    "@conduction/nextcloud-vue": "^2.67.0",
     "@nextcloud/auth": "^2.5.0",
     "@nextcloud/axios": "~2.6.0",
     "@nextcloud/capabilities": "^1.2.1",

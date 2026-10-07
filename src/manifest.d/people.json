@@ -4,7 +4,11 @@
 		"spdx-copyright": "2026 Conduction B.V.",
 		"change": "manifest-fragment-split",
 		"adr": "ADR-037 modular manifest fragment — never edit src/manifest.json",
-		"description": "GroupPeople. Also carries the former people-dashboard.json content (GroupPeople.route + the PeopleDashboard page)."
+		"description": "GroupPeople. Also carries the former people-dashboard.json content (GroupPeople.route + the PeopleDashboard page).",
+		"menuNotes": {
+			"RollCallMenu": "attendance-roll-call: the day's register of one group. A group teacher lands on their own group and today; coordinators and administration-managers pick any group. The server (RollCallService) decides who may open which group, so the gate here only decides who sees the entry.",
+			"AbsenceReportsMenu": "The absence reports guardians and the school file (ExcuseRequest). The list reads only what the register lets the user read: a group teacher sees the reports of their own groups (teacherIds), coordinators and directors the whole school. hr is left out because ExcuseRequest does not grant it. Compliance officers can read the reports too, but GroupPeople does not reach them, so AbsenceReportsComplianceMenu gives them the same page under Compliance. School-only, like the AttendanceFlags report card."
+		}
 	},
 	"menu": [
 		{
@@ -88,8 +92,7 @@
 								"admin"
 							]
 						}
-					},
-					"_note": "attendance-roll-call: the day's register of one group. A group teacher lands on their own group and today; coordinators and administration-managers pick any group. The server (RollCallService) decides who may open which group, so the gate here only decides who sees the entry."
+					}
 				},
 				{
 					"id": "Attendance",
@@ -129,8 +132,7 @@
 								"corporate"
 							]
 						}
-					},
-					"_note": "The absence reports guardians and the school file (ExcuseRequest). The list reads only what the register lets the user read: a group teacher sees the reports of their own groups (teacherIds), coordinators and directors the whole school. hr is left out because ExcuseRequest does not grant it. Compliance officers can read the reports too, but GroupPeople does not reach them, so AbsenceReportsComplianceMenu gives them the same page under Compliance. School-only, like the AttendanceFlags report card."
+					}
 				},
 				{
 					"id": "Credentials",
@@ -220,7 +222,38 @@
 			"title": "Enrolments",
 			"config": {
 				"register": "learniq",
-				"schema": "Enrolment"
+				"schema": "Enrolment",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					{
+						"key": "cohortId",
+						"label": "Group",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "cohort"
+						}
+					},
+					"lifecycle",
+					{
+						"key": "dueDate",
+						"label": "Due Date",
+						"formatter": "date"
+					}
+				]
 			}
 		},
 		{
@@ -230,7 +263,58 @@
 			"title": "Credentials",
 			"config": {
 				"register": "learniq",
-				"schema": "Credential"
+				"schema": "Credential",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "learner-profile"
+						}
+					},
+					"competencyIds",
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					"daysUntilExpiry",
+					"enrolmentId",
+					"expiresAt",
+					"expiryStatus",
+					"isExpired",
+					"isExpiringIn30Days",
+					"isExpiringIn90Days",
+					"isOpenBadgesV3Signed",
+					"issuedAt",
+					"issuedBy",
+					"issuerDid",
+					"kind",
+					"lifecycle",
+					"regulationSlug",
+					"reissueCount",
+					"reissuedAt",
+					"reissuedBy",
+					"reissueReason",
+					"reissueRunId",
+					"renewalEnrolmentId",
+					"revocationReason",
+					"signature",
+					"source",
+					"verificationUrl",
+					"walletAttestationRef",
+					"walletClaimedAt",
+					"walletOfferedAt",
+					"walletOfferError",
+					"walletOfferNote",
+					"walletOfferStatus"
+				]
 			}
 		},
 		{
@@ -971,10 +1055,33 @@
 				"schema": "attendance-record",
 				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly so the platform's built-in mass import/export/copy/delete (CnIndexPage showMass*) is a documented capability of this index, not an implicit default (findings 12.6/14.7).",
 				"columns": [
-					"learnerId",
-					"cohortId",
-					"status",
-					"markedAt"
+					{
+						"key": "learnerRef",
+						"label": "Learner",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "learner-profile"
+						}
+					},
+					{
+						"key": "cohortId",
+						"label": "Group",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "cohort"
+						}
+					},
+					{
+						"key": "status",
+						"label": "Status"
+					},
+					{
+						"key": "markedAt",
+						"label": "Marked At",
+						"formatter": "date"
+					}
 				],
 				"actionToggles": {
 					"showMassImport": true,
@@ -1079,7 +1186,36 @@
 			"title": "Excuse requests",
 			"config": {
 				"register": "learniq",
-				"schema": "excuse-request"
+				"schema": "excuse-request",
+				"columns": [
+					{
+						"key": "learnerRef",
+						"label": "Learner",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "learner-profile"
+						}
+					},
+					{
+						"key": "dateFrom",
+						"label": "From",
+						"formatter": "date"
+					},
+					{
+						"key": "dateTo",
+						"label": "To",
+						"formatter": "date"
+					},
+					{
+						"key": "reasonKind",
+						"label": "Kind of reason"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					}
+				]
 			}
 		},
 		{
@@ -1249,7 +1385,37 @@
 			"title": "Attendance thresholds",
 			"config": {
 				"register": "learniq",
-				"schema": "attendance-threshold"
+				"schema": "attendance-threshold",
+				"columns": [
+					"active",
+					"checkedBreachingRecordIds",
+					{
+						"key": "checkedLearnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"checkedMetricValue",
+					"checkedWindowEnd",
+					"checkedWindowStart",
+					{
+						"key": "cohortId",
+						"label": "Group",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "cohort"
+						}
+					},
+					"isThresholdCrossed",
+					"kind",
+					"lessonHourMinutes",
+					"lifecycle",
+					"limit",
+					"metric",
+					"name",
+					"scope",
+					"unexcusedLesuren"
+				]
 			}
 		},
 		{
@@ -1312,11 +1478,17 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "cohortId",
-									"label": "Cohort ID"
+									"label": "Group",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "cohort"
+									}
 								},
 								{
 									"key": "metricValue",
@@ -1408,7 +1580,30 @@
 			"config": {
 				"register": "learniq",
 				"schema": "attendance-flag",
-				"readOnly": true
+				"readOnly": true,
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					{
+						"key": "cohortId",
+						"label": "Group",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "cohort"
+						}
+					},
+					"flagKind",
+					"metricValue",
+					"windowStart",
+					"windowEnd",
+					"reportDeadlineAt",
+					"reportOverdue",
+					"lifecycle"
+				]
 			}
 		},
 		{

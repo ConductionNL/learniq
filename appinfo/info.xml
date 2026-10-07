@@ -68,7 +68,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
 
 **Ondersteuning:** support@conduction.nl
     ]]></description>
-    <version>0.3.8-beta.20261003061936</version>
+    <version>0.3.9-beta.20261005130000</version>
     <licence>EUPL-1.2</licence>
     <author mail="info@conduction.nl" homepage="https://www.conduction.nl/">Conduction</author>
     <namespace>Learniq</namespace>
@@ -105,7 +105,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
         lib/Settings/learniq_register.json, as noted above.
         -->
         <php min-version="8.3" max-version="8.4"/>
-        <nextcloud min-version="32" max-version="34"/>
+        <nextcloud min-version="32" max-version="35"/>
     </dependencies>
 
     <background-jobs>
@@ -121,6 +121,11 @@ Vrij en open source onder de EUPL-1.2-licentie.
              of the last EUDI wallet offer. Sends nothing when integriq is not
              installed. -->
         <job>OCA\Learniq\BackgroundJob\ConnectionReportJob</job>
+        <!-- Every 15 minutes: removes course-evaluation-response rows left in
+             draft for longer than learniq.evaluation_draft_max_age_seconds
+             (default 3600, floor 600). A draft lives for one request; one a
+             crash leaves behind is readable by every signed-in user. -->
+        <job>OCA\Learniq\BackgroundJob\CourseEvaluationDraftCleanupJob</job>
     </background-jobs>
 
     <repair-steps>
@@ -259,6 +264,15 @@ Vrij en open source onder de EUPL-1.2-licentie.
             -->
             <step>OCA\Learniq\Repair\BackfillLvsResultLearnerRef</step>
             <!--
+                learning-record-own-rows: stamps the student's user id on
+                werkproces assessments written before the server did it on
+                every write, so the student can read their own confirmed
+                assessments. After InitializeSettings (the register must
+                exist). Idempotent; a row whose placement names nobody is
+                left alone.
+            -->
+            <step>OCA\Learniq\Repair\BackfillWerkprocesAssessmentLearner</step>
+            <!--
                 default-tenant fallback (Ruben, 2026-09-29, option A): an unbound
                 user's tenant used to be the instance id, which is not a UUID and
                 matched no seeded row. Moves rows that carry it to the default
@@ -284,6 +298,14 @@ Vrij en open source onder de EUPL-1.2-licentie.
                 next upgrade.
             -->
             <step>OCA\Learniq\Repair\BackfillSubmissionLearnerRefs</step>
+            <!--
+                absence-and-booking-fields-are-required: writes learnerRef on
+                stored absence reports and conference signups that lack it, so
+                they still save now that the schemas require it. Before
+                BackfillExcuseRequestTeachers, whose writes need it. After
+                InitializeSettings. Idempotent: a second run saves nothing.
+            -->
+            <step>OCA\Learniq\Repair\BackfillRequiredLearnerRefs</step>
             <!--
                 excuse-reports-follow-the-pupils-group: stamps teacherIds (the
                 teachers of the pupil's current groups) on absence reports
@@ -311,6 +333,23 @@ Vrij en open source onder de EUPL-1.2-licentie.
                 saves nothing.
             -->
             <step>OCA\Learniq\Repair\BackfillAttendanceSummaries</step>
+            <!--
+                site-guardian-portal-design, site-external-assessor-portal-design:
+                writes courseName on grade entries, cohortName on enrolments,
+                portfolioTitle and learnerName on portfolio shares, and
+                teacherName on teacher availability (teacher-availability-reads-words)
+                written before the server did. After InitializeSettings (the register
+                must declare the fields). Idempotent: a second run saves nothing.
+            -->
+            <step>OCA\Learniq\Repair\BackfillReadableCopies</step>
+            <!--
+                pupils-read-by-name: saves every learner profile stored before
+                the schema named its objects from the given and family name,
+                so OpenRegister computes the name a teacher's list reads. After
+                InitializeSettings (the register must declare the template).
+                Idempotent: a second run saves nothing.
+            -->
+            <step>OCA\Learniq\Repair\BackfillLearnerProfileNames</step>
         </post-migration>
         <install>
             <!--
@@ -338,9 +377,13 @@ Vrij en open source onder de EUPL-1.2-licentie.
         <command>OCA\Learniq\Command\RecomputeCurriculumCoverage</command>
         <!-- portal-guardian-invitation: links a guardian to the parent portal. -->
         <command>OCA\Learniq\Command\PortalInviteGuardianCommand</command>
+        <command>OCA\Learniq\Command\PortalInviteTrainerCommand</command>
+        <command>OCA\Learniq\Command\PortalInviteAssessorCommand</command>
+        <command>OCA\Learniq\Command\PortalInviteEmployerCommand</command>
         <!-- example-sets-themed-portal: gives a loaded example set its themed portal
              without importing the set again. -->
         <command>OCA\Learniq\Command\ExampleSetPortalCommand</command>
+        <command>OCA\Learniq\Command\ExampleSetLoadCommand</command>
     </commands>
 
     <settings>
