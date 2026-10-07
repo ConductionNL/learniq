@@ -95,9 +95,9 @@ A choice counts once it names who made it. The wizard always records you. If you
 
 Loading a set twice adds nothing, because every example object has a fixed id. Loading two sets that ship the same regulation, such as the company and the training set with VCA and NIS2, keeps one row per regulation: the set you load second uses the row the first one made.
 
-To remove a set again, open the setup wizard and go to the end. Every set you loaded has its own step, **Remove the example set "..."**, with its own button; click the one for the set you want gone. On an install where no set was loaded before this visit, the wizard shows one step, **Remove the example data**, for the set you pick now. The example objects move to the trash of OpenRegister, so you can restore them; anything you made yourself stays. The step never runs by itself. Only an administrator or a member of `administration-managers` can choose the kind of organisation in the wizard.
+The setup wizard only loads example data; it does not remove it. Only an administrator or a member of `administration-managers` can choose the kind of organisation in the wizard.
 
-On an OpenRegister that cannot remove imports from the wizard, or for a set loaded before it could, the step tells you to run the command on the server instead. It shows what it would remove; add `--apply` to remove it:
+To remove a set again, run the command on the server. It shows what it would remove; add `--apply` to remove it:
 
 ```bash
 php occ learniq:example-set:remove po

@@ -31,7 +31,6 @@ import menuLayoutSimple from './menu-layout.simple.json'
 import pinia from './pinia.js'
 import registry from './registry.js'
 import { normaliseCallerTenant } from './utils/callerTenant.js'
-import { applyExampleSetRemovalSteps } from './utils/exampleSetSteps.js'
 import { applyIntegrationTitles } from './utils/integrationTitles.js'
 import { applyReportCardGates } from './utils/reportCardGates.js'
 import { applyStoreAccess } from './utils/storeAccess.js'
@@ -256,15 +255,6 @@ applyStoreAccess(mergedManifest, loadState('learniq', 'storeAccess', null))
 // Contact moments) gets its manifest title there too: the host passes only
 // `title`, so LearnerProfileDetail's "Contact card" rendered as "Contacts".
 applyIntegrationTitles(mergedManifest)
-
-// The setup wizard gets one removal step per loaded example set, each with
-// its own button (D34). The shared wizard's run-action step posts no body,
-// so a step can only remove the one set its action id names.
-applyExampleSetRemovalSteps(
-	mergedManifest,
-	loadState('learniq', 'loadedExampleSets', []),
-	(text, vars) => t('learniq', text, vars),
-)
 
 /**
  * The router base for THIS page load.
