@@ -220,55 +220,51 @@
                   "label": "Incompany",
                   "href": "/incompany"
                 }
-              ]
-            }
-          },
-          {
-            "id": "wa-home-02-nleventlist",
-            "widgetKey": "nlEventList",
-            "gridX": 0,
-            "gridY": 4,
-            "gridWidth": 12,
-            "gridHeight": 3,
-            "props": {
-              "heading": "Eerstvolgende cursusdagen",
-              "subtitle": "Praktijkhal Zuiddrecht",
-              "display": "tiles",
-              "upcomingOnly": false,
-              "limit": 3,
-              "items": [
-                {
-                  "date": "2026-10-08",
-                  "title": "F-gassen: herhaling en examen",
-                  "meta": "Donderdag · 1 dag · certificaat",
-                  "note": "Nog 1 plek",
-                  "noteTone": "warning",
-                  "href": "/cursusaanbod"
-                },
-                {
-                  "date": "2026-10-15",
-                  "title": "Waterzijdig inregelen",
-                  "meta": "Donderdag · 1 dag · basis",
-                  "note": "6 plekken vrij",
-                  "noteTone": "positive",
-                  "href": "/cursusaanbod"
-                },
-                {
-                  "date": "2026-10-20",
-                  "endDate": "2026-10-21",
-                  "title": "Warmtepompen installeren: basis",
-                  "meta": "Dinsdag en woensdag · 2 dagen · basis",
-                  "note": "Nog 3 plekken",
-                  "noteTone": "warning",
-                  "href": "/cursusaanbod"
-                }
               ],
-              "moreLabel": "Alle cursussen en data",
-              "moreHref": "/cursusaanbod",
-              "source": {
-                "types": [
-                  "course"
-                ]
+              "aside": {
+                "widgetKey": "nlEventList",
+                "props": {
+                  "heading": "Eerstvolgende cursusdagen",
+                  "subtitle": "Praktijkhal Zuiddrecht",
+                  "display": "tiles",
+                  "upcomingOnly": false,
+                  "limit": 3,
+                  "items": [
+                    {
+                      "date": "2026-10-08",
+                      "title": "F-gassen: herhaling en examen",
+                      "meta": "Donderdag · 1 dag · certificaat",
+                      "note": "Nog 1 plek",
+                      "noteTone": "warning",
+                      "href": "/cursusaanbod"
+                    },
+                    {
+                      "date": "2026-10-15",
+                      "title": "Waterzijdig inregelen",
+                      "meta": "Donderdag · 1 dag · basis",
+                      "note": "6 plekken vrij",
+                      "noteTone": "positive",
+                      "href": "/cursusaanbod"
+                    },
+                    {
+                      "date": "2026-10-20",
+                      "endDate": "2026-10-21",
+                      "title": "Warmtepompen installeren: basis",
+                      "meta": "Dinsdag en woensdag · 2 dagen · basis",
+                      "note": "Nog 3 plekken",
+                      "noteTone": "warning",
+                      "href": "/cursusaanbod"
+                    }
+                  ],
+                  "moreLabel": "Alle cursussen en data",
+                  "moreHref": "/cursusaanbod",
+                  "source": {
+                    "types": [
+                      "course"
+                    ]
+                  },
+                  "portal": "warmtepompacademie"
+                }
               }
             }
           },
@@ -276,7 +272,7 @@
             "id": "wa-home-02a-nlheading",
             "widgetKey": "nlHeading",
             "gridX": 0,
-            "gridY": 7,
+            "gridY": 4,
             "gridWidth": 8,
             "gridHeight": 1,
             "props": {
@@ -288,7 +284,7 @@
             "id": "wa-home-04-nlsignin",
             "widgetKey": "nlSignIn",
             "gridX": 8,
-            "gridY": 7,
+            "gridY": 4,
             "gridWidth": 4,
             "gridHeight": 6,
             "props": {
@@ -308,7 +304,7 @@
             "id": "wa-home-02b-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 8,
+            "gridY": 5,
             "gridWidth": 8,
             "gridHeight": 1,
             "props": {
@@ -319,7 +315,7 @@
             "id": "wa-home-03-nllist",
             "widgetKey": "nlList",
             "gridX": 0,
-            "gridY": 9,
+            "gridY": 6,
             "gridWidth": 8,
             "gridHeight": 4,
             "props": {
@@ -345,7 +341,7 @@
             "id": "wa-home-05-nlbuttonlink",
             "widgetKey": "nlButtonLink",
             "gridX": 0,
-            "gridY": 13,
+            "gridY": 10,
             "gridWidth": 4,
             "gridHeight": 1,
             "props": {
@@ -358,7 +354,7 @@
             "id": "wa-home-06-markdown",
             "widgetKey": "markdown",
             "gridX": 0,
-            "gridY": 14,
+            "gridY": 11,
             "gridWidth": 12,
             "gridHeight": 3,
             "props": {

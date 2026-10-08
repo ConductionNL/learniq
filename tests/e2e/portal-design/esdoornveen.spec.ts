@@ -11,9 +11,10 @@
  * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
  * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md
  * @spec openspec/changes/portal-board-checks-run-on-a-real-instance/specs/example-sets/spec.md#requirement-the-board-checks-run-against-any-instance-that-loaded-the-sets
+ * @spec openspec/changes/school-portals-match-their-boards/specs/example-sets/spec.md#requirement-the-portal-declarations-follow-their-boards
  */
 
-import { test } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { siteUrl } from '../helpers/portal-fixture.ts'
 import {
 	boardShot,
@@ -62,6 +63,8 @@ test.describe('esdoornveen: the website', () => {
 			'Voor leerbedrijven',
 			...FOOTER,
 		])
+		// The place of the photo beside the hero text (portaliq hero-aside).
+		await expect(page.getByTestId('hero-aside')).toBeVisible()
 		await expectWidgetOrder(page, [
 			'nlBanner',
 			'hero',
