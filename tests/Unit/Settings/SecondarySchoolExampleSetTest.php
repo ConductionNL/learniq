@@ -891,7 +891,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 		$appManager->method('getAppPath')->willReturn(dirname(__DIR__, 3));
 		$demo = $this->createMock(DemoDataService::class);
 		$demo->method('listChoices')->willReturn([]);
-		$service = new SeedProfileService($appManager, $this->createMock(ContainerInterface::class), $this->createMock(LoggerInterface::class), $demo, $this->createMock(\OCA\Learniq\Service\SharedCodeFilter::class), $this->createMock(\OCA\Learniq\Service\LoadedExampleSets::class), $this->createMock(\OCA\Learniq\Portal\ExamplePortalProvisioner::class));
+		$service = new SeedProfileService($appManager, $this->createMock(ContainerInterface::class), $this->createMock(LoggerInterface::class), $demo, $this->createMock(\OCA\Learniq\Service\SharedCodeFilter::class), $this->createMock(\OCA\Learniq\Service\LoadedExampleSets::class), $this->createMock(\OCA\Learniq\Portal\ExamplePortalProvisioner::class), $this->createMock(\OCA\Learniq\Service\ExampleSetDates::class));
 
 		$offered = array_values(array_filter($service->listChoices(), static fn (array $c): bool => $c['id'] === 'vo'))[0];
 		self::assertSame('Secondary school', $offered['label']);
