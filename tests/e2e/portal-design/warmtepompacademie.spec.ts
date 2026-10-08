@@ -187,6 +187,13 @@ test.describe('warmtepompacademie: Mijn academie (Linda Jansen, employer)', () =
 		await expectTexts(page, [
 			'Lucht-water warmtepomp: ontwerp en inbedrijfstelling',
 			'Waterzijdig inregelen',
+		])
+		// The board's Detail is one booking opened: its participants and the birth date form.
+		await page
+			.getByRole('link', { name: /F-gassen: herhaling en examen/ })
+			.first()
+			.click()
+		await expectTexts(page, [
 			'Geboortedatum ontbreekt',
 			dated('Certificaat geldig tot 30 november 2026'),
 			'Geboortedatum invullen',
