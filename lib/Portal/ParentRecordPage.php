@@ -182,11 +182,12 @@ class ParentRecordPage {
 	 *
 	 * @spec openspec/changes/portal-parent-child-record/specs/portal-contribution/spec.md#requirement-a-guardian-opens-one-child-and-sees-everything-about-them
 	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
+	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-holds-only-what-the-board-shows
 	 */
 	public function pages(array $collections, array $actions, ParentPortalCollections $sections): array {
 		$site = new ParentSitePages();
 		$pages = [
-			$site->overviewPage(sources: $this->childSources(), figures: $this->attendanceFigures()),
+			$site->overviewPage(sources: $this->childSources()),
 			$site->perChild(page: $this->recordPage()),
 			$site->absencePage(figures: $this->attendanceFigures()),
 			$site->conferencesPage(),
@@ -354,6 +355,8 @@ class ParentRecordPage {
 	 * the child's parent-teacher conversations.
 	 *
 	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-holds-only-what-the-board-shows
 	 */
 	private function childSources(): array {
 		$school = ['recordField' => 'schoolId', 'recordKey' => 'schoolId'];
@@ -387,10 +390,13 @@ class ParentRecordPage {
 				$school
 			),
 			[
+				// A fixed title with the teacher under it: `slotLabel` is the
+				// time picker's raw line ("29-10-2026 18:00-18:10, Meester
+				// Daan") and read as a code on the calendar (portal proof run 1).
 				'collection' => 'parentConferenceSlots',
 				'startField' => 'startsAt',
 				'endField' => 'endsAt',
-				'titleField' => 'slotLabel',
+				'metaField' => 'teacherName',
 				'title' => 'Parent-teacher conversation',
 				'kind' => 'Parent evening',
 				'recordField' => 'learnerRef',

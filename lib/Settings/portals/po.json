@@ -434,6 +434,18 @@
                 }
               ]
             }
+          },
+          {
+            "id": "wb-home-07-nllinkcolumns",
+            "widgetKey": "nlLinkColumns",
+            "gridX": 0,
+            "gridY": 16,
+            "gridWidth": 12,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Over onze school",
+              "columns": []
+            }
           }
         ]
       }

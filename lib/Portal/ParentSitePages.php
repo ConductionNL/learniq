@@ -52,8 +52,9 @@ class ParentSitePages {
 	 * The overview, in the order of the board (school-design wilgenboom,
 	 * MijnOverzicht): the greeting with today's date and the absence action,
 	 * what the guardian still has to do, the children as cards, the newest
-	 * school news, this month's calendar, then the chosen child's figures,
-	 * absence reports, grades and messages.
+	 * school news and this month's calendar. Nothing else: the board has no
+	 * figures, absence reports, grades or messages here; those live on each
+	 * child's own pages (portal proof run 1, defect 11).
 	 *
 	 * The greeting, the highlight display, the cards keys and the calendar
 	 * tiles are the block contract of lane L2 (portaliq `site-school-blocks`);
@@ -62,15 +63,14 @@ class ParentSitePages {
 	 * in a list that is never projected.
 	 *
 	 * @param array<int, array<string, mixed>> $sources The child's calendar sources.
-	 * @param array<string, mixed>             $figures The attendance figure block.
 	 *
 	 * @return array<string, mixed>
 	 *
 	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-a-guardian-lands-on-an-overview-of-one-child-at-a-time
 	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-overview-puts-open-tasks-first
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-overview-follows-the-designed-board
+	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-holds-only-what-the-board-shows
 	 */
-	public function overviewPage(array $sources, array $figures): array {
+	public function overviewPage(array $sources): array {
 		return [
 			'id' => 'parentOverview',
 			'label' => 'Overview',
@@ -100,28 +100,8 @@ class ParentSitePages {
 					'avatar' => true,
 				],
 				['type' => 'news', 'label' => 'New from school', 'limit' => 3],
-				['type' => 'calendar', 'label' => 'This month', 'display' => 'tiles', 'sources' => $sources],
-				['type' => 'cta', 'action' => 'createExcuseRequest', 'label' => 'Report sick or absent'],
-				['type' => 'cta', 'action' => 'bookConferenceSlot', 'label' => 'Book a parent-teacher conversation'],
-				// The open child's grades and report cards, from the child's own page (T4b).
-				['type' => 'cta', 'page' => self::CHILDREN, 'withRecord' => true, 'label' => 'Grades and report cards of {title}'],
-				$figures,
-				[
-					'type' => 'collection',
-					'collection' => 'parentExcuseRequests',
-					'recordField' => 'learnerRef',
-					'limit' => 3,
-					'sort' => ['field' => 'dateFrom', 'direction' => 'desc'],
-				],
-				[
-					'type' => 'collection',
-					'collection' => 'parentGrades',
-					'recordField' => 'learnerRef',
-					'limit' => 3,
-					'sort' => ['field' => 'gradedAt', 'direction' => 'desc'],
-				],
-				// Every inbox of the contribution (report cards and new grades), about the open child only.
-				['type' => 'inbox', 'label' => 'Messages from school', 'recordField' => 'learnerRef', 'limit' => 2],
+				// "Deze maand": this month only (portaliq calendar `range`).
+				['type' => 'calendar', 'label' => 'This month', 'display' => 'tiles', 'range' => 'month', 'sources' => $sources],
 			],
 		];
 	}//end overviewPage()

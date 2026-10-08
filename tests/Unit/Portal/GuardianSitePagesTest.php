@@ -85,15 +85,16 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame('My space', $overview['group']);
 		self::assertSame(['collection' => 'parentChildren', 'titleFields' => ['givenName'], 'subtitleFields' => ['groupLabel']], $overview['records']);
 		self::assertSame('parentOverview', $manifest['pages'][0]['id']);
-		// The board's order (school-design wilgenboom MijnOverzicht): greeting, the task, the children, news, this month.
-		self::assertSame(['greeting', 'tasks', 'collection', 'news', 'calendar', 'cta', 'cta', 'cta', 'kpi', 'collection', 'collection', 'inbox'], array_column($overview['blocks'], 'type'));
+		// The board's order (school-design wilgenboom MijnOverzicht): greeting, the task, the children, news, this month, and nothing else.
+		self::assertSame(['greeting', 'tasks', 'collection', 'news', 'calendar'], array_column($overview['blocks'], 'type'));
 		// Lane L2's greeting: `label` plus exactly one target.
 		self::assertSame(['type' => 'greeting', 'label' => 'Report absent', 'action' => 'createExcuseRequest'], $overview['blocks'][0]);
 		self::assertSame(['groupLabel'], $overview['blocks'][2]['subtitleFields']);
-		// T4b: the open child's page from a tile, and the messages about the open child only.
-		self::assertSame(['page' => 'parentChildren', 'withRecord' => true], array_intersect_key($overview['blocks'][7], ['page' => 1, 'withRecord' => 1]));
-		self::assertSame('learnerRef', $overview['blocks'][11]['recordField']);
-		self::assertArrayNotHasKey('collection', $overview['blocks'][11], 'the block reads both inboxes: report cards and new grades');
+		// "Deze maand" is this month only, and a booked conversation reads as words with the teacher under it.
+		self::assertSame('month', $overview['blocks'][4]['range']);
+		$slots = array_values(array_filter($overview['blocks'][4]['sources'], static fn (array $src): bool => $src['collection'] === 'parentConferenceSlots'))[0];
+		self::assertArrayNotHasKey('titleField', $slots);
+		self::assertSame(['Parent-teacher conversation', 'teacherName'], [$slots['title'], $slots['metaField']]);
 		self::assertSame(['type' => 'tasks', 'label' => 'Still to do', 'display' => 'highlight', 'collection' => 'parentConferenceRounds', 'dueField' => 'bookingClosesAt', 'titleFields' => ['name'], 'buttonLabel' => 'Pick a time'], $overview['blocks'][1]);
 		self::assertSame(['parentChildren', 'cards'], [$overview['blocks'][2]['collection'], $overview['blocks'][2]['display']]);
 		self::assertSame('tiles', $overview['blocks'][4]['display']);

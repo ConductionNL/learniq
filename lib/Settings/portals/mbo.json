@@ -299,6 +299,30 @@
             }
           },
           {
+            "id": "ev-home-04a-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 8,
+            "gridWidth": 9,
+            "gridHeight": 1,
+            "props": {
+              "text": "Kies je richting",
+              "level": 2
+            }
+          },
+          {
+            "id": "ev-home-04b-nllink",
+            "widgetKey": "nlLink",
+            "gridX": 9,
+            "gridY": 8,
+            "gridWidth": 3,
+            "gridHeight": 1,
+            "props": {
+              "label": "Alle opleidingen",
+              "href": "/opleidingen"
+            }
+          },
+          {
             "id": "ev-home-04b-nllink",
             "widgetKey": "nlLink",
             "gridX": 9,

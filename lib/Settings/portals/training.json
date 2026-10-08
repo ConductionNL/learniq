@@ -275,6 +275,18 @@
             }
           },
           {
+            "id": "wa-home-02a-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 7,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Verloopt er een certificaat in uw bedrijf?",
+              "level": 2
+            }
+          },
+          {
             "id": "wa-home-04-nlsignin",
             "widgetKey": "nlSignIn",
             "gridX": 8,
@@ -292,6 +304,17 @@
               "signInHref": "/mijn",
               "note": "Werkgevers loggen in met eHerkenning.",
               "tone": "inverse"
+            }
+          },
+          {
+            "id": "wa-home-02b-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 8,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Zonder geldig certificaat mag een monteur niet aan het koudemiddel werken. Zo zet u uw mensen op tijd op een cursus."
             }
           },
           {
