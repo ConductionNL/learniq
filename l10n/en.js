@@ -3673,7 +3673,11 @@ OC.L10N.register(
         "Placement finished": "Placement finished",
         "Choose the placement and the work process you assess.": "Choose the placement and the work process you assess.",
         "Say whether the student is competent in this work process, and why.": "Say whether the student is competent in this work process, and why.",
-        "Check and send": "Check and send"
+        "Check and send": "Check and send",
+        "Your timetable today": "Your timetable today",
+        "Whole week": "Whole week",
+        "Your first lesson": "Your first lesson",
+        "Changed": "Changed"
     },
     "nplurals=2; plural=(n != 1);"
 )
