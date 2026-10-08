@@ -52,11 +52,14 @@ class ReadableCopies {
 	 */
 	private const EMPTY = [
 		'grade-entry'     => ['courseName' => null],
-		'enrolment'       => ['cohortName' => null],
+		// The employer's portal reads a participant's name, course and company on the row (employer-portal-audience).
+		'enrolment'       => ['cohortName' => null, 'learnerName' => null, 'courseName' => null, 'organisationRef' => null],
 		'portfolio-share' => ['portfolioTitle' => null, 'learnerName' => null],
 		'teacher-availability' => ['teacherName' => null],
 		// The line under a child's name in the guardian's menu (school-portals-use-the-new-blocks).
-		'learner-profile' => ['groupLabel' => null],
+		'learner-profile' => ['groupLabel' => null, 'fullName' => null],
+		// The certificate lists of the employer's and the participant's portal (portal-certificates).
+		'credential'      => ['learnerName' => null, 'courseName' => null, 'organisationRef' => null, 'validUntilLabel' => null, 'renewalLine' => null],
 	];
 
 	/**
@@ -123,7 +126,10 @@ class ReadableCopies {
 		}
 
 		if ($slug === 'enrolment') {
-			return ['cohortName' => $this->nameOf(schema: 'cohort', id: $row['cohortId'] ?? null, field: 'name')];
+			return array_merge(
+				['cohortName' => $this->nameOf(schema: 'cohort', id: $row['cohortId'] ?? null, field: 'name')],
+				$this->participantCopies(row: $row)
+			);
 		}
 
 		if ($slug === 'portfolio-share') {
@@ -134,12 +140,85 @@ class ReadableCopies {
 			return ['teacherName' => $this->userName(uid: $row['teacherId'] ?? null)];
 		}
 
+		if ($slug === 'credential') {
+			$copies = new CertificateCopies(
+				rows: fn (string $schema, mixed $id): ?array => $this->read(schema: $schema, id: $id),
+				sessions: fn (string $cohortId): array => $this->sessionsOf(cohortId: $cohortId)
+			);
+
+			return $copies->derive(credential: $row);
+		}
+
 		if ($slug === 'learner-profile') {
-			return ['groupLabel' => (new LearnerGroupLabel(objectService: $this->objectService, users: $this->users))->derive(profile: $row)];
+			return [
+				'groupLabel' => (new LearnerGroupLabel(objectService: $this->objectService, users: $this->users))->derive(profile: $row),
+				'fullName'   => $this->personName(profile: $row),
+			];
 		}
 
 		return [];
 	}//end derive()
+
+	/**
+	 * The participant's name, the course's name and the participant's employer, for an enrolment.
+	 *
+	 * @param array<string, mixed> $row The enrolment as it will be stored.
+	 *
+	 * @return array{learnerName: string|null, courseName: string|null, organisationRef: string|null}
+	 *
+	 * @throws \Throwable When OpenRegister cannot be read.
+	 *
+	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
+	 */
+	private function participantCopies(array $row): array {
+		$learner = $this->read(schema: 'learner-profile', id: $row['learnerRef'] ?? null);
+		$organisation = null;
+		$name = null;
+		if ($learner !== null) {
+			$organisation = $this->orNull(value: $this->text(value: $learner['organisationRef'] ?? null));
+			$name = $this->personName(profile: $learner);
+		}
+
+		return [
+			'learnerName'     => $name,
+			'courseName'      => $this->nameOf(schema: 'course', id: $row['courseId'] ?? null, field: 'name'),
+			'organisationRef' => $organisation,
+		];
+	}//end participantCopies()
+
+	/**
+	 * The sessions of a cohort.
+	 *
+	 * @param string $cohortId The cohort.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @throws \Throwable When OpenRegister cannot be read.
+	 */
+	private function sessionsOf(string $cohortId): array {
+		if ($cohortId === '') {
+			return [];
+		}
+
+		$objects = $this->objectService->findAll(
+			config: ['filters' => ['register' => self::REGISTER, 'schema' => 'session', 'cohortId' => $cohortId], 'limit' => 100],
+			_rbac: false,
+			_multitenancy: false
+		);
+
+		return array_map(fn (mixed $object): array => $this->toRow(object: $object), $objects);
+	}//end sessionsOf()
+
+	/**
+	 * Given and family name as one line, or null.
+	 *
+	 * @param array<string, mixed> $profile A learner profile.
+	 *
+	 * @return string|null
+	 */
+	private function personName(array $profile): ?string {
+		return $this->orNull(value: trim($this->text(value: $profile['givenName'] ?? null) . ' ' . $this->text(value: $profile['familyName'] ?? null)));
+	}//end personName()
 
 	/**
 	 * The portfolio title and the learner's name for a share.

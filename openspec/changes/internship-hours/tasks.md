@@ -1,5 +1,7 @@
 # Tasks: internship-hours
 
+> Archive pass 2026-10-07: code done; open: T7 (live check: the trainer and pupil e2e steps have not passed live yet).
+
 - [x] **T1**: register: new schema `BpvHourWeek` (`bpvPlacementId`, `learnerRef`, `isoWeek`, `hoursSubmitted`, `submittedBy`, `submittedAt`, `hoursApproved`, `approvedBy`, `approvedAt`, `note`, `lifecycle`, `tenant_id`), and `BpvPlacement.agreedHours`
   - `npm run check:register`; a payload test against the shipped fragment
   - `tenant_id` is NOT in the schema's `required` list: OpenRegister validates `required` before any listener runs, so a field cannot be both required and server-stamped. `HourWeekSubmissionStamp` fills it and refuses a week without a school.

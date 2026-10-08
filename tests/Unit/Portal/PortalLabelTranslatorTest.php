@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Portal;
 
+use OCA\Learniq\Portal\EmployerSitePages;
 use OCA\Learniq\Portal\PortalContributionProvider;
 use OCA\Learniq\Portal\PortalLabelTranslator;
 use OCA\Learniq\Portal\PortalValueLabels;
@@ -116,7 +117,7 @@ class PortalLabelTranslatorTest extends TestCase {
 	 * @return bool
 	 */
 	private static function isVisible(string $path): bool {
-		return preg_match('#/(label|submitLabel|successMessage|unit|fallback|group|otherLabel|requiredMessage|buttonLabel|template|eyebrow|soonLabel|noteLabel|firstLabel)$#', $path) === 1
+		return preg_match('#/(label|submitLabel|successMessage|unit|fallback|group|otherLabel|requiredMessage|buttonLabel|template|eyebrow|soonLabel|noteLabel|help|firstLabel)$#', $path) === 1
 			|| preg_match('#/confirmation/(title|body|next)$#', $path) === 1
 			|| preg_match('#/phrases/[^/]+/[^/]+$#', $path) === 1
 			|| preg_match('#/(label|unit)/(one|other)$#', $path) === 1
@@ -169,6 +170,36 @@ class PortalLabelTranslatorTest extends TestCase {
 		self::assertSame('Afwezigheid melden', $actions['createExcuseRequest']['submitLabel']);
 		self::assertSame('Voorkeur versturen', $actions['createConferenceSignup']['submitLabel']);
 	}//end testTheParentManifestArrivesInDutch()
+
+	/**
+	 * Every visible string of the employer's manifest, and every step of a
+	 * booking, has a Dutch entry (employer-portal-audience).
+	 *
+	 * @return void
+	 */
+	public function testEveryEmployerLabelHasADutchEntry(): void {
+		$strings = self::visibleStrings(manifest: (new PortalContributionProvider())->getContribution(['audience' => 'employer']));
+		$strings = array_merge(
+			$strings,
+			['Booked', 'Confirmed', 'Details complete', 'Course day', 'Result and certificate', 'Within 10 working days after the course', '%s place', '%s places']
+		);
+
+		$missing = array_values(array_filter($strings, fn (string $text): bool => isset($this->dutch[$text]) === false));
+		self::assertSame([], $missing, 'Employer portal strings without a Dutch entry in l10n/nl.json');
+	}//end testEveryEmployerLabelHasADutchEntry()
+
+	/**
+	 * Every visible string of the participant's manifest has a Dutch entry (participant-portal).
+	 *
+	 * @return void
+	 */
+	public function testEveryParticipantLabelHasADutchEntry(): void {
+		$strings = self::visibleStrings(manifest: (new PortalContributionProvider())->getContribution(['audience' => 'participant']));
+
+		self::assertNotEmpty($strings);
+		$missing = array_values(array_filter($strings, fn (string $text): bool => isset($this->dutch[$text]) === false));
+		self::assertSame([], $missing, 'Participant portal strings without a Dutch entry in l10n/nl.json');
+	}//end testEveryParticipantLabelHasADutchEntry()
 
 	/**
 	 * Every visible string of the student manifest has a Dutch entry
@@ -345,6 +376,8 @@ class PortalLabelTranslatorTest extends TestCase {
 			[PortalValueLabels::SIGNUP_STATUS, 'conference-signup', 'lifecycle'],
 			[PortalValueLabels::SLOT_STATUS, 'conference-slot', 'lifecycle'],
 			[PortalValueLabels::WERKPROCES_ASSESSMENT, 'werkproces-assessment', 'assessment'],
+			[EmployerSitePages::BOOKING_STATUS, 'course-booking', 'employerStatus'],
+			[EmployerSitePages::DETAILS_STATUS, 'enrolment', 'detailsStatus'],
 		];
 		foreach ($labelSets as [$labels, $schema, $property]) {
 			self::assertSame($enumOf($schema, $property), array_keys($labels), $schema.'.'.$property);

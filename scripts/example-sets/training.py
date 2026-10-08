@@ -119,6 +119,9 @@ SCHEMAS = [
     # inserting a schema would move every later uuid and a re-load would duplicate
     # the set on an install that already has it (example-set-regulation-rows).
     "regulation",
+    # The client company and its bookings (employer-portal-audience).
+    "client-organisation",
+    "course-booking",
 ]
 
 CLOSED = [
@@ -629,7 +632,7 @@ STORY_COURSES = {
     "BRL6000": {"name": "BRL 6000-21, bovengronds deel", "regulation": None, "mandatory": False, "tags": ["bodemenergie", "certificaat"],
                 "description": "Voor monteurs die bodemenergiesystemen aanleggen: het bovengrondse deel van de installatie, met examen.",
                 "lessons": []},
-    "FGAS-H": {"name": "F-gassen: herhaling en examen", "regulation": None, "mandatory": True, "tags": ["warmtepompen", "f-gassen", "herhaling"],
+    "FGAS-H": {"name": "F-gassen: herhaling en examen", "regulation": None, "mandatory": True, "tags": ["warmtepompen", "f-gassen", "herhaling", "examen"],
                "description": "Een dag om je F-gassencertificaat categorie 1 te verlengen: de regels en de lekcontrole opnieuw, daarna het examen in theorie en praktijk.",
                "lessons": [("Theorie: regels, koudemiddelen en lekcontrole", 1, "ochtend",
                             "Wat de regels vragen, welke koudemiddelen er zijn en hoe je een lekcontrole doet en vastlegt."),
@@ -655,6 +658,13 @@ STORY_COURSES = {
             "lessons": [("Waterzijdig inregelen in de praktijk", 1, None,
                          "Het debiet per radiator of groep berekenen, de installatie inregelen en het resultaat meten.")]},
 }
+
+# The company's register entries (invented: a KvK number starting with 0 is never issued).
+STORY_KVK = "09412000"
+# The identity reference the eHerkenning stub returns for Linda; the employer account is invited with it.
+STORY_EHERKENNING = "eherkenning-jansen-installatietechniek"
+# When the planner confirmed the places: (day, hour, minute) per booking number.
+STORY_CONFIRMED = {377: (dt.date(2026, 9, 9), 11, 0), 412: (dt.date(2026, 9, 16), 10, 15), 425: (dt.date(2026, 9, 23), 9, 30)}
 
 # The four employees of Jansen Installatietechniek. Youssef's birth date is missing on
 # purpose: the portal asks Linda for it before the F-gassen exam (birthDate absent).
@@ -698,6 +708,163 @@ def story_credential(b: Builder, profile: dict, course: dict, kind: str, issued:
     if obj.get("expiresAt"):
         obj["openbadges3Payload"]["validUntil"] = obj["expiresAt"]
     return obj
+
+
+NL_WEEKDAYS = ["maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag", "zondag"]
+EXAM_TAGS = {"examen", "certificaat"}
+
+
+def employer_booking_facts(booking: dict, course: dict, sessions: list[dict], participants: list[tuple[dict, dict]],
+                           renewed: dict, trainer: str | None, place: str | None) -> dict:
+    """A port of lib/Service/Portal/EmployerBookingFacts.php::derive(); EmployerBookingFactsTest checks the two agree
+    on the seeded bookings (employer-portal-audience)."""
+    def parse(value):
+        return dt.datetime.fromisoformat(value).astimezone(AMS) if value else None
+
+    def day_and_date(d):
+        return f"{NL_WEEKDAYS[d.weekday()]} {d.day} {MAAND[d.month - 1]}"
+
+    def list_of(items):
+        return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " en " + items[-1]
+
+    def due(first):
+        if first is None:
+            return None
+        d = first - dt.timedelta(days=1)
+        while d.weekday() > 4:
+            d -= dt.timedelta(days=1)
+        return stamp(d, 12, 0)
+
+    days = sorted({parse(x["startsAt"]).date() for x in sessions})
+    first = days[0] if days else None
+    participants = sorted([p for p in participants if p[0].get("lifecycle") != "withdrawn"], key=lambda p: p[0]["uuid"])
+    states = [e.get("lifecycle", "pending") for e, _p in participants]
+    if not states:
+        lifecycle = booking.get("lifecycle") if booking.get("lifecycle") in ("cancelled", "confirmed") else "received"
+    elif all(x in ("completed", "failed") for x in states):
+        lifecycle = "completed"
+    else:
+        lifecycle = "confirmed" if "active" in states else "received"
+    needs = bool(EXAM_TAGS & {t.lower() for t in course.get("tags", [])}) and lifecycle in ("received", "confirmed")
+    enrolments, names, refs, missing = {}, [], [], 0
+    for e, p in participants:
+        name = f"{p.get('givenName', '')} {p.get('familyName', '')}".strip()
+        credential = renewed.get(e["uuid"])
+        line = None
+        if credential and credential.get("expiresAt"):
+            x = parse(credential["expiresAt"])
+            line = f"Certificaat geldig tot {x.day} {MAAND[x.month - 1]} {x.year}"
+        fields = {"detailsStatus": "complete", "openTask": None, "openTaskNote": None, "openTaskDueAt": None, "certificateLine": line}
+        if needs and not p.get("birthDate"):
+            given = p.get("givenName", "").strip()
+            weekday = f" {NL_WEEKDAYS[first.weekday()]}" if first else ""
+            fields.update({"detailsStatus": "birth-date-missing", "openTask": f"Vul de geboortedatum van {name} in",
+                           "openTaskNote": f"{given} doet{weekday} examen. Zonder geboortedatum kunnen wij {given} niet aanmelden.",
+                           "openTaskDueAt": due(first)})
+            missing += 1
+        enrolments[e["uuid"]] = fields
+        names.append(name)
+        refs.append(p["uuid"])
+    places = max(1, int(booking.get("participantCount") or len(participants)))
+    open_places = max(0, places - len(participants))
+    if lifecycle in ("completed", "cancelled"):
+        status = lifecycle
+    else:
+        status = "waiting-for-you" if open_places or missing else lifecycle
+    if status == "waiting-for-you" and open_places:
+        note = "Vul de naam van 1 deelnemer in" if open_places == 1 else f"Vul de namen van {open_places} deelnemers in"
+    elif status == "waiting-for-you":
+        note = f"Geboortedatum van {missing} {'deelnemer' if missing == 1 else 'deelnemers'} ontbreekt"
+    elif lifecycle == "confirmed":
+        note = "De plek staat vast" if places == 1 else "De plekken staan vast"
+    elif lifecycle == "received" and booking.get("requestedAt"):
+        d, count = parse(booking["requestedAt"]).date(), 2
+        while count:
+            d += dt.timedelta(days=1)
+            if d.weekday() < 5:
+                count -= 1
+        note = "Bevestiging uiterlijk " + day_and_date(d)
+    else:
+        note = "Afgerond" if lifecycle == "completed" else None
+    if not days:
+        label = None
+    elif len(days) <= 2:
+        parts = []
+        for i, d in enumerate(days):
+            same = i + 1 < len(days) and days[i + 1].strftime("%Y-%m") == d.strftime("%Y-%m")
+            parts.append(f"{NL_WEEKDAYS[d.weekday()]} {d.day}" if same else day_and_date(d))
+        label = " en ".join(parts)
+    else:
+        months: dict[str, list[str]] = {}
+        for d in days:
+            months.setdefault(MAAND[d.month - 1], []).append(str(d.day))
+        label = list_of([f"{list_of(v)} {k}" for k, v in months.items()])
+    first_sessions = [x for x in sessions if first and parse(x["startsAt"]).date() == first]
+    time_label = None
+    if first_sessions:
+        time_label = (min(parse(x["startsAt"]).strftime("%H.%M") for x in first_sessions) + " tot "
+                      + max(parse(x["endsAt"]).strftime("%H.%M") for x in first_sessions) + " uur")
+    course_name = (course.get("name") or "").strip() or None
+    day = {"firstDay": first.isoformat() if first else None, "dayLabel": label, "timeLabel": time_label, "placeLabel": place,
+           "trainerName": trainer, "upcoming": lifecycle in ("received", "confirmed")}
+    for key in enrolments:
+        enrolments[key].update(day)
+    return {
+        "booking": {
+            "courseName": course_name,
+            "bookingLabel": ", ".join(x for x in [course.get("name", "").strip(), label or ""] if x) or None,
+            "upcoming": lifecycle in ("received", "confirmed"),
+            "firstDay": first.isoformat() if first else None, "dayLabel": label, "timeLabel": time_label,
+            "placeLabel": place, "trainerName": trainer, "participantRefs": refs, "participantNames": ", ".join(names) or None,
+            "missingDetailsCount": missing, "lifecycle": lifecycle, "employerStatus": status, "statusNote": note,
+            "detailsDueAt": due(first),
+        },
+        "enrolments": enrolments,
+    }
+
+
+def stamp_employer_copies(b: Builder) -> None:
+    """The readable copies ReadableCopies writes on a live save (employer-portal-audience): every profile's
+    fullName, and every enrolment's learnerName, courseName and organisationRef. Runs last; no random number."""
+    profiles = {p["uuid"]: p for p in b.buckets["learner-profile"]}
+    courses = {c["uuid"]: c for c in b.buckets["course"]}
+    for p in profiles.values():
+        p["fullName"] = f"{p.get('givenName', '')} {p.get('familyName', '')}".strip() or None
+    for e in b.buckets["enrolment"]:
+        p = profiles.get(e.get("learnerRef") or "")
+        e["learnerName"] = p["fullName"] if p else None
+        e["courseName"] = (courses.get(e.get("courseId") or "", {}).get("name") or "").strip() or None
+        e["organisationRef"] = p.get("organisationRef") if p else None
+
+
+def stamp_certificate_copies(b: Builder) -> None:
+    """The readable copies CertificateCopies writes on a live save (portal-certificates): holder, course,
+    employer, "Geldig tot ..." and the booked renewal. Runs last; no random number."""
+    profiles = {p["uuid"]: p for p in b.buckets["learner-profile"]}
+    courses = {c["uuid"]: c for c in b.buckets["course"]}
+    enrolments = {e["uuid"]: e for e in b.buckets["enrolment"]}
+    first_day: dict[str, dt.date] = {}
+    for x in b.buckets["session"]:
+        d = dt.datetime.fromisoformat(x["startsAt"]).astimezone(AMS).date()
+        if x["cohortId"] not in first_day or d < first_day[x["cohortId"]]:
+            first_day[x["cohortId"]] = d
+    for c in b.buckets["credential"]:
+        p = profiles.get(c.get("learnerId") or "")
+        name = f"{p.get('givenName', '')} {p.get('familyName', '')}".strip() if p else ""
+        c["learnerName"] = name or None
+        c["courseName"] = (courses.get(c.get("courseId") or "", {}).get("name") or "").strip() or None
+        c["organisationRef"] = p.get("organisationRef") if p else None
+        valid = None
+        if c.get("expiresAt"):
+            x = dt.datetime.fromisoformat(c["expiresAt"]).astimezone(AMS)
+            valid = f"Geldig tot {x.day} {MAAND[x.month - 1]} {x.year}"
+        c["validUntilLabel"] = valid
+        renewal = None
+        e = enrolments.get(c.get("renewalEnrolmentId") or "")
+        if e and e.get("lifecycle") in ("pending", "active") and e.get("cohortId") in first_day:
+            d = first_day[e["cohortId"]]
+            renewal = f"Herhaling op {d.day} {MAAND[d.month - 1]}"
+        c["renewalLine"] = renewal
 
 
 def add_story(b: Builder, school: dict, location: dict) -> None:
@@ -753,6 +920,10 @@ def add_story(b: Builder, school: dict, location: dict) -> None:
         "roles": ["manager"], "eduPersonAffiliation": ["affiliate"], "department": STORY_COMPANY,
         "parentIds": [], "guardianRefs": [], "lifecycle": "active",
     })
+    company = b.add("client-organisation", {
+        "name": STORY_COMPANY, "kvkNumber": STORY_KVK, "eherkenningRef": STORY_EHERKENNING, "contactName": "Linda Jansen",
+        "contactEmail": "linda.jansen@jansen-installatietechniek.example", "locationId": location["uuid"], "lifecycle": "active",
+    })
     people: dict[str, dict] = {}
     for n, (key, given, family, birth) in enumerate(STORY_PEOPLE, start=len(participants) + 1):
         fields = {"ncUserId": f"training-deelnemer-{n:03d}", "givenName": given, "familyName": family}
@@ -761,6 +932,7 @@ def add_story(b: Builder, school: dict, location: dict) -> None:
         fields.update({
             "schoolId": school["uuid"], "roles": ["learner"], "eduPersonAffiliation": ["affiliate"], "managerId": linda["ncUserId"],
             "department": f"{STORY_COMPANY}/Montage", "parentIds": [], "guardianRefs": [], "lifecycle": "active",
+            "organisationRef": company["uuid"],
         })
         people[key] = b.add("learner-profile", fields)
 
@@ -775,6 +947,7 @@ def add_story(b: Builder, school: dict, location: dict) -> None:
 
     # Editions: a cohort, who teaches it, a morning and an afternoon session per day, the enrolments.
     enrolments: dict[tuple[int, str], dict] = {}
+    bookings: list[tuple[dict, dict, list[dict], list[dict]]] = []
     for key, number, trainer, days, who, state, enrolled in STORY_EDITIONS:
         course = courses[key]
         done = days[-1] < STORY_TODAY
@@ -799,6 +972,15 @@ def add_story(b: Builder, school: dict, location: dict) -> None:
                     "startsAt": stamp(d, h1, m1), "endsAt": stamp(d, h2, m2), "location": f"{room_of[part]['name']}, {location['name']}",
                     "roomId": room_of[part]["uuid"], "lifecycle": "completed" if done else "scheduled",
                 }), d, part))
+        booking = None
+        if number is not None:
+            confirmed = STORY_CONFIRMED.get(number)
+            booking = b.add("course-booking", {
+                "organisationRef": company["uuid"], "bookingNumber": f"I-2026-{number:04d}", "cohortId": cohort["uuid"],
+                "courseId": course["uuid"], "participantCount": len(who), "requestedAt": stamp(*enrolled),
+                "requestedByName": "Linda Jansen", "confirmedAt": stamp(*confirmed) if confirmed else None, "lifecycle": "received",
+            })
+            bookings.append((booking, course, [s for s, _d, _p in sessions], []))
         for p in who:
             profile = people[p]
             fields = {
@@ -809,7 +991,12 @@ def add_story(b: Builder, school: dict, location: dict) -> None:
             }
             if STORY_COURSES[key]["regulation"]:
                 fields["regulationSlug"] = STORY_COURSES[key]["regulation"]
+            if booking is not None:
+                fields["bookingRef"] = booking["uuid"]
+                fields["organisationRef"] = company["uuid"]
             enrolments[(number, p)] = b.add("enrolment", fields)
+            if booking is not None:
+                bookings[-1][3].append(enrolments[(number, p)])
             if not done:
                 continue
             for session, d, part in sessions:
@@ -833,6 +1020,18 @@ def add_story(b: Builder, school: dict, location: dict) -> None:
     story_credential(b, people["sanne"], courses["BRL6000"], "certificate", stamp(dt.date(2023, 3, 12), 10, 0), EXAM_COOLING, {
         "expiresAt": stamp(dt.date(2028, 3, 12), 23, 59), "source": "manual", "lifecycle": "issued",
     })
+
+    # What each booking says to Linda, as EmployerBookingProjection writes it.
+    renewed = {c["renewalEnrolmentId"]: c for c in b.buckets["credential"] if c.get("renewalEnrolmentId")}
+    trainers = {HENK: STORY_STAFF[HENK], FATIMA: STORY_STAFF[FATIMA]}
+    cohorts = {c["uuid"]: c for c in b.buckets["cohort"]}
+    for booking, course, sessions, rows in bookings:
+        cohort = cohorts[booking["cohortId"]]
+        facts = employer_booking_facts(booking, course, sessions, [(e, next(p for p in people.values() if p["uuid"] == e["learnerRef"])) for e in rows],
+                                       renewed, trainers.get(cohort["teacherIds"][0]), f"{location['name']}, {location['street']}")
+        booking.update(facts["booking"])
+        for e in rows:
+            e.update(facts["enrolments"][e["uuid"]])
 
 
 def build() -> dict:
@@ -1626,6 +1825,8 @@ def build() -> dict:
                "Medewerkers van organisaties die onder NIS2 vallen, zoals zorg en gemeenten.", 12, True)
 
     add_story(b, school, location)
+    stamp_employer_copies(b)
+    stamp_certificate_copies(b)
 
     shipped = {r["slug"] for r in b.buckets["regulation"]}
     for rows in b.buckets.values():
