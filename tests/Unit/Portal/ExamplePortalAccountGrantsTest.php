@@ -301,12 +301,20 @@ class ExamplePortalAccountGrantsTest extends TestCase {
 					continue;
 				}
 
+				if ($account['portal']['audience'] === 'praktijkopleider') {
+					// The demo trainer: her claim is her trainer record (Petra Bakker, Bakker Techniek BV).
+					$trainers = array_column(($objects['praktijkopleider'] ?? []), 'familyName', 'uuid');
+					$this->assertSame('Bakker', $trainers[$account['portal']['claims']['practicalTrainerId']] ?? null, $account['userId']);
+					$granted[] = $account['userId'];
+					continue;
+				}
+
 				$this->assertContains($account['portal']['audience'], ['student', 'participant'], $account['userId']);
 				$this->assertSame($learners[$account['userId']] ?? null, $account['portal']['claims']['learnerRef'], $account['userId']);
 				$granted[] = $account['userId'];
 			}
 		}
 
-		$this->assertSame(['mbo-student-251', 'mbo-student-252', 'training-deelnemer-151', 'vo-leerling-121'], $granted);
+		$this->assertSame(['mbo-student-251', 'mbo-student-252', 'mbo-praktijkopleider-037', 'training-deelnemer-151', 'vo-leerling-121'], $granted);
 	}//end testTheDeclaredLearnersAreRealPeopleOfTheSet()
 }//end class
