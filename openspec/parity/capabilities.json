@@ -3489,9 +3489,12 @@
       "area": "assessment",
       "name": "Review what a proctoring session flagged, in one queue.",
       "built": {
-        "state": "decided-no",
-        "evidence": "Decided no on 2026-09-29: No competitor rated yes, no demand, outside the core area. Reversible: the schema and queue page exist and no provider fills them. Before: lib/Settings/learniq_register.json components.schemas.ProctoringSession and src/manifest.d/learning.json ProctoringReviewQueue exist, but no provider fills them",
-        "owner": "ConductionNL/learniq"
+        "state": "specified",
+        "evidence": "src/views/TakeAssessmentView.vue:1305-1338 native test mode writes flags into ProctoringSession.flags[]; src/views/ProctoringReviewQueue.vue records allow or annul and is registered (src/registry.js:322) but no manifest page routes to it since 4e49128f; lib/Settings/learniq_register.json ProctoringSession lets the learner update their own active session, flags included, with no guard on reviewDecision",
+        "owner": "ConductionNL/learniq",
+        "readOn": "2026-10-08",
+        "change": "proctoring-flag-review-page",
+        "note": "reopened by decision 100 (8 Oct). Before: Decided no on 2026-09-29: No competitor rated yes, no demand, outside the core area. Reversible: the schema and queue page exist and no provider fills them. Before: lib/Settings/learniq_register.json components.schemas.ProctoringSession and src/manifest.d/learning.json ProctoringReviewQueue exist, but no provider fills them"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3511,6 +3514,10 @@
         "moodle-workplace": "not checked: read 2026-09-26: not documented: no proctoring flag queue in Workplace docs.",
         "totara": "not checked: read 2026-09-26: not documented: no proctoring flag queue in totara.help.",
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/proctoring-reports-128355273.html; Proctoring Reports: in Course Details \"You'll see the proctoring status, integrity score, and a link to the report.\" Per learner in a course report, no single queue"
+      },
+      "screen": {
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqProctoring"
       }
     },
     {
@@ -8805,6 +8812,239 @@
       "screen": {
         "board": null,
         "reason": "not designed yet: a administrator screen; on the missing-boards list for the design session (decision 96)"
+      }
+    },
+    {
+      "id": "att-contact-hours-owed-and-given",
+      "area": "attendance",
+      "name": "See per group and subject the contact hours owed and given, and which learners fall below the margin.",
+      "built": {
+        "state": "built",
+        "evidence": "lib/Service/ContactHoursService.php:41-80 (owed from the hour plan, given from held lessons, attended per learner); appinfo/routes.php:233 GET /api/reports/contact-hours; src/views/ContactHoursReport.vue:15-33 (window, group, CSV export), :98-102 (show or hide learners below the margin); src/manifest.d/learning.json:3768",
+        "owner": "ConductionNL/learniq",
+        "readOn": "2026-10-08",
+        "change": "2026-09-29-timetabling-contact-hours",
+        "note": "Board differences, not specced: the board puts the mentor next to the group name and a one-line summary of the subjects short of hours above each table."
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "attendance",
+      "featureConfidence": "high",
+      "learniq": "yes",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "source": "spec-round-2026-10-08",
+      "screen": {
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoContacturen"
+      }
+    },
+    {
+      "id": "enr-sign-up-for-an-optional-lesson",
+      "area": "enrolment",
+      "name": "Sign up for or withdraw from a single optional lesson, and see free places and when sign-up opens or closes.",
+      "built": {
+        "state": "built",
+        "evidence": "appinfo/routes.php:271-274 (mine, sign-up, roster, place); lib/Listener/ElectiveSignUpRules.php:12-16 (window, capacity, one sign-up per lesson, for every writer); src/views/MyElectives.vue:28-66 (free places, sign up, withdraw, window label); src/manifest.d/my-learning.json:532",
+        "owner": "ConductionNL/learniq",
+        "readOn": "2026-10-08",
+        "change": "2026-09-29-timetabling-elective-lesson-signup",
+        "note": "Board differences, not specced: the board shows room and teacher per lesson and a count line under the title; lib/Service/ElectiveService.php:131-153 returns neither room nor teacher."
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "enrolment",
+      "featureConfidence": "high",
+      "learniq": "yes",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "source": "spec-round-2026-10-08",
+      "screen": {
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqLlKeuzelessen"
+      }
+    },
+    {
+      "id": "cont-install-a-shared-course",
+      "area": "content",
+      "name": "Find courses other schools share and install your own copy.",
+      "built": {
+        "state": "built",
+        "evidence": "appinfo/routes.php:132-134 (search, install, publish); lib/Controller/StoreController.php; lib/Service/CourseStore/CourseStoreInstaller.php; src/manifest.json:267-269 (Store page, type store); no registry configured answers not_configured without a network call",
+        "owner": "ConductionNL/learniq",
+        "readOn": "2026-10-08",
+        "change": "2026-09-28-lesson-sharing-via-store-plane"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "course-management",
+      "featureConfidence": "high",
+      "learniq": "yes",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "source": "spec-round-2026-10-08",
+      "screen": {
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqStore"
+      }
+    },
+    {
+      "id": "sup-confidential-counsellor-notes",
+      "area": "support",
+      "name": "Keep confidential counsellor notes apart from the pupil file, readable only by the author and the people they add.",
+      "built": {
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json:28342 schema confidential-note (read for the author in confidential-counsellors and named participantIds only, not searchable, hard delete, destroyAfter, status open/closed); src/manifest.d/confidential-counsel.json:44-100 (index, detail with history)",
+        "owner": "ConductionNL/learniq",
+        "readOn": "2026-10-08",
+        "change": "2026-09-28-confidential-counsellor-channel",
+        "note": "Board differences, not specced: the board has a \"Close case\" header action, a notice that the note has no link to a pupil, and a people-with-access card naming who may only read; the detail page shows the data widget and history only."
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "confidential-counsel",
+      "featureConfidence": "high",
+      "learniq": "yes",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "source": "spec-round-2026-10-08",
+      "screen": {
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqZoNotities",
+          "LqZoNotitie",
+          "LqZoNieuweNotitie"
+        ]
+      }
+    },
+    {
+      "id": "grd-grade-a-submitted-portfolio",
+      "area": "grading",
+      "name": "Grade a submitted portfolio, with the mark landing as a concept grade.",
+      "built": {
+        "state": "built",
+        "evidence": "src/views/PortfolioReviewView.vue:1-24, :131-140 (read-only evidence, gradeValue, grade transition); src/manifest.d/progress.json:2009; lib/Listener/PortfolioGradeEmitHandler.php:6-19 (one concept GradeEntry per graded portfolio)",
+        "owner": "ConductionNL/learniq",
+        "readOn": "2026-10-08",
+        "change": "2026-07-16-eportfolio"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "eportfolio",
+      "featureConfidence": "high",
+      "learniq": "yes",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "source": "spec-round-2026-10-08",
+      "screen": {
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqPortfolioBeoordelen"
+      }
+    },
+    {
+      "id": "gov-privacy-overview-for-the-board",
+      "area": "governance",
+      "name": "Give the school board one privacy overview: two-factor use, partner approvals and role groups with their members.",
+      "built": {
+        "state": "built",
+        "evidence": "appinfo/routes.php:428 GET /api/privacy-governance/overview; lib/Controller/PrivacyGovernanceController.php:6-13 (groups with member counts, 2FA adoption, ExchangePartnerApproval counts, unknown shown as null); src/manifest.d/dashboard.json:265 (PrivacyGovernanceDashboard, admin and compliance officer)",
+        "owner": "ConductionNL/learniq",
+        "readOn": "2026-10-08",
+        "change": "2026-09-28-privacy-governance-surfaces",
+        "note": "Board difference, not specced: the board has a Download button in the header."
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "avg-verwerkingsregister",
+      "featureConfidence": "high",
+      "learniq": "yes",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "source": "spec-round-2026-10-08",
+      "screen": {
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCfPrivacygovernance"
+      }
+    },
+    {
+      "id": "gov-choose-my-notifications",
+      "area": "governance",
+      "name": "Choose which learniq notifications reach me, with quiet hours.",
+      "built": {
+        "state": "specified",
+        "evidence": "src/App.vue:46 and src/views/LearniqNotificationSettings.vue:27-40 (per-notification switches through OpenRegister notification-preferences: works); src/views/LearniqNotificationSettings.vue:333-352 saves quiet hours to notification-preferences, which refuses them, while OpenRegister serves /api/notification-delivery-window (openregister appinfo/routes.php:1437-1438)",
+        "owner": "ConductionNL/learniq",
+        "readOn": "2026-10-08",
+        "change": "notification-quiet-hours-through-openregister"
+      },
+      "provider": "openregister",
+      "providerHow": "read: the switches and quiet hours are stored and enforced by Open Register; learniq draws the panel",
+      "feature": "scholiq-notifications",
+      "featureConfidence": "high",
+      "learniq": "partial",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "source": "spec-round-2026-10-08",
+      "screen": {
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqMeldingen"
+      }
+    },
+    {
+      "id": "enr-one-people-overview-for-hr",
+      "area": "enrolment",
+      "name": "See learners, enrolments, attendance and diplomas of the whole school on one page, with search.",
+      "built": {
+        "state": "built",
+        "evidence": "src/manifest.d/people.json:2442 (PeopleDashboard) and :14-20 (menu, visible to hr among others); src/views/PeopleDashboard.vue:108-199 (search, four counts, four lists)",
+        "owner": "ConductionNL/learniq",
+        "readOn": "2026-10-08",
+        "change": "2026-09-28-nav-restructure-dashboards",
+        "note": "Board difference, not specced: the board has a Download button in the header."
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "dashboard",
+      "featureConfidence": "high",
+      "learniq": "yes",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "source": "spec-round-2026-10-08",
+      "screen": {
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqHrPersonen"
       }
     }
   ],
