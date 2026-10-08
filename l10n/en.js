@@ -3493,6 +3493,7 @@ OC.L10N.register(
         "Hours sent back": "Hours sent back",
         "The hours of the weeks of this placement that the trainer sent back without approving them. The server recomputes it whenever a week is written; a value sent for it is replaced.": "The hours of the weeks of this placement that the trainer sent back without approving them. The server recomputes it whenever a week is written; a value sent for it is replaced.",
         "Waiting": "Waiting",
+        "BPV and hours": "BPV and hours",
         "Sent back": "Sent back",
         "My BPV hours": "My BPV hours",
         "hour": "hour",

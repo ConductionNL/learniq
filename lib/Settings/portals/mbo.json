@@ -1310,12 +1310,24 @@
     {
       "userId": "mbo-student-251",
       "displayName": "Milan de Groot",
-      "groups": []
+      "groups": [],
+      "portal": {
+        "audience": "student",
+        "claims": {
+          "learnerRef": "ee03000c-0000-4000-8000-000000000251"
+        }
+      }
     },
     {
       "userId": "mbo-student-252",
       "displayName": "Aylin Demir",
-      "groups": []
+      "groups": [],
+      "portal": {
+        "audience": "student",
+        "claims": {
+          "learnerRef": "ee03000c-0000-4000-8000-000000000252"
+        }
+      }
     }
   ]
 }

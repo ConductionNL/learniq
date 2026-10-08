@@ -1140,4 +1140,50 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('string', $enrolment['properties']['cohortName']['type']);
 		$this->assertArrayNotHasKey('format', $enrolment['properties']['cohortName']);
 	}//end testParentGroupColumnReadsTheGroupName()
+
+	/**
+	 * The pupil's grades read as subject, date and grade, never as field keys
+	 * (portal proof run 1, defect 10). Every column is a projected field.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/student-portal-reads-like-the-boards/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
+	 */
+	public function testStudentGradesHaveReadableColumns(): void {
+		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$grades = array_column($manifest['collections'], null, 'id')['studentGrades'];
+
+		$this->assertSame(
+			[
+				['field' => 'courseName', 'label' => 'Subject'],
+				['field' => 'gradedAt', 'label' => 'Date', 'render' => 'date'],
+				['field' => 'value', 'label' => 'Grade'],
+			],
+			$grades['columns']
+		);
+		foreach ($grades['columns'] as $column) {
+			$this->assertContains($column['field'], $grades['fields']);
+		}
+	}//end testStudentGradesHaveReadableColumns()
+
+	/**
+	 * The BPV hours page is in the student's menu as "BPV and hours", and a
+	 * week the trainer sent back reads "Sent back", not "Rejected"
+	 * (portal proof run 1, defects 12 and 13).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/student-portal-reads-like-the-boards/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
+	 */
+	public function testHoursPageIsInTheMenuAndASentBackWeekSaysSo(): void {
+		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$pages = array_column($manifest['pages'], null, 'id');
+
+		$this->assertSame('BPV and hours', $pages['studentHourWeeks']['label']);
+		$this->assertArrayNotHasKey('menu', $pages['studentHourWeeks']);
+
+		$weeks = array_column($manifest['collections'], null, 'id')['studentHourWeeks'];
+		$status = array_column($weeks['columns'], null, 'field')['lifecycle'];
+		$this->assertSame('Sent back', $status['valueLabels']['rejected']);
+	}//end testHoursPageIsInTheMenuAndASentBackWeekSaysSo()
 }//end class

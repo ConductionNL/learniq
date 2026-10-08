@@ -20,14 +20,16 @@
  * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md
  * @spec openspec/changes/participant-portal/specs/portal-contribution/spec.md
  * @spec openspec/changes/employer-signs-in-with-eherkenning/specs/portal-identity/spec.md
+ * @spec openspec/changes/portal-board-checks-run-on-a-real-instance/specs/example-sets/spec.md#requirement-the-board-checks-run-against-any-instance-that-loaded-the-sets
  */
 
 import { expect, request, test } from '@playwright/test'
 import path from 'node:path'
 import { baseUrl } from '../base-url.ts'
 import { siteUrl } from '../helpers/portal-fixture.ts'
-import { ACR_SUBSTANTIAL, startStubDigid } from '../helpers/stub-digid.ts'
+import { ACR_SUBSTANTIAL } from '../helpers/stub-digid.ts'
 import {
+	ADMIN_CREDENTIALS,
 	boardShot,
 	ensurePortalAccount,
 	expectNoHorizontalScroll,
@@ -38,6 +40,7 @@ import {
 	openSitePage,
 	SHOTS,
 	signInAs,
+	startBroker,
 } from './boards.ts'
 
 const PORTAL = 'warmtepompacademie'
@@ -178,7 +181,7 @@ test.describe('warmtepompacademie: Mijn academie (Linda Jansen, employer)', () =
 			info.project.use.viewport ?? { width: 1440, height: 1000 },
 		)
 		await page.goto(
-			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/employerBookings')}`,
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/employerBookings')}`,
 		)
 		await expectTexts(page, [
 			'Lucht-water warmtepomp: ontwerp en inbedrijfstelling',
@@ -242,7 +245,7 @@ test.describe('warmtepompacademie: Linda signs in with eHerkenning', () => {
 			'PORTAL_DESIGN_EHERKENNING_ISSUER is not set: the employer signs in with eHerkenning through the stub broker',
 		)
 		test.setTimeout(300_000)
-		const stub = await startStubDigid(
+		const stub = await startBroker(
 			issuer,
 			process.env.PORTAL_DESIGN_EHERKENNING_CLIENT
 				?? 'warmtepompacademie-portal',
@@ -251,10 +254,7 @@ test.describe('warmtepompacademie: Linda signs in with eHerkenning', () => {
 		try {
 			const admin = await request.newContext({
 				baseURL: baseUrl(),
-				httpCredentials: {
-					username: process.env.NC_ADMIN_USER ?? 'admin',
-					password: process.env.NC_ADMIN_PASS ?? 'admin',
-				},
+				httpCredentials: ADMIN_CREDENTIALS,
 				extraHTTPHeaders: { 'OCS-APIRequest': 'true' },
 			})
 			const invite = await admin.post(

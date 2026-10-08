@@ -883,7 +883,13 @@
     {
       "userId": "training-deelnemer-151",
       "displayName": "Tom Verbeek",
-      "groups": []
+      "groups": [],
+      "portal": {
+        "audience": "participant",
+        "claims": {
+          "learnerRef": "ee06000c-0000-4000-8000-000000000158"
+        }
+      }
     },
     {
       "userId": "training-contactpersoon-007",

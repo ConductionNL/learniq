@@ -1227,7 +1227,13 @@
     {
       "userId": "vo-leerling-121",
       "displayName": "Noor Bakker",
-      "groups": []
+      "groups": [],
+      "portal": {
+        "audience": "student",
+        "claims": {
+          "learnerRef": "ee02000a-0000-4000-8000-000000000534"
+        }
+      }
     }
   ]
 }
