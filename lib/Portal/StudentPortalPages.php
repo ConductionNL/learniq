@@ -385,6 +385,10 @@ class StudentPortalPages {
 	 */
 	public function pages(array $collections, array $actions): array {
 		$pages = [$this->overviewPage()];
+		// Her timetable's page follows the overview in the menu, wherever the
+		// collection sits in the list (site-pupil-portal-design T5b).
+		$isTimetable = static fn (array $c): int => (int)(($c['id'] ?? '') === 'studentSessions');
+		usort($collections, static fn (array $a, array $b): int => $isTimetable($b) <=> $isTimetable($a));
 		foreach ($collections as $collection) {
 			if (($collection['listable'] ?? true) !== true) {
 				continue;

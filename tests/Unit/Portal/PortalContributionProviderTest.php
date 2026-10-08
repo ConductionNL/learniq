@@ -201,8 +201,6 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertCount(13, $collections);
 		$this->assertSame(
 			[
-				// site-pupil-portal-design T1: her timetable, first so its page follows the overview.
-				'studentSessions',
 				'studentGrades',
 				'studentFinalGrades',
 				'studentAttendance',
@@ -218,6 +216,8 @@ class PortalContributionProviderTest extends TestCase {
 				'studentHomework',
 				// site-pupil-portal-design: the absence strip of her overview.
 				'studentAttendanceSummary',
+				// site-pupil-portal-design T1: her timetable (its page still follows the overview).
+				'studentSessions',
 			],
 			array_column($collections, 'id')
 		);
