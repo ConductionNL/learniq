@@ -1,5 +1,7 @@
 # Tasks: site-guardian-portal-design
 
+> Archive pass 2026-10-07: code done; open: T10 (live check: po-parent-flows.spec.ts test h was written, not yet run live).
+
 Built in waves. A key is declared only once portaliq development keeps it; portaliq drops an unknown key without a word.
 
 - [x] **T1**: register: `GradeEntry.courseName`, and a server stamp that fills it from the course on create and update

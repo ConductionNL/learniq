@@ -47,6 +47,7 @@ use RuntimeException;
  * Unit tests for ConnectionReportService.
  *
  * @covers \OCA\Learniq\Service\ConnectionReportService
+ * @uses   \OCA\Learniq\AppInfo\OpenRegisterAutoloader
  */
 class ConnectionReportServiceTest extends TestCase {
 

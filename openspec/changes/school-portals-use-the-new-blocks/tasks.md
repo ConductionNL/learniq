@@ -1,5 +1,7 @@
 # Tasks: school-portals-use-the-new-blocks
 
+> Archive pass 2026-10-07: code done; open: T6 (live check: po-parent-flows.spec.ts test h not run live).
+
 - [x] **T1**: chrome keys from lane L1's fixtures in the four declarations; line-icon names; `audienceLabel` on public news; `accountLabel` and `residentMenu` fillable
   - PHPUnit `ExamplePortalDeclarationsTest`, `ExamplePortalProvisionerTest`
 - [x] **T2**: `LearnerProfile.groupLabel` (readable copy, enrolment cascade, deferred restamp, backfill, seeded in the sets)

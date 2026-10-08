@@ -26,7 +26,8 @@
 			:key="activeRole"
 			:title="pageTitle"
 			:widgets="widgets"
-			:layout="layout">
+			:layout="layout"
+			:headerActions="headerActions">
 			<!-- Admin view -->
 			<template #widget-manage-courses>
 				<ManageCoursesWidget />
@@ -141,6 +142,19 @@ export default {
 		role: {
 			type: String,
 			default: '',
+		},
+
+		/**
+		 * Buttons in the page header, from the page's manifest `config`
+		 * (CnDashboardPage `headerActions`). The simple structure gives
+		 * pupils and guardians "Report a concern" here; nothing else sets it,
+		 * so the page shows no extra button.
+		 *
+		 * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+		 */
+		headerActions: {
+			type: Array,
+			default: () => [],
 		},
 	},
 

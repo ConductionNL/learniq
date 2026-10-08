@@ -117,7 +117,7 @@ class LearnerGroupLabelTest extends TestCase {
 		$copies = new ReadableCopies(objectService: $this->objects(), users: $this->users());
 
 		self::assertTrue($copies->covers('learner-profile'));
-		self::assertSame(['groupLabel' => 'Groep 7 · Meester Daan'], $copies->derive('learner-profile', ['id' => self::VERA, 'roles' => ['learner']]));
+		self::assertSame(['groupLabel' => 'Groep 7 · Meester Daan', 'fullName' => null], $copies->derive('learner-profile', ['id' => self::VERA, 'roles' => ['learner']]));
 	}//end testTheReadableCopiesCoverTheLearnerProfile()
 
 	/**

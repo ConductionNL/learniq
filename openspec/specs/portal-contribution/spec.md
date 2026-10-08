@@ -266,3 +266,185 @@ read under the pupil's scope.
 - **GIVEN** a student subject
 - **WHEN** portaliq asks learniq for its contribution
 - **THEN** `studentSubmissions.rowActions` names `handIn`, and `handIn` is an instance-local POST that stamps `learnerRef`, carries `rowField: submissionId` and is offered only when `lifecycle` is `draft`
+
+### Requirement: A guardian picks the child from their own children
+Every `parent` create action that names a child MUST declare `learnerRef` as a required cross reference over `learner-profile` scoped by `guardianRefs` and the `guardianRef` claim, and MUST offer the child as a choice among the guardian's own children. Every parent collection MUST declare readable `columns`.
+
+#### Scenario: A guardian reports an absence by picking the child
+- **GIVEN** a guardian with one child
+- **WHEN** she opens "Report a child's absence"
+- **THEN** the child field lists her child by name
+- **AND** a request naming another child is refused by portaliq before it is stored
+- @e2e tests/e2e/po-parent-flows.spec.ts
+
+### Requirement: The parent contribution names the guardian's news audience
+The `parent` contribution MUST declare `guardianAudience` with `children: parentChildren`, `schoolField: schoolId` and `groups: {collection: parentGroupMemberships, field: cohortId}`, and every named collection MUST exist in the contribution.
+
+#### Scenario: A school-wide news item reaches the guardian
+- **GIVEN** a news item targeted at Voorbeeldschool De Wilgenboom
+- **WHEN** guardian Fatima Hulstkamp opens the news page in the portal
+- **THEN** the item is listed
+- @e2e tests/e2e/po-parent-flows.spec.ts
+
+### Requirement: The parent audience reads the grades on the child's published report cards
+The parent manifest MUST declare a `parentReportCardGrades` collection over `report-card` that reads through the same reverse scope-value `via` join as every parent read collection (REQ-PCON-004/005), scoped on `learnerRef`, at `minTrust: substantial`. It MUST carry the server-side filter `lifecycle: published-to-parents`, so a report card in `draft`, `rapportvergadering-review` or `finalised` is never read for a guardian. It MUST project only `learnerRef`, `periodName` and `gradeLines`, and show `periodName` and `gradeLines` as its columns, never the nested `subjectGrades` with its uuids. No parent collection MUST read pupil tracking results (`lvs-result`). Adding it MUST leave every other collection of the parent manifest, and the manifests of every other audience, unchanged.
+
+#### Scenario: A primary school guardian sees her child's report card grades
+@e2e tests/e2e/po-parent-flows.spec.ts "e. the guardian reads the grades on her child's published report cards, never a draft"
+- **GIVEN** Fatima Hulstkamp is the guardian of Vera, whose two report cards are published to parents
+- **WHEN** she opens "My child's report card grades" in the portal
+- **THEN** she sees one row per report card with the period ("Rapport 1") and the grades ("Rekenen: 7,9; Taal: 8,3; …")
+- **AND** no row of another child
+
+#### Scenario: A draft report card never reaches the guardian
+@e2e tests/e2e/po-parent-flows.spec.ts "e. the guardian reads the grades on her child's published report cards, never a draft"
+- **GIVEN** the group teacher starts a new report card for Vera, which stays a draft
+- **WHEN** the guardian reads "My child's report card grades"
+- **THEN** the draft is not among the rows
+
+#### Scenario: The other audiences are untouched
+@e2e exclude Manifest shape; pinned by tests/Unit/Portal/PortalContributionProviderTest.php testParentReadsTheGradesOnPublishedReportCards and testParentManifestShape, and by a byte-for-byte JSON comparison of every audience's manifest before and after (tasks.md 1.6).
+- **WHEN** the student, praktijkopleider or external-assessor manifest is built
+- **THEN** it is identical to the manifest before this change
+
+### Requirement: A guardian reads statuses and kinds of absence in the portal's language
+The parent manifest MUST declare `valueLabels` on the status columns a guardian reads: `parentExcuseRequests.lifecycle`, `parentAttendance.status`, `parentConferenceSignups.lifecycle` and `parentConferenceSlots.lifecycle`. It MUST declare `valueLabels` on the `reasonKind` field config of `createExcuseRequest`. The keys of each map MUST equal the enum of the schema property it labels. The provider MUST translate every label through learniq's catalogue in the request's language, and MUST NOT change a key. Every label MUST have a Dutch entry in `l10n/nl.json`.
+
+#### Scenario: A guardian on a Dutch portal reads an approved absence report as "Goedgekeurd"
+@e2e exclude Manifest content; the rendering is portaliq's (`contribution-value-labels`). Pinned by tests/Unit/Portal/PortalLabelTranslatorTest.php testStatusesAndAbsenceKindsArriveInDutch against the real nl.json; the live check on the primary-school instance is in the PR.
+- **GIVEN** Fatima Hulstkamp's report for Vera has `lifecycle: approved`
+- **WHEN** she opens "Afwezigheidsmeldingen van mijn kind" on a Dutch portal
+- **THEN** the status reads "Goedgekeurd"
+
+#### Scenario: The absence form offers its kinds in Dutch
+@e2e exclude Manifest content; the select is portaliq's. Pinned by tests/Unit/Portal/PortalLabelTranslatorTest.php testStatusesAndAbsenceKindsArriveInDutch.
+- **WHEN** a guardian opens the absence form on a Dutch portal
+- **THEN** "Soort afwezigheid" offers "Ziekte", "Medische afspraak" and the other kinds in Dutch
+- **AND** the report stores `illness` when she picks "Ziekte"
+
+#### Scenario: A renamed enum value fails the build
+@e2e exclude Unit invariant; pinned by tests/Unit/Portal/PortalLabelTranslatorTest.php testEveryValueLabelMatchesTheSchemaEnum.
+- **GIVEN** a schema enum value is renamed
+- **WHEN** the unit tests run
+- **THEN** the test names the property whose labels no longer match
+
+### Requirement: The parent audience books and cancels a free conference time
+The `parent` contribution MUST list the free times of direct rounds for the guardian's children (`parentConferenceFreeSlots`, `conference-slot` in `free`, scoped by `eligibleLearnerRefs` through the child join, REQ-PCON-004/005), before `parentConferenceSlots`, because portaliq fills the time picker from the first collection over `conference-slot`. It MUST offer `bookConferenceSlot` (create `conference-signup` with `learnerRef`, `slotId` and `notes`, the child checked against the guardian's own children) and `cancelConferenceTime` (update `conference-slot`, scoped by `guardianRef`, the server setting `lifecycle` to `cancelled`) as a row action on the conference times. `parentConferenceSlots` MUST keep its field names and add `conferenceRoundId`, `teacherName`, `slotLabel` and `declineNote`.
+
+#### Scenario: The guardian books a time and sees the teacher's answer
+- **GIVEN** guardian Fatima Hulstkamp signed in to the portal and a direct round with free times for Vera
+- **WHEN** she books one and the teacher acknowledges it
+- **THEN** her conference times show the time as acknowledged
+- @e2e tests/e2e/po-parent-flows.spec.ts
+
+#### Scenario: Free times name no child
+- **GIVEN** the free times collection
+- **WHEN** a guardian reads it
+- **THEN** no row carries a child reference
+- @e2e exclude covered by PHPUnit `ParentConferenceDirectBookingTest::testFreeTimesAreTheChildrensOwnAndFeedThePicker`
+
+### Requirement: A guardian opens one child and sees everything about them
+
+The parent audience MUST declare "My children" as the record page of `parentChildren`. With one child open the page MUST show, for that child only: the attendance figures, the report cards in `published-to-parents`, the grades on those report cards, the published homework of the child's group with whether the child handed it in, the attendance list, the coming calendar items and the school news. Every collection MUST read through the reverse join on the guardian's own children. Every other listable parent collection MUST keep its own page: its create action, its table and its detail.
+
+#### Scenario: Fatima opens Vera
+- GIVEN guardian Fatima Hulstkamp with child Vera in Groep 7
+- WHEN she opens "Mijn kinderen" on the Wilgenboom site
+- THEN she sees Vera's name, the figure cards, Vera's report cards, homework, attendance, calendar and news
+- @e2e tests/e2e/po-parent-flows.spec.ts
+
+#### Scenario: Another child's record is refused
+- GIVEN a record link to a pupil who is not one of Fatima's children
+- WHEN she follows it
+- THEN nothing of that pupil opens, because the server never returns that row
+- @e2e exclude the refusal is portaliq's (`tests/record-page.spec.mjs`, "another child's record does not open"); the server scope is pinned by `PortalContributionProviderTest::testParentCollectionsUseReverseScopeValueVia`
+
+### Requirement: A guardian reads her child's attendance figures
+
+The record page MUST show three figure cards from the child's `attendance-summary` row with the latest `schoolYear`: absent days with the days with and without permission, late arrivals with the minutes in total, and unexcused absent days, highlighted. The school year the cards read MUST show beside them.
+
+#### Scenario: Vera's figures
+- GIVEN Vera's summary for 2025-2026
+- WHEN Fatima opens Vera
+- THEN she reads the absent days, with and without permission, the late arrivals and the unexcused days, marked when above zero
+- @e2e tests/e2e/po-parent-flows.spec.ts
+
+### Requirement: A guardian reads the homework of their child's group
+
+Every assignment MUST carry `learnerRefs`, the LearnerProfile uuids of the pupils enrolled in its group, written by the server on every create and update and never by a client. The guardian MUST read published assignments by that list through the reverse join, and the list MUST NOT be projected to the portal. Each homework row MUST show "Handed in", "Handed in late", "Marked" or "Open" from the child's own submission.
+
+#### Scenario: Homework of Groep 7
+- GIVEN a published assignment for Groep 7 that Vera handed in, and one she did not
+- WHEN Fatima opens Vera
+- THEN the first reads "Ingeleverd" and the second "Open"
+- @e2e tests/e2e/po-parent-flows.spec.ts
+
+### Requirement: A guardian sees a calendar of what is coming
+
+The school MUST be able to keep `school-event` records (title, start, end, kind, the whole school or some groups, the school) on a "School calendar" page for coordinators, the office and the director. A report period MAY name its school. The guardian MUST see, on her child's page and on a calendar page for all her children: the school's events for the whole school or the child's group, the holidays and study days of the school's report periods, and the child's planned conversation times; the calendar page also shows the last day to book a conversation. School events and report periods MUST be read through the reverse join on the child's school.
+
+#### Scenario: The sports day and the autumn holiday
+- GIVEN a school event for the whole school and a report period of Vera's school holding the autumn holiday
+- WHEN Fatima opens the calendar
+- THEN she sees both, each with its date and kind
+- @e2e tests/e2e/po-parent-flows.spec.ts
+
+#### Scenario: A trip for another group stays off Vera's page
+- GIVEN a school event for Groep 4 only
+- WHEN Fatima opens Vera (Groep 7)
+- THEN the event is not on Vera's page
+- @e2e exclude the narrowing is portaliq's (`tests/record-page.spec.mjs`, "group-bound rows"); learniq's declaration is pinned by `ParentRecordPageTest::testTheCalendarJoinsTheChildsSchool`
+
+### Requirement: A guardian reads a teacher by name
+
+Every parent column that holds a staff Nextcloud user id MUST declare `render: user` and MUST name a projected field, so portaliq answers the teacher's display name and the user id never leaves the server. A parent collection MUST NOT project a staff user id field without such a column.
+
+#### Scenario: Fatima reads her conversation time with the teacher's name
+- GIVEN a conversation time for Vera with po-leerkracht-09
+- WHEN Fatima opens her conversation times
+- THEN the "Met" column reads the teacher's display name, not "po-leerkracht-09"
+- @e2e exclude the swap is portaliq's (`ContributionControllerUserNamesTest`); learniq's declaration is pinned by `ParentTeacherNamesTest`, and the live check is in the PR
+
+### Requirement: The parent section is called School
+
+The parent contribution MUST carry the label "School" (Dutch "School"), not the app's name.
+
+#### Scenario: The site heads the parent sections with School
+- GIVEN the Wilgenboom site
+- WHEN Fatima opens her overview
+- THEN the group heading reads "School"
+- @e2e exclude pinned by `ParentTeacherNamesTest::testTheParentSectionIsCalledSchool`
+
+### Requirement: The figure cards count in singular and plural
+Each attendance figure card on the parent record page MUST declare its `unit` as `{one, other}`, and the late-minutes detail MUST declare its `label` the same way. The provider MUST translate both forms through learniq's catalogue in the request's language and MUST NOT translate any other key of such a map. Both forms MUST have a Dutch entry in `l10n/nl.json`.
+
+#### Scenario: One day of absence reads singular
+@e2e exclude Manifest content; the card is portaliq's (`kpi-unit-singular-and-plural`). Pinned by tests/Unit/Portal/PortalLabelTranslatorTest.php testTheFigureCardsArriveInDutchSingularAndPlural against the real nl.json; the live check on the primary-school instance is in the PR.
+- **GIVEN** Vera was absent one day this school year
+- **WHEN** Fatima Hulstkamp opens Vera on a Dutch portal
+- **THEN** the "Afwezig" card reads "1 dag"
+
+#### Scenario: Any other figure reads plural
+@e2e exclude Manifest content; the choice of form is portaliq's. Pinned by tests/Unit/Portal/ParentRecordPageTest.php testTheFigureCardsCountInSingularAndPlural.
+- **GIVEN** a child was absent 0 or 5 days
+- **WHEN** the guardian opens the child
+- **THEN** the card reads "dagen"
+
+### Requirement: The guardian reads the name of the child's group
+The parent audience's group memberships collection MUST show the name of each of the child's groups, read from the enrolment's own readable copy (`cohortName`), never the group's uuid. The guardian MUST NOT gain a read of any object beyond their own children's enrolments for it, and the news audience MUST keep matching on `cohortId`.
+
+#### Scenario: Fatima reads Vera's group
+@e2e exclude Portal contribution content, rendered by portaliq. Pinned by tests/Unit/Portal/PortalContributionProviderTest.php; the live check on the primary-school instance is in the PR.
+- **GIVEN** Vera Hulstkamp is enrolled in Groep 7
+- **WHEN** her guardian Fatima opens the parent portal
+- **THEN** the group column reads "Groep 7"
+- **AND** Fatima reads no cohort object
+
+### Requirement: A guardian reads the newest absence first
+The `parentExcuseRequests` collection MUST declare `defaultSort: { field: dateFrom, direction: desc }`, and `dateFrom` MUST be one of the fields it projects.
+
+#### Scenario: Four absences
+@e2e exclude Contribution content. Pinned by PortalContributionProviderTest; the order on screen is portaliq's, pinned there by tests/mijn-lists.spec.mjs. The live check is in the PR.
+- **GIVEN** Vera has absences from 1 October, 5 October, 2 October and 25 September
+- **WHEN** her guardian opens the absences
+- **THEN** they read 5 October, 2 October, 1 October, 25 September

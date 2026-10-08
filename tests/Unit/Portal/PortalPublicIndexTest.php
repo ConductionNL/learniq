@@ -176,6 +176,6 @@ class PortalPublicIndexTest extends TestCase {
 	 */
 	public function testTheProviderAnswersThroughTheService(): void {
 		self::assertSame([], (new PortalContributionProvider())->getPublicIndex('wilgenboom'));
-		self::assertNotSame([], (new PortalContributionProvider(null, null, $this->index()))->getPublicIndex('esdoornveen'));
+		self::assertNotSame([], (new PortalContributionProvider(publicIndex: $this->index()))->getPublicIndex('esdoornveen'));
 	}//end testTheProviderAnswersThroughTheService()
 }//end class

@@ -16,18 +16,11 @@
         "display": "cards",
         "optionsSource": "profiles",
         "configKey": "example_profile",
+        "loadAction": "load-example-set",
         "multiple": false,
         "title": "Which example data do you want?",
         "required": false,
-        "body": "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Pick \"None\" on a production install."
-      },
-      {
-        "id": "load-example-set",
-        "type": "run-action",
-        "action": "load-example-set",
-        "title": "Load the example data",
-        "required": false,
-        "body": "Loads the set you picked. It is sample data, and running it twice adds nothing. You can remove it again at the end of this wizard."
+        "body": "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Each card has its own Load button. Pick \"None\" on a production install."
       },
       {
         "id": "segment",
@@ -48,15 +41,6 @@
         "title": "What kind of organisation is this?",
         "required": false,
         "body": "Pick the one that fits best. The app shows the menus that fit it. You can change it later under App settings."
-      },
-      {
-        "id": "remove-example-set",
-        "type": "run-action",
-        "action": "remove-example-set",
-        "title": "Remove the example data",
-        "required": false,
-        "onDemand": true,
-        "body": "This only runs when you click the button. It moves the example set you loaded to the trash and keeps everything you made yourself. You can come back to it later."
       },
       {
         "id": "done",
@@ -133,31 +117,31 @@
     {
       "registerSlug": "learniq",
       "schemaSlug": "course",
-      "urlTemplate": "/apps/learniq/#/courses/{uuid}",
+      "urlTemplate": "/apps/learniq/courses/{uuid}",
       "displayName": "Course"
     },
     {
       "registerSlug": "learniq",
       "schemaSlug": "enrolment",
-      "urlTemplate": "/apps/learniq/#/enrolments/{uuid}",
+      "urlTemplate": "/apps/learniq/enrolments/{uuid}",
       "displayName": "Enrolment"
     },
     {
       "registerSlug": "learniq",
       "schemaSlug": "learner-profile",
-      "urlTemplate": "/apps/learniq/#/learner-profiles/{uuid}",
+      "urlTemplate": "/apps/learniq/learner-profiles/{uuid}",
       "displayName": "Learner"
     },
     {
       "registerSlug": "learniq",
       "schemaSlug": "credential",
-      "urlTemplate": "/apps/learniq/#/credentials/{uuid}",
+      "urlTemplate": "/apps/learniq/credentials/{uuid}",
       "displayName": "Credential"
     },
     {
       "registerSlug": "learniq",
       "schemaSlug": "support-request",
-      "urlTemplate": "/apps/learniq/#/support-requests/{uuid}",
+      "urlTemplate": "/apps/learniq/support-requests/{uuid}",
       "displayName": "Support request"
     }
   ],
@@ -204,7 +188,7 @@
       "label": "Reports",
       "icon": "ChartBoxOutline",
       "route": "Reports",
-      "section": "footer",
+      "section": "settings",
       "order": 95,
       "visibleIf": {
         "user.primaryRole": {
