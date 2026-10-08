@@ -71,6 +71,13 @@ class DemoDates {
 	];
 
 	/**
+	 * What may stand between two days of one phrase: "3, 4 en 10", "17 - 25",
+	 * "17 tot en met zondag 25". A weekday only after a range word, so
+	 * "Groep 7, maandag 5 oktober" keeps its group number.
+	 */
+	private const SEPARATOR = '(?:, | en |(?: - | tot en met | t\/m )(?:(?:maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag) )?)';
+
+	/**
 	 * The full month names, by number.
 	 *
 	 * @var array<int, string>
@@ -251,7 +258,7 @@ class DemoDates {
 		);
 
 		$names = implode('|', array_keys(self::MONTHS));
-		$list  = '(\d{1,2})((?:(?:, | en | - | tot en met )\d{1,2})*)';
+		$list  = '(\d{1,2})((?:' . self::SEPARATOR . '\d{1,2})*)';
 
 		return (string)preg_replace_callback(
 			'/(?<![\d-])' . $list . ' (' . $names . ')\b(?: (\d{4}))?/iu',
@@ -301,7 +308,7 @@ class DemoDates {
 	 * @return array<int, string|DateTimeImmutable>|null A separator string or a moved day.
 	 */
 	private function movedPieces(string $days, int $month, int $year, int $shift): ?array {
-		preg_match_all('/(\d{1,2})|(, | en | - | tot en met )/', $days, $tokens, PREG_SET_ORDER);
+		preg_match_all('/(\d{1,2})|(' . self::SEPARATOR . ')/u', $days, $tokens, PREG_SET_ORDER);
 		$pieces = [];
 		foreach ($tokens as $token) {
 			if (($token[1] ?? '') === '') {

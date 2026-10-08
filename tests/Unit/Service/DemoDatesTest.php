@@ -71,6 +71,7 @@ class DemoDatesTest extends TestCase {
 			'29-10-2026 19:48-19:58, Juf Esra'          => '19-11-2026 19:48-19:58, Juf Esra',
 			'3, 4 en 10 november'                       => '24, 25 november en 1 december',
 			'13 en 15 okt'                              => '3 en 5 nov',
+			'van zaterdag 17 tot en met zondag 25 oktober' => 'van zaterdag 7 tot en met zondag 15 november',
 			'Geldig tot 12 maart 2028'                  => 'Geldig tot 2 april 2028',
 			'Bevestiging uiterlijk dinsdag 6 oktober'   => 'Bevestiging uiterlijk dinsdag 27 oktober',
 			'2026-2027'                                 => '2026-2027',
