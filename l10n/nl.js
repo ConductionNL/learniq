@@ -3943,6 +3943,7 @@ OC.L10N.register(
         "Hours sent back": "Teruggestuurde uren",
         "The hours of the weeks of this placement that the trainer sent back without approving them. The server recomputes it whenever a week is written; a value sent for it is replaced.": "De uren van de weken van deze BPV die de praktijkopleider terugstuurde zonder ze goed te keuren. De server rekent dit opnieuw uit als een week wordt opgeslagen; een meegestuurde waarde wordt vervangen.",
         "Waiting": "Wacht op goedkeuring",
+        "BPV and hours": "BPV en uren",
         "Sent back": "Teruggestuurd",
         "My BPV hours": "Mijn BPV-uren",
         "hour": "uur",

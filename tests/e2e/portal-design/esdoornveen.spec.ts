@@ -10,6 +10,7 @@
  * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
  * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
  * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md
+ * @spec openspec/changes/portal-board-checks-run-on-a-real-instance/specs/example-sets/spec.md#requirement-the-board-checks-run-against-any-instance-that-loaded-the-sets
  */
 
 import { test } from '@playwright/test'
@@ -129,7 +130,7 @@ test.describe('esdoornveen: Mijn Esdoornveen (Milan de Groot)', () => {
 			info.project.use.viewport ?? { width: 1440, height: 1000 },
 		)
 		await page.goto(
-			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/studentBpvPlacements')}`,
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/studentBpvPlacements')}`,
 		)
 		await expectTexts(page, [
 			'Bakker Techniek BV',
@@ -158,7 +159,7 @@ test.describe('esdoornveen: Mijn Esdoornveen (Milan de Groot)', () => {
 			info.project.use.viewport ?? { width: 1440, height: 1000 },
 		)
 		await page.goto(
-			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/studentHourWeeks')}`,
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/studentHourWeeks')}`,
 		)
 		await expectTexts(page, [
 			'Mijn BPV-uren',
