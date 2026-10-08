@@ -238,7 +238,10 @@
                   "label": "Kok",
                   "href": "/opleidingen"
                 }
-              ]
+              ],
+              "asideImage": {
+                "label": "[FOTO: student stelt een sensor af aan een transportband in de werkplaats]"
+              }
             }
           },
           {

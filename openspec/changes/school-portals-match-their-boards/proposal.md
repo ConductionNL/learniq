@@ -33,4 +33,4 @@ Nothing changes there. The provisioner never writes over a page or menu that exi
 - Rendering the children cards' status: learniq declares it as a lookup on the guardian's own reports (`status` on the cards block); portaliq has to read it.
 - The overview keeps its child switcher (`records`): the calendar sources narrow to the open child.
 - The page title shown twice and "Praktisch" not marked active: portaliq #1368 (a page that opens with a level-1 `nlHeading` gets no second title). The declarations keep that heading.
-- The hero beside the course list; the photo next to the hero.
+- The hero aside itself is portaliq's (#1397); the declarations put the course list and the photo place in it.
