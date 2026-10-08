@@ -134,7 +134,7 @@ On a test instance without a cron container, run `cron.php` by hand until the qu
 
 ### Link the portals to your organisation
 
-A loaded portal has no organisation and no identity provider. Binding those is a deployment step, so the load never guesses them. Set the organisation on each of the four portals, for example through the OpenRegister API:
+A loaded portal has no organisation and no identity provider. Binding those is a deployment step, so the load never guesses them. Set the organisation on each of the four portals, for example through the OpenRegister API, and then load each set once more:
 
 ```bash
 curl -u admin:<password> -X PATCH -H 'Content-Type: application/json' \
@@ -156,19 +156,13 @@ php occ config:app:set portaliq oidc_secret_<organisation uuid>_eherkenning --va
 
 Leave out a mode the organisation does not use. De Wilgenboom and Vaartveld use DigiD; Esdoornveen and the Warmtepompacademie use eHerkenning for companies.
 
-### Give the story people a portal account
+### Portal accounts for pupils, students and participants
 
-Pupils, students and course participants sign in with their Nextcloud account. That works only when they also have a portal account with the right audience. The load does not create those. Guardians, trainers and employers get theirs through an invitation (`occ learniq:portal:invite-guardian`, `learniq:portal:invite-trainer`, `learniq:portal:invite-employer`). For a pupil, student or participant on a test instance, create the portal account through the OpenRegister API:
+Pupils, students and course participants sign in with their Nextcloud account. That works only when they also have a portal account. The load gives them one: Noor Bakker (vo), Milan de Groot and Aylin Demir (mbo) and Tom Verbeek (training). It needs the portal's organisation, so link the portals first and then load the set again. The load prints a line such as `Portal accounts: 1 given, 0 kept, 0 failed.` A second load gives nothing new.
 
-```bash
-curl -u admin:<password> -X POST -H 'Content-Type: application/json' \
-  -d '{"audience":"participant","subjectRef":"training-deelnemer-151","organisation":"default-organisation",
-       "displayName":"Tom Verbeek","email":"training-deelnemer-151@example.org","verifiedEmail":true,
-       "status":"active","claims":{"learniq":{"learnerRef":"<the LearnerProfile uuid>"}}}' \
-  https://<host>/apps/openregister/api/objects/portaliq/portalAccount
-```
+Guardians, trainers and employers get their account through an invitation: `occ learniq:portal:invite-guardian`, `learniq:portal:invite-trainer` and `learniq:portal:invite-employer`.
 
-Use audience `student` for a pupil or student. Then set a password for the Nextcloud account with `occ user:resetpassword`.
+A new account has a random password. Set one with `occ user:resetpassword` before a story person signs in.
 
 ## Timetable import and SWV hand-offs
 
