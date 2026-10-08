@@ -198,7 +198,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(13, $collections);
+		$this->assertCount(14, $collections);
 		$this->assertSame(
 			[
 				'studentGrades',
@@ -210,6 +210,8 @@ class PortalContributionProviderTest extends TestCase {
 				// hours with both numbers on it.
 				'studentBpvPlacements',
 				'studentHourWeeks',
+				// board-data-the-schemas-lacked: her own record per work process.
+				'studentWorkProcesses',
 				'studentExcuseRequests',
 				'studentInbox',
 				'studentTests',
@@ -1216,4 +1218,38 @@ class PortalContributionProviderTest extends TestCase {
 		self::assertLessThan(array_search('kpi', $types, true), array_search('steps', $types, true), 'the hours bar sits under the steps');
 		self::assertSame('bars', $page['blocks'][array_search('steps', $types, true)]['display']);
 	}//end testThePlacementReadsInWordsAndShowsTheHours()
+
+	/**
+	 * The placement page shows the agreements and her work processes, narrowed
+	 * to the open placement; every column reads a projected field and every
+	 * estimate has words (board-data-the-schemas-lacked).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/board-data-the-schemas-lacked/specs/portal-contribution/spec.md#requirement-the-placement-page-shows-the-agreements-and-the-work-processes
+	 */
+	public function testThePlacementShowsItsAgreementsAndWorkProcesses(): void {
+		$manifest    = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$collections = array_column($manifest['collections'], null, 'id');
+		foreach (['workdaysLabel', 'workplaceAddress', 'qualificationName', 'crebo'] as $field) {
+			self::assertContains($field, $collections['studentBpvPlacements']['fields'], $field);
+			self::assertArrayHasKey($field, $collections['studentBpvPlacements']['fieldConfigs'], $field);
+		}
+
+		$work = $collections['studentWorkProcesses'];
+		self::assertSame(['werkproces-progress', 'learnerRef', false], [$work['schema'], $work['scopeField'], $work['listable']]);
+		foreach ($work['columns'] as $column) {
+			self::assertContains($column['field'], $work['fields']);
+		}
+
+		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
+		$schema   = array_column($register['components']['schemas'], null, 'slug')['werkproces-progress'];
+		self::assertSame(array_values(array_filter($schema['properties']['selfAssessment']['enum'])), array_keys($work['columns'][3]['valueLabels']));
+
+		$page   = array_column($manifest['pages'], null, 'id')['studentBpvPlacements'];
+		$blocks = array_column($page['blocks'], null, 'type');
+		self::assertSame('Agreements', $blocks['detail']['label']);
+		$table = array_values(array_filter($page['blocks'], static fn (array $b): bool => ($b['collection'] ?? '') === 'studentWorkProcesses'))[0];
+		self::assertSame('bpvPlacementId', $table['recordField']);
+	}//end testThePlacementShowsItsAgreementsAndWorkProcesses()
 }//end class

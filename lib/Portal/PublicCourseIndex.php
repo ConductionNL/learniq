@@ -139,6 +139,8 @@ class PublicCourseIndex {
 		}
 
 		$wanted = array_flip(array_map('strval', $courseIds));
+		$seats  = new CoursePlaces(reads: $this->reads);
+		$taken  = $seats->taken(namespace: $namespace);
 		$runs   = [];
 		foreach ($this->reads->rows(schema: 'cohort', namespace: $namespace) as $cohort) {
 			$courseId = (string)($cohort['courseId'] ?? '');
@@ -146,9 +148,15 @@ class PublicCourseIndex {
 				continue;
 			}
 
-			$days = $this->daysOf(cohortId: $this->reads->idOf(row: $cohort), today: $today);
+			$cohortId = $this->reads->idOf(row: $cohort);
+			$days     = $this->daysOf(cohortId: $cohortId, today: $today);
 			if ($days !== []) {
-				$runs[$courseId][] = ['days' => $days, 'place' => ($places[(string)($cohort['locationId'] ?? '')] ?? '')];
+				$runs[$courseId][] = [
+					'days'  => $days,
+					'place' => ($places[(string)($cohort['locationId'] ?? '')] ?? ''),
+					// Places left: capacity minus what bookings and loose enrolments hold; null without a capacity.
+					'left'  => $seats->left(capacity: ($cohort['capacity'] ?? null), taken: ($taken[$cohortId] ?? 0)),
+				];
 			}
 		}
 
@@ -220,6 +228,9 @@ class PublicCourseIndex {
 		if ($this->courseHref !== '') {
 			$item['href'] = $this->courseHref;
 		}
+
+		// "Nog 1 plek", "6 plekken vrij" or "Vol" for the next run (board-data-the-schemas-lacked).
+		$item += (new CoursePlaces(reads: $this->reads))->note(left: $first['left']);
 
 		return $item;
 	}//end item()

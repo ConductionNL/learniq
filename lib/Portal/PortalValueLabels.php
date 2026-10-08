@@ -157,4 +157,17 @@ class PortalValueLabels {
 		'completed'                => 'Finished',
 		'terminated'               => 'Stopped early',
 	];
+
+	/**
+	 * `werkproces-progress.selfAssessment`: how a student rates her own work process.
+	 *
+	 * @var array<string, string>
+	 *
+	 * @spec openspec/changes/board-data-the-schemas-lacked/specs/portal-contribution/spec.md#requirement-the-placement-page-shows-the-agreements-and-the-work-processes
+	 */
+	public const SELF_ASSESSMENT = [
+		'goed'        => 'Good',
+		'voldoende'   => 'Sufficient',
+		'onvoldoende' => 'Insufficient',
+	];
 }//end class

@@ -263,6 +263,11 @@ class StudentPortalPages {
 				'hoursWaitingTotal',
 				'hoursReturnedTotal',
 				'lifecycle',
+				// The agreements on the board (Detail, "Afspraken"; board-data-the-schemas-lacked).
+				'workdaysLabel',
+				'workplaceAddress',
+				'qualificationName',
+				'crebo',
 			],
 			'columns' => [
 				['field' => 'trainingCompanyName', 'label' => 'Training company'],
@@ -279,9 +284,27 @@ class StudentPortalPages {
 				'hoursWaitingTotal'   => ['label' => 'Waiting for approval'],
 				'hoursReturnedTotal'  => ['label' => 'Sent back'],
 				'lifecycle'           => ['label' => 'Status', 'valueLabels' => PortalValueLabels::PLACEMENT_STATUS],
+				'workdaysLabel'       => ['label' => 'Workdays'],
+				'workplaceAddress'    => ['label' => 'Address'],
+				'qualificationName'   => ['label' => 'Qualification'],
+				'crebo'               => ['label' => 'Crebo'],
 			],
 		],
-		[
+		$this->hourWeeksCollection(),
+		$this->workProcessesCollection(),
+		];
+
+	}//end bpvCollections()
+
+	/**
+	 * Her weeks of realised hours, with both numbers on each week.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 */
+	private function hourWeeksCollection(): array {
+		return [
 			'id' => 'studentHourWeeks',
 			'register' => self::REGISTER,
 			'schema' => 'bpv-hour-week',
@@ -324,10 +347,37 @@ class StudentPortalPages {
 				// correction becomes silent.
 				['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::HOUR_WEEK_STATUS],
 			],
-		],
 		];
+	}//end hourWeeksCollection()
 
-	}//end bpvCollections()
+	/**
+	 * Her own record per work process of her placement: the hours she spent
+	 * on it and her own estimate (board Detail, "Werkprocessen"). Read on her
+	 * placement page only, narrowed to the open placement.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/board-data-the-schemas-lacked/specs/portal-contribution/spec.md#requirement-the-placement-page-shows-the-agreements-and-the-work-processes
+	 */
+	public function workProcessesCollection(): array {
+		return [
+			'id' => 'studentWorkProcesses',
+			'register' => self::REGISTER,
+			'schema' => 'werkproces-progress',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'label' => 'Work processes',
+			'listable' => false,
+			'minTrust' => 'low',
+			'fields' => ['learnerRef', 'bpvPlacementId', 'werkprocesCode', 'werkprocesLabel', 'hoursSpent', 'selfAssessment'],
+			'columns' => [
+				['field' => 'werkprocesCode', 'label' => 'Code'],
+				['field' => 'werkprocesLabel', 'label' => 'Work process'],
+				['field' => 'hoursSpent', 'label' => 'Hours'],
+				['field' => 'selfAssessment', 'label' => 'Your estimate', 'valueLabels' => PortalValueLabels::SELF_ASSESSMENT],
+			],
+		];
+	}//end workProcessesCollection()
 
 	/**
 	 * She enters a week of her own placement's hours.
@@ -520,9 +570,6 @@ class StudentPortalPages {
 			$blocks[] = $this->hoursBar(collection: 'studentBpvPlacements');
 		}
 
-		// The placement shows its hours under where it stands, as the board (Detail).
-		$placement = ($id === 'studentBpvPlacements');
-
 		$form = $this->firstCreateFor(schema: $schema, actions: $actions);
 		if ($form !== null) {
 			$blocks[] = ['type' => 'action', 'action' => $form];
@@ -537,11 +584,7 @@ class StudentPortalPages {
 			$blocks[] = ['type' => 'steps', 'collection' => $id, 'label' => (string)($collection['steps']['label'] ?? ''), 'display' => 'bars'];
 		}
 
-		if ($placement === true) {
-			$blocks[] = $this->hoursBar(collection: $id);
-		}
-
-		$blocks[] = ['type' => 'detail', 'collection' => $id];
+		$blocks = array_merge($blocks, $this->recordTail(id: $id));
 		$page['blocks'] = $blocks;
 		if (isset(self::MENU_PAGES[$id]) === false) {
 			return $page + ['menu' => false];
@@ -549,6 +592,29 @@ class StudentPortalPages {
 
 		return array_merge($page, ['label' => self::MENU_PAGES[$id], 'group' => ParentSitePages::GROUP]);
 	}//end collectionPage()
+
+	/**
+	 * The blocks under a collection page's list: the selected row's detail,
+	 * and for the placement first its hours and work processes, the detail
+	 * then headed "Agreements" (board Detail; board-data-the-schemas-lacked).
+	 *
+	 * @param string $id The collection id.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/board-data-the-schemas-lacked/specs/portal-contribution/spec.md#requirement-the-placement-page-shows-the-agreements-and-the-work-processes
+	 */
+	private function recordTail(string $id): array {
+		if ($id !== 'studentBpvPlacements') {
+			return [['type' => 'detail', 'collection' => $id]];
+		}
+
+		return [
+			$this->hoursBar(collection: $id),
+			['type' => 'collection', 'label' => 'Work processes', 'collection' => 'studentWorkProcesses', 'recordField' => 'bpvPlacementId'],
+			['type' => 'detail', 'collection' => $id, 'label' => 'Agreements'],
+		];
+	}//end recordTail()
 
 	/**
 	 * The hours bar of the board (school-design esdoornveen, MijnLijst and
