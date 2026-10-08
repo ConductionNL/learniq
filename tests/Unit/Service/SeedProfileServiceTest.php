@@ -26,6 +26,7 @@ namespace OCA\Learniq\Tests\Unit\Service;
 use OCA\Learniq\Portal\ExamplePortalProvisioner;
 use OCA\Learniq\Service\DemoDataService;
 use OCA\Learniq\Service\LoadedExampleSets;
+use OCA\Learniq\Service\ExampleSetDates;
 use OCA\Learniq\Service\SeedProfileService;
 use OCA\Learniq\Service\SharedCodeFilter;
 use OCP\App\IAppManager;
@@ -111,10 +112,11 @@ class SeedProfileServiceTest extends TestCase {
 	 * @param bool                    $generated Whether the generated set ships.
 	 * @param LoadedExampleSets|null  $loaded    The loaded-set list, when a test reads it.
 	 * @param ExamplePortalProvisioner|null $portals The portal provisioner, when a test asserts on it.
+	 * @param ExampleSetDates|null          $dates   The date offsets, when a test asserts on them.
 	 *
 	 * @return SeedProfileService
 	 */
-	private function service(?ContainerInterface $container = null, ?LoggerInterface $logger = null, bool $generated = true, ?LoadedExampleSets $loaded = null, ?ExamplePortalProvisioner $portals = null): SeedProfileService {
+	private function service(?ContainerInterface $container = null, ?LoggerInterface $logger = null, bool $generated = true, ?LoadedExampleSets $loaded = null, ?ExamplePortalProvisioner $portals = null, ?ExampleSetDates $dates = null): SeedProfileService {
 		$demo = $this->createMock(DemoDataService::class);
 		$demo->method('isAvailable')->willReturn($generated);
 		$choices = [['id' => 'none', 'label' => 'None', 'description' => '', 'objectCount' => 0, 'icon' => 'CloseCircleOutline']];
@@ -132,9 +134,21 @@ class SeedProfileServiceTest extends TestCase {
 			$demo,
 			$this->passThroughFilter(),
 			($loaded ?? $this->createMock(LoadedExampleSets::class)),
-			($portals ?? $this->createMock(ExamplePortalProvisioner::class))
+			($portals ?? $this->createMock(ExamplePortalProvisioner::class)),
+			($dates ?? $this->passThroughDates())
 		);
 	}//end service()
+
+	/**
+	 * Date offsets that leave every descriptor as it is (offset 0, never loaded).
+	 *
+	 * @return ExampleSetDates
+	 */
+	private function passThroughDates(): ExampleSetDates {
+		$dates = $this->createMock(ExampleSetDates::class);
+		$dates->method('prepare')->willReturnCallback(static fn (string $setId, array $data): array => ['data' => $data, 'offset' => 0, 'previous' => null]);
+		return $dates;
+	}//end passThroughDates()
 
 	/**
 	 * A shared-code filter that leaves every descriptor as it is.
@@ -286,7 +300,8 @@ class SeedProfileServiceTest extends TestCase {
 			$this->createMock(DemoDataService::class),
 			$this->passThroughFilter(),
 			$this->createMock(LoadedExampleSets::class),
-			$this->createMock(ExamplePortalProvisioner::class)
+			$this->createMock(ExamplePortalProvisioner::class),
+			$this->passThroughDates()
 		);
 
 		$this->expectExceptionMessage('OpenRegister');
@@ -558,4 +573,138 @@ class SeedProfileServiceTest extends TestCase {
 
 		$this->service()->uuidsFor('demo');
 	}//end testUuidsForRefusesTheGeneratedSet()
+
+	/**
+	 * An importer double that records the descriptor it was handed.
+	 *
+	 * @return object
+	 */
+	private function recordingImporter(): object {
+		return new class {
+			/**
+			 * @var array<int, array<string, mixed>>
+			 */
+			public array $imports = [];
+
+			/**
+			 * @param string               $appId
+			 * @param array<string, mixed> $data
+			 * @param string               $version
+			 * @param bool                 $force
+			 *
+			 * @return array<string, mixed>
+			 */
+			public function importFromApp(string $appId, array $data, string $version, bool $force): array {
+				$this->imports[] = $data;
+				return [];
+			}//end importFromApp()
+		};
+	}//end recordingImporter()
+
+	/**
+	 * A reload in the same week moves nothing that exists and hands the
+	 * importer the set at this week's offset; the portal gets the same offset.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
+	 */
+	public function testASameWeekReloadMovesNothingThatExists(): void {
+		$this->writeProfile('po.json', 'po', 1);
+		$file = $this->appPath . '/lib/Settings/profiles/po.json';
+		$withDate = json_decode((string)file_get_contents($file), true);
+		$withDate['x-openregister']['seedData']['objects']['session'][] = ['uuid' => 'ee010000-0000-4000-8000-000000000001', 'startsAt' => '2026-10-05T08:30:00+02:00'];
+		file_put_contents($file, json_encode($withDate));
+		$importer  = $this->recordingImporter();
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->willReturn($importer);
+		$dates = $this->realDates(current: 14, applied: 14, moves: $moves);
+
+		$portals = $this->createMock(ExamplePortalProvisioner::class);
+		$portals->expects(self::once())->method('provision')->with('po', 14, 14)->willReturn(['status' => 'unchanged']);
+
+		$this->service(container: $container, portals: $portals, dates: $dates)->install('po');
+
+		self::assertSame([], $moves, 'nothing that exists is moved');
+		$shipped = json_decode((string)file_get_contents($this->appPath . '/lib/Settings/profiles/po.json'), true);
+		self::assertSame((new \OCA\Learniq\Service\DemoDates())->shift($shipped, 14), $importer->imports[0]);
+		self::assertSame('14', $this->stored['example_set_date_offset_po']);
+		$sessions = $importer->imports[0]['x-openregister']['seedData']['objects']['session'];
+		self::assertSame('2026-10-19T08:30:00+02:00', end($sessions)['startsAt']);
+	}//end testASameWeekReloadMovesNothingThatExists()
+
+	/**
+	 * A reload two weeks later first moves what exists by the difference,
+	 * then imports the set at the new offset.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
+	 */
+	public function testAReloadInALaterWeekMovesWhatExistsFirst(): void {
+		$this->writeProfile('po.json', 'po', 1);
+		$importer  = $this->recordingImporter();
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->willReturn($importer);
+		$dates = $this->realDates(current: 21, applied: 7, moves: $moves, importer: $importer);
+
+		$portals = $this->createMock(ExamplePortalProvisioner::class);
+		$portals->expects(self::once())->method('provision')->with('po', 21, 7)->willReturn(['status' => 'unchanged']);
+
+		$this->service(container: $container, portals: $portals, dates: $dates)->install('po');
+
+		self::assertSame([[14, 0]], $moves, 'what exists moves by the difference, before the import');
+		self::assertCount(1, $importer->imports);
+		self::assertSame('21', $this->stored['example_set_date_offset_po']);
+	}//end testAReloadInALaterWeekMovesWhatExistsFirst()
+
+	/**
+	 * The app config the date offsets are kept in.
+	 *
+	 * @var array<string, string>
+	 */
+	private array $stored = [];
+
+	/**
+	 * A real ExampleSetDates on a fixed week, whose move of existing
+	 * objects is recorded as [days, imports done before it].
+	 *
+	 * @param int                     $current  This week's offset.
+	 * @param int|null                $applied  The offset the set carries.
+	 * @param array<int, array<int, int>>|null $moves The recorded moves, by reference.
+	 * @param object|null             $importer The importer, to see the order.
+	 *
+	 * @return ExampleSetDates
+	 */
+	private function realDates(int $current, ?int $applied, ?array &$moves, ?object $importer=null): ExampleSetDates {
+		$moves        = [];
+		$this->stored = [];
+		if ($applied !== null) {
+			$this->stored['example_set_date_offset_po'] = (string)$applied;
+		}
+
+		$config = $this->createMock(\OCP\IAppConfig::class);
+		$config->method('getValueString')->willReturnCallback(fn (string $app, string $key, string $default=''): string => ($this->stored[$key] ?? $default));
+		$config->method('setValueString')->willReturnCallback(
+			function (string $app, string $key, string $value): bool {
+				$this->stored[$key] = $value;
+				return true;
+			}
+		);
+		$time = $this->createMock(\OCP\AppFramework\Utility\ITimeFactory::class);
+		$time->method('now')->willReturn((new \DateTimeImmutable('2026-10-07T10:00:00+02:00'))->modify('+' . $current . ' days'));
+
+		$dates = $this->getMockBuilder(ExampleSetDates::class)
+			->setConstructorArgs([$config, $time, $this->createMock(LoadedExampleSets::class), $this->createMock(ContainerInterface::class), $this->createMock(LoggerInterface::class)])
+			->onlyMethods(['moveExisting'])
+			->getMock();
+		$dates->method('moveExisting')->willReturnCallback(
+			function (array $objects, int $days) use (&$moves, $importer): array {
+				$moves[] = [$days, ($importer === null) ? 0 : count($importer->imports)];
+				return ['moved' => count($objects), 'unchanged' => 0, 'missing' => 0, 'failed' => 0];
+			}
+		);
+
+		return $dates;
+	}//end realDates()
 }//end class
