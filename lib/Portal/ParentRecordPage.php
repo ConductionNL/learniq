@@ -94,6 +94,16 @@ class ParentRecordPage {
 				['field' => 'givenName', 'label' => 'First name'],
 				['field' => 'familyName', 'label' => 'Last name'],
 			],
+			// Who she may write to about each child: the teachers of the
+			// child's current groups (portal-message-contacts, portaliq
+			// site-messages-per-record). The tab and the "to" field name the
+			// child by first name.
+			'contacts' => [
+				'provider' => 'childMessageContacts',
+				'recordLabelFields' => ['givenName'],
+				'composeLabel' => 'A message to the teacher',
+				'composeHint' => 'The teacher usually answers within two school days. Is it urgent? Call the school.',
+			],
 		];
 
 	}//end childrenCollection()

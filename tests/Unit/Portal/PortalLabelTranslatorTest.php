@@ -117,7 +117,7 @@ class PortalLabelTranslatorTest extends TestCase {
 	 * @return bool
 	 */
 	private static function isVisible(string $path): bool {
-		return preg_match('#/(label|submitLabel|successMessage|unit|fallback|group|otherLabel|requiredMessage|buttonLabel|template|eyebrow|soonLabel|noteLabel|help)$#', $path) === 1
+		return preg_match('#/(label|submitLabel|successMessage|unit|fallback|group|otherLabel|requiredMessage|buttonLabel|template|eyebrow|soonLabel|noteLabel|help|composeLabel|composeHint|firstLabel)$#', $path) === 1
 			|| preg_match('#/confirmation/(title|body|next)$#', $path) === 1
 			|| preg_match('#/phrases/[^/]+/[^/]+$#', $path) === 1
 			|| preg_match('#/(label|unit)/(one|other)$#', $path) === 1
@@ -238,6 +238,14 @@ class PortalLabelTranslatorTest extends TestCase {
 		self::assertSame('Je werk', $actions['createSubmission']['fieldConfigs']['attachmentRefs']['label']);
 		self::assertSame('Toetsen die je kunt maken', $actions['listTests']['label']);
 		self::assertSame('Afwezig melden', $actions['createExcuseRequest']['label']);
+
+		// Her timetable (site-pupil-portal-design T5b): the label over the first lesson and the word of a change.
+		$pages = array_column($manifest['pages'], null, 'id');
+		self::assertSame('Je rooster vandaag', $pages['studentOverview']['blocks'][1]['label']);
+		self::assertSame('Je eerste les', $pages['studentOverview']['blocks'][1]['firstLabel']);
+		self::assertSame('Rooster', $pages['studentSessions']['label']);
+		$sessions = array_column($manifest['collections'], null, 'id')['studentSessions'];
+		self::assertSame('Ander lokaal', $sessions['fieldConfigs']['changeReasonKind']['valueLabels']['room-unavailable']);
 	}//end testTheStudentManifestArrivesInDutch()
 
 	/**
