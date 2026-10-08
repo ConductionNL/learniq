@@ -644,7 +644,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -678,7 +678,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -714,7 +714,7 @@
       "note": "Downgraded 2026-09-27 from built.state 'built' and learniq 'yes' (learniq#947): the BulkEnrol page names CnWizardDialog, which src/registry.js does not register, so /enrolments/bulk renders 'This page is empty'. The manifest page is there; the screen is not. Built 2026-09-27 (learniq#947): /enrolments/bulk now mounts BulkEnrolView, which enrols a whole department (and everything under it), a cohort or picked learners in one course and skips learners with an open enrolment.",
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -747,8 +747,12 @@
         "moodle": "source read at moodle/moodle v5.2.3: public/course/modlib.php:93 completionexpected per activity (shown in the timeline block) + public/enrol/editenrolment_form.php:57 timeend per user enrolment; the enrolment end date closes access, it is not a deadline the learner sees as such. Learning plans have a due date too (public/competency/classes/api.php:3171). No per-enrolment completion deadline exists. Reached on: Dashboard > Timeline block; course > Participants > edit enrolment."
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqMijnLeren"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqMijnLeren",
+          "LqLlMijnLeren",
+          "LqZoVandaag"
+        ]
       }
     },
     {
@@ -782,7 +786,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -816,7 +820,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -850,7 +854,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -884,7 +888,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -919,7 +923,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -953,7 +957,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -987,7 +991,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -1023,7 +1027,7 @@
       "note": "Downgraded 2026-09-27 from built.state 'built' and learniq 'yes' (learniq#952): POST /api/external-training/bulk exists (appinfo/routes.php:82) but nothing in src/ calls /api/external-training/, so no page offers the bulk upload.",
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -1057,7 +1061,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -1091,7 +1095,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -1229,7 +1233,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -1263,7 +1267,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -1296,8 +1300,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/course-notifications-10683431.html; Past Due Notification: \"automatic notifications sent to Learners to let them know that the due date for completing specific learning content has passed\". The course page shows \"status, and due date if available\" (https://ispringhelpdocs.com/ispring-learn/taking-courses-10684633.html). No documented late marker in the My Courses list"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqMijnLeren"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqMijnLeren",
+          "LqLlMijnLeren"
+        ]
       }
     },
     {
@@ -1470,7 +1477,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -1539,7 +1546,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -1610,7 +1617,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a learner screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -1646,7 +1653,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a learner screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -1680,7 +1687,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -1714,7 +1721,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a administrator screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -1749,7 +1756,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a learner screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -1782,7 +1789,7 @@
         "totara": "read 2026-09-26: https://totara.help/docs/certificate-activity-settings; certificate layout templates with customisable \"orientation, borders, watermarks, signatures, and institutional seals\", delivered by browser, download or email."
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqCursus"
       }
     },
@@ -1817,7 +1824,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a administrator screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -1850,8 +1857,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/achievements-17301767.html; Achievements: \"users can view all badges and certificates that they received\""
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqLlLeerdossier"
       }
     },
     {
@@ -1884,7 +1891,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/course-outline-10683358.html; Course Outline: \"Courses in iSpring LMS have the following outline: Course Section Content item\"; reorder with \"Arranging Sections Order ... use the up and down arrows\" (https://ispringhelpdocs.com/ispring-learn/actions-with-sections-17303921.html)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqCursus"
       }
     },
@@ -1918,7 +1925,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/creating-a-quiz-54759487.html; Creating a Quiz: \"If your quiz hasn't been published yet, it will be marked as Draft on the course page.\" Drafts documented for quizzes, pages and development plans, not for a whole course"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqCursus"
       }
     },
@@ -1952,7 +1959,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/copying-courses-28053102.html; Copying Courses: \"Create a full copy of a course\" copying outline and settings, but \"All modules in the copied courses will be linked copies of the original course modules.\" No course template feature; templates exist for development plans"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqCursus"
       }
     },
@@ -1986,7 +1993,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/course-outline-10683358.html; \"A section of a course may include content in the following formats: ... Video (FLV, MP4) Audio (MP3) Documents (PDF, DOC, XLS, PPT) ... Weblinks Pages\""
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesMaken"
       }
     },
@@ -2020,7 +2027,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/uploading-content-from-computer-30411510.html; Uploading Content from Computer: \"Supported types: SCORM 1.2/2004 packages FLV videos MP4 videos MP3 audio reference documents (PDF, DOC, XLS) PowerPoint presentations offline packages of courses created with iSpring products\". SCORM packages from another system import; Common Cartridge is not in the list"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesmap"
       }
     },
@@ -2054,7 +2061,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/uploading-content-from-computer-30411510.html; the supported upload types list (SCORM 1.2/2004, video, audio, documents, PowerPoint, iSpring offline packages) excludes Moodle backups; also https://ispringhelpdocs.com/ispring-learn/system-requirements-30409601.html Supported Content Types. Zero hits for Moodle in the help space"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesmap"
       }
     },
@@ -2088,7 +2095,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for import report for content; import results are documented only for users and departments"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesmap"
       }
     },
@@ -2122,8 +2129,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/exporting-pages-17303161.html; Exporting Pages: \"convert a page that you created to SCORM or Experience API\"; quizzes likewise (https://ispringhelpdocs.com/ispring-learn/exporting-a-quiz-54759499.html: \"You can export your quiz to SCORM or xAPI and upload it to another LMS\"). Pages and quizzes only, whole course export not documented"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqCursusDelen"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqCursusDelen",
+          "LqTlPubliceren"
+        ]
       }
     },
     {
@@ -2156,7 +2166,7 @@
         "totara": "read 2026-09-26: https://totara.help/docs/scorm-activity-settings; grading uses the package values \"cmi.core.lesson_status\" and \"cmi.core.score.raw\" (SCORM 1.2), feeding activity completion."
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesmap"
       }
     },
@@ -2192,7 +2202,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a learner screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -2261,7 +2271,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/course-outline-10683358.html; the course content formats are listed as iSpring content, SCORM, video, audio, documents, freeform assignments, weblinks and pages, with no LTI tool; zero hits for LTI in the help space"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesMaken"
       }
     },
@@ -2330,8 +2340,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/completing-development-plans-128352820.html; Completing Development Plans: \"If there is no task monitor, you can mark the task as completed on your own.\" Only for development plan tasks; course items complete by viewing (\"users need to view 95% of the clip\", https://ispringhelpdocs.com/ispring-learn/course-completion-condition-17302430.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqLlLesVolgen"
       }
     },
     {
@@ -2365,7 +2375,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a teacher screen the canvas does not draw"
+        "reason": "not designed yet: a teacher screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -2399,7 +2409,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a teacher screen the canvas does not draw"
+        "reason": "not designed yet: a teacher screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -2433,7 +2443,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a teacher screen the canvas does not draw"
+        "reason": "not designed yet: a teacher screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -2500,10 +2510,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/enrolling-on-a-user-s-page-35664610.html; \"Go to the Users section and click on a user's name ... click on the Enroll: Course/Training\""
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqGroep",
-          "LqLeerling"
+          "LqLeerling",
+          "LqLeerlingen"
         ]
       }
     },
@@ -2537,7 +2548,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/creating-groups-10684139.html; Creating Groups: \"Open the Users section, go to the Groups tab and click the New Group button\" then \"Add Users\"; groups can be enrolled together via Advanced Search"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqGroepen",
           "LqGroep",
@@ -2575,7 +2586,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/how-to-create-chats-100863563.html; \"An administrator can create a group chat in the messenger, in the user list, and on the user info page.\" Group chats are created by hand, not automatically per group"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqGroep"
       }
     },
@@ -2609,8 +2620,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/learner-progress-17304145.html; Learner Progress: \"check if users of a certain department have any overdue courses or how far learners have advanced through the content item.\""
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqMijnLeren"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqMijnLeren",
+          "LqLlMijnLeren"
+        ]
       }
     },
     {
@@ -2644,7 +2658,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a coordinator or planner screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -2677,8 +2691,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/learning-tracks-22611015.html; Learning Tracks: \"A learning track is a convenient way to organize employees' training ... Assign this learning track to employees ... they will be enrolled in the courses included in the track.\""
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqMijnLeren"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqMijnLeren",
+          "LqLlMijnLeren"
+        ]
       }
     },
     {
@@ -2711,8 +2728,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/adding-a-training-to-the-catalog-35652478.html; catalog option \"Learners need administrator approval to enroll in this training\"; supervisors send requests (https://ispringhelpdocs.com/ispring-learn/how-to-create-a-request-48333681.html). Approval requests for catalog items, not a formal application intake"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqCoAanmeldingen",
+          "LqCoAanmelding"
+        ]
       }
     },
     {
@@ -2745,8 +2765,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for panel, committee, board review of requests; approval is by a single administrator or custom role"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoBeoordelen"
       }
     },
     {
@@ -2779,8 +2799,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/waitlist-128354319.html; Waitlist: \"If an enrolled participant cancels, waitlisted employees can take the open spot. Administrators can prioritize who gets in first\" and employees \"will be invited to register if/when spots become available\". Notification, not automatic promotion"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoAanmelding"
       }
     },
     {
@@ -2813,8 +2833,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/how-to-approve-a-request-48333685.html; \"The employee will receive a notification when the admin approves the request. The recommended course will also appear in the My Courses section\""
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoAanmelding"
       }
     },
     {
@@ -2847,8 +2867,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/enabling-course-and-training-catalog-22613015.html; learners self-enrol from a course and training catalog with categories per department (https://ispringhelpdocs.com/ispring-learn/catalog-16187523.html). No elective choice rules documented"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqLlVakkenKiezen",
+          "LqOuVakkenKiezen"
+        ]
       }
     },
     {
@@ -2881,8 +2904,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for guardian, school year, rollover, prior school record; the product is corporate training with no school year model"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a parent (portaliq) screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqOuVakkenKiezen"
       }
     },
     {
@@ -2916,7 +2939,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a administrator screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -2950,7 +2973,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a administrator screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -2984,7 +3007,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a administrator screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -3017,8 +3040,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for guardian, school year, rollover, prior school record; the product is corporate training with no school year model"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoAanmelding"
       }
     },
     {
@@ -3051,7 +3074,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for question bank, question pool; online quizzes have question groups inside one quiz (https://ispringhelpdocs.com/ispring-learn/quizzes-surveys-role-plays-35666849.html), reuse across tests is not documented"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqItembank"
       }
     },
@@ -3085,7 +3108,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/uploading-content-from-computer-30411510.html; supported upload types (SCORM 1.2/2004, video, audio, documents, PowerPoint, iSpring offline packages) exclude QTI; zero QTI hits in the help space"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqItembank"
       }
     },
@@ -3119,7 +3142,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/exporting-a-quiz-54759499.html; Exporting a Quiz: \"You can export your quiz to SCORM or xAPI and upload it to another LMS.\" QTI is not an export option"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqItembank"
       }
     },
@@ -3153,7 +3176,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/rules-62864261.html; quiz Rules: \"specify the number of attempts, the passing score, and the time allowed\" and \"Set a time limit ... From 1 to 600 minutes.\" Timed, scored tests yes; assembling from a shared bank not documented"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqLessen",
           "LqItembank"
@@ -3190,7 +3213,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for random draw, question pool; only \"Shuffle questions Randomize the order of questions\" is documented (https://ispringhelpdocs.com/ispring-learn/rules-62864261.html)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqItembank"
       }
     },
@@ -3224,7 +3247,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/rules-62864261.html; \"Shuffle answers Show answers in random order.\""
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqItembank"
       }
     },
@@ -3258,7 +3281,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/rules-62864261.html; quizzes have a passing score and \"After a user submits an answer, they will be shown the correct one\"; per question points in Quiz and Role-Play Details (https://ispringhelpdocs.com/ispring-learn/quiz-and-role-play-details-22611264.html)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqToetsNakijken"
       }
     },
@@ -3292,8 +3315,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/online-quizzes-54759080.html; \"Add online quizzes that users can take from any device.\"; mobile app with offline learning on https://www.ispring.com/features"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqLlToetsMaken"
       }
     },
     {
@@ -3326,7 +3349,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for locked attempt, edit attempt; quiz attempt immutability is not documented (score recalculation is documented only for observation sessions, https://ispringhelpdocs.com/ispring-learn/how-to-recalculate-the-score-100863384.html)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqToetsNakijken"
       }
     },
@@ -3360,7 +3383,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/quizzes-surveys-role-plays-35666849.html; Quiz Results Overview: \"track the total number and percentage of correct and incorrect answers for groups of questions\" with a question statistics table"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqItemanalyse"
       }
     },
@@ -3394,7 +3417,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for reliability, Cronbach, alpha"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqItemanalyse"
       }
     },
@@ -3428,7 +3451,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for question quality alert; the Quiz and Role-Play Details report is looked up by hand (\"Supposedly, you'd rather reword the question\")"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqItemanalyse"
       }
     },
@@ -3523,7 +3546,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a coordinator or planner screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -3557,7 +3580,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a exam board screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a exam board screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -3591,7 +3614,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a exam board screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a exam board screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -3625,7 +3648,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a exam board screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a exam board screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -3658,7 +3681,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/adding-assignment-10683778.html; \"add the assignment title, description, and instructions and set the passing score\"; due date set at enrollment (https://ispringhelpdocs.com/ispring-learn/enrollments-16187447.html)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqLessen",
           "LqOpdracht"
@@ -3695,8 +3718,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/submitting-assignment-10683790.html; \"students write their answers, attach files if there are any, and click Post . The file attached to the completed assignment shouldn't exceed 500 MB.\" Upload from the device; a cloud drive picker is not documented"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqLlInleveren"
       }
     },
     {
@@ -3729,7 +3752,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/enrollments-16187447.html; \"For the By Date and For a period options, you can select the Restrict access after due date option. In this case, learners won't be able to take the course after the due date expires.\""
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqOpdracht"
       }
     },
@@ -3763,7 +3786,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for group assignment, team submission"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqOpdracht"
       }
     },
@@ -3797,7 +3820,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/how-to-create-an-observation-checklist-86769678.html; observation checklists with metrics on rating scales for on-the-job training (\"observers will answer all questions on the rating scale\"). Assignments themselves take one score \"Points from 1 to 100\" and a comment (https://ispringhelpdocs.com/ispring-learn/evaluating-attempts-to-submit-an-assignment-48333147.html)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqInleveringNakijken"
       }
     },
@@ -3831,7 +3854,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/how-to-create-an-observation-checklist-86769678.html; checklist setting \"Allow observers to finish a session without all metrics filled\" can be turned off so all metrics must be scored. Observation checklists only, not assignments"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqInleveringNakijken"
       }
     },
@@ -3865,7 +3888,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for peer review of work; 360 review assesses colleagues' competencies, not handed-in work"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqPeerreview"
       }
     },
@@ -3899,7 +3922,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for peer reviewer allocation"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqOpdracht"
       }
     },
@@ -3933,7 +3956,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for self-assessment of work; self-review exists only in 360 competency reviews"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqInleveringNakijken"
       }
     },
@@ -3968,7 +3991,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a learner screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -4030,7 +4053,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/scoring-a-course-35653408.html; Scoring a Course: \"The course score is calculated as the average of the scores earned for the selected content items\" including assignments. Feeds the course score; no gradebook"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqInleveringNakijken"
       }
     },
@@ -4065,7 +4088,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a administrator screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -4098,10 +4121,11 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for unpublished grade, grade release"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqCijferInvoeren",
-          "LqCijferlijst"
+          "LqCijferlijst",
+          "LqCijfers"
         ]
       }
     },
@@ -4135,7 +4159,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/scoring-a-course-35653408.html; \"The course score is calculated as the average of the scores earned for the selected content items.\" Plain average, no weights"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqCijferlijst"
       }
     },
@@ -4170,7 +4194,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a learner screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -4203,7 +4227,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/quiz-and-role-play-details-22611264.html; results per learner and item come from the Course Details and Learner Results reports; no gradebook grid documented"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqCijferlijst"
       }
     },
@@ -4237,7 +4261,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for report card, term, guardian (no school report model)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqRapportvergadering"
       }
     },
@@ -4271,7 +4295,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for report card, term, guardian (no school report model)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqRapportvergadering"
       }
     },
@@ -4305,7 +4329,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for report card, term, guardian (no school report model)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqRapportvergadering"
       }
     },
@@ -4410,7 +4434,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/add-competency-35670096.html; Add Competency: competencies with indicators and a rating scale, grouped into profiles, used in 360 reviews. Not linked to course marks"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesMaken"
       }
     },
@@ -4444,7 +4468,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/user-competencies-48333355.html; \"The report includes the competency radar chart and a table with scores ... compare it with the required level of proficiency.\" From reviews, not rolled up from marks"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqVoortgang"
       }
     },
@@ -4478,7 +4502,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/department-results-86769842.html; Department Results: \"the average results organized according to criteria groups and will be able to compare how departments meet the standards.\" For review and observation results"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqDekkingsmatrix"
       }
     },
@@ -4614,8 +4638,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/supervisor-dashboard-48332990.html; the employee list shows \"when employees last logged into the system, and how many courses are completed, overdue or failed\" and a User Issues block. No drop-out signal"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqVoortgang"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqVoortgang",
+          "LqTlVandaag"
+        ]
       }
     },
     {
@@ -4648,7 +4675,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/answer-breakdown-22612743.html; Answer Breakdown can \"track employee progress over time\"; Group Progress report exists. Trend views per group are not described in detail"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqGroepstrend"
       }
     },
@@ -4682,7 +4709,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/development-plans-128352776.html; \"Examples of development plans include onboarding plans, personal development plans, and any kind of professional growth programs.\""
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLeerplan"
       }
     },
@@ -4716,7 +4743,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/plan-templates-128352814.html; \"You can save any development plan as a template ... Then, choose the type of plan, e.g., onboarding plan.\""
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLeerplan"
       }
     },
@@ -4750,7 +4777,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for plan version history; only \"who edited the template last in the Last Modified column\" is shown"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLeerplan"
       }
     },
@@ -4784,7 +4811,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for plan signature"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLeerplan"
       }
     },
@@ -4818,7 +4845,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/mentors-128353063.html; mentors see \"plans with pending outcomes, i.e., the plans that need your final comment\"; supervisors are notified of \"The need to record an outcome\" (https://ispringhelpdocs.com/ispring-learn/development-plan-notifications-128353529.html). Outcome at plan end, a set evaluation date is not documented"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLeerplan"
       }
     },
@@ -4852,7 +4879,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for group instruction plan, ability groups"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqGroepsplan"
       }
     },
@@ -4886,7 +4913,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for group plan cycle"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqGroepsplan"
       }
     },
@@ -4920,7 +4947,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for pupil notes, dossier"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqDossier",
           "LqNotitie",
@@ -4958,7 +4985,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for behaviour, incident"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqDossier",
           "LqNieuweNotitie"
@@ -4995,7 +5022,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/how-to-create-surveys-in-ispring-lms-128352655.html; non-graded quizzes \"to collect their views and feedback\", for example a Likert scale. Generic surveys, not a wellbeing check-in"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqDossier"
       }
     },
@@ -5029,7 +5056,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/learning-history-10684658.html; \"In the My Learning History section, learners can view how they were progressing through the courses.\" Learning events only"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqDossierTijdlijn"
       }
     },
@@ -5063,7 +5090,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for care request, extra support, consultation, municipality"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLeerplan"
       }
     },
@@ -5098,7 +5125,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a care coordinator screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a care coordinator screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -5132,7 +5159,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a care coordinator screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a care coordinator screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -5166,7 +5193,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a care coordinator screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a care coordinator screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -5201,10 +5228,11 @@
       },
       "note": "Built 2026-09-27 (learniq#947): the MarkAttendanceView page named CnDataMatrix, which the registry lacked, so it opened empty; it now mounts AttendanceRegisterView.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqAanwezigheid",
-          "LqLes"
+          "LqLes",
+          "LqRegistratie"
         ]
       }
     },
@@ -5272,7 +5300,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for absence note, excuse, absence limit, truancy report"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqAanwezigheidLijst"
       }
     },
@@ -5307,7 +5335,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a coordinator or planner screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -5340,7 +5368,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for absence note, excuse, absence limit, truancy report"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqDashboard",
           "LqGroep"
@@ -5380,7 +5408,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for absence note, excuse, absence limit, truancy report"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqAanwezigheidLijst"
       }
     },
@@ -5414,7 +5442,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/adding-locations-128354327.html; training sessions have a location chosen \"while setting up a training session\", with dates and an organizer (https://ispringhelpdocs.com/ispring-learn/training-properties-30416269.html)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesBeheren"
       }
     },
@@ -5448,7 +5476,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/adding-locations-128354327.html; locations can be defined and selected for a training, and the training has a capacity (\"set the capacity, 10 participants, for example\", https://ispringhelpdocs.com/ispring-learn/waitlist-128354319.html). Room booking with room capacity is not documented"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesBeheren"
       }
     },
@@ -5482,8 +5510,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for clash, conflict, double booking"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoConflicten"
       }
     },
     {
@@ -5516,8 +5544,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for clash, conflict"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoConflicten"
       }
     },
     {
@@ -5552,8 +5580,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for timetable import"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoRoosterImporteren"
       }
     },
     {
@@ -5586,10 +5614,12 @@
         "ispring-learn": "read 2026-09-26: https://www.ispring.com/features; Events calendar: \"The calendar automatically invites trainees to training sessions, reminds them about upcoming events, and notifies them about schedule changes.\""
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqLesBeheren",
-          "LqRooster"
+          "LqRooster",
+          "LqLlRooster",
+          "LqOuRooster"
         ]
       }
     },
@@ -5624,10 +5654,12 @@
       },
       "note": "Corrections round 8 (2026-09-28): substitutes miss the lessons they cover in their own timetable, learniq#1134; rating kept at yes because every teacher, learner and enrolled person does get their own timetable, and the substitute gap is specified in openspec/changes/timetabling-lesson-note.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqRooster",
-          "LqRoosters"
+          "LqRoosters",
+          "LqLesNotitie",
+          "LqLlRooster"
         ]
       }
     },
@@ -5662,8 +5694,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/how-to-sync-calendars-62853286.html; \"Go to Trainings and click Sync Calendar . Select a calendar\" with Google, Outlook, Apple and other calendars by link"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqAgendaAbonneren"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqAgendaAbonneren",
+          "LqLlRooster"
+        ]
       }
     },
     {
@@ -5696,8 +5731,8 @@
         "ispring-learn": "read 2026-09-26: https://www.ispring.com/features; \"The adaptive user portal includes a clear content library that neatly organizes courses into To Do and Completed sections.\" Due dates show per course; a week view of what is owed is not documented"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqLlVandaag"
       }
     },
     {
@@ -5731,8 +5766,13 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for guardian, parent, conference (no guardian role among the six standard roles, https://ispringhelpdocs.com/ispring-learn/standard-roles-17303074.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a parent (portaliq) screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqOuLeerdossier",
+          "LqOuMijnLeren",
+          "LqOuRooster",
+          "LqOuVandaag"
+        ]
       }
     },
     {
@@ -5765,8 +5805,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for guardian, parent, conference (no guardian role among the six standard roles, https://ispringhelpdocs.com/ispring-learn/standard-roles-17303074.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoPlanbord"
       }
     },
     {
@@ -5800,7 +5840,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a teacher screen the canvas does not draw"
+        "reason": "not designed yet: a teacher screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -5833,8 +5873,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for guardian, parent, conference (no guardian role among the six standard roles, https://ispringhelpdocs.com/ispring-learn/standard-roles-17303074.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a parent (portaliq) screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqOuGesprekBoeken"
       }
     },
     {
@@ -5867,8 +5907,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for guardian, parent, conference (no guardian role among the six standard roles, https://ispringhelpdocs.com/ispring-learn/standard-roles-17303074.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "no screen: backend behaviour"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoPlanbord"
       }
     },
     {
@@ -5935,7 +5975,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for guardian, parent, conference (no guardian role among the six standard roles, https://ispringhelpdocs.com/ispring-learn/standard-roles-17303074.html)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqGespreksverslag"
       }
     },
@@ -6004,7 +6044,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a learner screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -6072,7 +6112,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a learner screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -6105,8 +6145,11 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for learner data export, signed record; learners can view but no self download of the whole record is documented"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqLlLeerdossier",
+          "LqOuLeerdossier"
+        ]
       }
     },
     {
@@ -6140,7 +6183,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a learner screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -6173,8 +6216,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for export completeness note"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqLlLeerdossier"
       }
     },
     {
@@ -6616,7 +6659,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a administrator screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -6650,7 +6693,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a administrator screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -6781,8 +6824,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for record of processing, processing purpose; GDPR appears only as login consent to privacy documents (https://ispringhelpdocs.com/ispring-learn/security-10684249.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a privacy officer screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCfPartners"
       }
     },
     {
@@ -6816,7 +6859,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a privacy officer screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a privacy officer screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -6850,8 +6893,11 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for subject access request, data export for a person; users can see which privacy terms they agreed to and \"Request correction\" of profile data (https://ispringhelpdocs.com/ispring-learn/public-profile-62863818.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a privacy officer screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqCfPrivacyverzoeken",
+          "LqCfPrivacyverzoek"
+        ]
       }
     },
     {
@@ -6885,7 +6931,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a privacy officer screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a privacy officer screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -6918,8 +6964,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched the LMS help space for accessibility, WCAG, VPAT (zero relevant hits) and the web; iSpring publishes Accessibility Conformance Reports for iSpring Suite, Visuals and Presenter (https://ispringhelpdocs.com/ispring-suite/troubleshooting/accessibility-conformance-report-ispring-suite-ispring-visuals) but none for iSpring LMS"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCfToegankelijkheid"
       }
     },
     {
@@ -6952,8 +6998,11 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: no iSpring LMS accessibility conformance report found; reports exist only for the authoring tools"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqCfToegankelijkheid",
+          "LqCfBeperkingen"
+        ]
       }
     },
     {
@@ -6986,7 +7035,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for accessibility feedback, report a barrier"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqBarriereMelden"
       }
     },
@@ -7020,8 +7069,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/ispring-ai-128354459.html; iSpring AI: \"Data sent to the OpenAI API will not be used to train or improve OpenAI models. Our AI tools are powered by trusted third-party AI technologies.\" AI Translator: \"Translations are powered by GPT-4.o\" (https://ispringhelpdocs.com/ispring-learn/ai-translator-128355439.html). Provider named, processing location not stated"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCfAiVerwerking"
       }
     },
     {
@@ -7054,8 +7103,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/ispring-ai-128354459.html; \"By clicking Continue , you confirm that you have read and agree to our AI Usage Policy and Privacy Policy.\" Consent to a policy at first use; no page listing every AI feature and its locality"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCfAiVerwerking"
       }
     },
     {
@@ -7088,8 +7137,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for AI locality tier, AI region"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCfAiVerwerking"
       }
     },
     {
@@ -7158,8 +7207,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/rest-api-10684924.html; \"The REST API provides access to most iSpring LMS functions\"; webhooks push events (https://ispringhelpdocs.com/ispring-learn/webhook-62863671.html). Pricing lists \"API for custom integrations\" in all plans (https://www.ispring.com/pricing)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCfPartners"
       }
     },
     {
@@ -7282,7 +7331,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a school administration screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a school administration screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -7316,7 +7365,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a school administration screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a school administration screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -7418,7 +7467,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a administrator screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -7488,7 +7537,7 @@
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail LMS tender 2026, requirement 84950/84951: compliance dashboard per department with certification percentage, upcoming deadlines and expired qualifications, aggregated to director level. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row. Built 2026-09-27 (learniq#951): LearnerProfile.department is a path (Operations/Infra/Team A) and the compliance page shows one row per level, team to department to directorate, with coverage percentage (only learners each regulation's audience scope covers), mandatory training due within 30 days, overdue, and expired credentials.",
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -7524,7 +7573,7 @@
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84953: automated link with AFAS, staff, function and role data used to assign and monitor learning and compliance obligations. Partly built 2026-09-27 (learniq#951): publishing a regulation enrols the learners its audience scope covers (department with sub-departments, or roles) in its mandatory courses; no HR (AFAS) connection yet, so the row stays partial.",
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -7560,7 +7609,7 @@
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84940: compliance processes with recertification, signals, and recording exceptions and exemptions. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -7596,7 +7645,7 @@
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84942: migrate mandatory certifications for at least 4000 staff with start and end dates from the previous system. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
         "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -7663,7 +7712,7 @@
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84943: a test can only be taken in specific time slots or under conditions such as a password. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row. Built 2026-09-27 (learniq#946): the window is enforced on the server when an attempt is created, evaluated live from the dates, and an optional write-only access code gates the start. No per-person window overrides or IP range, which Moodle and ILIAS also offer.",
       "screen": {
         "board": null,
-        "reason": "not designed yet: a teacher screen the canvas does not draw"
+        "reason": "not designed yet: a teacher screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -7734,8 +7783,11 @@
       "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84949: a learning path with mandatory and optional parts, set individually per employee. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqMijnLeren"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqMijnLeren",
+          "LqLlMijnLeren"
+        ]
       }
     },
     {
@@ -7808,7 +7860,7 @@
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84955 and Grafisch Lyceum Rotterdam requirement 206638: external providers' courses offered inside the LMS.",
       "screen": {
         "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a learner screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -7874,8 +7926,11 @@
       "ispring-learn": "unknown",
       "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206600: authorisations applied, four-eyes principle supported, approved data cannot be changed by one user. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqCijfer"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqCijfer",
+          "LqCijfers"
+        ]
       }
     },
     {
@@ -7910,7 +7965,7 @@
       "ispring-learn": "unknown",
       "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206628: adaptivity, learners are led automatically to the next part when they complete a question or component correctly. Also on the ILIAS roadmap. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesMaken"
       }
     },
@@ -7946,7 +8001,7 @@
       "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206630: teachers view the material and learning environment from the student's perspective. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqCursus"
       }
     },
@@ -7982,8 +8037,11 @@
       "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206634: students enrol themselves in work groups within a course, with a maximum group size.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqGroep"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqGroep",
+          "LqLlWerkgroepen"
+        ]
       }
     },
     {
@@ -8049,8 +8107,8 @@
       "ispring-learn": "yes",
       "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206641: create, change and use surveys and evaluations in a standardised way. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "board": null,
-        "reason": "not designed: company and training-provider segment; the canvas draws a vo school"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqLlEvaluaties"
       }
     },
     {
@@ -8116,8 +8174,8 @@
       "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206617: WCAG 2.1 level AA for interface, navigation and content, demonstrated on request. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCfToegankelijkheid"
       }
     },
     {
@@ -8152,7 +8210,7 @@
       "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-61534 (New Feature, Open, 22 votes): \"Implement IMS Global standard OneRoster\"; core has CSV/external-database enrolment but no rostering standard, so partial built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqGroepen",
           "LqGroep"
@@ -8191,7 +8249,7 @@
       "ispring-learn": "unknown",
       "note": "Demand-signal row added 2026-09-26 (changelog). moodle changelog: https://moodledev.io/general/releases/5.2 : Moodle 5.2 (20 April 2026) \"Assignment Marking Workflows - Phase 1: Support multiple markers and grade calculations (MDL-86006)\"; MDL-86006: \"There can be between 1 and 5 markers allocated to a student submission\" built.evidence was 'src/views/MarkSubmissionView.vue:1', a line-1 citation; replaced 2026-09-27 with the named search.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqBeoordelaars",
           "LqOpdracht"
@@ -8230,8 +8288,11 @@
       "ispring-learn": "yes",
       "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-35335 (New Feature, Open, 36 votes): \"it is often necessary for students to retake courses they have already completed once, either on a fixed schedule (e.g. every year) ... At the moment this is often handled by creating multiple copies of courses for each ye built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row. Built 2026-09-27 (learniq#945): completions are kept per enrolment, so a retake starts at 0% while the earlier enrolment keeps its completions and progress.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqMijnLeren"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqMijnLeren",
+          "LqLlMijnLeren"
+        ]
       }
     },
     {
@@ -8270,7 +8331,7 @@
       "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-24443 (New Feature, Open, 87 votes): \"Merge Users: Add functionality to Moodle that allows site admins to merge two user profiles.\" (core lacks it; a contributed plugin fills it) built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row. Built 2026-09-27 (learniq#950): the merge transition requires LearnerMergeGuard (mergedInto must name another active profile, no open enrolment in the same course on both accounts) and LearnerMergeHandler moves enrolments, grades, attendance, credentials, portfolio entries and every other learner-owned record to the surviving profile; mergedInto stays set and the merged profile is kept for audit.",
       "screen": {
         "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a administrator screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -8305,7 +8366,7 @@
       "ispring-learn": "unknown",
       "note": "Demand-signal row added 2026-09-26 (changelog). moodle-workplace changelog: https://docs.moodle.org/501/en/Moodle_Workplace_release_notes : Workplace 5.1 \"Bulk Certificate Regeneration for Compliance: Administrators can now regenerate all issued certificates\" based on templates",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqCursus"
       }
     },
@@ -8341,8 +8402,11 @@
       "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (changelog). totara changelog: https://totara.com/articles/whats-new-totara-version-20/ (Totara 20): \"Learners can now mark their own attendance using a secure link or QR code, whether they attend in person or online.\"",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqLes"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqLes",
+          "LqLlInchecken"
+        ]
       }
     },
     {
@@ -8377,8 +8441,11 @@
       "ispring-learn": "no",
       "note": "Demand-signal row added 2026-09-26 (changelog). chamilo changelog: https://github.com/chamilo/chamilo-lms/releases/tag/v2.0.0 (2026-04-14): \"Attendance: Add multi-level attendance grading (present, absent, late, very late, justified absence)\"",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqAanwezigheid"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqAanwezigheid",
+          "LqRegistratie"
+        ]
       }
     },
     {
@@ -8412,8 +8479,14 @@
       "ispring-learn": "unknown",
       "note": "Demand-signal row added 2026-09-26 (roadmap). chamilo roadmap: https://github.com/chamilo/chamilo-lms/issues/8373 (Feature request, open, milestone 3.1): \"Enable users to report cases of harrassment, bullying, delinquency by only showing reports to the admin anonymously by default\"",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqZorgMelden"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqZorgMelden",
+          "LqLlZorgMelden",
+          "LqOuZorgMelden",
+          "LqZoMeldingen",
+          "LqZoMelding"
+        ]
       }
     },
     {
@@ -8479,7 +8552,7 @@
       "ispring-learn": "unknown",
       "note": "Demand-signal row added 2026-09-26 (changelog). ilias changelog: https://www.ilias.de/en/download-ilias/ : ILIAS 11 (v11.0, May 2026) redesigned Scoring tab allows marking on a \"participant-by-participant basis or on a question-by-question basis\" built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqToetsNakijken"
       }
     },
@@ -8515,8 +8588,12 @@
       "ispring-learn": "yes",
       "note": "Demand-signal row added 2026-09-26 (changelog). totara changelog: https://totara.com/articles/whats-new-totara-version-20/ (Totara 20): \"Learners can now enrol to (and withdraw from) programs and certifications\" by browsing the catalogue themselves. Same row as the moodle-workplace candidate, second source.",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqLlCatalogus",
+          "LqTlAanmeldverzoeken",
+          "LqTlAfwijzen"
+        ]
       }
     },
     {
@@ -8540,8 +8617,11 @@
       "ispring-learn": "unknown",
       "source": "spec-round-2026-10-07",
       "screen": {
-        "board": null,
-        "reason": "not designed: company and training-provider segment; the canvas draws a vo school"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqLlVandaag",
+          "LqZoVandaag"
+        ]
       }
     },
     {
@@ -8568,8 +8648,8 @@
       "ispring-learn": "unknown",
       "source": "spec-round-2026-10-07",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoToetsweek"
       }
     },
     {
@@ -8594,7 +8674,7 @@
       "source": "spec-round-2026-10-07",
       "screen": {
         "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a administrator screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -8643,7 +8723,7 @@
       "ispring-learn": "unknown",
       "source": "spec-round-2026-10-07",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqLeerling",
           "LqGroep",
@@ -8674,7 +8754,7 @@
       "source": "spec-round-2026-10-07",
       "screen": {
         "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a administrator screen; on the missing-boards list for the design session (decision 96)"
       }
     },
     {
@@ -8724,7 +8804,7 @@
       "source": "spec-round-2026-10-07",
       "screen": {
         "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "reason": "not designed yet: a administrator screen; on the missing-boards list for the design session (decision 96)"
       }
     }
   ],
