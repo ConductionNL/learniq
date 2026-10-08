@@ -284,4 +284,37 @@ class ExamplePortalDeclarationsTest extends TestCase {
 		// The academy keeps its own card line next to it.
 		self::assertSame('U regelt het voor', $declarations->forSet(setId: 'training')['portal']['residentMenu']['cardLabel']);
 	}//end testEverySchoolPortalLeavesOutTheCaseItems()
+
+	/**
+	 * The academy's course days stand in a card beside the hero, filling
+	 * themselves from the portal's own catalogue with the authored days as a
+	 * fallback; Esdoornveen's hero marks where its photo goes (portaliq
+	 * hero-aside, boards warmtepompacademie/Home and esdoornveen/Home).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/school-portals-match-their-boards/specs/example-sets/spec.md#requirement-the-portal-declarations-follow-their-boards
+	 */
+	public function testTheSchoolHeroesHoldTheirAside(): void {
+		$declarations = new ExamplePortalDeclarations();
+
+		$academy = $declarations->forSet(setId: 'training');
+		$home    = array_column($academy['pages'], null, 'route')['/']['body']['widgets'];
+		$hero    = array_values(array_filter($home, static fn (array $w): bool => $w['widgetKey'] === 'hero'))[0];
+		$aside   = $hero['props']['aside'];
+		self::assertSame('nlEventList', $aside['widgetKey']);
+		self::assertSame(['Eerstvolgende cursusdagen', 'tiles', ['course'], $academy['portal']['slug']], [$aside['props']['heading'], $aside['props']['display'], $aside['props']['source']['types'], $aside['props']['portal']]);
+		self::assertCount(3, $aside['props']['items']);
+		foreach ($aside['props']['items'] as $item) {
+			self::assertStringStartsWith('/', $item['href'], $item['title'] . ' is a link');
+		}
+
+		self::assertSame([], array_values(array_filter($home, static fn (array $w): bool => $w['widgetKey'] === 'nlEventList')), 'the list is no longer a block of its own');
+		self::assertSame(0, min(array_column($home, 'gridY')));
+
+		$college = array_column($declarations->forSet(setId: 'mbo')['pages'], null, 'route')['/']['body']['widgets'];
+		$hero    = array_values(array_filter($college, static fn (array $w): bool => $w['widgetKey'] === 'hero'))[0];
+		self::assertStringContainsString('sensor', $hero['props']['asideImage']['label']);
+		self::assertArrayNotHasKey('src', $hero['props']['asideImage'], 'no photo ships with the design');
+	}//end testTheSchoolHeroesHoldTheirAside()
 }//end class

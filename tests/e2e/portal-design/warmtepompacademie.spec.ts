@@ -21,6 +21,7 @@
  * @spec openspec/changes/participant-portal/specs/portal-contribution/spec.md
  * @spec openspec/changes/employer-signs-in-with-eherkenning/specs/portal-identity/spec.md
  * @spec openspec/changes/portal-board-checks-run-on-a-real-instance/specs/example-sets/spec.md#requirement-the-board-checks-run-against-any-instance-that-loaded-the-sets
+ * @spec openspec/changes/school-portals-match-their-boards/specs/example-sets/spec.md#requirement-the-portal-declarations-follow-their-boards
  */
 
 import { expect, request, test } from '@playwright/test'
@@ -90,9 +91,14 @@ test.describe('warmtepompacademie: the website', () => {
 			'U oefent op echte opstellingen',
 			...FOOTER,
 		])
+		// The course days stand beside the hero text (portaliq hero-aside).
+		await expect(
+			page
+				.getByTestId('hero-aside')
+				.filter({ hasText: 'Eerstvolgende cursusdagen' }),
+		).toBeVisible()
 		await expectWidgetOrder(page, [
 			'hero',
-			'nlEventList',
 			'nlList',
 			'nlSignIn',
 			'nlButtonLink',
