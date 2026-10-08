@@ -17,6 +17,20 @@ The school websites (plan `PORTAL-PLAN.md` item W2-3, gaps G-12, G-15) show what
 - **The example portals place the blocks** (shared file `lib/Settings/portals/*.json`, small): `nlCatalogue` on `/zoeken` (po, vo: news and calendar), `/opleidingen` (mbo: programmes) and `/cursusaanbod` (training: courses with date tiles); the academy's home "Eerstvolgende cursusdagen" fills itself (`source: {types: [course]}`). A page that already exists is not changed by a reload (the provisioner writes only what is missing).
 - Dutch words for the kinds, facets and meta lines.
 
+## Extended on 8 October: the editor boards
+
+The editor boards place two blocks that read this index, and the index cannot answer either yet (lane T gap list, 8 October):
+
+- [vaartveld/Editor](https://identity.conduction.nl/screens/board?id=vaartveld/Editor): a block "Toetsrooster" on a website page, with the options "Afdeling en leerjaar" (4 havo, 5 havo, 4 vwo, "De klas van de bezoeker"), "Toetsweek" (toetsweek 1, 9 to 13 November) and "Wat laat u zien?" (lokaal, wat je meeneemt, weging voor het schoolexamen); columns Dag, Tijd, Vak, Lokaal. "De toetsen komen uit learniq. Een toets wijzigen doet de roostermaker daar. Dit blok volgt vanzelf."
+- [wilgenboom/Editor](https://identity.conduction.nl/screens/board?id=wilgenboom/Editor): a calendar block "Vakanties en vrije dagen" with "Wat laat het blok zien": vakanties, studiedagen en vrije dagen, activiteiten van school, ouderavonden; and "Hoeveel dagen vooruit".
+
+Added to this change:
+
+- **A test schedule in the index**: the published `exam-sitting` rows of an exam period that the school marked public, each with the day, start and end, the subject name (readable copy of the assessment's course), the room name, and the department and year of its cohorts; the period's name ("Toetsweek 1, 9 - 13 november"). Filters: department and year, exam period. Optional columns the block may show: room, what to bring (`exam-period.bringList`), weight for the school exam (the assessment's PTA weight).
+- **A category on every school day**: the school-day items carry `category` from `school-event.kind` mapped to four words (vakantie, studiedag of vrije dag, activiteit, ouderavond), so a calendar block can show the categories an editor picks.
+
+The blocks themselves are portaliq's `editor-blocks-read-public-app-data`.
+
 ## Not in this change
 
 - A course or programme detail page; prices ("[PRIJS]", D-11); places left (no capacity on a cohort).
