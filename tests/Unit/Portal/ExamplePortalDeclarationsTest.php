@@ -256,4 +256,23 @@ class ExamplePortalDeclarationsTest extends TestCase {
 		self::assertContains('Kies je richting', array_column(array_column($mbo, 'props'), 'text'));
 		self::assertSame(['card', 'card', 'card', 'card'], array_column(array_column($cards, 'props'), 'display'));
 	}//end testTheDeclarationsFollowTheBoards()
+
+	/**
+	 * No school board shows portaliq's own "Zaken en taken" items (MijnMenu of
+	 * each school), so every school portal leaves them out (portaliq #1394).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/school-portals-match-their-boards/specs/example-sets/spec.md#requirement-the-portal-declarations-follow-their-boards
+	 */
+	public function testEverySchoolPortalLeavesOutTheCaseItems(): void {
+		$declarations = new ExamplePortalDeclarations();
+		foreach (['po', 'vo', 'mbo', 'training'] as $set) {
+			$portal = $declarations->forSet(setId: $set)['portal'];
+			self::assertSame(['cases', 'tasks', 'access'], $portal['residentMenu']['leaveOut'] ?? null, $set);
+		}
+
+		// The academy keeps its own card line next to it.
+		self::assertSame('U regelt het voor', $declarations->forSet(setId: 'training')['portal']['residentMenu']['cardLabel']);
+	}//end testEverySchoolPortalLeavesOutTheCaseItems()
 }//end class

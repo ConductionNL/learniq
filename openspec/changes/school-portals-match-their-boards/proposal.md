@@ -29,7 +29,7 @@ Nothing changes there. The provisioner never writes over a page or menu that exi
 ## Not in this change (portaliq, lane FIX-P)
 
 - The news rows of the overview show the full body with raw markdown; portaliq's news block renders the body. It should show the audience, the date and the title.
-- The "Zaken en taken" group in the account menu is portaliq's own.
+- The "Zaken en taken" group in the account menu is portaliq's own; each school portal leaves its items out with `residentMenu.leaveOut` (portaliq #1394).
 - Rendering the children cards' status: learniq declares it as a lookup on the guardian's own reports (`status` on the cards block); portaliq has to read it.
 - The overview keeps its child switcher (`records`): the calendar sources narrow to the open child.
 - The page title shown twice and "Praktisch" not marked active: portaliq #1368 (a page that opens with a level-1 `nlHeading` gets no second title). The declarations keep that heading.

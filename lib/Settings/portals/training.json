@@ -74,7 +74,12 @@
     },
     "accountLabel": "Mijn academie",
     "residentMenu": {
-      "cardLabel": "U regelt het voor"
+      "cardLabel": "U regelt het voor",
+      "leaveOut": [
+        "cases",
+        "tasks",
+        "access"
+      ]
     }
   },
   "legacyTitles": [],

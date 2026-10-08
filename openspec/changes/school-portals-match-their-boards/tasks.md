@@ -10,4 +10,6 @@
   - PHPUnit `GuardianSitePagesTest::testTheGuardianOverviewIsHomeAndSwitchesChildren`
 - [x] **T6b**: the children cards declare a derived `status` (Ziek gemeld / Op school); portaliq renders it once FIX-P adds the card lookup
   - PHPUnit `GuardianSitePagesTest::testTheGuardianOverviewIsHomeAndSwitchesChildren`
+- [x] **T6c**: `residentMenu.leaveOut: [cases, tasks, access]` in the four declarations (portaliq #1394); the chip labels and the other board words arrive in Dutch through `PortalLabelTranslator`
+  - PHPUnit `ExamplePortalDeclarationsTest::testEverySchoolPortalLeavesOutTheCaseItems`, `PortalLabelTranslatorTest::testTheBoardWordsArriveInDutch`
 - [ ] **T7**: live: the four portals on the proof instance after a fresh site load
