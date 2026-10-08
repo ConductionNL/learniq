@@ -293,7 +293,7 @@ class PortalContributionProviderTest extends TestCase {
 		$actions = $manifest['actions'];
 
 		$this->assertSame(
-			['createSubmission', 'submitHourWeek', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn'],
+			['createSubmission', 'submitHourWeek', 'fillInSelfAssessment', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn'],
 			array_column($actions, 'id')
 		);
 		$byId = array_column($actions, null, 'id');
@@ -508,9 +508,9 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame(['conference.answered'], array_column($manifest['notifications'], 'ruleKey'), 'one rule: the teacher answered a booking');
 
 		$collections = $manifest['collections'];
-		$this->assertCount(19, $collections);
+		$this->assertCount(20, $collections);
 		$this->assertSame(
-			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentReportSubjectGrades', 'parentInbox', 'parentGradeInbox', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar'],
+			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceInvitations', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentReportSubjectGrades', 'parentInbox', 'parentGradeInbox', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar'],
 			array_column($collections, 'id')
 		);
 

@@ -72,6 +72,8 @@ class PortalLabelTranslator {
 		// The heading and help text of the messages form (portal-message-contacts).
 		'composeLabel',
 		'composeHint',
+		// A task's title sentence; its `{field}` places stay as they are (portaliq lookup-by-row-field).
+		'titleTemplate',
 	];
 
 	/**

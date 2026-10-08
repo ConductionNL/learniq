@@ -49,9 +49,9 @@ class ParentSitePages {
 	private const CHILDREN = 'parentChildren';
 
 	/**
-	 * The states of a conversation time that mean her child has one.
+	 * The collection of the guardian's tasks: an open round per child.
 	 */
-	private const TIME_TAKEN = ['booked', 'acknowledged', 'proposed', 'confirmed', 'completed'];
+	private const INVITATIONS = 'parentConferenceInvitations';
 
 	/**
 	 * The overview, in the order of the board (school-design wilgenboom,
@@ -64,8 +64,7 @@ class ParentSitePages {
 	 * The greeting, the highlight display, the cards keys and the calendar
 	 * tiles are the block contract of lane L2 (portaliq `site-school-blocks`);
 	 * portaliq drops a key it does not know yet, so the page still renders.
-	 * `tasks` is not narrowed to the child: a round names its invited pupils
-	 * in a list that is never projected.
+	 * `tasks` lists one row per child per open round, named by the child.
 	 *
 	 * @param array<int, array<string, mixed>> $sources The child's calendar sources.
 	 *
@@ -75,6 +74,7 @@ class ParentSitePages {
 	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-overview-puts-open-tasks-first
 	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-holds-only-what-the-board-shows
 	 * @spec openspec/changes/guardian-and-participant-pages-follow-the-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-and-absence-page-are-about-both-children
+	 * @spec openspec/changes/guardian-tasks-per-child-and-self-assessment/specs/portal-contribution/spec.md#requirement-the-guardian-reads-one-task-per-child-with-the-childs-name
 	 */
 	public function overviewPage(array $sources): array {
 		return [
@@ -92,23 +92,21 @@ class ParentSitePages {
 					'type' => 'tasks',
 					'label' => 'Still to do',
 					'display' => 'highlight',
-					'collection' => 'parentConferenceRounds',
+					// One row per child per open round (ConferenceInvitations): a
+					// child who already has a time has no open row, so Vera's
+					// booked round asks nothing and Sami's asks for a time.
+					'collection' => self::INVITATIONS,
 					'dueField' => 'bookingClosesAt',
-					'titleFields' => ['name'],
+					'titleFields' => ['roundName'],
+					// "Kies een tijd voor het oudergesprek van Sami": the child's
+					// first name through a lookup on the row's own learnerRef
+					// (portaliq lookup-by-row-field). Without a name the title
+					// falls back to the round's name.
+					'titleTemplate' => 'Pick a time for the parent-teacher conversation of {childName}',
+					'lookups' => [self::childNameLookup()],
 					'buttonLabel' => 'Pick a time',
 					// "Kiezen kan tot en met vrijdag 16 oktober" in the card's line.
 					'dueInLine' => true,
-					// A round where her child already has a time is done: Vera's
-					// is booked, so only Sami's round asks for a time.
-					'lookups' => [
-						[
-							'as' => 'myTime',
-							'collection' => 'parentConferenceSlots',
-							'matchField' => 'conferenceRoundId',
-							'valueField' => 'lifecycle',
-						],
-					],
-					'excludeWhen' => ['lookup' => 'myTime', 'in' => self::TIME_TAKEN],
 				],
 				[
 					'type' => 'collection',
@@ -130,6 +128,47 @@ class ParentSitePages {
 			],
 		];
 	}//end overviewPage()
+
+	/**
+	 * The child's first name on a row that names the child in `learnerRef`
+	 * (portaliq lookup-by-row-field): the guardian's own children only.
+	 *
+	 * @return array<string, string>
+	 *
+	 * @spec openspec/changes/guardian-tasks-per-child-and-self-assessment/specs/portal-contribution/spec.md#requirement-the-guardian-reads-one-task-per-child-with-the-childs-name
+	 */
+	public static function childNameLookup(): array {
+		return [
+			'as' => 'childName',
+			'collection' => self::CHILDREN,
+			'rowField' => 'learnerRef',
+			'matchField' => 'id',
+			'valueField' => 'givenName',
+		];
+	}//end childNameLookup()
+
+	/**
+	 * The page the overview's task opens: the invitation it was about, then
+	 * the two ways to book, as on the conversations page. Out of the menu.
+	 * Portaliq opens a task on the page that shows its collection, with the
+	 * row selected.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/guardian-tasks-per-child-and-self-assessment/specs/portal-contribution/spec.md#requirement-the-guardian-reads-one-task-per-child-with-the-childs-name
+	 */
+	public function invitationPage(): array {
+		return [
+			'id' => 'parentPickATime',
+			'label' => 'Pick a time',
+			'menu' => false,
+			'blocks' => [
+				['type' => 'detail', 'collection' => self::INVITATIONS],
+				['type' => 'action', 'action' => 'bookConferenceSlot'],
+				['type' => 'action', 'action' => 'createConferenceSignup'],
+			],
+		];
+	}//end invitationPage()
 
 	/**
 	 * How a child's card says where the child is today, from the guardian's
@@ -185,15 +224,7 @@ class ParentSitePages {
 					'dateField' => 'dateFrom',
 					// "Sami · Ziek": the child's first name through a lookup on the
 					// report's own learnerRef (portaliq #1408), then the kind.
-					'lookups' => [
-						[
-							'as' => 'childName',
-							'collection' => self::CHILDREN,
-							'rowField' => 'learnerRef',
-							'matchField' => 'id',
-							'valueField' => 'givenName',
-						],
-					],
+					'lookups' => [self::childNameLookup()],
 					'titleFields' => ['childName', 'reasonKind'],
 					'quoteField' => 'reason',
 					'statusField' => 'lifecycle',

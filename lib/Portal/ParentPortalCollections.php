@@ -215,6 +215,7 @@ class ParentPortalCollections {
 					['field' => 'slotDurationMinutes', 'label' => 'Minutes per conversation'],
 				],
 			],
+			$this->invitationsCollection(childJoin: $childJoin),
 			$this->freeSlotsCollection(childJoin: $childJoin),
 			[
 				'id' => 'parentConferenceSignups',
@@ -284,6 +285,50 @@ class ParentPortalCollections {
 		];
 
 	}//end conferenceCollections()
+
+	/**
+	 * One row per child of the guardian per conference round that child may
+	 * still book a time in, for the overview's tasks ("Kies een tijd voor
+	 * het oudergesprek van Sami"). ConferenceInvitations keeps the rows: a
+	 * child who already has a time, or a round no longer open, has no open
+	 * row. Read through the same reverse `via` join on `learnerRef` as every
+	 * parent read, so only the guardian's own children are ever listed. Not
+	 * in the menu: the overview's task opens the conferences invitation page.
+	 *
+	 * @param array<string, mixed> $childJoin The shared reverse `via` join descriptor.
+	 *
+	 * @return array<string, mixed> The collection.
+	 *
+	 * @spec openspec/changes/guardian-tasks-per-child-and-self-assessment/specs/portal-contribution/spec.md#requirement-the-guardian-reads-one-task-per-child-with-the-childs-name
+	 */
+	private function invitationsCollection(array $childJoin): array {
+		return [
+			'id' => 'parentConferenceInvitations',
+			'register' => self::REGISTER,
+			'schema' => 'conference-invitation',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'guardianRef',
+			'via' => $childJoin,
+			'groupByField' => 'learnerRef',
+			'filter' => ['status' => 'open'],
+			'label' => 'Conversations still to book',
+			'listable' => false,
+			'minTrust' => 'substantial',
+			'fields' => [
+				'learnerRef',
+				'conferenceRoundId',
+				'roundName',
+				'bookingClosesAt',
+				'bookingMode',
+				'status',
+			],
+			'columns' => [
+				['field' => 'roundName', 'label' => 'Conference round'],
+				['field' => 'bookingClosesAt', 'label' => 'Book before'],
+			],
+		];
+
+	}//end invitationsCollection()
 
 	/**
 	 * The free times the guardian can book for one of their children.

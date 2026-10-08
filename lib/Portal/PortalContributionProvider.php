@@ -400,6 +400,8 @@ class PortalContributionProvider {
 			$this->submissionAction(),
 			// Between them, in the order her pages read (internship-hours).
 			$site->hourWeekAction(),
+			// "Nu invullen" on her work processes (guardian-tasks-per-child-and-self-assessment).
+			(new StudentSelfAssessment())->action(),
 			$this->absenceAction(),
 		];
 
