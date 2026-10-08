@@ -5708,7 +5708,8 @@
         "state": "building",
         "evidence": "openspec/specs/portal-identity/spec.md and lib/Portal/PortalContributionProvider.php define the seam; the portal itself ships in portaliq",
         "owner": "ConductionNL/portaliq",
-        "change": "portal-parent-child-record"
+        "change": "integriq/portal-idp-broker-config",
+        "note": "Missing half specified in integriq/portal-idp-broker-config (spec round part 3, 2026-10-07); delivered half: portal-parent-child-record."
       },
       "provider": "portaliq",
       "providerHow": "read: this repository contributes to the portal, which ships in Portaliq",
