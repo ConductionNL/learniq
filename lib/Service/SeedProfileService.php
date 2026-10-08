@@ -326,7 +326,7 @@ class SeedProfileService {
 	 *
 	 * @return LoadedExampleSets The list.
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
 	public function loadedSets(): LoadedExampleSets {
 		return $this->loadedSets;
