@@ -2,13 +2,13 @@
 
 ### Requirement: An employer reads the invoices of her bookings
 
-The employer audience MUST declare `employerInvoices` over her own organisation's bookings that carry an invoice reference, showing the invoice number, the course, the participants line, the due date, the status in words and a link to the document in the app that owns the invoice. A booking of another organisation MUST NOT be read.
+The employer audience MUST declare `employerInvoices` over her own organisation's bookings that carry an invoice reference, showing the invoice number, the course, the participants line, the due date, the status in words and a link to the document in shillinq, which owns the invoice. A booking of another organisation MUST NOT be read.
 
 #### Scenario: One open, one paid
 - **GIVEN** Jansen Installatietechniek has F-2026-1184 open until 22 October and F-2026-1122 paid on 24 September
 - **WHEN** Linda opens Certificaten en documenten
 - **THEN** F-2026-1184 reads "Nog te betalen" and F-2026-1122 "Betaald", each with its document
-- @e2e exclude depends on the open decision of design.md; spec-only proposal
+- @e2e exclude spec-only proposal; depends on the shillinq contribution (design.md)
 
 ### Requirement: A course carries its price
 

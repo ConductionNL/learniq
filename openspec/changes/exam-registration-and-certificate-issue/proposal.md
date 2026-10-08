@@ -9,7 +9,7 @@ depends_on: [training-provider-course-days, portal-certificates]
 
 The academy's administration ([warmtepompacademie/LqRolC](https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqRolC), 8 October 2026) opens on: "De aanmelding voor het examen van donderdag sluit woensdag om 12.00 uur. 10 van de 11 deelnemers zijn compleet. Van Youssef El Amrani (Jansen Installatietechniek) ontbreekt de geboortedatum. De werkgever kreeg vanochtend bericht." with "Linda Jansen bellen" and "Aanmeldlijst openen"; then "Uit te geven: alle afgeronde cursusdagen", "Certificaten die verlopen voor 1 januari" (deelnemer, certificaat, verloopt, herhaling) and "Komende examens". [warmtepompacademie/LqDetail](https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqDetail): "Gegevens voor het examen zijn compleet", "Daarna: Rob Maas voert de uitslag in en geeft het certificaat uit".
 
-The analysis board ([warmtepompacademie/Nodig](https://identity.conduction.nl/screens/board?id=warmtepompacademie/Nodig)) lists "Aanmelding bij de exameninstelling: met de geboortedatum als afgeschermd gegeven en een sluitmoment" under what learniq must know, and asks "Wie meldt aan voor het examen?" (the design assumes the administration). `employer-portal-audience` asks the employer for the birth date; nothing gathers the registration list for an external examining body, closes it, or issues the certificates of a finished day at once (`certification` has a bulk reissue, not a first issue after results).
+The analysis board ([warmtepompacademie/Nodig](https://identity.conduction.nl/screens/board?id=warmtepompacademie/Nodig)) lists "Aanmelding bij de exameninstelling: met de geboortedatum als afgeschermd gegeven en een sluitmoment" under what learniq must know, and asks "Wie meldt aan voor het examen?"; decided: the administration. `employer-portal-audience` asks the employer for the birth date; nothing gathers the registration list for an external examining body, closes it, or issues the certificates of a finished day at once (`certification` has a bulk reissue, not a first issue after results).
 
 ## What changes
 
@@ -19,9 +19,9 @@ The analysis board ([warmtepompacademie/Nodig](https://identity.conduction.nl/sc
 - **Issue after results**: for a course day in rounding off, "Certificaten uitgeven" issues a certificate to every participant with a passing result in one action, recording who issued and when; a participant without a result is named and skipped.
 - **Expiring before a date**: a staff list of issued certificates expiring before a chosen date with the renewal booking, if any.
 
-## Decision for Ruben
+## Decision (taken)
 
-Who registers for the exam: the design's answer (the administration, with a list that closes at a fixed moment) is taken here. If participants or employers register themselves, the list stays and the actor changes.
+Ruben decided: the administration registers participants with the examining body, through a list that closes at a fixed moment. Participants and employers do not register themselves; the employer only completes missing data.
 
 ## Not in this change
 
