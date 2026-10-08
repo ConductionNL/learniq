@@ -200,7 +200,7 @@ class ParticipantSitePages {
 						'dateField' => 'firstDay',
 						'titleFields' => ['courseName'],
 						'subtitleField' => 'dayLabel',
-						'limit' => 3,
+						'limit' => 4,
 						'sort' => ['field' => 'firstDay', 'direction' => 'asc'],
 					],
 				],

@@ -114,6 +114,11 @@ class GuardianSitePagesTest extends TestCase {
 		$absence = self::pages(audience: 'parent')['parentAbsence'];
 		$reports = array_values(array_filter($absence['blocks'], static fn (array $b): bool => ($b['collection'] ?? '') === 'parentExcuseRequests'))[0];
 		self::assertSame(['rows', 'dateFrom', 'lifecycle', 'decidedBy'], [$reports['display'], $reports['dateField'], $reports['statusField'], $reports['statusNoteField']]);
+		// "Sami · Ziek": the child's first name through the report's own learnerRef (portaliq #1408).
+		self::assertSame(['childName', 'reasonKind'], $reports['titleFields']);
+		self::assertSame(['as' => 'childName', 'collection' => 'parentChildren', 'rowField' => 'learnerRef', 'matchField' => 'id', 'valueField' => 'givenName'], $reports['lookups'][0]);
+		$manifest = self::manifest(audience: 'parent');
+		self::assertContains('learnerRef', array_column($manifest['collections'], null, 'id')['parentExcuseRequests']['fields']);
 
 		$collections = array_column($manifest['collections'], null, 'id');
 		$actionIds = array_column($manifest['actions'], 'id');

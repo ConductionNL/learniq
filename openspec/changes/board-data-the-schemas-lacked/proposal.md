@@ -30,7 +30,15 @@ Additive only: new optional properties and one new schema. No type, format or re
   - the record shows the four agreements, labelled, and the detail block is headed "Afspraken";
   - under the hours a table "Werkprocessen" lists `studentWorkProcesses`, narrowed to the open placement: code, work process, hours and "Jouw inschatting" in words.
 
+## Also in this change (portaliq round 5, merged)
+
+- The child's name on each absence report: a lookup by the report's own `learnerRef` into `parentChildren` (portaliq #1408).
+- "Daarna" skips the next course day (`skip: 1`, `limit: 4`, portaliq #1407).
+- "Volgende stap": a steps highlight card (portaliq #1409). The steps provider gives the current step its visit's day as `date`, and the visit's narrative as its description. There is no button yet, because the self-assessment has no page.
+- "Je begeleiders": `studentTrainers`, the praktijkopleider read through a forward join on her own placements' `practicalTrainerId`; and `studentSchoolCoaches`, the staff row whose user id is her placements' `schoolCoachId` (reverse join, shown as a Nextcloud user). Both are readable by the student only, and show names and the company only.
+
 ## Not in this change
+- The guardian's task title with the child's name: a conference round names groups (`cohortIds`), never one child, so a lookup by row field has nothing to key on.
 
 - "Nu invullen" as an action: a student filling in her own estimate needs an update action on `werkproces-progress`.
 - The begeleider names: these wait on portaliq's lookup by row field (FIX-P).

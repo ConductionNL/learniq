@@ -183,7 +183,18 @@ class ParentSitePages {
 					'recordField' => 'learnerRef',
 					'display' => 'rows',
 					'dateField' => 'dateFrom',
-					'titleFields' => ['reasonKind'],
+					// "Sami · Ziek": the child's first name through a lookup on the
+					// report's own learnerRef (portaliq #1408), then the kind.
+					'lookups' => [
+						[
+							'as' => 'childName',
+							'collection' => self::CHILDREN,
+							'rowField' => 'learnerRef',
+							'matchField' => 'id',
+							'valueField' => 'givenName',
+						],
+					],
+					'titleFields' => ['childName', 'reasonKind'],
 					'quoteField' => 'reason',
 					'statusField' => 'lifecycle',
 					'statusTones' => ['submitted' => 'neutral', 'approved' => 'success', 'rejected' => 'error'],

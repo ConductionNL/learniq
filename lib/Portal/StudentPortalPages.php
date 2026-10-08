@@ -292,6 +292,7 @@ class StudentPortalPages {
 		],
 		$this->hourWeeksCollection(),
 		$this->workProcessesCollection(),
+		...$this->supervisorCollections(),
 		];
 
 	}//end bpvCollections()
@@ -349,6 +350,65 @@ class StudentPortalPages {
 			],
 		];
 	}//end hourWeeksCollection()
+
+	/**
+	 * Who supervises her placement, readable by her alone: the trainer at the
+	 * company (praktijkopleider), joined through her own placements' trainer
+	 * reference, and her coach at school, joined through their coach user id
+	 * (board Detail, "Je begeleiders"). Names and the company only, never a
+	 * phone number or an e-mail address.
+	 *
+	 * @return array<int, array<string, mixed>> Two collections.
+	 *
+	 * @spec openspec/changes/board-data-the-schemas-lacked/specs/portal-contribution/spec.md#requirement-the-placement-page-shows-the-agreements-and-the-work-processes
+	 */
+	public function supervisorCollections(): array {
+		return [
+			[
+				'id' => 'studentTrainers',
+				'register' => self::REGISTER,
+				'schema' => 'praktijkopleider',
+				// Not read in forward join mode; portaliq matches the row's own id.
+				'scopeField' => 'trainingCompanyName',
+				'scopeClaim' => 'learnerRef',
+				// Forward join: a trainer counts when her own id is a placement's
+				// practicalTrainerId of a placement of this student.
+				'via' => [
+					'register' => self::REGISTER,
+					'schema' => 'bpv-placement',
+					'scopeField' => 'learnerRef',
+					'targetField' => 'practicalTrainerId',
+				],
+				'label' => 'Your trainer',
+				'listable' => false,
+				'minTrust' => 'low',
+				'fields' => ['givenName', 'familyName', 'trainingCompanyName'],
+			],
+			[
+				'id' => 'studentSchoolCoaches',
+				'register' => self::REGISTER,
+				'schema' => 'staff',
+				'scopeField' => 'ncUserId',
+				'scopeClaim' => 'learnerRef',
+				// Reverse join: a staff row counts when its user id is the
+				// schoolCoachId of a placement of this student.
+				'via' => [
+					'register' => self::REGISTER,
+					'schema' => 'bpv-placement',
+					'scopeField' => 'learnerRef',
+					'targetField' => 'schoolCoachId',
+					'match' => 'scopeField',
+				],
+				'label' => 'Your BPV supervisor at school',
+				'listable' => false,
+				'minTrust' => 'low',
+				'fields' => ['ncUserId'],
+				'columns' => [
+					['field' => 'ncUserId', 'label' => 'BPV supervisor', 'render' => 'user'],
+				],
+			],
+		];
+	}//end supervisorCollections()
 
 	/**
 	 * Her own record per work process of her placement: the hours she spent
@@ -580,6 +640,9 @@ class StudentPortalPages {
 		// A collection with steps is a record page: the open row's steps under the list.
 		if (isset($collection['steps']) === true) {
 			$page['record'] = ['collection' => $id, 'titleFields' => ['trainingCompanyName']];
+			// "Volgende stap": the current step as a highlight card (portaliq #1409).
+			// No button yet: the self-assessment has no page of its own.
+			$blocks[] = ['type' => 'steps', 'collection' => $id, 'display' => 'highlight', 'eyebrow' => 'Next step'];
 			// Bars across, as the board's "Waar sta je?" (portaliq steps `display: bars`).
 			$blocks[] = ['type' => 'steps', 'collection' => $id, 'label' => (string)($collection['steps']['label'] ?? ''), 'display' => 'bars'];
 		}
@@ -612,6 +675,16 @@ class StudentPortalPages {
 		return [
 			$this->hoursBar(collection: $id),
 			['type' => 'collection', 'label' => 'Work processes', 'collection' => 'studentWorkProcesses', 'recordField' => 'bpvPlacementId'],
+			// "Je begeleiders": her trainer at the company and her coach at school.
+			[
+				'type' => 'collection',
+				'label' => 'Your supervisors',
+				'collection' => 'studentTrainers',
+				'display' => 'rows',
+				'titleFields' => ['givenName', 'familyName'],
+				'subtitleField' => 'trainingCompanyName',
+			],
+			['type' => 'collection', 'collection' => 'studentSchoolCoaches'],
 			['type' => 'detail', 'collection' => $id, 'label' => 'Agreements'],
 		];
 	}//end recordTail()

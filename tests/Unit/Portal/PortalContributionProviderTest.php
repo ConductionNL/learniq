@@ -198,7 +198,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(14, $collections);
+		$this->assertCount(16, $collections);
 		$this->assertSame(
 			[
 				'studentGrades',
@@ -212,6 +212,9 @@ class PortalContributionProviderTest extends TestCase {
 				'studentHourWeeks',
 				// board-data-the-schemas-lacked: her own record per work process.
 				'studentWorkProcesses',
+				// Her supervisors: the trainer at the company and her coach at school.
+				'studentTrainers',
+				'studentSchoolCoaches',
 				'studentExcuseRequests',
 				'studentInbox',
 				'studentTests',
@@ -243,6 +246,12 @@ class PortalContributionProviderTest extends TestCase {
 				// enrolments, never by a field on the lesson (StudentTimetableTest).
 				$this->assertSame('cohortId', $collection['scopeField']);
 				$this->assertSame('learnerRef', $collection['via']['scopeField']);
+				continue;
+			}
+
+			if (in_array($collection['id'], ['studentTrainers', 'studentSchoolCoaches'], true) === true) {
+				// Her supervisors: reached through her own placements, never by a field on the person.
+				$this->assertSame(['bpv-placement', 'learnerRef'], [$collection['via']['schema'], $collection['via']['scopeField']]);
 				continue;
 			}
 
@@ -1216,7 +1225,8 @@ class PortalContributionProviderTest extends TestCase {
 		$page  = array_column($manifest['pages'], null, 'id')['studentBpvPlacements'];
 		$types = array_column($page['blocks'], 'type');
 		self::assertLessThan(array_search('kpi', $types, true), array_search('steps', $types, true), 'the hours bar sits under the steps');
-		self::assertSame('bars', $page['blocks'][array_search('steps', $types, true)]['display']);
+		$steps = array_values(array_filter($page['blocks'], static fn (array $b): bool => $b['type'] === 'steps'));
+		self::assertSame(['highlight', 'bars'], array_column($steps, 'display'), 'the next step as a card, then the bars');
 	}//end testThePlacementReadsInWordsAndShowsTheHours()
 
 	/**
