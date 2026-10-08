@@ -186,9 +186,12 @@
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
-              "kind": "info",
-              "text": "Herfstvakantie: van zaterdag 17 tot en met zondag 25 oktober is de school dicht.",
-              "closable": true
+              "kind": "notice",
+              "lead": "Herfstvakantie",
+              "text": "Van zaterdag 17 tot en met zondag 25 oktober is de school dicht.",
+              "linkLabel": "Alle vakanties en vrije dagen",
+              "linkHref": "/praktisch/vakanties",
+              "band": true
             }
           },
           {
@@ -210,7 +213,8 @@
                   "label": "Lees wat er speelt op school",
                   "href": "/zoeken"
                 }
-              ]
+              ],
+              "variant": "plain"
             }
           },
           {
@@ -411,14 +415,15 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "vv-ziek-02-nlparagraph",
-            "widgetKey": "nlParagraph",
+            "id": "vv-ziek-01-nlheading",
+            "widgetKey": "nlHeading",
             "gridX": 0,
             "gridY": 0,
             "gridWidth": 8,
             "gridHeight": 1,
             "props": {
-              "text": "Is uw kind ziek? Meld het voor 08.15 uur. Dat gaat het snelst in Mijn Vaartveld: de mentor en de docenten zien uw melding meteen."
+              "text": "Ziek melden en verlof",
+              "level": 1
             }
           },
           {
@@ -427,7 +432,7 @@
             "gridX": 8,
             "gridY": 0,
             "gridWidth": 4,
-            "gridHeight": 14,
+            "gridHeight": 16,
             "props": {
               "heading": "Meer praktische zaken",
               "links": [
@@ -452,10 +457,21 @@
             }
           },
           {
+            "id": "vv-ziek-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Is uw kind ziek? Meld het voor 08.15 uur. Dat gaat het snelst in Mijn Vaartveld: de mentor en de docenten zien uw melding meteen."
+            }
+          },
+          {
             "id": "vv-ziek-03-nlalert",
             "widgetKey": "nlAlert",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 2,
             "gridWidth": 8,
             "gridHeight": 2,
             "props": {
@@ -468,7 +484,7 @@
             "id": "vv-ziek-04-nlbuttonlink",
             "widgetKey": "nlButtonLink",
             "gridX": 0,
-            "gridY": 3,
+            "gridY": 4,
             "gridWidth": 3,
             "gridHeight": 1,
             "props": {
@@ -478,10 +494,22 @@
             }
           },
           {
+            "id": "vv-ziek-05a-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 5,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Wat meldt u hoe?",
+              "level": 2
+            }
+          },
+          {
             "id": "vv-ziek-05-nltable",
             "widgetKey": "nlTable",
             "gridX": 0,
-            "gridY": 4,
+            "gridY": 6,
             "gridWidth": 8,
             "gridHeight": 4,
             "props": {
@@ -512,14 +540,16 @@
                   "Verlof aanvragen bij de teamleider",
                   "Minstens twee weken van tevoren"
                 ]
-              ]
+              ],
+              "display": "boxed",
+              "captionVisible": false
             }
           },
           {
             "id": "vv-ziek-06-markdown",
             "widgetKey": "markdown",
             "gridX": 0,
-            "gridY": 8,
+            "gridY": 10,
             "gridWidth": 8,
             "gridHeight": 6,
             "props": {
@@ -589,10 +619,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "vv-zoeken-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Nieuws en documenten",
+              "level": 1
+            }
+          },
+          {
             "id": "vv-zoeken-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -603,7 +645,7 @@
             "id": "vv-zoeken-03-nlnewslist",
             "widgetKey": "nlNewsList",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 2,
             "gridWidth": 12,
             "gridHeight": 6,
             "props": {
@@ -625,10 +667,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "vv-praktisch-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Praktisch",
+              "level": 1
+            }
+          },
+          {
             "id": "vv-praktisch-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -639,7 +693,7 @@
             "id": "vv-praktisch-03-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 2,
             "gridWidth": 6,
             "gridHeight": 3,
             "props": {
@@ -671,10 +725,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "vv-praktisch-vakanties-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Vakanties en vrije dagen",
+              "level": 1
+            }
+          },
+          {
             "id": "vv-praktisch-vakanties-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -692,10 +758,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "vv-praktisch-lestijden-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Lestijden en pauzes",
+              "level": 1
+            }
+          },
+          {
             "id": "vv-praktisch-lestijden-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -713,10 +791,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "vv-onze-school-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Onze school",
+              "level": 1
+            }
+          },
+          {
             "id": "vv-onze-school-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -734,10 +824,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "vv-onderwijs-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Onderwijs",
+              "level": 1
+            }
+          },
+          {
             "id": "vv-onderwijs-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -748,7 +850,7 @@
             "id": "vv-onderwijs-03-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 2,
             "gridWidth": 6,
             "gridHeight": 3,
             "props": {
@@ -772,10 +874,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "vv-aanmelden-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Aanmelden voor klas 1",
+              "level": 1
+            }
+          },
+          {
             "id": "vv-aanmelden-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -793,10 +907,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "vv-contact-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Contact en lestijden",
+              "level": 1
+            }
+          },
+          {
             "id": "vv-contact-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -814,10 +940,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "vv-toegankelijkheid-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Toegankelijkheid",
+              "level": 1
+            }
+          },
+          {
             "id": "vv-toegankelijkheid-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -835,10 +973,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "vv-privacy-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Privacy",
+              "level": 1
+            }
+          },
+          {
             "id": "vv-privacy-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -856,10 +1006,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "vv-cookies-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Cookies",
+              "level": 1
+            }
+          },
+          {
             "id": "vv-cookies-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -877,10 +1039,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "vv-klacht-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Klacht of zorg melden",
+              "level": 1
+            }
+          },
+          {
             "id": "vv-klacht-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {

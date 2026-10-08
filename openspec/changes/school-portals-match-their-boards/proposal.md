@@ -11,7 +11,7 @@ Portal proof run 1 (06 Oct) put each rendered portal page next to its design boa
 
 - The Contact column showed twice in the footer: once from `footer.contact`, once from a footer menu "Contact" (defect 7).
 - The mbo and training heroes have a search box, and portaliq hides the heading when a search box is there (defect 6).
-- Every content page printed its title twice: the shell prints the page title as its h1, and the page's first block was an `nlHeading` with the same words.
+- The banner was a white closable notice, not the coloured "Let op" strip; the heroes had a small heading; the content page's table had no box and no heading above it.
 - The home's right column (sign-in card, calendar) fell below the news, and the content page's side list sat at the bottom instead of the top right.
 - Esdoornveen's "Kies je richting" had no heading and no cards; Wilgenboom's "Over onze school" and Vaartveld's "Ons onderwijs" had no heading over the columns.
 - The academy's course days had no links, the "Verloopt er een certificaat in uw bedrijf?" heading was missing, and a markdown sentence split around its links.
@@ -19,7 +19,7 @@ Portal proof run 1 (06 Oct) put each rendered portal page next to its design boa
 
 ## What changes
 
-- Declarations: no footer menu "Contact"; no first `nlHeading` that repeats the page title; `headingVisible: true`, `variant: plain` and the "Veel gezocht" links on the mbo and training heroes; the home's news 8 columns wide with the sign-in card and the calendar stacked beside it; the content page's side list at the top right with the main column 8 wide; `nlLinkColumns` for "Over onze school" and "Ons onderwijs"; an `nlHeading` "Kies je richting", an `nlLink` "Alle opleidingen" and the four lists as cards; course-day links and the certificate heading on the academy home.
+- Declarations: no footer menu "Contact"; `variant: plain` on every school hero, and `headingVisible: true` with the "Veel gezocht" links on the mbo and training heroes; the banner as `kind: notice` with a bold lead and a link, edge to edge (`band: true`), not closable; on the content page the table `boxed` under its own `nlHeading` (caption for screen readers only) and the side list under an accent line (vo keeps its tinted box, as its board); the home's news 8 columns wide with the sign-in card and the calendar stacked beside it; the content page's side list at the top right with the main column 8 wide; `nlLinkColumns` for "Over onze school" and "Ons onderwijs"; an `nlHeading` "Kies je richting", an `nlLink` "Alle opleidingen" and the four lists as cards; course-day links and the certificate heading on the academy home.
 - Guardian overview: greeting, what is still to do, the children, news, this month. The calendar is `range: month`. A booked conversation reads "Oudergesprek" with the teacher's name under it.
 
 ## What an instance that loaded a set before sees
@@ -32,4 +32,5 @@ Nothing changes there. The provisioner never writes over a page or menu that exi
 - The "Zaken en taken" group in the account menu is portaliq's own.
 - The child cards' status ("Op school", "Ziek gemeld") needs a status field per child per day that no schema holds yet.
 - The overview keeps its child switcher (`records`): the calendar sources narrow to the open child.
-- "Praktisch" active in the header on a page below `/praktisch`; the hero beside the course list; the photo next to the hero.
+- The page title shown twice and "Praktisch" not marked active: portaliq #1368 (a page that opens with a level-1 `nlHeading` gets no second title). The declarations keep that heading.
+- The hero beside the course list; the photo next to the hero.

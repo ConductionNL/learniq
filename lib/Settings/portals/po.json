@@ -211,9 +211,12 @@
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
-              "kind": "warning",
-              "text": "Let op: vrijdag 9 oktober is een studiedag. Alle kinderen zijn die dag vrij.",
-              "closable": true
+              "kind": "notice",
+              "lead": "Let op",
+              "text": "Vrijdag 9 oktober is een studiedag. Alle kinderen zijn die dag vrij.",
+              "linkLabel": "Bekijk alle vrije dagen",
+              "linkHref": "/praktisch/vakanties",
+              "band": true
             }
           },
           {
@@ -235,7 +238,8 @@
                   "label": "Kom kennismaken",
                   "href": "/aanmelden"
                 }
-              ]
+              ],
+              "variant": "plain"
             }
           },
           {
@@ -446,14 +450,15 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "wb-afwezig-02-nlparagraph",
-            "widgetKey": "nlParagraph",
+            "id": "wb-afwezig-01-nlheading",
+            "widgetKey": "nlHeading",
             "gridX": 0,
             "gridY": 0,
             "gridWidth": 8,
             "gridHeight": 1,
             "props": {
-              "text": "Is uw kind ziek, of moet het naar de dokter of de tandarts? Meld het voor half negen. De leerkracht ziet uw melding meteen in de klas."
+              "text": "Uw kind afwezig melden",
+              "level": 1
             }
           },
           {
@@ -462,7 +467,7 @@
             "gridX": 8,
             "gridY": 0,
             "gridWidth": 4,
-            "gridHeight": 13,
+            "gridHeight": 15,
             "props": {
               "heading": "Meer over praktische zaken",
               "links": [
@@ -487,10 +492,21 @@
             }
           },
           {
+            "id": "wb-afwezig-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Is uw kind ziek, of moet het naar de dokter of de tandarts? Meld het voor half negen. De leerkracht ziet uw melding meteen in de klas."
+            }
+          },
+          {
             "id": "wb-afwezig-03-nlalert",
             "widgetKey": "nlAlert",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 2,
             "gridWidth": 4,
             "gridHeight": 2,
             "props": {
@@ -503,7 +519,7 @@
             "id": "wb-afwezig-04-nlalert",
             "widgetKey": "nlAlert",
             "gridX": 4,
-            "gridY": 1,
+            "gridY": 2,
             "gridWidth": 4,
             "gridHeight": 2,
             "props": {
@@ -516,7 +532,7 @@
             "id": "wb-afwezig-05-nlbuttonlink",
             "widgetKey": "nlButtonLink",
             "gridX": 0,
-            "gridY": 3,
+            "gridY": 4,
             "gridWidth": 3,
             "gridHeight": 1,
             "props": {
@@ -526,10 +542,22 @@
             }
           },
           {
+            "id": "wb-afwezig-06a-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 5,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Wat meldt u hoe?",
+              "level": 2
+            }
+          },
+          {
             "id": "wb-afwezig-06-nltable",
             "widgetKey": "nlTable",
             "gridX": 0,
-            "gridY": 4,
+            "gridY": 6,
             "gridWidth": 8,
             "gridHeight": 4,
             "props": {
@@ -560,14 +588,16 @@
                   "Verlof aanvragen bij de directeur",
                   "Zo vroeg als u het weet"
                 ]
-              ]
+              ],
+              "display": "boxed",
+              "captionVisible": false
             }
           },
           {
             "id": "wb-afwezig-07-markdown",
             "widgetKey": "markdown",
             "gridX": 0,
-            "gridY": 8,
+            "gridY": 10,
             "gridWidth": 8,
             "gridHeight": 5,
             "props": {
@@ -638,10 +668,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wb-zoeken-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Nieuws en documenten",
+              "level": 1
+            }
+          },
+          {
             "id": "wb-zoeken-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -652,7 +694,7 @@
             "id": "wb-zoeken-03-nlnewslist",
             "widgetKey": "nlNewsList",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 2,
             "gridWidth": 12,
             "gridHeight": 6,
             "props": {
@@ -674,10 +716,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wb-praktisch-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Praktisch",
+              "level": 1
+            }
+          },
+          {
             "id": "wb-praktisch-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -688,7 +742,7 @@
             "id": "wb-praktisch-03-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 2,
             "gridWidth": 6,
             "gridHeight": 3,
             "props": {
@@ -720,10 +774,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wb-praktisch-vakanties-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Schooltijden en vakanties",
+              "level": 1
+            }
+          },
+          {
             "id": "wb-praktisch-vakanties-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -741,10 +807,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wb-praktisch-opvang-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Overblijven en opvang",
+              "level": 1
+            }
+          },
+          {
             "id": "wb-praktisch-opvang-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -762,10 +840,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wb-onze-school-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Onze school",
+              "level": 1
+            }
+          },
+          {
             "id": "wb-onze-school-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -783,10 +873,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wb-groepen-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Groepen",
+              "level": 1
+            }
+          },
+          {
             "id": "wb-groepen-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -804,10 +906,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wb-kalender-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Kalender",
+              "level": 1
+            }
+          },
+          {
             "id": "wb-kalender-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -818,7 +932,7 @@
             "id": "wb-kalender-03-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 2,
             "gridWidth": 6,
             "gridHeight": 3,
             "props": {
@@ -842,10 +956,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wb-aanmelden-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Uw kind aanmelden",
+              "level": 1
+            }
+          },
+          {
             "id": "wb-aanmelden-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -863,10 +989,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wb-contact-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Contact en schooltijden",
+              "level": 1
+            }
+          },
+          {
             "id": "wb-contact-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -884,10 +1022,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wb-toegankelijkheid-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Toegankelijkheid",
+              "level": 1
+            }
+          },
+          {
             "id": "wb-toegankelijkheid-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -905,10 +1055,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wb-privacy-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Privacy",
+              "level": 1
+            }
+          },
+          {
             "id": "wb-privacy-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -926,10 +1088,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wb-cookies-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Cookies",
+              "level": 1
+            }
+          },
+          {
             "id": "wb-cookies-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -947,10 +1121,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wb-klacht-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Klacht of zorg melden",
+              "level": 1
+            }
+          },
+          {
             "id": "wb-klacht-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {

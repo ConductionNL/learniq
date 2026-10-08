@@ -189,9 +189,12 @@
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
-              "kind": "info",
-              "text": "Open dag: zaterdag 7 november 2026, van 10.00 tot 14.00 uur. Kom kijken in de werkplaatsen en praktijklokalen.",
-              "closable": true
+              "kind": "notice",
+              "lead": "Open dag",
+              "text": "Zaterdag 7 november 2026, van 10.00 tot 14.00 uur. Kom kijken in de werkplaatsen en praktijklokalen.",
+              "linkLabel": "Bekijk het programma",
+              "linkHref": "/aanmelden",
+              "band": true
             }
           },
           {
@@ -478,14 +481,15 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "ev-ziek-02-nlparagraph",
-            "widgetKey": "nlParagraph",
+            "id": "ev-ziek-01-nlheading",
+            "widgetKey": "nlHeading",
             "gridX": 0,
             "gridY": 0,
             "gridWidth": 8,
             "gridHeight": 1,
             "props": {
-              "text": "Ben je ziek? Meld het voor 08.30 uur in Mijn Esdoornveen. Je docenten zien het meteen in hun presentielijst. Het kan vanaf je telefoon en kost een halve minuut."
+              "text": "Ziek melden en beter melden",
+              "level": 1
             }
           },
           {
@@ -494,7 +498,7 @@
             "gridX": 8,
             "gridY": 0,
             "gridWidth": 4,
-            "gridHeight": 14,
+            "gridHeight": 16,
             "props": {
               "heading": "Meer over aanwezigheid",
               "links": [
@@ -514,14 +518,26 @@
                   "label": "Vakanties en vrije dagen",
                   "href": "/vakanties"
                 }
-              ]
+              ],
+              "display": "accent"
+            }
+          },
+          {
+            "id": "ev-ziek-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Ben je ziek? Meld het voor 08.30 uur in Mijn Esdoornveen. Je docenten zien het meteen in hun presentielijst. Het kan vanaf je telefoon en kost een halve minuut."
             }
           },
           {
             "id": "ev-ziek-03-nlbuttonlink",
             "widgetKey": "nlButtonLink",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 2,
             "gridWidth": 4,
             "gridHeight": 1,
             "props": {
@@ -534,7 +550,7 @@
             "id": "ev-ziek-04-nllist",
             "widgetKey": "nlList",
             "gridX": 0,
-            "gridY": 2,
+            "gridY": 3,
             "gridWidth": 8,
             "gridHeight": 3,
             "props": {
@@ -548,10 +564,22 @@
             }
           },
           {
+            "id": "ev-ziek-05a-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 6,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Wat meld je waar?",
+              "level": 2
+            }
+          },
+          {
             "id": "ev-ziek-05-nltable",
             "widgetKey": "nlTable",
             "gridX": 0,
-            "gridY": 5,
+            "gridY": 7,
             "gridWidth": 8,
             "gridHeight": 4,
             "props": {
@@ -577,14 +605,16 @@
                   "Ziek melden en het examenbureau bellen voor het examen begint",
                   "Het examenbureau. Je krijgt een nieuwe datum."
                 ]
-              ]
+              ],
+              "display": "boxed",
+              "captionVisible": false
             }
           },
           {
             "id": "ev-ziek-06-nlalert",
             "widgetKey": "nlAlert",
             "gridX": 0,
-            "gridY": 9,
+            "gridY": 11,
             "gridWidth": 8,
             "gridHeight": 3,
             "props": {
@@ -597,7 +627,7 @@
             "id": "ev-ziek-08-nlalert",
             "widgetKey": "nlAlert",
             "gridX": 0,
-            "gridY": 12,
+            "gridY": 14,
             "gridWidth": 8,
             "gridHeight": 2,
             "props": {
@@ -617,10 +647,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "ev-opleidingen-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Opleidingen",
+              "level": 1
+            }
+          },
+          {
             "id": "ev-opleidingen-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -631,7 +673,7 @@
             "id": "ev-opleidingen-03-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 2,
             "gridWidth": 12,
             "gridHeight": 3,
             "props": {
@@ -656,10 +698,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "ev-mechatronica-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Mechatronica",
+              "level": 1
+            }
+          },
+          {
             "id": "ev-mechatronica-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -670,7 +724,7 @@
             "id": "ev-mechatronica-03-nldescriptionlist",
             "widgetKey": "nlDescriptionList",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 2,
             "gridWidth": 6,
             "gridHeight": 4,
             "props": {
@@ -706,7 +760,7 @@
             "id": "ev-mechatronica-04-nllist",
             "widgetKey": "nlList",
             "gridX": 6,
-            "gridY": 1,
+            "gridY": 2,
             "gridWidth": 6,
             "gridHeight": 4,
             "props": {
@@ -722,7 +776,7 @@
             "id": "ev-mechatronica-05-nltable",
             "widgetKey": "nlTable",
             "gridX": 0,
-            "gridY": 5,
+            "gridY": 6,
             "gridWidth": 12,
             "gridHeight": 3,
             "props": {
@@ -755,7 +809,7 @@
             "id": "ev-mechatronica-06-markdown",
             "widgetKey": "markdown",
             "gridX": 0,
-            "gridY": 8,
+            "gridY": 9,
             "gridWidth": 12,
             "gridHeight": 5,
             "props": {
@@ -809,10 +863,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "ev-zoeken-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Nieuws",
+              "level": 1
+            }
+          },
+          {
             "id": "ev-zoeken-02-nlnewslist",
             "widgetKey": "nlNewsList",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 6,
             "props": {
@@ -834,10 +900,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "ev-aanmelden-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Aanmelden",
+              "level": 1
+            }
+          },
+          {
             "id": "ev-aanmelden-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -855,10 +933,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "ev-voor-studenten-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Voor studenten",
+              "level": 1
+            }
+          },
+          {
             "id": "ev-voor-studenten-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -869,7 +959,7 @@
             "id": "ev-voor-studenten-03-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 2,
             "gridWidth": 6,
             "gridHeight": 3,
             "props": {
@@ -897,10 +987,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "ev-voor-bedrijven-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Voor bedrijven",
+              "level": 1
+            }
+          },
+          {
             "id": "ev-voor-bedrijven-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -918,10 +1020,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "ev-vakanties-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Vakanties en roosters",
+              "level": 1
+            }
+          },
+          {
             "id": "ev-vakanties-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -939,10 +1053,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "ev-over-esdoornveen-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Over Esdoornveen",
+              "level": 1
+            }
+          },
+          {
             "id": "ev-over-esdoornveen-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -960,10 +1086,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "ev-contact-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Contact en openingstijden",
+              "level": 1
+            }
+          },
+          {
             "id": "ev-contact-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -981,10 +1119,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "ev-toegankelijkheid-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Toegankelijkheid",
+              "level": 1
+            }
+          },
+          {
             "id": "ev-toegankelijkheid-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -1002,10 +1152,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "ev-privacy-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Privacy",
+              "level": 1
+            }
+          },
+          {
             "id": "ev-privacy-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -1023,10 +1185,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "ev-cookies-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Cookies",
+              "level": 1
+            }
+          },
+          {
             "id": "ev-cookies-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -1044,10 +1218,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "ev-klacht-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Klacht melden",
+              "level": 1
+            }
+          },
+          {
             "id": "ev-klacht-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {

@@ -366,14 +366,15 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "wa-inschrijven-02-nlparagraph",
-            "widgetKey": "nlParagraph",
+            "id": "wa-inschrijven-01-nlheading",
+            "widgetKey": "nlHeading",
             "gridX": 0,
             "gridY": 0,
             "gridWidth": 8,
             "gridHeight": 1,
             "props": {
-              "text": "U schrijft een of meer medewerkers in met één formulier. Uw medewerker krijgt zelf een e-mail met de dag, de plaats en wat hij moet meenemen."
+              "text": "Medewerkers inschrijven",
+              "level": 1
             }
           },
           {
@@ -382,7 +383,7 @@
             "gridX": 8,
             "gridY": 0,
             "gridWidth": 4,
-            "gridHeight": 15,
+            "gridHeight": 16,
             "props": {
               "heading": "Meer voor werkgevers",
               "links": [
@@ -394,14 +395,26 @@
                   "label": "Incompany: een eigen cursusdag",
                   "href": "/incompany"
                 }
-              ]
+              ],
+              "display": "accent"
+            }
+          },
+          {
+            "id": "wa-inschrijven-02-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 1,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "U schrijft een of meer medewerkers in met één formulier. Uw medewerker krijgt zelf een e-mail met de dag, de plaats en wat hij moet meenemen."
             }
           },
           {
             "id": "wa-inschrijven-03-nldescriptionlist",
             "widgetKey": "nlDescriptionList",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 2,
             "gridWidth": 8,
             "gridHeight": 3,
             "props": {
@@ -425,7 +438,7 @@
             "id": "wa-inschrijven-04-nlalert",
             "widgetKey": "nlAlert",
             "gridX": 0,
-            "gridY": 4,
+            "gridY": 5,
             "gridWidth": 8,
             "gridHeight": 2,
             "props": {
@@ -438,7 +451,7 @@
             "id": "wa-inschrijven-05-nltable",
             "widgetKey": "nlTable",
             "gridX": 0,
-            "gridY": 6,
+            "gridY": 7,
             "gridWidth": 8,
             "gridHeight": 4,
             "props": {
@@ -464,14 +477,15 @@
                   "Kan niet meer",
                   "De hele prijs"
                 ]
-              ]
+              ],
+              "display": "boxed"
             }
           },
           {
             "id": "wa-inschrijven-06-nlbuttonlink",
             "widgetKey": "nlButtonLink",
             "gridX": 0,
-            "gridY": 10,
+            "gridY": 11,
             "gridWidth": 4,
             "gridHeight": 1,
             "props": {
@@ -484,7 +498,7 @@
             "id": "wa-inschrijven-07-markdown",
             "widgetKey": "markdown",
             "gridX": 0,
-            "gridY": 11,
+            "gridY": 12,
             "gridWidth": 8,
             "gridHeight": 4,
             "props": {
@@ -502,10 +516,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wa-aanbod-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Cursusaanbod",
+              "level": 1
+            }
+          },
+          {
             "id": "wa-aanbod-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -516,7 +542,7 @@
             "id": "wa-aanbod-03-nleventlist",
             "widgetKey": "nlEventList",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 2,
             "gridWidth": 12,
             "gridHeight": 5,
             "props": {
@@ -569,10 +595,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wa-certificaten-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Certificaten",
+              "level": 1
+            }
+          },
+          {
             "id": "wa-certificaten-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -590,10 +628,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wa-voor-werkgevers-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Voor werkgevers",
+              "level": 1
+            }
+          },
+          {
             "id": "wa-voor-werkgevers-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -604,7 +654,7 @@
             "id": "wa-voor-werkgevers-03-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 2,
             "gridWidth": 6,
             "gridHeight": 3,
             "props": {
@@ -632,10 +682,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wa-incompany-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Incompany",
+              "level": 1
+            }
+          },
+          {
             "id": "wa-incompany-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -653,10 +715,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wa-praktijkhal-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Praktijkhal",
+              "level": 1
+            }
+          },
+          {
             "id": "wa-praktijkhal-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -674,10 +748,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wa-contact-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Contact en route",
+              "level": 1
+            }
+          },
+          {
             "id": "wa-contact-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -695,10 +781,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wa-algemene-voorwaarden-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Algemene voorwaarden",
+              "level": 1
+            }
+          },
+          {
             "id": "wa-algemene-voorwaarden-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -716,10 +814,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wa-privacy-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Privacy",
+              "level": 1
+            }
+          },
+          {
             "id": "wa-privacy-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -737,10 +847,22 @@
         "type": "grid",
         "widgets": [
           {
+            "id": "wa-toegankelijkheid-01-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 12,
+            "gridHeight": 1,
+            "props": {
+              "text": "Toegankelijkheid",
+              "level": 1
+            }
+          },
+          {
             "id": "wa-toegankelijkheid-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 0,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {

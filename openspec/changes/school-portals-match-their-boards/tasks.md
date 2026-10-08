@@ -2,7 +2,7 @@
 
 - [x] **T1**: no footer menu "Contact" in the four declarations (defect 7)
 - [x] **T2**: `headingVisible`, `variant: plain` and popular links on the mbo and training heroes (defect 6)
-- [x] **T3**: no first `nlHeading` that repeats the page title
+- [x] **T3**: notice banner (po, vo, mbo), `variant: plain` on every hero, boxed table under its own heading, accent side list (FIX-P requests 08 Oct); page titles stay a level-1 `nlHeading` (portaliq #1368)
 - [x] **T4**: home right column (po, vo, mbo); content page side list at the top right (four sets)
 - [x] **T5**: "Kies je richting" (mbo), `nlLinkColumns` (po, vo), academy course links, certificate heading, markdown links (training)
   - PHPUnit `ExamplePortalDeclarationsTest::testTheDeclarationsFollowTheBoards`, `ExamplePortalProvisionerTest`

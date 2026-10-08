@@ -180,8 +180,8 @@ class ExamplePortalDeclarationsTest extends TestCase {
 
 	/**
 	 * The declarations follow the boards where portal proof run 1 found them
-	 * apart: one Contact column in the footer, one page title, a hero that
-	 * shows its heading beside the search box, the home's right column, the
+	 * apart: one Contact column in the footer, a plain hero that shows its
+	 * heading beside the search box, the notice strip, a boxed table, the home's right column, the
 	 * content page's side list at the top, and Esdoornveen's "Kies je richting".
 	 *
 	 * @return void
@@ -208,15 +208,28 @@ class ExamplePortalDeclarationsTest extends TestCase {
 
 			foreach ($declaration['pages'] as $page) {
 				foreach (($page['body']['widgets'] ?? []) as $widget) {
-					if ($widget['widgetKey'] === 'nlHeading') {
-						self::assertNotSame($page['title'], $widget['props']['text'], $set . ' ' . $page['route'] . ': the shell prints the title');
+					if ($widget['widgetKey'] === 'hero') {
+						// The board's large heading (portaliq `variant: plain`).
+						self::assertSame('plain', $widget['props']['variant'] ?? null, $set . ': the hero is plain');
+						if (($widget['props']['search'] ?? false) === true) {
+							self::assertTrue($widget['props']['headingVisible'] ?? false, $set . ': a hero with search shows its heading');
+						}
 					}
 
-					if ($widget['widgetKey'] === 'hero' && ($widget['props']['search'] ?? false) === true) {
-						self::assertTrue($widget['props']['headingVisible'] ?? false, $set . ': a hero with search shows its heading');
+					if ($widget['widgetKey'] === 'nlBanner') {
+						// The coloured "Let op" strip of the boards, not a closable notice.
+						self::assertSame(['notice', true], [$widget['props']['kind'], $widget['props']['band']], $widget['id']);
+						self::assertNotSame('', $widget['props']['lead']);
+						self::assertArrayNotHasKey('closable', $widget['props']);
 					}
 				}
 			}
+
+			// The page's own title is its first block, at level 1 (portaliq then prints no second title).
+			$heading = array_values(array_filter($pages[$sideRoute]['body']['widgets'], static fn (array $w): bool => $w['gridY'] === 0 && $w['gridX'] === 0))[0];
+			self::assertSame(['nlHeading', $pages[$sideRoute]['title'], 1], [$heading['widgetKey'], $heading['props']['text'], $heading['props']['level']], $set);
+			$table = array_values(array_filter($pages[$sideRoute]['body']['widgets'], static fn (array $w): bool => $w['widgetKey'] === 'nlTable'))[0];
+			self::assertSame('boxed', $table['props']['display'], $set);
 
 			$side = array_values(array_filter($pages[$sideRoute]['body']['widgets'], static fn (array $w): bool => $w['gridX'] === 8));
 			self::assertCount(1, $side, $set . ' ' . $sideRoute);
