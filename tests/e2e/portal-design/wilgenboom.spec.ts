@@ -23,6 +23,7 @@ import { ACR_SUBSTANTIAL } from '../helpers/stub-digid.ts'
 import {
 	ADMIN_CREDENTIALS,
 	boardShot,
+	dated,
 	expectNoHorizontalScroll,
 	expectNoSeriousAxeFinding,
 	expectTexts,
@@ -55,7 +56,8 @@ test.describe('wilgenboom: the website', () => {
 	test('Home', async ({ page }, info) => {
 		await openSitePage(page, PORTAL, '/')
 		await expectTexts(page, [
-			'vrijdag 9 oktober is een studiedag',
+			'Let op',
+			dated('Vrijdag 9 oktober is een studiedag'),
 			'Een school waar elk kind kan groeien',
 			'Kom kennismaken',
 			'Direct regelen',
@@ -75,7 +77,7 @@ test.describe('wilgenboom: the website', () => {
 			'nlNewsList',
 			'nlSignIn',
 			'nlEventList',
-			'nlLinkList',
+			'nlLinkColumns',
 		])
 		await expectTheme(page, PORTAL, DESIGN, info)
 		if (info.project.name === 'phone') {
@@ -111,7 +113,7 @@ test.describe('wilgenboom: the website', () => {
 		await openSitePage(page, PORTAL, '/zoeken')
 		await expectTexts(page, [
 			'Nieuws en documenten',
-			'Ouderavond op donderdag 29 oktober',
+			dated('Ouderavond op donderdag 29 oktober'),
 			'Zo werkt de ouderavond dit jaar',
 		])
 		await boardShot(page, PORTAL, 'Zoeken', info)

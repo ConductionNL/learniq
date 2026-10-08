@@ -15,6 +15,7 @@ import { expect, test } from '@playwright/test'
 import { siteUrl } from '../helpers/portal-fixture.ts'
 import {
 	boardShot,
+	dated,
 	ensurePortalAccount,
 	expectNoHorizontalScroll,
 	expectNoSeriousAxeFinding,
@@ -47,12 +48,16 @@ test.describe('vaartveld: the website', () => {
 	test('Home', async ({ page }, info) => {
 		await openSitePage(page, PORTAL, '/')
 		await expectTexts(page, [
-			'Herfstvakantie: van zaterdag 17 tot en met zondag 25 oktober',
+			// The notice strip: a bold lead and the text (school-portals-match-their-boards).
+			'Herfstvakantie',
+			dated(
+				'Van zaterdag 17 tot en met zondag 25 oktober is de school dicht.',
+			),
 			'Kijk ver vooruit.',
 			'Direct regelen',
 			'Rooster en wijzigingen',
 			'Nieuws',
-			'Informatieavond profielkeuze op dinsdag 3 november',
+			dated('Informatieavond profielkeuze op dinsdag 3 november'),
 			'Mijn Vaartveld',
 			'Agenda',
 			'Mentorgesprekken',
@@ -66,7 +71,7 @@ test.describe('vaartveld: the website', () => {
 			'nlNewsList',
 			'nlSignIn',
 			'nlEventList',
-			'nlLinkList',
+			'nlLinkColumns',
 		])
 		await expectTheme(page, PORTAL, DESIGN, info)
 		if (info.project.name === 'phone') {
@@ -104,12 +109,12 @@ test.describe('vaartveld: the website', () => {
 		await boardShot(page, PORTAL, 'Zoeken', info)
 		await page
 			.getByRole('link', {
-				name: 'Informatieavond profielkeuze op dinsdag 3 november',
+				name: dated('Informatieavond profielkeuze op dinsdag 3 november'),
 			})
 			.first()
 			.click()
 		await expectTexts(page, [
-			'Dinsdag 3 november 2026, 19.30 tot 21.00 uur',
+			dated('Dinsdag 3 november 2026, 19.30 tot 21.00 uur'),
 			'Marloes Peters',
 			'Kom je ook?',
 		])

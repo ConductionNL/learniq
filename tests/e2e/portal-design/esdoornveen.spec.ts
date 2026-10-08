@@ -18,6 +18,7 @@ import { expect, test } from '@playwright/test'
 import { siteUrl } from '../helpers/portal-fixture.ts'
 import {
 	boardShot,
+	dated,
 	ensurePortalAccount,
 	expectNoHorizontalScroll,
 	expectNoSeriousAxeFinding,
@@ -50,7 +51,8 @@ test.describe('esdoornveen: the website', () => {
 	test('Home', async ({ page }, info) => {
 		await openSitePage(page, PORTAL, '/')
 		await expectTexts(page, [
-			'Open dag: zaterdag 7 november 2026',
+			'Open dag',
+			dated('Zaterdag 7 november 2026, van 10.00 tot 14.00 uur'),
 			'Een vak leer je door het te doen',
 			'Direct regelen',
 			'Leerbedrijf worden',
@@ -141,7 +143,7 @@ test.describe('esdoornveen: Mijn Esdoornveen (Milan de Groot)', () => {
 			'Overeenkomst getekend',
 			'Werkplan gemaakt',
 			'Tussenbeoordeling',
-			'13 oktober 2026',
+			dated('13 oktober 2026'),
 			'januari 2027',
 		])
 		await expectNoSeriousAxeFinding(page)
