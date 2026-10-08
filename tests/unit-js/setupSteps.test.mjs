@@ -17,17 +17,10 @@ const manifest = JSON.parse(
 const steps = manifest.setup.steps
 const step = (id) => steps.find((s) => s.id === id)
 
-test('welcome, then the example-set offer, then load, segment, removal and done (gate 100)', () => {
+test('welcome, then the example-set offer, then segment and done (gate 100)', () => {
 	assert.deepEqual(
 		steps.map((s) => s.id),
-		[
-			'welcome',
-			'example-set',
-			'load-example-set',
-			'segment',
-			'remove-example-set',
-			'done',
-		],
+		['welcome', 'example-set', 'segment', 'done'],
 	)
 	assert.equal(manifest.setup.version, 2)
 })
@@ -39,7 +32,9 @@ test('both choices are single-select and read their options from the server', ()
 	assert.equal(step('segment').optionsSource, 'segments')
 	assert.equal(step('segment').configKey, 'segment')
 	assert.equal(step('segment').multiple, false)
-	assert.equal(step('load-example-set').action, 'load-example-set')
+	// Each card loads itself (wizard-dataset-card-load); no load step.
+	assert.equal(step('example-set').loadAction, 'load-example-set')
+	assert.equal(step('load-example-set'), undefined)
 })
 
 test('the segment is pre-selected from the example set picked earlier', () => {
@@ -68,17 +63,19 @@ test('no step is required, so setup never gates the app', () => {
 	}
 })
 
-// example-set-removal-in-wizard: the removal is a run-action step that the
-// server always reports done, so CnSetupWizard never starts it on its own.
-test('the removal step posts its own action and says it only runs on a click', () => {
-	const remove = step('remove-example-set')
-	assert.equal(remove.type, 'run-action')
-	assert.equal(remove.action, 'remove-example-set')
-	assert.match(remove.body, /only runs when you click/)
+// wizard-drops-the-removal-step: the wizard offers example data and does not
+// remove it. Removal is an administrator's act outside the first-run flow.
+test('the wizard has no removal step', () => {
+	assert.equal(step('remove-example-set'), undefined)
+	assert.ok(
+		steps.every((s) => !String(s.id).startsWith('remove-')),
+		'no step removes data',
+	)
 	const nl = JSON.parse(
 		readFileSync(new URL('../../l10n/nl.json', import.meta.url), 'utf8'),
 	).translations
-	for (const text of [remove.title, remove.body, step('load-example-set').body]) {
-		assert.ok(nl[text], `"${text}" has a Dutch translation`)
-	}
+	assert.ok(
+		nl[step('example-set').body],
+		'the example-set body has a Dutch translation',
+	)
 })

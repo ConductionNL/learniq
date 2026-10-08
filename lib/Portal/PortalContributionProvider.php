@@ -44,6 +44,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Service\Portal\BpvPlacementSteps;
+use OCA\Learniq\Service\Portal\EmployerBookingSteps;
 use OCP\L10N\IFactory;
 
 /**
@@ -68,8 +70,8 @@ use OCP\L10N\IFactory;
  *
  * @spec openspec/specs/portal-contribution/spec.md
  *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects) The one entry portaliq calls:
- * it hands each audience to the class that declares it, so it names them all.
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) The provider is the one place portaliq meets every
+ *   audience, so it names each audience's declaration class.
  */
 class PortalContributionProvider {
 	/**
@@ -82,14 +84,33 @@ class PortalContributionProvider {
 	/**
 	 * Constructor; the container hands in the factory, `new` with no arguments answers in English.
 	 *
-	 * @param IFactory|null              $l10nFactory     Puts parent labels in the request's language (PortalLabelTranslator).
+	 * @param IFactory|null             $l10nFactory    Puts parent labels in the request's language (PortalLabelTranslator).
+	 * @param EmployerBookingSteps|null $bookingSteps   Answers a company booking's steps (employer-portal-audience).
+	 * @param BpvPlacementSteps|null    $placementSteps Answers a work placement's steps (site-workplace-trainer-portal-design).
 	 * @param PortalMessageContacts|null $messageContacts Who a resident may write to (portal-message-contacts).
 	 */
 	public function __construct(
 		private readonly ?IFactory $l10nFactory=null,
+		private readonly ?EmployerBookingSteps $bookingSteps=null,
+		private readonly ?BpvPlacementSteps $placementSteps=null,
 		private readonly ?PortalMessageContacts $messageContacts=null,
 	) {
 	}//end __construct()
+
+	/**
+	 * The steps of a work placement, for the student's and the trainer's placement page.
+	 *
+	 * Called by portaliq with the placement's id after its visibility check; none without the service.
+	 *
+	 * @param string $id The placement's uuid.
+	 *
+	 * @return array<int, array<string, string>>
+	 *
+	 * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md#requirement-new-a-placement-shows-where-it-stands
+	 */
+	public function bpvPlacementSteps(string $id): array {
+		return ($this->placementSteps?->forPlacement(placementId: $id) ?? []);
+	}//end bpvPlacementSteps()
 
 	/**
 	 * Who a guardian may write to about one child (the `contacts` provider
@@ -133,9 +154,10 @@ class PortalContributionProvider {
 	 * @spec openspec/specs/portal-contribution/spec.md
 	 * @spec openspec/specs/bpv/spec.md#requirement-praktijkopleider-portal-access-is-a-direct-scope-portalcontributionprovider-audience
 	 * @spec openspec/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
+	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
 	 */
 	public function getAudiences(): array {
-		return ['student', 'parent', 'praktijkopleider', 'external-assessor'];
+		return ['student', 'parent', 'praktijkopleider', 'external-assessor', EmployerSitePages::AUDIENCE, ParticipantSitePages::AUDIENCE];
 	}//end getAudiences()
 
 	/**
@@ -188,9 +210,37 @@ class PortalContributionProvider {
 			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new AssessorSitePages())->contribution());
 		}
 
+		if ($audience === EmployerSitePages::AUDIENCE) {
+			// A company that sends its people to the courses (employer-portal-audience).
+			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new EmployerSitePages())->contribution());
+		}
+
+		if ($audience === ParticipantSitePages::AUDIENCE) {
+			// A course participant at a training institute (participant-portal).
+			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new ParticipantSitePages())->contribution());
+		}
+
 		// Any audience Learniq does not serve → null (fail-closed; ADR-005).
 		return null;
 	}//end getContribution()
+
+	/**
+	 * The steps of a company booking, for the employer's booking page.
+	 *
+	 * Portaliq calls the provider named by `employerBookings.steps.provider`
+	 * with the booking's id, after it checked that the employer may see that
+	 * booking. Without the service (a test, an older container) there are no
+	 * steps, never an error.
+	 *
+	 * @param string $id The booking's uuid.
+	 *
+	 * @return array<int, array<string, string>>
+	 *
+	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 */
+	public function employerBookingSteps(string $id): array {
+		return ($this->bookingSteps?->forBooking(bookingId: $id) ?? []);
+	}//end employerBookingSteps()
 
 	/**
 	 * Manifest for the `student` audience (the learner themself).

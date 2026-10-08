@@ -711,6 +711,97 @@ The report MUST state how many lessons in the period have no room and MUST link 
 - **WHEN** the report runs for that week
 - **THEN** it says 14 lessons have no room and links to their list
 
+### Requirement: Staff read the School schema through its own authorization
+
+The `School` schema MUST declare its own `authorization` block granting `read` to the staff groups (`instructors`, `hr`, `compliance-officers`, `team-leads`, `coordinators`, `administration-managers`), so a signed-in staff member reads the school regardless of how OpenRegister applies multitenancy to a register-level role. `create` and `update` MUST stay with `instructors`, `hr`, `compliance-officers` and `team-leads`, and no group but administrators MAY delete.
+
+#### Scenario: A teacher reads the school
+- GIVEN a teacher in `instructors`
+- WHEN they list `learniq/school`
+- THEN the school is returned
+- @e2e exclude declarative register shape pinned by `SchoolStaffReadRegisterTest`; live-checked on the primary-school instance
+
+### Requirement: A pupil reads by name
+The learner profile schema MUST declare `configuration.objectNameField` as `{{ givenName }} {{ familyName }}`, so OpenRegister names every saved profile after the pupil. A repair step MUST save every stored profile whose `@self.name` is not that name yet, without a session, and MUST save nothing on a second run. A teacher list that shows the pupil of a row MUST show the row's learner profile resolved to its name, never the Nextcloud user id, and every code such a list shows MUST have a label with a Dutch entry.
+
+#### Scenario: A teacher reads the bookings to answer
+@e2e exclude Manifest and register content; the list is nextcloud-vue's object list with the fkResolve cell. Pinned by tests/unit-js/pupilsReadByName.test.mjs; the live check on the primary-school instance is in the PR.
+- **GIVEN** Vera Hulstkamp's guardian booked a conversation in a round
+- **WHEN** her teacher opens the round and reads "Bookings to answer"
+- **THEN** the row names the pupil "Vera Hulstkamp"
+- **AND** not `po-leerling-147`
+
+#### Scenario: A profile stored before the name existed gets it on upgrade
+@e2e exclude Repair step. Pinned by tests/Unit/Repair/BackfillLearnerProfileNamesTest.php.
+- **GIVEN** a learner profile stored while the schema had no display name, so it reads by its uuid
+- **WHEN** the app is upgraded and BackfillLearnerProfileNames runs
+- **THEN** the profile reads "Vera Hulstkamp"
+- **AND** a second run saves nothing
+
+#### Scenario: A teacher reads the absence reports
+@e2e exclude Manifest content. Pinned by tests/unit-js/pupilsReadByName.test.mjs.
+- **GIVEN** a guardian reported Vera ill
+- **WHEN** her teacher opens the absence reports in Dutch
+- **THEN** the row shows "Vera Hulstkamp", the dates, "Ziekte" and "Ingediend"
+
+### Requirement: Every staff list reads a pupil by name
+A staff list that shows the pupil of a row MUST show the pupil's learner profile by name. It MUST resolve the profile through the row's `learnerRef` when the row carries one, and otherwise by the row's Nextcloud user id (`ncUserId` on the learner profile). It MUST NOT show the Nextcloud user id of a pupil that has a profile, and MUST NOT show an empty cell for a pupil that has none: that pupil keeps the user id. Each profile MUST be fetched at most once per page load.
+
+#### Scenario: A teacher reads a group's enrolments
+@e2e exclude Manifest content and a cell widget whose lookup is a pure module. Pinned by tests/unit-js/listsReadPupilNames.test.mjs; the live check on the primary-school instance is in the PR.
+- **GIVEN** Vera Hulstkamp (po-leerling-147) is enrolled in Groep 7
+- **WHEN** her teacher opens Groep 7 and reads the enrolments
+- **THEN** the row names the pupil "Vera Hulstkamp"
+- **AND** not `po-leerling-147`
+
+#### Scenario: A list over a schema without learnerRef reads the name
+@e2e exclude Pure module. Pinned by tests/unit-js/listsReadPupilNames.test.mjs.
+- **GIVEN** an attendance signal for po-leerling-139, a schema that stores only the user id
+- **WHEN** a coordinator opens the attendance threshold's signals
+- **THEN** the row names the pupil whose profile has `ncUserId` po-leerling-139
+
+#### Scenario: An enrolment made without learnerRef still reads the name
+@e2e exclude Pure module. Pinned by tests/unit-js/listsReadPupilNames.test.mjs.
+- **GIVEN** an enrolment created through the form, which stores `learnerId` but no `learnerRef`
+- **WHEN** the teacher reads the course's enrolments
+- **THEN** the row names the pupil, looked up by user id
+
+#### Scenario: A pupil without a profile keeps the user id
+@e2e exclude Pure module. Pinned by tests/unit-js/listsReadPupilNames.test.mjs.
+- **GIVEN** a grade for a user id no learner profile carries
+- **WHEN** the teacher reads the grades
+- **THEN** the cell shows the user id, not an empty cell
+
+### Requirement: An index page on a schema with a pupil user id declares its columns
+An index page whose schema holds a pupil's Nextcloud user id (`learnerId`, `learnerIds`, `affectedLearnerIds`, `checkedLearnerId`) MUST declare its columns, and MUST show that field through the `learnerName` cell. It MUST NOT show `learnerUserId` or `accusedLearnerUserId`. Where the schema stores the learner profile uuid in `learnerId` or `accusedLearnerId`, the column MUST resolve it to the profile's name. An index page MUST NOT show the tenant id.
+
+#### Scenario: A coordinator reads the attendance flags
+@e2e exclude Manifest content. Pinned by tests/unit-js/remainingListsReadPupilNames.test.mjs; the live check on the primary-school instance is in the PR.
+- **GIVEN** an attendance flag for po-leerling-139
+- **WHEN** a coordinator opens the attendance flags
+- **THEN** the first column is headed "Leerling" and names the pupil
+- **AND** the list shows no `po-leerling-139`, no tenant id and the group by name
+
+#### Scenario: The exam accommodations and the BSA flags
+@e2e exclude Manifest content. Pinned by tests/unit-js/remainingListsReadPupilNames.test.mjs.
+- **GIVEN** an exam accommodation and a BSA flag, each for a pupil with a learner profile
+- **WHEN** a coordinator opens either list
+- **THEN** the first column names the pupil
+- **AND** the assessment and the programme read by name
+
+#### Scenario: A list that only gains the name keeps its columns
+@e2e exclude Manifest content. Pinned by tests/unit-js/remainingListsReadPupilNames.test.mjs.
+- **GIVEN** the dossier notes index page, which showed every property of its schema
+- **WHEN** a mentor opens it
+- **THEN** the pupil reads by name
+- **AND** every other column it showed is still there, except the tenant id
+
+#### Scenario: A new index page without columns fails the build
+@e2e exclude Guard test. Pinned by tests/unit-js/remainingListsReadPupilNames.test.mjs ("an index page on a schema with a pupil user id declares its columns").
+- **GIVEN** a new index page on a schema with `learnerId` and no `columns`
+- **WHEN** the unit tests run
+- **THEN** they fail and name the page
+
 ## Standards
 
 Schema.org `EducationalOccupationalProgram`, `Course`, `CourseInstance`, `Syllabus`; NL LOM / VDEX for Material tags; ECTS / Bologna for HE workload; NL VO PTA convention as a `CurriculumPlan` profile; OOAPI 5.0 for HE catalog publication (deferred to a follow-up — out of scope here).

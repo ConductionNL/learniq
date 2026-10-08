@@ -1,5 +1,7 @@
 # Tasks: absence-and-booking-fields-are-required
 
+> Archive pass 2026-10-07: code done; open: T4 (live check: po-parent-flows.spec.ts after portaliq#1130).
+
 - [x] **T1**: register 0.34.36: `ExcuseRequest` 0.4.1 and `ConferenceSignup` 0.2.1 require `learnerRef`, not nullable
   - PHPUnit `RequiredLearnerRefRegisterTest`, `ExcuseRequestRegisterTest`; `npm run check:register`
 - [x] **T2**: the staff booking view sends `learnerRef` (`conferenceSignupBody`)

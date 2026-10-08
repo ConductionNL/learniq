@@ -112,6 +112,7 @@ import HandshakeOutline from 'vue-material-design-icons/HandshakeOutline.vue'
 import Heart from 'vue-material-design-icons/Heart.vue'
 import History from 'vue-material-design-icons/History.vue'
 import Home from 'vue-material-design-icons/Home.vue'
+import HomeOutline from 'vue-material-design-icons/HomeOutline.vue'
 import Human from 'vue-material-design-icons/Human.vue'
 import HumanWheelchair from 'vue-material-design-icons/HumanWheelchair.vue'
 import InformationOutline from 'vue-material-design-icons/InformationOutline.vue'
@@ -274,6 +275,7 @@ export default {
 	Heart,
 	History,
 	Home,
+	HomeOutline,
 	Human,
 	HumanWheelchair,
 	InformationOutline,

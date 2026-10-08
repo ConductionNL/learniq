@@ -78,6 +78,7 @@ class XapiCompletionHandlerTest extends TestCase {
 		'id' => 'stmt-1',
 		'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/passed'],
 		'object' => ['id' => 'https://learniq.test/lessons/2'],
+		'lessonId' => 'l-2',
 		'verified_actor_id' => 'learner-1',
 	];
 
@@ -92,10 +93,15 @@ class XapiCompletionHandlerTest extends TestCase {
 			function (array $config): array {
 				$this->reads++;
 				$filters = array_diff_key($config['filters'], ['register' => true, 'schema' => true]);
+				$ids     = ($config['ids'] ?? null);
 				return array_values(
 					array_filter(
 						($this->rows[$config['filters']['schema']] ?? []),
-						static function (array $row) use ($filters): bool {
+						static function (array $row) use ($filters, $ids): bool {
+							if ($ids !== null && in_array(($row['id'] ?? ($row['uuid'] ?? null)), $ids, true) === false) {
+								return false;
+							}
+
 							foreach ($filters as $field => $value) {
 								if (($row[$field] ?? null) !== $value) {
 									return false;
@@ -187,8 +193,8 @@ class XapiCompletionHandlerTest extends TestCase {
 	 */
 	private function course(): void {
 		$this->rows['lesson'] = [
-			['uuid' => 'l-1', 'courseId' => 'c-1', 'order' => 1, 'lifecycle' => 'published', 'mandatoryTraining' => true, 'xapiObjectId' => 'https://learniq.test/lessons/1'],
-			['uuid' => 'l-2', 'courseId' => 'c-1', 'order' => 2, 'lifecycle' => 'published', 'mandatoryTraining' => true, 'xapiObjectId' => 'https://learniq.test/lessons/2'],
+			['uuid' => 'l-1', 'courseId' => 'c-1', 'order' => 1, 'lifecycle' => 'published', 'mandatoryTraining' => true],
+			['uuid' => 'l-2', 'courseId' => 'c-1', 'order' => 2, 'lifecycle' => 'published', 'mandatoryTraining' => true],
 		];
 		$this->rows['enrolment'] = [['uuid' => 'en-1', 'learnerId' => 'learner-1', 'courseId' => 'c-1', 'lifecycle' => 'active']];
 	}//end course()
@@ -250,7 +256,7 @@ class XapiCompletionHandlerTest extends TestCase {
 		$this->course();
 		$completion = $this->completion();
 
-		$completion->complete(statement: array_merge(self::STATEMENT, ['object' => ['id' => 'https://learniq.test/lessons/1']]));
+		$completion->complete(statement: array_merge(self::STATEMENT, ['object' => ['id' => 'https://learniq.test/lessons/1'], 'lessonId' => 'l-1']));
 		$completion->complete(statement: array_diff_key(self::STATEMENT, ['verified_actor_id' => true]));
 
 		$this->assertSame([], $this->transitions);

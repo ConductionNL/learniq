@@ -135,6 +135,9 @@ class StudentPortalPages {
 			'label' => 'My placement',
 			'listable' => true,
 			'minTrust' => 'low',
+			// Followed like a case: the placement has steps (placement-steps-and-assessment-draft).
+			'kind' => 'cases',
+			'steps' => ['label' => 'Where do you stand?', 'provider' => 'bpvPlacementSteps'],
 			// The school's own people and the SBB payload stay out, the same
 			// projection her trainer reads.
 			'fields' => [
@@ -384,9 +387,15 @@ class StudentPortalPages {
 		}
 
 		$blocks[] = ['type' => 'collection', 'collection' => $id];
-		$blocks[] = ['type' => 'detail', 'collection' => $id];
+		$page = ['id' => $id, 'label' => (string)($collection['label'] ?? $id)];
+		// A collection with steps is a record page: the open row's steps under the list.
+		if (isset($collection['steps']) === true) {
+			$page['record'] = ['collection' => $id, 'titleFields' => ['trainingCompanyName']];
+			$blocks[] = ['type' => 'steps', 'collection' => $id, 'label' => (string)($collection['steps']['label'] ?? '')];
+		}
 
-		$page = ['id' => $id, 'label' => (string)($collection['label'] ?? $id), 'blocks' => $blocks];
+		$blocks[] = ['type' => 'detail', 'collection' => $id];
+		$page['blocks'] = $blocks;
 		if (isset(self::MENU_PAGES[$id]) === false) {
 			return $page + ['menu' => false];
 		}

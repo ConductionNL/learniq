@@ -81,7 +81,7 @@ class ReadableCopyStampTest extends TestCase {
 			'course' => [['id' => 'course-rekenen', 'name' => 'Rekenen']],
 			'cohort' => [['id' => 'cohort-6', 'name' => 'Groep 6']],
 			'portfolio' => [['id' => 'portfolio-1', 'title' => 'Proeve meterkast', 'learnerRef' => 'profile-daan']],
-			'learner-profile' => [['id' => 'profile-daan', 'givenName' => 'Daan', 'familyName' => 'Visser']],
+			'learner-profile' => [['id' => 'profile-daan', 'givenName' => 'Daan', 'familyName' => 'Visser', 'organisationRef' => 'co-jansen']],
 		];
 
 		$objectService = $this->createMock(ObjectService::class);
@@ -113,6 +113,22 @@ class ReadableCopyStampTest extends TestCase {
 	}//end testAGradeGetsItsCourseName()
 
 	/**
+	 * An enrolment names its participant, its course and the participant's
+	 * employer, whatever the client sent (employer-portal-audience).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
+	 */
+	public function testAnEnrolmentNamesItsParticipantCourseAndEmployer(): void {
+		$event = new ObjectCreatingEvent(OrEntityFactory::make(['learnerRef' => 'profile-daan', 'courseId' => 'course-rekenen', 'organisationRef' => 'co-other'], 'enrolment'));
+		$this->makeStamp(slug: 'enrolment')->handle($event);
+
+		$data = $event->getModifiedData();
+		self::assertSame(['Daan Visser', 'Rekenen', 'co-jansen'], [$data['learnerName'], $data['courseName'], $data['organisationRef']]);
+	}//end testAnEnrolmentNamesItsParticipantCourseAndEmployer()
+
+	/**
 	 * A course name a client sends is replaced by the course's own name.
 	 *
 	 * @return void
@@ -133,7 +149,7 @@ class ReadableCopyStampTest extends TestCase {
 		$event = new ObjectCreatingEvent(OrEntityFactory::make(['cohortId' => 'cohort-6', 'learnerRef' => 'profile-vera'], 'enrolment'));
 		$this->makeStamp(slug: 'enrolment')->handle($event);
 
-		self::assertSame(['cohortName' => 'Groep 6'], $event->getModifiedData());
+		self::assertSame('Groep 6', $event->getModifiedData()['cohortName']);
 	}//end testAnEnrolmentGetsItsGroupName()
 
 	/**
@@ -282,7 +298,7 @@ class ReadableCopyStampTest extends TestCase {
 		self::assertSame(['courseName' => null], $copies->derive(slug: 'grade-entry', row: ['courseId' => 'course-blank']));
 		// A grade without a course, or with an empty pointer, names none.
 		self::assertSame(['courseName' => null], $copies->derive(slug: 'grade-entry', row: []));
-		self::assertSame(['cohortName' => null], $copies->derive(slug: 'enrolment', row: ['cohortId' => '']));
+		self::assertSame(['cohortName' => null, 'learnerName' => null, 'courseName' => null, 'organisationRef' => null], $copies->derive(slug: 'enrolment', row: ['cohortId' => '']));
 		self::assertSame(['portfolioTitle' => null, 'learnerName' => null], $copies->derive(slug: 'portfolio-share', row: ['portfolioId' => 'portfolio-gone']));
 		self::assertSame(['portfolioTitle' => 'Proeve', 'learnerName' => 'Visser'], $copies->derive(slug: 'portfolio-share', row: ['portfolioId' => 'portfolio-1']));
 		self::assertSame(['portfolioTitle', 'learnerName'], $copies->fields(slug: 'portfolio-share'));

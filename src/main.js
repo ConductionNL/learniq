@@ -13,6 +13,7 @@ import {
 	registerTranslations,
 } from '@conduction/nextcloud-vue'
 import { passesContextPredicates } from '@conduction/nextcloud-vue/src/utils/visibleIfContext.js'
+import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
 import {
 	loadTranslations,
@@ -30,12 +31,12 @@ import menuLayoutSimple from './menu-layout.simple.json'
 import pinia from './pinia.js'
 import registry from './registry.js'
 import { normaliseCallerTenant } from './utils/callerTenant.js'
-import { applyExampleSetRemovalSteps } from './utils/exampleSetSteps.js'
 import { applyIntegrationTitles } from './utils/integrationTitles.js'
 import { applyReportCardGates } from './utils/reportCardGates.js'
 import { applyStoreAccess } from './utils/storeAccess.js'
 import {
 	buildProfiledManifest,
+	navTheming,
 	resolveStructureProfile,
 	STRUCTURE_FULL,
 	STRUCTURE_SETTING,
@@ -238,6 +239,9 @@ const mergedManifest = applyReportCardGates(
 		// An overlay with a `when` (the Today dashboard) applies only for the
 		// roles it names, judged against the runtime built above.
 		passesContextPredicates,
+		// The brand block names the school through the theming capabilities
+		// (`@theming.name`, `@theming.logo`): the app names no school itself.
+		{ theming: navTheming(getCapabilities()) },
 	),
 )
 
@@ -251,15 +255,6 @@ applyStoreAccess(mergedManifest, loadState('learniq', 'storeAccess', null))
 // Contact moments) gets its manifest title there too: the host passes only
 // `title`, so LearnerProfileDetail's "Contact card" rendered as "Contacts".
 applyIntegrationTitles(mergedManifest)
-
-// The setup wizard gets one removal step per loaded example set, each with
-// its own button (D34). The shared wizard's run-action step posts no body,
-// so a step can only remove the one set its action id names.
-applyExampleSetRemovalSteps(
-	mergedManifest,
-	loadState('learniq', 'loadedExampleSets', []),
-	(text, vars) => t('learniq', text, vars),
-)
 
 /**
  * The router base for THIS page load.

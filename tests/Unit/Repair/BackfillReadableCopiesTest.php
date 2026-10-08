@@ -110,7 +110,9 @@ class BackfillReadableCopiesTest extends TestCase {
 			$saved[$save['uuid']] = $save['object'];
 		}
 
-		self::assertSame(['grade-old', 'enrolment-old', 'share-old', 'availability-old'], array_keys($saved));
+		// The profile gets its name line (employer-portal-audience).
+		self::assertSame(['grade-old', 'enrolment-old', 'share-old', 'availability-old', 'profile-daan'], array_keys($saved));
+		self::assertSame('Daan Visser', $saved['profile-daan']['fullName']);
 		self::assertSame('Meester Daan', $saved['availability-old']['teacherName']);
 		self::assertSame('Rekenen', $saved['grade-old']['courseName']);
 		self::assertArrayNotHasKey('@self', $saved['grade-old']);

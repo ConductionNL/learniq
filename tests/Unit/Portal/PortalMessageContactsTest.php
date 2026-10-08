@@ -176,7 +176,7 @@ class PortalMessageContactsTest extends TestCase {
 		self::assertSame([], $provider->ownMessageContacts('x'));
 
 		$vera = self::row(set: 'po', schema: 'learner-profile', match: ['ncUserId' => 'po-leerling-147']);
-		$with = new PortalContributionProvider(null, $this->over(set: 'po'));
+		$with = new PortalContributionProvider(messageContacts: $this->over(set: 'po'));
 		self::assertSame('po-leerkracht-09', $with->childMessageContacts($vera['uuid'])[0]['staffRef']);
 	}//end testTheManifestsNameTheProvidersAndTheProviderAnswers()
 }//end class
