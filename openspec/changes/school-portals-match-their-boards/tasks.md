@@ -12,4 +12,6 @@
   - PHPUnit `GuardianSitePagesTest::testTheGuardianOverviewIsHomeAndSwitchesChildren`
 - [x] **T6c**: `residentMenu.leaveOut: [cases, tasks, access]` in the four declarations (portaliq #1394); the chip labels and the other board words arrive in Dutch through `PortalLabelTranslator`
   - PHPUnit `ExamplePortalDeclarationsTest::testEverySchoolPortalLeavesOutTheCaseItems`, `PortalLabelTranslatorTest::testTheBoardWordsArriveInDutch`
+- [x] **T6d**: hero asides (portaliq #1397): the academy's course days beside the hero (`aside`, `source: {types: [course]}`), Esdoornveen's photo place (`asideImage.label`, no photo ships with the design)
+  - PHPUnit `ExamplePortalDeclarationsTest::testTheSchoolHeroesHoldTheirAside`
 - [ ] **T7**: live: the four portals on the proof instance after a fresh site load
