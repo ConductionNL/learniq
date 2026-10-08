@@ -246,7 +246,7 @@ export async function expectTheme(
 		// on the left by design (portaliq hero `variant: plain`).
 		const inSearch = (el: Element) =>
 			el.closest('[role="search"]') !== null
-			|| el.closest('form')?.querySelector('input[type="search"]') != null
+			|| Boolean(el.closest('form')?.querySelector('input[type="search"]'))
 		const button =
 			Array.from(
 				document.querySelectorAll(
