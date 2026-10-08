@@ -260,6 +260,7 @@ class PortalContributionProvider {
 	 * @return array<int, array<string, mixed>> Student result collections.
 	 *
 	 * @spec openspec/specs/portal-contribution/spec.md
+	 * @spec openspec/changes/student-portal-reads-like-the-boards/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
 	 */
 	private function studentResultCollections(): array {
 		return [
@@ -287,6 +288,15 @@ class PortalContributionProvider {
 					'gradeScaleId',
 					'period',
 					'gradedAt',
+				],
+				// Readable headers instead of field keys (portal proof run 1,
+				// defect 10): subject, date and grade, as on the board. The
+				// test's own name ("Leestoets") is a curriculum-plan component
+				// label with no readable copy on the grade yet.
+				'columns' => [
+					['field' => 'courseName', 'label' => 'Subject'],
+					['field' => 'gradedAt', 'label' => 'Date', 'render' => 'date'],
+					['field' => 'value', 'label' => 'Grade'],
 				],
 			],
 			[
