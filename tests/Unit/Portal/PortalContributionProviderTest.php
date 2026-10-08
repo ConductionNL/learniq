@@ -1186,4 +1186,33 @@ class PortalContributionProviderTest extends TestCase {
 		$status = array_column($weeks['columns'], null, 'field')['lifecycle'];
 		$this->assertSame('Sent back', $status['valueLabels']['rejected']);
 	}//end testHoursPageIsInTheMenuAndASentBackWeekSaysSo()
+
+	/**
+	 * The placement reads in words (no "Period From" or "Lifecycle State"),
+	 * its status labels cover the schema's states, and its page shows the
+	 * hours bar under where it stands (REPORT-2, item 8).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/placement-and-bookings-follow-the-boards/specs/portal-contribution/spec.md#requirement-the-placement-page-reads-in-words-and-shows-the-hours
+	 */
+	public function testThePlacementReadsInWordsAndShowsTheHours(): void {
+		$manifest  = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$placement = array_column($manifest['collections'], null, 'id')['studentBpvPlacements'];
+		foreach ($placement['fields'] as $field) {
+			if ($field === 'learnerRef') {
+				continue;
+			}
+
+			self::assertArrayHasKey($field, $placement['fieldConfigs'], $field . ' has a label');
+		}
+
+		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
+		$schema   = array_column($register['components']['schemas'], null, 'slug')['bpv-placement'];
+		self::assertSame($schema['properties']['lifecycle']['enum'], array_keys($placement['fieldConfigs']['lifecycle']['valueLabels']));
+
+		$page  = array_column($manifest['pages'], null, 'id')['studentBpvPlacements'];
+		$types = array_column($page['blocks'], 'type');
+		self::assertLessThan(array_search('kpi', $types, true), array_search('steps', $types, true), 'the hours bar sits under the steps');
+	}//end testThePlacementReadsInWordsAndShowsTheHours()
 }//end class
