@@ -242,9 +242,17 @@ export async function expectTheme(
 		const css = (el: Element | null, prop: string) =>
 			el ? getComputedStyle(el).getPropertyValue(prop) : ''
 		const heading = document.querySelector('main h1, main h2')
-		const button = document.querySelector(
-			'main .utrecht-button--primary-action, main button, main a.utrecht-button',
-		)
+		// Not the hero's search button: it is joined to its field and square
+		// on the left by design (portaliq hero `variant: plain`).
+		const inSearch = (el: Element) =>
+			el.closest('[role="search"]') !== null
+			|| el.closest('form')?.querySelector('input[type="search"]') != null
+		const button =
+			Array.from(
+				document.querySelectorAll(
+					'main .utrecht-button--primary-action, main button, main a.utrecht-button',
+				),
+			).find((el) => !inSearch(el)) ?? null
 		return {
 			headingFont: css(heading, 'font-family'),
 			bodyFont: css(document.body, 'font-family'),
