@@ -122,32 +122,6 @@
     },
     {
       "position": 1,
-      "title": "Contact",
-      "items": [
-        {
-          "order": 1,
-          "name": "Praktijkhal: Energieweg 8, Zuiddrecht",
-          "link": "/contact"
-        },
-        {
-          "order": 2,
-          "name": "Planning: [telefoonnummer]",
-          "link": "/contact"
-        },
-        {
-          "order": 3,
-          "name": "E-mail: [e-mailadres]",
-          "link": "/contact"
-        },
-        {
-          "order": 4,
-          "name": "Werkdagen 08.00 tot 17.00 uur",
-          "link": "/contact"
-        }
-      ]
-    },
-    {
-      "position": 1,
       "title": "Snel naar",
       "items": [
         {
@@ -218,9 +192,30 @@
               "title": "Cursussen voor wie warmtepompen installeert",
               "subtitle": "Van de eerste hybride tot F-gassen en BRL 6000-21. Elke cursus heeft een datum, een plaats en een certificaat.",
               "search": true,
-              "searchLabel": "Zoek een cursus",
-              "searchPlaceholder": "Zoek op cursus of certificaat",
-              "searchSubmitLabel": "Zoeken"
+              "searchLabel": "Zoek op cursus of certificaat",
+              "searchPlaceholder": "Bijvoorbeeld F-gassen of hybride",
+              "searchSubmitLabel": "Zoeken",
+              "headingVisible": true,
+              "variant": "plain",
+              "popularLabel": "Veel gekozen:",
+              "popularLinks": [
+                {
+                  "label": "F-gassen herhaling",
+                  "href": "/cursusaanbod"
+                },
+                {
+                  "label": "Hybride warmtepomp",
+                  "href": "/cursusaanbod"
+                },
+                {
+                  "label": "Storingen zoeken",
+                  "href": "/cursusaanbod"
+                },
+                {
+                  "label": "Incompany",
+                  "href": "/incompany"
+                }
+              ]
             }
           },
           {
@@ -242,14 +237,16 @@
                   "title": "F-gassen: herhaling en examen",
                   "meta": "Donderdag · 1 dag · certificaat",
                   "note": "Nog 1 plek",
-                  "noteTone": "warning"
+                  "noteTone": "warning",
+                  "href": "/cursusaanbod"
                 },
                 {
                   "date": "2026-10-15",
                   "title": "Waterzijdig inregelen",
                   "meta": "Donderdag · 1 dag · basis",
                   "note": "6 plekken vrij",
-                  "noteTone": "positive"
+                  "noteTone": "positive",
+                  "href": "/cursusaanbod"
                 },
                 {
                   "date": "2026-10-20",
@@ -257,7 +254,8 @@
                   "title": "Warmtepompen installeren: basis",
                   "meta": "Dinsdag en woensdag · 2 dagen · basis",
                   "note": "Nog 3 plekken",
-                  "noteTone": "warning"
+                  "noteTone": "warning",
+                  "href": "/cursusaanbod"
                 }
               ],
               "moreLabel": "Alle cursussen en data",
@@ -270,10 +268,53 @@
             }
           },
           {
+            "id": "wa-home-02a-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 7,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Verloopt er een certificaat in uw bedrijf?",
+              "level": 2
+            }
+          },
+          {
+            "id": "wa-home-04-nlsignin",
+            "widgetKey": "nlSignIn",
+            "gridX": 8,
+            "gridY": 7,
+            "gridWidth": 4,
+            "gridHeight": 6,
+            "props": {
+              "heading": "Mijn academie",
+              "display": "card",
+              "points": [
+                "Zie wie wanneer op cursus gaat",
+                "Download certificaten en zie wanneer ze verlopen"
+              ],
+              "buttonLabel": "Inloggen",
+              "signInHref": "/mijn",
+              "note": "Werkgevers loggen in met eHerkenning.",
+              "tone": "inverse"
+            }
+          },
+          {
+            "id": "wa-home-02b-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 8,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Zonder geldig certificaat mag een monteur niet aan het koudemiddel werken. Zo zet u uw mensen op tijd op een cursus."
+            }
+          },
+          {
             "id": "wa-home-03-nllist",
             "widgetKey": "nlList",
             "gridX": 0,
-            "gridY": 7,
+            "gridY": 9,
             "gridWidth": 8,
             "gridHeight": 4,
             "props": {
@@ -296,30 +337,10 @@
             }
           },
           {
-            "id": "wa-home-04-nlsignin",
-            "widgetKey": "nlSignIn",
-            "gridX": 8,
-            "gridY": 7,
-            "gridWidth": 4,
-            "gridHeight": 4,
-            "props": {
-              "heading": "Mijn academie",
-              "display": "card",
-              "points": [
-                "Zie wie wanneer op cursus gaat",
-                "Download certificaten en zie wanneer ze verlopen"
-              ],
-              "buttonLabel": "Inloggen",
-              "signInHref": "/mijn",
-              "note": "Werkgevers loggen in met eHerkenning.",
-              "tone": "inverse"
-            }
-          },
-          {
             "id": "wa-home-05-nlbuttonlink",
             "widgetKey": "nlButtonLink",
             "gridX": 0,
-            "gridY": 11,
+            "gridY": 13,
             "gridWidth": 4,
             "gridHeight": 1,
             "props": {
@@ -332,11 +353,11 @@
             "id": "wa-home-06-markdown",
             "widgetKey": "markdown",
             "gridX": 0,
-            "gridY": 12,
+            "gridY": 14,
             "gridWidth": 12,
             "gridHeight": 3,
             "props": {
-              "markdown": "## U oefent op echte opstellingen\n\nIn de praktijkhal staan werkende warmtepompen: lucht-water, hybride en bodem. U sluit aan, regelt in en zoekt storingen die de trainer heeft klaargezet. Een groep is nooit groter dan twaalf.\n\n[Bekijk de praktijkhal](/praktijkhal). Liever bij u op de zaak? [Lees over incompany](/incompany)."
+              "markdown": "## U oefent op echte opstellingen\n\nIn de praktijkhal staan werkende warmtepompen: lucht-water, hybride en bodem. U sluit aan, regelt in en zoekt storingen die de trainer heeft klaargezet. Een groep is nooit groter dan twaalf.\n\n[Bekijk de praktijkhal](/praktijkhal) [Liever bij u op de zaak? Lees over incompany](/incompany)"
             }
           }
         ]
@@ -354,7 +375,7 @@
             "widgetKey": "nlHeading",
             "gridX": 0,
             "gridY": 0,
-            "gridWidth": 12,
+            "gridWidth": 8,
             "gridHeight": 1,
             "props": {
               "text": "Medewerkers inschrijven",
@@ -362,11 +383,33 @@
             }
           },
           {
+            "id": "wa-inschrijven-08-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 8,
+            "gridY": 0,
+            "gridWidth": 4,
+            "gridHeight": 16,
+            "props": {
+              "heading": "Meer voor werkgevers",
+              "links": [
+                {
+                  "label": "Wanneer verloopt een certificaat?",
+                  "href": "/certificaten"
+                },
+                {
+                  "label": "Incompany: een eigen cursusdag",
+                  "href": "/incompany"
+                }
+              ],
+              "display": "accent"
+            }
+          },
+          {
             "id": "wa-inschrijven-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
             "gridY": 1,
-            "gridWidth": 12,
+            "gridWidth": 8,
             "gridHeight": 1,
             "props": {
               "text": "U schrijft een of meer medewerkers in met één formulier. Uw medewerker krijgt zelf een e-mail met de dag, de plaats en wat hij moet meenemen."
@@ -377,7 +420,7 @@
             "widgetKey": "nlDescriptionList",
             "gridX": 0,
             "gridY": 2,
-            "gridWidth": 12,
+            "gridWidth": 8,
             "gridHeight": 3,
             "props": {
               "items": [
@@ -401,7 +444,7 @@
             "widgetKey": "nlAlert",
             "gridX": 0,
             "gridY": 5,
-            "gridWidth": 12,
+            "gridWidth": 8,
             "gridHeight": 2,
             "props": {
               "kind": "info",
@@ -414,7 +457,7 @@
             "widgetKey": "nlTable",
             "gridX": 0,
             "gridY": 7,
-            "gridWidth": 12,
+            "gridWidth": 8,
             "gridHeight": 4,
             "props": {
               "caption": "Verplaatsen of annuleren. Een collega mag altijd in de plaats van een zieke monteur komen. Geef de nieuwe naam door in Mijn academie.",
@@ -439,7 +482,8 @@
                   "Kan niet meer",
                   "De hele prijs"
                 ]
-              ]
+              ],
+              "display": "boxed"
             }
           },
           {
@@ -464,27 +508,6 @@
             "gridHeight": 4,
             "props": {
               "markdown": "## Betalen\n\nNa de bevestiging krijgt u een factuur. De betaaltermijn is [AANTAL] dagen.\n\n## Overleggen met de planning\n\nSophie van Dam plant de cursusdagen. Zij weet waar nog plek is. [telefoonnummer], [e-mailadres]"
-            }
-          },
-          {
-            "id": "wa-inschrijven-08-nllinklist",
-            "widgetKey": "nlLinkList",
-            "gridX": 8,
-            "gridY": 12,
-            "gridWidth": 4,
-            "gridHeight": 4,
-            "props": {
-              "heading": "Meer voor werkgevers",
-              "links": [
-                {
-                  "label": "Wanneer verloopt een certificaat?",
-                  "href": "/certificaten"
-                },
-                {
-                  "label": "Incompany: een eigen cursusdag",
-                  "href": "/incompany"
-                }
-              ]
             }
           }
         ]

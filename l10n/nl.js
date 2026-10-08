@@ -3935,6 +3935,8 @@ OC.L10N.register(
         "The report of %s is ready": "Het rapport van %s staat klaar",
         "The line a guardian reads in the portal inbox, in the instance's language, for example \"Het rapport van Vera staat klaar\". Stamped by ReportCardPublishHandler. It names the child and what happened, never a grade.": "De regel die een ouder leest in de inbox van het portaal, in de taal van de installatie, bijvoorbeeld \"Het rapport van Vera staat klaar\". Gezet door ReportCardPublishHandler. Hij noemt het kind en wat er gebeurde, nooit een cijfer.",
         "Homework and tests": "Huiswerk en toetsen",
+        "Reported sick": "Ziek gemeld",
+        "At school": "Op school",
         "Latest grades": "Laatste cijfers",
         "Absence this school year": "Afwezigheid dit schooljaar",
         "Without a report": "Zonder melding",
