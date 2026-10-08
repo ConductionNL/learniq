@@ -108,6 +108,68 @@ php occ learniq:example-set:remove po --apply
 
 The command hands the set's ids to OpenRegister's `openregister:objects:purge --force`, the one route OpenRegister offers for removing fixtures from archival schemas. It only ever removes objects the set itself shipped.
 
+## Example portals: load a set from the command line
+
+Each school set also brings its portal website: po builds De Wilgenboom, vo Vaartveld College, mbo Esdoornveen and training the Warmtepompacademie. You need portaliq and thematiq next to learniq. Load the sets one at a time:
+
+```bash
+php -d memory_limit=4G occ learniq:example-set:load po
+php -d memory_limit=4G occ learniq:example-set:load vo
+php -d memory_limit=4G occ learniq:example-set:load mbo
+php -d memory_limit=4G occ learniq:example-set:load training
+```
+
+A first load takes four to fifteen minutes. A second load writes nothing and reports zero created. The load also creates the Nextcloud accounts of the staff the pages name; add `--no-accounts` to skip that.
+
+### After the loads: run the repair step
+
+A load leaves some readable copies empty, such as a pupil's name on her own records and the attendance summaries. Run the repair step once after the last load, then let cron empty its queue:
+
+```bash
+php occ maintenance:repair
+php -d memory_limit=4G cron.php
+```
+
+On a test instance without a cron container, run `cron.php` by hand until the queue is empty.
+
+### Link the portals to your organisation
+
+A loaded portal has no organisation and no identity provider. Binding those is a deployment step, so the load never guesses them. Set the organisation on each of the four portals, for example through the OpenRegister API:
+
+```bash
+curl -u admin:<password> -X PATCH -H 'Content-Type: application/json' \
+  -d '{"organisation":"default-organisation"}' \
+  https://<host>/apps/openregister/api/objects/portaliq/portal/<portal id>
+```
+
+### Set the DigiD and eHerkenning issuer
+
+There is no settings screen for an organisation's identity provider yet. Write it into portaliq's app configuration, keyed by the organisation's uuid:
+
+```bash
+php occ config:app:set portaliq org_presentation_<organisation uuid> --value='{"oidc":{
+  "digid":{"issuer":"https://<digid broker>","clientId":"<client id>"},
+  "eherkenning":{"issuer":"https://<eherkenning broker>","clientId":"<client id>"}}}'
+php occ config:app:set portaliq oidc_secret_<organisation uuid>_digid --value=<secret> --sensitive
+php occ config:app:set portaliq oidc_secret_<organisation uuid>_eherkenning --value=<secret> --sensitive
+```
+
+Leave out a mode the organisation does not use. De Wilgenboom and Vaartveld use DigiD; Esdoornveen and the Warmtepompacademie use eHerkenning for companies.
+
+### Give the story people a portal account
+
+Pupils, students and course participants sign in with their Nextcloud account. That works only when they also have a portal account with the right audience. The load does not create those. Guardians, trainers and employers get theirs through an invitation (`occ learniq:portal:invite-guardian`, `learniq:portal:invite-trainer`, `learniq:portal:invite-employer`). For a pupil, student or participant on a test instance, create the portal account through the OpenRegister API:
+
+```bash
+curl -u admin:<password> -X POST -H 'Content-Type: application/json' \
+  -d '{"audience":"participant","subjectRef":"training-deelnemer-151","organisation":"default-organisation",
+       "displayName":"Tom Verbeek","email":"training-deelnemer-151@example.org","verifiedEmail":true,
+       "status":"active","claims":{"learniq":{"learnerRef":"<the LearnerProfile uuid>"}}}' \
+  https://<host>/apps/openregister/api/objects/portaliq/portalAccount
+```
+
+Use audience `student` for a pupil or student. Then set a password for the Nextcloud account with `occ user:resetpassword`.
+
 ## Timetable import and SWV hand-offs
 
 The timetable is planninq's: integriq reads it from Zermelo, Untis, Xedule or TimeEdit and delivers it to planninq, and learniq reads the lessons from there. The timetable row on the Integrations page shows as available once planninq is installed; learniq reports it once a day and when you save the admin settings.
