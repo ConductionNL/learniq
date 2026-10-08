@@ -570,6 +570,499 @@
       "name_nl": "Beheer: toegang, privacy en koppelingen"
     }
   ],
+  "features": [
+    {
+      "slug": "compliance-audit",
+      "title": "Compliance training and audit",
+      "title_nl": "Compliancetraining en audit",
+      "area": "compliance",
+      "overlay": "compliance-audit",
+      "specs": [
+        "compliance-audit",
+        "enrolment",
+        "compliance-attestation-locked-after-signing",
+        "external-training-recording",
+        "certification",
+        "compliance-rule-coverage",
+        "compliance-assign-from-hr-roles",
+        "compliance-exemptions",
+        "progress-tracking"
+      ]
+    },
+    {
+      "slug": "external-training-recording",
+      "title": "External training records",
+      "title_nl": "Externe trainingen",
+      "area": "compliance",
+      "overlay": "external-training-recording",
+      "specs": [
+        "external-training-recording",
+        "external-training-upload"
+      ]
+    },
+    {
+      "slug": "scholiq-notifications",
+      "title": "Notifications",
+      "title_nl": "Meldingen",
+      "area": "compliance",
+      "overlay": "scholiq-notifications",
+      "specs": [
+        "scholiq-notifications",
+        "notification-quiet-hours-through-openregister"
+      ]
+    },
+    {
+      "slug": "course-management",
+      "title": "Course management",
+      "title_nl": "Cursusbeheer",
+      "area": "content",
+      "overlay": "course-management",
+      "specs": [
+        "course-management",
+        "content-adaptive-path"
+      ]
+    },
+    {
+      "slug": "course-import-export",
+      "title": "Import and export courses",
+      "title_nl": "Cursussen importeren en exporteren",
+      "area": "content",
+      "overlay": null,
+      "specs": [
+        "course-management"
+      ]
+    },
+    {
+      "slug": "scorm-and-cmi5-content-runtime",
+      "title": "SCORM and cmi5 content runtime",
+      "title_nl": "SCORM- en cmi5-content runtime",
+      "area": "content",
+      "overlay": "scorm-and-cmi5-content-runtime",
+      "specs": [
+        "content-scorm-package-upload",
+        "course-management"
+      ]
+    },
+    {
+      "slug": "lti-tools",
+      "title": "External tools over LTI 1.3",
+      "title_nl": "Externe tools via LTI 1.3",
+      "area": "content",
+      "overlay": null,
+      "specs": [
+        "course-management"
+      ]
+    },
+    {
+      "slug": "certification",
+      "title": "Certification and digital credentials",
+      "title_nl": "Certificering en digitale credentials",
+      "area": "credentials",
+      "overlay": "certification",
+      "specs": [
+        "certification",
+        "nextcloud-app",
+        "credentials-certificate-pdf",
+        "credentials-migrate-with-validity"
+      ]
+    },
+    {
+      "slug": "edci-and-europass-credentials",
+      "title": "EDCI and Europass credentials",
+      "title_nl": "EDCI- en Europass-credentials",
+      "area": "credentials",
+      "overlay": "edci-and-europass-credentials",
+      "specs": [
+        "credential-wallet-offer-for-the-learner",
+        "certification"
+      ]
+    },
+    {
+      "slug": "competency",
+      "title": "Competency frameworks and skills",
+      "title_nl": "Competentiekaders en vaardigheden",
+      "area": "grading",
+      "overlay": null,
+      "specs": [
+        "competency"
+      ]
+    },
+    {
+      "slug": "enrolment",
+      "title": "Enrolment",
+      "title_nl": "Inschrijving",
+      "area": "enrolment",
+      "overlay": "enrolment",
+      "specs": [
+        "enrolment",
+        "school-structure",
+        "programme-mandatory-parts",
+        "enrolment-sync-classes-from-student-administration"
+      ]
+    },
+    {
+      "slug": "admissions",
+      "title": "Admissions and subject choice",
+      "title_nl": "Aanmelding en vakkenkeuze",
+      "area": "enrolment",
+      "overlay": null,
+      "specs": [
+        "portable-learning-record"
+      ]
+    },
+    {
+      "slug": "school-structure",
+      "title": "School structure",
+      "title_nl": "Schoolstructuur",
+      "area": "enrolment",
+      "overlay": "school-structure",
+      "specs": [
+        "school-structure"
+      ]
+    },
+    {
+      "slug": "school-year-rollover",
+      "title": "School-year rollover",
+      "title_nl": "Schooljaarovergang",
+      "area": "enrolment",
+      "overlay": "school-year-rollover",
+      "specs": [
+        "school-year-rollover"
+      ]
+    },
+    {
+      "slug": "dashboard",
+      "title": "Role-aware dashboards",
+      "title_nl": "Dashboards per rol",
+      "area": "compliance",
+      "overlay": "dashboard",
+      "specs": [
+        "dashboard",
+        "enrolment"
+      ]
+    },
+    {
+      "slug": "progress-tracking",
+      "title": "Learning progress and engagement",
+      "title_nl": "Leervoortgang en betrokkenheid",
+      "area": "grading",
+      "overlay": null,
+      "specs": [
+        "progress-tracking",
+        "engagement"
+      ]
+    },
+    {
+      "slug": "assessment",
+      "title": "Assessment",
+      "title_nl": "Toetsing",
+      "area": "assessment",
+      "overlay": "assessment",
+      "specs": [
+        "assessment",
+        "assessment-course-evaluation-answer-page",
+        "exam-sitting-overview-section"
+      ]
+    },
+    {
+      "slug": "assessment-quality",
+      "title": "Test and question quality analysis",
+      "title_nl": "Analyse van toets- en vraagkwaliteit",
+      "area": "assessment",
+      "overlay": null,
+      "specs": [
+        "assessment"
+      ]
+    },
+    {
+      "slug": "online-proctoring-and-plagiarism",
+      "title": "Online proctoring and plagiarism",
+      "title_nl": "Online proctoring en plagiaat",
+      "area": "assessment",
+      "overlay": "online-proctoring-and-plagiarism",
+      "specs": [
+        "proctoring-flag-review-page"
+      ]
+    },
+    {
+      "slug": "exam-board",
+      "title": "Exam board cases",
+      "title_nl": "Zaken van de examencommissie",
+      "area": "assessment",
+      "overlay": null,
+      "specs": [
+        "exam-board"
+      ]
+    },
+    {
+      "slug": "assignments",
+      "title": "Assignments and submissions",
+      "title_nl": "Opdrachten en inleveringen",
+      "area": "assignments",
+      "overlay": "assignments",
+      "specs": [
+        "assignments"
+      ]
+    },
+    {
+      "slug": "peer-feedback",
+      "title": "Peer and self assessment",
+      "title_nl": "Peer- en zelfbeoordeling",
+      "area": "assignments",
+      "overlay": null,
+      "specs": [
+        "assignments"
+      ]
+    },
+    {
+      "slug": "grading",
+      "title": "Grading",
+      "title_nl": "Cijfers",
+      "area": "grading",
+      "overlay": "grading",
+      "specs": [
+        "grading"
+      ]
+    },
+    {
+      "slug": "report-card",
+      "title": "Report cards",
+      "title_nl": "Rapporten",
+      "area": "grading",
+      "overlay": null,
+      "specs": [
+        "report-card",
+        "report-card-pdf-to-guardians"
+      ]
+    },
+    {
+      "slug": "study-progress",
+      "title": "Study progress and binding study advice",
+      "title_nl": "Studievoortgang en bindend studieadvies",
+      "area": "grading",
+      "overlay": null,
+      "specs": [
+        "study-progress"
+      ]
+    },
+    {
+      "slug": "attendance",
+      "title": "Attendance and threshold reporting",
+      "title_nl": "Aanwezigheid en verzuimmelding",
+      "area": "attendance",
+      "overlay": "attendance",
+      "specs": [
+        "attendance",
+        "attendance-flag-report-actions"
+      ]
+    },
+    {
+      "slug": "timetabling",
+      "title": "Timetabling and room booking",
+      "title_nl": "Roosters en lokaalreservering",
+      "area": "attendance",
+      "overlay": null,
+      "specs": [
+        "timetabling",
+        "personal-timetable",
+        "timetable-calendar-feed"
+      ]
+    },
+    {
+      "slug": "guardian-access",
+      "title": "Guardian access",
+      "title_nl": "Toegang voor ouders en verzorgers",
+      "area": "guardians",
+      "overlay": null,
+      "specs": [
+        "parent-conferences"
+      ]
+    },
+    {
+      "slug": "parent-conferences",
+      "title": "Parent-teacher conferences",
+      "title_nl": "Oudergesprekken",
+      "area": "guardians",
+      "overlay": null,
+      "specs": [
+        "parent-conferences"
+      ]
+    },
+    {
+      "slug": "eportfolio",
+      "title": "Learner portfolio",
+      "title_nl": "Portfolio van de leerling",
+      "area": "guardians",
+      "overlay": null,
+      "specs": [
+        "eportfolio"
+      ]
+    },
+    {
+      "slug": "portable-learning-record",
+      "title": "Portable learning record",
+      "title_nl": "Meeneembaar leerdossier",
+      "area": "guardians",
+      "overlay": null,
+      "specs": [
+        "portable-learning-record"
+      ]
+    },
+    {
+      "slug": "learning-plan",
+      "title": "Individual learning plan",
+      "title_nl": "Individueel leerplan",
+      "area": "support",
+      "overlay": "learning-plan",
+      "specs": [
+        "learning-plan"
+      ]
+    },
+    {
+      "slug": "pupil-dossier",
+      "title": "Pupil dossier and care requests",
+      "title_nl": "Leerlingdossier en zorgvragen",
+      "area": "support",
+      "overlay": null,
+      "specs": [
+        "pupil-dossier"
+      ]
+    },
+    {
+      "slug": "confidential-counsel",
+      "title": "Confidential reporting and counselling",
+      "title_nl": "Vertrouwelijk melden en vertrouwenspersoon",
+      "area": "support",
+      "overlay": null,
+      "specs": [
+        "confidential-counsel"
+      ]
+    },
+    {
+      "slug": "bpv",
+      "title": "Work placements",
+      "title_nl": "Beroepspraktijkvorming",
+      "area": "workplace",
+      "overlay": null,
+      "specs": [
+        "bpv",
+        "workplace-leerbedrijf-check-through-integriq"
+      ]
+    },
+    {
+      "slug": "access-control",
+      "title": "Roles and permissions",
+      "title_nl": "Rollen en rechten",
+      "area": "governance",
+      "overlay": null,
+      "specs": [
+        "compliance-audit",
+        "governance-four-eyes-on-approved-data"
+      ]
+    },
+    {
+      "slug": "sign-in-and-accounts",
+      "title": "Sign in and accounts",
+      "title_nl": "Inloggen en accounts",
+      "area": "governance",
+      "overlay": null,
+      "specs": [
+        "learner-account-merge",
+        "learner-merge-page-action",
+        "identity-federation"
+      ]
+    },
+    {
+      "slug": "accessibility",
+      "title": "Accessibility statement and evidence",
+      "title_nl": "Toegankelijkheidsverklaring en bewijs",
+      "area": "governance",
+      "overlay": null,
+      "specs": [
+        "accessibility-conformance",
+        "accessibility-evidence"
+      ]
+    },
+    {
+      "slug": "ai-surface",
+      "title": "EU AI Act governance",
+      "title_nl": "EU AI Act-governance",
+      "area": "governance",
+      "overlay": "ai-surface",
+      "specs": [
+        "ai-surface",
+        "ai-locality-guarantee",
+        "ai-translated-catalogue"
+      ]
+    },
+    {
+      "slug": "ai-companion-tools",
+      "title": "AI assistant",
+      "title_nl": "AI-assistent",
+      "area": "governance",
+      "overlay": "ai-companion-tools",
+      "specs": [
+        "mcp-tool-surface"
+      ]
+    },
+    {
+      "slug": "avg-verwerkingsregister",
+      "title": "AVG processing register",
+      "title_nl": "AVG-verwerkingsregister",
+      "area": "governance",
+      "overlay": "avg-verwerkingsregister",
+      "specs": [
+        "avg-verwerkingsregister",
+        "governance-processing-record-every-schema"
+      ]
+    },
+    {
+      "slug": "data-exchange",
+      "title": "Data exchange",
+      "title_nl": "Gegevensuitwisseling",
+      "area": "governance",
+      "overlay": "data-exchange",
+      "specs": [
+        "data-exchange"
+      ]
+    },
+    {
+      "slug": "payments",
+      "title": "Payments for courses and school costs",
+      "title_nl": "Betalen voor cursussen en schoolkosten",
+      "area": "governance",
+      "overlay": null,
+      "specs": [
+        "payments"
+      ]
+    },
+    {
+      "slug": "nextcloud-app",
+      "title": "Nextcloud app",
+      "title_nl": "Nextcloud-app",
+      "area": "governance",
+      "overlay": "nextcloud-app",
+      "specs": [
+        "nextcloud-app",
+        "apphost-adoption",
+        "i18n-locale-parity",
+        "example-sets",
+        "integration-leaves",
+        "integrations"
+      ]
+    },
+    {
+      "slug": "sovereignty",
+      "title": "Self-hosted and open source",
+      "title_nl": "Zelf hosten en open source",
+      "area": "governance",
+      "overlay": null,
+      "specs": [
+        "app-metadata",
+        "tenancy"
+      ]
+    }
+  ],
   "providers": [
     {
       "key": "self",
@@ -625,7 +1118,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-coverage",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -659,7 +1152,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-coverage",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -694,7 +1187,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-coverage",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -729,7 +1222,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-coverage",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -767,8 +1260,8 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "compliance-coverage",
-      "featureConfidence": "medium",
+      "feature": "compliance-audit",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -801,7 +1294,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-coverage",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "no",
@@ -835,7 +1328,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-evidence",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -869,8 +1362,8 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "compliance-evidence",
-      "featureConfidence": "medium",
+      "feature": "compliance-audit",
+      "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "partial",
       "moodle-workplace": "unknown",
@@ -904,8 +1397,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-coverage",
-      "featureConfidence": "high",
+      "feature": "compliance-audit",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "yes",
@@ -938,7 +1431,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "external-training",
+      "feature": "external-training-recording",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -972,7 +1465,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "external-training",
+      "feature": "external-training-recording",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -1007,7 +1500,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "external-training",
+      "feature": "external-training-recording",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -1042,7 +1535,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-evidence",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -1076,8 +1569,8 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "compliance-evidence",
-      "featureConfidence": "medium",
+      "feature": "compliance-audit",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -1110,7 +1603,7 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "compliance-coverage",
+      "feature": "scholiq-notifications",
       "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "no",
@@ -1145,7 +1638,7 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "compliance-coverage",
+      "feature": "scholiq-notifications",
       "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "partial",
@@ -1179,7 +1672,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-coverage",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "no",
@@ -1214,7 +1707,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-coverage",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -1248,7 +1741,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-coverage",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -1282,8 +1775,8 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "my-learning",
-      "featureConfidence": "medium",
+      "feature": "dashboard",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -1319,7 +1812,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "credentials",
+      "feature": "certification",
       "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "yes",
@@ -1354,7 +1847,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "credentials",
+      "feature": "certification",
       "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "partial",
@@ -1389,7 +1882,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "credentials",
+      "feature": "certification",
       "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "no",
@@ -1424,7 +1917,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "credentials",
+      "feature": "certification",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -1458,8 +1951,8 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "credentials",
-      "featureConfidence": "medium",
+      "feature": "certification",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -1493,8 +1986,8 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "credentials",
-      "featureConfidence": "medium",
+      "feature": "certification",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "no",
       "moodle-workplace": "partial",
@@ -1527,8 +2020,8 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "credentials",
-      "featureConfidence": "medium",
+      "feature": "certification",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -1561,8 +2054,8 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "credentials",
-      "featureConfidence": "medium",
+      "feature": "certification",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -1598,7 +2091,7 @@
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
-      "feature": "credentials",
+      "feature": "edci-and-europass-credentials",
       "featureConfidence": "medium",
       "learniq": "partial",
       "moodle": "no",
@@ -1634,7 +2127,7 @@
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
-      "feature": "credentials",
+      "feature": "edci-and-europass-credentials",
       "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "no",
@@ -1668,8 +2161,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "external-training",
-      "featureConfidence": "high",
+      "feature": "external-training-recording",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -1702,7 +2195,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "credentials",
+      "feature": "certification",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "no",
@@ -1737,8 +2230,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "credentials",
-      "featureConfidence": "high",
+      "feature": "edci-and-europass-credentials",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -1771,8 +2264,8 @@
       },
       "provider": "filinq",
       "providerHow": "read: this repository posts to Filinq and does not render the document itself",
-      "feature": "credentials",
-      "featureConfidence": "medium",
+      "feature": "certification",
+      "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "no",
       "moodle-workplace": "yes",
@@ -1839,8 +2332,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "my-learning",
-      "featureConfidence": "high",
+      "feature": "certification",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -1873,7 +2366,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "course-authoring",
+      "feature": "course-management",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -1907,8 +2400,8 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "course-authoring",
-      "featureConfidence": "medium",
+      "feature": "course-management",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -1941,7 +2434,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "course-authoring",
+      "feature": "course-management",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -1975,8 +2468,8 @@
       },
       "provider": "nextcloud",
       "providerHow": "read: the platform provides it and this repository consumes it",
-      "feature": "course-authoring",
-      "featureConfidence": "medium",
+      "feature": "course-management",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -2009,8 +2502,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "content-standards",
-      "featureConfidence": "high",
+      "feature": "course-import-export",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -2043,8 +2536,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "content-standards",
-      "featureConfidence": "high",
+      "feature": "course-import-export",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -2077,8 +2570,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "content-standards",
-      "featureConfidence": "high",
+      "feature": "course-import-export",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -2111,8 +2604,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "content-standards",
-      "featureConfidence": "high",
+      "feature": "course-import-export",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -2148,8 +2641,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "content-standards",
-      "featureConfidence": "high",
+      "feature": "scorm-and-cmi5-content-runtime",
+      "featureConfidence": "medium",
       "learniq": "partial",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -2183,8 +2676,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "content-standards",
-      "featureConfidence": "high",
+      "feature": "scorm-and-cmi5-content-runtime",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -2218,8 +2711,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "content-standards",
-      "featureConfidence": "high",
+      "feature": "scorm-and-cmi5-content-runtime",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "unknown",
@@ -2253,7 +2746,7 @@
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
-      "feature": "content-standards",
+      "feature": "lti-tools",
       "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "yes",
@@ -2288,7 +2781,7 @@
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
-      "feature": "content-standards",
+      "feature": "lti-tools",
       "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "yes",
@@ -2356,7 +2849,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "course-authoring",
+      "feature": "course-management",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -2390,8 +2883,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "enrolment",
-      "featureConfidence": "high",
+      "feature": "course-management",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "yes",
@@ -2424,7 +2917,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "course-authoring",
+      "feature": "course-management",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -2530,8 +3023,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "enrolment",
-      "featureConfidence": "high",
+      "feature": "school-structure",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -2569,7 +3062,7 @@
       "provider": "nextcloud",
       "providerHow": "read: the platform provides it and this repository consumes it",
       "feature": "enrolment",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -2603,7 +3096,7 @@
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "progress-tracking",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -2640,7 +3133,7 @@
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "enrolment",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -2673,7 +3166,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "programmes",
+      "feature": "school-structure",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -2849,7 +3342,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "curriculum",
+      "feature": "admissions",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -2886,7 +3379,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "curriculum",
+      "feature": "admissions",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "no",
@@ -3332,7 +3825,7 @@
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "assessment",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "partial",
@@ -3466,7 +3959,7 @@
       },
       "provider": "external",
       "providerHow": "read: a provider interface exists in this repository with no implementation wired",
-      "feature": "assessment",
+      "feature": "online-proctoring-and-plagiarism",
       "featureConfidence": "medium",
       "learniq": "no",
       "moodle": "no",
@@ -3498,8 +3991,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "assessment",
-      "featureConfidence": "high",
+      "feature": "online-proctoring-and-plagiarism",
+      "featureConfidence": "medium",
       "learniq": "partial",
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -3708,7 +4201,7 @@
       "provider": "nextcloud",
       "providerHow": "read: the platform provides it and this repository consumes it",
       "feature": "assignments",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -4012,7 +4505,7 @@
       },
       "provider": "external",
       "providerHow": "read: a provider interface exists in this repository with no implementation wired",
-      "feature": "assignments",
+      "feature": "online-proctoring-and-plagiarism",
       "featureConfidence": "medium",
       "learniq": "no",
       "moodle": "no",
@@ -4111,7 +4604,7 @@
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "grading",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -4356,7 +4849,7 @@
       "provider": "filinq",
       "providerHow": "read: this repository posts to Filinq and does not render the document itself",
       "feature": "report-card",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "partial",
       "moodle-workplace": "unknown",
@@ -4389,8 +4882,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "guardian-access",
-      "featureConfidence": "high",
+      "feature": "report-card",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -4627,7 +5120,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "student-analytics",
+      "feature": "progress-tracking",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -4664,7 +5157,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "student-analytics",
+      "feature": "progress-tracking",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "no",
@@ -4767,7 +5260,7 @@
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "learning-plan",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -5398,7 +5891,7 @@
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
       "feature": "attendance",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "no",
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -5570,7 +6063,7 @@
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
       "feature": "timetabling",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -5642,7 +6135,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "personal-timetable",
+      "feature": "timetabling",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -5683,8 +6176,8 @@
       },
       "provider": "nextcloud",
       "providerHow": "read: the platform provides it and this repository consumes it",
-      "feature": "personal-timetable",
-      "featureConfidence": "medium",
+      "feature": "timetabling",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -5720,7 +6213,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "my-learning",
+      "feature": "dashboard",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -5756,7 +6249,7 @@
       "provider": "portaliq",
       "providerHow": "read: this repository contributes to the portal, which ships in Portaliq",
       "feature": "guardian-access",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -6274,7 +6767,7 @@
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
       "feature": "bpv",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "no",
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -6715,7 +7208,7 @@
       "provider": "openregister",
       "providerHow": "OpenRegister hides a property per group when a schema declares a property authorization; learniq declares none.",
       "feature": "access-control",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -6745,8 +7238,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "multi-tenancy",
-      "featureConfidence": "medium",
+      "feature": "sovereignty",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "yes",
@@ -6780,7 +7273,7 @@
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "avg-verwerkingsregister",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -6814,7 +7307,7 @@
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "avg-verwerkingsregister",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -6883,7 +7376,7 @@
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "avg-verwerkingsregister",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -6920,7 +7413,7 @@
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "avg-verwerkingsregister",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -7058,7 +7551,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "ai-governance",
+      "feature": "ai-surface",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -7092,7 +7585,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "ai-governance",
+      "feature": "ai-surface",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -7126,7 +7619,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "ai-governance",
+      "feature": "ai-surface",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "no",
@@ -7160,8 +7653,8 @@
       },
       "provider": "hermiq",
       "providerHow": "read: the AI work is delegated to Hermiq and the app degrades when it is absent",
-      "feature": "ai-governance",
-      "featureConfidence": "medium",
+      "feature": "ai-surface",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -7197,7 +7690,7 @@
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
       "feature": "data-exchange",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -7320,7 +7813,7 @@
       "provider": "shillinq",
       "providerHow": "read: learniq raises the fee and grants the entitlement; shillinq invoices and takes the payment",
       "feature": "payments",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "yes",
@@ -7387,8 +7880,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "ai-surface",
-      "featureConfidence": "high",
+      "feature": "ai-companion-tools",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -7421,7 +7914,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "operations",
+      "feature": "nextcloud-app",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -7455,7 +7948,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "operations",
+      "feature": "nextcloud-app",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -7489,7 +7982,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "l10n",
+      "feature": "nextcloud-app",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -7526,6 +8019,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "compliance-audit",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/course/classes/reportbuilder/datasource/participants.php:129 (joins the course completion entity) + public/reportbuilder/classes/local/entities/user.php:398 (department user field) + public/reportbuilder/classes/local/aggregation/percent.php; a custom report can group course completion by the flat user department field with a percent aggregation. There is no team, department, directorate hierarchy to roll up through and no compliance dashboard with upcoming deadlines or expired qualifications (that is Moodle Workplace, not the core tree). Custom reports are on by default, public/admin/settings/subsystems.php:65.",
@@ -7562,6 +8056,7 @@
       },
       "provider": "integriq",
       "providerHow": "learniq assigns a regulation's mandatory courses from the department and roles on each LearnerProfile, honouring audienceScope; the HR feed that would fill those fields would come through integriq's data exchange, which connections.json marks unavailable, so the job and role data must be entered or imported by hand.",
+      "feature": "compliance-audit",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/enrol/database/lib.php:325 sync_enrolments + public/enrol/database/settings.php:73 (remote enrolment table); an external database enrolment plugin can enrol people from a table the HR system fills, and enrol/ldap does the same from directory groups. Both are shipped but disabled by default (public/lib/db/install.php:121 enables only manual, guest, self, cohort). There is no rule that maps a job or role to mandatory training; the HR side must already compute the course list. No AFAS connector.",
@@ -7598,6 +8093,7 @@
       },
       "provider": "self",
       "providerHow": "learniq's ExemptionCase lifecycle and guard handle the school exemption; the compliance side has none.",
+      "feature": "compliance-audit",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/completion/criteria/completion_criteria_role.php:38 (course completion marked by a role) + public/completion/classes/external.php:149 override_activity_completion_status + public/grade/edit/tree/grade_form.php:88 (excluded grade); a teacher or manager can mark someone complete or exclude a grade, which stands in for an exemption. Searched public/ for exempt, exemption: only quiz access rule and data privacy strings. No exemption record and no reason field.",
@@ -7634,6 +8130,7 @@
       },
       "provider": "openregister",
       "providerHow": "OpenRegister's generic object import on the index page carries the rows; learniq only supplies the schema with a migrated source value.",
+      "feature": "certification",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Searched public/admin/tool/uploaduser, uploadcourse and badges for timecompleted, dateissued, import: none take historic completions or awards. public/badges/classes/badge.php:441 sets the expiry from the moment of issue ($now), so a badge cannot be issued with an old start date. Nearest is course backup and restore with user data, Moodle to Moodle only. Marketplace plugins (tool_certificate, local_recompletion) are not shipped.",
@@ -7669,6 +8166,7 @@
       },
       "provider": "external",
       "providerHow": "It would need an outside certifier's API; learniq has no connector and integriq ships none.",
+      "feature": "certification",
       "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Searched lib/db/services.php for badge award or certificate write functions: badges only have read, enable, disable (public/lib/db/services.php:122-148); backpack integration (public/badges/backpacks.php) pushes badges out, not in. The nearest is the generic web service public/lib/db/services.php:483 core_completion_override_activity_completion_status, which a custom integration could call, but there is no certifier connector and no place to store the certifier's evidence.",
@@ -7701,6 +8199,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "assessment",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/quiz/mod_form.php:92 (open and close time) + :289 (require password) + :294 (subnet); enforced by public/mod/quiz/accessrule/openclosedate/rule.php:27 and public/mod/quiz/accessrule/password/rule.php:28. User and group overrides allow different windows per person.",
@@ -7737,6 +8236,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "assessment",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/quiz/classes/quiz_attempt.php:593 is_review_allowed (needs mod/quiz:viewreports, limited to shared groups in separate groups mode) + public/mod/quiz/review.php:72; a line manager given a non-editing teacher role in the course, with the team as a group, sees each member's answers. There is no line-manager relation that grants this: the parent or mentor role in user context does not reach quiz review, and it must be set up course by course.",
@@ -7773,6 +8273,7 @@
       },
       "provider": "self",
       "providerHow": "learniq's Enrolment schema carries the per-person flag; paths have no per-person layer.",
+      "feature": "enrolment",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/admin/tool/lp/editplan.php + public/competency/classes/api.php:2505 create_plan and :3353 add_competency_to_plan; each person can have an individual learning plan with its own set of competencies linked to courses. There is no learning path object with mandatory and optional parts, and course completion criteria are the same for everyone in the course. Programs are Moodle Workplace, not core.",
@@ -7813,6 +8314,7 @@
       },
       "provider": "openregister",
       "providerHow": "OpenRegister's object API and export serve the data; learniq adds no BI feed.",
+      "feature": "data-exchange",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/db/services.php:3106 core_reportbuilder_retrieve_report (a BI tool can pull any custom report over REST) + public/admin/tool/log/store/database/settings.php:38 (log store that writes all events to an external database); both are shipped, web services and the database log store are off by default. Custom reports can also be scheduled as file exports. No ready-made Power BI or data lake connector.",
@@ -7849,6 +8351,7 @@
       },
       "provider": "integriq",
       "providerHow": "Launching outside courses would ride integriq's LTI adapter, which has no launch endpoint.",
+      "feature": "course-management",
       "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/lti/contentitem.php + public/mod/lti/locallib.php:117 (LTI Deep Linking); a teacher adds an external tool and picks items from the provider's own catalogue into a course. Learners do not browse the provider's catalogue inside Moodle, and there is no catalogue import or content marketplace in core.",
@@ -7884,6 +8387,7 @@
       },
       "provider": "nextcloud",
       "providerHow": "Nextcloud's user_saml or user_oidc app performs the SAML/OIDC login; learniq inherits the session.",
+      "feature": "sign-in-and-accounts",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/classes/oauth2/service/microsoft.php (Microsoft issuer template) + public/lib/classes/oauth2/service/custom.php + public/auth/oauth2/classes/auth.php:412 complete_login; Microsoft sign-in is a preset, SURFconext works as a custom OpenID Connect issuer, and public/auth/shibboleth/auth.php:207 covers SAML federations such as SURFconext or Entree via a Shibboleth service provider. Both auth plugins ship disabled by default (public/lib/db/install.php:120 default auth is email). No SAML plugin in core beyond Shibboleth; auth_saml2 is a marketplace plugin.",
@@ -7916,6 +8420,7 @@
       },
       "provider": "self",
       "providerHow": "learniq's lifecycle guards enforce the lock; no dual control is built.",
+      "feature": "access-control",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/grade/edit/tree/grade_form.php:99 (lock a grade) + public/lib/db/access.php:1799 moodle/grade:lock and :1808 moodle/grade:unlock; approved grades can be locked, and marking workflow gates release. Any single user holding grade:unlock can unlock and change it, so there is no second approver.",
@@ -7955,6 +8460,7 @@
       },
       "provider": "self",
       "providerHow": "learniq's LessonReleaseEvaluator and LessonReleaseController decide release per learner at request time.",
+      "feature": "course-management",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/lesson/pagetypes/multichoice.php:186 (jump depends on correct or wrong answer) + public/mod/lesson/locallib.php:2450 jumpto_is_correct; a lesson sends the learner to different pages per answer. Also public/availability/condition/grade/classes/condition.php:29 opens the next activity only when a grade range is reached.",
@@ -7991,6 +8497,7 @@
       },
       "provider": "self",
       "providerHow": "learniq's own composer and player views.",
+      "feature": "course-management",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/course/switchrole.php:58 role_switch (Switch role to Student) + public/course/loginas.php:43 (log in as a specific learner); the teacher sees the course with student rights, and an admin can see it exactly as one named learner.",
@@ -8027,6 +8534,7 @@
       },
       "provider": "self",
       "providerHow": "Would be a learniq group schema and flow; not built.",
+      "feature": "enrolment",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/group/group_form.php:68 (group enrolment key places a self-enrolling learner in that group) + public/mod/choice/mod_form.php:67 (choice with limited answers per option); self-enrolment into a group works without a size limit, and a capped choice can stand in for sign-up but does not create group membership. Searched group/ and enrol/self for selfselect, maxmembers, groupsize: nothing. Marketplace mod_groupselect adds it, not shipped.",
@@ -8065,6 +8573,7 @@
       },
       "provider": "nextcloud",
       "providerHow": "Only Nextcloud's server-wide upload limit applies; the hand-in dialog renders since learniq#947 but the assignment carries no file-type or size rule to pass it.",
+      "feature": "assignments",
       "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/assign/submission/file/locallib.php:72 (maximum submission size) and :73 (accepted file types); set per assignment on the assignment form under File submissions.",
@@ -8097,6 +8606,7 @@
       },
       "provider": "self",
       "providerHow": "learniq's evaluation schemas and handlers; Nextcloud Forms is only linked, not integrated.",
+      "feature": "assessment",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/feedback/lib.php:83 feedback_add_instance + public/mod/feedback/edit.php + public/mod/feedback/manage_templates.php (reusable question templates) + public/mod/feedback/analysis.php; the feedback activity builds surveys and course evaluations, anonymous or named, with saved templates.",
@@ -8132,6 +8642,7 @@
       },
       "provider": "nextcloud",
       "providerHow": "Nextcloud's responsive web interface is the only mobile surface.",
+      "feature": "nextcloud-app",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/admin/tool/mobile/settings.php:39-45 (mobile web service, on by default on https sites) + public/lib/db/services.php (moodle_mobile_app service); the official Moodle app connects to this service. The app itself is a separate free product.",
@@ -8164,6 +8675,7 @@
       },
       "provider": "self",
       "providerHow": "learniq's accessibility statement schemas and guard, with the nextcloud-vue components carrying most of the markup.",
+      "feature": "accessibility",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/tests/behat/behat_accessibility.php:48 run_axe_validation_for_tags with wcag2aa, wcag21aa, wcag22aa tags at :248-250, used by 63 feature files; plus the shipped Brickfield accessibility toolkit (admin/tool/brickfield) that checks course content. The tree shows automated axe testing, not a conformance claim; the accessibility statement and VPAT live on moodle.org docs, outside the tree.",
@@ -8200,6 +8712,7 @@
       },
       "provider": "integriq",
       "providerHow": "Imports are meant to run through integriq sources, which do not exist yet.",
+      "feature": "enrolment",
       "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/enrol/database/lib.php:325 sync_enrolments + public/enrol/flatfile/lib.php:145 + public/enrol/imsenterprise/lib.php:39 + public/admin/tool/uploadcourse; classes and enrolments can be kept in step from an external database, a file or an IMS Enterprise XML feed, all shipped but disabled by default. No OneRoster or other rostering standard.",
@@ -8239,6 +8752,7 @@
       },
       "provider": "self",
       "providerHow": "Would be a learniq marking workflow; not built.",
+      "feature": "assignments",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/assign/mod_form.php:246-248 (number of markers, up to ASSIGN_MULTIMARKING_MAX_MARKERS) + :255-278 (final grade manual, highest or average) + public/mod/assign/batchsetallocatedmarkerform.php:63; new in 5.2. Needs marking workflow and allocation on and only works with simple direct grading, not rubrics (hidden at :250).",
@@ -8278,6 +8792,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "compliance-audit",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/moodlelib.php:5245 (course reset deletes all completion data) + public/lib/completionlib.php:902 delete_all_completion_data; retaking means resetting completion for the whole course, which removes the earlier record. Searched public/ for recomplet, completion_history, archive completion: none. Issued badges survive a reset, which is the nearest record. Marketplace local_recompletion adds it, not shipped.",
@@ -8320,6 +8835,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "sign-in-and-accounts",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Searched public/ for mergeuser, merge_user, mergeaccount outside vendored libs and tests: no hits. Nearest is public/admin/user/user_bulk.php:1 (bulk delete, suspend, cohort add), which has no merge action. Marketplace tool_mergeusers adds it, not shipped.",
@@ -8356,6 +8872,7 @@
       },
       "provider": "self",
       "providerHow": "Would be a learniq bulk action over issued credentials; not built.",
+      "feature": "certification",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Core has no certificate module (searched for certif directories and reissue, regenerate in badges/: nothing). Badges lock once awarded, public/badges/classes/badge.php:464 sets BADGE_STATUS_ACTIVE_LOCKED, and there is no bulk reissue. mod_customcert and tool_certificate are marketplace or Workplace plugins.",
@@ -8392,6 +8909,7 @@
       },
       "provider": "self",
       "providerHow": "Would be a learniq session check-in flow; not built.",
+      "feature": "attendance",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Core has no attendance activity (public/mod lists no attendance). Nearest is public/mod/bigbluebuttonbn/classes/logger.php:42 (online meeting joins logged, with completion by minutes attended), for online sessions only, and the module ships hidden (public/mod/bigbluebuttonbn/db/install.php:32). Marketplace mod_attendance adds QR self-marking, not shipped.",
@@ -8431,6 +8949,7 @@
       },
       "provider": "self",
       "providerHow": "learniq's AttendanceRecord and ExcuseRequest schemas on OpenRegister, with the excuse approval handler.",
+      "feature": "attendance",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Core has no attendance activity (public/mod has no attendance module; grep for attendance finds only BigBlueButton minutes-attended completion in public/mod/bigbluebuttonbn/lang/en/bigbluebuttonbn.php:56). Marketplace mod_attendance has late and excused statuses, not shipped.",
@@ -8469,6 +8988,7 @@
       },
       "provider": "self",
       "providerHow": "Would be a learniq reporting flow; the pupil dossier is staff-facing.",
+      "feature": "confidential-counsel",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Workaround only: public/mod/feedback/mod_form.php:64 (anonymous feedback) lets a school set up a standing anonymous form whose answers only teachers or managers see. Searched public/ for harass, bullying, report concern: none. There is no case record, no routing to a confidant and no follow-up, so a generic survey abused for this.",
@@ -8510,6 +9030,7 @@
       },
       "provider": "nextcloud",
       "providerHow": "Nextcloud's files_antivirus app scans files on upload; learniq relies on it being installed.",
+      "feature": "nextcloud-app",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/antivirus/clamav/classes/scanner.php:66 scan_file, called for every upload from public/repository/upload/lib.php:197, public/webservice/upload.php:102 and public/h5p/ajax.php:93; infected files are deleted. The ClamAV plugin ships disabled and needs clamd or the clamscan binary on the server.",
@@ -8542,6 +9063,7 @@
       },
       "provider": "self",
       "providerHow": "learniq writes manual scores question by question (learniq#948), and course teachers read the attempts through the AssessmentResult authorization from learniq#949; the own rating stays partial until a teacher account has scored an attempt on a live instance.",
+      "feature": "assessment",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/quiz/report/grading/report.php:25-28 (manual grading report) and :78 slot parameter; the teacher picks one question and grades every learner's answer to it in turn, then the next question.",
@@ -8578,6 +9100,7 @@
       },
       "provider": "self",
       "providerHow": "Would be a learniq learner catalogue and enrol action; not built.",
+      "feature": "enrolment",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/course/index.php:19 (course category catalogue) + public/enrol/self/lib.php:211 enrol_page_hook and :174 enrol_self + public/enrol/index.php:103; learners browse categories and sign up for a course themselves where self enrolment is on. There is no track or program to sign up for as a whole (programs and certifications are Moodle Workplace, not core).",
@@ -8615,6 +9138,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "progress-tracking",
       "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
@@ -8646,6 +9170,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "assessment",
       "learniq": "partial",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
@@ -8671,6 +9196,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "nextcloud-app",
       "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
@@ -8696,6 +9222,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "sign-in-and-accounts",
       "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
@@ -8721,6 +9248,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "nextcloud-app",
       "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
@@ -8751,6 +9279,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "nextcloud-app",
       "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
@@ -8776,6 +9305,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "nextcloud-app",
       "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
@@ -8801,6 +9331,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "ai-surface",
       "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
