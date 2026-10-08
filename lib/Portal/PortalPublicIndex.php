@@ -93,11 +93,31 @@ class PortalPublicIndex {
 		$day       = ($today ?? new DateTimeImmutable('today'))->format('Y-m-d');
 
 		return array_merge(
-			(new PublicCourseIndex(reads: $reads))->items(namespace: $namespace, today: $day),
+			(new PublicCourseIndex(reads: $reads, courseHref: $this->courseHrefOf(portal: $portal)))->items(namespace: $namespace, today: $day),
 			(new PublicProgrammeIndex(reads: $reads))->items(namespace: $namespace),
 			(new PublicEventIndex(reads: $reads))->items(namespace: $namespace, today: $day)
 		);
 	}//end forPortal()
+
+	/**
+	 * Where an example portal's course rows link to: its declaration's
+	 * `publicIndex.courseHref`, or '' (REPORT-2, item 12).
+	 *
+	 * @param string $portal The portal slug.
+	 *
+	 * @return string
+	 */
+	private function courseHrefOf(string $portal): string {
+		$declarations = ($this->declarations ?? new ExamplePortalDeclarations());
+		foreach ($declarations->declaredSets() as $set) {
+			$declared = $declarations->forSet(setId: $set);
+			if (($declared['portal']['slug'] ?? null) === $portal) {
+				return (string)($declared['publicIndex']['courseHref'] ?? '');
+			}
+		}
+
+		return '';
+	}//end courseHrefOf()
 
 	/**
 	 * The uuid namespace of an example portal, or '' for any other portal.

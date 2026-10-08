@@ -533,7 +533,8 @@ class StudentPortalPages {
 		// A collection with steps is a record page: the open row's steps under the list.
 		if (isset($collection['steps']) === true) {
 			$page['record'] = ['collection' => $id, 'titleFields' => ['trainingCompanyName']];
-			$blocks[] = ['type' => 'steps', 'collection' => $id, 'label' => (string)($collection['steps']['label'] ?? '')];
+			// Bars across, as the board's "Waar sta je?" (portaliq steps `display: bars`).
+			$blocks[] = ['type' => 'steps', 'collection' => $id, 'label' => (string)($collection['steps']['label'] ?? ''), 'display' => 'bars'];
 		}
 
 		if ($placement === true) {

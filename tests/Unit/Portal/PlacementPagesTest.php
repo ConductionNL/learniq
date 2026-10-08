@@ -59,7 +59,9 @@ class PlacementPagesTest extends TestCase {
 
 			$page = array_column($manifest['pages'], null, 'id')[$id];
 			self::assertSame($id, $page['record']['collection'], $id);
-			self::assertContains(['type' => 'steps', 'collection' => $id, 'label' => $collection['steps']['label']], $page['blocks'], $id);
+			// The student's steps draw as bars (placement-and-bookings-follow-the-boards); the rest of the block is the same.
+			$steps = array_map(static fn (array $b): array => array_diff_key($b, ['display' => 1]), $page['blocks']);
+			self::assertContains(['type' => 'steps', 'collection' => $id, 'label' => $collection['steps']['label']], $steps, $id);
 		}
 	}//end testThePlacementPagesShowTheirSteps()
 

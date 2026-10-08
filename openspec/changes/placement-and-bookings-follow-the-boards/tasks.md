@@ -5,4 +5,7 @@
 - [x] **T2**: booking participants as rows; certificates grouped per certificate
   - PHPUnit `EmployerSitePagesTest::testABookingListsItsParticipantsAndCertificatesGroup`
 - [ ] **T3**: next-step card, werkprocessen, begeleiders, afspraken (need schema or portaliq; see proposal)
-- [ ] **T4**: academy course rows: capacity, meta, links (waiting on the public index fields)
+- [x] **T4**: academy course rows: link and meta (weekdays, days, kind); places left have no source (no capacity field)
+  - PHPUnit `PortalPublicIndexTest`
+- [x] **T5**: steps as bars; lead photo placeholders; "Voor leerbedrijven" as a card of links; the aside without `portal`
+  - PHPUnit `PortalContributionProviderTest::testThePlacementReadsInWordsAndShowsTheHours`, `ExamplePortalDeclarationsTest::testTheHomesMarkTheLeadPhotoAndInviteCompaniesWithLinks`, `testTheSchoolHeroesHoldTheirAside`

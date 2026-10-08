@@ -441,7 +441,8 @@
               "showAudience": false,
               "moreLabel": "Al het nieuws",
               "moreHref": "/zoeken",
-              "articleRoute": "/nieuws"
+              "articleRoute": "/nieuws",
+              "leadPlaceholder": "[FOTO: twee studenten bij een sorteermachine]"
             }
           },
           {
@@ -465,8 +466,8 @@
             }
           },
           {
-            "id": "ev-home-10-nlsignin",
-            "widgetKey": "nlSignIn",
+            "id": "ev-home-10-nllinklist",
+            "widgetKey": "nlLinkList",
             "gridX": 8,
             "gridY": 16,
             "gridWidth": 4,
@@ -475,9 +476,16 @@
               "heading": "Voor leerbedrijven",
               "display": "card",
               "intro": "Werkt er een student van ons bij u? Keur uren goed en vul beoordelingen in. U logt in met eHerkenning.",
-              "buttonLabel": "Inloggen als leerbedrijf",
-              "signInHref": "/mijn",
-              "tone": "plain"
+              "links": [
+                {
+                  "label": "Inloggen als leerbedrijf",
+                  "href": "/mijn"
+                },
+                {
+                  "label": "Leerbedrijf worden",
+                  "href": "/voor-bedrijven"
+                }
+              ]
             }
           }
         ]

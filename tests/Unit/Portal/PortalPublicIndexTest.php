@@ -106,16 +106,19 @@ class PortalPublicIndexTest extends TestCase {
 
 		$fgas = $courses['F-gassen: herhaling en examen'];
 		self::assertSame('2026-10-08', $fgas['date']);
-		self::assertSame('1 day', $fgas['meta'][0]);
+		// "Donderdag · 1 dag · certificaat" and a link to the course list (REPORT-2, item 12).
+		self::assertSame(['Donderdag', '1 day', 'certificate'], array_slice($fgas['meta'], 0, 3));
+		self::assertSame('/cursusaanbod', $fgas['href']);
 		self::assertSame(['Praktijkhal Zuiddrecht'], $fgas['facets']['Venue']);
 		self::assertSame(['Oktober 2026'], $fgas['facets']['Start in']);
 
 		$lw = $courses['Lucht-water warmtepomp: ontwerp en inbedrijfstelling'];
 		self::assertSame(['2026-11-03', '2026-11-10'], [$lw['date'], $lw['endDate']]);
-		self::assertSame('3 days', $lw['meta'][0]);
+		self::assertSame(['Dinsdag and woensdag', '3 days', 'advanced'], array_slice($lw['meta'], 0, 3));
 
 		$wzi = $courses['Waterzijdig inregelen'];
 		self::assertSame('2026-10-15', $wzi['date'], 'the run of 1 October is over');
+		self::assertSame(['Donderdag', '1 day', 'basic'], array_slice($wzi['meta'], 0, 3));
 		self::assertArrayNotHasKey('BHV basis 2026-2027 (concept)', $courses, 'a draft course stays out');
 		self::assertArrayNotHasKey('BHV basis', $courses, 'a course with no run to come stays out');
 	}//end testTheAcademyShowsItsCoursesWithTheirNextDates()

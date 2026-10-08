@@ -19,3 +19,13 @@ An opened booking MUST list its participants as rows, each with the participant'
 - **WHEN** she opens it
 - **THEN** Youssef's row reads "Geboortedatum ontbreekt", each row names its certificate line, and "Geboortedatum invullen" is offered
 - @e2e exclude covered by PHPUnit `EmployerSitePagesTest::testABookingListsItsParticipantsAndCertificatesGroup`; the page by `tests/e2e/portal-design/warmtepompacademie.spec.ts`
+
+### Requirement: A course row names its weekdays, its kind and links to the course list
+
+Each course in a portal's public index MUST carry meta that starts with the weekdays of its next run, then its number of days, then its kind from its tags (certificate, basic or advanced). When the portal's declaration names a `publicIndex.courseHref`, the row MUST link there.
+
+#### Scenario: The academy's F-gassen course
+- **GIVEN** the training set with "F-gassen: herhaling en examen" on Thursday 8 October
+- **WHEN** a visitor opens the academy's home
+- **THEN** its row reads "Donderdag · 1 dag · certificaat" and links to /cursusaanbod
+- @e2e exclude covered by PHPUnit `PortalPublicIndexTest::testTheAcademyShowsItsCoursesWithTheirNextDates`

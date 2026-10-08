@@ -82,6 +82,10 @@
       ]
     }
   },
+  "publicIndex": {
+    "$comment": "What learniq hands the portal's public catalogue: where a course row links to.",
+    "courseHref": "/cursusaanbod"
+  },
   "legacyTitles": [],
   "menus": [
     {
@@ -262,8 +266,7 @@
                     "types": [
                       "course"
                     ]
-                  },
-                  "portal": "warmtepompacademie"
+                  }
                 }
               }
             }

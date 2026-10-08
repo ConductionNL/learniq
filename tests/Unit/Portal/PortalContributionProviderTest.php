@@ -1214,5 +1214,6 @@ class PortalContributionProviderTest extends TestCase {
 		$page  = array_column($manifest['pages'], null, 'id')['studentBpvPlacements'];
 		$types = array_column($page['blocks'], 'type');
 		self::assertLessThan(array_search('kpi', $types, true), array_search('steps', $types, true), 'the hours bar sits under the steps');
+		self::assertSame('bars', $page['blocks'][array_search('steps', $types, true)]['display']);
 	}//end testThePlacementReadsInWordsAndShowsTheHours()
 }//end class

@@ -300,7 +300,8 @@
               "showAudience": true,
               "moreLabel": "Al het nieuws",
               "moreHref": "/zoeken",
-              "articleRoute": "/nieuws"
+              "articleRoute": "/nieuws",
+              "leadPlaceholder": "[FOTO: derdeklassers bij de profielenmarkt in de aula]"
             }
           },
           {

@@ -46,12 +46,28 @@ class PublicCourseIndex {
 	private const ENDED = ['completed', 'archived'];
 
 	/**
+	 * Dutch weekday names, Monday first; the index speaks the sets' Dutch.
+	 *
+	 * @var array<int, string>
+	 */
+	private const WEEKDAYS = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
+
+	/**
+	 * The course kinds a tag names, first match wins.
+	 *
+	 * @var array<string, string>
+	 */
+	private const KINDS = ['examen' => 'certificate', 'certificaat' => 'certificate', 'basis' => 'basic', 'gevorderd' => 'advanced'];
+
+	/**
 	 * Constructor.
 	 *
-	 * @param PublicIndexReads $reads The shared reads and words.
+	 * @param PublicIndexReads $reads      The shared reads and words.
+	 * @param string           $courseHref Where a course row links to, '' for no link.
 	 */
 	public function __construct(
 		private readonly PublicIndexReads $reads,
+		private readonly string $courseHref='',
 	) {
 	}//end __construct()
 
@@ -192,12 +208,17 @@ class PublicCourseIndex {
 			'summary' => (string)($course['description'] ?? ''),
 			'date'    => $first['days'][0],
 			'endDate' => $first['days'][$count - 1],
-			'meta'    => $this->meta(count: $count, runs: $runs),
+			'meta'    => $this->meta(count: $count, runs: $runs, course: $course),
 			'facets'  => [$this->reads->word(text: 'Start in') => $this->distinct(runs: $runs, part: 'month')],
 		];
 		$places = $this->distinct(runs: $runs, part: 'place');
 		if ($places !== []) {
 			$item['facets'][$this->reads->word(text: 'Venue')] = $places;
+		}
+
+		// A course row is a link to the portal's course list (REPORT-2, item 12).
+		if ($this->courseHref !== '') {
+			$item['href'] = $this->courseHref;
 		}
 
 		return $item;
@@ -208,13 +229,25 @@ class PublicCourseIndex {
 	 *
 	 * @param int                              $count The first run's number of days.
 	 * @param array<int, array<string, mixed>> $runs  The runs.
+	 * @param array<string, mixed>             $course The course, for its kind.
 	 *
 	 * @return array<int, string>
 	 */
-	private function meta(int $count, array $runs): array {
+	private function meta(int $count, array $runs, array $course=[]): array {
 		$meta = [$this->reads->word(text: '%s days', args: [$count])];
 		if ($count === 1) {
 			$meta = [$this->reads->word(text: '1 day')];
+		}
+
+		// "Donderdag · 1 dag · certificaat", as the board: the weekdays first, the kind after.
+		$weekdays = $this->weekdays(days: $runs[0]['days']);
+		if ($weekdays !== '') {
+			array_unshift($meta, $weekdays);
+		}
+
+		$kind = $this->kind(tags: (array)($course['tags'] ?? []));
+		if ($kind !== '') {
+			$meta[] = $kind;
 		}
 
 		$other = [];
@@ -228,6 +261,53 @@ class PublicCourseIndex {
 
 		return $meta;
 	}//end meta()
+
+	/**
+	 * The weekdays of a run's days: "Donderdag", "Dinsdag en woensdag".
+	 *
+	 * @param array<int, string> $days The days, `YYYY-MM-DD`.
+	 *
+	 * @return string
+	 */
+	private function weekdays(array $days): string {
+		$names = [];
+		foreach ($days as $day) {
+			$name = (self::WEEKDAYS[(int)date('N', (int)strtotime($day . ' 12:00:00')) - 1] ?? '');
+			if ($name !== '' && in_array($name, $names, true) === false) {
+				$names[] = $name;
+			}
+		}
+
+		if ($names === []) {
+			return '';
+		}
+
+		$last = array_pop($names);
+		$line = $last;
+		if ($names !== []) {
+			$line = implode(', ', $names) . ' ' . $this->reads->word(text: 'and') . ' ' . $last;
+		}
+
+		return ucfirst($line);
+	}//end weekdays()
+
+	/**
+	 * The kind of course from its tags: a certificate or exam course, a basic
+	 * or an advanced one; '' when the tags say none of these.
+	 *
+	 * @param array<int, mixed> $tags The course's tags.
+	 *
+	 * @return string
+	 */
+	private function kind(array $tags): string {
+		foreach (self::KINDS as $tag => $word) {
+			if (in_array($tag, $tags, true) === true) {
+				return $this->reads->word(text: $word);
+			}
+		}
+
+		return '';
+	}//end kind()
 
 	/**
 	 * The distinct start months or places of the runs, in run order.
