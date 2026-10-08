@@ -98,6 +98,11 @@ class ParentSitePages {
 					'titleFields' => ['givenName'],
 					'subtitleFields' => ['groupLabel'],
 					'avatar' => true,
+					// The chip on each card (board: "Op school", "Ziek gemeld"),
+					// derived, never stored: a report of this child that covers
+					// today reads "Reported sick", a school day without one
+					// "At school", a weekend or holiday neither.
+					'status' => self::childStatus(),
 				],
 				['type' => 'news', 'label' => 'New from school', 'limit' => 3],
 				// "Deze maand": this month only (portaliq calendar `range`).
@@ -105,6 +110,32 @@ class ParentSitePages {
 			],
 		];
 	}//end overviewPage()
+
+	/**
+	 * How a child's card says where the child is today, from the guardian's
+	 * own absence reports: a report in `submitted` or `approved` whose days
+	 * cover today makes "Reported sick"; any other school day "At school".
+	 * Portaliq reads it as a lookup per card and keeps a key it does not
+	 * render yet out of the page (requested from lane FIX-P, 08 Oct).
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-a-childs-card-says-where-the-child-is-today
+	 */
+	public static function childStatus(): array {
+		return [
+			'collection' => 'parentExcuseRequests',
+			'matchField' => 'learnerRef',
+			'fromField' => 'dateFrom',
+			'toField' => 'dateTo',
+			'only' => ['field' => 'lifecycle', 'in' => ['submitted', 'approved']],
+			'label' => 'Reported sick',
+			'tone' => 'warning',
+			'otherLabel' => 'At school',
+			'otherTone' => 'positive',
+			'schoolDaysOnly' => true,
+		];
+	}//end childStatus()
 
 	/**
 	 * The absence page of one child: the form, that child's figures, then the

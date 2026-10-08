@@ -97,6 +97,13 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame(['Parent-teacher conversation', 'teacherName'], [$slots['title'], $slots['metaField']]);
 		self::assertSame(['type' => 'tasks', 'label' => 'Still to do', 'display' => 'highlight', 'collection' => 'parentConferenceRounds', 'dueField' => 'bookingClosesAt', 'titleFields' => ['name'], 'buttonLabel' => 'Pick a time'], $overview['blocks'][1]);
 		self::assertSame(['parentChildren', 'cards'], [$overview['blocks'][2]['collection'], $overview['blocks'][2]['display']]);
+		// The child's chip is derived from the guardian's own reports, every field it reads projected.
+		$status = $overview['blocks'][2]['status'];
+		self::assertSame(['parentExcuseRequests', 'Reported sick', 'At school'], [$status['collection'], $status['label'], $status['otherLabel']]);
+		$reports = array_column($manifest['collections'], null, 'id')['parentExcuseRequests'];
+		foreach ([$status['matchField'], $status['fromField'], $status['toField'], $status['only']['field']] as $field) {
+			self::assertContains($field, $reports['fields'], $field);
+		}
 		self::assertSame('tiles', $overview['blocks'][4]['display']);
 		$absence = self::pages(audience: 'parent')['parentAbsence'];
 		$reports = array_values(array_filter($absence['blocks'], static fn (array $b): bool => ($b['collection'] ?? '') === 'parentExcuseRequests'))[0];
