@@ -8,7 +8,8 @@
  * portaliq development keeps today: an overview on `/mijn` (`home: true`)
  * with the work to hand in first, a short menu (Overzicht, Inleveren, Cijfers,
  * Toetsen, Afwezig melden) and every other collection page kept on its route
- * but out of the menu. The timetable waits for portaliq's `via.when`.
+ * but out of the menu. Her timetable (`studentSessions`) reads the lessons of
+ * the groups she is actively enrolled in, through portaliq's `via.when`.
  *
  * Also declares `studentHomework`: the published assignments of the pupil's
  * groups, read by `Assignment.learnerRefs`, which the server stamps from the
@@ -49,11 +50,117 @@ class StudentPortalPages {
 	 * label: Inleveren, Cijfers, Toetsen, Afwezig melden.
 	 */
 	private const MENU_PAGES = [
+		'studentSessions'       => 'Timetable',
 		'studentHomework'       => 'Hand in',
 		'studentGrades'         => 'Grades',
 		'studentTests'          => 'Tests',
 		'studentExcuseRequests' => 'Report an absence',
 	];
+
+	/**
+	 * The words a pupil reads for a changed lesson, by `changeReasonKind`.
+	 * A cancelled lesson says "Vervalt" through the timetable itself, so
+	 * `teacher-absence` here is the lesson that goes ahead with another
+	 * teacher. `other` gets no word: a code without one draws no pill.
+	 */
+	public const LESSON_CHANGE = [
+		'room-unavailable' => 'Other room',
+		'teacher-absence'  => 'Other teacher',
+		'timetable-change' => 'Changed',
+	];
+
+	/**
+	 * Her timetable: the lessons of the groups she is enrolled in.
+	 *
+	 * A session belongs to a group (`cohortId`), not to a pupil, so the
+	 * collection is scoped through a reverse join on her own enrolments
+	 * (`enrolment.learnerRef` is her claim, its `cohortId` the target, and a
+	 * session counts when its `cohortId` is in that set). `via.when` keeps
+	 * only live enrolments: a withdrawn or completed one (last year's group)
+	 * grants no lesson (site-pupil-portal-design T1, T2).
+	 *
+	 * Projected: when and where, the subject, whether it is cancelled and the
+	 * school's own words about a change. Never the substitute's user id, the
+	 * affected pupils or parents, or the source system's reference.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-new-a-pupil-sees-her-own-timetable
+	 */
+	public function sessionsCollection(): array {
+		return [
+			'id' => 'studentSessions',
+			'register' => self::REGISTER,
+			'schema' => 'session',
+			'scopeField' => 'cohortId',
+			'scopeClaim' => 'learnerRef',
+			'via' => [
+				'register' => self::REGISTER,
+				'schema' => 'enrolment',
+				'scopeField' => 'learnerRef',
+				'targetField' => 'cohortId',
+				'match' => 'scopeField',
+				'when' => ['field' => 'lifecycle', 'in' => ['active']],
+			],
+			'label' => 'My timetable',
+			'listable' => true,
+			'minTrust' => 'low',
+			'fields' => [
+				'cohortId',
+				'courseId',
+				'title',
+				'startsAt',
+				'endsAt',
+				'location',
+				'changeReasonKind',
+				'changeReason',
+				'lifecycle',
+			],
+			'fieldConfigs' => [
+				'changeReasonKind' => ['label' => 'Change', 'valueLabels' => self::LESSON_CHANGE],
+			],
+			'columns' => [
+				['field' => 'startsAt', 'label' => 'Starts at', 'render' => 'datetime'],
+				['field' => 'title', 'label' => 'Subject'],
+				['field' => 'location', 'label' => 'Room'],
+			],
+		];
+	}//end sessionsCollection()
+
+	/**
+	 * A timetable block over her lessons: today on the overview, the week
+	 * with day tiles on the timetable page (portaliq
+	 * `calendar-timetable-display`). The pill reads the change's word, a
+	 * cancelled lesson is struck through, the note is the school's own words.
+	 *
+	 * @param string $label The heading.
+	 * @param string $range `day` or `week`.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-new-a-pupil-sees-her-own-timetable
+	 */
+	public function timetableBlock(string $label, string $range): array {
+		return [
+			'type' => 'calendar',
+			'label' => $label,
+			'display' => 'timetable',
+			'range' => $range,
+			'firstLabel' => 'Your first lesson',
+			'sources' => [
+				[
+					'collection' => 'studentSessions',
+					'startField' => 'startsAt',
+					'endField' => 'endsAt',
+					'titleField' => 'title',
+					'metaField' => 'location',
+					'noteField' => 'changeReason',
+					'statusField' => 'changeReasonKind',
+					'cancelledWhen' => ['field' => 'lifecycle', 'in' => ['cancelled']],
+				],
+			],
+		];
+	}//end timetableBlock()
 
 	/**
 	 * The published assignments of the pupil's groups.
@@ -278,6 +385,10 @@ class StudentPortalPages {
 	 */
 	public function pages(array $collections, array $actions): array {
 		$pages = [$this->overviewPage()];
+		// Her timetable's page follows the overview in the menu, wherever the
+		// collection sits in the list (site-pupil-portal-design T5b).
+		$isTimetable = static fn (array $c): int => (int)(($c['id'] ?? '') === 'studentSessions');
+		usort($collections, static fn (array $a, array $b): int => $isTimetable($b) <=> $isTimetable($a));
 		foreach ($collections as $collection) {
 			if (($collection['listable'] ?? true) !== true) {
 				continue;
@@ -293,9 +404,9 @@ class StudentPortalPages {
 	 * The overview, in the order of the board (school-design vaartveld,
 	 * MijnOverzicht): the greeting with today's date, homework and tests as
 	 * the first thing to do, the newest grades, then the absence strip, the
-	 * two quick actions and the messages. Today's timetable belongs between
-	 * the greeting and the homework; it waits for the pupil's sessions
-	 * (site-pupil-portal-design T1, T5b).
+	 * two quick actions and the messages. Today's timetable sits between the
+	 * greeting and the homework, with a link to the whole week
+	 * (site-pupil-portal-design T5b).
 	 *
 	 * The greeting and the highlight display are lane L2's block contract;
 	 * portaliq drops a key it does not know yet.
@@ -314,6 +425,8 @@ class StudentPortalPages {
 			'home' => true,
 			'blocks' => [
 				['type' => 'greeting'],
+				$this->timetableBlock(label: 'Your timetable today', range: 'day'),
+				['type' => 'cta', 'page' => 'studentSessions', 'label' => 'Whole week'],
 				[
 					'type' => 'tasks',
 					'label' => 'Homework and tests',
@@ -377,6 +490,16 @@ class StudentPortalPages {
 		}
 
 		$blocks = [];
+		if ($id === 'studentSessions') {
+			// The timetable page is the week, not a table of every lesson.
+			return [
+				'id' => $id,
+				'label' => self::MENU_PAGES[$id],
+				'group' => ParentSitePages::GROUP,
+				'blocks' => [$this->timetableBlock(label: 'Timetable', range: 'week')],
+			];
+		}
+
 		if ($id === 'studentHourWeeks') {
 			$blocks[] = $this->hoursBar(collection: 'studentBpvPlacements');
 		}
