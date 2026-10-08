@@ -19,3 +19,13 @@ A declared account with a `portal` entry MUST get, on load, an active portal acc
 - **WHEN** the operator loads the training set, then loads it again
 - **THEN** the first load gives Tom an active `participant` account with `learnerRef` `ee06000c-0000-4000-8000-000000000158`, and the second load asks portaliq nothing
 - @e2e exclude covered by PHPUnit `ExamplePortalAccountGrantsTest`; the sign-in itself by `tests/e2e/portal-design/warmtepompacademie.spec.ts`
+
+### Requirement: The demo trainer gets her accounts through the load
+
+The mbo set MUST declare a demo account for the trainer Petra Bakker of Bakker Techniek BV, with a `praktijkopleider` portal entry whose `practicalTrainerId` claim is her trainer record in the set. The load MUST give her the Nextcloud account and the portal account the same way it gives the learners theirs. A real trainer MUST keep the invitation, which completes on her first eHerkenning sign-in.
+
+#### Scenario: Petra approves Milan's hours on a fresh install
+- **GIVEN** a fresh instance where the mbo set was loaded, the portal linked to its organisation, and the set loaded again
+- **WHEN** Petra signs in to Esdoornveen with her Nextcloud account
+- **THEN** she sees Milan's placement and can approve his week, without any account made by hand
+- @e2e exclude declaration and provisioning covered by PHPUnit `ExamplePortalAccountGrantsTest` and `ExamplePortalDeclarationsTest`; the approval itself by the proof run's function probe

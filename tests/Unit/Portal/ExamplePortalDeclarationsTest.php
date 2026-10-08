@@ -115,7 +115,15 @@ class ExamplePortalDeclarationsTest extends TestCase {
 			}
 
 			self::assertNotEmpty($declaration['accounts'], $set);
+			// A trainer of a training company has no Nextcloud user in the set; her
+			// demo account is named by the trainer record its claim points at.
+			$trainers = array_column(($objects['praktijkopleider'] ?? []), 'uuid');
 			foreach ($declaration['accounts'] as $account) {
+				if (isset($account['portal']['claims']['practicalTrainerId']) === true) {
+					self::assertContains($account['portal']['claims']['practicalTrainerId'], $trainers, $set . ': ' . $account['userId']);
+					continue;
+				}
+
 				self::assertContains($account['userId'], $people, $set . ': account ' . $account['userId'] . ' is a person in the set');
 				self::assertNotSame('', $account['displayName']);
 			}
