@@ -232,7 +232,7 @@ class GuardianSitePagesTest extends TestCase {
 
 	/**
 	 * The pupil lands on an overview with the work to hand in first, and the
-	 * menu holds only Rooster, Inleveren, Cijfers, Toetsen and Afwezig melden.
+	 * menu holds only Rooster, Inleveren, Cijfers, Toetsen, BPV en uren and Afwezig melden.
 	 *
 	 * @return void
 	 */
@@ -261,7 +261,8 @@ class GuardianSitePagesTest extends TestCase {
 		}
 
 		self::assertSame(
-			['studentSessions' => 'Timetable', 'studentGrades' => 'Grades', 'studentExcuseRequests' => 'Report an absence', 'studentTests' => 'Tests', 'studentHomework' => 'Hand in'],
+			// "BPV en uren" from the esdoornveen board (student-portal-reads-like-the-boards).
+			['studentSessions' => 'Timetable', 'studentGrades' => 'Grades', 'studentHourWeeks' => 'BPV and hours', 'studentExcuseRequests' => 'Report an absence', 'studentTests' => 'Tests', 'studentHomework' => 'Hand in'],
 			$inMenu
 		);
 

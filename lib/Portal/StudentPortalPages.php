@@ -47,7 +47,9 @@ class StudentPortalPages {
 
 	/**
 	 * The collection pages that stay in the pupil's menu, with their menu
-	 * label: Inleveren, Cijfers, Toetsen, Afwezig melden.
+	 * label: Inleveren, Cijfers, Toetsen, BPV en uren, Afwezig melden.
+	 *
+	 * @spec openspec/changes/student-portal-reads-like-the-boards/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
 	 */
 	private const MENU_PAGES = [
 		'studentSessions'       => 'Timetable',
@@ -55,6 +57,9 @@ class StudentPortalPages {
 		'studentGrades'         => 'Grades',
 		'studentTests'          => 'Tests',
 		'studentExcuseRequests' => 'Report an absence',
+		// The student's BPV hours page, "BPV en uren" on the esdoornveen
+		// board (MijnMenu). A pupil without a placement sees an empty list.
+		'studentHourWeeks'      => 'BPV and hours',
 	];
 
 	/**

@@ -130,11 +130,15 @@ class PortalValueLabels {
 	 * (internship-hours).
 	 *
 	 * @var array<string, string>
+	 *
+	 * @spec openspec/changes/student-portal-reads-like-the-boards/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
 	 */
 	public const HOUR_WEEK_STATUS = [
 		'submitted' => 'Waiting for approval',
 		'approved'  => 'Approved',
 		'corrected' => 'Approved with a correction',
-		'rejected'  => 'Rejected',
+		// The trainer sends a week back with a question; the student
+		// corrects it ("Teruggestuurd" on the esdoornveen boards).
+		'rejected'  => 'Sent back',
 	];
 }//end class
