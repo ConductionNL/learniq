@@ -269,6 +269,17 @@ class StudentPortalPages {
 				['field' => 'hoursApprovedTotal', 'label' => 'Hours approved'],
 				['field' => 'agreedHours', 'label' => 'Agreed hours'],
 			],
+			// Words on the record, never field keys such as "Period From" (REPORT-2, item 8).
+			'fieldConfigs' => [
+				'trainingCompanyName' => ['label' => 'Training company'],
+				'periodFrom'          => ['label' => 'From'],
+				'periodTo'            => ['label' => 'Until'],
+				'agreedHours'         => ['label' => 'Agreed hours'],
+				'hoursApprovedTotal'  => ['label' => 'Hours approved'],
+				'hoursWaitingTotal'   => ['label' => 'Waiting for approval'],
+				'hoursReturnedTotal'  => ['label' => 'Sent back'],
+				'lifecycle'           => ['label' => 'Status', 'valueLabels' => PortalValueLabels::PLACEMENT_STATUS],
+			],
 		],
 		[
 			'id' => 'studentHourWeeks',
@@ -509,6 +520,9 @@ class StudentPortalPages {
 			$blocks[] = $this->hoursBar(collection: 'studentBpvPlacements');
 		}
 
+		// The placement shows its hours under where it stands, as the board (Detail).
+		$placement = ($id === 'studentBpvPlacements');
+
 		$form = $this->firstCreateFor(schema: $schema, actions: $actions);
 		if ($form !== null) {
 			$blocks[] = ['type' => 'action', 'action' => $form];
@@ -519,7 +533,12 @@ class StudentPortalPages {
 		// A collection with steps is a record page: the open row's steps under the list.
 		if (isset($collection['steps']) === true) {
 			$page['record'] = ['collection' => $id, 'titleFields' => ['trainingCompanyName']];
-			$blocks[] = ['type' => 'steps', 'collection' => $id, 'label' => (string)($collection['steps']['label'] ?? '')];
+			// Bars across, as the board's "Waar sta je?" (portaliq steps `display: bars`).
+			$blocks[] = ['type' => 'steps', 'collection' => $id, 'label' => (string)($collection['steps']['label'] ?? ''), 'display' => 'bars'];
+		}
+
+		if ($placement === true) {
+			$blocks[] = $this->hoursBar(collection: $id);
 		}
 
 		$blocks[] = ['type' => 'detail', 'collection' => $id];

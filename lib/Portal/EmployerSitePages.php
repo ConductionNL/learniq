@@ -275,6 +275,8 @@ class EmployerSitePages {
 			extra: [
 				'filter' => ['lifecycle' => 'issued', 'kind' => 'certificate'],
 				'defaultSort' => ['field' => 'expiresAt', 'direction' => 'asc'],
+				// One group per certificate, the holders under it, as the board (REPORT-2, item 9).
+				'groupByField' => 'courseName',
 				'fieldConfigs' => ['expiryStatus' => ['valueLabels' => self::EXPIRY_STATUS]],
 				'columns' => [
 					['field' => 'learnerName', 'label' => 'Employee'],
@@ -499,7 +501,19 @@ class EmployerSitePages {
 					'sort' => ['field' => 'firstDay', 'direction' => 'asc'],
 				],
 				['type' => 'steps', 'collection' => 'employerBookings', 'label' => 'Where does this booking stand?'],
-				['type' => 'collection', 'collection' => 'employerParticipants', 'recordField' => 'bookingRef'],
+				// The board's participants (Detail): each name with the certificate
+				// line and whether the details are complete (REPORT-2, item 9).
+				[
+					'type' => 'collection',
+					'label' => 'Participants',
+					'collection' => 'employerParticipants',
+					'recordField' => 'bookingRef',
+					'display' => 'rows',
+					'titleFields' => ['learnerName'],
+					'subtitleField' => 'certificateLine',
+					'statusField' => 'detailsStatus',
+					'statusTones' => ['complete' => 'success', 'birth-date-missing' => 'warning'],
+				],
 				['type' => 'detail', 'collection' => 'employerBookings'],
 				['type' => 'action', 'action' => 'supplyBirthDate'],
 				['type' => 'action', 'action' => 'addBookingParticipant'],

@@ -260,7 +260,7 @@ class ExamplePortalDeclarationsTest extends TestCase {
 		}
 
 		$mbo  = array_column($declarations->forSet(setId: 'mbo')['pages'], null, 'route')['/']['body']['widgets'];
-		$cards = array_values(array_filter($mbo, static fn (array $w): bool => $w['widgetKey'] === 'nlLinkList'));
+		$cards = array_values(array_filter($mbo, static fn (array $w): bool => $w['widgetKey'] === 'nlLinkList' && ($w['props']['heading'] ?? '') !== 'Voor leerbedrijven'));
 		self::assertContains('Kies je richting', array_column(array_column($mbo, 'props'), 'text'));
 		self::assertSame(['card', 'card', 'card', 'card'], array_column(array_column($cards, 'props'), 'display'));
 	}//end testTheDeclarationsFollowTheBoards()
@@ -311,7 +311,9 @@ class ExamplePortalDeclarationsTest extends TestCase {
 		$hero    = array_values(array_filter($home, static fn (array $w): bool => $w['widgetKey'] === 'hero'))[0];
 		$aside   = $hero['props']['aside'];
 		self::assertSame('nlEventList', $aside['widgetKey']);
-		self::assertSame(['Eerstvolgende cursusdagen', 'tiles', ['course'], $academy['portal']['slug']], [$aside['props']['heading'], $aside['props']['display'], $aside['props']['source']['types'], $aside['props']['portal']]);
+		self::assertSame(['Eerstvolgende cursusdagen', 'tiles', ['course']], [$aside['props']['heading'], $aside['props']['display'], $aside['props']['source']['types']]);
+		// The hero hands its own portal to the aside (portaliq #1402); a declared one would only go stale.
+		self::assertArrayNotHasKey('portal', $aside['props']);
 		self::assertCount(3, $aside['props']['items']);
 		foreach ($aside['props']['items'] as $item) {
 			self::assertStringStartsWith('/', $item['href'], $item['title'] . ' is a link');
@@ -325,4 +327,29 @@ class ExamplePortalDeclarationsTest extends TestCase {
 		self::assertStringContainsString('sensor', $hero['props']['asideImage']['label']);
 		self::assertArrayNotHasKey('src', $hero['props']['asideImage'], 'no photo ships with the design');
 	}//end testTheSchoolHeroesHoldTheirAside()
+
+	/**
+	 * The lead news item marks its photo with the board's words, and
+	 * Esdoornveen's "Voor leerbedrijven" is a card of links, not a second
+	 * sign-in card (FIX-P requests, round 4).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/placement-and-bookings-follow-the-boards/specs/example-sets/spec.md#requirement-the-homes-mark-the-lead-photo-and-esdoornveen-invites-training-companies-with-links
+	 */
+	public function testTheHomesMarkTheLeadPhotoAndInviteCompaniesWithLinks(): void {
+		$declarations = new ExamplePortalDeclarations();
+		foreach (['po', 'vo', 'mbo'] as $set) {
+			$home = array_column($declarations->forSet(setId: $set)['pages'], null, 'route')['/']['body']['widgets'];
+			$news = array_values(array_filter($home, static fn (array $w): bool => $w['widgetKey'] === 'nlNewsList'))[0];
+			self::assertStringStartsWith('[FOTO: ', $news['props']['leadPlaceholder'], $set);
+		}
+
+		$mbo     = array_column($declarations->forSet(setId: 'mbo')['pages'], null, 'route')['/']['body']['widgets'];
+		$signIns = array_values(array_filter($mbo, static fn (array $w): bool => $w['widgetKey'] === 'nlSignIn'));
+		self::assertCount(1, $signIns, 'one sign-in card: Mijn Esdoornveen');
+		$companies = array_values(array_filter($mbo, static fn (array $w): bool => ($w['props']['heading'] ?? '') === 'Voor leerbedrijven'))[0];
+		self::assertSame(['nlLinkList', 'card'], [$companies['widgetKey'], $companies['props']['display']]);
+		self::assertSame(['Inloggen als leerbedrijf', 'Leerbedrijf worden'], array_column($companies['props']['links'], 'label'));
+	}//end testTheHomesMarkTheLeadPhotoAndInviteCompaniesWithLinks()
 }//end class

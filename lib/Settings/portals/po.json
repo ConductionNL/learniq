@@ -320,7 +320,8 @@
               "showAudience": true,
               "moreLabel": "Al het nieuws",
               "moreHref": "/zoeken",
-              "articleRoute": "/nieuws"
+              "articleRoute": "/nieuws",
+              "leadPlaceholder": "[FOTO: kinderen lezen voor in de hal]"
             }
           },
           {

@@ -141,4 +141,20 @@ class PortalValueLabels {
 		// corrects it ("Teruggestuurd" on the esdoornveen boards).
 		'rejected'  => 'Sent back',
 	];
+
+	/**
+	 * `bpv-placement.lifecycle`: where a placement stands, in the student's words.
+	 *
+	 * @var array<string, string>
+	 *
+	 * @spec openspec/changes/placement-and-bookings-follow-the-boards/specs/portal-contribution/spec.md#requirement-the-placement-page-reads-in-words-and-shows-the-hours
+	 */
+	public const PLACEMENT_STATUS = [
+		'proposed'                 => 'Proposed',
+		'sbb-verification-pending' => 'Waiting for the SBB check',
+		'confirmed'                => 'Confirmed',
+		'active'                   => 'Placement running',
+		'completed'                => 'Finished',
+		'terminated'               => 'Stopped early',
+	];
 }//end class

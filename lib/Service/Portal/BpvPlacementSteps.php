@@ -146,7 +146,8 @@ class BpvPlacementSteps {
 		}
 
 		$steps = [
-			[$this->text(l10n: $l10n, text: 'Agreement signed'), $signedAt !== null, $this->longDate(day: $signedAt), (string)$signedAt?->format('Y-m-d')],
+			// The line already names the day; a date beside it printed it twice (REPORT-2, item 8).
+			[$this->text(l10n: $l10n, text: 'Agreement signed'), $signedAt !== null, $this->longDate(day: $signedAt), ''],
 			[$this->text(l10n: $l10n, text: 'Work plan made'), $this->done(visit: $workplan), $this->visitLine(visit: $workplan), ''],
 			[$this->text(l10n: $l10n, text: 'Midterm review'), $this->done(visit: $midterm), $this->visitLine(visit: $midterm), ''],
 			[$this->text(l10n: $l10n, text: 'Final review'), $this->done(visit: $final), $this->visitLine(visit: $final) . $finalLine, ''],

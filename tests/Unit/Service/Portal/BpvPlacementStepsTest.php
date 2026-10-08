@@ -78,6 +78,8 @@ class BpvPlacementStepsTest extends TestCase {
 		self::assertSame(['Agreement signed', 'Work plan made', 'Midterm review', 'Final review', 'Placement finished'], array_column($steps, 'label'));
 		self::assertSame(['done', 'done', 'current', 'todo', 'todo'], array_column($steps, 'state'));
 		self::assertSame(['27 augustus 2026', '9 september 2026', '13 oktober 2026', 'januari 2027', '29 januari 2027'], array_column($steps, 'description'));
+		// Each day once: no step carries a date beside the line that names it (REPORT-2, item 8).
+		self::assertSame([], array_column($steps, 'date'));
 	}//end testMilansPlacementStandsAtTheMidtermReview()
 
 	/**
