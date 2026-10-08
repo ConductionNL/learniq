@@ -4128,7 +4128,11 @@ OC.L10N.register(
         "Say whether the student is competent in this work process, and why.": "Zeg of de student competent is in dit werkproces, en waarom.",
         "Check and send": "Controleren en versturen",
         "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Pick \"None\" on a production install.": "Voorbeeldgegevens vullen de lijsten, detailpagina's en dashboards, zodat je de app meteen aan het werk ziet. Elke set laat één soort organisatie zien. Kies \"Geen\" op een productie-installatie.",
-        "Loads the set you picked. It is sample data, and running it twice adds nothing. You can remove it again at the end of this wizard.": "Laadt de set die je koos. Het zijn voorbeeldgegevens, en twee keer laden voegt niets toe. Je kunt de set aan het einde van deze wizard weer verwijderen."
+        "Loads the set you picked. It is sample data, and running it twice adds nothing. You can remove it again at the end of this wizard.": "Laadt de set die je koos. Het zijn voorbeeldgegevens, en twee keer laden voegt niets toe. Je kunt de set aan het einde van deze wizard weer verwijderen.",
+        "Your timetable today": "Je rooster vandaag",
+        "Whole week": "Hele week",
+        "Your first lesson": "Je eerste les",
+        "Changed": "Gewijzigd"
     },
     "nplurals=2; plural=(n != 1);"
 )
