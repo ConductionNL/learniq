@@ -15,7 +15,8 @@ Before installing Learniq, ensure your environment meets these requirements:
 | Nextcloud | 28.0 | Server must be running |
 | PHP | 8.1 | 8.2+ recommended |
 | OpenRegister | latest | Required; Learniq stores all data via OpenRegister |
-| OpenConnector | latest | Required; handles BRON/ROD, UWLR, OSO, Edukoppeling adapters |
+| portaliq and thematiq | latest | Optional; needed for the portals of the example sets |
+| integriq | latest | Optional; carries exchanges such as BRON/ROD, UWLR and OSO |
 | PostgreSQL | 14 | Recommended database backend for OpenRegister |
 
 ## Install from the App Store
@@ -28,42 +29,40 @@ Before installing Learniq, ensure your environment meets these requirements:
 
 ## Manual installation (development)
 
-If you are installing from source or a release archive:
+If you install from source, turn off the app store first. Otherwise Nextcloud may fetch a released package over the app you cloned:
 
 ```bash
-# Navigate to your Nextcloud custom_apps directory
-cd /var/www/html/custom_apps
-
-# Clone or unpack Learniq
-git clone https://github.com/ConductionNL/learniq.git scholiq
-
-# Install PHP dependencies
-cd scholiq && composer install --no-dev
-
-# Install JavaScript dependencies and build
-npm install --legacy-peer-deps && npm run build
-
-# Enable the app
-php /var/www/html/occ app:enable scholiq
+php /var/www/html/occ config:system:set appstoreenabled --value=false --type=boolean
 ```
+
+Then install and build Learniq. The folder must be called `learniq`, the app id:
+
+```bash
+cd /var/www/html/custom_apps
+git clone https://github.com/ConductionNL/learniq.git learniq
+cd learniq && composer install --no-dev
+npm ci && npm run build
+php /var/www/html/occ app:enable learniq
+```
+
+For the portals of the example sets, portaliq and thematiq need the same treatment. portaliq has three bundles (the admin screens, the site and the traffic counter); `npm run build` builds all three. thematiq has no bundle to build:
+
+```bash
+cd /var/www/html/custom_apps
+git clone https://github.com/ConductionNL/portaliq.git portaliq
+(cd portaliq && composer install --no-dev && npm ci && npm run build)
+git clone https://github.com/ConductionNL/thematiq.git thematiq
+(cd thematiq && composer install --no-dev)
+php /var/www/html/occ app:enable openregister
+php /var/www/html/occ app:enable thematiq
+php /var/www/html/occ app:enable portaliq
+```
+
+Enable OpenRegister before learniq and portaliq.
 
 ## Initial configuration
 
-After installation, complete the setup wizard:
-
-1. Navigate to **Administration settings** (gear icon, then **Administration**).
-2. Open the **Learniq** section in the left sidebar.
-3. The app will prompt you to configure the following registers in OpenRegister:
-   - **Courses register**: stores course definitions, modules, and lessons
-   - **Enrolments register**: stores learner enrolments and progress records
-   - **Credentials register**: stores certificates and digital badges
-   - **Compliance register**: stores compliance-training completions and audit logs
-4. Click **Initialize registers** to create the default register and schema configuration.
-5. Optionally configure OpenConnector source connections for:
-   - DUO BRON/ROD (student registration)
-   - UWLR (learning result exchange)
-   - OSO (student transfer dossier)
-   - SURFconext (higher-education SSO)
+There is nothing to set up by hand. When you enable Learniq, it imports its register and schemas into OpenRegister. The first time an administrator opens Learniq, a short wizard asks two questions; see the next section.
 
 ## Example data and the kind of organisation
 
@@ -130,11 +129,22 @@ php occ maintenance:repair
 php -d memory_limit=4G cron.php
 ```
 
+The repair step takes a few minutes. Nextcloud is in maintenance mode meanwhile, so every page and API call answers 503 until it is done.
+
 On a test instance without a cron container, run `cron.php` by hand until the queue is empty.
 
 ### Link the portals to your organisation
 
-A loaded portal has no organisation and no identity provider. Binding those is a deployment step, so the load never guesses them. Set the organisation on each of the four portals, for example through the OpenRegister API, and then load each set once more:
+A loaded portal has no organisation and no identity provider. Binding those is a deployment step, so the load never guesses them. Set the organisation on each of the four portals, for example through the OpenRegister API, and then load each set once more.
+
+First look up the ids. The portals list gives each portal's `id` next to its `slug`. The organisations list gives each organisation's `uuid`, which the next step needs:
+
+```bash
+curl -u admin:<password> -H 'OCS-APIRequest: true' https://<host>/apps/openregister/api/objects/portaliq/portal
+curl -u admin:<password> -H 'OCS-APIRequest: true' https://<host>/apps/openregister/api/organisations
+```
+
+Then link each portal:
 
 ```bash
 curl -u admin:<password> -X PATCH -H 'Content-Type: application/json' \
@@ -148,19 +158,23 @@ There is no settings screen for an organisation's identity provider yet. Write i
 
 ```bash
 php occ config:app:set portaliq org_presentation_<organisation uuid> --value='{"oidc":{
-  "digid":{"issuer":"https://<digid broker>","clientId":"<client id>"},
-  "eherkenning":{"issuer":"https://<eherkenning broker>","clientId":"<client id>"}}}'
+  "digid":{"issuer":"https://<digid broker>","clientId":"<client id>",
+    "loaClaim":"acr","loaMap":{"urn:etoegang:core:assurance-class:loa3":"substantial","urn:etoegang:core:assurance-class:loa2":"low"}},
+  "eherkenning":{"issuer":"https://<eherkenning broker>","clientId":"<client id>",
+    "loaClaim":"acr","loaMap":{"urn:etoegang:core:assurance-class:loa3":"substantial","urn:etoegang:core:assurance-class:loa2":"low"}}}}'
 php occ config:app:set portaliq oidc_secret_<organisation uuid>_digid --value=<secret> --sensitive
 php occ config:app:set portaliq oidc_secret_<organisation uuid>_eherkenning --value=<secret> --sensitive
 ```
 
 Leave out a mode the organisation does not use. De Wilgenboom and Vaartveld use DigiD; Esdoornveen and the Warmtepompacademie use eHerkenning for companies.
 
+Do not leave out `loaClaim` and `loaMap`. They tell the portal which assurance level the broker reported. Without them every sign-in counts as level low, and a guardian sees none of her children: their records ask for level substantial.
+
 ### Portal accounts for pupils, students and participants
 
-Pupils, students and course participants sign in with their Nextcloud account. That works only when they also have a portal account. The load gives them one: Noor Bakker (vo), Milan de Groot and Aylin Demir (mbo) and Tom Verbeek (training). It needs the portal's organisation, so link the portals first and then load the set again. The load prints a line such as `Portal accounts: 1 given, 0 kept, 0 failed.` A second load gives nothing new.
+Pupils, students and course participants sign in with their Nextcloud account. That works only when they also have a portal account. The load gives them one: Noor Bakker (vo), Milan de Groot and Aylin Demir (mbo) and Tom Verbeek (training). For the demo it also gives Petra Bakker, the trainer at Bakker Techniek BV, a Nextcloud account and a trainer's portal account, so she can approve Milan's hours without hand work. It needs the portal's organisation, so link the portals first and then load the set again. The load prints a line such as `Portal accounts: 1 given, 0 kept, 0 failed.` A second load gives nothing new.
 
-Guardians, trainers and employers get their account through an invitation: `occ learniq:portal:invite-guardian`, `learniq:portal:invite-trainer` and `learniq:portal:invite-employer`.
+Guardians, trainers and employers get their account through an invitation: `occ learniq:portal:invite-guardian`, `learniq:portal:invite-trainer` and `learniq:portal:invite-employer`. A real trainer signs in with eHerkenning. Her invitation leaves a waiting account that her first eHerkenning sign-in completes, and it sends her a mail, so the instance must be able to send mail.
 
 A new account has a random password. Set one with `occ user:resetpassword` before a story person signs in.
 
@@ -174,27 +188,25 @@ Anyone allowed to request an exchange (by default administrators and administrat
 
 ## First-login checklist
 
-After the registers are initialised:
+After enabling Learniq:
 
 - [ ] Open Learniq from the Nextcloud app menu
+- [ ] Answer the two wizard questions: which example data, and what kind of organisation
 - [ ] Confirm the dashboard loads without errors
-- [ ] Navigate to **Courses** and verify the register is reachable
-- [ ] (Admin) Navigate to **Settings** and confirm all register connections are green
-- [ ] (Higher ed) Configure your SURFconext entity ID under **Settings > Identity**
 
 ## Troubleshooting
 
 **Learniq shows a blank screen after install**
-Run `php occ app:repair scholiq` to re-run the register initialisation step.
+The JavaScript is not built. Run `npm ci && npm run build` in the `learniq` folder.
 
 **"OpenRegister not found" error**
 Install and enable OpenRegister before enabling Learniq. Learniq requires OpenRegister as a dependency.
 
-**Dashboard shows "Connection error" on a register tile**
-Check that OpenRegister is running and the register slugs match those configured in Learniq's settings. Re-run **Initialize registers** if needed.
+**Some data is missing after loading example data**
+Run `php occ maintenance:repair` once after the loads, then let cron empty its queue.
 
 **Permission error on first open**
-Ensure the Nextcloud `www-data` user has write access to the `custom_apps/scholiq` directory.
+Ensure the Nextcloud `www-data` user has write access to the `custom_apps/learniq` directory.
 
 ## Upgrading
 
@@ -209,8 +221,8 @@ Learniq follows Nextcloud's standard upgrade path. When a new version is availab
 To remove Learniq:
 
 ```bash
-php /var/www/html/occ app:disable scholiq
-php /var/www/html/occ app:remove scholiq
+php /var/www/html/occ app:disable learniq
+php /var/www/html/occ app:remove learniq
 ```
 
 Note: this does not delete data stored in OpenRegister. To remove Learniq data, delete the associated registers in OpenRegister's administration interface.

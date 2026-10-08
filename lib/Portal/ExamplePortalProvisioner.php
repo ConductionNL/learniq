@@ -183,17 +183,27 @@ class ExamplePortalProvisioner {
 	 * Menus, pages and news are counted as `created` and `kept`; a second
 	 * load reports zero created.
 	 *
-	 * @param string $profileId The example set id.
+	 * The pages and news carry the set's dates moved by `$days`, the week of
+	 * the load (demo-dates-follow-the-load-week). With `$previous`, the
+	 * offset an earlier load gave them, the pages and news that exist move
+	 * along first; the same offset writes nothing.
+	 *
+	 * @param string   $profileId The example set id.
+	 * @param int      $days      The offset of this load's dates.
+	 * @param int|null $previous  The offset the stored pages and news carry, or null.
 	 *
 	 * @return array<string, mixed>
 	 *
 	 * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md#requirement-loading-a-set-writes-its-declared-site-once
+	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
 	 */
-	public function provision(string $profileId): array {
-		$declaration = $this->declarationFor(profileId: $profileId);
-		if ($declaration === null) {
+	public function provision(string $profileId, int $days=0, ?int $previous=null): array {
+		$shipped = $this->declarationFor(profileId: $profileId);
+		if ($shipped === null) {
 			return ['status' => 'unmapped'];
 		}
+
+		$declaration = $this->content->dated(declaration: $shipped, days: $days);
 
 		$slug = (string)$declaration['portal']['slug'];
 		if ($this->appManager->isInstalled(self::PORTALIQ_APP_ID) === false) {
@@ -216,7 +226,11 @@ class ExamplePortalProvisioner {
 		}
 
 		try {
-			$result = $this->apply(declaration: $declaration, theme: $theme['theme']);
+			$result = $this->apply(
+				declaration: $declaration,
+				theme: $theme['theme'],
+				move: ['shipped' => $shipped, 'previous' => $previous, 'days' => $days]
+			);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
 				'[ExamplePortalProvisioner] could not provision portal "{slug}" for example set "{set}": {msg}',
@@ -315,12 +329,13 @@ class ExamplePortalProvisioner {
 	/**
 	 * Write the portal, then its menus, pages and news.
 	 *
-	 * @param array<string, mixed> $declaration The set's declaration.
+	 * @param array<string, mixed> $declaration The set's declaration, dates moved.
 	 * @param string               $theme       The theme to write.
+	 * @param array<string, mixed> $move        The shipped declaration, the previous offset and this load's offset.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function apply(array $declaration, string $theme): array {
+	private function apply(array $declaration, string $theme, array $move=[]): array {
 		$portal          = $declaration['portal'];
 		$portal['theme'] = $theme;
 		unset($portal['themeFallback']);
@@ -348,6 +363,17 @@ class ExamplePortalProvisioner {
 		}
 
 		$refs = array_values(array_filter($refs, static fn ($ref): bool => is_string($ref) && $ref !== ''));
+
+		// Pages and news from a load in another week move to this week first.
+		if ($existing !== null) {
+			$previous = ($move['previous'] ?? null);
+			$this->content->moveDates(
+				declaration: (array)($move['shipped'] ?? []),
+				refs: $refs,
+				previous: $previous,
+				days: (int)($move['days'] ?? 0) - (int)$previous
+			);
+		}
 
 		return [
 			'status'       => $status,
