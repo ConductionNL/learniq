@@ -8,7 +8,7 @@
  *
  * The portal's student submissions collection matches the pupil's
  * LearnerProfile UUID against `Submission.learnerRefs`
- * (`PortalContributionProvider::studentActivityCollections()`), but no code
+ * (`StudentPortalCollections::studentActivityCollections()`), but no code
  * path set it, so the collection stayed empty for every pupil. Stamping on the
  * write path covers the portal upload, the learner's own form and every
  * teacher-side create, and the next one.

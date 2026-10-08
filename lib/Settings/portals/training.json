@@ -261,7 +261,12 @@
                 }
               ],
               "moreLabel": "Alle cursussen en data",
-              "moreHref": "/cursusaanbod"
+              "moreHref": "/cursusaanbod",
+              "source": {
+                "types": [
+                  "course"
+                ]
+              }
             }
           },
           {
@@ -516,49 +521,21 @@
             }
           },
           {
-            "id": "wa-aanbod-03-nleventlist",
-            "widgetKey": "nlEventList",
+            "id": "wa-aanbod-03-nlcatalogue",
+            "widgetKey": "nlCatalogue",
             "gridX": 0,
             "gridY": 2,
             "gridWidth": 12,
-            "gridHeight": 5,
+            "gridHeight": 8,
             "props": {
-              "heading": "Cursusdagen",
-              "subtitle": "Praktijkhal Zuiddrecht",
-              "display": "tiles",
-              "upcomingOnly": false,
-              "limit": 20,
-              "items": [
-                {
-                  "date": "2026-10-08",
-                  "title": "F-gassen: herhaling en examen",
-                  "meta": "Donderdag · 1 dag · certificaat",
-                  "note": "Nog 1 plek",
-                  "noteTone": "warning"
-                },
-                {
-                  "date": "2026-10-15",
-                  "title": "Waterzijdig inregelen",
-                  "meta": "Donderdag · 1 dag · basis",
-                  "note": "6 plekken vrij",
-                  "noteTone": "positive"
-                },
-                {
-                  "date": "2026-10-20",
-                  "endDate": "2026-10-21",
-                  "title": "Warmtepompen installeren: basis",
-                  "meta": "Dinsdag en woensdag · 2 dagen · basis",
-                  "note": "Nog 3 plekken",
-                  "noteTone": "warning"
-                },
-                {
-                  "date": "2026-11-03",
-                  "endDate": "2026-11-10",
-                  "dateLabel": "3, 4 en 10 nov",
-                  "title": "Lucht-water warmtepomp: ontwerp en inbedrijfstelling",
-                  "meta": "3 dagen · gevorderd"
-                }
-              ]
+              "types": [
+                "course"
+              ],
+              "display": "dated",
+              "sort": "date",
+              "countLabel": "{count} cursussen",
+              "searchLabel": "Zoek in het aanbod",
+              "placeholder": "Bijvoorbeeld hybride"
             }
           }
         ]
