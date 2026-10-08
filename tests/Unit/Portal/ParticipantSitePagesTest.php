@@ -135,6 +135,7 @@ class ParticipantSitePagesTest extends TestCase {
 
 		self::assertCount(2, $coming);
 		self::assertSame(['tasks', 1], [$coming[0]['type'], $coming[0]['limit']]);
-		self::assertSame(['After that', 1], [$coming[1]['label'], $coming[1]['skip']]);
+		self::assertSame(['After that', 1, 4], [$coming[1]['label'], $coming[1]['skip'], $coming[1]['limit']]);
+		self::assertSame(['field' => 'firstDay', 'direction' => 'asc'], $coming[1]['sort']);
 	}//end testTheNextCourseDayShowsOnce()
 }//end class

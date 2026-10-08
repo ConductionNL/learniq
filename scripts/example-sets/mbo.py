@@ -135,6 +135,10 @@ SCHEMAS = [
     "exam-period",
     "exam",
     "exam-sitting",
+    # board-data-the-schemas-lacked: Milan's own record of his work processes
+    # (hours and his estimate, board Detail). Appended for the same reason;
+    # its parent, bpv-placement, sits above it.
+    "werkproces-progress",
 ]
 
 HOLIDAYS = [
@@ -1875,6 +1879,15 @@ def add_story(b: Builder, school: dict, locations: dict, numeric: dict, competen
          "Praktijkopleider Petra Bakker, BPV-begeleider Ruud Hermans."),
         dt.date(2026, 8, 17))
 
+    # The agreements on Milan's placement page (board Detail, "Afspraken"):
+    # his workdays, where he works and the qualification with its crebo.
+    milan_placement.update({
+        "workdaysLabel": "Maandag tot en met woensdag, 08.00 tot 16.30 uur",
+        "workplaceAddress": "[adres leerbedrijf], Zuiddrecht",
+        "qualificationName": "Mechatronica niveau 4",
+        "crebo": "25743",
+    })
+
     # Visits: the werkplan on 9 September, the tussenbeoordeling on 13 October
     # (still a draft: it has not happened yet).
     attendees = [{"role": "student", "name": "Milan de Groot"}, {"role": "praktijkopleider", "name": "Petra Bakker"},
@@ -1892,6 +1905,23 @@ def add_story(b: Builder, school: dict, locations: dict, numeric: dict, competen
         "narrative": "Tussenbeoordeling om 10.00 uur bij Bakker Techniek BV. Milan en Petra Bakker vullen vooraf elk een beoordeling in.",
         "lifecycle": "draft",
     })
+
+    # Milan's own record per work process (board Detail, "Werkprocessen"):
+    # the hours he spent on it and his own estimate; the last two he still has
+    # to fill in. Petra's judgement comes in the werkproces assessment.
+    for code, label, hours, own in [
+        ("B1-K1-W1", "Bereidt het werk voor", 14, "goed"),
+        ("B1-K1-W2", "Maakt onderdelen", 22, "voldoende"),
+        ("B1-K1-W3", "Bouwt mechatronische systemen op", 38, "goed"),
+        ("B1-K1-W4", "Test en stelt systemen af", 26, "voldoende"),
+        ("B1-K2-W1", "Lokaliseert storingen", 12, None),
+        ("B1-K2-W2", "Voert onderhoud uit", 8, None),
+    ]:
+        row = {"bpvPlacementId": milan_placement["uuid"], "learnerId": milan_nc, "learnerRef": profiles[milan_nc]["uuid"],
+               "werkprocesCode": code, "werkprocesLabel": label, "hoursSpent": hours}
+        if own is not None:
+            row["selfAssessment"] = own
+        b.add("werkproces-progress", row)
 
     # Weeks of BPV hours. Milan: weeks 36 to 39 approved (4 x 24 = 96). Week
     # 40 is two records, because a week record has no per-day lines (D-7):
