@@ -32,8 +32,10 @@ use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\IGroupManager;
 use OCP\IUser;
+use OCP\EventDispatcher\Event;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 /**
  * Learners append, only staff decide, the server stamps who decided.
@@ -52,7 +54,11 @@ class ProctoringFlagReviewGuardTest extends TestCase {
 	 */
 	private function guard(string $uid, array $groups = [], bool $isAdmin = false, string $schema = 'proctoring-session'): ProctoringFlagReviewGuard {
 		$resolver = $this->createMock(ListenerSchemaResolver::class);
-		$resolver->method('guardSchemaSlug')->willReturn($schema);
+		if ($schema === 'throws') {
+			$resolver->method('guardSchemaSlug')->willThrowException(new RuntimeException('schema lookup failed'));
+		} else {
+			$resolver->method('guardSchemaSlug')->willReturn($schema);
+		}
 
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn($uid);
@@ -233,4 +239,67 @@ class ProctoringFlagReviewGuardTest extends TestCase {
 		$other = $this->update($this->guard('j.bakker', [], false, 'assessment-result'), [$this->flag('f1')], $decided);
 		self::assertFalse($other->isPropagationStopped());
 	}//end testAdminSystemAndOtherSchemasAreUnchecked()
+
+	/**
+	 * An event that is not an object write, a write another listener already
+	 * stopped, and a schema that cannot be resolved are all left alone.
+	 *
+	 * @return void
+	 */
+	public function testEventsThatAreNotOursAreLeftAlone(): void {
+		$plain = new Event();
+		$this->guard('j.bakker')->handle($plain);
+		self::assertFalse($plain->isPropagationStopped());
+
+		$stopped = new ObjectUpdatingEvent(
+			OrEntityFactory::make(['flags' => [$this->flag('f1', ['reviewDecision' => 'allowed'])]], 'proctoring-session'),
+			OrEntityFactory::make(['flags' => [$this->flag('f1')]], 'proctoring-session')
+		);
+		$stopped->setErrors(['message' => 'earlier refusal']);
+		$stopped->stopPropagation();
+		$this->guard('j.bakker')->handle($stopped);
+		self::assertSame('earlier refusal', $stopped->getErrors()['message']);
+		self::assertSame([], $stopped->getModifiedData());
+
+		$unresolved = $this->update($this->guard('j.bakker', [], false, 'throws'), [$this->flag('f1')], [$this->flag('f1', ['reviewDecision' => 'allowed'])]);
+		self::assertFalse($unresolved->isPropagationStopped());
+		self::assertSame([], $unresolved->getModifiedData());
+	}//end testEventsThatAreNotOursAreLeftAlone()
+
+	/**
+	 * A session whose flags are not a list writes no flags back.
+	 *
+	 * @return void
+	 */
+	public function testFlagsThatAreNotAListAreIgnored(): void {
+		$event = new ObjectUpdatingEvent(
+			OrEntityFactory::make(['learnerId' => 'j.bakker', 'flags' => 'none'], 'proctoring-session'),
+			OrEntityFactory::make(['learnerId' => 'j.bakker'], 'proctoring-session')
+		);
+		$this->guard('j.bakker')->handle($event);
+
+		self::assertFalse($event->isPropagationStopped());
+		self::assertSame([], $event->getModifiedData());
+	}//end testFlagsThatAreNotAListAreIgnored()
+
+	/**
+	 * A flag without a decision is pending, and a stored flag without an id
+	 * must come back exactly as stored.
+	 *
+	 * @return void
+	 */
+	public function testAFlagWithoutAnIdCannotBeChanged(): void {
+		$legacy = ['kind' => 'gaze-away', 'occurredAt' => '2026-10-01T09:00:00+00:00', 'severity' => 'low', 'reviewDecision' => 'pending'];
+		$appended = ['flagId' => 'f2', 'kind' => 'window-blur', 'occurredAt' => '2026-10-06T10:20:00+00:00', 'severity' => 'low'];
+
+		$kept = $this->update($this->guard('j.bakker'), [$legacy], [array_reverse($legacy, true), $appended]);
+		self::assertFalse($kept->isPropagationStopped());
+		self::assertSame('pending', $kept->getModifiedData()['flags'][1]['reviewDecision']);
+
+		$changed = $this->update($this->guard('t.smit', ['instructors']), [$legacy], [array_merge($legacy, ['reviewDecision' => 'allowed'])]);
+		self::assertSame(FlagReview::NO_CHANGE, $changed->getErrors()['message']);
+
+		$dropped = $this->update($this->guard('t.smit', ['instructors']), [$legacy], []);
+		self::assertSame(FlagReview::NO_CHANGE, $dropped->getErrors()['message']);
+	}//end testAFlagWithoutAnIdCannotBeChanged()
 }//end class
