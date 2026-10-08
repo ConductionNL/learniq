@@ -97,7 +97,14 @@
         ]
       }
     },
-    "accountLabel": "Mijn Wilgenboom"
+    "accountLabel": "Mijn Wilgenboom",
+    "residentMenu": {
+      "leaveOut": [
+        "cases",
+        "tasks",
+        "access"
+      ]
+    }
   },
   "legacyTitles": [],
   "menus": [

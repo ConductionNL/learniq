@@ -12,7 +12,7 @@ The guardian's overview MUST hold, in order, the greeting with the absence butto
 
 ### Requirement: A child's card says where the child is today
 
-The children cards on the guardian overview MUST declare a derived status, never a stored one: a report of the child in `submitted` or `approved` whose days cover today reads "Reported sick" ("Ziek gemeld"); any other school day reads "At school" ("Op school"); a weekend or holiday shows no chip. Every field the status reads MUST be projected by `parentExcuseRequests`.
+The children cards on the guardian overview MUST declare a derived status, never a stored one: a report of the child in `submitted` or `approved` whose days cover today reads "Reported sick" ("Ziek gemeld"); any other school day reads "At school" ("Op school"); a weekend or holiday shows no chip. Both labels MUST go through the contribution's label translation, so a Dutch portal reads the Dutch words. Every field the status reads MUST be projected by `parentExcuseRequests`.
 
 #### Scenario: Sami is reported sick, Vera is at school
 - **GIVEN** Fatima reported Sami sick for today and Vera has no report

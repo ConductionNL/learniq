@@ -394,4 +394,37 @@ class PortalLabelTranslatorTest extends TestCase {
 
 		self::assertSame($manifest, (new PortalLabelTranslator())->translate(manifest: $manifest));
 	}//end testWithoutATranslatorTheManifestStaysEnglish()
+
+	/**
+	 * The child-card chip and the other words the school boards brought in
+	 * (school-portals-match-their-boards, student-portal-reads-like-the-boards)
+	 * reach a Dutch guardian and pupil in Dutch: "Ziek gemeld", "Op school",
+	 * "BPV en uren", "Teruggestuurd", the grade columns and the conversation tile.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-a-childs-card-says-where-the-child-is-today
+	 */
+	public function testTheBoardWordsArriveInDutch(): void {
+		$factory = $this->createMock(IFactory::class);
+		$factory->method('get')->with('learniq')->willReturn($this->dutchL10n());
+		$provider = new PortalContributionProvider(l10nFactory: $factory);
+
+		$parent   = $provider->getContribution(['audience' => 'parent']);
+		$overview = array_column($parent['pages'], null, 'id')['parentOverview'];
+		$cards    = array_values(array_filter($overview['blocks'], static fn (array $b): bool => ($b['display'] ?? '') === 'cards'))[0];
+		self::assertSame(['Ziek gemeld', 'Op school'], [$cards['status']['label'], $cards['status']['otherLabel']]);
+		$calendar = array_values(array_filter($overview['blocks'], static fn (array $b): bool => $b['type'] === 'calendar'))[0];
+		$slots    = array_values(array_filter($calendar['sources'], static fn (array $src): bool => $src['collection'] === 'parentConferenceSlots'))[0];
+		self::assertSame($this->dutch['Parent-teacher conversation'], $slots['title']);
+		self::assertNotSame('Parent-teacher conversation', $slots['title']);
+
+		$student = $provider->getContribution(['audience' => 'student']);
+		$pages   = array_column($student['pages'], null, 'id');
+		self::assertSame('BPV en uren', $pages['studentHourWeeks']['label']);
+		$collections = array_column($student['collections'], null, 'id');
+		self::assertSame(['Vak', 'Datum', 'Cijfer'], array_column($collections['studentGrades']['columns'], 'label'));
+		$status = array_column($collections['studentHourWeeks']['columns'], null, 'field')['lifecycle'];
+		self::assertSame('Teruggestuurd', $status['valueLabels']['rejected']);
+	}//end testTheBoardWordsArriveInDutch()
 }//end class

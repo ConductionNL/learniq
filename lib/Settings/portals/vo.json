@@ -70,7 +70,14 @@
         ]
       }
     },
-    "accountLabel": "Mijn Vaartveld"
+    "accountLabel": "Mijn Vaartveld",
+    "residentMenu": {
+      "leaveOut": [
+        "cases",
+        "tasks",
+        "access"
+      ]
+    }
   },
   "legacyTitles": [
     "Studentenportaal Vaartveld"

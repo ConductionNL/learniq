@@ -73,7 +73,14 @@
         ]
       }
     },
-    "accountLabel": "Mijn Esdoornveen"
+    "accountLabel": "Mijn Esdoornveen",
+    "residentMenu": {
+      "leaveOut": [
+        "cases",
+        "tasks",
+        "access"
+      ]
+    }
   },
   "legacyTitles": [
     "Ouderportaal Esdoornveen"
