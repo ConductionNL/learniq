@@ -122,32 +122,6 @@
     },
     {
       "position": 1,
-      "title": "Contact",
-      "items": [
-        {
-          "order": 1,
-          "name": "Esdoornlaan 40, Zuiddrecht",
-          "link": "/contact"
-        },
-        {
-          "order": 2,
-          "name": "Telefoon: [telefoonnummer]",
-          "link": "/contact"
-        },
-        {
-          "order": 3,
-          "name": "E-mail: [e-mailadres]",
-          "link": "/contact"
-        },
-        {
-          "order": 4,
-          "name": "Servicedesk: gebouw A, begane grond",
-          "link": "/contact"
-        }
-      ]
-    },
-    {
-      "position": 1,
       "title": "Snel naar",
       "items": [
         {
@@ -231,9 +205,30 @@
               "title": "Een vak leer je door het te doen",
               "subtitle": "Bij Esdoornveen leer je op school en in een bedrijf. Kies een mbo-opleiding in Zuiddrecht, van niveau 1 tot en met 4.",
               "search": true,
-              "searchLabel": "Zoek een opleiding",
-              "searchPlaceholder": "Zoek een opleiding, bijvoorbeeld mechatronica of verpleegkundige",
-              "searchSubmitLabel": "Zoeken"
+              "searchLabel": "Zoek een opleiding, bijvoorbeeld mechatronica of verpleegkundige",
+              "searchPlaceholder": "",
+              "searchSubmitLabel": "Zoeken",
+              "headingVisible": true,
+              "variant": "plain",
+              "popularLabel": "Veel gezocht:",
+              "popularLinks": [
+                {
+                  "label": "Mechatronica",
+                  "href": "/opleidingen/mechatronica"
+                },
+                {
+                  "label": "Verpleegkundige",
+                  "href": "/opleidingen"
+                },
+                {
+                  "label": "Software developer",
+                  "href": "/opleidingen"
+                },
+                {
+                  "label": "Kok",
+                  "href": "/opleidingen"
+                }
+              ]
             }
           },
           {
@@ -292,10 +287,34 @@
             }
           },
           {
+            "id": "ev-home-04a-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 8,
+            "gridWidth": 9,
+            "gridHeight": 1,
+            "props": {
+              "text": "Kies je richting",
+              "level": 2
+            }
+          },
+          {
+            "id": "ev-home-04b-nllink",
+            "widgetKey": "nlLink",
+            "gridX": 9,
+            "gridY": 8,
+            "gridWidth": 3,
+            "gridHeight": 1,
+            "props": {
+              "label": "Alle opleidingen",
+              "href": "/opleidingen"
+            }
+          },
+          {
             "id": "ev-home-04-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 0,
-            "gridY": 8,
+            "gridY": 9,
             "gridWidth": 3,
             "gridHeight": 3,
             "props": {
@@ -313,14 +332,15 @@
                   "label": "Software developer",
                   "href": "/opleidingen"
                 }
-              ]
+              ],
+              "display": "card"
             }
           },
           {
             "id": "ev-home-05-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 3,
-            "gridY": 8,
+            "gridY": 9,
             "gridWidth": 3,
             "gridHeight": 3,
             "props": {
@@ -338,14 +358,15 @@
                   "label": "Pedagogisch medewerker",
                   "href": "/opleidingen"
                 }
-              ]
+              ],
+              "display": "card"
             }
           },
           {
             "id": "ev-home-06-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 6,
-            "gridY": 8,
+            "gridY": 9,
             "gridWidth": 3,
             "gridHeight": 3,
             "props": {
@@ -363,14 +384,15 @@
                   "label": "Logistiek teamleider",
                   "href": "/opleidingen"
                 }
-              ]
+              ],
+              "display": "card"
             }
           },
           {
             "id": "ev-home-07-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 9,
-            "gridY": 8,
+            "gridY": 9,
             "gridWidth": 3,
             "gridHeight": 3,
             "props": {
@@ -388,16 +410,17 @@
                   "label": "Facilitair leidinggevende",
                   "href": "/opleidingen"
                 }
-              ]
+              ],
+              "display": "card"
             }
           },
           {
             "id": "ev-home-08-nlnewslist",
             "widgetKey": "nlNewsList",
             "gridX": 0,
-            "gridY": 11,
-            "gridWidth": 12,
-            "gridHeight": 5,
+            "gridY": 12,
+            "gridWidth": 8,
+            "gridHeight": 8,
             "props": {
               "heading": "Nieuws",
               "limit": 4,
@@ -411,9 +434,9 @@
           {
             "id": "ev-home-09-nlsignin",
             "widgetKey": "nlSignIn",
-            "gridX": 0,
-            "gridY": 16,
-            "gridWidth": 6,
+            "gridX": 8,
+            "gridY": 12,
+            "gridWidth": 4,
             "gridHeight": 4,
             "props": {
               "heading": "Mijn Esdoornveen",
@@ -431,9 +454,9 @@
           {
             "id": "ev-home-10-nlsignin",
             "widgetKey": "nlSignIn",
-            "gridX": 6,
+            "gridX": 8,
             "gridY": 16,
-            "gridWidth": 6,
+            "gridWidth": 4,
             "gridHeight": 4,
             "props": {
               "heading": "Voor leerbedrijven",
@@ -455,33 +478,50 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "ev-ziek-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Ziek melden en beter melden",
-              "level": 1
-            }
-          },
-          {
             "id": "ev-ziek-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
-            "gridWidth": 12,
+            "gridY": 0,
+            "gridWidth": 8,
             "gridHeight": 1,
             "props": {
               "text": "Ben je ziek? Meld het voor 08.30 uur in Mijn Esdoornveen. Je docenten zien het meteen in hun presentielijst. Het kan vanaf je telefoon en kost een halve minuut."
             }
           },
           {
+            "id": "ev-ziek-07-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 8,
+            "gridY": 0,
+            "gridWidth": 4,
+            "gridHeight": 14,
+            "props": {
+              "heading": "Meer over aanwezigheid",
+              "links": [
+                {
+                  "label": "Verlof aanvragen",
+                  "href": "/voor-studenten"
+                },
+                {
+                  "label": "Te laat of eerder weg",
+                  "href": "/voor-studenten"
+                },
+                {
+                  "label": "Afwezig bij een examen",
+                  "href": "/voor-studenten"
+                },
+                {
+                  "label": "Vakanties en vrije dagen",
+                  "href": "/vakanties"
+                }
+              ]
+            }
+          },
+          {
             "id": "ev-ziek-03-nlbuttonlink",
             "widgetKey": "nlButtonLink",
             "gridX": 0,
-            "gridY": 2,
+            "gridY": 1,
             "gridWidth": 4,
             "gridHeight": 1,
             "props": {
@@ -494,8 +534,8 @@
             "id": "ev-ziek-04-nllist",
             "widgetKey": "nlList",
             "gridX": 0,
-            "gridY": 3,
-            "gridWidth": 12,
+            "gridY": 2,
+            "gridWidth": 8,
             "gridHeight": 3,
             "props": {
               "display": "steps",
@@ -511,8 +551,8 @@
             "id": "ev-ziek-05-nltable",
             "widgetKey": "nlTable",
             "gridX": 0,
-            "gridY": 6,
-            "gridWidth": 12,
+            "gridY": 5,
+            "gridWidth": 8,
             "gridHeight": 4,
             "props": {
               "caption": "Wat meld je waar?",
@@ -544,7 +584,7 @@
             "id": "ev-ziek-06-nlalert",
             "widgetKey": "nlAlert",
             "gridX": 0,
-            "gridY": 10,
+            "gridY": 9,
             "gridWidth": 8,
             "gridHeight": 3,
             "props": {
@@ -554,40 +594,11 @@
             }
           },
           {
-            "id": "ev-ziek-07-nllinklist",
-            "widgetKey": "nlLinkList",
-            "gridX": 8,
-            "gridY": 10,
-            "gridWidth": 4,
-            "gridHeight": 3,
-            "props": {
-              "heading": "Meer over aanwezigheid",
-              "links": [
-                {
-                  "label": "Verlof aanvragen",
-                  "href": "/voor-studenten"
-                },
-                {
-                  "label": "Te laat of eerder weg",
-                  "href": "/voor-studenten"
-                },
-                {
-                  "label": "Afwezig bij een examen",
-                  "href": "/voor-studenten"
-                },
-                {
-                  "label": "Vakanties en vrije dagen",
-                  "href": "/vakanties"
-                }
-              ]
-            }
-          },
-          {
             "id": "ev-ziek-08-nlalert",
             "widgetKey": "nlAlert",
             "gridX": 0,
-            "gridY": 13,
-            "gridWidth": 12,
+            "gridY": 12,
+            "gridWidth": 8,
             "gridHeight": 2,
             "props": {
               "kind": "info",
@@ -606,22 +617,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "ev-opleidingen-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Opleidingen",
-              "level": 1
-            }
-          },
-          {
             "id": "ev-opleidingen-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -632,7 +631,7 @@
             "id": "ev-opleidingen-03-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 0,
-            "gridY": 2,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 3,
             "props": {
@@ -657,22 +656,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "ev-mechatronica-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Mechatronica",
-              "level": 1
-            }
-          },
-          {
             "id": "ev-mechatronica-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -683,7 +670,7 @@
             "id": "ev-mechatronica-03-nldescriptionlist",
             "widgetKey": "nlDescriptionList",
             "gridX": 0,
-            "gridY": 2,
+            "gridY": 1,
             "gridWidth": 6,
             "gridHeight": 4,
             "props": {
@@ -719,7 +706,7 @@
             "id": "ev-mechatronica-04-nllist",
             "widgetKey": "nlList",
             "gridX": 6,
-            "gridY": 2,
+            "gridY": 1,
             "gridWidth": 6,
             "gridHeight": 4,
             "props": {
@@ -735,7 +722,7 @@
             "id": "ev-mechatronica-05-nltable",
             "widgetKey": "nlTable",
             "gridX": 0,
-            "gridY": 6,
+            "gridY": 5,
             "gridWidth": 12,
             "gridHeight": 3,
             "props": {
@@ -768,7 +755,7 @@
             "id": "ev-mechatronica-06-markdown",
             "widgetKey": "markdown",
             "gridX": 0,
-            "gridY": 9,
+            "gridY": 8,
             "gridWidth": 12,
             "gridHeight": 5,
             "props": {
@@ -822,22 +809,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "ev-zoeken-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Nieuws",
-              "level": 1
-            }
-          },
-          {
             "id": "ev-zoeken-02-nlnewslist",
             "widgetKey": "nlNewsList",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 6,
             "props": {
@@ -859,22 +834,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "ev-aanmelden-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Aanmelden",
-              "level": 1
-            }
-          },
-          {
             "id": "ev-aanmelden-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -892,22 +855,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "ev-voor-studenten-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Voor studenten",
-              "level": 1
-            }
-          },
-          {
             "id": "ev-voor-studenten-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -918,7 +869,7 @@
             "id": "ev-voor-studenten-03-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 0,
-            "gridY": 2,
+            "gridY": 1,
             "gridWidth": 6,
             "gridHeight": 3,
             "props": {
@@ -946,22 +897,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "ev-voor-bedrijven-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Voor bedrijven",
-              "level": 1
-            }
-          },
-          {
             "id": "ev-voor-bedrijven-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -979,22 +918,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "ev-vakanties-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Vakanties en roosters",
-              "level": 1
-            }
-          },
-          {
             "id": "ev-vakanties-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -1012,22 +939,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "ev-over-esdoornveen-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Over Esdoornveen",
-              "level": 1
-            }
-          },
-          {
             "id": "ev-over-esdoornveen-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -1045,22 +960,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "ev-contact-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Contact en openingstijden",
-              "level": 1
-            }
-          },
-          {
             "id": "ev-contact-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -1078,22 +981,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "ev-toegankelijkheid-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Toegankelijkheid",
-              "level": 1
-            }
-          },
-          {
             "id": "ev-toegankelijkheid-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -1111,22 +1002,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "ev-privacy-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Privacy",
-              "level": 1
-            }
-          },
-          {
             "id": "ev-privacy-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -1144,22 +1023,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "ev-cookies-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Cookies",
-              "level": 1
-            }
-          },
-          {
             "id": "ev-cookies-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -1177,22 +1044,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "ev-klacht-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Klacht melden",
-              "level": 1
-            }
-          },
-          {
             "id": "ev-klacht-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {

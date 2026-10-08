@@ -37,6 +37,7 @@ class ExamplePortalDeclarationsTest extends TestCase {
 	private const WIDGETS = [
 		'hero', 'markdown', 'nlBanner', 'nlHeading', 'nlParagraph', 'nlAlert', 'nlButtonLink', 'nlTable', 'nlLinkList',
 		'nlDescriptionList', 'nlList', 'nlSignIn', 'nlQuickTasks', 'nlNewsList', 'nlNewsArticle', 'nlEventList',
+		'nlLink', 'nlLinkColumns',
 	];
 
 	/**
@@ -176,4 +177,68 @@ class ExamplePortalDeclarationsTest extends TestCase {
 			self::assertStringNotContainsString("\u{2013}", $text, basename($file));
 		}
 	}//end testTheCopyHasNoLongDashes()
+
+	/**
+	 * The declarations follow the boards where portal proof run 1 found them
+	 * apart: one Contact column in the footer, one page title, a hero that
+	 * shows its heading beside the search box, the home's right column, the
+	 * content page's side list at the top, and Esdoornveen's "Kies je richting".
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/school-portals-match-their-boards/specs/example-sets/spec.md#requirement-the-portal-declarations-follow-their-boards
+	 */
+	public function testTheDeclarationsFollowTheBoards(): void {
+		$declarations = new ExamplePortalDeclarations();
+		$sidePages    = [
+			'po'       => '/praktisch/afwezig-melden',
+			'vo'       => '/praktisch/ziek-melden',
+			'mbo'      => '/voor-studenten/ziek-melden',
+			'training' => '/voor-werkgevers/medewerkers-inschrijven',
+		];
+		foreach ($sidePages as $set => $sideRoute) {
+			$declaration = $declarations->forSet(setId: $set);
+			$pages       = array_column($declaration['pages'], null, 'route');
+
+			// The footer's contact lines come from footer.contact, never a second menu.
+			self::assertNotEmpty($declaration['portal']['footer']['contact']['lines'], $set);
+			foreach ($declaration['menus'] as $menu) {
+				self::assertFalse($menu['position'] === 1 && $menu['title'] === 'Contact', $set . ': no Contact footer menu');
+			}
+
+			foreach ($declaration['pages'] as $page) {
+				foreach (($page['body']['widgets'] ?? []) as $widget) {
+					if ($widget['widgetKey'] === 'nlHeading') {
+						self::assertNotSame($page['title'], $widget['props']['text'], $set . ' ' . $page['route'] . ': the shell prints the title');
+					}
+
+					if ($widget['widgetKey'] === 'hero' && ($widget['props']['search'] ?? false) === true) {
+						self::assertTrue($widget['props']['headingVisible'] ?? false, $set . ': a hero with search shows its heading');
+					}
+				}
+			}
+
+			$side = array_values(array_filter($pages[$sideRoute]['body']['widgets'], static fn (array $w): bool => $w['gridX'] === 8));
+			self::assertCount(1, $side, $set . ' ' . $sideRoute);
+			self::assertSame(['nlLinkList', 0], [$side[0]['widgetKey'], $side[0]['gridY']], $set . ': the side list starts at the top');
+			foreach ($pages[$sideRoute]['body']['widgets'] as $widget) {
+				if ($widget['gridX'] < 8) {
+					self::assertLessThanOrEqual(8, $widget['gridX'] + $widget['gridWidth'], $widget['id'] . ' stays in the main column');
+				}
+			}
+		}//end foreach
+
+		// The home's right column: sign-in card, then the calendar, beside the news.
+		foreach (['po', 'vo'] as $set) {
+			$home = array_column($declarations->forSet(setId: $set)['pages'], null, 'route')['/']['body']['widgets'];
+			$keys = array_column($home, null, 'widgetKey');
+			self::assertSame([8, 8, 4], [$keys['nlSignIn']['gridX'], $keys['nlEventList']['gridX'], $keys['nlEventList']['gridWidth']], $set);
+			self::assertSame($keys['nlSignIn']['gridY'] + $keys['nlSignIn']['gridHeight'], $keys['nlEventList']['gridY'], $set);
+		}
+
+		$mbo  = array_column($declarations->forSet(setId: 'mbo')['pages'], null, 'route')['/']['body']['widgets'];
+		$cards = array_values(array_filter($mbo, static fn (array $w): bool => $w['widgetKey'] === 'nlLinkList'));
+		self::assertContains('Kies je richting', array_column(array_column($mbo, 'props'), 'text'));
+		self::assertSame(['card', 'card', 'card', 'card'], array_column(array_column($cards, 'props'), 'display'));
+	}//end testTheDeclarationsFollowTheBoards()
 }//end class

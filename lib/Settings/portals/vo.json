@@ -119,27 +119,6 @@
     },
     {
       "position": 1,
-      "title": "Contact",
-      "items": [
-        {
-          "order": 1,
-          "name": "Vaartlaan 40, Zuiddrecht",
-          "link": "/contact"
-        },
-        {
-          "order": 2,
-          "name": "Telefoon: [telefoonnummer]",
-          "link": "/contact"
-        },
-        {
-          "order": 3,
-          "name": "E-mail: [e-mailadres]",
-          "link": "/contact"
-        }
-      ]
-    },
-    {
-      "position": 1,
       "title": "Snel naar",
       "items": [
         {
@@ -302,7 +281,7 @@
             "gridX": 0,
             "gridY": 8,
             "gridWidth": 8,
-            "gridHeight": 5,
+            "gridHeight": 8,
             "props": {
               "heading": "Nieuws",
               "limit": 6,
@@ -319,7 +298,7 @@
             "gridX": 8,
             "gridY": 8,
             "gridWidth": 4,
-            "gridHeight": 5,
+            "gridHeight": 4,
             "props": {
               "heading": "Mijn Vaartveld",
               "display": "card",
@@ -336,10 +315,10 @@
           {
             "id": "vv-home-06-nleventlist",
             "widgetKey": "nlEventList",
-            "gridX": 0,
-            "gridY": 13,
-            "gridWidth": 12,
-            "gridHeight": 3,
+            "gridX": 8,
+            "gridY": 12,
+            "gridWidth": 4,
+            "gridHeight": 4,
             "props": {
               "heading": "Agenda",
               "display": "labels",
@@ -375,51 +354,48 @@
             }
           },
           {
-            "id": "vv-home-07-nllinklist",
-            "widgetKey": "nlLinkList",
+            "id": "vv-home-07-nllinkcolumns",
+            "widgetKey": "nlLinkColumns",
             "gridX": 0,
             "gridY": 16,
-            "gridWidth": 6,
+            "gridWidth": 12,
             "gridHeight": 3,
             "props": {
-              "heading": "Havo",
-              "links": [
+              "heading": "Ons onderwijs",
+              "columns": [
                 {
-                  "label": "De brugklas",
-                  "href": "/onderwijs"
+                  "title": "Havo",
+                  "links": [
+                    {
+                      "label": "De brugklas",
+                      "href": "/onderwijs"
+                    },
+                    {
+                      "label": "Profielkeuze in klas 3",
+                      "href": "/onderwijs"
+                    },
+                    {
+                      "label": "Examen en doorstromen naar hbo of vwo",
+                      "href": "/onderwijs"
+                    }
+                  ]
                 },
                 {
-                  "label": "Profielkeuze in klas 3",
-                  "href": "/onderwijs"
-                },
-                {
-                  "label": "Examen en doorstromen naar hbo of vwo",
-                  "href": "/onderwijs"
-                }
-              ]
-            }
-          },
-          {
-            "id": "vv-home-08-nllinklist",
-            "widgetKey": "nlLinkList",
-            "gridX": 6,
-            "gridY": 16,
-            "gridWidth": 6,
-            "gridHeight": 3,
-            "props": {
-              "heading": "Vwo",
-              "links": [
-                {
-                  "label": "De brugklas",
-                  "href": "/onderwijs"
-                },
-                {
-                  "label": "Profielkeuze in klas 3",
-                  "href": "/onderwijs"
-                },
-                {
-                  "label": "Examen en doorstromen naar de universiteit",
-                  "href": "/onderwijs"
+                  "title": "Vwo",
+                  "links": [
+                    {
+                      "label": "De brugklas",
+                      "href": "/onderwijs"
+                    },
+                    {
+                      "label": "Profielkeuze in klas 3",
+                      "href": "/onderwijs"
+                    },
+                    {
+                      "label": "Examen en doorstromen naar de universiteit",
+                      "href": "/onderwijs"
+                    }
+                  ]
                 }
               ]
             }
@@ -435,33 +411,51 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "vv-ziek-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Ziek melden en verlof",
-              "level": 1
-            }
-          },
-          {
             "id": "vv-ziek-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
-            "gridWidth": 12,
+            "gridY": 0,
+            "gridWidth": 8,
             "gridHeight": 1,
             "props": {
               "text": "Is uw kind ziek? Meld het voor 08.15 uur. Dat gaat het snelst in Mijn Vaartveld: de mentor en de docenten zien uw melding meteen."
             }
           },
           {
+            "id": "vv-ziek-07-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 8,
+            "gridY": 0,
+            "gridWidth": 4,
+            "gridHeight": 14,
+            "props": {
+              "heading": "Meer praktische zaken",
+              "links": [
+                {
+                  "label": "Lestijden en pauzes",
+                  "href": "/praktisch/lestijden"
+                },
+                {
+                  "label": "Vakanties en vrije dagen",
+                  "href": "/praktisch/vakanties"
+                },
+                {
+                  "label": "Te laat komen",
+                  "href": "/praktisch"
+                },
+                {
+                  "label": "Schoolregels",
+                  "href": "/praktisch"
+                }
+              ],
+              "display": "tinted"
+            }
+          },
+          {
             "id": "vv-ziek-03-nlalert",
             "widgetKey": "nlAlert",
             "gridX": 0,
-            "gridY": 2,
+            "gridY": 1,
             "gridWidth": 8,
             "gridHeight": 2,
             "props": {
@@ -473,10 +467,10 @@
           {
             "id": "vv-ziek-04-nlbuttonlink",
             "widgetKey": "nlButtonLink",
-            "gridX": 8,
-            "gridY": 2,
-            "gridWidth": 4,
-            "gridHeight": 2,
+            "gridX": 0,
+            "gridY": 3,
+            "gridWidth": 3,
+            "gridHeight": 1,
             "props": {
               "label": "Ziek melden",
               "href": "/mijn",
@@ -488,7 +482,7 @@
             "widgetKey": "nlTable",
             "gridX": 0,
             "gridY": 4,
-            "gridWidth": 12,
+            "gridWidth": 8,
             "gridHeight": 4,
             "props": {
               "caption": "Wat meldt u hoe?",
@@ -530,35 +524,6 @@
             "gridHeight": 6,
             "props": {
               "markdown": "## Ziek op de dag van een toets\n\nMeld uw kind ziek voordat de toets begint. Dan mag uw kind de toets inhalen. De docent spreekt daarvoor een moment af. Zonder melding telt de toets als gemist.\n\n## Afwezig zonder melding\n\nStaat uw kind afwezig en hebben wij geen melding? Dan krijgt u dezelfde dag een bericht in Mijn Vaartveld. De mentor neemt contact op als het vaker gebeurt. Bij 16 uur afwezigheid zonder geldige reden in vier weken moet de school dit melden bij de leerplichtambtenaar van de gemeente Zuiddrecht.\n\n## 18 jaar of ouder?\n\nDan meld je jezelf ziek, met je schoolaccount in Mijn Vaartveld.\n\n## Is uw kind lang ziek?\n\nDan denkt de zorgcoördinator, Anouk Visser, met u mee over schoolwerk en terugkomen."
-            }
-          },
-          {
-            "id": "vv-ziek-07-nllinklist",
-            "widgetKey": "nlLinkList",
-            "gridX": 8,
-            "gridY": 8,
-            "gridWidth": 4,
-            "gridHeight": 6,
-            "props": {
-              "heading": "Meer praktische zaken",
-              "links": [
-                {
-                  "label": "Lestijden en pauzes",
-                  "href": "/praktisch/lestijden"
-                },
-                {
-                  "label": "Vakanties en vrije dagen",
-                  "href": "/praktisch/vakanties"
-                },
-                {
-                  "label": "Te laat komen",
-                  "href": "/praktisch"
-                },
-                {
-                  "label": "Schoolregels",
-                  "href": "/praktisch"
-                }
-              ]
             }
           }
         ]
@@ -624,22 +589,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "vv-zoeken-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Nieuws en documenten",
-              "level": 1
-            }
-          },
-          {
             "id": "vv-zoeken-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -650,7 +603,7 @@
             "id": "vv-zoeken-03-nlnewslist",
             "widgetKey": "nlNewsList",
             "gridX": 0,
-            "gridY": 2,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 6,
             "props": {
@@ -672,22 +625,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "vv-praktisch-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Praktisch",
-              "level": 1
-            }
-          },
-          {
             "id": "vv-praktisch-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -698,7 +639,7 @@
             "id": "vv-praktisch-03-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 0,
-            "gridY": 2,
+            "gridY": 1,
             "gridWidth": 6,
             "gridHeight": 3,
             "props": {
@@ -730,22 +671,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "vv-praktisch-vakanties-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Vakanties en vrije dagen",
-              "level": 1
-            }
-          },
-          {
             "id": "vv-praktisch-vakanties-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -763,22 +692,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "vv-praktisch-lestijden-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Lestijden en pauzes",
-              "level": 1
-            }
-          },
-          {
             "id": "vv-praktisch-lestijden-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -796,22 +713,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "vv-onze-school-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Onze school",
-              "level": 1
-            }
-          },
-          {
             "id": "vv-onze-school-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -829,22 +734,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "vv-onderwijs-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Onderwijs",
-              "level": 1
-            }
-          },
-          {
             "id": "vv-onderwijs-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -855,7 +748,7 @@
             "id": "vv-onderwijs-03-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 0,
-            "gridY": 2,
+            "gridY": 1,
             "gridWidth": 6,
             "gridHeight": 3,
             "props": {
@@ -879,22 +772,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "vv-aanmelden-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Aanmelden voor klas 1",
-              "level": 1
-            }
-          },
-          {
             "id": "vv-aanmelden-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -912,22 +793,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "vv-contact-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Contact en lestijden",
-              "level": 1
-            }
-          },
-          {
             "id": "vv-contact-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -945,22 +814,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "vv-toegankelijkheid-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Toegankelijkheid",
-              "level": 1
-            }
-          },
-          {
             "id": "vv-toegankelijkheid-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -978,22 +835,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "vv-privacy-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Privacy",
-              "level": 1
-            }
-          },
-          {
             "id": "vv-privacy-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -1011,22 +856,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "vv-cookies-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Cookies",
-              "level": 1
-            }
-          },
-          {
             "id": "vv-cookies-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -1044,22 +877,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "vv-klacht-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Klacht of zorg melden",
-              "level": 1
-            }
-          },
-          {
             "id": "vv-klacht-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {

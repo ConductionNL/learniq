@@ -122,32 +122,6 @@
     },
     {
       "position": 1,
-      "title": "Contact",
-      "items": [
-        {
-          "order": 1,
-          "name": "Praktijkhal: Energieweg 8, Zuiddrecht",
-          "link": "/contact"
-        },
-        {
-          "order": 2,
-          "name": "Planning: [telefoonnummer]",
-          "link": "/contact"
-        },
-        {
-          "order": 3,
-          "name": "E-mail: [e-mailadres]",
-          "link": "/contact"
-        },
-        {
-          "order": 4,
-          "name": "Werkdagen 08.00 tot 17.00 uur",
-          "link": "/contact"
-        }
-      ]
-    },
-    {
-      "position": 1,
       "title": "Snel naar",
       "items": [
         {
@@ -218,9 +192,30 @@
               "title": "Cursussen voor wie warmtepompen installeert",
               "subtitle": "Van de eerste hybride tot F-gassen en BRL 6000-21. Elke cursus heeft een datum, een plaats en een certificaat.",
               "search": true,
-              "searchLabel": "Zoek een cursus",
-              "searchPlaceholder": "Zoek op cursus of certificaat",
-              "searchSubmitLabel": "Zoeken"
+              "searchLabel": "Zoek op cursus of certificaat",
+              "searchPlaceholder": "Bijvoorbeeld F-gassen of hybride",
+              "searchSubmitLabel": "Zoeken",
+              "headingVisible": true,
+              "variant": "plain",
+              "popularLabel": "Veel gekozen:",
+              "popularLinks": [
+                {
+                  "label": "F-gassen herhaling",
+                  "href": "/cursusaanbod"
+                },
+                {
+                  "label": "Hybride warmtepomp",
+                  "href": "/cursusaanbod"
+                },
+                {
+                  "label": "Storingen zoeken",
+                  "href": "/cursusaanbod"
+                },
+                {
+                  "label": "Incompany",
+                  "href": "/incompany"
+                }
+              ]
             }
           },
           {
@@ -242,14 +237,16 @@
                   "title": "F-gassen: herhaling en examen",
                   "meta": "Donderdag · 1 dag · certificaat",
                   "note": "Nog 1 plek",
-                  "noteTone": "warning"
+                  "noteTone": "warning",
+                  "href": "/cursusaanbod"
                 },
                 {
                   "date": "2026-10-15",
                   "title": "Waterzijdig inregelen",
                   "meta": "Donderdag · 1 dag · basis",
                   "note": "6 plekken vrij",
-                  "noteTone": "positive"
+                  "noteTone": "positive",
+                  "href": "/cursusaanbod"
                 },
                 {
                   "date": "2026-10-20",
@@ -257,7 +254,8 @@
                   "title": "Warmtepompen installeren: basis",
                   "meta": "Dinsdag en woensdag · 2 dagen · basis",
                   "note": "Nog 3 plekken",
-                  "noteTone": "warning"
+                  "noteTone": "warning",
+                  "href": "/cursusaanbod"
                 }
               ],
               "moreLabel": "Alle cursussen en data",
@@ -265,10 +263,53 @@
             }
           },
           {
+            "id": "wa-home-02a-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 7,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Verloopt er een certificaat in uw bedrijf?",
+              "level": 2
+            }
+          },
+          {
+            "id": "wa-home-04-nlsignin",
+            "widgetKey": "nlSignIn",
+            "gridX": 8,
+            "gridY": 7,
+            "gridWidth": 4,
+            "gridHeight": 6,
+            "props": {
+              "heading": "Mijn academie",
+              "display": "card",
+              "points": [
+                "Zie wie wanneer op cursus gaat",
+                "Download certificaten en zie wanneer ze verlopen"
+              ],
+              "buttonLabel": "Inloggen",
+              "signInHref": "/mijn",
+              "note": "Werkgevers loggen in met eHerkenning.",
+              "tone": "inverse"
+            }
+          },
+          {
+            "id": "wa-home-02b-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 8,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Zonder geldig certificaat mag een monteur niet aan het koudemiddel werken. Zo zet u uw mensen op tijd op een cursus."
+            }
+          },
+          {
             "id": "wa-home-03-nllist",
             "widgetKey": "nlList",
             "gridX": 0,
-            "gridY": 7,
+            "gridY": 9,
             "gridWidth": 8,
             "gridHeight": 4,
             "props": {
@@ -291,30 +332,10 @@
             }
           },
           {
-            "id": "wa-home-04-nlsignin",
-            "widgetKey": "nlSignIn",
-            "gridX": 8,
-            "gridY": 7,
-            "gridWidth": 4,
-            "gridHeight": 4,
-            "props": {
-              "heading": "Mijn academie",
-              "display": "card",
-              "points": [
-                "Zie wie wanneer op cursus gaat",
-                "Download certificaten en zie wanneer ze verlopen"
-              ],
-              "buttonLabel": "Inloggen",
-              "signInHref": "/mijn",
-              "note": "Werkgevers loggen in met eHerkenning.",
-              "tone": "inverse"
-            }
-          },
-          {
             "id": "wa-home-05-nlbuttonlink",
             "widgetKey": "nlButtonLink",
             "gridX": 0,
-            "gridY": 11,
+            "gridY": 13,
             "gridWidth": 4,
             "gridHeight": 1,
             "props": {
@@ -327,11 +348,11 @@
             "id": "wa-home-06-markdown",
             "widgetKey": "markdown",
             "gridX": 0,
-            "gridY": 12,
+            "gridY": 14,
             "gridWidth": 12,
             "gridHeight": 3,
             "props": {
-              "markdown": "## U oefent op echte opstellingen\n\nIn de praktijkhal staan werkende warmtepompen: lucht-water, hybride en bodem. U sluit aan, regelt in en zoekt storingen die de trainer heeft klaargezet. Een groep is nooit groter dan twaalf.\n\n[Bekijk de praktijkhal](/praktijkhal). Liever bij u op de zaak? [Lees over incompany](/incompany)."
+              "markdown": "## U oefent op echte opstellingen\n\nIn de praktijkhal staan werkende warmtepompen: lucht-water, hybride en bodem. U sluit aan, regelt in en zoekt storingen die de trainer heeft klaargezet. Een groep is nooit groter dan twaalf.\n\n[Bekijk de praktijkhal](/praktijkhal) [Liever bij u op de zaak? Lees over incompany](/incompany)"
             }
           }
         ]
@@ -345,34 +366,43 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "wa-inschrijven-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Medewerkers inschrijven",
-              "level": 1
-            }
-          },
-          {
             "id": "wa-inschrijven-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
-            "gridWidth": 12,
+            "gridY": 0,
+            "gridWidth": 8,
             "gridHeight": 1,
             "props": {
               "text": "U schrijft een of meer medewerkers in met één formulier. Uw medewerker krijgt zelf een e-mail met de dag, de plaats en wat hij moet meenemen."
             }
           },
           {
+            "id": "wa-inschrijven-08-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 8,
+            "gridY": 0,
+            "gridWidth": 4,
+            "gridHeight": 15,
+            "props": {
+              "heading": "Meer voor werkgevers",
+              "links": [
+                {
+                  "label": "Wanneer verloopt een certificaat?",
+                  "href": "/certificaten"
+                },
+                {
+                  "label": "Incompany: een eigen cursusdag",
+                  "href": "/incompany"
+                }
+              ]
+            }
+          },
+          {
             "id": "wa-inschrijven-03-nldescriptionlist",
             "widgetKey": "nlDescriptionList",
             "gridX": 0,
-            "gridY": 2,
-            "gridWidth": 12,
+            "gridY": 1,
+            "gridWidth": 8,
             "gridHeight": 3,
             "props": {
               "items": [
@@ -395,8 +425,8 @@
             "id": "wa-inschrijven-04-nlalert",
             "widgetKey": "nlAlert",
             "gridX": 0,
-            "gridY": 5,
-            "gridWidth": 12,
+            "gridY": 4,
+            "gridWidth": 8,
             "gridHeight": 2,
             "props": {
               "kind": "info",
@@ -408,8 +438,8 @@
             "id": "wa-inschrijven-05-nltable",
             "widgetKey": "nlTable",
             "gridX": 0,
-            "gridY": 7,
-            "gridWidth": 12,
+            "gridY": 6,
+            "gridWidth": 8,
             "gridHeight": 4,
             "props": {
               "caption": "Verplaatsen of annuleren. Een collega mag altijd in de plaats van een zieke monteur komen. Geef de nieuwe naam door in Mijn academie.",
@@ -441,7 +471,7 @@
             "id": "wa-inschrijven-06-nlbuttonlink",
             "widgetKey": "nlButtonLink",
             "gridX": 0,
-            "gridY": 11,
+            "gridY": 10,
             "gridWidth": 4,
             "gridHeight": 1,
             "props": {
@@ -454,32 +484,11 @@
             "id": "wa-inschrijven-07-markdown",
             "widgetKey": "markdown",
             "gridX": 0,
-            "gridY": 12,
+            "gridY": 11,
             "gridWidth": 8,
             "gridHeight": 4,
             "props": {
               "markdown": "## Betalen\n\nNa de bevestiging krijgt u een factuur. De betaaltermijn is [AANTAL] dagen.\n\n## Overleggen met de planning\n\nSophie van Dam plant de cursusdagen. Zij weet waar nog plek is. [telefoonnummer], [e-mailadres]"
-            }
-          },
-          {
-            "id": "wa-inschrijven-08-nllinklist",
-            "widgetKey": "nlLinkList",
-            "gridX": 8,
-            "gridY": 12,
-            "gridWidth": 4,
-            "gridHeight": 4,
-            "props": {
-              "heading": "Meer voor werkgevers",
-              "links": [
-                {
-                  "label": "Wanneer verloopt een certificaat?",
-                  "href": "/certificaten"
-                },
-                {
-                  "label": "Incompany: een eigen cursusdag",
-                  "href": "/incompany"
-                }
-              ]
             }
           }
         ]
@@ -493,22 +502,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "wa-aanbod-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Cursusaanbod",
-              "level": 1
-            }
-          },
-          {
             "id": "wa-aanbod-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -519,7 +516,7 @@
             "id": "wa-aanbod-03-nleventlist",
             "widgetKey": "nlEventList",
             "gridX": 0,
-            "gridY": 2,
+            "gridY": 1,
             "gridWidth": 12,
             "gridHeight": 5,
             "props": {
@@ -572,22 +569,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "wa-certificaten-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Certificaten",
-              "level": 1
-            }
-          },
-          {
             "id": "wa-certificaten-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -605,22 +590,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "wa-voor-werkgevers-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Voor werkgevers",
-              "level": 1
-            }
-          },
-          {
             "id": "wa-voor-werkgevers-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -631,7 +604,7 @@
             "id": "wa-voor-werkgevers-03-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 0,
-            "gridY": 2,
+            "gridY": 1,
             "gridWidth": 6,
             "gridHeight": 3,
             "props": {
@@ -659,22 +632,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "wa-incompany-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Incompany",
-              "level": 1
-            }
-          },
-          {
             "id": "wa-incompany-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -692,22 +653,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "wa-praktijkhal-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Praktijkhal",
-              "level": 1
-            }
-          },
-          {
             "id": "wa-praktijkhal-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -725,22 +674,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "wa-contact-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Contact en route",
-              "level": 1
-            }
-          },
-          {
             "id": "wa-contact-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -758,22 +695,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "wa-algemene-voorwaarden-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Algemene voorwaarden",
-              "level": 1
-            }
-          },
-          {
             "id": "wa-algemene-voorwaarden-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -791,22 +716,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "wa-privacy-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Privacy",
-              "level": 1
-            }
-          },
-          {
             "id": "wa-privacy-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
@@ -824,22 +737,10 @@
         "type": "grid",
         "widgets": [
           {
-            "id": "wa-toegankelijkheid-01-nlheading",
-            "widgetKey": "nlHeading",
-            "gridX": 0,
-            "gridY": 0,
-            "gridWidth": 12,
-            "gridHeight": 1,
-            "props": {
-              "text": "Toegankelijkheid",
-              "level": 1
-            }
-          },
-          {
             "id": "wa-toegankelijkheid-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 1,
+            "gridY": 0,
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
