@@ -202,6 +202,8 @@ class ParentRecordPage {
 			$site->absencePage(),
 			$site->conferencesPage(),
 			$site->inGroup(page: $this->calendarPage()),
+			// The page the overview's task opens, out of the menu.
+			$site->invitationPage(),
 		];
 		// Every collection keeps its own page and route, out of the menu.
 		foreach ($sections->pages(collections: $collections, actions: $actions) as $page) {

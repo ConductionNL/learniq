@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Portal;
 
+use OCA\Learniq\Portal\ParentSitePages;
 use OCA\Learniq\Portal\PortalContributionProvider;
 use OCA\Learniq\Portal\StudentPortalPages;
 use OCA\Learniq\Portal\TrainerSitePages;
@@ -85,9 +86,11 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame('My space', $overview['group']);
 		// No child switcher: the board's overview is about both children (REPORT-2, item 4).
 		self::assertArrayNotHasKey('records', $overview);
-		// A round where her child already has a time drops out of "Wat u nog moet doen".
-		self::assertSame(['lookup' => 'myTime', 'in' => ['booked', 'acknowledged', 'proposed', 'confirmed', 'completed']], $overview['blocks'][1]['excludeWhen']);
-		self::assertSame(['parentConferenceSlots', 'conferenceRoundId', 'lifecycle'], [$overview['blocks'][1]['lookups'][0]['collection'], $overview['blocks'][1]['lookups'][0]['matchField'], $overview['blocks'][1]['lookups'][0]['valueField']]);
+		// One task per child per open round, titled with the child's first name
+		// (portaliq lookup-by-row-field); a child who has a time has no open row.
+		self::assertSame('Pick a time for the parent-teacher conversation of {childName}', $overview['blocks'][1]['titleTemplate']);
+		self::assertSame([ParentSitePages::childNameLookup()], $overview['blocks'][1]['lookups']);
+		self::assertArrayNotHasKey('excludeWhen', $overview['blocks'][1]);
 		$events = array_values(array_filter($overview['blocks'][4]['sources'], static fn (array $src): bool => $src['collection'] === 'parentSchoolEvents'))[0];
 		self::assertSame('description', $events['metaField'], 'the line under each tile');
 		self::assertSame('parentOverview', $manifest['pages'][0]['id']);
@@ -101,7 +104,7 @@ class GuardianSitePagesTest extends TestCase {
 		$slots = array_values(array_filter($overview['blocks'][4]['sources'], static fn (array $src): bool => $src['collection'] === 'parentConferenceSlots'))[0];
 		self::assertArrayNotHasKey('titleField', $slots);
 		self::assertSame(['Parent-teacher conversation', 'teacherName'], [$slots['title'], $slots['metaField']]);
-		self::assertSame(['type' => 'tasks', 'label' => 'Still to do', 'display' => 'highlight', 'collection' => 'parentConferenceRounds', 'dueField' => 'bookingClosesAt', 'titleFields' => ['name'], 'buttonLabel' => 'Pick a time', 'dueInLine' => true], array_diff_key($overview['blocks'][1], ['lookups' => 1, 'excludeWhen' => 1]));
+		self::assertSame(['type' => 'tasks', 'label' => 'Still to do', 'display' => 'highlight', 'collection' => 'parentConferenceInvitations', 'dueField' => 'bookingClosesAt', 'titleFields' => ['roundName'], 'buttonLabel' => 'Pick a time', 'dueInLine' => true], array_diff_key($overview['blocks'][1], ['lookups' => 1, 'titleTemplate' => 1]));
 		self::assertSame(['parentChildren', 'cards'], [$overview['blocks'][2]['collection'], $overview['blocks'][2]['display']]);
 		// The child's chip is derived from the guardian's own reports, every field it reads projected.
 		$status = $overview['blocks'][2]['status'];
@@ -132,9 +135,10 @@ class GuardianSitePagesTest extends TestCase {
 			}
 		}
 
-		// The task's due field and title are projected, or portaliq drops them.
-		self::assertContains('bookingClosesAt', $collections['parentConferenceRounds']['fields']);
-		self::assertContains('name', $collections['parentConferenceRounds']['fields']);
+		// The task's due field, title and the lookup's row field are projected, or portaliq drops them.
+		foreach (['bookingClosesAt', 'roundName', 'learnerRef'] as $field) {
+			self::assertContains($field, $collections['parentConferenceInvitations']['fields'], $field);
+		}
 	}//end testTheGuardianOverviewIsHomeAndSwitchesChildren()
 
 	/**

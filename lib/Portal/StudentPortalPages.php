@@ -436,6 +436,8 @@ class StudentPortalPages {
 				['field' => 'hoursSpent', 'label' => 'Hours'],
 				['field' => 'selfAssessment', 'label' => 'Your estimate', 'valueLabels' => PortalValueLabels::SELF_ASSESSMENT],
 			],
+			// "Nu invullen" on each row: her own estimate, nothing else.
+			'rowActions' => [StudentSelfAssessment::ACTION],
 		];
 	}//end workProcessesCollection()
 
@@ -521,6 +523,11 @@ class StudentPortalPages {
 			}
 
 			$pages[] = $this->collectionPage(collection: $collection, actions: $actions);
+		}
+
+		// Her self-assessment, where her work processes are read.
+		if (in_array('studentWorkProcesses', array_column($collections, 'id'), true) === true) {
+			$pages[] = (new StudentSelfAssessment())->page();
 		}
 
 		return $pages;
@@ -640,9 +647,17 @@ class StudentPortalPages {
 		// A collection with steps is a record page: the open row's steps under the list.
 		if (isset($collection['steps']) === true) {
 			$page['record'] = ['collection' => $id, 'titleFields' => ['trainingCompanyName']];
-			// "Volgende stap": the current step as a highlight card (portaliq #1409).
-			// No button yet: the self-assessment has no page of its own.
-			$blocks[] = ['type' => 'steps', 'collection' => $id, 'display' => 'highlight', 'eyebrow' => 'Next step'];
+			// "Volgende stap": the current step as a highlight card (portaliq #1409),
+			// its button "Zelfbeoordeling afmaken" opening her self-assessment of this placement.
+			$blocks[] = [
+				'type' => 'steps',
+				'collection' => $id,
+				'display' => 'highlight',
+				'eyebrow' => 'Next step',
+				'buttonLabel' => 'Finish your self-assessment',
+				'page' => StudentSelfAssessment::PAGE,
+				'withRecord' => true,
+			];
 			// Bars across, as the board's "Waar sta je?" (portaliq steps `display: bars`).
 			$blocks[] = ['type' => 'steps', 'collection' => $id, 'label' => (string)($collection['steps']['label'] ?? ''), 'display' => 'bars'];
 		}
