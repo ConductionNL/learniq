@@ -115,7 +115,15 @@ class ExamplePortalDeclarationsTest extends TestCase {
 			}
 
 			self::assertNotEmpty($declaration['accounts'], $set);
+			// A trainer of a training company has no Nextcloud user in the set; her
+			// demo account is named by the trainer record its claim points at.
+			$trainers = array_column(($objects['praktijkopleider'] ?? []), 'uuid');
 			foreach ($declaration['accounts'] as $account) {
+				if (isset($account['portal']['claims']['practicalTrainerId']) === true) {
+					self::assertContains($account['portal']['claims']['practicalTrainerId'], $trainers, $set . ': ' . $account['userId']);
+					continue;
+				}
+
 				self::assertContains($account['userId'], $people, $set . ': account ' . $account['userId'] . ' is a person in the set');
 				self::assertNotSame('', $account['displayName']);
 			}
@@ -269,8 +277,17 @@ class ExamplePortalDeclarationsTest extends TestCase {
 		$declarations = new ExamplePortalDeclarations();
 		foreach (['po', 'vo', 'mbo', 'training'] as $set) {
 			$portal = $declarations->forSet(setId: $set)['portal'];
-			self::assertSame(['cases', 'tasks', 'access'], $portal['residentMenu']['leaveOut'] ?? null, $set);
+			self::assertSame(['cases', 'tasks', 'access'], array_slice($portal['residentMenu']['leaveOut'] ?? [], 0, 3), $set);
 		}
+
+		// Vaartveld's pupils have no placement: no "BPV en uren" in their menu (REPORT-2, item 6).
+		self::assertContains('learniq:studentHourWeeks', $declarations->forSet(setId: 'vo')['portal']['residentMenu']['leaveOut']);
+		self::assertNotContains('learniq:studentHourWeeks', $declarations->forSet(setId: 'mbo')['portal']['residentMenu']['leaveOut']);
+
+		// De Wilgenboom's search finds news, as its board: "Zo werkt de ouderavond dit jaar" (REPORT-2, item 5).
+		$search = array_column($declarations->forSet(setId: 'po')['pages'], null, 'route')['/zoeken']['body']['widgets'];
+		$catalogue = array_values(array_filter($search, static fn (array $w): bool => $w['widgetKey'] === 'nlCatalogue'))[0];
+		self::assertSame(['news'], $catalogue['props']['types']);
 
 		// The academy keeps its own card line next to it.
 		self::assertSame('U regelt het voor', $declarations->forSet(setId: 'training')['portal']['residentMenu']['cardLabel']);

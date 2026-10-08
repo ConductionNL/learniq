@@ -83,7 +83,13 @@ class GuardianSitePagesTest extends TestCase {
 
 		self::assertTrue($overview['home']);
 		self::assertSame('My space', $overview['group']);
-		self::assertSame(['collection' => 'parentChildren', 'titleFields' => ['givenName'], 'subtitleFields' => ['groupLabel']], $overview['records']);
+		// No child switcher: the board's overview is about both children (REPORT-2, item 4).
+		self::assertArrayNotHasKey('records', $overview);
+		// A round where her child already has a time drops out of "Wat u nog moet doen".
+		self::assertSame(['lookup' => 'myTime', 'in' => ['booked', 'acknowledged', 'proposed', 'confirmed', 'completed']], $overview['blocks'][1]['excludeWhen']);
+		self::assertSame(['parentConferenceSlots', 'conferenceRoundId', 'lifecycle'], [$overview['blocks'][1]['lookups'][0]['collection'], $overview['blocks'][1]['lookups'][0]['matchField'], $overview['blocks'][1]['lookups'][0]['valueField']]);
+		$events = array_values(array_filter($overview['blocks'][4]['sources'], static fn (array $src): bool => $src['collection'] === 'parentSchoolEvents'))[0];
+		self::assertSame('description', $events['metaField'], 'the line under each tile');
 		self::assertSame('parentOverview', $manifest['pages'][0]['id']);
 		// The board's order (school-design wilgenboom MijnOverzicht): greeting, the task, the children, news, this month, and nothing else.
 		self::assertSame(['greeting', 'tasks', 'collection', 'news', 'calendar'], array_column($overview['blocks'], 'type'));
@@ -95,7 +101,7 @@ class GuardianSitePagesTest extends TestCase {
 		$slots = array_values(array_filter($overview['blocks'][4]['sources'], static fn (array $src): bool => $src['collection'] === 'parentConferenceSlots'))[0];
 		self::assertArrayNotHasKey('titleField', $slots);
 		self::assertSame(['Parent-teacher conversation', 'teacherName'], [$slots['title'], $slots['metaField']]);
-		self::assertSame(['type' => 'tasks', 'label' => 'Still to do', 'display' => 'highlight', 'collection' => 'parentConferenceRounds', 'dueField' => 'bookingClosesAt', 'titleFields' => ['name'], 'buttonLabel' => 'Pick a time'], $overview['blocks'][1]);
+		self::assertSame(['type' => 'tasks', 'label' => 'Still to do', 'display' => 'highlight', 'collection' => 'parentConferenceRounds', 'dueField' => 'bookingClosesAt', 'titleFields' => ['name'], 'buttonLabel' => 'Pick a time', 'dueInLine' => true], array_diff_key($overview['blocks'][1], ['lookups' => 1, 'excludeWhen' => 1]));
 		self::assertSame(['parentChildren', 'cards'], [$overview['blocks'][2]['collection'], $overview['blocks'][2]['display']]);
 		// The child's chip is derived from the guardian's own reports, every field it reads projected.
 		$status = $overview['blocks'][2]['status'];
@@ -134,7 +140,9 @@ class GuardianSitePagesTest extends TestCase {
 	 */
 	public function testTheGuardianMenuIsGroupedPerChild(): void {
 		$pages = self::pages(audience: 'parent');
-		foreach (['parentChildren', 'parentAbsence', 'parentConferences'] as $id) {
+		// The absence page is one page for both children (board MijnLijst).
+		self::assertArrayNotHasKey('perRecord', $pages['parentAbsence']);
+		foreach (['parentChildren', 'parentConferences'] as $id) {
 			self::assertSame('parentChildren', $pages[$id]['perRecord'], $id);
 			self::assertSame('parentChildren', $pages[$id]['record']['collection'], $id);
 		}

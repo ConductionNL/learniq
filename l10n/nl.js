@@ -3937,6 +3937,7 @@ OC.L10N.register(
         "Homework and tests": "Huiswerk en toetsen",
         "Reported sick": "Ziek gemeld",
         "At school": "Op school",
+        "After that": "Daarna",
         "Latest grades": "Laatste cijfers",
         "Absence this school year": "Afwezigheid dit schooljaar",
         "Without a report": "Zonder melding",

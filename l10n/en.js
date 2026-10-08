@@ -3485,6 +3485,7 @@ OC.L10N.register(
         "Homework and tests": "Homework and tests",
         "Reported sick": "Reported sick",
         "At school": "At school",
+        "After that": "After that",
         "Latest grades": "Latest grades",
         "Absence this school year": "Absence this school year",
         "Without a report": "Without a report",

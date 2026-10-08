@@ -75,7 +75,8 @@
       "leaveOut": [
         "cases",
         "tasks",
-        "access"
+        "access",
+        "learniq:studentHourWeeks"
       ]
     }
   },

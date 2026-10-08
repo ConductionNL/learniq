@@ -32,6 +32,7 @@ import { ACR_SUBSTANTIAL } from '../helpers/stub-digid.ts'
 import {
 	ADMIN_CREDENTIALS,
 	boardShot,
+	dated,
 	ensurePortalAccount,
 	expectNoHorizontalScroll,
 	expectNoSeriousAxeFinding,
@@ -163,10 +164,10 @@ test.describe('warmtepompacademie: Mijn academie (Linda Jansen, employer)', () =
 			'Geboortedatum van 1 deelnemer ontbreekt',
 			'Warmtepompen installeren: basis',
 			'De plek staat vast',
-			'Bevestiging uiterlijk dinsdag 6 oktober',
+			dated('Bevestiging uiterlijk dinsdag 6 oktober'),
 			'F-gassen categorie 1',
-			'Verloopt over 8 weken',
-			'Herhaling op 8 oktober',
+			/Verloopt over \d+ weken/,
+			dated('Herhaling op 8 oktober'),
 			'BRL 6000-21, bovengronds deel',
 		])
 		if (info.project.name === 'phone') {
@@ -192,8 +193,15 @@ test.describe('warmtepompacademie: Mijn academie (Linda Jansen, employer)', () =
 		await expectTexts(page, [
 			'Lucht-water warmtepomp: ontwerp en inbedrijfstelling',
 			'Waterzijdig inregelen',
+		])
+		// The board's Detail is one booking opened: its participants and the birth date form.
+		await page
+			.getByRole('link', { name: /F-gassen: herhaling en examen/ })
+			.first()
+			.click()
+		await expectTexts(page, [
 			'Geboortedatum ontbreekt',
-			'Certificaat geldig tot 30 november 2026',
+			dated('Certificaat geldig tot 30 november 2026'),
 			'Geboortedatum invullen',
 		])
 		await expectNoSeriousAxeFinding(page)
@@ -220,11 +228,11 @@ test.describe('warmtepompacademie: Mijn academie (Tom Verbeek, participant)', ()
 		await expectTexts(page, [
 			'Tom',
 			'F-gassen: herhaling en examen',
-			'donderdag 8 oktober',
+			dated('donderdag 8 oktober'),
 			'08.30 tot 16.30 uur',
 			'Praktijkhal Zuiddrecht, Energieweg 8',
 			'F-gassen categorie 1',
-			'Verloopt over 8 weken',
+			/Verloopt over \d+ weken/,
 			'Lucht-water warmtepomp: ontwerp en inbedrijfstelling',
 		])
 		if (info.project.name === 'phone') {

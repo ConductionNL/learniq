@@ -1346,6 +1346,17 @@
           "learnerRef": "ee03000c-0000-4000-8000-000000000252"
         }
       }
+    },
+    {
+      "userId": "mbo-praktijkopleider-037",
+      "displayName": "Petra Bakker",
+      "groups": [],
+      "portal": {
+        "audience": "praktijkopleider",
+        "claims": {
+          "practicalTrainerId": "ee030010-0000-4000-8000-000000000037"
+        }
+      }
     }
   ]
 }

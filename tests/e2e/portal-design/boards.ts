@@ -120,6 +120,31 @@ export async function openSitePage(
 		.toBeGreaterThan(0)
 }
 
+const MONTH =
+	'januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december|jan|feb|mrt|apr|jun|jul|aug|sep|okt|nov|dec'
+
+/**
+ * A board text with dates in it, as a pattern that holds in any week: the
+ * example-set load moves every date to the week it runs in
+ * (demo-dates-follow-the-load-week), so the day and month vary while the
+ * weekday and every other word stay. "Bevestiging uiterlijk dinsdag 6
+ * oktober" matches "Bevestiging uiterlijk dinsdag 27 oktober".
+ *
+ * @param {string} text The board's words.
+ * @return {RegExp} The pattern.
+ */
+export function dated(text: string): RegExp {
+	const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+	return new RegExp(
+		escaped
+			.replace(new RegExp(`\\b(${MONTH})\\b`, 'gi'), `(?:${MONTH})`)
+			// Days first: the year pattern written after holds digits of its own.
+			.replace(/\b\d{1,2}\b/g, '\\d{1,2}')
+			.replace(/\b\d{4}\b/g, '\\d{4}'),
+		'i',
+	)
+}
+
 /**
  * Every text must be visible on the page, in any element.
  *
@@ -127,13 +152,16 @@ export async function openSitePage(
  * @param {string[]} texts The texts of the board.
  * @return {Promise<void>}
  */
-export async function expectTexts(page: Page, texts: string[]): Promise<void> {
+export async function expectTexts(
+	page: Page,
+	texts: Array<string | RegExp>,
+): Promise<void> {
 	for (const text of texts) {
 		// Only visible matches count: the site title is in the header twice,
 		// once hidden behind the logo.
 		await expect(
 			page.getByText(text, { exact: false }).filter({ visible: true }).first(),
-			`"${text}" is on the page`,
+			`"${String(text)}" is on the page`,
 		).toBeVisible({ timeout: 15_000 })
 	}
 }
@@ -214,9 +242,17 @@ export async function expectTheme(
 		const css = (el: Element | null, prop: string) =>
 			el ? getComputedStyle(el).getPropertyValue(prop) : ''
 		const heading = document.querySelector('main h1, main h2')
-		const button = document.querySelector(
-			'main .utrecht-button--primary-action, main button, main a.utrecht-button',
-		)
+		// Not the hero's search button: it is joined to its field and square
+		// on the left by design (portaliq hero `variant: plain`).
+		const inSearch = (el: Element) =>
+			el.closest('[role="search"]') !== null
+			|| Boolean(el.closest('form')?.querySelector('input[type="search"]'))
+		const button =
+			Array.from(
+				document.querySelectorAll(
+					'main .utrecht-button--primary-action, main button, main a.utrecht-button',
+				),
+			).find((el) => !inSearch(el)) ?? null
 		return {
 			headingFont: css(heading, 'font-family'),
 			bodyFont: css(document.body, 'font-family'),
