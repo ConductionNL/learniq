@@ -619,7 +619,9 @@
       "overlay": "course-management",
       "specs": [
         "course-management",
-        "content-adaptive-path"
+        "content-adaptive-path",
+        "content-preview-as-learner",
+        "course-evaluation"
       ]
     },
     {
@@ -749,7 +751,8 @@
       "overlay": null,
       "specs": [
         "progress-tracking",
-        "engagement"
+        "engagement",
+        "student-analytics"
       ]
     },
     {
@@ -865,7 +868,9 @@
       "specs": [
         "timetabling",
         "personal-timetable",
-        "timetable-calendar-feed"
+        "timetable-calendar-feed",
+        "exam-schedule",
+        "timetable-source"
       ]
     },
     {
@@ -875,7 +880,8 @@
       "area": "guardians",
       "overlay": null,
       "specs": [
-        "parent-conferences"
+        "parent-conferences",
+        "portal-contribution"
       ]
     },
     {
@@ -957,7 +963,8 @@
       "overlay": null,
       "specs": [
         "compliance-audit",
-        "governance-four-eyes-on-approved-data"
+        "governance-four-eyes-on-approved-data",
+        "rbac-groups"
       ]
     },
     {
@@ -1048,7 +1055,10 @@
         "i18n-locale-parity",
         "example-sets",
         "integration-leaves",
-        "integrations"
+        "integrations",
+        "first-time-setup",
+        "navigation",
+        "realtime-updates"
       ]
     },
     {
@@ -1062,6 +1072,13 @@
         "tenancy"
       ]
     }
+  ],
+  "internalSpecs": [
+    "beta-alignment",
+    "component-registry",
+    "docs-product-pages",
+    "portal-identity",
+    "preferences-api"
   ],
   "providers": [
     {
@@ -1415,8 +1432,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/export-scannable-links-to-user-profiles-48334582.html; Export Scannable Links: \"By scanning a code, you will get to the page with the list of user's certificates. These scannable links are convenient to use when you need to quickly check whether an employee has completed the required training.\" Per person check of certificates, no rule concept"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
+        "canvas": "design-system",
+        "board": "LqCfTrainingVastleggen"
       }
     },
     {
@@ -1449,8 +1466,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/external-certificates-141559364.html; External Certificates: \"L&D managers can record external certificates that employees earn from outside courses and training programs\" and \"Log external training directly in the employee's profile.\""
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
+        "canvas": "design-system",
+        "board": "LqCfTrainingVastleggen"
       }
     },
     {
@@ -1483,8 +1500,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for verify, approve external certificate; the How to Add an External Certificate page describes a single admin entry with no second verifier step"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
+        "canvas": "design-system",
+        "board": "LqCfTrainingVastleggen"
       }
     },
     {
@@ -1519,8 +1536,8 @@
       },
       "note": "Downgraded 2026-09-27 from built.state 'built' and learniq 'yes' (learniq#952): POST /api/external-training/bulk exists (appinfo/routes.php:82) but nothing in src/ calls /api/external-training/, so no page offers the bulk upload.",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
+        "canvas": "design-system",
+        "board": "LqCfTrainingVastleggen"
       }
     },
     {
@@ -2179,8 +2196,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/how-to-add-an-external-certificate-141561985.html; External certificates are recorded from the profile: \"Enter the certificate name. In the Issuer field ... Enter the certificate number\" and \"you can upload a digital copy of the certificate.\" It records the outside certificate; issuing an own iSpring certificate for it is not documented"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
+        "canvas": "design-system",
+        "board": "LqCfTrainingVastleggen"
       }
     },
     {
@@ -7966,8 +7983,8 @@
         "ispring-learn": "read 2026-09-26: https://www.ispring.com/features; \"Guided setup We'll help you get started and tailor your LMS to your workflow.\" A service from the vendor team, no in-app first run wizard documented"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; on the missing-boards list for the design session (decision 96)"
+        "canvas": "design-system",
+        "board": "LqInstallatie"
       }
     },
     {
@@ -8111,8 +8128,8 @@
       "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84940: compliance processes with recertification, signals, and recording exceptions and exemptions. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; on the missing-boards list for the design session (decision 96)"
+        "canvas": "design-system",
+        "board": "LqCfVrijstellingen"
       }
     },
     {
@@ -9206,8 +9223,8 @@
       "ispring-learn": "unknown",
       "source": "spec-round-2026-10-07",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; on the missing-boards list for the design session (decision 96)"
+        "canvas": "design-system",
+        "board": "LqInstallatie"
       }
     },
     {
@@ -9289,8 +9306,8 @@
       "ispring-learn": "unknown",
       "source": "spec-round-2026-10-07",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; on the missing-boards list for the design session (decision 96)"
+        "canvas": "design-system",
+        "board": "LqKoppelingen"
       }
     },
     {
@@ -9341,8 +9358,8 @@
       "ispring-learn": "unknown",
       "source": "spec-round-2026-10-07",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; on the missing-boards list for the design session (decision 96)"
+        "canvas": "design-system",
+        "board": "LqInstellingen"
       }
     },
     {
@@ -9762,5 +9779,68 @@
       "chamilo": "unknown",
       "ispring-learn": "unknown"
     }
-  ]
+  ],
+  "specScreens": {
+    "ai-translated-catalogue": {
+      "board": [
+        "LqInstellingen"
+      ]
+    },
+    "compliance-exemptions": {
+      "board": [
+        "LqCfVrijstellingen"
+      ]
+    },
+    "external-training-upload": {
+      "board": [
+        "LqCfTrainingVastleggen"
+      ]
+    },
+    "integrations": {
+      "board": [
+        "LqKoppelingen"
+      ]
+    },
+    "first-time-setup": {
+      "board": [
+        "LqInstallatie"
+      ]
+    },
+    "apphost-adoption": {
+      "board": null,
+      "reason": "no UI by nature: health and metrics endpoints and shared app boilerplate, read by monitoring, not by people."
+    },
+    "mcp-tool-surface": {
+      "board": null,
+      "reason": "no UI by nature: the read-only tools an AI agent calls through OpenRegister; an API, not a page."
+    },
+    "realtime-updates": {
+      "board": null,
+      "reason": "no UI by nature: open pages refresh themselves when data changes; there is nothing to look at besides the pages themselves."
+    },
+    "rbac-groups": {
+      "board": null,
+      "reason": "no UI by nature: the register declares which groups may read and write each schema and OpenRegister enforces it; learniq has no page for it."
+    },
+    "beta-alignment": {
+      "board": null,
+      "reason": "no UI by nature: internal: keeps the app description, product page and docs honest about what ships."
+    },
+    "component-registry": {
+      "board": null,
+      "reason": "no UI by nature: internal: a registry and regression test so every custom page renders a component."
+    },
+    "docs-product-pages": {
+      "board": null,
+      "reason": "no UI by nature: internal: the layout of the documentation site, outside the app."
+    },
+    "portal-identity": {
+      "board": null,
+      "reason": "no UI by nature: internal: reference fields on the records that let portaliq scope a portal user to their own data."
+    },
+    "preferences-api": {
+      "board": null,
+      "reason": "no UI by nature: internal: a per-user key and value endpoint that shared widgets use to remember a setting."
+    }
+  }
 }
