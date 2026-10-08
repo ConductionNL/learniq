@@ -21522,8 +21522,9 @@
                     },
                     "tenant_id": {
                         "type": "string",
-                        "description": "Tenant identifier for multi-tenancy isolation.",
-                        "title": "Tenant"
+                        "format": "uuid",
+                        "description": "Tenant identifier for multi-tenant isolation.",
+                        "title": "Tenant ID"
                     }
                 },
                 "x-openregister-seed": []
