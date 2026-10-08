@@ -117,25 +117,10 @@ class ExamplePortalAccountGrants {
 	public function grant(string $profileId): array {
 		$result      = ['status' => 'none', 'granted' => 0, 'kept' => 0, 'waiting' => 0, 'failed' => 0, 'reasons' => []];
 		$declaration = $this->declarations->forSet(setId: $profileId);
-		$wanted      = array_values(
-			array_filter(
-				(array)($declaration['accounts'] ?? []),
-				static fn ($account): bool => is_array($account) === true && is_array($account['portal'] ?? null) === true
-			)
-		);
-		if ($declaration === null || $wanted === []) {
-			return $result;
-		}
-
-		if ($this->appManager->isInstalled(self::PORTALIQ_APP_ID) === false) {
-			return ['status' => 'portaliq-absent'] + $result;
-		}
-
-		// The Nextcloud provisioning came with portaliq #1381; an older event has no getNextcloudUid().
-		if (class_exists($this->provisionEventClass) === false || class_exists($this->claimEventClass) === false
-			|| method_exists($this->provisionEventClass, 'getNextcloudUid') === false
-		) {
-			return ['status' => 'portaliq-too-old'] + $result;
+		$wanted      = self::wanted(declaration: $declaration);
+		$status      = $this->readiness(wanted: $wanted);
+		if ($status !== 'done') {
+			return ['status' => $status] + $result;
 		}
 
 		$result['status'] = 'done';
@@ -144,16 +129,7 @@ class ExamplePortalAccountGrants {
 		$organisation = trim((string)($portal['organisation'] ?? ''));
 
 		foreach ($wanted as $account) {
-			try {
-				$outcome = $this->one(account: $account, slug: $slug, organisation: $organisation);
-			} catch (Throwable $exception) {
-				$outcome = 'unavailable';
-				$this->logger->warning(
-					'[ExamplePortalAccountGrants] portal account for "{user}" failed: {msg}',
-					['user' => (string)($account['userId'] ?? ''), 'msg' => $exception->getMessage()]
-				);
-			}
-
+			$outcome = $this->safely(account: $account, slug: $slug, organisation: $organisation);
 			if (in_array($outcome, ['granted', 'kept', 'waiting'], true) === true) {
 				$result[$outcome]++;
 				continue;
@@ -161,10 +137,73 @@ class ExamplePortalAccountGrants {
 
 			$result['failed']++;
 			$result['reasons'][] = (string)($account['userId'] ?? '') . ': ' . $outcome;
-		}//end foreach
+		}
 
 		return $result;
 	}//end grant()
+
+	/**
+	 * The declared accounts that ask for a portal account.
+	 *
+	 * @param array<string, mixed>|null $declaration The set's declaration.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private static function wanted(?array $declaration): array {
+		return array_values(
+			array_filter(
+				(array)($declaration['accounts'] ?? []),
+				static fn ($account): bool => is_array($account) === true && is_array($account['portal'] ?? null) === true
+			)
+		);
+	}//end wanted()
+
+	/**
+	 * Whether portaliq can be asked: `done`, `none`, `portaliq-absent` or `portaliq-too-old`.
+	 *
+	 * @param array<int, array<string, mixed>> $wanted The accounts that ask for one.
+	 *
+	 * @return string
+	 */
+	private function readiness(array $wanted): string {
+		if ($wanted === []) {
+			return 'none';
+		}
+
+		if ($this->appManager->isInstalled(self::PORTALIQ_APP_ID) === false) {
+			return 'portaliq-absent';
+		}
+
+		// The Nextcloud provisioning came with portaliq #1381; an older event has no getNextcloudUid().
+		if (class_exists($this->provisionEventClass) === false || class_exists($this->claimEventClass) === false
+			|| method_exists($this->provisionEventClass, 'getNextcloudUid') === false
+		) {
+			return 'portaliq-too-old';
+		}
+
+		return 'done';
+	}//end readiness()
+
+	/**
+	 * One account, never throwing: an error is the outcome `unavailable`.
+	 *
+	 * @param array<string, mixed> $account      The declared account.
+	 * @param string               $slug         The portal slug.
+	 * @param string               $organisation The portal's organisation, or ''.
+	 *
+	 * @return string
+	 */
+	private function safely(array $account, string $slug, string $organisation): string {
+		try {
+			return $this->one(account: $account, slug: $slug, organisation: $organisation);
+		} catch (Throwable $exception) {
+			$this->logger->warning(
+				'[ExamplePortalAccountGrants] portal account for "{user}" failed: {msg}',
+				['user' => (string)($account['userId'] ?? ''), 'msg' => $exception->getMessage()]
+			);
+			return 'unavailable';
+		}
+	}//end safely()
 
 	/**
 	 * One account: kept when it is complete, else provisioned and claimed.
@@ -178,17 +217,18 @@ class ExamplePortalAccountGrants {
 	private function one(array $account, string $slug, string $organisation): string {
 		$uid      = trim((string)($account['userId'] ?? ''));
 		$audience = trim((string)($account['portal']['audience'] ?? ''));
-		$claims   = array_filter((array)($account['portal']['claims'] ?? []), static fn ($value): bool => is_string($value) === true && $value !== '');
 		if ($uid === '' || $audience === '') {
 			return 'refused';
 		}
 
+		$claims  = self::declaredClaims(account: $account);
 		$stored  = $this->content->findOne(
 			schema: 'portalAccount',
 			match: static fn (array $row): bool => ($row['subjectRef'] ?? null) === $uid && ($row['audience'] ?? null) === $audience
 		);
+		$active  = ($stored['status'] ?? '') === 'active';
 		$missing = self::missingClaims(stored: $stored, claims: $claims);
-		if ($stored !== null && ($stored['status'] ?? '') === 'active' && $missing === []) {
+		if ($active === true && $missing === []) {
 			return 'kept';
 		}
 
@@ -196,35 +236,87 @@ class ExamplePortalAccountGrants {
 			return 'waiting';
 		}
 
-		if ($stored === null || ($stored['status'] ?? '') !== 'active') {
-			$event = new ($this->provisionEventClass)(
-				appId: self::APP_ID,
+		if ($active === false) {
+			$refusal = $this->provision(
+				uid: $uid,
 				audience: $audience,
 				organisation: $organisation,
-				displayName: (string)($account['displayName'] ?? ''),
-				nextcloudUid: $uid,
-				portal: $slug,
+				slug: $slug,
+				displayName: (string)($account['displayName'] ?? '')
 			);
-			$this->dispatch(event: $event);
-			if ($event->getRefusal() !== '') {
-				return $event->getRefusal();
-			}
-
-			if ($event->getSubjectRef() !== $uid || $event->getStatus() !== 'active') {
-				return 'not_active';
+			if ($refusal !== '') {
+				return $refusal;
 			}
 		}
 
-		foreach ($missing as $name => $value) {
-			$claim = new ($this->claimEventClass)(appId: self::APP_ID, subjectRef: $uid, claimName: $name, value: $value);
-			$this->dispatch(event: $claim);
-			if ($claim->getResult() !== 'ok') {
+		return $this->claim(uid: $uid, claims: $missing);
+	}//end one()
+
+	/**
+	 * Ask portaliq for the active `nextcloud` account; answers '' or the refusal.
+	 *
+	 * @param string $uid          The Nextcloud user id.
+	 * @param string $audience     The audience.
+	 * @param string $organisation The portal's organisation.
+	 * @param string $slug         The portal slug.
+	 * @param string $displayName  The name.
+	 *
+	 * @return string
+	 */
+	private function provision(string $uid, string $audience, string $organisation, string $slug, string $displayName): string {
+		$event = new ($this->provisionEventClass)(
+			appId: self::APP_ID,
+			audience: $audience,
+			organisation: $organisation,
+			displayName: $displayName,
+			nextcloudUid: $uid,
+			portal: $slug,
+		);
+		$this->dispatch(event: $event);
+		if ($event->getRefusal() !== '') {
+			return $event->getRefusal();
+		}
+
+		if ($event->getSubjectRef() !== $uid || $event->getStatus() !== 'active') {
+			return 'not_active';
+		}
+
+		return '';
+	}//end provision()
+
+	/**
+	 * Write the missing claims; answers `granted` or `claim-refused`.
+	 *
+	 * @param string                $uid    The account's subjectRef.
+	 * @param array<string, string> $claims The claims to write.
+	 *
+	 * @return string
+	 */
+	private function claim(string $uid, array $claims): string {
+		foreach ($claims as $name => $value) {
+			$event = new ($this->claimEventClass)(appId: self::APP_ID, subjectRef: $uid, claimName: $name, value: $value);
+			$this->dispatch(event: $event);
+			if ($event->getResult() !== 'ok') {
 				return 'claim-refused';
 			}
 		}
 
 		return 'granted';
-	}//end one()
+	}//end claim()
+
+	/**
+	 * The declared claims of an account, without empty values.
+	 *
+	 * @param array<string, mixed> $account The declared account.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function declaredClaims(array $account): array {
+		return array_filter(
+			(array)($account['portal']['claims'] ?? []),
+			static fn ($value): bool => is_string($value) === true && $value !== ''
+		);
+	}//end declaredClaims()
 
 	/**
 	 * The declared claims the stored account does not carry with that value.
