@@ -2,8 +2,8 @@
 
 ## 1. Guard
 
-- [ ] 1.1 `lib/Listener/ProctoringFlagReviewGuard.php`: pre-write veto on create and update of `proctoring-session` (copy the shape of `lib/Listener/ElectiveSignUpRules.php`). Match flags on `flagId`; rules as in design D2; stamp `reviewedBy` and `reviewedAt`. Register it beside the other assessment listeners in `lib/AppInfo/Registrar/`.
-- [ ] 1.2 PHPUnit `tests/Unit/Listener/ProctoringFlagReviewGuardTest.php`: learner append accepted, learner decision refused, learner removal refused, staff decision stamped, second decision refused, admin and system writes unchecked. Build the real OpenRegister event class, not a mock event.
+- [x] 1.1 `lib/Listener/ProctoringFlagReviewGuard.php`: pre-write veto on create and update of `proctoring-session` (copy the shape of `lib/Listener/ElectiveSignUpRules.php`). Match flags on `flagId`; rules as in design D2; stamp `reviewedBy` and `reviewedAt`. Register it beside the other assessment listeners in `lib/AppInfo/Registrar/`. Built: the rules live in `lib/Proctoring/FlagReview.php` (pure), the listener in `lib/Listener/ProctoringFlagReviewGuard.php`, registered in `EvidenceFreezeListenerRegistrar`.
+- [x] 1.2 PHPUnit `tests/Unit/Listener/ProctoringFlagReviewGuardTest.php`: learner append accepted, learner decision refused, learner removal refused, staff decision stamped, second decision refused, admin and system writes unchecked. Build the real OpenRegister event class, not a mock event.
 
 ## 2. Page
 
