@@ -173,6 +173,8 @@ class ParticipantSitePages {
 						'subtitleFields' => ['dayLabel', 'timeLabel', 'placeLabel'],
 						'dueField' => 'firstDay',
 						'buttonLabel' => 'Everything about this day',
+						// Only the next one; the rest is "Daarna" (REPORT-2, item 10).
+						'limit' => 1,
 					],
 					[
 						'type' => 'collection',
@@ -189,6 +191,10 @@ class ParticipantSitePages {
 					],
 					[
 						'type' => 'collection',
+						// "Daarna": the days after the next one. `skip` leaves out the
+						// next day the highlight above shows (portaliq: requested).
+						'label' => 'After that',
+						'skip' => 1,
 						'collection' => 'participantComingDays',
 						'display' => 'rows',
 						'dateField' => 'firstDay',

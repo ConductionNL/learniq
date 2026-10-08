@@ -199,7 +199,7 @@ class ParentRecordPage {
 		$pages = [
 			$site->overviewPage(sources: $this->childSources()),
 			$site->perChild(page: $this->recordPage()),
-			$site->absencePage(figures: $this->attendanceFigures()),
+			$site->absencePage(),
 			$site->conferencesPage(),
 			$site->inGroup(page: $this->calendarPage()),
 		];
@@ -378,6 +378,8 @@ class ParentRecordPage {
 					'startField' => 'startsAt',
 					'endField' => 'endsAt',
 					'titleField' => 'title',
+					// The line under the title on the calendar tiles (board "Deze maand").
+					'metaField' => 'description',
 					'kind' => 'School event',
 					'recordGroupsField' => 'cohortIds',
 				],

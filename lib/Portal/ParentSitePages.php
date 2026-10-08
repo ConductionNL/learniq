@@ -49,6 +49,11 @@ class ParentSitePages {
 	private const CHILDREN = 'parentChildren';
 
 	/**
+	 * The states of a conversation time that mean her child has one.
+	 */
+	private const TIME_TAKEN = ['booked', 'acknowledged', 'proposed', 'confirmed', 'completed'];
+
+	/**
 	 * The overview, in the order of the board (school-design wilgenboom,
 	 * MijnOverzicht): the greeting with today's date and the absence action,
 	 * what the guardian still has to do, the children as cards, the newest
@@ -69,6 +74,7 @@ class ParentSitePages {
 	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-a-guardian-lands-on-an-overview-of-one-child-at-a-time
 	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-overview-puts-open-tasks-first
 	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-holds-only-what-the-board-shows
+	 * @spec openspec/changes/guardian-and-participant-pages-follow-the-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-and-absence-page-are-about-both-children
 	 */
 	public function overviewPage(array $sources): array {
 		return [
@@ -77,7 +83,8 @@ class ParentSitePages {
 			'icon' => 'ViewDashboard',
 			'group' => self::GROUP,
 			'home' => true,
-			'records' => ['collection' => self::CHILDREN, 'titleFields' => ['givenName'], 'subtitleFields' => ['groupLabel']],
+			// No child switcher: the board's overview is about both children at
+			// once, the cards and the calendar included (REPORT-2, item 4).
 			'blocks' => [
 				// The greeting's one button opens the absence form (lane L2: `label` plus one target).
 				['type' => 'greeting', 'label' => 'Report absent', 'action' => 'createExcuseRequest'],
@@ -89,6 +96,19 @@ class ParentSitePages {
 					'dueField' => 'bookingClosesAt',
 					'titleFields' => ['name'],
 					'buttonLabel' => 'Pick a time',
+					// "Kiezen kan tot en met vrijdag 16 oktober" in the card's line.
+					'dueInLine' => true,
+					// A round where her child already has a time is done: Vera's
+					// is booked, so only Sami's round asks for a time.
+					'lookups' => [
+						[
+							'as' => 'myTime',
+							'collection' => 'parentConferenceSlots',
+							'matchField' => 'conferenceRoundId',
+							'valueField' => 'lifecycle',
+						],
+					],
+					'excludeWhen' => ['lookup' => 'myTime', 'in' => self::TIME_TAKEN],
 				],
 				[
 					'type' => 'collection',
@@ -142,22 +162,20 @@ class ParentSitePages {
 	 * reports as rows with a date tile, the reason, the status and who decided
 	 * (board MijnLijst; the `rows` display is lane L2's contract).
 	 *
-	 * @param array<string, mixed> $figures The attendance figure block.
-	 *
 	 * @return array<string, mixed>
 	 *
 	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-absence-page-shows-the-form-and-only-the-latest-reports
+	 * @spec openspec/changes/guardian-and-participant-pages-follow-the-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-and-absence-page-are-about-both-children
 	 */
-	public function absencePage(array $figures): array {
+	public function absencePage(): array {
 		return [
 			'id' => 'parentAbsence',
 			'label' => 'Absence',
 			'icon' => 'CalendarRemove',
-			'record' => ['collection' => self::CHILDREN, 'titleFields' => ['givenName', 'familyName']],
-			'perRecord' => self::CHILDREN,
+			// One page for both children, as the board (MijnLijst): the form
+			// and every report, newest first (REPORT-2, item 4).
 			'blocks' => [
 				['type' => 'action', 'action' => 'createExcuseRequest'],
-				$figures,
 				[
 					'type' => 'collection',
 					'label' => 'Your reports',
@@ -170,6 +188,7 @@ class ParentSitePages {
 					'statusField' => 'lifecycle',
 					'statusTones' => ['submitted' => 'neutral', 'approved' => 'success', 'rejected' => 'error'],
 					'statusNoteField' => 'decidedBy',
+					'sort' => ['field' => 'dateFrom', 'direction' => 'desc'],
 				],
 			],
 		];
