@@ -37,6 +37,8 @@ class ExamplePortalDeclarationsTest extends TestCase {
 	private const WIDGETS = [
 		'hero', 'markdown', 'nlBanner', 'nlHeading', 'nlParagraph', 'nlAlert', 'nlButtonLink', 'nlTable', 'nlLinkList',
 		'nlDescriptionList', 'nlList', 'nlSignIn', 'nlQuickTasks', 'nlNewsList', 'nlNewsArticle', 'nlEventList',
+		// portaliq portal-public-catalogue (portal-public-index).
+		'nlCatalogue',
 	];
 
 	/**
