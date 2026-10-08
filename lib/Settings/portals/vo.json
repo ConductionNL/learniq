@@ -642,18 +642,21 @@
             }
           },
           {
-            "id": "vv-zoeken-03-nlnewslist",
-            "widgetKey": "nlNewsList",
+            "id": "vv-zoeken-03-nlcatalogue",
+            "widgetKey": "nlCatalogue",
             "gridX": 0,
             "gridY": 2,
             "gridWidth": 12,
-            "gridHeight": 6,
+            "gridHeight": 8,
             "props": {
-              "heading": "Nieuws",
-              "limit": 12,
-              "featured": false,
-              "showAudience": true,
-              "articleRoute": "/nieuws"
+              "types": [
+                "news",
+                "event"
+              ],
+              "newsRoute": "/nieuws",
+              "sort": "dateDesc",
+              "searchLabel": "Zoek in het nieuws en de agenda",
+              "placeholder": "Bijvoorbeeld toetsweek"
             }
           }
         ]

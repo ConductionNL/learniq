@@ -670,21 +670,20 @@
             }
           },
           {
-            "id": "ev-opleidingen-03-nllinklist",
-            "widgetKey": "nlLinkList",
+            "id": "ev-opleidingen-03-nlcatalogue",
+            "widgetKey": "nlCatalogue",
             "gridX": 0,
             "gridY": 2,
             "gridWidth": 12,
-            "gridHeight": 3,
+            "gridHeight": 8,
             "props": {
-              "heading": "Techniek en ICT",
-              "links": [
-                {
-                  "label": "Mechatronica",
-                  "href": "/opleidingen/mechatronica",
-                  "description": "Niveau 4, BOL of BBL, 4 jaar, crebo 25743"
-                }
-              ]
+              "types": [
+                "programme"
+              ],
+              "sort": "title",
+              "countLabel": "{count} opleidingen",
+              "searchLabel": "Zoek een opleiding",
+              "placeholder": "Bijvoorbeeld techniek"
             }
           }
         ]

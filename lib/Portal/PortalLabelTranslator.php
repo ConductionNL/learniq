@@ -69,6 +69,9 @@ class PortalLabelTranslator {
 		'help',
 		// A timetable's label over the first lesson (portaliq calendar-timetable-display).
 		'firstLabel',
+		// The heading and help text of the messages form (portal-message-contacts).
+		'composeLabel',
+		'composeHint',
 	];
 
 	/**

@@ -38,6 +38,8 @@ class ExamplePortalDeclarationsTest extends TestCase {
 		'hero', 'markdown', 'nlBanner', 'nlHeading', 'nlParagraph', 'nlAlert', 'nlButtonLink', 'nlTable', 'nlLinkList',
 		'nlDescriptionList', 'nlList', 'nlSignIn', 'nlQuickTasks', 'nlNewsList', 'nlNewsArticle', 'nlEventList',
 		'nlLink', 'nlLinkColumns',
+		// portaliq portal-public-catalogue (portal-public-index).
+		'nlCatalogue',
 	];
 
 	/**

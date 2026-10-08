@@ -3717,7 +3717,20 @@
         "Your timetable today": "Your timetable today",
         "Whole week": "Whole week",
         "Your first lesson": "Your first lesson",
-        "Changed": "Changed"
+        "Changed": "Changed",
+        "A message to the teacher": "A message to the teacher",
+        "The teacher usually answers within two school days. Is it urgent? Call the school.": "The teacher usually answers within two school days. Is it urgent? Call the school.",
+        "A message to your teacher": "A message to your teacher",
+        "Your teacher usually answers within two school days.": "Your teacher usually answers within two school days.",
+        "1 day": "1 day",
+        "%s days": "%s days",
+        "also on %s": "also on %s",
+        "Start in": "Start in",
+        "Venue": "Venue",
+        "Level %s": "Level %s",
+        "Learning path": "Learning path",
+        "or": "or",
+        "Training course": "Training course"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

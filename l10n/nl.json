@@ -4186,7 +4186,20 @@
         "Your timetable today": "Je rooster vandaag",
         "Whole week": "Hele week",
         "Your first lesson": "Je eerste les",
-        "Changed": "Gewijzigd"
+        "Changed": "Gewijzigd",
+        "A message to the teacher": "Een bericht aan de leerkracht",
+        "The teacher usually answers within two school days. Is it urgent? Call the school.": "De leerkracht antwoordt meestal binnen twee schooldagen. Is het dringend? Bel de school.",
+        "A message to your teacher": "Een bericht aan je docent",
+        "Your teacher usually answers within two school days.": "Je docent antwoordt meestal binnen twee schooldagen.",
+        "1 day": "1 dag",
+        "%s days": "%s dagen",
+        "also on %s": "ook op %s",
+        "Start in": "Start in",
+        "Venue": "Plaats",
+        "Level %s": "Niveau %s",
+        "Learning path": "Leerweg",
+        "or": "of",
+        "Training course": "Cursus"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
