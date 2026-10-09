@@ -211,7 +211,7 @@ class ParentPortalCollections {
 				],
 				'columns' => [
 					['field' => 'name', 'label' => 'Conference round'],
-					['field' => 'bookingClosesAt', 'label' => 'Book before'],
+					['field' => 'bookingClosesAt', 'label' => 'Book before', 'render' => 'date'],
 					['field' => 'slotDurationMinutes', 'label' => 'Minutes per conversation'],
 				],
 			],
