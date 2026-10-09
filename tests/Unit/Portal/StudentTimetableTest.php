@@ -206,4 +206,35 @@ class StudentTimetableTest extends TestCase {
 		self::assertSame('cancelled', $byTitle['Lichamelijke opvoeding']['lifecycle']);
 		self::assertSame('Lokaal 0.21', $byTitle['Economie']['location']);
 	}//end testNoorGetsTheMondayOfTheBoardThroughTheJoin()
+
+	/**
+	 * Every school day of the story week has lessons for H4b, so "Je rooster
+	 * vandaag" is never empty from Monday to Friday after the load moves the
+	 * week (portal proof run 3). No two lessons of a day share an hour, and
+	 * no lesson falls on the weekend.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/vo-timetable-every-school-day/specs/example-sets/spec.md#requirement-noor-has-a-timetable-on-every-school-day-of-the-story-week
+	 */
+	public function testNoorHasLessonsOnEverySchoolDayOfTheStoryWeek(): void {
+		$profile = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/profiles/vo.json'), true);
+		$objects = $profile['x-openregister']['seedData']['objects'];
+		$h4b = array_values(array_filter($objects['cohort'], static fn (array $c): bool => ($c['name'] ?? '') === 'H4b'))[0];
+
+		$perDay = [];
+		foreach ($objects['session'] as $session) {
+			$day = substr((string)$session['startsAt'], 0, 10);
+			if ($session['cohortId'] === $h4b['uuid'] && $day >= '2026-10-05' && $day <= '2026-10-11') {
+				$perDay[$day][] = substr((string)$session['startsAt'], 11, 5);
+			}
+		}
+
+		ksort($perDay);
+		self::assertSame(['2026-10-05', '2026-10-06', '2026-10-07', '2026-10-08', '2026-10-09'], array_keys($perDay));
+		foreach ($perDay as $day => $starts) {
+			self::assertGreaterThanOrEqual(5, count($starts), $day);
+			self::assertSame(count($starts), count(array_unique($starts)), $day.' has no two lessons in one hour');
+		}
+	}//end testNoorHasLessonsOnEverySchoolDayOfTheStoryWeek()
 }//end class
