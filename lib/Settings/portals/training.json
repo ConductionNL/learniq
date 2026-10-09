@@ -70,6 +70,19 @@
             "text": "Werkdagen 08.00 tot 17.00 uur"
           }
         ]
+      },
+      "compact": {
+        "text": "Kunt u een cursusdag niet? Bel de planning: [telefoonnummer]",
+        "links": [
+          {
+            "label": "Route naar de praktijkhal",
+            "href": "/contact"
+          },
+          {
+            "label": "Privacy",
+            "href": "/privacy"
+          }
+        ]
       }
     },
     "accountLabel": "Mijn academie",
@@ -78,8 +91,54 @@
       "leaveOut": [
         "cases",
         "tasks",
-        "access"
-      ]
+        "access",
+        "inbox"
+      ],
+      "groups": [
+        {
+          "title": "Mijn academie",
+          "items": [
+            "overview",
+            {
+              "item": "messages",
+              "label": "Berichten"
+            }
+          ]
+        },
+        {
+          "title": "Cursussen",
+          "items": [
+            {
+              "item": "learniq:employerBookings",
+              "label": "Inschrijvingen"
+            },
+            {
+              "item": "learniq:employerEmployees",
+              "label": "Medewerkers"
+            },
+            {
+              "item": "learniq:employerCertificates",
+              "label": "Certificaten"
+            }
+          ]
+        },
+        {
+          "title": "Account",
+          "items": [
+            {
+              "item": "details",
+              "label": "Mijn gegevens"
+            }
+          ]
+        }
+      ],
+      "routes": {
+        "berichten": "messages"
+      },
+      "phoneHeader": "person"
+    },
+    "contactPrompt": {
+      "show": false
     }
   },
   "publicIndex": {
