@@ -54,6 +54,11 @@ class ParentSitePages {
 	private const INVITATIONS = 'parentConferenceInvitations';
 
 	/**
+	 * The page that holds the absence form (board MobielDetail).
+	 */
+	public const REPORT_ABSENCE = 'parentReportAbsence';
+
+	/**
 	 * The overview, in the order of the board (school-design wilgenboom,
 	 * MijnOverzicht): the greeting with today's date and the absence action,
 	 * what the guardian still has to do, the children as cards, the newest
@@ -75,6 +80,7 @@ class ParentSitePages {
 	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-holds-only-what-the-board-shows
 	 * @spec openspec/changes/guardian-and-participant-pages-follow-the-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-and-absence-page-are-about-both-children
 	 * @spec openspec/changes/guardian-tasks-per-child-and-self-assessment/specs/portal-contribution/spec.md#requirement-the-guardian-reads-one-task-per-child-with-the-childs-name
+	 * @spec openspec/changes/guardian-pages-follow-the-wilgenboom-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-follows-board-mijnoverzicht
 	 */
 	public function overviewPage(array $sources): array {
 		return [
@@ -86,8 +92,10 @@ class ParentSitePages {
 			// No child switcher: the board's overview is about both children at
 			// once, the cards and the calendar included (REPORT-2, item 4).
 			'blocks' => [
-				// The greeting's one button opens the absence form (lane L2: `label` plus one target).
-				['type' => 'greeting', 'label' => 'Report absent', 'action' => 'createExcuseRequest'],
+				// The greeting's one button opens the absence form on its own page
+				// (board MobielDetail). A greeting that names the action posts an
+				// empty body, which the server refuses (proof run 3).
+				['type' => 'greeting', 'label' => 'Report absent', 'page' => self::REPORT_ABSENCE],
 				[
 					'type' => 'tasks',
 					'label' => 'Still to do',
@@ -116,15 +124,25 @@ class ParentSitePages {
 					'titleFields' => ['givenName'],
 					'subtitleFields' => ['groupLabel'],
 					'avatar' => true,
+					// A card opens that child's own page, with a chevron (portaliq mijn-lists-follow-the-boards).
+					'rowPage' => 'parentChildren',
 					// The chip on each card (board: "Op school", "Ziek gemeld"),
 					// derived, never stored: a report of this child that covers
 					// today reads "Reported sick", a school day without one
 					// "At school", a weekend or holiday neither.
 					'status' => self::childStatus(),
 				],
-				['type' => 'news', 'label' => 'New from school', 'limit' => 3],
+				// News and "Deze maand" side by side (portaliq mijn-overview-follows-the-boards),
+				// "Al het nieuws" at the end of the news heading.
+				[
+					'type' => 'news',
+					'label' => 'New from school',
+					'limit' => 3,
+					'column' => 'main',
+					'more' => ['label' => 'All news', 'route' => '/zoeken'],
+				],
 				// "Deze maand": this month only (portaliq calendar `range`).
-				['type' => 'calendar', 'label' => 'This month', 'display' => 'tiles', 'range' => 'month', 'sources' => $sources],
+				['type' => 'calendar', 'label' => 'This month', 'display' => 'tiles', 'range' => 'month', 'sources' => $sources, 'column' => 'side'],
 			],
 		];
 	}//end overviewPage()
@@ -205,16 +223,17 @@ class ParentSitePages {
 	 *
 	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-absence-page-shows-the-form-and-only-the-latest-reports
 	 * @spec openspec/changes/guardian-and-participant-pages-follow-the-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-and-absence-page-are-about-both-children
+	 * @spec openspec/changes/guardian-pages-follow-the-wilgenboom-boards/specs/portal-contribution/spec.md#requirement-the-guardian-reports-an-absence-on-a-page-of-its-own
 	 */
 	public function absencePage(): array {
 		return [
 			'id' => 'parentAbsence',
 			'label' => 'Absence',
 			'icon' => 'CalendarRemove',
-			// One page for both children, as the board (MijnLijst): the form
-			// and every report, newest first (REPORT-2, item 4).
+			// One page for both children, as the board (MijnLijst): a button to
+			// the form, then every report, newest first (REPORT-2, item 4).
 			'blocks' => [
-				['type' => 'action', 'action' => 'createExcuseRequest'],
+				['type' => 'cta', 'label' => 'Report absent', 'page' => self::REPORT_ABSENCE],
 				[
 					'type' => 'collection',
 					'label' => 'Your reports',
@@ -237,13 +256,34 @@ class ParentSitePages {
 	}//end absencePage()
 
 	/**
-	 * The conversations page of one child: two titled forms, "Kies een tijd"
+	 * The absence form on a page of its own, out of the menu: the overview's
+	 * and the absence page's "Afwezig melden" and the child page's button open
+	 * it (board MobielDetail: "Afwezig melden", three questions).
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/guardian-pages-follow-the-wilgenboom-boards/specs/portal-contribution/spec.md#requirement-the-guardian-reports-an-absence-on-a-page-of-its-own
+	 */
+	public function reportAbsencePage(): array {
+		return [
+			'id' => self::REPORT_ABSENCE,
+			'label' => 'Report absent',
+			'menu' => false,
+			'blocks' => [
+				['type' => 'action', 'action' => 'createExcuseRequest'],
+			],
+		];
+	}//end reportAbsencePage()
+
+	/**
+	 * The conversations page of both children: two titled forms, "Kies een tijd"
 	 * (a free time, in a round with direct booking) and "Stuur uw voorkeur"
 	 * (the school plans the time), then that child's times and requests.
 	 *
 	 * @return array<string, mixed>
 	 *
 	 * @spec openspec/changes/booking-a-time-and-sending-a-preference/specs/parent-conferences/spec.md#requirement-a-guardian-books-a-free-time-or-sends-a-preference-in-two-forms
+	 * @spec openspec/changes/guardian-pages-follow-the-wilgenboom-boards/specs/portal-contribution/spec.md#requirement-the-conversations-are-one-menu-item-for-both-children
 	 */
 	public function conferencesPage(): array {
 		return [
@@ -252,13 +292,13 @@ class ParentSitePages {
 			'icon' => 'AccountVoice',
 			// The menu's count of rounds still open for booking (board MijnMenu: "Oudergesprekken 1").
 			'badge' => ['collection' => 'parentConferenceRounds', 'label' => '{count} to choose'],
-			'record' => ['collection' => self::CHILDREN, 'titleFields' => ['givenName', 'familyName']],
-			'perRecord' => self::CHILDREN,
+			// One menu item for both children, as board MijnMenu ("Oudergesprekken 1"):
+			// each form asks which child, and the times and requests name the child.
 			'blocks' => [
 				['type' => 'action', 'action' => 'bookConferenceSlot'],
 				['type' => 'action', 'action' => 'createConferenceSignup'],
-				['type' => 'collection', 'collection' => 'parentConferenceSlots', 'recordField' => 'learnerRef'],
-				['type' => 'collection', 'collection' => 'parentConferenceSignups', 'recordField' => 'learnerRef'],
+				['type' => 'collection', 'collection' => 'parentConferenceSlots', 'lookups' => [self::childNameLookup()]],
+				['type' => 'collection', 'collection' => 'parentConferenceSignups', 'lookups' => [self::childNameLookup()]],
 			],
 		];
 	}//end conferencesPage()

@@ -139,7 +139,7 @@ class ParentRecordPage {
 					scopeField: 'learnerRefs',
 					via: $childJoin,
 					label: 'Homework',
-					fields: ['title', 'dueAt', 'cohortId', 'lifecycle']
+					fields: ['title', 'instructions', 'dueAt', 'cohortId', 'lifecycle']
 				),
 				[
 					'filter' => ['lifecycle' => 'published'],
@@ -202,6 +202,8 @@ class ParentRecordPage {
 			$site->absencePage(),
 			$site->conferencesPage(),
 			$site->inGroup(page: $this->calendarPage()),
+			// The absence form on a page of its own, out of the menu.
+			$site->reportAbsencePage(),
 			// The page the overview's task opens, out of the menu.
 			$site->invitationPage(),
 		];
@@ -223,6 +225,7 @@ class ParentRecordPage {
 	 * @return array<string, mixed>
 	 *
 	 * @spec openspec/changes/portal-parent-child-record/specs/portal-contribution/spec.md#requirement-a-guardian-opens-one-child-and-sees-everything-about-them
+	 * @spec openspec/changes/guardian-pages-follow-the-wilgenboom-boards/specs/portal-contribution/spec.md#requirement-the-child-page-follows-board-detail
 	 */
 	private function recordPage(): array {
 		return [
@@ -235,10 +238,31 @@ class ParentRecordPage {
 			// keeps `subtitleFields` on `records`, not on `record`, so the page declares both).
 			'group' => 'My children',
 			'records' => ['collection' => 'parentChildren', 'titleFields' => ['givenName'], 'subtitleFields' => ['groupLabel']],
+			// In the order of board Detail: the child, two buttons, the figures,
+			// the conversation, the latest report, this week's homework and what
+			// is coming. The report cards table, the grades table, the attendance
+			// rows and the news are not on the board (proof run 3).
 			'blocks' => [
 				['type' => 'collection', 'collection' => 'parentChildren'],
+				['type' => 'cta', 'label' => 'Report absent', 'page' => ParentSitePages::REPORT_ABSENCE, 'withRecord' => true],
+				['type' => 'cta', 'label' => 'A message to the teacher', 'route' => '/mijn/messages'],
 				$this->attendanceFigures(),
-				['type' => 'collection', 'collection' => 'parentReportCards', 'recordField' => 'learnerRef'],
+				// "Oudergesprek": this child's booked time, with who and where,
+				// whether the teacher confirmed it, and a link to pick another.
+				[
+					'type' => 'collection',
+					'label' => 'Parent-teacher conversation',
+					'collection' => 'parentConferenceSlots',
+					'recordField' => 'learnerRef',
+					'display' => 'rows',
+					'dateField' => 'startsAt',
+					'dateDisplay' => 'tile',
+					'titleFields' => ['teacherName'],
+					'subtitleField' => 'location',
+					'statusField' => 'lifecycle',
+					'statusTones' => ['booked' => 'neutral', 'acknowledged' => 'success', 'confirmed' => 'success', 'proposed' => 'warning'],
+					'more' => ['label' => 'Pick another time', 'page' => 'parentConferences', 'placement' => 'end'],
+				],
 				// The latest report as a bar per subject, with the teacher's words (board Detail).
 				[
 					'type' => 'collection',
@@ -253,32 +277,24 @@ class ParentRecordPage {
 					'noteField' => 'mentorComment',
 					'noteLabel' => 'From the teacher',
 					'sort' => ['field' => 'position', 'direction' => 'asc'],
+					'more' => ['label' => 'All report cards', 'page' => 'parentReportCards'],
 				],
-				['type' => 'collection', 'collection' => 'parentReportCardGrades', 'recordField' => 'learnerRef'],
+				// "Huiswerk deze week": a line per task, the day above the title.
 				[
 					'type' => 'collection',
+					'label' => 'Homework this week',
 					'collection' => 'parentHomework',
 					'recordGroupsField' => 'cohortId',
-					'lookups' => [
-						[
-							'as' => 'status',
-							'collection' => 'parentSubmissions',
-							'matchField' => 'assignmentId',
-							'valueField' => 'lifecycle',
-							'recordField' => 'learnerRef',
-							'values' => [
-								'submitted' => 'Handed in',
-								'late' => 'Handed in late',
-								'returned' => 'Marked',
-								'draft' => 'Open',
-							],
-							'fallback' => 'Open',
-						],
-					],
+					'display' => 'rows',
+					'rowStyle' => 'lines',
+					'titleFields' => ['title'],
+					'subtitleField' => 'instructions',
+					'dateField' => 'dueAt',
+					'dateDisplay' => 'eyebrow',
+					'sort' => ['field' => 'dueAt', 'direction' => 'asc'],
 				],
-				['type' => 'collection', 'collection' => 'parentAttendance', 'recordField' => 'learnerRef'],
-				['type' => 'calendar', 'label' => 'Coming up', 'sources' => $this->childSources()],
-				['type' => 'news', 'label' => 'News from school', 'limit' => 3],
+				// "Binnenkort": the next three things on this child's calendar.
+				['type' => 'calendar', 'label' => 'Coming up soon', 'limit' => 3, 'sources' => $this->childSources()],
 			],
 		];
 
@@ -294,6 +310,7 @@ class ParentRecordPage {
 	 * @return array<string, mixed>
 	 *
 	 * @spec openspec/changes/parent-figures-singular-and-plural/specs/portal-contribution/spec.md#requirement-the-figure-cards-count-in-singular-and-plural
+	 * @spec openspec/changes/guardian-pages-follow-the-wilgenboom-boards/specs/portal-contribution/spec.md#requirement-the-child-page-follows-board-detail
 	 */
 	private function attendanceFigures(): array {
 		$days = ['one' => 'day', 'other' => 'days'];
@@ -305,6 +322,8 @@ class ParentRecordPage {
 			'recordField' => 'learnerRef',
 			'pick' => ['field' => 'schoolYear', 'direction' => 'desc'],
 			'caption' => ['field' => 'schoolYear', 'label' => 'School year'],
+			// "Alle meldingen" beside the heading (board Detail).
+			'more' => ['label' => 'All absence reports', 'page' => 'parentAbsence'],
 			'cards' => [
 				[
 					'field' => 'absentDays',
@@ -322,10 +341,10 @@ class ParentRecordPage {
 					'details' => [['field' => 'lateMinutes', 'label' => ['one' => 'minute in total', 'other' => 'minutes in total']]],
 				],
 				[
+					// "Zonder toestemming afwezig", neutral like the other two (board Detail).
 					'field' => 'absentUnauthorisedDays',
-					'label' => 'Unexcused absence',
+					'label' => 'Away without permission',
 					'unit' => $days,
-					'highlight' => true,
 				],
 			],
 		];
