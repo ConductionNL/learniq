@@ -78,7 +78,180 @@
         "access",
         "learniq:studentHourWeeks"
       ]
-    }
+    },
+    "breadcrumb": "page"
+  },
+  "publicIndex": {
+    "$comment": "What learniq hands the portal's public catalogue: the school's documents on the search page (board vaartveld/Zoeken). Read by PortalPublicIndex once it offers declared documents.",
+    "documents": [
+      {
+        "id": "vv-doc-toetsrooster-tw1-4havo",
+        "type": "document",
+        "kind": "Toetsrooster",
+        "title": "Toetsrooster toetsweek 1, 4 havo",
+        "date": "2026-09-30",
+        "meta": [
+          "4 havo"
+        ],
+        "summary": "Alle toetsen per dag, met tijd, lokaal en wat je mee moet nemen. PDF, 112 kB.",
+        "facets": {
+          "Soort": "Toetsroosters en PTA",
+          "Afdeling": "Havo",
+          "Leerjaar": "Klas 4"
+        }
+      },
+      {
+        "id": "vv-doc-toetsrooster-tw1-5havo",
+        "type": "document",
+        "kind": "Toetsrooster",
+        "title": "Toetsrooster toetsweek 1, 5 havo",
+        "date": "2026-09-30",
+        "meta": [
+          "5 havo"
+        ],
+        "summary": "Alle toetsen per dag, met tijd, lokaal en wat je mee moet nemen.",
+        "facets": {
+          "Soort": "Toetsroosters en PTA",
+          "Afdeling": "Havo",
+          "Leerjaar": "Klas 5"
+        }
+      },
+      {
+        "id": "vv-doc-toetsrooster-tw1-4vwo",
+        "type": "document",
+        "kind": "Toetsrooster",
+        "title": "Toetsrooster toetsweek 1, 4 vwo",
+        "date": "2026-09-30",
+        "meta": [
+          "4 vwo"
+        ],
+        "summary": "Alle toetsen per dag, met tijd, lokaal en wat je mee moet nemen.",
+        "facets": {
+          "Soort": "Toetsroosters en PTA",
+          "Afdeling": "Vwo",
+          "Leerjaar": "Klas 4"
+        }
+      },
+      {
+        "id": "vv-doc-toetsrooster-tw1-5vwo",
+        "type": "document",
+        "kind": "Toetsrooster",
+        "title": "Toetsrooster toetsweek 1, 5 vwo",
+        "date": "2026-09-30",
+        "meta": [
+          "5 vwo"
+        ],
+        "summary": "Alle toetsen per dag, met tijd, lokaal en wat je mee moet nemen.",
+        "facets": {
+          "Soort": "Toetsroosters en PTA",
+          "Afdeling": "Vwo",
+          "Leerjaar": "Klas 5"
+        }
+      },
+      {
+        "id": "vv-doc-toetsrooster-tw1-6vwo",
+        "type": "document",
+        "kind": "Toetsrooster",
+        "title": "Toetsrooster toetsweek 1, 6 vwo",
+        "date": "2026-09-30",
+        "meta": [
+          "6 vwo"
+        ],
+        "summary": "Alle toetsen per dag, met tijd, lokaal en wat je mee moet nemen.",
+        "facets": {
+          "Soort": "Toetsroosters en PTA",
+          "Afdeling": "Vwo",
+          "Leerjaar": "Klas 6"
+        }
+      },
+      {
+        "id": "vv-doc-pta-4havo",
+        "type": "document",
+        "kind": "PTA",
+        "title": "Programma van toetsing en afsluiting 4 havo",
+        "date": "2026-09-14",
+        "meta": [
+          "4 havo"
+        ],
+        "summary": "Welke toetsen meetellen voor het schoolexamen en hoe zwaar. PDF, 640 kB.",
+        "facets": {
+          "Soort": "Toetsroosters en PTA",
+          "Afdeling": "Havo",
+          "Leerjaar": "Klas 4"
+        }
+      },
+      {
+        "id": "vv-doc-brief-tw1-herkansingen",
+        "type": "document",
+        "kind": "Brief aan ouders",
+        "title": "Toetsweek 1 en de herkansingen",
+        "date": "2026-09-28",
+        "meta": [
+          "Klas 4, 5 en 6"
+        ],
+        "summary": "Wat de toetsweek voor uw kind betekent en hoe herkansen werkt.",
+        "facets": {
+          "Soort": "Brieven aan ouders"
+        }
+      },
+      {
+        "id": "vv-doc-brief-tw1-examenklassen",
+        "type": "document",
+        "kind": "Brief aan ouders",
+        "title": "Toetsweek 1 in de examenklassen",
+        "date": "2026-09-28",
+        "meta": [
+          "5 havo en 6 vwo"
+        ],
+        "summary": "Welke toetsen in toetsweek 1 meetellen voor het schoolexamen van uw kind.",
+        "facets": {
+          "Soort": "Brieven aan ouders"
+        }
+      },
+      {
+        "id": "vv-doc-brief-mentorgesprekken",
+        "type": "document",
+        "kind": "Brief aan ouders",
+        "title": "De mentorgesprekken en toetsweek 1",
+        "date": "2026-10-05",
+        "meta": [
+          "Klas 4"
+        ],
+        "summary": "Wanneer de mentorgesprekken zijn en hoe uw kind zich voorbereidt op toetsweek 1.",
+        "facets": {
+          "Soort": "Brieven aan ouders",
+          "Leerjaar": "Klas 4"
+        }
+      },
+      {
+        "id": "vv-doc-regels-toetsweek",
+        "type": "document",
+        "kind": "Regels",
+        "title": "Regels tijdens een toetsweek",
+        "date": "2026-09-01",
+        "meta": [
+          "Alle leerjaren"
+        ],
+        "summary": "Op tijd komen, ziek zijn op een toetsdag en wat er gebeurt bij te laat komen.",
+        "facets": {
+          "Soort": "Schoolgids en regels"
+        }
+      },
+      {
+        "id": "vv-doc-schoolgids",
+        "type": "document",
+        "kind": "Schoolgids",
+        "title": "Schoolgids 2026-2027",
+        "date": "2026-09-01",
+        "meta": [
+          "Alle leerjaren"
+        ],
+        "summary": "Hoe de school werkt: de lestijden, de toetsweken, verzuim en de regels.",
+        "facets": {
+          "Soort": "Schoolgids en regels"
+        }
+      }
+    ]
   },
   "legacyTitles": [
     "Studentenportaal Vaartveld"
@@ -182,7 +355,7 @@
     {
       "route": "/",
       "title": "Home",
-      "summary": "Vaartveld College, havo en vwo aan de vaart in Zuiddrecht.",
+      "summary": "Vaartveld College, vmbo-t, havo en vwo aan de vaart in Zuiddrecht.",
       "body": {
         "type": "grid",
         "widgets": [
@@ -211,15 +384,17 @@
             "gridHeight": 4,
             "props": {
               "title": "Kijk ver vooruit.",
-              "subtitle": "Vaartveld College is de school voor havo en vwo aan de vaart in Zuiddrecht. Hier leer je kiezen, proberen en doorzetten.",
+              "subtitle": "Vaartveld College is de school voor vmbo-t, havo en vwo aan de vaart in Zuiddrecht. Hier leer je kiezen, proberen en doorzetten.",
               "actions": [
                 {
                   "label": "Kom kennismaken",
-                  "href": "/aanmelden"
+                  "href": "/aanmelden",
+                  "chevron": true
                 },
                 {
                   "label": "Lees wat er speelt op school",
-                  "href": "/zoeken"
+                  "href": "/zoeken",
+                  "style": "link"
                 }
               ],
               "variant": "plain"
@@ -245,7 +420,7 @@
                 {
                   "label": "Ziek melden en verlof",
                   "href": "/praktisch/ziek-melden",
-                  "icon": "alert"
+                  "icon": "heartPlus"
                 },
                 {
                   "label": "Vakanties en vrije dagen",
@@ -255,7 +430,7 @@
                 {
                   "label": "Cijfers en huiswerk",
                   "href": "/mijn",
-                  "icon": "pencil"
+                  "icon": "documentGrade"
                 },
                 {
                   "label": "Lestijden en pauzes",
@@ -265,12 +440,12 @@
                 {
                   "label": "Aanmelden voor klas 1",
                   "href": "/aanmelden",
-                  "icon": "personPlus"
+                  "icon": "pencil"
                 },
                 {
                   "label": "Schoolgids en PTA",
                   "href": "/zoeken",
-                  "icon": "book"
+                  "icon": "bookLines"
                 },
                 {
                   "label": "Contact met de school",
@@ -280,11 +455,12 @@
                 {
                   "label": "Boeken en schoolkosten",
                   "href": "/praktisch",
-                  "icon": "card"
+                  "icon": "bookStack"
                 }
               ],
               "moreLabel": "Alle praktische informatie",
-              "moreHref": "/praktisch"
+              "moreHref": "/praktisch",
+              "iconStyle": "plain"
             }
           },
           {
@@ -352,8 +528,7 @@
                 },
                 {
                   "date": "2026-11-03",
-                  "title": "Informatieavond profielkeuze, klas 3",
-                  "href": "/nieuws"
+                  "title": "Informatieavond profielkeuze, klas 3"
                 },
                 {
                   "date": "2026-11-09",
@@ -376,6 +551,23 @@
             "props": {
               "heading": "Ons onderwijs",
               "columns": [
+                {
+                  "title": "Vmbo-t",
+                  "links": [
+                    {
+                      "label": "De brugklas",
+                      "href": "/onderwijs"
+                    },
+                    {
+                      "label": "Vakken en profielen",
+                      "href": "/onderwijs"
+                    },
+                    {
+                      "label": "Examen en doorstromen naar mbo of havo",
+                      "href": "/onderwijs"
+                    }
+                  ]
+                },
                 {
                   "title": "Havo",
                   "links": [
@@ -441,7 +633,7 @@
             "gridX": 8,
             "gridY": 0,
             "gridWidth": 4,
-            "gridHeight": 16,
+            "gridHeight": 4,
             "props": {
               "heading": "Meer praktische zaken",
               "links": [
@@ -486,27 +678,18 @@
             "props": {
               "kind": "info",
               "heading": "Melden duurt een minuut",
-              "text": "U logt in met DigiD. Liever bellen? Dat kan op schooldagen vanaf 07.45 uur via [telefoonnummer]."
-            }
-          },
-          {
-            "id": "vv-ziek-04-nlbuttonlink",
-            "widgetKey": "nlButtonLink",
-            "gridX": 0,
-            "gridY": 4,
-            "gridWidth": 3,
-            "gridHeight": 1,
-            "props": {
-              "label": "Ziek melden",
-              "href": "/mijn",
-              "kind": "primary"
+              "text": "U logt in met DigiD. Liever bellen? Dat kan op schooldagen vanaf 07.45 uur via [telefoonnummer].",
+              "action": {
+                "label": "Ziek melden",
+                "href": "/mijn"
+              }
             }
           },
           {
             "id": "vv-ziek-05a-nlheading",
             "widgetKey": "nlHeading",
             "gridX": 0,
-            "gridY": 5,
+            "gridY": 4,
             "gridWidth": 8,
             "gridHeight": 1,
             "props": {
@@ -518,7 +701,7 @@
             "id": "vv-ziek-05-nltable",
             "widgetKey": "nlTable",
             "gridX": 0,
-            "gridY": 6,
+            "gridY": 5,
             "gridWidth": 8,
             "gridHeight": 4,
             "props": {
@@ -551,18 +734,49 @@
                 ]
               ],
               "display": "boxed",
-              "captionVisible": false
+              "captionVisible": false,
+              "rowHeaders": true
             }
           },
           {
             "id": "vv-ziek-06-markdown",
             "widgetKey": "markdown",
             "gridX": 0,
-            "gridY": 10,
+            "gridY": 9,
             "gridWidth": 8,
             "gridHeight": 6,
             "props": {
-              "markdown": "## Ziek op de dag van een toets\n\nMeld uw kind ziek voordat de toets begint. Dan mag uw kind de toets inhalen. De docent spreekt daarvoor een moment af. Zonder melding telt de toets als gemist.\n\n## Afwezig zonder melding\n\nStaat uw kind afwezig en hebben wij geen melding? Dan krijgt u dezelfde dag een bericht in Mijn Vaartveld. De mentor neemt contact op als het vaker gebeurt. Bij 16 uur afwezigheid zonder geldige reden in vier weken moet de school dit melden bij de leerplichtambtenaar van de gemeente Zuiddrecht.\n\n## 18 jaar of ouder?\n\nDan meld je jezelf ziek, met je schoolaccount in Mijn Vaartveld.\n\n## Is uw kind lang ziek?\n\nDan denkt de zorgcoördinator, Anouk Visser, met u mee over schoolwerk en terugkomen."
+              "markdown": "## Ziek op de dag van een toets\n\nMeld uw kind ziek voordat de toets begint. Dan mag uw kind de toets inhalen. De docent spreekt daarvoor een moment af. Zonder melding telt de toets als gemist.\n\n## Afwezig zonder melding\n\nStaat uw kind afwezig en hebben wij geen melding? Dan krijgt u dezelfde dag een bericht in Mijn Vaartveld. De mentor neemt contact op als het vaker gebeurt. Bij 16 uur afwezigheid zonder geldige reden in vier weken moet de school dit melden bij de leerplichtambtenaar van de gemeente Zuiddrecht."
+            }
+          },
+          {
+            "id": "vv-ziek-08-nlalert",
+            "widgetKey": "nlAlert",
+            "gridX": 8,
+            "gridY": 4,
+            "gridWidth": 4,
+            "gridHeight": 2,
+            "props": {
+              "kind": "plain",
+              "heading": "18 jaar of ouder?",
+              "text": "Dan meld je jezelf ziek, met je schoolaccount in Mijn Vaartveld."
+            }
+          },
+          {
+            "id": "vv-ziek-09-nlalert",
+            "widgetKey": "nlAlert",
+            "gridX": 8,
+            "gridY": 6,
+            "gridWidth": 4,
+            "gridHeight": 3,
+            "props": {
+              "kind": "plain",
+              "heading": "Is uw kind lang ziek?",
+              "text": "Dan denkt de zorgcoördinator, Anouk Visser, met u mee over schoolwerk en terugkomen.",
+              "action": {
+                "label": "Contact met de zorgcoördinator",
+                "href": "/contact"
+              }
             }
           }
         ]
@@ -581,40 +795,68 @@
             "gridX": 0,
             "gridY": 0,
             "gridWidth": 8,
-            "gridHeight": 8,
+            "gridHeight": 10,
             "props": {
-              "backLabel": "Terug naar het nieuws"
+              "backLabel": "Terug naar het nieuws",
+              "kindLabel": "Nieuws",
+              "sectionHref": "/zoeken",
+              "sectionLabel": "Nieuws en documenten"
+            }
+          },
+          {
+            "id": "vv-nieuws-03-nlsignin",
+            "widgetKey": "nlSignIn",
+            "gridX": 8,
+            "gridY": 0,
+            "gridWidth": 4,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Kom je ook?",
+              "display": "card",
+              "intro": "Meld je aan met je ouders, dan weten wij hoeveel stoelen er nodig zijn.",
+              "buttonLabel": "Aanmelden voor de avond",
+              "note": "Je logt eerst in bij Mijn Vaartveld.",
+              "signInHref": "/mijn",
+              "tone": "light"
+            }
+          },
+          {
+            "id": "vv-nieuws-04-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 8,
+            "gridY": 3,
+            "gridWidth": 4,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Om alvast te lezen",
+              "display": "card",
+              "links": [
+                {
+                  "label": "Profielkeuzeboekje 2026-2027",
+                  "href": "/onderwijs",
+                  "description": "PDF, 1,2 MB"
+                },
+                {
+                  "label": "Vakken per profiel, havo en vwo",
+                  "href": "/onderwijs",
+                  "description": "PDF, 240 kB"
+                }
+              ]
             }
           },
           {
             "id": "vv-nieuws-02-nlnewslist",
             "widgetKey": "nlNewsList",
             "gridX": 8,
-            "gridY": 0,
+            "gridY": 6,
             "gridWidth": 4,
-            "gridHeight": 8,
+            "gridHeight": 4,
             "props": {
               "heading": "Meer nieuws",
               "limit": 3,
               "featured": false,
               "display": "compact",
               "articleRoute": "/nieuws"
-            }
-          },
-          {
-            "id": "vv-nieuws-03-nlsignin",
-            "widgetKey": "nlSignIn",
-            "gridX": 0,
-            "gridY": 8,
-            "gridWidth": 12,
-            "gridHeight": 3,
-            "props": {
-              "heading": "Kom je ook?",
-              "display": "card",
-              "intro": "Meld je aan met je ouders, dan weten wij hoeveel stoelen er nodig zijn. Je logt eerst in bij Mijn Vaartveld.",
-              "buttonLabel": "Aanmelden voor de avond",
-              "signInHref": "/mijn",
-              "tone": "plain"
             }
           }
         ]
@@ -623,7 +865,7 @@
     {
       "route": "/zoeken",
       "title": "Nieuws en documenten",
-      "summary": "Het nieuws, de toetsroosters, brieven aan ouders en de schoolgids.",
+      "summary": "Zoek in het nieuws van de school, de toetsroosters, brieven aan ouders, de schoolgids en de regels voor het examen.",
       "body": {
         "type": "grid",
         "widgets": [
@@ -647,7 +889,7 @@
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
-              "text": "Het nieuws van de school, de toetsroosters, brieven aan ouders, de schoolgids en de regels voor het examen."
+              "text": "Zoek in het nieuws van de school, de toetsroosters, brieven aan ouders, de schoolgids en de regels voor het examen."
             }
           },
           {
@@ -660,12 +902,19 @@
             "props": {
               "types": [
                 "news",
-                "event"
+                "document"
               ],
               "newsRoute": "/nieuws",
               "sort": "dateDesc",
-              "searchLabel": "Zoek in het nieuws en de agenda",
-              "placeholder": "Bijvoorbeeld toetsweek"
+              "pageSize": 6,
+              "searchLabel": "Zoek in het nieuws en de documenten",
+              "labelHidden": true,
+              "placeholder": "Bijvoorbeeld toetsweek",
+              "kindFacet": "Soort",
+              "facetDisplay": {
+                "Leerjaar": "select"
+              },
+              "cardStyle": "kind"
             }
           }
         ]
@@ -831,7 +1080,7 @@
     {
       "route": "/onderwijs",
       "title": "Onderwijs",
-      "summary": "Havo en vwo, van de brugklas tot het examen. In klas 3 kies je een profiel.",
+      "summary": "Vmbo-t, havo en vwo, van de brugklas tot het examen. In klas 3 kies je een profiel.",
       "body": {
         "type": "grid",
         "widgets": [
@@ -855,7 +1104,7 @@
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
-              "text": "Havo en vwo, van de brugklas tot het examen. In klas 3 kies je een profiel."
+              "text": "Vmbo-t, havo en vwo, van de brugklas tot het examen. In klas 3 kies je een profiel."
             }
           },
           {
@@ -1086,7 +1335,7 @@
       "target": {
         "schoolRef": "ee020001-0000-4000-8000-000000000001"
       },
-      "body": "In klas 3 kies je een profiel: de vakken waarin je examen doet. Op deze avond hoor je met je ouders hoe dat gaat en wat je met elk profiel kunt.\n\n- **Wanneer:** dinsdag 3 november 2026, 19.30 tot 21.00 uur\n- **Waar:** aula van Vaartveld College, Vaartlaan 40\n- **Voor wie:** leerlingen van 3 havo en 3 vwo en hun ouders\n- **Aanmelden:** tot en met vrijdag 30 oktober\n\nDe decaan legt uit wat een profiel is en wanneer je kiest. Daarna loop je langs de vier profielen. Je kiest niet op deze avond. In december en januari praat je met je mentor en de decaan. Je voorlopige keuze geef je door in februari. Een vraag? Mail de decaan, Marloes Peters, via [e-mailadres decaan].",
+      "body": "In klas 3 kies je een profiel: de vakken waarin je examen doet. Op deze avond hoor je met je ouders hoe dat gaat en wat je met elk profiel kunt.\n\n- **Wanneer:** Dinsdag 3 november 2026, 19.30 tot 21.00 uur\n- **Waar:** Aula van Vaartveld College, Vaartlaan 40\n- **Voor wie:** Leerlingen van 3 havo en 3 vwo en hun ouders\n- **Aanmelden:** Tot en met vrijdag 30 oktober\n\nDe decaan legt uit wat een profiel is en wanneer je kiest. Daarna loop je langs de vier profielen. Docenten en leerlingen uit klas 4 en 5 vertellen wat je er leert en wat je erna kunt gaan doen.\n\n## De vier profielen\n\n- Cultuur en maatschappij: talen, geschiedenis, kunst en maatschappij\n- Economie en maatschappij: economie, geschiedenis en wiskunde A\n- Natuur en gezondheid: biologie, scheikunde en wiskunde A of B\n- Natuur en techniek: wiskunde B, natuurkunde en scheikunde\n\nJe kiest niet op deze avond. In december en januari praat je met je mentor en de decaan. Je voorlopige keuze geef je door in februari. Een vraag? Mail de decaan, Marloes Peters, via [e-mailadres decaan].",
       "audienceLabel": "klas 3 havo en vwo"
     },
     {
@@ -1139,6 +1388,72 @@
         "schoolRef": "ee020001-0000-4000-8000-000000000001"
       },
       "body": "Een korte terugblik op de eerste schoolweek, met de belangrijkste data van dit jaar."
+    },
+    {
+      "title": "Toetsweek 3: de laatste toetsweek van dit schooljaar",
+      "publishedAt": "2026-06-08T12:00:00+02:00",
+      "public": true,
+      "authorRef": "vo-teamleider-02",
+      "target": {
+        "schoolRef": "ee020001-0000-4000-8000-000000000001"
+      },
+      "body": "Van maandag 15 tot en met vrijdag 19 juni is toetsweek 3. Je vindt je eigen rooster in Mijn Vaartveld.",
+      "audienceLabel": "klas 4 en 5"
+    },
+    {
+      "title": "Na toetsweek 2: zo werkt herkansen",
+      "publishedAt": "2026-03-09T12:00:00+01:00",
+      "public": true,
+      "authorRef": "vo-teamleider-02",
+      "target": {
+        "schoolRef": "ee020001-0000-4000-8000-000000000001"
+      },
+      "body": "Na toetsweek 2 mag je een toets herkansen. Je geeft in Mijn Vaartveld door welke toets je wilt herkansen.",
+      "audienceLabel": "klas 4, 5 en 6"
+    },
+    {
+      "title": "Toetsweek 2: het rooster staat online",
+      "publishedAt": "2026-02-16T12:00:00+01:00",
+      "public": true,
+      "authorRef": "vo-teamleider-02",
+      "target": {
+        "schoolRef": "ee020001-0000-4000-8000-000000000001"
+      },
+      "body": "De tweede toetsweek is van 2 tot en met 6 maart. Je vindt je eigen rooster in Mijn Vaartveld.",
+      "audienceLabel": "klas 4, 5 en 6"
+    },
+    {
+      "title": "Na toetsweek 1: de cijfers staan in Mijn Vaartveld",
+      "publishedAt": "2025-11-24T12:00:00+01:00",
+      "public": true,
+      "authorRef": "vo-teamleider-02",
+      "target": {
+        "schoolRef": "ee020001-0000-4000-8000-000000000001"
+      },
+      "body": "Alle cijfers van toetsweek 1 staan in Mijn Vaartveld. Je mentor bespreekt ze met je in het mentoruur.",
+      "audienceLabel": "klas 4, 5 en 6"
+    },
+    {
+      "title": "Stilteplek in de bibliotheek tijdens de toetsweek",
+      "publishedAt": "2025-11-05T12:00:00+01:00",
+      "public": true,
+      "authorRef": "vo-teamleider-02",
+      "target": {
+        "schoolRef": "ee020001-0000-4000-8000-000000000001"
+      },
+      "body": "In de toetsweek is de bibliotheek een stilteplek. Je kunt er tussen je toetsen door rustig leren.",
+      "audienceLabel": "klas 4, 5 en 6"
+    },
+    {
+      "title": "Toetsweek 1: het rooster voor dit schooljaar",
+      "publishedAt": "2025-10-27T12:00:00+01:00",
+      "public": true,
+      "authorRef": "vo-teamleider-02",
+      "target": {
+        "schoolRef": "ee020001-0000-4000-8000-000000000001"
+      },
+      "body": "De eerste toetsweek is van 10 tot en met 14 november. Je vindt je eigen rooster in Mijn Vaartveld.",
+      "audienceLabel": "klas 4, 5 en 6"
     }
   ],
   "accounts": [

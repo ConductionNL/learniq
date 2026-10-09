@@ -242,7 +242,9 @@ class ExamplePortalDeclarationsTest extends TestCase {
 			self::assertSame('boxed', $table['props']['display'], $set);
 
 			$side = array_values(array_filter($pages[$sideRoute]['body']['widgets'], static fn (array $w): bool => $w['gridX'] === 8));
-			self::assertCount(1, $side, $set . ' ' . $sideRoute);
+			usort($side, static fn (array $a, array $b): int => $a['gridY'] <=> $b['gridY']);
+			// Cards may follow the list in the side column (vaartveld's "18 jaar of ouder?").
+			self::assertNotEmpty($side, $set . ' ' . $sideRoute);
 			self::assertSame(['nlLinkList', 0], [$side[0]['widgetKey'], $side[0]['gridY']], $set . ': the side list starts at the top');
 			foreach ($pages[$sideRoute]['body']['widgets'] as $widget) {
 				if ($widget['gridX'] < 8) {

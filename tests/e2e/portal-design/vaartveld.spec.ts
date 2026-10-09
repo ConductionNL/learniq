@@ -54,6 +54,9 @@ test.describe('vaartveld: the website', () => {
 				'Van zaterdag 17 tot en met zondag 25 oktober is de school dicht.',
 			),
 			'Kijk ver vooruit.',
+			// vaartveld-public-pages-follow-the-boards: vmbo-t in the hero and in "Ons onderwijs".
+			'de school voor vmbo-t, havo en vwo',
+			'Vmbo-t',
 			'Direct regelen',
 			'Rooster en wijzigingen',
 			'Nieuws',
@@ -94,6 +97,8 @@ test.describe('vaartveld: the website', () => {
 			'Wat meldt u hoe?',
 			'Ziek op de dag van een toets',
 			'Anouk Visser',
+			'18 jaar of ouder?',
+			'Is uw kind lang ziek?',
 			...FOOTER,
 		])
 		await expectNoSeriousAxeFinding(page)
@@ -117,6 +122,8 @@ test.describe('vaartveld: the website', () => {
 			dated('Dinsdag 3 november 2026, 19.30 tot 21.00 uur'),
 			'Marloes Peters',
 			'Kom je ook?',
+			'Om alvast te lezen',
+			'De vier profielen',
 		])
 		await boardShot(page, PORTAL, 'Artikel', info)
 	})
