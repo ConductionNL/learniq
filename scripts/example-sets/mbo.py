@@ -1581,6 +1581,7 @@ def build() -> dict:
     stamp_hour_totals(b)
 
     stamp_group_labels(b)
+    stamp_hour_week_copies(b)
 
     # --- assemble -------------------------------------------------------------
     objects = {name: rows for name, rows in b.buckets.items() if rows}
@@ -1951,7 +1952,10 @@ def add_story(b: Builder, school: dict, locations: dict, numeric: dict, competen
         week(milan_placement, milan_nc, monday, 24, 2,
              {"approved": 24, "at": stamp(monday + dt.timedelta(days=4), 9, 20), "lifecycle": "approved"})
         approved += 24
-    week(milan_placement, milan_nc, dt.date(2026, 9, 28), 16, 2, None)
+    waiting = week(milan_placement, milan_nc, dt.date(2026, 9, 28), 16, 2, None)
+    # What he did, in his words (board MobielHome of Petra: the days and the work).
+    waiting["description"] = ("Maandag en woensdag: storingen gezocht aan de verpakkingslijn en "
+                              "de pneumatiek van robotcel 2 afgesteld.")
     week(milan_placement, milan_nc, dt.date(2026, 9, 28), 8, 1, {
         "approved": 0, "at": stamp(dt.date(2026, 10, 2), 16, 42), "lifecycle": "rejected",
         "note": ("Dinsdag 29 september: je schreef 8 uur. Volgens mij ging je om 14.00 uur naar de tandarts. "
@@ -1964,7 +1968,8 @@ def add_story(b: Builder, school: dict, locations: dict, numeric: dict, competen
         week(aylin_placement, aylin_nc, monday, 32, 3,
              {"approved": 32, "at": stamp(monday + dt.timedelta(days=4), 9, 30), "lifecycle": "approved"})
         approved += 32
-    week(aylin_placement, aylin_nc, dt.date(2026, 9, 28), 32, 3, None)
+    week(aylin_placement, aylin_nc, dt.date(2026, 9, 28), 32, 3, None)["description"] = (
+        "Vier dagen meegewerkt aan de revisie van de lasrobot en de nieuwe besturing getest.")
     aylin_placement["hoursApprovedTotal"] = approved
 
     # This week's school days: Thursday 8 October (4 lessons) and Friday
@@ -2033,6 +2038,33 @@ def sessions_by_uuid_date(sessions: dict[tuple[str, dt.date], dict], uuid: str) 
         if row["uuid"] == uuid:
             return day.isoformat()
     raise KeyError(uuid)
+
+
+def week_label(iso_week: str) -> str | None:
+    """Monday to Friday of an ISO week in words, as HourWeekLabel writes it:
+    "28 september tot en met 2 oktober"."""
+    try:
+        year, week = iso_week.split("-W")
+        monday = dt.date.fromisocalendar(int(year), int(week), 1)
+    except (ValueError, AttributeError):
+        return None
+    friday = monday + dt.timedelta(days=4)
+    first = str(monday.day) if monday.month == friday.month else f"{monday.day} {MAAND[monday.month - 1]}"
+    return f"{first} tot en met {friday.day} {MAAND[friday.month - 1]}"
+
+
+def stamp_hour_week_copies(b: Builder) -> None:
+    """Every week of BPV hours names its student and its days, as ReadableCopies
+    writes them on a live save (trainer-returns-hours-with-a-question). Runs last
+    and draws no random number."""
+    profiles = {p["uuid"]: p for p in b.buckets.get("learner-profile", [])}
+    for week in b.buckets.get("bpv-hour-week", []):
+        profile = profiles.get(week.get("learnerRef"))
+        if profile is not None:
+            week["learnerName"] = f"{profile.get('givenName', '')} {profile.get('familyName', '')}".strip()
+        label = week_label(week.get("isoWeek", ""))
+        if label is not None:
+            week["weekLabel"] = label
 
 
 def stamp_group_labels(b: Builder) -> None:

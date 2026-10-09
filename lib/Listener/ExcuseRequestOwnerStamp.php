@@ -49,6 +49,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Service\AbsenceReportDefaults;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\Portal\PortalWriteSubject;
 use OCA\Learniq\Service\ListenerSchemaResolver;
@@ -148,7 +149,7 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 			return;
 		}
 
-		$stamp = $outcome['stamp'];
+		$stamp = array_merge($outcome['stamp'], (new AbsenceReportDefaults())->fill(payload: $payload));
 		$learnerId = $this->text(value: ($stamp['learnerId'] ?? ($payload['learnerId'] ?? null)));
 		$stamp['teacherIds'] = $this->teachersFor(event: $event, learnerId: $learnerId);
 

@@ -161,6 +161,38 @@ class PortalHourWeekApprovalTest extends TestCase {
 	}//end testACorrectionKeepsWhatTheStudentEntered()
 
 	/**
+	 * "Terugsturen met een vraag": the week is sent back with no hours
+	 * approved and her question as its note, which the student reads; the
+	 * student's own number stays. Without a question nothing is written.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/trainer-returns-hours-with-a-question/specs/bpv/spec.md#requirement-the-trainer-sends-a-week-back-with-a-question
+	 */
+	public function testAWeekIsSentBackWithAQuestion(): void {
+		$approvals = $this->approvals();
+		$refused = $approvals->sendBack(trainerRef: self::TRAINER, trust: 'low', body: ['hourWeekId' => self::WEEK, 'note' => '  ']);
+		self::assertSame(422, $refused->status);
+		self::assertSame('submitted', $this->store->rows['bpv-hour-week'][0]['lifecycle']);
+
+		$outcome = $approvals->sendBack(
+			trainerRef: self::TRAINER,
+			trust: 'low',
+			body: ['hourWeekId' => self::WEEK, 'hoursApproved' => 32, 'note' => 'Dinsdag ging je om 14.00 uur naar de tandarts. Wil je de uren aanpassen?']
+		);
+
+		self::assertSame(200, $outcome->status);
+		self::assertSame('rejected', $outcome->body['lifecycle']);
+		$week = $this->store->rows['bpv-hour-week'][0];
+		self::assertSame(32, $week['hoursSubmitted']);
+		self::assertSame(0.0, $week['hoursApproved'], 'a sent-back week approves nothing, whatever the form says');
+		self::assertSame('Dinsdag ging je om 14.00 uur naar de tandarts. Wil je de uren aanpassen?', $week['note']);
+
+		$other = $this->approvals()->sendBack(trainerRef: self::OTHER_TRAINER, trust: 'low', body: ['hourWeekId' => self::WEEK, 'note' => 'Vraag']);
+		self::assertSame(403, $other->status, 'only her own student\'s week');
+	}//end testAWeekIsSentBackWithAQuestion()
+
+	/**
 	 * The stored week passes the shipped schema fragment, so a field this
 	 * service writes can never be one the register refuses.
 	 *

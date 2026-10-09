@@ -200,6 +200,7 @@ return [
         // student's hours. Same assertion receiver pattern: the assertion is
         // the only place her sign-in level can be read.
         ['name' => 'portalHourWeek#approve',     'url' => '/api/portal/hour-weeks/approve', 'verb' => 'POST'],
+        ['name' => 'portalHourWeek#sendBack',    'url' => '/api/portal/hour-weeks/send-back', 'verb' => 'POST'],
         // employer-portal-audience: an employer books places, names a participant for a
         // place and supplies a missing birth date. Same assertion receiver pattern;
         // the company is the organisationRef claim portaliq stamps.
