@@ -159,7 +159,7 @@ class EmployerSitePages {
 	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
 	 */
 	public function collections(): array {
-		$statusConfig = ['employerStatus' => ['valueLabels' => self::BOOKING_STATUS]];
+		$statusConfig = self::bookingFieldConfigs();
 
 		return [
 			$this->direct(
@@ -244,6 +244,37 @@ class EmployerSitePages {
 			],
 		];
 	}//end collections()
+
+	/**
+	 * Every booking field she reads on an opened booking, in words: portaliq
+	 * shows a field without a label by its schema title, in English, so the
+	 * detail read "Booking number", "Days" and "Booked on" (portal proof run 3).
+	 *
+	 * @return array<string, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/board-checks-follow-the-live-week/specs/portal-contribution/spec.md#requirement-an-opened-booking-names-its-fields-in-the-readers-language
+	 */
+	public static function bookingFieldConfigs(): array {
+		return [
+			'bookingNumber' => ['label' => 'Booking number'],
+			'bookingLabel' => ['label' => 'Booking'],
+			'courseName' => ['label' => 'Course name'],
+			'firstDay' => ['label' => 'First day'],
+			'dayLabel' => ['label' => 'Days'],
+			'timeLabel' => ['label' => 'Time'],
+			'placeLabel' => ['label' => 'Where'],
+			'trainerName' => ['label' => 'Trainer'],
+			'participantCount' => ['label' => 'Places'],
+			'participantNames' => ['label' => 'Participants'],
+			'missingDetailsCount' => ['label' => 'Details missing'],
+			'employerStatus' => ['label' => 'Status', 'valueLabels' => self::BOOKING_STATUS],
+			'statusNote' => ['label' => 'Status note'],
+			'detailsDueAt' => ['label' => 'Details due'],
+			'requestedAt' => ['label' => 'Booked on'],
+			'upcoming' => ['label' => 'Coming'],
+			'lifecycle' => ['label' => 'Stage of the booking', 'valueLabels' => self::BOOKING_STATUS],
+		];
+	}//end bookingFieldConfigs()
 
 	/**
 	 * The certificates her people hold, the first to expire first. Only
