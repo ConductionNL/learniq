@@ -74,6 +74,10 @@ class PortalLabelTranslator {
 		'composeHint',
 		// A task's title sentence; its `{field}` places stay as they are (portaliq lookup-by-row-field).
 		'titleTemplate',
+		// A figure's words in a strip and a list's summary sentence (portaliq mijn-overview and
+		// mijn-lists-follow-the-boards; vaartveld-pupil-pages-follow-the-boards).
+		'stripLabel',
+		'summaryText',
 	];
 
 	/**
@@ -105,7 +109,7 @@ class PortalLabelTranslator {
 	/**
 	 * The keys whose children are read in a context named after the key.
 	 */
-	private const NESTED_CONTEXTS = ['sources', 'values', 'phrases', 'confirmation', 'steps'];
+	private const NESTED_CONTEXTS = ['sources', 'values', 'phrases', 'confirmation', 'steps', 'tabs'];
 
 	/**
 	 * The two forms of a counted word.
@@ -169,13 +173,18 @@ class PortalLabelTranslator {
 	 * @return string
 	 */
 	private function contextOf(int|string $key, string $context): string {
+		// A tab's `values` are stored values it filters on, never words (portaliq list tabs).
+		if ($key === 'values' && $context === 'tab') {
+			return 'filter';
+		}
+
 		if (in_array($key, self::NESTED_CONTEXTS, true) === true) {
 			return (string)$key;
 		}
 
 		// A summary's phrases are maps of answer to words, one per field; a
 		// calendar's sources are a list of sources.
-		$byParent = ['phrases' => 'values', 'sources' => 'source', 'steps' => 'step'];
+		$byParent = ['phrases' => 'values', 'sources' => 'source', 'steps' => 'step', 'tabs' => 'tab'];
 		if (isset($byParent[$context]) === true && ($context === 'phrases' || is_int($key) === true)) {
 			return $byParent[$context];
 		}
@@ -198,6 +207,10 @@ class PortalLabelTranslator {
 	private function isVisible(int|string $key, string $context): bool {
 		if ($context === 'values') {
 			return true;
+		}
+
+		if ($context === 'filter') {
+			return false;
 		}
 
 		if ($context === 'counted') {

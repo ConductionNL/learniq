@@ -117,12 +117,13 @@ class PortalLabelTranslatorTest extends TestCase {
 	 * @return bool
 	 */
 	private static function isVisible(string $path): bool {
-		return preg_match('#/(label|submitLabel|successMessage|unit|fallback|group|otherLabel|requiredMessage|buttonLabel|template|eyebrow|soonLabel|noteLabel|help|composeLabel|composeHint|firstLabel|titleTemplate)$#', $path) === 1
+		return preg_match('#/(label|submitLabel|successMessage|unit|fallback|group|otherLabel|requiredMessage|buttonLabel|template|eyebrow|soonLabel|noteLabel|help|composeLabel|composeHint|firstLabel|titleTemplate|stripLabel|summaryText)$#', $path) === 1
 			|| preg_match('#/confirmation/(title|body|next)$#', $path) === 1
 			|| preg_match('#/phrases/[^/]+/[^/]+$#', $path) === 1
 			|| preg_match('#/(label|unit)/(one|other)$#', $path) === 1
 			|| preg_match('#/sources/\d+/(kind|title)$#', $path) === 1
-			|| preg_match('#/values/[^/]+$#', $path) === 1;
+			// A tab's values are stored values it filters on, never words.
+			|| (preg_match('#/values/[^/]+$#', $path) === 1 && preg_match('#/tabs/\d+/values/#', $path) !== 1);
 	}//end isVisible()
 
 	/**

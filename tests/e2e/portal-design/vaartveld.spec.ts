@@ -152,6 +152,9 @@ test.describe('vaartveld: Mijn Vaartveld (Noor Bakker)', () => {
 			'Toets tijdvak 3 en 4',
 			'Laatste cijfers',
 			'Afwezigheid dit schooljaar',
+			// vaartveld-pupil-pages-follow-the-boards: the links of the board.
+			'Hele week',
+			'Alle cijfers',
 		])
 		if (info.project.name === 'phone') {
 			await expectNoHorizontalScroll(page)

@@ -535,11 +535,10 @@ class StudentPortalPages {
 
 	/**
 	 * The overview, in the order of the board (school-design vaartveld,
-	 * MijnOverzicht): the greeting with today's date, homework and tests as
-	 * the first thing to do, the newest grades, then the absence strip, the
-	 * two quick actions and the messages. Today's timetable sits between the
-	 * greeting and the homework, with a link to the whole week
-	 * (site-pupil-portal-design T5b).
+	 * MijnOverzicht): the greeting with today's date and week, today's
+	 * timetable with "Hele week" in its heading on the left, homework and
+	 * tests and the newest grades as rows on the right, and the absence strip
+	 * across (vaartveld-pupil-pages-follow-the-boards).
 	 *
 	 * The greeting and the highlight display are lane L2's block contract;
 	 * portaliq drops a key it does not know yet.
@@ -548,6 +547,7 @@ class StudentPortalPages {
 	 *
 	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-a-pupil-lands-on-an-overview-of-today
 	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-the-pupil-overview-follows-the-designed-board
+	 * @spec openspec/changes/vaartveld-pupil-pages-follow-the-boards/specs/portal-contribution/spec.md#requirement-the-pupil-pages-follow-the-vaartveld-boards
 	 */
 	private function overviewPage(): array {
 		return [
@@ -556,32 +556,88 @@ class StudentPortalPages {
 			'icon' => 'ViewDashboard',
 			'group' => ParentSitePages::GROUP,
 			'home' => true,
+			// Two columns as the board: today's timetable on the left, homework and
+			// grades on the right, the absence strip across (portaliq
+			// mijn-overview-follows-the-boards `column`, `frame`, `more`). No
+			// buttons and no messages: the board has neither.
 			'blocks' => [
-				['type' => 'greeting'],
-				$this->timetableBlock(label: 'Your timetable today', range: 'day'),
-				['type' => 'cta', 'page' => 'studentSessions', 'label' => 'Whole week'],
+				['type' => 'greeting', 'showWeek' => true],
+				$this->timetableBlock(label: 'Your timetable today', range: 'day') + [
+					'column' => 'main',
+					'frame' => 'line',
+					'more' => ['label' => 'Whole week', 'page' => 'studentSessions'],
+				],
 				[
-					'type' => 'tasks',
+					'type' => 'collection',
 					'label' => 'Homework and tests',
-					'display' => 'highlight',
 					'collection' => 'studentHomework',
-					'dueField' => 'dueAt',
+					'display' => 'rows',
 					'titleFields' => ['title'],
+					'dateField' => 'dueAt',
+					'dateDisplay' => 'eyebrow',
+					'rowStyle' => 'lines',
+					'limit' => 4,
+					'sort' => ['field' => 'dueAt', 'direction' => 'asc'],
+					'column' => 'side',
+					'frame' => 'line',
+					'more' => ['label' => 'Everything this week', 'page' => 'studentHomework', 'placement' => 'end'],
 				],
 				[
 					'type' => 'collection',
 					'label' => 'Latest grades',
 					'collection' => 'studentGrades',
+					'display' => 'rows',
+					'titleFields' => ['courseName'],
+					'valueField' => 'value',
+					'dateField' => 'gradedAt',
+					'dateDisplay' => 'line',
+					'rowStyle' => 'lines',
 					'limit' => 3,
 					'sort' => ['field' => 'gradedAt', 'direction' => 'desc'],
+					'column' => 'side',
+					'frame' => 'line',
+					'more' => ['label' => 'All grades', 'page' => 'studentGrades', 'placement' => 'end'],
 				],
 				$this->absenceFigures(),
-				['type' => 'cta', 'action' => 'createSubmission', 'label' => 'Hand in work'],
-				['type' => 'cta', 'action' => 'createExcuseRequest', 'label' => 'Report an absence'],
-				['type' => 'inbox', 'label' => 'Messages', 'collection' => 'studentInbox', 'limit' => 2],
 			],
 		];
 	}//end overviewPage()
+
+	/**
+	 * Her grades grouped per subject, each subject a row with its grades as
+	 * chips and its average, a grade under 5,5 marked, the average over her
+	 * subjects and the count of subjects at a pass on top, and tabs for the
+	 * period, the whole school year and the school exam (board vaartveld
+	 * MijnLijst; portaliq mijn-lists-follow-the-boards). The teacher under the
+	 * subject, the "Nieuw" mark and the subject page follow once learniq keeps
+	 * a teacher name and an unseen flag on the grade and the subject page
+	 * exists (FIX-L, FIX-P).
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/vaartveld-pupil-pages-follow-the-boards/specs/portal-contribution/spec.md#requirement-the-pupil-pages-follow-the-vaartveld-boards
+	 */
+	public function gradesBlock(): array {
+		return [
+			'type' => 'collection',
+			'collection' => 'studentGrades',
+			'label' => 'Grades',
+			'display' => 'chips',
+			'groupField' => 'courseName',
+			'valueField' => 'value',
+			'dateField' => 'gradedAt',
+			'weightField' => 'weight',
+			'lowBelow' => 5.5,
+			'summary' => true,
+			'summaryText' => 'You have {pass} subjects at a pass and {fail} below.',
+			'rowIdField' => 'courseId',
+			'tabs' => [
+				['label' => 'Period 1', 'field' => 'period', 'values' => ['1']],
+				['label' => 'Whole school year'],
+				['label' => 'School exam', 'field' => 'period', 'values' => ['SE']],
+			],
+		];
+	}//end gradesBlock()
 
 	/**
 	 * The absence strip: days absent, times late, days without a report, for
@@ -592,15 +648,22 @@ class StudentPortalPages {
 	private function absenceFigures(): array {
 		$days = ['one' => 'day', 'other' => 'days'];
 
+		// One grey line on the board: "1 dag ziek, 2 keer te laat, 0 uur zonder
+		// melding" with "Bekijken" at the end (portaliq kpi `display: strip`).
+		// The summary counts days without a report, not hours, so the last
+		// figure reads in days until learniq keeps the hours.
 		return [
 			'type' => 'kpi',
 			'collection' => 'studentAttendanceSummary',
 			'label' => 'Absence this school year',
 			'pick' => ['field' => 'schoolYear', 'direction' => 'desc'],
+			'display' => 'strip',
+			'frame' => 'tinted',
+			'more' => ['label' => 'View', 'page' => 'studentExcuseRequests'],
 			'cards' => [
-				['field' => 'absentDays', 'label' => 'Absent', 'unit' => $days],
-				['field' => 'lateCount', 'label' => 'Late', 'unit' => ['one' => 'time', 'other' => 'times']],
-				['field' => 'absentUnauthorisedDays', 'label' => 'Without a report', 'unit' => $days, 'highlight' => true],
+				['field' => 'absentDays', 'label' => 'Absent', 'unit' => $days, 'stripLabel' => 'ill'],
+				['field' => 'lateCount', 'label' => 'Late', 'unit' => ['one' => 'time', 'other' => 'times'], 'stripLabel' => 'late'],
+				['field' => 'absentUnauthorisedDays', 'label' => 'Without a report', 'unit' => $days, 'stripLabel' => 'without a report'],
 			],
 		];
 	}//end absenceFigures()
@@ -630,6 +693,16 @@ class StudentPortalPages {
 				'label' => self::MENU_PAGES[$id],
 				'group' => ParentSitePages::GROUP,
 				'blocks' => [$this->timetableBlock(label: 'Timetable', range: 'week')],
+			];
+		}
+
+		if ($id === 'studentGrades') {
+			// Her grades per subject, not a table of every grade (board MijnLijst).
+			return [
+				'id' => $id,
+				'label' => self::MENU_PAGES[$id],
+				'group' => ParentSitePages::GROUP,
+				'blocks' => [$this->gradesBlock()],
 			];
 		}
 
