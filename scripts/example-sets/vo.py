@@ -1544,6 +1544,14 @@ STORY_ROOMS = ["1.12", "2.14", "0.21", "1.08", "1.05", "2.03"]
 # H4b's Monday: lesson hour, subject (None for the mentor hour), room code.
 H4B_MONDAY = [(1, "NE", "1.12"), (2, "WA", "2.14"), (3, "EC", "1.08"), (4, "EN", "1.05"), (5, "GS", "2.03"),
               (6, None, "1.12"), (7, "LO", "H-GYM")]
+# The rest of H4b's week of 5 October, in the shape of the Monday: lesson hour, subject, room code. Tuesday's
+# first hour (economie) and eighth hour (steunles wiskunde) are written with the story's Tuesday.
+H4B_WEEK = {
+    1: [(2, "NE", "1.12"), (3, "MA", "1.05"), (4, "WA", "2.14"), (5, "BE", "1.08"), (6, "EN", "1.05")],
+    2: [(1, "GS", "2.03"), (2, "AK", "1.05"), (3, "NE", "1.12"), (4, "CKV", "0.21"), (5, "EN", "1.05")],
+    3: [(1, "WA", "2.14"), (2, "EC", "1.08"), (3, "BE", "1.08"), (4, "GS", "2.03"), (5, "LO", "H-GYM"), (6, "NE", "1.12")],
+    4: [(1, "EN", "1.05"), (2, "AK", "1.05"), (3, "WA", "2.14"), (4, "MA", "1.05"), (5, "EC", "1.08")],
+}
 # Period 1 of 2026-2027 per subject: (componentId, label, weight, kind, date, grade or None for one still to come).
 # The grades give the averages on the boards: Nederlands 7,0, Engels 7,1, wiskunde A 5,2, economie 6,4,
 # geschiedenis 7,8, bedrijfseconomie 6,3, aardrijkskunde 6,9, maatschappijleer 7,2; 6,7 over these eight.
@@ -1868,6 +1876,14 @@ def add_story(b: Builder, school: dict, locations: dict, rooms: dict, courses: d
             # What AssignmentLearnerRefsStamp writes on a live save: the group's pupils.
             "learnerRefs": list(learner_refs),
         })
+
+    # --- the rest of the week: a timetable on every school day (portal proof run 3) ----------------------------
+    # Written last, so every session above keeps its uuid. The load moves the week to the week it runs in, so her
+    # overview's "Je rooster vandaag" has lessons from Monday to Friday.
+    for offset, hours in H4B_WEEK.items():
+        day = TODAY + dt.timedelta(days=offset)
+        for hour, s, code in hours:
+            lesson(day, hour, s, code, "scheduled")
 
     return {"noor": noor["nc"], "father": father["ncUserId"]}
 
