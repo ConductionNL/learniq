@@ -4125,6 +4125,7 @@ OC.L10N.register(
         "Agreement signed": "Overeenkomst getekend",
         "Work plan made": "Werkplan gemaakt",
         "Midterm review": "Tussenbeoordeling",
+        "%1$s of %2$s work processes done.": "%1$s van de %2$s werkprocessen klaar.",
         "Final review": "Eindbeoordeling",
         "Placement finished": "BPV afgerond",
         "Choose the placement and the work process you assess.": "Kies de stage en het werkproces dat u beoordeelt.",

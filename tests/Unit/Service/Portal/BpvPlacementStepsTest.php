@@ -55,12 +55,13 @@ class BpvPlacementStepsTest extends TestCase {
 			'praktijkovereenkomst' => $rows('praktijkovereenkomst'),
 			'pok-signature' => $rows('pok-signature'),
 			'bpv-visit-report' => $rows('bpv-visit-report'),
+			'werkproces-progress' => $rows('werkproces-progress'),
 		];
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(fn (array $config = []): array => $store->findAll($config, false, false));
 		$factory = $this->createMock(IFactory::class);
 		$l10n = $this->createMock(IL10N::class);
-		$l10n->method('t')->willReturnArgument(0);
+		$l10n->method('t')->willReturnCallback(static fn (string $text, array $args = []): string => vsprintf($text, $args));
 		$factory->method('get')->willReturn($l10n);
 
 		return new BpvPlacementSteps(objectService: $objectService, l10n: $factory, logger: new NullLogger());
@@ -80,7 +81,15 @@ class BpvPlacementStepsTest extends TestCase {
 		// The current step says what happens and carries its day for the "Volgende stap" card (portaliq #1409);
 		// every other step names its day once, in its line (REPORT-2, item 8).
 		self::assertSame(
-			['27 augustus 2026', '9 september 2026', 'Tussenbeoordeling om 10.00 uur bij Bakker Techniek BV. Milan en Petra Bakker vullen vooraf elk een beoordeling in.', 'januari 2027', '29 januari 2027'],
+			// A day of 2026, the year the placement starts, reads without its year (board Detail);
+			// the midterm review ends on how many work processes he filled in (4 of his 6).
+			[
+				'27 augustus',
+				'9 september',
+				'Tussenbeoordeling om 10.00 uur bij Bakker Techniek BV. Milan en Petra Bakker vullen vooraf elk een beoordeling in. 4 of 6 work processes done.',
+				'januari 2027',
+				'29 januari 2027',
+			],
 			array_column($steps, 'description')
 		);
 		self::assertSame([2 => '2026-10-13'], array_filter(array_map(static fn (array $step): ?string => ($step['date'] ?? null), $steps)));
@@ -99,4 +108,32 @@ class BpvPlacementStepsTest extends TestCase {
 		self::assertSame(['current', 'todo', 'todo', 'todo', 'todo'], array_column($steps, 'state'));
 		self::assertSame([], $service->forPlacement(placementId: 'nothing'));
 	}//end testAnEmptyPlacementWaitsForItsAgreement()
+
+	/**
+	 * The count of work processes stands only on a current midterm review: not
+	 * once that review is done, and not when the placement has no records.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/esdoornveen-placement-steps-follow-the-board/specs/bpv/spec.md#requirement-the-placement-steps-read-like-board-detail
+	 */
+	public function testTheWorkProcessCountStandsOnTheCurrentMidtermOnly(): void {
+		$placementId = null;
+		$service = $this->steps(placementId: $placementId);
+		$placement = ['periodFrom' => '2027-02-01', 'periodTo' => '2027-07-02', 'lifecycle' => 'active'];
+		$signed = [['signedAt' => '2027-01-20T10:05:00+01:00']];
+		$plan = ['visitKind' => 'voortgangsbezoek', 'visitDate' => '2027-02-10', 'lifecycle' => 'finalized'];
+		$midterm = ['visitKind' => 'tussentijds-gesprek', 'visitDate' => '2027-04-01', 'lifecycle' => 'draft'];
+		$processes = [['selfAssessment' => 'goed'], ['selfAssessment' => ''], []];
+
+		$current = $service->stepsOf(placement: $placement, signatures: $signed, visits: [$plan, $midterm], l10n: null, processes: $processes);
+		self::assertSame('1 april. 1 of 3 work processes done.', $current[2]['description']);
+		// Signed in January 2027, the year the placement starts: no year.
+		self::assertSame(['20 januari', '10 februari'], [$current[0]['description'], $current[1]['description']]);
+
+		$done = $service->stepsOf(placement: $placement, signatures: $signed, visits: [$plan, ['lifecycle' => 'finalized'] + $midterm], l10n: null, processes: $processes);
+		self::assertSame('1 april', $done[2]['description']);
+		$none = $service->stepsOf(placement: $placement, signatures: $signed, visits: [$plan, $midterm], l10n: null);
+		self::assertSame('1 april', $none[2]['description']);
+	}//end testTheWorkProcessCountStandsOnTheCurrentMidtermOnly()
 }//end class

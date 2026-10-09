@@ -3673,6 +3673,7 @@ OC.L10N.register(
         "Agreement signed": "Agreement signed",
         "Work plan made": "Work plan made",
         "Midterm review": "Midterm review",
+        "%1$s of %2$s work processes done.": "%1$s of %2$s work processes done.",
         "Final review": "Final review",
         "Placement finished": "Placement finished",
         "Choose the placement and the work process you assess.": "Choose the placement and the work process you assess.",

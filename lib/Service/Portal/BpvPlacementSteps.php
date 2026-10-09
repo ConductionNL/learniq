@@ -59,6 +59,13 @@ class BpvPlacementSteps {
 
 	private const ZONE = 'Europe/Amsterdam';
 
+	/**
+	 * The year the placement being read starts in, or empty.
+	 *
+	 * @var string
+	 */
+	private string $startYear = '';
+
 	private const MONTHS = [
 		'januari',
 		'februari',
@@ -112,12 +119,20 @@ class BpvPlacementSteps {
 			}
 
 			$visits = $this->rows(schema: 'bpv-visit-report', filters: ['bpvPlacementId' => $placementId]);
+			// Her own record per work process: how many she filled in before the midterm review.
+			$processes = $this->rows(schema: 'werkproces-progress', filters: ['bpvPlacementId' => $placementId]);
 		} catch (Throwable $exception) {
 			$this->logger->warning('[BpvPlacementSteps] Could not read a placement: {msg}', ['msg' => $exception->getMessage()]);
 			return [];
 		}
 
-		return $this->stepsOf(placement: $placement, signatures: $signatures, visits: $visits, l10n: $this->l10n->get('learniq'));
+		return $this->stepsOf(
+			placement: $placement,
+			signatures: $signatures,
+			visits: $visits,
+			l10n: $this->l10n->get('learniq'),
+			processes: $processes
+		);
 	}//end forPlacement()
 
 	/**
@@ -127,12 +142,15 @@ class BpvPlacementSteps {
 	 * @param array<int, array<string, mixed>> $signatures The signatures on its agreement.
 	 * @param array<int, array<string, mixed>> $visits     Its visit reports.
 	 * @param IL10N|null                       $l10n       The labels' language, or null for English.
+	 * @param array<int, array<string, mixed>> $processes  Her records per work process (werkproces-progress).
 	 *
 	 * @return array<int, array<string, string>>
 	 *
 	 * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md#requirement-new-a-placement-shows-where-it-stands
 	 */
-	public function stepsOf(array $placement, array $signatures, array $visits, ?IL10N $l10n): array {
+	public function stepsOf(array $placement, array $signatures, array $visits, ?IL10N $l10n, array $processes=[]): array {
+		// A day in the year the placement starts reads without its year (board Detail: "27 augustus").
+		$this->startYear = ($this->date(value: ($placement['periodFrom'] ?? null))?->format('Y') ?? '');
 		$signedAt = $this->latest(rows: $signatures, field: 'signedAt');
 		$workplan = $this->visit(visits: $visits, kind: 'voortgangsbezoek', finalisedOnly: true);
 		$midterm = $this->visit(visits: $visits, kind: 'tussentijds-gesprek', finalisedOnly: false);
@@ -142,7 +160,7 @@ class BpvPlacementSteps {
 
 		$finalLine = '';
 		if ($final === null && $end !== null) {
-			$finalLine = self::MONTHS[((int)$end->format('n') - 1)] . ' ' . $end->format('Y');
+			$finalLine = self::MONTHS[((int)$end->format('n') - 1)] . $this->yearOf(day: $end);
 		}
 
 		$steps = [
@@ -154,7 +172,19 @@ class BpvPlacementSteps {
 			[$this->text(l10n: $l10n, text: 'Placement finished'), $completed, $this->longDate(day: $end), ''],
 		];
 
-		return $this->withCurrent(steps: $this->withStates(steps: $steps), visits: [null, $workplan, $midterm, $final, null]);
+		$steps    = $this->withCurrent(steps: $this->withStates(steps: $steps), visits: [null, $workplan, $midterm, $final, null]);
+		$progress = $this->progressLine(processes: $processes, l10n: $l10n);
+		if ($progress !== '' && ($steps[2]['state'] ?? '') === 'current') {
+			// Board Detail, "Volgende stap", ends on "Jij hebt 4 van de 6 werkprocessen klaar".
+			$line = trim((string)($steps[2]['description'] ?? ''));
+			if ($line !== '' && preg_match('/[.!?]$/', $line) !== 1) {
+				$line .= '.';
+			}
+
+			$steps[2]['description'] = trim($line . ' ' . $progress);
+		}
+
+		return $steps;
 	}//end stepsOf()
 
 	/**
@@ -292,7 +322,49 @@ class BpvPlacementSteps {
 	}//end latest()
 
 	/**
-	 * "27 augustus 2026", or ''.
+	 * The year after a day, unless it is the year the placement starts in.
+	 *
+	 * @param DateTimeImmutable $day The day.
+	 *
+	 * @return string " 2027", or empty.
+	 *
+	 * @spec openspec/changes/esdoornveen-placement-steps-follow-the-board/specs/bpv/spec.md#requirement-the-placement-steps-read-like-board-detail
+	 */
+	private function yearOf(DateTimeImmutable $day): string {
+		if ($day->format('Y') === $this->startYear) {
+			return '';
+		}
+
+		return ' ' . $day->format('Y');
+	}//end yearOf()
+
+	/**
+	 * How many work processes she filled in herself, of how many: "4 of 6
+	 * work processes done.", or empty when the placement has none.
+	 *
+	 * @param array<int, array<string, mixed>> $processes Her records per work process.
+	 * @param IL10N|null                       $l10n      The language, or null for English.
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/changes/esdoornveen-placement-steps-follow-the-board/specs/bpv/spec.md#requirement-the-placement-steps-read-like-board-detail
+	 */
+	private function progressLine(array $processes, ?IL10N $l10n): string {
+		if ($processes === []) {
+			return '';
+		}
+
+		$done = count(array_filter($processes, static fn (array $row): bool => trim((string)($row['selfAssessment'] ?? '')) !== ''));
+		$args = [(string)$done, (string)count($processes)];
+		if ($l10n === null) {
+			return vsprintf('%1$s of %2$s work processes done.', $args);
+		}
+
+		return $l10n->t('%1$s of %2$s work processes done.', $args);
+	}//end progressLine()
+
+	/**
+	 * "27 augustus", or "29 januari 2027" outside the placement's first year, or ''.
 	 *
 	 * @param DateTimeImmutable|null $day The day.
 	 *
@@ -303,7 +375,7 @@ class BpvPlacementSteps {
 			return '';
 		}
 
-		return $day->format('j') . ' ' . self::MONTHS[((int)$day->format('n') - 1)] . ' ' . $day->format('Y');
+		return $day->format('j') . ' ' . self::MONTHS[((int)$day->format('n') - 1)] . $this->yearOf(day: $day);
 	}//end longDate()
 
 	/**
