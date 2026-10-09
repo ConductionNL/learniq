@@ -72,6 +72,36 @@ const JANSEN = {
 	eherkenning: 'eherkenning-jansen-installatietechniek',
 	email: 'linda.jansen@jansen-installatietechniek.example',
 }
+/** Linda's F-gassen booking: the story week's Thursday, the exam day of the boards. */
+const FGASSEN_BOOKING = 'ee060020-0000-4000-8000-000000000002'
+
+/**
+ * Whether the story week's F-gassen day has passed. The boards are drawn for
+ * the week of 5 October with the exam on Thursday; the load moves the set to
+ * the week it runs in, so from Friday that day is behind us and drops off
+ * every "coming" list (past-course-days-drop-off). Read from the instance,
+ * so the check holds on any day of the week.
+ *
+ * @return {Promise<boolean>} True from the day after the F-gassen day.
+ */
+async function fgassenPassed(): Promise<boolean> {
+	const admin = await request.newContext({
+		baseURL: baseUrl(),
+		httpCredentials: ADMIN_CREDENTIALS,
+		extraHTTPHeaders: { 'OCS-APIRequest': 'true' },
+	})
+	const res = await admin.get(
+		`/apps/openregister/api/objects/learniq/course-booking/${FGASSEN_BOOKING}`,
+	)
+	expect(res.ok(), await res.text()).toBeTruthy()
+	const day = String((await res.json()).firstDay ?? '')
+	await admin.dispose()
+	const today = new Intl.DateTimeFormat('en-CA', {
+		timeZone: 'Europe/Amsterdam',
+	}).format(new Date())
+	return day !== '' && day < today
+}
+
 const FOOTER = [
 	'Twijfelt u welke cursus past? Bel de planning.',
 	'De Warmtepompacademie is een voorbeeldorganisatie.',
@@ -80,12 +110,15 @@ const FOOTER = [
 test.describe('warmtepompacademie: the website', () => {
 	test('Home', async ({ page }, info) => {
 		await openSitePage(page, PORTAL, '/')
+		// The course days come from the live index: once the F-gassen day has
+		// passed it drops off and Waterzijdig inregelen leads with its places.
+		const passed = await fgassenPassed()
 		await expectTexts(page, [
 			'Cursussen voor wie warmtepompen installeert',
 			'Eerstvolgende cursusdagen',
 			'Praktijkhal Zuiddrecht',
-			'F-gassen: herhaling en examen',
-			'Nog 1 plek',
+			passed ? 'Waterzijdig inregelen' : 'F-gassen: herhaling en examen',
+			passed ? '6 plekken vrij' : 'Nog 1 plek',
 			'Kies de cursus en een datum',
 			'Mijn academie',
 			'Medewerkers inschrijven',
@@ -98,13 +131,19 @@ test.describe('warmtepompacademie: the website', () => {
 				.getByTestId('hero-aside')
 				.filter({ hasText: 'Eerstvolgende cursusdagen' }),
 		).toBeVisible()
+		// The board's reading order: the heading, the paragraph, the three steps
+		// and the button on the left, the sign-in card beside them. The grid
+		// writes its rows top to bottom, so the card, which starts on the
+		// heading's row, sits between the heading and the paragraph.
 		await expectWidgetOrder(page, [
 			'hero',
+			'nlHeading',
+			'nlParagraph',
 			'nlList',
-			'nlSignIn',
 			'nlButtonLink',
 			'markdown',
 		])
+		await expectWidgetOrder(page, ['nlHeading', 'nlSignIn', 'nlList'])
 		await expectTheme(page, PORTAL, DESIGN, info)
 		if (info.project.name === 'phone') {
 			await expectNoHorizontalScroll(page)
@@ -154,14 +193,20 @@ test.describe('warmtepompacademie: Mijn academie (Linda Jansen, employer)', () =
 			LINDA.user,
 			info.project.use.viewport ?? { width: 1440, height: 1000 },
 		)
+		const passed = await fgassenPassed()
 		await expectTexts(page, [
 			'Linda',
 			'Jansen Installatietechniek BV',
 			'Vul de geboortedatum van Youssef El Amrani in',
 			'Youssef doet donderdag examen.',
-			'F-gassen: herhaling en examen',
-			'Tom Verbeek, Youssef El Amrani, Sanne Kok',
-			'Geboortedatum van 1 deelnemer ontbreekt',
+			// The F-gassen booking is coming until its day has passed.
+			...(passed
+				? []
+				: [
+						'F-gassen: herhaling en examen',
+						'Tom Verbeek, Youssef El Amrani, Sanne Kok',
+						'Geboortedatum van 1 deelnemer ontbreekt',
+					]),
 			'Warmtepompen installeren: basis',
 			'De plek staat vast',
 			dated('Bevestiging uiterlijk dinsdag 6 oktober'),
@@ -194,11 +239,13 @@ test.describe('warmtepompacademie: Mijn academie (Linda Jansen, employer)', () =
 			'Lucht-water warmtepomp: ontwerp en inbedrijfstelling',
 			'Waterzijdig inregelen',
 		])
-		// The board's Detail is one booking opened: its participants and the birth date form.
-		await page
-			.getByRole('link', { name: /F-gassen: herhaling en examen/ })
-			.first()
-			.click()
+		// The board's Detail is one booking opened: its participants and the
+		// birth date form. A row of the dated list cannot be opened yet (portaliq
+		// `display: rows` draws no link), so the check opens the booking by its
+		// record route, as a link from the overview does.
+		await page.goto(
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent(`/mijn/learniq/employerBookings/${FGASSEN_BOOKING}`)}`,
+		)
 		await expectTexts(page, [
 			'Geboortedatum ontbreekt',
 			dated('Certificaat geldig tot 30 november 2026'),
@@ -225,10 +272,15 @@ test.describe('warmtepompacademie: Mijn academie (Tom Verbeek, participant)', ()
 			TOM.user,
 			info.project.use.viewport ?? { width: 1440, height: 1000 },
 		)
+		// His next course day is the next one from today: F-gassen until its
+		// day has passed, then the lucht-water course (past-course-days-drop-off).
+		const passed = await fgassenPassed()
 		await expectTexts(page, [
 			'Tom',
-			'F-gassen: herhaling en examen',
-			dated('donderdag 8 oktober'),
+			passed
+				? 'Lucht-water warmtepomp: ontwerp en inbedrijfstelling'
+				: 'F-gassen: herhaling en examen',
+			passed ? dated('3, 4 en 10 november') : dated('donderdag 8 oktober'),
 			'08.30 tot 16.30 uur',
 			'Praktijkhal Zuiddrecht, Energieweg 8',
 			'F-gassen categorie 1',

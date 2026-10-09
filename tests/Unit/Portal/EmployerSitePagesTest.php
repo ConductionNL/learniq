@@ -369,4 +369,27 @@ class EmployerSitePagesTest extends TestCase {
 			self::assertContains($field, $collections['employerParticipants']['fields']);
 		}
 	}//end testABookingListsItsParticipantsAndCertificatesGroup()
+
+	/**
+	 * An opened booking names every field it shows in words the translator
+	 * moves: no field falls back to its English schema title. The state reads
+	 * as words, not as `confirmed`.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/board-checks-follow-the-live-week/specs/portal-contribution/spec.md#requirement-an-opened-booking-names-its-fields-in-the-readers-language
+	 */
+	public function testAnOpenedBookingNamesEveryField(): void {
+		$collections = array_column(self::manifest()['collections'], null, 'id');
+		$dutch = json_decode((string)file_get_contents(__DIR__ . '/../../../l10n/nl.json'), true)['translations'];
+		foreach (['employerBookings', 'employerComingBookings'] as $id) {
+			$configs = $collections[$id]['fieldConfigs'];
+			foreach (array_diff($collections[$id]['fields'], ['organisationRef']) as $field) {
+				self::assertArrayHasKey('label', ($configs[$field] ?? []), $id . '.' . $field);
+				self::assertArrayHasKey($configs[$field]['label'], $dutch, $configs[$field]['label']);
+			}
+
+			self::assertSame('Confirmed', $configs['lifecycle']['valueLabels']['confirmed']);
+		}
+	}//end testAnOpenedBookingNamesEveryField()
 }//end class
