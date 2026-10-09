@@ -71,9 +71,11 @@ class PastCourseDaysJob extends TimedJob {
 	/**
 	 * Re-derive each coming booking whose first day lies before today.
 	 *
-	 * @param mixed $argument Unused.
+	 * @param mixed $argument Unused job argument.
 	 *
 	 * @return void
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is TimedJob's.
 	 *
 	 * @spec openspec/changes/past-course-days-drop-off/specs/portal-contribution/spec.md#requirement-a-course-day-that-has-passed-is-no-longer-coming
 	 */
