@@ -242,8 +242,12 @@ class ExamplePortalDeclarationsTest extends TestCase {
 			self::assertSame('boxed', $table['props']['display'], $set);
 
 			$side = array_values(array_filter($pages[$sideRoute]['body']['widgets'], static fn (array $w): bool => $w['gridX'] === 8));
-			self::assertCount(1, $side, $set . ' ' . $sideRoute);
+			usort($side, static fn (array $a, array $b): int => $a['gridY'] <=> $b['gridY']);
 			self::assertSame(['nlLinkList', 0], [$side[0]['widgetKey'], $side[0]['gridY']], $set . ': the side list starts at the top');
+			// Under the list only plain cards (site-callouts-steps-and-tables-follow-the-boards).
+			foreach (array_slice($side, 1) as $card) {
+				self::assertSame(['nlAlert', 'plain'], [$card['widgetKey'], $card['props']['kind'] ?? null], $card['id']);
+			}
 			foreach ($pages[$sideRoute]['body']['widgets'] as $widget) {
 				if ($widget['gridX'] < 8) {
 					self::assertLessThanOrEqual(8, $widget['gridX'] + $widget['gridWidth'], $widget['id'] . ' stays in the main column');
