@@ -110,7 +110,7 @@ class LearnerGroupLabel {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 */
-	private function activeEnrolment(string $learnerRef): ?array {
+	public function activeEnrolment(string $learnerRef): ?array {
 		$rows = $this->objectService->findAll(
 			config: [
 				'filters' => [
@@ -148,7 +148,7 @@ class LearnerGroupLabel {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 */
-	private function cohort(string $id): array {
+	public function cohort(string $id): array {
 		if ($id === '') {
 			return [];
 		}

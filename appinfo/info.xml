@@ -126,6 +126,10 @@ Vrij en open source onder de EUPL-1.2-licentie.
              (default 3600, floor 600). A draft lives for one request; one a
              crash leaves behind is readable by every signed-in user. -->
         <job>OCA\Learniq\BackgroundJob\CourseEvaluationDraftCleanupJob</job>
+        <!-- Every hour: a grade stops reading "Nieuw" seven days after it became
+             visible, and a company's employee count follows its employees
+             (portal-person-and-list-data). -->
+        <job>OCA\Learniq\BackgroundJob\PortalCopiesRefreshJob</job>
     </background-jobs>
 
     <repair-steps>

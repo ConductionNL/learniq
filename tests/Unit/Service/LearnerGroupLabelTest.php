@@ -27,6 +27,7 @@ namespace OCA\Learniq\Tests\Unit\Service;
 use OCA\Learniq\BackgroundJob\LearnerGroupLabelRestampJob;
 use OCA\Learniq\Listener\LearnerGroupLabelCascade;
 use OCA\Learniq\Service\LearnerGroupLabel;
+use OCA\Learniq\Service\LearnerLevelLabel;
 use OCA\Learniq\Service\LearnerGroupLabelRestamp;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Service\ReadableCopies;
@@ -117,8 +118,33 @@ class LearnerGroupLabelTest extends TestCase {
 		$copies = new ReadableCopies(objectService: $this->objects(), users: $this->users());
 
 		self::assertTrue($copies->covers('learner-profile'));
-		self::assertSame(['groupLabel' => 'Groep 7 · Meester Daan', 'fullName' => null], $copies->derive('learner-profile', ['id' => self::VERA, 'roles' => ['learner']]));
+		// The person block's lines too: a primary school's group has no level (portal-person-and-list-data).
+		self::assertSame(
+			['groupLabel' => 'Groep 7 · Meester Daan', 'fullName' => null, 'levelLabel' => null, 'classLabel' => 'Groep 7'],
+			$copies->derive('learner-profile', ['id' => self::VERA, 'roles' => ['learner']])
+		);
 	}//end testTheReadableCopiesCoverTheLearnerProfile()
+
+	/**
+	 * A secondary school pupil reads "4 havo" and "klas H4b"; a vocational
+	 * student her programme and year; a group without a programme only its
+	 * name.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-person-and-list-data/specs/portal-contribution/spec.md#requirement-the-person-block-names-the-pupils-level-and-class
+	 */
+	public function testThePersonBlockLinesFollowTheSchoolKind(): void {
+		self::assertSame(
+			['levelLabel' => '4 havo', 'classLabel' => 'klas H4b'],
+			LearnerLevelLabel::lines(cohort: ['programmeYear' => 4], group: 'H4b', programme: ['name' => 'Havo', 'level' => 'vo'])
+		);
+		self::assertSame(
+			['levelLabel' => 'Mechatronica, leerjaar 2', 'classLabel' => 'klas MT4-2A'],
+			LearnerLevelLabel::lines(cohort: ['programmeYear' => 2], group: 'MT4-2A', programme: ['name' => 'Mechatronica', 'level' => 'mbo'])
+		);
+		self::assertSame(['levelLabel' => null, 'classLabel' => 'Groep 7'], LearnerLevelLabel::lines(cohort: [], group: 'Groep 7', programme: []));
+	}//end testThePersonBlockLinesFollowTheSchoolKind()
 
 	/**
 	 * The re-stamp writes a moved line once, and nothing when it already holds.

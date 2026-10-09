@@ -89,7 +89,7 @@ class ReadableCopies {
 	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
 	 */
 	public function covers(string $slug): bool {
-		return array_key_exists($slug, self::EMPTY);
+		return array_key_exists($slug, self::EMPTY) || array_key_exists($slug, PortalListCopies::EMPTY);
 	}//end covers()
 
 	/**
@@ -102,7 +102,7 @@ class ReadableCopies {
 	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
 	 */
 	public function fields(string $slug): array {
-		return array_keys((self::EMPTY[$slug] ?? []));
+		return array_keys(array_merge((self::EMPTY[$slug] ?? []), (PortalListCopies::EMPTY[$slug] ?? [])));
 	}//end fields()
 
 	/**
@@ -124,6 +124,24 @@ class ReadableCopies {
 	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
 	 */
 	public function derive(string $slug, array $row): array {
+		// The person blocks' and lists' copies (portal-person-and-list-data).
+		return array_merge(
+			$this->ownCopies(slug: $slug, row: $row),
+			(new PortalListCopies(objectService: $this->objectService, users: $this->users))->derive(slug: $slug, row: $row)
+		);
+	}//end derive()
+
+	/**
+	 * The copies this class derives itself.
+	 *
+	 * @param string               $slug The schema slug.
+	 * @param array<string, mixed> $row  The row as it will be stored.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @throws \Throwable When OpenRegister cannot be read.
+	 */
+	private function ownCopies(string $slug, array $row): array {
 		if ($slug === 'grade-entry') {
 			return ['courseName' => $this->nameOf(schema: 'course', id: $row['courseId'] ?? null, field: 'name')];
 		}
@@ -164,7 +182,7 @@ class ReadableCopies {
 		}
 
 		return [];
-	}//end derive()
+	}//end ownCopies()
 
 	/**
 	 * The participant's name, the course's name and the participant's employer, for an enrolment.

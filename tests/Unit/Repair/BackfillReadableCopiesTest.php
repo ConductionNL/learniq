@@ -111,7 +111,8 @@ class BackfillReadableCopiesTest extends TestCase {
 		}
 
 		// The profile gets its name line (employer-portal-audience).
-		self::assertSame(['grade-old', 'enrolment-old', 'share-old', 'availability-old', 'profile-daan'], array_keys($saved));
+		// grade-done had its course name but not yet who gave it (portal-person-and-list-data).
+		self::assertSame(['grade-old', 'grade-done', 'enrolment-old', 'share-old', 'availability-old', 'profile-daan'], array_keys($saved));
 		self::assertSame('Daan Visser', $saved['profile-daan']['fullName']);
 		self::assertSame('Meester Daan', $saved['availability-old']['teacherName']);
 		self::assertSame('Rekenen', $saved['grade-old']['courseName']);

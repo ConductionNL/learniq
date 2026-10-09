@@ -198,7 +198,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(16, $collections);
+		$this->assertCount(17, $collections);
 		$this->assertSame(
 			[
 				'studentGrades',
@@ -223,6 +223,8 @@ class PortalContributionProviderTest extends TestCase {
 				'studentAttendanceSummary',
 				// site-pupil-portal-design T1: her timetable (its page still follows the overview).
 				'studentSessions',
+				// portal-person-and-list-data: her own row, for the menu's person block.
+				'studentProfile',
 			],
 			array_column($collections, 'id')
 		);
@@ -246,6 +248,12 @@ class PortalContributionProviderTest extends TestCase {
 				// enrolments, never by a field on the lesson (StudentTimetableTest).
 				$this->assertSame('cohortId', $collection['scopeField']);
 				$this->assertSame('learnerRef', $collection['via']['scopeField']);
+				continue;
+			}
+
+			if ($collection['id'] === 'studentProfile') {
+				// Her own row: reached through her own enrolments (portal-person-and-list-data).
+				$this->assertSame(['enrolment', 'learnerRef', 'learnerRef'], [$collection['via']['schema'], $collection['via']['scopeField'], $collection['via']['targetField']]);
 				continue;
 			}
 

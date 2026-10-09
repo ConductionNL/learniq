@@ -225,7 +225,9 @@ class PortalContributionProvider {
 
 		if ($audience === EmployerSitePages::AUDIENCE) {
 			// A company that sends its people to the courses (employer-portal-audience).
-			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new EmployerSitePages())->contribution());
+			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(
+				manifest: self::withCollection(manifest: (new EmployerSitePages())->contribution(), collection: (new PersonBlockCollections())->employerCompany())
+			);
 		}
 
 		if ($audience === ParticipantSitePages::AUDIENCE) {
@@ -236,6 +238,21 @@ class PortalContributionProvider {
 		// Any audience Learniq does not serve → null (fail-closed; ADR-005).
 		return null;
 	}//end getContribution()
+
+	/**
+	 * A manifest with one collection more, at the end: a row its pages do not
+	 * list, such as the person block's (portal-person-and-list-data).
+	 *
+	 * @param array<string, mixed> $manifest   The manifest.
+	 * @param array<string, mixed> $collection The collection.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function withCollection(array $manifest, array $collection): array {
+		$manifest['collections'][] = $collection;
+
+		return $manifest;
+	}//end withCollection()
 
 	/**
 	 * The steps of a company booking, for the employer's booking page.
@@ -276,7 +293,9 @@ class PortalContributionProvider {
 		$collections = array_merge(
 			$own->studentResultCollections(),
 			$own->studentActivityCollections(site: $site),
-			[$own->studentTestsCollection(), $site->homeworkCollection(), $site->attendanceSummaryCollection(), $site->sessionsCollection()]
+			[$own->studentTestsCollection(), $site->homeworkCollection(), $site->attendanceSummaryCollection(), $site->sessionsCollection()],
+			// Her own row, for the menu's person block (portal-person-and-list-data).
+			[(new PersonBlockCollections())->studentProfile()]
 		);
 		$actions = array_merge(
 			$this->studentActions(site: $site),
