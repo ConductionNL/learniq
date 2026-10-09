@@ -832,4 +832,67 @@ class TrainingExampleSetTest extends TestCase {
 		$daan = self::person(given: 'Daan', family: 'Visser')['ncUserId'];
 		self::assertArrayNotHasKey($daan, $held, 'Daan has no certificate yet');
 	}//end testTheCertificatesInTheCompany()
+
+	/**
+	 * The catalogue's course dates and places as boards Zoeken and LqBord show
+	 * them: each course's first date to come, its other dates ("ook op") and
+	 * the places left (capacity minus live bookings and loose enrolments, the
+	 * rule of CoursePlaces).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/academy-course-dates-follow-the-boards/specs/example-sets/spec.md#requirement-the-academy-catalogue-carries-the-boards-course-dates-and-places
+	 */
+	public function testTheCatalogueCarriesTheBoardsDatesAndPlaces(): void {
+		$courses = self::by(self::of('course'), 'uuid');
+		$taken   = [];
+		foreach (self::of('course-booking') as $booking) {
+			if (in_array($booking['lifecycle'], ['received', 'confirmed'], true) === true) {
+				$taken[$booking['cohortId']] = (($taken[$booking['cohortId']] ?? 0) + (int)$booking['participantCount']);
+			}
+		}
+
+		foreach (self::of('enrolment') as $enrolment) {
+			if (($enrolment['bookingRef'] ?? '') === '' && in_array($enrolment['lifecycle'], ['pending', 'active'], true) === true) {
+				$taken[$enrolment['cohortId'] ?? ''] = (($taken[$enrolment['cohortId'] ?? ''] ?? 0) + 1);
+			}
+		}
+
+		$firstDay = [];
+		foreach (self::of('session') as $session) {
+			$day = substr($session['startsAt'], 0, 10);
+			if (isset($firstDay[$session['cohortId']]) === false || $day < $firstDay[$session['cohortId']]) {
+				$firstDay[$session['cohortId']] = $day;
+			}
+		}
+
+		$runs = [];
+		foreach (self::of('cohort') as $cohort) {
+			$day = ($firstDay[$cohort['uuid']] ?? '');
+			if ($day >= '2026-10-08' && isset($cohort['capacity']) === true) {
+				$name = $courses[$cohort['courseId']]['name'];
+				$runs[$name][$day] = ($cohort['capacity'] - ($taken[$cohort['uuid']] ?? 0));
+			}
+		}
+
+		foreach ($runs as $name => $days) {
+			ksort($days);
+			$runs[$name] = $days;
+		}
+
+		// Board Zoeken: the first date, "ook op" and the places; board LqBord: the places on later dates.
+		self::assertSame(['2026-10-08' => 1, '2026-10-22' => 7, '2026-11-05' => 12, '2026-11-19' => 12], $runs['F-gassen: herhaling en examen']);
+		self::assertSame(['2026-10-15' => 6, '2026-11-12' => 12], $runs['Waterzijdig inregelen']);
+		self::assertSame(['2026-10-20' => 3, '2026-11-17' => 12], $runs['Warmtepompen installeren: basis']);
+		self::assertSame(['2026-10-22' => 8, '2026-11-26' => 12], $runs['Hybride warmtepomp installeren en inregelen']);
+		self::assertSame(['2026-10-27' => 5, '2026-11-24' => 12], $runs['Storingen zoeken aan warmtepompen']);
+		self::assertSame(['2026-11-03' => 7], $runs['Lucht-water warmtepomp: ontwerp en inbedrijfstelling']);
+
+		// The card's summary is the board's line, and the level comes from the tags (PublicCourseIndex KINDS).
+		$byName = self::by(self::of('course'), 'name');
+		self::assertSame('In één dag de theorie opfrissen en examen doen.', $byName['F-gassen: herhaling en examen']['description']);
+		self::assertContains('basis', $byName['Hybride warmtepomp installeren en inregelen']['tags']);
+		self::assertContains('gevorderd', $byName['Storingen zoeken aan warmtepompen']['tags']);
+		self::assertSame('corporate', $byName['Storingen zoeken aan warmtepompen']['level']);
+	}//end testTheCatalogueCarriesTheBoardsDatesAndPlaces()
 }//end class

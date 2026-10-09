@@ -633,13 +633,13 @@ STORY_COURSES = {
                 "description": "Voor monteurs die bodemenergiesystemen aanleggen: het bovengrondse deel van de installatie, met examen.",
                 "lessons": []},
     "FGAS-H": {"name": "F-gassen: herhaling en examen", "regulation": None, "mandatory": True, "tags": ["warmtepompen", "f-gassen", "herhaling", "examen"],
-               "description": "Een dag om je F-gassencertificaat categorie 1 te verlengen: de regels en de lekcontrole opnieuw, daarna het examen in theorie en praktijk.",
+               "description": "In één dag de theorie opfrissen en examen doen.",
                "lessons": [("Theorie: regels, koudemiddelen en lekcontrole", 1, "ochtend",
                             "Wat de regels vragen, welke koudemiddelen er zijn en hoe je een lekcontrole doet en vastlegt."),
                            ("Examen: theorie en praktijk in de hal", 1, "middag",
                             "Het examen van de exameninstelling: eerst de vragen, daarna de praktijkopdracht aan een opstelling in de hal.")]},
     "WP-B": {"name": "Warmtepompen installeren: basis", "regulation": None, "mandatory": False, "tags": ["warmtepompen", "basis"],
-             "description": "Twee dagen voor monteurs die beginnen met warmtepompen: plaatsen, aansluiten en opstarten op echte opstellingen in de praktijkhal.",
+             "description": "Werking, plaatsen, aansluiten en in bedrijf stellen.",
              "lessons": [("Dag 1: zo werkt een warmtepomp", 1, None,
                           "De koudekringloop, de soorten warmtepompen en een buitenunit plaatsen in de praktijkhal."),
                          ("Dag 2: aansluiten en opstarten", 2, None,
@@ -654,7 +654,7 @@ STORY_COURSES = {
                           ("Dag 3: inbedrijfstelling en overdracht", 3, None,
                            "De installatie in bedrijf stellen, de instellingen vastleggen en de bewoner uitleggen hoe hij werkt.")]},
     "WZI": {"name": "Waterzijdig inregelen", "regulation": None, "mandatory": False, "tags": ["warmtepompen", "inregelen", "basis"],
-            "description": "Een dag inregelen: het debiet per radiator of groep berekenen, instellen en meten, zodat het hele huis warm wordt.",
+            "description": "Een afgiftesysteem inregelen voor lage temperatuur.",
             "lessons": [("Waterzijdig inregelen in de praktijk", 1, None,
                          "Het debiet per radiator of groep berekenen, de installatie inregelen en het resultaat meten.")]},
 }
@@ -689,11 +689,49 @@ STORY_EDITIONS = [
 
 # Places per course date (board Home, "Eerstvolgende cursusdagen"): capacity
 # minus the places taken gives "Nog 1 plek", "6 plekken vrij", "Nog 3 plekken".
+# A group is never larger than twelve (board Home); the planner's board (LqBord) counts every date against 12.
 STORY_CAPACITY = {
-    ("FGAS-H", dt.date(2026, 10, 8)): 4,
-    ("WZI", dt.date(2026, 10, 15)): 6,
-    ("WP-B", dt.date(2026, 10, 20)): 4,
+    ("FGAS-H", dt.date(2026, 10, 8)): 12,
+    ("WZI", dt.date(2026, 10, 15)): 12,
+    ("WP-B", dt.date(2026, 10, 20)): 12,
     ("WP-LW", dt.date(2026, 11, 3)): 12,
+}
+GROUP_SIZE = 12
+
+# The two catalogue courses of the boards that the story's editions do not use (board Zoeken).
+# Appended after STORY_COURSES, so no story uuid moves (academy-course-dates-follow-the-boards).
+STORY_MORE_COURSES = {
+    "HYB": {"name": "Hybride warmtepomp installeren en inregelen", "mandatory": False, "tags": ["warmtepompen", "hybride", "basis"],
+            "description": "Hydraulisch aansluiten, regeling en oplevering."},
+    "STOR": {"name": "Storingen zoeken aan warmtepompen", "mandatory": False, "tags": ["warmtepompen", "storingen", "gevorderd"],
+             "description": "Meten, uitlezen en uitsluiten aan echte opstellingen."},
+}
+
+# The other course dates of the boards: (course, trainer, days, places other companies hold).
+# Board Zoeken gives the dates ("ook op 22 okt, 5 nov en 19 nov"), board LqBord the places taken
+# ("Hybride ... 4 van 12", "Storingen zoeken ... 7 van 12", "F-gassen 22 okt 5 van 12"). The trainer
+# of a later date is the one who teaches the course's first date on LqBord.
+STORY_RUNS = [
+    ("FGAS-H", HENK, [dt.date(2026, 10, 22)], 5),
+    ("HYB", FATIMA, [dt.date(2026, 10, 22)], 4),
+    ("STOR", HENK, [dt.date(2026, 10, 27), dt.date(2026, 10, 28)], 7),
+    ("FGAS-H", HENK, [dt.date(2026, 11, 5)], 0),
+    ("WZI", FATIMA, [dt.date(2026, 11, 12)], 0),
+    ("WP-B", FATIMA, [dt.date(2026, 11, 17), dt.date(2026, 11, 18)], 0),
+    ("FGAS-H", HENK, [dt.date(2026, 11, 19)], 0),
+    ("STOR", HENK, [dt.date(2026, 11, 24), dt.date(2026, 11, 25)], 0),
+    ("HYB", FATIMA, [dt.date(2026, 11, 26)], 0),
+]
+
+# Places other companies hold on the story's own dates (LqBord): F-gassen 8 okt "11 van 12" (3 are
+# Jansen's), Waterzijdig 15 okt "6 van 12", basis 20 okt "9 van 12" (1 is Daan), Lucht-water 3 nov
+# "5 van 12" (2 are Tom and Sanne). With capacity 12 that leaves the board's "Nog 1 plek",
+# "6 plekken vrij" and "Nog 3 plekken".
+STORY_OTHERS = {
+    ("FGAS-H", dt.date(2026, 10, 8)): 8,
+    ("WZI", dt.date(2026, 10, 15)): 6,
+    ("WP-B", dt.date(2026, 10, 20)): 8,
+    ("WP-LW", dt.date(2026, 11, 3)): 3,
 }
 
 
@@ -1043,6 +1081,73 @@ def add_story(b: Builder, school: dict, location: dict) -> None:
         booking.update(facts["booking"])
         for e in rows:
             e.update(facts["enrolments"][e["uuid"]])
+
+    add_story_runs(b, location, courses, room_of, participants)
+
+
+def add_story_runs(b: Builder, location: dict, courses: dict[str, dict], room_of: dict[str, dict], others: list[dict]) -> None:
+    """The catalogue's other course dates and the places other companies hold (boards Zoeken and LqBord).
+
+    Runs at the end of add_story, so every uuid the story wrote stays where it was. Other companies'
+    places are loose enrolments of the year's participants (CoursePlaces counts those), each person
+    at most once per date, taken in order from the people the year set already has; no random number.
+    """
+    for key, spec in STORY_MORE_COURSES.items():
+        courses[key] = b.add("course", {
+            "code": f"{key}-2627", "name": spec["name"], "name_nl": spec["name"], "description": spec["description"], "level": "corporate",
+            "language": "nl", "tags": list(spec["tags"]), "mandatoryTraining": spec["mandatory"], "lifecycle": "published",
+        })
+
+    cohorts: list[tuple[dict, str, int]] = []
+    by_first = {(c.get("courseId"), c["name"]): c for c in b.buckets["cohort"]}
+    for (key, first), count in STORY_OTHERS.items():
+        course = courses[key]
+        cohort = by_first[(course["uuid"], f"{course['name']}, {first.day} {MAAND[first.month - 1]} {first.year}")]
+        cohorts.append((cohort, key, count))
+    # Hybride shares 22 October with F-gassen (LqBord: "allebei de praktijkhal nodig in de middag"):
+    # it starts in the hal and takes its theory in Lokaal 2 after lunch, so no room is double booked.
+    swapped = {"ochtend": room_of["middag"], "middag": room_of["ochtend"]}
+    for key, trainer, days, count in STORY_RUNS:
+        course = courses[key]
+        first = days[0]
+        rooms = swapped if key == "HYB" else room_of
+        notes = ("In de praktijkhal: eerst in de hal, na de lunch theorie in Lokaal 2." if key == "HYB"
+                 else "In de praktijkhal: theorie in Lokaal 2, na de lunch in de hal.")
+        cohort = b.add("cohort", {
+            "name": f"{course['name']}, {first.day} {MAAND[first.month - 1]} {first.year}",
+            "period": f"{MAAND[first.month - 1].capitalize()} {first.year}", "academicYear": STORY_YEAR,
+            "teacherIds": [trainer], "learnerIds": [], "lifecycle": "planned", "locationId": location["uuid"],
+            "notes": notes, "kind": "teaching", "courseId": course["uuid"], "capacity": GROUP_SIZE,
+        })
+        b.add("subjectteacherassignment", {"cohortId": cohort["uuid"], "courseId": course["uuid"], "teacherId": trainer})
+        for day_number, d in enumerate(days, start=1):
+            for part in ("ochtend", "middag"):
+                (h1, m1), (h2, m2) = HALL_SLOTS[part]
+                when = f"{d.day} {MAAND[d.month - 1]} {d.year}"
+                title = f"{course['name']}, {part} ({when})" if len(days) == 1 else f"{course['name']}, dag {day_number} {part} ({when})"
+                b.add("session", {
+                    "cohortId": cohort["uuid"], "courseId": course["uuid"], "lessonId": None, "title": title,
+                    "startsAt": stamp(d, h1, m1), "endsAt": stamp(d, h2, m2), "location": f"{rooms[part]['name']}, {location['name']}",
+                    "roomId": rooms[part]["uuid"], "lifecycle": "scheduled",
+                })
+        cohorts.append((cohort, key, count))
+
+    pool = [p for p in others if p.get("lifecycle") == "active"]
+    cursor = 0
+    for cohort, key, count in cohorts:
+        course = courses[key]
+        for _ in range(count):
+            profile = pool[cursor % len(pool)]
+            cursor += 1
+            cohort["learnerIds"].append(profile["ncUserId"])
+            fields = {
+                "learnerId": profile["ncUserId"], "learnerRef": profile["uuid"], "courseId": course["uuid"], "source": "self",
+                "mandatory": False, "cohortId": cohort["uuid"], "lifecycle": "active", "locationId": location["uuid"],
+                "requestedAt": stamp(dt.date(2026, 9, 1), 9, 0),
+            }
+            if profile.get("managerId"):
+                fields["managerId"] = profile["managerId"]
+            b.add("enrolment", fields)
 
 
 def build() -> dict:
