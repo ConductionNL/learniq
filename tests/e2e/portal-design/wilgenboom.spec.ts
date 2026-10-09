@@ -10,6 +10,7 @@
  *
  * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
  * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-overview-follows-the-designed-board
+ * @spec openspec/changes/portal-board-checks-run-on-a-real-instance/specs/example-sets/spec.md#requirement-the-board-checks-run-against-any-instance-that-loaded-the-sets
  */
 
 import type { Page } from '@playwright/test'
@@ -18,9 +19,11 @@ import { expect, request, test } from '@playwright/test'
 import * as path from 'node:path'
 import { baseUrl } from '../base-url.ts'
 import { siteUrl, waitForAccountPage } from '../helpers/portal-fixture.ts'
-import { ACR_SUBSTANTIAL, startStubDigid } from '../helpers/stub-digid.ts'
+import { ACR_SUBSTANTIAL } from '../helpers/stub-digid.ts'
 import {
+	ADMIN_CREDENTIALS,
 	boardShot,
+	dated,
 	expectNoHorizontalScroll,
 	expectNoSeriousAxeFinding,
 	expectTexts,
@@ -28,6 +31,7 @@ import {
 	expectWidgetOrder,
 	openSitePage,
 	SHOTS,
+	startBroker,
 } from './boards.ts'
 
 const PORTAL = 'wilgenboom'
@@ -52,7 +56,8 @@ test.describe('wilgenboom: the website', () => {
 	test('Home', async ({ page }, info) => {
 		await openSitePage(page, PORTAL, '/')
 		await expectTexts(page, [
-			'vrijdag 9 oktober is een studiedag',
+			'Let op',
+			dated('Vrijdag 9 oktober is een studiedag'),
 			'Een school waar elk kind kan groeien',
 			'Kom kennismaken',
 			'Direct regelen',
@@ -72,7 +77,7 @@ test.describe('wilgenboom: the website', () => {
 			'nlNewsList',
 			'nlSignIn',
 			'nlEventList',
-			'nlLinkList',
+			'nlLinkColumns',
 		])
 		await expectTheme(page, PORTAL, DESIGN, info)
 		if (info.project.name === 'phone') {
@@ -108,7 +113,7 @@ test.describe('wilgenboom: the website', () => {
 		await openSitePage(page, PORTAL, '/zoeken')
 		await expectTexts(page, [
 			'Nieuws en documenten',
-			'Ouderavond op donderdag 29 oktober',
+			dated('Ouderavond op donderdag 29 oktober'),
 			'Zo werkt de ouderavond dit jaar',
 		])
 		await boardShot(page, PORTAL, 'Zoeken', info)
@@ -146,7 +151,7 @@ test.describe('wilgenboom: Mijn Wilgenboom (Fatima Hulstkamp)', () => {
 			'PORTAL_DESIGN_DIGID_ISSUER is not set: the guardian signs in with DigiD through the stub broker',
 		)
 		test.setTimeout(300_000)
-		const stub = await startStubDigid(
+		const stub = await startBroker(
 			issuer,
 			process.env.PORTAL_DESIGN_DIGID_CLIENT ?? 'wilgenboom-portal',
 			path.join(SHOTS, 'stub-key.pem'),
@@ -156,10 +161,7 @@ test.describe('wilgenboom: Mijn Wilgenboom (Fatima Hulstkamp)', () => {
 		// The school links Fatima to the portal; a second invite of the same guardian is answered, not duplicated.
 		const admin = await request.newContext({
 			baseURL: baseUrl(),
-			httpCredentials: {
-				username: process.env.NC_ADMIN_USER ?? 'admin',
-				password: process.env.NC_ADMIN_PASS ?? 'admin',
-			},
+			httpCredentials: ADMIN_CREDENTIALS,
 			extraHTTPHeaders: { 'OCS-APIRequest': 'true' },
 		})
 		const invite = await admin.post(

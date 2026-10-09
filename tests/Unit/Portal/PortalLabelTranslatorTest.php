@@ -117,7 +117,7 @@ class PortalLabelTranslatorTest extends TestCase {
 	 * @return bool
 	 */
 	private static function isVisible(string $path): bool {
-		return preg_match('#/(label|submitLabel|successMessage|unit|fallback|group|otherLabel|requiredMessage|buttonLabel|template|eyebrow|soonLabel|noteLabel|help)$#', $path) === 1
+		return preg_match('#/(label|submitLabel|successMessage|unit|fallback|group|otherLabel|requiredMessage|buttonLabel|template|eyebrow|soonLabel|noteLabel|help|composeLabel|composeHint|firstLabel|titleTemplate)$#', $path) === 1
 			|| preg_match('#/confirmation/(title|body|next)$#', $path) === 1
 			|| preg_match('#/phrases/[^/]+/[^/]+$#', $path) === 1
 			|| preg_match('#/(label|unit)/(one|other)$#', $path) === 1
@@ -238,6 +238,14 @@ class PortalLabelTranslatorTest extends TestCase {
 		self::assertSame('Je werk', $actions['createSubmission']['fieldConfigs']['attachmentRefs']['label']);
 		self::assertSame('Toetsen die je kunt maken', $actions['listTests']['label']);
 		self::assertSame('Afwezig melden', $actions['createExcuseRequest']['label']);
+
+		// Her timetable (site-pupil-portal-design T5b): the label over the first lesson and the word of a change.
+		$pages = array_column($manifest['pages'], null, 'id');
+		self::assertSame('Je rooster vandaag', $pages['studentOverview']['blocks'][1]['label']);
+		self::assertSame('Je eerste les', $pages['studentOverview']['blocks'][1]['firstLabel']);
+		self::assertSame('Rooster', $pages['studentSessions']['label']);
+		$sessions = array_column($manifest['collections'], null, 'id')['studentSessions'];
+		self::assertSame('Ander lokaal', $sessions['fieldConfigs']['changeReasonKind']['valueLabels']['room-unavailable']);
 	}//end testTheStudentManifestArrivesInDutch()
 
 	/**
@@ -386,4 +394,37 @@ class PortalLabelTranslatorTest extends TestCase {
 
 		self::assertSame($manifest, (new PortalLabelTranslator())->translate(manifest: $manifest));
 	}//end testWithoutATranslatorTheManifestStaysEnglish()
+
+	/**
+	 * The child-card chip and the other words the school boards brought in
+	 * (school-portals-match-their-boards, student-portal-reads-like-the-boards)
+	 * reach a Dutch guardian and pupil in Dutch: "Ziek gemeld", "Op school",
+	 * "BPV en uren", "Teruggestuurd", the grade columns and the conversation tile.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-a-childs-card-says-where-the-child-is-today
+	 */
+	public function testTheBoardWordsArriveInDutch(): void {
+		$factory = $this->createMock(IFactory::class);
+		$factory->method('get')->with('learniq')->willReturn($this->dutchL10n());
+		$provider = new PortalContributionProvider(l10nFactory: $factory);
+
+		$parent   = $provider->getContribution(['audience' => 'parent']);
+		$overview = array_column($parent['pages'], null, 'id')['parentOverview'];
+		$cards    = array_values(array_filter($overview['blocks'], static fn (array $b): bool => ($b['display'] ?? '') === 'cards'))[0];
+		self::assertSame(['Ziek gemeld', 'Op school'], [$cards['status']['label'], $cards['status']['otherLabel']]);
+		$calendar = array_values(array_filter($overview['blocks'], static fn (array $b): bool => $b['type'] === 'calendar'))[0];
+		$slots    = array_values(array_filter($calendar['sources'], static fn (array $src): bool => $src['collection'] === 'parentConferenceSlots'))[0];
+		self::assertSame($this->dutch['Parent-teacher conversation'], $slots['title']);
+		self::assertNotSame('Parent-teacher conversation', $slots['title']);
+
+		$student = $provider->getContribution(['audience' => 'student']);
+		$pages   = array_column($student['pages'], null, 'id');
+		self::assertSame('BPV en uren', $pages['studentHourWeeks']['label']);
+		$collections = array_column($student['collections'], null, 'id');
+		self::assertSame(['Vak', 'Datum', 'Cijfer'], array_column($collections['studentGrades']['columns'], 'label'));
+		$status = array_column($collections['studentHourWeeks']['columns'], null, 'field')['lifecycle'];
+		self::assertSame('Teruggestuurd', $status['valueLabels']['rejected']);
+	}//end testTheBoardWordsArriveInDutch()
 }//end class

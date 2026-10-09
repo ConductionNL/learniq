@@ -146,15 +146,48 @@ class BpvPlacementSteps {
 		}
 
 		$steps = [
-			[$this->text(l10n: $l10n, text: 'Agreement signed'), $signedAt !== null, $this->longDate(day: $signedAt), (string)$signedAt?->format('Y-m-d')],
+			// The line already names the day; a date beside it printed it twice (REPORT-2, item 8).
+			[$this->text(l10n: $l10n, text: 'Agreement signed'), $signedAt !== null, $this->longDate(day: $signedAt), ''],
 			[$this->text(l10n: $l10n, text: 'Work plan made'), $this->done(visit: $workplan), $this->visitLine(visit: $workplan), ''],
 			[$this->text(l10n: $l10n, text: 'Midterm review'), $this->done(visit: $midterm), $this->visitLine(visit: $midterm), ''],
 			[$this->text(l10n: $l10n, text: 'Final review'), $this->done(visit: $final), $this->visitLine(visit: $final) . $finalLine, ''],
 			[$this->text(l10n: $l10n, text: 'Placement finished'), $completed, $this->longDate(day: $end), ''],
 		];
 
-		return $this->withStates(steps: $steps);
+		return $this->withCurrent(steps: $this->withStates(steps: $steps), visits: [null, $workplan, $midterm, $final, null]);
 	}//end stepsOf()
+
+	/**
+	 * The current step, for the "Volgende stap" card (portaliq #1409): its day
+	 * as `date` and what happens then as its description, from its visit.
+	 *
+	 * @param array<int, array<string, string>>     $steps  The steps with their state.
+	 * @param array<int, array<string, mixed>|null> $visits The visit behind each step, or null.
+	 *
+	 * @return array<int, array<string, string>>
+	 *
+	 * @spec openspec/changes/board-data-the-schemas-lacked/specs/portal-contribution/spec.md#requirement-the-placement-page-shows-the-agreements-and-the-work-processes
+	 */
+	private function withCurrent(array $steps, array $visits): array {
+		foreach ($steps as $index => $step) {
+			$visit = ($visits[$index] ?? null);
+			if (($step['state'] ?? '') !== 'current' || $visit === null) {
+				continue;
+			}
+
+			$day = (string)($visit['visitDate'] ?? '');
+			if ($day !== '') {
+				$steps[$index]['date'] = $day;
+			}
+
+			$narrative = trim((string)($visit['narrative'] ?? ''));
+			if ($narrative !== '') {
+				$steps[$index]['description'] = $narrative;
+			}
+		}
+
+		return $steps;
+	}//end withCurrent()
 
 	/**
 	 * Done steps keep `done`; the first open one is `current`; the rest `todo`.

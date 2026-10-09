@@ -10,12 +10,15 @@
  * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
  * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
  * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md
+ * @spec openspec/changes/portal-board-checks-run-on-a-real-instance/specs/example-sets/spec.md#requirement-the-board-checks-run-against-any-instance-that-loaded-the-sets
+ * @spec openspec/changes/school-portals-match-their-boards/specs/example-sets/spec.md#requirement-the-portal-declarations-follow-their-boards
  */
 
-import { test } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { siteUrl } from '../helpers/portal-fixture.ts'
 import {
 	boardShot,
+	dated,
 	ensurePortalAccount,
 	expectNoHorizontalScroll,
 	expectNoSeriousAxeFinding,
@@ -48,7 +51,8 @@ test.describe('esdoornveen: the website', () => {
 	test('Home', async ({ page }, info) => {
 		await openSitePage(page, PORTAL, '/')
 		await expectTexts(page, [
-			'Open dag: zaterdag 7 november 2026',
+			'Open dag',
+			dated('Zaterdag 7 november 2026, van 10.00 tot 14.00 uur'),
 			'Een vak leer je door het te doen',
 			'Direct regelen',
 			'Leerbedrijf worden',
@@ -59,6 +63,8 @@ test.describe('esdoornveen: the website', () => {
 			'Voor leerbedrijven',
 			...FOOTER,
 		])
+		// The place of the photo beside the hero text (portaliq hero-aside).
+		await expect(page.getByTestId('hero-aside')).toBeVisible()
 		await expectWidgetOrder(page, [
 			'nlBanner',
 			'hero',
@@ -129,7 +135,7 @@ test.describe('esdoornveen: Mijn Esdoornveen (Milan de Groot)', () => {
 			info.project.use.viewport ?? { width: 1440, height: 1000 },
 		)
 		await page.goto(
-			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/studentBpvPlacements')}`,
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/studentBpvPlacements')}`,
 		)
 		await expectTexts(page, [
 			'Bakker Techniek BV',
@@ -137,7 +143,7 @@ test.describe('esdoornveen: Mijn Esdoornveen (Milan de Groot)', () => {
 			'Overeenkomst getekend',
 			'Werkplan gemaakt',
 			'Tussenbeoordeling',
-			'13 oktober 2026',
+			dated('13 oktober 2026'),
 			'januari 2027',
 		])
 		await expectNoSeriousAxeFinding(page)
@@ -158,7 +164,7 @@ test.describe('esdoornveen: Mijn Esdoornveen (Milan de Groot)', () => {
 			info.project.use.viewport ?? { width: 1440, height: 1000 },
 		)
 		await page.goto(
-			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/studentHourWeeks')}`,
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/studentHourWeeks')}`,
 		)
 		await expectTexts(page, [
 			'Mijn BPV-uren',

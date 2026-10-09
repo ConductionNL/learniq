@@ -120,4 +120,22 @@ class ParticipantSitePagesTest extends TestCase {
 			$days
 		);
 	}//end testTomsCourseDaysAreOnHisEnrolments()
+
+	/**
+	 * "Uw volgende cursusdag" once: the highlight shows only the next day, and
+	 * the list under it is "Daarna", the days after it (REPORT-2, item 10).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/guardian-and-participant-pages-follow-the-boards/specs/portal-contribution/spec.md#requirement-the-participant-reads-his-next-course-day-once
+	 */
+	public function testTheNextCourseDayShowsOnce(): void {
+		$overview = array_column(self::manifest()['pages'], null, 'id')['participantOverview'];
+		$coming   = array_values(array_filter($overview['blocks'], static fn (array $b): bool => ($b['collection'] ?? '') === 'participantComingDays'));
+
+		self::assertCount(2, $coming);
+		self::assertSame(['tasks', 1], [$coming[0]['type'], $coming[0]['limit']]);
+		self::assertSame(['After that', 1, 4], [$coming[1]['label'], $coming[1]['skip'], $coming[1]['limit']]);
+		self::assertSame(['field' => 'firstDay', 'direction' => 'asc'], $coming[1]['sort']);
+	}//end testTheNextCourseDayShowsOnce()
 }//end class

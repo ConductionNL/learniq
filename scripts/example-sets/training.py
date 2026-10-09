@@ -687,6 +687,16 @@ STORY_EDITIONS = [
 ]
 
 
+# Places per course date (board Home, "Eerstvolgende cursusdagen"): capacity
+# minus the places taken gives "Nog 1 plek", "6 plekken vrij", "Nog 3 plekken".
+STORY_CAPACITY = {
+    ("FGAS-H", dt.date(2026, 10, 8)): 4,
+    ("WZI", dt.date(2026, 10, 15)): 6,
+    ("WP-B", dt.date(2026, 10, 20)): 4,
+    ("WP-LW", dt.date(2026, 11, 3)): 12,
+}
+
+
 def story_credential(b: Builder, profile: dict, course: dict, kind: str, issued: str, issuer: tuple[str, str], fields: dict) -> dict:
     """A credential in the shape the set's own credential() writes, for a story course and any issuer."""
     name, did = issuer
@@ -958,6 +968,7 @@ def add_story(b: Builder, school: dict, location: dict) -> None:
             "teacherIds": [trainer], "learnerIds": [people[p]["ncUserId"] for p in who],
             "lifecycle": "completed" if done else "planned", "locationId": location["uuid"],
             "notes": "In de praktijkhal: theorie in Lokaal 2, na de lunch in de hal.", "kind": "teaching", "courseId": course["uuid"],
+            **({"capacity": STORY_CAPACITY[(key, first)]} if (key, first) in STORY_CAPACITY else {}),
         })
         b.add("subjectteacherassignment", {"cohortId": cohort["uuid"], "courseId": course["uuid"], "teacherId": trainer})
         sessions = []

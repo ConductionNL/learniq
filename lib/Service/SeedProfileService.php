@@ -94,6 +94,7 @@ class SeedProfileService {
 	 * @param SharedCodeFilter   $sharedCodes Leaves out a regulation code another set already created.
 	 * @param LoadedExampleSets  $loadedSets Remembers which sets were loaded, for the wizard's removal steps.
 	 * @param ExamplePortalProvisioner $examplePortals Gives the set's school its themed portal when portaliq is installed.
+	 * @param ExampleSetDates          $dates          Moves the set's dates to the week of the load (demo-dates-follow-the-load-week).
 	 *
 	 * @return void
 	 */
@@ -105,6 +106,7 @@ class SeedProfileService {
 		private readonly SharedCodeFilter $sharedCodes,
 		private readonly LoadedExampleSets $loadedSets,
 		private readonly ExamplePortalProvisioner $examplePortals,
+		private readonly ExampleSetDates $dates,
 	) {
 	}//end __construct()
 
@@ -204,6 +206,7 @@ class SeedProfileService {
 	 * @throws RuntimeException When the id is unknown or OpenRegister is absent.
 	 *
 	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-imports-exactly-its-descriptor
+	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
 	 */
 	public function install(string $profileId): array {
 		if ($profileId === self::GENERATED_PROFILE) {
@@ -218,6 +221,13 @@ class SeedProfileService {
 
 		$data    = $this->descriptorFor(profileId: $profileId);
 		$objects = count($this->objectsOf(data: $data));
+
+		// Every date moves to the week of this load (demo-dates-follow-the-load-week);
+		// what exists from a load in another week moves first, because the seed
+		// import skips an object that exists. A load in the same week moves nothing.
+		$dated = $this->dates->prepare(setId: $profileId, data: $data, objects: $this->objectsOf(data: $data));
+
+		$data = $dated['data'];
 
 		// A second set that ships a regulation code the first one already
 		// created leaves its own row out, so the code stays one row (VCA and
@@ -234,7 +244,7 @@ class SeedProfileService {
 		// The school's portal, themed with the matching thematiq example set.
 		// A no-op without portaliq, and it never throws, so the set itself
 		// stays imported whatever the portal answers.
-		$portal = $this->examplePortals->provision(profileId: $profileId);
+		$portal = $this->examplePortals->provision(profileId: $profileId, days: $dated['offset'], previous: $dated['previous']);
 
 		$this->logger->info(
 			'[SeedProfileService] imported example set "' . $profileId . '": ' . $objects . ' object(s).',
@@ -326,7 +336,7 @@ class SeedProfileService {
 	 *
 	 * @return LoadedExampleSets The list.
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
 	public function loadedSets(): LoadedExampleSets {
 		return $this->loadedSets;

@@ -198,7 +198,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(12, $collections);
+		$this->assertCount(16, $collections);
 		$this->assertSame(
 			[
 				'studentGrades',
@@ -210,12 +210,19 @@ class PortalContributionProviderTest extends TestCase {
 				// hours with both numbers on it.
 				'studentBpvPlacements',
 				'studentHourWeeks',
+				// board-data-the-schemas-lacked: her own record per work process.
+				'studentWorkProcesses',
+				// Her supervisors: the trainer at the company and her coach at school.
+				'studentTrainers',
+				'studentSchoolCoaches',
 				'studentExcuseRequests',
 				'studentInbox',
 				'studentTests',
 				'studentHomework',
 				// site-pupil-portal-design: the absence strip of her overview.
 				'studentAttendanceSummary',
+				// site-pupil-portal-design T1: her timetable (its page still follows the overview).
+				'studentSessions',
 			],
 			array_column($collections, 'id')
 		);
@@ -231,6 +238,20 @@ class PortalContributionProviderTest extends TestCase {
 				$this->assertSame('learnerRefs', $collection['scopeField']);
 				$this->assertNotContains('learnerRefs', $collection['fields']);
 				$this->assertSame(['lifecycle' => 'published'], $collection['filter']);
+				continue;
+			}
+
+			if ($collection['id'] === 'studentSessions') {
+				// A lesson belongs to her group: reached through her own live
+				// enrolments, never by a field on the lesson (StudentTimetableTest).
+				$this->assertSame('cohortId', $collection['scopeField']);
+				$this->assertSame('learnerRef', $collection['via']['scopeField']);
+				continue;
+			}
+
+			if (in_array($collection['id'], ['studentTrainers', 'studentSchoolCoaches'], true) === true) {
+				// Her supervisors: reached through her own placements, never by a field on the person.
+				$this->assertSame(['bpv-placement', 'learnerRef'], [$collection['via']['schema'], $collection['via']['scopeField']]);
 				continue;
 			}
 
@@ -272,7 +293,7 @@ class PortalContributionProviderTest extends TestCase {
 		$actions = $manifest['actions'];
 
 		$this->assertSame(
-			['createSubmission', 'submitHourWeek', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn'],
+			['createSubmission', 'submitHourWeek', 'fillInSelfAssessment', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn'],
 			array_column($actions, 'id')
 		);
 		$byId = array_column($actions, null, 'id');
@@ -487,9 +508,9 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame(['conference.answered'], array_column($manifest['notifications'], 'ruleKey'), 'one rule: the teacher answered a booking');
 
 		$collections = $manifest['collections'];
-		$this->assertCount(19, $collections);
+		$this->assertCount(20, $collections);
 		$this->assertSame(
-			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentReportSubjectGrades', 'parentInbox', 'parentGradeInbox', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar'],
+			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceInvitations', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentReportSubjectGrades', 'parentInbox', 'parentGradeInbox', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar'],
 			array_column($collections, 'id')
 		);
 
@@ -1130,4 +1151,115 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('string', $enrolment['properties']['cohortName']['type']);
 		$this->assertArrayNotHasKey('format', $enrolment['properties']['cohortName']);
 	}//end testParentGroupColumnReadsTheGroupName()
+
+	/**
+	 * The pupil's grades read as subject, date and grade, never as field keys
+	 * (portal proof run 1, defect 10). Every column is a projected field.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/student-portal-reads-like-the-boards/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
+	 */
+	public function testStudentGradesHaveReadableColumns(): void {
+		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$grades = array_column($manifest['collections'], null, 'id')['studentGrades'];
+
+		$this->assertSame(
+			[
+				['field' => 'courseName', 'label' => 'Subject'],
+				['field' => 'gradedAt', 'label' => 'Date', 'render' => 'date'],
+				['field' => 'value', 'label' => 'Grade'],
+			],
+			$grades['columns']
+		);
+		foreach ($grades['columns'] as $column) {
+			$this->assertContains($column['field'], $grades['fields']);
+		}
+	}//end testStudentGradesHaveReadableColumns()
+
+	/**
+	 * The BPV hours page is in the student's menu as "BPV and hours", and a
+	 * week the trainer sent back reads "Sent back", not "Rejected"
+	 * (portal proof run 1, defects 12 and 13).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/student-portal-reads-like-the-boards/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
+	 */
+	public function testHoursPageIsInTheMenuAndASentBackWeekSaysSo(): void {
+		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$pages = array_column($manifest['pages'], null, 'id');
+
+		$this->assertSame('BPV and hours', $pages['studentHourWeeks']['label']);
+		$this->assertArrayNotHasKey('menu', $pages['studentHourWeeks']);
+
+		$weeks = array_column($manifest['collections'], null, 'id')['studentHourWeeks'];
+		$status = array_column($weeks['columns'], null, 'field')['lifecycle'];
+		$this->assertSame('Sent back', $status['valueLabels']['rejected']);
+	}//end testHoursPageIsInTheMenuAndASentBackWeekSaysSo()
+
+	/**
+	 * The placement reads in words (no "Period From" or "Lifecycle State"),
+	 * its status labels cover the schema's states, and its page shows the
+	 * hours bar under where it stands (REPORT-2, item 8).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/placement-and-bookings-follow-the-boards/specs/portal-contribution/spec.md#requirement-the-placement-page-reads-in-words-and-shows-the-hours
+	 */
+	public function testThePlacementReadsInWordsAndShowsTheHours(): void {
+		$manifest  = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$placement = array_column($manifest['collections'], null, 'id')['studentBpvPlacements'];
+		foreach ($placement['fields'] as $field) {
+			if ($field === 'learnerRef') {
+				continue;
+			}
+
+			self::assertArrayHasKey($field, $placement['fieldConfigs'], $field . ' has a label');
+		}
+
+		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
+		$schema   = array_column($register['components']['schemas'], null, 'slug')['bpv-placement'];
+		self::assertSame($schema['properties']['lifecycle']['enum'], array_keys($placement['fieldConfigs']['lifecycle']['valueLabels']));
+
+		$page  = array_column($manifest['pages'], null, 'id')['studentBpvPlacements'];
+		$types = array_column($page['blocks'], 'type');
+		self::assertLessThan(array_search('kpi', $types, true), array_search('steps', $types, true), 'the hours bar sits under the steps');
+		$steps = array_values(array_filter($page['blocks'], static fn (array $b): bool => $b['type'] === 'steps'));
+		self::assertSame(['highlight', 'bars'], array_column($steps, 'display'), 'the next step as a card, then the bars');
+	}//end testThePlacementReadsInWordsAndShowsTheHours()
+
+	/**
+	 * The placement page shows the agreements and her work processes, narrowed
+	 * to the open placement; every column reads a projected field and every
+	 * estimate has words (board-data-the-schemas-lacked).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/board-data-the-schemas-lacked/specs/portal-contribution/spec.md#requirement-the-placement-page-shows-the-agreements-and-the-work-processes
+	 */
+	public function testThePlacementShowsItsAgreementsAndWorkProcesses(): void {
+		$manifest    = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$collections = array_column($manifest['collections'], null, 'id');
+		foreach (['workdaysLabel', 'workplaceAddress', 'qualificationName', 'crebo'] as $field) {
+			self::assertContains($field, $collections['studentBpvPlacements']['fields'], $field);
+			self::assertArrayHasKey($field, $collections['studentBpvPlacements']['fieldConfigs'], $field);
+		}
+
+		$work = $collections['studentWorkProcesses'];
+		self::assertSame(['werkproces-progress', 'learnerRef', false], [$work['schema'], $work['scopeField'], $work['listable']]);
+		foreach ($work['columns'] as $column) {
+			self::assertContains($column['field'], $work['fields']);
+		}
+
+		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
+		$schema   = array_column($register['components']['schemas'], null, 'slug')['werkproces-progress'];
+		self::assertSame(array_values(array_filter($schema['properties']['selfAssessment']['enum'])), array_keys($work['columns'][3]['valueLabels']));
+
+		$page   = array_column($manifest['pages'], null, 'id')['studentBpvPlacements'];
+		$blocks = array_column($page['blocks'], null, 'type');
+		self::assertSame('Agreements', $blocks['detail']['label']);
+		$table = array_values(array_filter($page['blocks'], static fn (array $b): bool => ($b['collection'] ?? '') === 'studentWorkProcesses'))[0];
+		self::assertSame('bpvPlacementId', $table['recordField']);
+	}//end testThePlacementShowsItsAgreementsAndWorkProcesses()
 }//end class

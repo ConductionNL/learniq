@@ -94,6 +94,16 @@ class ParentRecordPage {
 				['field' => 'givenName', 'label' => 'First name'],
 				['field' => 'familyName', 'label' => 'Last name'],
 			],
+			// Who she may write to about each child: the teachers of the
+			// child's current groups (portal-message-contacts, portaliq
+			// site-messages-per-record). The tab and the "to" field name the
+			// child by first name.
+			'contacts' => [
+				'provider' => 'childMessageContacts',
+				'recordLabelFields' => ['givenName'],
+				'composeLabel' => 'A message to the teacher',
+				'composeHint' => 'The teacher usually answers within two school days. Is it urgent? Call the school.',
+			],
 		];
 
 	}//end childrenCollection()
@@ -182,15 +192,18 @@ class ParentRecordPage {
 	 *
 	 * @spec openspec/changes/portal-parent-child-record/specs/portal-contribution/spec.md#requirement-a-guardian-opens-one-child-and-sees-everything-about-them
 	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
+	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-holds-only-what-the-board-shows
 	 */
 	public function pages(array $collections, array $actions, ParentPortalCollections $sections): array {
 		$site = new ParentSitePages();
 		$pages = [
-			$site->overviewPage(sources: $this->childSources(), figures: $this->attendanceFigures()),
+			$site->overviewPage(sources: $this->childSources()),
 			$site->perChild(page: $this->recordPage()),
-			$site->absencePage(figures: $this->attendanceFigures()),
+			$site->absencePage(),
 			$site->conferencesPage(),
 			$site->inGroup(page: $this->calendarPage()),
+			// The page the overview's task opens, out of the menu.
+			$site->invitationPage(),
 		];
 		// Every collection keeps its own page and route, out of the menu.
 		foreach ($sections->pages(collections: $collections, actions: $actions) as $page) {
@@ -354,6 +367,8 @@ class ParentRecordPage {
 	 * the child's parent-teacher conversations.
 	 *
 	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-holds-only-what-the-board-shows
 	 */
 	private function childSources(): array {
 		$school = ['recordField' => 'schoolId', 'recordKey' => 'schoolId'];
@@ -365,6 +380,8 @@ class ParentRecordPage {
 					'startField' => 'startsAt',
 					'endField' => 'endsAt',
 					'titleField' => 'title',
+					// The line under the title on the calendar tiles (board "Deze maand").
+					'metaField' => 'description',
 					'kind' => 'School event',
 					'recordGroupsField' => 'cohortIds',
 				],
@@ -387,10 +404,13 @@ class ParentRecordPage {
 				$school
 			),
 			[
+				// A fixed title with the teacher under it: `slotLabel` is the
+				// time picker's raw line ("29-10-2026 18:00-18:10, Meester
+				// Daan") and read as a code on the calendar (portal proof run 1).
 				'collection' => 'parentConferenceSlots',
 				'startField' => 'startsAt',
 				'endField' => 'endsAt',
-				'titleField' => 'slotLabel',
+				'metaField' => 'teacherName',
 				'title' => 'Parent-teacher conversation',
 				'kind' => 'Parent evening',
 				'recordField' => 'learnerRef',
