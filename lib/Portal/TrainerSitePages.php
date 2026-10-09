@@ -44,6 +44,11 @@ namespace OCA\Learniq\Portal;
  */
 class TrainerSitePages {
 
+	/**
+	 * Her "Terugsturen met een vraag".
+	 */
+	public const SEND_BACK = 'returnHourWeek';
+
 	private const REGISTER = 'learniq';
 
 	/**
@@ -122,17 +127,24 @@ class TrainerSitePages {
 			'listable' => true,
 			'minTrust' => 'low',
 			'filter' => ['lifecycle' => 'submitted'],
+			// Whose week it is, its days and what the student did, as the
+			// board's "Uren om goed te keuren" (trainer-returns-hours-with-a-question).
 			'fields' => [
 				'bpvPlacementId',
 				'learnerRef',
+				'learnerName',
 				'isoWeek',
+				'weekLabel',
 				'hoursSubmitted',
+				'description',
 				'submittedAt',
 				'lifecycle',
 			],
 			'columns' => [
-				['field' => 'isoWeek', 'label' => 'Week'],
+				['field' => 'learnerName', 'label' => 'Student'],
+				['field' => 'weekLabel', 'label' => 'Days'],
 				['field' => 'hoursSubmitted', 'label' => 'Hours'],
+				['field' => 'description', 'label' => 'What they did'],
 			],
 		];
 	}//end hourWeeksCollection()
@@ -185,7 +197,9 @@ class TrainerSitePages {
 					'display' => 'highlight',
 					'collection' => 'poHourWeeks',
 					'dueField' => 'submittedAt',
-					'titleFields' => ['isoWeek'],
+					// "Milan de Boer", then the days and what he did.
+					'titleFields' => ['learnerName'],
+					'subtitleFields' => ['weekLabel', 'description'],
 				],
 				// A collection block carries no heading of its own on portaliq
 				// today, so the two lists stand on their columns: the placements
@@ -219,7 +233,9 @@ class TrainerSitePages {
 					'limit' => 3,
 					'sort' => ['field' => 'assessedAt', 'direction' => 'desc'],
 				],
-				['type' => 'cta', 'action' => 'approveHourWeek', 'label' => 'Approve hours'],
+				// To the page with both forms: a button that posts an action
+				// straight away sends no week and is refused.
+				['type' => 'cta', 'page' => 'poHourWeeks', 'label' => 'Approve hours'],
 				['type' => 'cta', 'action' => 'createWerkprocesAssessment', 'label' => 'Fill in an assessment'],
 				['type' => 'cta', 'action' => 'signPraktijkovereenkomst', 'label' => 'Sign the placement agreement'],
 				['type' => 'inbox', 'label' => 'Messages', 'limit' => 2],
@@ -240,7 +256,7 @@ class TrainerSitePages {
 		$blocks = [];
 		// The assessment form posts to learniq's endpoint, so it carries no
 		// schema to match a page on; it belongs to the assessments page.
-		$forms = ['poWerkprocesAssessments' => 'createWerkprocesAssessment'];
+		$forms = ['poWerkprocesAssessments' => 'createWerkprocesAssessment', 'poHourWeeks' => 'approveHourWeek'];
 		$form = ($forms[$id] ?? null);
 		foreach ($actions as $action) {
 			if ($form === null && ($action['type'] ?? '') === 'create' && ($action['schema'] ?? '') === ($collection['schema'] ?? '')) {
@@ -251,6 +267,11 @@ class TrainerSitePages {
 
 		if ($form !== null) {
 			$blocks[] = ['type' => 'action', 'action' => $form];
+		}
+
+		// Beside approving: send the week back with a question.
+		if ($id === 'poHourWeeks') {
+			$blocks[] = ['type' => 'action', 'action' => self::SEND_BACK];
 		}
 
 		$blocks[] = ['type' => 'collection', 'collection' => $id];
@@ -528,6 +549,7 @@ class TrainerSitePages {
 				'submitLabel' => 'Approve these hours',
 				'successMessage' => 'The hours are approved. Your student sees your decision and your note.',
 			],
+			$this->sendBackAction(),
 			[
 				'id' => 'signPraktijkovereenkomst',
 				'type' => 'create',
@@ -547,4 +569,44 @@ class TrainerSitePages {
 			],
 		];
 	}//end actions()
+
+	/**
+	 * "Terugsturen met een vraag": she sends a week back with a question
+	 * instead of approving it. Through learniq's own endpoint, as the
+	 * approval: the question is required, the week is approved for no hours
+	 * and the student reads the question on her hours page.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/trainer-returns-hours-with-a-question/specs/bpv/spec.md#requirement-the-trainer-sends-a-week-back-with-a-question
+	 */
+	private function sendBackAction(): array {
+		return [
+			'id' => self::SEND_BACK,
+			'type' => 'endpoint-forward',
+			'label' => 'Send back with a question',
+			'endpoint' => '/apps/learniq/api/portal/hour-weeks/send-back',
+			'method' => 'POST',
+			'minTrust' => 'low',
+			'subjectField' => 'practicalTrainerId',
+			'scopeClaim' => 'practicalTrainerId',
+			'fields' => ['hourWeekId', 'note'],
+			'requiredFields' => ['hourWeekId', 'note'],
+			'optionsProviders' => [
+				'hourWeekId' => [
+					'type' => 'collection',
+					'register' => self::REGISTER,
+					'schema' => 'bpv-hour-week',
+					'labelField' => 'isoWeek',
+					'valueField' => 'id',
+				],
+			],
+			'fieldConfigs' => [
+				'hourWeekId' => ['label' => 'The week you send back', 'required' => true],
+				'note' => ['label' => 'Your question', 'required' => true, 'size' => 'large'],
+			],
+			'submitLabel' => 'Send back',
+			'successMessage' => 'The week is back with your student, with your question. You see it again once it is corrected.',
+		];
+	}//end sendBackAction()
 }//end class

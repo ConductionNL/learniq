@@ -75,12 +75,15 @@ class ExcuseRequestRegisterTest extends TestCase {
 	 * Required holds only what every caller sends. `learnerRef` joined it on
 	 * 3 October 2026 (absence-and-booking-fields-are-required): the pupil's
 	 * portal stamps it, the guardian's form requires it and the staff form
-	 * sends it.
+	 * sends it. `dateTo` and `reason` left it on 9 October 2026
+	 * (trainer-returns-hours-with-a-question): the guardian's form asks one
+	 * "Wanneer?" question with an optional note, and ExcuseRequestOwnerStamp
+	 * fills both when a report leaves them out.
 	 *
 	 * @return void
 	 */
 	public function testRequiredHoldsOnlyWhatEveryCallerSends(): void {
-		self::assertSame(['dateFrom', 'dateTo', 'reason', 'reasonKind', 'learnerRef'], $this->schema()['required']);
+		self::assertSame(['dateFrom', 'reasonKind', 'learnerRef'], $this->schema()['required']);
 	}//end testRequiredHoldsOnlyWhatEveryCallerSends()
 
 	/**

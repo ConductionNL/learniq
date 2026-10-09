@@ -312,7 +312,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('bpv-hour-week', $hours['schema']);
 		$this->assertSame('learnerRef', $hours['scopeField']);
 		$this->assertSame('low', $hours['minTrust']);
-		$this->assertSame(['bpvPlacementId', 'isoWeek', 'hoursSubmitted'], $hours['fields']);
+		$this->assertSame(['bpvPlacementId', 'isoWeek', 'hoursSubmitted', 'description'], $hours['fields']);
 		foreach (['learnerRef', 'submittedBy', 'submittedAt', 'hoursApproved', 'approvedBy', 'approvedByName', 'assuranceLevel', 'lifecycle', 'tenant_id'] as $server) {
 			$this->assertNotContains($server, $hours['fields'], $server);
 		}
@@ -891,7 +891,7 @@ class PortalContributionProviderTest extends TestCase {
 		$actions = $manifest['actions'];
 
 		$this->assertSame(
-			['createWerkprocesAssessment', 'approveHourWeek', 'signPraktijkovereenkomst'],
+			['createWerkprocesAssessment', 'approveHourWeek', 'returnHourWeek', 'signPraktijkovereenkomst'],
 			array_column($actions, 'id')
 		);
 		$byId = array_column($actions, null, 'id');
@@ -946,6 +946,14 @@ class PortalContributionProviderTest extends TestCase {
 
 		// The POK signature is a contract signature, not an assessment: it keeps
 		// its substantial floor until Ruben says otherwise.
+		// Sending a week back takes the week and her question, nothing else
+		// (trainer-returns-hours-with-a-question).
+		$sendBack = $byId['returnHourWeek'];
+		$this->assertSame('/apps/learniq/api/portal/hour-weeks/send-back', $sendBack['endpoint']);
+		$this->assertSame(['hourWeekId', 'note'], $sendBack['fields']);
+		$this->assertSame(['hourWeekId', 'note'], $sendBack['requiredFields']);
+		$this->assertSame('practicalTrainerId', $sendBack['subjectField']);
+
 		$signature = $byId['signPraktijkovereenkomst'];
 		$this->assertSame('substantial', $signature['minTrust']);
 		$this->assertSame('create', $signature['type']);

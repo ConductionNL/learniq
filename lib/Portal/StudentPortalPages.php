@@ -328,7 +328,9 @@ class StudentPortalPages {
 				'learnerRef',
 				'bpvPlacementId',
 				'isoWeek',
+				'weekLabel',
 				'hoursSubmitted',
+				'description',
 				'submittedAt',
 				'hoursApproved',
 				'approvedByName',
@@ -347,6 +349,9 @@ class StudentPortalPages {
 				// over a number she did not write is exactly how a
 				// correction becomes silent.
 				['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::HOUR_WEEK_STATUS],
+				// The trainer's question when she sent the week back, or her note on
+				// a correction (trainer-returns-hours-with-a-question).
+				['field' => 'note', 'label' => 'Note from your trainer'],
 			],
 		];
 	}//end hourWeeksCollection()
@@ -462,7 +467,7 @@ class StudentPortalPages {
 		'scopeField' => 'learnerRef',
 		'scopeClaim' => 'learnerRef',
 		'minTrust' => 'low',
-		'fields' => ['bpvPlacementId', 'isoWeek', 'hoursSubmitted'],
+		'fields' => ['bpvPlacementId', 'isoWeek', 'hoursSubmitted', 'description'],
 		// The placement must be her own. Portaliq stamps `learnerRef`
 		// from her claim, but `bpvPlacementId` comes from the form, so
 		// without this guard she could file hours against another
@@ -492,6 +497,8 @@ class StudentPortalPages {
 			'bpvPlacementId' => ['label' => 'Your placement', 'required' => true],
 			'isoWeek' => ['label' => 'The week, as 2026-W39', 'required' => true],
 			'hoursSubmitted' => ['label' => 'Hours you worked', 'required' => true],
+			// What she did, for her trainer (board MobielDetail "Wat deed je?"). Optional.
+			'description' => ['label' => 'What did you do?', 'size' => 'large'],
 		],
 		'submitLabel' => 'Send these hours',
 		'successMessage' => 'Your hours are with your workplace trainer. You see her decision in the list.',
