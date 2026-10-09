@@ -126,6 +126,11 @@ Vrij en open source onder de EUPL-1.2-licentie.
              (default 3600, floor 600). A draft lives for one request; one a
              crash leaves behind is readable by every signed-in user. -->
         <job>OCA\Learniq\BackgroundJob\CourseEvaluationDraftCleanupJob</job>
+        <!-- Every hour: a company booking still marked as coming whose first
+             day has passed is re-derived, so it (and its participants' course
+             day) stops being coming the day after its last course day
+             (past-course-days-drop-off). -->
+        <job>OCA\Learniq\BackgroundJob\PastCourseDaysJob</job>
     </background-jobs>
 
     <repair-steps>
