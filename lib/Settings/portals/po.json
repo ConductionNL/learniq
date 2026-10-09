@@ -95,15 +95,79 @@
             "href": "mailto:info@example.org"
           }
         ]
+      },
+      "compact": {
+        "text": "Telefoon: [telefoonnummer]",
+        "links": [
+          {
+            "label": "Toegankelijkheid",
+            "href": "/toegankelijkheid"
+          },
+          {
+            "label": "Privacy",
+            "href": "/privacy"
+          }
+        ]
       }
     },
     "accountLabel": "Mijn Wilgenboom",
+    "contactPrompt": {
+      "show": false
+    },
     "residentMenu": {
       "leaveOut": [
         "cases",
         "tasks",
-        "access"
-      ]
+        "access",
+        "inbox"
+      ],
+      "groups": [
+        {
+          "title": "Mijn Wilgenboom",
+          "items": [
+            "overview",
+            {
+              "item": "messages",
+              "label": "Berichten"
+            }
+          ]
+        },
+        {
+          "title": "Mijn kinderen",
+          "items": [
+            "learniq:parentChildren"
+          ]
+        },
+        {
+          "title": "Regelen",
+          "items": [
+            "learniq:parentAbsence",
+            "learniq:parentConferences",
+            "learniq:parentCalendar"
+          ]
+        },
+        {
+          "title": "Van school",
+          "items": [
+            "news",
+            {
+              "item": "learniq:parentReportCards",
+              "label": "Rapporten en documenten"
+            }
+          ]
+        },
+        {
+          "title": "Uw gegevens",
+          "items": [
+            "details",
+            "account"
+          ]
+        }
+      ],
+      "routes": {
+        "berichten": "messages"
+      },
+      "phoneHeader": "person"
     }
   },
   "legacyTitles": [],
