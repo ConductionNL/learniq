@@ -34,6 +34,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Portal;
 
 use DateTimeImmutable;
+use DateTimeZone;
 
 /**
  * Derives a booking's readable copies and status, and its participants' tasks.
@@ -87,12 +88,22 @@ class EmployerBookingFacts {
 	 * @param array<int, array<string, mixed>>    $participants Each `{enrolment, profile}` that points at the booking.
 	 * @param array<string, array<string, mixed>> $renewed      The certificate each enrolment renews, by enrolment id.
 	 * @param array<string, string|null>          $context      `trainerName` and `placeLabel`, read elsewhere.
+	 * @param DateTimeImmutable|null              $today        Today: a booking past its last day is no longer coming.
+	 *                                                          Null leaves the days out of it (the seeded copies).
 	 *
 	 * @return array{booking: array<string, mixed>, enrolments: array<string, array<string, mixed>>}
 	 *
 	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
-	public function derive(array $booking, array $course, array $sessions, array $participants, array $renewed=[], array $context=[]): array {
+	public function derive(
+		array $booking,
+		array $course,
+		array $sessions,
+		array $participants,
+		array $renewed=[],
+		array $context=[],
+		?DateTimeImmutable $today=null
+	): array {
 		$days = $this->lines->days(sessions: $sessions);
 		$firstDay = ($days[0] ?? null);
 		$participants = $this->present(participants: $participants);
@@ -115,6 +126,7 @@ class EmployerBookingFacts {
 		$open = max(0, ($places - count($participants)));
 		$status = $this->employerStatus(lifecycle: $lifecycle, openPlaces: $open, missing: $missing);
 		$dayLabel = $this->lines->dayLabel(days: $days);
+		$upcoming = $this->upcoming(lifecycle: $lifecycle, days: $days, today: $today);
 		$courseName = trim((string)($course['name'] ?? ''));
 		// The participant reads his own course day on his enrolment (participant-portal).
 		$day = [
@@ -123,7 +135,7 @@ class EmployerBookingFacts {
 			'timeLabel' => $this->lines->timeLabel(sessions: $sessions, firstDay: $firstDay),
 			'placeLabel' => ($context['placeLabel'] ?? null),
 			'trainerName' => ($context['trainerName'] ?? null),
-			'upcoming' => in_array($lifecycle, self::OPEN, true),
+			'upcoming' => $upcoming,
 		];
 		foreach (array_keys($enrolments) as $id) {
 			$enrolments[$id] = array_merge($enrolments[$id], $day);
@@ -133,7 +145,7 @@ class EmployerBookingFacts {
 			'booking' => [
 				'courseName' => $this->orNull(value: $courseName),
 				'bookingLabel' => $this->orNull(value: implode(', ', array_filter([$courseName, (string)$dayLabel]))),
-				'upcoming' => in_array($lifecycle, self::OPEN, true),
+				'upcoming' => $upcoming,
 				'firstDay' => $firstDay?->format('Y-m-d'),
 				'dayLabel' => $dayLabel,
 				'timeLabel' => $this->lines->timeLabel(sessions: $sessions, firstDay: $firstDay),
@@ -155,6 +167,34 @@ class EmployerBookingFacts {
 			'enrolments' => $enrolments,
 		];
 	}//end derive()
+
+	/**
+	 * Whether the booking is still coming: it is open, and its last day is
+	 * today or later. Without today the days are left out of it, as the
+	 * example sets write it (school-portals-follow-the-live-week).
+	 *
+	 * @param string                        $lifecycle The booking's state.
+	 * @param array<int, DateTimeImmutable> $days      The course days, in order.
+	 * @param DateTimeImmutable|null        $today     Today, or null.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/past-course-days-drop-off/specs/portal-contribution/spec.md#requirement-a-course-day-that-has-passed-is-no-longer-coming
+	 */
+	public function upcoming(string $lifecycle, array $days, ?DateTimeImmutable $today): bool {
+		if (in_array($lifecycle, self::OPEN, true) === false) {
+			return false;
+		}
+
+		$last = end($days);
+		if ($today === null || $last === false) {
+			return true;
+		}
+
+		$zone = new DateTimeZone(self::ZONE);
+
+		return $last->setTimezone($zone)->format('Y-m-d') >= $today->setTimezone($zone)->format('Y-m-d');
+	}//end upcoming()
 
 	/**
 	 * Whether a course ends in an exam that needs the participant's birth date.
