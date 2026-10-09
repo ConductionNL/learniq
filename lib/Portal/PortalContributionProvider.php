@@ -202,40 +202,43 @@ class PortalContributionProvider {
 	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	public function getContribution(array $subject): ?array {
-		$audience = $subject['audience'] ?? '';
-
-		if ($audience === 'student') {
-			// The pupil reads her labels in her language too (site-pupil-portal-design).
-			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: $this->studentContribution());
+		$manifest = $this->englishContribution(audience: (string)($subject['audience'] ?? ''));
+		if ($manifest === null) {
+			// Any audience Learniq does not serve → null (fail-closed; ADR-005).
+			return null;
 		}
 
-		if ($audience === 'parent') {
-			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: $this->parentContribution());
-		}
-
-		if ($audience === 'praktijkopleider') {
-			// The trainer and the assessor read their labels in their language too.
-			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new TrainerSitePages())->contribution());
-		}
-
-		if ($audience === 'external-assessor') {
-			// The trainer and the assessor read their labels in their language too.
-			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new AssessorSitePages())->contribution());
-		}
-
-		if ($audience === EmployerSitePages::AUDIENCE) {
-			// A company that sends its people to the courses (employer-portal-audience).
-			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new EmployerSitePages())->contribution());
-		}
-
-		if ($audience === ParticipantSitePages::AUDIENCE) {
-			// A course participant at a training institute (participant-portal).
-			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new ParticipantSitePages())->contribution());
-		}
-
-		// Any audience Learniq does not serve → null (fail-closed; ADR-005).
-		return null;
+		// Every read field gets a label and its values words (portal-fields-read-in-words),
+		// and every reader reads them in her own language.
+		return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))
+			->translate(manifest: (new PortalFieldWords())->apply(manifest: $manifest));
 	}//end getContribution()
+
+	/**
+	 * An audience's manifest in English, before its words are filled in and
+	 * translated, or null for an audience Learniq does not serve.
+	 *
+	 * @param string $audience The audience.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md
+	 */
+	private function englishContribution(string $audience): ?array {
+		return match ($audience) {
+			// The pupil and the guardian (site-pupil-portal-design, site-guardian-portal-design).
+			'student' => $this->studentContribution(),
+			'parent' => $this->parentContribution(),
+			// The workplace trainer and the external assessor.
+			'praktijkopleider' => (new TrainerSitePages())->contribution(),
+			'external-assessor' => (new AssessorSitePages())->contribution(),
+			// A company that sends its people to the courses (employer-portal-audience).
+			EmployerSitePages::AUDIENCE => (new EmployerSitePages())->contribution(),
+			// A course participant at a training institute (participant-portal).
+			ParticipantSitePages::AUDIENCE => (new ParticipantSitePages())->contribution(),
+			default => null,
+		};
+	}//end englishContribution()
 
 	/**
 	 * The steps of a company booking, for the employer's booking page.
@@ -753,13 +756,15 @@ class PortalContributionProvider {
 					'sessionId',
 					'cohortId',
 					'status',
-					'minutesAttended',
+					// Minutes late, not minutes present: a late row read "330 minutes
+					// present", the day minus the minutes late (portal proof run 3).
+					'lateMinutes',
 					'markedAt',
 				],
 				'columns' => [
-					['field' => 'markedAt', 'label' => 'Date'],
+					['field' => 'markedAt', 'label' => 'Date', 'render' => 'date'],
 					['field' => 'status', 'label' => 'Attendance', 'valueLabels' => PortalValueLabels::ATTENDANCE_STATUS],
-					['field' => 'minutesAttended', 'label' => 'Minutes present'],
+					['field' => 'lateMinutes', 'label' => 'Minutes late'],
 				],
 			],
 		];

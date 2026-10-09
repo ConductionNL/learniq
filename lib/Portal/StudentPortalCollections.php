@@ -128,8 +128,14 @@ class StudentPortalCollections {
 					'sessionId',
 					'cohortId',
 					'status',
-					'minutesAttended',
+					// Minutes late, not minutes present (portal proof run 3).
+					'lateMinutes',
 					'markedAt',
+				],
+				'columns' => [
+					['field' => 'markedAt', 'label' => 'Date', 'render' => 'date'],
+					['field' => 'status', 'label' => 'Attendance', 'valueLabels' => PortalValueLabels::ATTENDANCE_STATUS],
+					['field' => 'lateMinutes', 'label' => 'Minutes late'],
 				],
 			],
 		];
