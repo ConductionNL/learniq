@@ -119,6 +119,8 @@ SCHEMAS = [
     "conference-slot",
     "school-event",
     "assignment",
+    # Appended last (vaartveld-pupil-story-data): every earlier schema keeps its uuid namespace.
+    "conference-invitation",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -1478,6 +1480,7 @@ def build() -> dict:
     add_story(b, school, locations, rooms, courses, streams, programmes, cohorts, pupils)
 
     stamp_group_labels(b)
+    add_conference_invitations(b)
 
     # --- assemble ------------------------------------------------------------------------------------
     for rows in b.buckets.values():
@@ -1725,7 +1728,8 @@ def add_story(b: Builder, school: dict, locations: dict, rooms: dict, courses: d
     moved = story_rooms["0.21"]
     today[3].update({
         "roomId": moved["uuid"], "location": moved["name"], "changeReasonKind": "room-unavailable",
-        "changeReason": "Lokaal 1.08 is vandaag niet beschikbaar; economie is in lokaal 0.21.",
+        # The board's short reason (MobielDetail "Niet in lokaal 1.08"); the new room stands beside it.
+        "changeReason": "Niet in lokaal 1.08",
         "affectedLearnerIds": list(h4b["learnerIds"]), "affectedParentIds": parent_ids,
     })
     today[7].update({
@@ -1914,6 +1918,34 @@ def stamp_group_labels(b: Builder) -> None:
         cohort = cohorts[enrolment["cohortId"]]
         teacher = names.get(((cohort.get("teacherIds") or [None])[0]) or "")
         profile["groupLabel"] = cohort["name"] + (" · " + teacher if teacher else "")
+
+
+# The slot states that mean a pupil has a conversation time (ConferenceInvitations::TIME_TAKEN).
+TIME_TAKEN = ("booked", "acknowledged", "proposed", "confirmed", "completed")
+
+
+def add_conference_invitations(b: Builder) -> None:
+    """One invitation per invited pupil per round, as ConferenceInvitations keeps
+    them on a live save (guardian-tasks-per-child-and-self-assessment; po.py does
+    the same): booked once the pupil has a time in the round, open while the round
+    is open for booking, and no row for a round that is neither. In the H4b
+    mentor-talk round two classmates have a time; Noor's row is open, the
+    "Kies een tijd voor het mentorgesprek" of the Berichten board. Runs last and
+    draws no random number."""
+    for round_ in b.buckets["conference-round"]:
+        taken = {s["learnerRef"] for s in b.buckets["conference-slot"]
+                 if s["conferenceRoundId"] == round_["uuid"] and s.get("learnerRef") and s.get("lifecycle") in TIME_TAKEN}
+        for ref in dict.fromkeys(round_.get("invitedLearnerRefs") or []):
+            status = "booked" if ref in taken else ("open" if round_.get("lifecycle") == "booking-open" else "closed")
+            if status == "closed":
+                continue
+            row = {"conferenceRoundId": round_["uuid"], "learnerRef": ref, "roundName": round_["name"],
+                   "bookingClosesAt": round_["bookingClosesAt"]}
+            if round_.get("bookingMode") in ("direct", "preference"):
+                row["bookingMode"] = round_["bookingMode"]
+            row["status"] = status
+            row["tenant_id"] = round_.get("tenant_id", TENANT)
+            b.add("conference-invitation", row)
 
 
 def render(data: dict) -> str:
