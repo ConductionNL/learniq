@@ -80,7 +80,8 @@
         "tasks",
         "access"
       ]
-    }
+    },
+    "breadcrumb": "page"
   },
   "publicIndex": {
     "$comment": "What learniq hands the portal's public catalogue: where a course row links to.",
@@ -350,18 +351,37 @@
             "props": {
               "label": "Medewerkers inschrijven",
               "href": "/voor-werkgevers/medewerkers-inschrijven",
-              "kind": "primary"
+              "kind": "primary",
+              "icon": "chevron"
             }
           },
           {
-            "id": "wa-home-06-markdown",
-            "widgetKey": "markdown",
+            "id": "wa-home-06-hero",
+            "widgetKey": "hero",
             "gridX": 0,
             "gridY": 11,
             "gridWidth": 12,
-            "gridHeight": 3,
+            "gridHeight": 4,
             "props": {
-              "markdown": "## U oefent op echte opstellingen\n\nIn de praktijkhal staan werkende warmtepompen: lucht-water, hybride en bodem. U sluit aan, regelt in en zoekt storingen die de trainer heeft klaargezet. Een groep is nooit groter dan twaalf.\n\n[Bekijk de praktijkhal](/praktijkhal) [Liever bij u op de zaak? Lees over incompany](/incompany)"
+              "title": "U oefent op echte opstellingen",
+              "headingLevel": 2,
+              "subtitle": "In de praktijkhal staan werkende warmtepompen: lucht-water, hybride en bodem. U sluit aan, regelt in en zoekt storingen die de trainer heeft klaargezet. Een groep is nooit groter dan twaalf.",
+              "variant": "plain",
+              "actions": [
+                {
+                  "label": "Bekijk de praktijkhal",
+                  "href": "/praktijkhal",
+                  "style": "link"
+                },
+                {
+                  "label": "Liever bij u op de zaak? Lees over incompany",
+                  "href": "/incompany",
+                  "style": "link"
+                }
+              ],
+              "asideImage": {
+                "label": "[FOTO: cursist regelt een buitenunit in, in de praktijkhal]"
+              }
             }
           }
         ]
@@ -392,7 +412,7 @@
             "gridX": 8,
             "gridY": 0,
             "gridWidth": 4,
-            "gridHeight": 16,
+            "gridHeight": 4,
             "props": {
               "heading": "Meer voor werkgevers",
               "links": [
@@ -420,10 +440,22 @@
             }
           },
           {
+            "id": "wa-inschrijven-03a-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 2,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Dit hebben wij van elke deelnemer nodig",
+              "level": 2
+            }
+          },
+          {
             "id": "wa-inschrijven-03-nldescriptionlist",
             "widgetKey": "nlDescriptionList",
             "gridX": 0,
-            "gridY": 2,
+            "gridY": 3,
             "gridWidth": 8,
             "gridHeight": 3,
             "props": {
@@ -444,27 +476,48 @@
             }
           },
           {
-            "id": "wa-inschrijven-04-nlalert",
-            "widgetKey": "nlAlert",
+            "id": "wa-inschrijven-04-nlparagraph",
+            "widgetKey": "nlParagraph",
             "gridX": 0,
-            "gridY": 5,
+            "gridY": 6,
             "gridWidth": 8,
-            "gridHeight": 2,
+            "gridHeight": 1,
             "props": {
-              "kind": "info",
-              "heading": "Weet u nog niet wie er gaat?",
-              "text": "Reserveer de plekken en vul de namen later in. Dat kan tot 12.00 uur op de werkdag voor de cursus."
+              "text": "Weet u nog niet wie er gaat? Reserveer de plekken en vul de namen later in. Dat kan tot 12.00 uur op de werkdag voor de cursus."
+            }
+          },
+          {
+            "id": "wa-inschrijven-05a-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 7,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Verplaatsen of annuleren",
+              "level": 2
+            }
+          },
+          {
+            "id": "wa-inschrijven-05b-nlparagraph",
+            "widgetKey": "nlParagraph",
+            "gridX": 0,
+            "gridY": 8,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Een collega mag altijd in de plaats van een zieke monteur komen. Geef de nieuwe naam door in Mijn academie."
             }
           },
           {
             "id": "wa-inschrijven-05-nltable",
             "widgetKey": "nlTable",
             "gridX": 0,
-            "gridY": 7,
+            "gridY": 9,
             "gridWidth": 8,
             "gridHeight": 4,
             "props": {
-              "caption": "Verplaatsen of annuleren. Een collega mag altijd in de plaats van een zieke monteur komen. Geef de nieuwe naam door in Mijn academie.",
+              "caption": "Verplaatsen of annuleren",
               "columns": [
                 "Wanneer u het doorgeeft",
                 "Verplaatsen",
@@ -487,31 +540,49 @@
                   "De hele prijs"
                 ]
               ],
-              "display": "boxed"
+              "display": "boxed",
+              "captionVisible": false,
+              "rowHeaders": true
             }
           },
           {
             "id": "wa-inschrijven-06-nlbuttonlink",
             "widgetKey": "nlButtonLink",
             "gridX": 0,
-            "gridY": 11,
+            "gridY": 13,
             "gridWidth": 4,
             "gridHeight": 1,
             "props": {
               "label": "Kies een cursus en datum",
               "href": "/cursusaanbod",
-              "kind": "primary"
+              "kind": "primary",
+              "icon": "chevron"
             }
           },
           {
-            "id": "wa-inschrijven-07-markdown",
-            "widgetKey": "markdown",
-            "gridX": 0,
-            "gridY": 12,
-            "gridWidth": 8,
-            "gridHeight": 4,
+            "id": "wa-inschrijven-09-nlalert",
+            "widgetKey": "nlAlert",
+            "gridX": 8,
+            "gridY": 4,
+            "gridWidth": 4,
+            "gridHeight": 3,
             "props": {
-              "markdown": "## Betalen\n\nNa de bevestiging krijgt u een factuur. De betaaltermijn is [AANTAL] dagen.\n\n## Overleggen met de planning\n\nSophie van Dam plant de cursusdagen. Zij weet waar nog plek is. [telefoonnummer], [e-mailadres]"
+              "kind": "plain",
+              "heading": "Betalen",
+              "text": "Na de bevestiging krijgt u een factuur. De betaaltermijn is [AANTAL] dagen."
+            }
+          },
+          {
+            "id": "wa-inschrijven-10-nlalert",
+            "widgetKey": "nlAlert",
+            "gridX": 8,
+            "gridY": 7,
+            "gridWidth": 4,
+            "gridHeight": 3,
+            "props": {
+              "kind": "plain",
+              "heading": "Overleggen met de planning",
+              "text": "Sophie van Dam plant de cursusdagen. Zij weet waar nog plek is. [telefoonnummer], [e-mailadres]"
             }
           }
         ]
@@ -562,7 +633,9 @@
               "sort": "date",
               "countLabel": "{count} cursussen",
               "searchLabel": "Zoek in het aanbod",
-              "placeholder": "Bijvoorbeeld hybride"
+              "placeholder": "Bijvoorbeeld hybride",
+              "cardStyle": "meta",
+              "searchPlacement": "rail"
             }
           }
         ]

@@ -242,7 +242,8 @@ class ExamplePortalDeclarationsTest extends TestCase {
 			self::assertSame('boxed', $table['props']['display'], $set);
 
 			$side = array_values(array_filter($pages[$sideRoute]['body']['widgets'], static fn (array $w): bool => $w['gridX'] === 8));
-			self::assertCount(1, $side, $set . ' ' . $sideRoute);
+			// The academy's board puts "Betalen" and "Overleggen met de planning" under the side list.
+			self::assertCount($set === 'training' ? 3 : 1, $side, $set . ' ' . $sideRoute);
 			self::assertSame(['nlLinkList', 0], [$side[0]['widgetKey'], $side[0]['gridY']], $set . ': the side list starts at the top');
 			foreach ($pages[$sideRoute]['body']['widgets'] as $widget) {
 				if ($widget['gridX'] < 8) {
