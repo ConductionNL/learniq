@@ -759,12 +759,43 @@ class SecondarySchoolExampleSetTest extends TestCase {
 			$seen
 		);
 		self::assertSame('room-unavailable', $monday[2]['changeReasonKind']);
-		self::assertStringContainsString('1.08', $monday[2]['changeReason']);
+		// The board's short reason (MobielDetail); the new room stands beside it (vaartveld-pupil-story-data).
+		self::assertSame('Niet in lokaal 1.08', $monday[2]['changeReason']);
 		self::assertSame('cancelled', $monday[6]['lifecycle']);
 		self::assertSame('teacher-absence', $monday[6]['changeReasonKind']);
 		$tuesday = array_values(array_filter(self::of('session'), static fn (array $s): bool => $s['cohortId'] === $h4b['uuid'] && $s['startsAt'] === '2026-10-06T08:30:00+02:00'));
 		self::assertSame(['Economie', '1.08'], [$tuesday[0]['title'], $rooms[$tuesday[0]['roomId']]]);
 	}//end testNoorBakkersMondayInH4bComesOutOfTheData()
+
+	/**
+	 * Every H4b pupil has an invitation to the mentor-talk round, as
+	 * ConferenceInvitations writes it on a live save: booked for the two
+	 * classmates with a time, open for Noor, whose Berichten board asks her to
+	 * pick one.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/vaartveld-pupil-story-data/specs/example-sets/spec.md#requirement-noors-story-carries-what-her-pupil-boards-read
+	 */
+	public function testEveryH4bPupilIsInvitedToTheMentorTalks(): void {
+		$noor   = array_values(array_filter(self::pupils(), static fn (array $p): bool => ($p['givenName'] ?? '') === 'Noor' && ($p['familyName'] ?? '') === 'Bakker'))[0];
+		$round  = self::of('conference-round')[0];
+		$rows   = self::of('conference-invitation');
+		$status = array_column($rows, 'status', 'learnerRef');
+
+		self::assertSame(array_values(array_unique($round['invitedLearnerRefs'])), array_column($rows, 'learnerRef'));
+		self::assertSame('open', $status[$noor['uuid']]);
+		self::assertSame(['booked' => 2, 'open' => (count($rows) - 2)], array_count_values(array_column($rows, 'status')));
+		foreach ($rows as $row) {
+			self::assertSame([$round['uuid'], $round['name'], $round['bookingClosesAt'], 'direct'], [$row['conferenceRoundId'], $row['roundName'], $row['bookingClosesAt'], $row['bookingMode']]);
+		}
+
+		$booked = array_column(array_filter(self::of('conference-slot'), static fn (array $s): bool => $s['lifecycle'] === 'booked'), 'learnerRef');
+		sort($booked);
+		$invitedBooked = array_keys(array_filter($status, static fn (string $s): bool => $s === 'booked'));
+		sort($invitedBooked);
+		self::assertSame($booked, $invitedBooked);
+	}//end testEveryH4bPupilIsInvitedToTheMentorTalks()
 
 	/**
 	 * Noor's grades, homework, absence, mentor talk and calendar give the
