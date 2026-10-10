@@ -1,3 +1,3 @@
 # Screens
 
-- No board found yet (decision 150)
+- No screen: Portal declarations switch to new portaliq blocks; the pages are the school portal boards

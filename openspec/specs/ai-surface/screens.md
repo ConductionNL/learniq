@@ -1,3 +1,3 @@
 # Screens
 
-- No board found yet (decision 150)
+- No screen: Menu entry that opens the hermiq chat companion; the chat is drawn in hermiq

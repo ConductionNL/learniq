@@ -1,3 +1,3 @@
 # Screens
 
-- No board found yet (decision 150)
+- No screen: Nextcloud notifications declared as data; no screen of their own

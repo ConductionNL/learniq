@@ -1,3 +1,3 @@
 # Screens
 
-- No board found yet (decision 150)
+- No screen: Placement logic for elective choices in the timetable data; no screen

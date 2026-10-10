@@ -1,3 +1,3 @@
 # Screens
 
-- No board found yet (decision 150)
+- No screen: Portal sites are declared as data; the pages are the school portal boards

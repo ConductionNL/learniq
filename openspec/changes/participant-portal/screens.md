@@ -1,3 +1,3 @@
 # Screens
 
-- No board found yet (decision 150)
+- Design backlog: LqDeelnemerPortaal (decision 157)

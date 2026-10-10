@@ -1,3 +1,3 @@
 # Screens
 
-- No board found yet (decision 150)
+- LqVerzuimsignaal https://identity.conduction.nl/screens/board?id=learniq/LqVerzuimsignaal

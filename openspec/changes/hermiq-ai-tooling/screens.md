@@ -1,3 +1,3 @@
 # Screens
 
-- No board found yet (decision 150)
+- No screen: AI tools exposed to hermiq through the tool surface; no learniq screen

@@ -1,3 +1,3 @@
 # Screens
 
-- No board found yet (decision 150)
+- No screen: Permission rule for an invited trainer; the placement screen is unchanged

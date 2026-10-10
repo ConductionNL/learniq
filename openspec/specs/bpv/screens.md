@@ -1,3 +1,3 @@
 # Screens
 
-- No board found yet (decision 150)
+- LqBpvPlaatsingen https://identity.conduction.nl/screens/board?id=learniq/LqBpvPlaatsingen
