@@ -115,9 +115,10 @@ class PortalHourWeekApproval {
 			return new PortalOutcome(status: 403, body: ['error' => 'assurance_too_low', 'required' => $floor], reason: 'assurance-too-low');
 		}
 
-		$weekId = $this->text(value: ($body['hourWeekId'] ?? null));
+		$answers = new PortalAnswers();
+		$weekId = $answers->text(field: 'hourWeekId', value: ($body['hourWeekId'] ?? null));
 		if ($trainerRef === '' || $weekId === '') {
-			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
+			return $answers->refused(error: 'incomplete', reason: 'incomplete');
 		}
 
 		try {
