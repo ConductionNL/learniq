@@ -97,7 +97,14 @@
         ]
       }
     },
-    "accountLabel": "Mijn Wilgenboom"
+    "accountLabel": "Mijn Wilgenboom",
+    "residentMenu": {
+      "leaveOut": [
+        "cases",
+        "tasks",
+        "access"
+      ]
+    }
   },
   "legacyTitles": [],
   "menus": [
@@ -139,27 +146,6 @@
           "order": 7,
           "name": "Aanmelden",
           "link": "/aanmelden"
-        }
-      ]
-    },
-    {
-      "position": 1,
-      "title": "Contact",
-      "items": [
-        {
-          "order": 1,
-          "name": "Wilgenlaan 12, Zuiddrecht",
-          "link": "/contact"
-        },
-        {
-          "order": 2,
-          "name": "Telefoon: [telefoonnummer]",
-          "link": "/contact"
-        },
-        {
-          "order": 3,
-          "name": "E-mail: [e-mailadres]",
-          "link": "/contact"
         }
       ]
     },
@@ -232,9 +218,12 @@
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
-              "kind": "warning",
-              "text": "Let op: vrijdag 9 oktober is een studiedag. Alle kinderen zijn die dag vrij.",
-              "closable": true
+              "kind": "notice",
+              "lead": "Let op",
+              "text": "Vrijdag 9 oktober is een studiedag. Alle kinderen zijn die dag vrij.",
+              "linkLabel": "Bekijk alle vrije dagen",
+              "linkHref": "/praktisch/vakanties",
+              "band": true
             }
           },
           {
@@ -256,7 +245,8 @@
                   "label": "Kom kennismaken",
                   "href": "/aanmelden"
                 }
-              ]
+              ],
+              "variant": "plain"
             }
           },
           {
@@ -268,7 +258,7 @@
             "gridHeight": 3,
             "props": {
               "heading": "Direct regelen",
-              "columns": 4,
+              "columns": 3,
               "overlap": true,
               "items": [
                 {
@@ -322,7 +312,7 @@
             "gridX": 0,
             "gridY": 8,
             "gridWidth": 8,
-            "gridHeight": 5,
+            "gridHeight": 8,
             "props": {
               "heading": "Nieuws van school",
               "limit": 4,
@@ -330,7 +320,8 @@
               "showAudience": true,
               "moreLabel": "Al het nieuws",
               "moreHref": "/zoeken",
-              "articleRoute": "/nieuws"
+              "articleRoute": "/nieuws",
+              "leadPlaceholder": "[FOTO: kinderen lezen voor in de hal]"
             }
           },
           {
@@ -339,7 +330,7 @@
             "gridX": 8,
             "gridY": 8,
             "gridWidth": 4,
-            "gridHeight": 5,
+            "gridHeight": 4,
             "props": {
               "heading": "Mijn Wilgenboom",
               "display": "card",
@@ -356,10 +347,10 @@
           {
             "id": "wb-home-06-nleventlist",
             "widgetKey": "nlEventList",
-            "gridX": 0,
-            "gridY": 13,
-            "gridWidth": 12,
-            "gridHeight": 3,
+            "gridX": 8,
+            "gridY": 12,
+            "gridWidth": 4,
+            "gridHeight": 4,
             "props": {
               "heading": "Deze maand op school",
               "display": "tiles",
@@ -393,80 +384,65 @@
             }
           },
           {
-            "id": "wb-home-07-nllinklist",
-            "widgetKey": "nlLinkList",
+            "id": "wb-home-07-nllinkcolumns",
+            "widgetKey": "nlLinkColumns",
             "gridX": 0,
             "gridY": 16,
-            "gridWidth": 4,
+            "gridWidth": 12,
             "gridHeight": 3,
             "props": {
               "heading": "Over onze school",
-              "links": [
+              "columns": [
                 {
-                  "label": "Onderwijs",
-                  "href": "/onze-school"
+                  "title": "Onderwijs",
+                  "links": [
+                    {
+                      "label": "Zo werken wij",
+                      "href": "/onze-school"
+                    },
+                    {
+                      "label": "Groepen en leerkrachten",
+                      "href": "/groepen"
+                    },
+                    {
+                      "label": "Zorg en begeleiding",
+                      "href": "/onze-school"
+                    }
+                  ]
                 },
                 {
-                  "label": "Zo werken wij",
-                  "href": "/onze-school"
+                  "title": "Praktisch",
+                  "links": [
+                    {
+                      "label": "Schooltijden",
+                      "href": "/praktisch/vakanties"
+                    },
+                    {
+                      "label": "Vakanties en vrije dagen",
+                      "href": "/praktisch/vakanties"
+                    },
+                    {
+                      "label": "Overblijven en opvang",
+                      "href": "/praktisch/opvang"
+                    }
+                  ]
                 },
                 {
-                  "label": "Groepen en leerkrachten",
-                  "href": "/groepen"
-                },
-                {
-                  "label": "Zorg en begeleiding",
-                  "href": "/onze-school"
-                }
-              ]
-            }
-          },
-          {
-            "id": "wb-home-08-nllinklist",
-            "widgetKey": "nlLinkList",
-            "gridX": 4,
-            "gridY": 16,
-            "gridWidth": 4,
-            "gridHeight": 3,
-            "props": {
-              "heading": "Praktisch",
-              "links": [
-                {
-                  "label": "Schooltijden",
-                  "href": "/praktisch/vakanties"
-                },
-                {
-                  "label": "Vakanties en vrije dagen",
-                  "href": "/praktisch/vakanties"
-                },
-                {
-                  "label": "Overblijven en opvang",
-                  "href": "/praktisch/opvang"
-                }
-              ]
-            }
-          },
-          {
-            "id": "wb-home-09-nllinklist",
-            "widgetKey": "nlLinkList",
-            "gridX": 8,
-            "gridY": 16,
-            "gridWidth": 4,
-            "gridHeight": 3,
-            "props": {
-              "heading": "Meedoen",
-              "links": [
-                {
-                  "label": "Ouderraad",
-                  "href": "/onze-school"
-                },
-                {
-                  "label": "Medezeggenschapsraad",
-                  "href": "/onze-school"
-                },
-                {
-                  "label": "Helpen bij activiteiten",
-                  "href": "/onze-school"
+                  "title": "Meedoen",
+                  "links": [
+                    {
+                      "label": "Ouderraad",
+                      "href": "/onze-school"
+                    },
+                    {
+                      "label": "Medezeggenschapsraad",
+                      "href": "/onze-school"
+                    },
+                    {
+                      "label": "Helpen bij activiteiten",
+                      "href": "/onze-school"
+                    }
+                  ]
                 }
               ]
             }
@@ -486,7 +462,7 @@
             "widgetKey": "nlHeading",
             "gridX": 0,
             "gridY": 0,
-            "gridWidth": 12,
+            "gridWidth": 8,
             "gridHeight": 1,
             "props": {
               "text": "Uw kind afwezig melden",
@@ -494,11 +470,41 @@
             }
           },
           {
+            "id": "wb-afwezig-08-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 8,
+            "gridY": 0,
+            "gridWidth": 4,
+            "gridHeight": 15,
+            "props": {
+              "heading": "Meer over praktische zaken",
+              "links": [
+                {
+                  "label": "Schooltijden",
+                  "href": "/praktisch/vakanties"
+                },
+                {
+                  "label": "Vakanties en vrije dagen",
+                  "href": "/praktisch/vakanties"
+                },
+                {
+                  "label": "Overblijven en opvang",
+                  "href": "/praktisch/opvang"
+                },
+                {
+                  "label": "De schoolgids",
+                  "href": "/zoeken"
+                }
+              ],
+              "display": "accent"
+            }
+          },
+          {
             "id": "wb-afwezig-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
             "gridY": 1,
-            "gridWidth": 12,
+            "gridWidth": 8,
             "gridHeight": 1,
             "props": {
               "text": "Is uw kind ziek, of moet het naar de dokter of de tandarts? Meld het voor half negen. De leerkracht ziet uw melding meteen in de klas."
@@ -509,7 +515,7 @@
             "widgetKey": "nlAlert",
             "gridX": 0,
             "gridY": 2,
-            "gridWidth": 6,
+            "gridWidth": 4,
             "gridHeight": 2,
             "props": {
               "kind": "info",
@@ -520,9 +526,9 @@
           {
             "id": "wb-afwezig-04-nlalert",
             "widgetKey": "nlAlert",
-            "gridX": 6,
+            "gridX": 4,
             "gridY": 2,
-            "gridWidth": 6,
+            "gridWidth": 4,
             "gridHeight": 2,
             "props": {
               "kind": "info",
@@ -535,7 +541,7 @@
             "widgetKey": "nlButtonLink",
             "gridX": 0,
             "gridY": 4,
-            "gridWidth": 4,
+            "gridWidth": 3,
             "gridHeight": 1,
             "props": {
               "label": "Afwezig melden",
@@ -544,11 +550,23 @@
             }
           },
           {
+            "id": "wb-afwezig-06a-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 5,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Wat meldt u hoe?",
+              "level": 2
+            }
+          },
+          {
             "id": "wb-afwezig-06-nltable",
             "widgetKey": "nlTable",
             "gridX": 0,
-            "gridY": 5,
-            "gridWidth": 12,
+            "gridY": 6,
+            "gridWidth": 8,
             "gridHeight": 4,
             "props": {
               "caption": "Wat meldt u hoe?",
@@ -578,47 +596,20 @@
                   "Verlof aanvragen bij de directeur",
                   "Zo vroeg als u het weet"
                 ]
-              ]
+              ],
+              "display": "boxed",
+              "captionVisible": false
             }
           },
           {
             "id": "wb-afwezig-07-markdown",
             "widgetKey": "markdown",
             "gridX": 0,
-            "gridY": 9,
+            "gridY": 10,
             "gridWidth": 8,
             "gridHeight": 5,
             "props": {
               "markdown": "## Verlof buiten de vakanties\n\nKinderen vanaf 5 jaar zijn leerplichtig. Vrij buiten de schoolvakanties mag alleen bij een bijzondere reden, zoals een bruiloft of een begrafenis in de familie. Vakantie buiten de schoolvakanties mag bijna nooit.\n\nU vraagt verlof aan bij de directeur, Hanneke Postma. Zij beslist binnen vijf schooldagen. Bent u het niet eens met het besluit, dan leest u in de schoolgids wat u kunt doen.\n\nIs uw kind afwezig zonder melding? Dan belt de leerkracht u dezelfde ochtend. Blijft uw kind vaker weg zonder reden, dan moet de school dat melden bij de leerplichtambtenaar van Zuiddrecht."
-            }
-          },
-          {
-            "id": "wb-afwezig-08-nllinklist",
-            "widgetKey": "nlLinkList",
-            "gridX": 8,
-            "gridY": 9,
-            "gridWidth": 4,
-            "gridHeight": 5,
-            "props": {
-              "heading": "Meer over praktische zaken",
-              "links": [
-                {
-                  "label": "Schooltijden",
-                  "href": "/praktisch/vakanties"
-                },
-                {
-                  "label": "Vakanties en vrije dagen",
-                  "href": "/praktisch/vakanties"
-                },
-                {
-                  "label": "Overblijven en opvang",
-                  "href": "/praktisch/opvang"
-                },
-                {
-                  "label": "De schoolgids",
-                  "href": "/zoeken"
-                }
-              ]
             }
           }
         ]
@@ -708,18 +699,20 @@
             }
           },
           {
-            "id": "wb-zoeken-03-nlnewslist",
-            "widgetKey": "nlNewsList",
+            "id": "wb-zoeken-03-nlcatalogue",
+            "widgetKey": "nlCatalogue",
             "gridX": 0,
             "gridY": 2,
             "gridWidth": 12,
-            "gridHeight": 6,
+            "gridHeight": 8,
             "props": {
-              "heading": "Nieuws",
-              "limit": 12,
-              "featured": false,
-              "showAudience": true,
-              "articleRoute": "/nieuws"
+              "types": [
+                "news"
+              ],
+              "newsRoute": "/nieuws",
+              "sort": "dateDesc",
+              "searchLabel": "Zoek in het nieuws en de documenten",
+              "placeholder": "Bijvoorbeeld studiedag"
             }
           }
         ]

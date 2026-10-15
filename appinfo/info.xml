@@ -350,6 +350,14 @@ Vrij en open source onder de EUPL-1.2-licentie.
                 Idempotent: a second run saves nothing.
             -->
             <step>OCA\Learniq\Repair\BackfillLearnerProfileNames</step>
+            <!--
+                guardian-tasks-per-child-and-self-assessment: writes one
+                conference invitation per invited child for every round open
+                for booking, so a guardian's tasks name each child. After
+                InitializeSettings (the register must declare the schema).
+                Idempotent: a second run saves nothing.
+            -->
+            <step>OCA\Learniq\Repair\BackfillConferenceInvitations</step>
         </post-migration>
         <install>
             <!--

@@ -73,7 +73,14 @@
         ]
       }
     },
-    "accountLabel": "Mijn Esdoornveen"
+    "accountLabel": "Mijn Esdoornveen",
+    "residentMenu": {
+      "leaveOut": [
+        "cases",
+        "tasks",
+        "access"
+      ]
+    }
   },
   "legacyTitles": [
     "Ouderportaal Esdoornveen"
@@ -117,32 +124,6 @@
           "order": 7,
           "name": "Over Esdoornveen",
           "link": "/over-esdoornveen"
-        }
-      ]
-    },
-    {
-      "position": 1,
-      "title": "Contact",
-      "items": [
-        {
-          "order": 1,
-          "name": "Esdoornlaan 40, Zuiddrecht",
-          "link": "/contact"
-        },
-        {
-          "order": 2,
-          "name": "Telefoon: [telefoonnummer]",
-          "link": "/contact"
-        },
-        {
-          "order": 3,
-          "name": "E-mail: [e-mailadres]",
-          "link": "/contact"
-        },
-        {
-          "order": 4,
-          "name": "Servicedesk: gebouw A, begane grond",
-          "link": "/contact"
         }
       ]
     },
@@ -215,9 +196,12 @@
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
-              "kind": "info",
-              "text": "Open dag: zaterdag 7 november 2026, van 10.00 tot 14.00 uur. Kom kijken in de werkplaatsen en praktijklokalen.",
-              "closable": true
+              "kind": "notice",
+              "lead": "Open dag",
+              "text": "Zaterdag 7 november 2026, van 10.00 tot 14.00 uur. Kom kijken in de werkplaatsen en praktijklokalen.",
+              "linkLabel": "Bekijk het programma",
+              "linkHref": "/aanmelden",
+              "band": true
             }
           },
           {
@@ -231,9 +215,33 @@
               "title": "Een vak leer je door het te doen",
               "subtitle": "Bij Esdoornveen leer je op school en in een bedrijf. Kies een mbo-opleiding in Zuiddrecht, van niveau 1 tot en met 4.",
               "search": true,
-              "searchLabel": "Zoek een opleiding",
-              "searchPlaceholder": "Zoek een opleiding, bijvoorbeeld mechatronica of verpleegkundige",
-              "searchSubmitLabel": "Zoeken"
+              "searchLabel": "Zoek een opleiding, bijvoorbeeld mechatronica of verpleegkundige",
+              "searchPlaceholder": "",
+              "searchSubmitLabel": "Zoeken",
+              "headingVisible": true,
+              "variant": "plain",
+              "popularLabel": "Veel gezocht:",
+              "popularLinks": [
+                {
+                  "label": "Mechatronica",
+                  "href": "/opleidingen/mechatronica"
+                },
+                {
+                  "label": "Verpleegkundige",
+                  "href": "/opleidingen"
+                },
+                {
+                  "label": "Software developer",
+                  "href": "/opleidingen"
+                },
+                {
+                  "label": "Kok",
+                  "href": "/opleidingen"
+                }
+              ],
+              "asideImage": {
+                "label": "[FOTO: student stelt een sensor af aan een transportband in de werkplaats]"
+              }
             }
           },
           {
@@ -292,10 +300,34 @@
             }
           },
           {
+            "id": "ev-home-04a-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 8,
+            "gridWidth": 9,
+            "gridHeight": 1,
+            "props": {
+              "text": "Kies je richting",
+              "level": 2
+            }
+          },
+          {
+            "id": "ev-home-04b-nllink",
+            "widgetKey": "nlLink",
+            "gridX": 9,
+            "gridY": 8,
+            "gridWidth": 3,
+            "gridHeight": 1,
+            "props": {
+              "label": "Alle opleidingen",
+              "href": "/opleidingen"
+            }
+          },
+          {
             "id": "ev-home-04-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 0,
-            "gridY": 8,
+            "gridY": 9,
             "gridWidth": 3,
             "gridHeight": 3,
             "props": {
@@ -313,14 +345,15 @@
                   "label": "Software developer",
                   "href": "/opleidingen"
                 }
-              ]
+              ],
+              "display": "card"
             }
           },
           {
             "id": "ev-home-05-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 3,
-            "gridY": 8,
+            "gridY": 9,
             "gridWidth": 3,
             "gridHeight": 3,
             "props": {
@@ -338,14 +371,15 @@
                   "label": "Pedagogisch medewerker",
                   "href": "/opleidingen"
                 }
-              ]
+              ],
+              "display": "card"
             }
           },
           {
             "id": "ev-home-06-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 6,
-            "gridY": 8,
+            "gridY": 9,
             "gridWidth": 3,
             "gridHeight": 3,
             "props": {
@@ -363,14 +397,15 @@
                   "label": "Logistiek teamleider",
                   "href": "/opleidingen"
                 }
-              ]
+              ],
+              "display": "card"
             }
           },
           {
             "id": "ev-home-07-nllinklist",
             "widgetKey": "nlLinkList",
             "gridX": 9,
-            "gridY": 8,
+            "gridY": 9,
             "gridWidth": 3,
             "gridHeight": 3,
             "props": {
@@ -388,16 +423,17 @@
                   "label": "Facilitair leidinggevende",
                   "href": "/opleidingen"
                 }
-              ]
+              ],
+              "display": "card"
             }
           },
           {
             "id": "ev-home-08-nlnewslist",
             "widgetKey": "nlNewsList",
             "gridX": 0,
-            "gridY": 11,
-            "gridWidth": 12,
-            "gridHeight": 5,
+            "gridY": 12,
+            "gridWidth": 8,
+            "gridHeight": 8,
             "props": {
               "heading": "Nieuws",
               "limit": 4,
@@ -405,15 +441,16 @@
               "showAudience": false,
               "moreLabel": "Al het nieuws",
               "moreHref": "/zoeken",
-              "articleRoute": "/nieuws"
+              "articleRoute": "/nieuws",
+              "leadPlaceholder": "[FOTO: twee studenten bij een sorteermachine]"
             }
           },
           {
             "id": "ev-home-09-nlsignin",
             "widgetKey": "nlSignIn",
-            "gridX": 0,
-            "gridY": 16,
-            "gridWidth": 6,
+            "gridX": 8,
+            "gridY": 12,
+            "gridWidth": 4,
             "gridHeight": 4,
             "props": {
               "heading": "Mijn Esdoornveen",
@@ -429,19 +466,26 @@
             }
           },
           {
-            "id": "ev-home-10-nlsignin",
-            "widgetKey": "nlSignIn",
-            "gridX": 6,
+            "id": "ev-home-10-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 8,
             "gridY": 16,
-            "gridWidth": 6,
+            "gridWidth": 4,
             "gridHeight": 4,
             "props": {
               "heading": "Voor leerbedrijven",
               "display": "card",
               "intro": "Werkt er een student van ons bij u? Keur uren goed en vul beoordelingen in. U logt in met eHerkenning.",
-              "buttonLabel": "Inloggen als leerbedrijf",
-              "signInHref": "/mijn",
-              "tone": "plain"
+              "links": [
+                {
+                  "label": "Inloggen als leerbedrijf",
+                  "href": "/mijn"
+                },
+                {
+                  "label": "Leerbedrijf worden",
+                  "href": "/voor-bedrijven"
+                }
+              ]
             }
           }
         ]
@@ -459,7 +503,7 @@
             "widgetKey": "nlHeading",
             "gridX": 0,
             "gridY": 0,
-            "gridWidth": 12,
+            "gridWidth": 8,
             "gridHeight": 1,
             "props": {
               "text": "Ziek melden en beter melden",
@@ -467,11 +511,41 @@
             }
           },
           {
+            "id": "ev-ziek-07-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 8,
+            "gridY": 0,
+            "gridWidth": 4,
+            "gridHeight": 16,
+            "props": {
+              "heading": "Meer over aanwezigheid",
+              "links": [
+                {
+                  "label": "Verlof aanvragen",
+                  "href": "/voor-studenten"
+                },
+                {
+                  "label": "Te laat of eerder weg",
+                  "href": "/voor-studenten"
+                },
+                {
+                  "label": "Afwezig bij een examen",
+                  "href": "/voor-studenten"
+                },
+                {
+                  "label": "Vakanties en vrije dagen",
+                  "href": "/vakanties"
+                }
+              ],
+              "display": "accent"
+            }
+          },
+          {
             "id": "ev-ziek-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
             "gridY": 1,
-            "gridWidth": 12,
+            "gridWidth": 8,
             "gridHeight": 1,
             "props": {
               "text": "Ben je ziek? Meld het voor 08.30 uur in Mijn Esdoornveen. Je docenten zien het meteen in hun presentielijst. Het kan vanaf je telefoon en kost een halve minuut."
@@ -495,7 +569,7 @@
             "widgetKey": "nlList",
             "gridX": 0,
             "gridY": 3,
-            "gridWidth": 12,
+            "gridWidth": 8,
             "gridHeight": 3,
             "props": {
               "display": "steps",
@@ -508,11 +582,23 @@
             }
           },
           {
+            "id": "ev-ziek-05a-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 6,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Wat meld je waar?",
+              "level": 2
+            }
+          },
+          {
             "id": "ev-ziek-05-nltable",
             "widgetKey": "nlTable",
             "gridX": 0,
-            "gridY": 6,
-            "gridWidth": 12,
+            "gridY": 7,
+            "gridWidth": 8,
             "gridHeight": 4,
             "props": {
               "caption": "Wat meld je waar?",
@@ -537,14 +623,16 @@
                   "Ziek melden en het examenbureau bellen voor het examen begint",
                   "Het examenbureau. Je krijgt een nieuwe datum."
                 ]
-              ]
+              ],
+              "display": "boxed",
+              "captionVisible": false
             }
           },
           {
             "id": "ev-ziek-06-nlalert",
             "widgetKey": "nlAlert",
             "gridX": 0,
-            "gridY": 10,
+            "gridY": 11,
             "gridWidth": 8,
             "gridHeight": 3,
             "props": {
@@ -554,40 +642,11 @@
             }
           },
           {
-            "id": "ev-ziek-07-nllinklist",
-            "widgetKey": "nlLinkList",
-            "gridX": 8,
-            "gridY": 10,
-            "gridWidth": 4,
-            "gridHeight": 3,
-            "props": {
-              "heading": "Meer over aanwezigheid",
-              "links": [
-                {
-                  "label": "Verlof aanvragen",
-                  "href": "/voor-studenten"
-                },
-                {
-                  "label": "Te laat of eerder weg",
-                  "href": "/voor-studenten"
-                },
-                {
-                  "label": "Afwezig bij een examen",
-                  "href": "/voor-studenten"
-                },
-                {
-                  "label": "Vakanties en vrije dagen",
-                  "href": "/vakanties"
-                }
-              ]
-            }
-          },
-          {
             "id": "ev-ziek-08-nlalert",
             "widgetKey": "nlAlert",
             "gridX": 0,
-            "gridY": 13,
-            "gridWidth": 12,
+            "gridY": 14,
+            "gridWidth": 8,
             "gridHeight": 2,
             "props": {
               "kind": "info",
@@ -629,21 +688,20 @@
             }
           },
           {
-            "id": "ev-opleidingen-03-nllinklist",
-            "widgetKey": "nlLinkList",
+            "id": "ev-opleidingen-03-nlcatalogue",
+            "widgetKey": "nlCatalogue",
             "gridX": 0,
             "gridY": 2,
             "gridWidth": 12,
-            "gridHeight": 3,
+            "gridHeight": 8,
             "props": {
-              "heading": "Techniek en ICT",
-              "links": [
-                {
-                  "label": "Mechatronica",
-                  "href": "/opleidingen/mechatronica",
-                  "description": "Niveau 4, BOL of BBL, 4 jaar, crebo 25743"
-                }
-              ]
+              "types": [
+                "programme"
+              ],
+              "sort": "title",
+              "countLabel": "{count} opleidingen",
+              "searchLabel": "Zoek een opleiding",
+              "placeholder": "Bijvoorbeeld techniek"
             }
           }
         ]
@@ -1270,12 +1328,35 @@
     {
       "userId": "mbo-student-251",
       "displayName": "Milan de Groot",
-      "groups": []
+      "groups": [],
+      "portal": {
+        "audience": "student",
+        "claims": {
+          "learnerRef": "ee03000c-0000-4000-8000-000000000251"
+        }
+      }
     },
     {
       "userId": "mbo-student-252",
       "displayName": "Aylin Demir",
-      "groups": []
+      "groups": [],
+      "portal": {
+        "audience": "student",
+        "claims": {
+          "learnerRef": "ee03000c-0000-4000-8000-000000000252"
+        }
+      }
+    },
+    {
+      "userId": "mbo-praktijkopleider-037",
+      "displayName": "Petra Bakker",
+      "groups": [],
+      "portal": {
+        "audience": "praktijkopleider",
+        "claims": {
+          "practicalTrainerId": "ee030010-0000-4000-8000-000000000037"
+        }
+      }
     }
   ]
 }

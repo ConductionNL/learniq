@@ -93,6 +93,8 @@ SCHEMAS = [
     "submission",
     # Appended last (school-portals-use-the-new-blocks): every earlier schema keeps its uuid namespace.
     "report-subject-grade",
+    # Appended last (guardian-tasks-per-child-and-self-assessment): every earlier schema keeps its uuid namespace.
+    "conference-invitation",
 ]
 
 # School events a parent sees in the portal calendar: (title, start, end, kind, groups or None for the whole
@@ -838,6 +840,7 @@ def build() -> dict:
 
     stamp_group_labels(b)
     add_report_subject_grades(b)
+    add_conference_invitations(b)
 
     # --- assemble -----------------------------------------------------------
     for cohort in cohorts.values():
@@ -1186,6 +1189,32 @@ def add_report_subject_grades(b: Builder) -> None:
                 "caption": caption, "mentorComment": card.get("mentorComment"),
             })
             position += 1
+
+
+# The slot states that mean a child has a conversation time (ConferenceInvitations::TIME_TAKEN).
+TIME_TAKEN = ("booked", "acknowledged", "proposed", "confirmed", "completed")
+
+
+def add_conference_invitations(b: Builder) -> None:
+    """One invitation per invited child per round, as ConferenceInvitations keeps
+    them (guardian-tasks-per-child-and-self-assessment): booked once the child
+    has a time in the round, open while the round is open for booking, and no
+    row at all for a round that is neither. Vera has a time in groep 7's round,
+    so her row is booked; Sami's in groep 4's round is open."""
+    for round_ in b.buckets["conference-round"]:
+        taken = {s["learnerRef"] for s in b.buckets["conference-slot"]
+                 if s["conferenceRoundId"] == round_["uuid"] and s.get("learnerRef") and s.get("lifecycle") in TIME_TAKEN}
+        for ref in dict.fromkeys(round_.get("invitedLearnerRefs") or []):
+            status = "booked" if ref in taken else ("open" if round_.get("lifecycle") == "booking-open" else "closed")
+            if status == "closed":
+                continue
+            row = {"conferenceRoundId": round_["uuid"], "learnerRef": ref, "roundName": round_["name"],
+                   "bookingClosesAt": round_["bookingClosesAt"]}
+            if round_.get("bookingMode") in ("direct", "preference"):
+                row["bookingMode"] = round_["bookingMode"]
+            row["status"] = status
+            row["tenant_id"] = round_.get("tenant_id", TENANT)
+            b.add("conference-invitation", row)
 
 
 def render(data: dict) -> str:

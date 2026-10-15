@@ -70,7 +70,15 @@
         ]
       }
     },
-    "accountLabel": "Mijn Vaartveld"
+    "accountLabel": "Mijn Vaartveld",
+    "residentMenu": {
+      "leaveOut": [
+        "cases",
+        "tasks",
+        "access",
+        "learniq:studentHourWeeks"
+      ]
+    }
   },
   "legacyTitles": [
     "Studentenportaal Vaartveld"
@@ -114,27 +122,6 @@
           "order": 7,
           "name": "Aanmelden",
           "link": "/aanmelden"
-        }
-      ]
-    },
-    {
-      "position": 1,
-      "title": "Contact",
-      "items": [
-        {
-          "order": 1,
-          "name": "Vaartlaan 40, Zuiddrecht",
-          "link": "/contact"
-        },
-        {
-          "order": 2,
-          "name": "Telefoon: [telefoonnummer]",
-          "link": "/contact"
-        },
-        {
-          "order": 3,
-          "name": "E-mail: [e-mailadres]",
-          "link": "/contact"
         }
       ]
     },
@@ -207,9 +194,12 @@
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
-              "kind": "info",
-              "text": "Herfstvakantie: van zaterdag 17 tot en met zondag 25 oktober is de school dicht.",
-              "closable": true
+              "kind": "notice",
+              "lead": "Herfstvakantie",
+              "text": "Van zaterdag 17 tot en met zondag 25 oktober is de school dicht.",
+              "linkLabel": "Alle vakanties en vrije dagen",
+              "linkHref": "/praktisch/vakanties",
+              "band": true
             }
           },
           {
@@ -231,7 +221,8 @@
                   "label": "Lees wat er speelt op school",
                   "href": "/zoeken"
                 }
-              ]
+              ],
+              "variant": "plain"
             }
           },
           {
@@ -302,7 +293,7 @@
             "gridX": 0,
             "gridY": 8,
             "gridWidth": 8,
-            "gridHeight": 5,
+            "gridHeight": 8,
             "props": {
               "heading": "Nieuws",
               "limit": 6,
@@ -310,7 +301,8 @@
               "showAudience": true,
               "moreLabel": "Al het nieuws",
               "moreHref": "/zoeken",
-              "articleRoute": "/nieuws"
+              "articleRoute": "/nieuws",
+              "leadPlaceholder": "[FOTO: derdeklassers bij de profielenmarkt in de aula]"
             }
           },
           {
@@ -319,7 +311,7 @@
             "gridX": 8,
             "gridY": 8,
             "gridWidth": 4,
-            "gridHeight": 5,
+            "gridHeight": 4,
             "props": {
               "heading": "Mijn Vaartveld",
               "display": "card",
@@ -336,10 +328,10 @@
           {
             "id": "vv-home-06-nleventlist",
             "widgetKey": "nlEventList",
-            "gridX": 0,
-            "gridY": 13,
-            "gridWidth": 12,
-            "gridHeight": 3,
+            "gridX": 8,
+            "gridY": 12,
+            "gridWidth": 4,
+            "gridHeight": 4,
             "props": {
               "heading": "Agenda",
               "display": "labels",
@@ -375,51 +367,48 @@
             }
           },
           {
-            "id": "vv-home-07-nllinklist",
-            "widgetKey": "nlLinkList",
+            "id": "vv-home-07-nllinkcolumns",
+            "widgetKey": "nlLinkColumns",
             "gridX": 0,
             "gridY": 16,
-            "gridWidth": 6,
+            "gridWidth": 12,
             "gridHeight": 3,
             "props": {
-              "heading": "Havo",
-              "links": [
+              "heading": "Ons onderwijs",
+              "columns": [
                 {
-                  "label": "De brugklas",
-                  "href": "/onderwijs"
+                  "title": "Havo",
+                  "links": [
+                    {
+                      "label": "De brugklas",
+                      "href": "/onderwijs"
+                    },
+                    {
+                      "label": "Profielkeuze in klas 3",
+                      "href": "/onderwijs"
+                    },
+                    {
+                      "label": "Examen en doorstromen naar hbo of vwo",
+                      "href": "/onderwijs"
+                    }
+                  ]
                 },
                 {
-                  "label": "Profielkeuze in klas 3",
-                  "href": "/onderwijs"
-                },
-                {
-                  "label": "Examen en doorstromen naar hbo of vwo",
-                  "href": "/onderwijs"
-                }
-              ]
-            }
-          },
-          {
-            "id": "vv-home-08-nllinklist",
-            "widgetKey": "nlLinkList",
-            "gridX": 6,
-            "gridY": 16,
-            "gridWidth": 6,
-            "gridHeight": 3,
-            "props": {
-              "heading": "Vwo",
-              "links": [
-                {
-                  "label": "De brugklas",
-                  "href": "/onderwijs"
-                },
-                {
-                  "label": "Profielkeuze in klas 3",
-                  "href": "/onderwijs"
-                },
-                {
-                  "label": "Examen en doorstromen naar de universiteit",
-                  "href": "/onderwijs"
+                  "title": "Vwo",
+                  "links": [
+                    {
+                      "label": "De brugklas",
+                      "href": "/onderwijs"
+                    },
+                    {
+                      "label": "Profielkeuze in klas 3",
+                      "href": "/onderwijs"
+                    },
+                    {
+                      "label": "Examen en doorstromen naar de universiteit",
+                      "href": "/onderwijs"
+                    }
+                  ]
                 }
               ]
             }
@@ -439,7 +428,7 @@
             "widgetKey": "nlHeading",
             "gridX": 0,
             "gridY": 0,
-            "gridWidth": 12,
+            "gridWidth": 8,
             "gridHeight": 1,
             "props": {
               "text": "Ziek melden en verlof",
@@ -447,11 +436,41 @@
             }
           },
           {
+            "id": "vv-ziek-07-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 8,
+            "gridY": 0,
+            "gridWidth": 4,
+            "gridHeight": 16,
+            "props": {
+              "heading": "Meer praktische zaken",
+              "links": [
+                {
+                  "label": "Lestijden en pauzes",
+                  "href": "/praktisch/lestijden"
+                },
+                {
+                  "label": "Vakanties en vrije dagen",
+                  "href": "/praktisch/vakanties"
+                },
+                {
+                  "label": "Te laat komen",
+                  "href": "/praktisch"
+                },
+                {
+                  "label": "Schoolregels",
+                  "href": "/praktisch"
+                }
+              ],
+              "display": "tinted"
+            }
+          },
+          {
             "id": "vv-ziek-02-nlparagraph",
             "widgetKey": "nlParagraph",
             "gridX": 0,
             "gridY": 1,
-            "gridWidth": 12,
+            "gridWidth": 8,
             "gridHeight": 1,
             "props": {
               "text": "Is uw kind ziek? Meld het voor 08.15 uur. Dat gaat het snelst in Mijn Vaartveld: de mentor en de docenten zien uw melding meteen."
@@ -473,10 +492,10 @@
           {
             "id": "vv-ziek-04-nlbuttonlink",
             "widgetKey": "nlButtonLink",
-            "gridX": 8,
-            "gridY": 2,
-            "gridWidth": 4,
-            "gridHeight": 2,
+            "gridX": 0,
+            "gridY": 4,
+            "gridWidth": 3,
+            "gridHeight": 1,
             "props": {
               "label": "Ziek melden",
               "href": "/mijn",
@@ -484,11 +503,23 @@
             }
           },
           {
+            "id": "vv-ziek-05a-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 5,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Wat meldt u hoe?",
+              "level": 2
+            }
+          },
+          {
             "id": "vv-ziek-05-nltable",
             "widgetKey": "nlTable",
             "gridX": 0,
-            "gridY": 4,
-            "gridWidth": 12,
+            "gridY": 6,
+            "gridWidth": 8,
             "gridHeight": 4,
             "props": {
               "caption": "Wat meldt u hoe?",
@@ -518,47 +549,20 @@
                   "Verlof aanvragen bij de teamleider",
                   "Minstens twee weken van tevoren"
                 ]
-              ]
+              ],
+              "display": "boxed",
+              "captionVisible": false
             }
           },
           {
             "id": "vv-ziek-06-markdown",
             "widgetKey": "markdown",
             "gridX": 0,
-            "gridY": 8,
+            "gridY": 10,
             "gridWidth": 8,
             "gridHeight": 6,
             "props": {
               "markdown": "## Ziek op de dag van een toets\n\nMeld uw kind ziek voordat de toets begint. Dan mag uw kind de toets inhalen. De docent spreekt daarvoor een moment af. Zonder melding telt de toets als gemist.\n\n## Afwezig zonder melding\n\nStaat uw kind afwezig en hebben wij geen melding? Dan krijgt u dezelfde dag een bericht in Mijn Vaartveld. De mentor neemt contact op als het vaker gebeurt. Bij 16 uur afwezigheid zonder geldige reden in vier weken moet de school dit melden bij de leerplichtambtenaar van de gemeente Zuiddrecht.\n\n## 18 jaar of ouder?\n\nDan meld je jezelf ziek, met je schoolaccount in Mijn Vaartveld.\n\n## Is uw kind lang ziek?\n\nDan denkt de zorgcoördinator, Anouk Visser, met u mee over schoolwerk en terugkomen."
-            }
-          },
-          {
-            "id": "vv-ziek-07-nllinklist",
-            "widgetKey": "nlLinkList",
-            "gridX": 8,
-            "gridY": 8,
-            "gridWidth": 4,
-            "gridHeight": 6,
-            "props": {
-              "heading": "Meer praktische zaken",
-              "links": [
-                {
-                  "label": "Lestijden en pauzes",
-                  "href": "/praktisch/lestijden"
-                },
-                {
-                  "label": "Vakanties en vrije dagen",
-                  "href": "/praktisch/vakanties"
-                },
-                {
-                  "label": "Te laat komen",
-                  "href": "/praktisch"
-                },
-                {
-                  "label": "Schoolregels",
-                  "href": "/praktisch"
-                }
-              ]
             }
           }
         ]
@@ -647,18 +651,21 @@
             }
           },
           {
-            "id": "vv-zoeken-03-nlnewslist",
-            "widgetKey": "nlNewsList",
+            "id": "vv-zoeken-03-nlcatalogue",
+            "widgetKey": "nlCatalogue",
             "gridX": 0,
             "gridY": 2,
             "gridWidth": 12,
-            "gridHeight": 6,
+            "gridHeight": 8,
             "props": {
-              "heading": "Nieuws",
-              "limit": 12,
-              "featured": false,
-              "showAudience": true,
-              "articleRoute": "/nieuws"
+              "types": [
+                "news",
+                "event"
+              ],
+              "newsRoute": "/nieuws",
+              "sort": "dateDesc",
+              "searchLabel": "Zoek in het nieuws en de agenda",
+              "placeholder": "Bijvoorbeeld toetsweek"
             }
           }
         ]
@@ -1229,7 +1236,13 @@
     {
       "userId": "vo-leerling-121",
       "displayName": "Noor Bakker",
-      "groups": []
+      "groups": [],
+      "portal": {
+        "audience": "student",
+        "claims": {
+          "learnerRef": "ee02000a-0000-4000-8000-000000000534"
+        }
+      }
     }
   ]
 }
