@@ -54,6 +54,9 @@ return [
         ['name' => 'credentialEuropass#download', 'url' => '/api/credentials/{id}/europass', 'verb' => 'GET'],
         ['name' => 'credentialEuropass#download', 'url' => '/api/credentials/{id}/europass/download', 'verb' => 'POST', 'postfix' => 'post'],
         ['name' => 'credentialEuropass#create', 'url' => '/api/credentials/{id}/europass', 'verb' => 'POST'],
+        // The holder starts a wallet offer; it runs as learniq's service account.
+        // Controller: CredentialWalletOfferController (slug: credentialWalletOffer).
+        ['name' => 'credentialWalletOffer#create', 'url' => '/api/credentials/{id}/wallet-offer', 'verb' => 'POST'],
 
         // Admin key management — admin-only via #[AuthorizedAdminSetting], cryptographic operation (ADR-031).
         // Controller: KeyAdminController (slug: keyAdmin).
