@@ -127,6 +127,7 @@ class ParticipantSitePages {
 					'expiryLabel',
 					'renewalLine',
 					'verificationUrl',
+					'walletOfferUri',
 					'lifecycle',
 				],
 				extra: [
@@ -140,6 +141,8 @@ class ParticipantSitePages {
 						['field' => 'expiresAt', 'label' => 'Valid until', 'render' => 'date'],
 						['field' => 'expiryLabel', 'label' => 'Status'],
 						['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link'],
+						// The open wallet offer as a QR code with its link (portaliq link-field-qr-code).
+						['field' => 'walletOfferUri', 'label' => 'Wallet', 'render' => 'qr', 'linkLabel' => 'Add to wallet'],
 					],
 				]
 			),

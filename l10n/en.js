@@ -3752,7 +3752,14 @@ OC.L10N.register(
         "Level %s": "Level %s",
         "Learning path": "Learning path",
         "or": "or",
-        "Training course": "Training course"
+        "Training course": "Training course",
+        "Wallet": "Wallet",
+        "Add to wallet": "Add to wallet",
+        "Wallet offer link": "Wallet offer link",
+        "The link a wallet app opens to collect this certificate, while the offer is open. Cleared once it is collected, revoked or the offer fails.": "The link a wallet app opens to collect this certificate, while the offer is open. Cleared once it is collected, revoked or the offer fails.",
+        "Learniq wallet offers": "Learniq wallet offers",
+        "Certificates can be offered to a wallet through integriq.": "Certificates can be offered to a wallet through integriq.",
+        "No integriq API token is set (%s), so a certificate cannot be offered to a wallet.": "No integriq API token is set (%s), so a certificate cannot be offered to a wallet."
     },
     "nplurals=2; plural=(n != 1);"
 )
