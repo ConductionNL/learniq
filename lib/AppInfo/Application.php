@@ -26,6 +26,7 @@ namespace OCA\Learniq\AppInfo;
 use OCA\OpenRegister\AppHost\Bootstrap;
 use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\Middleware\ActionForbiddenMiddleware;
+use OCA\Learniq\SetupCheck\WalletOfferTokenCheck;
 use OCA\Learniq\AppInfo\Registrar\ServiceOverrideRegistrar;
 use OCA\Learniq\Mcp\LearniqScannableServices;
 use OCP\AppFramework\App;
@@ -89,6 +90,10 @@ class Application extends App implements IBootstrap {
 		// controller is a 403, not Nextcloud's 500 page (live pass D1, D7).
 		// First, so nothing below that throws can leave it unregistered.
 		$context->registerMiddleware(ActionForbiddenMiddleware::class);
+
+		// The admin overview names a missing integriq token, which makes every
+		// wallet offer fail (credential-wallet-offer-for-the-learner).
+		$context->registerSetupCheck(WalletOfferTokenCheck::class);
 
 		// ADR-040: adopt the OpenRegister AppHost. One call wires the generic
 		// SPA/settings/preferences/health/metrics controllers, the settings +

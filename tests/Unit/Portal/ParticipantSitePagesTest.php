@@ -76,6 +76,12 @@ class ParticipantSitePagesTest extends TestCase {
 		self::assertSame(['greeting', 'tasks', 'collection', 'collection'], array_column($pages['participantOverview']['blocks'], 'type'));
 		self::assertSame(['upcoming' => true], $collections['participantComingDays']['filter']);
 		self::assertSame(['lifecycle' => 'issued', 'kind' => 'certificate'], $collections['participantCertificates']['filter']);
+		// credential-wallet-offer-for-the-learner: the open wallet offer as a QR code with its link.
+		self::assertContains('walletOfferUri', $collections['participantCertificates']['fields']);
+		self::assertContains(
+			['field' => 'walletOfferUri', 'label' => 'Wallet', 'render' => 'qr', 'linkLabel' => 'Add to wallet'],
+			$collections['participantCertificates']['columns']
+		);
 		foreach ($manifest['pages'] as $page) {
 			foreach ($page['blocks'] as $block) {
 				if (isset($block['collection']) === false) {

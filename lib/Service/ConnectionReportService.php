@@ -287,6 +287,20 @@ class ConnectionReportService {
 	}//end observeLti()
 
 	/**
+	 * The status last recorded for a connection (`configured`, `unconfigured`,
+	 * `error` or `unavailable`), or null when nothing was recorded.
+	 *
+	 * @param string $key The connection key.
+	 *
+	 * @return string|null
+	 *
+	 * @spec openspec/changes/credential-wallet-offer-for-the-learner/specs/certification/spec.md#requirement-the-setup-check-names-the-missing-wallet-token
+	 */
+	public function lastStatus(string $key): ?string {
+		return ($this->readObservation(key: $key)['status'] ?? null);
+	}//end lastStatus()
+
+	/**
 	 * The stored observation for a connection, or null when none is usable.
 	 *
 	 * @param string $key The connection key.

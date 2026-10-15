@@ -145,11 +145,13 @@ class WalletRevocationPropagationServiceTest extends TestCase {
 			'id' => 'credential-2',
 			'walletOfferStatus' => 'offered',
 			'walletAttestationRef' => 'offer-uuid-1',
+			'walletOfferUri' => 'openid-credential-offer://?credential_offer_uri=x',
 			'lifecycle' => 'revoked',
 		];
 
 		$saved = $this->service()->propagate(credential: $object);
 		self::assertSame('revoked', $saved['walletOfferStatus']);
+		self::assertNull($saved['walletOfferUri']);
 		self::assertStringContainsString('offer-uuid-1', (string)$capturedUrl);
 		self::assertStringContainsString('/revoke', (string)$capturedUrl);
 	}//end testPropagatesAndSetsRevokedOnSuccess()
@@ -224,12 +226,15 @@ class WalletRevocationPropagationServiceTest extends TestCase {
 			'id' => 'credential-5',
 			'walletOfferStatus' => 'offered',
 			'walletAttestationRef' => 'offer-uuid-4',
+			'walletOfferUri' => 'openid-credential-offer://?credential_offer_uri=x',
 			'lifecycle' => 'revoked',
 		];
 
 		$saved = $this->service()->propagate(credential: $object);
 
 		self::assertSame('offered', $saved['walletOfferStatus']);
+		// The link goes even when integriq could not be told.
+		self::assertNull($saved['walletOfferUri']);
 	}//end testMissingTokenStillProceedsFailSoft()
 	/**
 	 * The revoke guard never blocks: revoking is the compliance action of record.

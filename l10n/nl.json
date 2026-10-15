@@ -4259,7 +4259,14 @@
         "Level %s": "Niveau %s",
         "Learning path": "Leerweg",
         "or": "of",
-        "Training course": "Cursus"
+        "Training course": "Cursus",
+        "Wallet": "Wallet",
+        "Add to wallet": "In wallet zetten",
+        "Wallet offer link": "Wallet-link",
+        "The link a wallet app opens to collect this certificate, while the offer is open. Cleared once it is collected, revoked or the offer fails.": "De link die een wallet-app opent om dit certificaat op te halen, zolang het aanbod openstaat. Wordt leeggemaakt zodra het is opgehaald, ingetrokken of het aanbod mislukt.",
+        "Learniq wallet offers": "Learniq-walletaanbiedingen",
+        "Certificates can be offered to a wallet through integriq.": "Certificaten kunnen via integriq in een wallet worden aangeboden.",
+        "No integriq API token is set (%s), so a certificate cannot be offered to a wallet.": "Er is geen integriq-API-token ingesteld (%s), dus een certificaat kan niet in een wallet worden aangeboden."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
