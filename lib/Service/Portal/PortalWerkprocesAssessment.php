@@ -144,9 +144,10 @@ class PortalWerkprocesAssessment {
 			);
 		}
 
-		$placementId = $this->text(value: ($body['bpvPlacementId'] ?? null));
+		$answers = new PortalAnswers();
+		$placementId = $answers->text(field: 'bpvPlacementId', value: ($body['bpvPlacementId'] ?? null));
 		if ($trainerRef === '' || $placementId === '') {
-			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
+			return $answers->refused(error: 'incomplete', reason: 'incomplete');
 		}
 
 		try {

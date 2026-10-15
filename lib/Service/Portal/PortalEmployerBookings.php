@@ -86,10 +86,11 @@ class PortalEmployerBookings {
 	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function book(string $organisationRef, array $body): PortalOutcome {
-		$cohortId = $this->text(value: ($body['cohortId'] ?? null));
-		$places = filter_var(($body['participantCount'] ?? null), FILTER_VALIDATE_INT);
-		if ($cohortId === '' || $places === false || $places < 1 || $places > self::MAX_PLACES) {
-			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
+		$answers = new PortalAnswers();
+		$cohortId = $answers->text(field: 'cohortId', value: ($body['cohortId'] ?? null));
+		$places = $answers->count(field: 'participantCount', value: ($body['participantCount'] ?? null), min: 1, max: self::MAX_PLACES);
+		if ($cohortId === '' || $places === null) {
+			return $answers->refused(error: 'incomplete', reason: 'incomplete');
 		}
 
 		return $this->guarded(
@@ -137,10 +138,11 @@ class PortalEmployerBookings {
 	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function addParticipant(string $organisationRef, array $body): PortalOutcome {
-		$bookingId = $this->text(value: ($body['bookingRef'] ?? null));
-		$learnerRef = $this->text(value: ($body['learnerRef'] ?? null));
+		$answers = new PortalAnswers();
+		$bookingId = $answers->text(field: 'bookingRef', value: ($body['bookingRef'] ?? null));
+		$learnerRef = $answers->text(field: 'learnerRef', value: ($body['learnerRef'] ?? null));
 		if ($bookingId === '' || $learnerRef === '') {
-			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
+			return $answers->refused(error: 'incomplete', reason: 'incomplete');
 		}
 
 		return $this->guarded(
@@ -193,10 +195,11 @@ class PortalEmployerBookings {
 	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-supplies-a-missing-birth-date-and-never-reads-it
 	 */
 	public function supplyBirthDate(string $organisationRef, array $body): PortalOutcome {
-		$learnerRef = $this->text(value: ($body['learnerRef'] ?? null));
-		$birthDate = $this->birthDate(value: $this->text(value: ($body['birthDate'] ?? null)));
+		$answers = new PortalAnswers();
+		$learnerRef = $answers->text(field: 'learnerRef', value: ($body['learnerRef'] ?? null));
+		$birthDate = $this->answeredBirthDate(answers: $answers, value: ($body['birthDate'] ?? null));
 		if ($learnerRef === '' || $birthDate === null) {
-			return new PortalOutcome(status: 422, body: ['error' => 'birth_date_invalid'], reason: 'birth-date-invalid');
+			return $answers->refused(error: 'birth_date_invalid', reason: 'birth-date-invalid');
 		}
 
 		return $this->guarded(
@@ -280,6 +283,24 @@ class PortalEmployerBookings {
 	}//end company()
 
 	/**
+	 * The form's birth date if it is one, else null with the answer refused
+	 * as not a `date`.
+	 *
+	 * @param PortalAnswers $answers The form's answers.
+	 * @param mixed         $value   What the form sent.
+	 *
+	 * @return string|null `yyyy-mm-dd`.
+	 */
+	private function answeredBirthDate(PortalAnswers $answers, mixed $value): ?string {
+		$birthDate = $this->birthDate(value: $answers->text(field: 'birthDate', value: $value));
+		if ($birthDate === null) {
+			$answers->wrongKind(field: 'birthDate', kind: 'date');
+		}
+
+		return $birthDate;
+	}//end answeredBirthDate()
+
+	/**
 	 * A birth date that is a real day between 100 and 14 years ago, or null.
 	 *
 	 * @param string $value What the form sent.
@@ -351,19 +372,4 @@ class PortalEmployerBookings {
 
 		return (array)$saved->jsonSerialize();
 	}//end save()
-
-	/**
-	 * A string value, trimmed, or ''.
-	 *
-	 * @param mixed $value The value.
-	 *
-	 * @return string
-	 */
-	private function text(mixed $value): string {
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return trim($value);
-	}//end text()
 }//end class

@@ -505,6 +505,9 @@ class TrainerSitePages {
 				'subjectField' => 'practicalTrainerId',
 				'scopeClaim' => 'practicalTrainerId',
 				'fields' => ['hourWeekId', 'hoursApproved', 'note'],
+				// Declared only so portaliq shapes the inputs: `hoursApproved`
+				// becomes a number input and is sent as a number.
+				'schema' => 'bpv-hour-week',
 				// She picks the week from the weeks waiting for her instead of
 				// typing a uuid. Portaliq fills a `collection` provider from the
 				// SUBJECT-SCOPED collection over that schema, which for her is

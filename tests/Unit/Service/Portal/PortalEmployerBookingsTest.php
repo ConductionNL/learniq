@@ -175,4 +175,33 @@ class PortalEmployerBookingsTest extends TestCase {
 		self::assertSame('1988-06-12', array_column($this->store->rows['learner-profile'], null, 'id')['lp-tom']['birthDate']);
 		self::assertArrayNotHasKey('birthDate', array_column($this->store->rows['learner-profile'], null, 'id')['lp-youssef']);
 	}//end testABirthDateIsWrittenOnceAndOnlyForHerOwnPeople()
+
+	/**
+	 * Each refused answer is named by its field: an empty one in `errors`, one of the wrong kind
+	 * in `invalid`, so the portal's form says which field to change.
+	 *
+	 * @return void
+	 */
+	public function testARefusalNamesTheFieldsToChange(): void {
+		$service = $this->bookings();
+
+		$empty = $service->book(organisationRef: self::COMPANY, body: []);
+		self::assertSame(422, $empty->status);
+		self::assertSame(['cohortId' => '', 'participantCount' => ''], $empty->body['errors']);
+		self::assertArrayNotHasKey('invalid', $empty->body);
+
+		self::assertSame(['participantCount' => 'integer'], $service->book(organisationRef: self::COMPANY, body: ['cohortId' => 'ed-1', 'participantCount' => 'twee'])->body['invalid']);
+		$tooMany = $service->book(organisationRef: self::COMPANY, body: ['cohortId' => 'ed-1', 'participantCount' => '13']);
+		self::assertSame(['participantCount' => 'range'], $tooMany->body['invalid']);
+		self::assertArrayNotHasKey('errors', $tooMany->body);
+
+		self::assertSame(['bookingRef' => ''], $service->addParticipant(organisationRef: self::COMPANY, body: ['learnerRef' => 'lp-tom'])->body['errors']);
+
+		$wrongDate = $service->supplyBirthDate(organisationRef: self::COMPANY, body: ['learnerRef' => 'lp-youssef', 'birthDate' => '14-03-1994']);
+		self::assertSame('birth_date_invalid', $wrongDate->body['error']);
+		self::assertSame(['birthDate' => 'date'], $wrongDate->body['invalid']);
+		self::assertArrayNotHasKey('errors', $wrongDate->body);
+		self::assertSame(['learnerRef' => '', 'birthDate' => ''], $service->supplyBirthDate(organisationRef: self::COMPANY, body: [])->body['errors']);
+		self::assertSame([], $this->store->rows['course-booking']);
+	}//end testARefusalNamesTheFieldsToChange()
 }//end class
