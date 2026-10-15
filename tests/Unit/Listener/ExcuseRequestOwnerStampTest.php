@@ -26,6 +26,7 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
+use OCA\Learniq\Service\AbsenceReportDefaults;
 use OCA\Learniq\Service\Portal\PortalWriteSubject;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Service\LearnerRefResolver;
@@ -290,6 +291,35 @@ class ExcuseRequestOwnerStampTest extends TestCase {
 		self::assertSame('substantial', $data['submittedAuthLevel']);
 		self::assertSame(self::TENANT, $data['tenant_id']);
 	}//end testAGuardianReportNamesTheChildAndTheGuardian()
+
+	/**
+	 * The guardian's form asks one "Wanneer?" question with an optional note:
+	 * a report without an end day or a note gets the first day as the last and
+	 * the words of its kind, so a one-day absence still covers its day.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/trainer-returns-hours-with-a-question/specs/attendance/spec.md#requirement-an-absence-is-reported-with-one-question-and-an-optional-note
+	 */
+	public function testAOneQuestionReportGetsItsEndDayAndNote(): void {
+		$this->seedFamily();
+		$event = new ObjectCreatingEvent(
+			OrEntityFactory::make(
+				['dateFrom' => '2026-10-09', 'reasonKind' => 'medical-appointment', 'learnerRef' => 'lp-1', 'submittedByRef' => 'gp-1'],
+				'excuse-request'
+			)
+		);
+
+		$this->makeStamp()->handle($event);
+
+		self::assertFalse($event->isPropagationStopped());
+		$data = $event->getModifiedData();
+		self::assertSame('2026-10-09', $data['dateTo']);
+		self::assertSame('Naar de dokter of tandarts', $data['reason']);
+
+		$kept = (new AbsenceReportDefaults())->fill(payload: ['dateFrom' => '2026-10-09', 'dateTo' => '2026-10-12', 'reason' => 'Griep']);
+		self::assertSame([], $kept, 'a report that says both keeps them');
+	}//end testAOneQuestionReportGetsItsEndDayAndNote()
 
 	/**
 	 * A guardian without a Nextcloud account is named by submittedByRef alone,

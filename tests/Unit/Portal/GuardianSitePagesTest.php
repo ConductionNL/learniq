@@ -204,8 +204,11 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame(['illness', 'medical-appointment'], $configs['reasonKind']['choiceOptions']);
 		self::assertSame('Another reason', $configs['reasonKind']['otherLabel']);
 		self::assertSame('dateChoices', $configs['dateFrom']['widget']);
-		self::assertSame('dateChoices', $configs['dateTo']['widget']);
-		self::assertSame('Choose the last day your child is absent.', $configs['dateTo']['requiredMessage']);
+		// One "Wanneer?" question and an optional note (board MobielDetail); the
+		// server stamps the end day (trainer-returns-hours-with-a-question).
+		self::assertSame('When?', $configs['dateFrom']['label']);
+		self::assertNotContains('dateTo', self::actions(audience: 'parent')['createExcuseRequest']['fields']);
+		self::assertArrayNotHasKey('required', $configs['reason']);
 
 		// Every card is a real absence kind, so portaliq keeps it.
 		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
@@ -376,7 +379,8 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame('poHourWeeks', $waiting['collection']);
 		self::assertSame('highlight', $waiting['display']);
 		self::assertSame('submittedAt', $waiting['dueField']);
-		self::assertSame(['isoWeek'], $waiting['titleFields']);
+		self::assertSame(['learnerName'], $waiting['titleFields']);
+		self::assertSame(['weekLabel', 'description'], $waiting['subtitleFields']);
 
 		// site-workplace-trainer-portal-design T6b: the placement cards carry their heading (lane L2's
 		// contract gives a collection block a label); the assessments still stand on their columns.

@@ -109,6 +109,43 @@ class PortalHourWeekApproval {
 	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
 	 */
 	public function approve(string $trainerRef, string $trust, array $body): PortalOutcome {
+		return $this->decide(trainerRef: $trainerRef, trust: $trust, body: $body, sendBack: false);
+	}//end approve()
+
+	/**
+	 * Send one week back to the student with a question (board esdoornveen,
+	 * "Terugsturen met een vraag"): no hours approved, the question as the
+	 * week's note, which the student reads on her hours page. She corrects
+	 * the week and sends it again.
+	 *
+	 * @param string               $trainerRef The `practicalTrainerId` claim.
+	 * @param string               $trust      The session's trust (`low`, `substantial`, `high`).
+	 * @param array<string, mixed> $body       What the form sent: `hourWeekId` and `note`.
+	 *
+	 * @return PortalOutcome
+	 *
+	 * @spec openspec/changes/trainer-returns-hours-with-a-question/specs/bpv/spec.md#requirement-the-trainer-sends-a-week-back-with-a-question
+	 */
+	public function sendBack(string $trainerRef, string $trust, array $body): PortalOutcome {
+		if ($this->text(value: ($body['note'] ?? null)) === '') {
+			return new PortalOutcome(status: 422, body: ['error' => 'question_required'], reason: 'question-required');
+		}
+
+		return $this->decide(trainerRef: $trainerRef, trust: $trust, body: $body, sendBack: true);
+	}//end sendBack()
+
+	/**
+	 * Decide one week for the trainer the assertion names: approve it, or
+	 * send it back. The checks are the same for both.
+	 *
+	 * @param string               $trainerRef The `practicalTrainerId` claim.
+	 * @param string               $trust      The session's trust.
+	 * @param array<string, mixed> $body       What the form sent.
+	 * @param bool                 $sendBack   True to send the week back.
+	 *
+	 * @return PortalOutcome
+	 */
+	private function decide(string $trainerRef, string $trust, array $body, bool $sendBack): PortalOutcome {
 		$assurance = (self::TRUST_TO_ASSURANCE[$trust] ?? 'basic');
 		$floor = $this->floor();
 		if (self::ASSURANCE_ORDER[$assurance] < self::ASSURANCE_ORDER[$floor]) {
@@ -120,25 +157,17 @@ class PortalHourWeekApproval {
 			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
 		}
 
+		if ($sendBack === true) {
+			$body['hoursApproved'] = 0;
+		}
+
 		try {
-			$week = $this->row(schema: self::WEEK_SCHEMA, id: $weekId);
-			if ($week === null) {
-				return new PortalOutcome(status: 404, body: ['error' => 'not_found'], reason: 'week-not-found');
+			$refusal = $this->refusal(trainerRef: $trainerRef, weekId: $weekId);
+			if ($refusal instanceof PortalOutcome) {
+				return $refusal;
 			}
 
-			if (($week['lifecycle'] ?? 'submitted') !== 'submitted') {
-				return new PortalOutcome(status: 409, body: ['error' => 'already_decided'], reason: 'already-decided');
-			}
-
-			$trainer = $this->row(schema: self::TRAINER_SCHEMA, id: $trainerRef);
-			if ($trainer === null) {
-				return new PortalOutcome(status: 403, body: ['error' => 'unknown_trainer'], reason: 'unknown-trainer');
-			}
-
-			if ($this->ownsPlacement(trainerRef: $trainerRef, placementId: $this->text(value: ($week['bpvPlacementId'] ?? null))) === false) {
-				return new PortalOutcome(status: 403, body: ['error' => 'not_your_student'], reason: 'not-your-student');
-			}
-
+			[$week, $trainer] = $refusal;
 			$saved = $this->objectService->saveObject(
 				object: $this->stamped(week: $week, trainerRef: $trainerRef, trainer: $trainer, assurance: $assurance, body: $body),
 				register: self::REGISTER,
@@ -148,7 +177,7 @@ class PortalHourWeekApproval {
 			);
 		} catch (Throwable $exception) {
 			$this->logger->error(
-				'[PortalHourWeekApproval] A week of hours could not be approved: {msg}',
+				'[PortalHourWeekApproval] A week of hours could not be decided: {msg}',
 				['msg' => $exception->getMessage(), 'exception' => $exception]
 			);
 			return new PortalOutcome(status: 502, body: ['error' => 'downstream_error'], reason: 'downstream');
@@ -165,7 +194,39 @@ class PortalHourWeekApproval {
 				'assuranceLevel' => $assurance,
 			]
 		);
-	}//end approve()
+	}//end decide()
+
+	/**
+	 * The week and the trainer when she may decide it, else the refusal.
+	 *
+	 * @param string $trainerRef The trainer's uuid.
+	 * @param string $weekId     The week's uuid.
+	 *
+	 * @return PortalOutcome|array{0: array<string, mixed>, 1: array<string, mixed>}
+	 *
+	 * @throws \Throwable When OpenRegister cannot be read.
+	 */
+	private function refusal(string $trainerRef, string $weekId): PortalOutcome|array {
+		$week = $this->row(schema: self::WEEK_SCHEMA, id: $weekId);
+		if ($week === null) {
+			return new PortalOutcome(status: 404, body: ['error' => 'not_found'], reason: 'week-not-found');
+		}
+
+		if (($week['lifecycle'] ?? 'submitted') !== 'submitted') {
+			return new PortalOutcome(status: 409, body: ['error' => 'already_decided'], reason: 'already-decided');
+		}
+
+		$trainer = $this->row(schema: self::TRAINER_SCHEMA, id: $trainerRef);
+		if ($trainer === null) {
+			return new PortalOutcome(status: 403, body: ['error' => 'unknown_trainer'], reason: 'unknown-trainer');
+		}
+
+		if ($this->ownsPlacement(trainerRef: $trainerRef, placementId: $this->text(value: ($week['bpvPlacementId'] ?? null))) === false) {
+			return new PortalOutcome(status: 403, body: ['error' => 'not_your_student'], reason: 'not-your-student');
+		}
+
+		return [$week, $trainer];
+	}//end refusal()
 
 	/**
 	 * The week as it is stored once the trainer has decided: her number, her

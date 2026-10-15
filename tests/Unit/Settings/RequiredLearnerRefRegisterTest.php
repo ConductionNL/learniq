@@ -76,7 +76,7 @@ class RequiredLearnerRefRegisterTest extends TestCase {
 	 * @return void
 	 */
 	public function testBothSchemasRequireTheLearnerProfile(): void {
-		self::assertSame(['dateFrom', 'dateTo', 'reason', 'reasonKind', 'learnerRef'], self::shippedSchema(slug: 'excuse-request')['required']);
+		self::assertSame(['dateFrom', 'reasonKind', 'learnerRef'], self::shippedSchema(slug: 'excuse-request')['required']);
 		self::assertSame(['learnerRef'], self::shippedSchema(slug: 'conference-signup')['required']);
 	}//end testBothSchemasRequireTheLearnerProfile()
 

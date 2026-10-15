@@ -622,10 +622,11 @@ class PortalContributionProvider {
 				'scopeClaim' => 'guardianRef',
 				'via' => $childJoin,
 				'minTrust' => 'substantial',
+				// One "Wanneer?" question and an optional note (board MobielDetail):
+				// a day without an end is a one-day absence, the server stamps it.
 				'fields' => [
 					'learnerRef',
 					'dateFrom',
-					'dateTo',
 					'reason',
 					'reasonKind',
 					'attachmentRef',
@@ -639,15 +640,8 @@ class PortalContributionProvider {
 					'learnerRef' => ['label' => 'Child', 'required' => true],
 					// Today and the next day as cards, then "Een andere dag" (portaliq
 					// site-multi-step-forms REQ-SMF-005, LearniqAbsence.dc.html).
-					'dateFrom' => ['label' => 'First day absent', 'required' => true, 'widget' => 'dateChoices', 'dateChoices' => 2],
-					'dateTo' => [
-						'label' => 'Last day absent',
-						'required' => true,
-						'widget' => 'dateChoices',
-						'dateChoices' => 2,
-						'requiredMessage' => 'Choose the last day your child is absent.',
-					],
-					'reason' => ['label' => 'Reason', 'required' => true],
+					'dateFrom' => ['label' => 'When?', 'required' => true, 'widget' => 'dateChoices', 'dateChoices' => 2],
+					'reason' => ['label' => 'Anything the teacher should know? (optional)'],
 					// Two cards and "Een andere reden" for the other four kinds, as the
 					// approved mockup shows.
 					'reasonKind' => [

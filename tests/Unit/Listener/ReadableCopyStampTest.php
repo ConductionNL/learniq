@@ -25,6 +25,7 @@ use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\CohortNameCascade;
 use OCA\Learniq\Listener\ReadableCopyStamp;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Service\Portal\HourWeekLabel;
 use OCA\Learniq\Service\ReadableCopies;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
@@ -82,6 +83,7 @@ class ReadableCopyStampTest extends TestCase {
 			'cohort' => [['id' => 'cohort-6', 'name' => 'Groep 6']],
 			'portfolio' => [['id' => 'portfolio-1', 'title' => 'Proeve meterkast', 'learnerRef' => 'profile-daan']],
 			'learner-profile' => [['id' => 'profile-daan', 'givenName' => 'Daan', 'familyName' => 'Visser', 'organisationRef' => 'co-jansen']],
+			'bpv-placement' => [['id' => 'placement-daan', 'learnerRef' => 'profile-daan']],
 		];
 
 		$objectService = $this->createMock(ObjectService::class);
@@ -184,6 +186,25 @@ class ReadableCopyStampTest extends TestCase {
 		$this->makeStamp(slug: 'teacher-availability')->handle($unknown);
 		self::assertSame(['teacherName' => null], $unknown->getModifiedData());
 	}//end testAnAvailabilityNamesItsTeacher()
+
+	/**
+	 * A week of BPV hours names its student, from the week or else from its
+	 * placement, and its working days in words, so the workplace trainer reads
+	 * whose week it is (trainer-returns-hours-with-a-question).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/trainer-returns-hours-with-a-question/specs/bpv/spec.md#requirement-the-trainer-reads-whose-week-it-is-and-what-was-done
+	 */
+	public function testAWeekOfHoursNamesItsStudentAndDays(): void {
+		$event = new ObjectCreatingEvent(OrEntityFactory::make(['bpvPlacementId' => 'placement-daan', 'isoWeek' => '2026-W40', 'hoursSubmitted' => 16], 'bpv-hour-week'));
+		$this->makeStamp(slug: 'bpv-hour-week')->handle($event);
+		self::assertSame(['learnerName' => 'Daan Visser', 'weekLabel' => '28 september tot en met 2 oktober'], $event->getModifiedData());
+
+		self::assertSame('5 tot en met 9 oktober', (new HourWeekLabel())->label(isoWeek: '2026-W41'));
+		self::assertSame('28 december tot en met 1 januari', (new HourWeekLabel())->label(isoWeek: '2026-W53'));
+		self::assertNull((new HourWeekLabel())->label(isoWeek: 'week 40'));
+	}//end testAWeekOfHoursNamesItsStudentAndDays()
 
 	/**
 	 * A pointer to nothing stores no name, not the old one or a guess.

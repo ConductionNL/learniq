@@ -48,7 +48,7 @@ class BackfillReadableCopies implements IRepairStep {
 
 	private const REGISTER = 'learniq';
 
-	private const SCHEMAS = ['grade-entry', 'enrolment', 'portfolio-share', 'teacher-availability', 'learner-profile'];
+	private const SCHEMAS = ['grade-entry', 'enrolment', 'portfolio-share', 'teacher-availability', 'learner-profile', 'bpv-hour-week'];
 
 	private const PAGE_SIZE = 200;
 

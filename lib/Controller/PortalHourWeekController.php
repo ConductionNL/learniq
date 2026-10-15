@@ -105,6 +105,32 @@ class PortalHourWeekController extends Controller {
 	#[AnonRateLimit(limit: 600, period: 60)]
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function approve(): JSONResponse {
+		return $this->decide(sendBack: false);
+	}//end approve()
+
+	/**
+	 * Send one week back to the student with the trainer's question.
+	 *
+	 * @return JSONResponse 200 `{hourWeekId, hoursApproved, lifecycle, assuranceLevel}`, or 401 / 403 / 404 / 409 / 422 / 502.
+	 *
+	 * @spec openspec/changes/trainer-returns-hours-with-a-question/specs/bpv/spec.md#requirement-the-trainer-sends-a-week-back-with-a-question
+	 */
+	#[PublicPage]
+	#[NoCSRFRequired]
+	#[AnonRateLimit(limit: 600, period: 60)]
+	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
+	public function sendBack(): JSONResponse {
+		return $this->decide(sendBack: true);
+	}//end sendBack()
+
+	/**
+	 * Verify the assertion, then approve the week or send it back.
+	 *
+	 * @param bool $sendBack True to send the week back.
+	 *
+	 * @return JSONResponse
+	 */
+	private function decide(bool $sendBack): JSONResponse {
 		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifier::HEADER));
 		if ($claims === null) {
 			$response = new JSONResponse(data: ['error' => 'unauthorized'], statusCode: Http::STATUS_UNAUTHORIZED);
@@ -119,23 +145,25 @@ class PortalHourWeekController extends Controller {
 			return new JSONResponse(data: ['error' => 'forbidden'], statusCode: Http::STATUS_FORBIDDEN);
 		}
 
+		$trust = (string)($claims['trust'] ?? '');
 		try {
-			$outcome = $this->approvals->approve(
-				trainerRef: $trainerRef,
-				trust: (string)($claims['trust'] ?? ''),
-				body: $this->body()
-			);
+			$outcome = $this->approvals->approve(...);
+			if ($sendBack === true) {
+				$outcome = $this->approvals->sendBack(...);
+			}
+
+			$outcome = $outcome(trainerRef: $trainerRef, trust: $trust, body: $this->body());
 		} catch (Throwable $exception) {
 			// Never leak internals from a public route (ADR-005).
 			$this->logger->error(
-				'[PortalHourWeekController] A portal hour approval failed: {msg}',
+				'[PortalHourWeekController] A portal hour decision failed: {msg}',
 				['msg' => $exception->getMessage(), 'exception' => $exception]
 			);
 			return new JSONResponse(data: ['error' => 'downstream_error'], statusCode: Http::STATUS_BAD_GATEWAY);
 		}
 
 		return new JSONResponse(data: $outcome->body, statusCode: $outcome->status);
-	}//end approve()
+	}//end decide()
 
 	/**
 	 * The whitelisted fields the form sent.

@@ -33,6 +33,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Service\Portal\HourWeekLabel;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
 
@@ -60,6 +61,8 @@ class ReadableCopies {
 		'learner-profile' => ['groupLabel' => null, 'fullName' => null],
 		// The certificate lists of the employer's and the participant's portal (portal-certificates).
 		'credential'      => ['learnerName' => null, 'courseName' => null, 'organisationRef' => null, 'validUntilLabel' => null, 'renewalLine' => null],
+		// Whose week it is and which days, for the workplace trainer (trainer-returns-hours-with-a-question).
+		'bpv-hour-week'   => ['learnerName' => null, 'weekLabel' => null],
 	];
 
 	/**
@@ -149,6 +152,10 @@ class ReadableCopies {
 			return $copies->derive(credential: $row);
 		}
 
+		if ($slug === 'bpv-hour-week') {
+			return $this->weekCopies(row: $row);
+		}
+
 		if ($slug === 'learner-profile') {
 			return [
 				'groupLabel' => (new LearnerGroupLabel(objectService: $this->objectService, users: $this->users))->derive(profile: $row),
@@ -185,6 +192,37 @@ class ReadableCopies {
 			'organisationRef' => $organisation,
 		];
 	}//end participantCopies()
+
+	/**
+	 * The student's name and the week's days, for a week of BPV hours. The
+	 * student comes from the week, else from its placement: the week's own
+	 * stamp may run after this one.
+	 *
+	 * @param array<string, mixed> $row The week as it will be stored.
+	 *
+	 * @return array{learnerName: string|null, weekLabel: string|null}
+	 *
+	 * @throws \Throwable When OpenRegister cannot be read.
+	 *
+	 * @spec openspec/changes/trainer-returns-hours-with-a-question/specs/bpv/spec.md#requirement-the-trainer-reads-whose-week-it-is-and-what-was-done
+	 */
+	private function weekCopies(array $row): array {
+		$learnerRef = ($row['learnerRef'] ?? null);
+		if (is_string($learnerRef) === false || $learnerRef === '') {
+			$learnerRef = ($this->read(schema: 'bpv-placement', id: $row['bpvPlacementId'] ?? null)['learnerRef'] ?? null);
+		}
+
+		$name = null;
+		$learner = $this->read(schema: 'learner-profile', id: $learnerRef);
+		if ($learner !== null) {
+			$name = $this->personName(profile: $learner);
+		}
+
+		return [
+			'learnerName' => $name,
+			'weekLabel'   => (new HourWeekLabel())->label(isoWeek: $row['isoWeek'] ?? null),
+		];
+	}//end weekCopies()
 
 	/**
 	 * The sessions of a cohort.
