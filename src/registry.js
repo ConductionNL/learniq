@@ -18,11 +18,13 @@
 // these building blocks with their props, since a bare CnWizardDialog or
 // CnDataMatrix mounted as a page receives no steps, rows or save handler.
 // The eight stay registered for registryComponentCoverage.test.mjs.
+// CnSecretAddressCard is the display screen's address dialog.
 import {
 	CnDataMatrix,
 	CnExportWizard,
 	CnRelationshipGraph,
 	CnRichSubmitDialog,
+	CnSecretAddressCard,
 	CnSignatureCapture,
 	CnStructuredDocReview,
 	CnTimelineView,
@@ -96,7 +98,6 @@ import CurriculumCoverageMatrixView from './views/CurriculumCoverageMatrixView.v
 import DashboardAdmin from './views/DashboardAdmin.vue'
 import DashboardStudent from './views/DashboardStudent.vue'
 import DashboardTeacher from './views/DashboardTeacher.vue'
-import DisplayScreenAddressView from './views/DisplayScreenAddressView.vue'
 import ElectiveRosterView from './views/ElectiveRosterView.vue'
 import EnrolmentForecastView from './views/EnrolmentForecastView.vue'
 // assessment-course-evaluation-answer-page: a campaign's figures for staff.
@@ -281,7 +282,8 @@ export default {
 	ContactHoursReport: page(ContactHoursReport),
 	CourseBuilder: page(CourseBuilder),
 	CoursePackageImportView: page(CoursePackageImportView),
-	DisplayScreenAddressView: page(DisplayScreenAddressView),
+	// The display screen's Address header action (timetabling-display-screens).
+	DisplayScreenAddress: { kind: 'modal', component: CnSecretAddressCard, propsSchema: null },
 	ElectiveRosterView: page(ElectiveRosterView),
 	EnrolmentForecastView: page(EnrolmentForecastView),
 	EvaluationCampaignResultsView: page(EvaluationCampaignResultsView),

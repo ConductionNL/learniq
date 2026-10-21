@@ -3604,9 +3604,26 @@
 					{
 						"id": "screen-address",
 						"label": "Address",
-						"type": "navigate",
+						"type": "open-modal",
 						"icon": "LinkVariant",
-						"target": "/display-screens/@objectId/address"
+						"target": "DisplayScreenAddress",
+						"props": {
+							"dialog": true,
+							"title": "Screen address",
+							"objectId": "@objectId",
+							"createUrl": "/apps/learniq/api/display-screens/{objectId}/token",
+							"revokeUrl": "/apps/learniq/api/display-screens/{objectId}/revoke",
+							"revokeMethod": "POST",
+							"addressPath": "address",
+							"texts": {
+								"intro": "Open this address in the browser of the screen. It needs no account and shows today's lessons and changes without names of learners.",
+								"shownOnce": "This address is shown once. Copy it into the screen's browser now.",
+								"revoked": "The address was revoked. The screen shows nothing until you create a new address.",
+								"createLabel": "Create address",
+								"resetLabel": "Create address",
+								"revokeLabel": "Revoke address"
+							}
+						}
 					}
 				],
 				"widgets": [
@@ -3663,15 +3680,7 @@
 					]
 				}
 			},
-			"_note": "timetabling-display-screens: the Address action opens DisplayScreenAddress, which creates, renews or revokes the screen's secret address and shows a new address once."
-		},
-		{
-			"id": "DisplayScreenAddress",
-			"route": "/display-screens/:id/address",
-			"type": "custom",
-			"title": "Screen address",
-			"component": "DisplayScreenAddressView",
-			"_note": "timetabling-display-screens: POST /api/display-screens/{id}/token answers the address once; POST .../revoke stops it at once."
+			"_note": "timetabling-display-screens: the Address action opens the screen's secret address (CnSecretAddressCard): POST /api/display-screens/{id}/token answers a new address once, POST .../revoke stops it at once."
 		},
 		{
 			"id": "ElectiveOffers",

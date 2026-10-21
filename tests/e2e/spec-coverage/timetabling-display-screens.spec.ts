@@ -29,11 +29,13 @@ test.describe('timetabling-display-screens: hall screen', () => {
 		const screen = await created.json()
 		const id = screen.id || screen['@self']?.id
 
-		await page.goto(`/index.php/apps/learniq/display-screens/${id}/address`)
-		await page.getByRole('button', { name: 'Create address' }).click()
-		const address = page.getByTestId('screen-address')
+		await page.goto(`/index.php/apps/learniq/display-screens/${id}`)
+		await page.getByRole('button', { name: 'Actions' }).first().click({ timeout: 60_000 })
+		await page.getByRole('menuitem', { name: 'Address' }).click()
+		await page.getByTestId('cn-secret-address-create').click()
+		const address = page.getByLabel('Address', { exact: true })
 		await expect(address).toBeVisible({ timeout: 15_000 })
-		const url = (await address.locator('code').innerText()).trim()
+		const url = (await address.inputValue()).trim()
 
 		const anonymous = await browser.newContext()
 		const screenPage = await anonymous.newPage()
