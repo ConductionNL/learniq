@@ -61,6 +61,11 @@ return [
         ['name' => 'keyAdmin#keyStatus',   'url' => '/api/credentials/admin/key-status',   'verb' => 'GET'],
         ['name' => 'keyAdmin#signingKeyStatus', 'url' => '/api/settings/signing-key',        'verb' => 'GET'],
         ['name' => 'keyAdmin#rotateSigningKey', 'url' => '/api/settings/signing-key/rotate', 'verb' => 'POST'],
+        // The AVG Art. 30 activities the register declares, for the admin page.
+        ['name' => 'processingActivity#index', 'url' => '/api/admin/processing-activities', 'verb' => 'GET'],
+        // The Compliance record (processing agreement, privacy notice) as admin settings.
+        ['name' => 'complianceSettings#show',   'url' => '/api/admin/compliance', 'verb' => 'GET'],
+        ['name' => 'complianceSettings#update', 'url' => '/api/admin/compliance', 'verb' => 'PUT'],
 
         // cmi5 + xAPI (cmi5-xapi-lrs-ingest, ADR-002). The launch key is admin-only;
         // a launch is for the signed-in learner; the fetch URL and the statement POST
@@ -241,6 +246,7 @@ return [
         ['name' => 'timetableVisibility#timetable', 'url' => '/api/timetable/of', 'verb' => 'GET'],
         ['name' => 'timetableVisibility#options', 'url' => '/api/timetable/of/options', 'verb' => 'GET'],
         ['name' => 'timetableVisibility#policy', 'url' => '/api/timetable/visibility-policy', 'verb' => 'GET'],
+        ['name' => 'timetableVisibility#savePolicy', 'url' => '/api/timetable/visibility-policy', 'verb' => 'PUT'],
         // Standby hours (timetabling-standby-slots): who can cover a lesson,
         // standby first, and the caller's own standby blocks. Checks in the body.
         ['name' => 'standby#candidates', 'url' => '/api/substitution/candidates', 'verb' => 'GET'],

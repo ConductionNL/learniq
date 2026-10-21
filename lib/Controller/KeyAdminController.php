@@ -40,6 +40,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IAppConfig;
 use OCP\IConfig;
+use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
 use OCP\Log\Audit\CriticalActionPerformedEvent;
@@ -77,6 +78,7 @@ class KeyAdminController extends Controller {
 	 * @param IUserSession $userSession User session for caller identity.
 	 * @param CallerTenantResolver $tenants Resolves the caller's tenant: the per-user binding, else the default tenant.
 	 * @param IEventDispatcher $dispatcher Dispatches the admin audit event of a rotation.
+	 * @param IL10N $l10n Translates what the admin page shows.
 	 *
 	 * @return void
 	 */
@@ -88,6 +90,7 @@ class KeyAdminController extends Controller {
 		private readonly IUserSession $userSession,
 		private readonly CallerTenantResolver $tenants,
 		private readonly IEventDispatcher $dispatcher,
+		private readonly IL10N $l10n,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -231,7 +234,7 @@ class KeyAdminController extends Controller {
 	 * for verification, is throttled to one per 24 hours, and is written to the
 	 * admin audit log.
 	 *
-	 * @return JSONResponse {fingerprint, rotated} with 201; {error} with 400, 429 or 500.
+	 * @return JSONResponse {fingerprint, rotated, message} with 201; {error, message} with 400, 429 or 500.
 	 *
 	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-allow-the-credential-signing-key-to-be-rotated-from-settings
 	 */
@@ -242,14 +245,20 @@ class KeyAdminController extends Controller {
 
 		if ($rotated === true) {
 			if ($this->request->getParam('confirm', '') !== 'true') {
-				$response = new JSONResponse(['error' => 'Key rotation requires confirm=true.'], 400);
+				$response = new JSONResponse(
+					['error' => 'Key rotation requires confirm=true.', 'message' => $this->l10n->t('The signing key was not changed.')],
+					400
+				);
 				$response->cacheFor(0);
 				return $response;
 			}
 
 			$throttleError = $this->checkRotationThrottle(tenantId: $tenantId);
 			if ($throttleError !== null) {
-				$response = new JSONResponse(['error' => $throttleError], 429);
+				$response = new JSONResponse(
+					['error' => $throttleError, 'message' => $this->l10n->t('The signing key was rotated less than a day ago. Try again tomorrow.')],
+					429
+				);
 				$response->cacheFor(0);
 				return $response;
 			}
@@ -258,7 +267,7 @@ class KeyAdminController extends Controller {
 		try {
 			$result = $this->keyManagementService->generateTenantKeypair(tenantId: $tenantId);
 		} catch (RuntimeException $e) {
-			$response = new JSONResponse(['error' => $e->getMessage()], 500);
+			$response = new JSONResponse(['error' => $e->getMessage(), 'message' => $this->l10n->t('The signing key was not changed.')], 500);
 			$response->cacheFor(0);
 			return $response;
 		}
@@ -287,7 +296,12 @@ class KeyAdminController extends Controller {
 			)
 		);
 
-		$response = new JSONResponse(['fingerprint' => $result['fingerprint'], 'rotated' => $rotated], 201);
+		$message = $this->l10n->t('A signing key was generated.');
+		if ($rotated === true) {
+			$message = $this->l10n->t('The signing key was rotated. Credentials issued before stay verifiable.');
+		}
+
+		$response = new JSONResponse(['fingerprint' => $result['fingerprint'], 'rotated' => $rotated, 'message' => $message], 201);
 		$response->cacheFor(0);
 		return $response;
 	}//end rotateSigningKey()

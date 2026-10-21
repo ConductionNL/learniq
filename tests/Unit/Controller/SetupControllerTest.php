@@ -203,6 +203,7 @@ class SetupControllerTest extends TestCase {
 		self::assertTrue($data['completed']);
 		self::assertSame(['none', 'po', 'demo'], array_column($data['profiles'], 'id'));
 		self::assertSame(['po'], array_column($data['segments'], 'id'));
+		self::assertArrayHasKey('segment', $data, 'The admin page reads the segment in force here.');
 		self::assertSame(
 			['welcome', 'example-set', 'segment', 'remove-example-set', 'done', 'remove-example-set-po', 'remove-example-set-demo'],
 			array_keys($data['steps'])

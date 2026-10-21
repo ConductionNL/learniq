@@ -34,6 +34,7 @@ use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IAppConfig;
 use OCP\IConfig;
+use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -231,7 +232,7 @@ class KeyAdminControllerTest extends TestCase {
 		$response = $this->controller(params: ['confirm' => 'true'])->rotateSigningKey();
 
 		self::assertSame(Http::STATUS_TOO_MANY_REQUESTS, $response->getStatus());
-		self::assertArrayHasKey('error', (array)$response->getData());
+		self::assertSame('The signing key was rotated less than a day ago. Try again tomorrow.', ((array)$response->getData())['message']);
 		self::assertSame($before, $this->appValues);
 		self::assertSame([], $this->events);
 	}//end testSigningKeyRotationWithinTheThrottleWindowIsRefused()
@@ -326,6 +327,9 @@ class KeyAdminControllerTest extends TestCase {
 		$userSession = $this->createMock(IUserSession::class);
 		$userSession->method('getUser')->willReturn($user);
 
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnArgument(0);
+
 		$tenants = $this->createMock(CallerTenantResolver::class);
 		$tenants->method('resolve')->willReturn(self::TENANT);
 
@@ -344,6 +348,7 @@ class KeyAdminControllerTest extends TestCase {
 			userSession: $userSession,
 			tenants: $tenants,
 			dispatcher: $dispatcher,
+			l10n: $l10n,
 		);
 	}//end controller()
 }//end class

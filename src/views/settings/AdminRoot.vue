@@ -1,91 +1,124 @@
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- Copyright (C) 2026 Conduction B.V. -->
 <template>
-	<div class="learniq-admin">
-		<CnVersionInfoCard
-			appName="Learniq"
-			:appVersion="appVersion"
-			:isUpToDate="true"
-			:showUpdateButton="true"
-			:title="t('learniq', 'Version Information')"
-			:description="
-				t('learniq', 'Information about the current Learniq installation')
-			">
-			<template #footer>
-				<div class="cn-support-info">
-					<h4>{{ t('learniq', 'Support') }}</h4>
-					<p>
-						{{ t('learniq', 'For support, contact us at') }}
-						<a href="mailto:support@conduction.nl"
-							>support@conduction.nl</a
-						>
-					</p>
-				</div>
+	<CnAdminSettingsShell
+		appId="learniq"
+		appName="Learniq"
+		:tabs="tabs">
+		<template v-for="tab in tabs" :key="tab.id" #[`tab-${tab.id}`]>
+			<template v-for="section in sectionsOf(tab.id)" :key="section.id">
+				<CnSettingsFieldsSection
+					v-if="section.type === 'fields'"
+					:id="section.id"
+					appId="learniq"
+					v-bind="translatedProps(section.props)" />
+				<CnSettingsSection
+					v-else-if="section.type === 'shipped' || section.type === 'record-list'"
+					:id="section.id"
+					:name="t('learniq', section.name)"
+					:description="t('learniq', section.description || '')">
+					<CnShippedConfigurationSection
+						v-if="section.type === 'shipped'"
+						v-bind="section.props" />
+					<template v-else>
+						<CnRecordListWidget :content="section.content" />
+						<NcButton
+							v-if="section.content.headerLink"
+							variant="secondary"
+							:href="linkTo(section.content.headerLink.href)">
+							{{ t('learniq', section.content.headerLink.label) }}
+						</NcButton>
+					</template>
+				</CnSettingsSection>
+				<CnActionAuthMatrix
+					v-else-if="section.type === 'action-matrix'"
+					:id="section.id"
+					v-bind="section.props" />
+				<AiTranslationReviewSection
+					v-else-if="section.type === 'ai-translation-review'"
+					:id="section.id" />
 			</template>
-		</CnVersionInfoCard>
-
-		<MenuStructureSection />
-		<LearniqSettings v-if="storesReady" />
-		<ExampleDataSettingsSection />
-		<DataExchangeSettingsSection />
-		<TimetableExchangeSettingsSection />
-		<LtiSettingsSection />
-		<StoreRegistrySettingsSection />
-		<AiTranslationReviewSection />
-		<ActionAuthMatrix />
-	</div>
+		</template>
+	</CnAdminSettingsShell>
 </template>
 
 <script>
-import { CnVersionInfoCard } from '@conduction/nextcloud-vue'
-import { loadState } from '@nextcloud/initial-state'
-import ActionAuthMatrix from '../../components/admin/ActionAuthMatrix.vue'
-import LearniqSettings from '../LearniqSettings.vue'
+import {
+	CnActionAuthMatrix,
+	CnAdminSettingsShell,
+	CnRecordListWidget,
+	CnSettingsFieldsSection,
+	CnSettingsSection,
+	CnShippedConfigurationSection,
+} from '@conduction/nextcloud-vue'
+import { generateUrl } from '@nextcloud/router'
+import { NcButton } from '@nextcloud/vue'
 import AiTranslationReviewSection from './AiTranslationReviewSection.vue'
-import DataExchangeSettingsSection from './DataExchangeSettingsSection.vue'
-import ExampleDataSettingsSection from './ExampleDataSettingsSection.vue'
-import LtiSettingsSection from './LtiSettingsSection.vue'
-import MenuStructureSection from './MenuStructureSection.vue'
-import StoreRegistrySettingsSection from './StoreRegistrySettingsSection.vue'
-import TimetableExchangeSettingsSection from './TimetableExchangeSettingsSection.vue'
-import { initializeStores } from '../../store/store.js'
+import { ADMIN_SECTIONS, ADMIN_TABS } from '../../adminSettings.js'
 
+/**
+ * The learniq admin page: CnAdminSettingsShell with the tabs and sections
+ * declared in src/adminSettings.js. The shell reads the version and the real
+ * up-to-date state from the initial state AppHost's admin settings provide.
+ *
+ * @spec openspec/changes/archive/retrofit-2026-05-25-app-shell-settings/tasks.md#task-4
+ */
 export default {
 	name: 'AdminRoot',
+
 	components: {
-		CnVersionInfoCard,
-		LearniqSettings,
-		DataExchangeSettingsSection,
-		ExampleDataSettingsSection,
-		StoreRegistrySettingsSection,
-		TimetableExchangeSettingsSection,
-		LtiSettingsSection,
-		MenuStructureSection,
 		AiTranslationReviewSection,
-		ActionAuthMatrix,
+		CnActionAuthMatrix,
+		CnAdminSettingsShell,
+		CnRecordListWidget,
+		CnSettingsFieldsSection,
+		CnSettingsSection,
+		CnShippedConfigurationSection,
+		NcButton,
 	},
 
-	data() {
-		return {
-			storesReady: false,
-			appVersion: loadState('learniq', 'version', 'Unknown'),
-		}
+	computed: {
+		/** @return {Array<{id: string, label: string}>} The tabs, translated. */
+		tabs() {
+			return ADMIN_TABS.map((tab) => ({ ...tab, label: this.t('learniq', tab.label) }))
+		},
 	},
 
-	/**
-	 * Initialise the Pinia stores at boot before rendering settings.
-	 *
-	 * @return {Promise<void>}
-	 * @spec openspec/changes/retrofit-2026-05-25-app-shell-settings/tasks.md#task-4
-	 */
-	async created() {
-		await initializeStores()
-		this.storesReady = true
+	methods: {
+		/**
+		 * The sections of one tab.
+		 *
+		 * @param {string} tabId The tab.
+		 * @return {Array<object>}
+		 */
+		sectionsOf(tabId) {
+			return ADMIN_SECTIONS[tabId] || []
+		},
+
+		/**
+		 * A section's props with its title and line translated; the fields
+		 * are translated by the section itself.
+		 *
+		 * @param {object} props The declared props.
+		 * @return {object}
+		 */
+		translatedProps(props) {
+			return {
+				...props,
+				name: this.t('learniq', props.name),
+				description: props.description ? this.t('learniq', props.description) : '',
+			}
+		},
+
+		/**
+		 * An app path as a link.
+		 *
+		 * @param {string} path The app path.
+		 * @return {string}
+		 */
+		linkTo(path) {
+			return generateUrl(path)
+		},
 	},
 }
 </script>
-
-<style scoped>
-.learniq-admin {
-	max-width: 900px;
-}
-</style>

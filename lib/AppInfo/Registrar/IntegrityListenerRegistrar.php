@@ -39,6 +39,7 @@ use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Listener\AssignmentLearnerRefsStamp;
 use OCA\Learniq\Listener\CohortNameCascade;
 use OCA\Learniq\Listener\HourWeekSubmissionStamp;
+use OCA\Learniq\Listener\ComplianceReviewStamp;
 use OCA\Learniq\Listener\WerkprocesAssessmentLearnerStamp;
 use OCA\Learniq\Listener\HourWeekTotalRollup;
 use OCA\Learniq\Listener\LearnerGroupLabelCascade;
@@ -293,6 +294,16 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatedEvent::class,
 			listener: EmployerBookingCascade::class
+		);
+		// Who reviewed the Compliance record last and when, and when the
+		// processing agreement was signed: written here, never by the page.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: ComplianceReviewStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: ComplianceReviewStamp::class
 		);
 		// Who entered a week of hours, when, for which student and for which
 		// school, all from the placement the week names: the pupil's form may

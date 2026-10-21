@@ -119,7 +119,7 @@ test.describe('Integrations over the connection registry', () => {
 
 		expect(dataExchange?.status).not.toBe('unavailable')
 		expect(dataExchange?.settingsUrl).toBe(
-			'/settings/admin/learniq#section-data-exchange',
+			'/settings/admin/learniq?tab=data-exchange#section-data-exchange',
 		)
 	})
 
@@ -138,7 +138,7 @@ test.describe('Integrations over the connection registry', () => {
 		expect(lti?.status).toBe(report?.status)
 		// Integriq ships the launch event wherever this suite runs (CI installs it).
 		expect(lti?.status).toBe('configured')
-		expect(lti?.settingsUrl).toBe('/settings/admin/learniq#section-lti')
+		expect(lti?.settingsUrl).toBe('/settings/admin/learniq?tab=lti#section-lti')
 	})
 
 	test('sends Add integration to integriq instead of offering a form', async ({

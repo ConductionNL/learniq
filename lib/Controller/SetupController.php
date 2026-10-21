@@ -178,6 +178,8 @@ class SetupController extends Controller {
 				// missing from these lists is one nobody can pick.
 				'profiles'  => $profiles,
 				'segments'  => $this->segments->listChoices(),
+				// The segment in force, which the admin page's segment choice shows.
+				'segment'   => $this->segments->currentSegment(),
 				// Every id of `manifest.setup.steps`, plus one removal step per
 				// loaded set. The cards load themselves (`loadAction`,
 				// wizard-dataset-card-load), so there is no load step.

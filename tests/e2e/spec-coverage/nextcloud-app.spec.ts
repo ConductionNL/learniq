@@ -42,7 +42,8 @@ import { expect, test } from '../fixtures.ts'
 //     The section id is `learniq`: OpenRegister's AppHost `Bootstrap::register`
 //     defaults `sectionId` to the app id, and lib/AppInfo/Application.php passes
 //     only `namespace`, `sectionName` and `mcpProvider` — no `sectionId` override.
-const SETTINGS_URL = '/index.php/settings/admin/learniq'
+// The admin page is tabbed; the register, AI features and signing key are on the App settings tab.
+const SETTINGS_URL = '/index.php/settings/admin/learniq?tab=app'
 const API_SETTINGS = '/index.php/apps/learniq/api/settings'
 const APP_URL = '/index.php/apps/learniq/'
 const PREFS_API = '/index.php/apps/openregister/api/notification-preferences'
@@ -130,7 +131,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 
 		// AI Features section must also be present (loaded in parallel)
 		await expect(
-			page.locator('h2').filter({ hasText: /AI Features/i }),
+			page.locator('h2').filter({ hasText: /AI features/i }),
 		).toBeVisible()
 
 		// This used to assert a `<th>Feature</th>`, i.e. that Learniq rendered its
@@ -146,7 +147,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		// legitimate and depend only on whether Hermiq is installed on the
 		// instance, so accept either — but require one of them, so a section that
 		// rendered empty still fails.
-		const hermiqLink = page.getByRole('button', {
+		const hermiqLink = page.getByRole('link', {
 			name: /Open the AI-feature register in Hermiq/i,
 		})
 		const hermiqMissingNotice = page.getByText(
@@ -169,7 +170,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		const settingsPostPromise = page
 			.waitForRequest(
 				(req) =>
-					req.url().includes('/api/settings') && req.method() === 'POST',
+					req.url().includes('/api/settings') && req.method() === 'PUT',
 				{ timeout: 10_000 },
 			)
 			.catch(() => null)
@@ -205,7 +206,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		}
 
 		// Verify the page still renders correctly after the interaction
-		await expect(page.locator('text=Credential Signing')).toBeVisible()
+		await expect(page.locator('text=Credential signing')).toBeVisible()
 	})
 
 	// @e2e openspec/specs/nextcloud-app/spec.md#admin-rotates-the-signing-key
@@ -214,7 +215,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 	}) => {
 		await page.goto(SETTINGS_URL)
 		await page.waitForLoadState('domcontentloaded')
-		await expect(page.locator('text=Credential Signing')).toBeVisible({
+		await expect(page.locator('text=Credential signing')).toBeVisible({
 			timeout: 15_000,
 		})
 
@@ -237,12 +238,14 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		const rotationRequest = page
 			.waitForRequest(
 				(req) =>
-					req.url().includes('/api/settings') && req.method() === 'POST',
+					req.url().includes('/api/settings/signing-key/rotate') && req.method() === 'POST',
 				{ timeout: 8_000 },
 			)
 			.catch(() => null)
 
 		await rotateBtn.click()
+		// The page asks before it replaces a key.
+		await page.getByRole('dialog').getByRole('button', { name: /^Rotate$/ }).click()
 		await rotationRequest
 
 		// Wait briefly for any response/notification
@@ -273,7 +276,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		expect(
 			feedbackFound
 				|| btnStillVisible
-				|| pageContent.includes('Credential Signing'),
+				|| pageContent.includes('Credential signing'),
 			'Expected page to remain functional after rotate action',
 		).toBe(true)
 	})
