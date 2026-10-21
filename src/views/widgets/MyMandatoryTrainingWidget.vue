@@ -28,7 +28,7 @@
 				<div class="my-training-widget__item-info">
 					<span class="my-training-widget__item-name">
 						{{
-							enrolment.courseTitle
+							enrolment.courseName
 							|| enrolment.courseId
 							|| t('learniq', 'Course')
 						}}
@@ -78,6 +78,7 @@
 </template>
 
 <script>
+import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcLoadingIcon } from '@nextcloud/vue'
@@ -110,8 +111,14 @@ export default {
 		async fetchEnrolments() {
 			this.loading = true
 			try {
+				const user = getCurrentUser()
+				if (!user) {
+					this.enrolments = []
+					return
+				}
 				const params = new URLSearchParams({
 					_limit: '20',
+					learnerId: user.uid,
 					mandatory: 'true',
 					lifecycle__in: 'pending,active',
 					_order: 'dueDate',
