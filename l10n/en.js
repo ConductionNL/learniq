@@ -3752,7 +3752,14 @@ OC.L10N.register(
         "Level %s": "Level %s",
         "Learning path": "Learning path",
         "or": "or",
-        "Training course": "Training course"
+        "Training course": "Training course",
+        "Dissolve": "Dissolve",
+        "Run the rollover from {from} to {to}? It creates the new groups and moves the enrolments. You cannot undo it.": "Run the rollover from {from} to {to}? It creates the new groups and moves the enrolments. You cannot undo it.",
+        "The rollover runs now. You get a notification when it is done.": "The rollover runs now. You get a notification when it is done.",
+        "The rollover did not start.": "The rollover did not start.",
+        "The mapping could not be proposed.": "The mapping could not be proposed.",
+        "The preview could not be made.": "The preview could not be made.",
+        "The plan could not be saved.": "The plan could not be saved."
     },
     "nplurals=2; plural=(n != 1);"
 )

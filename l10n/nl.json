@@ -4259,7 +4259,14 @@
         "Level %s": "Niveau %s",
         "Learning path": "Leerweg",
         "or": "of",
-        "Training course": "Cursus"
+        "Training course": "Cursus",
+        "Dissolve": "Opheffen",
+        "Run the rollover from {from} to {to}? It creates the new groups and moves the enrolments. You cannot undo it.": "De jaarovergang van {from} naar {to} uitvoeren? Dit maakt de nieuwe groepen en zet de inschrijvingen over. Je kunt dit niet ongedaan maken.",
+        "The rollover runs now. You get a notification when it is done.": "De jaarovergang loopt nu. Je krijgt een melding als hij klaar is.",
+        "The rollover did not start.": "De jaarovergang is niet gestart.",
+        "The mapping could not be proposed.": "Er kon geen indeling worden voorgesteld.",
+        "The preview could not be made.": "Het voorbeeld kon niet worden gemaakt.",
+        "The plan could not be saved.": "Het plan kon niet worden opgeslagen."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

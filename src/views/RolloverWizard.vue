@@ -2,13 +2,13 @@
 <!-- Copyright (C) 2026 Conduction B.V. -->
 
 <!--
- RolloverWizard — the jaarovergang mapping editor (school-year-rollover).
+ RolloverWizard: the school-year rollover mapping editor (school-year-rollover).
 
  A custom view (the "custom view only where a manifest page can't render it"
- exception): proposes a default per-cohort mapping by leerjaar increment, lets
+ exception): proposes a default per-cohort mapping by year increment, lets
  the admin adjust per cohort, runs the side-effect-free preview (the mandatory
- dry-run gate), and — once previewed and not blocked — triggers execution by
- transitioning the RolloverPlan to `executing` (the RolloverExecutionHandler
+ dry-run gate), and, once previewed and not blocked, asks and then starts
+ execution with the plan's `execute` transition (the RolloverExecutionHandler
  then runs the chunked, idempotent rollover server-side).
 
  Storage/lifecycle/audit/notifications are OpenRegister's; this view only edits
@@ -44,6 +44,14 @@
 			</NcButton>
 		</div>
 
+		<NcNoteCard
+			v-if="result"
+			:type="result.status === 'failed' ? 'error' : 'success'"
+			:role="result.status === 'failed' ? 'alert' : 'status'"
+			data-testid="rollover-result">
+			{{ result.message }}
+		</NcNoteCard>
+
 		<NcLoadingIcon v-if="loading" :size="32" />
 
 		<table v-else-if="mappings.length > 0" class="rollover-wizard__table">
@@ -59,13 +67,14 @@
 					v-for="(m, i) in mappings"
 					:key="m.fromCohortId || i"
 					:class="{ 'rollover-wizard__row--blocked': !m.action }">
-					<td>{{ m.fromCohortId }}</td>
+					<td>{{ cohortName(m.fromCohortId) }}</td>
 					<td>
 						<NcSelect
-							v-model="m.action"
+							:modelValue="actionOption(m.action)"
 							:options="actionOptions"
 							:inputLabel="t('learniq', 'Action')"
-							:aria-label-combobox="t('learniq', 'Action')" />
+							label="label"
+							@update:modelValue="m.action = $event ? $event.id : null" />
 					</td>
 					<td>
 						<input
@@ -73,7 +82,7 @@
 							type="text"
 							:aria-label="
 								t('learniq', 'New cohort name for {from}', {
-									from: m.fromCohortId,
+									from: cohortName(m.fromCohortId),
 								})
 							"
 							:placeholder="t('learniq', 'New cohort name')" />
@@ -128,8 +137,20 @@
 
 <script>
 import axios from '@nextcloud/axios'
+import { showConfirmation } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
-import { NcButton, NcEmptyContent, NcLoadingIcon, NcSelect } from '@nextcloud/vue'
+import {
+	NcButton,
+	NcEmptyContent,
+	NcLoadingIcon,
+	NcNoteCard,
+	NcSelect,
+} from '@nextcloud/vue'
+import {
+	actionOptions,
+	executeRollover,
+	refusal,
+} from '../utils/rolloverWizard.js'
 
 export default {
 	name: 'RolloverWizard',
@@ -138,6 +159,7 @@ export default {
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
+		NcNoteCard,
 		NcSelect,
 	},
 
@@ -149,11 +171,22 @@ export default {
 			planId: '',
 			report: null,
 			loading: false,
-			actionOptions: ['promote', 'graduate', 'dissolve'],
+			cohortNames: {},
+			result: null,
 		}
 	},
 
 	computed: {
+		/**
+		 * The cohort actions in words.
+		 *
+		 * @return {Array<{id: string, label: string}>}
+		 * @spec openspec/specs/school-year-rollover/spec.md#requirement-execution-must-promote-by-creating-new-cohorts-and-archiving-old-ones
+		 */
+		actionOptions() {
+			return actionOptions((text) => this.t('learniq', text))
+		},
+
 		/**
 		 * Execution is only allowed once a non-blocked preview exists.
 		 *
@@ -171,7 +204,27 @@ export default {
 
 	methods: {
 		/**
-		 * Fetch the default leerjaar-increment mapping for the from-year.
+		 * A cohort's name, or its id when the proposal did not name it.
+		 *
+		 * @param {string} cohortId The cohort.
+		 * @return {string}
+		 */
+		cohortName(cohortId) {
+			return this.cohortNames[cohortId] || cohortId
+		},
+
+		/**
+		 * The option a stored action selects.
+		 *
+		 * @param {string|null} action The stored action.
+		 * @return {object|null}
+		 */
+		actionOption(action) {
+			return this.actionOptions.find((option) => option.id === action) || null
+		},
+
+		/**
+		 * Fetch the default year-increment mapping for the from-year.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/school-year-rollover/spec.md#requirement-the-wizard-must-be-declarative-with-a-single-custom-view-exception-and-completion-must-notify-via-the-verified-dialect
@@ -183,12 +236,20 @@ export default {
 					'/apps/learniq/api/rollover/propose?fromAcademicYear={year}',
 					{ year: this.fromAcademicYear },
 				)
+				this.result = null
 				const response = await axios.get(url)
 				this.mappings = (response.data && response.data.mappings) || []
+				this.cohortNames = (response.data && response.data.cohortNames) || {}
 				this.report = null
 			} catch (e) {
-				console.error('[RolloverWizard] propose failed', e)
 				this.mappings = []
+				this.result = {
+					status: 'failed',
+					message: refusal(
+						e,
+						this.t('learniq', 'The mapping could not be proposed.'),
+					),
+				}
 			} finally {
 				this.loading = false
 			}
@@ -202,6 +263,7 @@ export default {
 		 */
 		async preview() {
 			this.loading = true
+			this.result = null
 			try {
 				this.planId = await this.savePlan()
 				if (this.planId === '') {
@@ -214,16 +276,21 @@ export default {
 				const response = await axios.post(url, {})
 				this.report = (response.data && response.data.report) || null
 			} catch (e) {
-				console.error('[RolloverWizard] preview failed', e)
+				this.result = {
+					status: 'failed',
+					message: refusal(
+						e,
+						this.t('learniq', 'The preview could not be made.'),
+					),
+				}
 			} finally {
 				this.loading = false
 			}
 		},
 
 		/**
-		 * Trigger execution by transitioning the previewed plan to `executing`
-		 * via the OpenRegister object API. The server-side handler runs the
-		 * idempotent rollover.
+		 * Ask, then start execution with the plan's `execute` transition. The
+		 * server-side handler runs the idempotent rollover.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/school-year-rollover/spec.md#requirement-execution-must-promote-by-creating-new-cohorts-and-archiving-old-ones
@@ -234,15 +301,27 @@ export default {
 			}
 			this.loading = true
 			try {
-				// OR lifecycle transition draft→… is driven by writing the lifecycle
-				// field through OR's object API; the RolloverExecutionHandler reacts.
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/rollover-plan/{id}',
-					{ id: this.planId },
+				const outcome = await executeRollover(
+					{
+						id: this.planId,
+						fromAcademicYear: this.fromAcademicYear,
+						toAcademicYear: this.toAcademicYear,
+					},
+					{
+						confirm: (question) =>
+							showConfirmation({
+								name: this.t('learniq', 'Execute rollover'),
+								text: question,
+								labelConfirm: this.t('learniq', 'Execute rollover'),
+								labelReject: this.t('learniq', 'Cancel'),
+							}),
+						post: (url, body) => axios.post(generateUrl(url), body),
+						t: (text, vars) => this.t('learniq', text, vars),
+					},
 				)
-				await axios.patch(url, { lifecycle: 'executing' })
-			} catch (e) {
-				console.error('[RolloverWizard] execute failed', e)
+				if (outcome.status !== 'cancelled') {
+					this.result = outcome
+				}
 			} finally {
 				this.loading = false
 			}
@@ -275,7 +354,13 @@ export default {
 				const r = await axios.post(url, body)
 				return (r.data && (r.data.id || r.data.uuid)) || ''
 			} catch (e) {
-				console.error('[RolloverWizard] savePlan failed', e)
+				this.result = {
+					status: 'failed',
+					message: refusal(
+						e,
+						this.t('learniq', 'The plan could not be saved.'),
+					),
+				}
 				return ''
 			}
 		},
