@@ -1950,18 +1950,18 @@
 									"schema": "dossier-note",
 									"metric": "count",
 									"filter": {
-										"learnerId": "@objectId"
+										"learnerId": "@object.ncUserId"
 									},
 									"route": {
 										"name": "PupilDossierTimelineView",
 										"query": {
-											"learnerId": "@objectId"
+											"learnerId": "@object.ncUserId"
 										}
 									}
 								}
 							]
 						},
-						"_note": "pupil-dossier-notes: this KPI's route is the only token-resolved (@objectId) deep link from a detail page to another named route this manifest dialect supports (stats-block entry.route, resolved by CnStatsBlockWidget) — clicking it opens PupilDossierTimelineView pre-scoped to this learner. open-page/navigate header actions were considered but do NOT carry the current object id (verified against actionsDispatcher.js at HEAD)."
+						"_note": "The timeline sources store the learner's Nextcloud user id in learnerId, so the count and the deep link pass the profile's ncUserId, not its uuid."
 					},
 					{
 						"id": "lprof-enrol",
