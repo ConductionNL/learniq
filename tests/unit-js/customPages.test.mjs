@@ -208,44 +208,27 @@ test('timeline, plan graph and goal helpers', () => {
 	assert.deepEqual(moveItem(['a', 'b'], 0, -1), ['a', 'b'])
 })
 
-test('signature records fit their append-only schemas', async () => {
-	const { signatureBody, defaultSignerRole, SIGNABLE_SUBJECTS } =
-		await import('../../src/utils/customPages.js')
-	assert.deepEqual(
-		SIGNABLE_SUBJECTS['learning-plan'].roles,
-		schemas.Signature.properties.signerRole.enum,
+// @spec openspec/specs/learning-plan/spec.md#requirement-a-signature-is-recorded-by-the-server-in-a-role-the-signer-holds
+test('the signing page offers only schema roles and signs through the server endpoint', async () => {
+	const { signUrl, SIGNABLE_SUBJECTS } = await import(
+		'../../src/utils/customPages.js'
 	)
+	for (const role of SIGNABLE_SUBJECTS['learning-plan'].roles) {
+		assert.ok(schemas.Signature.properties.signerRole.enum.includes(role))
+	}
 	for (const role of SIGNABLE_SUBJECTS.praktijkovereenkomst.roles) {
 		assert.ok(schemas.PokSignature.properties.signerRole.enum.includes(role))
 	}
-	const plan = {
-		id: 'p',
-		version: 3,
-		learnerId: 'lea',
-		coordinatorId: 'co',
-		tenant_id: 't',
-	}
-	assert.equal(defaultSignerRole('learning-plan', plan, 'co'), 'coordinator')
-	const body = signatureBody({
-		kind: 'learning-plan',
-		subject: plan,
-		signerId: 'co',
-		signerRole: 'coordinator',
-		capture: { mode: 'typed', value: 'C. Oordinator' },
-		signedAt: '2026-09-27T10:00:00Z',
-	})
-	assertFitsSchema(body, 'Signature')
-	assert.equal(body.subjectVersion, 3)
-	const pok = signatureBody({
-		kind: 'praktijkovereenkomst',
-		subject: { id: 'k', version: 1 },
-		signerId: 'lea',
-		signerRole: 'student',
-		capture: { mode: 'drawn', value: 'data:image/png;base64,AA' },
-		signedAt: '2026-09-27T10:00:00Z',
-	})
-	assertFitsSchema(pok, 'PokSignature')
-	assert.equal(pok.evidenceRef, 'drawn:data:image/png;base64,AA')
+	assert.equal(
+		signUrl('learning-plan', 'p 1'),
+		'/apps/learniq/api/sign/learning-plan/p%201',
+	)
+	assert.equal(
+		signUrl('praktijkovereenkomst', 'k'),
+		'/apps/learniq/api/sign/placement-agreement/k',
+	)
+	assert.equal(schemas.Signature.authorization.create, undefined)
+	assert.equal(schemas.PokSignature.authorization.create, undefined)
 })
 
 // @spec openspec/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
