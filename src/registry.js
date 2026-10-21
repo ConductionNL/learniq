@@ -18,12 +18,14 @@
 // these building blocks with their props, since a bare CnWizardDialog or
 // CnDataMatrix mounted as a page receives no steps, rows or save handler.
 // The eight stay registered for registryComponentCoverage.test.mjs.
+// CnSlotGrid is the standby hours page, configured in learning.json.
 import {
 	CnDataMatrix,
 	CnExportWizard,
 	CnRelationshipGraph,
 	CnRichSubmitDialog,
 	CnSignatureCapture,
+	CnSlotGrid,
 	CnStructuredDocReview,
 	CnTimelineView,
 	CnWizardDialog,
@@ -192,7 +194,6 @@ import SelfAssessmentView from './views/SelfAssessmentView.vue'
 import SignatureView from './views/SignatureView.vue'
 import SkillsGapDashboard from './views/SkillsGapDashboard.vue'
 // timetabling-standby-slots: the standby planning grid.
-import StandbyPlanning from './views/StandbyPlanning.vue'
 import SubjectChoicePicker from './views/SubjectChoicePicker.vue'
 import SubmitExcuseView from './views/SubmitExcuseView.vue'
 import SubmitWorkView from './views/SubmitWorkView.vue'
@@ -268,7 +269,7 @@ export default {
 	LearningPlanEditorView: page(LearningPlanEditorView),
 	QtiImportView: page(QtiImportView),
 	SignatureView: page(SignatureView),
-	StandbyPlanning: page(StandbyPlanning),
+	CnSlotGrid: page(CnSlotGrid),
 	SubmitExcuseView: page(SubmitExcuseView),
 	TimetableLookup: page(TimetableLookup),
 	SubmitWorkView: page(SubmitWorkView),

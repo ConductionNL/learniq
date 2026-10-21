@@ -3752,7 +3752,12 @@ OC.L10N.register(
         "Level %s": "Level %s",
         "Learning path": "Learning path",
         "or": "or",
-        "Training course": "Training course"
+        "Training course": "Training course",
+        "{startsAt} to {endsAt}": "{startsAt} to {endsAt}",
+        "Add standby on {column} {startsAt}": "Add standby on {column} {startsAt}",
+        "Remove {item} from standby": "Remove {item} from standby",
+        "Remove standby": "Remove standby",
+        "Remove {item} from standby?": "Remove {item} from standby?"
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -4206,7 +4206,12 @@ OC.L10N.register(
         "Level %s": "Niveau %s",
         "Learning path": "Leerweg",
         "or": "of",
-        "Training course": "Cursus"
+        "Training course": "Cursus",
+        "{startsAt} to {endsAt}": "{startsAt} tot {endsAt}",
+        "Add standby on {column} {startsAt}": "Invaluur toevoegen op {column} {startsAt}",
+        "Remove {item} from standby": "{item} van het invaluur halen",
+        "Remove standby": "Invaluur weghalen",
+        "Remove {item} from standby?": "{item} van het invaluur halen?"
     },
     "nplurals=2; plural=(n != 1);"
 )
