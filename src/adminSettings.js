@@ -354,10 +354,11 @@ export const ADMIN_SECTIONS = {
 			name: 'Recent privacy requests',
 			description: 'The latest requests for access, correction or deletion.',
 			content: {
-				register: 'data-subject-requests',
-				schema: 'dataSubjectRequest',
-				sort: { '@self.created': 'desc' },
-				limit: 5,
+				// OpenRegister's own register of privacy requests, newest five.
+				endpointSource: {
+					url: '/apps/openregister/api/objects/data-subject-requests/dataSubjectRequest?_limit=5&_order[@self.created]=desc',
+					responsePath: 'results',
+				},
 				presentation: 'rows',
 				title: '{type}',
 				meta: '{subjectId}',

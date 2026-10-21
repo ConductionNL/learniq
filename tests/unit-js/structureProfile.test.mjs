@@ -565,14 +565,15 @@ test('the full profile is exactly the plain manifest build', () => {
 	const entries = flat(plain.menu)
 	const count = (section) =>
 		entries.filter((item) => sectionOf(item) === section).length
-	assert.equal(entries.length, 108)
-	assert.equal(plain.menu.length, 25)
+	// 107 since the App settings entry moved to the admin page (Q7).
+	assert.equal(entries.length, 107)
+	assert.equal(plain.menu.length, 24)
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[100, 3, 5],
+		[99, 3, 5],
 	)
-	// 351 since internship-hours T6 added the school's BPV hours list (BpvHourWeeks).
-	assert.equal(plain.pages.length, 351)
+	// 349 since the in-app app settings pages moved to the admin page (Q7).
+	assert.equal(plain.pages.length, 349)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {

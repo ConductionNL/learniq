@@ -77,7 +77,11 @@ test('the section is mounted in the admin settings and calls the admin endpoints
 		resolve(root, 'src/views/settings/AdminRoot.vue'),
 		'utf8',
 	)
-	assert.match(adminRoot, /<AiTranslationReviewSection \/>/)
+	assert.match(adminRoot, /<AiTranslationReviewSection\b/)
+	assert.match(
+		readFileSync(resolve(root, 'src/adminSettings.js'), 'utf8'),
+		/type: 'ai-translation-review'/,
+	)
 	const section = readFileSync(
 		resolve(root, 'src/views/settings/AiTranslationReviewSection.vue'),
 		'utf8',
