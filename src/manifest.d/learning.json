@@ -2831,14 +2831,6 @@
 			}
 		},
 		{
-			"id": "CohortTimetable",
-			"route": "/cohorts/:id/timetable",
-			"type": "custom",
-			"title": "Cohort timetable",
-			"component": "CohortTimetableView",
-			"_note": "Mounts CohortTimetableView (learniq#947): the cohort's Sessions in CnTimelineView."
-		},
-		{
 			"id": "Sessions",
 			"route": "/sessions",
 			"type": "index",
@@ -3335,7 +3327,19 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "open-self-check-in",
+						"label": "Open self check-in",
+						"icon": "CalendarCheckOutline",
+						"type": "open-modal",
+						"target": "SelfCheckInDialog",
+						"props": {
+							"sessionId": "@objectId"
+						}
+					}
+				]
 			}
 		},
 		{
@@ -8223,14 +8227,6 @@
 					]
 				}
 			}
-		},
-		{
-			"id": "MarkAttendanceView",
-			"route": "/sessions/:sessionId/attendance",
-			"type": "custom",
-			"title": "Mark attendance",
-			"component": "AttendanceRegisterView",
-			"_note": "Mounts AttendanceRegisterView (learniq#947): one row per learner of the session's cohort, a status per learner, saved as one AttendanceRecord each."
 		},
 		{
 			"id": "ReportPeriods",
