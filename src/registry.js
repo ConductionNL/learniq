@@ -12,7 +12,8 @@
 
 // CnRowMarkList is the roll call page, configured in people.json.
 // CnSecretAddressCard is the display screen's address dialog.
-import { CnRowMarkList, CnSecretAddressCard } from '@conduction/nextcloud-vue'
+// CnSlotGrid is the standby hours page, configured in learning.json.
+import { CnRowMarkList, CnSecretAddressCard, CnSlotGrid } from '@conduction/nextcloud-vue'
 // assignment-missing-submissions-view: body section on AssignmentDetail.
 import AssignmentHandInStatus from './components/sections/AssignmentHandInStatus.vue'
 import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeerReviewAllocation.vue'
@@ -170,7 +171,6 @@ import SelfAssessmentView from './views/SelfAssessmentView.vue'
 import SignatureView from './views/SignatureView.vue'
 import SkillsGapDashboard from './views/SkillsGapDashboard.vue'
 // timetabling-standby-slots: the standby planning grid.
-import StandbyPlanning from './views/StandbyPlanning.vue'
 import SubjectChoicePicker from './views/SubjectChoicePicker.vue'
 import SubmitWorkView from './views/SubmitWorkView.vue'
 import TakeAssessmentView from './views/TakeAssessmentView.vue'
@@ -222,7 +222,7 @@ export default {
 	LearningPlanEditorView: page(LearningPlanEditorView),
 	QtiImportView: page(QtiImportView),
 	SignatureView: page(SignatureView),
-	StandbyPlanning: page(StandbyPlanning),
+	CnSlotGrid: page(CnSlotGrid),
 	TimetableLookup: page(TimetableLookup),
 	SubmitWorkView: page(SubmitWorkView),
 
