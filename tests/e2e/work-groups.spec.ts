@@ -149,15 +149,15 @@ test.describe('work groups', () => {
 			await page.goto(`${APP}/my-work-groups`, {
 				waitUntil: 'domcontentloaded',
 			})
-			const set = page.locator('.my-work-groups__set', { hasText: setName })
+			const set = page.locator('[data-testid="cn-grouped-cards-group"]', { hasText: setName })
 			await expect(set).toBeVisible({ timeout: 60_000 })
 
-			const full = set.locator('.my-work-groups__group', {
+			const full = set.locator('[data-testid="cn-grouped-cards-item"]', {
 				hasText: 'Groep vol',
 			})
 			await expect(full.getByRole('button')).toHaveCount(0)
 
-			const free = set.locator('.my-work-groups__group', {
+			const free = set.locator('[data-testid="cn-grouped-cards-item"]', {
 				hasText: 'Groep vrij',
 			})
 			await free.getByRole('button', { name: 'Join', exact: true }).click()
@@ -219,9 +219,9 @@ test.describe('work groups', () => {
 			await page.goto(`${APP}/my-work-groups`, {
 				waitUntil: 'domcontentloaded',
 			})
-			const set = page.locator('.my-work-groups__set', { hasText: setName })
+			const set = page.locator('[data-testid="cn-grouped-cards-group"]', { hasText: setName })
 			await expect(set).toBeVisible({ timeout: 60_000 })
-			const five = set.locator('.my-work-groups__group', {
+			const five = set.locator('[data-testid="cn-grouped-cards-item"]', {
 				hasText: 'Groep 5',
 			})
 			await five

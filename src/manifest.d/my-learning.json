@@ -517,8 +517,123 @@
 			"route": "/my-work-groups",
 			"type": "custom",
 			"title": "My work groups",
-			"component": "MyWorkGroups",
-			"_note": "Mounts MyWorkGroups (enrolment-self-join-work-group): the work group sets of the learner's classes from learniq's GET /api/my/work-groups with Join, Move and Leave through learniq's own endpoints, because learners cannot read WorkGroup through the object API. Custom on purpose: grouped sets with per-group actions against learniq endpoints, not an index of one schema."
+			"component": "CnGroupedCardsWidget",
+			"_note": "enrolment-self-join-work-group: the work group sets of the learner's classes from GET /api/my/work-groups, with Join, Move here and Leave through learniq's own endpoints, which check every rule.",
+			"config": {
+				"content": {
+					"heading": "My work groups",
+					"endpointSource": {
+						"url": "/apps/learniq/api/my/work-groups"
+					},
+					"groupsPath": "sets",
+					"itemsKey": "groups",
+					"columns": 1,
+					"groupTitle": "{setName} · {cohortName}",
+					"groupLines": [
+						{
+							"text": "Sign-up is open until {selfJoinUntil|date}.",
+							"when": {
+								"field": "open",
+								"value": true
+							}
+						},
+						{
+							"text": "Sign-up has closed. Ask your teacher to change your group.",
+							"when": {
+								"field": "open",
+								"value": false
+							}
+						}
+					],
+					"itemTitle": "{name}",
+					"itemMeta": [
+						{
+							"count": "free",
+							"one": "{count} free place",
+							"other": "{count} free places"
+						},
+						"{members}"
+					],
+					"itemActions": [
+						{
+							"id": "leave",
+							"label": "Leave",
+							"type": "api-call",
+							"variant": "tertiary",
+							"url": "/apps/learniq/api/work-groups/@item.id/leave",
+							"visibleWhen": {
+								"all": [
+									{
+										"field": "group.open",
+										"value": true
+									},
+									{
+										"field": "item.mine",
+										"value": true
+									}
+								]
+							}
+						},
+						{
+							"id": "join",
+							"label": "Join",
+							"type": "api-call",
+							"variant": "primary",
+							"url": "/apps/learniq/api/work-groups/@item.id/join",
+							"visibleWhen": {
+								"all": [
+									{
+										"field": "group.open",
+										"value": true
+									},
+									{
+										"field": "item.mine",
+										"value": false
+									},
+									{
+										"field": "item.free",
+										"op": "gt",
+										"value": 0
+									},
+									{
+										"field": "group.joined",
+										"value": false
+									}
+								]
+							}
+						},
+						{
+							"id": "move",
+							"label": "Move here",
+							"type": "api-call",
+							"variant": "primary",
+							"url": "/apps/learniq/api/work-groups/@item.id/join",
+							"visibleWhen": {
+								"all": [
+									{
+										"field": "group.open",
+										"value": true
+									},
+									{
+										"field": "item.mine",
+										"value": false
+									},
+									{
+										"field": "item.free",
+										"op": "gt",
+										"value": 0
+									},
+									{
+										"field": "group.joined",
+										"value": true
+									}
+								]
+							}
+						}
+					],
+					"emptyText": "Your teachers have not made work groups for your classes yet."
+				}
+			}
 		},
 		{
 			"id": "CourseCatalogue",
@@ -533,8 +648,105 @@
 			"route": "/my-electives",
 			"type": "custom",
 			"title": "Optional lessons",
-			"component": "MyElectives",
-			"_note": "timetabling-elective-lesson-signup: open offers the learner may sign up for, through GET /api/electives; sign-up and withdrawal go through learniq's own endpoints so ElectiveSignUpRules decides."
+			"component": "CnGroupedCardsWidget",
+			"_note": "timetabling-elective-lesson-signup: open offers the learner may sign up for, through GET /api/electives; sign-up and withdrawal go through learniq's own endpoints so ElectiveSignUpRules decides.",
+			"config": {
+				"content": {
+					"heading": "Optional lessons",
+					"endpointSource": {
+						"url": "/apps/learniq/api/electives"
+					},
+					"groupsPath": "offers",
+					"itemsKey": "lessons",
+					"columns": 1,
+					"groupTitle": "{name}",
+					"groupLines": [
+						"{description}"
+					],
+					"itemTitle": [
+						"{startsAt|datetime} {title}",
+						"{startsAt|datetime}"
+					],
+					"itemMeta": [
+						{
+							"count": "freePlaces",
+							"one": "{count} place free",
+							"other": "{count} places free"
+						},
+						{
+							"text": "You are signed up",
+							"when": {
+								"field": "mySignUpId",
+								"op": "notEmpty"
+							}
+						},
+						{
+							"text": "Sign-up opens {opensAt|date}",
+							"when": {
+								"field": "windowState",
+								"value": "upcoming"
+							}
+						},
+						{
+							"text": "Sign-up has closed",
+							"when": {
+								"field": "windowState",
+								"value": "closed"
+							}
+						}
+					],
+					"itemActions": [
+						{
+							"id": "withdraw",
+							"label": "Withdraw",
+							"type": "api-call",
+							"variant": "tertiary",
+							"url": "/apps/learniq/api/elective-sign-ups/@item.mySignUpId/withdraw",
+							"visibleWhen": {
+								"all": [
+									{
+										"field": "item.windowOpen",
+										"value": true
+									},
+									{
+										"field": "item.mySignUpId",
+										"op": "notEmpty"
+									}
+								]
+							}
+						},
+						{
+							"id": "sign-up",
+							"label": "Sign up",
+							"type": "api-call",
+							"variant": "primary",
+							"url": "/apps/learniq/api/electives/@group.id/sign-up",
+							"payload": {
+								"sessionId": "@item.sessionId",
+								"timetableSessionRef": "@item.timetableSessionRef"
+							},
+							"visibleWhen": {
+								"all": [
+									{
+										"field": "item.windowOpen",
+										"value": true
+									},
+									{
+										"field": "item.mySignUpId",
+										"op": "empty"
+									},
+									{
+										"field": "item.freePlaces",
+										"op": "gt",
+										"value": 0
+									}
+								]
+							}
+						}
+					],
+					"emptyText": "There are no optional lessons for you right now."
+				}
+			}
 		},
 		{
 			"id": "MyEvaluations",

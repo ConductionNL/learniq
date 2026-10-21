@@ -171,6 +171,20 @@ class ElectiveController extends Controller {
 	}//end roster()
 
 	/**
+	 * The roster of the offer named by the `offerId` query parameter, for a
+	 * page that reads it by query.
+	 *
+	 * @return JSONResponse The roster, or 401/403/404.
+	 *
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function rosterOf(): JSONResponse {
+		return $this->roster(offerId: (string)($this->request->getParam('offerId') ?? ''));
+	}//end rosterOf()
+
+	/**
 	 * Place a learner on a lesson, also after the window.
 	 *
 	 * @param string $offerId The offer.

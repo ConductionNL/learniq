@@ -80,6 +80,7 @@ class ElectiveBoardTest extends TestCase {
 		self::assertSame([23, 23], array_column($lessons, 'freePlaces'));
 		self::assertTrue($lessons[0]['windowOpen']);
 		self::assertFalse($lessons[1]['windowOpen'], 'The planninq lesson opens 7 days before 15 October.');
+		self::assertSame(['open', 'upcoming'], array_column($lessons, 'windowState'));
 		self::assertSame('su-1', $lessons[0]['mySignUpId']);
 		self::assertNull($lessons[1]['mySignUpId']);
 	}//end testALearnerSeesFreePlacesAndTheWindow()

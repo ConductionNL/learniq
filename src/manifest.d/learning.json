@@ -3761,8 +3761,73 @@
 			"route": "/electives/offers/:id/roster",
 			"type": "custom",
 			"title": "Sign-ups",
-			"component": "ElectiveRosterView",
-			"_note": "timetabling-elective-lesson-signup: GET /api/electives/{offerId}/roster and POST .../place, behind elective.manage."
+			"component": "CnGroupedCardsWidget",
+			"_note": "timetabling-elective-lesson-signup: GET /api/elective-roster?offerId= and POST /api/electives/{offerId}/place, behind elective.manage. Placing is allowed after the window but never beyond the places; the server decides.",
+			"config": {
+				"content": {
+					"heading": "{name}",
+					"endpointSource": {
+						"url": "/apps/learniq/api/elective-roster",
+						"params": {
+							"offerId": "@route.id"
+						}
+					},
+					"groupsPath": "lessons",
+					"itemsKey": "signUps",
+					"columns": 1,
+					"groupTitle": [
+						"{startsAt|datetime} {title}",
+						"{startsAt|datetime}"
+					],
+					"groupLines": [
+						{
+							"count": "freePlaces",
+							"one": "{count} place free",
+							"other": "{count} places free"
+						},
+						{
+							"text": "Sign-up has closed",
+							"when": {
+								"field": "windowOpen",
+								"value": false
+							}
+						}
+					],
+					"itemTitle": "{learnerId|user}",
+					"itemMeta": [
+						{
+							"text": "placed",
+							"when": {
+								"field": "status",
+								"value": "placed"
+							}
+						}
+					],
+					"groupEmptyText": "Nobody signed up yet",
+					"extraItemsKey": "notSignedUp",
+					"extraItemsHeading": "Not signed up",
+					"extraItemTitle": "{value|user}",
+					"extraItemActions": [
+						{
+							"id": "place",
+							"label": "Place",
+							"type": "api-call",
+							"url": "/apps/learniq/api/electives/@group.offerId/place",
+							"payload": {
+								"learnerId": "@item.value",
+								"sessionId": "@group.sessionId",
+								"timetableSessionRef": "@group.timetableSessionRef"
+							},
+							"visibleWhen": {
+								"field": "group.freePlaces",
+								"op": "gt",
+								"value": 0
+							}
+						}
+					],
+					"emptyText": "This offer has no lessons yet."
+				}
+			}
 		},
 		{
 			"id": "ContactHoursReport",

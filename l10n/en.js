@@ -3752,7 +3752,15 @@ OC.L10N.register(
         "Level %s": "Level %s",
         "Learning path": "Learning path",
         "or": "or",
-        "Training course": "Training course"
+        "Training course": "Training course",
+        "Sign-up is open until {selfJoinUntil|date}.": "Sign-up is open until {selfJoinUntil|date}.",
+        "{count} free place": "{count} free place",
+        "{count} free places": "{count} free places",
+        "{count} place free": "{count} place free",
+        "{count} places free": "{count} places free",
+        "Sign-up opens {opensAt|date}": "Sign-up opens {opensAt|date}",
+        "Nobody signed up yet": "Nobody signed up yet",
+        "This offer has no lessons yet.": "This offer has no lessons yet."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -4206,7 +4206,15 @@ OC.L10N.register(
         "Level %s": "Niveau %s",
         "Learning path": "Leerweg",
         "or": "of",
-        "Training course": "Cursus"
+        "Training course": "Cursus",
+        "Sign-up is open until {selfJoinUntil|date}.": "Inschrijven kan tot {selfJoinUntil|date}.",
+        "{count} free place": "{count} plek vrij",
+        "{count} free places": "{count} plekken vrij",
+        "{count} place free": "{count} plek vrij",
+        "{count} places free": "{count} plekken vrij",
+        "Sign-up opens {opensAt|date}": "Inschrijven opent {opensAt|date}",
+        "Nobody signed up yet": "Nog niemand ingeschreven",
+        "This offer has no lessons yet.": "Dit aanbod heeft nog geen lessen."
     },
     "nplurals=2; plural=(n != 1);"
 )

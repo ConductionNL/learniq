@@ -245,6 +245,8 @@ class WorkGroupMembershipServiceTest extends TestCase {
 		self::assertTrue($campagne['open']);
 		self::assertSame([0, 1, 2], array_column($campagne['groups'], 'free'));
 		self::assertSame([false, true, false], array_column($campagne['groups'], 'mine'));
+		self::assertTrue($campagne['joined']);
+		self::assertSame($campagne['cohortId'] . '|' . $campagne['setName'], $campagne['id']);
 		self::assertSame(['A', 'B'], $campagne['groups'][0]['members']);
 		self::assertSame([], $reader->mine(userId: 'zz', isOpen: $service->isOpen(...)));
 	}//end testTheOverviewShowsFreePlacesAndOwnGroup()

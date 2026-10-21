@@ -18,9 +18,11 @@
 // these building blocks with their props, since a bare CnWizardDialog or
 // CnDataMatrix mounted as a page receives no steps, rows or save handler.
 // The eight stay registered for registryComponentCoverage.test.mjs.
+// CnGroupedCardsWidget is the work groups, optional lessons and roster pages.
 import {
 	CnDataMatrix,
 	CnExportWizard,
+	CnGroupedCardsWidget,
 	CnRelationshipGraph,
 	CnRichSubmitDialog,
 	CnSignatureCapture,
@@ -97,7 +99,6 @@ import DashboardAdmin from './views/DashboardAdmin.vue'
 import DashboardStudent from './views/DashboardStudent.vue'
 import DashboardTeacher from './views/DashboardTeacher.vue'
 import DisplayScreenAddressView from './views/DisplayScreenAddressView.vue'
-import ElectiveRosterView from './views/ElectiveRosterView.vue'
 import EnrolmentForecastView from './views/EnrolmentForecastView.vue'
 // assessment-course-evaluation-answer-page: a campaign's figures for staff.
 import EvaluationCampaignResultsView from './views/EvaluationCampaignResultsView.vue'
@@ -151,7 +152,6 @@ import LessonComposer from './views/LessonComposer.vue'
 import LessonPlayer from './views/LessonPlayer.vue'
 import MarkSubmissionView from './views/MarkSubmissionView.vue'
 // personal-timetable: the signed-in user's own week view over Session objects.
-import MyElectives from './views/MyElectives.vue'
 // assessment-course-evaluation-answer-page: a learner answers their course evaluations.
 import MyEvaluationsView from './views/MyEvaluationsView.vue'
 // portable-learning-record: the three genuine new custom views this change
@@ -162,7 +162,6 @@ import MyEvaluationsView from './views/MyEvaluationsView.vue'
 // declarative manifest index/detail page.
 import MyLearningRecordView from './views/MyLearningRecordView.vue'
 import MyTimetable from './views/MyTimetable.vue'
-import MyWorkGroups from './views/MyWorkGroups.vue'
 import PeerReviewMarkingView from './views/PeerReviewMarkingView.vue'
 import PeopleDashboard from './views/PeopleDashboard.vue'
 // eportfolio: the learner's evidence-picker portfolio builder and the
@@ -282,7 +281,7 @@ export default {
 	CourseBuilder: page(CourseBuilder),
 	CoursePackageImportView: page(CoursePackageImportView),
 	DisplayScreenAddressView: page(DisplayScreenAddressView),
-	ElectiveRosterView: page(ElectiveRosterView),
+	CnGroupedCardsWidget: page(CnGroupedCardsWidget),
 	EnrolmentForecastView: page(EnrolmentForecastView),
 	EvaluationCampaignResultsView: page(EvaluationCampaignResultsView),
 	MyEvaluationsView: page(MyEvaluationsView),
@@ -310,10 +309,8 @@ export default {
 	MarkSubmissionView: page(MarkSubmissionView),
 	ReissueCertificatesView: page(ReissueCertificatesView),
 	CoursePreviewView: page(CoursePreviewView),
-	MyWorkGroups: page(MyWorkGroups),
 	AllocateMarkersView: page(AllocateMarkersView),
 	MyLearningRecordView: page(MyLearningRecordView),
-	MyElectives: page(MyElectives),
 	MyTimetable: page(MyTimetable),
 	PeerReviewMarkingView: page(PeerReviewMarkingView),
 	PeopleDashboard: page(PeopleDashboard),

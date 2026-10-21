@@ -112,6 +112,7 @@ class ElectiveBoard {
 			$lessons[] = array_merge(
 				$this->lessonState(offer: $offer, lesson: $lesson, signUps: $signUps, now: $now),
 				[
+					'offerId' => $offerId,
 					'signUps' => array_map(
 						static fn (array $row): array => [
 							'id' => (string)($row['id'] ?? ''),
@@ -159,8 +160,29 @@ class ElectiveBoard {
 			'opensAt' => $window['opensAt']?->format(DateTimeInterface::ATOM),
 			'closesAt' => $window['closesAt']?->format(DateTimeInterface::ATOM),
 			'windowOpen' => $this->electives->isOpen(window: $window, now: $now),
+			'windowState' => $this->windowState(window: $window, now: $now),
 		];
 	}//end lessonState()
+
+	/**
+	 * Where the sign-up window stands: `open`, `upcoming` before it opens, or `closed`.
+	 *
+	 * @param array<string, DateTimeImmutable|null> $window `opensAt` and `closesAt`.
+	 * @param DateTimeImmutable                     $now    Now.
+	 *
+	 * @return string
+	 */
+	private function windowState(array $window, DateTimeImmutable $now): string {
+		if ($this->electives->isOpen(window: $window, now: $now) === true) {
+			return 'open';
+		}
+
+		if (($window['opensAt'] ?? null) !== null && $window['opensAt'] > $now) {
+			return 'upcoming';
+		}
+
+		return 'closed';
+	}//end windowState()
 
 	/**
 	 * The learner's own active sign-up on a lesson.

@@ -103,7 +103,8 @@ class WorkGroupReader {
 
 	/**
 	 * The learner's overview: per cohort and set, the groups with free
-	 * places, members and whether the learner is in it.
+	 * places, members and whether the learner is in it, and per set whether
+	 * the learner is in one of its groups (`joined`).
 	 *
 	 * @param string   $userId The learner.
 	 * @param callable $isOpen fn(array $group): bool, whether learners may still change it.
@@ -124,14 +125,18 @@ class WorkGroupReader {
 
 			$key = $cohortId . '|' . (string)($group['setName'] ?? '');
 			$sets[$key] = ($sets[$key] ?? [
+				'id' => $key,
 				'cohortId' => $cohortId,
 				'cohortName' => (string)($cohorts[$cohortId]['name'] ?? ''),
 				'setName' => (string)($group['setName'] ?? ''),
 				'selfJoinUntil' => $group['selfJoinUntil'] ?? null,
 				'open' => $isOpen($group),
+				'joined' => false,
 				'groups' => [],
 			]);
-			$sets[$key]['groups'][] = $this->card(group: $group, userId: $userId);
+			$card = $this->card(group: $group, userId: $userId);
+			$sets[$key]['groups'][] = $card;
+			$sets[$key]['joined'] = ($sets[$key]['joined'] || $card['mine']);
 		}
 
 		return array_values($sets);
