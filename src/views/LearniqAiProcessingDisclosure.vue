@@ -146,7 +146,6 @@
 
 <script>
 import { useObjectStore } from '@conduction/nextcloud-vue'
-import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
 
@@ -309,13 +308,10 @@ export default {
 			this.saving = true
 			try {
 				const store = useObjectStore()
-				const currentUser = getCurrentUser()
 
 				const payload = {
 					policy: this.policyForm.policy,
 					rationale: this.policyForm.rationale || null,
-					setBy: currentUser ? currentUser.uid : null,
-					setAt: new Date().toISOString(),
 				}
 				if (this.policy.id) {
 					payload.id = this.policy.id
@@ -331,8 +327,8 @@ export default {
 						id: saved.id ?? this.policy.id,
 						policy: saved.policy || payload.policy,
 						rationale: saved.rationale ?? payload.rationale,
-						setBy: saved.setBy ?? payload.setBy,
-						setAt: saved.setAt ?? payload.setAt,
+						setBy: saved.setBy ?? null,
+						setAt: saved.setAt ?? null,
 					}
 				}
 
