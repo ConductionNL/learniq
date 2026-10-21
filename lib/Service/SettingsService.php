@@ -92,7 +92,7 @@ class SettingsService {
 	 * Retrieve all current settings.
 	 *
 	 * Returns a flat array containing all app config values plus metadata
-	 * fields (openregisters, isAdmin) consumed by the frontend.
+	 * fields (openregisters, hermiqInstalled, isAdmin) consumed by the frontend.
 	 *
 	 * @return array<string,mixed>
 	 *
@@ -111,6 +111,7 @@ class SettingsService {
 			$settings,
 			[
 				'openregisters' => $this->isOpenRegisterAvailable(),
+				'hermiqInstalled' => $this->appManager->isInstalled('hermiq'),
 				'isAdmin' => $isAdmin,
 			]
 		);
