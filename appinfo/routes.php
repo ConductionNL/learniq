@@ -291,6 +291,12 @@ return [
         ['name' => 'checkIn#show', 'url' => '/api/check-in/{windowId}', 'verb' => 'GET'],
         ['name' => 'checkIn#checkIn', 'url' => '/api/check-in/{windowId}', 'verb' => 'POST'],
         ['name' => 'checkInCode#code', 'url' => '/api/check-in/{windowId}/code', 'verb' => 'GET'],
+        // Requests made for a learner (subject choice, conference signup):
+        // create and submit in one call, the tenant and learner reference
+        // taken on the server, a refused submit leaves no draft.
+        // Controller: RequestSubmitController (slug: requestSubmit).
+        ['name' => 'requestSubmit#subjectChoice', 'url' => '/api/subject-choices', 'verb' => 'POST'],
+        ['name' => 'requestSubmit#conferenceSignup', 'url' => '/api/conference-signups', 'verb' => 'POST'],
         // Portal check-in receiver (attendance-self-check-in, pattern of #1096
         // and #1142): X-Portal-Subject assertion only, learnerRef from portaliq.
         // Controller: PortalCheckInController (slug: portalCheckIn).
