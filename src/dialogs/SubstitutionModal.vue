@@ -19,7 +19,7 @@
  Session is `scheduled`, or `substitute-teacher-in-progress` when
  `in-progress`, per which `from` state matches.
 
- Opened from MyTimetable.vue for a Session the caller may manage.
+ Opened by the Manage action of the week view (My timetable) for a Session the caller may manage.
 
  @spec openspec/specs/timetabling/spec.md#requirement-frontend-is-declarative-with-named-custom-views
  @spec openspec/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
@@ -209,6 +209,7 @@
 
 <script>
 import axios from '@nextcloud/axios'
+import { emit } from '@nextcloud/event-bus'
 import { generateUrl } from '@nextcloud/router'
 import {
 	NcButton,
@@ -432,6 +433,7 @@ export default {
 				)
 				await axios.patch(url, body)
 				this.$emit('changed')
+				emit('cn:page:refresh', {})
 				this.$emit('close')
 			} catch (e) {
 				console.error('[SubstitutionModal] submit failed', e)
@@ -476,6 +478,7 @@ export default {
 				)
 				this.results = data.results || []
 				this.$emit('changed')
+				emit('cn:page:refresh', {})
 			} catch (e) {
 				this.error =
 					e?.response?.data?.error

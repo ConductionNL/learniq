@@ -10,12 +10,13 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
  */
 
-// CnSecretAddressCard is the display screen's address dialog.
-import { CnSecretAddressCard } from '@conduction/nextcloud-vue'
 // assignment-missing-submissions-view: body section on AssignmentDetail.
 import AssignmentHandInStatus from './components/sections/AssignmentHandInStatus.vue'
 import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeerReviewAllocation.vue'
+import DisplayScreenAddressDialog from './dialogs/DisplayScreenAddressDialog.vue'
+import LessonNoteDialog from './dialogs/LessonNoteDialog.vue'
 import SelfCheckInDialog from './dialogs/SelfCheckInDialog.vue'
+import SubstitutionModal from './dialogs/SubstitutionModal.vue'
 // admissions-and-subject-choice: the two genuine new custom views this
 // change adds — the coordinator's admissions review board (queue of
 // intake-completed Applications cross-referenced against their round's
@@ -139,7 +140,6 @@ import MyEvaluationsView from './views/MyEvaluationsView.vue'
 // LearningRecordExport/LearningRecordShare/LearningRecordImport screen is a
 // declarative manifest index/detail page.
 import MyLearningRecordView from './views/MyLearningRecordView.vue'
-import MyTimetable from './views/MyTimetable.vue'
 import MyWorkGroups from './views/MyWorkGroups.vue'
 import PeerReviewMarkingView from './views/PeerReviewMarkingView.vue'
 import PeopleDashboard from './views/PeopleDashboard.vue'
@@ -174,12 +174,9 @@ import StandbyPlanning from './views/StandbyPlanning.vue'
 import SubjectChoicePicker from './views/SubjectChoicePicker.vue'
 import SubmitWorkView from './views/SubmitWorkView.vue'
 import TakeAssessmentView from './views/TakeAssessmentView.vue'
-// timetabling-and-substitution: the one genuine new routed custom view this
-// change adds — the scheduling-coordinator's TimetableConflict review queue.
-// SubstitutionModal.vue is a plain dialog imported directly by MyTimetable.vue
-// (mirrors ComposeReportPeriodModal's shape), not registered here. Room,
-// TimetableConflict, and ExamAccommodation index/detail pages are declarative
-// manifest pages.
+// timetabling-and-substitution: the scheduling-coordinator's TimetableConflict
+// review queue. Room, TimetableConflict and ExamAccommodation index/detail
+// pages are declarative manifest pages.
 import TimetableConflictQueue from './views/TimetableConflictQueue.vue'
 // timetabling-visibility-rules: other timetables within the school's policy.
 import TimetableLookup from './views/TimetableLookup.vue'
@@ -210,6 +207,9 @@ export default {
 	// learniq#947
 	RollCallView: page(RollCallView),
 	// The lesson page's "Open self check-in" header action.
+	// The week view's Add note and Manage actions (personal-timetable).
+	LessonNoteDialog: { kind: 'modal', component: LessonNoteDialog, propsSchema: { type: 'object', properties: { session: { type: 'object' } }, required: ['session'] } },
+	SubstitutionModal: { kind: 'modal', component: SubstitutionModal, propsSchema: { type: 'object', properties: { session: { type: 'object' } }, required: ['session'] } },
 	SelfCheckInDialog: {
 		kind: 'modal',
 		component: SelfCheckInDialog,
@@ -235,7 +235,7 @@ export default {
 	CourseBuilder: page(CourseBuilder),
 	CoursePackageImportView: page(CoursePackageImportView),
 	// The display screen's Address header action (timetabling-display-screens).
-	DisplayScreenAddress: { kind: 'modal', component: CnSecretAddressCard, propsSchema: null },
+	DisplayScreenAddress: { kind: 'modal', component: DisplayScreenAddressDialog, propsSchema: { type: 'object', properties: { screenId: { type: 'string' } }, required: ['screenId'] } },
 	ElectiveRosterView: page(ElectiveRosterView),
 	EnrolmentForecastView: page(EnrolmentForecastView),
 	EvaluationCampaignResultsView: page(EvaluationCampaignResultsView),
@@ -268,7 +268,6 @@ export default {
 	AllocateMarkersView: page(AllocateMarkersView),
 	MyLearningRecordView: page(MyLearningRecordView),
 	MyElectives: page(MyElectives),
-	MyTimetable: page(MyTimetable),
 	PeerReviewMarkingView: page(PeerReviewMarkingView),
 	PeopleDashboard: page(PeopleDashboard),
 	PortfolioBuilder: page(PortfolioBuilder),

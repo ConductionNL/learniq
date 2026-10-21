@@ -35,6 +35,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Controller\TimetableController;
 use OCA\Learniq\Service\LessonNoteReader;
 use OCA\Learniq\Service\PersonalTimetableService;
+use OCA\Learniq\Service\StandbyCalendar;
 use OCA\Learniq\Service\TimetableProjector;
 use OCA\Learniq\Timetabling\Source\LocalSessionTimetableSource;
 use OCA\Learniq\Timetabling\Source\PlanninqTimetableSource;
@@ -174,8 +175,36 @@ class TimetableControllerTest extends TestCase {
 				logger: $this->logger
 			),
 			logger: $this->logger,
+			standby: $this->standby,
 		);
 	}//end controller()
+
+	/**
+	 * The standby calendar the controller reads, or null for none.
+	 *
+	 * @var StandbyCalendar|null
+	 */
+	private ?StandbyCalendar $standby = null;
+
+	/**
+	 * The week carries the caller's standby blocks, and none when they cannot be read.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+	 */
+	public function testTheWeekCarriesTheStandbyBlocks(): void {
+		$this->signInAs('alice');
+		$this->wireFindAll([], [], []);
+		$block = ['slotId' => 'sb', 'date' => '2026-01-06', 'startsAt' => '10:15', 'endsAt' => '11:05'];
+		$this->standby = $this->createMock(StandbyCalendar::class);
+		$this->standby->method('blocksFor')->willReturn([$block]);
+		$this->assertSame([$block], $this->body($this->controller()->mine(from: $this->from, to: $this->to))['standby']);
+
+		$this->standby = $this->createMock(StandbyCalendar::class);
+		$this->standby->method('blocksFor')->willThrowException(new \RuntimeException('gone'));
+		$this->assertSame([], $this->body($this->controller()->mine(from: $this->from, to: $this->to))['standby']);
+	}//end testTheWeekCarriesTheStandbyBlocks()
 
 	/**
 	 * Groups of the signed-in user, for the lesson note reader.

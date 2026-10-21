@@ -501,8 +501,167 @@
 			"route": "/my-timetable",
 			"type": "custom",
 			"title": "My timetable",
-			"component": "MyTimetable",
-			"_note": "personal-timetable: the signed-in user's own week view. A bespoke component (no generic lib index/detail analogue) rendering the caller's OWN Session objects for a window, resolved server-side from cohort membership (teacher/learner) and RBAC-scoped via ObjectService. Read-only — clicking a session deep-links to SessionDetail; no create/edit here."
+			"_note": "personal-timetable: the signed-in user's own week from GET /api/timetable/mine (lessons, standby blocks, today's changes), in the week-strip widget. Add note and Manage open the lesson dialogs.",
+			"widgets": [
+				{
+					"id": "my-timetable-week",
+					"widgetKey": "week-strip",
+					"slot": "body",
+					"gridWidth": 12,
+					"props": {
+						"content": {
+							"heading": "My timetable",
+							"endpointSource": {
+								"url": "/apps/learniq/api/timetable/mine",
+								"params": {
+									"from": "@range.from",
+									"to": "@range.to"
+								}
+							},
+							"itemsPath": "sessions",
+							"dateField": "startsAt",
+							"titleTemplate": [
+								"{title}",
+								"Untitled session"
+							],
+							"metaTemplates": [
+								[
+									"{room.name}",
+									"{location}"
+								],
+								"Substitute: {substituteTeacherId|user}",
+								"{notes.0.topic}"
+							],
+							"timeFields": {
+								"start": "startsAt",
+								"end": "endsAt"
+							},
+							"badgeField": "lifecycle",
+							"variantMap": {
+								"cancelled": {
+									"label": "Cancelled",
+									"variant": "error",
+									"muted": true
+								},
+								"in-progress": {
+									"label": "In progress",
+									"variant": "info"
+								},
+								"completed": {
+									"label": "Completed",
+									"variant": "success"
+								}
+							},
+							"itemRoute": "SessionDetail",
+							"itemRouteWhen": {
+								"field": "item.source",
+								"op": "neq",
+								"value": "planninq"
+							},
+							"itemActions": [
+								{
+									"id": "join",
+									"label": "Join",
+									"variant": "secondary",
+									"href": "@item.onlineMeetingUrl",
+									"target": "_blank",
+									"visibleWhen": {
+										"all": [
+											{
+												"field": "item.onlineMeetingUrl",
+												"op": "notEmpty"
+											},
+											{
+												"field": "item.lifecycle",
+												"op": "neq",
+												"value": "cancelled"
+											}
+										]
+									}
+								},
+								{
+									"id": "note",
+									"label": "Add note",
+									"variant": "tertiary",
+									"type": "open-modal",
+									"target": "LessonNoteDialog",
+									"props": {
+										"session": "@item"
+									},
+									"visibleWhen": {
+										"field": "item.canAddNote",
+										"value": true
+									}
+								},
+								{
+									"id": "manage",
+									"label": "Manage",
+									"variant": "tertiary",
+									"type": "open-modal",
+									"target": "SubstitutionModal",
+									"props": {
+										"session": "@item"
+									},
+									"visibleWhen": {
+										"all": [
+											{
+												"field": "item.id",
+												"op": "notEmpty"
+											},
+											{
+												"field": "item.source",
+												"op": "neq",
+												"value": "planninq"
+											}
+										]
+									}
+								}
+							],
+							"itemLists": [
+								{
+									"path": "standby",
+									"dateField": "date",
+									"titleTemplate": "Standby",
+									"timeFields": {
+										"start": "startsAt",
+										"end": "endsAt"
+									}
+								}
+							],
+							"navigation": true,
+							"modes": true,
+							"days": 5,
+							"notices": [
+								{
+									"path": "source",
+									"equals": "planninq",
+									"type": "info",
+									"text": "These lessons come from the school timetable. Changes are made there."
+								}
+							],
+							"summary": {
+								"title": "Today's changes",
+								"path": "changes",
+								"itemTitle": [
+									"{title}",
+									"Untitled session"
+								],
+								"itemMeta": [
+									"{changeReason}"
+								],
+								"badgeField": "lifecycle",
+								"variantMap": {
+									"cancelled": {
+										"label": "Cancelled",
+										"variant": "error"
+									}
+								}
+							},
+							"weekEmptyText": "No sessions"
+						}
+					}
+				}
+			]
 		},
 		{
 			"id": "CheckIn",

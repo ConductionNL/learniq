@@ -11,7 +11,7 @@
  * proven by TimetableControllerTest (teacher, learner, empty, windowing,
  * no-leakage). This file is the UI follow-up scaffold the spec calls for "once
  * seed data lands". It is `test.describe.skip` because a live run requires
- * (a) the newly-added MyTimetable.vue compiled into the deployed JS bundle and
+ * (a) the week-strip page compiled into the deployed JS bundle and
  * (b) seeded Cohort/Enrolment/Session objects on an ISOLATED instance —
  * deploying an unbuilt frontend to the shared dev instance is prohibited.
  * Unskip and seed on an isolated instance to activate.
@@ -32,23 +32,23 @@ test.describe('personal-timetable — my timetable week view (live run deferred)
 	// records no reason there.
 	test.skip(
 		true,
-		'LIVE RUN DEFERRED: needs MyTimetable.vue compiled into the deployed bundle and seeded Cohort/Enrolment/Session objects on an ISOLATED instance — deploying an unbuilt frontend to the shared dev instance is prohibited. Cross-object cohort resolution and windowing are covered by TimetableControllerTest (teacher, learner, empty, windowing, no-leakage).',
+		'LIVE RUN DEFERRED: needs the week-strip page compiled into the deployed bundle and seeded Cohort/Enrolment/Session objects on an ISOLATED instance — deploying an unbuilt frontend to the shared dev instance is prohibited. Cross-object cohort resolution and windowing are covered by TimetableControllerTest (teacher, learner, empty, windowing, no-leakage).',
 	)
 	// @e2e personal-timetable::a-learner-sees-this-weeks-sessions-for-their-enrolled-cohorts
 	test("a learner sees this week's sessions rendered as day blocks", async ({
 		loggedInPage: page,
 	}) => {
 		await page.goto(MyTimetable)
-		await page.waitForSelector('.my-timetable', { timeout: 15_000 })
+		await page.waitForSelector('[data-testid="cn-week-strip"]', { timeout: 15_000 })
 
 		// The week grid renders and shows at least one session block with a title + time.
-		const sessions = page.locator('.my-timetable__session')
+		const sessions = page.locator('[data-testid="cn-week-strip-item"]')
 		await expect(sessions.first()).toBeVisible()
 		await expect(
-			page.locator('.my-timetable__session-name').first(),
+			page.locator('.cn-week-strip__title').first(),
 		).not.toBeEmpty()
 		await expect(
-			page.locator('.my-timetable__session-time').first(),
+			page.locator('.cn-week-strip__time').first(),
 		).not.toBeEmpty()
 	})
 
@@ -57,21 +57,21 @@ test.describe('personal-timetable — my timetable week view (live run deferred)
 		loggedInPage: page,
 	}) => {
 		await page.goto(MyTimetable)
-		await page.waitForSelector('.my-timetable', { timeout: 15_000 })
+		await page.waitForSelector('[data-testid="cn-week-strip"]', { timeout: 15_000 })
 
 		// A teacher's timetable renders the taught cohorts' sessions as blocks.
-		await expect(page.locator('.my-timetable__session').first()).toBeVisible()
+		await expect(page.locator('[data-testid="cn-week-strip-item"]').first()).toBeVisible()
 	})
 
 	test('a user with no cohorts sees the empty state (no error)', async ({
 		loggedInPage: page,
 	}) => {
 		await page.goto(MyTimetable)
-		await page.waitForSelector('.my-timetable', { timeout: 15_000 })
+		await page.waitForSelector('[data-testid="cn-week-strip"]', { timeout: 15_000 })
 
 		// Empty-cohort caller: the empty-content surface is shown, never an error page.
 		await expect(
-			page.locator('.empty-content, .my-timetable__none').first(),
+			page.locator('[data-testid="cn-week-strip-week-empty"], .cn-week-strip__empty').first(),
 		).toBeVisible()
 		const bodyText = await page.innerText('body')
 		expect(bodyText.toLowerCase()).not.toContain('internal server error')

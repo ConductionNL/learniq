@@ -65,6 +65,8 @@ function collectCustomPages() {
 	return docs.flatMap(({ source, doc }) =>
 		(doc.pages ?? [])
 			.filter((p) => p.type === 'custom')
+			// A page that draws library widgets in its body names no component.
+			.filter((p) => p.component !== undefined || !(p.widgets ?? []).some((w) => w.slot === 'body'))
 			.map((p) => ({ id: p.id, component: p.component, source })),
 	)
 }

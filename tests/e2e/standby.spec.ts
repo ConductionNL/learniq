@@ -68,7 +68,7 @@ test.describe('Standby hours', () => {
 		await page.goto('/index.php/apps/learniq/my-timetable', {
 			waitUntil: 'domcontentloaded',
 		})
-		await expect(page.locator('.my-timetable__standby').first()).toBeVisible({
+		await expect(page.locator('[data-testid="cn-week-strip-item"]', { hasText: 'Standby' }).first()).toBeVisible({
 			timeout: 30_000,
 		})
 	})

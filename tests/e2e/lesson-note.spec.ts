@@ -53,12 +53,10 @@ test.describe('Lesson notes', () => {
 		await page.goto('/index.php/apps/learniq/my-timetable', {
 			waitUntil: 'domcontentloaded',
 		})
-		const lesson = page.locator('.my-timetable__session', { hasText: title })
+		const lesson = page.locator('.cn-week-strip__item-row', { hasText: title })
 		await expect(lesson).toHaveCount(1, { timeout: 30_000 })
 
-		await lesson
-			.getByRole('button', { name: 'Add a note to this lesson' })
-			.click()
+		await lesson.getByRole('button', { name: 'Add note' }).click()
 		await page.getByLabel('Topic (optional)').fill('Hoofdstuk 4: kansrekening')
 		await page.locator('#lesson-note-text').fill('Neem je rekenmachine mee.')
 		await page.getByText('Also add it to this lesson in the next weeks').click()
@@ -68,7 +66,7 @@ test.describe('Lesson notes', () => {
 		await expect(lesson).toContainText('Hoofdstuk 4: kansrekening')
 		await page.getByRole('button', { name: 'Next week' }).click()
 		await expect(
-			page.locator('.my-timetable__session', { hasText: title }),
+			page.locator('.cn-week-strip__item-row', { hasText: title }),
 		).toContainText('Hoofdstuk 4: kansrekening', { timeout: 30_000 })
 	})
 })

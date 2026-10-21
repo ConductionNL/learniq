@@ -90,6 +90,7 @@
 
 <script>
 import axios from '@nextcloud/axios'
+import { emit } from '@nextcloud/event-bus'
 import { generateUrl } from '@nextcloud/router'
 import {
 	NcButton,
@@ -240,6 +241,7 @@ export default {
 					)
 				}
 				this.$emit('saved', lessons.length)
+				emit('cn:page:refresh', {})
 				this.$emit('close')
 			} catch {
 				this.error = t(

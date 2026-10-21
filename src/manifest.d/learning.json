@@ -3612,21 +3612,7 @@
 						"icon": "LinkVariant",
 						"target": "DisplayScreenAddress",
 						"props": {
-							"dialog": true,
-							"title": "Screen address",
-							"objectId": "@objectId",
-							"createUrl": "/apps/learniq/api/display-screens/{objectId}/token",
-							"revokeUrl": "/apps/learniq/api/display-screens/{objectId}/revoke",
-							"revokeMethod": "POST",
-							"addressPath": "address",
-							"texts": {
-								"intro": "Open this address in the browser of the screen. It needs no account and shows today's lessons and changes without names of learners.",
-								"shownOnce": "This address is shown once. Copy it into the screen's browser now.",
-								"revoked": "The address was revoked. The screen shows nothing until you create a new address.",
-								"createLabel": "Create address",
-								"resetLabel": "Create address",
-								"revokeLabel": "Revoke address"
-							}
+							"screenId": "@objectId"
 						}
 					}
 				],
@@ -3964,7 +3950,7 @@
 			"type": "custom",
 			"title": "Timetable conflict queue",
 			"component": "TimetableConflictQueue",
-			"_note": "timetabling-and-substitution: the scheduling-coordinator's review queue for open/acknowledged TimetableConflict rows (acknowledge/resolve actions). The one genuine new routed custom view this change adds — every other Room/TimetableConflict/ExamAccommodation screen is a declarative manifest page. SubstitutionModal.vue is a dialog opened from MyTimetable.vue, not a routed page."
+			"_note": "timetabling-and-substitution: the scheduling-coordinator's review queue for open/acknowledged TimetableConflict rows (acknowledge/resolve actions). The one genuine new routed custom view this change adds — every other Room/TimetableConflict/ExamAccommodation screen is a declarative manifest page. SubstitutionModal is the Manage action of the My timetable week view, not a routed page."
 		},
 		{
 			"id": "Rubrics",
