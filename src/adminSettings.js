@@ -321,11 +321,23 @@ export const ADMIN_SECTIONS = {
 			name: 'Processing activities',
 			description: 'Learniq declares these processing activities. They arrive in OpenRegister as drafts; the privacy officer checks and activates them there.',
 			content: {
-				endpointSource: { url: `${APP}/api/admin/processing-activities`, responsePath: 'results' },
+				// OpenRegister owns the processing register (ADR-022, OR-PA-7):
+				// the list reads its activities, scoped to learniq's register.
+				endpointSource: { url: '/apps/openregister/api/avg/processing-activities?register=learniq', responsePath: 'results' },
 				presentation: 'rows',
-				title: '{name}',
-				meta: '{purpose}',
-				trailing: '{basis}',
+				title: '{naam}',
+				meta: '{doelbinding}',
+				trailing: '{rechtsgrond}',
+				valueLabels: {
+					rechtsgrond: {
+						consent: 'Consent',
+						contract: 'Contract',
+						'legal-obligation': 'Legal obligation',
+						'vital-interest': 'Vital interest',
+						'public-task': 'Public task',
+						'legitimate-interest': 'Legitimate interest',
+					},
+				},
 				emptyText: 'Learniq declares no processing activities.',
 			},
 		},

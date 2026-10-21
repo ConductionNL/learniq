@@ -22,9 +22,9 @@ page (audit Q7, accepted by Ruben).
 - The Compliance record is saved through `PUT /api/admin/compliance`; a save
   listener writes `privacyconvenantSignedAt` (kept while the agreement stays
   signed) and `lastReviewedBy/At`.
-- The processing activities shown come from the register's
-  `x-openregister-processing` annotations (`GET /api/admin/processing-activities`)
-  instead of a hand-kept list of ten.
+- The processing activities shown are OpenRegister's own
+  (`GET /apps/openregister/api/avg/processing-activities?register=learniq`),
+  instead of a hand-kept list of ten; learniq ships no processing endpoint.
 - The visibility policy is saved through `PUT /api/timetable/visibility-policy`.
 - The settings answer says whether Hermiq is installed; the setup status says
   which segment is in force.

@@ -61,8 +61,6 @@ return [
         ['name' => 'keyAdmin#keyStatus',   'url' => '/api/credentials/admin/key-status',   'verb' => 'GET'],
         ['name' => 'keyAdmin#signingKeyStatus', 'url' => '/api/settings/signing-key',        'verb' => 'GET'],
         ['name' => 'keyAdmin#rotateSigningKey', 'url' => '/api/settings/signing-key/rotate', 'verb' => 'POST'],
-        // The AVG Art. 30 activities the register declares, for the admin page.
-        ['name' => 'processingActivity#index', 'url' => '/api/admin/processing-activities', 'verb' => 'GET'],
         // The Compliance record (processing agreement, privacy notice) as admin settings.
         ['name' => 'complianceSettings#show',   'url' => '/api/admin/compliance', 'verb' => 'GET'],
         ['name' => 'complianceSettings#update', 'url' => '/api/admin/compliance', 'verb' => 'PUT'],
