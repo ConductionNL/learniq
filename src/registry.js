@@ -10,6 +10,8 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
  */
 
+// CnRowMarkList is the roll call page, configured in people.json.
+import { CnRowMarkList } from '@conduction/nextcloud-vue'
 // assignment-missing-submissions-view: body section on AssignmentDetail.
 import AssignmentHandInStatus from './components/sections/AssignmentHandInStatus.vue'
 import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeerReviewAllocation.vue'
@@ -161,7 +163,6 @@ import QtiImportView from './views/QtiImportView.vue'
 import RapportvergaderingReviewView from './views/RapportvergaderingReviewView.vue'
 import RegulationDetailPage from './views/RegulationDetailPage.vue'
 import ReissueCertificatesView from './views/ReissueCertificatesView.vue'
-import RollCallView from './views/RollCallView.vue'
 import RolloverWizard from './views/RolloverWizard.vue'
 // timetabling-room-utilisation: the room use report under Reports.
 import RoomUtilisationReport from './views/RoomUtilisationReport.vue'
@@ -207,7 +208,7 @@ export default {
 	FlowDetailSidebar: page(FlowDetailSidebar),
 
 	// learniq#947
-	RollCallView: page(RollCallView),
+	CnRowMarkList: page(CnRowMarkList),
 	// The lesson page's "Open self check-in" header action.
 	SelfCheckInDialog: {
 		kind: 'modal',

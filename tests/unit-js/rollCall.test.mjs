@@ -1,124 +1,99 @@
 // SPDX-License-Identifier: EUPL-1.2
 // Copyright (C) 2026 Conduction B.V.
 //
-// Unit tests for the roll-call page's rules (attendance-roll-call).
+// Unit tests for the roll-call page (attendance-roll-call): its CnRowMarkList
+// configuration matches what /api/attendance/roll-call reads and the register
+// stores, and the dashboard's "Sessions to mark" leads to it.
 // Run via `npm run test:js-unit`.
 
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
 import { test } from 'node:test'
+import { fileURLToPath } from 'node:url'
 import {
-	incompleteMarks,
 	localDate,
-	marksToSave,
-	rollCallCounts,
 	rollCallRoute,
 	sessionsToMarkFilter,
-	validLateMinutes,
-	withStatus,
 } from '../../src/utils/rollCall.js'
 
-const present = {
-	learnerId: 'vera',
-	name: 'Vera',
-	status: 'present',
-	lateMinutes: null,
-	absenceReasonKind: null,
-	reason: '',
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
+const people = JSON.parse(readFileSync(resolve(root, 'src/manifest.d/people.json'), 'utf8'))
+const register = JSON.parse(readFileSync(resolve(root, 'lib/Settings/learniq_register.json'), 'utf8'))
+const marksPhp = readFileSync(resolve(root, 'lib/Service/Attendance/RollCallMarks.php'), 'utf8')
+const page = people.pages.find((p) => p.id === 'RollCall')
+const content = page.config.content
+
+/**
+ * A PHP array constant of RollCallMarks, read from the source.
+ *
+ * @param {string} name The constant.
+ * @return {string[]} Its string items.
+ */
+function phpList(name) {
+	const match = marksPhp.match(new RegExp(`const ${name} = \\[([^\\]]*)\\]`))
+	return [...match[1].matchAll(/'([^']+)'/g)].map((m) => m[1])
 }
 
-test('a late mark starts at five minutes and an absence with permission on ill', () => {
-	assert.equal(withStatus(present, 'late').lateMinutes, 5)
-	assert.equal(withStatus({ ...present, lateMinutes: 15 }, 'late').lateMinutes, 15)
-	assert.equal(withStatus(present, 'absent-excused').absenceReasonKind, 'illness')
-	assert.equal(
-		withStatus(
-			{ ...present, absenceReasonKind: 'appointment' },
-			'absent-excused',
-		).absenceReasonKind,
-		'appointment',
-	)
-	const back = withStatus(
-		{
-			...present,
-			status: 'absent-excused',
-			absenceReasonKind: 'illness',
-			lateMinutes: 10,
-		},
-		'present',
-	)
-	assert.equal(back.absenceReasonKind, null)
-	assert.equal(back.lateMinutes, null)
-	assert.equal(present.status, 'present', 'the row it came from is left alone')
+/**
+ * A PHP integer constant of RollCallMarks, read from the source.
+ *
+ * @param {string} name The constant.
+ * @return {number} Its value.
+ */
+function phpInt(name) {
+	return Number(marksPhp.match(new RegExp(`const ${name} = (\\d+)`))[1])
+}
+
+const field = (name) => content.detailFields.find((f) => f.field === name)
+
+test('the roll-call page is the row mark list over the roll-call endpoint', () => {
+	assert.equal(page.type, 'custom')
+	assert.equal(page.component, 'CnRowMarkList')
+	assert.equal(content.load.url, '/apps/learniq/api/attendance/roll-call')
+	assert.equal(content.save.url, content.load.url)
+	assert.equal(content.save.rowsKey, 'marks')
+	assert.deepEqual(Object.keys(content.save.body).sort(), ['cohortId', 'date', 'sessionId'])
+	assert.equal(content.rowKey, 'learnerId')
+	assert.equal(content.stateField, 'status')
+	assert.equal(content.defaultState, 'present')
 })
 
-test('late minutes are whole minutes from 1 to 600', () => {
-	assert.equal(validLateMinutes(10), true)
-	assert.equal(validLateMinutes('25'), true)
-	assert.equal(validLateMinutes(0), false)
-	assert.equal(validLateMinutes(601), false)
-	assert.equal(validLateMinutes(2.5), false)
-	assert.equal(validLateMinutes(''), false)
+test('every mark is one the server stores, and each key is used once', () => {
+	const statuses = phpList('STATUSES')
+	for (const state of content.states) {
+		assert.ok(statuses.includes(state.value), state.value)
+	}
+	const keys = content.states.map((state) => state.key)
+	assert.equal(new Set(keys).size, keys.length)
 })
 
-test('an incomplete mark is named before the save', () => {
-	const pupils = [
-		{ ...present, learnerId: 'a', status: 'late', lateMinutes: '' },
-		{
-			...present,
-			learnerId: 'b',
-			status: 'absent-excused',
-			absenceReasonKind: null,
-		},
-		{ ...present, learnerId: 'c', status: 'absent-unexcused' },
-		{ ...present, learnerId: 'd', status: 'late', lateMinutes: 10 },
-	]
-	assert.deepEqual(
-		incompleteMarks(pupils).map((p) => p.learnerId),
-		['a', 'b'],
-	)
+test('a late mark starts at five minutes, up to the server bound', () => {
+	const late = field('lateMinutes')
+	assert.deepEqual(late.states, ['late'])
+	assert.equal(late.default, 5)
+	assert.deepEqual(late.quick, [5, 10, 15])
+	assert.equal(late.min, 1)
+	assert.equal(late.max, phpInt('MAX_LATE_MINUTES'))
+	assert.equal(late.required, true)
 })
 
-test('a save sends one mark per pupil with only what the server reads', () => {
-	const marks = marksToSave([
-		{
-			...present,
-			learnerId: 'vera',
-			status: 'late',
-			lateMinutes: '10',
-			recordId: 'r1',
-			name: 'Vera',
-		},
-		{
-			...present,
-			learnerId: 'daan',
-			status: 'absent-unexcused',
-			reason: '  Niet gemeld ',
-		},
-		{ ...present, learnerId: 'noor' },
-	])
-	assert.deepEqual(marks, [
-		{ learnerId: 'vera', status: 'late', lateMinutes: 10 },
-		{
-			learnerId: 'daan',
-			status: 'absent-unexcused',
-			absenceReasonKind: null,
-			reason: 'Niet gemeld',
-		},
-		{ learnerId: 'noor', status: 'present' },
-	])
+test('an absence with permission needs a reason from the one register vocabulary', () => {
+	const reason = field('absenceReasonKind')
+	assert.deepEqual(reason.states, ['absent-excused'])
+	assert.equal(reason.default, 'illness')
+	assert.equal(reason.required, true)
+	const options = reason.options.map((o) => o.value)
+	assert.deepEqual(options, phpList('REASON_KINDS'))
+	const stored = register.components.schemas.AttendanceRecord.properties.absenceReasonKind.enum.filter((v) => v !== null)
+	assert.deepEqual(options, stored)
 })
 
-test('the counts above the list add up', () => {
-	assert.deepEqual(
-		rollCallCounts([
-			{ status: 'present' },
-			{ status: 'late' },
-			{ status: 'absent-excused' },
-			{ status: 'absent-unexcused' },
-			{ status: 'left-early' },
-		]),
-		{ present: 2, late: 1, absentAuthorised: 1, absentUnauthorised: 1 },
-	)
+test('the note is optional, shown off present, within the server bound', () => {
+	const note = field('reason')
+	assert.deepEqual(note.notStates, ['present'])
+	assert.notEqual(note.required, true)
+	assert.equal(note.maxlength, phpInt('MAX_REASON_LENGTH'))
 })
 
 test('sessionsToMarkFilter lists lessons up to today, newest first', () => {

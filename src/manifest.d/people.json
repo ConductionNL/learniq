@@ -1196,8 +1196,199 @@
 			"route": "/attendance/roll-call",
 			"type": "custom",
 			"title": "Today's register",
-			"component": "RollCallView",
-			"_note": "Mounts RollCallView (attendance-roll-call): one screen per group and day, everyone present by default, one tap per exception, saved through /api/attendance/roll-call."
+			"component": "CnRowMarkList",
+			"config": {
+				"content": {
+					"heading": "Attendance register",
+					"headingPath": "cohortName",
+					"load": {
+						"url": "/apps/learniq/api/attendance/roll-call"
+					},
+					"save": {
+						"url": "/apps/learniq/api/attendance/roll-call",
+						"body": {
+							"cohortId": "cohortId",
+							"date": "date",
+							"sessionId": "sessionId"
+						},
+						"rowsKey": "marks"
+					},
+					"rowsPath": "pupils",
+					"rowKey": "learnerId",
+					"labelField": "name",
+					"stateField": "status",
+					"defaultState": "present",
+					"editablePath": "editable",
+					"states": [
+						{
+							"value": "present",
+							"label": "Present",
+							"key": "P",
+							"countLabel": "{n} present"
+						},
+						{
+							"value": "late",
+							"label": "Late",
+							"key": "L",
+							"countLabel": "{n} late"
+						},
+						{
+							"value": "absent-excused",
+							"label": "Absent with permission",
+							"key": "E",
+							"countLabel": "{n} absent with permission"
+						},
+						{
+							"value": "absent-unexcused",
+							"label": "Absent without permission",
+							"key": "U",
+							"countLabel": "{n} absent without permission"
+						}
+					],
+					"detailFields": [
+						{
+							"field": "lateMinutes",
+							"label": "Minutes late",
+							"type": "number",
+							"states": [
+								"late"
+							],
+							"quick": [
+								5,
+								10,
+								15
+							],
+							"min": 1,
+							"max": 600,
+							"otherLabel": "Other number of minutes",
+							"required": true,
+							"default": 5
+						},
+						{
+							"field": "absenceReasonKind",
+							"label": "Reason",
+							"type": "select",
+							"states": [
+								"absent-excused"
+							],
+							"options": [
+								{
+									"value": "illness",
+									"label": "Ill"
+								},
+								{
+									"value": "appointment",
+									"label": "Appointment"
+								},
+								{
+									"value": "other",
+									"label": "Other"
+								}
+							],
+							"required": true,
+							"default": "illness"
+						},
+						{
+							"field": "reason",
+							"label": "Note (optional)",
+							"type": "text",
+							"notStates": [
+								"present"
+							],
+							"maxlength": 500
+						}
+					],
+					"badges": [
+						{
+							"path": "markedVia",
+							"equals": "self-check-in",
+							"text": "checked in"
+						},
+						{
+							"path": "report.lifecycle",
+							"equals": "approved",
+							"text": "Absence report approved: {reason}",
+							"vars": {
+								"reason": "report.reason"
+							}
+						},
+						{
+							"path": "report.lifecycle",
+							"notEquals": "approved",
+							"text": "Absence report waiting for a decision: {reason}",
+							"vars": {
+								"reason": "report.reason"
+							}
+						}
+					],
+					"controls": [
+						{
+							"param": "cohortId",
+							"type": "select",
+							"label": "Group",
+							"optionsPath": "cohorts",
+							"optionValue": "id",
+							"optionLabel": "name",
+							"valuePath": "cohortId",
+							"resets": [
+								"sessionId"
+							]
+						},
+						{
+							"param": "date",
+							"type": "date",
+							"label": "Day",
+							"valuePath": "date",
+							"maxPath": "today",
+							"todayPath": "today",
+							"resets": [
+								"sessionId"
+							]
+						},
+						{
+							"param": "sessionId",
+							"type": "select",
+							"label": "Lesson",
+							"optionsPath": "sessions",
+							"optionValue": "id",
+							"optionLabel": "title",
+							"valuePath": "sessionId"
+						}
+					],
+					"notices": [
+						{
+							"path": "cohorts",
+							"missing": true,
+							"type": "info",
+							"text": "You are not the teacher of a group yet."
+						},
+						{
+							"path": "locked",
+							"equals": "past-saved",
+							"type": "info",
+							"text": "This day's register is saved. Ask a coordinator to change it."
+						},
+						{
+							"path": "locked",
+							"equals": "future",
+							"type": "info",
+							"text": "You can only take the register for today or an earlier day."
+						},
+						{
+							"path": "sessionId",
+							"missing": true,
+							"type": "info",
+							"text": "There is no lesson on this day yet. Saving the register adds one."
+						}
+					],
+					"emptyText": "No learners in this group",
+					"saveLabel": "Save the register",
+					"savedText": "The register is saved.",
+					"incompleteText": "Check the marks of: {names}. A late mark needs its minutes and an absence with permission needs a reason.",
+					"loadErrorText": "The register could not be loaded.",
+					"saveErrorText": "The register could not be saved. Try again."
+				}
+			}
 		},
 		{
 			"id": "ExcuseRequests",
