@@ -223,6 +223,34 @@
 			"config": {
 				"register": "learniq",
 				"schema": "Enrolment",
+				"headerActions": [
+					{
+						"id": "enrol-group",
+						"label": "Enrol a group",
+						"icon": "AccountGroup",
+						"type": "open-form",
+						"register": "learniq",
+						"endpoint": {
+							"url": "/apps/learniq/api/enrolments/bulk",
+							"method": "POST"
+						},
+						"formProperties": {
+							"courseId": {
+								"type": "string",
+								"format": "uuid",
+								"$ref": "course",
+								"title": "Course"
+							},
+							"cohortId": {
+								"type": "string",
+								"format": "uuid",
+								"$ref": "cohort",
+								"title": "Group",
+								"description": "Everyone in the group without an open enrolment for the course is enrolled."
+							}
+						}
+					}
+				],
 				"columns": [
 					{
 						"key": "learnerId",
@@ -666,14 +694,6 @@
 					]
 				}
 			}
-		},
-		{
-			"id": "BulkEnrol",
-			"route": "/enrolments/bulk",
-			"type": "custom",
-			"title": "Bulk Enrol",
-			"component": "BulkEnrolView",
-			"_note": "Mounts BulkEnrolView (learniq#947): a course plus a cohort and/or picked learners; learners with an open enrolment are skipped."
 		},
 		{
 			"id": "CredentialDetail",
@@ -1187,6 +1207,23 @@
 			"config": {
 				"register": "learniq",
 				"schema": "excuse-request",
+				"headerActions": [
+					{
+						"id": "report-absence",
+						"label": "Report an absence",
+						"icon": "Plus",
+						"type": "open-form",
+						"register": "learniq",
+						"schema": "excuse-request",
+						"includeFields": [
+							"learnerRef",
+							"dateFrom",
+							"dateTo",
+							"reasonKind",
+							"reason"
+						]
+					}
+				],
 				"columns": [
 					{
 						"key": "learnerRef",
@@ -1726,14 +1763,6 @@
 			}
 		},
 		{
-			"id": "SubmitExcuseModal",
-			"route": "/attendance/excuses/submit",
-			"type": "custom",
-			"title": "Submit excuse",
-			"component": "SubmitExcuseView",
-			"_note": "Mounts SubmitExcuseView (learniq#947): a staff form that records an ExcuseRequest for a learner."
-		},
-		{
 			"id": "LearnerProfiles",
 			"route": "/learner-profiles",
 			"type": "index",
@@ -1950,18 +1979,18 @@
 									"schema": "dossier-note",
 									"metric": "count",
 									"filter": {
-										"learnerId": "@objectId"
+										"learnerId": "@object.ncUserId"
 									},
 									"route": {
 										"name": "PupilDossierTimelineView",
 										"query": {
-											"learnerId": "@objectId"
+											"learnerId": "@object.ncUserId"
 										}
 									}
 								}
 							]
 						},
-						"_note": "pupil-dossier-notes: this KPI's route is the only token-resolved (@objectId) deep link from a detail page to another named route this manifest dialect supports (stats-block entry.route, resolved by CnStatsBlockWidget) — clicking it opens PupilDossierTimelineView pre-scoped to this learner. open-page/navigate header actions were considered but do NOT carry the current object id (verified against actionsDispatcher.js at HEAD)."
+						"_note": "The timeline sources store the learner's Nextcloud user id in learnerId, so the count and the deep link pass the profile's ncUserId, not its uuid."
 					},
 					{
 						"id": "lprof-enrol",

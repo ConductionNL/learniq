@@ -4207,6 +4207,13 @@ OC.L10N.register(
         "Learning path": "Leerweg",
         "or": "of",
         "Training course": "Cursus",
+        "Dissolve": "Opheffen",
+        "Run the rollover from {from} to {to}? It creates the new groups and moves the enrolments. You cannot undo it.": "De jaarovergang van {from} naar {to} uitvoeren? Dit maakt de nieuwe groepen en zet de inschrijvingen over. Je kunt dit niet ongedaan maken.",
+        "The rollover runs now. You get a notification when it is done.": "De jaarovergang loopt nu. Je krijgt een melding als hij klaar is.",
+        "The rollover did not start.": "De jaarovergang is niet gestart.",
+        "The mapping could not be proposed.": "Er kon geen indeling worden voorgesteld.",
+        "The preview could not be made.": "Het voorbeeld kon niet worden gemaakt.",
+        "The plan could not be saved.": "Het plan kon niet worden opgeslagen.",
         "This document can no longer be signed.": "Dit document kan niet meer worden ondertekend.",
         "You are not one of the people who sign this document.": "Je hoort niet bij de mensen die dit document ondertekenen.",
         "You cannot sign this document in that role.": "Je kunt dit document niet in die rol ondertekenen.",
@@ -4225,7 +4232,14 @@ OC.L10N.register(
         "The signing key was rotated. Credentials issued before stay verifiable.": "De ondertekeningssleutel is vervangen. Eerder uitgegeven credentials blijven controleerbaar.",
         "A signing key was generated.": "Er is een ondertekeningssleutel gemaakt.",
         "The signing key was rotated less than a day ago. Try again tomorrow.": "De ondertekeningssleutel is minder dan een dag geleden vervangen. Probeer het morgen opnieuw.",
-        "Only an administrator can change the signing key.": "Alleen een beheerder kan de ondertekeningssleutel wijzigen."
+        "Only an administrator can change the signing key.": "Alleen een beheerder kan de ondertekeningssleutel wijzigen.",
+        "Introduction: replace with your own text": "Inleiding: vervang dit door je eigen tekst",
+        "Curriculum plan for %s": "Leerplan voor %s",
+        "You are not allowed to save course templates.": "Je mag geen cursussjablonen opslaan.",
+        "You are not allowed to create courses.": "Je mag geen cursussen aanmaken.",
+        "The time could not be placed. Check the teacher and the times, and try again.": "De tijd kon niet worden ingepland. Controleer de leraar en de tijden en probeer het opnieuw.",
+        "Enrol a group": "Een groep inschrijven",
+        "Everyone in the group without an open enrolment for the course is enrolled.": "Iedereen in de groep zonder lopende inschrijving voor de cursus wordt ingeschreven."
     },
     "nplurals=2; plural=(n != 1);"
 )

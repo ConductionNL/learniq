@@ -181,6 +181,12 @@ return [
         // Controller: LessonNextStepController (slug: lessonNextStep), content-adaptive-next-step-and-preview.
         ['name' => 'lessonNextStep#nextStep',        'url' => '/api/lessons/{lessonId}/next-step',              'verb' => 'GET'],
         ['name' => 'lessonNextStep#coursePreview',   'url' => '/api/courses/{courseId}/preview',                'verb' => 'GET'],
+        // Controller: CourseTemplateController (slug: courseTemplate). The course builder's
+        // tree read (one query for all lessons), Save as template and New course from
+        // template; #[NoAdminRequired], OpenRegister RBAC decides every read and write.
+        ['name' => 'courseTemplate#structure',      'url' => '/api/courses/{id}/structure',                    'verb' => 'GET'],
+        ['name' => 'courseTemplate#saveAsTemplate', 'url' => '/api/courses/{id}/save-as-template',             'verb' => 'POST'],
+        ['name' => 'courseTemplate#instantiate',    'url' => '/api/course-templates/{id}/instantiate',         'verb' => 'POST'],
 
         // Portal test taking (assessment-portal-endpoints): the five steps of
         // portaliq's timed task, forwarded server-to-server. #[PublicPage]
@@ -304,6 +310,10 @@ return [
         // Controller: RequestSubmitController (slug: requestSubmit).
         ['name' => 'requestSubmit#subjectChoice', 'url' => '/api/subject-choices', 'verb' => 'POST'],
         ['name' => 'requestSubmit#conferenceSignup', 'url' => '/api/conference-signups', 'verb' => 'POST'],
+        // Enrol a group in a course (header action on the enrolments list);
+        // each enrolment is created as the caller, open ones are skipped.
+        // Controller: BulkEnrolController (slug: bulkEnrol).
+        ['name' => 'bulkEnrol#enrol', 'url' => '/api/enrolments/bulk', 'verb' => 'POST'],
         // Portal check-in receiver (attendance-self-check-in, pattern of #1096
         // and #1142): X-Portal-Subject assertion only, learnerRef from portaliq.
         // Controller: PortalCheckInController (slug: portalCheckIn).
