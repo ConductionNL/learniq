@@ -55,7 +55,6 @@ namespace OCA\Learniq\Controller;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\PersonalTimetableService;
-use OCA\Learniq\Service\StandbyCalendar;
 use OCA\Learniq\Service\TimetableProjector;
 use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
 use OCP\AppFramework\Controller;
@@ -67,7 +66,6 @@ use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
-use Throwable;
 
 /**
  * Personal timetable read surface over existing Session/Cohort/Enrolment objects.
@@ -92,7 +90,6 @@ class TimetableController extends Controller {
 	 * @param TimetableSourceResolver $sources Where sessions are read from: planninq when installed, else Session.
 	 * @param PersonalTimetableService $timetable The caller's own lessons, shared with the calendar feed.
 	 * @param LoggerInterface $logger Application logger.
-	 * @param StandbyCalendar|null $standby The caller's standby blocks, shown in the week.
 	 */
 	public function __construct(
 		IRequest $request,
@@ -102,7 +99,6 @@ class TimetableController extends Controller {
 		private readonly TimetableSourceResolver $sources,
 		private readonly PersonalTimetableService $timetable,
 		private readonly LoggerInterface $logger,
-		private readonly ?StandbyCalendar $standby = null,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -148,36 +144,11 @@ class TimetableController extends Controller {
 				'to' => $windowTo,
 				'changes' => $timetable['changes'],
 				'source' => $timetable['source'],
-				'standby' => $this->standbyBlocks(uid: $user->getUID(), from: $windowFrom, to: $windowTo),
+				'standby' => $this->timetable->standbyFor(uid: $user->getUID(), from: $windowFrom, to: $windowTo),
 			],
 			statusCode: Http::STATUS_OK
 		);
 	}//end mine()
-
-	/**
-	 * The caller's standby blocks in the window, so the week shows them next
-	 * to the lessons; none when the calendar is not wired or the read fails.
-	 *
-	 * @param string $uid  The caller.
-	 * @param string $from Window start.
-	 * @param string $to   Window end.
-	 *
-	 * @return array<int, array<string, mixed>>
-	 *
-	 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
-	 */
-	private function standbyBlocks(string $uid, string $from, string $to): array {
-		if ($this->standby === null) {
-			return [];
-		}
-
-		try {
-			return $this->standby->blocksFor(uid: $uid, from: $from, to: $to);
-		} catch (Throwable $e) {
-			$this->logger->warning('[TimetableController] Could not read standby blocks: {msg}', ['msg' => $e->getMessage()]);
-			return [];
-		}
-	}//end standbyBlocks()
 
 	/**
 	 * Return one cohort's sessions for a window, from the current timetable source.

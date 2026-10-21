@@ -172,10 +172,10 @@ class TimetableControllerTest extends TestCase {
 				objectService: $this->objectService,
 				projector: $projector,
 				sources: $sources,
-				logger: $this->logger
+				logger: $this->logger,
+				standby: $this->standby
 			),
 			logger: $this->logger,
-			standby: $this->standby,
 		);
 	}//end controller()
 
@@ -187,7 +187,7 @@ class TimetableControllerTest extends TestCase {
 	private ?StandbyCalendar $standby = null;
 
 	/**
-	 * The week carries the caller's standby blocks, and none when they cannot be read.
+	 * The week carries the caller's standby blocks, and none without a calendar.
 	 *
 	 * @return void
 	 *
@@ -201,8 +201,7 @@ class TimetableControllerTest extends TestCase {
 		$this->standby->method('blocksFor')->willReturn([$block]);
 		$this->assertSame([$block], $this->body($this->controller()->mine(from: $this->from, to: $this->to))['standby']);
 
-		$this->standby = $this->createMock(StandbyCalendar::class);
-		$this->standby->method('blocksFor')->willThrowException(new \RuntimeException('gone'));
+		$this->standby = null;
 		$this->assertSame([], $this->body($this->controller()->mine(from: $this->from, to: $this->to))['standby']);
 	}//end testTheWeekCarriesTheStandbyBlocks()
 

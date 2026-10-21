@@ -63,12 +63,14 @@ class PersonalTimetableService {
 	 * @param TimetableProjector      $projector     Window resolution and Session projection.
 	 * @param TimetableSourceResolver $sources       Where sessions are read from: planninq when installed, else Session.
 	 * @param LoggerInterface         $logger        Application logger.
+	 * @param StandbyCalendar|null    $standby       The user's standby blocks, shown in the week.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly TimetableProjector $projector,
 		private readonly TimetableSourceResolver $sources,
 		private readonly LoggerInterface $logger,
+		private readonly ?StandbyCalendar $standby = null,
 	) {
 	}//end __construct()
 
@@ -366,4 +368,23 @@ class PersonalTimetableService {
 
 		return $out;
 	}//end toStringList()
+	/**
+	 * The user's standby blocks in the window, so the week shows them next to
+	 * the lessons; none when the calendar is not wired.
+	 *
+	 * @param string $uid  The user.
+	 * @param string $from Window start.
+	 * @param string $to   Window end.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+	 */
+	public function standbyFor(string $uid, string $from, string $to): array {
+		if ($this->standby === null) {
+			return [];
+		}
+
+		return $this->standby->blocksFor(uid: $uid, from: $from, to: $to);
+	}//end standbyFor()
 }//end class
