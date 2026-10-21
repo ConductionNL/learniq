@@ -4206,7 +4206,8 @@ OC.L10N.register(
         "Level %s": "Niveau %s",
         "Learning path": "Leerweg",
         "or": "of",
-        "Training course": "Cursus"
+        "Training course": "Cursus",
+        "The time could not be placed. Check the teacher and the times, and try again.": "De tijd kon niet worden ingepland. Controleer de leraar en de tijden en probeer het opnieuw."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -109,11 +109,11 @@
 				</div>
 
 				<div class="admissions-review-board__actions">
-					<a
+					<RouterLink
 						class="button-vue button-vue--vue-primary"
-						:href="decisionHref(application)">
+						:to="decisionRoute(application)">
 						{{ t('learniq', 'Record decision') }}
-					</a>
+					</RouterLink>
 				</div>
 			</li>
 		</ul>
@@ -121,6 +121,7 @@
 </template>
 
 <script>
+import { getCanonicalLocale } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
@@ -301,15 +302,15 @@ export default {
 		},
 
 		/**
-		 * Build the href to record a decision for this application on its detail page.
+		 * The application's detail page, where the decision is recorded.
 		 *
 		 * @param {object} application Application object
 		 * @return {string}
 		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
-		decisionHref(application) {
+		decisionRoute(application) {
 			const id = application.id || application.uuid
-			return `#/admissions/applications/${id}`
+			return `/admissions/applications/${encodeURIComponent(id)}`
 		},
 
 		/**
@@ -322,7 +323,7 @@ export default {
 		formatDate(dt) {
 			if (!dt) return this.t('learniq', 'not set')
 			try {
-				return new Intl.DateTimeFormat(navigator.language, {
+				return new Intl.DateTimeFormat(getCanonicalLocale(), {
 					year: 'numeric',
 					month: 'short',
 					day: 'numeric',

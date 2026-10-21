@@ -3790,7 +3790,8 @@
         "Level %s": "Level %s",
         "Learning path": "Learning path",
         "or": "or",
-        "Training course": "Training course"
+        "Training course": "Training course",
+        "The time could not be placed. Check the teacher and the times, and try again.": "The time could not be placed. Check the teacher and the times, and try again."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
