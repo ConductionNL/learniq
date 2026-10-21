@@ -4225,7 +4225,11 @@ OC.L10N.register(
         "The signing key was rotated. Credentials issued before stay verifiable.": "De ondertekeningssleutel is vervangen. Eerder uitgegeven credentials blijven controleerbaar.",
         "A signing key was generated.": "Er is een ondertekeningssleutel gemaakt.",
         "The signing key was rotated less than a day ago. Try again tomorrow.": "De ondertekeningssleutel is minder dan een dag geleden vervangen. Probeer het morgen opnieuw.",
-        "Only an administrator can change the signing key.": "Alleen een beheerder kan de ondertekeningssleutel wijzigen."
+        "Only an administrator can change the signing key.": "Alleen een beheerder kan de ondertekeningssleutel wijzigen.",
+        "Introduction: replace with your own text": "Inleiding: vervang dit door je eigen tekst",
+        "Curriculum plan for %s": "Leerplan voor %s",
+        "You are not allowed to save course templates.": "Je mag geen cursussjablonen opslaan.",
+        "You are not allowed to create courses.": "Je mag geen cursussen aanmaken."
     },
     "nplurals=2; plural=(n != 1);"
 )

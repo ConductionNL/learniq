@@ -3809,7 +3809,11 @@
         "The signing key was rotated. Credentials issued before stay verifiable.": "The signing key was rotated. Credentials issued before stay verifiable.",
         "A signing key was generated.": "A signing key was generated.",
         "The signing key was rotated less than a day ago. Try again tomorrow.": "The signing key was rotated less than a day ago. Try again tomorrow.",
-        "Only an administrator can change the signing key.": "Only an administrator can change the signing key."
+        "Only an administrator can change the signing key.": "Only an administrator can change the signing key.",
+        "Introduction: replace with your own text": "Introduction: replace with your own text",
+        "Curriculum plan for %s": "Curriculum plan for %s",
+        "You are not allowed to save course templates.": "You are not allowed to save course templates.",
+        "You are not allowed to create courses.": "You are not allowed to create courses."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
