@@ -4206,7 +4206,12 @@ OC.L10N.register(
         "Level %s": "Niveau %s",
         "Learning path": "Leerweg",
         "or": "of",
-        "Training course": "Cursus"
+        "Training course": "Cursus",
+        "This document can no longer be signed.": "Dit document kan niet meer worden ondertekend.",
+        "You are not one of the people who sign this document.": "Je hoort niet bij de mensen die dit document ondertekenen.",
+        "You cannot sign this document in that role.": "Je kunt dit document niet in die rol ondertekenen.",
+        "You have already signed this version in that role.": "Je hebt deze versie al in die rol ondertekend.",
+        "Sign and confirm that you agree before saving.": "Onderteken en bevestig dat je akkoord gaat voordat je opslaat."
     },
     "nplurals=2; plural=(n != 1);"
 )

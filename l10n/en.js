@@ -3752,7 +3752,12 @@ OC.L10N.register(
         "Level %s": "Level %s",
         "Learning path": "Learning path",
         "or": "or",
-        "Training course": "Training course"
+        "Training course": "Training course",
+        "This document can no longer be signed.": "This document can no longer be signed.",
+        "You are not one of the people who sign this document.": "You are not one of the people who sign this document.",
+        "You cannot sign this document in that role.": "You cannot sign this document in that role.",
+        "You have already signed this version in that role.": "You have already signed this version in that role.",
+        "Sign and confirm that you agree before saving.": "Sign and confirm that you agree before saving."
     },
     "nplurals=2; plural=(n != 1);"
 )
