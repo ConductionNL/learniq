@@ -42,24 +42,21 @@ import AdmissionsReviewBoard from './views/AdmissionsReviewBoard.vue'
 import AllocateMarkersView from './views/AllocateMarkersView.vue'
 // learniq#948: score one open question for every submitted attempt in turn.
 import AssessmentScoringView from './views/AssessmentScoringView.vue'
-// learniq#947: AttendanceRegisterView, BulkEnrolView, CohortGradebookView,
-// CohortTimetableView, ExportRequestView, LearningPlanEditorView,
-// QtiImportView, SignatureView, SubmitExcuseView and
+// learniq#947: CohortGradebookView, ExportRequestView,
+// LearningPlanEditorView, QtiImportView, SignatureView and
 // SubmitWorkView are thin views for the custom pages that named a library
 // component directly and so opened as "This page is empty".
-import AttendanceRegisterView from './views/AttendanceRegisterView.vue'
 // parent-evening-planner: the guardian/self conversation-slot picker and the
 // coordinator's manual-override / regenerate board.
 import BookConferenceSlotsView from './views/BookConferenceSlotsView.vue'
+import SelfCheckInDialog from './dialogs/SelfCheckInDialog.vue'
 // bsa-study-progress-guard / competency-framework: these two custom views
 // existed but were never added to this registry (a pre-existing gap
 // discovered while wiring learning-progress-and-analytics's own new custom
 // view below — both routes were unreachable at HEAD; fixed here alongside).
 import BsaRiskDashboard from './views/BsaRiskDashboard.vue'
-import BulkEnrolView from './views/BulkEnrolView.vue'
 import CheckInPage from './views/CheckInPage.vue'
 import CohortGradebookView from './views/CohortGradebookView.vue'
-import CohortTimetableView from './views/CohortTimetableView.vue'
 import ConferenceScheduleBoard from './views/ConferenceScheduleBoard.vue'
 import ContactHoursReport from './views/ContactHoursReport.vue'
 // course-authoring-ux: the two genuine new custom views this change adds —
@@ -194,7 +191,6 @@ import SkillsGapDashboard from './views/SkillsGapDashboard.vue'
 // timetabling-standby-slots: the standby planning grid.
 import StandbyPlanning from './views/StandbyPlanning.vue'
 import SubjectChoicePicker from './views/SubjectChoicePicker.vue'
-import SubmitExcuseView from './views/SubmitExcuseView.vue'
 import SubmitWorkView from './views/SubmitWorkView.vue'
 import TakeAssessmentView from './views/TakeAssessmentView.vue'
 // timetabling-and-substitution: the one genuine new routed custom view this
@@ -257,19 +253,21 @@ export default {
 	CnTimelineView: page(CnTimelineView),
 	CnWizardDialog: page(CnWizardDialog),
 	// learniq#947
-	AttendanceRegisterView: page(AttendanceRegisterView),
 	RollCallView: page(RollCallView),
-	BulkEnrolView: page(BulkEnrolView),
+	// The lesson page's "Open self check-in" header action.
+	SelfCheckInDialog: {
+		kind: 'modal',
+		component: SelfCheckInDialog,
+		propsSchema: { type: 'object', properties: { sessionId: { type: 'string' } }, required: ['sessionId'] },
+	},
 	CheckInPage: page(CheckInPage),
 	CourseCatalogue: page(CourseCatalogue),
 	CohortGradebookView: page(CohortGradebookView),
-	CohortTimetableView: page(CohortTimetableView),
 	ExportRequestView: page(ExportRequestView),
 	LearningPlanEditorView: page(LearningPlanEditorView),
 	QtiImportView: page(QtiImportView),
 	SignatureView: page(SignatureView),
 	StandbyPlanning: page(StandbyPlanning),
-	SubmitExcuseView: page(SubmitExcuseView),
 	TimetableLookup: page(TimetableLookup),
 	SubmitWorkView: page(SubmitWorkView),
 

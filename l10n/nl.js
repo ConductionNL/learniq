@@ -4206,7 +4206,9 @@ OC.L10N.register(
         "Level %s": "Niveau %s",
         "Learning path": "Leerweg",
         "or": "of",
-        "Training course": "Cursus"
+        "Training course": "Cursus",
+        "Enrol a group": "Een groep inschrijven",
+        "Everyone in the group without an open enrolment for the course is enrolled.": "Iedereen in de groep zonder lopende inschrijving voor de cursus wordt ingeschreven."
     },
     "nplurals=2; plural=(n != 1);"
 )

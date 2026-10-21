@@ -2,10 +2,10 @@
 <!-- Copyright (C) 2026 Conduction B.V. -->
 
 <!--
- SelfCheckInPanel: the teacher opens self check-in for a lesson from the
- register (attendance-self-check-in).
+ SelfCheckInPanel: the teacher opens self check-in for a lesson
+ (attendance-self-check-in), in SelfCheckInDialog from the lesson's page.
 
- Creates a CheckInWindow (staff only in the register), then shows the code
+ Creates a CheckInWindow (staff only), then shows the code
  from learniq's GET /api/check-in/{id}/code in large letters, refreshed with
  every thirty-second step, the check-in link for an online lesson and the
  count of check-ins so far. Learners type the code on their check-in page or
@@ -78,9 +78,9 @@ export default {
 	components: { NcButton, NcNoteCard },
 
 	props: {
-		/** The Session the register is for. */
-		session: {
-			type: Object,
+		/** The uuid of the lesson (Session) to open check-in for. */
+		sessionId: {
+			type: String,
 			required: true,
 		},
 	},
@@ -119,7 +119,7 @@ export default {
 					(
 						await axios.post(
 							generateUrl(objectsUrl('check-in-window')),
-							{ sessionId: objectId(this.session), mode },
+							{ sessionId: this.sessionId, mode },
 						)
 					).data,
 				)

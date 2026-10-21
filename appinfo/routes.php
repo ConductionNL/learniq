@@ -297,6 +297,10 @@ return [
         // Controller: RequestSubmitController (slug: requestSubmit).
         ['name' => 'requestSubmit#subjectChoice', 'url' => '/api/subject-choices', 'verb' => 'POST'],
         ['name' => 'requestSubmit#conferenceSignup', 'url' => '/api/conference-signups', 'verb' => 'POST'],
+        // Enrol a group in a course (header action on the enrolments list);
+        // each enrolment is created as the caller, open ones are skipped.
+        // Controller: BulkEnrolController (slug: bulkEnrol).
+        ['name' => 'bulkEnrol#enrol', 'url' => '/api/enrolments/bulk', 'verb' => 'POST'],
         // Portal check-in receiver (attendance-self-check-in, pattern of #1096
         // and #1142): X-Portal-Subject assertion only, learnerRef from portaliq.
         // Controller: PortalCheckInController (slug: portalCheckIn).

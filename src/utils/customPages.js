@@ -15,25 +15,6 @@
 /** OpenRegister's object API for the learniq register. */
 export const OBJECTS = '/apps/openregister/api/objects/learniq'
 
-/** The AttendanceRecord.status values, in the order the register offers them. */
-export const ATTENDANCE_STATUSES = [
-	'present',
-	'late',
-	'left-early',
-	'absent-excused',
-	'absent-unexcused',
-]
-
-/** The ExcuseRequest.reasonKind values. */
-export const EXCUSE_REASON_KINDS = [
-	'illness',
-	'medical-appointment',
-	'family-circumstance',
-	'religious-observance',
-	'bereavement',
-	'other',
-]
-
 /**
  * The URL of a schema's collection, or of one object in it.
  *
@@ -108,78 +89,6 @@ export function oneObject(body) {
  */
 export function objectId(object) {
 	return String(object?.id ?? object?.uuid ?? object?.['@self']?.id ?? '')
-}
-
-/**
- * One register row per learner in the session's cohort: the saved record
- * when there is one, otherwise a new row defaulting to present.
- *
- * @param {string[]} learnerIds Cohort.learnerIds (Nextcloud user ids).
- * @param {object[]} records Existing AttendanceRecords for the session.
- * @return {Array<{learnerId: string, status: string, reason: string, recordId: string, markedVia: string, savedStatus: (string|null), savedReason: string}>} Rows.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- */
-export function attendanceRows(learnerIds, records) {
-	const byLearner = new Map(records.map((r) => [r.learnerId, r]))
-	return [...new Set(learnerIds)].map((learnerId) => {
-		const saved = byLearner.get(learnerId)
-		return {
-			learnerId,
-			status: saved?.status ?? 'present',
-			reason: saved?.reason ?? '',
-			recordId: saved ? objectId(saved) : '',
-			markedVia: saved?.markedVia ?? 'teacher',
-			savedStatus: saved?.status ?? null,
-			savedReason: saved?.reason ?? '',
-		}
-	})
-}
-
-/**
- * The AttendanceRecord body for one register row.
- *
- * @param {object} row A row from attendanceRows().
- * @param {object} session The Session.
- * @param {string} markedBy Nextcloud user id of the teacher.
- * @param {string} markedAt ISO date-time.
- * @return {object} The record body.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- */
-export function attendanceRecord(row, session, markedBy, markedAt) {
-	const body = {
-		sessionId: objectId(session),
-		learnerId: row.learnerId,
-		cohortId: session.cohortId ?? null,
-		status: row.status,
-		markedBy,
-		markedAt,
-		markedVia: 'teacher',
-		tenant_id: session.tenant_id ?? '',
-	}
-	if (row.reason) body.reason = row.reason
-	return body
-}
-
-/**
- * The register rows a save writes: every row, except a learner's own self
- * check-in the teacher left as it was, so saving the register never turns a
- * self check-in into a teacher mark by accident (attendance-self-check-in).
- * A self check-in the teacher changed is written, and becomes a teacher mark.
- *
- * @param {object[]} rows Rows from attendanceRows(), as edited.
- * @return {object[]} The rows to write.
- * @spec openspec/specs/attendance/spec.md#requirement-a-self-check-in-never-overwrites-a-mark
- */
-export function registerRowsToSave(rows) {
-	return rows.filter(
-		(row) =>
-			!(
-				row.recordId
-				&& row.markedVia === 'self-check-in'
-				&& row.status === row.savedStatus
-				&& (row.reason ?? '') === (row.savedReason ?? '')
-			),
-	)
 }
 
 /**
@@ -274,65 +183,6 @@ export function parseMark(raw) {
 	if (text === '') return null
 	const value = Number(text)
 	return Number.isFinite(value) ? value : null
-}
-
-/**
- * The learners of a bulk enrolment who are not enrolled in the course yet.
- *
- * @param {string[]} learnerIds Picked learners (Nextcloud user ids).
- * @param {object[]} existing Enrolments already held for the course.
- * @return {string[]} Learners to enrol.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- */
-export function learnersToEnrol(learnerIds, existing) {
-	const open = new Set(
-		existing
-			.filter(
-				(e) => !['withdrawn', 'failed', 'completed'].includes(e.lifecycle),
-			)
-			.map((e) => e.learnerId),
-	)
-	return [...new Set(learnerIds)].filter((id) => id && !open.has(id))
-}
-
-/**
- * The Enrolment body a bulk enrolment creates.
- *
- * @param {string} learnerId Learner.
- * @param {object} course The Course.
- * @param {string|null} cohortId The cohort picked as audience, if any.
- * @return {object} The Enrolment body.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- */
-export function bulkEnrolmentBody(learnerId, course, cohortId) {
-	const body = {
-		learnerId,
-		courseId: objectId(course),
-		source: 'bulk',
-		tenant_id: course.tenant_id ?? '',
-	}
-	if (cohortId) body.cohortId = cohortId
-	return body
-}
-
-/**
- * CnTimelineView events for a cohort's sessions; cancelled ones are kept and marked.
- *
- * @param {object[]} sessions Sessions of the cohort.
- * @return {object[]} Timeline events.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- */
-export function timelineEvents(sessions) {
-	return sessions
-		.filter((s) => s.startsAt)
-		.map((s) => ({
-			id: objectId(s),
-			title: s.title,
-			start: s.startsAt,
-			end: s.endsAt ?? undefined,
-			location: s.location ?? undefined,
-			kind: s.lifecycle ?? 'scheduled',
-		}))
 }
 
 /**
@@ -570,54 +420,3 @@ export function signatureBody({
 	return body
 }
 
-/**
- * Every level of a department path, top first, trimmed: 'Operations / Infra'
- * gives ['Operations', 'Operations/Infra']. Mirrors
- * RegulationAudienceResolver::departmentLevels() so the bulk enrolment picker
- * and the compliance roll-up agree on who is in a department.
- *
- * @param {string} department The department path.
- * @return {string[]} The levels, [] when empty.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- */
-export function departmentLevels(department) {
-	const parts = String(department ?? '')
-		.split('/')
-		.map((p) => p.trim())
-		.filter(Boolean)
-	return parts.map((_, i) => parts.slice(0, i + 1).join('/'))
-}
-
-/**
- * The Nextcloud user ids of the profiles in a department or anywhere under it.
- *
- * @param {object[]} profiles LearnerProfiles.
- * @param {string} department The picked department path.
- * @return {string[]} User ids.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- */
-export function learnersInDepartment(profiles, department) {
-	const levels = departmentLevels(department)
-	const target = levels[levels.length - 1]
-	if (!target) return []
-	return profiles
-		.filter(
-			(p) => !p.mergedInto && departmentLevels(p.department).includes(target),
-		)
-		.map((p) => p.ncUserId)
-		.filter(Boolean)
-}
-
-/**
- * Every department path that occurs in the profiles, at every level, sorted.
- *
- * @param {object[]} profiles LearnerProfiles.
- * @return {string[]} Department paths.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- */
-export function departmentOptions(profiles) {
-	const all = new Set()
-	for (const p of profiles)
-		departmentLevels(p.department).forEach((l) => all.add(l))
-	return [...all].sort()
-}
