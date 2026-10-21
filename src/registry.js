@@ -11,7 +11,8 @@
  */
 
 // CnRowMarkList is the roll call page, configured in people.json.
-import { CnRowMarkList } from '@conduction/nextcloud-vue'
+// CnSecretAddressCard is the display screen's address dialog.
+import { CnRowMarkList, CnSecretAddressCard } from '@conduction/nextcloud-vue'
 // assignment-missing-submissions-view: body section on AssignmentDetail.
 import AssignmentHandInStatus from './components/sections/AssignmentHandInStatus.vue'
 import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeerReviewAllocation.vue'
@@ -75,7 +76,6 @@ import CurriculumCoverageMatrixView from './views/CurriculumCoverageMatrixView.v
 import DashboardAdmin from './views/DashboardAdmin.vue'
 import DashboardStudent from './views/DashboardStudent.vue'
 import DashboardTeacher from './views/DashboardTeacher.vue'
-import DisplayScreenAddressView from './views/DisplayScreenAddressView.vue'
 import ElectiveRosterView from './views/ElectiveRosterView.vue'
 import EnrolmentForecastView from './views/EnrolmentForecastView.vue'
 // assessment-course-evaluation-answer-page: a campaign's figures for staff.
@@ -234,7 +234,8 @@ export default {
 	ContactHoursReport: page(ContactHoursReport),
 	CourseBuilder: page(CourseBuilder),
 	CoursePackageImportView: page(CoursePackageImportView),
-	DisplayScreenAddressView: page(DisplayScreenAddressView),
+	// The display screen's Address header action (timetabling-display-screens).
+	DisplayScreenAddress: { kind: 'modal', component: CnSecretAddressCard, propsSchema: null },
 	ElectiveRosterView: page(ElectiveRosterView),
 	EnrolmentForecastView: page(EnrolmentForecastView),
 	EvaluationCampaignResultsView: page(EvaluationCampaignResultsView),
