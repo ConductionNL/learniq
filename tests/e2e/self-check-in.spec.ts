@@ -63,6 +63,7 @@ test.describe('self check-in', () => {
 
 		const windows = await fx.find('check-in-window', { sessionId })
 		expect(windows, 'the register created no check-in window').toHaveLength(1)
+		expect(windows[0].openedBy, 'the server names the teacher who opened it').toBe('admin')
 		fx.adopt('check-in-window', String(windows[0].id))
 
 		// Learner: the lesson is listed as open, and the code checks them in.

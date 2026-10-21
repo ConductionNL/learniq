@@ -481,16 +481,16 @@ export function coursePackagePublishUrl() {
 	return '/apps/learniq/api/store/publish'
 }
 
-/** What each signable subject needs: schema slugs and the roles that sign in learniq. */
+/** What each signable subject needs: its schema, its sign endpoint and the roles that sign in learniq. */
 export const SIGNABLE_SUBJECTS = {
 	'learning-plan': {
 		subjectSchema: 'learning-plan',
-		signatureSchema: 'signature',
-		roles: ['learner', 'parent', 'coordinator', 'teacher', 'other'],
+		endpoint: 'learning-plan',
+		roles: ['learner', 'parent', 'coordinator', 'teacher'],
 	},
 	praktijkovereenkomst: {
 		subjectSchema: 'praktijkovereenkomst',
-		signatureSchema: 'pok-signature',
+		endpoint: 'placement-agreement',
 		// The praktijkopleider signs through the portal (portaliq), not here.
 		// A parent or guardian signs a minor's agreement (pok-signature-parent-role).
 		roles: ['student', 'school', 'parent'],
@@ -515,59 +515,19 @@ export function parentSignatureNeeded(kind, subject) {
 }
 
 /**
- * The role the current user most likely signs a subject as.
+ * The sign endpoint of a record. GET answers the roles the signed-in user
+ * holds on it; POST `{role, capture}` records the signature, with signer,
+ * time, version and tenant set by the server.
  *
  * @param {string} kind 'learning-plan' or 'praktijkovereenkomst'.
- * @param {object} subject The LearningPlan or Praktijkovereenkomst.
- * @param {string} userId Current Nextcloud user id.
- * @return {string} A role from SIGNABLE_SUBJECTS[kind].roles.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
+ * @param {string} id The record uuid.
+ * @return {string} The app-relative URL.
+ * @spec openspec/specs/learning-plan/spec.md#requirement-a-signature-is-recorded-by-the-server-in-a-role-the-signer-holds
  */
-export function defaultSignerRole(kind, subject, userId) {
-	if (kind === 'learning-plan') {
-		if (subject.learnerId === userId) return 'learner'
-		if (subject.coordinatorId === userId) return 'coordinator'
-		return 'teacher'
-	}
-	return subject.learnerId === userId ? 'student' : 'school'
-}
-
-/**
- * The signature record for a capture. Signature and PokSignature are
- * append-only, so everything, the evidence included, goes in on create:
- * `typed:<name>` or `drawn:<png data url>`.
- *
- * @param {object} args Arguments.
- * @param {string} args.kind 'learning-plan' or 'praktijkovereenkomst'.
- * @param {object} args.subject The signed object.
- * @param {string} args.signerId Current Nextcloud user id.
- * @param {string} args.signerRole Role signed as.
- * @param {{mode: string, value: string}} args.capture CnSignatureCapture payload.
- * @param {string} args.signedAt ISO date-time.
- * @return {object} The record body.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- */
-export function signatureBody({
-	kind,
-	subject,
-	signerId,
-	signerRole,
-	capture,
-	signedAt,
-}) {
-	const body = {
-		subjectId: objectId(subject),
-		subjectVersion: Number(subject.version ?? 1),
-		signerId,
-		signerRole,
-		signedAt,
-		assuranceLevel: 'basic',
-		method: capture.mode === 'drawn' ? 'drawn-signature' : 'typed-signature',
-		evidenceRef: `${capture.mode}:${capture.value}`,
-		tenant_id: subject.tenant_id ?? '',
-	}
-	if (kind === 'learning-plan') body.subjectKind = 'learning-plan'
-	return body
+export function signUrl(kind, id) {
+	const endpoint = (SIGNABLE_SUBJECTS[kind] ?? SIGNABLE_SUBJECTS['learning-plan'])
+		.endpoint
+	return `/apps/learniq/api/sign/${endpoint}/${encodeURIComponent(id)}`
 }
 
 /**

@@ -4213,7 +4213,26 @@ OC.L10N.register(
         "The rollover did not start.": "De jaarovergang is niet gestart.",
         "The mapping could not be proposed.": "Er kon geen indeling worden voorgesteld.",
         "The preview could not be made.": "Het voorbeeld kon niet worden gemaakt.",
-        "The plan could not be saved.": "Het plan kon niet worden opgeslagen."
+        "The plan could not be saved.": "Het plan kon niet worden opgeslagen.",
+        "This document can no longer be signed.": "Dit document kan niet meer worden ondertekend.",
+        "You are not one of the people who sign this document.": "Je hoort niet bij de mensen die dit document ondertekenen.",
+        "You cannot sign this document in that role.": "Je kunt dit document niet in die rol ondertekenen.",
+        "You have already signed this version in that role.": "Je hebt deze versie al in die rol ondertekend.",
+        "Sign and confirm that you agree before saving.": "Onderteken en bevestig dat je akkoord gaat voordat je opslaat.",
+        "Could not revoke the share. Please try again.": "Het intrekken van de deling is mislukt. Probeer het opnieuw.",
+        "Credential signing": "Ondertekening van credentials",
+        "The RS256 key pair that signs verifiable credentials. The private key is stored encrypted on the server.": "Het RS256-sleutelpaar dat verifieerbare credentials ondertekent. De privésleutel staat versleuteld op de server.",
+        "Current key fingerprint: {fingerprint}": "Vingerafdruk van de huidige sleutel: {fingerprint}",
+        "No signing key yet. Credentials cannot be signed until one is generated.": "Er is nog geen ondertekeningssleutel. Credentials worden pas ondertekend als u er een maakt.",
+        "Rotate signing key": "Ondertekeningssleutel vervangen",
+        "Generate signing key": "Ondertekeningssleutel maken",
+        "New credentials will be signed with a new key. Credentials issued before stay verifiable with the old key. You can rotate once a day.": "Nieuwe credentials worden met een nieuwe sleutel ondertekend. Eerder uitgegeven credentials blijven controleerbaar met de oude sleutel. U kunt één keer per dag vervangen.",
+        "Rotate": "Vervangen",
+        "The signing key was not changed.": "De ondertekeningssleutel is niet gewijzigd.",
+        "The signing key was rotated. Credentials issued before stay verifiable.": "De ondertekeningssleutel is vervangen. Eerder uitgegeven credentials blijven controleerbaar.",
+        "A signing key was generated.": "Er is een ondertekeningssleutel gemaakt.",
+        "The signing key was rotated less than a day ago. Try again tomorrow.": "De ondertekeningssleutel is minder dan een dag geleden vervangen. Probeer het morgen opnieuw.",
+        "Only an administrator can change the signing key.": "Alleen een beheerder kan de ondertekeningssleutel wijzigen."
     },
     "nplurals=2; plural=(n != 1);"
 )

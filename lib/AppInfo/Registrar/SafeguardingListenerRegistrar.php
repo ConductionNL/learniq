@@ -35,6 +35,7 @@ namespace OCA\Learniq\AppInfo\Registrar;
 use OCA\Learniq\Listener\AccessibilityFeedbackReporterStamp;
 use OCA\Learniq\Listener\ConcernReportReporterStamp;
 use OCA\Learniq\Listener\RegulationExemptionRequestStamp;
+use OCA\Learniq\Listener\SovereigntyPolicySetByStamp;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
@@ -81,6 +82,14 @@ class SafeguardingListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: RegulationExemptionRequestStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: SovereigntyPolicySetByStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: SovereigntyPolicySetByStamp::class
 		);
 
 		// The four-eyes correction listeners (governance-four-eyes-on-approved-data),

@@ -11,15 +11,10 @@
   the ItemRevisionFlag review queue itself stays a plain manifest list+detail
   page (mirrors AttendanceFlag/BsaProgressFlag/EngagementRiskFlag).
 
-  ItemStatistics/AssessmentReliability carry x-property-rbac restricting read
-  to admin/teacher/examboard — a learner MUST NOT see an item's difficulty/
-  discrimination statistics. That is enforced server-side by OR; this view
-  ALSO gates its content client-side. Note: like ExamCaseDossierView, this
-  register has no `examboard`/`teacher` membership flag exposed via
-  loadState at HEAD — `isAdmin` is used as the best available client-side
-  proxy (under-inclusive: a real examboard/teacher member without the admin
-  flag sees the denied state here even though the server would allow the
-  read; the server-side RBAC block is the actual security boundary either way).
+  ItemStatistics/AssessmentReliability are readable by staff only (the
+  schemas' authorization blocks); a learner MUST NOT see an item's difficulty/
+  discrimination statistics. The view shows its content to the teacher and
+  admin dashboard views (`dashboardRoles` initial state).
 
   Uses Options API + direct fetch calls (no custom Pinia store modules).
 
@@ -179,8 +174,9 @@
 </template>
 
 <script>
-import { getCurrentUser } from '@nextcloud/auth'
+import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
+import { canSeeHandInStatus } from '../utils/handInStatus.js'
 
 export default {
 	name: 'ItemAnalysisView',
@@ -220,14 +216,14 @@ export default {
 
 	computed: {
 		/**
-		 * Client-side proxy for "may view staff-only item statistics" — see
-		 * file-header note. The server-side x-property-rbac block is the
-		 * actual security boundary.
+		 * Whether the signed-in user is staff (teacher or admin view), who may
+		 * read item statistics.
 		 *
 		 * @return {boolean}
+		 * @spec openspec/specs/assessment/spec.md#requirement-item-and-assessment-statistics-are-read-restricted-to-staff-roles
 		 */
 		isStaff() {
-			return !!getCurrentUser()?.isAdmin
+			return canSeeHandInStatus(loadState('learniq', 'dashboardRoles', []))
 		},
 	},
 
