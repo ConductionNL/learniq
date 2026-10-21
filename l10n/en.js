@@ -3752,7 +3752,8 @@ OC.L10N.register(
         "Level %s": "Level %s",
         "Learning path": "Learning path",
         "or": "or",
-        "Training course": "Training course"
+        "Training course": "Training course",
+        "Could not revoke the share. Please try again.": "Could not revoke the share. Please try again."
     },
     "nplurals=2; plural=(n != 1);"
 )

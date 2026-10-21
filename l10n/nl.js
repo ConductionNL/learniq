@@ -4206,7 +4206,8 @@ OC.L10N.register(
         "Level %s": "Niveau %s",
         "Learning path": "Leerweg",
         "or": "of",
-        "Training course": "Cursus"
+        "Training course": "Cursus",
+        "Could not revoke the share. Please try again.": "Het intrekken van de deling is mislukt. Probeer het opnieuw."
     },
     "nplurals=2; plural=(n != 1);"
 )
