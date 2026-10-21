@@ -72,6 +72,12 @@ class DashboardRoleService {
 	public const CONFIDENTIAL_COUNSELLOR_GROUP = 'confidential-counsellors';
 
 	/**
+	 * The group that handles exam-board cases (exemptions, fraud). Only its
+	 * members read and write a fraud case's hearing records and decision.
+	 */
+	public const EXAM_BOARD_GROUP = 'compliance-officers';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IGroupManager $groupManager The Nextcloud group manager.
@@ -135,19 +141,22 @@ class DashboardRoleService {
 	 * `admin`. `guardian` deliberately falls into neither check — a guardian
 	 * is not staff and only ever gets the base `student`-tier view, same as
 	 * `learner`. The order is admin, teacher, student (most → least privileged).
+	 * Exam board members ({@see EXAM_BOARD_GROUP}) and admins get `exam-board`
+	 * last; it is a role flag, not a dashboard view.
 	 *
 	 * @param IUser $user The authenticated Nextcloud user.
 	 *
-	 * @return string[] Ordered list of accessible views (subset of admin|teacher|student).
+	 * @return string[] Ordered list of accessible views (subset of admin|teacher|student|exam-board).
 	 *
 	 * @spec openspec/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit
+	 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-withheld-by-the-server
 	 */
 	public function resolveViews(IUser $user): array {
 		$role = $this->resolvePrimaryRole(user: $user);
 
 		// Admins oversee the whole instance — let them preview every view.
 		if ($role === 'admin') {
-			return ['admin', 'teacher', 'student'];
+			return ['admin', 'teacher', 'student', 'exam-board'];
 		}
 
 		$views = [];
@@ -162,6 +171,10 @@ class DashboardRoleService {
 
 		// Everyone is at least a learner.
 		$views[] = 'student';
+
+		if ($this->groupManager->isInGroup($user->getUID(), self::EXAM_BOARD_GROUP) === true) {
+			$views[] = 'exam-board';
+		}
 
 		return $views;
 	}//end resolveViews()

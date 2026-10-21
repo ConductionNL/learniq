@@ -192,7 +192,8 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 
 	/**
 	 * Every group an authorization block names is one the register declares
-	 * (and so provisions), or the `authenticated` pseudo-group.
+	 * (and so provisions), the `authenticated` pseudo-group, or Nextcloud's
+	 * own `admin` group.
 	 *
 	 * @return void
 	 */
@@ -200,6 +201,7 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 		self::schemas();
 		$declared = array_keys(self::$register['components']['securitySchemes']['oauth2']['flows']['authorizationCode']['scopes']);
 		$declared[] = 'authenticated';
+		$declared[] = 'admin';
 
 		$undeclared = [];
 		foreach (self::schemas() as $name => $schema) {

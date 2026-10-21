@@ -77,7 +77,7 @@
 				:modelValue="optedOut"
 				:disabled="optOutSaving"
 				class="leaderboard-view__opt-out"
-				@update:checked="toggleOptOut">
+				@update:modelValue="toggleOptOut">
 				{{ t('learniq', 'Hide me from this leaderboard') }}
 			</NcCheckboxRadioSwitch>
 

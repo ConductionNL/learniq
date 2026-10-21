@@ -58,7 +58,7 @@
 						type="switch"
 						:modelValue="item.enabled"
 						:disabled="item.saving"
-						@update:checked="(value) => toggle(item, value)">
+						@update:modelValue="(value) => toggle(item, value)">
 						{{ labelFor(item) }}
 					</NcCheckboxRadioSwitch>
 				</li>
@@ -82,7 +82,7 @@
 				type="switch"
 				:modelValue="quietHours.enabled"
 				:disabled="quietHoursSaving"
-				@update:checked="
+				@update:modelValue="
 					(value) => saveQuietHours({ ...quietHours, enabled: value })
 				">
 				{{ t('learniq', 'Enable quiet hours') }}

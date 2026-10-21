@@ -315,9 +315,10 @@ export default {
 		},
 
 		/**
-		 * Create the ConferenceSignup (draft) then trigger its submit transition.
-		 * A guard rejection (HTTP 4xx from OR's lifecycle engine) surfaces as a
-		 * user-facing error rather than a silent failure.
+		 * Submit the request in one server call, which creates it, takes the
+		 * tenant from the round and the pupil's profile from the pupil, and
+		 * fires the submit transition. A guard refusal comes back as a 403
+		 * and leaves no draft.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
@@ -331,33 +332,15 @@ export default {
 			this.submitSuccess = false
 
 			try {
-				const body = conferenceSignupBody({
-					roundId: this.selectedRoundId,
-					round: this.selectedRound,
-					learner:
-						this.learners.find(
-							(l) => l.ncUserId === this.selectedLearnerId,
-						) || null,
-					teacherIds: this.selectedTeacherIds,
-					notes: this.notes,
-				})
-
-				const createUrl = generateUrl(
-					'/apps/openregister/api/objects/learniq/conference-signup',
+				await axios.post(
+					generateUrl('/apps/learniq/api/conference-signups'),
+					conferenceSignupBody({
+						roundId: this.selectedRoundId,
+						learnerId: this.selectedLearnerId,
+						teacherIds: this.selectedTeacherIds,
+						notes: this.notes,
+					}),
 				)
-				const created = await axios.post(createUrl, body)
-				const signupId =
-					(created.data && (created.data.id || created.data.uuid)) || ''
-
-				if (signupId === '') {
-					throw new Error('No signup id returned')
-				}
-
-				const transitionUrl = generateUrl(
-					'/apps/openregister/api/objects/learniq/conference-signup/{id}',
-					{ id: signupId },
-				)
-				await axios.patch(transitionUrl, { lifecycle: 'submitted' })
 
 				this.submitSuccess = true
 				this.selectedTeacherIds = []
