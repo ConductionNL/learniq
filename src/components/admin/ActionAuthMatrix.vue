@@ -54,7 +54,7 @@
 										{ group, action },
 									)
 								"
-								@update:checked="toggle(action, group, $event)" />
+								@update:modelValue="toggle(action, group, $event)" />
 						</td>
 					</tr>
 				</tbody>
@@ -78,7 +78,7 @@
 </template>
 
 <script>
-import { NcButton, NcCheckboxRadioSwitch } from '@conduction/nextcloud-vue'
+import { NcButton, NcCheckboxRadioSwitch } from '@nextcloud/vue'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
 
