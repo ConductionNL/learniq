@@ -223,6 +223,34 @@
 			"config": {
 				"register": "learniq",
 				"schema": "Enrolment",
+				"headerActions": [
+					{
+						"id": "enrol-group",
+						"label": "Enrol a group",
+						"icon": "AccountGroup",
+						"type": "open-form",
+						"register": "learniq",
+						"endpoint": {
+							"url": "/apps/learniq/api/enrolments/bulk",
+							"method": "POST"
+						},
+						"formProperties": {
+							"courseId": {
+								"type": "string",
+								"format": "uuid",
+								"$ref": "course",
+								"title": "Course"
+							},
+							"cohortId": {
+								"type": "string",
+								"format": "uuid",
+								"$ref": "cohort",
+								"title": "Group",
+								"description": "Everyone in the group without an open enrolment for the course is enrolled."
+							}
+						}
+					}
+				],
 				"columns": [
 					{
 						"key": "learnerId",
@@ -666,14 +694,6 @@
 					]
 				}
 			}
-		},
-		{
-			"id": "BulkEnrol",
-			"route": "/enrolments/bulk",
-			"type": "custom",
-			"title": "Bulk Enrol",
-			"component": "BulkEnrolView",
-			"_note": "Mounts BulkEnrolView (learniq#947): a course plus a cohort and/or picked learners; learners with an open enrolment are skipped."
 		},
 		{
 			"id": "CredentialDetail",
@@ -1187,6 +1207,23 @@
 			"config": {
 				"register": "learniq",
 				"schema": "excuse-request",
+				"headerActions": [
+					{
+						"id": "report-absence",
+						"label": "Report an absence",
+						"icon": "Plus",
+						"type": "open-form",
+						"register": "learniq",
+						"schema": "excuse-request",
+						"includeFields": [
+							"learnerRef",
+							"dateFrom",
+							"dateTo",
+							"reasonKind",
+							"reason"
+						]
+					}
+				],
 				"columns": [
 					{
 						"key": "learnerRef",
@@ -1724,14 +1761,6 @@
 					]
 				}
 			}
-		},
-		{
-			"id": "SubmitExcuseModal",
-			"route": "/attendance/excuses/submit",
-			"type": "custom",
-			"title": "Submit excuse",
-			"component": "SubmitExcuseView",
-			"_note": "Mounts SubmitExcuseView (learniq#947): a staff form that records an ExcuseRequest for a learner."
 		},
 		{
 			"id": "LearnerProfiles",

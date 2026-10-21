@@ -4237,7 +4237,9 @@ OC.L10N.register(
         "Curriculum plan for %s": "Leerplan voor %s",
         "You are not allowed to save course templates.": "Je mag geen cursussjablonen opslaan.",
         "You are not allowed to create courses.": "Je mag geen cursussen aanmaken.",
-        "The time could not be placed. Check the teacher and the times, and try again.": "De tijd kon niet worden ingepland. Controleer de leraar en de tijden en probeer het opnieuw."
+        "The time could not be placed. Check the teacher and the times, and try again.": "De tijd kon niet worden ingepland. Controleer de leraar en de tijden en probeer het opnieuw.",
+        "Enrol a group": "Een groep inschrijven",
+        "Everyone in the group without an open enrolment for the course is enrolled.": "Iedereen in de groep zonder lopende inschrijving voor de cursus wordt ingeschreven."
     },
     "nplurals=2; plural=(n != 1);"
 )

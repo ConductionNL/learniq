@@ -3783,7 +3783,9 @@ OC.L10N.register(
         "Curriculum plan for %s": "Curriculum plan for %s",
         "You are not allowed to save course templates.": "You are not allowed to save course templates.",
         "You are not allowed to create courses.": "You are not allowed to create courses.",
-        "The time could not be placed. Check the teacher and the times, and try again.": "The time could not be placed. Check the teacher and the times, and try again."
+        "The time could not be placed. Check the teacher and the times, and try again.": "The time could not be placed. Check the teacher and the times, and try again.",
+        "Enrol a group": "Enrol a group",
+        "Everyone in the group without an open enrolment for the course is enrolled.": "Everyone in the group without an open enrolment for the course is enrolled."
     },
     "nplurals=2; plural=(n != 1);"
 )
