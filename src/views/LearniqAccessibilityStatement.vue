@@ -256,8 +256,7 @@ const RESULT_SCHEMA = 'accessibility-criterion-result'
 const RESULT_TYPE = `${REGISTER}-${RESULT_SCHEMA}`
 
 // The roles that may record results: the same gate as the Accessibility
-// limitations menu entry in src/manifest.d/dashboard.json. The register's
-// own authorization is what actually refuses a write.
+// limitations menu entry in src/manifest.d/dashboard.json.
 const EDITOR_ROLES = ['compliance-officer', 'admin']
 
 const RESULT_LABELS = {

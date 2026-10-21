@@ -113,7 +113,7 @@ class RolloverControllerNotFoundTest extends TestCase {
 	public function testProposeMappingReturnsTheServiceMapping(): void {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturn(
-			[['id' => 'cohort-1', 'academicYear' => '2025-2026']]
+			[['id' => 'cohort-1', 'name' => '2A', 'academicYear' => '2025-2026']]
 		);
 
 		$expected = [['fromCohortId' => 'cohort-1', 'action' => 'promote', 'toCohortName' => '2026-2027']];
@@ -147,6 +147,7 @@ class RolloverControllerNotFoundTest extends TestCase {
 
 		self::assertSame(Http::STATUS_OK, $response->getStatus());
 		self::assertSame($expected, ((array)$response->getData())['mappings']);
+		self::assertSame(['cohort-1' => '2A'], ((array)$response->getData())['cohortNames'], 'The wizard names each cohort instead of showing its id.');
 	}//end testProposeMappingReturnsTheServiceMapping()
 
 	/**

@@ -22,7 +22,7 @@ const people = JSON.parse(readFileSync(resolve(root, 'src/manifest.d/people.json
 const register = JSON.parse(readFileSync(resolve(root, 'lib/Settings/learniq_register.json'), 'utf8'))
 const marksPhp = readFileSync(resolve(root, 'lib/Service/Attendance/RollCallMarks.php'), 'utf8')
 const page = people.pages.find((p) => p.id === 'RollCall')
-const content = page.config.content
+const content = page.widgets.find((w) => w.slot === 'body').props.content
 
 /**
  * A PHP array constant of RollCallMarks, read from the source.
@@ -49,7 +49,7 @@ const field = (name) => content.detailFields.find((f) => f.field === name)
 
 test('the roll-call page is the row mark list over the roll-call endpoint', () => {
 	assert.equal(page.type, 'custom')
-	assert.equal(page.component, 'CnRowMarkList')
+	assert.equal(page.widgets.find((w) => w.slot === 'body').widgetKey, 'row-mark-list')
 	assert.equal(content.load.url, '/apps/learniq/api/attendance/roll-call')
 	assert.equal(content.save.url, content.load.url)
 	assert.equal(content.save.rowsKey, 'marks')
