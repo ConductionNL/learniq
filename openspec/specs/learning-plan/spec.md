@@ -561,6 +561,34 @@ Activating a LearningPlan MUST apply the required signer roles of its template, 
 - **WHEN** the plan is activated
 - **THEN** the guard refuses it
 
+### Requirement: A signature is recorded by the server in a role the signer holds
+
+A Signature on a LearningPlan and a PokSignature on a work placement agreement MUST be written by learniq's sign endpoint (`POST /api/sign/{learning-plan|placement-agreement}/{id}`), never by the browser. The server MUST set `signerId` from the session, `signedAt` from its own clock, `subjectVersion` and `tenant_id` from the signed record, and MUST refuse a role the signer does not hold on that record: `learner`, `coordinator` and `student` come from the record, `parent` from the learner's `LearnerProfile.parentIds`, `teacher` from the `instructors` group, `school` from the placement's school coach or the `coordinators` group. Both signature schemas MUST deny direct creation. A signature MUST carry an affirmed typed or drawn capture, and the same signer MUST NOT sign the same version twice in the same role.
+
+#### Scenario: The coordinator signs a learning plan
+
+- **GIVEN** a draft learning plan whose `coordinatorId` is the signed-in user
+- **WHEN** they sign it with a typed signature and the affirmation
+- **THEN** a Signature is recorded with `signerRole: coordinator`, their user id, the server's time and the plan's version and tenant
+
+#### Scenario: A role the signer does not hold is refused
+
+- **GIVEN** a draft learning plan on which the signed-in user is neither learner nor coordinator, nor a listed parent, nor in `instructors`
+- **WHEN** they ask to sign it as `coordinator`
+- **THEN** the endpoint answers 403 and no Signature is recorded
+
+#### Scenario: A listed parent signs a work placement agreement
+
+- **GIVEN** an agreement awaiting signatures for a student whose learner profile lists the signed-in user in `parentIds`
+- **WHEN** they sign it as `parent`
+- **THEN** a PokSignature with `signerRole: parent` is recorded for that version
+
+#### Scenario: A signature cannot be created through the objects API
+
+- **GIVEN** a user who is not an administrator
+- **WHEN** they create a Signature or PokSignature through OpenRegister's objects API
+- **THEN** OpenRegister refuses the creation
+
 ## Standards
 
 Schema.org `EducationalOccupationalProgram` (loosely) — there is no clean schema.org type, so the canonical form is OpenRegister-native; NL Wet Passend Onderwijs / OPP sector templates as a `LearningPlan` profile; eIDAS / DigiD assurance levels for the signing strength.

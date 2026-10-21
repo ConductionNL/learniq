@@ -291,7 +291,7 @@
 				"register": "learniq",
 				"schema": "fraud-case"
 			},
-			"_note": "exam-board-case-handling: FraudCase.x-property-rbac already fails closed server-side for anyone outside admin/examboard/accused/reporter; within that readable set, ExamCaseDossierView additionally withholds hearingRecords and decision-internal fields from anyone who is not the accused, the reporter, or an examboard member — an application-level UI convention, not server-enforced field RBAC (design.md §8)."
+			"_note": "exam-board-case-handling: the register withholds hearingRecords, decisionRationale and the sanction from everyone outside the exam board (property authorization); ExamCaseDossierView shows the decision forms to the exam board only."
 		}
 	]
 }

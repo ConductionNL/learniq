@@ -103,26 +103,37 @@
 
 		<!-- Section 3: Credential signing key -->
 		<NcSettingsSection
-			:name="t('learniq', 'Credential Signing')"
+			:name="t('learniq', 'Credential signing')"
 			:description="
 				t(
 					'learniq',
-					'RS256 key pair used to sign verifiable credentials. Stored encrypted in Nextcloud\'s keystore.',
+					'The RS256 key pair that signs verifiable credentials. The private key is stored encrypted on the server.',
 				)
 			">
-			<div class="learniq-settings__field">
+			<div class="learniq-settings__field" data-testid="learniq-signing-key">
+				<p class="learniq-settings__message" data-testid="learniq-signing-key-status">
+					{{
+						signingKey.configured
+							? t('learniq', 'Current key fingerprint: {fingerprint}', { fingerprint: signingKey.fingerprint })
+							: t('learniq', 'No signing key yet. Credentials cannot be signed until one is generated.')
+					}}
+				</p>
 				<NcButton
 					:disabled="signingKeyLoading"
 					variant="secondary"
+					data-testid="learniq-signing-key-rotate"
 					@click="rotateSigningKey">
 					<template #icon>
 						<NcLoadingIcon v-if="signingKeyLoading" :size="20" />
 					</template>
-					{{ t('learniq', 'Rotate signing key') }}
+					{{ signingKey.configured ? t('learniq', 'Rotate signing key') : t('learniq', 'Generate signing key') }}
 				</NcButton>
-				<p v-if="signingKeyMessage" class="learniq-settings__message">
-					{{ signingKeyMessage }}
-				</p>
+				<NcNoteCard
+					v-if="signingKeyResult"
+					:type="signingKeyResult.status === 'done' ? 'success' : 'error'"
+					:role="signingKeyResult.status === 'done' ? 'status' : 'alert'">
+					{{ signingKeyResult.message }}
+				</NcNoteCard>
 			</div>
 		</NcSettingsSection>
 
@@ -331,6 +342,8 @@
 <script>
 import { useObjectStore } from '@conduction/nextcloud-vue'
 import { getCurrentUser, getRequestToken } from '@nextcloud/auth'
+import axios from '@nextcloud/axios'
+import { showConfirmation } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
 import {
 	NcButton,
@@ -348,6 +361,11 @@ import {
 	registerValue,
 	selectedRegister,
 } from '../utils/defaultRegister.js'
+import {
+	rotateSigningKey,
+	SIGNING_KEY_STATUS_URL,
+	signingKeyStatusOf,
+} from '../utils/signingKeyRotation.js'
 
 // The slugs privacy-governance-surfaces declares in
 // lib/Settings/learniq_register.json, verbatim (the resolver lowercases both
@@ -393,8 +411,9 @@ export default {
 			savedRegister: '',
 			registerOptions: [],
 			registersLoading: false,
+			signingKey: { configured: false, fingerprint: '' },
 			signingKeyLoading: false,
-			signingKeyMessage: '',
+			signingKeyResult: null,
 			isAdmin: false,
 			openRegisterInstalled: false,
 			complianceId: null,
@@ -566,6 +585,7 @@ export default {
 			this.fetchSettingsStatus(),
 			this.loadCompliance(),
 			this.loadRecentDataSubjectRequests(),
+			this.loadSigningKeyStatus(),
 		])
 		// Both the register list and the saved value are in now; show the
 		// saved register instead of an empty picker.
@@ -662,40 +682,50 @@ export default {
 		},
 
 		/**
-		 * Rotate the RS256 credential signing key pair via the backend endpoint.
+		 * Read whether the admin's tenant has a signing key, and its fingerprint.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/archive/retrofit-2026-05-25-app-shell-settings/tasks.md#tasks
+		 * @spec openspec/specs/nextcloud-app/spec.md#requirement-allow-the-credential-signing-key-to-be-rotated-from-settings
+		 */
+		async loadSigningKeyStatus() {
+			try {
+				const { data } = await axios.get(generateUrl(SIGNING_KEY_STATUS_URL))
+				this.signingKey = signingKeyStatusOf(data)
+			} catch {
+				this.signingKey = signingKeyStatusOf(null)
+			}
+		},
+
+		/**
+		 * Generate the signing key, or ask and rotate it, through the rotation endpoint.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/nextcloud-app/spec.md#requirement-allow-the-credential-signing-key-to-be-rotated-from-settings
 		 */
 		async rotateSigningKey() {
 			this.signingKeyLoading = true
-			this.signingKeyMessage = ''
+			this.signingKeyResult = null
 			try {
-				const response = await fetch(
-					generateUrl('/apps/learniq/api/settings/load'),
-					{
-						method: 'POST',
-						headers: { requesttoken: getRequestToken() },
-					},
-				)
-				if (response.ok) {
-					this.signingKeyMessage = this.t(
-						'learniq',
-						'Signing key rotated successfully.',
-					)
-				} else {
-					this.signingKeyMessage = this.t(
-						'learniq',
-						'Failed to rotate signing key.',
-					)
+				const outcome = await rotateSigningKey(this.signingKey, {
+					confirm: () =>
+						showConfirmation({
+							name: this.t('learniq', 'Rotate signing key'),
+							text: this.t(
+								'learniq',
+								'New credentials will be signed with a new key. Credentials issued before stay verifiable with the old key. You can rotate once a day.',
+							),
+							labelConfirm: this.t('learniq', 'Rotate'),
+							labelReject: this.t('learniq', 'Cancel'),
+						}),
+					post: (url, body) => axios.post(generateUrl(url), body),
+					t: (text, vars) => this.t('learniq', text, vars),
+				})
+				if (outcome.status !== 'cancelled') {
+					this.signingKeyResult = outcome
 				}
-			} catch (error) {
-				// eslint-disable-next-line no-console
-				console.error('[LearniqSettings] rotateSigningKey failed:', error)
-				this.signingKeyMessage = this.t(
-					'learniq',
-					'An error occurred while rotating the signing key.',
-				)
+				if (outcome.status === 'done') {
+					this.signingKey = { configured: true, fingerprint: outcome.fingerprint }
+				}
 			} finally {
 				this.signingKeyLoading = false
 			}
