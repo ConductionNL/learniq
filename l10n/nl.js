@@ -4206,7 +4206,15 @@ OC.L10N.register(
         "Level %s": "Niveau %s",
         "Learning path": "Leerweg",
         "or": "of",
-        "Training course": "Cursus"
+        "Training course": "Cursus",
+        "{n} present": "{n} aanwezig",
+        "{n} late": "{n} te laat",
+        "{n} absent with permission": "{n} geoorloofd afwezig",
+        "{n} absent without permission": "{n} ongeoorloofd afwezig",
+        "P": "P",
+        "L": "L",
+        "E": "T",
+        "U": "O"
     },
     "nplurals=2; plural=(n != 1);"
 )

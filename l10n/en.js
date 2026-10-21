@@ -3752,7 +3752,15 @@ OC.L10N.register(
         "Level %s": "Level %s",
         "Learning path": "Learning path",
         "or": "or",
-        "Training course": "Training course"
+        "Training course": "Training course",
+        "{n} present": "{n} present",
+        "{n} late": "{n} late",
+        "{n} absent with permission": "{n} absent with permission",
+        "{n} absent without permission": "{n} absent without permission",
+        "P": "P",
+        "L": "L",
+        "E": "E",
+        "U": "U"
     },
     "nplurals=2; plural=(n != 1);"
 )

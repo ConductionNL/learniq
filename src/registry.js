@@ -18,11 +18,13 @@
 // these building blocks with their props, since a bare CnWizardDialog or
 // CnDataMatrix mounted as a page receives no steps, rows or save handler.
 // The eight stay registered for registryComponentCoverage.test.mjs.
+// CnRowMarkList is the roll call page, configured in people.json.
 import {
 	CnDataMatrix,
 	CnExportWizard,
 	CnRelationshipGraph,
 	CnRichSubmitDialog,
+	CnRowMarkList,
 	CnSignatureCapture,
 	CnStructuredDocReview,
 	CnTimelineView,
@@ -184,7 +186,6 @@ import QtiImportView from './views/QtiImportView.vue'
 import RapportvergaderingReviewView from './views/RapportvergaderingReviewView.vue'
 import RegulationDetailPage from './views/RegulationDetailPage.vue'
 import ReissueCertificatesView from './views/ReissueCertificatesView.vue'
-import RollCallView from './views/RollCallView.vue'
 import RolloverWizard from './views/RolloverWizard.vue'
 // timetabling-room-utilisation: the room use report under Reports.
 import RoomUtilisationReport from './views/RoomUtilisationReport.vue'
@@ -258,7 +259,7 @@ export default {
 	CnWizardDialog: page(CnWizardDialog),
 	// learniq#947
 	AttendanceRegisterView: page(AttendanceRegisterView),
-	RollCallView: page(RollCallView),
+	CnRowMarkList: page(CnRowMarkList),
 	BulkEnrolView: page(BulkEnrolView),
 	CheckInPage: page(CheckInPage),
 	CourseCatalogue: page(CourseCatalogue),
