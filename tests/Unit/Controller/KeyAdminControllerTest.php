@@ -26,14 +26,18 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\KeyAdminController;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\KeyManagementService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\EventDispatcher\Event;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
+use OCP\Log\Audit\CriticalActionPerformedEvent;
 use OCP\Security\ICrypto;
 use PHPUnit\Framework\TestCase;
 
@@ -58,6 +62,13 @@ class KeyAdminControllerTest extends TestCase {
 	private array $privateKeys = [];
 
 	/**
+	 * Every event the controller dispatched.
+	 *
+	 * @var array<int, Event>
+	 */
+	private array $events = [];
+
+	/**
 	 * Reset the in-memory stores.
 	 *
 	 * @return void
@@ -66,6 +77,7 @@ class KeyAdminControllerTest extends TestCase {
 		parent::setUp();
 		$this->appValues = [];
 		$this->privateKeys = [];
+		$this->events = [];
 	}//end setUp()
 
 	/**
@@ -168,6 +180,94 @@ class KeyAdminControllerTest extends TestCase {
 	}//end testKeyStatusReportsOnlyPublicData()
 
 	/**
+	 * The admin page generates the first key for the caller's own tenant and logs it.
+	 *
+	 * @return void
+	 */
+	public function testSigningKeyIsGeneratedForTheCallersTenantAndAudited(): void {
+		$response = $this->controller(params: [])->rotateSigningKey();
+		$status = (array)$this->controller(params: [])->signingKeyStatus()->getData();
+
+		self::assertSame(Http::STATUS_CREATED, $response->getStatus());
+		self::assertFalse(((array)$response->getData())['rotated']);
+		self::assertTrue($status['configured']);
+		self::assertSame(((array)$response->getData())['fingerprint'], $status['fingerprint']);
+		self::assertArrayHasKey('signing.fingerprint.' . substr(hash('sha256', self::TENANT), 0, 32), $this->appValues);
+		self::assertCount(1, $this->events);
+		self::assertInstanceOf(CriticalActionPerformedEvent::class, $this->events[0]);
+		self::assertSame('generated', $this->events[0]->getParameters()['action']);
+		self::assertSame('admin', $this->events[0]->getParameters()['actor']);
+		$this->assertNoPrivateKeyMaterial(response: $response);
+	}//end testSigningKeyIsGeneratedForTheCallersTenantAndAudited()
+
+	/**
+	 * A rotation from the admin page without confirm=true changes nothing and logs nothing.
+	 *
+	 * @return void
+	 */
+	public function testSigningKeyRotationWithoutConfirmationIsRefused(): void {
+		$this->controller(params: [])->rotateSigningKey();
+		$this->appValues = array_filter($this->appValues, static fn (string $key): bool => str_starts_with($key, 'keygen.') === false, ARRAY_FILTER_USE_KEY);
+		$before = $this->appValues;
+		$this->events = [];
+
+		$response = $this->controller(params: [])->rotateSigningKey();
+
+		self::assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		self::assertSame($before, $this->appValues);
+		self::assertSame([], $this->events);
+	}//end testSigningKeyRotationWithoutConfirmationIsRefused()
+
+	/**
+	 * A confirmed rotation within 24 hours is throttled and is not reported as done.
+	 *
+	 * @return void
+	 */
+	public function testSigningKeyRotationWithinTheThrottleWindowIsRefused(): void {
+		$this->controller(params: [])->rotateSigningKey();
+		$before = $this->appValues;
+		$this->events = [];
+
+		$response = $this->controller(params: ['confirm' => 'true'])->rotateSigningKey();
+
+		self::assertSame(Http::STATUS_TOO_MANY_REQUESTS, $response->getStatus());
+		self::assertArrayHasKey('error', (array)$response->getData());
+		self::assertSame($before, $this->appValues);
+		self::assertSame([], $this->events);
+	}//end testSigningKeyRotationWithinTheThrottleWindowIsRefused()
+
+	/**
+	 * A confirmed rotation after the window replaces the key and logs the rotation.
+	 *
+	 * @return void
+	 */
+	public function testConfirmedSigningKeyRotationReplacesTheKeyAndIsAudited(): void {
+		$first = (array)$this->controller(params: [])->rotateSigningKey()->getData();
+		$this->appValues['keygen.last_at.' . self::TENANT] = (string)(time() - 86401);
+		$this->events = [];
+
+		$response = $this->controller(params: ['confirm' => 'true'])->rotateSigningKey();
+		$status = (array)$this->controller(params: [])->signingKeyStatus()->getData();
+
+		self::assertSame(Http::STATUS_CREATED, $response->getStatus());
+		self::assertTrue(((array)$response->getData())['rotated']);
+		self::assertNotSame($first['fingerprint'], $status['fingerprint']);
+		self::assertCount(1, $this->events);
+		self::assertSame('rotated', $this->events[0]->getParameters()['action']);
+		self::assertSame($status['fingerprint'], $this->events[0]->getParameters()['fingerprint']);
+		$this->assertNoPrivateKeyMaterial(response: $response);
+	}//end testConfirmedSigningKeyRotationReplacesTheKeyAndIsAudited()
+
+	/**
+	 * The status for the admin page says "not configured" before the first key.
+	 *
+	 * @return void
+	 */
+	public function testSigningKeyStatusWithoutAKey(): void {
+		self::assertSame(['configured' => false], $this->controller(params: [])->signingKeyStatus()->getData());
+	}//end testSigningKeyStatusWithoutAKey()
+
+	/**
 	 * Assert a response body carries neither a PEM private key nor its ciphertext.
 	 *
 	 * @param JSONResponse $response The controller response.
@@ -226,12 +326,24 @@ class KeyAdminControllerTest extends TestCase {
 		$userSession = $this->createMock(IUserSession::class);
 		$userSession->method('getUser')->willReturn($user);
 
+		$tenants = $this->createMock(CallerTenantResolver::class);
+		$tenants->method('resolve')->willReturn(self::TENANT);
+
+		$dispatcher = $this->createMock(IEventDispatcher::class);
+		$dispatcher->method('dispatchTyped')->willReturnCallback(
+			function (Event $event): void {
+				$this->events[] = $event;
+			}
+		);
+
 		return new KeyAdminController(
 			request: $request,
 			keyManagementService: ($keys ?? new KeyManagementService($appConfig, $crypto)),
 			appConfig: $appConfig,
 			config: $config,
 			userSession: $userSession,
+			tenants: $tenants,
+			dispatcher: $dispatcher,
 		);
 	}//end controller()
 }//end class
