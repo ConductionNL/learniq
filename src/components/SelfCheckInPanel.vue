@@ -62,7 +62,6 @@
 </template>
 
 <script>
-import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcNoteCard } from '@nextcloud/vue'
@@ -104,8 +103,9 @@ export default {
 
 	methods: {
 		/**
-		 * Open a window for the lesson: now until fifteen minutes from now,
-		 * never past the lesson's end.
+		 * Open a window for the lesson. The server stamps who opened it, the
+		 * tenant and the times: now until fifteen minutes from now, never
+		 * past the lesson's end.
 		 *
 		 * @param {string} mode `rotating-qr` or `link`.
 		 * @return {Promise<void>}
@@ -114,24 +114,12 @@ export default {
 		async open(mode) {
 			this.busy = true
 			this.error = ''
-			const now = new Date()
-			let closes = new Date(now.getTime() + 15 * 60 * 1000)
-			const ends = this.session.endsAt ? new Date(this.session.endsAt) : null
-			if (ends && ends < closes) closes = ends
 			try {
 				this.window = oneObject(
 					(
 						await axios.post(
 							generateUrl(objectsUrl('check-in-window')),
-							{
-								sessionId: objectId(this.session),
-								openedBy: getCurrentUser()?.uid ?? '',
-								opensAt: now.toISOString(),
-								closesAt: closes.toISOString(),
-								lateAfterMinutes: 5,
-								mode,
-								tenant_id: this.session.tenant_id ?? '',
-							},
+							{ sessionId: objectId(this.session), mode },
 						)
 					).data,
 				)

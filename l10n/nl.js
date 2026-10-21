@@ -4274,7 +4274,15 @@ OC.L10N.register(
         "OpenRegister": "OpenRegister",
         "Configure the default register used by Learniq for data storage.": "Kies het register waarin learniq zijn gegevens bewaart.",
         "Default register": "Standaardregister",
-        "Select a register…": "Kies een register…"
+        "Select a register…": "Kies een register…",
+        "This document can no longer be signed.": "Dit document kan niet meer worden ondertekend.",
+        "You are not one of the people who sign this document.": "Je hoort niet bij de mensen die dit document ondertekenen.",
+        "You cannot sign this document in that role.": "Je kunt dit document niet in die rol ondertekenen.",
+        "You have already signed this version in that role.": "Je hebt deze versie al in die rol ondertekend.",
+        "Sign and confirm that you agree before saving.": "Onderteken en bevestig dat je akkoord gaat voordat je opslaat.",
+        "Could not revoke the share. Please try again.": "Het intrekken van de deling is mislukt. Probeer het opnieuw.",
+        "Generate signing key": "Ondertekeningssleutel maken",
+        "Only an administrator can change the signing key.": "Alleen een beheerder kan de ondertekeningssleutel wijzigen."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -3820,7 +3820,15 @@ OC.L10N.register(
         "OpenRegister": "OpenRegister",
         "Configure the default register used by Learniq for data storage.": "Configure the default register used by Learniq for data storage.",
         "Default register": "Default register",
-        "Select a register…": "Select a register…"
+        "Select a register…": "Select a register…",
+        "This document can no longer be signed.": "This document can no longer be signed.",
+        "You are not one of the people who sign this document.": "You are not one of the people who sign this document.",
+        "You cannot sign this document in that role.": "You cannot sign this document in that role.",
+        "You have already signed this version in that role.": "You have already signed this version in that role.",
+        "Sign and confirm that you agree before saving.": "Sign and confirm that you agree before saving.",
+        "Could not revoke the share. Please try again.": "Could not revoke the share. Please try again.",
+        "Generate signing key": "Generate signing key",
+        "Only an administrator can change the signing key.": "Only an administrator can change the signing key."
     },
     "nplurals=2; plural=(n != 1);"
 )
