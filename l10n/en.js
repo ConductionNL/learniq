@@ -3758,7 +3758,20 @@ OC.L10N.register(
         "You cannot sign this document in that role.": "You cannot sign this document in that role.",
         "You have already signed this version in that role.": "You have already signed this version in that role.",
         "Sign and confirm that you agree before saving.": "Sign and confirm that you agree before saving.",
-        "Could not revoke the share. Please try again.": "Could not revoke the share. Please try again."
+        "Could not revoke the share. Please try again.": "Could not revoke the share. Please try again.",
+        "Credential signing": "Credential signing",
+        "The RS256 key pair that signs verifiable credentials. The private key is stored encrypted on the server.": "The RS256 key pair that signs verifiable credentials. The private key is stored encrypted on the server.",
+        "Current key fingerprint: {fingerprint}": "Current key fingerprint: {fingerprint}",
+        "No signing key yet. Credentials cannot be signed until one is generated.": "No signing key yet. Credentials cannot be signed until one is generated.",
+        "Rotate signing key": "Rotate signing key",
+        "Generate signing key": "Generate signing key",
+        "New credentials will be signed with a new key. Credentials issued before stay verifiable with the old key. You can rotate once a day.": "New credentials will be signed with a new key. Credentials issued before stay verifiable with the old key. You can rotate once a day.",
+        "Rotate": "Rotate",
+        "The signing key was not changed.": "The signing key was not changed.",
+        "The signing key was rotated. Credentials issued before stay verifiable.": "The signing key was rotated. Credentials issued before stay verifiable.",
+        "A signing key was generated.": "A signing key was generated.",
+        "The signing key was rotated less than a day ago. Try again tomorrow.": "The signing key was rotated less than a day ago. Try again tomorrow.",
+        "Only an administrator can change the signing key.": "Only an administrator can change the signing key."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -59,6 +59,8 @@ return [
         // Controller: KeyAdminController (slug: keyAdmin).
         ['name' => 'keyAdmin#generateKey', 'url' => '/api/credentials/admin/generate-key', 'verb' => 'POST'],
         ['name' => 'keyAdmin#keyStatus',   'url' => '/api/credentials/admin/key-status',   'verb' => 'GET'],
+        ['name' => 'keyAdmin#signingKeyStatus', 'url' => '/api/settings/signing-key',        'verb' => 'GET'],
+        ['name' => 'keyAdmin#rotateSigningKey', 'url' => '/api/settings/signing-key/rotate', 'verb' => 'POST'],
 
         // cmi5 + xAPI (cmi5-xapi-lrs-ingest, ADR-002). The launch key is admin-only;
         // a launch is for the signed-in learner; the fetch URL and the statement POST
