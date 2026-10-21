@@ -3757,7 +3757,8 @@ OC.L10N.register(
         "You are not one of the people who sign this document.": "You are not one of the people who sign this document.",
         "You cannot sign this document in that role.": "You cannot sign this document in that role.",
         "You have already signed this version in that role.": "You have already signed this version in that role.",
-        "Sign and confirm that you agree before saving.": "Sign and confirm that you agree before saving."
+        "Sign and confirm that you agree before saving.": "Sign and confirm that you agree before saving.",
+        "Could not revoke the share. Please try again.": "Could not revoke the share. Please try again."
     },
     "nplurals=2; plural=(n != 1);"
 )

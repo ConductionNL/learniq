@@ -4211,7 +4211,8 @@ OC.L10N.register(
         "You are not one of the people who sign this document.": "Je hoort niet bij de mensen die dit document ondertekenen.",
         "You cannot sign this document in that role.": "Je kunt dit document niet in die rol ondertekenen.",
         "You have already signed this version in that role.": "Je hebt deze versie al in die rol ondertekend.",
-        "Sign and confirm that you agree before saving.": "Onderteken en bevestig dat je akkoord gaat voordat je opslaat."
+        "Sign and confirm that you agree before saving.": "Onderteken en bevestig dat je akkoord gaat voordat je opslaat.",
+        "Could not revoke the share. Please try again.": "Het intrekken van de deling is mislukt. Probeer het opnieuw."
     },
     "nplurals=2; plural=(n != 1);"
 )
