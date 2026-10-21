@@ -30923,7 +30923,7 @@
             "TimetableVisibilityPolicy": {
                 "slug": "timetable-visibility-policy",
                 "icon": "EyeOutline",
-                "version": "0.1.0",
+                "version": "0.2.0",
                 "title": "Timetable visibility",
                 "description": "Whose timetables learners and teachers may open on the Timetables page: their own only, those related to their own lessons, or all. One per school; without one the defaults apply.",
                 "type": "object",
@@ -31034,12 +31034,10 @@
                         "authenticated"
                     ],
                     "create": [
-                        "team-leads",
-                        "compliance-officers"
+                        "admin"
                     ],
                     "update": [
-                        "team-leads",
-                        "compliance-officers"
+                        "admin"
                     ]
                 }
             },
@@ -31177,7 +31175,7 @@
             "CheckInWindow": {
                 "slug": "check-in-window",
                 "icon": "CalendarCheckOutline",
-                "version": "0.1.0",
+                "version": "0.2.0",
                 "title": "Check-in window",
                 "description": "A time window in which the learners of a lesson check in themselves with a code on the teacher's screen. Only staff read it; the code is never stored.",
                 "type": "object",
@@ -31188,11 +31186,7 @@
                 },
                 "required": [
                     "sessionId",
-                    "openedBy",
-                    "opensAt",
-                    "closesAt",
-                    "mode",
-                    "tenant_id"
+                    "mode"
                 ],
                 "properties": {
                     "sessionId": {

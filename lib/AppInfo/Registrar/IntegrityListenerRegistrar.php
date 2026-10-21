@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\Learniq\Listener\CompetencyAlignmentListener;
+use OCA\Learniq\Listener\CheckInWindowStamp;
 use OCA\Learniq\Listener\ConferenceSignupPortalStamp;
 use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
@@ -45,6 +46,7 @@ use OCA\Learniq\Listener\LearnerGroupLabelCascade;
 use OCA\Learniq\Listener\EmployerBookingCascade;
 use OCA\Learniq\Listener\ReadableCopyStamp;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
+use OCA\Learniq\Listener\SubjectChoiceConsentStamp;
 use OCA\Learniq\Listener\SubmissionOwnerStamp;
 use OCA\Learniq\Listener\SubmissionResubmissionDateListener;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
@@ -229,6 +231,27 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectCreatingEvent::class,
 			listener: ConferenceSignupPortalStamp::class
+		);
+
+		// CheckInWindow (attendance-self-check-in): the teacher who opens it,
+		// the lesson's tenant and the default times.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: CheckInWindowStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: CheckInWindowStamp::class
+		);
+
+		// SubjectChoice: who gave the guardian consent.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: SubjectChoiceConsentStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: SubjectChoiceConsentStamp::class
 		);
 	}//end registerOwnerStamps()
 
