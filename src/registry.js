@@ -10,28 +10,9 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
  */
 
-// registry-component-fix: eight shared @conduction/nextcloud-vue components
-// that 14 type:"custom" manifest pages named by their exact export string but
-// this registry never registered, so CnPageRenderer.resolveCustomComponent()
-// found nothing and mounted an empty page body. learniq#947 then pointed
-// those 14 pages at thin learniq views (below) that load the data and mount
-// these building blocks with their props, since a bare CnWizardDialog or
-// CnDataMatrix mounted as a page receives no steps, rows or save handler.
-// The eight stay registered for registryComponentCoverage.test.mjs.
-import {
-	CnDataMatrix,
-	CnExportWizard,
-	CnRelationshipGraph,
-	CnRichSubmitDialog,
-	CnSignatureCapture,
-	CnStructuredDocReview,
-	CnTimelineView,
-	CnWizardDialog,
-} from '@conduction/nextcloud-vue'
 // assignment-missing-submissions-view: body section on AssignmentDetail.
 import AssignmentHandInStatus from './components/sections/AssignmentHandInStatus.vue'
 import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeerReviewAllocation.vue'
-import AuditTrailWidget from './components/widgets/AuditTrailWidget.vue'
 // admissions-and-subject-choice: the two genuine new custom views this
 // change adds — the coordinator's admissions review board (queue of
 // intake-completed Applications cross-referenced against their round's
@@ -79,8 +60,7 @@ import CourseBuilder from './views/CourseBuilder.vue'
 import CourseCatalogue from './views/CourseCatalogue.vue'
 // course-package-import-export: the one genuine new custom view this change
 // adds — uploads a Common Cartridge/Moodle course package and renders the
-// resulting CoursePackageImportReport's entries table. Course export reuses
-// the existing CnExportWizard shared component (no new Vue file for export).
+// resulting CoursePackageImportReport's entries table.
 import CoursePackageImportView from './views/CoursePackageImportView.vue'
 // content-adaptive-next-step-and-preview: Preview as learner from the course page.
 import CoursePreviewView from './views/CoursePreviewView.vue'
@@ -222,20 +202,6 @@ function page(component) {
 	return { kind: 'page', component }
 }
 
-/*
- * Grid metadata required for every kind:"widget" registry entry by the
- * ADR-036 registry validator in CnAppRoot. `allowedSlots` uses the v2 slot
- * literals; `audit-trail` is placed on both body and sidebar since detail
- * pages use it in either position depending on the page's layout.
- */
-const PANEL_WIDGET_META = {
-	defaultSize: { w: 6, h: 4 },
-	minSize: { w: 3, h: 2 },
-	maxSize: { w: 12, h: 6 },
-	allowedSlots: ['body', 'sidebar'],
-	propsSchema: null,
-}
-
 export default {
 	// --- Flows (ADR-110 Decision 4). Only the SIDEBAR is an app component;
 	//     the list and the canvas are the shared `index` (with
@@ -244,18 +210,6 @@ export default {
 	//     to keep full width. ---
 	FlowDetailSidebar: page(FlowDetailSidebar),
 
-	// --- Shared @conduction/nextcloud-vue components named directly by
-	//     type:"custom" manifest pages (registry-component-fix; see the
-	//     import comment above). Keyed by the component's own export name,
-	//     matching each page's `component` string verbatim. ---
-	CnDataMatrix: page(CnDataMatrix),
-	CnExportWizard: page(CnExportWizard),
-	CnRelationshipGraph: page(CnRelationshipGraph),
-	CnRichSubmitDialog: page(CnRichSubmitDialog),
-	CnSignatureCapture: page(CnSignatureCapture),
-	CnStructuredDocReview: page(CnStructuredDocReview),
-	CnTimelineView: page(CnTimelineView),
-	CnWizardDialog: page(CnWizardDialog),
 	// learniq#947
 	AttendanceRegisterView: page(AttendanceRegisterView),
 	RollCallView: page(RollCallView),
@@ -347,13 +301,5 @@ export default {
 		kind: 'section',
 		component: AssignmentPeerReviewAllocation,
 		_note: 'Peer review on AssignmentDetail: states the strategy and reviewers per submission and, unless allocation is manual, posts to /api/peer-review/{id}/allocate and reports the counts. Staff only, and only when peerReviewEnabled.',
-	},
-
-	// --- Shared library widgets registered under manifest widget keys (ADR-036). ---
-	'audit-trail': {
-		kind: 'widget',
-		component: AuditTrailWidget,
-		...PANEL_WIDGET_META,
-		_note: 'Object change-log card — self-fetches from the detail object context (register/schema/objectId).',
 	},
 }
