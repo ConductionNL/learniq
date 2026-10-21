@@ -78,9 +78,13 @@
 </template>
 
 <script>
-import { NcButton, NcCheckboxRadioSwitch } from '@nextcloud/vue'
+import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
+import { NcButton, NcCheckboxRadioSwitch } from '@nextcloud/vue'
+import { readMatrix, saveActionMatrix } from '../../utils/actionMatrix.js'
+
+const MATRIX_URL = '/apps/learniq/api/admin/action-matrix'
 
 /**
  * Admin editor for the ADR-023 action-authorization matrix.
@@ -132,26 +136,10 @@ export default {
 			this.loading = true
 			this.error = ''
 			try {
-				const response = await fetch(
-					generateUrl('/apps/learniq/api/admin/action-matrix'),
-					{
-						headers: { 'Content-Type': 'application/json' },
-					},
-				)
-				const data = await response.json()
-				this.actions = Array.isArray(data.actions) ? data.actions : []
-				this.groups = Array.isArray(data.groups) ? data.groups : []
-				// Clone the matrix into a plain editable map keyed by action.
-				const next = {}
-				const source =
-					data.matrix && typeof data.matrix === 'object' ? data.matrix : {}
-				for (const action of this.actions) {
-					const allowed = Array.isArray(source[action])
-						? source[action]
-						: []
-					next[action] = [...allowed]
-				}
-				this.matrix = next
+				const { data } = await axios.get(generateUrl(MATRIX_URL))
+				this.actions = Array.isArray(data?.actions) ? data.actions : []
+				this.groups = Array.isArray(data?.groups) ? data.groups : []
+				this.matrix = readMatrix(this.actions, data?.matrix)
 			} catch (e) {
 				console.error('Failed to load action matrix', e)
 				this.error = t('learniq', 'Failed to load the action matrix.')
@@ -200,42 +188,21 @@ export default {
 		/** @spec openspec/architecture/adr-023-action-authorization.md */
 		async save() {
 			this.saving = true
-			try {
-				// Persist `admin` plus any explicitly ticked groups so the
-				// stored posture stays admin-inclusive and human-readable.
-				const payload = {}
-				for (const action of this.actions) {
-					const extra = (this.matrix[action] || []).filter(
-						(g) => g !== 'admin',
-					)
-					payload[action] = ['admin', ...extra]
-				}
-				const response = await fetch(
-					generateUrl('/apps/learniq/api/admin/action-matrix'),
-					{
-						method: 'PUT',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ matrix: payload }),
-					},
-				)
-				const data = await response.json()
-				const saved =
-					data && data.matrix && typeof data.matrix === 'object'
-						? data.matrix
-						: {}
-				const next = {}
-				for (const action of this.actions) {
-					const allowed = Array.isArray(saved[action]) ? saved[action] : []
-					next[action] = [...allowed]
-				}
-				this.matrix = next
+			const result = await saveActionMatrix(
+				axios,
+				generateUrl(MATRIX_URL),
+				this.actions,
+				this.matrix,
+			)
+			this.saving = false
+			if (result.ok) {
+				this.matrix = result.matrix
 				showSuccess(t('learniq', 'Action matrix saved.'))
-			} catch (e) {
-				console.error('Failed to save action matrix', e)
-				showError(t('learniq', 'Failed to save the action matrix.'))
-			} finally {
-				this.saving = false
+				return
 			}
+			showError(
+				result.error ?? t('learniq', 'Failed to save the action matrix.'),
+			)
 		},
 	},
 }
