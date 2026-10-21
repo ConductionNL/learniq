@@ -4206,7 +4206,11 @@ OC.L10N.register(
         "Level %s": "Niveau %s",
         "Learning path": "Leerweg",
         "or": "of",
-        "Training course": "Cursus"
+        "Training course": "Cursus",
+        "Introduction: replace with your own text": "Inleiding: vervang dit door je eigen tekst",
+        "Curriculum plan for %s": "Leerplan voor %s",
+        "You are not allowed to save course templates.": "Je mag geen cursussjablonen opslaan.",
+        "You are not allowed to create courses.": "Je mag geen cursussen aanmaken."
     },
     "nplurals=2; plural=(n != 1);"
 )
