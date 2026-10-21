@@ -291,6 +291,11 @@ return [
         ['name' => 'checkIn#show', 'url' => '/api/check-in/{windowId}', 'verb' => 'GET'],
         ['name' => 'checkIn#checkIn', 'url' => '/api/check-in/{windowId}', 'verb' => 'POST'],
         ['name' => 'checkInCode#code', 'url' => '/api/check-in/{windowId}/code', 'verb' => 'GET'],
+        // Signing a learning plan or a work placement agreement: the server
+        // sets signer, time, version and tenant, and accepts only a role the
+        // signer holds (SigningService). Controller: SigningController (slug: signing).
+        ['name' => 'signing#roles', 'url' => '/api/sign/{subject}/{id}', 'verb' => 'GET', 'requirements' => ['subject' => 'learning-plan|placement-agreement', 'id' => '[^/]+']],
+        ['name' => 'signing#sign', 'url' => '/api/sign/{subject}/{id}', 'verb' => 'POST', 'requirements' => ['subject' => 'learning-plan|placement-agreement', 'id' => '[^/]+']],
         // Portal check-in receiver (attendance-self-check-in, pattern of #1096
         // and #1142): X-Portal-Subject assertion only, learnerRef from portaliq.
         // Controller: PortalCheckInController (slug: portalCheckIn).

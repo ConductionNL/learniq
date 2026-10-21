@@ -15951,11 +15951,16 @@
             "Signature": {
                 "slug": "signature",
                 "icon": "Pen",
-                "version": "0.1.0",
+                "version": "0.2.0",
                 "title": "Signature",
                 "description": "Co-sign record for a specific LearningPlan version. Append-only — signatures are immutable audit evidence. DigiD/eIDAS handshake is out of scope; this schema only records who signed which version when and with what assurance.",
                 "type": "object",
                 "appendOnly": true,
+                "authorization": {
+                    "read": [
+                        "authenticated"
+                    ]
+                },
                 "x-openregister": {
                     "active": true,
                     "hardDelete": false,
@@ -21175,11 +21180,16 @@
             "PokSignature": {
                 "slug": "pok-signature",
                 "icon": "Pen",
-                "version": "0.2.0",
+                "version": "0.3.0",
                 "title": "POK Signature",
                 "description": "Co-sign record on a specific Praktijkovereenkomst version. Append-only — signatures are immutable audit evidence. Field-for-field shape parity with the learning-plan Signature schema; a parallel schema (not a widened Signature) because Signature.subjectId is hard-$ref'd to LearningPlan and the fleet's relation-dialect gate bans polymorphic $ref targets.",
                 "type": "object",
                 "appendOnly": true,
+                "authorization": {
+                    "read": [
+                        "authenticated"
+                    ]
+                },
                 "x-openregister": {
                     "active": true,
                     "hardDelete": false,
