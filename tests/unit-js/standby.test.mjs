@@ -19,7 +19,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 const learning = JSON.parse(readFileSync(resolve(root, 'src/manifest.d/learning.json'), 'utf8'))
 const register = JSON.parse(readFileSync(resolve(root, 'lib/Settings/learniq_register.json'), 'utf8'))
 const slot = Object.values(register.components.schemas).find((s) => s.slug === 'standby-slot')
-const content = learning.pages.find((p) => p.id === 'StandbyPlanning').config.content
+const content = learning.pages.find((p) => p.id === 'StandbyPlanning').widgets.find((w) => w.slot === 'body').props.content
 
 test('the standby page lays the slots out by time window and weekday', () => {
 	assert.deepEqual(content.source, { register: 'learniq', schema: 'standby-slot' })

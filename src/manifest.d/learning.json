@@ -2831,14 +2831,6 @@
 			}
 		},
 		{
-			"id": "CohortTimetable",
-			"route": "/cohorts/:id/timetable",
-			"type": "custom",
-			"title": "Cohort timetable",
-			"component": "CohortTimetableView",
-			"_note": "Mounts CohortTimetableView (learniq#947): the cohort's Sessions in CnTimelineView."
-		},
-		{
 			"id": "Sessions",
 			"route": "/sessions",
 			"type": "index",
@@ -3335,7 +3327,19 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "open-self-check-in",
+						"label": "Open self check-in",
+						"icon": "CalendarCheckOutline",
+						"type": "open-modal",
+						"target": "SelfCheckInDialog",
+						"props": {
+							"sessionId": "@objectId"
+						}
+					}
+				]
 			}
 		},
 		{
@@ -8216,14 +8220,6 @@
 			}
 		},
 		{
-			"id": "MarkAttendanceView",
-			"route": "/sessions/:sessionId/attendance",
-			"type": "custom",
-			"title": "Mark attendance",
-			"component": "AttendanceRegisterView",
-			"_note": "Mounts AttendanceRegisterView (learniq#947): one row per learner of the session's cohort, a status per learner, saved as one AttendanceRecord each."
-		},
-		{
 			"id": "ReportPeriods",
 			"route": "/report-periods",
 			"type": "index",
@@ -8658,73 +8654,81 @@
 			"route": "/standby",
 			"type": "custom",
 			"title": "Standby hours",
-			"component": "CnSlotGrid",
-			"config": {
-				"content": {
-					"source": {
-						"register": "learniq",
-						"schema": "standby-slot"
-					},
-					"rowFields": [
-						"startsAt",
-						"endsAt"
-					],
-					"rowLabel": "{startsAt} to {endsAt}",
-					"rowHeader": "Time",
-					"columnField": "weekday",
-					"columns": [
-						{
-							"value": "monday",
-							"label": "Monday"
-						},
-						{
-							"value": "tuesday",
-							"label": "Tuesday"
-						},
-						{
-							"value": "wednesday",
-							"label": "Wednesday"
-						},
-						{
-							"value": "thursday",
-							"label": "Thursday"
-						},
-						{
-							"value": "friday",
-							"label": "Friday"
+			"_note": "timetabling-standby-slots: the week's standby hours as a weekday by time grid in the slot-grid widget; a coordinator adds a teacher in a cell or removes one. The substitution dialog lists these teachers first.",
+			"widgets": [
+				{
+					"id": "standby-grid",
+					"widgetKey": "slot-grid",
+					"slot": "body",
+					"gridWidth": 12,
+					"props": {
+						"content": {
+							"source": {
+								"register": "learniq",
+								"schema": "standby-slot"
+							},
+							"rowFields": [
+								"startsAt",
+								"endsAt"
+							],
+							"rowLabel": "{startsAt} to {endsAt}",
+							"rowHeader": "Time",
+							"columnField": "weekday",
+							"columns": [
+								{
+									"value": "monday",
+									"label": "Monday"
+								},
+								{
+									"value": "tuesday",
+									"label": "Tuesday"
+								},
+								{
+									"value": "wednesday",
+									"label": "Wednesday"
+								},
+								{
+									"value": "thursday",
+									"label": "Thursday"
+								},
+								{
+									"value": "friday",
+									"label": "Friday"
+								}
+							],
+							"skipWhenField": "date",
+							"itemLabelField": "teacherId",
+							"itemLabelKind": "user",
+							"cellAction": {
+								"label": "Add standby on {column} {startsAt}",
+								"includeFields": [
+									"teacherId",
+									"weekday",
+									"startsAt",
+									"endsAt",
+									"validFrom",
+									"validUntil"
+								],
+								"fieldOverrides": {
+									"teacherId": {
+										"widget": "user"
+									}
+								}
+							},
+							"addAction": {
+								"label": "Add standby"
+							},
+							"removeAction": {
+								"label": "Remove {item} from standby",
+								"title": "Remove standby",
+								"message": "Remove {item} from standby?"
+							},
+							"emptyText": "No standby hours yet",
+							"caption": "Teachers on standby per weekday and time"
 						}
-					],
-					"skipWhenField": "date",
-					"itemLabelField": "teacherId",
-					"itemLabelKind": "user",
-					"cellAction": {
-						"label": "Add standby on {column} {startsAt}",
-						"includeFields": [
-							"teacherId",
-							"weekday",
-							"startsAt",
-							"endsAt",
-							"validFrom",
-							"validUntil"
-						],
-						"fieldOverrides": {
-							"teacherId": {
-								"widget": "user"
-							}
-						}
-					},
-					"addAction": {
-						"label": "Add standby"
-					},
-					"removeAction": {
-						"label": "Remove {item} from standby",
-						"title": "Remove standby",
-						"message": "Remove {item} from standby?"
-					},
-					"emptyText": "No standby hours yet",
-					"caption": "Teachers on standby per weekday and time"
+					}
 				}
-			}
+			]
 		},
 		{
 			"id": "HourPlanEditor",

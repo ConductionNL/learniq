@@ -574,8 +574,9 @@ test('the full profile is exactly the plain manifest build', () => {
 		[count('main'), count('footer'), count('settings')],
 		[100, 3, 5],
 	)
-	// 351 since internship-hours T6 added the school's BPV hours list (BpvHourWeeks).
-	assert.equal(plain.pages.length, 351)
+	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
+	// MarkAttendanceView, SubmitExcuseModal) became actions.
+	assert.equal(plain.pages.length, 347)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {

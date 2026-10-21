@@ -25,10 +25,9 @@
      integration hint; Nextcloud's DependencyAnalyzer does not enforce
      <app> entries, so that declaration never gated anything.
 
- The #user-settings slot feeds LearniqNotificationSettings into CnAppRoot's
- hosted NcAppSettingsDialog, which CnAppNav opens when the user clicks the
- manifest menu entry with action: "user-settings". Per-user settings are
- about which notifications the user receives; instance-wide configuration
+ CnAppRoot's user settings dialog (the manifest menu entry with action:
+ "user-settings") shows the library's default sections, among them the
+ notification preferences scoped to learniq. Instance-wide configuration
  (register, AI features, credential signing) lives in the NC Admin panel.
 -->
 <template>
@@ -42,9 +41,6 @@
 		appId="learniq"
 		:translate="translateForApp"
 		:initialOrganisationUuid="callerTenant">
-		<template #user-settings>
-			<LearniqNotificationSettings />
-		</template>
 		<!-- The tenant context carries learniq's tenant id, not an organisation
 		     name, so the library's tenant badge would print a raw id. Keep it
 		     hidden, as it was before the context was fed. The slot needs a real
@@ -63,7 +59,6 @@ import { getCanonicalLocale, translate as ncT } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { markRaw } from 'vue'
 import LearnerNameCell from './components/cells/LearnerNameCell.vue'
-import LearniqNotificationSettings from './views/LearniqNotificationSettings.vue'
 import { createConnectionHandlers } from './utils/connectionRegistry.js'
 import { createFormatters } from './utils/timeBlocks.js'
 
@@ -72,7 +67,6 @@ export default {
 
 	components: {
 		CnAppRoot,
-		LearniqNotificationSettings,
 	},
 
 	props: {
