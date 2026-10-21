@@ -32,6 +32,7 @@ import {
 import AssignmentHandInStatus from './components/sections/AssignmentHandInStatus.vue'
 import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeerReviewAllocation.vue'
 import AuditTrailWidget from './components/widgets/AuditTrailWidget.vue'
+import SelfCheckInDialog from './dialogs/SelfCheckInDialog.vue'
 // admissions-and-subject-choice: the two genuine new custom views this
 // change adds — the coordinator's admissions review board (queue of
 // intake-completed Applications cross-referenced against their round's
@@ -49,7 +50,6 @@ import AssessmentScoringView from './views/AssessmentScoringView.vue'
 // parent-evening-planner: the guardian/self conversation-slot picker and the
 // coordinator's manual-override / regenerate board.
 import BookConferenceSlotsView from './views/BookConferenceSlotsView.vue'
-import SelfCheckInDialog from './dialogs/SelfCheckInDialog.vue'
 // bsa-study-progress-guard / competency-framework: these two custom views
 // existed but were never added to this registry (a pre-existing gap
 // discovered while wiring learning-progress-and-analytics's own new custom
