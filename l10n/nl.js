@@ -4206,7 +4206,20 @@ OC.L10N.register(
         "Level %s": "Niveau %s",
         "Learning path": "Leerweg",
         "or": "of",
-        "Training course": "Cursus"
+        "Training course": "Cursus",
+        "Credential signing": "Ondertekening van credentials",
+        "The RS256 key pair that signs verifiable credentials. The private key is stored encrypted on the server.": "Het RS256-sleutelpaar dat verifieerbare credentials ondertekent. De privésleutel staat versleuteld op de server.",
+        "Current key fingerprint: {fingerprint}": "Vingerafdruk van de huidige sleutel: {fingerprint}",
+        "No signing key yet. Credentials cannot be signed until one is generated.": "Er is nog geen ondertekeningssleutel. Credentials worden pas ondertekend als u er een maakt.",
+        "Rotate signing key": "Ondertekeningssleutel vervangen",
+        "Generate signing key": "Ondertekeningssleutel maken",
+        "New credentials will be signed with a new key. Credentials issued before stay verifiable with the old key. You can rotate once a day.": "Nieuwe credentials worden met een nieuwe sleutel ondertekend. Eerder uitgegeven credentials blijven controleerbaar met de oude sleutel. U kunt één keer per dag vervangen.",
+        "Rotate": "Vervangen",
+        "The signing key was not changed.": "De ondertekeningssleutel is niet gewijzigd.",
+        "The signing key was rotated. Credentials issued before stay verifiable.": "De ondertekeningssleutel is vervangen. Eerder uitgegeven credentials blijven controleerbaar.",
+        "A signing key was generated.": "Er is een ondertekeningssleutel gemaakt.",
+        "The signing key was rotated less than a day ago. Try again tomorrow.": "De ondertekeningssleutel is minder dan een dag geleden vervangen. Probeer het morgen opnieuw.",
+        "Only an administrator can change the signing key.": "Alleen een beheerder kan de ondertekeningssleutel wijzigen."
     },
     "nplurals=2; plural=(n != 1);"
 )
