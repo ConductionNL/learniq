@@ -30860,7 +30860,7 @@
             "StandbySlot": {
                 "slug": "standby-slot",
                 "icon": "AccountClockOutline",
-                "version": "0.1.0",
+                "version": "0.2.0",
                 "title": "Standby slot",
                 "description": "A time in which a teacher is on standby to cover a colleague's lesson: every week on a weekday, or on one date. The substitution dialog lists the teachers on standby first.",
                 "type": "object",
@@ -30872,10 +30872,7 @@
                 "required": [
                     "teacherId",
                     "startsAt",
-                    "endsAt",
-                    "validFrom",
-                    "validUntil",
-                    "tenant_id"
+                    "endsAt"
                 ],
                 "properties": {
                     "teacherId": {
