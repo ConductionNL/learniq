@@ -53,6 +53,9 @@
 		<NcNoteCard v-if="regenerateError" type="error">
 			{{ regenerateError }}
 		</NcNoteCard>
+		<NcNoteCard v-if="placeError" type="error">
+			{{ placeError }}
+		</NcNoteCard>
 		<NcNoteCard v-if="regenerateSuccess" type="success">
 			{{
 				t(
@@ -157,6 +160,7 @@ export default {
 			manualForm: {},
 			regenerating: false,
 			regenerateError: '',
+			placeError: '',
 			regenerateSuccess: false,
 		}
 	},
@@ -289,6 +293,7 @@ export default {
 			const form = this.manualForm[signupId]
 			if (!form || !form.teacherId || !form.startsAt || !form.endsAt) return
 
+			this.placeError = ''
 			try {
 				const body = {
 					conferenceRoundId: this.selectedRoundId,
@@ -308,11 +313,15 @@ export default {
 				)
 				await axios.post(url, body)
 
-				// Reflect the manual placement on the signup itself so the board
-				// stops listing it as waitlisted once every request is met.
+				// The server schedules the signup once every requested teacher
+				// has a slot, so a reload drops it from the waitlist.
 				await this.loadWaitlisted()
 			} catch (e) {
 				console.error('[ConferenceScheduleBoard] createManualSlot failed', e)
+				this.placeError = t(
+					'learniq',
+					'The time could not be placed. Check the teacher and the times, and try again.',
+				)
 			}
 		},
 

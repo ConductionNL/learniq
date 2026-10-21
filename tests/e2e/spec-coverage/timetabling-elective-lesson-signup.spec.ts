@@ -20,7 +20,7 @@ import { expect, test } from '../fixtures.ts'
 test.describe('timetabling-elective-lesson-signup', () => {
 	// @e2e openspec/specs/enrolment/spec.md#scenario-a-coordinator-offers-weekly-extra-maths
 	// @e2e openspec/specs/enrolment/spec.md#scenario-a-coordinator-places-a-learner-after-the-deadline
-	test('a coordinator creates an offer and opens its sign-ups page', async ({
+	test('a coordinator creates an offer and sees its sign-ups on its page', async ({
 		loggedInPage: page,
 	}) => {
 		const created = await page.request.post(
@@ -40,11 +40,13 @@ test.describe('timetabling-elective-lesson-signup', () => {
 		const offer = await created.json()
 		const id = offer.id || offer['@self']?.id
 
-		await page.goto(`/index.php/apps/learniq/electives/offers/${id}/roster`)
-		await expect(page.getByRole('heading', { level: 2 })).toContainText(
-			'Keuzewerktijd wiskunde e2e',
-			{ timeout: 15_000 },
-		)
+		await page.goto(`/index.php/apps/learniq/electives/offers/${id}`)
+		await expect(page.getByText('Keuzewerktijd wiskunde e2e').first()).toBeVisible({
+			timeout: 15_000,
+		})
+		await expect(page.getByTestId('cn-grouped-cards').first()).toBeVisible({
+			timeout: 15_000,
+		})
 	})
 
 	// @e2e openspec/specs/enrolment/spec.md#scenario-a-learner-signs-up-for-thursday

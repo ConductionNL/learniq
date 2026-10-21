@@ -2,10 +2,10 @@
 <!-- Copyright (C) 2026 Conduction B.V. -->
 
 <!--
- SelfCheckInPanel: the teacher opens self check-in for a lesson from the
- register (attendance-self-check-in).
+ SelfCheckInPanel: the teacher opens self check-in for a lesson
+ (attendance-self-check-in), in SelfCheckInDialog from the lesson's page.
 
- Creates a CheckInWindow (staff only in the register), then shows the code
+ Creates a CheckInWindow (staff only), then shows the code
  from learniq's GET /api/check-in/{id}/code in large letters, refreshed with
  every thirty-second step, the check-in link for an online lesson and the
  count of check-ins so far. Learners type the code on their check-in page or
@@ -62,7 +62,6 @@
 </template>
 
 <script>
-import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcNoteCard } from '@nextcloud/vue'
@@ -79,9 +78,9 @@ export default {
 	components: { NcButton, NcNoteCard },
 
 	props: {
-		/** The Session the register is for. */
-		session: {
-			type: Object,
+		/** The uuid of the lesson (Session) to open check-in for. */
+		sessionId: {
+			type: String,
 			required: true,
 		},
 	},
@@ -104,8 +103,9 @@ export default {
 
 	methods: {
 		/**
-		 * Open a window for the lesson: now until fifteen minutes from now,
-		 * never past the lesson's end.
+		 * Open a window for the lesson. The server stamps who opened it, the
+		 * tenant and the times: now until fifteen minutes from now, never
+		 * past the lesson's end.
 		 *
 		 * @param {string} mode `rotating-qr` or `link`.
 		 * @return {Promise<void>}
@@ -114,24 +114,12 @@ export default {
 		async open(mode) {
 			this.busy = true
 			this.error = ''
-			const now = new Date()
-			let closes = new Date(now.getTime() + 15 * 60 * 1000)
-			const ends = this.session.endsAt ? new Date(this.session.endsAt) : null
-			if (ends && ends < closes) closes = ends
 			try {
 				this.window = oneObject(
 					(
 						await axios.post(
 							generateUrl(objectsUrl('check-in-window')),
-							{
-								sessionId: objectId(this.session),
-								openedBy: getCurrentUser()?.uid ?? '',
-								opensAt: now.toISOString(),
-								closesAt: closes.toISOString(),
-								lateAfterMinutes: 5,
-								mode,
-								tenant_id: this.session.tenant_id ?? '',
-							},
+							{ sessionId: this.sessionId, mode },
 						)
 					).data,
 				)

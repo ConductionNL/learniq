@@ -165,12 +165,7 @@
 											v-if="card.lifecycle === 'draft'"
 											variant="tertiary"
 											:disabled="!!transitioning[cardId(card)]"
-											@click="
-												transition(
-													card,
-													'rapportvergadering-review',
-												)
-											">
+											@click="transition(card, 'pullIntoReview')">
 											{{ t('learniq', 'Pull into review') }}
 										</NcButton>
 										<NcButton
@@ -180,31 +175,21 @@
 											"
 											variant="tertiary"
 											:disabled="!!transitioning[cardId(card)]"
-											@click="transition(card, 'finalised')">
+											@click="transition(card, 'finalise')">
 											{{ t('learniq', 'Finalise') }}
 										</NcButton>
 										<NcButton
 											v-if="card.lifecycle === 'finalised'"
 											variant="tertiary"
 											:disabled="!!transitioning[cardId(card)]"
-											@click="
-												transition(
-													card,
-													'rapportvergadering-review',
-												)
-											">
+											@click="transition(card, 'reopen')">
 											{{ t('learniq', 'Reopen') }}
 										</NcButton>
 										<NcButton
 											v-if="card.lifecycle === 'finalised'"
 											variant="primary"
 											:disabled="!!transitioning[cardId(card)]"
-											@click="
-												transition(
-													card,
-													'published-to-parents',
-												)
-											">
+											@click="transition(card, 'publishToParents')">
 											{{ t('learniq', 'Publish to parents') }}
 										</NcButton>
 									</div>
@@ -238,6 +223,7 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
 import ComposeReportPeriodModal from '../dialogs/ComposeReportPeriodModal.vue'
+import { transitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'RapportvergaderingReviewView',
@@ -498,27 +484,24 @@ export default {
 		},
 
 		/**
-		 * Trigger a ReportCard lifecycle transition by writing the target
-		 * `lifecycle` value through OR's object API.
+		 * Run a ReportCard lifecycle transition through OR's transition
+		 * endpoint, so its guard runs and its listeners (publish to parents,
+		 * the PDF, the notification) fire.
 		 *
-		 * @param {object} card         The ReportCard.
-		 * @param {string} toLifecycle  Target lifecycle state.
+		 * @param {object} card   The ReportCard.
+		 * @param {string} action The transition, e.g. `finalise`.
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/report-card/spec.md#scenario-a-mentor-reopens-a-finalised-report-card-to-correct-it-before-publication
 		 * @spec openspec/specs/report-card/spec.md#scenario-publish-succeeds-once-every-contributing-grades-window-has-opened
 		 */
-		async transition(card, toLifecycle) {
+		async transition(card, action) {
 			const id = this.cardId(card)
 			if (!id) return
 
 			this.transitioning[id] = true
 			this.cardErrors[id] = ''
 			try {
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/report-card/{id}',
-					{ id },
-				)
-				await axios.patch(url, { lifecycle: toLifecycle })
+				await axios.post(generateUrl(transitionUrl(id)), { action })
 				await this.loadCards()
 			} catch (e) {
 				console.error('[RapportvergaderingReviewView] transition failed', e)

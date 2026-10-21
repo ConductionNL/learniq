@@ -59,6 +59,8 @@ return [
         // Controller: KeyAdminController (slug: keyAdmin).
         ['name' => 'keyAdmin#generateKey', 'url' => '/api/credentials/admin/generate-key', 'verb' => 'POST'],
         ['name' => 'keyAdmin#keyStatus',   'url' => '/api/credentials/admin/key-status',   'verb' => 'GET'],
+        ['name' => 'keyAdmin#signingKeyStatus', 'url' => '/api/settings/signing-key',        'verb' => 'GET'],
+        ['name' => 'keyAdmin#rotateSigningKey', 'url' => '/api/settings/signing-key/rotate', 'verb' => 'POST'],
 
         // cmi5 + xAPI (cmi5-xapi-lrs-ingest, ADR-002). The launch key is admin-only;
         // a launch is for the signed-in learner; the fetch URL and the statement POST
@@ -179,6 +181,12 @@ return [
         // Controller: LessonNextStepController (slug: lessonNextStep), content-adaptive-next-step-and-preview.
         ['name' => 'lessonNextStep#nextStep',        'url' => '/api/lessons/{lessonId}/next-step',              'verb' => 'GET'],
         ['name' => 'lessonNextStep#coursePreview',   'url' => '/api/courses/{courseId}/preview',                'verb' => 'GET'],
+        // Controller: CourseTemplateController (slug: courseTemplate). The course builder's
+        // tree read (one query for all lessons), Save as template and New course from
+        // template; #[NoAdminRequired], OpenRegister RBAC decides every read and write.
+        ['name' => 'courseTemplate#structure',      'url' => '/api/courses/{id}/structure',                    'verb' => 'GET'],
+        ['name' => 'courseTemplate#saveAsTemplate', 'url' => '/api/courses/{id}/save-as-template',             'verb' => 'POST'],
+        ['name' => 'courseTemplate#instantiate',    'url' => '/api/course-templates/{id}/instantiate',         'verb' => 'POST'],
 
         // Portal test taking (assessment-portal-endpoints): the five steps of
         // portaliq's timed task, forwarded server-to-server. #[PublicPage]
@@ -271,7 +279,6 @@ return [
         ['name' => 'elective#mine', 'url' => '/api/electives', 'verb' => 'GET'],
         ['name' => 'elective#signUp', 'url' => '/api/electives/{offerId}/sign-up', 'verb' => 'POST', 'requirements' => ['offerId' => '[^/]+']],
         ['name' => 'elective#roster', 'url' => '/api/electives/{offerId}/roster', 'verb' => 'GET', 'requirements' => ['offerId' => '[^/]+']],
-        ['name' => 'elective#rosterOf', 'url' => '/api/elective-roster', 'verb' => 'GET'],
         ['name' => 'elective#place', 'url' => '/api/electives/{offerId}/place', 'verb' => 'POST', 'requirements' => ['offerId' => '[^/]+']],
         ['name' => 'elective#withdraw', 'url' => '/api/elective-sign-ups/{id}/withdraw', 'verb' => 'POST', 'requirements' => ['id' => '[^/]+']],
 
@@ -292,6 +299,21 @@ return [
         ['name' => 'checkIn#show', 'url' => '/api/check-in/{windowId}', 'verb' => 'GET'],
         ['name' => 'checkIn#checkIn', 'url' => '/api/check-in/{windowId}', 'verb' => 'POST'],
         ['name' => 'checkInCode#code', 'url' => '/api/check-in/{windowId}/code', 'verb' => 'GET'],
+        // Signing a learning plan or a work placement agreement: the server
+        // sets signer, time, version and tenant, and accepts only a role the
+        // signer holds (SigningService). Controller: SigningController (slug: signing).
+        ['name' => 'signing#roles', 'url' => '/api/sign/{subject}/{id}', 'verb' => 'GET', 'requirements' => ['subject' => 'learning-plan|placement-agreement', 'id' => '[^/]+']],
+        ['name' => 'signing#sign', 'url' => '/api/sign/{subject}/{id}', 'verb' => 'POST', 'requirements' => ['subject' => 'learning-plan|placement-agreement', 'id' => '[^/]+']],
+        // Requests made for a learner (subject choice, conference signup):
+        // create and submit in one call, the tenant and learner reference
+        // taken on the server, a refused submit leaves no draft.
+        // Controller: RequestSubmitController (slug: requestSubmit).
+        ['name' => 'requestSubmit#subjectChoice', 'url' => '/api/subject-choices', 'verb' => 'POST'],
+        ['name' => 'requestSubmit#conferenceSignup', 'url' => '/api/conference-signups', 'verb' => 'POST'],
+        // Enrol a group in a course (header action on the enrolments list);
+        // each enrolment is created as the caller, open ones are skipped.
+        // Controller: BulkEnrolController (slug: bulkEnrol).
+        ['name' => 'bulkEnrol#enrol', 'url' => '/api/enrolments/bulk', 'verb' => 'POST'],
         // Portal check-in receiver (attendance-self-check-in, pattern of #1096
         // and #1142): X-Portal-Subject assertion only, learnerRef from portaliq.
         // Controller: PortalCheckInController (slug: portalCheckIn).

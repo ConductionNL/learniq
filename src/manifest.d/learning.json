@@ -2831,14 +2831,6 @@
 			}
 		},
 		{
-			"id": "CohortTimetable",
-			"route": "/cohorts/:id/timetable",
-			"type": "custom",
-			"title": "Cohort timetable",
-			"component": "CohortTimetableView",
-			"_note": "Mounts CohortTimetableView (learniq#947): the cohort's Sessions in CnTimelineView."
-		},
-		{
 			"id": "Sessions",
 			"route": "/sessions",
 			"type": "index",
@@ -3335,7 +3327,19 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "open-self-check-in",
+						"label": "Open self check-in",
+						"icon": "CalendarCheckOutline",
+						"type": "open-modal",
+						"target": "SelfCheckInDialog",
+						"props": {
+							"sessionId": "@objectId"
+						}
+					}
+				]
 			}
 		},
 		{
@@ -3691,15 +3695,6 @@
 			"config": {
 				"register": "learniq",
 				"schema": "elective-offer",
-				"headerActions": [
-					{
-						"id": "offer-roster",
-						"label": "Sign-ups",
-						"type": "navigate",
-						"icon": "AccountCheckOutline",
-						"target": "/electives/offers/@objectId/roster"
-					}
-				],
 				"widgets": [
 					{
 						"id": "elective-offer-data",
@@ -3715,6 +3710,70 @@
 						"type": "related",
 						"title": "Related",
 						"icon": "LinkVariant"
+					},
+					{
+						"id": "elective-offer-roster",
+						"type": "grouped-cards",
+						"title": "Sign-ups",
+						"content": {
+							"endpointSource": {
+								"url": "/apps/learniq/api/electives/@objectId/roster"
+							},
+							"groupsPath": "lessons",
+							"itemsKey": "signUps",
+							"columns": 1,
+							"groupTitle": [
+								"{startsAt|datetime} {title}",
+								"{startsAt|datetime}"
+							],
+							"groupLines": [
+								{
+									"count": "freePlaces",
+									"one": "{count} place free",
+									"other": "{count} places free"
+								},
+								{
+									"text": "Sign-up has closed",
+									"when": {
+										"field": "windowOpen",
+										"value": false
+									}
+								}
+							],
+							"itemTitle": "{learnerId|user}",
+							"itemMeta": [
+								{
+									"text": "placed",
+									"when": {
+										"field": "status",
+										"value": "placed"
+									}
+								}
+							],
+							"groupEmptyText": "Nobody signed up yet",
+							"extraItemsKey": "notSignedUp",
+							"extraItemsHeading": "Not signed up",
+							"extraItemTitle": "{value|user}",
+							"extraItemActions": [
+								{
+									"id": "place",
+									"label": "Place",
+									"type": "api-call",
+									"url": "/apps/learniq/api/electives/@group.offerId/place",
+									"payload": {
+										"learnerId": "@item.value",
+										"sessionId": "@group.sessionId",
+										"timetableSessionRef": "@group.timetableSessionRef"
+									},
+									"visibleWhen": {
+										"field": "group.freePlaces",
+										"op": "gt",
+										"value": 0
+									}
+								}
+							],
+							"emptyText": "This offer has no lessons yet."
+						}
 					}
 				],
 				"layout": [
@@ -3735,6 +3794,14 @@
 						"gridWidth": 4,
 						"gridHeight": 5,
 						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "elective-offer-roster",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 8
 					}
 				],
 				"sidebar": {
@@ -3754,80 +3821,7 @@
 					]
 				}
 			},
-			"_note": "timetabling-elective-lesson-signup: the Sign-ups action opens ElectiveRoster, per lesson who signed up, who of the eligible groups did not, and Place."
-		},
-		{
-			"id": "ElectiveRoster",
-			"route": "/electives/offers/:id/roster",
-			"type": "custom",
-			"title": "Sign-ups",
-			"component": "CnGroupedCardsWidget",
-			"_note": "timetabling-elective-lesson-signup: GET /api/elective-roster?offerId= and POST /api/electives/{offerId}/place, behind elective.manage. Placing is allowed after the window but never beyond the places; the server decides.",
-			"config": {
-				"content": {
-					"heading": "{name}",
-					"endpointSource": {
-						"url": "/apps/learniq/api/elective-roster",
-						"params": {
-							"offerId": "@route.id"
-						}
-					},
-					"groupsPath": "lessons",
-					"itemsKey": "signUps",
-					"columns": 1,
-					"groupTitle": [
-						"{startsAt|datetime} {title}",
-						"{startsAt|datetime}"
-					],
-					"groupLines": [
-						{
-							"count": "freePlaces",
-							"one": "{count} place free",
-							"other": "{count} places free"
-						},
-						{
-							"text": "Sign-up has closed",
-							"when": {
-								"field": "windowOpen",
-								"value": false
-							}
-						}
-					],
-					"itemTitle": "{learnerId|user}",
-					"itemMeta": [
-						{
-							"text": "placed",
-							"when": {
-								"field": "status",
-								"value": "placed"
-							}
-						}
-					],
-					"groupEmptyText": "Nobody signed up yet",
-					"extraItemsKey": "notSignedUp",
-					"extraItemsHeading": "Not signed up",
-					"extraItemTitle": "{value|user}",
-					"extraItemActions": [
-						{
-							"id": "place",
-							"label": "Place",
-							"type": "api-call",
-							"url": "/apps/learniq/api/electives/@group.offerId/place",
-							"payload": {
-								"learnerId": "@item.value",
-								"sessionId": "@group.sessionId",
-								"timetableSessionRef": "@group.timetableSessionRef"
-							},
-							"visibleWhen": {
-								"field": "group.freePlaces",
-								"op": "gt",
-								"value": 0
-							}
-						}
-					],
-					"emptyText": "This offer has no lessons yet."
-				}
-			}
+			"_note": "timetabling-elective-lesson-signup: the Sign-ups widget shows per lesson who signed up and who of the eligible groups did not, with Place (GET /api/electives/{offerId}/roster, POST .../place)."
 		},
 		{
 			"id": "ContactHoursReport",
@@ -8279,14 +8273,6 @@
 					]
 				}
 			}
-		},
-		{
-			"id": "MarkAttendanceView",
-			"route": "/sessions/:sessionId/attendance",
-			"type": "custom",
-			"title": "Mark attendance",
-			"component": "AttendanceRegisterView",
-			"_note": "Mounts AttendanceRegisterView (learniq#947): one row per learner of the session's cohort, a status per learner, saved as one AttendanceRecord each."
 		},
 		{
 			"id": "ReportPeriods",

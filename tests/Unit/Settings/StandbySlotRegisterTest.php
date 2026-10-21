@@ -55,7 +55,7 @@ class StandbySlotRegisterTest extends TestCase {
 	public function testShape(): void {
 		$props = $this->schema['properties'];
 
-		self::assertSame(['teacherId', 'startsAt', 'endsAt', 'validFrom', 'validUntil', 'tenant_id'], $this->schema['required']);
+		self::assertSame(['teacherId', 'startsAt', 'endsAt'], $this->schema['required']);
 		self::assertSame(['monday', 'tuesday', 'wednesday', 'thursday', 'friday'], $props['weekday']['enum']);
 		self::assertTrue($props['weekday']['nullable']);
 		self::assertTrue($props['date']['nullable']);

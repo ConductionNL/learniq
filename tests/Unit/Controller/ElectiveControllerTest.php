@@ -166,9 +166,6 @@ class ElectiveControllerTest extends TestCase {
 		self::assertSame(['offers' => [['id' => 'offer-1']]], $this->controller()->mine()->getData());
 		self::assertSame('offer-1', $this->controller()->roster('offer-1')->getData()['id']);
 		self::assertSame(Http::STATUS_NOT_FOUND, $this->controller()->roster('nope')->getStatus());
-		self::assertSame('offer-1', $this->controller(['offerId' => 'offer-1'])->rosterOf()->getData()['id']);
-		self::assertSame(Http::STATUS_NOT_FOUND, $this->controller()->rosterOf()->getStatus());
-		self::assertSame(Http::STATUS_FORBIDDEN, $this->controller(['offerId' => 'offer-1'], allowed: false)->rosterOf()->getStatus());
 		self::assertSame(Http::STATUS_NOT_FOUND, $this->controller(['sessionId' => 'x'])->signUp('nope')->getStatus());
 	}//end testReads()
 }//end class
