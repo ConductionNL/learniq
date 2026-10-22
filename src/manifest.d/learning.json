@@ -8642,10 +8642,34 @@
 			"type": "dashboard",
 			"title": "Timetables",
 			"description": "Look up the timetable of a group, a teacher or a room. Your school decides which ones you can open.",
-			"_note": "timetabling-visibility-rules: the picker lists what the school's visibility policy lets the caller open (GET /api/timetable/of/options, every kind); the week reads GET /api/timetable/of with the picked target, which refuses anything else with a reason.",
+			"_note": "timetabling-visibility-rules: pick groups, teachers or rooms, then one of them the school's visibility policy allows (GET /api/timetable/of/options?kind=); the week reads GET /api/timetable/of, which refuses anything else with a reason. The options endpoint without a kind answers every kind as kind:id, which /api/timetable/of also takes as target.",
 			"config": {
 				"allowEdit": false,
 				"widgets": [
+					{
+						"id": "timetable-kind",
+						"type": "workspace-filter",
+						"title": "Kind of timetable",
+						"content": {
+							"label": "Kind of timetable",
+							"writes": "@workspace.kind",
+							"default": "cohort",
+							"options": [
+								{
+									"value": "cohort",
+									"label": "Groups"
+								},
+								{
+									"value": "teacher",
+									"label": "Teachers"
+								},
+								{
+									"value": "room",
+									"label": "Rooms"
+								}
+							]
+						}
+					},
 					{
 						"id": "timetable-target",
 						"type": "workspace-filter",
@@ -8653,9 +8677,12 @@
 						"content": {
 							"label": "Timetable of",
 							"style": "select",
-							"writes": "@workspace.target",
+							"writes": "@workspace.id",
 							"endpointSource": {
 								"url": "/apps/learniq/api/timetable/of/options",
+								"params": {
+									"kind": "@workspace.kind"
+								},
 								"responsePath": "options"
 							}
 						}
@@ -8668,7 +8695,8 @@
 							"endpointSource": {
 								"url": "/apps/learniq/api/timetable/of",
 								"params": {
-									"target": "@workspace.target",
+									"kind": "@workspace.kind",
+									"id": "@workspace.id",
 									"from": "@range.from",
 									"to": "@range.to"
 								}
@@ -8706,15 +8734,24 @@
 				"layout": [
 					{
 						"id": "1",
-						"widgetId": "timetable-target",
+						"widgetId": "timetable-kind",
 						"gridX": 0,
 						"gridY": 0,
-						"gridWidth": 12,
+						"gridWidth": 6,
 						"gridHeight": 2,
 						"showTitle": false
 					},
 					{
 						"id": "2",
+						"widgetId": "timetable-target",
+						"gridX": 6,
+						"gridY": 0,
+						"gridWidth": 6,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "3",
 						"widgetId": "timetable-week",
 						"gridX": 0,
 						"gridY": 2,
