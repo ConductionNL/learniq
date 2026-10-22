@@ -168,7 +168,6 @@ import SelfAssessmentView from './views/SelfAssessmentView.vue'
 import SignatureView from './views/SignatureView.vue'
 import SkillsGapDashboard from './views/SkillsGapDashboard.vue'
 // timetabling-standby-slots: the standby planning grid.
-import StandbyPlanning from './views/StandbyPlanning.vue'
 import SubjectChoicePicker from './views/SubjectChoicePicker.vue'
 import SubmitWorkView from './views/SubmitWorkView.vue'
 import TakeAssessmentView from './views/TakeAssessmentView.vue'
@@ -219,7 +218,6 @@ export default {
 	LearningPlanEditorView: page(LearningPlanEditorView),
 	QtiImportView: page(QtiImportView),
 	SignatureView: page(SignatureView),
-	StandbyPlanning: page(StandbyPlanning),
 	TimetableLookup: page(TimetableLookup),
 	SubmitWorkView: page(SubmitWorkView),
 

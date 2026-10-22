@@ -3793,7 +3793,12 @@ OC.L10N.register(
         "P": "P",
         "L": "L",
         "E": "E",
-        "U": "U"
+        "U": "U",
+        "{startsAt} to {endsAt}": "{startsAt} to {endsAt}",
+        "Add standby on {column} {startsAt}": "Add standby on {column} {startsAt}",
+        "Remove {item} from standby": "Remove {item} from standby",
+        "Remove standby": "Remove standby",
+        "Remove {item} from standby?": "Remove {item} from standby?"
     },
     "nplurals=2; plural=(n != 1);"
 )
