@@ -328,6 +328,8 @@ return [
         // sees the work groups of their classes and joins, moves or leaves
         // while sign-up is open (rules in WorkGroupMembershipService).
         // Controller: WorkGroupController (slug: workGroup).
+        // A lesson note on one lesson or its repeats (timetabling-lesson-note).
+        ['name' => 'lessonNote#create', 'url' => '/api/lesson-notes', 'verb' => 'POST'],
         ['name' => 'workGroup#mine', 'url' => '/api/my/work-groups', 'verb' => 'GET'],
         ['name' => 'workGroup#join', 'url' => '/api/work-groups/{id}/join', 'verb' => 'POST'],
         ['name' => 'workGroup#leave', 'url' => '/api/work-groups/{id}/leave', 'verb' => 'POST'],

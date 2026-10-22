@@ -100,9 +100,6 @@ import {
 	NcSelect,
 	NcTextField,
 } from '@nextcloud/vue'
-import { fetchCohortTimetable } from '../api/timetable.js'
-import { objectsUrl } from '../utils/customPages.js'
-import { noteFor, seriesTargets } from '../utils/lessonNotes.js'
 
 export default {
 	name: 'LessonNoteDialog',
@@ -197,27 +194,6 @@ export default {
 		t,
 
 		/**
-		 * The lessons this note lands on: this one, plus its repeats in the
-		 * chosen weeks, read from the cohort's timetable.
-		 *
-		 * @return {Promise<Array<object>>}
-		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-adds-a-note-to-a-lesson
-		 */
-		async targets() {
-			if (!this.weeks) {
-				return [this.session]
-			}
-			const start = new Date(this.session.startsAt)
-			const end = new Date(start.getTime() + (this.weeks * 7 + 1) * 86400000)
-			const { sessions } = await fetchCohortTimetable(
-				this.session.cohortId,
-				start.toISOString(),
-				end.toISOString(),
-			)
-			return seriesTargets(this.session, sessions, this.weeks)
-		},
-
-		/**
 		 * Save the note on every target lesson.
 		 *
 		 * @return {Promise<void>}
@@ -227,20 +203,15 @@ export default {
 			if (!this.canSubmit) return
 			this.saving = true
 			this.error = ''
-			const form = {
-				topic: this.topic,
-				text: this.text,
-				audience: this.audience,
-			}
 			try {
-				const lessons = await this.targets()
-				for (const lesson of lessons) {
-					await axios.post(
-						generateUrl(objectsUrl('lesson-note')),
-						noteFor(lesson, form),
-					)
-				}
-				this.$emit('saved', lessons.length)
+				const { data } = await axios.post(generateUrl('/apps/learniq/api/lesson-notes'), {
+					lesson: this.session,
+					topic: this.topic,
+					text: this.text,
+					audience: this.audience,
+					weeks: this.weeks,
+				})
+				this.$emit('saved', data?.created ?? 0)
 				emit('cn:page:refresh', {})
 				this.$emit('close')
 			} catch {
