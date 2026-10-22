@@ -64,32 +64,6 @@
 			</div>
 		</div>
 
-		<details v-if="policy && canEditPolicy" class="timetables__policy">
-			<summary>{{ t('learniq', 'Timetable visibility') }}</summary>
-			<p class="timetables__intro">
-				{{
-					t(
-						'learniq',
-						'Choose which timetables learners and teachers may open. Team leads and compliance officers always see all.',
-					)
-				}}
-			</p>
-			<NcSelect
-				v-for="field in policyFields"
-				:key="field.key"
-				v-model="policy[field.key]"
-				:options="field.options"
-				:reduce="(o) => o.value"
-				:clearable="false"
-				:inputLabel="field.label" />
-			<NcButton variant="primary" @click="savePolicy">
-				{{ t('learniq', 'Save visibility') }}
-			</NcButton>
-			<NcNoteCard v-if="policyMessage" :type="policyMessageType">
-				{{ policyMessage }}
-			</NcNoteCard>
-		</details>
-
 		<NcNoteCard v-if="!loadingOptions && options.length === 0" type="info">
 			{{
 				t(
@@ -171,11 +145,6 @@ export default {
 			error: '',
 			sessions: [],
 			weekStart: mondayOf(new Date()),
-			policy: null,
-			policyId: null,
-			canEditPolicy: false,
-			policyMessage: '',
-			policyMessageType: 'success',
 		}
 	},
 
@@ -191,49 +160,6 @@ export default {
 				{ value: 'cohort', label: t('learniq', 'Groups') },
 				{ value: 'teacher', label: t('learniq', 'Teachers') },
 				{ value: 'room', label: t('learniq', 'Rooms') },
-			]
-		},
-
-		/**
-		 * The policy settings with their choices.
-		 *
-		 * @return {Array<{key: string, label: string, options: Array<{value: string, label: string}>}>}
-		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
-		 */
-		policyFields() {
-			const own = { value: 'own', label: t('learniq', 'Their own') }
-			const related = {
-				value: 'related',
-				label: t('learniq', 'Those of their own lessons'),
-			}
-			const all = { value: 'all', label: t('learniq', 'All') }
-			const none = { value: 'none', label: t('learniq', 'None') }
-			return [
-				{
-					key: 'learnerSeesGroups',
-					label: t('learniq', 'Learners see groups'),
-					options: [own, all],
-				},
-				{
-					key: 'learnerSeesTeachers',
-					label: t('learniq', 'Learners see teachers'),
-					options: [none, related, all],
-				},
-				{
-					key: 'learnerSeesRooms',
-					label: t('learniq', 'Learners see rooms'),
-					options: [none, related, all],
-				},
-				{
-					key: 'instructorSeesGroups',
-					label: t('learniq', 'Teachers see groups'),
-					options: [own, all],
-				},
-				{
-					key: 'instructorSeesTeachers',
-					label: t('learniq', 'Teachers see teachers'),
-					options: [own, all],
-				},
 			]
 		},
 
@@ -321,7 +247,6 @@ export default {
 	 */
 	mounted() {
 		this.loadOptions()
-		this.loadPolicy()
 	},
 
 	methods: {
@@ -407,60 +332,6 @@ export default {
 		},
 
 		/**
-		 * Load the school's policy and whether the caller may change it.
-		 *
-		 * @return {Promise<void>}
-		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
-		 */
-		async loadPolicy() {
-			try {
-				const res = await axios.get(
-					generateUrl('/apps/learniq/api/timetable/visibility-policy'),
-				)
-				this.policy = { ...res.data.policy }
-				this.policyId = res.data.policyId
-				this.canEditPolicy = res.data.canEdit === true
-			} catch {
-				this.policy = null
-			}
-		},
-
-		/**
-		 * Save the policy: update the school's policy, or create it the first time.
-		 *
-		 * @return {Promise<void>}
-		 * @spec openspec/specs/personal-timetable/spec.md#scenario-a-school-lets-learners-see-every-room
-		 */
-		async savePolicy() {
-			this.policyMessage = ''
-			const base =
-				'/apps/openregister/api/objects/learniq/timetable-visibility-policy'
-			try {
-				if (this.policyId) {
-					await axios.patch(
-						generateUrl(base + '/' + encodeURIComponent(this.policyId)),
-						this.policy,
-					)
-				} else {
-					await axios.post(generateUrl(base), this.policy)
-				}
-				await this.loadPolicy()
-				await this.loadOptions()
-				this.policyMessage = t(
-					'learniq',
-					'The timetable visibility is saved.',
-				)
-				this.policyMessageType = 'success'
-			} catch {
-				this.policyMessage = t(
-					'learniq',
-					'The timetable visibility could not be saved.',
-				)
-				this.policyMessageType = 'error'
-			}
-		},
-
-		/**
 		 * Move the viewed week.
 		 *
 		 * @param {number} delta Weeks to move.
@@ -528,12 +399,6 @@ export default {
 .timetables__controls {
 	gap: 16px;
 	align-items: flex-end;
-}
-
-.timetables__policy {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
 }
 
 .timetables__lessons {
