@@ -1,6 +1,6 @@
 /**
- * Standby hours (timetabling-standby-slots): the planning grid and the
- * substitution candidates as select options.
+ * Standby hours (timetabling-standby-slots): the planning grid and the school
+ * year bounds of a new slot.
  *
  * Pure functions, tested in tests/unit-js/standby.test.mjs.
  *
@@ -41,34 +41,6 @@ export function planningGrid(slots) {
 	return [...rows.values()].sort((a, b) =>
 		(a.startsAt + a.endsAt).localeCompare(b.startsAt + b.endsAt),
 	)
-}
-
-/**
- * The substitution candidates as options for the select, in the server's
- * order (standby, free, busy standby), each labelled with its reason.
- *
- * @param {Array<object>} candidates Rows from `GET /api/substitution/candidates`.
- * @param {(text: string, vars?: object) => string} translate `t` bound to learniq, for the reason texts.
- * @return {Array<{value: string, label: string, group: string}>} The options.
- * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
- */
-export function candidateOptions(candidates, translate) {
-	return (candidates || []).map((c) => {
-		let reason = translate('Free then')
-		if (c.group === 'standby') {
-			reason = translate('On standby {from} to {to}', {
-				from: c.slot?.startsAt ?? '',
-				to: c.slot?.endsAt ?? '',
-			})
-		} else if (c.group === 'busy') {
-			reason = translate('On standby, but has a lesson then')
-		}
-		return {
-			value: c.userId,
-			label: `${c.displayName} (${reason})`,
-			group: c.group,
-		}
-	})
 }
 
 /**

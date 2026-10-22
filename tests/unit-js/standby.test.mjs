@@ -9,7 +9,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
-	candidateOptions,
 	planningGrid,
 	schoolYearBounds,
 } from '../../src/utils/standby.js'
@@ -56,29 +55,6 @@ test('the grid has a row per time window and the slots in their weekday cell', (
 		rows[0].cells.monday.map((s) => s.id),
 		['c'],
 	)
-})
-
-test('the options keep the order and name the reason', () => {
-	const t = (text, vars = {}) => text.replace(/\{(\w+)\}/g, (_, k) => vars[k])
-	const options = candidateOptions(
-		[
-			{
-				userId: 'eva',
-				displayName: 'Eva',
-				group: 'standby',
-				slot: { startsAt: '10:15', endsAt: '11:05' },
-			},
-			{ userId: 'free1', displayName: 'Free', group: 'free' },
-			{ userId: 'busy', displayName: 'Busy', group: 'busy' },
-		],
-		t,
-	)
-	assert.deepEqual(
-		options.map((o) => o.value),
-		['eva', 'free1', 'busy'],
-	)
-	assert.equal(options[0].label, 'Eva (On standby 10:15 to 11:05)')
-	assert.equal(options[2].label, 'Busy (On standby, but has a lesson then)')
 })
 
 test('the school year runs from 1 August', () => {

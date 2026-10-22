@@ -42,6 +42,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IGroupManager;
+use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
 use Throwable;
@@ -67,6 +68,7 @@ class StandbyController extends Controller {
 	 * @param ObjectService                $objectService Reads the lesson and its cohort.
 	 * @param SubstitutionCandidateService $candidates    Lists the candidates.
 	 * @param StandbyCalendar              $calendar      A teacher's standby blocks.
+	 * @param IL10N|null                   $l10n          The candidates' labels in the user's language.
 	 *
 	 * @return void
 	 */
@@ -77,6 +79,7 @@ class StandbyController extends Controller {
 		private readonly ObjectService $objectService,
 		private readonly SubstitutionCandidateService $candidates,
 		private readonly StandbyCalendar $calendar,
+		private readonly ?IL10N $l10n = null,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -111,8 +114,35 @@ class StandbyController extends Controller {
 			);
 		}
 
-		return new JSONResponse(data: ['candidates' => $this->candidates->forSession(session: $session, cohort: $cohort)], statusCode: Http::STATUS_OK);
+		$candidates = array_map(
+			fn (array $candidate): array => array_merge($candidate, ['label' => $this->candidateLabel(candidate: $candidate)]),
+			$this->candidates->forSession(session: $session, cohort: $cohort)
+		);
+
+		return new JSONResponse(data: ['candidates' => $candidates], statusCode: Http::STATUS_OK);
 	}//end candidates()
+
+	/**
+	 * A candidate as the picker shows it: the name and why they are listed,
+	 * "Eva (On standby 10:15 to 11:05)".
+	 *
+	 * @param array<string,mixed> $candidate A candidate row.
+	 *
+	 * @return string
+	 */
+	private function candidateLabel(array $candidate): string {
+		$texts = [
+			'standby' => ['On standby %1$s to %2$s', [(string)($candidate['from'] ?? ''), (string)($candidate['to'] ?? '')]],
+			'busy' => ['On standby, but has a lesson then', []],
+		];
+		[$text, $vars] = ($texts[$candidate['group'] ?? ''] ?? ['Free then', []]);
+		$reason = vsprintf($text, $vars);
+		if ($this->l10n !== null) {
+			$reason = $this->l10n->t($text, $vars);
+		}
+
+		return (string)($candidate['displayName'] ?? '') . ' (' . $reason . ')';
+	}//end candidateLabel()
 
 	/**
 	 * The caller's own standby blocks in a window.

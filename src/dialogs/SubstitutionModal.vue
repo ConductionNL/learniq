@@ -63,64 +63,16 @@
 				<NcButton
 					:variant="mode === 'room' ? 'primary' : 'secondary'"
 					:disabled="saving"
-					@click="selectRoomMode">
+					@click="mode = 'room'">
 					{{ t('learniq', 'Other room') }}
 				</NcButton>
 			</div>
 
-			<div class="substitution-modal__field">
-				<label for="substitution-reason-kind">{{
-					t('learniq', 'Reason')
-				}}</label>
-				<NcSelect
-					id="substitution-reason-kind"
-					v-model="changeReasonKind"
-					:inputLabel="t('learniq', 'Reason')"
-					:options="reasonOptions"
-					:reduce="(opt) => opt.value"
-					:clearable="false" />
-			</div>
-
-			<div v-if="mode === 'substitute'" class="substitution-modal__field">
-				<NcSelect
-					v-model="substituteTeacherId"
-					:options="candidateOptions"
-					:reduce="(opt) => opt.value"
-					:loading="loadingCandidates"
-					:taggable="true"
-					:inputLabel="t('learniq', 'Substitute teacher')"
-					:placeholder="
-						t('learniq', 'Teachers on standby are listed first')
-					" />
-				<p class="substitution-modal__hint">
-					{{
-						t(
-							'learniq',
-							'Teachers on standby at this time come first, then teachers who work today and are free. You can also type the user name of another colleague.',
-						)
-					}}
-				</p>
-			</div>
-
-			<div v-if="mode === 'room'" class="substitution-modal__field">
-				<NcSelect
-					v-model="roomId"
-					:inputLabel="t('learniq', 'Room')"
-					:options="roomOptions"
-					:reduce="(opt) => opt.value"
-					:loading="loadingRooms"
-					:clearable="false" />
-			</div>
-			<div class="substitution-modal__field">
-				<label for="substitution-note">{{
-					t('learniq', 'Note (optional)')
-				}}</label>
-				<textarea
-					id="substitution-note"
-					v-model="changeReason"
-					class="substitution-modal__textarea"
-					rows="3" />
-			</div>
+			<CnTransitionInputFields
+				v-model="values"
+				:inputs="inputs"
+				:context="{ session }"
+				:disabled="saving" />
 			<div class="substitution-modal__weeks">
 				<NcCheckboxRadioSwitch
 					:modelValue="moreWeeks"
@@ -208,6 +160,7 @@
 </template>
 
 <script>
+import { CnTransitionInputFields, OTHER_OPTION_VALUE } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { emit } from '@nextcloud/event-bus'
 import { generateUrl } from '@nextcloud/router'
@@ -216,9 +169,7 @@ import {
 	NcCheckboxRadioSwitch,
 	NcDialog,
 	NcNoteCard,
-	NcSelect,
 } from '@nextcloud/vue'
-import { candidateOptions } from '../utils/standby.js'
 
 export default {
 	name: 'SubstitutionModal',
@@ -228,7 +179,7 @@ export default {
 		NcCheckboxRadioSwitch,
 		NcDialog,
 		NcNoteCard,
-		NcSelect,
+		CnTransitionInputFields,
 	},
 
 	props: {
@@ -243,12 +194,7 @@ export default {
 	data() {
 		return {
 			mode: 'cancel',
-			changeReasonKind: 'teacher-absence',
-			changeReason: '',
-			substituteTeacherId: '',
-			roomId: null,
-			rooms: [],
-			loadingRooms: false,
+			values: { changeReasonKind: 'teacher-absence' },
 			moreWeeks: false,
 			until: '',
 			series: [],
@@ -257,9 +203,6 @@ export default {
 			results: null,
 			saving: false,
 			error: '',
-			// timetabling-standby-slots: who can cover, standby first.
-			candidates: [],
-			loadingCandidates: false,
 		}
 	},
 
@@ -282,8 +225,8 @@ export default {
 		 * @return {Array<{value:string,label:string}>}
 		 * @spec openspec/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
 		 */
-		reasonOptions() {
-			return [
+		inputs() {
+			const reasons = [
 				{ value: 'teacher-absence', label: t('learniq', 'Teacher absence') },
 				{
 					value: 'room-unavailable',
@@ -295,6 +238,45 @@ export default {
 				},
 				{ value: 'other', label: t('learniq', 'Other') },
 			]
+			const inputs = [{ field: 'changeReasonKind', widget: 'select', label: t('learniq', 'Reason'), options: reasons, required: true }]
+			if (this.mode === 'substitute') {
+				inputs.push(
+					{
+						field: 'substituteTeacherId',
+						label: t('learniq', 'Substitute teacher'),
+						required: true,
+						optionsEndpoint: { url: '/apps/learniq/api/substitution/candidates', params: { sessionId: '@context.session.id' }, responsePath: 'candidates' },
+						optionValue: 'userId',
+						optionLabel: 'label',
+						note: t('learniq', 'Teachers on standby at this time come first, then teachers who work today and are free.'),
+						other: { label: t('learniq', 'Another colleague'), input: 'otherTeacherId' },
+					},
+					{ field: 'otherTeacherId', widget: 'text', label: t('learniq', 'User name of the colleague') },
+				)
+			}
+			if (this.mode === 'room') {
+				inputs.push({
+					field: 'roomId',
+					label: t('learniq', 'Room'),
+					required: true,
+					optionsEndpoint: { url: '/apps/openregister/api/objects/learniq/room', params: { _limit: 500 }, responsePath: 'results' },
+					optionValue: 'id',
+					optionLabel: 'name',
+				})
+			}
+			inputs.push({ field: 'changeReason', widget: 'textarea', label: t('learniq', 'Note (optional)') })
+			return inputs
+		},
+
+		/**
+		 * The teacher picked, or typed for a colleague outside the list.
+		 *
+		 * @return {string}
+		 * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
+		 */
+		teacherId() {
+			const picked = this.values.substituteTeacherId
+			return String((picked === OTHER_OPTION_VALUE ? this.values.otherTeacherId : picked) || '').trim()
 		},
 
 		/**
@@ -310,87 +292,22 @@ export default {
 		},
 
 		/**
-		 * Room options for the room mode.
-		 *
-		 * @return {Array<{value:string,label:string}>}
-		 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
-		 */
-		roomOptions() {
-			return this.rooms.map((room) => ({
-				value: room.id,
-				label: room.name || room.code || room.id,
-			}))
-		},
-
-		/**
 		 * Whether the form has the minimum required fields for the current mode.
 		 *
 		 * @return {boolean}
 		 * @spec openspec/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
 		 */
 		canSubmit() {
-			if (!this.changeReasonKind) return false
-			if (
-				this.mode === 'substitute'
-				&& !String(this.substituteTeacherId || '').trim()
-			)
-				return false
-			if (this.mode === 'room' && !this.roomId) return false
+			if (!this.values.changeReasonKind) return false
+			if (this.mode === 'substitute' && !this.teacherId) return false
+			if (this.mode === 'room' && !this.values.roomId) return false
 			if (this.moreWeeks && this.selectedIds.length === 0) return false
 			return true
-		},
-
-		/**
-		 * The substitution candidates as select options, standby first.
-		 *
-		 * @return {Array<{value:string,label:string,group:string}>}
-		 * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
-		 */
-		candidateOptions() {
-			return candidateOptions(this.candidates, (text, vars) =>
-				t('learniq', text, vars),
-			)
-		},
-	},
-
-	watch: {
-		/**
-		 * Load the candidates the first time the substitute mode opens.
-		 *
-		 * @param {string} mode The new mode.
-		 * @return {void}
-		 * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
-		 */
-		mode(mode) {
-			if (mode === 'substitute' && this.candidates.length === 0) {
-				this.loadCandidates()
-			}
 		},
 	},
 
 	methods: {
 		t,
-
-		/**
-		 * Load who can cover this lesson. Learniq suggests; the user chooses.
-		 *
-		 * @return {Promise<void>}
-		 * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
-		 */
-		async loadCandidates() {
-			this.loadingCandidates = true
-			try {
-				const res = await axios.get(
-					generateUrl('/apps/learniq/api/substitution/candidates'),
-					{ params: { sessionId: this.session.id } },
-				)
-				this.candidates = res.data?.candidates || []
-			} catch {
-				this.candidates = []
-			} finally {
-				this.loadingCandidates = false
-			}
-		},
 
 		/**
 		 * Submit the cancel or substitute-teacher change.
@@ -413,17 +330,17 @@ export default {
 			this.error = ''
 
 			const body = {
-				changeReasonKind: this.changeReasonKind,
-				changeReason: this.changeReason || null,
+				changeReasonKind: this.values.changeReasonKind,
+				changeReason: this.values.changeReason || null,
 			}
 			if (this.mode === 'room') {
-				body.roomId = this.roomId
+				body.roomId = this.values.roomId
 			} else {
 				body.lifecycle =
 					this.mode === 'cancel' ? 'cancelled' : this.session.lifecycle
 			}
 			if (this.mode === 'substitute') {
-				body.substituteTeacherId = String(this.substituteTeacherId).trim()
+				body.substituteTeacherId = this.teacherId
 			}
 
 			try {
@@ -467,13 +384,11 @@ export default {
 					{
 						kind: kinds[this.mode],
 						sessionIds: this.selectedIds,
-						changeReasonKind: this.changeReasonKind,
-						changeReason: this.changeReason || null,
+						changeReasonKind: this.values.changeReasonKind,
+						changeReason: this.values.changeReason || null,
 						substituteTeacherId:
-							this.mode === 'substitute'
-								? String(this.substituteTeacherId).trim()
-								: null,
-						roomId: this.mode === 'room' ? this.roomId : null,
+							this.mode === 'substitute' ? this.teacherId : null,
+						roomId: this.mode === 'room' ? this.values.roomId : null,
 					},
 				)
 				this.results = data.results || []
@@ -488,29 +403,6 @@ export default {
 					)
 			} finally {
 				this.saving = false
-			}
-		},
-
-		/**
-		 * Switch to the room mode and load the rooms once.
-		 *
-		 * @return {Promise<void>}
-		 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
-		 */
-		async selectRoomMode() {
-			this.mode = 'room'
-			if (this.rooms.length > 0 || this.loadingRooms) return
-			this.loadingRooms = true
-			try {
-				const { data } = await axios.get(
-					generateUrl('/apps/openregister/api/objects/learniq/room'),
-					{ params: { _limit: 500 } },
-				)
-				this.rooms = data?.results || []
-			} catch {
-				this.rooms = []
-			} finally {
-				this.loadingRooms = false
 			}
 		},
 

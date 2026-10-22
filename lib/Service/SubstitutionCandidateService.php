@@ -75,7 +75,8 @@ class SubstitutionCandidateService {
 	 * @param array<string,mixed> $session The lesson (a learniq Session).
 	 * @param array<string,mixed> $cohort  Its cohort.
 	 *
-	 * @return array<int,array<string,mixed>> `userId`, `displayName`, `group`, `reason` (and `slot` for standby); standby, then free, then busy standby.
+	 * @return array<int,array<string,mixed>> `userId`, `displayName`, `group`, `reason` (and `from` / `to`
+	 *                                        for standby); standby, then free, then busy standby.
 	 *
 	 * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
 	 */
@@ -127,7 +128,10 @@ class SubstitutionCandidateService {
 			}
 
 			$window = ['startsAt' => (string)$slot['startsAt'], 'endsAt' => (string)$slot['endsAt']];
-			$standby[$uid] = $this->candidate(uid: $uid, group: 'standby', reason: sprintf('On standby %s to %s', $window['startsAt'], $window['endsAt']));
+			$standby[$uid] = array_merge(
+				$this->candidate(uid: $uid, group: 'standby', reason: sprintf('On standby %s to %s', $window['startsAt'], $window['endsAt'])),
+				['from' => (string)$window['startsAt'], 'to' => (string)$window['endsAt']]
+			);
 			$standby[$uid]['slot'] = $window;
 		}
 

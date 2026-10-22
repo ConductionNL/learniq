@@ -4296,7 +4296,11 @@
         "Substitute: {substituteTeacherId|user}": "Invaller: {substituteTeacherId|user}",
         "Manage": "Beheren",
         "Today's changes": "Wijzigingen van vandaag",
-        "No sessions": "Geen lessen"
+        "No sessions": "Geen lessen",
+        "Teachers on standby at this time come first, then teachers who work today and are free.": "Docenten met een invaluur op dit moment staan bovenaan, daarna docenten die vandaag werken en vrij zijn.",
+        "Another colleague": "Een andere collega",
+        "User name of the colleague": "Gebruikersnaam van de collega",
+        "On standby %1$s to %2$s": "Invaluur %1$s tot %2$s"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

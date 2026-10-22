@@ -85,6 +85,8 @@ class StandbyControllerTest extends TestCase {
 	public function testCandidatesAccess(): void {
 		self::assertSame(Http::STATUS_OK, $this->controller(uid: 'tom')->candidates(sessionId: 's-1')->getStatus());
 		self::assertSame('eva', $this->controller(uid: 'coord', groups: ['coordinators'])->candidates(sessionId: 's-1')->getData()['candidates'][0]['userId']);
+		$first = $this->controller(uid: 'coord', groups: ['coordinators'])->candidates(sessionId: 's-1')->getData()['candidates'][0];
+		self::assertStringStartsWith($first['displayName'] . ' (', $first['label']);
 		self::assertSame(Http::STATUS_FORBIDDEN, $this->controller(uid: 'other', groups: ['instructors'])->candidates(sessionId: 's-1')->getStatus());
 		self::assertSame(Http::STATUS_NOT_FOUND, $this->controller(uid: 'tom')->candidates(sessionId: 'nope')->getStatus());
 		self::assertSame(Http::STATUS_UNAUTHORIZED, $this->controller(uid: null)->candidates(sessionId: 's-1')->getStatus());

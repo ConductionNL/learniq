@@ -3827,7 +3827,11 @@
         "Substitute: {substituteTeacherId|user}": "Substitute: {substituteTeacherId|user}",
         "Manage": "Manage",
         "Today's changes": "Today's changes",
-        "No sessions": "No sessions"
+        "No sessions": "No sessions",
+        "Teachers on standby at this time come first, then teachers who work today and are free.": "Teachers on standby at this time come first, then teachers who work today and are free.",
+        "Another colleague": "Another colleague",
+        "User name of the colleague": "User name of the colleague",
+        "On standby %1$s to %2$s": "On standby %1$s to %2$s"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
