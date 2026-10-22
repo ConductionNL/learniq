@@ -3789,7 +3789,8 @@ OC.L10N.register(
         "Substitute: {substituteTeacherId|user}": "Substitute: {substituteTeacherId|user}",
         "Manage": "Manage",
         "Today's changes": "Today's changes",
-        "No sessions": "No sessions"
+        "No sessions": "No sessions",
+        "Timetable of": "Timetable of"
     },
     "nplurals=2; plural=(n != 1);"
 )

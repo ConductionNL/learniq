@@ -4243,7 +4243,8 @@ OC.L10N.register(
         "Substitute: {substituteTeacherId|user}": "Invaller: {substituteTeacherId|user}",
         "Manage": "Beheren",
         "Today's changes": "Wijzigingen van vandaag",
-        "No sessions": "Geen lessen"
+        "No sessions": "Geen lessen",
+        "Timetable of": "Rooster van"
     },
     "nplurals=2; plural=(n != 1);"
 )

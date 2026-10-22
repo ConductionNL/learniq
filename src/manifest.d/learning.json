@@ -8639,10 +8639,91 @@
 		{
 			"id": "Timetables",
 			"route": "/timetables",
-			"type": "custom",
+			"type": "dashboard",
 			"title": "Timetables",
-			"component": "TimetableLookup",
-			"_note": "timetabling-visibility-rules: look up a group's, teacher's or room's timetable within the school's visibility policy (GET /api/timetable/of). Team leads and compliance officers edit the policy here."
+			"description": "Look up the timetable of a group, a teacher or a room. Your school decides which ones you can open.",
+			"_note": "timetabling-visibility-rules: the picker lists what the school's visibility policy lets the caller open (GET /api/timetable/of/options, every kind); the week reads GET /api/timetable/of with the picked target, which refuses anything else with a reason.",
+			"config": {
+				"allowEdit": false,
+				"widgets": [
+					{
+						"id": "timetable-target",
+						"type": "workspace-filter",
+						"title": "Timetable",
+						"content": {
+							"label": "Timetable of",
+							"style": "select",
+							"writes": "@workspace.target",
+							"endpointSource": {
+								"url": "/apps/learniq/api/timetable/of/options",
+								"responsePath": "options"
+							}
+						}
+					},
+					{
+						"id": "timetable-week",
+						"type": "week-strip",
+						"title": "Week",
+						"content": {
+							"endpointSource": {
+								"url": "/apps/learniq/api/timetable/of",
+								"params": {
+									"target": "@workspace.target",
+									"from": "@range.from",
+									"to": "@range.to"
+								}
+							},
+							"itemsPath": "sessions",
+							"dateField": "startsAt",
+							"titleTemplate": [
+								"{title}",
+								"Untitled session"
+							],
+							"metaTemplates": [
+								[
+									"{room.name}",
+									"{location}"
+								]
+							],
+							"timeFields": {
+								"start": "startsAt",
+								"end": "endsAt"
+							},
+							"badgeField": "lifecycle",
+							"variantMap": {
+								"cancelled": {
+									"label": "Cancelled",
+									"variant": "error",
+									"muted": true
+								}
+							},
+							"navigation": true,
+							"modes": true,
+							"weekEmptyText": "No lessons this week"
+						}
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "timetable-target",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "timetable-week",
+						"gridX": 0,
+						"gridY": 2,
+						"gridWidth": 12,
+						"gridHeight": 8,
+						"showTitle": false
+					}
+				]
+			}
 		},
 		{
 			"id": "StandbyPlanning",

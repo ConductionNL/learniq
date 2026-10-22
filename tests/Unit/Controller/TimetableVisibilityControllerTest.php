@@ -57,8 +57,8 @@ class TimetableVisibilityControllerTest extends TestCase {
 
 		$session->method('getUser')->willReturn($user);
 		$visibility = $this->createMock(TimetableVisibilityService::class);
-		$visibility->method('mayOpen')->willReturn($allowed);
 		$visibility->method('options')->willReturn([['id' => 'jan', 'label' => 'Jan']]);
+		$visibility->method('mayOpen')->willReturnCallback(static fn (string $uid, string $kind, string $id): bool => ($allowed && $kind !== '' && $id !== ''));
 		$visibility->method('scope')->willReturn('related');
 		$visibility->method('policy')->willReturn(TimetableVisibilityService::DEFAULTS);
 		$visibility->method('policyId')->willReturn(null);
@@ -105,6 +105,10 @@ class TimetableVisibilityControllerTest extends TestCase {
 		self::assertSame(Http::STATUS_OK, $ok->getStatus());
 		self::assertSame(['s-1'], array_column($ok->getData()['sessions'], 'id'));
 
+		$target = $this->controller(uid: 'm.yilmaz')->timetable(target: 'teacher:jan');
+		self::assertSame(['teacher', 'jan'], [$target->getData()['kind'], $target->getData()['id']]);
+		self::assertSame(Http::STATUS_FORBIDDEN, $this->controller(uid: 'm.yilmaz')->timetable(target: 'nonsense')->getStatus());
+
 		self::assertSame(Http::STATUS_SERVICE_UNAVAILABLE, $this->controller(uid: 'm.yilmaz', down: true)->timetable(kind: 'teacher', id: 'jan')->getStatus());
 		self::assertSame(Http::STATUS_UNAUTHORIZED, $this->controller(uid: null)->timetable(kind: 'teacher', id: 'jan')->getStatus());
 	}//end testOf()
@@ -118,6 +122,10 @@ class TimetableVisibilityControllerTest extends TestCase {
 		$ok = $this->controller(uid: 'm.yilmaz')->options(kind: 'teacher');
 		self::assertSame([['id' => 'jan', 'label' => 'Jan']], $ok->getData()['options']);
 		self::assertSame(Http::STATUS_BAD_REQUEST, $this->controller(uid: 'm.yilmaz')->options(kind: 'building')->getStatus());
+		self::assertSame(
+			[['id' => 'cohort:jan', 'label' => 'Group: Jan'], ['id' => 'teacher:jan', 'label' => 'Teacher: Jan'], ['id' => 'room:jan', 'label' => 'Room: Jan']],
+			$this->controller(uid: 'm.yilmaz')->options()->getData()['options']
+		);
 
 		self::assertFalse($this->controller(uid: 'm.yilmaz')->policy()->getData()['canEdit']);
 		self::assertTrue($this->controller(uid: 'lead')->policy()->getData()['canEdit']);

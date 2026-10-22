@@ -40,6 +40,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
 use RuntimeException;
@@ -59,6 +60,7 @@ class TimetableVisibilityController extends Controller {
 	 * @param TimetableVisibilityService $visibility  The policy and the lessons.
 	 * @param TimetableProjector         $projector   Window and lesson shape, as the personal timetable.
 	 * @param TimetableDirectory         $directory   The lessons of a group, teacher or room.
+	 * @param IL10N|null                 $l10n        Kind names in the user's language.
 	 *
 	 * @return void
 	 */
@@ -68,6 +70,7 @@ class TimetableVisibilityController extends Controller {
 		private readonly TimetableVisibilityService $visibility,
 		private readonly TimetableProjector $projector,
 		private readonly TimetableDirectory $directory,
+		private readonly ?IL10N $l10n = null,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -79,6 +82,7 @@ class TimetableVisibilityController extends Controller {
 	 * @param string      $id   The cohort, teacher or room id.
 	 * @param string|null $from Inclusive window start (defaults to this week).
 	 * @param string|null $to   Exclusive window end.
+	 * @param string      $target `<kind>:<id>` in place of kind and id, as the page's picker writes it.
 	 *
 	 * @return JSONResponse 200 with `sessions` as the personal timetable; 401 or 403 when refused; 503 when the timetable cannot be read.
 	 *
@@ -86,10 +90,14 @@ class TimetableVisibilityController extends Controller {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function timetable(string $kind = '', string $id = '', ?string $from = null, ?string $to = null): JSONResponse {
+	public function timetable(string $kind = '', string $id = '', ?string $from = null, ?string $to = null, string $target = ''): JSONResponse {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
 			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
+
+		if ($kind === '' && $id === '' && str_contains($target, ':') === true) {
+			[$kind, $id] = explode(':', $target, 2);
 		}
 
 		if ($this->visibility->mayOpen(uid: $user->getUID(), kind: $kind, id: $id) === false) {
@@ -121,11 +129,11 @@ class TimetableVisibilityController extends Controller {
 	}//end timetable()
 
 	/**
-	 * What the caller may open for a kind.
+	 * What the caller may open for a kind, or for every kind when none is named.
 	 *
-	 * @param string $kind `cohort`, `teacher` or `room`.
+	 * @param string $kind `cohort`, `teacher` or `room`; empty for all three.
 	 *
-	 * @return JSONResponse 200 with `options` and the policy `scope`; 400 for an unknown kind; 401 without a user.
+	 * @return JSONResponse 200 with `options` (and the policy `scope` for one kind); 400 for an unknown kind; 401 without a user.
 	 *
 	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 	 */
@@ -135,6 +143,10 @@ class TimetableVisibilityController extends Controller {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
 			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
+
+		if ($kind === '') {
+			return new JSONResponse(data: ['options' => $this->allOptions(uid: $user->getUID())], statusCode: Http::STATUS_OK);
 		}
 
 		if (in_array($kind, TimetableVisibilityService::KINDS, true) === false) {
@@ -147,6 +159,30 @@ class TimetableVisibilityController extends Controller {
 			statusCode: Http::STATUS_OK
 		);
 	}//end options()
+
+	/**
+	 * What the caller may open of every kind, as `{id: "<kind>:<id>", label}`,
+	 * the label led by the kind ("Group: 1A"): groups, then teachers, then rooms.
+	 *
+	 * @param string $uid The caller.
+	 *
+	 * @return array<int,array{id:string,label:string}>
+	 */
+	private function allOptions(string $uid): array {
+		$out = [];
+		foreach (['cohort' => 'Group', 'teacher' => 'Teacher', 'room' => 'Room'] as $kind => $name) {
+			$prefix = $name;
+			if ($this->l10n !== null) {
+				$prefix = $this->l10n->t($name);
+			}
+
+			foreach ($this->visibility->options(uid: $uid, kind: $kind) as $option) {
+				$out[] = ['id' => $kind . ':' . $option['id'], 'label' => $prefix . ': ' . $option['label']];
+			}
+		}
+
+		return $out;
+	}//end allOptions()
 	/**
 	 * The school's visibility policy, the object that holds it, and whether the caller may change it.
 	 *
