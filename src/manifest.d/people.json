@@ -1967,30 +1967,59 @@
 						}
 					},
 					{
-						"id": "lprof-kpis-dossier-timeline",
-						"type": "stats-block",
+						"id": "lprof-dossier-timeline",
+						"type": "timeline",
 						"title": "Dossier timeline",
-						"icon": "ChartBar",
 						"content": {
-							"entries": [
+							"title": "Dossier timeline",
+							"related": [
 								{
-									"title": "Dossier notes",
-									"register": "learniq",
 									"schema": "dossier-note",
-									"metric": "count",
-									"filter": {
-										"learnerId": "@object.ncUserId"
-									},
-									"route": {
-										"name": "PupilDossierTimelineView",
-										"query": {
-											"learnerId": "@object.ncUserId"
-										}
-									}
+									"field": "learnerId",
+									"matchField": "ncUserId",
+									"label": "Dossier note",
+									"dateField": "date",
+									"titleField": "category",
+									"summaryField": "body"
+								},
+								{
+									"schema": "behaviour-incident",
+									"field": "learnerId",
+									"matchField": "ncUserId",
+									"label": "Incident",
+									"dateField": "occurredAt",
+									"titleField": "severity",
+									"summaryField": "what"
+								},
+								{
+									"schema": "wellbeing-check-in",
+									"field": "learnerId",
+									"matchField": "ncUserId",
+									"label": "Well-being check-in",
+									"dateField": "submittedAt",
+									"titleField": "moodScale",
+									"summaryField": "comment"
+								},
+								{
+									"schema": "learning-plan",
+									"field": "learnerId",
+									"matchField": "ncUserId",
+									"label": "Learning plan",
+									"dateField": "@self.created",
+									"titleField": "kind",
+									"summaryField": "period"
+								},
+								{
+									"schema": "support-request",
+									"field": "learnerId",
+									"matchField": "ncUserId",
+									"label": "Support request",
+									"dateField": "@self.created",
+									"titleField": "supportDomain",
+									"summaryField": "description"
 								}
 							]
-						},
-						"_note": "The timeline sources store the learner's Nextcloud user id in learnerId, so the count and the deep link pass the profile's ncUserId, not its uuid."
+						}
 					},
 					{
 						"id": "lprof-enrol",
@@ -2406,18 +2435,18 @@
 					},
 					{
 						"id": "9",
-						"widgetId": "lprof-kpis-dossier-timeline",
+						"widgetId": "lprof-dossier-timeline",
 						"gridX": 0,
 						"gridY": 21,
-						"gridWidth": 4,
-						"gridHeight": 2,
+						"gridWidth": 12,
+						"gridHeight": 8,
 						"showTitle": false
 					},
 					{
 						"id": "10",
 						"widgetId": "lprof-dossier-notes",
 						"gridX": 0,
-						"gridY": 23,
+						"gridY": 29,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2426,7 +2455,7 @@
 						"id": "11",
 						"widgetId": "lprof-behaviour-incidents",
 						"gridX": 6,
-						"gridY": 23,
+						"gridY": 29,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2435,7 +2464,7 @@
 						"id": "12",
 						"widgetId": "lprof-wellbeing-checkins",
 						"gridX": 0,
-						"gridY": 28,
+						"gridY": 34,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2444,7 +2473,7 @@
 						"id": "13",
 						"widgetId": "lp-contact",
 						"gridX": 0,
-						"gridY": 33,
+						"gridY": 39,
 						"gridWidth": 12,
 						"gridHeight": 4
 					}

@@ -449,18 +449,6 @@
 					]
 				}
 			}
-		},
-		{
-			"id": "PupilDossierTimelineView",
-			"route": "/pupil-dossier/timeline",
-			"type": "custom",
-			"title": "Pupil dossier timeline",
-			"component": "PupilDossierTimelineView",
-			"_note": "pupil-dossier-notes (the one genuine custom-view exception for this capability): merges DossierNote + BehaviourIncident + WellbeingCheckIn with the existing LearningPlan/SupportRequest/DeliberationRecord care-chain objects into one chronological feed for a single learner — no object-list widget filter can merge more than one schema (verified: the manifest's object-list/stats-block/data/integration/related widget types are all single-schema). Reached via the 'Dossier timeline' KPI tile on LearnerProfileDetail (lprof-kpis-dossier-timeline), which passes the profile's ncUserId (@object.ncUserId) as this route's learnerId query parameter — the only token-resolved deep-link mechanism the v2 action dialect has for a detail-page-to-custom-page link at HEAD (open-page/navigate header actions do not carry the current object id; verified against actionsDispatcher.js). Reads learnerId from $route.query.learnerId; shows a learner-picker empty state when absent (e.g. direct navigation).",
-			"config": {
-				"register": "learniq",
-				"schema": "learner-profile"
-			}
 		}
 	]
 }

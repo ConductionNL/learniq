@@ -19,7 +19,7 @@
  *
  * This file proves the DECLARATIVE index/detail pages for DossierNote,
  * BehaviourIncident, WellbeingCheckIn, and the one named custom view
- * (PupilDossierTimelineView.vue) resolve and render without a fatal error,
+ * (the learner profile's dossier timeline) resolve and render without a fatal error,
  * mirroring eportfolio.spec.ts / competency-framework.spec.ts's lightweight
  * smoke-coverage pattern — no seeded DossierNote/BehaviourIncident/
  * WellbeingCheckIn fixtures are assumed; the admin session's empty-state
@@ -38,9 +38,6 @@ const WELLBEING_CHECKINS_INDEX_URL =
 	'/index.php/apps/learniq/pupil-dossier/check-ins'
 const BEHAVIOUR_INCIDENT_DETAIL_URL =
 	'/index.php/apps/learniq/pupil-dossier/incidents/00000000-0000-0000-0000-000000000000'
-const TIMELINE_URL = '/index.php/apps/learniq/pupil-dossier/timeline'
-const TIMELINE_WITH_LEARNER_URL =
-	'/index.php/apps/learniq/pupil-dossier/timeline?learnerId=00000000-0000-0000-0000-000000000000'
 
 /**
  * Collect console errors on a page, filtering out the same benign noise
@@ -147,44 +144,25 @@ test.describe('pupil-dossier — declarative index pages', () => {
 	})
 })
 
-test.describe('pupil-dossier — PupilDossierTimelineView resolves (registry.js wiring)', () => {
+test.describe('pupil-dossier — the dossier timeline on the learner profile', () => {
 	// @e2e openspec/specs/pupil-dossier/spec.md#scenario-pages-are-manifest-declared-with-one-shared-timeline-view-exception
-	test('PupilDossierTimelineView route renders its empty-state learner picker with no learnerId query param', async ({
-		loggedInPage: page,
-	}) => {
-		const errors = collectFatalErrors(page)
-
-		await page.goto(TIMELINE_URL)
-		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('domcontentloaded')
-
-		const bodyText = await page.innerText('body')
-		expect(bodyText.trim().length).toBeGreaterThan(0)
-
-		assertNoFatalErrors(errors)
-	})
-
 	// @e2e openspec/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
-	test('PupilDossierTimelineView route resolves the registered component for a given learnerId, not a blank/404 shell', async ({
+	test('a learner profile shows the dossier timeline widget', async ({
 		loggedInPage: page,
 	}) => {
 		const errors = collectFatalErrors(page)
+		const created = await page.request.post(
+			'/index.php/apps/openregister/api/objects/learniq/learner-profile',
+			{ data: { ncUserId: 'admin', displayName: 'Timeline e2e' } },
+		)
+		expect(created.ok()).toBeTruthy()
+		const profile = await created.json()
+		const id = profile.id || profile['@self']?.id
 
-		// A non-existent learnerId is enough to prove the ROUTE resolves the
-		// registered PupilDossierTimelineView component (registry.js) and
-		// renders its declared loading/empty state (the six-schema merge for
-		// this learner returns empty) rather than a blank Vue-router 404 — the
-		// same "route reachable, not silently 404" bar the manifest/registry
-		// wiring exists to guarantee. Seeded end-to-end merge-across-six-schemas
-		// interaction is deferred to a dev-instance-seeded follow-up, matching
-		// every other custom-view spec in this repo's coverage style.
-		await page.goto(TIMELINE_WITH_LEARNER_URL)
-		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('domcontentloaded')
-
-		const bodyText = await page.innerText('body')
-		expect(bodyText.trim().length).toBeGreaterThan(0)
+		await page.goto(`/index.php/apps/learniq/learner-profiles/${id}`)
+		await expect(page.getByTestId('cn-timeline-widget').first()).toBeVisible({ timeout: 20_000 })
 
 		assertNoFatalErrors(errors)
+		await page.request.delete(`/index.php/apps/openregister/api/objects/learniq/learner-profile/${id}`)
 	})
 })

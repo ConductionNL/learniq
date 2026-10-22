@@ -4239,7 +4239,9 @@ OC.L10N.register(
         "You are not allowed to create courses.": "Je mag geen cursussen aanmaken.",
         "The time could not be placed. Check the teacher and the times, and try again.": "De tijd kon niet worden ingepland. Controleer de leraar en de tijden en probeer het opnieuw.",
         "Enrol a group": "Een groep inschrijven",
-        "Everyone in the group without an open enrolment for the course is enrolled.": "Iedereen in de groep zonder lopende inschrijving voor de cursus wordt ingeschreven."
+        "Everyone in the group without an open enrolment for the course is enrolled.": "Iedereen in de groep zonder lopende inschrijving voor de cursus wordt ingeschreven.",
+        "Incident": "Incident",
+        "Well-being check-in": "Welzijnscheck"
     },
     "nplurals=2; plural=(n != 1);"
 )

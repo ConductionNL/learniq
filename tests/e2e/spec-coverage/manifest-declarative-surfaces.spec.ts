@@ -322,19 +322,14 @@ test.describe('declarative frontends with named custom views', () => {
 	})
 
 	// @e2e openspec/specs/pupil-dossier/spec.md#pages-are-manifest-declared-with-one-shared-timeline-view-exception
-	test('pupil-dossier: PupilDossierTimelineView is the only custom page', async ({
+	test('pupil-dossier: every page is manifest-declared', async ({
 		loggedInPage: page,
 	}) => {
-		assertDeclarativeExcept(
-			['/pupil-dossier'],
-			[['/pupil-dossier/timeline', 'PupilDossierTimelineView']],
-		)
+		assertDeclarativeExcept(['/pupil-dossier'], [])
 		const base = await resolveAppBase(page)
 
-		await page.goto(`${base}/pupil-dossier/timeline`)
-		await expect(page.locator('.pupil-dossier-timeline')).toBeVisible({
-			timeout: 20_000,
-		})
+		await page.goto(`${base}/pupil-dossier/notes`)
+		await expect(page.locator('#learniq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		await assertRouteAnswers(page)
 		await assertNoCrudController(page, [

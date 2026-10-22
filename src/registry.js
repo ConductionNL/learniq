@@ -151,7 +151,6 @@ import ProctoringReviewQueue from './views/ProctoringReviewQueue.vue'
 // pupil-dossier-notes: the one genuine new custom view this change adds —
 // the chronological DossierNote/BehaviourIncident/WellbeingCheckIn +
 // LearningPlan/SupportRequest/DeliberationRecord merge for one learner.
-import PupilDossierTimelineView from './views/PupilDossierTimelineView.vue'
 import QtiImportView from './views/QtiImportView.vue'
 // report-card-composer: the rapportvergadering cohort-wide review grid
 // (mirrors GradebookView's "no manifest page can render a cohort grid"
@@ -272,7 +271,6 @@ export default {
 	PortfolioBuilder: page(PortfolioBuilder),
 	PortfolioReviewView: page(PortfolioReviewView),
 	ProctoringReviewQueue: page(ProctoringReviewQueue),
-	PupilDossierTimelineView: page(PupilDossierTimelineView),
 	RapportvergaderingReviewView: page(RapportvergaderingReviewView),
 	RegulationDetailPage: page(RegulationDetailPage),
 	RolloverWizard: page(RolloverWizard),
