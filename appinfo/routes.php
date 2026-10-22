@@ -235,6 +235,7 @@ return [
         // caller's own core lessons, for the subject choice picker's overlap warning.
         // Controller: ElectiveSlotsController (each course read with the caller's rights first).
         ['name' => 'electiveSlots#slots', 'url' => '/api/timetable/course-slots', 'verb' => 'GET'],
+        ['name' => 'electiveSlots#clashes', 'url' => '/api/timetable/elective-clashes', 'verb' => 'GET'],
         // Contact hours (timetabling-contact-hours): owed by the hour plan, given by held
         // lessons, attended per learner, for a window. #[NoAdminRequired] + the
         // report.contact-hours action in the body.

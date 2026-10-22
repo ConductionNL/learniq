@@ -31,6 +31,7 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ElectiveSlotService;
+use OCA\Learniq\Service\Timetable\ElectiveClashes;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -53,6 +54,7 @@ class ElectiveSlotsController extends Controller {
 	 * @param ElectiveSlotService $slots       Slots of courses and of the caller's lessons.
 	 * @param IDateTimeZone       $zone        The reader's time zone.
 	 * @param ITimeFactory        $time        The clock.
+	 * @param ElectiveClashes     $clashes     Words the clashes of a choice.
 	 */
 	public function __construct(
 		IRequest $request,
@@ -60,6 +62,7 @@ class ElectiveSlotsController extends Controller {
 		private readonly ElectiveSlotService $slots,
 		private readonly IDateTimeZone $zone,
 		private readonly ITimeFactory $time,
+		private readonly ElectiveClashes $clashes = new ElectiveClashes(),
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -103,4 +106,33 @@ class ElectiveSlotsController extends Controller {
 
 		return new JSONResponse(data: $data);
 	}//end slots()
+
+	/**
+	 * The clashes of a set of electives, worded: electives that meet at the
+	 * same time, and, when the choice is the caller's own, electives that
+	 * meet during the caller's other lessons.
+	 *
+	 * @param string $courseIds Comma-separated course UUIDs (at most 20).
+	 * @param string $learnerId Whose choice it is; the caller's own lessons count when it is the caller.
+	 *
+	 * @return JSONResponse `{messages: string[]}`; 401 without a user; 400 for too many courses; 503 when the source does not answer.
+	 *
+	 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-clash-warning-when-choosing
+	 */
+	#[NoAdminRequired]
+	public function clashes(string $courseIds = '', string $learnerId = ''): JSONResponse {
+		$own = '0';
+		if ($learnerId !== '' && $learnerId === $this->userSession->getUser()?->getUID()) {
+			$own = '1';
+		}
+
+		$response = $this->slots(courseIds: $courseIds, withCore: $own);
+		if ($response->getStatus() !== Http::STATUS_OK) {
+			return $response;
+		}
+
+		$data = $response->getData();
+
+		return new JSONResponse(data: ['messages' => $this->clashes->messages(names: $data['names'], courses: $data['courses'], core: $data['core'])]);
+	}//end clashes()
 }//end class

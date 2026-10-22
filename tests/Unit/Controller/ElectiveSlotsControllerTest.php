@@ -215,6 +215,30 @@ class ElectiveSlotsControllerTest extends TestCase {
 	}//end testElectivesShowTheirWeeklySlotsInLocalTime()
 
 	/**
+	 * Clashes are worded: two electives at the same time, and, for the
+	 * caller's own choice, an elective during one of their own lessons.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-clash-warning-when-choosing
+	 */
+	public function testClashesAreWorded(): void {
+		$own = $this->controller()->clashes(courseIds: 'course-drama,course-robotics,course-art', learnerId: 'alice')->getData()['messages'];
+		$this->assertSame(
+			[
+				'course-drama and course-robotics meet at the same time: Tuesday 10:00–11:00.',
+				'course-drama and Maths meet at the same time: Tuesday 10:00–11:00.',
+				'course-robotics and Maths meet at the same time: Tuesday 10:00–10:50.',
+			],
+			$own
+		);
+
+		$child = $this->controller()->clashes(courseIds: 'course-drama,course-art', learnerId: 'kid')->getData()['messages'];
+		$this->assertSame([], $child);
+		$this->assertSame(401, $this->controller(uid: null)->clashes(courseIds: 'course-drama')->getStatus());
+	}//end testClashesAreWorded()
+
+	/**
 	 * A learner choosing for themselves gets their core lessons, without the electives asked about.
 	 *
 	 * @return void

@@ -79,7 +79,7 @@ class ElectiveSlotService {
 	 * @param DateTimeZone      $zone      The reader's time zone.
 	 * @param int               $now       Now (unix seconds).
 	 *
-	 * @return array{courses: array<string,array<int,array<string,mixed>>>, core: array<int,array<string,mixed>>}
+	 * @return array{courses: array<string,array<int,array<string,mixed>>>, core: array<int,array<string,mixed>>, names: array<string,string>}
 	 *
 	 * @throws RuntimeException When the timetable source does not answer.
 	 *
@@ -89,7 +89,8 @@ class ElectiveSlotService {
 		$from = gmdate(DATE_ATOM, $now);
 		$to = gmdate(DATE_ATOM, ($now + (self::DAYS_AHEAD * 86400)));
 
-		$readable = array_values(array_filter(array_unique($courseIds), fn (string $id): bool => $this->canReadCourse(courseId: $id)));
+		$names = $this->courseNames(courseIds: $courseIds);
+		$readable = array_keys($names);
 		$courses = array_fill_keys($readable, []);
 		if ($readable !== []) {
 			$sessions = $this->sources->current()->sessionsForCourses(courseIds: $readable, from: $from, to: $to);
@@ -113,27 +114,56 @@ class ElectiveSlotService {
 		return [
 			'courses' => array_map(fn (array $list): array => $this->toSlots(sessions: $list, zone: $zone), $courses),
 			'core' => $this->toSlots(sessions: $core, zone: $zone),
+			'names' => $names,
 		];
 	}//end slots()
 
 	/**
-	 * Whether the caller can read a course, through OpenRegister RBAC; fails closed.
+	 * The names of the courses the caller can read, by id.
+	 *
+	 * @param array<int, string> $courseIds Course UUIDs.
+	 *
+	 * @return array<string, string>
+	 */
+	private function courseNames(array $courseIds): array {
+		$names = [];
+		foreach (array_unique($courseIds) as $id) {
+			$name = $this->courseName(courseId: $id);
+			if ($name !== null) {
+				$names[$id] = $name;
+			}
+		}
+
+		return $names;
+	}//end courseNames()
+
+	/**
+	 * The name of a course the caller can read, through OpenRegister RBAC;
+	 * null when it cannot be read (fails closed).
 	 *
 	 * @param string $courseId The course UUID.
 	 *
-	 * @return bool
+	 * @return string|null
 	 */
-	private function canReadCourse(string $courseId): bool {
+	private function courseName(string $courseId): ?string {
 		if ($courseId === '') {
-			return false;
+			return null;
 		}
 
 		try {
-			return $this->objectService->find(id: $courseId, register: 'learniq', schema: 'course') !== null;
+			$course = $this->objectService->find(id: $courseId, register: 'learniq', schema: 'course');
 		} catch (Throwable) {
-			return false;
+			return null;
 		}
-	}//end canReadCourse()
+
+		if ($course === null) {
+			return null;
+		}
+
+		$data = $course->jsonSerialize();
+
+		return (string)($data['name'] ?? ($data['title'] ?? $courseId));
+	}//end courseName()
 
 	/**
 	 * Whether a session starts inside the window.

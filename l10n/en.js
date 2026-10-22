@@ -3785,7 +3785,10 @@ OC.L10N.register(
         "You are not allowed to create courses.": "You are not allowed to create courses.",
         "The time could not be placed. Check the teacher and the times, and try again.": "The time could not be placed. Check the teacher and the times, and try again.",
         "Enrol a group": "Enrol a group",
-        "Everyone in the group without an open enrolment for the course is enrolled.": "Everyone in the group without an open enrolment for the course is enrolled."
+        "Everyone in the group without an open enrolment for the course is enrolled.": "Everyone in the group without an open enrolment for the course is enrolled.",
+        "%1$s and %2$s meet at the same time: %3$s.": "%1$s and %2$s meet at the same time: %3$s.",
+        "Saturday": "Saturday",
+        "Sunday": "Sunday"
     },
     "nplurals=2; plural=(n != 1);"
 )
