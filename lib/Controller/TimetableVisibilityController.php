@@ -32,11 +32,14 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Settings\AdminSettings;
 use OCA\Learniq\Service\TimetableDirectory;
 use OCA\Learniq\Service\TimetableProjector;
+use OCA\Learniq\Service\TimetableVisibilityPolicyWriter;
 use OCA\Learniq\Service\TimetableVisibilityService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\AuthorizedAdminSetting;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\JSONResponse;
@@ -59,6 +62,7 @@ class TimetableVisibilityController extends Controller {
 	 * @param TimetableVisibilityService $visibility  The policy and the lessons.
 	 * @param TimetableProjector         $projector   Window and lesson shape, as the personal timetable.
 	 * @param TimetableDirectory         $directory   The lessons of a group, teacher or room.
+	 * @param TimetableVisibilityPolicyWriter $policyWriter Saves the policy from the admin page.
 	 *
 	 * @return void
 	 */
@@ -68,6 +72,7 @@ class TimetableVisibilityController extends Controller {
 		private readonly TimetableVisibilityService $visibility,
 		private readonly TimetableProjector $projector,
 		private readonly TimetableDirectory $directory,
+		private readonly TimetableVisibilityPolicyWriter $policyWriter,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -171,4 +176,30 @@ class TimetableVisibilityController extends Controller {
 			statusCode: Http::STATUS_OK
 		);
 	}//end policy()
+
+	/**
+	 * Change the school's visibility policy from the admin page. Keys left
+	 * out keep their value.
+	 *
+	 * @return JSONResponse 200 with the stored policy, as policy() answers it; 400 with `error` when refused.
+	 *
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
+	 */
+	#[AuthorizedAdminSetting(AdminSettings::class)]
+	public function savePolicy(): JSONResponse {
+		$changes = $this->request->getParam('policy');
+		if (is_array($changes) === false) {
+			return new JSONResponse(data: ['error' => 'Send the policy as an object.'], statusCode: Http::STATUS_BAD_REQUEST);
+		}
+
+		$refusal = $this->policyWriter->save(changes: $changes);
+		if ($refusal !== null) {
+			return new JSONResponse(data: ['error' => $refusal], statusCode: Http::STATUS_BAD_REQUEST);
+		}
+
+		return new JSONResponse(
+			data: ['policy' => $this->visibility->policy(), 'policyId' => $this->visibility->policyId(), 'canEdit' => true],
+			statusCode: Http::STATUS_OK
+		);
+	}//end savePolicy()
 }//end class

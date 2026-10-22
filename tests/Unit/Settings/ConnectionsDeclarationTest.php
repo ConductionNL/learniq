@@ -86,11 +86,7 @@ class ConnectionsDeclarationTest extends TestCase {
 	 * @var array<int, string>
 	 */
 	private const ADMIN_PAGE_FILES = [
-		'src/views/settings/AdminRoot.vue',
-		'src/views/settings/DataExchangeSettingsSection.vue',
-		'src/views/settings/TimetableExchangeSettingsSection.vue',
-		'src/views/settings/LtiSettingsSection.vue',
-		'src/views/LearniqSettings.vue',
+		'src/adminSettings.js',
 	];
 
 	/**
@@ -240,10 +236,16 @@ class ConnectionsDeclarationTest extends TestCase {
 			}
 
 			$url = (string)$connection['settingsUrl'];
-			$this->assertStringStartsWith(prefix: '/settings/admin/learniq#section-', string: $url, message: $connection['key']);
+			$this->assertMatchesRegularExpression(pattern: '#^/settings/admin/learniq\?tab=[a-z-]+\#section-[a-z-]+$#', string: $url, message: $connection['key']);
+			$tab    = substr($url, (strpos($url, '=') + 1), (strpos($url, '#') - strpos($url, '=') - 1));
 			$anchor = substr($url, (strpos($url, '#') + 1));
 			$this->assertStringContainsString(
-				needle: 'id="' . $anchor . '"',
+				needle: "id: '" . $tab . "', label:",
+				haystack: $adminPage,
+				message: $connection['key'] . ' opens a missing tab'
+			);
+			$this->assertStringContainsString(
+				needle: "id: '" . $anchor . "'",
 				haystack: $adminPage,
 				message: $connection['key'] . ' links to a missing section'
 			);

@@ -6,7 +6,7 @@
             "title": "Data exchange",
             "description": "Reports to DUO ROD and the Verzuimloket, OSO transfer files and SWV hand-offs, carried by integriq once learniq's gate allows them.",
             "order": 10,
-            "settingsUrl": "/settings/admin/learniq#section-data-exchange",
+            "settingsUrl": "/settings/admin/learniq?tab=data-exchange#section-data-exchange",
             "available": true
         },
         {
@@ -14,7 +14,7 @@
             "title": "Timetable import",
             "description": "Lessons from Zermelo, Untis or Xedule.",
             "order": 20,
-            "settingsUrl": "/settings/admin/learniq#section-timetable-exchange",
+            "settingsUrl": "/settings/admin/learniq?tab=timetable-exchange#section-timetable-exchange",
             "reportedOnly": true,
             "unconfiguredMessage": "Learniq has not reported yet whether planninq is installed. It reports once a day, and when you save the admin settings. Integriq delivers the timetable to planninq, and learniq reads the lessons from there."
         },
@@ -23,7 +23,7 @@
             "title": "LTI tools",
             "description": "Opening an external learning tool from a course, and pulling its grades back.",
             "order": 30,
-            "settingsUrl": "/settings/admin/learniq#section-lti",
+            "settingsUrl": "/settings/admin/learniq?tab=lti#section-lti",
             "reportedOnly": true,
             "unconfiguredMessage": "Learniq has not reported yet whether integriq can open LTI tools. It reports once a day, and when you save the admin settings. Grades come back once you enter the grade subscription in the LTI section."
         },

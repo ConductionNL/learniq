@@ -30,10 +30,7 @@ import { createRequire } from 'node:module'
 import { test } from 'node:test'
 import { buildManifest } from '../../node_modules/@conduction/nextcloud-vue/src/utils/buildManifest.js'
 import { passesContextPredicates } from '../../node_modules/@conduction/nextcloud-vue/src/utils/visibleIfContext.js'
-import {
-	loadMenuStructure,
-	saveMenuStructure,
-} from '../../src/services/menuStructureSetting.js'
+import { ADMIN_SECTIONS } from '../../src/adminSettings.js'
 import { applyReportCardGates } from '../../src/utils/reportCardGates.js'
 import {
 	applyPageDefaults,
@@ -568,16 +565,18 @@ test('the full profile is exactly the plain manifest build', () => {
 	const entries = flat(plain.menu)
 	const count = (section) =>
 		entries.filter((item) => sectionOf(item) === section).length
-	assert.equal(entries.length, 108)
-	assert.equal(plain.menu.length, 25)
+	// 107 since the App settings entry moved to the admin page (Q7).
+	assert.equal(entries.length, 107)
+	assert.equal(plain.menu.length, 24)
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[100, 3, 5],
+		[99, 3, 5],
 	)
 	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
 	// MarkAttendanceView, SubmitExcuseModal) became actions; 346 since the
-	// display screen address became a dialog on the screen's page.
-	assert.equal(plain.pages.length, 346)
+	// display screen address became a dialog on the screen's page; 344 since
+	// the in-app app settings pages moved to the admin page (Q7).
+	assert.equal(plain.pages.length, 344)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {
@@ -896,9 +895,13 @@ test('every string of the simple profile has a Dutch one', () => {
 			}
 		}
 	}
-	const section = readText('src/views/settings/MenuStructureSection.vue')
-	for (const match of section.matchAll(/'learniq',\s*'((?:[^'\\]|\\.)+)'/g)) {
-		strings.push(match[1])
+	const menuSection = ADMIN_SECTIONS.menu.find((candidate) => candidate.id === 'section-menu-structure').props
+	strings.push(menuSection.name, menuSection.description, menuSection.savedMessage)
+	for (const field of menuSection.fields) {
+		strings.push(field.label || field.text)
+		for (const option of field.options || []) {
+			strings.push(option.label, option.description)
+		}
 	}
 	assert.ok(strings.length > 30)
 	for (const text of strings) {
@@ -1474,35 +1477,17 @@ test('an overlay leaves the page it was given untouched', () => {
 	assert.deepEqual(page.config.headerActions, [{ id: 'a' }])
 })
 
-test('the admin section reads the stored structure and refuses a save that stored nothing', async () => {
-	const calls = []
-	const http = {
-		get: async (url) => {
-			calls.push(['get', url])
-			return { data: { menu_structure: 'full' } }
-		},
-		put: async (url, body) => {
-			calls.push(['put', url, body])
-			return {
-				data: {
-					success: true,
-					config: { menu_structure: body.menu_structure },
-				},
-			}
-		},
-	}
-	assert.equal(await loadMenuStructure(http, '/s'), 'full')
-	assert.equal(
-		await loadMenuStructure({ get: async () => ({ data: {} }) }, '/s'),
-		'simple',
-	)
-	assert.equal(await saveMenuStructure(http, '/s', 'full'), 'full')
-	assert.deepEqual(calls[1], ['put', '/s', { menu_structure: 'full' }])
-
-	// The endpoint answers success for a key it does not know. That must not
-	// read as a save.
-	const deaf = { put: async () => ({ data: { success: true, config: {} } }) }
-	await assert.rejects(() => saveMenuStructure(deaf, '/s', 'full'))
+test('the admin page declares the structure choice on the setting the menu reads', () => {
+	const section = ADMIN_SECTIONS.menu.find((candidate) => candidate.id === 'section-menu-structure')
+	assert.ok(section, 'the Menu tab holds the structure choice')
+	const choice = section.props.fields.find((field) => field.type === 'radio')
+	assert.equal(choice.key, STRUCTURE_SETTING)
+	assert.equal(choice.default, 'simple', 'an instance that never chose reads as simple')
+	assert.deepEqual(choice.options.map((option) => option.value), ['simple', 'full'])
+	assert.equal(section.props.url, '/apps/learniq/api/settings')
+	// The endpoint answers success for a key it does not know, so the section
+	// reads the setting back after a save and shows what was stored.
+	assert.equal(section.props.reloadAfterSave, true)
 })
 
 // The navigation of the simple profile: a brand block and one primary button

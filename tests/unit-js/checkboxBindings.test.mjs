@@ -61,9 +61,9 @@ test('Nc components are imported from @nextcloud/vue, not the @conduction/nextcl
 	assert.deepEqual(offenders, [])
 })
 
-test('the action matrix binds its checkboxes through update:modelValue', () => {
-	const matrix = files.find(({ path }) => path.endsWith('components/admin/ActionAuthMatrix.vue'))
-	assert.ok(matrix, 'ActionAuthMatrix.vue exists')
-	assert.match(matrix.text, /@update:modelValue="toggle\(action, group, \$event\)"/)
-	assert.match(matrix.text, /import \{ NcButton, NcCheckboxRadioSwitch \} from '@nextcloud\/vue'/)
+test('the action matrix is the library one, with no learniq copy left', () => {
+	assert.equal(files.find(({ path }) => path.endsWith('components/admin/ActionAuthMatrix.vue')), undefined)
+	const adminRoot = files.find(({ path }) => path.endsWith('views/settings/AdminRoot.vue'))
+	assert.ok(adminRoot, 'AdminRoot.vue exists')
+	assert.match(adminRoot.text, /CnActionAuthMatrix/)
 })

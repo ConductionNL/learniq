@@ -24,6 +24,7 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 use OCA\Learniq\Controller\TimetableVisibilityController;
 use OCA\Learniq\Service\TimetableDirectory;
 use OCA\Learniq\Service\TimetableProjector;
+use OCA\Learniq\Service\TimetableVisibilityPolicyWriter;
 use OCA\Learniq\Service\TimetableVisibilityService;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
@@ -71,7 +72,7 @@ class TimetableVisibilityControllerTest extends TestCase {
 			$directory->method('lessonsOf')->willReturn(['sessions' => [['id' => 's-1', 'title' => 'Wiskunde B', 'startsAt' => $soon, 'endsAt' => $soon]], 'source' => 'learniq']);
 		}
 
-		return new TimetableVisibilityController($this->createMock(IRequest::class), $session, $visibility, $this->projector(), $directory);
+		return new TimetableVisibilityController($this->createMock(IRequest::class), $session, $visibility, $this->projector(), $directory, $this->createMock(TimetableVisibilityPolicyWriter::class));
 	}//end controller()
 
 	/**
@@ -123,4 +124,31 @@ class TimetableVisibilityControllerTest extends TestCase {
 		self::assertTrue($this->controller(uid: 'lead')->policy()->getData()['canEdit']);
 		self::assertSame('own', $this->controller(uid: 'lead')->policy()->getData()['policy']['learnerSeesGroups']);
 	}//end testOptionsAndPolicy()
+	/**
+	 * The admin page's save: a refusal is a 400 with the reason, a save answers the policy.
+	 *
+	 * @return void
+	 */
+	public function testTheAdminSaveAnswersThePolicyOrTheRefusal(): void {
+		$build = function (mixed $policy, ?string $refusal): TimetableVisibilityController {
+			$request = $this->createMock(IRequest::class);
+			$request->method('getParam')->willReturnCallback(static fn (string $key): mixed => ($key === 'policy' ? $policy : null));
+			$writer = $this->createMock(TimetableVisibilityPolicyWriter::class);
+			$writer->method('save')->willReturn($refusal);
+			$visibility = $this->createMock(TimetableVisibilityService::class);
+			$visibility->method('policy')->willReturn(['learnerSeesGroups' => 'all'] + TimetableVisibilityService::DEFAULTS);
+			$visibility->method('policyId')->willReturn('policy-1');
+			return new TimetableVisibilityController($request, $this->createMock(IUserSession::class), $visibility, $this->projector(), $this->createMock(TimetableDirectory::class), $writer);
+		};
+
+		self::assertSame(Http::STATUS_BAD_REQUEST, $build('all', null)->savePolicy()->getStatus());
+
+		$refused = $build(['learnerSeesGroups' => 'everyone'], 'The timetable visibility setting "learnerSeesGroups" cannot be "everyone".');
+		self::assertSame(Http::STATUS_BAD_REQUEST, $refused->savePolicy()->getStatus());
+
+		$saved = $build(['learnerSeesGroups' => 'all'], null)->savePolicy();
+		self::assertSame(Http::STATUS_OK, $saved->getStatus());
+		self::assertSame('all', $saved->getData()['policy']['learnerSeesGroups']);
+		self::assertSame('policy-1', $saved->getData()['policyId']);
+	}//end testTheAdminSaveAnswersThePolicyOrTheRefusal()
 }//end class

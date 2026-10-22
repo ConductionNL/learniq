@@ -245,9 +245,9 @@ class SupportNeedsVocabularyTest extends TestCase {
 	 * @return void
 	 */
 	public function testSettingsCarryTheEvidenceNote(): void {
-		$view = (string)file_get_contents(self::root() . '/src/views/LearniqSettings.vue');
+		$view = (string)file_get_contents(self::root() . '/src/adminSettings.js');
 
-		self::assertStringContainsString('data-testid="learniq-differentiation-note"', $view);
+		self::assertStringContainsString("key: 'differentiationNote'", $view);
 		self::assertStringContainsString('NRO Kennisrotonde', $view);
 	}//end testSettingsCarryTheEvidenceNote()
 }//end class

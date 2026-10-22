@@ -347,14 +347,14 @@ test.describe('docs: admin track', () => {
 		await page.evaluate(() => window.scrollTo(0, 0))
 		await page.waitForTimeout(300)
 		await shoot(page, 'admin', '03-admin-settings-02.png')
-		const ai = page.getByText(/AI Features/i).first()
+		const ai = page.getByText(/AI features/i).first()
 		if (await ai.isVisible().catch(() => false)) {
 			await ai.scrollIntoViewIfNeeded().catch(() => {})
 			await page.waitForTimeout(300)
 		}
 		await shoot(page, 'admin', '03-admin-settings-03.png')
 		const signing = page
-			.getByText(/Credential Signing|Rotate signing key/i)
+			.getByText(/Credential signing|Rotate signing key/i)
 			.first()
 		if (await signing.isVisible().catch(() => false)) {
 			await signing.scrollIntoViewIfNeeded().catch(() => {})
