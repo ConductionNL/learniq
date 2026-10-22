@@ -13,6 +13,7 @@
 // assignment-missing-submissions-view: body section on AssignmentDetail.
 import AssignmentHandInStatus from './components/sections/AssignmentHandInStatus.vue'
 import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeerReviewAllocation.vue'
+import DisplayScreenAddressDialog from './dialogs/DisplayScreenAddressDialog.vue'
 import SelfCheckInDialog from './dialogs/SelfCheckInDialog.vue'
 // admissions-and-subject-choice: the two genuine new custom views this
 // change adds — the coordinator's admissions review board (queue of
@@ -73,7 +74,6 @@ import CurriculumCoverageMatrixView from './views/CurriculumCoverageMatrixView.v
 import DashboardAdmin from './views/DashboardAdmin.vue'
 import DashboardStudent from './views/DashboardStudent.vue'
 import DashboardTeacher from './views/DashboardTeacher.vue'
-import DisplayScreenAddressView from './views/DisplayScreenAddressView.vue'
 import ElectiveRosterView from './views/ElectiveRosterView.vue'
 import EnrolmentForecastView from './views/EnrolmentForecastView.vue'
 // assessment-course-evaluation-answer-page: a campaign's figures for staff.
@@ -231,7 +231,8 @@ export default {
 	ContactHoursReport: page(ContactHoursReport),
 	CourseBuilder: page(CourseBuilder),
 	CoursePackageImportView: page(CoursePackageImportView),
-	DisplayScreenAddressView: page(DisplayScreenAddressView),
+	// The display screen's Address header action (timetabling-display-screens).
+	DisplayScreenAddress: { kind: 'modal', component: DisplayScreenAddressDialog, propsSchema: { type: 'object', properties: { screenId: { type: 'string' } }, required: ['screenId'] } },
 	ElectiveRosterView: page(ElectiveRosterView),
 	EnrolmentForecastView: page(EnrolmentForecastView),
 	EvaluationCampaignResultsView: page(EvaluationCampaignResultsView),

@@ -27,7 +27,8 @@
 
  CnAppRoot's user settings dialog (the manifest menu entry with action:
  "user-settings") shows the library's default sections, among them the
- notification preferences scoped to learniq. Instance-wide configuration
+ notification preferences scoped to learniq, and the personal calendar
+ address (#user-settings-sections). Instance-wide configuration
  (register, AI features, credential signing) lives in the NC Admin panel.
 -->
 <template>
@@ -41,6 +42,19 @@
 		appId="learniq"
 		:translate="translateForApp"
 		:initialOrganisationUuid="callerTenant">
+		<!-- The personal calendar address (attendance-timetable-calendar-feed)
+		     is a user setting, next to the default sections. -->
+		<template #user-settings-sections>
+			<NcAppSettingsSection id="calendar-feed" :name="translateForApp('Subscribe in your calendar')">
+				<CnSecretAddressCard
+					statusUrl="/apps/learniq/api/timetable/feed"
+					createUrl="/apps/learniq/api/timetable/feed"
+					revokeUrl="/apps/learniq/api/timetable/feed"
+					addressPath="url"
+					:extraLinks="calendarFeedLinks"
+					:texts="calendarFeedTexts" />
+			</NcAppSettingsSection>
+		</template>
 		<!-- The tenant context carries learniq's tenant id, not an organisation
 		     name, so the library's tenant badge would print a raw id. Keep it
 		     hidden, as it was before the context was fed. The slot needs a real
@@ -54,9 +68,10 @@
 </template>
 
 <script>
-import { CnAppRoot } from '@conduction/nextcloud-vue'
+import { CnAppRoot, CnSecretAddressCard } from '@conduction/nextcloud-vue'
 import { getCanonicalLocale, translate as ncT } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
+import { NcAppSettingsSection } from '@nextcloud/vue'
 import { markRaw } from 'vue'
 import LearnerNameCell from './components/cells/LearnerNameCell.vue'
 import { createConnectionHandlers } from './utils/connectionRegistry.js'
@@ -67,6 +82,8 @@ export default {
 
 	components: {
 		CnAppRoot,
+		CnSecretAddressCard,
+		NcAppSettingsSection,
 	},
 
 	props: {
@@ -136,6 +153,16 @@ export default {
 			 * their learner profile (lists-read-pupil-names).
 			 */
 			cellWidgets: { learnerName: markRaw(LearnerNameCell) },
+
+			/** The calendar address's links and texts (attendance-timetable-calendar-feed). */
+			calendarFeedLinks: [{ path: 'webcalUrl', label: 'Open in your calendar app' }],
+			calendarFeedTexts: {
+				intro: 'Add this address to your calendar app to see your lessons there. Your calendar app refreshes it, so cancelled lessons and substitutes show up by themselves.',
+				hint: 'Anyone with this address can read your timetable. Keep it to yourself.',
+				exists: 'You already have a calendar address. If you lost it or shared it by mistake, reset it: the old address stops working.',
+				addressLabel: 'Calendar address',
+				resetLabel: 'Reset link',
+			},
 		}
 	},
 
