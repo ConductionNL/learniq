@@ -536,7 +536,18 @@
 								"start": "startsAt",
 								"end": "endsAt"
 							},
-							"badgeField": "lifecycle",
+							"badges": [
+									{
+										"field": "cover",
+										"variantMap": {
+											"true": {
+												"label": "Cover",
+												"variant": "warning"
+											}
+										}
+									}
+								],
+								"badgeField": "lifecycle",
 							"variantMap": {
 								"cancelled": {
 									"label": "Cancelled",
