@@ -1233,8 +1233,9 @@ def add_detail_records(b: Builder, pupils: list[dict], subject_courses: dict) ->
     open round for 2026-2027, the verkeersdiploma of a groep 8 pupil, a rekenen
     item in its bank, a peer review between two groep 7 pupils on the first
     homework, and the e-learning lesson on fractions, delivered as cmi5."""
+    # Draft: a primary school publishes no programme on its portal (PortalPublicIndex lists published ones).
     programme = b.add("programme", {
-        "name": "Basisonderwijs De Wilgenboom", "level": "po", "lifecycle": "published",
+        "name": "Basisonderwijs De Wilgenboom", "level": "po", "lifecycle": "draft",
     })
     round_ = b.add("admissions-round", {
         "name": "Aanmelding groep 1, 2026-2027", "kind": "generic", "programmeId": programme["uuid"], "level": "po",

@@ -6077,7 +6077,7 @@
           {"@self": {"configuration": "learniq", "register": "learniq", "schema": "conference-invitation"}, "uuid": "ee010021-0000-4000-8000-000000000059", "slug": "po-conference-invitation-059", "conferenceRoundId": "ee01001a-0000-4000-8000-000000000002", "learnerRef": "ee010008-0000-4000-8000-000000000467", "roundName": "Oudergesprekken groep 4, oktober 2026", "bookingClosesAt": "2026-10-16T17:00:00+02:00", "bookingMode": "direct", "status": "open", "tenant_id": "00000000-0000-4000-8000-000000000000"}
         ],
         "programme": [
-          {"@self": {"configuration": "learniq", "register": "learniq", "schema": "programme"}, "uuid": "ee010022-0000-4000-8000-000000000001", "slug": "po-programme-001", "name": "Basisonderwijs De Wilgenboom", "level": "po", "lifecycle": "published", "tenant_id": "00000000-0000-4000-8000-000000000000"}
+          {"@self": {"configuration": "learniq", "register": "learniq", "schema": "programme"}, "uuid": "ee010022-0000-4000-8000-000000000001", "slug": "po-programme-001", "name": "Basisonderwijs De Wilgenboom", "level": "po", "lifecycle": "draft", "tenant_id": "00000000-0000-4000-8000-000000000000"}
         ],
         "admissions-round": [
           {"@self": {"configuration": "learniq", "register": "learniq", "schema": "admissions-round"}, "uuid": "ee010023-0000-4000-8000-000000000001", "slug": "po-admissions-round-001", "name": "Aanmelding groep 1, 2026-2027", "kind": "generic", "programmeId": "ee010022-0000-4000-8000-000000000001", "level": "po", "academicYear": "2026-2027", "applicationDeadline": "2026-11-30", "mandatoryIntake": true, "capacity": 30, "lifecycle": "open", "tenant_id": "00000000-0000-4000-8000-000000000000"}
