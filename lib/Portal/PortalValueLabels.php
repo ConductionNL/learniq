@@ -130,11 +130,44 @@ class PortalValueLabels {
 	 * (internship-hours).
 	 *
 	 * @var array<string, string>
+	 *
+	 * @spec openspec/changes/student-portal-reads-like-the-boards/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
 	 */
 	public const HOUR_WEEK_STATUS = [
 		'submitted' => 'Waiting for approval',
 		'approved'  => 'Approved',
 		'corrected' => 'Approved with a correction',
-		'rejected'  => 'Rejected',
+		// The trainer sends a week back with a question; the student
+		// corrects it ("Teruggestuurd" on the esdoornveen boards).
+		'rejected'  => 'Sent back',
+	];
+
+	/**
+	 * `bpv-placement.lifecycle`: where a placement stands, in the student's words.
+	 *
+	 * @var array<string, string>
+	 *
+	 * @spec openspec/changes/placement-and-bookings-follow-the-boards/specs/portal-contribution/spec.md#requirement-the-placement-page-reads-in-words-and-shows-the-hours
+	 */
+	public const PLACEMENT_STATUS = [
+		'proposed'                 => 'Proposed',
+		'sbb-verification-pending' => 'Waiting for the SBB check',
+		'confirmed'                => 'Confirmed',
+		'active'                   => 'Placement running',
+		'completed'                => 'Finished',
+		'terminated'               => 'Stopped early',
+	];
+
+	/**
+	 * `werkproces-progress.selfAssessment`: how a student rates her own work process.
+	 *
+	 * @var array<string, string>
+	 *
+	 * @spec openspec/changes/board-data-the-schemas-lacked/specs/portal-contribution/spec.md#requirement-the-placement-page-shows-the-agreements-and-the-work-processes
+	 */
+	public const SELF_ASSESSMENT = [
+		'goed'        => 'Good',
+		'voldoende'   => 'Sufficient',
+		'onvoldoende' => 'Insufficient',
 	];
 }//end class

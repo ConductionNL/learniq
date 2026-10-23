@@ -31,6 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Timetabling;
 
 use DateTimeImmutable;
+use OCA\Learniq\Service\Calendar\SchoolYear;
 use Throwable;
 
 /**
@@ -39,6 +40,18 @@ use Throwable;
  * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
  */
 class ContactHoursCalendar {
+
+	/**
+	 * Constructor.
+	 *
+	 * @param SchoolYear $schoolYear The school year as the school sets it.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly SchoolYear $schoolYear = new SchoolYear(),
+	) {
+	}//end __construct()
 
 	/**
 	 * The share of a line that falls inside the window, between 0 and 1.
@@ -129,7 +142,8 @@ class ContactHoursCalendar {
 	}//end teachingDays()
 
 	/**
-	 * The school year's first and last day: its report periods, else 1 August to 31 July.
+	 * The school year's first and last day: its report periods, else the
+	 * school year as the school sets it.
 	 *
 	 * @param array<int, array<string, mixed>> $periods      The report periods.
 	 * @param string                           $academicYear The school year (YYYY-YYYY).
@@ -143,9 +157,7 @@ class ContactHoursCalendar {
 			return [min($starts), max($ends)];
 		}
 
-		$first = (int)substr($academicYear, 0, 4);
-
-		return [sprintf('%04d-08-01', $first), sprintf('%04d-07-31', $first + 1)];
+		return $this->schoolYear->bounds(academicYear: $academicYear);
 	}//end yearBounds()
 
 	/**

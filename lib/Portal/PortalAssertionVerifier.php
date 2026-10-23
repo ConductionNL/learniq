@@ -20,6 +20,12 @@
  * accepts only what the minter can produce, so this one reads the dedicated
  * secret only. The secret never comes from the request.
  *
+ * Portaliq stores that secret SENSITIVE (encrypted at rest), so it is read
+ * through `IAppConfig::getValueString()`, which decrypts it, exactly as
+ * portaliq reads it. The legacy `IConfig::getAppValue()` returns the stored
+ * ciphertext, and every HMAC check then failed (401 on every portal action,
+ * 13-14 Oct 2026).
+ *
  * @category Portal
  * @package  OCA\Learniq\Portal
  *
@@ -40,7 +46,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
-use OCP\IConfig;
+use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -98,14 +104,14 @@ class PortalAssertionVerifier {
 	/**
 	 * Constructor. Tests pass a plain secret instead of config.
 	 *
-	 * @param IConfig|null $config Source of portaliq's app value.
+	 * @param IAppConfig|null $config Source of portaliq's sensitive app value (read decrypted).
 	 * @param string|null $secretOverride Plain secret for tests.
 	 * @param LoggerInterface|null $logger Rejection reasons, debug level only.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ?IConfig $config = null,
+		private readonly ?IAppConfig $config = null,
 		private readonly ?string $secretOverride = null,
 		private readonly ?LoggerInterface $logger = null,
 	) {
@@ -210,14 +216,18 @@ class PortalAssertionVerifier {
 
 	/**
 	 * Portaliq's dedicated signing secret, or null when it is missing or too
-	 * short (verification then fails closed).
+	 * short (verification then fails closed). Read through IAppConfig,
+	 * non-lazy as portaliq stores it, so the sensitive value comes back
+	 * decrypted.
 	 *
 	 * @return string|null
+	 *
+	 * @spec openspec/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
 	 */
 	private function secret(): ?string {
 		$secret = $this->secretOverride;
 		if ($secret === null && $this->config !== null) {
-			$secret = (string)$this->config->getAppValue(self::PORTALIQ_APP_ID, self::SECRET_KEY, '');
+			$secret = $this->config->getValueString(self::PORTALIQ_APP_ID, self::SECRET_KEY, '', lazy: false);
 		}
 
 		if ($secret === null || strlen($secret) < self::MIN_SECRET_LENGTH) {

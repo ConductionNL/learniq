@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Command;
 
 use OCA\Learniq\Portal\ExamplePortalProvisioner;
+use OCA\Learniq\Service\ExampleSetDates;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -50,11 +51,13 @@ class ExampleSetPortalCommand extends Command {
 	 * Constructor.
 	 *
 	 * @param ExamplePortalProvisioner $portals Creates or themes the portal.
+	 * @param ExampleSetDates|null     $dates   The offset the set's dates carry (demo-dates-follow-the-load-week).
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ExamplePortalProvisioner $portals,
+		private readonly ?ExampleSetDates $dates=null,
 	) {
 		parent::__construct();
 	}//end __construct()
@@ -87,7 +90,10 @@ class ExampleSetPortalCommand extends Command {
 	 * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md#requirement-loading-an-example-set-gives-its-school-a-themed-portal
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output): int {
-		$result = $this->portals->provision(profileId: (string)$input->getArgument('set'));
+		// The site gets the dates the set carries, so its pages and news match the objects.
+		$set    = (string)$input->getArgument('set');
+		$days   = $this->dates?->appliedOffset(setId: $set) ?? ($this->dates?->currentOffset() ?? 0);
+		$result = $this->portals->provision(profileId: $set, days: $days, previous: $days);
 		$status = $result['status'];
 
 		$output->writeln($this->portals->describe(result: $result));

@@ -34,6 +34,8 @@
         <file name="tests/Stubs/Service/TenantKeyService.php" preloadClasses="true" />
         <file name="tests/Stubs/Service/TalkLinkService.php" preloadClasses="true" />
         <file name="tests/Stubs/Service/FileService.php" preloadClasses="true" />
+        <!-- OpenRegister's RBAC refusal, caught to answer 403 instead of 500. -->
+        <file name="tests/Stubs/Exception/NotAuthorizedException.php" preloadClasses="true" />
         <!-- OpenRegister's store plane (ADR-080): discovery, publish and the
              publish authorizer, used by learniq's course store
              (lesson-sharing-via-store-plane, store-publish-through-plane). The

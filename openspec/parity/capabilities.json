@@ -570,6 +570,516 @@
       "name_nl": "Beheer: toegang, privacy en koppelingen"
     }
   ],
+  "features": [
+    {
+      "slug": "compliance-audit",
+      "title": "Compliance training and audit",
+      "title_nl": "Compliancetraining en audit",
+      "area": "compliance",
+      "overlay": "compliance-audit",
+      "specs": [
+        "compliance-audit",
+        "enrolment",
+        "compliance-attestation-locked-after-signing",
+        "external-training-recording",
+        "certification",
+        "compliance-rule-coverage",
+        "compliance-assign-from-hr-roles",
+        "compliance-exemptions",
+        "progress-tracking"
+      ]
+    },
+    {
+      "slug": "external-training-recording",
+      "title": "External training records",
+      "title_nl": "Externe trainingen",
+      "area": "compliance",
+      "overlay": "external-training-recording",
+      "specs": [
+        "external-training-recording",
+        "external-training-upload"
+      ]
+    },
+    {
+      "slug": "scholiq-notifications",
+      "title": "Notifications",
+      "title_nl": "Meldingen",
+      "area": "compliance",
+      "overlay": "scholiq-notifications",
+      "specs": [
+        "scholiq-notifications",
+        "notification-quiet-hours-through-openregister"
+      ]
+    },
+    {
+      "slug": "course-management",
+      "title": "Course management",
+      "title_nl": "Cursusbeheer",
+      "area": "content",
+      "overlay": "course-management",
+      "specs": [
+        "course-management",
+        "content-adaptive-path",
+        "content-preview-as-learner",
+        "course-evaluation"
+      ]
+    },
+    {
+      "slug": "course-import-export",
+      "title": "Import and export courses",
+      "title_nl": "Cursussen importeren en exporteren",
+      "area": "content",
+      "overlay": null,
+      "specs": [
+        "course-management"
+      ]
+    },
+    {
+      "slug": "scorm-and-cmi5-content-runtime",
+      "title": "SCORM and cmi5 content runtime",
+      "title_nl": "SCORM- en cmi5-content runtime",
+      "area": "content",
+      "overlay": "scorm-and-cmi5-content-runtime",
+      "specs": [
+        "content-scorm-package-upload",
+        "course-management"
+      ]
+    },
+    {
+      "slug": "lti-tools",
+      "title": "External tools over LTI 1.3",
+      "title_nl": "Externe tools via LTI 1.3",
+      "area": "content",
+      "overlay": null,
+      "specs": [
+        "course-management"
+      ]
+    },
+    {
+      "slug": "certification",
+      "title": "Certification and digital credentials",
+      "title_nl": "Certificering en digitale credentials",
+      "area": "credentials",
+      "overlay": "certification",
+      "specs": [
+        "certification",
+        "nextcloud-app",
+        "credentials-certificate-pdf",
+        "credentials-migrate-with-validity"
+      ]
+    },
+    {
+      "slug": "edci-and-europass-credentials",
+      "title": "EDCI and Europass credentials",
+      "title_nl": "EDCI- en Europass-credentials",
+      "area": "credentials",
+      "overlay": "edci-and-europass-credentials",
+      "specs": [
+        "credential-wallet-offer-for-the-learner",
+        "certification"
+      ]
+    },
+    {
+      "slug": "competency",
+      "title": "Competency frameworks and skills",
+      "title_nl": "Competentiekaders en vaardigheden",
+      "area": "grading",
+      "overlay": null,
+      "specs": [
+        "competency"
+      ]
+    },
+    {
+      "slug": "enrolment",
+      "title": "Enrolment",
+      "title_nl": "Inschrijving",
+      "area": "enrolment",
+      "overlay": "enrolment",
+      "specs": [
+        "enrolment",
+        "school-structure",
+        "programme-mandatory-parts",
+        "enrolment-sync-classes-from-student-administration"
+      ]
+    },
+    {
+      "slug": "admissions",
+      "title": "Admissions and subject choice",
+      "title_nl": "Aanmelding en vakkenkeuze",
+      "area": "enrolment",
+      "overlay": null,
+      "specs": [
+        "portable-learning-record"
+      ]
+    },
+    {
+      "slug": "school-structure",
+      "title": "School structure",
+      "title_nl": "Schoolstructuur",
+      "area": "enrolment",
+      "overlay": "school-structure",
+      "specs": [
+        "school-structure"
+      ]
+    },
+    {
+      "slug": "school-year-rollover",
+      "title": "School-year rollover",
+      "title_nl": "Schooljaarovergang",
+      "area": "enrolment",
+      "overlay": "school-year-rollover",
+      "specs": [
+        "school-year-rollover"
+      ]
+    },
+    {
+      "slug": "dashboard",
+      "title": "Role-aware dashboards",
+      "title_nl": "Dashboards per rol",
+      "area": "compliance",
+      "overlay": "dashboard",
+      "specs": [
+        "dashboard",
+        "enrolment"
+      ]
+    },
+    {
+      "slug": "progress-tracking",
+      "title": "Learning progress and engagement",
+      "title_nl": "Leervoortgang en betrokkenheid",
+      "area": "grading",
+      "overlay": null,
+      "specs": [
+        "progress-tracking",
+        "engagement",
+        "student-analytics"
+      ]
+    },
+    {
+      "slug": "assessment",
+      "title": "Assessment",
+      "title_nl": "Toetsing",
+      "area": "assessment",
+      "overlay": "assessment",
+      "specs": [
+        "assessment",
+        "assessment-course-evaluation-answer-page",
+        "exam-sitting-overview-section"
+      ]
+    },
+    {
+      "slug": "assessment-quality",
+      "title": "Test and question quality analysis",
+      "title_nl": "Analyse van toets- en vraagkwaliteit",
+      "area": "assessment",
+      "overlay": null,
+      "specs": [
+        "assessment"
+      ]
+    },
+    {
+      "slug": "online-proctoring-and-plagiarism",
+      "title": "Online proctoring and plagiarism",
+      "title_nl": "Online proctoring en plagiaat",
+      "area": "assessment",
+      "overlay": "online-proctoring-and-plagiarism",
+      "specs": [
+        "proctoring-flag-review-page"
+      ]
+    },
+    {
+      "slug": "exam-board",
+      "title": "Exam board cases",
+      "title_nl": "Zaken van de examencommissie",
+      "area": "assessment",
+      "overlay": null,
+      "specs": [
+        "exam-board"
+      ]
+    },
+    {
+      "slug": "assignments",
+      "title": "Assignments and submissions",
+      "title_nl": "Opdrachten en inleveringen",
+      "area": "assignments",
+      "overlay": "assignments",
+      "specs": [
+        "assignments"
+      ]
+    },
+    {
+      "slug": "peer-feedback",
+      "title": "Peer and self assessment",
+      "title_nl": "Peer- en zelfbeoordeling",
+      "area": "assignments",
+      "overlay": null,
+      "specs": [
+        "assignments"
+      ]
+    },
+    {
+      "slug": "grading",
+      "title": "Grading",
+      "title_nl": "Cijfers",
+      "area": "grading",
+      "overlay": "grading",
+      "specs": [
+        "grading"
+      ]
+    },
+    {
+      "slug": "report-card",
+      "title": "Report cards",
+      "title_nl": "Rapporten",
+      "area": "grading",
+      "overlay": null,
+      "specs": [
+        "report-card",
+        "report-card-pdf-to-guardians"
+      ]
+    },
+    {
+      "slug": "study-progress",
+      "title": "Study progress and binding study advice",
+      "title_nl": "Studievoortgang en bindend studieadvies",
+      "area": "grading",
+      "overlay": null,
+      "specs": [
+        "study-progress"
+      ]
+    },
+    {
+      "slug": "attendance",
+      "title": "Attendance and threshold reporting",
+      "title_nl": "Aanwezigheid en verzuimmelding",
+      "area": "attendance",
+      "overlay": "attendance",
+      "specs": [
+        "attendance",
+        "attendance-flag-report-actions"
+      ]
+    },
+    {
+      "slug": "timetabling",
+      "title": "Timetabling and room booking",
+      "title_nl": "Roosters en lokaalreservering",
+      "area": "attendance",
+      "overlay": null,
+      "specs": [
+        "timetabling",
+        "personal-timetable",
+        "timetable-calendar-feed",
+        "exam-schedule",
+        "timetable-source"
+      ]
+    },
+    {
+      "slug": "guardian-access",
+      "title": "Guardian access",
+      "title_nl": "Toegang voor ouders en verzorgers",
+      "area": "guardians",
+      "overlay": null,
+      "specs": [
+        "parent-conferences",
+        "portal-contribution"
+      ]
+    },
+    {
+      "slug": "parent-conferences",
+      "title": "Parent-teacher conferences",
+      "title_nl": "Oudergesprekken",
+      "area": "guardians",
+      "overlay": null,
+      "specs": [
+        "parent-conferences"
+      ]
+    },
+    {
+      "slug": "eportfolio",
+      "title": "Learner portfolio",
+      "title_nl": "Portfolio van de leerling",
+      "area": "guardians",
+      "overlay": null,
+      "specs": [
+        "eportfolio"
+      ]
+    },
+    {
+      "slug": "portable-learning-record",
+      "title": "Portable learning record",
+      "title_nl": "Meeneembaar leerdossier",
+      "area": "guardians",
+      "overlay": null,
+      "specs": [
+        "portable-learning-record"
+      ]
+    },
+    {
+      "slug": "learning-plan",
+      "title": "Individual learning plan",
+      "title_nl": "Individueel leerplan",
+      "area": "support",
+      "overlay": "learning-plan",
+      "specs": [
+        "learning-plan"
+      ]
+    },
+    {
+      "slug": "pupil-dossier",
+      "title": "Pupil dossier and care requests",
+      "title_nl": "Leerlingdossier en zorgvragen",
+      "area": "support",
+      "overlay": null,
+      "specs": [
+        "pupil-dossier"
+      ]
+    },
+    {
+      "slug": "confidential-counsel",
+      "title": "Confidential reporting and counselling",
+      "title_nl": "Vertrouwelijk melden en vertrouwenspersoon",
+      "area": "support",
+      "overlay": null,
+      "specs": [
+        "confidential-counsel"
+      ]
+    },
+    {
+      "slug": "bpv",
+      "title": "Work placements",
+      "title_nl": "Beroepspraktijkvorming",
+      "area": "workplace",
+      "overlay": null,
+      "specs": [
+        "bpv",
+        "workplace-leerbedrijf-check-through-integriq"
+      ]
+    },
+    {
+      "slug": "access-control",
+      "title": "Roles and permissions",
+      "title_nl": "Rollen en rechten",
+      "area": "governance",
+      "overlay": null,
+      "specs": [
+        "compliance-audit",
+        "governance-four-eyes-on-approved-data",
+        "rbac-groups"
+      ]
+    },
+    {
+      "slug": "sign-in-and-accounts",
+      "title": "Sign in and accounts",
+      "title_nl": "Inloggen en accounts",
+      "area": "governance",
+      "overlay": null,
+      "specs": [
+        "learner-account-merge",
+        "learner-merge-page-action",
+        "identity-federation"
+      ]
+    },
+    {
+      "slug": "accessibility",
+      "title": "Accessibility statement and evidence",
+      "title_nl": "Toegankelijkheidsverklaring en bewijs",
+      "area": "governance",
+      "overlay": null,
+      "specs": [
+        "accessibility-conformance",
+        "accessibility-evidence"
+      ]
+    },
+    {
+      "slug": "ai-surface",
+      "title": "EU AI Act governance",
+      "title_nl": "EU AI Act-governance",
+      "area": "governance",
+      "overlay": "ai-surface",
+      "specs": [
+        "ai-surface",
+        "ai-locality-guarantee",
+        "ai-translated-catalogue"
+      ]
+    },
+    {
+      "slug": "ai-companion-tools",
+      "title": "AI assistant",
+      "title_nl": "AI-assistent",
+      "area": "governance",
+      "overlay": "ai-companion-tools",
+      "specs": [
+        "mcp-tool-surface"
+      ]
+    },
+    {
+      "slug": "avg-verwerkingsregister",
+      "title": "AVG processing register",
+      "title_nl": "AVG-verwerkingsregister",
+      "area": "governance",
+      "overlay": "avg-verwerkingsregister",
+      "specs": [
+        "avg-verwerkingsregister",
+        "governance-processing-record-every-schema"
+      ]
+    },
+    {
+      "slug": "data-exchange",
+      "title": "Data exchange",
+      "title_nl": "Gegevensuitwisseling",
+      "area": "governance",
+      "overlay": "data-exchange",
+      "specs": [
+        "data-exchange"
+      ]
+    },
+    {
+      "slug": "payments",
+      "title": "Payments for courses and school costs",
+      "title_nl": "Betalen voor cursussen en schoolkosten",
+      "area": "governance",
+      "overlay": null,
+      "specs": [
+        "payments"
+      ]
+    },
+    {
+      "slug": "nextcloud-app",
+      "title": "Nextcloud app",
+      "title_nl": "Nextcloud-app",
+      "area": "governance",
+      "overlay": "nextcloud-app",
+      "specs": [
+        "nextcloud-app",
+        "apphost-adoption",
+        "i18n-locale-parity",
+        "example-sets",
+        "integration-leaves",
+        "integrations",
+        "first-time-setup",
+        "navigation",
+        "realtime-updates"
+      ]
+    },
+    {
+      "slug": "sovereignty",
+      "title": "Self-hosted and open source",
+      "title_nl": "Zelf hosten en open source",
+      "area": "governance",
+      "overlay": null,
+      "specs": [
+        "app-metadata",
+        "tenancy"
+      ]
+    }
+  ],
+  "internalSpecs": [
+    "beta-alignment",
+    "component-registry",
+    "docs-product-pages",
+    "portal-identity",
+    "preferences-api"
+  ],
   "providers": [
     {
       "key": "self",
@@ -625,7 +1135,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-coverage",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -643,8 +1153,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for regulation, compliance, rule register; no object that lists rules exists in the docs"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfVerplichtingen"
       }
     },
     {
@@ -659,7 +1169,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-coverage",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -677,8 +1187,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for regulation, compliance, mandatory rule; courses are not linked to any rule object"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfVerplichting"
       }
     },
     {
@@ -694,7 +1204,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-coverage",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -713,8 +1223,8 @@
       },
       "note": "Downgraded 2026-09-27 from built.state 'built' and learniq 'yes' (learniq#947): the BulkEnrol page names CnWizardDialog, which src/registry.js does not register, so /enrolments/bulk renders 'This page is empty'. The manifest page is there; the screen is not. Built 2026-09-27 (learniq#947): /enrolments/bulk now mounts BulkEnrolView, which enrols a whole department (and everything under it), a cohort or picked learners in one course and skips learners with an open enrolment.",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfGroepInschrijven"
       }
     },
     {
@@ -729,7 +1239,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-coverage",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -747,8 +1257,12 @@
         "moodle": "source read at moodle/moodle v5.2.3: public/course/modlib.php:93 completionexpected per activity (shown in the timeline block) + public/enrol/editenrolment_form.php:57 timeend per user enrolment; the enrolment end date closes access, it is not a deadline the learner sees as such. Learning plans have a due date too (public/competency/classes/api.php:3171). No per-enrolment completion deadline exists. Reached on: Dashboard > Timeline block; course > Participants > edit enrolment."
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqMijnLeren"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqMijnLeren",
+          "LqLlMijnLeren",
+          "LqZoVandaag"
+        ]
       }
     },
     {
@@ -763,8 +1277,8 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "compliance-coverage",
-      "featureConfidence": "medium",
+      "feature": "compliance-audit",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -781,8 +1295,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/certificates-62864346.html; Certificates report, status meanings: \"Certified Indicates percent of active certificates out of total certificates issued.\" and Learner Progress \"Trained ... divide the number of completed enrollments by the total number of enrollments\" (https://ispringhelpdocs.com/ispring-learn/learner-progress-17304145.html). Per course or certificate, no per rule coverage"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfVerplichting"
       }
     },
     {
@@ -797,7 +1311,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-coverage",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "no",
@@ -815,8 +1329,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for threshold, red, amber, traffic light; nearest is the configurable days before expiry for the Expiring certificate status (https://ispringhelpdocs.com/ispring-learn/certificates-62864346.html), which is not a coverage threshold"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfVerplichting"
       }
     },
     {
@@ -831,7 +1345,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-evidence",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -849,8 +1363,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for attest, signature, acknowledge; only acknowledgement documented is privacy policy consent at login (https://ispringhelpdocs.com/ispring-learn/security-10684249.html), not a training attestation"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfVerplichting"
       }
     },
     {
@@ -865,8 +1379,8 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "compliance-evidence",
-      "featureConfidence": "medium",
+      "feature": "compliance-audit",
+      "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "partial",
       "moodle-workplace": "unknown",
@@ -883,8 +1397,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for attest, signature; no training attestation object is documented"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfVerplichting"
       }
     },
     {
@@ -900,8 +1414,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-coverage",
-      "featureConfidence": "high",
+      "feature": "compliance-audit",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "yes",
@@ -918,8 +1432,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/export-scannable-links-to-user-profiles-48334582.html; Export Scannable Links: \"By scanning a code, you will get to the page with the list of user's certificates. These scannable links are convenient to use when you need to quickly check whether an employee has completed the required training.\" Per person check of certificates, no rule concept"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfTrainingVastleggen"
       }
     },
     {
@@ -934,7 +1448,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "external-training",
+      "feature": "external-training-recording",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -952,8 +1466,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/external-certificates-141559364.html; External Certificates: \"L&D managers can record external certificates that employees earn from outside courses and training programs\" and \"Log external training directly in the employee's profile.\""
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfTrainingVastleggen"
       }
     },
     {
@@ -968,7 +1482,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "external-training",
+      "feature": "external-training-recording",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -986,8 +1500,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for verify, approve external certificate; the How to Add an External Certificate page describes a single admin entry with no second verifier step"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfTrainingVastleggen"
       }
     },
     {
@@ -1003,7 +1517,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "external-training",
+      "feature": "external-training-recording",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -1022,8 +1536,8 @@
       },
       "note": "Downgraded 2026-09-27 from built.state 'built' and learniq 'yes' (learniq#952): POST /api/external-training/bulk exists (appinfo/routes.php:82) but nothing in src/ calls /api/external-training/, so no page offers the bulk upload.",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfTrainingVastleggen"
       }
     },
     {
@@ -1038,7 +1552,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-evidence",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -1056,8 +1570,8 @@
         "totara": "read 2026-09-26: https://totara.help/docs/report-export-options; reports export as Excel, ODS, CSV and \"PDF landscape\"/\"PDF portrait\". A report file, not a bundle with the evidence inside."
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfAuditpakket"
       }
     },
     {
@@ -1072,8 +1586,8 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "compliance-evidence",
-      "featureConfidence": "medium",
+      "feature": "compliance-audit",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -1090,8 +1604,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/editing-a-course-s-status-30409285.html; Editing a Course's Status: \"In the reports, an icon will appear informing the manual status change. When mousing over the icon, you will see who, when, and why changed the course status.\" Certificate date changes are tracked with who, when and reason (https://ispringhelpdocs.com/ispring-learn/changing-the-expiration-dates-for-certificates-99352772.html). Change history on some fields, no tamper evidence report"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfAuditpakket"
       }
     },
     {
@@ -1106,7 +1620,7 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "compliance-coverage",
+      "feature": "scholiq-notifications",
       "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "no",
@@ -1141,7 +1655,7 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "compliance-coverage",
+      "feature": "scholiq-notifications",
       "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "partial",
@@ -1175,7 +1689,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-coverage",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "no",
@@ -1210,7 +1724,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-coverage",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -1228,8 +1742,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/certificates-62864346.html; Certificates report lists every certificate with expiration and status, \"You can set filters to track data by departments, groups, and courses.\" Courses side by side, no rule level view"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfVerplichtingen"
       }
     },
     {
@@ -1244,7 +1758,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "compliance-coverage",
+      "feature": "compliance-audit",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -1262,8 +1776,8 @@
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Certifications_Configuration; Expiry date options \"After current certification completion\" or \"After previous certification expiry date\" set the validity period that triggers recertification."
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfVerplichting"
       }
     },
     {
@@ -1278,8 +1792,8 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "my-learning",
-      "featureConfidence": "medium",
+      "feature": "dashboard",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -1296,8 +1810,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/course-notifications-10683431.html; Past Due Notification: \"automatic notifications sent to Learners to let them know that the due date for completing specific learning content has passed\". The course page shows \"status, and due date if available\" (https://ispringhelpdocs.com/ispring-learn/taking-courses-10684633.html). No documented late marker in the My Courses list"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqMijnLeren"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqMijnLeren",
+          "LqLlMijnLeren"
+        ]
       }
     },
     {
@@ -1312,7 +1829,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "credentials",
+      "feature": "certification",
       "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "yes",
@@ -1347,7 +1864,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "credentials",
+      "feature": "certification",
       "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "partial",
@@ -1382,7 +1899,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "credentials",
+      "feature": "certification",
       "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "no",
@@ -1417,7 +1934,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "credentials",
+      "feature": "certification",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -1435,8 +1952,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/export-scannable-links-to-user-profiles-48334582.html; the only certificate lookup link is the profile QR code, and the page states \"Only the Account Owner, Account Administrators, and users with the custom permission to view users have access to user profiles.\" No anonymous verification link is documented"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: the public verification page, outside the signed-in app"
+        "canvas": "design-system",
+        "board": "LqVerifieren"
       }
     },
     {
@@ -1451,8 +1968,8 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "credentials",
-      "featureConfidence": "medium",
+      "feature": "certification",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -1469,8 +1986,8 @@
         "moodle": "source read at moodle/moodle v5.2.3: public/badges/templates/issued_badge.mustache:28 expiredate + public/lang/en/badges.php:353 'This badge expires on {$a}' and :356 'Expires {$a}'; the holder sees the expiry date on the badge page. No count of days left is computed or shown. Reached on: /badges/badge.php?hash=...."
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCertificaten"
       }
     },
     {
@@ -1486,8 +2003,8 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "credentials",
-      "featureConfidence": "medium",
+      "feature": "certification",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "no",
       "moodle-workplace": "partial",
@@ -1520,8 +2037,8 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "credentials",
-      "featureConfidence": "medium",
+      "feature": "certification",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -1538,8 +2055,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/changing-the-expiration-dates-for-certificates-99352772.html; Changing the Expiration Dates: \"If you choose a date that has already passed, the LMS will warn you that the certificate's status will change to Expired\" and \"If you need to explain why you are either extending or revoking the certificate, specify the reason in the Reason for date change field.\" Reports show who, when and the reason"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCertificaten"
       }
     },
     {
@@ -1554,8 +2071,8 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "credentials",
-      "featureConfidence": "medium",
+      "feature": "certification",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -1591,7 +2108,7 @@
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
-      "feature": "credentials",
+      "feature": "edci-and-europass-credentials",
       "featureConfidence": "medium",
       "learniq": "partial",
       "moodle": "no",
@@ -1609,8 +2126,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for wallet, EUDI, Europass, blockchain (zero hits)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqLlCertificaat"
       }
     },
     {
@@ -1627,7 +2144,7 @@
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
-      "feature": "credentials",
+      "feature": "edci-and-europass-credentials",
       "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "no",
@@ -1645,8 +2162,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for wallet (zero hits)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqLlCertificaat"
       }
     },
     {
@@ -1661,8 +2178,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "external-training",
-      "featureConfidence": "high",
+      "feature": "external-training-recording",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -1679,8 +2196,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/how-to-add-an-external-certificate-141561985.html; External certificates are recorded from the profile: \"Enter the certificate name. In the Issuer field ... Enter the certificate number\" and \"you can upload a digital copy of the certificate.\" It records the outside certificate; issuing an own iSpring certificate for it is not documented"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfTrainingVastleggen"
       }
     },
     {
@@ -1695,7 +2212,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "credentials",
+      "feature": "certification",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "no",
@@ -1713,8 +2230,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for signing key, certificate signature"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqAppInstellingen"
       }
     },
     {
@@ -1730,8 +2247,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "credentials",
-      "featureConfidence": "high",
+      "feature": "edci-and-europass-credentials",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -1748,8 +2265,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for Europass, EDCI (zero hits)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqLlCertificaat"
       }
     },
     {
@@ -1764,8 +2281,8 @@
       },
       "provider": "filinq",
       "providerHow": "read: this repository posts to Filinq and does not render the document itself",
-      "feature": "credentials",
-      "featureConfidence": "medium",
+      "feature": "certification",
+      "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "no",
       "moodle-workplace": "yes",
@@ -1782,7 +2299,7 @@
         "totara": "read 2026-09-26: https://totara.help/docs/certificate-activity-settings; certificate layout templates with customisable \"orientation, borders, watermarks, signatures, and institutional seals\", delivered by browser, download or email."
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqCursus"
       }
     },
@@ -1816,8 +2333,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for certificate with skill or competency; competencies exist only in the 360 review and competency profiles, not linked to certificates"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqLlCertificaat"
       }
     },
     {
@@ -1832,8 +2349,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "my-learning",
-      "featureConfidence": "high",
+      "feature": "certification",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -1850,8 +2367,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/achievements-17301767.html; Achievements: \"users can view all badges and certificates that they received\""
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqLlLeerdossier"
       }
     },
     {
@@ -1866,7 +2383,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "course-authoring",
+      "feature": "course-management",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -1884,7 +2401,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/course-outline-10683358.html; Course Outline: \"Courses in iSpring LMS have the following outline: Course Section Content item\"; reorder with \"Arranging Sections Order ... use the up and down arrows\" (https://ispringhelpdocs.com/ispring-learn/actions-with-sections-17303921.html)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqCursus"
       }
     },
@@ -1900,8 +2417,8 @@
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
-      "feature": "course-authoring",
-      "featureConfidence": "medium",
+      "feature": "course-management",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -1918,7 +2435,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/creating-a-quiz-54759487.html; Creating a Quiz: \"If your quiz hasn't been published yet, it will be marked as Draft on the course page.\" Drafts documented for quizzes, pages and development plans, not for a whole course"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqCursus"
       }
     },
@@ -1934,7 +2451,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "course-authoring",
+      "feature": "course-management",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -1952,7 +2469,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/copying-courses-28053102.html; Copying Courses: \"Create a full copy of a course\" copying outline and settings, but \"All modules in the copied courses will be linked copies of the original course modules.\" No course template feature; templates exist for development plans"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqCursus"
       }
     },
@@ -1968,8 +2485,8 @@
       },
       "provider": "nextcloud",
       "providerHow": "read: the platform provides it and this repository consumes it",
-      "feature": "course-authoring",
-      "featureConfidence": "medium",
+      "feature": "course-management",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -1986,7 +2503,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/course-outline-10683358.html; \"A section of a course may include content in the following formats: ... Video (FLV, MP4) Audio (MP3) Documents (PDF, DOC, XLS, PPT) ... Weblinks Pages\""
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesMaken"
       }
     },
@@ -2002,8 +2519,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "content-standards",
-      "featureConfidence": "high",
+      "feature": "course-import-export",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -2020,7 +2537,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/uploading-content-from-computer-30411510.html; Uploading Content from Computer: \"Supported types: SCORM 1.2/2004 packages FLV videos MP4 videos MP3 audio reference documents (PDF, DOC, XLS) PowerPoint presentations offline packages of courses created with iSpring products\". SCORM packages from another system import; Common Cartridge is not in the list"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesmap"
       }
     },
@@ -2036,8 +2553,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "content-standards",
-      "featureConfidence": "high",
+      "feature": "course-import-export",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -2054,7 +2571,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/uploading-content-from-computer-30411510.html; the supported upload types list (SCORM 1.2/2004, video, audio, documents, PowerPoint, iSpring offline packages) excludes Moodle backups; also https://ispringhelpdocs.com/ispring-learn/system-requirements-30409601.html Supported Content Types. Zero hits for Moodle in the help space"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesmap"
       }
     },
@@ -2070,8 +2587,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "content-standards",
-      "featureConfidence": "high",
+      "feature": "course-import-export",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -2088,7 +2605,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for import report for content; import results are documented only for users and departments"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesmap"
       }
     },
@@ -2104,8 +2621,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "content-standards",
-      "featureConfidence": "high",
+      "feature": "course-import-export",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -2122,8 +2639,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/exporting-pages-17303161.html; Exporting Pages: \"convert a page that you created to SCORM or Experience API\"; quizzes likewise (https://ispringhelpdocs.com/ispring-learn/exporting-a-quiz-54759499.html: \"You can export your quiz to SCORM or xAPI and upload it to another LMS\"). Pages and quizzes only, whole course export not documented"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqCursusDelen"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqCursusDelen",
+          "LqTlPubliceren"
+        ]
       }
     },
     {
@@ -2138,8 +2658,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "content-standards",
-      "featureConfidence": "high",
+      "feature": "scorm-and-cmi5-content-runtime",
+      "featureConfidence": "medium",
       "learniq": "partial",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -2156,7 +2676,7 @@
         "totara": "read 2026-09-26: https://totara.help/docs/scorm-activity-settings; grading uses the package values \"cmi.core.lesson_status\" and \"cmi.core.score.raw\" (SCORM 1.2), feeding activity completion."
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesmap"
       }
     },
@@ -2173,8 +2693,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "content-standards",
-      "featureConfidence": "high",
+      "feature": "scorm-and-cmi5-content-runtime",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -2191,8 +2711,8 @@
         "totara": "not checked: read 2026-09-26: not documented: https://totara.help/docs/configure-xapi-with-totara makes no reference to cmi5."
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqLlLesCmi5"
       }
     },
     {
@@ -2208,8 +2728,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "content-standards",
-      "featureConfidence": "high",
+      "feature": "scorm-and-cmi5-content-runtime",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "unknown",
@@ -2243,7 +2763,7 @@
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
-      "feature": "content-standards",
+      "feature": "lti-tools",
       "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "yes",
@@ -2261,7 +2781,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/course-outline-10683358.html; the course content formats are listed as iSpring content, SCORM, video, audio, documents, freeform assignments, weblinks and pages, with no LTI tool; zero hits for LTI in the help space"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesMaken"
       }
     },
@@ -2278,7 +2798,7 @@
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
-      "feature": "content-standards",
+      "feature": "lti-tools",
       "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "yes",
@@ -2330,8 +2850,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/completing-development-plans-128352820.html; Completing Development Plans: \"If there is no task monitor, you can mark the task as completed on your own.\" Only for development plan tasks; course items complete by viewing (\"users need to view 95% of the clip\", https://ispringhelpdocs.com/ispring-learn/course-completion-condition-17302430.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqLlLesVolgen"
       }
     },
     {
@@ -2346,7 +2866,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "course-authoring",
+      "feature": "course-management",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -2364,8 +2884,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/course-completion-order-within-learning-track-22613656.html; \"By days Every course has its own enrollment date and due date\" within a learning track. Scheduled release of courses in a track, not of lessons inside a course"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a teacher screen the canvas does not draw"
+        "canvas": "design-system",
+        "board": "LqCursusInstellingen"
       }
     },
     {
@@ -2380,8 +2900,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "enrolment",
-      "featureConfidence": "high",
+      "feature": "course-management",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "yes",
@@ -2398,8 +2918,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/course-completion-order-within-learning-track-22613656.html; \"Sequential Learners proceed to study a course only after the previous course is completed.\""
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a teacher screen the canvas does not draw"
+        "canvas": "design-system",
+        "board": "LqCursusInstellingen"
       }
     },
     {
@@ -2414,7 +2934,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "course-authoring",
+      "feature": "course-management",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -2432,8 +2952,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/ai-translator-128355439.html; AI Translator: \"Each copy shows the original name and the translation language.\" Translation makes a separate copy per language; a second language name on one course is not documented"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a teacher screen the canvas does not draw"
+        "canvas": "design-system",
+        "board": "LqCursusInstellingen"
       }
     },
     {
@@ -2466,8 +2986,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/learning-goals-141567620.html; Learning Goals: \"Administrators can set learning goals, the number of learning credits\" and credits can be set per course. Generic CPD credits, not ECTS"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed: hbo only; the canvas draws a vo school"
+        "canvas": "design-system",
+        "board": [
+          "LqCursusInstellingen",
+          "LqBsaBesluit"
+        ]
       }
     },
     {
@@ -2500,10 +3023,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/enrolling-on-a-user-s-page-35664610.html; \"Go to the Users section and click on a user's name ... click on the Enroll: Course/Training\""
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqGroep",
-          "LqLeerling"
+          "LqLeerling",
+          "LqLeerlingen"
         ]
       }
     },
@@ -2519,8 +3043,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "enrolment",
-      "featureConfidence": "high",
+      "feature": "school-structure",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -2537,7 +3061,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/creating-groups-10684139.html; Creating Groups: \"Open the Users section, go to the Groups tab and click the New Group button\" then \"Add Users\"; groups can be enrolled together via Advanced Search"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqGroepen",
           "LqGroep",
@@ -2558,7 +3082,7 @@
       "provider": "nextcloud",
       "providerHow": "read: the platform provides it and this repository consumes it",
       "feature": "enrolment",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -2575,7 +3099,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/how-to-create-chats-100863563.html; \"An administrator can create a group chat in the messenger, in the user list, and on the user info page.\" Group chats are created by hand, not automatically per group"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqGroep"
       }
     },
@@ -2592,7 +3116,7 @@
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "progress-tracking",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -2609,8 +3133,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/learner-progress-17304145.html; Learner Progress: \"check if users of a certain department have any overdue courses or how far learners have advanced through the content item.\""
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqMijnLeren"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqMijnLeren",
+          "LqLlMijnLeren"
+        ]
       }
     },
     {
@@ -2626,7 +3153,7 @@
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "enrolment",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -2643,8 +3170,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/deleting-an-enrollment-17304247.html; enrollments can be deleted (\"POST /enrollment/delete\"), with no reason field documented; a reason is recorded only for manual status changes (https://ispringhelpdocs.com/ispring-learn/editing-a-course-s-status-30409285.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqLeerlingInschrijvingen"
       }
     },
     {
@@ -2659,7 +3186,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "programmes",
+      "feature": "school-structure",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -2677,8 +3204,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/learning-tracks-22611015.html; Learning Tracks: \"A learning track is a convenient way to organize employees' training ... Assign this learning track to employees ... they will be enrolled in the courses included in the track.\""
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqMijnLeren"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqMijnLeren",
+          "LqLlMijnLeren"
+        ]
       }
     },
     {
@@ -2711,8 +3241,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/adding-a-training-to-the-catalog-35652478.html; catalog option \"Learners need administrator approval to enroll in this training\"; supervisors send requests (https://ispringhelpdocs.com/ispring-learn/how-to-create-a-request-48333681.html). Approval requests for catalog items, not a formal application intake"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqCoAanmeldingen",
+          "LqCoAanmelding"
+        ]
       }
     },
     {
@@ -2745,8 +3278,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for panel, committee, board review of requests; approval is by a single administrator or custom role"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoBeoordelen"
       }
     },
     {
@@ -2779,8 +3312,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/waitlist-128354319.html; Waitlist: \"If an enrolled participant cancels, waitlisted employees can take the open spot. Administrators can prioritize who gets in first\" and employees \"will be invited to register if/when spots become available\". Notification, not automatic promotion"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoAanmelding"
       }
     },
     {
@@ -2813,8 +3346,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/how-to-approve-a-request-48333685.html; \"The employee will receive a notification when the admin approves the request. The recommended course will also appear in the My Courses section\""
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoAanmelding"
       }
     },
     {
@@ -2829,7 +3362,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "curriculum",
+      "feature": "admissions",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -2847,8 +3380,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/enabling-course-and-training-catalog-22613015.html; learners self-enrol from a course and training catalog with categories per department (https://ispringhelpdocs.com/ispring-learn/catalog-16187523.html). No elective choice rules documented"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqLlVakkenKiezen",
+          "LqOuVakkenKiezen"
+        ]
       }
     },
     {
@@ -2863,7 +3399,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "curriculum",
+      "feature": "admissions",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "no",
@@ -2881,8 +3417,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for guardian, school year, rollover, prior school record; the product is corporate training with no school year model"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a parent (portaliq) screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqOuVakkenKiezen"
       }
     },
     {
@@ -2915,8 +3451,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for guardian, school year, rollover, prior school record; the product is corporate training with no school year model"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqSchooljaar"
       }
     },
     {
@@ -2949,8 +3485,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for guardian, school year, rollover, prior school record; the product is corporate training with no school year model"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqSchooljaar"
       }
     },
     {
@@ -2983,8 +3519,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for guardian, school year, rollover, prior school record; the product is corporate training with no school year model"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqSchooljaar"
       }
     },
     {
@@ -3017,8 +3553,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for guardian, school year, rollover, prior school record; the product is corporate training with no school year model"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoAanmelding"
       }
     },
     {
@@ -3051,7 +3587,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for question bank, question pool; online quizzes have question groups inside one quiz (https://ispringhelpdocs.com/ispring-learn/quizzes-surveys-role-plays-35666849.html), reuse across tests is not documented"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqItembank"
       }
     },
@@ -3085,7 +3621,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/uploading-content-from-computer-30411510.html; supported upload types (SCORM 1.2/2004, video, audio, documents, PowerPoint, iSpring offline packages) exclude QTI; zero QTI hits in the help space"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqItembank"
       }
     },
@@ -3119,7 +3655,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/exporting-a-quiz-54759499.html; Exporting a Quiz: \"You can export your quiz to SCORM or xAPI and upload it to another LMS.\" QTI is not an export option"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqItembank"
       }
     },
@@ -3153,7 +3689,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/rules-62864261.html; quiz Rules: \"specify the number of attempts, the passing score, and the time allowed\" and \"Set a time limit ... From 1 to 600 minutes.\" Timed, scored tests yes; assembling from a shared bank not documented"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqLessen",
           "LqItembank"
@@ -3190,7 +3726,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for random draw, question pool; only \"Shuffle questions Randomize the order of questions\" is documented (https://ispringhelpdocs.com/ispring-learn/rules-62864261.html)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqItembank"
       }
     },
@@ -3224,7 +3760,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/rules-62864261.html; \"Shuffle answers Show answers in random order.\""
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqItembank"
       }
     },
@@ -3258,7 +3794,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/rules-62864261.html; quizzes have a passing score and \"After a user submits an answer, they will be shown the correct one\"; per question points in Quiz and Role-Play Details (https://ispringhelpdocs.com/ispring-learn/quiz-and-role-play-details-22611264.html)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqToetsNakijken"
       }
     },
@@ -3292,8 +3828,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/online-quizzes-54759080.html; \"Add online quizzes that users can take from any device.\"; mobile app with offline learning on https://www.ispring.com/features"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqLlToetsMaken"
       }
     },
     {
@@ -3309,7 +3845,7 @@
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "assessment",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "partial",
@@ -3326,7 +3862,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for locked attempt, edit attempt; quiz attempt immutability is not documented (score recalculation is documented only for observation sessions, https://ispringhelpdocs.com/ispring-learn/how-to-recalculate-the-score-100863384.html)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqToetsNakijken"
       }
     },
@@ -3360,7 +3896,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/quizzes-surveys-role-plays-35666849.html; Quiz Results Overview: \"track the total number and percentage of correct and incorrect answers for groups of questions\" with a question statistics table"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqItemanalyse"
       }
     },
@@ -3394,7 +3930,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for reliability, Cronbach, alpha"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqItemanalyse"
       }
     },
@@ -3428,7 +3964,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for question quality alert; the Quiz and Role-Play Details report is looked up by hand (\"Supposedly, you'd rather reword the question\")"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqItemanalyse"
       }
     },
@@ -3443,7 +3979,7 @@
       },
       "provider": "external",
       "providerHow": "read: a provider interface exists in this repository with no implementation wired",
-      "feature": "assessment",
+      "feature": "online-proctoring-and-plagiarism",
       "featureConfidence": "medium",
       "learniq": "no",
       "moodle": "no",
@@ -3466,14 +4002,17 @@
       "area": "assessment",
       "name": "Review what a proctoring session flagged, in one queue.",
       "built": {
-        "state": "decided-no",
-        "evidence": "Decided no on 2026-09-29: No competitor rated yes, no demand, outside the core area. Reversible: the schema and queue page exist and no provider fills them. Before: lib/Settings/learniq_register.json components.schemas.ProctoringSession and src/manifest.d/learning.json ProctoringReviewQueue exist, but no provider fills them",
-        "owner": "ConductionNL/learniq"
+        "state": "specified",
+        "evidence": "src/views/TakeAssessmentView.vue:1305-1338 native test mode writes flags into ProctoringSession.flags[]; src/views/ProctoringReviewQueue.vue records allow or annul and is registered (src/registry.js:322) but no manifest page routes to it since 4e49128f; lib/Settings/learniq_register.json ProctoringSession lets the learner update their own active session, flags included, with no guard on reviewDecision",
+        "owner": "ConductionNL/learniq",
+        "readOn": "2026-10-08",
+        "change": "proctoring-flag-review-page",
+        "note": "reopened by decision 100 (8 Oct). Before: Decided no on 2026-09-29: No competitor rated yes, no demand, outside the core area. Reversible: the schema and queue page exist and no provider fills them. Before: lib/Settings/learniq_register.json components.schemas.ProctoringSession and src/manifest.d/learning.json ProctoringReviewQueue exist, but no provider fills them"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "assessment",
-      "featureConfidence": "high",
+      "feature": "online-proctoring-and-plagiarism",
+      "featureConfidence": "medium",
       "learniq": "partial",
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -3488,6 +4027,10 @@
         "moodle-workplace": "not checked: read 2026-09-26: not documented: no proctoring flag queue in Workplace docs.",
         "totara": "not checked: read 2026-09-26: not documented: no proctoring flag queue in totara.help.",
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/proctoring-reports-128355273.html; Proctoring Reports: in Course Details \"You'll see the proctoring status, integrity score, and a link to the report.\" Per learner in a course report, no single queue"
+      },
+      "screen": {
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqProctoring"
       }
     },
     {
@@ -3522,8 +4065,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for extra time, accommodation, per learner time limit"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqLeerlingInschrijvingen"
       }
     },
     {
@@ -3556,8 +4099,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for exemption, fraud, cheating case, invalidate result"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a exam board screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqExZaken"
       }
     },
     {
@@ -3590,8 +4133,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for exemption, fraud, cheating case, invalidate result"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a exam board screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqExZaak"
       }
     },
     {
@@ -3624,8 +4167,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for exemption, fraud, cheating case, invalidate result"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a exam board screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqExZaak"
       }
     },
     {
@@ -3658,7 +4201,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/adding-assignment-10683778.html; \"add the assignment title, description, and instructions and set the passing score\"; due date set at enrollment (https://ispringhelpdocs.com/ispring-learn/enrollments-16187447.html)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqLessen",
           "LqOpdracht"
@@ -3678,7 +4221,7 @@
       "provider": "nextcloud",
       "providerHow": "read: the platform provides it and this repository consumes it",
       "feature": "assignments",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -3695,8 +4238,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/submitting-assignment-10683790.html; \"students write their answers, attach files if there are any, and click Post . The file attached to the completed assignment shouldn't exceed 500 MB.\" Upload from the device; a cloud drive picker is not documented"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqLlInleveren"
       }
     },
     {
@@ -3729,7 +4272,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/enrollments-16187447.html; \"For the By Date and For a period options, you can select the Restrict access after due date option. In this case, learners won't be able to take the course after the due date expires.\""
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqOpdracht"
       }
     },
@@ -3763,7 +4306,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for group assignment, team submission"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqOpdracht"
       }
     },
@@ -3797,7 +4340,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/how-to-create-an-observation-checklist-86769678.html; observation checklists with metrics on rating scales for on-the-job training (\"observers will answer all questions on the rating scale\"). Assignments themselves take one score \"Points from 1 to 100\" and a comment (https://ispringhelpdocs.com/ispring-learn/evaluating-attempts-to-submit-an-assignment-48333147.html)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqInleveringNakijken"
       }
     },
@@ -3831,7 +4374,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/how-to-create-an-observation-checklist-86769678.html; checklist setting \"Allow observers to finish a session without all metrics filled\" can be turned off so all metrics must be scored. Observation checklists only, not assignments"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqInleveringNakijken"
       }
     },
@@ -3865,7 +4408,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for peer review of work; 360 review assesses colleagues' competencies, not handed-in work"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqPeerreview"
       }
     },
@@ -3899,7 +4442,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for peer reviewer allocation"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqOpdracht"
       }
     },
@@ -3933,7 +4476,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for self-assessment of work; self-review exists only in 360 competency reviews"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqInleveringNakijken"
       }
     },
@@ -3967,8 +4510,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for feedback summary for a learner"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqLlCijfers"
       }
     },
     {
@@ -3982,7 +4525,7 @@
       },
       "provider": "external",
       "providerHow": "read: a provider interface exists in this repository with no implementation wired",
-      "feature": "assignments",
+      "feature": "online-proctoring-and-plagiarism",
       "featureConfidence": "medium",
       "learniq": "no",
       "moodle": "no",
@@ -4030,7 +4573,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/scoring-a-course-35653408.html; Scoring a Course: \"The course score is calculated as the average of the scores earned for the selected content items\" including assignments. Feeds the course score; no gradebook"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqInleveringNakijken"
       }
     },
@@ -4064,8 +4607,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/how-to-customize-a-rating-scale-100863376.html; custom rating scales for on-the-job training (\"Go to On-the-job Training > Rating Scales . Click on New Scale\"). Course results use percent and passed or failed"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCijferschaal"
       }
     },
     {
@@ -4081,7 +4624,7 @@
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "grading",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -4098,10 +4641,11 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for unpublished grade, grade release"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqCijferInvoeren",
-          "LqCijferlijst"
+          "LqCijferlijst",
+          "LqCijfers"
         ]
       }
     },
@@ -4135,7 +4679,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/scoring-a-course-35653408.html; \"The course score is calculated as the average of the scores earned for the selected content items.\" Plain average, no weights"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqCijferlijst"
       }
     },
@@ -4169,8 +4713,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for grade prediction, what-if"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqLlCijfers"
       }
     },
     {
@@ -4203,7 +4747,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/quiz-and-role-play-details-22611264.html; results per learner and item come from the Course Details and Learner Results reports; no gradebook grid documented"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqCijferlijst"
       }
     },
@@ -4237,7 +4781,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for report card, term, guardian (no school report model)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqRapportvergadering"
       }
     },
@@ -4271,7 +4815,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for report card, term, guardian (no school report model)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqRapportvergadering"
       }
     },
@@ -4305,7 +4849,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for report card, term, guardian (no school report model)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqRapportvergadering"
       }
     },
@@ -4325,7 +4869,7 @@
       "provider": "filinq",
       "providerHow": "read: this repository posts to Filinq and does not render the document itself",
       "feature": "report-card",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "partial",
       "moodle-workplace": "unknown",
@@ -4342,8 +4886,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for report card, term, guardian (no school report model)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a parent (portaliq) screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqLlCijfers"
       }
     },
     {
@@ -4358,8 +4902,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "guardian-access",
-      "featureConfidence": "high",
+      "feature": "report-card",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -4410,7 +4954,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/add-competency-35670096.html; Add Competency: competencies with indicators and a rating scale, grouped into profiles, used in 360 reviews. Not linked to course marks"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesMaken"
       }
     },
@@ -4444,7 +4988,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/user-competencies-48333355.html; \"The report includes the competency radar chart and a table with scores ... compare it with the required level of proficiency.\" From reviews, not rolled up from marks"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqVoortgang"
       }
     },
@@ -4478,7 +5022,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/department-results-86769842.html; Department Results: \"the average results organized according to criteria groups and will be able to compare how departments meet the standards.\" For review and observation results"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqDekkingsmatrix"
       }
     },
@@ -4512,8 +5056,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/learning-goals-141567620.html; \"Administrators can set learning goals, the number of learning credits\" and track progress; supervisors see \"how many credits they've earned toward a learning goal\" (https://ispringhelpdocs.com/ispring-learn/how-a-supervisor-can-track-employee-progress-154698621.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed: hbo only; the canvas draws a vo school"
+        "canvas": "design-system",
+        "board": "LqStudievoortgang"
       }
     },
     {
@@ -4546,8 +5090,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for binding study advice, formal warning"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed: hbo only; the canvas draws a vo school"
+        "canvas": "design-system",
+        "board": "LqBsaBesluit"
       }
     },
     {
@@ -4580,8 +5124,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for binding study decision"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed: hbo only; the canvas draws a vo school"
+        "canvas": "design-system",
+        "board": "LqBsaBesluit"
       }
     },
     {
@@ -4596,7 +5140,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "student-analytics",
+      "feature": "progress-tracking",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -4614,8 +5158,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/supervisor-dashboard-48332990.html; the employee list shows \"when employees last logged into the system, and how many courses are completed, overdue or failed\" and a User Issues block. No drop-out signal"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqVoortgang"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqVoortgang",
+          "LqTlVandaag"
+        ]
       }
     },
     {
@@ -4630,7 +5177,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "student-analytics",
+      "feature": "progress-tracking",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "no",
@@ -4648,7 +5195,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/answer-breakdown-22612743.html; Answer Breakdown can \"track employee progress over time\"; Group Progress report exists. Trend views per group are not described in detail"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqGroepstrend"
       }
     },
@@ -4682,7 +5229,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/development-plans-128352776.html; \"Examples of development plans include onboarding plans, personal development plans, and any kind of professional growth programs.\""
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLeerplan"
       }
     },
@@ -4716,7 +5263,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/plan-templates-128352814.html; \"You can save any development plan as a template ... Then, choose the type of plan, e.g., onboarding plan.\""
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLeerplan"
       }
     },
@@ -4733,7 +5280,7 @@
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "learning-plan",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -4750,7 +5297,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for plan version history; only \"who edited the template last in the Last Modified column\" is shown"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLeerplan"
       }
     },
@@ -4784,7 +5331,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for plan signature"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLeerplan"
       }
     },
@@ -4818,7 +5365,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/mentors-128353063.html; mentors see \"plans with pending outcomes, i.e., the plans that need your final comment\"; supervisors are notified of \"The need to record an outcome\" (https://ispringhelpdocs.com/ispring-learn/development-plan-notifications-128353529.html). Outcome at plan end, a set evaluation date is not documented"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLeerplan"
       }
     },
@@ -4852,7 +5399,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for group instruction plan, ability groups"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqGroepsplan"
       }
     },
@@ -4886,7 +5433,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for group plan cycle"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqGroepsplan"
       }
     },
@@ -4920,7 +5467,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for pupil notes, dossier"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqDossier",
           "LqNotitie",
@@ -4958,7 +5505,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for behaviour, incident"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqDossier",
           "LqNieuweNotitie"
@@ -4995,7 +5542,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/how-to-create-surveys-in-ispring-lms-128352655.html; non-graded quizzes \"to collect their views and feedback\", for example a Likert scale. Generic surveys, not a wellbeing check-in"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqDossier"
       }
     },
@@ -5029,7 +5576,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/learning-history-10684658.html; \"In the My Learning History section, learners can view how they were progressing through the courses.\" Learning events only"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqDossierTijdlijn"
       }
     },
@@ -5063,7 +5610,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for care request, extra support, consultation, municipality"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLeerplan"
       }
     },
@@ -5097,8 +5644,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for care request, extra support, consultation, municipality"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a care coordinator screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqZoOndersteuning"
       }
     },
     {
@@ -5131,8 +5678,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for care request, extra support, consultation, municipality"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a care coordinator screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqZoOndersteuning"
       }
     },
     {
@@ -5165,8 +5712,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for care request, extra support, consultation, municipality"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a care coordinator screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqVerzuimsignaal"
       }
     },
     {
@@ -5201,10 +5748,11 @@
       },
       "note": "Built 2026-09-27 (learniq#947): the MarkAttendanceView page named CnDataMatrix, which the registry lacked, so it opened empty; it now mounts AttendanceRegisterView.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqAanwezigheid",
-          "LqLes"
+          "LqLes",
+          "LqRegistratie"
         ]
       }
     },
@@ -5239,7 +5787,7 @@
       },
       "screen": {
         "board": null,
-        "reason": "not designed yet: a parent (portaliq) screen; the canvas draws the teacher only"
+        "reason": "learners and parents report absence in the portaliq portal (createExcuseRequest), not in learniq."
       }
     },
     {
@@ -5272,7 +5820,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for absence note, excuse, absence limit, truancy report"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqAanwezigheidLijst"
       }
     },
@@ -5306,8 +5854,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for absence note, excuse, absence limit, truancy report"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqVerzuimgrens"
       }
     },
     {
@@ -5340,7 +5888,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for absence note, excuse, absence limit, truancy report"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqDashboard",
           "LqGroep"
@@ -5363,7 +5911,7 @@
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
       "feature": "attendance",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "no",
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -5380,7 +5928,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for absence note, excuse, absence limit, truancy report"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqAanwezigheidLijst"
       }
     },
@@ -5414,7 +5962,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/adding-locations-128354327.html; training sessions have a location chosen \"while setting up a training session\", with dates and an organizer (https://ispringhelpdocs.com/ispring-learn/training-properties-30416269.html)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesBeheren"
       }
     },
@@ -5448,7 +5996,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/adding-locations-128354327.html; locations can be defined and selected for a training, and the training has a capacity (\"set the capacity, 10 participants, for example\", https://ispringhelpdocs.com/ispring-learn/waitlist-128354319.html). Room booking with room capacity is not documented"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesBeheren"
       }
     },
@@ -5482,8 +6030,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for clash, conflict, double booking"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoConflicten"
       }
     },
     {
@@ -5516,8 +6064,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for clash, conflict"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoConflicten"
       }
     },
     {
@@ -5535,7 +6083,7 @@
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
       "feature": "timetabling",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -5552,8 +6100,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for timetable import"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoRoosterImporteren"
       }
     },
     {
@@ -5586,10 +6134,12 @@
         "ispring-learn": "read 2026-09-26: https://www.ispring.com/features; Events calendar: \"The calendar automatically invites trainees to training sessions, reminds them about upcoming events, and notifies them about schedule changes.\""
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqLesBeheren",
-          "LqRooster"
+          "LqRooster",
+          "LqLlRooster",
+          "LqOuRooster"
         ]
       }
     },
@@ -5605,7 +6155,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "personal-timetable",
+      "feature": "timetabling",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -5624,10 +6174,12 @@
       },
       "note": "Corrections round 8 (2026-09-28): substitutes miss the lessons they cover in their own timetable, learniq#1134; rating kept at yes because every teacher, learner and enrolled person does get their own timetable, and the substitute gap is specified in openspec/changes/timetabling-lesson-note.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqRooster",
-          "LqRoosters"
+          "LqRoosters",
+          "LqLesNotitie",
+          "LqLlRooster"
         ]
       }
     },
@@ -5644,8 +6196,8 @@
       },
       "provider": "nextcloud",
       "providerHow": "read: the platform provides it and this repository consumes it",
-      "feature": "personal-timetable",
-      "featureConfidence": "medium",
+      "feature": "timetabling",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -5662,8 +6214,11 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/how-to-sync-calendars-62853286.html; \"Go to Trainings and click Sync Calendar . Select a calendar\" with Google, Outlook, Apple and other calendars by link"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqAgendaAbonneren"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqAgendaAbonneren",
+          "LqLlRooster"
+        ]
       }
     },
     {
@@ -5678,7 +6233,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "my-learning",
+      "feature": "dashboard",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -5696,8 +6251,8 @@
         "ispring-learn": "read 2026-09-26: https://www.ispring.com/features; \"The adaptive user portal includes a clear content library that neatly organizes courses into To Do and Completed sections.\" Due dates show per course; a week view of what is owed is not documented"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqLlVandaag"
       }
     },
     {
@@ -5708,12 +6263,13 @@
         "state": "building",
         "evidence": "openspec/specs/portal-identity/spec.md and lib/Portal/PortalContributionProvider.php define the seam; the portal itself ships in portaliq",
         "owner": "ConductionNL/portaliq",
-        "change": "portal-parent-child-record"
+        "change": "integriq/portal-idp-broker-config",
+        "note": "Missing half specified in integriq/portal-idp-broker-config (spec round part 3, 2026-10-07); delivered half: portal-parent-child-record."
       },
       "provider": "portaliq",
       "providerHow": "read: this repository contributes to the portal, which ships in Portaliq",
       "feature": "guardian-access",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -5730,8 +6286,13 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for guardian, parent, conference (no guardian role among the six standard roles, https://ispringhelpdocs.com/ispring-learn/standard-roles-17303074.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a parent (portaliq) screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqOuLeerdossier",
+          "LqOuMijnLeren",
+          "LqOuRooster",
+          "LqOuVandaag"
+        ]
       }
     },
     {
@@ -5764,8 +6325,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for guardian, parent, conference (no guardian role among the six standard roles, https://ispringhelpdocs.com/ispring-learn/standard-roles-17303074.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoPlanbord"
       }
     },
     {
@@ -5798,8 +6359,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for guardian, parent, conference (no guardian role among the six standard roles, https://ispringhelpdocs.com/ispring-learn/standard-roles-17303074.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a teacher screen the canvas does not draw"
+        "canvas": "design-system",
+        "board": "LqGesprekBeschikbaarheid"
       }
     },
     {
@@ -5832,8 +6393,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for guardian, parent, conference (no guardian role among the six standard roles, https://ispringhelpdocs.com/ispring-learn/standard-roles-17303074.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a parent (portaliq) screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqOuGesprekBoeken"
       }
     },
     {
@@ -5866,8 +6427,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for guardian, parent, conference (no guardian role among the six standard roles, https://ispringhelpdocs.com/ispring-learn/standard-roles-17303074.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "no screen: backend behaviour"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoPlanbord"
       }
     },
     {
@@ -5934,7 +6495,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for guardian, parent, conference (no guardian role among the six standard roles, https://ispringhelpdocs.com/ispring-learn/standard-roles-17303074.html)"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqGespreksverslag"
       }
     },
@@ -6002,8 +6563,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for portfolio (zero hits)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqLlPortfolio"
       }
     },
     {
@@ -6070,8 +6631,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for portfolio (zero hits)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqLlPortfolio"
       }
     },
     {
@@ -6104,8 +6665,11 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for learner data export, signed record; learners can view but no self download of the whole record is documented"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqLlLeerdossier",
+          "LqOuLeerdossier"
+        ]
       }
     },
     {
@@ -6138,8 +6702,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for record verification"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqVerifieren"
       }
     },
     {
@@ -6172,8 +6736,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for export completeness note"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqLlLeerdossier"
       }
     },
     {
@@ -6206,8 +6770,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for work placement, internship matching"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed: mbo only (work placement); the canvas draws a vo school"
+        "canvas": "design-system",
+        "board": "LqBpvPlaatsingen"
       }
     },
     {
@@ -6223,7 +6787,7 @@
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
       "feature": "bpv",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "no",
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -6240,8 +6804,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for approved training company; external certificate issuers are a list of \"trusted training centers\" (https://ispringhelpdocs.com/ispring-learn/external-certificates-141559364.html), not placement companies"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed: mbo only (work placement); the canvas draws a vo school"
+        "canvas": "design-system",
+        "board": "LqBpvPlaatsingen"
       }
     },
     {
@@ -6274,8 +6838,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for placement agreement, signature"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed: mbo only (work placement); the canvas draws a vo school"
+        "canvas": "design-system",
+        "board": "LqBpvPlaatsing"
       }
     },
     {
@@ -6308,8 +6872,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for placement agreement, signature"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed: mbo only (work placement); the canvas draws a vo school"
+        "canvas": "design-system",
+        "board": "LqBpvPlaatsing"
       }
     },
     {
@@ -6342,8 +6906,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/on-the-job-training-62864106.html; On-The-Job Training: \"supervisors and observers can develop targeted checklists for various job roles and tasks, lead observation sessions to assess adherence to work standards\"; observers rate metrics on a rating scale (https://ispringhelpdocs.com/ispring-learn/how-to-create-an-observation-checklist-86769678.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed: mbo only (work placement); the canvas draws a vo school"
+        "canvas": "design-system",
+        "board": "LqBpvPlaatsing"
       }
     },
     {
@@ -6376,8 +6940,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for workplace assessment into a gradebook; no gradebook exists"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed: mbo only (work placement); the canvas draws a vo school"
+        "canvas": "design-system",
+        "board": "LqBpvPlaatsing"
       }
     },
     {
@@ -6410,8 +6974,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for visit report"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed: mbo only (work placement); the canvas draws a vo school"
+        "canvas": "design-system",
+        "board": "LqBpvPlaatsing"
       }
     },
     {
@@ -6444,8 +7008,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/development-plans-128352776.html; development plans let you \"assign mentors\" with supervisors, functional managers and task monitors as named roles. Internal staff roles, not an outside workplace supervisor"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed: mbo only (work placement); the canvas draws a vo school"
+        "canvas": "design-system",
+        "board": "LqBpvPlaatsing"
       }
     },
     {
@@ -6478,8 +7042,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for external assessor, portfolio"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed: mbo only (work placement); the canvas draws a vo school"
+        "canvas": "design-system",
+        "board": "LqLlPortfolio"
       }
     },
     {
@@ -6512,8 +7076,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for placement confirmation"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed: mbo only (work placement); the canvas draws a vo school"
+        "canvas": "design-system",
+        "board": "LqBpvPlaatsingen"
       }
     },
     {
@@ -6614,8 +7178,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/custom-roles-17302923.html; \"you can create roles with individual limitations and permissions ... choose which sections the users will have access to by selecting the options under Access Permissions\""
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqBeheerRechten"
       }
     },
     {
@@ -6648,8 +7212,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/custom-roles-17302923.html; \"Custom roles can be created by the Account Owner and Account Administrators\" in the Users > Roles tab, no developer needed"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqBeheerRechten"
       }
     },
     {
@@ -6664,7 +7228,7 @@
       "provider": "openregister",
       "providerHow": "OpenRegister hides a property per group when a schema declares a property authorization; learniq declares none.",
       "feature": "access-control",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -6694,8 +7258,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "multi-tenancy",
-      "featureConfidence": "medium",
+      "feature": "sovereignty",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "yes",
@@ -6729,7 +7293,7 @@
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "avg-verwerkingsregister",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -6763,7 +7327,7 @@
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "avg-verwerkingsregister",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -6780,8 +7344,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for record of processing, processing purpose; GDPR appears only as login consent to privacy documents (https://ispringhelpdocs.com/ispring-learn/security-10684249.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a privacy officer screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCfPartners"
       }
     },
     {
@@ -6814,8 +7378,11 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for record of processing, processing purpose; GDPR appears only as login consent to privacy documents (https://ispringhelpdocs.com/ispring-learn/security-10684249.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a privacy officer screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": [
+          "LqAppInstellingen",
+          "LqCfAuditpakket"
+        ]
       }
     },
     {
@@ -6832,7 +7399,7 @@
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "avg-verwerkingsregister",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "partial",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -6849,8 +7416,11 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for subject access request, data export for a person; users can see which privacy terms they agreed to and \"Request correction\" of profile data (https://ispringhelpdocs.com/ispring-learn/public-profile-62863818.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a privacy officer screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqCfPrivacyverzoeken",
+          "LqCfPrivacyverzoek"
+        ]
       }
     },
     {
@@ -6866,7 +7436,7 @@
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "avg-verwerkingsregister",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -6883,8 +7453,11 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for record of processing, processing purpose; GDPR appears only as login consent to privacy documents (https://ispringhelpdocs.com/ispring-learn/security-10684249.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a privacy officer screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": [
+          "LqAppInstellingen",
+          "LqCfAuditpakket"
+        ]
       }
     },
     {
@@ -6917,8 +7490,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched the LMS help space for accessibility, WCAG, VPAT (zero relevant hits) and the web; iSpring publishes Accessibility Conformance Reports for iSpring Suite, Visuals and Presenter (https://ispringhelpdocs.com/ispring-suite/troubleshooting/accessibility-conformance-report-ispring-suite-ispring-visuals) but none for iSpring LMS"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCfToegankelijkheid"
       }
     },
     {
@@ -6951,8 +7524,11 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: no iSpring LMS accessibility conformance report found; reports exist only for the authoring tools"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqCfToegankelijkheid",
+          "LqCfBeperkingen"
+        ]
       }
     },
     {
@@ -6985,7 +7561,7 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for accessibility feedback, report a barrier"
       },
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqBarriereMelden"
       }
     },
@@ -7001,7 +7577,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "ai-governance",
+      "feature": "ai-surface",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -7019,8 +7595,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/ispring-ai-128354459.html; iSpring AI: \"Data sent to the OpenAI API will not be used to train or improve OpenAI models. Our AI tools are powered by trusted third-party AI technologies.\" AI Translator: \"Translations are powered by GPT-4.o\" (https://ispringhelpdocs.com/ispring-learn/ai-translator-128355439.html). Provider named, processing location not stated"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCfAiVerwerking"
       }
     },
     {
@@ -7035,7 +7611,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "ai-governance",
+      "feature": "ai-surface",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -7053,8 +7629,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/ispring-ai-128354459.html; \"By clicking Continue , you confirm that you have read and agree to our AI Usage Policy and Privacy Policy.\" Consent to a policy at first use; no page listing every AI feature and its locality"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCfAiVerwerking"
       }
     },
     {
@@ -7069,7 +7645,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "ai-governance",
+      "feature": "ai-surface",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "no",
@@ -7087,8 +7663,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for AI locality tier, AI region"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCfAiVerwerking"
       }
     },
     {
@@ -7103,8 +7679,8 @@
       },
       "provider": "hermiq",
       "providerHow": "read: the AI work is delegated to Hermiq and the app degrades when it is absent",
-      "feature": "ai-governance",
-      "featureConfidence": "medium",
+      "feature": "ai-surface",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
@@ -7140,7 +7716,7 @@
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
       "feature": "data-exchange",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -7157,8 +7733,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/rest-api-10684924.html; \"The REST API provides access to most iSpring LMS functions\"; webhooks push events (https://ispringhelpdocs.com/ispring-learn/webhook-62863671.html). Pricing lists \"API for custom integrations\" in all plans (https://www.ispring.com/pricing)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCfPartners"
       }
     },
     {
@@ -7263,7 +7839,7 @@
       "provider": "shillinq",
       "providerHow": "read: learniq raises the fee and grants the entitlement; shillinq invoices and takes the payment",
       "feature": "payments",
-      "featureConfidence": "medium",
+      "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "yes",
@@ -7280,8 +7856,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/shopify-62855082.html; \"Learners can buy courses in Shopify and pass them directly in iSpring LMS!\" (cloud only); a Tilda course store is also documented (https://ispringhelpdocs.com/ispring-learn/how-to-launch-a-course-store-100862495.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a school administration screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqSchoolkosten"
       }
     },
     {
@@ -7314,8 +7890,8 @@
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for voluntary contribution, school fees"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a school administration screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqSchoolkosten"
       }
     },
     {
@@ -7330,8 +7906,8 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "ai-surface",
-      "featureConfidence": "high",
+      "feature": "ai-companion-tools",
+      "featureConfidence": "medium",
       "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "partial",
@@ -7364,7 +7940,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "operations",
+      "feature": "nextcloud-app",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -7398,7 +7974,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "operations",
+      "feature": "nextcloud-app",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "partial",
@@ -7416,8 +7992,8 @@
         "ispring-learn": "read 2026-09-26: https://www.ispring.com/features; \"Guided setup We'll help you get started and tailor your LMS to your workflow.\" A service from the vendor team, no in-app first run wizard documented"
       },
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqInstallatie"
       }
     },
     {
@@ -7432,7 +8008,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
-      "feature": "l10n",
+      "feature": "nextcloud-app",
       "featureConfidence": "high",
       "learniq": "yes",
       "moodle": "yes",
@@ -7450,8 +8026,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/languages-17301796.html; \"Currently, iSpring LMS includes 36 language versions\" including \"Dutch Nederlands\" and English; the language is set in Settings for the account or per department, and the administrator portal language can be changed too (https://ispringhelpdocs.com/ispring-learn/arabic-and-right-to-left-layout-62863323.html)"
       },
       "screen": {
-        "board": null,
-        "reason": "no board of its own: applies to every screen"
+        "canvas": "design-system",
+        "board": "LqCursusInstellingen"
       }
     },
     {
@@ -7469,6 +8045,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "compliance-audit",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/course/classes/reportbuilder/datasource/participants.php:129 (joins the course completion entity) + public/reportbuilder/classes/local/entities/user.php:398 (department user field) + public/reportbuilder/classes/local/aggregation/percent.php; a custom report can group course completion by the flat user department field with a percent aggregation. There is no team, department, directorate hierarchy to roll up through and no compliance dashboard with upcoming deadlines or expired qualifications (that is Moodle Workplace, not the core tree). Custom reports are on by default, public/admin/settings/subsystems.php:65.",
@@ -7486,8 +8063,8 @@
       "ispring-learn": "yes",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail LMS tender 2026, requirement 84950/84951: compliance dashboard per department with certification percentage, upcoming deadlines and expired qualifications, aggregated to director level. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row. Built 2026-09-27 (learniq#951): LearnerProfile.department is a path (Operations/Infra/Team A) and the compliance page shows one row per level, team to department to directorate, with coverage percentage (only learners each regulation's audience scope covers), mandatory training due within 30 days, overdue, and expired credentials.",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfVerplichtingen"
       }
     },
     {
@@ -7505,6 +8082,7 @@
       },
       "provider": "integriq",
       "providerHow": "learniq assigns a regulation's mandatory courses from the department and roles on each LearnerProfile, honouring audienceScope; the HR feed that would fill those fields would come through integriq's data exchange, which connections.json marks unavailable, so the job and role data must be entered or imported by hand.",
+      "feature": "compliance-audit",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/enrol/database/lib.php:325 sync_enrolments + public/enrol/database/settings.php:73 (remote enrolment table); an external database enrolment plugin can enrol people from a table the HR system fills, and enrol/ldap does the same from directory groups. Both are shipped but disabled by default (public/lib/db/install.php:121 enables only manual, guest, self, cohort). There is no rule that maps a job or role to mandatory training; the HR side must already compute the course list. No AFAS connector.",
@@ -7522,8 +8100,8 @@
       "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84953: automated link with AFAS, staff, function and role data used to assign and monitor learning and compliance obligations. Partly built 2026-09-27 (learniq#951): publishing a regulation enrols the learners its audience scope covers (department with sub-departments, or roles) in its mandatory courses; no HR (AFAS) connection yet, so the row stays partial.",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfVerplichting"
       }
     },
     {
@@ -7541,6 +8119,7 @@
       },
       "provider": "self",
       "providerHow": "learniq's ExemptionCase lifecycle and guard handle the school exemption; the compliance side has none.",
+      "feature": "compliance-audit",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/completion/criteria/completion_criteria_role.php:38 (course completion marked by a role) + public/completion/classes/external.php:149 override_activity_completion_status + public/grade/edit/tree/grade_form.php:88 (excluded grade); a teacher or manager can mark someone complete or exclude a grade, which stands in for an exemption. Searched public/ for exempt, exemption: only quiz access rule and data privacy strings. No exemption record and no reason field.",
@@ -7558,8 +8137,8 @@
       "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84940: compliance processes with recertification, signals, and recording exceptions and exemptions. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCfVrijstellingen"
       }
     },
     {
@@ -7577,6 +8156,7 @@
       },
       "provider": "openregister",
       "providerHow": "OpenRegister's generic object import on the index page carries the rows; learniq only supplies the schema with a migrated source value.",
+      "feature": "certification",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Searched public/admin/tool/uploaduser, uploadcourse and badges for timecompleted, dateissued, import: none take historic completions or awards. public/badges/classes/badge.php:441 sets the expiry from the moment of issue ($now), so a badge cannot be issued with an old start date. Nearest is course backup and restore with user data, Moodle to Moodle only. Marketplace plugins (tool_certificate, local_recompletion) are not shipped.",
@@ -7594,8 +8174,8 @@
       "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84942: migrate mandatory certifications for at least 4000 staff with start and end dates from the previous system. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqCertificaten"
       }
     },
     {
@@ -7612,6 +8192,7 @@
       },
       "provider": "external",
       "providerHow": "It would need an outside certifier's API; learniq has no connector and integriq ships none.",
+      "feature": "certification",
       "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Searched lib/db/services.php for badge award or certificate write functions: badges only have read, enable, disable (public/lib/db/services.php:122-148); backpack integration (public/badges/backpacks.php) pushes badges out, not in. The nearest is the generic web service public/lib/db/services.php:483 core_completion_override_activity_completion_status, which a custom integration could call, but there is no certifier connector and no place to store the certifier's evidence.",
@@ -7644,6 +8225,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "assessment",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/quiz/mod_form.php:92 (open and close time) + :289 (require password) + :294 (subnet); enforced by public/mod/quiz/accessrule/openclosedate/rule.php:27 and public/mod/quiz/accessrule/password/rule.php:28. User and group overrides allow different windows per person.",
@@ -7661,8 +8243,8 @@
       "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84943: a test can only be taken in specific time slots or under conditions such as a password. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row. Built 2026-09-27 (learniq#946): the window is enforced on the server when an attempt is created, evaluated live from the dates, and an optional write-only access code gates the start. No per-person window overrides or IP range, which Moodle and ILIAS also offer.",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a teacher screen the canvas does not draw"
+        "canvas": "design-system",
+        "board": "LqToetsInstellingen"
       }
     },
     {
@@ -7680,6 +8262,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "assessment",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/quiz/classes/quiz_attempt.php:593 is_review_allowed (needs mod/quiz:viewreports, limited to shared groups in separate groups mode) + public/mod/quiz/review.php:72; a line manager given a non-editing teacher role in the course, with the team as a group, sees each member's answers. There is no line-manager relation that grants this: the parent or mentor role in user context does not reach quiz review, and it must be set up course by course.",
@@ -7697,8 +8280,8 @@
       "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84945: test results down to detail level for the manager, including the individual answers per employee. Built 2026-09-27 (learniq#949): x-property-rbac was never read by OpenRegister, so results were readable by every signed-in user. The enforced authorization block now grants read to the learner, their manager (stamped from LearnerProfile.managerId) and the course's teachers (stamped from Cohort.teacherIds), responses included. Results created before this change carry no stamp, so only the learner and admins see those.",
       "screen": {
-        "board": null,
-        "reason": "not designed: company and training-provider segment; the canvas draws a vo school"
+        "canvas": "design-system",
+        "board": "LqTeamResultaten"
       }
     },
     {
@@ -7716,6 +8299,7 @@
       },
       "provider": "self",
       "providerHow": "learniq's Enrolment schema carries the per-person flag; paths have no per-person layer.",
+      "feature": "enrolment",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/admin/tool/lp/editplan.php + public/competency/classes/api.php:2505 create_plan and :3353 add_competency_to_plan; each person can have an individual learning plan with its own set of competencies linked to courses. There is no learning path object with mandatory and optional parts, and course completion criteria are the same for everyone in the course. Programs are Moodle Workplace, not core.",
@@ -7733,8 +8317,11 @@
       "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84949: a learning path with mandatory and optional parts, set individually per employee. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqMijnLeren"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqMijnLeren",
+          "LqLlMijnLeren"
+        ]
       }
     },
     {
@@ -7753,6 +8340,7 @@
       },
       "provider": "openregister",
       "providerHow": "OpenRegister's object API and export serve the data; learniq adds no BI feed.",
+      "feature": "data-exchange",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/db/services.php:3106 core_reportbuilder_retrieve_report (a BI tool can pull any custom report over REST) + public/admin/tool/log/store/database/settings.php:38 (log store that writes all events to an external database); both are shipped, web services and the database log store are off by default. Custom reports can also be scheduled as file exports. No ready-made Power BI or data lake connector.",
@@ -7789,6 +8377,7 @@
       },
       "provider": "integriq",
       "providerHow": "Launching outside courses would ride integriq's LTI adapter, which has no launch endpoint.",
+      "feature": "course-management",
       "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/lti/contentitem.php + public/mod/lti/locallib.php:117 (LTI Deep Linking); a teacher adds an external tool and picks items from the provider's own catalogue into a course. Learners do not browse the provider's catalogue inside Moodle, and there is no catalogue import or content marketplace in core.",
@@ -7806,8 +8395,8 @@
       "ispring-learn": "yes",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84955 and Grafisch Lyceum Rotterdam requirement 206638: external providers' courses offered inside the LMS.",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqLlAanbod"
       }
     },
     {
@@ -7824,6 +8413,7 @@
       },
       "provider": "nextcloud",
       "providerHow": "Nextcloud's user_saml or user_oidc app performs the SAML/OIDC login; learniq inherits the session.",
+      "feature": "sign-in-and-accounts",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/classes/oauth2/service/microsoft.php (Microsoft issuer template) + public/lib/classes/oauth2/service/custom.php + public/auth/oauth2/classes/auth.php:412 complete_login; Microsoft sign-in is a preset, SURFconext works as a custom OpenID Connect issuer, and public/auth/shibboleth/auth.php:207 covers SAML federations such as SURFconext or Entree via a Shibboleth service provider. Both auth plugins ship disabled by default (public/lib/db/install.php:120 default auth is email). No SAML plugin in core beyond Shibboleth; auth_saml2 is a marketplace plugin.",
@@ -7856,6 +8446,7 @@
       },
       "provider": "self",
       "providerHow": "learniq's lifecycle guards enforce the lock; no dual control is built.",
+      "feature": "access-control",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/grade/edit/tree/grade_form.php:99 (lock a grade) + public/lib/db/access.php:1799 moodle/grade:lock and :1808 moodle/grade:unlock; approved grades can be locked, and marking workflow gates release. Any single user holding grade:unlock can unlock and change it, so there is no second approver.",
@@ -7873,8 +8464,11 @@
       "ispring-learn": "unknown",
       "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206600: authorisations applied, four-eyes principle supported, approved data cannot be changed by one user. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqCijfer"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqCijfer",
+          "LqCijfers"
+        ]
       }
     },
     {
@@ -7892,6 +8486,7 @@
       },
       "provider": "self",
       "providerHow": "learniq's LessonReleaseEvaluator and LessonReleaseController decide release per learner at request time.",
+      "feature": "course-management",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/lesson/pagetypes/multichoice.php:186 (jump depends on correct or wrong answer) + public/mod/lesson/locallib.php:2450 jumpto_is_correct; a lesson sends the learner to different pages per answer. Also public/availability/condition/grade/classes/condition.php:29 opens the next activity only when a grade range is reached.",
@@ -7909,7 +8504,7 @@
       "ispring-learn": "unknown",
       "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206628: adaptivity, learners are led automatically to the next part when they complete a question or component correctly. Also on the ILIAS roadmap. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqLesMaken"
       }
     },
@@ -7928,6 +8523,7 @@
       },
       "provider": "self",
       "providerHow": "learniq's own composer and player views.",
+      "feature": "course-management",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/course/switchrole.php:58 role_switch (Switch role to Student) + public/course/loginas.php:43 (log in as a specific learner); the teacher sees the course with student rights, and an admin can see it exactly as one named learner.",
@@ -7945,7 +8541,7 @@
       "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206630: teachers view the material and learning environment from the student's perspective. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqCursus"
       }
     },
@@ -7964,6 +8560,7 @@
       },
       "provider": "self",
       "providerHow": "Would be a learniq group schema and flow; not built.",
+      "feature": "enrolment",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/group/group_form.php:68 (group enrolment key places a self-enrolling learner in that group) + public/mod/choice/mod_form.php:67 (choice with limited answers per option); self-enrolment into a group works without a size limit, and a capped choice can stand in for sign-up but does not create group membership. Searched group/ and enrol/self for selfselect, maxmembers, groupsize: nothing. Marketplace mod_groupselect adds it, not shipped.",
@@ -7981,8 +8578,11 @@
       "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206634: students enrol themselves in work groups within a course, with a maximum group size.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqGroep"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqGroep",
+          "LqLlWerkgroepen"
+        ]
       }
     },
     {
@@ -7999,6 +8599,7 @@
       },
       "provider": "nextcloud",
       "providerHow": "Only Nextcloud's server-wide upload limit applies; the hand-in dialog renders since learniq#947 but the assignment carries no file-type or size rule to pass it.",
+      "feature": "assignments",
       "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/assign/submission/file/locallib.php:72 (maximum submission size) and :73 (accepted file types); set per assignment on the assignment form under File submissions.",
@@ -8031,6 +8632,7 @@
       },
       "provider": "self",
       "providerHow": "learniq's evaluation schemas and handlers; Nextcloud Forms is only linked, not integrated.",
+      "feature": "assessment",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/feedback/lib.php:83 feedback_add_instance + public/mod/feedback/edit.php + public/mod/feedback/manage_templates.php (reusable question templates) + public/mod/feedback/analysis.php; the feedback activity builds surveys and course evaluations, anonymous or named, with saved templates.",
@@ -8048,8 +8650,8 @@
       "ispring-learn": "yes",
       "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206641: create, change and use surveys and evaluations in a standardised way. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "board": null,
-        "reason": "not designed: company and training-provider segment; the canvas draws a vo school"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqLlEvaluaties"
       }
     },
     {
@@ -8066,6 +8668,7 @@
       },
       "provider": "nextcloud",
       "providerHow": "Nextcloud's responsive web interface is the only mobile surface.",
+      "feature": "nextcloud-app",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/admin/tool/mobile/settings.php:39-45 (mobile web service, on by default on https sites) + public/lib/db/services.php (moodle_mobile_app service); the official Moodle app connects to this service. The app itself is a separate free product.",
@@ -8098,6 +8701,7 @@
       },
       "provider": "self",
       "providerHow": "learniq's accessibility statement schemas and guard, with the nextcloud-vue components carrying most of the markup.",
+      "feature": "accessibility",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/tests/behat/behat_accessibility.php:48 run_axe_validation_for_tags with wcag2aa, wcag21aa, wcag22aa tags at :248-250, used by 63 feature files; plus the shipped Brickfield accessibility toolkit (admin/tool/brickfield) that checks course content. The tree shows automated axe testing, not a conformance claim; the accessibility statement and VPAT live on moodle.org docs, outside the tree.",
@@ -8115,8 +8719,8 @@
       "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206617: WCAG 2.1 level AA for interface, navigation and content, demonstrated on request. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a compliance officer or hr screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCfToegankelijkheid"
       }
     },
     {
@@ -8134,6 +8738,7 @@
       },
       "provider": "integriq",
       "providerHow": "Imports are meant to run through integriq sources, which do not exist yet.",
+      "feature": "enrolment",
       "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/enrol/database/lib.php:325 sync_enrolments + public/enrol/flatfile/lib.php:145 + public/enrol/imsenterprise/lib.php:39 + public/admin/tool/uploadcourse; classes and enrolments can be kept in step from an external database, a file or an IMS Enterprise XML feed, all shipped but disabled by default. No OneRoster or other rostering standard.",
@@ -8151,7 +8756,7 @@
       "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-61534 (New Feature, Open, 22 votes): \"Implement IMS Global standard OneRoster\"; core has CSV/external-database enrolment but no rostering standard, so partial built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqGroepen",
           "LqGroep"
@@ -8173,6 +8778,7 @@
       },
       "provider": "self",
       "providerHow": "Would be a learniq marking workflow; not built.",
+      "feature": "assignments",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/assign/mod_form.php:246-248 (number of markers, up to ASSIGN_MULTIMARKING_MAX_MARKERS) + :255-278 (final grade manual, highest or average) + public/mod/assign/batchsetallocatedmarkerform.php:63; new in 5.2. Needs marking workflow and allocation on and only works with simple direct grading, not rubrics (hidden at :250).",
@@ -8190,7 +8796,7 @@
       "ispring-learn": "unknown",
       "note": "Demand-signal row added 2026-09-26 (changelog). moodle changelog: https://moodledev.io/general/releases/5.2 : Moodle 5.2 (20 April 2026) \"Assignment Marking Workflows - Phase 1: Support multiple markers and grade calculations (MDL-86006)\"; MDL-86006: \"There can be between 1 and 5 markers allocated to a student submission\" built.evidence was 'src/views/MarkSubmissionView.vue:1', a line-1 citation; replaced 2026-09-27 with the named search.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqBeoordelaars",
           "LqOpdracht"
@@ -8212,6 +8818,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "compliance-audit",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/moodlelib.php:5245 (course reset deletes all completion data) + public/lib/completionlib.php:902 delete_all_completion_data; retaking means resetting completion for the whole course, which removes the earlier record. Searched public/ for recomplet, completion_history, archive completion: none. Issued badges survive a reset, which is the nearest record. Marketplace local_recompletion adds it, not shipped.",
@@ -8229,8 +8836,11 @@
       "ispring-learn": "yes",
       "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-35335 (New Feature, Open, 36 votes): \"it is often necessary for students to retake courses they have already completed once, either on a fixed schedule (e.g. every year) ... At the moment this is often handled by creating multiple copies of courses for each ye built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row. Built 2026-09-27 (learniq#945): completions are kept per enrolment, so a retake starts at 0% while the earlier enrolment keeps its completions and progress.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqMijnLeren"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqMijnLeren",
+          "LqLlMijnLeren"
+        ]
       }
     },
     {
@@ -8251,6 +8861,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "sign-in-and-accounts",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Searched public/ for mergeuser, merge_user, mergeaccount outside vendored libs and tests: no hits. Nearest is public/admin/user/user_bulk.php:1 (bulk delete, suspend, cohort add), which has no merge action. Marketplace tool_mergeusers adds it, not shipped.",
@@ -8268,8 +8879,8 @@
       "ispring-learn": "unknown",
       "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-24443 (New Feature, Open, 87 votes): \"Merge Users: Add functionality to Moodle that allows site admins to merge two user profiles.\" (core lacks it; a contributed plugin fills it) built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row. Built 2026-09-27 (learniq#950): the merge transition requires LearnerMergeGuard (mergedInto must name another active profile, no open enrolment in the same course on both accounts) and LearnerMergeHandler moves enrolments, grades, attendance, credentials, portfolio entries and every other learner-owned record to the surviving profile; mergedInto stays set and the merged profile is kept for audit.",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqAccountsSamenvoegen"
       }
     },
     {
@@ -8287,6 +8898,7 @@
       },
       "provider": "self",
       "providerHow": "Would be a learniq bulk action over issued credentials; not built.",
+      "feature": "certification",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Core has no certificate module (searched for certif directories and reissue, regenerate in badges/: nothing). Badges lock once awarded, public/badges/classes/badge.php:464 sets BADGE_STATUS_ACTIVE_LOCKED, and there is no bulk reissue. mod_customcert and tool_certificate are marketplace or Workplace plugins.",
@@ -8304,7 +8916,7 @@
       "ispring-learn": "unknown",
       "note": "Demand-signal row added 2026-09-26 (changelog). moodle-workplace changelog: https://docs.moodle.org/501/en/Moodle_Workplace_release_notes : Workplace 5.1 \"Bulk Certificate Regeneration for Compliance: Administrators can now regenerate all issued certificates\" based on templates",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqCursus"
       }
     },
@@ -8323,6 +8935,7 @@
       },
       "provider": "self",
       "providerHow": "Would be a learniq session check-in flow; not built.",
+      "feature": "attendance",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Core has no attendance activity (public/mod lists no attendance). Nearest is public/mod/bigbluebuttonbn/classes/logger.php:42 (online meeting joins logged, with completion by minutes attended), for online sessions only, and the module ships hidden (public/mod/bigbluebuttonbn/db/install.php:32). Marketplace mod_attendance adds QR self-marking, not shipped.",
@@ -8340,8 +8953,11 @@
       "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (changelog). totara changelog: https://totara.com/articles/whats-new-totara-version-20/ (Totara 20): \"Learners can now mark their own attendance using a secure link or QR code, whether they attend in person or online.\"",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqLes"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqLes",
+          "LqLlInchecken"
+        ]
       }
     },
     {
@@ -8359,6 +8975,7 @@
       },
       "provider": "self",
       "providerHow": "learniq's AttendanceRecord and ExcuseRequest schemas on OpenRegister, with the excuse approval handler.",
+      "feature": "attendance",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Core has no attendance activity (public/mod has no attendance module; grep for attendance finds only BigBlueButton minutes-attended completion in public/mod/bigbluebuttonbn/lang/en/bigbluebuttonbn.php:56). Marketplace mod_attendance has late and excused statuses, not shipped.",
@@ -8376,8 +8993,11 @@
       "ispring-learn": "no",
       "note": "Demand-signal row added 2026-09-26 (changelog). chamilo changelog: https://github.com/chamilo/chamilo-lms/releases/tag/v2.0.0 (2026-04-14): \"Attendance: Add multi-level attendance grading (present, absent, late, very late, justified absence)\"",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqAanwezigheid"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqAanwezigheid",
+          "LqRegistratie"
+        ]
       }
     },
     {
@@ -8394,6 +9014,7 @@
       },
       "provider": "self",
       "providerHow": "Would be a learniq reporting flow; the pupil dossier is staff-facing.",
+      "feature": "confidential-counsel",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Workaround only: public/mod/feedback/mod_form.php:64 (anonymous feedback) lets a school set up a standing anonymous form whose answers only teachers or managers see. Searched public/ for harass, bullying, report concern: none. There is no case record, no routing to a confidant and no follow-up, so a generic survey abused for this.",
@@ -8411,8 +9032,14 @@
       "ispring-learn": "unknown",
       "note": "Demand-signal row added 2026-09-26 (roadmap). chamilo roadmap: https://github.com/chamilo/chamilo-lms/issues/8373 (Feature request, open, milestone 3.1): \"Enable users to report cases of harrassment, bullying, delinquency by only showing reports to the admin anonymously by default\"",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
-        "board": "LqZorgMelden"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqZorgMelden",
+          "LqLlZorgMelden",
+          "LqOuZorgMelden",
+          "LqZoMeldingen",
+          "LqZoMelding"
+        ]
       }
     },
     {
@@ -8429,6 +9056,7 @@
       },
       "provider": "nextcloud",
       "providerHow": "Nextcloud's files_antivirus app scans files on upload; learniq relies on it being installed.",
+      "feature": "nextcloud-app",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/antivirus/clamav/classes/scanner.php:66 scan_file, called for every upload from public/repository/upload/lib.php:197, public/webservice/upload.php:102 and public/h5p/ajax.php:93; infected files are deleted. The ClamAV plugin ships disabled and needs clamd or the clamscan binary on the server.",
@@ -8461,6 +9089,7 @@
       },
       "provider": "self",
       "providerHow": "learniq writes manual scores question by question (learniq#948), and course teachers read the attempts through the AssessmentResult authorization from learniq#949; the own rating stays partial until a teacher account has scored an attempt on a live instance.",
+      "feature": "assessment",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/quiz/report/grading/report.php:25-28 (manual grading report) and :78 slot parameter; the teacher picks one question and grades every learner's answer to it in turn, then the next question.",
@@ -8478,7 +9107,7 @@
       "ispring-learn": "unknown",
       "note": "Demand-signal row added 2026-09-26 (changelog). ilias changelog: https://www.ilias.de/en/download-ilias/ : ILIAS 11 (v11.0, May 2026) redesigned Scoring tab allows marking on a \"participant-by-participant basis or on a question-by-question basis\" built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row.",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqToetsNakijken"
       }
     },
@@ -8497,6 +9126,7 @@
       },
       "provider": "self",
       "providerHow": "Would be a learniq learner catalogue and enrol action; not built.",
+      "feature": "enrolment",
       "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/course/index.php:19 (course category catalogue) + public/enrol/self/lib.php:211 enrol_page_hook and :174 enrol_self + public/enrol/index.php:103; learners browse categories and sign up for a course themselves where self enrolment is on. There is no track or program to sign up for as a whole (programs and certifications are Moodle Workplace, not core).",
@@ -8514,8 +9144,12 @@
       "ispring-learn": "yes",
       "note": "Demand-signal row added 2026-09-26 (changelog). totara changelog: https://totara.com/articles/whats-new-totara-version-20/ (Totara 20): \"Learners can now enrol to (and withdraw from) programs and certifications\" by browsing the catalogue themselves. Same row as the moodle-workplace candidate, second source.",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a learner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqLlCatalogus",
+          "LqTlAanmeldverzoeken",
+          "LqTlAfwijzen"
+        ]
       }
     },
     {
@@ -8530,6 +9164,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "progress-tracking",
       "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
@@ -8539,8 +9174,11 @@
       "ispring-learn": "unknown",
       "source": "spec-round-2026-10-07",
       "screen": {
-        "board": null,
-        "reason": "not designed: company and training-provider segment; the canvas draws a vo school"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqLlVandaag",
+          "LqZoVandaag"
+        ]
       }
     },
     {
@@ -8558,6 +9196,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "assessment",
       "learniq": "partial",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
@@ -8567,8 +9206,8 @@
       "ispring-learn": "unknown",
       "source": "spec-round-2026-10-07",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a coordinator or planner screen; the canvas draws the teacher only"
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoToetsweek"
       }
     },
     {
@@ -8583,6 +9222,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "nextcloud-app",
       "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
@@ -8592,8 +9232,8 @@
       "ispring-learn": "unknown",
       "source": "spec-round-2026-10-07",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqInstallatie"
       }
     },
     {
@@ -8608,6 +9248,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "sign-in-and-accounts",
       "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
@@ -8633,6 +9274,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "nextcloud-app",
       "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
@@ -8642,7 +9284,7 @@
       "ispring-learn": "unknown",
       "source": "spec-round-2026-10-07",
       "screen": {
-        "canvas": "5NkFW28vZUUij43xzxHg5a",
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqLeerling",
           "LqGroep",
@@ -8663,6 +9305,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "nextcloud-app",
       "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
@@ -8672,8 +9315,8 @@
       "ispring-learn": "unknown",
       "source": "spec-round-2026-10-07",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqKoppelingen"
       }
     },
     {
@@ -8688,6 +9331,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "nextcloud-app",
       "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
@@ -8713,6 +9357,7 @@
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "ai-surface",
       "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
@@ -8722,8 +9367,241 @@
       "ispring-learn": "unknown",
       "source": "spec-round-2026-10-07",
       "screen": {
-        "board": null,
-        "reason": "not designed yet: a administrator screen; the canvas draws the teacher only"
+        "canvas": "design-system",
+        "board": "LqInstellingen"
+      }
+    },
+    {
+      "id": "att-contact-hours-owed-and-given",
+      "area": "attendance",
+      "name": "See per group and subject the contact hours owed and given, and which learners fall below the margin.",
+      "built": {
+        "state": "built",
+        "evidence": "lib/Service/ContactHoursService.php:41-80 (owed from the hour plan, given from held lessons, attended per learner); appinfo/routes.php:233 GET /api/reports/contact-hours; src/views/ContactHoursReport.vue:15-33 (window, group, CSV export), :98-102 (show or hide learners below the margin); src/manifest.d/learning.json:3768",
+        "owner": "ConductionNL/learniq",
+        "readOn": "2026-10-08",
+        "change": "2026-09-29-timetabling-contact-hours",
+        "note": "Board differences, not specced: the board puts the mentor next to the group name and a one-line summary of the subjects short of hours above each table."
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "attendance",
+      "featureConfidence": "high",
+      "learniq": "yes",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "source": "spec-round-2026-10-08",
+      "screen": {
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCoContacturen"
+      }
+    },
+    {
+      "id": "enr-sign-up-for-an-optional-lesson",
+      "area": "enrolment",
+      "name": "Sign up for or withdraw from a single optional lesson, and see free places and when sign-up opens or closes.",
+      "built": {
+        "state": "built",
+        "evidence": "appinfo/routes.php:271-274 (mine, sign-up, roster, place); lib/Listener/ElectiveSignUpRules.php:12-16 (window, capacity, one sign-up per lesson, for every writer); src/views/MyElectives.vue:28-66 (free places, sign up, withdraw, window label); src/manifest.d/my-learning.json:532",
+        "owner": "ConductionNL/learniq",
+        "readOn": "2026-10-08",
+        "change": "2026-09-29-timetabling-elective-lesson-signup",
+        "note": "Board differences, not specced: the board shows room and teacher per lesson and a count line under the title; lib/Service/ElectiveService.php:131-153 returns neither room nor teacher."
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "enrolment",
+      "featureConfidence": "high",
+      "learniq": "yes",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "source": "spec-round-2026-10-08",
+      "screen": {
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqLlKeuzelessen"
+      }
+    },
+    {
+      "id": "cont-install-a-shared-course",
+      "area": "content",
+      "name": "Find courses other schools share and install your own copy.",
+      "built": {
+        "state": "built",
+        "evidence": "appinfo/routes.php:132-134 (search, install, publish); lib/Controller/StoreController.php; lib/Service/CourseStore/CourseStoreInstaller.php; src/manifest.json:267-269 (Store page, type store); no registry configured answers not_configured without a network call",
+        "owner": "ConductionNL/learniq",
+        "readOn": "2026-10-08",
+        "change": "2026-09-28-lesson-sharing-via-store-plane"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "course-management",
+      "featureConfidence": "high",
+      "learniq": "yes",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "source": "spec-round-2026-10-08",
+      "screen": {
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqStore"
+      }
+    },
+    {
+      "id": "sup-confidential-counsellor-notes",
+      "area": "support",
+      "name": "Keep confidential counsellor notes apart from the pupil file, readable only by the author and the people they add.",
+      "built": {
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json:28342 schema confidential-note (read for the author in confidential-counsellors and named participantIds only, not searchable, hard delete, destroyAfter, status open/closed); src/manifest.d/confidential-counsel.json:44-100 (index, detail with history)",
+        "owner": "ConductionNL/learniq",
+        "readOn": "2026-10-08",
+        "change": "2026-09-28-confidential-counsellor-channel",
+        "note": "Board differences, not specced: the board has a \"Close case\" header action, a notice that the note has no link to a pupil, and a people-with-access card naming who may only read; the detail page shows the data widget and history only."
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "confidential-counsel",
+      "featureConfidence": "high",
+      "learniq": "yes",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "source": "spec-round-2026-10-08",
+      "screen": {
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": [
+          "LqZoNotities",
+          "LqZoNotitie",
+          "LqZoNieuweNotitie"
+        ]
+      }
+    },
+    {
+      "id": "grd-grade-a-submitted-portfolio",
+      "area": "grading",
+      "name": "Grade a submitted portfolio, with the mark landing as a concept grade.",
+      "built": {
+        "state": "built",
+        "evidence": "src/views/PortfolioReviewView.vue:1-24, :131-140 (read-only evidence, gradeValue, grade transition); src/manifest.d/progress.json:2009; lib/Listener/PortfolioGradeEmitHandler.php:6-19 (one concept GradeEntry per graded portfolio)",
+        "owner": "ConductionNL/learniq",
+        "readOn": "2026-10-08",
+        "change": "2026-07-16-eportfolio"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "eportfolio",
+      "featureConfidence": "high",
+      "learniq": "yes",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "source": "spec-round-2026-10-08",
+      "screen": {
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqPortfolioBeoordelen"
+      }
+    },
+    {
+      "id": "gov-privacy-overview-for-the-board",
+      "area": "governance",
+      "name": "Give the school board one privacy overview: two-factor use, partner approvals and role groups with their members.",
+      "built": {
+        "state": "built",
+        "evidence": "appinfo/routes.php:428 GET /api/privacy-governance/overview; lib/Controller/PrivacyGovernanceController.php:6-13 (groups with member counts, 2FA adoption, ExchangePartnerApproval counts, unknown shown as null); src/manifest.d/dashboard.json:265 (PrivacyGovernanceDashboard, admin and compliance officer)",
+        "owner": "ConductionNL/learniq",
+        "readOn": "2026-10-08",
+        "change": "2026-09-28-privacy-governance-surfaces",
+        "note": "Board difference, not specced: the board has a Download button in the header."
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "avg-verwerkingsregister",
+      "featureConfidence": "high",
+      "learniq": "yes",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "source": "spec-round-2026-10-08",
+      "screen": {
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqCfPrivacygovernance"
+      }
+    },
+    {
+      "id": "gov-choose-my-notifications",
+      "area": "governance",
+      "name": "Choose which learniq notifications reach me, with quiet hours.",
+      "built": {
+        "state": "specified",
+        "evidence": "src/App.vue:46 and src/views/LearniqNotificationSettings.vue:27-40 (per-notification switches through OpenRegister notification-preferences: works); src/views/LearniqNotificationSettings.vue:333-352 saves quiet hours to notification-preferences, which refuses them, while OpenRegister serves /api/notification-delivery-window (openregister appinfo/routes.php:1437-1438)",
+        "owner": "ConductionNL/learniq",
+        "readOn": "2026-10-08",
+        "change": "notification-quiet-hours-through-openregister"
+      },
+      "provider": "openregister",
+      "providerHow": "read: the switches and quiet hours are stored and enforced by Open Register; learniq draws the panel",
+      "feature": "scholiq-notifications",
+      "featureConfidence": "high",
+      "learniq": "partial",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "source": "spec-round-2026-10-08",
+      "screen": {
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqMeldingen"
+      }
+    },
+    {
+      "id": "enr-one-people-overview-for-hr",
+      "area": "enrolment",
+      "name": "See learners, enrolments, attendance and diplomas of the whole school on one page, with search.",
+      "built": {
+        "state": "built",
+        "evidence": "src/manifest.d/people.json:2442 (PeopleDashboard) and :14-20 (menu, visible to hr among others); src/views/PeopleDashboard.vue:108-199 (search, four counts, four lists)",
+        "owner": "ConductionNL/learniq",
+        "readOn": "2026-10-08",
+        "change": "2026-09-28-nav-restructure-dashboards",
+        "note": "Board difference, not specced: the board has a Download button in the header."
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "dashboard",
+      "featureConfidence": "high",
+      "learniq": "yes",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "source": "spec-round-2026-10-08",
+      "screen": {
+        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
+        "board": "LqHrPersonen"
       }
     }
   ],
@@ -8910,5 +9788,102 @@
       "chamilo": "unknown",
       "ispring-learn": "unknown"
     }
-  ]
+  ],
+  "specScreens": {
+    "ai-translated-catalogue": {
+      "board": [
+        "LqInstellingen"
+      ]
+    },
+    "compliance-exemptions": {
+      "board": [
+        "LqCfVrijstellingen"
+      ]
+    },
+    "external-training-upload": {
+      "board": [
+        "LqCfTrainingVastleggen"
+      ]
+    },
+    "integrations": {
+      "board": [
+        "LqKoppelingen"
+      ]
+    },
+    "first-time-setup": {
+      "board": [
+        "LqInstallatie"
+      ]
+    },
+    "apphost-adoption": {
+      "board": null,
+      "reason": "no UI by nature: health and metrics endpoints and shared app boilerplate, read by monitoring, not by people."
+    },
+    "mcp-tool-surface": {
+      "board": null,
+      "reason": "no UI by nature: the read-only tools an AI agent calls through OpenRegister; an API, not a page."
+    },
+    "realtime-updates": {
+      "board": null,
+      "reason": "no UI by nature: open pages refresh themselves when data changes; there is nothing to look at besides the pages themselves."
+    },
+    "rbac-groups": {
+      "board": null,
+      "reason": "no UI by nature: the register declares which groups may read and write each schema and OpenRegister enforces it; learniq has no page for it."
+    },
+    "beta-alignment": {
+      "board": null,
+      "reason": "no UI by nature: internal: keeps the app description, product page and docs honest about what ships."
+    },
+    "component-registry": {
+      "board": null,
+      "reason": "no UI by nature: internal: a registry and regression test so every custom page renders a component."
+    },
+    "docs-product-pages": {
+      "board": null,
+      "reason": "no UI by nature: internal: the layout of the documentation site, outside the app."
+    },
+    "portal-identity": {
+      "board": null,
+      "reason": "no UI by nature: internal: reference fields on the records that let portaliq scope a portal user to their own data."
+    },
+    "preferences-api": {
+      "board": null,
+      "reason": "no UI by nature: internal: a per-user key and value endpoint that shared widgets use to remember a setting."
+    },
+    "compliance-rule-coverage": {
+      "board": [
+        "LqCfVerplichtingen"
+      ]
+    },
+    "learner-account-merge": {
+      "board": [
+        "LqAccountsSamenvoegen"
+      ]
+    },
+    "payments": {
+      "board": [
+        "LqSchoolkosten"
+      ]
+    },
+    "school-year-rollover": {
+      "board": [
+        "LqSchooljaar"
+      ]
+    },
+    "study-progress": {
+      "board": [
+        "LqStudievoortgang"
+      ]
+    },
+    "external-training-recording": {
+      "board": [
+        "LqCfTrainingVastleggen"
+      ]
+    },
+    "i18n-locale-parity": {
+      "board": null,
+      "reason": "no UI by nature: a parity check in CI that keeps every shipped translation in step with the English source."
+    }
+  }
 }

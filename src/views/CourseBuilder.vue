@@ -11,11 +11,14 @@
   template" (instantiates a CourseTemplate into a fresh, independent Course
   tree — the "Clone for next year" capability).
 
-  Talks only to OpenRegister's REST API:
-    - GET  /api/objects/learniq/Course/:courseId
-    - GET  /api/objects/learniq/Course?filters[parentCourseId]=:courseId
-    - GET  /api/objects/learniq/Lesson?filters[courseId]=:moduleId
-    - POST /api/objects/learniq/Course | Lesson | course-template
+  Reads and template actions go through learniq's CourseTemplateController,
+  which runs every read and write with the user's own OpenRegister permissions:
+    - GET  /apps/learniq/api/courses/:courseId/structure (course, modules and
+      all their lessons; one query for the lessons)
+    - POST /apps/learniq/api/courses/:courseId/save-as-template
+    - POST /apps/learniq/api/course-templates/:templateId/instantiate
+  Edits to the tree go to OpenRegister's REST API:
+    - POST /api/objects/learniq/Course | Lesson
     - PATCH /api/objects/learniq/Course/:id | Lesson/:id  (order updates)
     - DELETE /api/objects/learniq/Course/:id | Lesson/:id
     - GET  /api/objects/learniq/course-template
@@ -26,10 +29,9 @@
   (`course-template`, `curriculum-plan`) — OR slugifies the identifier and
   does not convert PascalCase, so `CourseTemplate` 404s.
 
-  No new PHP controller: every write is a call against OpenRegister's
-  existing object-create/update/delete endpoints (ADR-022). Template
-  instantiation is a sequence of OR object-create calls issued from here
-  (design.md D5) — no CourseTemplateController::instantiate() exists.
+  Instantiating a template is one request: the server creates the whole tree
+  and removes what it created when a write fails, so a half-built course
+  cannot be left behind.
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring PortfolioBuilder.vue's existing shape.
@@ -366,6 +368,7 @@
 </template>
 
 <script>
+import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcSelect } from '@nextcloud/vue'
 import draggable from 'vuedraggable'
@@ -373,7 +376,6 @@ import ChevronDown from 'vue-material-design-icons/ChevronDown.vue'
 import ChevronUp from 'vue-material-design-icons/ChevronUp.vue'
 import DeleteOutline from 'vue-material-design-icons/DeleteOutline.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
-import { compareByOrder } from '../utils/courseOrder.js'
 
 export default {
 	name: 'CourseBuilder',
@@ -439,33 +441,26 @@ export default {
 	methods: {
 		/**
 		 * Load the Course, its child modules (Course rows with
-		 * parentCourseId = this course), and each module's Lessons —
-		 * sorted by order with null sorting last (course-authoring-ux
-		 * "A designer sets module order in the course builder" /
-		 * "A pre-existing module without an order value sorts last" scenarios).
+		 * parentCourseId = this course), and each module's Lessons in one
+		 * request. The server sorts modules and lessons by order with a
+		 * missing order last, and reads all lessons in a single query.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/course-management/spec.md#requirement-a-course-declares-its-display-order-among-sibling-modules
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-course-structure-can-be-saved-as-a-reusable-template-and-instantiated
 		 */
 		async load() {
 			this.loading = true
 			this.error = ''
 			try {
-				this.course = await this.fetchObject('Course', this.courseId)
-				const modules = await this.fetchList(
-					'Course',
-					`filters[parentCourseId]=${this.courseId}&_limit=200`,
+				const { data } = await axios.get(
+					generateUrl('/apps/learniq/api/courses/{id}/structure', { id: this.courseId }),
 				)
-				modules.sort(compareByOrder)
-				for (const module of modules) {
-					const lessons = await this.fetchList(
-						'Lesson',
-						`filters[courseId]=${module.id}&_limit=200`,
-					)
-					lessons.sort(compareByOrder)
-					module.lessons = lessons
-				}
-				this.modules = modules
+				this.course = data.course
+				this.modules = (data.modules || []).map((module) => ({
+					...module,
+					lessons: module.lessons || [],
+				}))
 			} catch (err) {
 				this.error = this.t(
 					'learniq',
@@ -524,30 +519,6 @@ export default {
 					})
 					.catch(() => {})
 			}
-		},
-
-		/**
-		 * Fetch a single OR object.
-		 *
-		 * @param {string} schema OR schema SLUG, as registered in
-		 *   lib/Settings/learniq_register.json — `course`, `course-template`.
-		 *   Lookup is case-insensitive but does NOT convert PascalCase to
-		 *   kebab-case, so a multi-word key like `CourseTemplate` lowercases to
-		 *   `coursetemplate`, matches no schema, and the endpoint 404s.
-		 * @param {string} objId Object UUID.
-		 * @return {Promise<object>}
-		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
-		 */
-		async fetchObject(schema, objId) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/${schema}/${objId}`,
-			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) throw new Error(`${schema} fetch failed: ${resp.status}`)
-			const json = await resp.json()
-			return json.object ?? json ?? {}
 		},
 
 		/**
@@ -927,11 +898,12 @@ export default {
 		},
 
 		/**
-		 * Capture the current Course tree into a new CourseTemplate — module
-		 * and lesson names/order/contentType, and lightweight richText block
-		 * placeholders only (no live materialId/assessmentId/assignmentId/
-		 * ltiToolPlacementId pointers, design.md D5). The source Course and
-		 * its Lessons are left unchanged.
+		 * Capture the current Course tree into a new CourseTemplate. The
+		 * server reads the tree itself and keeps module and lesson names,
+		 * order and content type, with a placeholder for each rich text block
+		 * (no live materialId/assessmentId/assignmentId/ltiToolPlacementId
+		 * pointers, design.md D5). The source Course and its Lessons are left
+		 * unchanged.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/course-management/spec.md#requirement-a-course-structure-can-be-saved-as-a-reusable-template-and-instantiated
@@ -942,55 +914,28 @@ export default {
 			this.saveTemplateError = ''
 			this.saveTemplateDone = false
 
-			const moduleStructure = this.modules.map((module, mIdx) => ({
-				key: `module-${mIdx + 1}`,
-				name: module.name,
-				order: module.order ?? mIdx + 1,
-				ectsCredits: module.ectsCredits ?? null,
-				lessons: module.lessons.map((lesson, lIdx) => ({
-					key: `lesson-${mIdx + 1}-${lIdx + 1}`,
-					name: lesson.name,
-					order: lesson.order ?? lIdx + 1,
-					contentType: lesson.contentType,
-					durationMinutes: lesson.durationMinutes ?? null,
-					blocksSkeleton: (lesson.blocks || [])
-						.filter((b) => b.type === 'richText')
-						.map((b) => ({
-							blockId: b.blockId,
-							type: 'richText',
-							order: b.order,
-							text: this.t(
-								'learniq',
-								'Introduction — replace with your own text',
-							),
-						})),
-				})),
-			}))
-
 			try {
-				const created = await this.createObject('course-template', {
-					name: this.saveTemplateForm.name,
-					description: this.saveTemplateForm.description || null,
-					level: this.course.level,
-					sourceCoursesId: this.courseId,
-					moduleStructure,
-					tenant_id: this.course.tenant_id,
-				})
+				const { data } = await axios.post(
+					generateUrl('/apps/learniq/api/courses/{id}/save-as-template', { id: this.courseId }),
+					{
+						name: this.saveTemplateForm.name,
+						description: this.saveTemplateForm.description || '',
+					},
+				)
 				this.saveTemplateDone = true
 				this.saveTemplateForm = { name: '', description: '' }
-				if (this.$router && created.id) {
+				if (this.$router && data?.id) {
 					this.$router
 						.push({
 							name: 'CourseTemplateDetail',
-							params: { id: created.id },
+							params: { id: data.id },
 						})
 						.catch(() => {})
 				}
 			} catch (err) {
-				this.saveTemplateError = this.t(
-					'learniq',
-					'Failed to save the template. Please try again.',
-				)
+				this.saveTemplateError = err?.response?.status === 403
+					? this.t('learniq', 'You are not allowed to save course templates.')
+					: this.t('learniq', 'Failed to save the template. Please try again.')
 				// eslint-disable-next-line no-console
 				console.error('[CourseBuilder] saveAsTemplate error', err)
 			} finally {
@@ -1016,12 +961,11 @@ export default {
 
 		/**
 		 * Instantiate the selected CourseTemplate into a new, independent
-		 * Course tree — one Course, one child Course per moduleStructure
-		 * entry, one Lesson per nested lesson entry, and (if
-		 * curriculumPlanSkeleton is set) one CurriculumPlan back-set onto
-		 * the new Course. Frontend orchestration only (design.md D5) — no
-		 * CourseTemplateController::instantiate() PHP endpoint exists. The
-		 * new Course starts lifecycle draft with zero enrolments.
+		 * Course tree: one Course, one child Course per moduleStructure entry,
+		 * one Lesson per nested lesson entry, and a CurriculumPlan when the
+		 * template carries one. The server builds the tree in one request and
+		 * removes what it created when a write fails. The new Course starts
+		 * lifecycle draft with zero enrolments.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/course-management/spec.md#requirement-a-course-structure-can-be-saved-as-a-reusable-template-and-instantiated
@@ -1033,88 +977,30 @@ export default {
 			this.instantiateError = ''
 
 			try {
-				// The slug, not the title: OpenRegister resolves this segment by
-				// lower(slug), so "CourseTemplate" 404s where the sibling call a
-				// few lines up survives only because "Course" happens to
-				// lowercase onto its own slug.
-				const template = await this.fetchObject(
-					'course-template',
-					this.instantiateForm.templateId,
+				const { data } = await axios.post(
+					generateUrl('/apps/learniq/api/course-templates/{id}/instantiate', {
+						id: this.instantiateForm.templateId,
+					}),
+					{
+						name: this.instantiateForm.name,
+						language: this.course?.language || '',
+					},
 				)
-				const tenantId = template.tenant_id || this.course?.tenant_id || ''
-
-				const newCourse = await this.createObject('Course', {
-					code: `${(this.instantiateForm.name || 'COURSE').slice(0, 12).toUpperCase().replace(/\s+/g, '-')}-${Date.now()}`,
-					name: this.instantiateForm.name,
-					level: template.level,
-					language: this.course?.language || 'nl',
-					tenant_id: tenantId,
-				})
-
-				for (const moduleSkeleton of template.moduleStructure || []) {
-					const newModule = await this.createObject('Course', {
-						code: `${newCourse.code}-${moduleSkeleton.key}`,
-						name: moduleSkeleton.name,
-						level: template.level,
-						language: this.course?.language || 'nl',
-						parentCourseId: newCourse.id,
-						order: moduleSkeleton.order,
-						ectsCredits: moduleSkeleton.ectsCredits ?? null,
-						tenant_id: tenantId,
-					})
-
-					for (const lessonSkeleton of moduleSkeleton.lessons || []) {
-						await this.createObject('Lesson', {
-							courseId: newModule.id,
-							name: lessonSkeleton.name,
-							order: lessonSkeleton.order,
-							contentType: lessonSkeleton.contentType,
-							durationMinutes: lessonSkeleton.durationMinutes ?? null,
-							blocks: (lessonSkeleton.blocksSkeleton || []).map(
-								(b) => ({
-									blockId: b.blockId,
-									type: b.type,
-									order: b.order,
-									text: b.text ?? null,
-								}),
-							),
-							tenant_id: tenantId,
-						})
-					}
-				}
-
-				if (template.curriculumPlanSkeleton) {
-					const cp = await this.createObject('curriculum-plan', {
-						name: this.t('learniq', '{name} — curriculum plan', {
-							name: this.instantiateForm.name,
-						}),
-						kind: template.curriculumPlanSkeleton.kind,
-						formula: template.curriculumPlanSkeleton.formula,
-						components: template.curriculumPlanSkeleton.components || [],
-						periods: template.curriculumPlanSkeleton.periods || [],
-						passRules: template.curriculumPlanSkeleton.passRules || [],
-						tenant_id: tenantId,
-					})
-					await this.updateObject('Course', newCourse.id, {
-						curriculumPlanId: cp.id,
-					})
-				}
 
 				this.instantiateForm = { templateId: '', name: '' }
 				this.showInstantiate = false
-				if (this.$router) {
+				if (this.$router && data?.id) {
 					this.$router
 						.push({
 							name: 'CourseBuilder',
-							params: { courseId: newCourse.id },
+							params: { courseId: data.id },
 						})
 						.catch(() => {})
 				}
 			} catch (err) {
-				this.instantiateError = this.t(
-					'learniq',
-					'Failed to create the course from this template. Please try again.',
-				)
+				this.instantiateError = err?.response?.status === 403
+					? this.t('learniq', 'You are not allowed to create courses.')
+					: this.t('learniq', 'Failed to create the course from this template. Please try again.')
 				// eslint-disable-next-line no-console
 				console.error('[CourseBuilder] instantiateTemplate error', err)
 			} finally {

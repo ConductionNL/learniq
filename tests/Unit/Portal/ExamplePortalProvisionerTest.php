@@ -245,7 +245,7 @@ class ExamplePortalProvisionerTest extends TestCase {
 		}
 
 		$home = array_values(array_filter($this->store['page'], static fn (array $p): bool => $p['route'] === '/'))[0];
-		self::assertSame(['nlBanner', 'hero', 'nlQuickTasks', 'nlNewsList', 'nlSignIn', 'nlEventList', 'nlLinkList', 'nlLinkList', 'nlLinkList'], array_column($home['body']['widgets'], 'widgetKey'));
+		self::assertSame(['nlBanner', 'hero', 'nlQuickTasks', 'nlNewsList', 'nlSignIn', 'nlEventList', 'nlLinkColumns'], array_column($home['body']['widgets'], 'widgetKey'));
 		foreach ($this->store['newsItem'] as $item) {
 			self::assertSame('wilgenboom', $item['portal']);
 			self::assertSame('published', $item['status']);

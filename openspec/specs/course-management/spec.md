@@ -353,6 +353,37 @@ source.
 
 <!-- @e2e tests/e2e/spec-coverage/course-authoring-ux.spec.ts -->
 
+#### Scenario: The server builds the template and the new course, with the user's own permissions
+
+- **GIVEN** a designer in `CourseBuilder`
+- **WHEN** they save the course as a template, or create a course from a template
+- **THEN** one request to learniq does the work (`POST /api/courses/{id}/save-as-template` or
+  `POST /api/course-templates/{id}/instantiate`), and every object it reads or writes goes through
+  OpenRegister with the designer's own permissions
+- **AND** the tenant of what is written comes from the source course or the template, not from the request
+- **AND** a designer OpenRegister does not let create the objects is refused with 403 and nothing is written
+
+<!-- @e2e exclude Server-side authorization and payload shape; verified by PHPUnit CourseTemplateServiceTest (testSaveAsTemplateWithoutPermissionIsForbidden, testInstantiateWithoutPermissionIsForbidden, testInstantiateCreatesAnIndependentDraftTree) and CourseTemplateControllerTest. The happy paths through the CourseBuilder buttons stay covered by course-authoring-ux.spec.ts. -->
+
+#### Scenario: A failed instantiation leaves no partial course behind
+
+- **GIVEN** a template with modules and lessons
+- **WHEN** one of the writes fails while the new course is being built
+- **THEN** every object that request already created is removed again, newest first
+- **AND** the designer sees that the course could not be created
+
+<!-- @e2e exclude A write failing half way cannot be provoked from the browser; verified by PHPUnit CourseTemplateServiceTest::testAFailedInstantiationRemovesWhatItCreated. -->
+
+#### Scenario: The course builder reads all lessons of a course in one query
+
+- **GIVEN** a course with several modules
+- **WHEN** `CourseBuilder` opens it
+- **THEN** it makes one request (`GET /api/courses/{id}/structure`), and the server reads the lessons of every
+  module in one OpenRegister query on the list of module ids
+- **AND** modules and lessons arrive sorted by `order`, with a missing order last
+
+<!-- @e2e exclude The number of queries is not visible in the DOM; verified by PHPUnit CourseTemplateServiceTest::testStructureReadsAllLessonsInOneQuery. The rendered order stays covered by course-authoring-ux.spec.ts. -->
+
 ### Requirement: LessonPlayer renders a Lesson's authored blocks
 
 When `Lesson.contentType` is `text`, `LessonPlayer.vue` SHALL render `lesson.blocks` in `order`, dispatching
