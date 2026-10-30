@@ -17,7 +17,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
  */
 
 declare(strict_types=1);
@@ -37,7 +37,7 @@ use Psr\Log\LoggerInterface;
  * Writes the group line of the pupils whose enrolment changed. LearnerGroupLabelCascade
  * buffers the pupils during the request; this job runs after it (ADR-078).
  *
- * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
  */
 class LearnerGroupLabelRestampJob extends ActorForwardedJob {
 
@@ -77,7 +77,7 @@ class LearnerGroupLabelRestampJob extends ActorForwardedJob {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
 	 */
 	protected function runDeferred(DeferredListenerContext $context): void {
 		$refs = [];

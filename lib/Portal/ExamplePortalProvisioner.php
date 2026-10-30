@@ -40,7 +40,7 @@
  * it is missing, so a second load writes nothing and an editor's change is
  * never undone.
  *
- * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
  */
 
@@ -56,7 +56,7 @@ use Throwable;
 /**
  * Creates or themes the portal of one example set.
  *
- * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  */
 class ExamplePortalProvisioner {
 

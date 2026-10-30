@@ -229,7 +229,7 @@ class StudentPortalPages {
 	 *
 	 * @return array<int, array<string, mixed>> Two collections.
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
 	 */
 	public function bpvCollections(): array {
 		return [
@@ -302,7 +302,7 @@ class StudentPortalPages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
 	 */
 	private function hourWeeksCollection(): array {
 		return [
@@ -450,7 +450,7 @@ class StudentPortalPages {
 	 *
 	 * @return array<string, mixed> The create action.
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
 	 */
 	public function hourWeekAction(): array {
 		return [
@@ -714,7 +714,7 @@ class StudentPortalPages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
+	 * @spec openspec/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
 	 */
 	public function hoursBar(string $collection): array {
 		return [

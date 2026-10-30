@@ -91,7 +91,7 @@ class ParentPortalCollections {
 	 *
 	 * @return array<string, mixed> The collection.
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
 	 */
 	public function reportSubjectGradesCollection(array $childJoin): array {
 		return [

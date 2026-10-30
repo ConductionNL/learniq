@@ -685,8 +685,8 @@ class VocationalCollegeExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
 	 */
 	public function testTheSetSeedsWeeksOfRealisedHours(): void {
 		$placements = self::by(self::of('bpv-placement'), 'uuid');

@@ -95,7 +95,7 @@ class TrainerSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
 	 */
 	public function hourWeeksCollection(): array {
 		return [
@@ -487,7 +487,7 @@ class TrainerSitePages {
 	 * @return array<int, array<string, mixed>>
 	 *
 	 * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-invited-trainer-may-submit-a-werkproces-assessment
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
 	 */
 	private function actions(): array {
 		return [

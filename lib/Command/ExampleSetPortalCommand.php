@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  */
 
 declare(strict_types=1);
@@ -38,7 +38,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * `occ learniq:example-set:portal <set>`.
  *
- * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  */
 class ExampleSetPortalCommand extends Command {
 
@@ -67,7 +67,7 @@ class ExampleSetPortalCommand extends Command {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md#requirement-loading-an-example-set-gives-its-school-a-themed-portal
+	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-an-example-set-gives-its-school-a-themed-portal
 	 */
 	protected function configure(): void {
 		$this->setName(name: 'learniq:example-set:portal')
@@ -87,7 +87,7 @@ class ExampleSetPortalCommand extends Command {
 	 *
 	 * @return int
 	 *
-	 * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md#requirement-loading-an-example-set-gives-its-school-a-themed-portal
+	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-an-example-set-gives-its-school-a-themed-portal
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		// The site gets the dates the set carries, so its pages and news match the objects.

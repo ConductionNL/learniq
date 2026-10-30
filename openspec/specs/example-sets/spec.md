@@ -608,3 +608,63 @@ learniq's admin settings page MUST show an Example data section that lists every
 - **GIVEN** no example set was loaded
 - **WHEN** the administrator opens the admin page
 - **THEN** the Example data section says no example set is loaded
+
+### Requirement: Loading an example set gives its school a themed portal
+
+When portaliq is installed, loading an example set MUST leave its school with a portal in portaliq whose `theme` is the matching thematiq example set: po `example-basisschool`, vo `example-voortgezet`, mbo `example-college`, he `example-college`, training `example-opleider`, corporate `example-opleider`. The portal MUST be found by its slug (po `wilgenboom`). A missing portal MUST be created with `status: published`. An existing portal without a theme MUST get the example theme and keep every other field. A portal whose theme is set MUST NOT be changed. Without portaliq nothing MUST be read or written. A failure to write the portal MUST NOT fail the import of the set.
+
+#### Scenario: A set whose school has no portal gets a new themed one
+- **GIVEN** portaliq is installed and no portal has the slug `vaartveld`
+- **WHEN** the operator loads the vo set
+- **THEN** a published portal `vaartveld` titled "Mijn Vaartveld" exists with theme `example-voortgezet`, or with `vaartveld` when thematiq ships that set (example-portal-declares-its-site)
+- @e2e exclude a write through OpenRegister with no screen of its own, covered by PHPUnit `ExamplePortalProvisionerTest::testAMissingPortalIsCreatedWithTheExampleTheme`
+
+#### Scenario: An existing portal without a theme gets the example theme
+- **GIVEN** the hand-made portal `wilgenboom` with no theme
+- **WHEN** the operator loads the po set, or runs `occ learniq:example-set:portal po`
+- **THEN** `wilgenboom` has theme `example-basisschool` and keeps its title, authentication and organisation
+- @e2e exclude covered by PHPUnit `ExamplePortalProvisionerTest::testAnUnthemedPortalGetsTheThemeAndKeepsItsFields`; the themed page itself is portaliq's to test
+
+#### Scenario: A theme an administrator chose is kept
+- **GIVEN** portal `wilgenboom` with theme `rijkshuisstijl`
+- **WHEN** the operator loads the po set again
+- **THEN** the theme stays `rijkshuisstijl` and nothing is written
+- @e2e exclude covered by PHPUnit `ExamplePortalProvisionerTest::testAChosenThemeIsKeptAndAReloadWritesNothing`
+
+#### Scenario: Without portaliq loading a set writes no portal
+- **GIVEN** portaliq is not installed
+- **WHEN** the operator loads the po set
+- **THEN** the set is imported, one log line says the set gets no portal, and OpenRegister is not asked for a portal
+- @e2e exclude covered by PHPUnit `ExamplePortalProvisionerTest::testWithoutPortaliqNothingIsReadOrWritten`
+
+### Requirement: The primary school set has a record for every drawn detail page
+
+The po example set MUST contain an aanmelding in an open admissions round, an issued certificate of one of its pupils, an assessment item in an item bank, a peer review by a pupil other than the one who handed in, and a lesson delivered as cmi5, each with a fixed uuid in the set's namespace.
+
+#### Scenario: The certificate page opens
+
+- **GIVEN** the po set is loaded
+- **WHEN** a user opens `/credentials/ee010025-0000-4000-8000-000000000001`
+- **THEN** the page shows the verkeersdiploma of a groep 8 pupil
+
+#### Scenario: The peer review page opens
+
+- **GIVEN** the po set is loaded
+- **WHEN** a teacher opens the peer review `ee010028-0000-4000-8000-000000000001` of its assignment
+- **THEN** the review names a reviewer who is not the pupil who handed in
+
+### Requirement: The primary-school set has a guardian with two children
+
+The po example set MUST give guardian Fatima Hulstkamp a second child, Sami Hulstkamp, enrolled in a groep 3 cohort of De Wilgenboom, beside Vera. Sami MUST share Vera's `guardianRefs`. He MUST have attendance, a summary for the current school year and at least one published grade, so the overview of `site-guardian-portal-design` has something to show for him.
+
+#### Scenario: The child switcher has two children
+- GIVEN the po example set loaded
+- WHEN guardian Fatima Hulstkamp signs in on the Wilgenboom site
+- THEN her overview offers Vera and Sami
+- @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
+
+#### Scenario: The set still loads and removes cleanly
+- GIVEN the po set with Sami added
+- WHEN the set is checked and loaded
+- THEN `python3 scripts/example-sets/po.py --check` passes and every row passes its schema
+- @e2e exclude descriptor contract; covered by ExampleSetDescriptorContractTest

@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
  */
 
 declare(strict_types=1);
@@ -31,7 +31,7 @@ namespace OCA\Learniq\Portal;
 /**
  * The guardian's inbox collections.
  *
- * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
  */
 class ParentInboxCollections {
 
@@ -44,7 +44,7 @@ class ParentInboxCollections {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
 	 */
 	public function collections(array $childJoin): array {
 		return [$this->reportCardInbox(childJoin: $childJoin), $this->gradeInbox(childJoin: $childJoin)];
@@ -67,7 +67,7 @@ class ParentInboxCollections {
 	 *
 	 * @return array<string, mixed> The collection.
 	 *
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-school-notices-about-a-child-reach-the-guardians-inbox
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-school-notices-about-a-child-reach-the-guardians-inbox
 	 */
 	private function reportCardInbox(array $childJoin): array {
 		return [
@@ -108,7 +108,7 @@ class ParentInboxCollections {
 	 *
 	 * @return array<string, mixed> The collection.
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
 	 */
 	private function gradeInbox(array $childJoin): array {
 		return [
