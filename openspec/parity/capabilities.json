@@ -1944,7 +1944,13 @@
         "state": "built",
         "evidence": "lib/Controller/CredentialVerifyController.php, route /api/credentials/{id}/verify",
         "owner": "ConductionNL/learniq",
-        "change": "certification"
+        "change": "certification",
+        "spec": "openspec/changes/certificate-verification-and-key-rotation/specs/certification",
+        "requirement": [
+          "openspec/changes/certificate-verification-and-key-rotation/specs/certification :: Anyone checks a certificate from its link without logging in",
+          "openspec/changes/certificate-verification-and-key-rotation/specs/certification :: The verification link opens a page that says in words what was checked"
+        ],
+        "plan": "openspec/changes/certificate-verification-and-key-rotation"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2222,7 +2228,12 @@
         "state": "built",
         "evidence": "lib/Service/KeyManagementService.php, lib/Controller/KeyAdminController.php routes generate-key and key-status",
         "owner": "ConductionNL/learniq",
-        "change": "certification"
+        "change": "certification",
+        "spec": "openspec/changes/certificate-verification-and-key-rotation/specs/certification",
+        "requirement": [
+          "openspec/changes/certificate-verification-and-key-rotation/specs/certification :: Rotating the signing key keeps earlier certificates checkable",
+          "openspec/specs/nextcloud-app :: Allow the credential signing key to be rotated from settings"
+        ]
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
