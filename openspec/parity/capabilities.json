@@ -1131,7 +1131,9 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Regulation",
         "owner": "ConductionNL/learniq",
-        "change": "compliance-audit"
+        "change": "compliance-audit",
+        "spec": "openspec/changes/compliance-rules-and-reminders/specs/compliance-rule-coverage",
+        "requirement": "openspec/changes/compliance-rules-and-reminders/specs/compliance-rule-coverage :: A compliance officer registers the rules that need mandatory training"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1165,7 +1167,9 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.Course.properties.mandatoryTraining and .regulationSlug",
         "owner": "ConductionNL/learniq",
-        "change": "compliance-audit"
+        "change": "compliance-audit",
+        "spec": "openspec/changes/compliance-rules-and-reminders/specs/compliance-rule-coverage",
+        "requirement": "openspec/changes/compliance-rules-and-reminders/specs/compliance-rule-coverage :: A course is bound to the rule it trains for"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1307,7 +1311,9 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Regulation.properties.ragRedThreshold and .ragAmberThreshold",
         "owner": "ConductionNL/learniq",
-        "change": "compliance-audit"
+        "change": "compliance-audit",
+        "spec": "openspec/changes/compliance-rules-and-reminders/specs/compliance-rule-coverage",
+        "requirement": "openspec/changes/compliance-rules-and-reminders/specs/compliance-rule-coverage :: Each rule has its own red and amber limits"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1616,7 +1622,9 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json Enrolment.x-openregister-notifications.overdue, recipients managerId plus the hr group",
         "owner": "ConductionNL/openregister",
-        "change": "2026-06-14-scholiq-notifications"
+        "change": "2026-06-14-scholiq-notifications",
+        "spec": "openspec/changes/compliance-rules-and-reminders/specs/compliance-rule-coverage",
+        "requirement": "openspec/changes/compliance-rules-and-reminders/specs/compliance-rule-coverage :: Learners are reminded before, managers are told after the deadline"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -1651,7 +1659,9 @@
         "evidence": "lib/Settings/learniq_register.json Enrolment.x-openregister-notifications.dueReminder",
         "owner": "ConductionNL/openregister",
         "readOn": "2026-09-26",
-        "change": "2026-06-14-scholiq-notifications"
+        "change": "2026-06-14-scholiq-notifications",
+        "spec": "openspec/changes/compliance-rules-and-reminders/specs/compliance-rule-coverage",
+        "requirement": "openspec/changes/compliance-rules-and-reminders/specs/compliance-rule-coverage :: Learners are reminded before, managers are told after the deadline"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -1751,10 +1761,14 @@
       "area": "compliance",
       "name": "Say how often a rule needs retraining, in months.",
       "built": {
-        "state": "built",
+        "state": "building",
         "evidence": "lib/Settings/learniq_register.json Regulation.properties.renewalCycleMonths and .requiresAnnualRenewal",
         "owner": "ConductionNL/learniq",
-        "change": "compliance-audit"
+        "change": "compliance-audit",
+        "spec": "openspec/changes/compliance-rules-and-reminders/specs/compliance-rule-coverage",
+        "requirement": "openspec/changes/compliance-rules-and-reminders/specs/compliance-rule-coverage :: A rule says how often retraining is due",
+        "plan": "openspec/changes/compliance-rules-and-reminders",
+        "note": "Re-measured 2026-10-30: Regulation.renewalCycleMonths is stored and drawn on LqCfVerplichting, but no code reads it; certificate expiry comes from Course.defaultExpiresAfterDays only. Task 1.1 of compliance-rules-and-reminders makes the cycle set the expiry."
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -8048,7 +8062,8 @@
         "evidence": "lib/Service/ComplianceRollupService.php byDepartment(), route GET /api/compliance/departments, src/views/widgets/DepartmentComplianceWidget.vue on src/views/LearniqCompliance.vue; tests/Unit/Service/DepartmentComplianceTest.php",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/compliance (Compliance per department)",
-        "spec": "openspec/specs/compliance-rule-coverage"
+        "spec": "openspec/changes/compliance-rules-and-reminders/specs/compliance-rule-coverage",
+        "requirement": "openspec/changes/compliance-rules-and-reminders/specs/compliance-rule-coverage :: Coverage rolls up from team to department to directorate"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
