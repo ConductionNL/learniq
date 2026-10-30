@@ -7156,7 +7156,11 @@
         "state": "built",
         "evidence": "lib/actions.seed.json, lib/Service/ActionAuthService.php, lib/Controller/ActionMatrixController.php",
         "owner": "ConductionNL/learniq",
-        "spec": "openspec/specs/compliance-audit"
+        "spec": "openspec/changes/action-matrix-set-by-admins/specs/action-authorization",
+        "requirement": [
+          "openspec/changes/action-matrix-set-by-admins/specs/action-authorization :: Every guarded action is decided by the action matrix",
+          "openspec/specs/compliance-audit :: Action-authorization matrix admin API MUST be covered by a controller-level test"
+        ]
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -7190,7 +7194,8 @@
         "state": "built",
         "evidence": "route /api/admin/action-matrix PUT, reached from Admin settings, Learniq, Action authorization",
         "owner": "ConductionNL/learniq",
-        "spec": "openspec/specs/compliance-audit"
+        "spec": "openspec/changes/action-matrix-set-by-admins/specs/action-authorization",
+        "requirement": "openspec/changes/action-matrix-set-by-admins/specs/action-authorization :: An administrator changes the matrix without a developer"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
