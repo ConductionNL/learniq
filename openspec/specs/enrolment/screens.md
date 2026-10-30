@@ -1,0 +1,29 @@
+# Screens
+
+- learniq/LqLlVakkenKiezen: https://identity.conduction.nl/screens/board?id=learniq/LqLlVakkenKiezen, planninq row tt-subject-package-choice (planninq adopts this)
+- learniq/LqOuVakkenKiezen: https://identity.conduction.nl/screens/board?id=learniq/LqOuVakkenKiezen, planninq row tt-subject-package-choice (planninq adopts this)
+- planninq/tt-api-enrolment-write: no planninq page; enrolment through the API from another system; it has no page (planninq adopts this)
+- learniq/LqLlKeuzelessen: https://identity.conduction.nl/screens/board?id=learniq/LqLlKeuzelessen, planninq row tt-enrolment-deadline (planninq adopts this)
+- LqCfGroepInschrijven https://identity.conduction.nl/screens/board?id=learniq/LqCfGroepInschrijven
+- LqLlMijnLeren https://identity.conduction.nl/screens/board?id=learniq/LqLlMijnLeren
+- LqMijnLeren https://identity.conduction.nl/screens/board?id=learniq/LqMijnLeren
+- LqZoVandaag https://identity.conduction.nl/screens/board?id=learniq/LqZoVandaag
+- LqGroep https://identity.conduction.nl/screens/board?id=learniq/LqGroep
+- LqLeerling https://identity.conduction.nl/screens/board?id=learniq/LqLeerling
+- LqLeerlingen https://identity.conduction.nl/screens/board?id=learniq/LqLeerlingen
+- LqLeerlingInschrijvingen https://identity.conduction.nl/screens/board?id=learniq/LqLeerlingInschrijvingen
+- LqCoAanmelding https://identity.conduction.nl/screens/board?id=learniq/LqCoAanmelding
+- LqCoAanmeldingen https://identity.conduction.nl/screens/board?id=learniq/LqCoAanmeldingen
+- LqCoBeoordelen https://identity.conduction.nl/screens/board?id=learniq/LqCoBeoordelen
+- LqTlVandaag https://identity.conduction.nl/screens/board?id=learniq/LqTlVandaag
+- LqVoortgang https://identity.conduction.nl/screens/board?id=learniq/LqVoortgang
+- LqLlWerkgroepen https://identity.conduction.nl/screens/board?id=learniq/LqLlWerkgroepen
+- LqLlCatalogus https://identity.conduction.nl/screens/board?id=learniq/LqLlCatalogus
+- LqTlAanmeldverzoeken https://identity.conduction.nl/screens/board?id=learniq/LqTlAanmeldverzoeken
+- LqTlAfwijzen https://identity.conduction.nl/screens/board?id=learniq/LqTlAfwijzen
+- LqOuMijnLeren https://identity.conduction.nl/screens/board?id=learniq/LqOuMijnLeren
+- LqHrPersonen https://identity.conduction.nl/screens/board?id=learniq/LqHrPersonen
+- LqLijst https://identity.conduction.nl/screens/board?id=esdoornveen/LqLijst
+- LqVandaag https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqVandaag
+- LqLijst https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqLijst
+- LqDetail https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqDetail

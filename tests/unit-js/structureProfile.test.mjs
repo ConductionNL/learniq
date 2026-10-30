@@ -574,8 +574,9 @@ test('the full profile is exactly the plain manifest build', () => {
 		[count('main'), count('footer'), count('settings')],
 		[100, 3, 5],
 	)
-	// 351 since internship-hours T6 added the school's BPV hours list (BpvHourWeeks).
-	assert.equal(plain.pages.length, 351)
+	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
+	// MarkAttendanceView, SubmitExcuseModal) became actions.
+	assert.equal(plain.pages.length, 347)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {
@@ -1139,7 +1140,8 @@ test('the First today card is not collapsed before its condition is read', () =>
 	// nextcloud-vue CnDashboardPage.isCollapsedWidget: a banner whose text is
 	// empty gives up its cell BEFORE `visibleWhen` is looked at. Since 2.65.0
 	// an attention card's `title` counts as its text (widgetDisplayConfig);
-	// 2.60.0 read `text` alone. This mirrors that rule (it lives in a .vue
+	// 2.60.0 read `text` alone, and a banner's `lead` counts before the
+	// title. This mirrors that rule (it lives in a .vue
 	// file node cannot import) and pins the source text, so the mirror fails
 	// when the library changes the rule.
 	const page = readText(
@@ -1154,7 +1156,10 @@ test('the First today card is not collapsed before its condition is read', () =>
 		page,
 		/const title = layout === 'attention' \? \(content\.title \|\| props\.title \|\| ''\) : ''/,
 	)
-	assert.match(page, /text: content\.text \|\| props\.text \|\| title \|\| ''/)
+	assert.match(
+		page,
+		/text: content\.text \|\| props\.text \|\| content\.lead \|\| props\.lead \|\| title \|\| ''/,
+	)
 	for (const widget of TODAY.config.widgets) {
 		if (widget.type !== 'banner') {
 			continue
@@ -1164,7 +1169,13 @@ test('the First today card is not collapsed before its condition is read', () =>
 			layout === 'attention'
 				? widget.content.title || widget.props?.title || ''
 				: ''
-		const text = widget.content.text || widget.props?.text || title || ''
+		const text =
+			widget.content.text
+			|| widget.props?.text
+			|| widget.content.lead
+			|| widget.props?.lead
+			|| title
+			|| ''
 		assert.notEqual(text, '', `${widget.id} has no text and would never show`)
 		assert.equal(widget.content.text, widget.content.title)
 	}
@@ -1196,6 +1207,7 @@ function browserGlobals() {
 		getElementsByTagName: () => [head],
 		querySelector: () => null,
 		getElementById: () => null,
+		createElement: () => ({}),
 		addEventListener: () => {},
 	}
 }

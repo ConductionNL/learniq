@@ -199,7 +199,7 @@ class ExamplePortalProvisionerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md#scenario-without-portaliq-loading-a-set-writes-no-portal
+	 * @spec openspec/specs/example-sets/spec.md#scenario-without-portaliq-loading-a-set-writes-no-portal
 	 */
 	public function testWithoutPortaliqNothingIsReadOrWritten(): void {
 		$objects = $this->createMock(ObjectService::class);
@@ -245,7 +245,7 @@ class ExamplePortalProvisionerTest extends TestCase {
 		}
 
 		$home = array_values(array_filter($this->store['page'], static fn (array $p): bool => $p['route'] === '/'))[0];
-		self::assertSame(['nlBanner', 'hero', 'nlQuickTasks', 'nlNewsList', 'nlSignIn', 'nlEventList', 'nlLinkList', 'nlLinkList', 'nlLinkList'], array_column($home['body']['widgets'], 'widgetKey'));
+		self::assertSame(['nlBanner', 'hero', 'nlQuickTasks', 'nlNewsList', 'nlSignIn', 'nlEventList', 'nlLinkColumns'], array_column($home['body']['widgets'], 'widgetKey'));
 		foreach ($this->store['newsItem'] as $item) {
 			self::assertSame('wilgenboom', $item['portal']);
 			self::assertSame('published', $item['status']);
@@ -372,7 +372,7 @@ class ExamplePortalProvisionerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md#scenario-a-set-whose-school-has-no-portal-gets-a-new-themed-one
+	 * @spec openspec/specs/example-sets/spec.md#scenario-a-set-whose-school-has-no-portal-gets-a-new-themed-one
 	 */
 	public function testASetWithoutADeclarationGetsThePlainThemedPortal(): void {
 		$result = $this->provisioner()->provision('he');
@@ -390,7 +390,7 @@ class ExamplePortalProvisionerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md#requirement-loading-an-example-set-gives-its-school-a-themed-portal
+	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-an-example-set-gives-its-school-a-themed-portal
 	 */
 	public function testARefusedWriteIsReportedNotThrown(): void {
 		$objects = $this->createMock(ObjectService::class);

@@ -4,7 +4,7 @@
       "count": 5
     },
     "no-console": {
-      "count": 2
+      "count": 1
     }
   },
   "src/dialogs/ComposeReportPeriodModal.vue": {
@@ -121,11 +121,6 @@
   "src/views/RapportvergaderingReviewView.vue": {
     "no-console": {
       "count": 5
-    }
-  },
-  "src/views/RolloverWizard.vue": {
-    "no-console": {
-      "count": 4
     }
   },
   "src/views/SelfAssessmentView.vue": {

@@ -576,9 +576,9 @@ export default {
 		},
 
 		/**
-		 * Create the SubjectChoice (draft) then trigger its submit transition.
-		 * A guard rejection (HTTP 4xx from OR's lifecycle engine) surfaces as a
-		 * user-facing error rather than a silent failure.
+		 * Submit the choice in one server call, which creates it, stamps the
+		 * tenant and who consented, and fires the submit transition. A guard
+		 * refusal comes back as a 403 and leaves no draft.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/school-structure/spec.md#scenario-a-linked-guardian-can-submit-a-subject-choice-for-their-own-child
@@ -591,37 +591,13 @@ export default {
 			this.submitSuccess = false
 
 			try {
-				const body = {
+				await axios.post(generateUrl('/apps/learniq/api/subject-choices'), {
 					learnerId: this.selectedLearnerId,
 					curriculumPlanId: this.selectedPlanId,
 					academicYear: this.academicYear,
 					selectedElectiveCourseIds: this.selectedCourseIds,
 					guardianConsentGiven: this.guardianConsentGiven,
-					guardianConsentBy: this.guardianConsentGiven
-						? getCurrentUser()?.uid || null
-						: null,
-
-					tenant_id: this.selectedPlan
-						? this.selectedPlan.tenant_id
-						: undefined,
-				}
-
-				const createUrl = generateUrl(
-					'/apps/openregister/api/objects/learniq/subject-choice',
-				)
-				const created = await axios.post(createUrl, body)
-				const choiceId =
-					(created.data && (created.data.id || created.data.uuid)) || ''
-
-				if (choiceId === '') {
-					throw new Error('No subject-choice id returned')
-				}
-
-				const transitionUrl = generateUrl(
-					'/apps/openregister/api/objects/learniq/subject-choice/{id}',
-					{ id: choiceId },
-				)
-				await axios.patch(transitionUrl, { lifecycle: 'submitted' })
+				})
 
 				this.submitSuccess = true
 				this.selectedCourseIds = []

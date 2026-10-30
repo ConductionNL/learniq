@@ -345,4 +345,28 @@ class EmployerSitePagesTest extends TestCase {
 		self::assertSame(['status' => 'refused', 'reason' => 'company-unknown'], $invitation->invite(organisationRef: 'co-none', organisation: 'default-organisation'));
 		self::assertSame(['status' => 'refused', 'reason' => 'email-invalid'], $invitation->invite(organisationRef: 'co-jansen', organisation: 'o', email: 'geen-adres'));
 	}//end testTheInvitationWritesTheClaimsTheCollectionsRead()
+
+	/**
+	 * A booking shows its participants as the board does (name, certificate
+	 * line, details pill), and the certificates group per certificate
+	 * (REPORT-2, item 9).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/placement-and-bookings-follow-the-boards/specs/portal-contribution/spec.md#requirement-a-booking-lists-its-participants-and-the-certificates-group-per-certificate
+	 */
+	public function testABookingListsItsParticipantsAndCertificatesGroup(): void {
+		$manifest = (new PortalContributionProvider())->getContribution(['audience' => EmployerSitePages::AUDIENCE]);
+		$bookings = array_column($manifest['pages'], null, 'id')['employerBookings'];
+		$people   = array_values(array_filter($bookings['blocks'], static fn (array $b): bool => ($b['collection'] ?? '') === 'employerParticipants'))[0];
+		self::assertSame(['rows', ['learnerName'], 'certificateLine', 'detailsStatus'], [$people['display'], $people['titleFields'], $people['subtitleField'], $people['statusField']]);
+		self::assertSame(array_keys(EmployerSitePages::DETAILS_STATUS), array_keys($people['statusTones']));
+
+		$collections = array_column($manifest['collections'], null, 'id');
+		self::assertSame('courseName', $collections['employerCertificates']['groupByField']);
+		self::assertContains('courseName', $collections['employerCertificates']['fields']);
+		foreach (['learnerName', 'certificateLine', 'detailsStatus'] as $field) {
+			self::assertContains($field, $collections['employerParticipants']['fields']);
+		}
+	}//end testABookingListsItsParticipantsAndCertificatesGroup()
 }//end class
