@@ -4610,7 +4610,13 @@
         "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.GradeScale with bands, rounding rule and pass threshold",
         "owner": "ConductionNL/learniq",
-        "change": "grading"
+        "change": "grading",
+        "spec": "openspec/changes/grade-scale-set-by-the-school/specs/grading",
+        "requirement": [
+          "openspec/changes/grade-scale-set-by-the-school/specs/grading :: A school defines its own grade scales",
+          "openspec/changes/grade-scale-set-by-the-school/specs/grading :: The scale decides how a final grade is rounded and whether it passes"
+        ],
+        "plan": "openspec/changes/grade-scale-set-by-the-school"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
