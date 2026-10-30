@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-a-guardian-lands-on-an-overview-of-one-child-at-a-time
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-guardian-lands-on-an-overview-of-one-child-at-a-time
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ namespace OCA\Learniq\Portal;
 /**
  * Builds the guardian's overview, the per-child pages and the menu marks.
  *
- * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-a-guardian-lands-on-an-overview-of-one-child-at-a-time
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-guardian-lands-on-an-overview-of-one-child-at-a-time
  */
 class ParentSitePages {
 
@@ -70,8 +70,8 @@ class ParentSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-a-guardian-lands-on-an-overview-of-one-child-at-a-time
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-overview-puts-open-tasks-first
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-guardian-lands-on-an-overview-of-one-child-at-a-time
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-overview-puts-open-tasks-first
 	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-holds-only-what-the-board-shows
 	 * @spec openspec/changes/guardian-and-participant-pages-follow-the-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-and-absence-page-are-about-both-children
 	 * @spec openspec/changes/guardian-tasks-per-child-and-self-assessment/specs/portal-contribution/spec.md#requirement-the-guardian-reads-one-task-per-child-with-the-childs-name
@@ -203,7 +203,7 @@ class ParentSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-absence-page-shows-the-form-and-only-the-latest-reports
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-absence-page-shows-the-form-and-only-the-latest-reports
 	 * @spec openspec/changes/guardian-and-participant-pages-follow-the-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-and-absence-page-are-about-both-children
 	 */
 	public function absencePage(): array {
@@ -243,7 +243,7 @@ class ParentSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/booking-a-time-and-sending-a-preference/specs/parent-conferences/spec.md#requirement-a-guardian-books-a-free-time-or-sends-a-preference-in-two-forms
+	 * @spec openspec/specs/parent-conferences/spec.md#requirement-a-guardian-books-a-free-time-or-sends-a-preference-in-two-forms
 	 */
 	public function conferencesPage(): array {
 		return [
@@ -270,7 +270,7 @@ class ParentSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
 	 */
 	public function perChild(array $page): array {
 		return array_merge($page, ['perRecord' => self::CHILDREN]);
@@ -283,7 +283,7 @@ class ParentSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
 	 */
 	public function inGroup(array $page): array {
 		return array_merge($page, ['group' => self::GROUP]);
@@ -296,7 +296,7 @@ class ParentSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
 	 */
 	public function offMenu(array $page): array {
 		return array_merge($page, ['menu' => false]);

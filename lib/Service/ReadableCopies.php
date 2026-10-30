@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ use OCP\IUserManager;
 /**
  * Names the objects a row points at, for the schemas that carry a readable copy.
  *
- * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
  */
 class ReadableCopies {
 
@@ -83,7 +83,7 @@ class ReadableCopies {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
 	 */
 	public function covers(string $slug): bool {
 		return array_key_exists($slug, self::EMPTY);
@@ -96,7 +96,7 @@ class ReadableCopies {
 	 *
 	 * @return array<int, string>
 	 *
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
 	 */
 	public function fields(string $slug): array {
 		return array_keys((self::EMPTY[$slug] ?? []));
@@ -114,11 +114,11 @@ class ReadableCopies {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
 	 * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-new-a-share-names-its-candidate-and-portfolio
 	 * @spec openspec/changes/teacher-availability-reads-words/specs/parent-conferences/spec.md#requirement-the-teacher-availability-list-reads-words
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
 	 */
 	public function derive(string $slug, array $row): array {
 		if ($slug === 'grade-entry') {

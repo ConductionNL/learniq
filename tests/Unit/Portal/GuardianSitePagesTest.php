@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-a-guardian-lands-on-an-overview-of-one-child-at-a-time
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-guardian-lands-on-an-overview-of-one-child-at-a-time
  */
 
 declare(strict_types=1);
@@ -219,7 +219,7 @@ class GuardianSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
 	 */
 	public function testTheChildPageDrawsTheLatestReportAsBars(): void {
 		$manifest = self::manifest(audience: 'parent');
@@ -243,7 +243,7 @@ class GuardianSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-absence-form-says-in-one-sentence-what-the-guardian-reports
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-absence-form-says-in-one-sentence-what-the-guardian-reports
 	 */
 	public function testTheAbsenceFormSumsUpAndConfirms(): void {
 		$action = self::actions(audience: 'parent')['createExcuseRequest'];
@@ -354,7 +354,7 @@ class GuardianSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
+	 * @spec openspec/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
 	 */
 	public function testTheTrainerOverviewAndMenu(): void {
 		$manifest = self::manifest(audience: 'praktijkopleider');
@@ -402,7 +402,7 @@ class GuardianSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
+	 * @spec openspec/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
 	 */
 	public function testTheStudentHoursPageOpensWithTheBar(): void {
 		$manifest = self::manifest(audience: 'student');
@@ -430,7 +430,7 @@ class GuardianSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
+	 * @spec openspec/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
 	 */
 	public function testTheTrainerSeesHoursAgainstTheAgreedTotal(): void {
 		$manifest = self::manifest(audience: 'praktijkopleider');
@@ -475,7 +475,7 @@ class GuardianSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
 	 */
 	public function testThePupilReadsWhenSheSentAWeekAndNotWhoSentIt(): void {
 		$weeks = array_column(self::manifest(audience: 'student')['collections'], null, 'id')['studentHourWeeks'];
@@ -498,7 +498,7 @@ class GuardianSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
 	 */
 	public function testTheHourFormsPickFromACollection(): void {
 		$trainer = array_column(self::manifest(audience: 'praktijkopleider')['actions'], null, 'id');

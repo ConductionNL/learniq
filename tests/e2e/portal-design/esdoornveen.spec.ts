@@ -8,7 +8,7 @@
  * eHerkenning) are wave 2 (W2-7) and not checked here.
  *
  * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
- * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
+ * @spec openspec/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
  * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md
  * @spec openspec/changes/portal-board-checks-run-on-a-real-instance/specs/example-sets/spec.md#requirement-the-board-checks-run-against-any-instance-that-loaded-the-sets
  * @spec openspec/changes/school-portals-match-their-boards/specs/example-sets/spec.md#requirement-the-portal-declarations-follow-their-boards

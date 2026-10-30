@@ -191,7 +191,7 @@ class ParentRecordPage {
 	 * @return array<int, array<string, mixed>>
 	 *
 	 * @spec openspec/changes/portal-parent-child-record/specs/portal-contribution/spec.md#requirement-a-guardian-opens-one-child-and-sees-everything-about-them
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
 	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-holds-only-what-the-board-shows
 	 */
 	public function pages(array $collections, array $actions, ParentPortalCollections $sections): array {

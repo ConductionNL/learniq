@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+ * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
  */
 
 declare(strict_types=1);
@@ -48,7 +48,7 @@ use Throwable;
 /**
  * Receives one week's approval from the trainer's portal form.
  *
- * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+ * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
  */
 class PortalHourWeekController extends Controller {
 
@@ -98,7 +98,7 @@ class PortalHourWeekController extends Controller {
 	 *
 	 * @return JSONResponse 200 `{hourWeekId, hoursApproved, lifecycle, assuranceLevel}`, or 401 / 403 / 404 / 409 / 422 / 502.
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]

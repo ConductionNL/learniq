@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/absence-and-booking-fields-are-required/specs/attendance/spec.md#requirement-stored-rows-get-the-pupils-learner-profile-before-it-is-required
+ * @spec openspec/specs/attendance/spec.md#requirement-stored-rows-get-the-pupils-learner-profile-before-it-is-required
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ use Throwable;
 /**
  * Back-fills `learnerRef` on stored absence reports and conference signups.
  *
- * @spec openspec/changes/absence-and-booking-fields-are-required/specs/attendance/spec.md#requirement-stored-rows-get-the-pupils-learner-profile-before-it-is-required
+ * @spec openspec/specs/attendance/spec.md#requirement-stored-rows-get-the-pupils-learner-profile-before-it-is-required
  */
 class BackfillRequiredLearnerRefs implements IRepairStep {
 
@@ -79,7 +79,7 @@ class BackfillRequiredLearnerRefs implements IRepairStep {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/absence-and-booking-fields-are-required/specs/attendance/spec.md#requirement-stored-rows-get-the-pupils-learner-profile-before-it-is-required
+	 * @spec openspec/specs/attendance/spec.md#requirement-stored-rows-get-the-pupils-learner-profile-before-it-is-required
 	 */
 	public function getName(): string {
 		return 'Write the pupil\'s learner profile on stored absence reports and conference signups that lack one';
@@ -92,7 +92,7 @@ class BackfillRequiredLearnerRefs implements IRepairStep {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/absence-and-booking-fields-are-required/specs/attendance/spec.md#requirement-stored-rows-get-the-pupils-learner-profile-before-it-is-required
+	 * @spec openspec/specs/attendance/spec.md#requirement-stored-rows-get-the-pupils-learner-profile-before-it-is-required
 	 */
 	public function run(IOutput $output): void {
 		$cache = [];
