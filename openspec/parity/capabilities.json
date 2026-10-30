@@ -7088,7 +7088,8 @@
         "state": "built",
         "evidence": "appinfo/info.xml, a Nextcloud app under EUPL-1.2 with no hosted component",
         "owner": "ConductionNL/learniq",
-        "spec": "openspec/specs/app-metadata"
+        "spec": "openspec/changes/platform-properties/specs/platform-properties",
+        "requirement": "openspec/changes/platform-properties/specs/platform-properties :: The app runs on the school's own Nextcloud (REQ-PLAT-001)"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -7122,7 +7123,8 @@
         "state": "built",
         "evidence": "appinfo/info.xml licence EUPL-1.2, public repository",
         "owner": "ConductionNL/learniq",
-        "spec": "openspec/specs/app-metadata"
+        "spec": "openspec/changes/platform-properties/specs/platform-properties",
+        "requirement": "openspec/changes/platform-properties/specs/platform-properties :: The source code is open under the EUPL-1.2 (REQ-PLAT-002)"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -7675,7 +7677,12 @@
         "state": "built",
         "evidence": "lib/Controller/AiProcessingDisclosureController.php degrades gracefully when hermiq is absent",
         "owner": "ConductionNL/hermiq",
-        "change": "2026-07-16-sovereign-ai-guarantee"
+        "change": "2026-07-16-sovereign-ai-guarantee",
+        "spec": "openspec/changes/platform-properties/specs/platform-properties",
+        "requirement": [
+          "openspec/changes/platform-properties/specs/platform-properties :: The whole product runs with no AI at all (REQ-PLAT-003)",
+          "openspec/specs/ai-locality-guarantee :: The system SHALL compose an AI-processing disclosure a school can hand to its DPO"
+        ]
       },
       "provider": "hermiq",
       "providerHow": "read: the AI work is delegated to Hermiq and the app degrades when it is absent",
