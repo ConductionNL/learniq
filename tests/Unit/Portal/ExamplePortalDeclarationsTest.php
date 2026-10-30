@@ -145,7 +145,7 @@ class ExamplePortalDeclarationsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-each-portal-declares-the-chrome-its-board-shows
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-each-portal-declares-the-chrome-its-board-shows
 	 */
 	public function testTheChromeIconsAndNewsAudienceAreDeclared(): void {
 		$lineIcons    = ['alert', 'chat', 'calendar', 'calendarLines', 'clock', 'document', 'documentGrade', 'home', 'book', 'bookLines', 'bookStack', 'personPlus', 'heartPlus', 'sun', 'pencil', 'card', 'plusBox', 'building'];

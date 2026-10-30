@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
  */
 
 declare(strict_types=1);
@@ -45,8 +45,8 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
- * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
  * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-new-a-share-names-its-candidate-and-portfolio
  */
 class ReadableCopyStamp implements IEventListener {
@@ -74,7 +74,7 @@ class ReadableCopyStamp implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
