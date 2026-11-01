@@ -185,6 +185,10 @@ class RolloverExecutionGoldenTest extends TestCase {
 		$params = (new ReflectionMethod(ObjectService::class, $method))->getParameters();
 		$named  = [];
 		foreach ($args as $i => $value) {
+			if ($params[$i]->isDefaultValueAvailable() === true && $params[$i]->getDefaultValue() === $value) {
+				continue;
+			}
+
 			$named[$params[$i]->getName()] = $value;
 		}
 

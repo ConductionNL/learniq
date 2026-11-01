@@ -3,14 +3,8 @@
         {
             "find": {
                 "id": "c1",
-                "_extend": [],
-                "files": false,
                 "register": "learniq",
-                "schema": "cohort",
-                "_rbac": true,
-                "_multitenancy": true,
-                "_render": true,
-                "_audit": true
+                "schema": "cohort"
             }
         },
         {
@@ -41,17 +35,8 @@
                     "programmeId": "p-mv",
                     "programmeYear": 2
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "cohort",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "cohort"
             }
         },
         {
@@ -72,17 +57,8 @@
                     "mandatory": true,
                     "cohortId": "saved-3"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "enrolment",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "enrolment"
             }
         },
         {
@@ -127,17 +103,8 @@
                     ],
                     "lifecycle": "archived"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "cohort",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "cohort"
             }
         },
         {
@@ -150,14 +117,8 @@
         {
             "find": {
                 "id": "c1",
-                "_extend": [],
-                "files": false,
                 "register": "learniq",
-                "schema": "cohort",
-                "_rbac": true,
-                "_multitenancy": true,
-                "_render": true,
-                "_audit": true
+                "schema": "cohort"
             }
         },
         {
@@ -188,17 +149,8 @@
                     "programmeId": "p-x",
                     "courseId": "k-1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "cohort",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "cohort"
             }
         },
         {
@@ -219,17 +171,8 @@
                     "mandatory": true,
                     "cohortId": "saved-3"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "enrolment",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "enrolment"
             }
         },
         {
@@ -250,17 +193,8 @@
                     "mandatory": false,
                     "cohortId": "saved-3"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "enrolment",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "enrolment"
             }
         },
         {
@@ -295,17 +229,8 @@
                     ],
                     "lifecycle": "archived"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "cohort",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "cohort"
             }
         },
         {
@@ -318,14 +243,8 @@
         {
             "find": {
                 "id": "c1",
-                "_extend": [],
-                "files": false,
                 "register": "learniq",
-                "schema": "cohort",
-                "_rbac": true,
-                "_multitenancy": true,
-                "_render": true,
-                "_audit": true
+                "schema": "cohort"
             }
         },
         {
@@ -354,17 +273,8 @@
                     "ncGroupId": "scholiq-cohort-2026-2027-mv2a",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "cohort",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "cohort"
             }
         },
         {
@@ -417,17 +327,8 @@
                     ],
                     "lifecycle": "archived"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "cohort",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "cohort"
             }
         },
         {
@@ -440,14 +341,8 @@
         {
             "find": {
                 "id": "c1",
-                "_extend": [],
-                "files": false,
                 "register": "learniq",
-                "schema": "cohort",
-                "_rbac": true,
-                "_multitenancy": true,
-                "_render": true,
-                "_audit": true
+                "schema": "cohort"
             }
         },
         {
@@ -478,17 +373,8 @@
                     ],
                     "note": "kept"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "cohort",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "cohort"
             }
         },
         {
@@ -509,17 +395,8 @@
                     "mandatory": true,
                     "cohortId": "to-1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "enrolment",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "enrolment"
             }
         },
         {
@@ -564,17 +441,8 @@
                     ],
                     "lifecycle": "archived"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "cohort",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "cohort"
             }
         },
         {
@@ -587,14 +455,8 @@
         {
             "find": {
                 "id": "c1",
-                "_extend": [],
-                "files": false,
                 "register": "learniq",
-                "schema": "cohort",
-                "_rbac": true,
-                "_multitenancy": true,
-                "_render": true,
-                "_audit": true
+                "schema": "cohort"
             }
         },
         {
@@ -624,17 +486,8 @@
                         "l4"
                     ]
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "cohort",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "cohort"
             }
         },
         {
@@ -688,17 +541,8 @@
                     ],
                     "lifecycle": "archived"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "cohort",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "cohort"
             }
         },
         {
@@ -711,14 +555,8 @@
         {
             "find": {
                 "id": "c1",
-                "_extend": [],
-                "files": false,
                 "register": "learniq",
-                "schema": "cohort",
-                "_rbac": true,
-                "_multitenancy": true,
-                "_render": true,
-                "_audit": true
+                "schema": "cohort"
             }
         },
         {
@@ -747,17 +585,8 @@
                     "programmeId": "p-mv",
                     "programmeYear": 2
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "cohort",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "cohort"
             }
         },
         {
@@ -778,17 +607,8 @@
                     "mandatory": true,
                     "cohortId": "saved-3"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "enrolment",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "enrolment"
             }
         },
         {
@@ -809,17 +629,8 @@
                     "status": "pending",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "dossier-review",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "dossier-review"
             }
         },
         {
@@ -837,17 +648,8 @@
                     ],
                     "lifecycle": "archived"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "cohort",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "cohort"
             }
         },
         {
@@ -860,14 +662,8 @@
         {
             "find": {
                 "id": "c1",
-                "_extend": [],
-                "files": false,
                 "register": "learniq",
-                "schema": "cohort",
-                "_rbac": true,
-                "_multitenancy": true,
-                "_render": true,
-                "_audit": true
+                "schema": "cohort"
             }
         },
         {
@@ -898,17 +694,8 @@
                     "programmeId": "p-mv",
                     "programmeYear": 2
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "cohort",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "cohort"
             }
         },
         {
@@ -962,17 +749,8 @@
                     ],
                     "lifecycle": "archived"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "cohort",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "cohort"
             }
         },
         {
@@ -985,14 +763,8 @@
         {
             "find": {
                 "id": "c1",
-                "_extend": [],
-                "files": false,
                 "register": "learniq",
-                "schema": "cohort",
-                "_rbac": true,
-                "_multitenancy": true,
-                "_render": true,
-                "_audit": true
+                "schema": "cohort"
             }
         },
         {
@@ -1010,17 +782,8 @@
                     ],
                     "lifecycle": "archived"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "cohort",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "cohort"
             }
         },
         {
@@ -1040,14 +803,8 @@
         {
             "find": {
                 "id": "c1",
-                "_extend": [],
-                "files": false,
                 "register": "learniq",
-                "schema": "cohort",
-                "_rbac": true,
-                "_multitenancy": true,
-                "_render": true,
-                "_audit": true
+                "schema": "cohort"
             }
         },
         {
@@ -1076,17 +833,8 @@
                     "programmeId": "p-mv",
                     "programmeYear": 2
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "cohort",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "cohort"
             }
         },
         {
@@ -1130,17 +878,8 @@
                     ],
                     "lifecycle": "archived"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "cohort",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "cohort"
             }
         },
         {
