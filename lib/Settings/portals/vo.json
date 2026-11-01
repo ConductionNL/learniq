@@ -1234,6 +1234,20 @@
       ]
     },
     {
+      "userId": "vo-vertrouwenspersoon-01",
+      "displayName": "Pieter Jansen",
+      "groups": [
+        "confidential-counsellors"
+      ]
+    },
+    {
+      "userId": "vo-ouder-227",
+      "displayName": "Linda Bakker",
+      "groups": [
+        "guardians"
+      ]
+    },
+    {
       "userId": "vo-leerling-121",
       "displayName": "Noor Bakker",
       "groups": [],

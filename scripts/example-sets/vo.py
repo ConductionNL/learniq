@@ -119,6 +119,11 @@ SCHEMAS = [
     "conference-slot",
     "school-event",
     "assignment",
+    # The board layer (add_boards): appended for the same reason.
+    "exam-period",
+    "fraud-case",
+    "fee-item",
+    "confidential-note",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -1479,6 +1484,9 @@ def build() -> dict:
 
     stamp_group_labels(b)
 
+    # --- the board layer, after the story ------------------------------------------------------------
+    add_boards(b, courses)
+
     # --- assemble ------------------------------------------------------------------------------------
     for rows in b.buckets.values():
         for row in rows:
@@ -1886,6 +1894,79 @@ def add_story(b: Builder, school: dict, locations: dict, rooms: dict, courses: d
             lesson(day, hour, s, code, "scheduled")
 
     return {"noor": noor["nc"], "father": father["ncUserId"]}
+
+
+def add_boards(b: Builder, courses: dict) -> None:
+    """One record for each learniq detail board the rest of the set has no row for
+    (identity.conduction.nl/screens): a grade scale with bands (LqCijferschaal),
+    toetsweek 2 (LqCoToetsweek), a decided fraud case (LqExZaak), a voluntary
+    school trip (LqSchoolkosten) and a confidential note by the school's
+    confidential counsellor (LqZoNotitie). Dated in the story's autumn, so the
+    load moves them with the story week. Runs after the story and draws no
+    random number, so no earlier uuid or value moves."""
+    b.add("grade-scale", {
+        "name": "Havo/vwo bovenbouw, 1 tot 10", "kind": "numeric", "min": 1, "max": 10, "passThreshold": 5.5,
+        "roundingRule": "half-up-1dp", "lifecycle": "active",
+        "bands": [
+            {"bandId": "onvoldoende", "label": "Onvoldoende", "minValue": 1, "maxValue": 5.4, "pass": False},
+            {"bandId": "voldoende", "label": "Voldoende", "minValue": 5.5, "maxValue": 6.9, "pass": True},
+            {"bandId": "ruim-voldoende", "label": "Ruim voldoende tot goed", "minValue": 7, "maxValue": 8.4, "pass": True},
+            {"bandId": "zeer-goed", "label": "Zeer goed", "minValue": 8.5, "maxValue": 10, "pass": True},
+        ],
+    })
+
+    by_name = {c["name"]: c for c in b.buckets["cohort"]}
+    b.add("exam-period", {
+        "name": "Toetsweek 2", "startsOn": "2026-12-07", "endsOn": "2026-12-11",
+        "cohortIds": [by_name[n]["uuid"] for n in ["H2a", "V2a", "H3b", "V3a", "H4a", "V4a", "H4b"]],
+        "courseIds": [courses[s]["uuid"] for s in ["NE", "EN", "FA", "WA", "WB", "GS", "AK", "EC", "BI", "NA", "LO"]],
+        "lifecycle": "planning",
+    })
+
+    # The pupil's first SE grade in wiskunde B in vwo 6 is the result the commission annuls.
+    v6 = by_name["V6a"]["uuid"]
+    grade = next(g for g in b.buckets["grade-entry"]
+                 if g["cohortId"] == v6 and g["courseId"] == courses["WB"]["uuid"] and g["componentId"] == "se1")
+    b.add("fraud-case", {
+        "reporterId": "vo-docent-03", "accusedLearnerId": grade["learnerRef"], "accusedLearnerUserId": grade["learnerId"],
+        "sourceKind": "manual", "contestedGradeEntryId": grade["uuid"],
+        "allegation": ("Tijdens het schoolexamen lag onder het rekenmachinedeksel een briefje met formules voor "
+                       "differentiëren. Het briefje is ingenomen en gefotografeerd."),
+        "reportedAt": "2026-09-12T10:05:00+02:00", "hearingDate": "2026-09-26T15:30:00+02:00",
+        "hearingRecords": [{
+            "heldAt": "2026-09-26T15:30:00+02:00",
+            "attendees": [grade["learnerId"], "vo-examensecretaris-01", "vo-decaan-02"],
+            "notes": "De leerling erkent dat het briefje van hem was. Verslag gelezen en voor gezien getekend.",
+            "evidenceRefs": [],
+        }],
+        "verdict": "fraud-proven",
+        "decisionRationale": ("Het briefje lag binnen handbereik en bevatte stof uit dit examen. De leerling erkende in de "
+                              "hoorzitting dat het van hem was. De commissie houdt de melding staande."),
+        "decidedBy": "vo-examensecretaris-01", "decidedAt": "2026-10-03T12:00:00+02:00",
+        "sanctionType": "grade-annulment", "sanctionScope": "single-assessment",
+        "appealDeadline": "2026-10-17T23:59:00+02:00", "appealLodged": False, "lifecycle": "decided",
+    })
+
+    b.add("fee-item", {
+        "name": "Werkweek Ardennen 4 havo", "kind": "school-trip", "amount": 285.0, "currency": "EUR", "voluntary": True,
+        "description": "Vijf dagen Durbuy met kanoën, een mountainbiketocht en een bezoek aan Bastenaken.",
+        "taxPosture": "education-exempt", "linkedCohortId": by_name["H4b"]["uuid"], "academicYear": STORY_YEAR,
+        "validFrom": "2026-09-01", "validUntil": "2027-03-15", "lifecycle": "active",
+    })
+
+    counsellor = b.add("staff", {
+        "name": "Pieter Jansen", "ncUserId": "vo-vertrouwenspersoon-01", "roles": ["teacher", "confidential-counsellor"],
+        "qualifications": ["eerstegraads bevoegdheid geschiedenis", "vertrouwenspersoon leerlingen"],
+        "workingDays": ["monday", "tuesday", "thursday"],
+    })
+    b.add("confidential-note", {
+        "title": "Pesten in de kleedkamer, onderbouw",
+        "note": ("Tweede gesprek met de melder. Het pesten gebeurt vooral na de gymles, als de docent al weg is. De melder "
+                 "wil niet dat de mentor het nu al weet. Afgesproken: over twee weken opnieuw praten; als het dan doorgaat, "
+                 "bespreek ik met de melder wie we erbij halen."),
+        "authorId": counsellor["ncUserId"], "participantIds": ["vo-zorgcoordinator-01"], "status": "open",
+        "destroyAfter": "2027-07-01",
+    })
 
 
 def stamp_group_labels(b: Builder) -> None:
