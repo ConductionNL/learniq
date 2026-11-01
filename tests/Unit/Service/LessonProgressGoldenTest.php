@@ -173,15 +173,16 @@ class LessonProgressGoldenTest extends TestCase {
 				return $found;
 			}
 		);
-		$names = array_map(
-			static fn ($p) => $p->getName(),
-			(new ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters()
-		);
+		$params = (new ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters();
 		$service->method('saveObject')->willReturnCallback(
-			static function (...$args) use ($names, &$calls) {
+			static function (...$args) use ($params, &$calls) {
 				$named = [];
 				foreach ($args as $i => $value) {
-					$named[$names[$i]] = $value;
+					if ($params[$i]->isDefaultValueAvailable() === true && $params[$i]->getDefaultValue() === $value) {
+						continue;
+					}
+
+					$named[$params[$i]->getName()] = $value;
 				}
 
 				// An entity row's @self block follows the loaded OpenRegister version, so it is not pinned.

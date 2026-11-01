@@ -62,17 +62,8 @@
                     "completedAt": "2026-10-01T09:00:00+00:00",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "lesson-completion",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "lesson-completion"
             }
         }
     ],
@@ -126,17 +117,8 @@
                     "completedAt": "2026-10-01T09:00:00+00:00",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "lesson-completion",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "lesson-completion"
             }
         }
     ],
@@ -203,17 +185,8 @@
                     "completedAt": "2026-10-01T09:00:00+00:00",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "lesson-completion",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "lesson-completion"
             }
         }
     ],
@@ -267,17 +240,8 @@
                     "completedAt": "2026-10-01T09:00:00+00:00",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "lesson-completion",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "lesson-completion"
             }
         }
     ],
@@ -333,17 +297,8 @@
                     "completedAt": "2026-10-01T09:00:00+00:00",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "lesson-completion",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "lesson-completion"
             }
         }
     ],
@@ -397,17 +352,8 @@
                     "completedAt": "2026-10-01T09:00:00+00:00",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "lesson-completion",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "lesson-completion"
             }
         }
     ],
@@ -475,17 +421,8 @@
                     "completedAt": "2026-10-01T09:00:00+00:00",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "lesson-completion",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "lesson-completion"
             }
         }
     ],
@@ -540,17 +477,8 @@
                     "completedAt": "2026-10-01T09:00:00+00:00",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "lesson-completion",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "lesson-completion"
             }
         }
     ],
@@ -614,17 +542,8 @@
                     "completedAt": "2026-10-01T09:00:00+00:00",
                     "tenant_id": ""
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "lesson-completion",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "lesson-completion"
             }
         }
     ],
@@ -694,17 +613,8 @@
                     "completedAt": "2026-10-01T09:00:00+00:00",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "lesson-completion",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "lesson-completion"
             }
         }
     ],
@@ -783,17 +693,8 @@
                     "completedAt": "2026-10-01T09:00:00+00:00",
                     "tenant_id": ""
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "lesson-completion",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "lesson-completion"
             }
         }
     ],
@@ -848,17 +749,8 @@
                     "completedAt": "2026-10-01T09:00:00+00:00",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "lesson-completion",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "lesson-completion"
             }
         }
     ],
