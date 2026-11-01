@@ -172,7 +172,7 @@ Do not leave out `loaClaim` and `loaMap`. They tell the portal which assurance l
 
 ### Portal accounts for pupils, students and participants
 
-Pupils, students and course participants sign in with their Nextcloud account. That works only when they also have a portal account. The load gives them one: Noor Bakker (vo), Milan de Groot and Aylin Demir (mbo) and Tom Verbeek (training). For the demo it also gives Petra Bakker, the trainer at Bakker Techniek BV, a Nextcloud account and a trainer's portal account, so she can approve Milan's hours without hand work. It needs the portal's organisation, so link the portals first and then load the set again. The load prints a line such as `Portal accounts: 1 given, 0 kept, 0 failed.` A second load gives nothing new.
+Pupils, students and course participants sign in with their Nextcloud account. That works only when they also have a portal account. The load gives them one: Fenna de Jong (vo), Milan de Groot and Aylin Demir (mbo) and Tom Verbeek (training). For the demo it also gives Petra Bakker, the trainer at Bakker Techniek BV, a Nextcloud account and a trainer's portal account, so she can approve Milan's hours without hand work. It needs the portal's organisation, so link the portals first and then load the set again. The load prints a line such as `Portal accounts: 1 given, 0 kept, 0 failed.` A second load gives nothing new.
 
 Guardians, trainers and employers get their account through an invitation: `occ learniq:portal:invite-guardian`, `learniq:portal:invite-trainer` and `learniq:portal:invite-employer`. A real trainer signs in with eHerkenning. Her invitation leaves a waiting account that her first eHerkenning sign-in completes, and it sends her a mail, so the instance must be able to send mail.
 
