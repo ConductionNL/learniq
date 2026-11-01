@@ -1035,5 +1035,118 @@
                 "c1": "done"
             }
         }
+    ],
+    "duplicate from-cohort members are written once": [
+        {
+            "find": {
+                "id": "c1",
+                "_extend": [],
+                "files": false,
+                "register": "learniq",
+                "schema": "cohort",
+                "_rbac": true,
+                "_multitenancy": true,
+                "_render": true,
+                "_audit": true
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "cohort",
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "tenant_id": "t1"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "learnerIds": [
+                        "l1",
+                        "l2"
+                    ],
+                    "ncGroupId": "scholiq-cohort-2026-2027-mv2a",
+                    "tenant_id": "t1",
+                    "programmeId": "p-mv",
+                    "programmeYear": 2
+                },
+                "extend": [],
+                "register": "learniq",
+                "schema": "cohort",
+                "uuid": null,
+                "_rbac": true,
+                "_multitenancy": true,
+                "silent": false,
+                "uploadedFiles": null,
+                "currentUser": null,
+                "failIfExists": false,
+                "_unowned": false
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l1"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l1"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l2"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "c1",
+                    "name": "MV1A",
+                    "programmeId": "p-mv",
+                    "programmeYear": 1,
+                    "learnerIds": [
+                        "l1",
+                        "l1",
+                        "l2"
+                    ],
+                    "lifecycle": "archived"
+                },
+                "extend": [],
+                "register": "learniq",
+                "schema": "cohort",
+                "uuid": null,
+                "_rbac": true,
+                "_multitenancy": true,
+                "silent": false,
+                "uploadedFiles": null,
+                "currentUser": null,
+                "failIfExists": false,
+                "_unowned": false
+            }
+        },
+        {
+            "result": {
+                "c1": "done"
+            }
+        }
     ]
 }

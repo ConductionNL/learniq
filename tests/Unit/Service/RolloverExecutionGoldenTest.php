@@ -92,6 +92,7 @@ class RolloverExecutionGoldenTest extends TestCase {
 			'no tenant' => [['cohort' => [$from]], array_merge($plan, ['tenant_id' => ''])],
 			'no to-cohort name' => [['cohort' => [$from]], array_merge($plan, ['mappings' => [['fromCohortId' => 'c1', 'action' => 'promote']]])],
 			'mapping already done' => [['cohort' => [$from]], array_merge($plan, ['perMappingProgress' => ['c1' => 'done']])],
+			'duplicate from-cohort members are written once' => [['cohort' => [array_merge($from, ['learnerIds' => ['l1', 'l1', 'l2']])]], $plan],
 		];
 	}//end scenarios()
 
