@@ -3,7 +3,7 @@
 
 /**
  * Vaartveld College (vo), against school-design/vaartveld/preview. The
- * website boards run signed out; Noor Bakker's boards sign her in with her
+ * website boards run signed out; the pupil boards sign Fenna de Jong in with her
  * school account (`PORTAL_DESIGN_PASSWORD`). Today's timetable is not
  * checked: it waits for the pupil's sessions (site-pupil-portal-design T1).
  *
@@ -41,7 +41,7 @@ const FOOTER = [
 const NOOR = {
 	user: 'vo-leerling-121',
 	ref: 'ee02000a-0000-4000-8000-000000000534',
-	name: 'Noor Bakker',
+	name: 'Fenna de Jong',
 }
 
 test.describe('vaartveld: the website', () => {
@@ -129,7 +129,7 @@ test.describe('vaartveld: the website', () => {
 	})
 })
 
-test.describe('vaartveld: Mijn Vaartveld (Noor Bakker)', () => {
+test.describe('vaartveld: Mijn Vaartveld (Fenna de Jong)', () => {
 	test('MijnOverzicht', async ({ browser }, info) => {
 		await ensurePortalAccount(
 			NOOR.user,
@@ -144,7 +144,7 @@ test.describe('vaartveld: Mijn Vaartveld (Noor Bakker)', () => {
 			info.project.use.viewport ?? { width: 1440, height: 1000 },
 		)
 		await expect(
-			page.getByText(/Goede(morgen|middag|navond), Noor/).first(),
+			page.getByText(/Goede(morgen|middag|navond), Fenna/).first(),
 		).toBeVisible()
 		await expectTexts(page, [
 			'Huiswerk en toetsen',
