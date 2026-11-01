@@ -1144,14 +1144,14 @@
   "accounts": [
     {
       "userId": "vo-docent-01",
-      "displayName": "Sanne Kramer",
+      "displayName": "Pieter Jansen",
       "groups": [
         "instructors"
       ]
     },
     {
       "userId": "vo-docent-07",
-      "displayName": "Emre Demir",
+      "displayName": "Sander Bos",
       "groups": [
         "instructors"
       ]
@@ -1165,14 +1165,14 @@
     },
     {
       "userId": "vo-docent-03",
-      "displayName": "Ingrid Jansen",
+      "displayName": "Fatma Yildiz",
       "groups": [
         "instructors"
       ]
     },
     {
       "userId": "vo-docent-10",
-      "displayName": "Arjen Willems",
+      "displayName": "Joost Willems",
       "groups": [
         "instructors"
       ]
@@ -1242,14 +1242,14 @@
     },
     {
       "userId": "vo-ouder-227",
-      "displayName": "Linda Bakker",
+      "displayName": "Marieke de Jong",
       "groups": [
         "guardians"
       ]
     },
     {
       "userId": "vo-leerling-121",
-      "displayName": "Noor Bakker",
+      "displayName": "Fenna de Jong",
       "groups": [],
       "portal": {
         "audience": "student",

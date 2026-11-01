@@ -199,6 +199,64 @@ class SecondarySchoolBoardRecordsTest extends TestCase {
 	}//end testTheGuardianBoardsHaveAGuardianAccountOfAPupil()
 
 	/**
+	 * The names the boards draw: Zuiddrecht College, the pupil Fenna de Jong
+	 * of class 3HV-B (havo/vwo leerjaar 3) with her mentor Pieter Jansen, her
+	 * mother Marieke de Jong (the guardian account), her teachers and Sem
+	 * Bakker in the fraud case.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/example-sets/spec.md
+	 */
+	public function testTheSetCarriesTheNamesTheBoardsDraw(): void {
+		$objects = self::objects(set: 'vo');
+		self::assertSame(expected: 'Zuiddrecht College', actual: $objects['school'][0]['name']);
+
+		$names    = array_column(array: self::accounts(), column_key: 'displayName', index_key: 'userId');
+		$expected = [
+			'vo-leerling-121' => 'Fenna de Jong',
+			'vo-ouder-227'    => 'Marieke de Jong',
+			'vo-docent-01'    => 'Pieter Jansen',
+			'vo-docent-03'    => 'Fatma Yildiz',
+			'vo-docent-07'    => 'Sander Bos',
+			'vo-docent-10'    => 'Joost Willems',
+		];
+		foreach ($expected as $userId => $name) {
+			self::assertSame(expected: $name, actual: ($names[$userId] ?? null), message: $userId);
+			$staff = self::where(rows: $objects['staff'], field: 'ncUserId', value: $userId);
+			if ($staff !== []) {
+				self::assertSame(expected: $name, actual: $staff[0]['name'], message: $userId);
+			}
+		}
+
+		$fenna = array_values(
+			array: array_filter(
+				array: $objects['learner-profile'],
+				callback: static fn (array $p): bool => ($p['givenName'] ?? '') === 'Fenna' && ($p['familyName'] ?? '') === 'de Jong'
+			)
+		);
+		self::assertCount(expectedCount: 1, haystack: $fenna);
+		self::assertSame(expected: '3HV-B · Pieter Jansen', actual: $fenna[0]['groupLabel']);
+		self::assertContains(needle: 'vo-ouder-227', haystack: $fenna[0]['parentIds']);
+
+		$class = self::where(rows: $objects['cohort'], field: 'name', value: '3HV-B');
+		self::assertCount(expectedCount: 1, haystack: $class);
+		self::assertSame(expected: 3, actual: $class[0]['programmeYear']);
+		self::assertSame(expected: 'vo-docent-01', actual: $class[0]['teacherIds'][0]);
+		self::assertSame(expected: [], actual: self::where(rows: $objects['cohort'], field: 'name', value: 'H4b'));
+
+		$father = self::where(rows: $objects['learner-profile'], field: 'givenName', value: 'Erik');
+		self::assertContains(needle: 'de Jong', haystack: array_column(array: $father, column_key: 'familyName'));
+
+		$case    = $objects['fraud-case'][0];
+		$accused = self::where(rows: $objects['learner-profile'], field: 'uuid', value: $case['accusedLearnerId']);
+		self::assertSame(expected: ['Sem', 'Bakker'], actual: [$accused[0]['givenName'], $accused[0]['familyName']]);
+
+		$trip = self::where(rows: $objects['cohort'], field: 'uuid', value: $objects['fee-item'][0]['linkedCohortId']);
+		self::assertSame(expected: '4H1', actual: $trip[0]['name']);
+	}//end testTheSetCarriesTheNamesTheBoardsDraw()
+
+	/**
 	 * LqBsaBesluit and LqStudievoortgang: the higher education set holds an
 	 * active bsa trajectory and a negative decision after a warning and a hearing.
 	 *

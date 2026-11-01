@@ -3,7 +3,7 @@
 # Copyright (C) 2026 Conduction B.V.
 """Build lib/Settings/profiles/vo.json, the secondary school example set.
 
-One fictional havo/vwo school, Vaartveld College in the fictional town of
+One fictional havo/vwo school, Zuiddrecht College in the fictional town of
 Zuiddrecht, through one complete school year (2025-2026): an
 onderbouw building for years 1 and 2 and a main building for years 3 to 6,
 eleven classes from the havo/vwo brugklas to havo 5 and vwo 6, about 300
@@ -15,12 +15,12 @@ three toetsweken, the leerjaar 3 profielkeuze, the exam classes' schoolexamen
 intake, and the decaan, zorgcoordinator and attendance desk at work.
 
 THE STORY LAYER. On top of that year sits one pupil's autumn of 2026-2027,
-pinned to Monday 5 October 2026 (week 41), the day the Vaartveld portal
-designs show: Noor Bakker of havo 3 (class H3b) moved up to 4 havo, class H4b,
-with the economie en maatschappij profile she chose in the spring. Her mentor
-Sanne Kramer, her Monday lessons with a room change and a cancelled lesson,
-the grades behind her averages, this week's homework and tests, her absence,
-the H4b mentor-talk round and the school calendar are added by add_story()
+pinned to Monday 5 October 2026 (week 41): Fenna de Jong of class 3HV-B
+(havo/vwo leerjaar 3), with the names the learniq boards on
+identity.conduction.nl/screens draw. Her mentor Pieter Jansen, her Monday
+lessons with a room change and a cancelled lesson, the grades behind her
+averages, this week's homework and tests, her absence, the 3HV-B
+mentor-talk round and the school calendar are added by add_story()
 after every other object, with no draw from the main random stream, so no
 earlier uuid or value moves. See openspec/changes/example-sets-are-the-four-schools/specs/example-sets/spec.md.
 
@@ -266,12 +266,12 @@ CLASSES = [
     ("6V1", 6, "vwo", 25, "hoofd", "H1.07", [8, 7, 6, 8, 5]),
 ]
 EXAM_CLASSES = {"5H1": "havo 5", "6V1": "vwo 6"}
-# The class name people read, in Vaartveld College's scheme (stream, leerjaar,
-# letter: H4b). Only a display string: the keys above stay the script's own.
-# Havo 3 is H3b because its pupils move up to H4b in the story layer.
+# The class name people read, in the scheme the boards draw (LqCoToetsweek: 2A to 2D,
+# 3HV-A, 3HV-B, 4H1, 4V1). Only a display string: the keys above stay the script's own.
+# The story layer's class of 2026-2027 is 3HV-B.
 CLASS_NAMES = {
-    "1HV1": "HV1a", "1HV2": "HV1b", "2H1": "H2a", "2V1": "V2a", "3H1": "H3b", "3V1": "V3a",
-    "4H1": "H4a", "4V1": "V4a", "5H1": "H5a", "5V1": "V5a", "6V1": "V6a",
+    "1HV1": "1A", "1HV2": "1B", "2H1": "2A", "2V1": "2B", "3H1": "3HV-A", "3V1": "3V1",
+    "4H1": "4H1", "4V1": "4V1", "5H1": "5H1", "5V1": "5V1", "6V1": "6V1",
 }
 MENTORS = {
     "1HV1": "vo-docent-02", "1HV2": "vo-docent-16", "2H1": "vo-docent-04", "2V1": "vo-docent-11",
@@ -280,16 +280,16 @@ MENTORS = {
 }
 # Teachers: user id, display name, subjects, degree (1 = eerstegraads), working days.
 TEACHERS = [
-    ("vo-docent-01", "Sanne Kramer", ["NE"], 1, WEEKDAYS),
+    ("vo-docent-01", "Pieter Jansen", ["NE"], 1, WEEKDAYS),
     ("vo-docent-02", "Jeroen Bremhof", ["NE"], 2, ["monday", "tuesday", "wednesday", "thursday"]),
-    ("vo-docent-03", "Ingrid Jansen", ["EN"], 1, WEEKDAYS),
+    ("vo-docent-03", "Fatma Yildiz", ["EN"], 1, WEEKDAYS),
     ("vo-docent-04", "Karim Saliedal", ["EN"], 2, ["monday", "tuesday", "thursday", "friday"]),
     ("vo-docent-05", "Esther Lavendelmeer", ["FA"], 1, ["monday", "tuesday", "wednesday", "thursday"]),
     ("vo-docent-06", "Pieter Vlasbrink", ["DU"], 1, ["tuesday", "wednesday", "thursday", "friday"]),
-    ("vo-docent-07", "Emre Demir", ["WB", "WA"], 1, WEEKDAYS),
+    ("vo-docent-07", "Sander Bos", ["WB", "WA"], 1, WEEKDAYS),
     ("vo-docent-08", "Bas Kamillehorst", ["WI"], 2, WEEKDAYS),
     ("vo-docent-09", "Laura Hopgaard", ["WA", "WI"], 1, ["monday", "wednesday", "thursday", "friday"]),
-    ("vo-docent-10", "Arjen Willems", ["GS"], 1, WEEKDAYS),
+    ("vo-docent-10", "Joost Willems", ["GS"], 1, WEEKDAYS),
     ("vo-docent-11", "Naima Vos", ["GS", "MA"], 2, ["monday", "tuesday", "wednesday", "friday"]),
     ("vo-docent-12", "Wouter Mulder", ["AK"], 1, WEEKDAYS),
     ("vo-docent-13", "Thomas de Boer", ["EC"], 1, ["monday", "tuesday", "thursday", "friday"]),
@@ -435,7 +435,7 @@ def build() -> dict:
         return class_by_name[name][6][day.weekday()] * LESSON
 
     # --- school, locations, rooms -------------------------------------------
-    school = b.add("school", {"brin": "00X2", "name": "Vaartveld College", "pedagogicalConcept": "regular"})
+    school = b.add("school", {"brin": "00X2", "name": "Zuiddrecht College", "pedagogicalConcept": "regular"})
     locations = {
         "hoofd": b.add("vestiging", {
             "schoolId": school["uuid"], "vestigingscode": "00X200", "onderwijslocatiecode": None,
@@ -1499,7 +1499,7 @@ def build() -> dict:
         "info": {
             "title": "Learniq example set: Secondary school",
             "version": "1.0.0",
-            "description": "Vaartveld College, a fictional havo and vwo school in the fictional town of Zuiddrecht, through the 2025-2026 school year, with one pupil's autumn of 2026-2027 on top.",
+            "description": "Zuiddrecht College, a fictional havo and vwo school in the fictional town of Zuiddrecht, through the 2025-2026 school year, with one pupil's autumn of 2026-2027 on top.",
         },
         "x-openregister": {
             "type": "profile",
@@ -1537,22 +1537,22 @@ def build() -> dict:
     }
 
 
-# --- the story layer: Noor Bakker's autumn of 2026-2027 (example-sets-are-the-four-schools) -----------
+# --- the story layer: Fenna de Jong's autumn of 2026-2027 (example-sets-are-the-four-schools) -----------
 STORY_YEAR = "2026-2027"
 STORY_FIRST_DAY = dt.date(2026, 8, 17)
 TODAY = dt.date(2026, 10, 5)
-# The H4b teacher per subject: an existing teacher of that subject, so no new account is needed.
+# The 3HV-B teacher per subject: an existing teacher of that subject, so no new account is needed.
 STORY_TEACHERS = {
     "NE": "vo-docent-01", "EN": "vo-docent-03", "WA": "vo-docent-07", "EC": "vo-docent-13", "GS": "vo-docent-10",
     "BE": "vo-docent-14", "AK": "vo-docent-12", "MA": "vo-docent-11", "CKV": "vo-docent-19", "LO": "vo-docent-21",
 }
 STORY_MENTOR = "vo-docent-01"
-# Rooms of the main building in the Vaartveld numbering (floor, then number).
+# Rooms of the main building, numbered floor, then number.
 STORY_ROOMS = ["1.12", "2.14", "0.21", "1.08", "1.05", "2.03"]
-# H4b's Monday: lesson hour, subject (None for the mentor hour), room code.
+# 3HV-B's Monday: lesson hour, subject (None for the mentor hour), room code.
 H4B_MONDAY = [(1, "NE", "1.12"), (2, "WA", "2.14"), (3, "EC", "1.08"), (4, "EN", "1.05"), (5, "GS", "2.03"),
               (6, None, "1.12"), (7, "LO", "H-GYM")]
-# The rest of H4b's week of 5 October, in the shape of the Monday: lesson hour, subject, room code. Tuesday's
+# The rest of 3HV-B's week of 5 October, in the shape of the Monday: lesson hour, subject, room code. Tuesday's
 # first hour (economie) and eighth hour (steunles wiskunde) are written with the story's Tuesday.
 H4B_WEEK = {
     1: [(2, "NE", "1.12"), (3, "MA", "1.05"), (4, "WA", "2.14"), (5, "BE", "1.08"), (6, "EN", "1.05")],
@@ -1591,7 +1591,7 @@ STORY_JUDGED = {
 # componentId when it is a test, instructions).
 STORY_HOMEWORK = [
     ("NE", "Leesverslag inleveren", stamp(TODAY, 8, 30), 1, None,
-     "Lever je leesverslag in bij mevrouw Kramer. Neem ook je leesboek mee."),
+     "Lever je leesverslag in bij meneer Jansen. Neem ook je leesboek mee."),
     ("WA", "Paragraaf 3.2, opgave 14 tot en met 22", stamp(TODAY, 9, 20), 2, None, "Maak de opgaven en neem ze mee naar de les."),
     ("EN", "SO woordjes unit 2", stamp(TODAY, 11, 20), 4, "so-woordjes-u2", "Leer de woorden van unit 2. Het SO telt 1 keer mee."),
     ("EC", "Hoofdstuk 2, opgave 8 tot en met 15", stamp(dt.date(2026, 10, 6), 8, 30), 1, None, "Maak de opgaven en neem ze mee naar de les."),
@@ -1614,14 +1614,15 @@ def story_weighted(entries: list[tuple[str, float, float]]) -> tuple[float, dict
 
 def add_story(b: Builder, school: dict, locations: dict, rooms: dict, courses: dict, streams: dict, programmes: dict,
               cohorts: dict, pupils: list[dict]) -> dict:
-    """Noor Bakker in 4 havo, class H4b, on Monday 5 October 2026 (example-sets-are-the-four-schools).
+    """Fenna de Jong in havo/vwo leerjaar 3, class 3HV-B, on Monday 5 October 2026 (example-sets-are-the-four-schools).
 
     Added after every other object and drawing no random number, so no
     existing uuid or value moves. The only edits to earlier objects are values:
-    one havo 3 pupil and her parents get the story's names, her profielkeuze
-    gets geschiedenis as the fifth subject the boards show, her report cards
-    use her new first name, and the havo 3 enrolments are completed because the
-    class moved up to H4b.
+    one havo 3 pupil and her parents get the story's names (Fenna, Marieke
+    and Erik de Jong, as the learniq boards draw them), her profielkeuze gets
+    geschiedenis as the fifth subject, her report cards use her new first
+    name, and the havo 3 enrolments are completed because the class goes on
+    as 3HV-B.
 
     @spec openspec/changes/example-sets-are-the-four-schools/specs/example-sets/spec.md
     """
@@ -1631,13 +1632,13 @@ def add_story(b: Builder, school: dict, locations: dict, rooms: dict, courses: d
     mother, father = noor["guardians"]
     assert len(noor["guardians"]) == 2 and noor["family"] not in {q["family"] for q in pupils if q is not noor}
     old_given = noor["given"]
-    noor["given"], noor["surname"] = "Noor", "Bakker"
-    profile.update({"givenName": "Noor", "familyName": "Bakker"})
-    mother["familyName"] = "Bakker"
-    father.update({"givenName": "Erik", "familyName": "Bakker"})
+    noor["given"], noor["surname"] = "Fenna", "de Jong"
+    profile.update({"givenName": "Fenna", "familyName": "de Jong"})
+    mother.update({"givenName": "Marieke", "familyName": "de Jong"})
+    father.update({"givenName": "Erik", "familyName": "de Jong"})
     for card in b.buckets["report-card"]:
         if card["learnerId"] == noor["nc"]:
-            card["mentorComment"] = card["mentorComment"].replace(old_given, "Noor")
+            card["mentorComment"] = card["mentorComment"].replace(old_given, "Fenna")
     # Her profielkeuze of last spring: economie en maatschappij with bedrijfseconomie and aardrijkskunde,
     # and geschiedenis, the five subjects on her grade list. Signed by her father.
     noor["choice"].update({
@@ -1667,22 +1668,22 @@ def add_story(b: Builder, school: dict, locations: dict, rooms: dict, courses: d
     subjects = list(STORY_TEACHERS)
     teacher_ids = [STORY_MENTOR] + [t for s, t in STORY_TEACHERS.items() if t != STORY_MENTOR]
     h4b = b.add("cohort", {
-        "name": "H4b", "programmeId": programmes["havo"]["uuid"], "courseId": streams["havo"]["uuid"],
+        "name": "3HV-B", "programmeId": programmes["havo"]["uuid"], "courseId": streams["havo"]["uuid"],
         "teacherIds": list(dict.fromkeys(teacher_ids)), "learnerIds": [p["nc"] for p in havo3],
         "period": "Schooljaar", "academicYear": STORY_YEAR, "lifecycle": "active", "locationId": hoofd["uuid"],
         "teacherAssignments": [{"teacherId": STORY_MENTOR, "role": "primary", "days": list(WEEKDAYS)}],
-        "notes": "Havo 4, de klas van mevrouw Kramer. De hele klas H3b is overgegaan.", "kind": "teaching", "programmeYear": 4,
+        "notes": "Havo/vwo leerjaar 3, de klas van meneer Jansen.", "kind": "teaching", "programmeYear": 3,
     })
     learner_refs = [p["profile_obj"]["uuid"] for p in havo3]
     parent_ids = sorted({g["ncUserId"] for p in havo3 for g in p["guardians"]})
     for p in havo3:
-        # Last year's enrolment is done; the school year rollover puts the class in H4b.
+        # Last year's enrolment is done; the school year rollover puts the class in 3HV-B.
         p["enrolment"]["lifecycle"] = "completed"
         b.add("enrolment", {
             "learnerId": p["nc"], "learnerRef": p["profile_obj"]["uuid"], "courseId": streams["havo"]["uuid"],
-            "source": "system", "cohortId": h4b["uuid"], "cohortName": "H4b", "lifecycle": "active",
+            "source": "system", "cohortId": h4b["uuid"], "cohortName": "3HV-B", "lifecycle": "active",
             "inschrijvingDate": p["enrolment"]["inschrijvingDate"], "volgnummer": p["volgnummer"],
-            "locationId": hoofd["uuid"], "leerjaar": 4,
+            "locationId": hoofd["uuid"], "leerjaar": 3,
         })
     for s in subjects:
         b.add("subjectteacherassignment", {"cohortId": h4b["uuid"], "courseId": courses[s]["uuid"], "teacherId": STORY_TEACHERS[s]})
@@ -1700,7 +1701,7 @@ def add_story(b: Builder, school: dict, locations: dict, rooms: dict, courses: d
                           for c, label, w, kind, _d, _v in STORY_COMPONENTS[s]]
             scale_id = numeric["uuid"]
         plans[s] = b.add("curriculum-plan", {
-            "name": f"Toetsplan {name.lower()} havo 4, {STORY_YEAR}", "kind": "generic", "formula": "weighted-average",
+            "name": f"Toetsplan {name.lower()} 3HV-B, {STORY_YEAR}", "kind": "generic", "formula": "weighted-average",
             "requiredCourseIds": [courses[s]["uuid"]], "electiveCourseIds": [], "gradeScaleId": scale_id,
             "components": components, "passRules": [{"componentId": None, "minValue": 5.5 if s not in STORY_JUDGED else 2}],
             "periods": [{"periodId": "1", "label": "Periode 1", "startDate": STORY_FIRST_DAY.isoformat(), "endDate": "2026-11-27"}],
@@ -1780,7 +1781,7 @@ def add_story(b: Builder, school: dict, locations: dict, rooms: dict, courses: d
     ill = dt.date(2026, 9, 14)
     excuse = b.add("excuse-request", {
         "learnerId": noor["nc"], "learnerRef": profile["uuid"], "submittedBy": father["ncUserId"], "submittedByRef": father["uuid"],
-        "dateFrom": ill.isoformat(), "dateTo": ill.isoformat(), "reason": "Noor is ziek", "reasonKind": "illness",
+        "dateFrom": ill.isoformat(), "dateTo": ill.isoformat(), "reason": "Fenna is ziek", "reasonKind": "illness",
         "submittedAuthLevel": "basic", "decidedBy": DESK, "decidedAt": stamp(ill, 8, 15), "decisionNote": None,
         "lifecycle": "approved",
     })
@@ -1808,7 +1809,7 @@ def add_story(b: Builder, school: dict, locations: dict, rooms: dict, courses: d
     # --- steunles wiskunde: Tuesday's 8th hour, 12 places, 6 taken ------------------------------------------------
     offer = b.add("elective-offer", {
         "name": "Steunles wiskunde",
-        "description": "Elke dinsdag het 8e uur, van 15.20 tot 16.10 uur in lokaal 2.14. Meneer Demir legt uit wat je lastig vindt.",
+        "description": "Elke dinsdag het 8e uur, van 15.20 tot 16.10 uur in lokaal 2.14. Meneer Bos legt uit wat je lastig vindt.",
         "sessionIds": [steunles["uuid"]], "timetableSessionRefs": [], "capacityPerLesson": 12,
         "eligibleCohortIds": [h4b["uuid"]], "windowMode": "relative", "opensDaysBefore": 7, "closesHoursBefore": 12,
         "lifecycle": "open",
@@ -1823,7 +1824,7 @@ def add_story(b: Builder, school: dict, locations: dict, rooms: dict, courses: d
     # --- mentor talks: Tuesday 13 October after school and Thursday 15 October in the evening ----------------------
     mentor_name = TEACHER_BY_ID[STORY_MENTOR][1]
     talks = b.add("conference-round", {
-        "name": "Mentorgesprekken H4b, oktober 2026", "cohortIds": [h4b["uuid"]], "teacherIds": [STORY_MENTOR],
+        "name": "Mentorgesprekken 3HV-B, oktober 2026", "cohortIds": [h4b["uuid"]], "teacherIds": [STORY_MENTOR],
         "slotDurationMinutes": 10, "bufferMinutes": 10,
         "bookingOpensAt": stamp(TODAY, 7, 50), "bookingClosesAt": stamp(dt.date(2026, 10, 9), 23, 59),
         "invitedLearnerIds": list(h4b["learnerIds"]), "invitedLearnerRefs": learner_refs,
@@ -1873,7 +1874,7 @@ def add_story(b: Builder, school: dict, locations: dict, rooms: dict, courses: d
             "cohortIds": [g["uuid"] for g in groups or []],
         })
 
-    # --- homework and tests: the class's work, named for every pupil of H4b ------------------------------------
+    # --- homework and tests: the class's work, named for every pupil of 3HV-B ------------------------------------
     for s, title, due, hour, comp_id, instructions in STORY_HOMEWORK:
         session = lesson_on.get((dt.date.fromisoformat(due[:10]), hour)) if hour else None
         b.add("assignment", {
@@ -1903,7 +1904,8 @@ def add_boards(b: Builder, courses: dict) -> None:
     school trip (LqSchoolkosten) and a confidential note by the school's
     confidential counsellor (LqZoNotitie). Dated in the story's autumn, so the
     load moves them with the story week. Runs after the story and draws no
-    random number, so no earlier uuid or value moves."""
+    random number, so no earlier uuid moves; the only earlier values it edits
+    are the names of the fraud case's pupil and his mother."""
     b.add("grade-scale", {
         "name": "Havo/vwo bovenbouw, 1 tot 10", "kind": "numeric", "min": 1, "max": 10, "passThreshold": 5.5,
         "roundingRule": "half-up-1dp", "lifecycle": "active",
@@ -1918,15 +1920,25 @@ def add_boards(b: Builder, courses: dict) -> None:
     by_name = {c["name"]: c for c in b.buckets["cohort"]}
     b.add("exam-period", {
         "name": "Toetsweek 2", "startsOn": "2026-12-07", "endsOn": "2026-12-11",
-        "cohortIds": [by_name[n]["uuid"] for n in ["H2a", "V2a", "H3b", "V3a", "H4a", "V4a", "H4b"]],
+        "cohortIds": [by_name[n]["uuid"] for n in ["2A", "2B", "3HV-A", "3V1", "3HV-B", "4H1", "4V1"]],
         "courseIds": [courses[s]["uuid"] for s in ["NE", "EN", "FA", "WA", "WB", "GS", "AK", "EC", "BI", "NA", "LO"]],
         "lifecycle": "planning",
     })
 
     # The pupil's first SE grade in wiskunde B in vwo 6 is the result the commission annuls.
-    v6 = by_name["V6a"]["uuid"]
+    v6 = by_name["6V1"]["uuid"]
     grade = next(g for g in b.buckets["grade-entry"]
                  if g["cohortId"] == v6 and g["courseId"] == courses["WB"]["uuid"] and g["componentId"] == "se1")
+    # He and his mother carry the names LqExZaak draws: Sem Bakker.
+    profiles = {p["uuid"]: p for p in b.buckets["learner-profile"]}
+    accused = profiles[grade["learnerRef"]]
+    old_given = accused["givenName"]
+    accused.update({"givenName": "Sem", "familyName": "Bakker"})
+    for ref in accused["guardianRefs"]:
+        profiles[ref]["familyName"] = "Bakker"
+    for card in b.buckets["report-card"]:
+        if card["learnerId"] == accused["ncUserId"]:
+            card["mentorComment"] = card["mentorComment"].replace(old_given, "Sem")
     b.add("fraud-case", {
         "reporterId": "vo-docent-03", "accusedLearnerId": grade["learnerRef"], "accusedLearnerUserId": grade["learnerId"],
         "sourceKind": "manual", "contestedGradeEntryId": grade["uuid"],
@@ -1950,7 +1962,7 @@ def add_boards(b: Builder, courses: dict) -> None:
     b.add("fee-item", {
         "name": "Werkweek Ardennen 4 havo", "kind": "school-trip", "amount": 285.0, "currency": "EUR", "voluntary": True,
         "description": "Vijf dagen Durbuy met kanoën, een mountainbiketocht en een bezoek aan Bastenaken.",
-        "taxPosture": "education-exempt", "linkedCohortId": by_name["H4b"]["uuid"], "academicYear": STORY_YEAR,
+        "taxPosture": "education-exempt", "linkedCohortId": by_name["4H1"]["uuid"], "academicYear": STORY_YEAR,
         "validFrom": "2026-09-01", "validUntil": "2027-03-15", "lifecycle": "active",
     })
 
