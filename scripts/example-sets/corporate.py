@@ -46,19 +46,15 @@ a real certificate.
 
 from __future__ import annotations
 
-import argparse
 import calendar
 import datetime as dt
-import json
-import os
 import random
 import sys
 from zoneinfo import ZoneInfo
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OUT = os.path.join(ROOT, "lib", "Settings", "profiles", "corporate.json")
+from example_set import Builder, Script, SetIdentity, main
+
 AMS = ZoneInfo("Europe/Amsterdam")
-TENANT = "00000000-0000-4000-8000-000000000000"
 SET = "corporate"
 SET_NUMBER = "05"
 YEAR = "2025-2026"
@@ -126,6 +122,7 @@ SCHEMAS = [
     # the set on an install that already has it (example-set-regulation-rows).
     "regulation",
 ]
+IDENTITY = SetIdentity(SET, SET_NUMBER, SCHEMAS)
 
 # Public holidays and the Christmas closure: no training, no toolbox meeting.
 CLOSED = {
@@ -194,29 +191,6 @@ SURNAME_HEAD = ["Reiger", "Kievit", "Merel", "Lijster", "Zwaluw", "Specht", "Hav
 SURNAME_TAIL = ["hof", "kamp", "veld", "horst", "brink", "dal", "meer", "wijk", "berg", "stein", "gaard", "hout", "laar", "rode"]
 
 
-class Builder:
-    """Collects objects per bucket and hands out uuids and slugs."""
-
-    def __init__(self) -> None:
-        self.buckets: dict[str, list[dict]] = {name: [] for name in SCHEMAS}
-        self.counters: dict[str, int] = {name: 0 for name in SCHEMAS}
-
-    def add(self, schema: str, fields: dict) -> dict:
-        self.counters[schema] += 1
-        n = self.counters[schema]
-        number = SCHEMAS.index(schema) + 1
-        obj = {
-            "@self": {"configuration": "learniq", "register": "learniq", "schema": schema},
-            "uuid": f"ee{SET_NUMBER}{number:04x}-0000-4000-8000-{n:012d}",
-            "slug": f"{SET}-{schema}-{n:03d}",
-        }
-        obj.update(fields)
-        if "tenant_id" not in obj:
-            obj["tenant_id"] = TENANT
-        self.buckets[schema].append(obj)
-        return obj
-
-
 def moment(day: dt.date, hour: int, minute: int) -> dt.datetime:
     """A local Amsterdam moment."""
     return dt.datetime(day.year, day.month, day.day, hour, minute, tzinfo=AMS)
@@ -271,7 +245,7 @@ def first_tuesday(year: int, month: int) -> dt.date:
 
 def build() -> dict:
     rng = random.Random(20250901)
-    b = Builder()
+    b = Builder(IDENTITY)
 
     def pick_day(lo: dt.date, hi: dt.date) -> dt.date:
         return rng.choice(workdays(lo, hi))
@@ -1377,40 +1351,5 @@ def build() -> dict:
     }
 
 
-def render(data: dict) -> str:
-    """Pretty JSON with one compact object per line in each seed bucket (see po.py)."""
-    buckets = data["x-openregister"]["seedData"]["objects"]
-    data["x-openregister"]["seedData"]["objects"] = "__OBJECTS__"
-    text = json.dumps(data, indent=2, ensure_ascii=False)
-    parts = []
-    for name, rows in buckets.items():
-        lines = ",\n".join("          " + json.dumps(row, ensure_ascii=False, separators=(", ", ": ")) for row in rows)
-        parts.append(f"        {json.dumps(name)}: [\n{lines}\n        ]")
-    return text.replace('"__OBJECTS__"', "{\n" + ",\n".join(parts) + "\n      }") + "\n"
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--check", action="store_true", help="exit 1 when the file on disk differs")
-    args = parser.parse_args()
-    text = render(build())
-    if args.check:
-        current = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else ""
-        if current != text:
-            print(f"{OUT} is out of date; run python3 scripts/example-sets/corporate.py", file=sys.stderr)
-            return 1
-        print(f"{OUT} is up to date")
-        return 0
-    os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    with open(OUT, "w", encoding="utf-8") as handle:
-        handle.write(text)
-    data = json.loads(text)
-    counts = {k: len(v) for k, v in data["x-openregister"]["seedData"]["objects"].items()}
-    print(f"wrote {OUT}: {data['x-openregister']['profile']['objectCount']} objects")
-    for name, n in counts.items():
-        print(f"  {name}: {n}")
-    return 0
-
-
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(Script(SET, __doc__, build)))

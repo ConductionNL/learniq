@@ -40,21 +40,17 @@ assigns; e-mail addresses use the reserved .example domain.
 
 from __future__ import annotations
 
-import argparse
 import datetime as dt
-import json
 import math
-import os
 import random
 import sys
 from decimal import ROUND_HALF_UP, Decimal
 from xml.sax.saxutils import escape
 from zoneinfo import ZoneInfo
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OUT = os.path.join(ROOT, "lib", "Settings", "profiles", "he.json")
+from example_set import Builder, Script, SetIdentity, main
+
 AMS = ZoneInfo("Europe/Amsterdam")
-TENANT = "00000000-0000-4000-8000-000000000000"
 SET = "he"
 SET_NUMBER = "04"
 YEAR = "2025-2026"
@@ -117,6 +113,7 @@ SCHEMAS = [
     "bsa-decision",
     "learning-record-export",
 ]
+IDENTITY = SetIdentity(SET, SET_NUMBER, SCHEMAS)
 
 HOLIDAYS = [
     ("Herfstvakantie", dt.date(2025, 10, 20), dt.date(2025, 10, 24)),
@@ -422,29 +419,6 @@ WORKPLACES = {
 }
 
 
-class Builder:
-    """Collects objects per bucket and hands out uuids and slugs."""
-
-    def __init__(self) -> None:
-        self.buckets: dict[str, list[dict]] = {name: [] for name in SCHEMAS}
-        self.counters: dict[str, int] = {name: 0 for name in SCHEMAS}
-
-    def add(self, schema: str, fields: dict) -> dict:
-        self.counters[schema] += 1
-        n = self.counters[schema]
-        number = SCHEMAS.index(schema) + 1
-        obj = {
-            "@self": {"configuration": "learniq", "register": "learniq", "schema": schema},
-            "uuid": f"ee{SET_NUMBER}{number:04x}-0000-4000-8000-{n:012d}",
-            "slug": f"{SET}-{schema}-{n:03d}",
-        }
-        obj.update(fields)
-        if "tenant_id" not in obj:
-            obj["tenant_id"] = TENANT
-        self.buckets[schema].append(obj)
-        return obj
-
-
 def stamp(day: dt.date, hour: int, minute: int = 0) -> str:
     """A local Amsterdam timestamp with its offset, e.g. 2025-09-01T08:30:00+02:00."""
     return dt.datetime(day.year, day.month, day.day, hour, minute, tzinfo=AMS).isoformat()
@@ -556,7 +530,7 @@ def aggregate(entries: list[dict], components: dict[str, dict]) -> tuple[float |
 
 def build() -> dict:
     rng = random.Random(20250901)
-    b = Builder()
+    b = Builder(IDENTITY)
     off = closed_days()
 
     # --- institution, faculties, rooms --------------------------------------
@@ -1607,45 +1581,5 @@ def qti(identifier: str, title: str, itype: str, stem: str, options: list[str] |
     return head + declaration + score + "<itemBody>" + body + "</itemBody></assessmentItem>"
 
 
-def render(data: dict) -> str:
-    """Pretty JSON with one compact object per line in each seed bucket.
-
-    Thousands of objects pretty-printed field by field make a file nobody can
-    review; one object per line keeps a diff to the objects that changed.
-    Still strict JSON.
-    """
-    buckets = data["x-openregister"]["seedData"]["objects"]
-    data["x-openregister"]["seedData"]["objects"] = "__OBJECTS__"
-    text = json.dumps(data, indent=2, ensure_ascii=False)
-    parts = []
-    for name, rows in buckets.items():
-        lines = ",\n".join("          " + json.dumps(row, ensure_ascii=False, separators=(", ", ": ")) for row in rows)
-        parts.append(f"        {json.dumps(name)}: [\n{lines}\n        ]")
-    return text.replace('"__OBJECTS__"', "{\n" + ",\n".join(parts) + "\n      }") + "\n"
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--check", action="store_true", help="exit 1 when the file on disk differs")
-    args = parser.parse_args()
-    text = render(build())
-    if args.check:
-        current = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else ""
-        if current != text:
-            print(f"{OUT} is out of date; run python3 scripts/example-sets/he.py", file=sys.stderr)
-            return 1
-        print(f"{OUT} is up to date")
-        return 0
-    os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    with open(OUT, "w", encoding="utf-8") as handle:
-        handle.write(text)
-    data = json.loads(text)
-    counts = {k: len(v) for k, v in data["x-openregister"]["seedData"]["objects"].items()}
-    print(f"wrote {OUT}: {data['x-openregister']['profile']['objectCount']} objects")
-    for name, n in counts.items():
-        print(f"  {name}: {n}")
-    return 0
-
-
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(Script(SET, __doc__, build)))

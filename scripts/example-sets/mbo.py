@@ -54,18 +54,14 @@ e-mail addresses use the reserved .example domain.
 
 from __future__ import annotations
 
-import argparse
 import datetime as dt
-import json
-import os
 import random
 import sys
 from zoneinfo import ZoneInfo
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OUT = os.path.join(ROOT, "lib", "Settings", "profiles", "mbo.json")
+from example_set import Builder, Script, SetIdentity, main, stamp_group_labels
+
 AMS = ZoneInfo("Europe/Amsterdam")
-TENANT = "00000000-0000-4000-8000-000000000000"
 SET = "mbo"
 SET_NUMBER = "03"
 YEAR = "2025-2026"
@@ -140,6 +136,7 @@ SCHEMAS = [
     # its parent, bpv-placement, sits above it.
     "werkproces-progress",
 ]
+IDENTITY = SetIdentity(SET, SET_NUMBER, SCHEMAS)
 
 HOLIDAYS = [
     ("Herfstvakantie", dt.date(2025, 10, 20), dt.date(2025, 10, 24)),
@@ -344,29 +341,6 @@ ATTENDANCE_OFFICER = "mbo-verzuimcoordinator-01"
 TEAMLEADER = {"LOG": "mbo-teamleider-01", "SD": "mbo-teamleider-01", "VIG": "mbo-teamleider-02"}
 
 
-class Builder:
-    """Collects objects per bucket and hands out uuids and slugs."""
-
-    def __init__(self) -> None:
-        self.buckets: dict[str, list[dict]] = {name: [] for name in SCHEMAS}
-        self.counters: dict[str, int] = {name: 0 for name in SCHEMAS}
-
-    def add(self, schema: str, fields: dict) -> dict:
-        self.counters[schema] += 1
-        n = self.counters[schema]
-        number = SCHEMAS.index(schema) + 1
-        obj = {
-            "@self": {"configuration": "learniq", "register": "learniq", "schema": schema},
-            "uuid": f"ee{SET_NUMBER}{number:04x}-0000-4000-8000-{n:012d}",
-            "slug": f"{SET}-{schema}-{n:03d}",
-        }
-        obj.update(fields)
-        if "tenant_id" not in obj:
-            obj["tenant_id"] = TENANT
-        self.buckets[schema].append(obj)
-        return obj
-
-
 def stamp(day: dt.date, hour: int, minute: int) -> str:
     """A local Amsterdam timestamp with its offset, e.g. 2025-09-01T08:30:00+02:00."""
     return dt.datetime(day.year, day.month, day.day, hour, minute, tzinfo=AMS).isoformat()
@@ -466,7 +440,7 @@ def evaluate_final(entries: list[dict], plan: dict, threshold: float) -> tuple[f
 
 def build() -> dict:
     rng = random.Random(20250818)
-    b = Builder()
+    b = Builder(IDENTITY)
     days = school_days()
 
     # --- college, locations, rooms ------------------------------------------
@@ -1665,7 +1639,6 @@ STORY_UNITS = [
 ]
 
 
-
 def stamp_hour_totals(b: Builder) -> None:
     """Every placement's waiting and returned hours, as HourWeekTotalRollup keeps them on a live save
     (bpv-hours-match-the-board): waiting is the hours submitted on a week still `submitted`, returned the
@@ -2035,68 +2008,5 @@ def sessions_by_uuid_date(sessions: dict[tuple[str, dt.date], dict], uuid: str) 
     raise KeyError(uuid)
 
 
-def stamp_group_labels(b: Builder) -> None:
-    """Every pupil's group line, as LearnerGroupLabel writes it on a live save
-    (school-portals-use-the-new-blocks): the group of the newest active enrolment,
-    and " · " with the first teacher's display name when the portal declaration
-    names that teacher (lib/Settings/portals/<set>.json accounts; the load command
-    gives those accounts that name). Runs last and draws no random number."""
-    declaration = os.path.join(ROOT, "lib", "Settings", "portals", f"{SET}.json")
-    names = {}
-    if os.path.exists(declaration):
-        with open(declaration, encoding="utf-8") as handle:
-            names = {a["userId"]: a["displayName"] for a in json.load(handle).get("accounts", [])}
-    cohorts = {c["uuid"]: c for c in b.buckets.get("cohort", [])}
-    newest: dict[str, dict] = {}
-    for enrolment in b.buckets.get("enrolment", []):
-        ref = enrolment.get("learnerRef")
-        if enrolment.get("lifecycle") != "active" or not ref or enrolment.get("cohortId") not in cohorts:
-            continue
-        if ref not in newest or str(enrolment.get("inschrijvingDate", "")) > str(newest[ref].get("inschrijvingDate", "")):
-            newest[ref] = enrolment
-    for profile in b.buckets.get("learner-profile", []):
-        enrolment = newest.get(profile["uuid"])
-        if "learner" not in (profile.get("roles") or []) or enrolment is None:
-            continue
-        cohort = cohorts[enrolment["cohortId"]]
-        teacher = names.get(((cohort.get("teacherIds") or [None])[0]) or "")
-        profile["groupLabel"] = cohort["name"] + (" · " + teacher if teacher else "")
-
-
-def render(data: dict) -> str:
-    """Pretty JSON with one compact object per line in each seed bucket (as po.py)."""
-    buckets = data["x-openregister"]["seedData"]["objects"]
-    data["x-openregister"]["seedData"]["objects"] = "__OBJECTS__"
-    text = json.dumps(data, indent=2, ensure_ascii=False)
-    parts = []
-    for name, rows in buckets.items():
-        lines = ",\n".join("          " + json.dumps(row, ensure_ascii=False, separators=(", ", ": ")) for row in rows)
-        parts.append(f"        {json.dumps(name)}: [\n{lines}\n        ]")
-    return text.replace('"__OBJECTS__"', "{\n" + ",\n".join(parts) + "\n      }") + "\n"
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--check", action="store_true", help="exit 1 when the file on disk differs")
-    args = parser.parse_args()
-    text = render(build())
-    if args.check:
-        current = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else ""
-        if current != text:
-            print(f"{OUT} is out of date; run python3 scripts/example-sets/mbo.py", file=sys.stderr)
-            return 1
-        print(f"{OUT} is up to date")
-        return 0
-    os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    with open(OUT, "w", encoding="utf-8") as handle:
-        handle.write(text)
-    data = json.loads(text)
-    counts = {k: len(v) for k, v in data["x-openregister"]["seedData"]["objects"].items()}
-    print(f"wrote {OUT}: {data['x-openregister']['profile']['objectCount']} objects")
-    for name, n in counts.items():
-        print(f"  {name}: {n}")
-    return 0
-
-
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(Script(SET, __doc__, build)))
