@@ -48,8 +48,8 @@ class SecondarySchoolBoardRecordsTest extends TestCase {
 	 * @return array<string, array<int, array<string, mixed>>>
 	 */
 	private static function objects(string $set): array {
-		$path = dirname(__DIR__, 3) . '/lib/Settings/profiles/' . $set . '.json';
-		return json_decode((string)file_get_contents($path), true)['x-openregister']['seedData']['objects'];
+		$path = dirname(path: __DIR__, levels: 3) . '/lib/Settings/profiles/' . $set . '.json';
+		return json_decode(json: (string)file_get_contents(filename: $path), associative: true)['x-openregister']['seedData']['objects'];
 	}//end objects()
 
 	/**
@@ -58,8 +58,8 @@ class SecondarySchoolBoardRecordsTest extends TestCase {
 	 * @return array<int, array<string, mixed>>
 	 */
 	private static function accounts(): array {
-		$path = dirname(__DIR__, 3) . '/lib/Settings/portals/vo.json';
-		return json_decode((string)file_get_contents($path), true)['accounts'];
+		$path = dirname(path: __DIR__, levels: 3) . '/lib/Settings/portals/vo.json';
+		return json_decode(json: (string)file_get_contents(filename: $path), associative: true)['accounts'];
 	}//end accounts()
 
 	/**
@@ -72,7 +72,7 @@ class SecondarySchoolBoardRecordsTest extends TestCase {
 	 * @return array<int, array<string, mixed>>
 	 */
 	private static function where(array $rows, string $field, mixed $value): array {
-		return array_values(array_filter($rows, static fn (array $row): bool => ($row[$field] ?? null) === $value));
+		return array_values(array: array_filter(array: $rows, callback: static fn (array $row): bool => ($row[$field] ?? null) === $value));
 	}//end where()
 
 	/**
@@ -83,11 +83,11 @@ class SecondarySchoolBoardRecordsTest extends TestCase {
 	 * @spec openspec/specs/example-sets/spec.md
 	 */
 	public function testTheGradeScaleBoardHasALiveScaleWithFourBands(): void {
-		$scales = self::where(self::objects('vo')['grade-scale'], 'name', 'Havo/vwo bovenbouw, 1 tot 10');
-		self::assertCount(1, $scales);
-		self::assertSame('active', $scales[0]['lifecycle']);
-		self::assertSame(5.5, (float)$scales[0]['passThreshold']);
-		self::assertCount(4, $scales[0]['bands']);
+		$scales = self::where(rows: self::objects(set: 'vo')['grade-scale'], field: 'name', value: 'Havo/vwo bovenbouw, 1 tot 10');
+		self::assertCount(expectedCount: 1, haystack: $scales);
+		self::assertSame(expected: 'active', actual: $scales[0]['lifecycle']);
+		self::assertSame(expected: 5.5, actual: (float)$scales[0]['passThreshold']);
+		self::assertCount(expectedCount: 4, haystack: $scales[0]['bands']);
 	}//end testTheGradeScaleBoardHasALiveScaleWithFourBands()
 
 	/**
@@ -98,13 +98,13 @@ class SecondarySchoolBoardRecordsTest extends TestCase {
 	 * @spec openspec/specs/example-sets/spec.md
 	 */
 	public function testTheToetsweekBoardHasAToetsweekInPlanning(): void {
-		$objects = self::objects('vo');
-		$periods = self::where(($objects['exam-period'] ?? []), 'name', 'Toetsweek 2');
-		self::assertCount(1, $periods);
-		self::assertSame('planning', $periods[0]['lifecycle']);
-		self::assertLessThan($periods[0]['endsOn'], $periods[0]['startsOn']);
-		self::assertNotEmpty($periods[0]['cohortIds']);
-		self::assertNotEmpty($periods[0]['courseIds']);
+		$objects = self::objects(set: 'vo');
+		$periods = self::where(rows: ($objects['exam-period'] ?? []), field: 'name', value: 'Toetsweek 2');
+		self::assertCount(expectedCount: 1, haystack: $periods);
+		self::assertSame(expected: 'planning', actual: $periods[0]['lifecycle']);
+		self::assertLessThan(maximum: $periods[0]['endsOn'], actual: $periods[0]['startsOn']);
+		self::assertNotEmpty(actual: $periods[0]['cohortIds']);
+		self::assertNotEmpty(actual: $periods[0]['courseIds']);
 	}//end testTheToetsweekBoardHasAToetsweekInPlanning()
 
 	/**
@@ -115,19 +115,19 @@ class SecondarySchoolBoardRecordsTest extends TestCase {
 	 * @spec openspec/specs/example-sets/spec.md
 	 */
 	public function testTheFraudCaseBoardHasADecidedCaseOnAGradeOfThePupil(): void {
-		$objects = self::objects('vo');
+		$objects = self::objects(set: 'vo');
 		$cases   = ($objects['fraud-case'] ?? []);
-		self::assertCount(1, $cases);
+		self::assertCount(expectedCount: 1, haystack: $cases);
 		$case = $cases[0];
-		self::assertSame('decided', $case['lifecycle']);
-		self::assertSame('fraud-proven', $case['verdict']);
-		self::assertSame('grade-annulment', $case['sanctionType']);
-		self::assertNotEmpty($case['hearingRecords']);
+		self::assertSame(expected: 'decided', actual: $case['lifecycle']);
+		self::assertSame(expected: 'fraud-proven', actual: $case['verdict']);
+		self::assertSame(expected: 'grade-annulment', actual: $case['sanctionType']);
+		self::assertNotEmpty(actual: $case['hearingRecords']);
 
-		$grade = self::where($objects['grade-entry'], 'uuid', $case['contestedGradeEntryId']);
-		self::assertCount(1, $grade);
-		self::assertSame($case['accusedLearnerUserId'], $grade[0]['learnerId']);
-		self::assertSame($case['accusedLearnerId'], $grade[0]['learnerRef']);
+		$grade = self::where(rows: $objects['grade-entry'], field: 'uuid', value: $case['contestedGradeEntryId']);
+		self::assertCount(expectedCount: 1, haystack: $grade);
+		self::assertSame(expected: $case['accusedLearnerUserId'], actual: $grade[0]['learnerId']);
+		self::assertSame(expected: $case['accusedLearnerId'], actual: $grade[0]['learnerRef']);
 	}//end testTheFraudCaseBoardHasADecidedCaseOnAGradeOfThePupil()
 
 	/**
@@ -138,13 +138,13 @@ class SecondarySchoolBoardRecordsTest extends TestCase {
 	 * @spec openspec/specs/example-sets/spec.md
 	 */
 	public function testTheSchoolCostBoardHasAVoluntaryTrip(): void {
-		$objects = self::objects('vo');
+		$objects = self::objects(set: 'vo');
 		$items   = ($objects['fee-item'] ?? []);
-		self::assertCount(1, $items);
-		self::assertSame('school-trip', $items[0]['kind']);
-		self::assertTrue($items[0]['voluntary']);
-		self::assertSame('active', $items[0]['lifecycle']);
-		self::assertCount(1, self::where($objects['cohort'], 'uuid', $items[0]['linkedCohortId']));
+		self::assertCount(expectedCount: 1, haystack: $items);
+		self::assertSame(expected: 'school-trip', actual: $items[0]['kind']);
+		self::assertTrue(condition: $items[0]['voluntary']);
+		self::assertSame(expected: 'active', actual: $items[0]['lifecycle']);
+		self::assertCount(expectedCount: 1, haystack: self::where(rows: $objects['cohort'], field: 'uuid', value: $items[0]['linkedCohortId']));
 	}//end testTheSchoolCostBoardHasAVoluntaryTrip()
 
 	/**
@@ -157,19 +157,19 @@ class SecondarySchoolBoardRecordsTest extends TestCase {
 	 * @spec openspec/specs/example-sets/spec.md
 	 */
 	public function testTheConfidentialNoteBoardHasANoteItsCounsellorCanRead(): void {
-		$objects = self::objects('vo');
+		$objects = self::objects(set: 'vo');
 		$notes   = ($objects['confidential-note'] ?? []);
-		self::assertCount(1, $notes);
-		self::assertSame('open', $notes[0]['status']);
-		self::assertNotEmpty($notes[0]['destroyAfter']);
+		self::assertCount(expectedCount: 1, haystack: $notes);
+		self::assertSame(expected: 'open', actual: $notes[0]['status']);
+		self::assertNotEmpty(actual: $notes[0]['destroyAfter']);
 
-		$author = self::where($objects['staff'], 'ncUserId', $notes[0]['authorId']);
-		self::assertCount(1, $author);
-		self::assertContains('confidential-counsellor', $author[0]['roles']);
+		$author = self::where(rows: $objects['staff'], field: 'ncUserId', value: $notes[0]['authorId']);
+		self::assertCount(expectedCount: 1, haystack: $author);
+		self::assertContains(needle: 'confidential-counsellor', haystack: $author[0]['roles']);
 
-		$account = self::where(self::accounts(), 'userId', $notes[0]['authorId']);
-		self::assertCount(1, $account);
-		self::assertContains('confidential-counsellors', $account[0]['groups']);
+		$account = self::where(rows: self::accounts(), field: 'userId', value: $notes[0]['authorId']);
+		self::assertCount(expectedCount: 1, haystack: $account);
+		self::assertContains(needle: 'confidential-counsellors', haystack: $account[0]['groups']);
 	}//end testTheConfidentialNoteBoardHasANoteItsCounsellorCanRead()
 
 	/**
@@ -181,14 +181,16 @@ class SecondarySchoolBoardRecordsTest extends TestCase {
 	 * @spec openspec/specs/example-sets/spec.md
 	 */
 	public function testTheGuardianBoardsHaveAGuardianAccountOfAPupil(): void {
-		$guardians = array_values(array_filter(self::accounts(), static fn (array $a): bool => in_array('guardians', ($a['groups'] ?? []), true)));
-		self::assertCount(1, $guardians);
+		$guardians = array_values(array: array_filter(array: self::accounts(), callback: static fn (array $a): bool => in_array(needle: 'guardians', haystack: ($a['groups'] ?? []), strict: true)));
+		self::assertCount(expectedCount: 1, haystack: $guardians);
 
-		$children = array_values(array_filter(
-			self::objects('vo')['learner-profile'],
-			static fn (array $p): bool => in_array($guardians[0]['userId'], ($p['parentIds'] ?? []), true)
-		));
-		self::assertNotEmpty($children);
+		$children = array_values(
+			array: array_filter(
+				array: self::objects(set: 'vo')['learner-profile'],
+				callback: static fn (array $p): bool => in_array(needle: $guardians[0]['userId'], haystack: ($p['parentIds'] ?? []), strict: true)
+			)
+		);
+		self::assertNotEmpty(actual: $children);
 	}//end testTheGuardianBoardsHaveAGuardianAccountOfAPupil()
 
 	/**
@@ -200,13 +202,15 @@ class SecondarySchoolBoardRecordsTest extends TestCase {
 	 * @spec openspec/specs/example-sets/spec.md
 	 */
 	public function testTheBsaBoardsFindTheirRecordsInTheHigherEducationSet(): void {
-		$objects = self::objects('he');
-		self::assertNotEmpty(self::where($objects['bsa-trajectory'], 'lifecycle', 'active'));
+		$objects = self::objects(set: 'he');
+		self::assertNotEmpty(actual: self::where(rows: $objects['bsa-trajectory'], field: 'lifecycle', value: 'active'));
 
-		$negative = array_values(array_filter(
-			$objects['bsa-decision'],
-			static fn (array $d): bool => $d['decisionType'] === 'negative' && ($d['warningIds'] ?? []) !== [] && ($d['studentHeardAt'] ?? null) !== null
-		));
-		self::assertNotEmpty($negative);
+		$negative = array_values(
+			array: array_filter(
+				array: $objects['bsa-decision'],
+				callback: static fn (array $d): bool => $d['decisionType'] === 'negative' && ($d['warningIds'] ?? []) !== [] && ($d['studentHeardAt'] ?? null) !== null
+			)
+		);
+		self::assertNotEmpty(actual: $negative);
 	}//end testTheBsaBoardsFindTheirRecordsInTheHigherEducationSet()
 }//end class
