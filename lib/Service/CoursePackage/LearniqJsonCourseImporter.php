@@ -62,53 +62,35 @@ class LearniqJsonCourseImporter {
 	/**
 	 * Read a scholiq-native JSON package and persist its import report.
 	 *
-	 * @param string $packagePath Absolute path to the uploaded JSON file.
-	 * @param string $sourceFilename Original filename.
-	 * @param string $importedBy NC user id of the caller.
-	 * @param string $importedAt ISO-8601 timestamp already resolved by the orchestrator.
-	 * @param string $tenantId Tenant UUID stamped on every created object.
+	 * @param string       $packagePath Absolute path to the uploaded JSON file.
+	 * @param ImportOrigin $origin      Who imported which file, when, for which tenant (stamped on every created object).
 	 *
 	 * @return array<string, mixed> The persisted `CoursePackageImportReport`.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
-	public function importPackage(
-		string $packagePath,
-		string $sourceFilename,
-		string $importedBy,
-		string $importedAt,
-		string $tenantId,
-	): array {
+	public function importPackage(string $packagePath, ImportOrigin $origin): array {
 		$raw = (string)file_get_contents($packagePath);
 		$tree = json_decode($raw, associative: true);
 
 		if (is_array($tree) === false || isset($tree['course']) === false) {
 			return $this->reporter->persistReport(
-				sourceFormat: self::SOURCE_FORMAT,
-				sourceFilename: $sourceFilename,
-				importedBy: $importedBy,
-				importedAt: $importedAt,
-				tenantId: $tenantId,
-				courseId: null,
-				lifecycle: 'failed',
-				entries: [],
-				errorMessage: 'File is not a valid scholiq-native course export (missing top-level "course" object).',
+				origin: $origin,
+				outcome: new ImportReportOutcome(
+					sourceFormat: self::SOURCE_FORMAT,
+					courseId: null,
+					entries: [],
+					errorMessage: 'File is not a valid scholiq-native course export (missing top-level "course" object).',
+				),
 			);
 		}
 
 		$entries = [];
-		$courseId = $this->importTree(tree: $tree, importedBy: $importedBy, tenantId: $tenantId, entries: $entries);
+		$courseId = $this->importTree(tree: $tree, importedBy: $origin->importedBy, tenantId: $origin->tenantId, entries: $entries);
 
 		return $this->reporter->persistReport(
-			sourceFormat: self::SOURCE_FORMAT,
-			sourceFilename: $sourceFilename,
-			importedBy: $importedBy,
-			importedAt: $importedAt,
-			tenantId: $tenantId,
-			courseId: $courseId,
-			lifecycle: $this->reporter->resolveLifecycle(entries: $entries),
-			entries: $entries,
-			errorMessage: null,
+			origin: $origin,
+			outcome: new ImportReportOutcome(sourceFormat: self::SOURCE_FORMAT, courseId: $courseId, entries: $entries, errorMessage: null),
 		);
 	}//end importPackage()
 
