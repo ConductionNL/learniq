@@ -102,7 +102,7 @@ class SecondarySchoolBoardRecordsTest extends TestCase {
 		$periods = self::where(rows: ($objects['exam-period'] ?? []), field: 'name', value: 'Toetsweek 2');
 		self::assertCount(expectedCount: 1, haystack: $periods);
 		self::assertSame(expected: 'planning', actual: $periods[0]['lifecycle']);
-		self::assertLessThan(maximum: $periods[0]['endsOn'], actual: $periods[0]['startsOn']);
+		self::assertLessThan(expected: $periods[0]['endsOn'], actual: $periods[0]['startsOn']);
 		self::assertNotEmpty(actual: $periods[0]['cohortIds']);
 		self::assertNotEmpty(actual: $periods[0]['courseIds']);
 	}//end testTheToetsweekBoardHasAToetsweekInPlanning()
@@ -181,7 +181,12 @@ class SecondarySchoolBoardRecordsTest extends TestCase {
 	 * @spec openspec/specs/example-sets/spec.md
 	 */
 	public function testTheGuardianBoardsHaveAGuardianAccountOfAPupil(): void {
-		$guardians = array_values(array: array_filter(array: self::accounts(), callback: static fn (array $a): bool => in_array(needle: 'guardians', haystack: ($a['groups'] ?? []), strict: true)));
+		$guardians = array_values(
+			array: array_filter(
+				array: self::accounts(),
+				callback: static fn (array $a): bool => in_array(needle: 'guardians', haystack: ($a['groups'] ?? []), strict: true)
+			)
+		);
 		self::assertCount(expectedCount: 1, haystack: $guardians);
 
 		$children = array_values(
@@ -208,7 +213,9 @@ class SecondarySchoolBoardRecordsTest extends TestCase {
 		$negative = array_values(
 			array: array_filter(
 				array: $objects['bsa-decision'],
-				callback: static fn (array $d): bool => $d['decisionType'] === 'negative' && ($d['warningIds'] ?? []) !== [] && ($d['studentHeardAt'] ?? null) !== null
+				callback: static fn (array $d): bool => $d['decisionType'] === 'negative'
+					&& ($d['warningIds'] ?? []) !== []
+					&& ($d['studentHeardAt'] ?? null) !== null
 			)
 		);
 		self::assertNotEmpty(actual: $negative);
