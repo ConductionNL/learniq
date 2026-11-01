@@ -15,17 +15,8 @@
                     "tenant_id": "tenant-a",
                     "lifecycle": "proposed"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-slot",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-slot"
             }
         },
         {
@@ -43,17 +34,8 @@
                     "tenant_id": "tenant-a",
                     "lifecycle": "proposed"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-slot",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-slot"
             }
         },
         {
@@ -71,17 +53,8 @@
                     "tenant_id": "tenant-a",
                     "lifecycle": "proposed"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-slot",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-slot"
             }
         },
         {
@@ -99,17 +72,8 @@
                     "tenant_id": "tenant-a",
                     "lifecycle": "proposed"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-slot",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-slot"
             }
         },
         {
@@ -126,17 +90,8 @@
                     "createdAt": "2026-08-01T08:00",
                     "learnerRef": "ref-1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-signup",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-signup"
             }
         },
         {
@@ -151,17 +106,8 @@
                     ],
                     "createdAt": "2026-08-01T08:01"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-signup",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-signup"
             }
         },
         {
@@ -178,17 +124,8 @@
                     "createdAt": "2026-08-01T08:02",
                     "notes": "Unmet teacher-request(s): teacher-b"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-signup",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-signup"
             }
         },
         {
@@ -204,17 +141,8 @@
                     "createdAt": "2026-08-01T08:03",
                     "notes": "earlier note | Unmet teacher-request(s): teacher-b"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-signup",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-signup"
             }
         }
     ],
@@ -230,17 +158,8 @@
                     "startsAt": "2026-09-01T09:10:00+00:00",
                     "endsAt": "2026-09-01T09:20:00+00:00"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-slot",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-slot"
             }
         },
         {
@@ -258,17 +177,8 @@
                     "tenant_id": "tenant-a",
                     "lifecycle": "proposed"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-slot",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-slot"
             }
         },
         {
@@ -286,17 +196,8 @@
                     "tenant_id": "tenant-a",
                     "lifecycle": "proposed"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-slot",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-slot"
             }
         },
         {
@@ -311,17 +212,8 @@
                     ],
                     "createdAt": "2026-08-01T08:00"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-signup",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-signup"
             }
         },
         {
@@ -338,17 +230,8 @@
                     "createdAt": "2026-08-01T08:02",
                     "notes": "Unmet teacher-request(s): teacher-c"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-signup",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-signup"
             }
         },
         {
@@ -362,17 +245,8 @@
                     ],
                     "createdAt": "2026-08-01T08:04"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-signup",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-signup"
             }
         }
     ],
@@ -392,17 +266,8 @@
                     "tenant_id": "",
                     "lifecycle": "proposed"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-slot",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-slot"
             }
         },
         {
@@ -420,17 +285,8 @@
                     "tenant_id": "",
                     "lifecycle": "proposed"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-slot",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-slot"
             }
         },
         {
@@ -447,17 +303,8 @@
                     ],
                     "createdAt": "2026-08-01T08:00"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-signup",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-signup"
             }
         }
     ],
@@ -477,17 +324,8 @@
                     "tenant_id": "tenant-a",
                     "lifecycle": "proposed"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-slot",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-slot"
             }
         },
         {
@@ -503,17 +341,8 @@
                     ],
                     "createdAt": "2026-08-01T08:00"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "conference-signup",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "conference-signup"
             }
         }
     ],
