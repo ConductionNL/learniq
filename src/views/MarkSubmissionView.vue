@@ -8,8 +8,8 @@
   3. For each Rubric criterion, let the teacher pick a level.
   4. Sum up points into proposedGrade as each level is picked.
   5. On save: write rubricScores + proposedGrade to the Submission,
-     then dispatch the `return` lifecycle transition.
-  6. TODO(grading spec): emit GradeEntry once the grading spec is implemented.
+     then dispatch the `return` lifecycle transition. The server writes a
+     concept GradeEntry for every learner on it (SubmissionReturnGradeEntries).
 
   peer-and-self-assessment: also fetches (read-only) the Submission's
   PeerFeedbackSummary and the teacher's own SelfAssessment for context —
@@ -482,7 +482,6 @@
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
-import { resolveGradePlan } from '../utils/assignmentGradePlan.js'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 import { markingMode, prefillFinalGrade } from '../utils/doubleMarking.js'
 
@@ -761,33 +760,6 @@ export default {
 		},
 
 		/**
-		 * Read one learniq object with the current user's rights.
-		 *
-		 * @param {string} schema The schema slug.
-		 * @param {string} objectId The object UUID.
-		 * @return {Promise<object|null>} The object, or null when absent or not readable.
-		 * @spec openspec/changes/hermiq-ai-tooling/specs/mcp-tool-surface/spec.md#requirement-an-agent-grade-is-a-concept-a-teacher-publishes-req-009
-		 */
-		async fetchLearniqObject(schema, objectId) {
-			const resp = await fetch(
-				generateUrl(
-					`/apps/openregister/api/objects/learniq/${schema}/${objectId}`,
-				),
-				{
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-					},
-				},
-			)
-			if (!resp.ok) {
-				return null
-			}
-			const json = await resp.json()
-			return json.object ?? json ?? null
-		},
-
-		/**
 		 * Fetch the Rubric from OR.
 		 *
 		 * @param {string} rubricId Rubric UUID
@@ -1003,9 +975,8 @@ export default {
 		},
 
 		/**
-		 * Save rubricScores + proposedGrade + feedbackText to the Submission,
-		 * create a concept GradeEntry (grading spec bridge), and dispatch
-		 * the `return` lifecycle transition.
+		 * Save rubricScores + proposedGrade + feedbackText to the Submission
+		 * and dispatch the `return` lifecycle transition.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-28
@@ -1055,69 +1026,8 @@ export default {
 					throw new Error(`Submission update failed: ${updateResp.status}`)
 				}
 
-				// 2. Create a concept GradeEntry (grading spec — sourceKind: assignment-submission).
-				// The teacher reviews and publishes it via the GradebookView; only then does
-				// the notification fire and the FinalGrade recompute trigger.
-				// The plan hangs off the assignment's course and the scale off the
-				// plan: the Assignment schema holds neither (hermiq-ai-tooling).
-				const gradePlan =
-					proposedGrade === null
-						? null
-						: await resolveGradePlan(
-								this.assignment,
-								(schema, objectId) =>
-									this.fetchLearniqObject(schema, objectId),
-							)
-				if (gradePlan) {
-					const gradeEntryUrl = generateUrl(
-						'/apps/openregister/api/objects/learniq/grade-entry',
-					)
-					const gradeEntryResp = await fetch(gradeEntryUrl, {
-						method: 'POST',
-						headers: {
-							'OCS-APIREQUEST': 'true',
-							Accept: 'application/json',
-							'Content-Type': 'application/json',
-						},
-						body: JSON.stringify({
-							learnerId: (this.submission.learnerIds ?? [])[0] ?? '',
-							curriculumPlanId: gradePlan.curriculumPlanId,
-							componentId: gradePlan.componentId,
-							courseId: gradePlan.courseId,
-							sourceKind: 'assignment-submission',
-							submissionId: this.id,
-							value: proposedGrade,
-							gradeScaleId: gradePlan.gradeScaleId,
-							grader: '',
-							gradedAt: new Date().toISOString(),
-							lifecycle: 'concept',
-							tenant_id: this.submission.tenant_id ?? '',
-						}),
-					})
-					if (gradeEntryResp.ok) {
-						const gradeEntryJson = await gradeEntryResp.json()
-						const gradeEntryId =
-							(gradeEntryJson.object ?? gradeEntryJson)?.id ?? null
-						if (gradeEntryId) {
-							// Back-link the GradeEntry to the Submission.
-							const linkUrl = generateUrl(
-								`/apps/openregister/api/objects/learniq/Submission/${this.id}`,
-							)
-							await fetch(linkUrl, {
-								method: 'PATCH',
-								headers: {
-									'OCS-APIREQUEST': 'true',
-									Accept: 'application/json',
-									'Content-Type': 'application/json',
-								},
-								body: JSON.stringify({ gradeEntryId }),
-							})
-						}
-					}
-					// Non-fatal: GradeEntry creation failure does not block the return transition.
-				}
-
-				// 3. Dispatch `return` lifecycle transition
+				// 2. Dispatch `return`; SubmissionReturnGradeEntries writes a concept
+				// GradeEntry for every learner on the server.
 				const transitionUrl = generateUrl(objectTransitionUrl(this.id))
 				const transResp = await fetch(transitionUrl, {
 					method: 'POST',

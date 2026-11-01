@@ -37,6 +37,7 @@ use OCA\Learniq\Lifecycle\AttendanceFlagCreationHandler;
 use OCA\Learniq\Lifecycle\ExcuseApprovalHandler;
 use OCA\Learniq\Listener\CredentialIssuanceHandler;
 use OCA\Learniq\Listener\ExemptionGrantHandler;
+use OCA\Learniq\Listener\SubmissionReturnGradeEntries;
 use OCA\Learniq\Listener\GradeRollupHandler;
 use OCA\Learniq\Listener\ItemAnalysisRecomputeHandler;
 use OCA\Learniq\Listener\LearningPlanEvaluationHandler;
@@ -141,6 +142,13 @@ class GradingListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: ExemptionGrantHandler::class
+		);
+
+		// Submission `return` -> a concept GradeEntry for every learner on it,
+		// written on the server with the returning teacher as grader.
+		$context->registerEventListener(
+			event: ObjectTransitionedEvent::class,
+			listener: SubmissionReturnGradeEntries::class
 		);
 
 		// ADR-031 legitimate exception (assessment-item-pools-and-analysis):

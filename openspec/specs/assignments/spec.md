@@ -115,6 +115,24 @@ teacher's own entry into `Submission.rubricScores`/`proposedGrade` remains the o
 - **THEN** a blended suggestion is displayed alongside the teacher's own entry fields
 - **AND** `Submission.proposedGrade` is not pre-filled or altered until the teacher explicitly enters a value
 
+### Requirement: Returning a marked submission writes a grade entry for every learner on it
+When a Submission takes the `return` transition with a `proposedGrade`, the server (not the marking screen) MUST
+write a `concept` GradeEntry for every learner in `learnerIds`, with `sourceKind: assignment-submission`, the
+submission id, the proposed grade as value, the assignment's plan component, the plan of the assignment's course,
+that plan's grade scale, the course, the teacher who ran the transition as `grader`, and the time. Returning the
+same submission again MUST update those concept entries; a published entry MUST be left alone. Without a proposed
+grade, or when the assignment names no plan component or its course no plan, no entry is written.
+
+#### Scenario: A group hand-in is graded for the whole group
+- **GIVEN** a submission handed in by two learners and marked 7.5 by teacher Anna
+- **WHEN** Anna returns it
+- **THEN** two concept GradeEntries exist, one per learner, each with value 7.5 and grader Anna
+
+#### Scenario: Returning again after a resubmission
+- **GIVEN** one learner's entry is still a concept and the other's is published
+- **WHEN** the resubmitted work is returned with 8
+- **THEN** the concept entry reads 8 and the published one is unchanged
+
 ### Requirement: Plagiarism check is a pluggable provider
 The plagiarism-check hook MUST be a declared `x-plagiarism.provider` config on `Assignment` resolving to a pluggable PHP interface (no bundled provider) — analogous to proctoring providers in the `assessment` spec.
 
