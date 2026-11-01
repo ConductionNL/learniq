@@ -154,5 +154,45 @@ class GroupLineTest(unittest.TestCase):
         self.assertEqual({ref: e["slug"] for ref, e in newest.items()}, {"a": "x-enrolment-002"})
 
 
+def import_script(name: str):
+    """Imports one script from scripts/example-sets as a module; nothing runs on import."""
+    sys.path.insert(0, SCRIPTS)
+    try:
+        return __import__(name)
+    finally:
+        sys.path.remove(SCRIPTS)
+
+
+class HigherEducationRulesTest(unittest.TestCase):
+    """Rules in he.py that the example set's own data never reaches."""
+
+    def test_the_first_best_entry_per_component_wins_a_tie(self) -> None:
+        he = import_script("he")
+        entries = [
+            {"componentId": "a", "value": 6.0, "sourceKind": "manual", "period": "B1"},
+            {"componentId": "a", "value": 6.0, "sourceKind": "manual", "period": "B2"},
+        ]
+        value, breakdown = he.aggregate(entries, {"a": {"weight": 1}})
+        self.assertEqual((value, list(breakdown["periods"])), (6.0, ["B1"]))
+
+    def test_a_course_with_only_exempt_components_has_no_value(self) -> None:
+        he = import_script("he")
+        value, parts = he.aggregate([{"componentId": "a", "value": None, "sourceKind": "exemption"}], {"a": {"weight": 1}})
+        self.assertEqual((value, parts), (None, {"a": {"exempt": True}}))
+
+    def test_an_entry_without_a_period_counts_under_unknown(self) -> None:
+        he = import_script("he")
+        _value, breakdown = he.aggregate([{"componentId": "a", "value": 7.0, "sourceKind": "manual"}], {"a": {"weight": 2}})
+        self.assertEqual(breakdown["periods"], {"unknown": 7.0})
+
+    def test_full_marks_allow_for_float_rounding(self) -> None:
+        he = import_script("he")
+        self.assertEqual(he.full_marks_share([1.0 - 1e-9, 0.5], 1.0), 0.5)
+
+    def test_an_attribute_escapes_double_quotes(self) -> None:
+        he = import_script("he")
+        self.assertEqual(he.xml_attr('a "b" <c>'), "a &quot;b&quot; &lt;c&gt;")
+
+
 if __name__ == "__main__":
     unittest.main()
