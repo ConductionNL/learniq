@@ -149,7 +149,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 * @spec openspec/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
 	 */
 	public function testTheInstitutionHasItsPromisedShape(): void {
-		self::assertSame('00X4', self::find(schema: 'school', field: 'name', value: 'Voorbeeldhogeschool Esdoornstad')['brin']);
+		self::assertSame('00X4', self::find(schema: 'school', field: 'name', value: 'Hogeschool Zuiddrecht')['brin']);
 		$faculties = array_column(self::of(schema: 'vestiging'), 'name');
 		self::assertContains('Faculteit Gezondheid en Welzijn, Campus Zuid', $faculties);
 		self::assertContains('Faculteit Techniek en ICT, Campus Noord', $faculties);
@@ -603,6 +603,44 @@ class HigherEducationExampleSetTest extends TestCase {
 		self::assertSame(end($all)['uuid'], $uuids[0], 'the last-loaded object is removed first');
 		self::assertSame(self::of(schema: 'school')[0]['uuid'], end($uuids), 'the institution is removed last');
 	}//end testTheServiceOffersAndRemovesExactlyThisSet()
+
+	/**
+	 * LqBsaBesluit and LqStudievoortgang draw Hogeschool Zuiddrecht, the
+	 * negative decision of Femke de Boer and the students flagged with her at
+	 * the interim check; the set carries those names on the same user ids.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/example-sets/spec.md
+	 */
+	public function testTheSetCarriesTheNamesTheBoardsDraw(): void {
+		$school = self::of(schema: 'school')[0];
+		self::assertSame('Hogeschool Zuiddrecht', $school['name']);
+		foreach (self::of(schema: 'vestiging') as $faculty) {
+			self::assertSame('Zuiddrecht', $faculty['city']);
+		}
+
+		$profiles = self::by(rows: self::of(schema: 'learner-profile'), field: 'ncUserId');
+		$expected = [
+			'he-student-008' => ['Femke', 'de Boer'],
+			'he-student-004' => ['Lucas', 'Peters'],
+			'he-student-006' => ['Ravi', 'Doekhie'],
+			'he-student-007' => ['Sara', 'El Khatib'],
+			'he-student-017' => ['Zoë', 'Vermeulen'],
+			'he-student-022' => ['Milan', 'de Jong'],
+		];
+		$flags    = self::by(rows: self::of(schema: 'bsa-progress-flag'), field: 'learnerId');
+		foreach ($expected as $userId => [$given, $family]) {
+			self::assertSame([$given, $family], [$profiles[$userId]['givenName'], $profiles[$userId]['familyName']], $userId);
+			self::assertArrayHasKey($userId, $flags, $userId . ' is flagged at the interim check');
+		}
+
+		self::assertSame('resolved', $flags['he-student-022']['lifecycle']);
+
+		$decision = self::find(schema: 'bsa-decision', field: 'uuid', value: 'ee04002e-0000-4000-8000-000000000007');
+		self::assertSame('he-student-008', $decision['learnerId']);
+		self::assertSame('negative', $decision['decisionType']);
+	}//end testTheSetCarriesTheNamesTheBoardsDraw()
 
 	/**
 	 * The file is what the generator produces, so nobody edits the JSON by
