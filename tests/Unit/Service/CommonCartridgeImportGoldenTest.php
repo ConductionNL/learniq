@@ -164,15 +164,16 @@ class CommonCartridgeImportGoldenTest extends TestCase {
 	private function callsFor(string $dir, array $manifest): array {
 		$calls   = [];
 		$service = $this->createMock(ObjectService::class);
-		$names   = array_map(
-			static fn ($p) => $p->getName(),
-			(new ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters()
-		);
+		$params   = (new ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters();
 		$service->method('saveObject')->willReturnCallback(
-			static function (...$args) use ($names, &$calls) {
+			static function (...$args) use ($params, &$calls) {
 				$named = [];
 				foreach ($args as $i => $value) {
-					$named[$names[$i]] = $value;
+					if ($params[$i]->isDefaultValueAvailable() === true && $params[$i]->getDefaultValue() === $value) {
+						continue;
+					}
+
+					$named[$params[$i]->getName()] = $value;
 				}
 
 				$calls[] = ['saveObject' => $named];
