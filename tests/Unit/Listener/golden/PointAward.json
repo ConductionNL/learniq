@@ -1,0 +1,850 @@
+{
+    "enrolment completed, scoped rules": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-rule",
+                        "kind": "enrolment-completed",
+                        "lifecycle": "active",
+                        "tenant_id": "t-1"
+                    }
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-1",
+                        "sourceObjectId": "e-1"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-1",
+                    "points": 10.0,
+                    "sourceKind": "enrolment",
+                    "sourceObjectId": "e-1",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": "t-1"
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-2",
+                        "sourceObjectId": "e-1"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-2",
+                    "points": 2.5,
+                    "sourceKind": "enrolment",
+                    "sourceObjectId": "e-1",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": "t-1"
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-3",
+                        "sourceObjectId": "e-1"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-3",
+                    "points": 4.0,
+                    "sourceKind": "enrolment",
+                    "sourceObjectId": "e-1",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": "t-1"
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-5",
+                        "sourceObjectId": "e-1"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-5",
+                    "points": 0.0,
+                    "sourceKind": "enrolment",
+                    "sourceObjectId": "e-1",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": "t-1"
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-6",
+                        "sourceObjectId": "e-1"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-6",
+                    "points": 3.0,
+                    "sourceKind": "enrolment",
+                    "sourceObjectId": "e-1",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": "t-1"
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "returned": true
+        }
+    ],
+    "enrolment completed, other course": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-rule",
+                        "kind": "enrolment-completed",
+                        "lifecycle": "active",
+                        "tenant_id": ""
+                    }
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-1",
+                        "sourceObjectId": "e-1"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-1",
+                    "points": 10.0,
+                    "sourceKind": "enrolment",
+                    "sourceObjectId": "e-1",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": ""
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-2",
+                        "sourceObjectId": "e-1"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-2",
+                    "points": 2.5,
+                    "sourceKind": "enrolment",
+                    "sourceObjectId": "e-1",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": ""
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-4",
+                        "sourceObjectId": "e-1"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-4",
+                    "points": 1.0,
+                    "sourceKind": "enrolment",
+                    "sourceObjectId": "e-1",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": ""
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-5",
+                        "sourceObjectId": "e-1"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-5",
+                    "points": 0.0,
+                    "sourceKind": "enrolment",
+                    "sourceObjectId": "e-1",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": ""
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-6",
+                        "sourceObjectId": "e-1"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-6",
+                    "points": 3.0,
+                    "sourceKind": "enrolment",
+                    "sourceObjectId": "e-1",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": ""
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "returned": true
+        }
+    ],
+    "enrolment completed, no scope": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-rule",
+                        "kind": "enrolment-completed",
+                        "lifecycle": "active",
+                        "tenant_id": ""
+                    }
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-1",
+                        "sourceObjectId": "e-2"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-5",
+                        "sourceObjectId": "e-2"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-5",
+                    "points": 0.0,
+                    "sourceKind": "enrolment",
+                    "sourceObjectId": "e-2",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": ""
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-6",
+                        "sourceObjectId": "e-2"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-6",
+                    "points": 3.0,
+                    "sourceKind": "enrolment",
+                    "sourceObjectId": "e-2",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": ""
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "returned": true
+        }
+    ],
+    "enrolment completed, already awarded": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-rule",
+                        "kind": "enrolment-completed",
+                        "lifecycle": "active",
+                        "tenant_id": "t-1"
+                    }
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-1",
+                        "sourceObjectId": "e-2"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-2",
+                        "sourceObjectId": "e-2"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-2",
+                    "points": 2.5,
+                    "sourceKind": "enrolment",
+                    "sourceObjectId": "e-2",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": "t-1"
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-3",
+                        "sourceObjectId": "e-2"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-3",
+                    "points": 4.0,
+                    "sourceKind": "enrolment",
+                    "sourceObjectId": "e-2",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": "t-1"
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-5",
+                        "sourceObjectId": "e-2"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-5",
+                    "points": 0.0,
+                    "sourceKind": "enrolment",
+                    "sourceObjectId": "e-2",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": "t-1"
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-6",
+                        "sourceObjectId": "e-2"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-6",
+                    "points": 3.0,
+                    "sourceKind": "enrolment",
+                    "sourceObjectId": "e-2",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": "t-1"
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "returned": true
+        }
+    ],
+    "enrolment completed, no learner": [
+        {
+            "returned": true
+        }
+    ],
+    "enrolment completed, no id": [
+        {
+            "returned": true
+        }
+    ],
+    "enrolment completed, numeric id": [
+        {
+            "threw": "TypeError"
+        }
+    ],
+    "enrolment completed, numeric learner": [
+        {
+            "threw": "TypeError"
+        }
+    ],
+    "enrolment completed, numeric tenant": [
+        {
+            "threw": "TypeError"
+        }
+    ],
+    "enrolment completed, numeric cohort": [
+        {
+            "threw": "TypeError"
+        }
+    ],
+    "enrolment completed, numeric course": [
+        {
+            "threw": "TypeError"
+        }
+    ],
+    "enrolment to active": [
+        {
+            "returned": true
+        }
+    ],
+    "other register": [
+        {
+            "returned": true
+        }
+    ],
+    "submission on time": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-rule",
+                        "kind": "submission-on-time",
+                        "lifecycle": "active",
+                        "tenant_id": "t-1"
+                    }
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-7",
+                        "sourceObjectId": "sub-1"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-7",
+                    "points": 5.0,
+                    "sourceKind": "submission",
+                    "sourceObjectId": "sub-1",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": "t-1"
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-rule",
+                        "kind": "submission-on-time",
+                        "lifecycle": "active",
+                        "tenant_id": "t-1"
+                    }
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "bob",
+                        "pointRuleId": "pr-7",
+                        "sourceObjectId": "sub-1"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "returned": true
+        }
+    ],
+    "submission late": [
+        {
+            "returned": true
+        }
+    ],
+    "submission isLate null": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-rule",
+                        "kind": "submission-on-time",
+                        "lifecycle": "active",
+                        "tenant_id": ""
+                    }
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-7",
+                        "sourceObjectId": "sub-3"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-7",
+                    "points": 5.0,
+                    "sourceKind": "submission",
+                    "sourceObjectId": "sub-3",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": ""
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "returned": true
+        }
+    ],
+    "submission learners not a list": [
+        {
+            "returned": true
+        }
+    ],
+    "submission numeric id, no learners": [
+        {
+            "returned": true
+        }
+    ],
+    "submission numeric id": [
+        {
+            "threw": "TypeError"
+        }
+    ],
+    "grade published, pass": [
+        {
+            "evaluate": [
+                "cp-1",
+                "ann"
+            ]
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-rule",
+                        "kind": "finalgrade-passed",
+                        "lifecycle": "active",
+                        "tenant_id": "t-1"
+                    }
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-9",
+                        "sourceObjectId": "cp-1"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-9",
+                    "points": 20.0,
+                    "sourceKind": "grade-entry",
+                    "sourceObjectId": "cp-1",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": "t-1"
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "point-award",
+                        "learnerId": "ann",
+                        "pointRuleId": "pr-10",
+                        "sourceObjectId": "cp-1"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "pointRuleId": "pr-10",
+                    "points": 2.0,
+                    "sourceKind": "grade-entry",
+                    "sourceObjectId": "cp-1",
+                    "awardedAt": "2026-03-04T05:06:07+00:00",
+                    "tenant_id": "t-1"
+                },
+                "register": "learniq",
+                "schema": "point-award"
+            }
+        },
+        {
+            "returned": true
+        }
+    ],
+    "grade published, fail": [
+        {
+            "evaluate": [
+                "cp-1",
+                "ann"
+            ]
+        },
+        {
+            "returned": true
+        }
+    ],
+    "grade published, no plan": [
+        {
+            "returned": true
+        }
+    ]
+}
