@@ -10,6 +10,7 @@ A script imports this module from its own directory and ends with
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import os
 import sys
@@ -60,6 +61,15 @@ class Builder:
             obj["tenant_id"] = TENANT
         self.buckets[schema].append(obj)
         return obj
+
+
+def document(template: dict, b: Builder) -> dict:
+    """The profile file's content: the template with every non-empty bucket and the object count."""
+    objects = {name: rows for name, rows in b.buckets.items() if rows}
+    data = copy.deepcopy(template)
+    data["x-openregister"]["profile"]["objectCount"] = sum(len(rows) for rows in objects.values())
+    data["x-openregister"]["seedData"]["objects"] = objects
+    return data
 
 
 def stamp_group_labels(b: Builder) -> None:
