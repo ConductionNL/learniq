@@ -910,5 +910,49 @@
         {
             "threw": "TypeError"
         }
+    ],
+    "numeric lesson id": [
+        {
+            "findAll": {
+                "ids": [
+                    "42"
+                ],
+                "filters": {
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "lesson"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "active",
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "pending",
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "threw": "TypeError"
+        }
     ]
 }

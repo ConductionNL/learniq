@@ -118,6 +118,17 @@ class LessonProgress {
 	}//end scaledScore()
 
 	/**
+	 * The resolved Lesson's id as a string; any other type is a TypeError.
+	 *
+	 * @param string $id The Lesson row's id or uuid.
+	 *
+	 * @return string
+	 */
+	private static function lessonKey(string $id): string {
+		return $id;
+	}//end lessonKey()
+
+	/**
 	 * Resolve the learner identity this statement may act on.
 	 *
 	 * C6: identity comes ONLY from the server-trusted `verified_actor_id` field
@@ -267,7 +278,7 @@ class LessonProgress {
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::LESSON_COMPLETION_SCHEMA,
 					'learnerId' => $completion['learnerId'],
-					'lessonId' => $completion['lessonId'],
+					'lessonId' => self::lessonKey(id: $completion['lessonId']),
 				],
 			]
 		);

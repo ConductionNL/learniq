@@ -84,6 +84,7 @@ class LessonProgressGoldenTest extends TestCase {
 			'lesson-without-course' => ['lesson' => [['id' => 'lesson-1', 'tenant_id' => 't1']]],
 			'numeric-course' => ['lesson' => [['id' => 'lesson-1', 'courseId' => 7, 'tenant_id' => 't1']]],
 			'lesson-by-uuid' => ['lesson' => [['uuid' => 'lesson-u', 'courseId' => 'course-1']]],
+			'numeric-lesson-id' => ['lesson' => [['id' => 42, 'courseId' => 'course-1', 'tenant_id' => 't1']]],
 		];
 	}//end stores()
 
@@ -119,6 +120,7 @@ class LessonProgressGoldenTest extends TestCase {
 			'whole-number score' => ['active', array_merge($base, ['result' => ['score' => ['scaled' => 1]]])],
 			'text score' => ['active', array_merge($base, ['result' => ['score' => ['scaled' => '0.5']]])],
 			'numeric course id' => ['numeric-course', $base],
+			'numeric lesson id' => ['numeric-lesson-id', array_merge($base, ['lessonId' => '42'])],
 		];
 	}//end scenarios()
 
@@ -207,7 +209,7 @@ class LessonProgressGoldenTest extends TestCase {
 	 * @return bool
 	 */
 	private static function rowMatches(array $row, array $config): bool {
-		if (isset($config['ids']) === true && in_array(($row['id'] ?? ($row['uuid'] ?? null)), $config['ids'], true) === false) {
+		if (isset($config['ids']) === true && in_array((string)($row['id'] ?? ($row['uuid'] ?? '')), $config['ids'], true) === false) {
 			return false;
 		}
 
