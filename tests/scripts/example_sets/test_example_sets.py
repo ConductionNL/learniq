@@ -194,5 +194,40 @@ class HigherEducationRulesTest(unittest.TestCase):
         self.assertEqual(he.xml_attr('a "b" <c>'), "a &quot;b&quot; &lt;c&gt;")
 
 
+class VocationalCollegeRulesTest(unittest.TestCase):
+    """Rules in mbo.py that the example set's own data never reaches."""
+
+    def plan(self, formula: str, rules: list) -> dict:
+        return {"formula": formula, "components": [{"componentId": "a", "weight": 3}], "passRules": rules}
+
+    def test_only_published_entries_count_and_weights_apply(self) -> None:
+        mbo = import_script("mbo")
+        entries = [
+            {"componentId": "a", "value": 8.0, "lifecycle": "published", "gradedAt": "1", "period": "S1"},
+            {"componentId": "b", "value": 5.0, "lifecycle": "published", "gradedAt": "1", "period": "S1"},
+            {"componentId": "a", "value": 1.0, "lifecycle": "invalidated", "gradedAt": "2", "period": "S1"},
+        ]
+        value, passed, _breakdown = mbo.evaluate_final(entries, (self.plan("weighted", []), 5.5))
+        self.assertEqual((value, passed), (7.25, True))
+
+    def test_all_must_pass_needs_an_entry_for_every_rule(self) -> None:
+        mbo = import_script("mbo")
+        entries = [{"componentId": "a", "value": 8.0, "lifecycle": "published", "gradedAt": "1"}]
+        rules = [{"componentId": "a"}, {"componentId": "c"}]
+        self.assertFalse(mbo.evaluate_final(entries, (self.plan("all-must-pass", rules), 5.5))[1])
+        self.assertTrue(mbo.evaluate_final(entries, (self.plan("all-must-pass", rules[:1]), 5.5))[1])
+
+    def test_returned_hours_are_the_unapproved_part_of_a_rejected_week(self) -> None:
+        mbo = import_script("mbo")
+        weeks = [{"hoursSubmitted": 8, "hoursApproved": 3, "lifecycle": "rejected"}, {"hoursSubmitted": 8, "lifecycle": "submitted"}]
+        self.assertEqual((mbo.returned_hours(weeks), mbo.waiting_hours(weeks)), (5, 8))
+
+    def test_the_nearest_placement_day_prefers_the_earlier_one(self) -> None:
+        mbo = import_script("mbo")
+        placement = {"from": mbo.dt.date(2025, 9, 1), "to": mbo.dt.date(2025, 12, 31), "weekdays": ["tuesday", "thursday"]}
+        self.assertEqual(mbo.placement_day_near(mbo.dt.date(2025, 9, 17), placement), mbo.dt.date(2025, 9, 16))
+        self.assertEqual(mbo.placement_day_near(mbo.dt.date(2025, 9, 19), placement), mbo.dt.date(2025, 9, 18))
+
+
 if __name__ == "__main__":
     unittest.main()
