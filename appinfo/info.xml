@@ -358,6 +358,13 @@ Vrij en open source onder de EUPL-1.2-licentie.
                 Idempotent: a second run saves nothing.
             -->
             <step>OCA\Learniq\Repair\BackfillConferenceInvitations</step>
+            <!--
+                dossier-timeline-deliberations: stamps learnerId on existing
+                deliberation records from their support request, so the
+                pupil's dossier timeline finds them. After InitializeSettings
+                (the register must declare the field). Idempotent.
+            -->
+            <step>OCA\Learniq\Repair\BackfillDeliberationRecordLearner</step>
         </post-migration>
         <install>
             <!--

@@ -34,6 +34,7 @@ namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\Learniq\Listener\AccessibilityFeedbackReporterStamp;
 use OCA\Learniq\Listener\ConcernReportReporterStamp;
+use OCA\Learniq\Listener\DeliberationRecordLearnerStamp;
 use OCA\Learniq\Listener\RegulationExemptionRequestStamp;
 use OCA\Learniq\Listener\SovereigntyPolicySetByStamp;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
@@ -95,5 +96,10 @@ class SafeguardingListenerRegistrar {
 		// The four-eyes correction listeners (governance-four-eyes-on-approved-data),
 		// chained here for the same coupling reason this registrar is chained.
 		(new GovernanceListenerRegistrar())->register(context: $context);
+
+		// The pupil of a deliberation record, from its support request
+		// (dossier-timeline-deliberations).
+		$context->registerEventListener(event: ObjectCreatingEvent::class, listener: DeliberationRecordLearnerStamp::class);
+		$context->registerEventListener(event: ObjectUpdatingEvent::class, listener: DeliberationRecordLearnerStamp::class);
 	}//end register()
 }//end class
