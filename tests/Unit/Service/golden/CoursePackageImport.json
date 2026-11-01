@@ -11,17 +11,8 @@
                     "lifecycle": "draft",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "course",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "course"
             }
         },
         {
@@ -37,17 +28,8 @@
                     "courseId": "saved-1",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "material",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "material"
             }
         },
         {
@@ -61,17 +43,8 @@
                     "lifecycle": "draft",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "lesson",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "lesson"
             }
         },
         {
@@ -85,17 +58,8 @@
                     "lifecycle": "draft",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "course",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "course"
             }
         },
         {
@@ -107,17 +71,8 @@
                     "lifecycle": "draft",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "lti-tool-placement",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "lti-tool-placement"
             }
         },
         {
@@ -130,17 +85,8 @@
                     "courseId": "saved-1",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "material",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "material"
             }
         },
         {
@@ -150,17 +96,8 @@
                     "tenant_id": "t1",
                     "lifecycle": "draft"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "item-bank",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "item-bank"
             }
         },
         {
@@ -177,17 +114,8 @@
                     "lifecycle": "draft",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "item",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "item"
             }
         },
         {
@@ -262,17 +190,8 @@
                     ],
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "course-package-import-report",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "course-package-import-report"
             }
         },
         {
@@ -361,17 +280,8 @@
                     "lifecycle": "draft",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "course",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "course"
             }
         },
         {
@@ -387,17 +297,8 @@
                     "courseId": "saved-1",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "material",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "material"
             }
         },
         {
@@ -411,17 +312,8 @@
                     "lifecycle": "draft",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "lesson",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "lesson"
             }
         },
         {
@@ -431,17 +323,8 @@
                     "tenant_id": "t1",
                     "lifecycle": "draft"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "item-bank",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "item-bank"
             }
         },
         {
@@ -458,17 +341,8 @@
                     "lifecycle": "draft",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "item",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "item"
             }
         },
         {
@@ -488,17 +362,8 @@
                     "lifecycle": "draft",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "item",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "item"
             }
         },
         {
@@ -515,17 +380,8 @@
                     "lifecycle": "draft",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "item",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "item"
             }
         },
         {
@@ -542,17 +398,8 @@
                     "lifecycle": "draft",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "item",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "item"
             }
         },
         {
@@ -565,17 +412,8 @@
                     "courseId": "saved-1",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "material",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "material"
             }
         },
         {
@@ -588,17 +426,8 @@
                     "tenant_id": "t1",
                     "lifecycle": "draft"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "assignment",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "assignment"
             }
         },
         {
@@ -709,17 +538,8 @@
                     ],
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "course-package-import-report",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "course-package-import-report"
             }
         },
         {
@@ -850,17 +670,8 @@
                     "entries": [],
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "course-package-import-report",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "course-package-import-report"
             }
         },
         {
@@ -900,17 +711,8 @@
                     "entries": [],
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "course-package-import-report",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "course-package-import-report"
             }
         },
         {
@@ -950,17 +752,8 @@
                     "entries": [],
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "course-package-import-report",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "course-package-import-report"
             }
         },
         {
@@ -1000,17 +793,8 @@
                     "entries": [],
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "course-package-import-report",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "course-package-import-report"
             }
         },
         {
@@ -1044,17 +828,8 @@
                     "lifecycle": "draft",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "course",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "course"
             }
         },
         {
@@ -1068,17 +843,8 @@
                     "lifecycle": "draft",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "lesson",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "lesson"
             }
         },
         {
@@ -1094,17 +860,8 @@
                     "courseId": "saved-1",
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "material",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "material"
             }
         },
         {
@@ -1152,17 +909,8 @@
                     ],
                     "tenant_id": "t1"
                 },
-                "extend": [],
                 "register": "learniq",
-                "schema": "course-package-import-report",
-                "uuid": null,
-                "_rbac": true,
-                "_multitenancy": true,
-                "silent": false,
-                "uploadedFiles": null,
-                "currentUser": null,
-                "failIfExists": false,
-                "_unowned": false
+                "schema": "course-package-import-report"
             }
         },
         {
