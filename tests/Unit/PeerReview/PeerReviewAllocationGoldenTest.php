@@ -47,7 +47,7 @@ class PeerReviewAllocationGoldenTest extends TestCase {
 	/**
 	 * Each scenario: the assignment (or null), its submissions and its existing reviews.
 	 *
-	 * @return array<string, array{0: array<string, mixed>|null, 1: list<array<string, mixed>>, 2: list<array<string, mixed>>}>
+	 * @return array<string, array{0: array<string, mixed>|null, 1: list<array<string, mixed>>, 2: list<array<string, mixed>>, 3?: string}>
 	 */
 	private static function scenarios(): array {
 		$sub = static fn (string $id, array $learners, string $at, string $lifecycle = 'submitted', array $extra = []) => array_merge(
@@ -80,6 +80,17 @@ class PeerReviewAllocationGoldenTest extends TestCase {
 			'no handed-in submissions' => [$assignment([]), [$sub('s5', ['frank'], '2026-10-05', 'draft')], []],
 			'no reviewer pool' => [$assignment([]), [$sub('s1', [7], '2026-10-01')], []],
 			'missing assignment' => [null, $subs, []],
+			'rotation skips a reviewer already on the submission' => [
+				$assignment([]),
+				[$sub('s1', ['ann'], '2026-10-01'), $sub('s2', ['bob'], '2026-10-02'), $sub('s3', ['carol'], '2026-10-03')],
+				[['id' => 'r1', 'assignmentId' => 'a1', 'submissionId' => 's1', 'reviewerId' => 'bob']],
+			],
+			'another assignment id' => [
+				['id' => 'a2', 'peerReviewersPerSubmission' => 1],
+				[$sub('s1', ['ann'], '2026-10-01', 'submitted', ['assignmentId' => 'a2']), $sub('s2', ['bob'], '2026-10-02', 'submitted', ['assignmentId' => 'a2'])],
+				[],
+				'a2',
+			],
 		];
 	}//end scenarios()
 
@@ -90,9 +101,9 @@ class PeerReviewAllocationGoldenTest extends TestCase {
 	 */
 	public function testEveryScenarioMakesTheRecordedCalls(): void {
 		$actual = [];
-		foreach (self::scenarios() as $name => [$assignment, $submissions, $reviews]) {
+		foreach (self::scenarios() as $name => $scenario) {
 			mt_srand(42);
-			$actual[$name] = $this->callsFor($assignment, $submissions, $reviews);
+			$actual[$name] = $this->callsFor($scenario[0], $scenario[1], $scenario[2], ($scenario[3] ?? 'a1'));
 		}
 
 		$json = json_encode($actual, (JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION)) . "\n";
@@ -109,10 +120,11 @@ class PeerReviewAllocationGoldenTest extends TestCase {
 	 * @param array<string, mixed>|null  $assignment  The assignment, or null when missing.
 	 * @param list<array<string, mixed>> $submissions The stored submissions.
 	 * @param list<array<string, mixed>> $reviews     The stored peer reviews.
+	 * @param string                     $id          The assignment id allocate() is called with.
 	 *
 	 * @return list<array<string, mixed>>
 	 */
-	private function callsFor(?array $assignment, array $submissions, array $reviews): array {
+	private function callsFor(?array $assignment, array $submissions, array $reviews, string $id): array {
 		$calls   = [];
 		$service = $this->createMock(ObjectService::class);
 		$service->method('find')->willReturnCallback(
@@ -139,7 +151,7 @@ class PeerReviewAllocationGoldenTest extends TestCase {
 			}
 		);
 
-		$calls[] = ['result' => (new PeerReviewAllocationService($service, new NullLogger()))->allocate('a1')];
+		$calls[] = ['result' => (new PeerReviewAllocationService($service, new NullLogger()))->allocate($id)];
 		return $calls;
 	}//end callsFor()
 
