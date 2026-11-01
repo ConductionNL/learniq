@@ -149,7 +149,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 * @spec openspec/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
 	 */
 	public function testTheInstitutionHasItsPromisedShape(): void {
-		self::assertSame('00X4', self::find(schema: 'school', field: 'name', value: 'Hogeschool Zuiddrecht')['brin']);
+		self::assertSame(expected: '00X4', actual: self::find(schema: 'school', field: 'name', value: 'Hogeschool Zuiddrecht')['brin']);
 		$faculties = array_column(self::of(schema: 'vestiging'), 'name');
 		self::assertContains('Faculteit Gezondheid en Welzijn, Campus Zuid', $faculties);
 		self::assertContains('Faculteit Techniek en ICT, Campus Noord', $faculties);
@@ -615,9 +615,9 @@ class HigherEducationExampleSetTest extends TestCase {
 	 */
 	public function testTheSetCarriesTheNamesTheBoardsDraw(): void {
 		$school = self::of(schema: 'school')[0];
-		self::assertSame('Hogeschool Zuiddrecht', $school['name']);
+		self::assertSame(expected: 'Hogeschool Zuiddrecht', actual: $school['name']);
 		foreach (self::of(schema: 'vestiging') as $faculty) {
-			self::assertSame('Zuiddrecht', $faculty['city']);
+			self::assertSame(expected: 'Zuiddrecht', actual: $faculty['city']);
 		}
 
 		$profiles = self::by(rows: self::of(schema: 'learner-profile'), field: 'ncUserId');
@@ -631,15 +631,19 @@ class HigherEducationExampleSetTest extends TestCase {
 		];
 		$flags    = self::by(rows: self::of(schema: 'bsa-progress-flag'), field: 'learnerId');
 		foreach ($expected as $userId => [$given, $family]) {
-			self::assertSame([$given, $family], [$profiles[$userId]['givenName'], $profiles[$userId]['familyName']], $userId);
-			self::assertArrayHasKey($userId, $flags, $userId . ' is flagged at the interim check');
+			self::assertSame(
+				expected: [$given, $family],
+				actual: [$profiles[$userId]['givenName'], $profiles[$userId]['familyName']],
+				message: $userId
+			);
+			self::assertArrayHasKey(key: $userId, array: $flags, message: $userId . ' is flagged at the interim check');
 		}
 
-		self::assertSame('resolved', $flags['he-student-022']['lifecycle']);
+		self::assertSame(expected: 'resolved', actual: $flags['he-student-022']['lifecycle']);
 
 		$decision = self::find(schema: 'bsa-decision', field: 'uuid', value: 'ee04002e-0000-4000-8000-000000000007');
-		self::assertSame('he-student-008', $decision['learnerId']);
-		self::assertSame('negative', $decision['decisionType']);
+		self::assertSame(expected: 'he-student-008', actual: $decision['learnerId']);
+		self::assertSame(expected: 'negative', actual: $decision['decisionType']);
 	}//end testTheSetCarriesTheNamesTheBoardsDraw()
 
 	/**
