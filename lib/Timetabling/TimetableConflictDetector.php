@@ -166,50 +166,28 @@ class TimetableConflictDetector {
 	 * @return void
 	 */
 	private function scanSessions(array $window, string $tenantId): void {
-		$cohortCache = [];
-		$roomCache = [];
-		$assessmentCache = [];
-
-		$existingOpen = $this->existingOpenKeys(tenantId: $tenantId);
-		$toCreate = [];
+		$scan = new ConflictScan(tenantId: $tenantId, existingOpen: $this->existingOpenKeys(tenantId: $tenantId));
 
 		$ids = array_keys($window);
 		$count = count($ids);
 
 		for ($i = 0; $i < $count; $i++) {
 			for ($j = ($i + 1); $j < $count; $j++) {
-				$sessionA = $window[$ids[$i]];
-				$sessionB = $window[$ids[$j]];
+				$pair = new SessionPair(sessionA: $window[$ids[$i]], sessionB: $window[$ids[$j]]);
 
-				if ($this->evaluator->overlaps(sessionA: $sessionA, sessionB: $sessionB) === false) {
+				if ($this->evaluator->overlaps(sessionA: $pair->sessionA, sessionB: $pair->sessionB) === false) {
 					continue;
 				}
 
-				$this->evaluatePair(
-					sessionA: $sessionA,
-					sessionB: $sessionB,
-					tenantId: $tenantId,
-					cohortCache: $cohortCache,
-					assessmentCache: $assessmentCache,
-					existingOpen: $existingOpen,
-					toCreate: $toCreate
-				);
+				$this->evaluatePair(scan: $scan, pair: $pair);
 			}
-		}//end for
-
-		foreach ($window as $session) {
-			$this->evaluateCapacity(
-				session: $session,
-				tenantId: $tenantId,
-				cohortCache: $cohortCache,
-				roomCache: $roomCache,
-				assessmentCache: $assessmentCache,
-				existingOpen: $existingOpen,
-				toCreate: $toCreate
-			);
 		}
 
-		foreach ($toCreate as $conflict) {
+		foreach ($window as $session) {
+			$this->evaluateCapacity(scan: $scan, session: $session);
+		}
+
+		foreach ($scan->toCreate as $conflict) {
 			$this->objectService->saveObject(
 				register: self::LEARNIQ_REGISTER,
 				schema: self::TIMETABLE_CONFLICT_SCHEMA,
@@ -217,51 +195,36 @@ class TimetableConflictDetector {
 			);
 		}
 
-		if (count($toCreate) > 0) {
+		if (count($scan->toCreate) > 0) {
 			$this->logger->info(
 				'[TimetableConflictDetector] {n} conflict(s) created for a window of {w} session(s).',
-				['n' => count($toCreate), 'w' => count($window)]
+				['n' => count($scan->toCreate), 'w' => count($window)]
 			);
 		}
 
 	}//end scanSessions()
 
 	/**
-	 * Evaluate the pairwise overlap kinds for one Session pair, appending any
-	 * finding to `$toCreate` (idempotent against `$existingOpen`).
+	 * Evaluate the pairwise overlap kinds for one Session pair, queueing any
+	 * finding on the scan (idempotent against its open conflicts).
 	 *
-	 * @param array<string,mixed> $sessionA Session A.
-	 * @param array<string,mixed> $sessionB Session B.
-	 * @param string $tenantId Tenant scope.
-	 * @param array<string,array<string,mixed>|null> $cohortCache Cohort cache, keyed by cohortId (mutated: entries added).
-	 *        `|null` because SessionWindowLoader::loadCohort() caches a MISS as
-	 *        null so a repeat lookup short-circuits.
-	 * @param array<string,string|null> $assessmentCache Session -> linked Assessment id cache (mutated: entries added).
-	 * @param array<string,true> $existingOpen Existing open (sessionIds,kind) keys.
-	 * @param array<int,array<string,mixed>> $toCreate Accumulator of TimetableConflict rows to persist (mutated: rows appended).
+	 * @param ConflictScan $scan The running scan (caches and queue mutated).
+	 * @param SessionPair  $pair The overlapping Sessions.
 	 *
 	 * @return void
 	 */
-	private function evaluatePair(
-		array $sessionA,
-		array $sessionB,
-		string $tenantId,
-		array &$cohortCache,
-		array &$assessmentCache,
-		array $existingOpen,
-		array &$toCreate,
-	): void {
-		$idA = (string)($sessionA['id'] ?? ($sessionA['uuid'] ?? ''));
-		$idB = (string)($sessionB['id'] ?? ($sessionB['uuid'] ?? ''));
+	private function evaluatePair(ConflictScan $scan, SessionPair $pair): void {
+		$idA = (string)($pair->sessionA['id'] ?? ($pair->sessionA['uuid'] ?? ''));
+		$idB = (string)($pair->sessionB['id'] ?? ($pair->sessionB['uuid'] ?? ''));
 		if ($idA === '' || $idB === '' || $idA === $idB) {
 			return;
 		}
 
 		$kinds = $this->evaluator->overlapKinds(
-			sessionA: $sessionA,
-			sessionB: $sessionB,
-			cohortA: $this->cohortFor(session: $sessionA, tenantId: $tenantId, cache: $cohortCache),
-			cohortB: $this->cohortFor(session: $sessionB, tenantId: $tenantId, cache: $cohortCache),
+			sessionA: $pair->sessionA,
+			sessionB: $pair->sessionB,
+			cohortA: $this->cohortFor(scan: $scan, session: $pair->sessionA),
+			cohortB: $this->cohortFor(scan: $scan, session: $pair->sessionB),
 		);
 
 		if (empty($kinds) === true) {
@@ -269,21 +232,14 @@ class TimetableConflictDetector {
 		}
 
 		// Exam-clash: any overlap kind above, when at least one Session has a linked Assessment.
-		$hasAssessment = $this->loader->hasLinkedAssessment(sessionId: $idA, tenantId: $tenantId, cache: $assessmentCache)
-			|| $this->loader->hasLinkedAssessment(sessionId: $idB, tenantId: $tenantId, cache: $assessmentCache);
+		$hasAssessment = $this->loader->hasLinkedAssessment(sessionId: $idA, tenantId: $scan->tenantId, cache: $scan->assessmentCache)
+			|| $this->loader->hasLinkedAssessment(sessionId: $idB, tenantId: $scan->tenantId, cache: $scan->assessmentCache);
 		if ($hasAssessment === true) {
 			$kinds['exam-clash'] = null;
 		}
 
 		foreach ($kinds as $kind => $scopeRef) {
-			$this->queueConflict(
-				sessionIds: [$idA, $idB],
-				kind: (string)$kind,
-				scopeRef: $scopeRef,
-				tenantId: $tenantId,
-				existingOpen: $existingOpen,
-				toCreate: $toCreate
-			);
+			$this->queueConflict(scan: $scan, finding: new ConflictFinding(sessionIds: [$idA, $idB], kind: (string)$kind, scopeRef: $scopeRef));
 		}
 
 	}//end evaluatePair()
@@ -291,71 +247,50 @@ class TimetableConflictDetector {
 	/**
 	 * Evaluate the single-Session room-capacity-exceeded kind.
 	 *
+	 * @param ConflictScan        $scan    The running scan (caches and queue mutated).
 	 * @param array<string,mixed> $session The Session.
-	 * @param string $tenantId Tenant scope.
-	 * @param array<string,array<string,mixed>|null> $cohortCache Cohort cache (mutated: entries added). Null = cached miss.
-	 * @param array<string,array<string,mixed>|null> $roomCache Room cache (mutated: entries added). Null = cached miss.
-	 * @param array<string,string|null> $assessmentCache Assessment-link cache (mutated: entries added).
-	 * @param array<string,true> $existingOpen Existing open (sessionIds,kind) keys.
-	 * @param array<int,array<string,mixed>> $toCreate Accumulator of rows to persist (mutated: rows appended).
 	 *
 	 * @return void
 	 */
-	private function evaluateCapacity(
-		array $session,
-		string $tenantId,
-		array &$cohortCache,
-		array &$roomCache,
-		array &$assessmentCache,
-		array $existingOpen,
-		array &$toCreate,
-	): void {
+	private function evaluateCapacity(ConflictScan $scan, array $session): void {
 		$sessionId = (string)($session['id'] ?? ($session['uuid'] ?? ''));
 		$roomId = (string)($session['roomId'] ?? '');
 		if ($sessionId === '' || $roomId === '') {
 			return;
 		}
 
-		$linked = $this->loader->hasLinkedAssessment(sessionId: $sessionId, tenantId: $tenantId, cache: $assessmentCache);
+		$linked = $this->loader->hasLinkedAssessment(sessionId: $sessionId, tenantId: $scan->tenantId, cache: $scan->assessmentCache);
 		if ($linked === false) {
 			return;
 		}
 
-		$room = $this->loader->loadRoom(roomId: $roomId, tenantId: $tenantId, cache: $roomCache);
+		$room = $this->loader->loadRoom(roomId: $roomId, tenantId: $scan->tenantId, cache: $scan->roomCache);
 		if ($room === null) {
 			return;
 		}
 
-		$cohort = $this->cohortFor(session: $session, tenantId: $tenantId, cache: $cohortCache);
+		$cohort = $this->cohortFor(scan: $scan, session: $session);
 		if ($this->evaluator->exceedsCapacity(cohort: $cohort, room: $room) === false) {
 			return;
 		}
 
-		$this->queueConflict(
-			sessionIds: [$sessionId],
-			kind: 'room-capacity-exceeded',
-			scopeRef: $roomId,
-			tenantId: $tenantId,
-			existingOpen: $existingOpen,
-			toCreate: $toCreate
-		);
+		$this->queueConflict(scan: $scan, finding: new ConflictFinding(sessionIds: [$sessionId], kind: 'room-capacity-exceeded', scopeRef: $roomId));
 
 	}//end evaluateCapacity()
 
 	/**
-	 * Resolve a Session's Cohort through the per-scan cache.
+	 * Resolve a Session's Cohort through the scan's cache.
 	 *
+	 * @param ConflictScan        $scan    The running scan (cohort cache mutated).
 	 * @param array<string,mixed> $session The Session data.
-	 * @param string $tenantId Tenant scope.
-	 * @param array<string,array<string,mixed>|null> $cache Cohort cache (mutated: entries added). Null = cached miss.
 	 *
 	 * @return array<string,mixed>|null The cohort data, or null.
 	 */
-	private function cohortFor(array $session, string $tenantId, array &$cache): ?array {
+	private function cohortFor(ConflictScan $scan, array $session): ?array {
 		return $this->loader->loadCohort(
 			cohortId: (string)($session['cohortId'] ?? ''),
-			tenantId: $tenantId,
-			cache: $cache
+			tenantId: $scan->tenantId,
+			cache: $scan->cohortCache
 		);
 
 	}//end cohortFor()
@@ -364,43 +299,32 @@ class TimetableConflictDetector {
 	 * Queue a TimetableConflict row for creation unless an `open` row already
 	 * exists for the same (sessionIds, kind) pair — idempotent by design.
 	 *
-	 * @param array<int,string> $sessionIds Session UUIDs involved.
-	 * @param string $kind Conflict kind.
-	 * @param string|null $scopeRef Shared identity in conflict, or null.
-	 * @param string $tenantId Tenant scope.
-	 * @param array<string,true> $existingOpen Existing open (sessionIds,kind) keys.
-	 * @param array<int,array<string,mixed>> $toCreate Accumulator of rows to persist (mutated: rows appended).
+	 * @param ConflictScan    $scan    The running scan (queue mutated).
+	 * @param ConflictFinding $finding The conflict found.
 	 *
 	 * @return void
 	 */
-	private function queueConflict(
-		array $sessionIds,
-		string $kind,
-		?string $scopeRef,
-		string $tenantId,
-		array $existingOpen,
-		array &$toCreate,
-	): void {
-		$key = $this->conflictKey(sessionIds: $sessionIds, kind: $kind);
-		if (isset($existingOpen[$key]) === true) {
+	private function queueConflict(ConflictScan $scan, ConflictFinding $finding): void {
+		$key = $this->conflictKey(sessionIds: $finding->sessionIds, kind: $finding->kind);
+		if (isset($scan->existingOpen[$key]) === true) {
 			return;
 		}
 
 		// Also skip a duplicate within the same scan pass.
-		foreach ($toCreate as $queued) {
+		foreach ($scan->toCreate as $queued) {
 			if ($this->conflictKey(sessionIds: $queued['sessionIds'], kind: $queued['kind']) === $key) {
 				return;
 			}
 		}
 
-		$toCreate[] = [
-			'kind' => $kind,
-			'sessionIds' => $sessionIds,
-			'scopeRef' => $scopeRef,
+		$scan->toCreate[] = [
+			'kind' => $finding->kind,
+			'sessionIds' => $finding->sessionIds,
+			'scopeRef' => $finding->scopeRef,
 			'severity' => 'error',
 			'detectedAt' => (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM),
 			'resolutionNote' => null,
-			'tenant_id' => $tenantId,
+			'tenant_id' => $scan->tenantId,
 			'lifecycle' => 'open',
 		];
 

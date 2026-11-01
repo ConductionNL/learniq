@@ -1,0 +1,1556 @@
+{
+    "mixed overlaps in a day": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionDayBucket": "2026-02-02",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "session"
+                    },
+                    "limit": 2000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "lifecycle": "open",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "timetable-conflict"
+                    },
+                    "limit": 5000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "c-a"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "c-b"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-a",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "c-c"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-b",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-c",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "r-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "room"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-far",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-day",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "teacher-double-booking",
+                    "sessionIds": [
+                        "s-a",
+                        "s-b"
+                    ],
+                    "scopeRef": "t-1",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-1",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "learner-double-booking",
+                    "sessionIds": [
+                        "s-a",
+                        "s-b"
+                    ],
+                    "scopeRef": "l2",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-1",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "exam-clash",
+                    "sessionIds": [
+                        "s-a",
+                        "s-b"
+                    ],
+                    "scopeRef": null,
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-1",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "cohort-double-booking",
+                    "sessionIds": [
+                        "s-a",
+                        "s-c"
+                    ],
+                    "scopeRef": "c-a",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-1",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "exam-clash",
+                    "sessionIds": [
+                        "s-a",
+                        "s-c"
+                    ],
+                    "scopeRef": null,
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-1",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "teacher-double-booking",
+                    "sessionIds": [
+                        "s-b",
+                        "s-c"
+                    ],
+                    "scopeRef": "t-2",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-1",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "learner-double-booking",
+                    "sessionIds": [
+                        "s-b",
+                        "s-c"
+                    ],
+                    "scopeRef": "l2",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-1",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "log": [
+                "info",
+                "[TimetableConflictDetector] {n} conflict(s) created for a window of {w} session(s).",
+                {
+                    "n": 7,
+                    "w": 5
+                }
+            ]
+        }
+    ],
+    "capacity and exams": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionDayBucket": "2026-02-02",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "session"
+                    },
+                    "limit": 2000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "lifecycle": "open",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "timetable-conflict"
+                    },
+                    "limit": 5000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "c-big"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-big",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "r-small"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "room"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-small",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "r-big"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "room"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-nocap",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-big2",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-day",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "teacher-double-booking",
+                    "sessionIds": [
+                        "s-big",
+                        "s-small"
+                    ],
+                    "scopeRef": "t-4",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-1",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "cohort-double-booking",
+                    "sessionIds": [
+                        "s-big",
+                        "s-small"
+                    ],
+                    "scopeRef": "c-big",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-1",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "exam-clash",
+                    "sessionIds": [
+                        "s-big",
+                        "s-small"
+                    ],
+                    "scopeRef": null,
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-1",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "room-capacity-exceeded",
+                    "sessionIds": [
+                        "s-big"
+                    ],
+                    "scopeRef": "r-small",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-1",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "log": [
+                "info",
+                "[TimetableConflictDetector] {n} conflict(s) created for a window of {w} session(s).",
+                {
+                    "n": 4,
+                    "w": 5
+                }
+            ]
+        }
+    ],
+    "uuid-only and day-bucket sessions": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionDayBucket": "2026-02-02",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "session"
+                    },
+                    "limit": 2000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "lifecycle": "open",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "timetable-conflict"
+                    },
+                    "limit": 5000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "c-b"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "c-a"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-u",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-a",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "c-c"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "r-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "room"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-day",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "teacher-double-booking",
+                    "sessionIds": [
+                        "s-u",
+                        "s-a"
+                    ],
+                    "scopeRef": "t-1",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-1",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "room-double-booking",
+                    "sessionIds": [
+                        "s-u",
+                        "s-a"
+                    ],
+                    "scopeRef": "r-1",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-1",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "learner-double-booking",
+                    "sessionIds": [
+                        "s-u",
+                        "s-a"
+                    ],
+                    "scopeRef": "l2",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-1",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "exam-clash",
+                    "sessionIds": [
+                        "s-u",
+                        "s-a"
+                    ],
+                    "scopeRef": null,
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-1",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "log": [
+                "info",
+                "[TimetableConflictDetector] {n} conflict(s) created for a window of {w} session(s).",
+                {
+                    "n": 4,
+                    "w": 3
+                }
+            ]
+        }
+    ],
+    "missing cohort and room": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionDayBucket": "2026-02-02",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "session"
+                    },
+                    "limit": 2000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "lifecycle": "open",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "timetable-conflict"
+                    },
+                    "limit": 5000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "c-missing"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-x",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-y",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "c-c"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-day",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "room-double-booking",
+                    "sessionIds": [
+                        "s-x",
+                        "s-y"
+                    ],
+                    "scopeRef": "r-missing",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-1",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "cohort-double-booking",
+                    "sessionIds": [
+                        "s-x",
+                        "s-y"
+                    ],
+                    "scopeRef": "c-missing",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-1",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "log": [
+                "info",
+                "[TimetableConflictDetector] {n} conflict(s) created for a window of {w} session(s).",
+                {
+                    "n": 2,
+                    "w": 3
+                }
+            ]
+        }
+    ],
+    "no tenant": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionDayBucket": "2026-02-02",
+                        "register": "learniq",
+                        "schema": "session"
+                    },
+                    "limit": 2000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "lifecycle": "open",
+                        "register": "learniq",
+                        "schema": "timetable-conflict"
+                    },
+                    "limit": 5000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "c-a"
+                    ],
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "c-b"
+                    ],
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-a",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "c-c"
+                    ],
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "r-1"
+                    ],
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "room"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-b",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-day",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "teacher-double-booking",
+                    "sessionIds": [
+                        "s-a",
+                        "s-b"
+                    ],
+                    "scopeRef": "t-1",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "learner-double-booking",
+                    "sessionIds": [
+                        "s-a",
+                        "s-b"
+                    ],
+                    "scopeRef": "l2",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "exam-clash",
+                    "sessionIds": [
+                        "s-a",
+                        "s-b"
+                    ],
+                    "scopeRef": null,
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "log": [
+                "info",
+                "[TimetableConflictDetector] {n} conflict(s) created for a window of {w} session(s).",
+                {
+                    "n": 3,
+                    "w": 3
+                }
+            ]
+        }
+    ],
+    "single session without bucket": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "lifecycle": "open",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "timetable-conflict"
+                    },
+                    "limit": 5000
+                }
+            }
+        }
+    ],
+    "empty input": [],
+    "one conflict, uuid-only second": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionDayBucket": "2026-02-03",
+                        "register": "learniq",
+                        "schema": "session"
+                    },
+                    "limit": 2000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "lifecycle": "open",
+                        "register": "learniq",
+                        "schema": "timetable-conflict"
+                    },
+                    "limit": 5000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "c-a"
+                    ],
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "c-c"
+                    ],
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-p",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-q",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "room-double-booking",
+                    "sessionIds": [
+                        "s-p",
+                        "s-q"
+                    ],
+                    "scopeRef": "r-9",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "log": [
+                "info",
+                "[TimetableConflictDetector] {n} conflict(s) created for a window of {w} session(s).",
+                {
+                    "n": 1,
+                    "w": 2
+                }
+            ]
+        }
+    ],
+    "exam in a missing room": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionDayBucket": "2026-02-02",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "session"
+                    },
+                    "limit": 2000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "lifecycle": "open",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "timetable-conflict"
+                    },
+                    "limit": 5000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-lost",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "r-missing"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "room"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-day",
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        }
+    ],
+    "window of lessons": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "lifecycle": "open",
+                        "tenant_id": "tenant-9",
+                        "register": "learniq",
+                        "schema": "timetable-conflict"
+                    },
+                    "limit": 5000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "c-a"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-9",
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "c-b"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-9",
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-a",
+                        "tenant_id": "tenant-9",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "c-big"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-9",
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-big",
+                        "tenant_id": "tenant-9",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "r-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-9",
+                        "register": "learniq",
+                        "schema": "room"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-b",
+                        "tenant_id": "tenant-9",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "r-small"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-9",
+                        "register": "learniq",
+                        "schema": "room"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "sessionId": "s-small",
+                        "tenant_id": "tenant-9",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "r-big"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-9",
+                        "register": "learniq",
+                        "schema": "room"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "teacher-double-booking",
+                    "sessionIds": [
+                        "s-a",
+                        "s-b"
+                    ],
+                    "scopeRef": "t-1",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-9",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "learner-double-booking",
+                    "sessionIds": [
+                        "s-a",
+                        "s-b"
+                    ],
+                    "scopeRef": "l2",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-9",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "exam-clash",
+                    "sessionIds": [
+                        "s-a",
+                        "s-b"
+                    ],
+                    "scopeRef": null,
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-9",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "teacher-double-booking",
+                    "sessionIds": [
+                        "s-big",
+                        "s-small"
+                    ],
+                    "scopeRef": "t-4",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-9",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "cohort-double-booking",
+                    "sessionIds": [
+                        "s-big",
+                        "s-small"
+                    ],
+                    "scopeRef": "c-big",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-9",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "exam-clash",
+                    "sessionIds": [
+                        "s-big",
+                        "s-small"
+                    ],
+                    "scopeRef": null,
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-9",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "kind": "room-capacity-exceeded",
+                    "sessionIds": [
+                        "s-big"
+                    ],
+                    "scopeRef": "r-small",
+                    "severity": "error",
+                    "detectedAt": "<utc-atom>",
+                    "resolutionNote": null,
+                    "tenant_id": "tenant-9",
+                    "lifecycle": "open"
+                },
+                "register": "learniq",
+                "schema": "timetable-conflict"
+            }
+        },
+        {
+            "log": [
+                "info",
+                "[TimetableConflictDetector] {n} conflict(s) created for a window of {w} session(s).",
+                {
+                    "n": 7,
+                    "w": 4
+                }
+            ]
+        }
+    ],
+    "window with one lesson": []
+}
