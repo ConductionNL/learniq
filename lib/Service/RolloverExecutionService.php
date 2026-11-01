@@ -187,13 +187,15 @@ class RolloverExecutionService {
 		}
 
 		$toCohort = $this->createOrFindToCohort(
-			toCohortName: $toCohortName,
-			toAcademicYear: $toAcademicYear,
-			programmeId: ($mapping['toProgrammeId'] ?? null),
-			courseId: ($mapping['toCourseId'] ?? null),
-			learnerIds: $movingMembers,
-			tenantId: $tenantId,
-			programmeYear: ($mapping['toProgrammeYear'] ?? null)
+			target: [
+				'name' => $toCohortName,
+				'academicYear' => $toAcademicYear,
+				'tenant_id' => $tenantId,
+				'programmeId' => ($mapping['toProgrammeId'] ?? null),
+				'courseId' => ($mapping['toCourseId'] ?? null),
+				'programmeYear' => ($mapping['toProgrammeYear'] ?? null),
+			],
+			learnerIds: $movingMembers
 		);
 
 		// Sync the backing NC group to the moving members.
@@ -222,33 +224,22 @@ class RolloverExecutionService {
 	/**
 	 * Create the to-year cohort, or find an existing one (idempotent).
 	 *
-	 * @param string $toCohortName To-year cohort name.
-	 * @param string $toAcademicYear To-year academic year.
-	 * @param mixed $programmeId Optional programme.
-	 * @param mixed $courseId Optional course.
-	 * @param array<int,string> $learnerIds Members.
-	 * @param string $tenantId Tenant ID.
-	 * @param int|null $programmeYear The group's year of its programme in the to-year, when known.
+	 * @param array<string,mixed> $target     The to-year cohort: name, academicYear and tenant_id (strings),
+	 *                                        programmeId and courseId (optional), and programmeYear (the
+	 *                                        group's year of its programme in the to-year, or null).
+	 * @param array<int,string>   $learnerIds Members.
 	 *
 	 * @return array<string,mixed> The created/found cohort.
 	 */
-	private function createOrFindToCohort(
-		string $toCohortName,
-		string $toAcademicYear,
-		mixed $programmeId,
-		mixed $courseId,
-		array $learnerIds,
-		string $tenantId,
-		?int $programmeYear = null,
-	): array {
+	private function createOrFindToCohort(array $target, array $learnerIds): array {
 		$existing = $this->objectService->findAll(
 			[
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => 'cohort',
-					'name' => $toCohortName,
-					'academicYear' => $toAcademicYear,
-					'tenant_id' => $tenantId,
+					'name' => $target['name'],
+					'academicYear' => $target['academicYear'],
+					'tenant_id' => $target['tenant_id'],
 				],
 				'limit' => 1,
 			]
@@ -263,22 +254,22 @@ class RolloverExecutionService {
 		}
 
 		$cohort = [
-			'name' => $toCohortName,
-			'academicYear' => $toAcademicYear,
+			'name' => $target['name'],
+			'academicYear' => $target['academicYear'],
 			'learnerIds' => array_values(array_unique($learnerIds)),
-			'ncGroupId' => $this->rolloverService->groupName(academicYear: $toAcademicYear, cohortName: $toCohortName),
-			'tenant_id' => $tenantId,
+			'ncGroupId' => $this->rolloverService->groupName(academicYear: $target['academicYear'], cohortName: $target['name']),
+			'tenant_id' => $target['tenant_id'],
 		];
-		if ($programmeId !== null && $programmeId !== '') {
-			$cohort['programmeId'] = $programmeId;
+		if ($target['programmeId'] !== null && $target['programmeId'] !== '') {
+			$cohort['programmeId'] = $target['programmeId'];
 		}
 
-		if ($courseId !== null && $courseId !== '') {
-			$cohort['courseId'] = $courseId;
+		if ($target['courseId'] !== null && $target['courseId'] !== '') {
+			$cohort['courseId'] = $target['courseId'];
 		}
 
-		if ($programmeYear !== null) {
-			$cohort['programmeYear'] = $programmeYear;
+		if ($target['programmeYear'] !== null) {
+			$cohort['programmeYear'] = $target['programmeYear'];
 		}
 
 		$saved = $this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: 'cohort', object: $cohort);
