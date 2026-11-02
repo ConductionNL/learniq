@@ -38,6 +38,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * @covers \OCA\Learniq\Service\RegulationCoverageService
  * @covers \OCA\Learniq\Service\ComplianceRollupService
+ * @covers \OCA\Learniq\Service\ComplianceSnapshot
  * @uses \OCA\Learniq\Service\RegulationAudienceResolver
  * @uses \OCA\Learniq\Service\RunningExemptions
  */
