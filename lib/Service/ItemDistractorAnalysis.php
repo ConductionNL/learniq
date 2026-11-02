@@ -23,14 +23,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use DOMDocument;
-
 /**
  * Kelley 27%-split distractor analysis of one choice item over its response vectors.
  *
  * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
  */
 final class ItemDistractorAnalysis {
+
+	use ParsesQtiBody;
 
 	/**
 	 * Kelley's 27% split for distractor-analysis upper/lower scoring groups.
@@ -160,13 +160,8 @@ final class ItemDistractorAnalysis {
 			return [];
 		}
 
-		$previousSetting = libxml_use_internal_errors(true);
-		$doc = new DOMDocument();
-		$loaded = $doc->loadXML($qtiBody);
-		libxml_clear_errors();
-		libxml_use_internal_errors($previousSetting);
-
-		if ($loaded === false) {
+		$doc = $this->parseQtiBody(qtiBody: $qtiBody);
+		if ($doc === null) {
 			return [];
 		}
 
