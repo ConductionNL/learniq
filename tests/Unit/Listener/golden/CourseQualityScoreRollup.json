@@ -1,0 +1,291 @@
+{
+    "course level, empty teacher": [
+        {
+            "evaluate": [
+                "c-1",
+                null,
+                "2026-2027",
+                "P1"
+            ]
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "courseId": "c-1",
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "teacherId": null,
+                    "register": "learniq",
+                    "schema": "course-quality-score"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": [
+                {
+                    "courseId": "c-1",
+                    "teacherId": null,
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "responseCount": 3,
+                    "invitationCount": 4,
+                    "averageOverallScore": 7.5,
+                    "responseRate": 0.75,
+                    "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
+                    "tenant_id": "ten-1"
+                },
+                [],
+                "learniq",
+                "course-quality-score",
+                null,
+                true,
+                true,
+                false,
+                null,
+                null,
+                false,
+                false
+            ]
+        }
+    ],
+    "course level, no teacher, no tenant": [
+        {
+            "evaluate": [
+                "c-1",
+                null,
+                "2026-2027",
+                "P1"
+            ]
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "courseId": "c-1",
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "teacherId": null,
+                    "register": "learniq",
+                    "schema": "course-quality-score"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": [
+                {
+                    "courseId": "c-1",
+                    "teacherId": null,
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "responseCount": 3,
+                    "invitationCount": 4,
+                    "averageOverallScore": 7.5,
+                    "responseRate": 0.75,
+                    "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
+                    "tenant_id": ""
+                },
+                [],
+                "learniq",
+                "course-quality-score",
+                null,
+                true,
+                true,
+                false,
+                null,
+                null,
+                false,
+                false
+            ]
+        }
+    ],
+    "existing row as an array": [
+        {
+            "evaluate": [
+                "c-1",
+                "t-9",
+                "2026-2027",
+                "P1"
+            ]
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "courseId": "c-1",
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "teacherId": "t-9",
+                    "register": "learniq",
+                    "schema": "course-quality-score"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": [
+                {
+                    "id": "score-1",
+                    "courseId": "c-1",
+                    "note": "kept",
+                    "responseCount": 3,
+                    "teacherId": "t-9",
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "invitationCount": 4,
+                    "averageOverallScore": 7.5,
+                    "responseRate": 0.75,
+                    "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
+                    "tenant_id": "ten-1"
+                },
+                [],
+                "learniq",
+                "course-quality-score",
+                null,
+                true,
+                true,
+                false,
+                null,
+                null,
+                false,
+                false
+            ]
+        }
+    ],
+    "existing row as an entity": [
+        {
+            "evaluate": [
+                "c-1",
+                "t-9",
+                "2026-2027",
+                "P1"
+            ]
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "courseId": "c-1",
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "teacherId": "t-9",
+                    "register": "learniq",
+                    "schema": "course-quality-score"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": [
+                {
+                    "id": "score-1",
+                    "courseId": "c-1",
+                    "note": "kept",
+                    "responseCount": 3,
+                    "@self": {
+                        "id": "score-1",
+                        "slug": null,
+                        "name": "score-1",
+                        "description": null,
+                        "summary": null,
+                        "image": null,
+                        "uri": null,
+                        "version": null,
+                        "register": "learniq",
+                        "schema": "course-quality-score",
+                        "schemaVersion": null,
+                        "files": [],
+                        "relations": [],
+                        "locked": null,
+                        "owner": null,
+                        "organisation": null,
+                        "groups": [],
+                        "authorization": [],
+                        "folder": null,
+                        "application": null,
+                        "validation": [],
+                        "geo": [],
+                        "retention": [],
+                        "tmlo": [],
+                        "size": null,
+                        "updated": null,
+                        "created": null,
+                        "deleted": [],
+                        "source": null
+                    },
+                    "teacherId": "t-9",
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "invitationCount": 4,
+                    "averageOverallScore": 7.5,
+                    "responseRate": 0.75,
+                    "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
+                    "tenant_id": "ten-1"
+                },
+                [],
+                "learniq",
+                "course-quality-score",
+                null,
+                true,
+                true,
+                false,
+                null,
+                null,
+                false,
+                false
+            ]
+        }
+    ],
+    "first response, teacher scoped": [
+        {
+            "evaluate": [
+                "c-1",
+                "t-9",
+                "2026-2027",
+                "P1"
+            ]
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "courseId": "c-1",
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "teacherId": "t-9",
+                    "register": "learniq",
+                    "schema": "course-quality-score"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": [
+                {
+                    "courseId": "c-1",
+                    "teacherId": "t-9",
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "responseCount": 3,
+                    "invitationCount": 4,
+                    "averageOverallScore": 7.5,
+                    "responseRate": 0.75,
+                    "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
+                    "tenant_id": "ten-1"
+                },
+                [],
+                "learniq",
+                "course-quality-score",
+                null,
+                true,
+                true,
+                false,
+                null,
+                null,
+                false,
+                false
+            ]
+        }
+    ],
+    "no course": [],
+    "no period": [],
+    "no year": [],
+    "not submitted": []
+}
