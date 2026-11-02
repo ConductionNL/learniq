@@ -51,11 +51,24 @@ class StandbySlotDefaultsStamp implements IEventListener {
 	private const SCHEMA = 'standby-slot';
 
 	/**
+	 * The school year as the school sets it.
+	 *
+	 * @var SchoolYear
+	 */
+	private readonly SchoolYear $schoolYear;
+
+	/**
+	 * The server's clock.
+	 *
+	 * @var ITimeFactory
+	 */
+	private readonly ITimeFactory $timeFactory;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param SchoolYear             $schoolYear     The school year as the school sets it.
-	 * @param ITimeFactory           $timeFactory    The server's clock.
+	 * @param SchoolYearClock        $calendar       The school year and the server's clock.
 	 * @param IUserSession           $userSession    The planner.
 	 * @param CallerTenantResolver   $tenants        The planner's tenant.
 	 *
@@ -63,11 +76,12 @@ class StandbySlotDefaultsStamp implements IEventListener {
 	 */
 	public function __construct(
 		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly SchoolYear $schoolYear,
-		private readonly ITimeFactory $timeFactory,
+		SchoolYearClock $calendar,
 		private readonly IUserSession $userSession,
 		private readonly CallerTenantResolver $tenants,
 	) {
+		$this->schoolYear = $calendar->schoolYear;
+		$this->timeFactory = $calendar->timeFactory;
 	}//end __construct()
 
 	/**

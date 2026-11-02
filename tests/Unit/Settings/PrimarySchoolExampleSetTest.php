@@ -30,6 +30,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Settings;
 
 use OCA\Learniq\Service\DemoDataService;
+use OCA\Learniq\Service\ExampleSetPreparation;
+use OCA\Learniq\Service\ExampleSetSources;
 use OCA\Learniq\Service\SeedProfileService;
 use OCP\App\IAppManager;
 use PHPUnit\Framework\TestCase;
@@ -245,7 +247,21 @@ class PrimarySchoolExampleSetTest extends TestCase {
 		$appManager->method('getAppPath')->willReturn(dirname(__DIR__, 3));
 		$demo = $this->createMock(DemoDataService::class);
 		$demo->method('listChoices')->willReturn([]);
-		$service = new SeedProfileService($appManager, $this->createMock(ContainerInterface::class), $this->createMock(LoggerInterface::class), $demo, $this->createMock(\OCA\Learniq\Service\SharedCodeFilter::class), $this->createMock(\OCA\Learniq\Service\LoadedExampleSets::class), $this->createMock(\OCA\Learniq\Portal\ExamplePortalProvisioner::class), $this->createMock(\OCA\Learniq\Service\ExampleSetDates::class), $this->createMock(\OCA\Learniq\Service\ExampleSetOrganisation::class));
+		$service = new SeedProfileService(
+			sources: new ExampleSetSources(
+				appManager: $appManager,
+				demoData: $demo,
+				loadedSets: $this->createMock(\OCA\Learniq\Service\LoadedExampleSets::class)
+			),
+			preparation: new ExampleSetPreparation(
+				sharedCodes: $this->createMock(\OCA\Learniq\Service\SharedCodeFilter::class),
+				dates: $this->createMock(\OCA\Learniq\Service\ExampleSetDates::class),
+				organisation: $this->createMock(\OCA\Learniq\Service\ExampleSetOrganisation::class),
+				examplePortals: $this->createMock(\OCA\Learniq\Portal\ExamplePortalProvisioner::class)
+			),
+			container: $this->createMock(ContainerInterface::class),
+			logger: $this->createMock(LoggerInterface::class)
+		);
 
 		$offered = array_values(array_filter($service->listChoices(), static fn (array $c): bool => $c['id'] === 'po'))[0];
 		self::of('school');

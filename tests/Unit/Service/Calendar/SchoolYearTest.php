@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service\Calendar;
 
 use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\SchoolYearClock;
 use OCA\Learniq\Listener\StandbySlotDefaultsStamp;
 use OCA\Learniq\Service\Calendar\SchoolYear;
 use OCA\Learniq\Service\CallerTenantResolver;
@@ -117,7 +118,15 @@ class SchoolYearTest extends TestCase {
 		$session->method('getUser')->willReturn($user);
 		$tenants = $this->createMock(CallerTenantResolver::class);
 		$tenants->method('resolve')->willReturn('tenant-1');
-		$stamp = new StandbySlotDefaultsStamp(schemaResolver: $resolver, schoolYear: $this->year(start: null), timeFactory: $time, userSession: $session, tenants: $tenants);
+		$stamp = new StandbySlotDefaultsStamp(
+			schemaResolver: $resolver,
+			calendar: new SchoolYearClock(
+				schoolYear: $this->year(start: null),
+				timeFactory: $time
+			),
+			userSession: $session,
+			tenants: $tenants
+		);
 
 		$bare = new ObjectCreatingEvent(OrEntityFactory::make(['teacherId' => 't-1', 'weekday' => 'monday', 'startsAt' => '08:00', 'endsAt' => '09:00'], 'standby-slot'));
 		$stamp->handle($bare);
