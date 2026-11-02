@@ -838,6 +838,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 				'Toets tijdvak 3 en 4 2026-10-08',
 				'Paragraaf 3.3, opgave 23 tot en met 31 2026-10-08',
 				'Toets hoofdstuk 3 en 4 2026-11-10',
+				'Betoog schrijven 2026-10-09',
 			],
 			array_map(static fn (array $a): string => $a['title'] . ' ' . substr($a['dueAt'], 0, 10), $homework)
 		);

@@ -278,4 +278,204 @@ class SecondarySchoolBoardRecordsTest extends TestCase {
 		);
 		self::assertNotEmpty(actual: $negative);
 	}//end testTheBsaBoardsFindTheirRecordsInTheHigherEducationSet()
+
+	/**
+	 * The pupil of the secondary school set with this name.
+	 *
+	 * @param array<string, array<int, array<string, mixed>>> $objects The seed buckets.
+	 * @param string                                          $given   The given name.
+	 * @param string                                          $family  The family name.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function pupil(array $objects, string $given, string $family): array {
+		$pupils = array_values(
+			array: array_filter(
+				array: $objects['learner-profile'],
+				callback: static fn (array $p): bool => ($p['givenName'] ?? '') === $given && ($p['familyName'] ?? '') === $family
+			)
+		);
+		self::assertCount(expectedCount: 1, haystack: $pupils, message: $given . ' ' . $family);
+		return $pupils[0];
+	}//end pupil()
+
+	/**
+	 * The pupils the dossier, grade and attendance boards draw: Daan Visser,
+	 * Julia Peters and Lucas van Dijk, each with an active enrolment in 3HV-B.
+	 * Daan has the care note and the support request (LqNotitie,
+	 * LqDossierTijdlijn, LqZoOndersteuning), Julia the concept 8,2 for
+	 * Nederlands (LqCijfer) and Lucas the unexcused absence at Nederlands
+	 * (LqRegistratie).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/vo-board-records-for-the-pupil-boards/specs/example-sets/spec.md
+	 */
+	public function testThePupilBoardsFindDaanJuliaAndLucasIn3hvb(): void {
+		$objects  = self::objects(set: 'vo');
+		$class    = self::where(rows: $objects['cohort'], field: 'name', value: '3HV-B')[0];
+		$courses  = array_column(array: $objects['course'], column_key: 'name', index_key: 'uuid');
+		$sessions = array_column(array: $objects['session'], column_key: null, index_key: 'uuid');
+		$pupils   = [];
+		foreach ([['Daan', 'Visser'], ['Julia', 'Peters'], ['Lucas', 'van Dijk']] as [$given, $family]) {
+			$pupil = self::pupil(objects: $objects, given: $given, family: $family);
+			self::assertContains(needle: $pupil['ncUserId'], haystack: $class['learnerIds'], message: $given);
+			$active = array_filter(
+				array: self::where(rows: $objects['enrolment'], field: 'learnerId', value: $pupil['ncUserId']),
+				callback: static fn (array $e): bool => $e['lifecycle'] === 'active' && $e['cohortId'] === $class['uuid']
+			);
+			self::assertCount(expectedCount: 1, haystack: $active, message: $given);
+			$pupils[$given] = $pupil;
+		}
+
+		$notes = self::where(rows: $objects['dossier-note'], field: 'learnerId', value: $pupils['Daan']['ncUserId']);
+		$care  = array_values(array: array_filter(array: $notes, callback: static fn (array $n): bool => $n['date'] === '2026-10-02'));
+		self::assertCount(expectedCount: 1, haystack: $care);
+		self::assertSame(expected: ['concern', 'care-team-only', 'vo-docent-01'], actual: [$care[0]['category'], $care[0]['confidentiality'], $care[0]['authorId']]);
+		$requests = self::where(rows: $objects['support-request'], field: 'learnerId', value: $pupils['Daan']['ncUserId']);
+		self::assertCount(expectedCount: 1, haystack: $requests);
+		self::assertSame(expected: ['high', 'in-deliberation'], actual: [$requests[0]['urgency'], $requests[0]['lifecycle']]);
+
+		$grades = array_values(
+			array: array_filter(
+				array: self::where(rows: $objects['grade-entry'], field: 'learnerId', value: $pupils['Julia']['ncUserId']),
+				callback: static fn (array $g): bool => $g['cohortId'] === $class['uuid']
+			)
+		);
+		self::assertCount(expectedCount: 1, haystack: $grades);
+		self::assertSame(expected: [8.2, 2, 'concept', 'Nederlands'], actual: [$grades[0]['value'], $grades[0]['weight'], $grades[0]['lifecycle'], $courses[$grades[0]['courseId']]]);
+		$plan = self::where(rows: $objects['curriculum-plan'], field: 'uuid', value: $grades[0]['curriculumPlanId'])[0];
+		self::assertContains(needle: $grades[0]['componentId'], haystack: array_column(array: $plan['components'], column_key: 'componentId'));
+
+		$marks = array_values(
+			array: array_filter(
+				array: self::where(rows: $objects['attendance-record'], field: 'learnerId', value: $pupils['Lucas']['ncUserId']),
+				callback: static fn (array $m): bool => $m['status'] === 'absent-unexcused' && $m['cohortId'] === $class['uuid']
+			)
+		);
+		self::assertCount(expectedCount: 1, haystack: $marks);
+		$session = $sessions[$marks[0]['sessionId']];
+		self::assertSame(expected: ['Nederlands', '2026-10-05', 'vo-docent-01'], actual: [$session['title'], substr(string: $session['startsAt'], offset: 0, length: 10), $marks[0]['markedBy']]);
+	}//end testThePupilBoardsFindDaanJuliaAndLucasIn3hvb()
+
+	/**
+	 * The test boards (LqToetsInstellingen, LqLlToetsMaken, LqToetsNakijken):
+	 * 3HV-B has Biologie tests in leerjaar 3, one open to take on the
+	 * reference day, one published and not yet open with an access code, and a
+	 * closed Nederlands test.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/vo-board-records-for-the-pupil-boards/specs/example-sets/spec.md
+	 */
+	public function testTheTestBoardsFindTestsOf3hvb(): void {
+		$objects = self::objects(set: 'vo');
+		$class   = self::where(rows: $objects['cohort'], field: 'name', value: '3HV-B')[0];
+		$courses = array_column(array: $objects['course'], column_key: 'name', index_key: 'uuid');
+		$exams   = self::where(rows: $objects['exam'], field: 'cohortId', value: $class['uuid']);
+		$today   = '2026-10-05T12:00:00+02:00';
+		$open    = array_filter(
+			array: $exams,
+			callback: static fn (array $e): bool => $e['lifecycle'] === 'published'
+				&& new \DateTimeImmutable($e['availableFrom']) <= new \DateTimeImmutable($today)
+				&& new \DateTimeImmutable($today) <= new \DateTimeImmutable($e['availableUntil'])
+		);
+		self::assertCount(expectedCount: 1, haystack: $open);
+		self::assertSame(expected: 'Biologie', actual: $courses[array_values(array: $open)[0]['courseId']]);
+
+		$later = self::where(rows: $exams, field: 'title', value: 'Toets hoofdstuk 3: erfelijkheid');
+		self::assertCount(expectedCount: 1, haystack: $later);
+		self::assertSame(expected: 'published', actual: $later[0]['lifecycle']);
+		self::assertGreaterThan(expected: new \DateTimeImmutable($today), actual: new \DateTimeImmutable($later[0]['availableFrom']));
+		self::assertNotEmpty(actual: $later[0]['accessCode']);
+
+		$closed = self::where(rows: $exams, field: 'lifecycle', value: 'closed');
+		self::assertSame(expected: ['Nederlands'], actual: array_values(array: array_unique(array: array_map(static fn (array $e): string => $courses[$e['courseId']], $closed))));
+	}//end testTheTestBoardsFindTestsOf3hvb()
+
+	/**
+	 * The assignment boards (LqOpdracht, LqBeoordelaars, LqInleveringNakijken):
+	 * Betoog schrijven for 3HV-B with two markers per submission, 14 handed-in
+	 * and 2 draft submissions, Fenna's among them, and Fatma Yildiz's mark on
+	 * Fenna's work.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/vo-board-records-for-the-pupil-boards/specs/example-sets/spec.md
+	 */
+	public function testTheAssignmentBoardsFindBetoogSchrijvenWithSubmissions(): void {
+		$objects     = self::objects(set: 'vo');
+		$class       = self::where(rows: $objects['cohort'], field: 'name', value: '3HV-B')[0];
+		$assignments = self::where(rows: $objects['assignment'], field: 'title', value: 'Betoog schrijven');
+		self::assertCount(expectedCount: 1, haystack: $assignments);
+		$assignment = $assignments[0];
+		self::assertSame(expected: [$class['uuid'], 2, 'published'], actual: [$assignment['cohortId'], $assignment['markersPerSubmission'], $assignment['lifecycle']]);
+
+		$submissions = self::where(rows: ($objects['submission'] ?? []), field: 'assignmentId', value: $assignment['uuid']);
+		$states      = array_count_values(array: array_column(array: $submissions, column_key: 'lifecycle'));
+		self::assertSame(expected: ['draft' => 2, 'submitted' => 14], actual: [
+			'draft'     => ($states['draft'] ?? 0),
+			'submitted' => ($states['submitted'] ?? 0),
+		]);
+		foreach ($submissions as $submission) {
+			self::assertEmpty(actual: array_diff($submission['learnerIds'], $class['learnerIds']), message: $submission['slug']);
+		}
+
+		$fenna  = self::pupil(objects: $objects, given: 'Fenna', family: 'de Jong');
+		$hers   = array_values(
+			array: array_filter(
+				array: $submissions,
+				callback: static fn (array $s): bool => in_array(needle: $fenna['ncUserId'], haystack: $s['learnerIds'], strict: true)
+			)
+		);
+		self::assertCount(expectedCount: 1, haystack: $hers);
+		self::assertSame(expected: 'submitted', actual: $hers[0]['lifecycle']);
+		$marks = self::where(rows: ($objects['submission-mark'] ?? []), field: 'submissionId', value: $hers[0]['uuid']);
+		self::assertSame(expected: ['vo-docent-03' => 'submitted', 'vo-docent-01' => 'draft'], actual: array_column(array: $marks, column_key: 'lifecycle', index_key: 'markerId'));
+	}//end testTheAssignmentBoardsFindBetoogSchrijvenWithSubmissions()
+
+	/**
+	 * The admission, threshold, course and regulation boards: Emma de Vries
+	 * after her intake in the 2027-2028 round (LqCoAanmelding), the school's
+	 * own 8-hour threshold (LqVerzuimgrens), Biologie 3 tweetalig with its
+	 * English name (LqCursusInstellingen), the Meldcode regulation
+	 * (LqCfVerplichting) and the Nederlands lesson of 3HV-B on Tuesday 6
+	 * October, 2nd hour (LqLes).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/vo-board-records-for-the-pupil-boards/specs/example-sets/spec.md
+	 */
+	public function testTheRemainingBoardsFindTheirRecords(): void {
+		$objects = self::objects(set: 'vo');
+		$rounds  = self::where(rows: $objects['admissions-round'], field: 'academicYear', value: '2027-2028');
+		self::assertCount(expectedCount: 1, haystack: $rounds);
+		$emma = array_values(
+			array: array_filter(
+				array: $objects['admission'],
+				callback: static fn (array $a): bool => $a['applicantGivenName'] === 'Emma' && $a['applicantFamilyName'] === 'de Vries'
+			)
+		);
+		self::assertCount(expectedCount: 1, haystack: $emma);
+		self::assertSame(expected: [$rounds[0]['uuid'], 'intake-completed', true], actual: [$emma[0]['admissionsRoundId'], $emma[0]['lifecycle'], $emma[0]['intakeCompleted']]);
+
+		$own = self::where(rows: $objects['attendance-threshold'], field: 'name', value: 'Vroeg signaal bij verzuim');
+		self::assertCount(expectedCount: 1, haystack: $own);
+		self::assertSame(expected: ['generic', 'unexcused-lesuren', 8, 50], actual: [$own[0]['kind'], $own[0]['metric'], $own[0]['limit'], $own[0]['lessonHourMinutes']]);
+
+		$course = self::where(rows: $objects['course'], field: 'name_nl', value: 'Biologie 3 tweetalig');
+		self::assertCount(expectedCount: 1, haystack: $course);
+		self::assertSame(expected: ['Biology 3 bilingual', 'en'], actual: [$course[0]['name'], $course[0]['language']]);
+
+		$meldcode = self::where(rows: ($objects['regulation'] ?? []), field: 'slug', value: 'MELDCODE');
+		self::assertCount(expectedCount: 1, haystack: $meldcode);
+		self::assertSame(expected: ['Meldcode huiselijk geweld en kindermishandeling', 'published'], actual: [$meldcode[0]['name'], $meldcode[0]['lifecycle']]);
+
+		$class   = self::where(rows: $objects['cohort'], field: 'name', value: '3HV-B')[0];
+		$lessons = array_filter(
+			array: self::where(rows: $objects['session'], field: 'cohortId', value: $class['uuid']),
+			callback: static fn (array $s): bool => $s['title'] === 'Nederlands' && $s['startsAt'] === '2026-10-06T09:20:00+02:00'
+		);
+		self::assertCount(expectedCount: 1, haystack: $lessons);
+	}//end testTheRemainingBoardsFindTheirRecords()
 }//end class
