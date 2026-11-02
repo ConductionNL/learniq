@@ -155,6 +155,7 @@ class FindOrNullGoldenTest extends TestCase {
 			'null' => static fn (): mixed => null,
 			'found' => static fn (): mixed => OrEntityFactory::make($row, 'thing'),
 			'found without id' => static fn (): mixed => OrEntityFactory::make(['lifecycle' => 'active'] + array_diff_key($row, ['id' => true]), 'thing'),
+			'found in another tenant' => static fn (): mixed => OrEntityFactory::make(['tenant_id' => 't2'] + $row, 'thing'),
 			'found with only an @self id' => static fn (): mixed => new class extends ObjectEntity {
 				/**
 				 * A row whose id sits in its @self block only.

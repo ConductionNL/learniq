@@ -76,6 +76,27 @@
                 }
             }
         },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "check-in-window",
+                    "_rbac": false,
+                    "_render": false
+                }
+            ],
+            "returned": {
+                "status": 200,
+                "data": {
+                    "code": "",
+                    "url": "?window=0a1b2c3d-0000-4000-8000-000000000001&code=",
+                    "mode": "fixed",
+                    "secondsLeft": 0,
+                    "checkInCount": 0
+                }
+            }
+        },
         "found with only an @self id": {
             "find": [
                 {
@@ -168,6 +189,19 @@
                 "data": {
                     "error": "Only a published regulation can be assigned"
                 }
+            }
+        },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "regulation"
+                }
+            ],
+            "returned": {
+                "status": 200,
+                "data": []
             }
         },
         "found with only an @self id": {
@@ -266,6 +300,28 @@
                 "id": "0a1b2c3d-0000-4000-8000-000000000001"
             }
         },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "thing",
+                    "_rbac": false,
+                    "_render": false
+                }
+            ],
+            "returned": {
+                "tenant_id": "t2",
+                "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                "ncUserId": "ann",
+                "lifecycle": "published",
+                "active": true,
+                "mode": "fixed",
+                "gradeVisibilityPolicy": {
+                    "showTo": "learner"
+                }
+            }
+        },
         "found with only an @self id": {
             "find": [
                 {
@@ -350,6 +406,26 @@
                 "lifecycle": "active",
                 "tenant_id": "t1",
                 "ncUserId": "ann",
+                "active": true,
+                "mode": "fixed",
+                "gradeVisibilityPolicy": {
+                    "showTo": "learner"
+                }
+            }
+        },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "thing"
+                }
+            ],
+            "returned": {
+                "tenant_id": "t2",
+                "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                "ncUserId": "ann",
+                "lifecycle": "published",
                 "active": true,
                 "mode": "fixed",
                 "gradeVisibilityPolicy": {
@@ -443,6 +519,26 @@
                 }
             }
         },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "thing"
+                }
+            ],
+            "returned": {
+                "tenant_id": "t2",
+                "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                "ncUserId": "ann",
+                "lifecycle": "published",
+                "active": true,
+                "mode": "fixed",
+                "gradeVisibilityPolicy": {
+                    "showTo": "learner"
+                }
+            }
+        },
         "found with only an @self id": {
             "find": [
                 {
@@ -529,6 +625,26 @@
                 }
             }
         },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "thing"
+                }
+            ],
+            "returned": {
+                "tenant_id": "t2",
+                "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                "ncUserId": "ann",
+                "lifecycle": "published",
+                "active": true,
+                "mode": "fixed",
+                "gradeVisibilityPolicy": {
+                    "showTo": "learner"
+                }
+            }
+        },
         "found with only an @self id": {
             "find": [
                 {
@@ -608,6 +724,26 @@
                 "lifecycle": "active",
                 "tenant_id": "t1",
                 "ncUserId": "ann",
+                "active": true,
+                "mode": "fixed",
+                "gradeVisibilityPolicy": {
+                    "showTo": "learner"
+                }
+            }
+        },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "thing"
+                }
+            ],
+            "returned": {
+                "tenant_id": "t2",
+                "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                "ncUserId": "ann",
+                "lifecycle": "published",
                 "active": true,
                 "mode": "fixed",
                 "gradeVisibilityPolicy": {
@@ -710,6 +846,28 @@
                 "id": "0a1b2c3d-0000-4000-8000-000000000001"
             }
         },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "thing",
+                    "_rbac": false,
+                    "_render": false
+                }
+            ],
+            "returned": {
+                "tenant_id": "t2",
+                "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                "ncUserId": "ann",
+                "lifecycle": "published",
+                "active": true,
+                "mode": "fixed",
+                "gradeVisibilityPolicy": {
+                    "showTo": "learner"
+                }
+            }
+        },
         "found with only an @self id": {
             "find": [
                 {
@@ -809,6 +967,29 @@
                 }
             }
         },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "thing",
+                    "_rbac": false
+                }
+            ],
+            "returned": {
+                "entity": {
+                    "tenant_id": "t2",
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "ncUserId": "ann",
+                    "lifecycle": "published",
+                    "active": true,
+                    "mode": "fixed",
+                    "gradeVisibilityPolicy": {
+                        "showTo": "learner"
+                    }
+                }
+            }
+        },
         "found with only an @self id": {
             "find": [
                 {
@@ -876,6 +1057,19 @@
             }
         },
         "found without id": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "curriculum-plan",
+                    "_rbac": false
+                }
+            ],
+            "returned": {
+                "showTo": "learner"
+            }
+        },
+        "found in another tenant": {
             "find": [
                 {
                     "id": "0a1b2c3d-0000-4000-8000-000000000001",
@@ -980,6 +1174,28 @@
                 }
             }
         },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "assignment",
+                    "_rbac": false,
+                    "_multitenancy": false
+                }
+            ],
+            "returned": {
+                "tenant_id": "t2",
+                "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                "ncUserId": "ann",
+                "lifecycle": "published",
+                "active": true,
+                "mode": "fixed",
+                "gradeVisibilityPolicy": {
+                    "showTo": "learner"
+                }
+            }
+        },
         "found with only an @self id": {
             "find": [
                 {
@@ -1069,6 +1285,16 @@
                     "showTo": "learner"
                 }
             }
+        },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "thing"
+                }
+            ],
+            "returned": null
         },
         "found with only an @self id": {
             "find": [
@@ -1167,6 +1393,29 @@
                     "showTo": "learner"
                 },
                 "id": "0a1b2c3d-0000-4000-8000-000000000001"
+            }
+        },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "thing",
+                    "_rbac": false,
+                    "_multitenancy": false,
+                    "_render": false
+                }
+            ],
+            "returned": {
+                "tenant_id": "t2",
+                "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                "ncUserId": "ann",
+                "lifecycle": "published",
+                "active": true,
+                "mode": "fixed",
+                "gradeVisibilityPolicy": {
+                    "showTo": "learner"
+                }
             }
         },
         "found with only an @self id": {
@@ -1269,6 +1518,28 @@
                     "showTo": "learner"
                 },
                 "id": "0a1b2c3d-0000-4000-8000-000000000001"
+            }
+        },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "thing",
+                    "_rbac": false,
+                    "_render": false
+                }
+            ],
+            "returned": {
+                "tenant_id": "t2",
+                "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                "ncUserId": "ann",
+                "lifecycle": "published",
+                "active": true,
+                "mode": "fixed",
+                "gradeVisibilityPolicy": {
+                    "showTo": "learner"
+                }
             }
         },
         "found with only an @self id": {
@@ -1375,6 +1646,29 @@
                 "id": "0a1b2c3d-0000-4000-8000-000000000001"
             }
         },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "thing",
+                    "_rbac": false,
+                    "_multitenancy": false,
+                    "_render": false
+                }
+            ],
+            "returned": {
+                "tenant_id": "t2",
+                "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                "ncUserId": "ann",
+                "lifecycle": "published",
+                "active": true,
+                "mode": "fixed",
+                "gradeVisibilityPolicy": {
+                    "showTo": "learner"
+                }
+            }
+        },
         "found with only an @self id": {
             "find": [
                 {
@@ -1476,6 +1770,18 @@
                 }
             }
         },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "learner-profile",
+                    "_rbac": false,
+                    "_multitenancy": false
+                }
+            ],
+            "returned": null
+        },
         "found with only an @self id": {
             "find": [
                 {
@@ -1544,6 +1850,18 @@
             "returned": "ann"
         },
         "found without id": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "learner-profile",
+                    "_rbac": false,
+                    "_multitenancy": false
+                }
+            ],
+            "returned": "ann"
+        },
+        "found in another tenant": {
             "find": [
                 {
                     "id": "0a1b2c3d-0000-4000-8000-000000000001",
@@ -1640,6 +1958,18 @@
                 "id": "0a1b2c3d-0000-4000-8000-000000000001"
             }
         },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "learner-profile",
+                    "_rbac": false,
+                    "_multitenancy": false
+                }
+            ],
+            "returned": null
+        },
         "found with only an @self id": {
             "find": [
                 {
@@ -1732,6 +2062,28 @@
                 "lifecycle": "active",
                 "tenant_id": "t1",
                 "ncUserId": "ann",
+                "active": true,
+                "mode": "fixed",
+                "gradeVisibilityPolicy": {
+                    "showTo": "learner"
+                }
+            }
+        },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "thing",
+                    "_rbac": false,
+                    "_multitenancy": false
+                }
+            ],
+            "returned": {
+                "tenant_id": "t2",
+                "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                "ncUserId": "ann",
+                "lifecycle": "published",
                 "active": true,
                 "mode": "fixed",
                 "gradeVisibilityPolicy": {
@@ -1834,6 +2186,29 @@
                 "lifecycle": "active",
                 "tenant_id": "t1",
                 "ncUserId": "ann",
+                "active": true,
+                "mode": "fixed",
+                "gradeVisibilityPolicy": {
+                    "showTo": "learner"
+                }
+            }
+        },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "thing",
+                    "_rbac": false,
+                    "_multitenancy": false,
+                    "_render": false
+                }
+            ],
+            "returned": {
+                "tenant_id": "t2",
+                "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                "ncUserId": "ann",
+                "lifecycle": "published",
                 "active": true,
                 "mode": "fixed",
                 "gradeVisibilityPolicy": {
@@ -1946,6 +2321,29 @@
                 "id": "0a1b2c3d-0000-4000-8000-000000000001"
             }
         },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "submission",
+                    "_rbac": false,
+                    "_multitenancy": false,
+                    "_render": false
+                }
+            ],
+            "returned": {
+                "tenant_id": "t2",
+                "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                "ncUserId": "ann",
+                "lifecycle": "published",
+                "active": true,
+                "mode": "fixed",
+                "gradeVisibilityPolicy": {
+                    "showTo": "learner"
+                }
+            }
+        },
         "found with only an @self id": {
             "find": [
                 {
@@ -2044,6 +2442,29 @@
                 "lifecycle": "active",
                 "tenant_id": "t1",
                 "ncUserId": "ann",
+                "active": true,
+                "mode": "fixed",
+                "gradeVisibilityPolicy": {
+                    "showTo": "learner"
+                }
+            }
+        },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "thing",
+                    "_rbac": false,
+                    "_multitenancy": false,
+                    "_render": false
+                }
+            ],
+            "returned": {
+                "tenant_id": "t2",
+                "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                "ncUserId": "ann",
+                "lifecycle": "published",
                 "active": true,
                 "mode": "fixed",
                 "gradeVisibilityPolicy": {
@@ -2153,6 +2574,28 @@
                 }
             }
         },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "thing",
+                    "_rbac": false,
+                    "_render": false
+                }
+            ],
+            "returned": {
+                "tenant_id": "t2",
+                "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                "ncUserId": "ann",
+                "lifecycle": "published",
+                "active": true,
+                "mode": "fixed",
+                "gradeVisibilityPolicy": {
+                    "showTo": "learner"
+                }
+            }
+        },
         "found with only an @self id": {
             "find": [
                 {
@@ -2244,6 +2687,28 @@
                 "lifecycle": "active",
                 "tenant_id": "t1",
                 "ncUserId": "ann",
+                "active": true,
+                "mode": "fixed",
+                "gradeVisibilityPolicy": {
+                    "showTo": "learner"
+                }
+            }
+        },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "bpv-placement",
+                    "_rbac": false,
+                    "_render": false
+                }
+            ],
+            "returned": {
+                "tenant_id": "t2",
+                "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                "ncUserId": "ann",
+                "lifecycle": "published",
                 "active": true,
                 "mode": "fixed",
                 "gradeVisibilityPolicy": {
@@ -2352,6 +2817,29 @@
                     "showTo": "learner"
                 },
                 "id": "0a1b2c3d-0000-4000-8000-000000000001"
+            }
+        },
+        "found in another tenant": {
+            "find": [
+                {
+                    "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                    "register": "learniq",
+                    "schema": "thing",
+                    "_rbac": false,
+                    "_multitenancy": false,
+                    "_render": false
+                }
+            ],
+            "returned": {
+                "tenant_id": "t2",
+                "id": "0a1b2c3d-0000-4000-8000-000000000001",
+                "ncUserId": "ann",
+                "lifecycle": "published",
+                "active": true,
+                "mode": "fixed",
+                "gradeVisibilityPolicy": {
+                    "showTo": "learner"
+                }
             }
         },
         "found with only an @self id": {

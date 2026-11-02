@@ -45,8 +45,8 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\Learniq\Service\Portal\PortalOutcome;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IUser;
@@ -58,6 +58,7 @@ use Throwable;
  * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
  */
 class CheckInService {
+	use FindOrNull;
 
 	private const REGISTER = 'learniq';
 	private const WINDOW_SCHEMA = 'check-in-window';
@@ -365,20 +366,8 @@ class CheckInService {
 			return null;
 		}
 
-		try {
-			$object = $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _render: false);
-		} catch (DoesNotExistException) {
-			return null;
-		}
-
-		$row = $object?->jsonSerialize();
-		if (is_array($row) === false) {
-			return null;
-		}
-
-		$row['id'] = (string)($row['id'] ?? ($row['@self']['id'] ?? $id));
-
-		return $row;
+		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _render: false);
+		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end read()
 
 	/**
