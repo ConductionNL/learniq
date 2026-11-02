@@ -521,6 +521,13 @@
             }
         },
         {
+            "deleteObject": {
+                "uuid": "saved-7",
+                "register": "learniq",
+                "schema": "material"
+            }
+        },
+        {
             "saveObject": {
                 "object": {
                     "openconnectorDeploymentId": "",
@@ -562,7 +569,7 @@
                     "title": "Title R2",
                     "outcome": "degraded",
                     "targetType": "lti-tool-placement",
-                    "targetId": "saved-9",
+                    "targetId": "saved-10",
                     "reason": "LTI placement created without a configured OpenConnector deployment; an admin must bind a deployment before this tool can be launched."
                 }
             ]
