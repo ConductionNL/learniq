@@ -42,6 +42,8 @@ use ZipArchive;
  *
  * @covers \OCA\Learniq\Service\AuditPackBuilder
  * @uses   \OCA\Learniq\Service\CsvCellSanitizer
+ * @uses   \OCA\Learniq\Service\AuditPackScope
+ * @uses   \OCA\Learniq\Service\AuditPackContent
  */
 class AuditPackBuilderGoldenTest extends TestCase {
 
