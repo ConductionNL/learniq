@@ -36,6 +36,8 @@ use OCP\AppFramework\Http;
  */
 final class CourseTemplateBuild {
 
+	use ListOfArrays;
+
 	/**
 	 * Every object created so far, in creation order.
 	 *
@@ -262,19 +264,4 @@ final class CourseTemplateBuild {
 	private static function withoutNulls(array $row): array {
 		return array_filter($row, static fn ($value): bool => $value !== null);
 	}//end withoutNulls()
-
-	/**
-	 * The array entries of a value, re-indexed; [] when it is not an array.
-	 *
-	 * @param mixed $value The value.
-	 *
-	 * @return list<array<string,mixed>>
-	 */
-	private static function listOf(mixed $value): array {
-		if (is_array($value) === false) {
-			return [];
-		}
-
-		return array_values(array_filter($value, 'is_array'));
-	}//end listOf()
 }//end class

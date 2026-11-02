@@ -35,6 +35,8 @@ namespace OCA\Learniq\Service\Course;
  */
 class CourseTemplateSkeleton {
 
+	use ListOfArrays;
+
 	/**
 	 * The template's module entries for a course tree.
 	 *
@@ -97,19 +99,4 @@ class CourseTemplateSkeleton {
 
 		return $skeleton;
 	}//end blocks()
-
-	/**
-	 * The array entries of a list value; anything else is an empty list.
-	 *
-	 * @param mixed $value The value.
-	 *
-	 * @return list<array<string, mixed>>
-	 */
-	private static function listOf(mixed $value): array {
-		if (is_array($value) === false) {
-			return [];
-		}
-
-		return array_values(array_filter($value, 'is_array'));
-	}//end listOf()
 }//end class

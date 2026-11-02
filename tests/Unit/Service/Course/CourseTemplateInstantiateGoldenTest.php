@@ -46,6 +46,7 @@ use Throwable;
  *
  * @covers \OCA\Learniq\Service\Course\CourseTemplateService
  * @covers \OCA\Learniq\Service\Course\CourseTemplateBuild
+ * @covers \OCA\Learniq\Service\Course\ListOfArrays
  * @uses   \OCA\Learniq\Exception\CourseTemplateRefusedException
  */
 class CourseTemplateInstantiateGoldenTest extends TestCase {
