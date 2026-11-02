@@ -176,7 +176,7 @@ class ContactHoursService {
 		$periods = $this->reader->reportPeriods(academicYear: $academicYear);
 		$owed = [];
 		foreach ($lines as $line) {
-			$share = $this->calendar->share(periodCode: $line['periodCode'] ?? null, periods: $periods, academicYear: $academicYear, from: $from, to: $to);
+			$share = $this->calendar->share(periodCode: $line['periodCode'] ?? null, periods: $periods, academicYear: $academicYear, window: [$from, $to]);
 			$courseId = (string)$line['courseId'];
 			$owed[$courseId] = ($owed[$courseId] ?? 0.0) + ((float)$line['contactHours'] * $share);
 		}
