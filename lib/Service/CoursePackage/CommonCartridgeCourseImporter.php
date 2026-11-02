@@ -77,20 +77,18 @@ class CommonCartridgeCourseImporter {
 	/**
 	 * Materialise a parsed Common Cartridge manifest.
 	 *
-	 * @param string $dir Extracted CC package directory.
 	 * @param array<string, mixed> $manifest `CommonCartridgeParser::parseManifest()` result.
-	 * @param string $importedBy NC user id (used as the nc:files owner for resolved Material bytes).
-	 * @param string $tenantId Tenant UUID stamped on every created object.
+	 * @param PackageContext $package The extracted package: its directory, the importing user (nc:files owner) and the tenant.
 	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
 	 *
 	 * @return string|null UUID of the top-level Course, or null if none was created.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
 	 */
-	public function importManifest(string $dir, array $manifest, string $importedBy, string $tenantId, array &$entries): ?string {
+	public function importManifest(array $manifest, PackageContext $package, array &$entries): ?string {
 		$walk = new OrganizationWalk(
 			resourcesById: $this->indexResources(resources: $manifest['resources']),
-			package: new PackageContext(dir: $dir, importedBy: $importedBy, tenantId: $tenantId),
+			package: $package,
 		);
 		$walk->entries = $entries;
 
@@ -102,7 +100,7 @@ class CommonCartridgeCourseImporter {
 		$this->routeUnreferencedResources(resources: $manifest['resources'], walk: $walk);
 		$entries = $walk->entries;
 
-		$this->importQtiResources(dir: $dir, tenantId: $tenantId, entries: $entries);
+		$this->importQtiResources(dir: $package->dir, tenantId: $package->tenantId, entries: $entries);
 
 		return $walk->topCourseId;
 	}//end importManifest()
@@ -188,10 +186,7 @@ class CommonCartridgeCourseImporter {
 			resourceIdentifier: $node['identifier'],
 			resourceType: 'organization',
 			title: $node['title'],
-			outcome: 'imported',
-			targetType: 'course',
-			targetId: $courseId,
-			reason: null,
+			result: ['outcome' => 'imported', 'targetType' => 'course', 'targetId' => $courseId, 'reason' => null]
 		);
 	}//end importFolderNode()
 
