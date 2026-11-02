@@ -227,7 +227,13 @@
                             {
                                 "itemId": "i-1",
                                 "points": 4,
-                                "optionOrder": null
+                                "optionOrder": {
+                                    "shuffled": [
+                                        "A",
+                                        "B",
+                                        "C"
+                                    ]
+                                }
                             },
                             {
                                 "itemId": "i-2",

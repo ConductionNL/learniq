@@ -269,6 +269,22 @@
             }
         ]
     },
+    "a partial read with a lesson": {
+        "refused": [
+            "This file holds no lesson content learniq can read.",
+            422,
+            "unreadable"
+        ],
+        "calls": [
+            {
+                "extract": [
+                    "p.docx",
+                    "docx"
+                ]
+            }
+        ],
+        "log": []
+    },
     "already imported": {
         "refused": [
             "This file was already imported or dismissed.",
@@ -292,7 +308,7 @@
         "calls": [
             {
                 "extract": [
-                    "Breuken & co.docx",
+                    "-Breuken & co!.docx",
                     "docx"
                 ]
             },
@@ -497,9 +513,9 @@
                 "create": [
                     "material",
                     {
-                        "title": "Breuken & co.docx",
+                        "title": "-Breuken & co!.docx",
                         "kind": "document",
-                        "fileRef": "/Lessen inbox/Breuken & co.docx",
+                        "fileRef": "/Lessen inbox/-Breuken & co!.docx",
                         "courseId": "course-1",
                         "lessonId": "lesson-3",
                         "tenant_id": "t-course"
@@ -973,6 +989,109 @@
                     "lessonId": "lesson-3",
                     "blocks": 5,
                     "materials": 3
+                }
+            }
+        ]
+    },
+    "notes without images, one note lost": {
+        "result": {
+            "lessonId": "lesson-3",
+            "lessonName": "T",
+            "courseId": "course-1",
+            "blocks": 1,
+            "materials": 1,
+            "notes": [
+                "1 teacher note(s) could not be saved"
+            ]
+        },
+        "calls": [
+            {
+                "extract": [
+                    "(Les) 4!.docx",
+                    "docx"
+                ]
+            },
+            {
+                "findAll": [
+                    {
+                        "filters": {
+                            "register": "learniq",
+                            "schema": "lesson",
+                            "courseId": "course-1"
+                        },
+                        "limit": 1000
+                    },
+                    true,
+                    true
+                ]
+            },
+            {
+                "create": [
+                    "lesson",
+                    {
+                        "courseId": "course-1",
+                        "name": "T",
+                        "order": 8,
+                        "contentType": "text",
+                        "blocks": [
+                            {
+                                "blockId": "<uuid-1>",
+                                "order": 1,
+                                "type": "richText",
+                                "text": "## Een\n\nTekst"
+                            }
+                        ],
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "lesson-teacher-note",
+                    {
+                        "blockId": "<uuid-2>",
+                        "afterBlockId": "<uuid-1>",
+                        "position": 0,
+                        "text": "Alleen voor mij.",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "(Les) 4!.docx",
+                        "kind": "document",
+                        "fileRef": "/Lessen inbox/(Les) 4!.docx",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "transition": [
+                    "row-1",
+                    "import",
+                    {
+                        "lessonId": "lesson-3",
+                        "courseId": "course-1",
+                        "importNote": "1 teacher note(s) could not be saved"
+                    }
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[LessonOnboardingImporter] File {fileId} imported as lesson {lessonId} ({blocks} blocks, {materials} materials)",
+                "context": {
+                    "fileId": 99,
+                    "lessonId": "lesson-3",
+                    "blocks": 1,
+                    "materials": 1
                 }
             }
         ]

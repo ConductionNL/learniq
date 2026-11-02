@@ -98,8 +98,10 @@ class LessonOnboardingImportGoldenTest extends TestCase {
 		$ok = ['status' => 'ok', 'lesson' => self::richLesson()];
 		$plain = ['status' => 'ok', 'lesson' => ['title' => '', 'sections' => [['heading' => 'Een', 'paragraphs' => ['Tekst'], 'images' => []]], 'notes' => []]];
 		return [
-			'docx with images and notes' => [[], $tenantCourse, 'Breuken & co.docx', $ok, []],
+			'docx with images and notes' => [[], $tenantCourse, '-Breuken & co!.docx', $ok, []],
 			'pptx outside the user folder, course without tenant' => [['format' => 'pptx'], ['name' => 'X'], '/elsewhere/Les 3.pptx', $ok, []],
+			'notes without images, one note lost' => [[], $tenantCourse, '(Les) 4!.docx', ['status' => 'ok', 'lesson' => ['title' => 'T', 'sections' => [['heading' => 'Een', 'paragraphs' => ['Tekst'], 'images' => [], 'notes' => 'Alleen voor mij.']], 'notes' => []]], ['noteNull' => true]],
+			'a partial read with a lesson' => [[], $tenantCourse, 'p.docx', ['status' => 'partial'] + $plain, []],
 			'no title, no images' => [[], $tenantCourse, 'Kale les.docx', $plain, []],
 			'long title' => [[], $tenantCourse, 'a.docx', ['status' => 'ok', 'lesson' => ['title' => str_repeat('é', 300)] + $plain['lesson']], []],
 			'notes cannot be saved' => [[], $tenantCourse, 'n.docx', $ok, ['noteNull' => true]],

@@ -121,6 +121,22 @@ class AssessmentDrawGoldenTest extends TestCase {
 	}//end testHandleMatchesGolden()
 
 	/**
+	 * A random draw takes exactly drawCount items, each from another variant group.
+	 *
+	 * @return void
+	 */
+	public function testARandomDrawTakesDrawCountItems(): void {
+		$this->calls = [];
+		$assessment = ['id' => 'a-1', 'itemSelectionMode' => 'random-draw', 'itemPoolConfig' => ['itemBankId' => 'bank-1', 'drawCount' => 3]];
+		$resolver = new AssessmentDrawResolver($this->objectService(assessment: $assessment), new QtiChoiceOrderResolver(), new ItemPoolFilter(), $this->schemas(schema: 'assessment-result'), new CapturingLogger());
+		$resolver->handle($this->created(data: ['id' => 'r-1', 'assessmentId' => 'a-1', 'tenant_id' => 't-1']));
+		$saves = array_values(array_filter($this->calls, static fn (array $call): bool => isset($call['saveObject'])));
+		$ids = array_column($saves[0]['saveObject'][0]['drawnItemRefs'], 'itemId');
+		$this->assertCount(3, $ids);
+		$this->assertCount(3, array_unique($ids));
+	}//end testARandomDrawTakesDrawCountItems()
+
+	/**
 	 * The saved arguments with option orders replaced by their sorted options, and the refs sorted when the order is random.
 	 *
 	 * @param array<string,mixed> $args   The saveObject arguments.
@@ -155,7 +171,7 @@ class AssessmentDrawGoldenTest extends TestCase {
 	private function objectService(?array $assessment): ObjectService {
 		$choice = '<assessmentItem><choiceInteraction><simpleChoice identifier="A"/><simpleChoice identifier="B" fixed="true"/><simpleChoice identifier="C"/></choiceInteraction></assessmentItem>';
 		$items = [
-			['id' => 'i-1', 'maxScore' => 2, 'itemBankId' => 'bank-1', 'lifecycle' => 'published', 'qtiBody' => $choice, 'difficulty' => 0.3],
+			['id' => 'i-1', 'maxScore' => 2, 'itemBankId' => 'bank-1', 'lifecycle' => 'published', 'interactionType' => 'choice', 'qtiBody' => $choice, 'difficulty' => 0.3],
 			['id' => 'i-2', 'maxScore' => 5, 'itemBankId' => 'bank-1', 'lifecycle' => 'published', 'difficulty' => 0.9],
 			['id' => 'i-3', 'itemBankId' => 'bank-1', 'lifecycle' => 'published', 'variantGroupId' => 'g-3'],
 			['id' => 'i-4', 'maxScore' => 1, 'itemBankId' => 'bank-1', 'lifecycle' => 'published', 'difficulty' => 0.4],
