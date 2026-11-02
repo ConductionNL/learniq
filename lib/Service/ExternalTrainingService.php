@@ -36,8 +36,8 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -46,6 +46,8 @@ use Psr\Log\LoggerInterface;
  * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
 class ExternalTrainingService {
+	use FindOrNull;
+
 	/**
 	 * OpenRegister register slug Learniq objects live in.
 	 */
@@ -272,17 +274,9 @@ class ExternalTrainingService {
 			return null;
 		}
 
-		try {
-			$profile = $this->objectService->find(
-				id: $profileId,
-				register: self::LEARNIQ_REGISTER,
-				schema: 'learner-profile',
-				_rbac: false,
-				_multitenancy: false
-			);
-		} catch (DoesNotExistException) {
-			return null;
-		}
+		$find = fn () => $this->objectService
+			->find(id: $profileId, register: self::LEARNIQ_REGISTER, schema: 'learner-profile', _rbac: false, _multitenancy: false);
+		$profile = $this->findOrNull(find: $find);
 
 		$ncUserId = ($profile?->jsonSerialize()['ncUserId'] ?? null);
 		if (is_string($ncUserId) === false || $ncUserId === '') {

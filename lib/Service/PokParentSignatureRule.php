@@ -44,8 +44,8 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use Exception;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 
 /**
@@ -54,6 +54,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
  * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
  */
 class PokParentSignatureRule {
+	use FindOrNull;
 
 	/**
 	 * The student was under 18 on the day that counts.
@@ -183,23 +184,8 @@ class PokParentSignatureRule {
 			return null;
 		}
 
-		try {
-			$object = $this->objectService->find(
-				id: $id,
-				register: self::LEARNIQ_REGISTER,
-				schema: $schema,
-				_rbac: false,
-				_multitenancy: false
-			);
-		} catch (DoesNotExistException $exception) {
-			return null;
-		}
-
-		if ($object === null) {
-			return null;
-		}
-
-		return $object->jsonSerialize();
+		$find = fn () => $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema, _rbac: false, _multitenancy: false);
+		return $this->findOrNull(find: $find)?->jsonSerialize();
 	}//end row()
 
 	/**

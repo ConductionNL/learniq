@@ -46,6 +46,7 @@ use OCA\Learniq\Service\Programme\ProgrammeProgress;
 use OCA\Learniq\Service\Signing\SigningService;
 use OCA\Learniq\Service\WorkGroup\WorkGroupReader;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http\JSONResponse;
@@ -154,6 +155,16 @@ class FindOrNullGoldenTest extends TestCase {
 			'null' => static fn (): mixed => null,
 			'found' => static fn (): mixed => OrEntityFactory::make($row, 'thing'),
 			'found without id' => static fn (): mixed => OrEntityFactory::make(['lifecycle' => 'active'] + array_diff_key($row, ['id' => true]), 'thing'),
+			'found with only an @self id' => static fn (): mixed => new class extends ObjectEntity {
+				/**
+				 * A row whose id sits in its @self block only.
+				 *
+				 * @return array<string, mixed>
+				 */
+				public function jsonSerialize(): array {
+					return ['@self' => ['id' => 'self-id'], 'tenant_id' => 't1', 'lifecycle' => 'active', 'ncUserId' => 'ann'];
+				}//end jsonSerialize()
+			},
 			'fault' => static function (): never {
 				throw new RuntimeException('fault');
 			},
