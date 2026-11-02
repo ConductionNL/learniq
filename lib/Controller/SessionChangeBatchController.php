@@ -31,6 +31,7 @@ namespace OCA\Learniq\Controller;
 use InvalidArgumentException;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Service\SessionChangeBatchService;
 use OCA\Learniq\Timetabling\SessionSeries;
 use OCP\AppFramework\Controller;
@@ -53,21 +54,35 @@ class SessionChangeBatchController extends Controller {
 	public const ACTION = 'timetable.bulk-change';
 
 	/**
+	 * Current user session.
+	 *
+	 * @var IUserSession
+	 */
+	private readonly IUserSession $userSession;
+
+	/**
+	 * ADR-023 action matrix.
+	 *
+	 * @var ActionAuthService
+	 */
+	private readonly ActionAuthService $actionAuth;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IRequest                  $request     HTTP request.
-	 * @param IUserSession              $userSession Current user session.
-	 * @param ActionAuthService         $actionAuth  ADR-023 action matrix.
+	 * @param CallerActions $caller The user session and the ADR-023 action matrix.
 	 * @param SessionChangeBatchService $batches     Applies the change.
 	 * @param SessionSeries             $series      Finds the weekly slot.
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly IUserSession $userSession,
-		private readonly ActionAuthService $actionAuth,
+		CallerActions $caller,
 		private readonly SessionChangeBatchService $batches,
 		private readonly SessionSeries $series,
 	) {
+		$this->userSession = $caller->userSession;
+		$this->actionAuth = $caller->actionAuth;
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
 

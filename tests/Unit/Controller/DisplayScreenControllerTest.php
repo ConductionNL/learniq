@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\DisplayScreenController;
+use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\DisplayScreenService;
 use OCP\AppFramework\Http;
@@ -63,7 +64,15 @@ class DisplayScreenControllerTest extends TestCase {
 		$urls->method('linkToRoute')->willReturnCallback(static fn (string $route, array $args) => '/apps/learniq/display/'.$args['token']);
 		$urls->method('getAbsoluteURL')->willReturnCallback(static fn (string $path) => 'https://school.example'.$path);
 
-		return new DisplayScreenController($this->createMock(IRequest::class), $session, $auth, $screens, $urls);
+		return new DisplayScreenController(
+			request: $this->createMock(IRequest::class),
+			caller: new CallerActions(
+				userSession: $session,
+				actionAuth: $auth
+			),
+			screens: $screens,
+			urls: $urls
+		);
 	}//end controller()
 
 	/**

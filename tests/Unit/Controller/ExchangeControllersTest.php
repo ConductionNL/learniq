@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\ExchangeGateController;
+use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Controller\ExchangeRequestController;
 use OCA\Learniq\Exception\ExchangeRequestRefusedException;
 use OCA\Learniq\Exception\IntegriqUnavailableException;
@@ -121,7 +122,15 @@ class ExchangeControllersTest extends TestCase {
 			$decision ?? ['decision' => 'refuse', 'code' => 'teldatum-unconfirmed', 'reason' => 'Not confirmed.', 'checkedAt' => '2026-10-01T09:00:00+02:00', 'records' => []]
 		);
 
-		return new ExchangeGateController($this->request(), $this->session(), $this->actions($allowed, 'exchange.gate-read'), $objects, $gate);
+		return new ExchangeGateController(
+			request: $this->request(),
+			caller: new CallerActions(
+				userSession: $this->session(),
+				actionAuth: $this->actions($allowed, 'exchange.gate-read')
+			),
+			objectService: $objects,
+			gate: $gate
+		);
 	}//end gateController()
 
 	/**
@@ -164,11 +173,13 @@ class ExchangeControllersTest extends TestCase {
 		$this->assertSame(Http::STATUS_FORBIDDEN, $this->gateController(['id' => 'job-1', 'ownerApp' => 'learniq'], false)->show('job-1')->getStatus());
 
 		$controller = new ExchangeGateController(
-			$this->request(),
-			$this->session(false),
-			$this->createMock(ActionAuthService::class),
-			$this->createMock(ObjectService::class),
-			$this->createMock(ExchangeGateService::class)
+			request: $this->request(),
+			caller: new CallerActions(
+				userSession: $this->session(false),
+				actionAuth: $this->createMock(ActionAuthService::class)
+			),
+			objectService: $this->createMock(ObjectService::class),
+			gate: $this->createMock(ExchangeGateService::class)
 		);
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $controller->show('job-1')->getStatus());
 	}//end testTheGateRouteRefusesTheRest()
@@ -183,11 +194,13 @@ class ExchangeControllersTest extends TestCase {
 	 */
 	private function requestController(IntegriqExchangeClient $integriq, ?ObjectService $objects = null): ExchangeRequestController {
 		return new ExchangeRequestController(
-			$this->request(),
-			$this->session(),
-			$this->actions(true, 'exchange.request'),
-			$integriq,
-			$objects ?? $this->createMock(ObjectService::class)
+			request: $this->request(),
+			caller: new CallerActions(
+				userSession: $this->session(),
+				actionAuth: $this->actions(true, 'exchange.request')
+			),
+			integriq: $integriq,
+			objectService: $objects ?? $this->createMock(ObjectService::class)
 		);
 	}//end requestController()
 
