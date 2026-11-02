@@ -14,7 +14,7 @@
  @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
 -->
 <template>
-	<div class="my-work-groups">
+	<div class="my-work-groups lq-board-page">
 		<CnPageHeader :title="t('learniq', 'My work groups')" />
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcEmptyContent
@@ -26,12 +26,12 @@
 					'Your teachers have not made work groups for your classes yet.',
 				)
 			" />
-		<section
+		<CnDetailCard
 			v-for="set in sets"
 			v-else
 			:key="set.cohortId + set.setName"
+			:title="set.setName + ' · ' + set.cohortName"
 			class="my-work-groups__set">
-			<h3>{{ set.setName }} · {{ set.cohortName }}</h3>
 			<p class="my-work-groups__meta">
 				{{
 					set.open
@@ -87,7 +87,7 @@
 					</div>
 				</li>
 			</ul>
-		</section>
+		</CnDetailCard>
 		<NcNoteCard v-if="error" type="error">
 			{{ error }}
 		</NcNoteCard>
@@ -95,7 +95,7 @@
 </template>
 
 <script>
-import { CnPageHeader } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -103,7 +103,7 @@ import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/
 export default {
 	name: 'MyWorkGroups',
 
-	components: { CnPageHeader, NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard },
+	components: { CnDetailCard, CnPageHeader, NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard },
 
 	data() {
 		return {
@@ -188,11 +188,6 @@ export default {
 </script>
 
 <style scoped>
-.my-work-groups {
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
-	max-inline-size: 60rem;
-}
-
 .my-work-groups__groups {
 	list-style: none;
 	padding: 0;
