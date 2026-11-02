@@ -200,17 +200,22 @@ class ExamplePortalDeclarationsTest extends TestCase {
 	 */
 	public function testTheSecondarySchoolPortalCarriesTheSchoolsName(): void {
 		$declaration = (new ExamplePortalDeclarations())->forSet(setId: 'vo');
-		self::assertNotNull($declaration);
-		self::assertSame(['Mijn Zuiddrecht', 'Zuiddrecht College', 'Mijn Zuiddrecht'], [$declaration['portal']['title'], $declaration['portal']['tagline'], $declaration['portal']['accountLabel']]);
-		self::assertSame(['title' => 'Mijn Zuiddrecht', 'tagline' => 'Zuiddrecht College'], array_intersect_key(ExamplePortalProvisioner::PORTALS['vo'], ['title' => 1, 'tagline' => 1]));
+		self::assertNotNull(actual: $declaration);
+		$portal = $declaration['portal'];
+		self::assertSame(
+			expected: ['Mijn Zuiddrecht', 'Zuiddrecht College', 'Mijn Zuiddrecht'],
+			actual: [$portal['title'], $portal['tagline'], $portal['accountLabel']]
+		);
+		$fallback = ExamplePortalProvisioner::PORTALS['vo'];
+		self::assertSame(expected: ['Mijn Zuiddrecht', 'Zuiddrecht College'], actual: [$fallback['title'], $fallback['tagline']]);
 
 		$profile = (string)file_get_contents(dirname(__DIR__, 3) . '/lib/Settings/profiles/vo.json');
-		self::assertStringContainsString('"name": "Zuiddrecht College"', $profile);
-		self::assertStringNotContainsString('Vaartveld', $profile);
+		self::assertStringContainsString(needle: '"name": "Zuiddrecht College"', haystack: $profile);
+		self::assertStringNotContainsString(needle: 'Vaartveld', haystack: $profile);
 
 		$copy = $declaration;
 		unset($copy['legacyTitles'], $copy['portal']['slug'], $copy['portal']['theme']);
-		self::assertStringNotContainsString('Vaartveld', (string)json_encode($copy, JSON_UNESCAPED_UNICODE));
+		self::assertStringNotContainsString(needle: 'Vaartveld', haystack: (string)json_encode($copy, JSON_UNESCAPED_UNICODE));
 	}//end testTheSecondarySchoolPortalCarriesTheSchoolsName()
 
 	/**
