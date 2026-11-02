@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Portal;
 
 use OCA\Learniq\Portal\ExamplePortalDeclarations;
+use OCA\Learniq\Portal\ExamplePortalProvisioner;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -187,6 +188,30 @@ class ExamplePortalDeclarationsTest extends TestCase {
 			self::assertStringNotContainsString("\u{2013}", $text, basename($file));
 		}
 	}//end testTheCopyHasNoLongDashes()
+
+	/**
+	 * The vo portal carries the name of the school in its set: the title, the
+	 * tagline, the fallback map and every line of copy. Only the legacy titles
+	 * of older sets and the slug and theme ids keep the earlier name.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/example-sets/spec.md#requirement-each-example-set-is-the-school-its-portal-was-designed-for
+	 */
+	public function testTheSecondarySchoolPortalCarriesTheSchoolsName(): void {
+		$declaration = (new ExamplePortalDeclarations())->forSet(setId: 'vo');
+		self::assertNotNull($declaration);
+		self::assertSame(['Mijn Zuiddrecht', 'Zuiddrecht College', 'Mijn Zuiddrecht'], [$declaration['portal']['title'], $declaration['portal']['tagline'], $declaration['portal']['accountLabel']]);
+		self::assertSame(['title' => 'Mijn Zuiddrecht', 'tagline' => 'Zuiddrecht College'], array_intersect_key(ExamplePortalProvisioner::PORTALS['vo'], ['title' => 1, 'tagline' => 1]));
+
+		$profile = (string)file_get_contents(dirname(__DIR__, 3) . '/lib/Settings/profiles/vo.json');
+		self::assertStringContainsString('"name": "Zuiddrecht College"', $profile);
+		self::assertStringNotContainsString('Vaartveld', $profile);
+
+		$copy = $declaration;
+		unset($copy['legacyTitles'], $copy['portal']['slug'], $copy['portal']['theme']);
+		self::assertStringNotContainsString('Vaartveld', (string)json_encode($copy, JSON_UNESCAPED_UNICODE));
+	}//end testTheSecondarySchoolPortalCarriesTheSchoolsName()
 
 	/**
 	 * The declarations follow the boards where portal proof run 1 found them
