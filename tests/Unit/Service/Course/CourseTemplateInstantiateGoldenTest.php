@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service\Course;
 
 use OCA\Learniq\Exception\CourseTemplateRefusedException;
+use OCA\Learniq\Service\Course\CourseTemplateObjects;
 use OCA\Learniq\Service\Course\CourseTemplateService;
 use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
 use OCA\Learniq\Tests\Support\CapturingLogger;
@@ -47,6 +48,7 @@ use Throwable;
  * @covers \OCA\Learniq\Service\Course\CourseTemplateService
  * @covers \OCA\Learniq\Service\Course\CourseTemplateBuild
  * @covers \OCA\Learniq\Service\Course\ListOfArrays
+ * @uses   \OCA\Learniq\Service\Course\CourseTemplateObjects
  * @uses   \OCA\Learniq\Exception\CourseTemplateRefusedException
  */
 class CourseTemplateInstantiateGoldenTest extends TestCase {
@@ -220,7 +222,7 @@ class CourseTemplateInstantiateGoldenTest extends TestCase {
 		$time = $this->createMock(ITimeFactory::class);
 		$time->method('getTime')->willReturn(1700000000);
 
-		return new CourseTemplateService($objects, $writer, $l10n, $time, $logger);
+		return new CourseTemplateService(objects: new CourseTemplateObjects(objectService: $objects, writer: $writer), l10n: $l10n, timeFactory: $time, logger: $logger);
 	}//end service()
 
 	/**

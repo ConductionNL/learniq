@@ -91,22 +91,35 @@ class CourseStorePublisher {
 	private const AUTHORIZER_CLASS = 'OCA\\OpenRegister\\AppHost\\Store\\StoreActionAuthorizer';
 
 	/**
+	 * Learniq's store parameters and publish opt-in.
+	 *
+	 * @var CourseStoreDescriptor
+	 */
+	private readonly CourseStoreDescriptor $descriptor;
+
+	/**
+	 * Builds the object to send.
+	 *
+	 * @var CourseStoreRegistryObject
+	 */
+	private readonly CourseStoreRegistryObject $registryObject;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param GenericStoreService       $storeService   OpenRegister's store plane client.
-	 * @param CourseStoreDescriptor     $descriptor     Learniq's store parameters and publish opt-in.
-	 * @param CourseStoreRegistryObject $registryObject Builds the object to send.
-	 * @param ContainerInterface        $container      Server container, for the plane's authorizer.
-	 * @param LoggerInterface           $logger         Server-side diagnostics only.
+	 * @param GenericStoreService   $storeService OpenRegister's store plane client.
+	 * @param CourseStoreDefinition $definition   Learniq's store parameters and the object builder.
+	 * @param ContainerInterface    $container    Server container, for the plane's authorizer.
+	 * @param LoggerInterface       $logger       Server-side diagnostics only.
 	 */
 	public function __construct(
 		private readonly GenericStoreService $storeService,
-		private readonly CourseStoreDescriptor $descriptor,
-		private readonly CourseStoreRegistryObject $registryObject,
+		CourseStoreDefinition $definition,
 		private readonly ContainerInterface $container,
 		private readonly LoggerInterface $logger,
 	) {
-
+		$this->descriptor = $definition->descriptor;
+		$this->registryObject = $definition->registryObject;
 	}//end __construct()
 
 	/**

@@ -23,6 +23,7 @@ namespace OCA\Learniq\Tests\Unit\Service\LessonOnboarding;
 
 use OCA\Learniq\Service\LessonOnboarding\DocumentLessonReader;
 use OCA\Learniq\Service\LessonOnboarding\DocxLessonReader;
+use OCA\Learniq\Service\LessonOnboarding\LessonFileReaders;
 use OCA\Learniq\Service\LessonOnboarding\OfficeLessonExtractor;
 use OCA\Learniq\Service\LessonOnboarding\PresentationLessonReader;
 use OCP\Files\File;
@@ -221,12 +222,10 @@ class DocumentLessonReaderTest extends TestCase {
 	 */
 	private function extractor(DocxLessonReader $docx, DocumentLessonReader $reader): OfficeLessonExtractor {
 		return new OfficeLessonExtractor(
-			docxReader: $docx,
-			presentationReader: $this->createMock(PresentationLessonReader::class),
+			readers: new LessonFileReaders(docx: $docx, presentation: $this->createMock(PresentationLessonReader::class), document: $reader),
 			container: $this->createMock(ContainerInterface::class),
 			logger: new NullLogger(),
-			wordExtractorClass: 'OCA\\OpenRegister\\NoSuchWordExtractor',
-			documentReader: $reader
+			wordExtractorClass: 'OCA\\OpenRegister\\NoSuchWordExtractor'
 		);
 	}//end extractor()
 
