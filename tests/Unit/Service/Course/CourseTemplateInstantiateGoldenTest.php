@@ -74,8 +74,8 @@ class CourseTemplateInstantiateGoldenTest extends TestCase {
 			'curriculumPlanSkeleton' => [
 				'kind' => 'weighted',
 				'components' => [['code' => 'A'], 'not-a-row', ['code' => 'B']],
-				'periods' => 'nope',
-				'passRules' => [['min' => 5.5]],
+				'periods' => [['period' => 1], 'x'],
+				'passRules' => 'nope',
 			],
 			'moduleStructure' => [
 				[

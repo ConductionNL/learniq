@@ -21,12 +21,12 @@
                                 "code": "B"
                             }
                         ],
-                        "periods": [],
-                        "passRules": [
+                        "periods": [
                             {
-                                "min": 5.5
+                                "period": 1
                             }
                         ],
+                        "passRules": [],
                         "tenant_id": "t-1"
                     }
                 ]
@@ -164,12 +164,12 @@
                                 "code": "B"
                             }
                         ],
-                        "periods": [],
-                        "passRules": [
+                        "periods": [
                             {
-                                "min": 5.5
+                                "period": 1
                             }
                         ],
+                        "passRules": [],
                         "tenant_id": "t-1"
                     }
                 ]
@@ -295,12 +295,12 @@
                                 "code": "B"
                             }
                         ],
-                        "periods": [],
-                        "passRules": [
+                        "periods": [
                             {
-                                "min": 5.5
+                                "period": 1
                             }
                         ],
+                        "passRules": [],
                         "tenant_id": "t-1"
                     }
                 ]
@@ -531,12 +531,12 @@
                                 "code": "B"
                             }
                         ],
-                        "periods": [],
-                        "passRules": [
+                        "periods": [
                             {
-                                "min": 5.5
+                                "period": 1
                             }
                         ],
+                        "passRules": [],
                         "tenant_id": "t-1"
                     }
                 ]
@@ -604,12 +604,12 @@
                                 "code": "B"
                             }
                         ],
-                        "periods": [],
-                        "passRules": [
+                        "periods": [
                             {
-                                "min": 5.5
+                                "period": 1
                             }
                         ],
+                        "passRules": [],
                         "tenant_id": "t-1"
                     }
                 ]
