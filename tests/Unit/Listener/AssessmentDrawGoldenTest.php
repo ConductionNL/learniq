@@ -45,7 +45,6 @@ use PHPUnit\Framework\TestCase;
  *
  * @covers \OCA\Learniq\Listener\AssessmentDrawResolver
  * @uses   \OCA\Learniq\Service\ItemPoolFilter
- * @uses   \OCA\Learniq\Service\QtiChoiceOrderResolver
  */
 class AssessmentDrawGoldenTest extends TestCase {
 
@@ -99,7 +98,7 @@ class AssessmentDrawGoldenTest extends TestCase {
 	public function testHandleMatchesGolden(?array $assessment, array $result, bool $random, string $schema): void {
 		$this->calls = [];
 		$logger = new CapturingLogger();
-		$resolver = new AssessmentDrawResolver($this->objectService(assessment: $assessment), new QtiChoiceOrderResolver(), new ItemPoolFilter(), $this->schemas(schema: $schema), $logger);
+		$resolver = new AssessmentDrawResolver($this->objectService(assessment: $assessment), $this->choices(), new ItemPoolFilter(), $this->schemas(schema: $schema), $logger);
 		$resolver->handle($this->created(data: $result));
 		$resolver->handle(new Event());
 
@@ -128,7 +127,7 @@ class AssessmentDrawGoldenTest extends TestCase {
 	public function testARandomDrawTakesDrawCountItems(): void {
 		$this->calls = [];
 		$assessment = ['id' => 'a-1', 'itemSelectionMode' => 'random-draw', 'itemPoolConfig' => ['itemBankId' => 'bank-1', 'drawCount' => 3]];
-		$resolver = new AssessmentDrawResolver($this->objectService(assessment: $assessment), new QtiChoiceOrderResolver(), new ItemPoolFilter(), $this->schemas(schema: 'assessment-result'), new CapturingLogger());
+		$resolver = new AssessmentDrawResolver($this->objectService(assessment: $assessment), $this->choices(), new ItemPoolFilter(), $this->schemas(schema: 'assessment-result'), new CapturingLogger());
 		$resolver->handle($this->created(data: ['id' => 'r-1', 'assessmentId' => 'a-1', 'tenant_id' => 't-1']));
 		$saves = array_values(array_filter($this->calls, static fn (array $call): bool => isset($call['saveObject'])));
 		$ids = array_column($saves[0]['saveObject'][0]['drawnItemRefs'], 'itemId');
@@ -201,6 +200,26 @@ class AssessmentDrawGoldenTest extends TestCase {
 
 		return $service;
 	}//end objectService()
+
+	/**
+	 * A choice order resolver that orders every choice item C, B, A and records its calls.
+	 *
+	 * @return QtiChoiceOrderResolver
+	 */
+	private function choices(): QtiChoiceOrderResolver {
+		$resolver = $this->createMock(QtiChoiceOrderResolver::class);
+		$resolver->method('resolveOrder')->willReturnCallback(
+			function (array $item): ?array {
+				$this->calls[] = ['resolveOrder' => $item['id']];
+				if (($item['interactionType'] ?? null) !== 'choice') {
+					return null;
+				}
+
+				return ['C', 'B', 'A'];
+			}
+		);
+		return $resolver;
+	}//end choices()
 
 	/**
 	 * A schema resolver that reads every object as learniq/$schema.
