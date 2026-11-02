@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\Learniq\AppInfo\Registrar\TransitionBridgeListenerRegistrar;
+use OCA\Learniq\BackgroundJob\ActorForwarding;
 use OCA\Learniq\BackgroundJob\SchoolAdviesVoorlopigRodJob;
 use OCA\Learniq\Listener\SchoolAdviesVoorlopigRodHandler;
 use OCA\Learniq\Service\ExchangeDisclosure;
@@ -182,10 +183,12 @@ class SchoolAdviesVoorlopigRodTest extends TestCase {
 		)->willReturn('job-7');
 
 		$job = new SchoolAdviesVoorlopigRodJob(
-			$this->createMock(ITimeFactory::class),
-			$this->createMock(IUserSession::class),
-			$this->createMock(IUserManager::class),
-			$this->createMock(OrganisationService::class),
+			new ActorForwarding(
+				time: $this->createMock(ITimeFactory::class),
+				userSession: $this->createMock(IUserSession::class),
+				userManager: $this->createMock(IUserManager::class),
+				organisation: $this->createMock(OrganisationService::class)
+			),
 			new NullLogger(),
 			$objects,
 			$integriq,

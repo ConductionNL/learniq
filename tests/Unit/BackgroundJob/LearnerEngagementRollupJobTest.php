@@ -29,6 +29,7 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\PointEngagementEvaluator;
+use OCA\Learniq\BackgroundJob\ActorForwarding;
 use OCA\Learniq\BackgroundJob\LearnerEngagementRollupJob;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\OrganisationService;
@@ -181,10 +182,12 @@ class LearnerEngagementRollupJobTest extends TestCase {
 		$timeFactory->method('getDateTime')->willReturn($now);
 
 		return new LearnerEngagementRollupJob(
-			$this->createMock(ITimeFactory::class),
-			$this->createMock(IUserSession::class),
-			$this->createMock(IUserManager::class),
-			$this->createMock(OrganisationService::class),
+			new ActorForwarding(
+				time: $this->createMock(ITimeFactory::class),
+				userSession: $this->createMock(IUserSession::class),
+				userManager: $this->createMock(IUserManager::class),
+				organisation: $this->createMock(OrganisationService::class)
+			),
 			new NullLogger(),
 			$objectService,
 			$evaluator,

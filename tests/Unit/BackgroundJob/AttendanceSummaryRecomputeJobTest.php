@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\BackgroundJob;
 
+use OCA\Learniq\BackgroundJob\ActorForwarding;
 use OCA\Learniq\BackgroundJob\AttendanceSummaryRecomputeJob;
 use OCA\Learniq\Service\Attendance\AttendanceSummaryService;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
@@ -90,10 +91,12 @@ class AttendanceSummaryRecomputeJobTest extends TestCase {
 	 */
 	private function runJob(AttendanceSummaryService $service, array $entries): void {
 		$job = new AttendanceSummaryRecomputeJob(
-			time: $this->createMock(ITimeFactory::class),
-			userSession: $this->createMock(IUserSession::class),
-			userManager: $this->createMock(IUserManager::class),
-			organisation: $this->createMock(OrganisationService::class),
+			forwarding: new ActorForwarding(
+				time: $this->createMock(ITimeFactory::class),
+				userSession: $this->createMock(IUserSession::class),
+				userManager: $this->createMock(IUserManager::class),
+				organisation: $this->createMock(OrganisationService::class)
+			),
 			logger: new NullLogger(),
 			summaries: $service
 		);

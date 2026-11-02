@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\BackgroundJob;
 
+use OCA\Learniq\BackgroundJob\ActorForwarding;
 use OCA\Learniq\BackgroundJob\EnrolmentProgressRollupJob;
 use OCA\Learniq\Service\EnrolmentProgressEvaluator;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
@@ -65,10 +66,12 @@ class EnrolmentProgressRollupJobTest extends TestCase {
 		);
 
 		return new EnrolmentProgressRollupJob(
-			$this->createMock(ITimeFactory::class),
-			$this->createMock(IUserSession::class),
-			$this->createMock(IUserManager::class),
-			$this->createMock(OrganisationService::class),
+			new ActorForwarding(
+				time: $this->createMock(ITimeFactory::class),
+				userSession: $this->createMock(IUserSession::class),
+				userManager: $this->createMock(IUserManager::class),
+				organisation: $this->createMock(OrganisationService::class)
+			),
 			new NullLogger(),
 			$objectService,
 			$evaluator
@@ -164,10 +167,12 @@ class EnrolmentProgressRollupJobTest extends TestCase {
 		);
 
 		$job = new EnrolmentProgressRollupJob(
-			$this->createMock(ITimeFactory::class),
-			$this->createMock(IUserSession::class),
-			$this->createMock(IUserManager::class),
-			$this->createMock(OrganisationService::class),
+			new ActorForwarding(
+				time: $this->createMock(ITimeFactory::class),
+				userSession: $this->createMock(IUserSession::class),
+				userManager: $this->createMock(IUserManager::class),
+				organisation: $this->createMock(OrganisationService::class)
+			),
 			new NullLogger(),
 			$objectService,
 			$evaluator
@@ -211,10 +216,12 @@ class EnrolmentProgressRollupJobTest extends TestCase {
 		);
 
 		$job = new EnrolmentProgressRollupJob(
-			$this->createMock(ITimeFactory::class),
-			$this->createMock(IUserSession::class),
-			$this->createMock(IUserManager::class),
-			$this->createMock(OrganisationService::class),
+			new ActorForwarding(
+				time: $this->createMock(ITimeFactory::class),
+				userSession: $this->createMock(IUserSession::class),
+				userManager: $this->createMock(IUserManager::class),
+				organisation: $this->createMock(OrganisationService::class)
+			),
 			new NullLogger(),
 			$objectService,
 			$evaluator
