@@ -31,6 +31,7 @@ namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\CommonCartridgeParser;
+use OCA\Learniq\Service\CoursePackage\ArchivePackage;
 use OCA\Learniq\Service\CoursePackage\CommonCartridgeCourseImporter;
 use OCA\Learniq\Service\CoursePackage\CommonCartridgeResourceRouter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
@@ -263,4 +264,47 @@ class CoursePackageImportServiceTest extends TestCase {
 		self::assertNotEmpty($report['errorMessage']);
 		self::assertNull($report['courseId']);
 	}//end testZipWithoutManifestFailsLoudly()
+
+	/**
+	 * A stored failure names no server path: not the extraction directory, not the uploaded file.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-corrupt-or-unrecognised-archive-fails-loudly-not-silently
+	 */
+	public function testAStoredFailureNamesNoServerPath(): void {
+		$report = $this->service()->import(self::NO_MANIFEST_FIXTURE, 'no-manifest.imscc', 'admin', 'tenant-1');
+		self::assertSame(
+			"Could not extract or parse the package: No imsmanifest.xml found in the package — not a recognisable Common Cartridge package.",
+			$report['errorMessage']
+		);
+
+		$work = sys_get_temp_dir() . '/lq-no-backup-' . bin2hex(random_bytes(4));
+		mkdir($work);
+		$tar = new \PharData($work . '/pkg.tar');
+		$tar->addFromString('readme.txt', 'no backup here');
+		$tar->compress(\Phar::GZ);
+		$report = $this->service()->import($work . '/pkg.tar.gz', 'course.mbz', 'admin', 'tenant-1');
+		array_map('unlink', glob($work . '/*'));
+		rmdir($work);
+
+		self::assertSame(
+			"Could not extract or parse the package: No moodle_backup.xml found in the package — not a recognisable Moodle backup archive.",
+			$report['errorMessage']
+		);
+	}//end testAStoredFailureNamesNoServerPath()
+
+	/**
+	 * Each server path in a message gives way to plain words, quoted or not.
+	 *
+	 * @return void
+	 */
+	public function testWithoutPathsReplacesBothPaths(): void {
+		$package = new ArchivePackage(format: 'cc', packagePath: '/tmp/phpUP1', tmpDir: '/tmp/learniq_coursepkg_ab');
+
+		self::assertSame(
+			'Cannot read the uploaded archive; nothing in the package; the package/sub/x.xml; the uploaded archive gone; /tmp/other',
+			$package->withoutPaths(message: "Cannot read '/tmp/phpUP1'; nothing in '/tmp/learniq_coursepkg_ab'; /tmp/learniq_coursepkg_ab/sub/x.xml; /tmp/phpUP1 gone; /tmp/other")
+		);
+	}//end testWithoutPathsReplacesBothPaths()
 }//end class

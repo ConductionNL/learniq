@@ -44,4 +44,21 @@ final class ArchivePackage {
 		public readonly string $tmpDir,
 	) {
 	}//end __construct()
+
+	/**
+	 * A failure message with this package's server paths replaced by plain words, fit for the stored report.
+	 *
+	 * @param string $message The failure message.
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-corrupt-or-unrecognised-archive-fails-loudly-not-silently
+	 */
+	public function withoutPaths(string $message): string {
+		return str_replace(
+			search: ["'{$this->tmpDir}'", "'{$this->packagePath}'", $this->tmpDir, $this->packagePath],
+			replace: ['the package', 'the uploaded archive', 'the package', 'the uploaded archive'],
+			subject: $message
+		);
+	}//end withoutPaths()
 }//end class

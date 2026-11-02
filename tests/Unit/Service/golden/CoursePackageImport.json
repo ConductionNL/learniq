@@ -707,7 +707,7 @@
                     "resourcesImported": 0,
                     "resourcesDegraded": 0,
                     "resourcesDropped": 0,
-                    "errorMessage": "Could not extract or parse the package: No imsmanifest.xml found in '/tmp/learniq_coursepkg_(tmp)' \u2014 not a recognisable Common Cartridge package.",
+                    "errorMessage": "Could not extract or parse the package: No imsmanifest.xml found in the package \u2014 not a recognisable Common Cartridge package.",
                     "entries": [],
                     "tenant_id": "t1"
                 },
@@ -727,7 +727,7 @@
                 "resourcesImported": 0,
                 "resourcesDegraded": 0,
                 "resourcesDropped": 0,
-                "errorMessage": "Could not extract or parse the package: No imsmanifest.xml found in '/tmp/learniq_coursepkg_(tmp)' \u2014 not a recognisable Common Cartridge package.",
+                "errorMessage": "Could not extract or parse the package: No imsmanifest.xml found in the package \u2014 not a recognisable Common Cartridge package.",
                 "entries": [],
                 "tenant_id": "t1",
                 "id": "saved-1"
@@ -748,7 +748,7 @@
                     "resourcesImported": 0,
                     "resourcesDegraded": 0,
                     "resourcesDropped": 0,
-                    "errorMessage": "Could not extract or parse the package: No moodle_backup.xml found in '/tmp/learniq_coursepkg_(tmp)' \u2014 not a recognisable Moodle backup archive.",
+                    "errorMessage": "Could not extract or parse the package: No moodle_backup.xml found in the package \u2014 not a recognisable Moodle backup archive.",
                     "entries": [],
                     "tenant_id": "t1"
                 },
@@ -768,7 +768,7 @@
                 "resourcesImported": 0,
                 "resourcesDegraded": 0,
                 "resourcesDropped": 0,
-                "errorMessage": "Could not extract or parse the package: No moodle_backup.xml found in '/tmp/learniq_coursepkg_(tmp)' \u2014 not a recognisable Moodle backup archive.",
+                "errorMessage": "Could not extract or parse the package: No moodle_backup.xml found in the package \u2014 not a recognisable Moodle backup archive.",
                 "entries": [],
                 "tenant_id": "t1",
                 "id": "saved-1"
