@@ -46,6 +46,7 @@ namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Grading\GradeFormulaEvaluator;
@@ -53,7 +54,6 @@ use OCA\Learniq\Grading\GradeVisibilityResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
-use OCP\AppFramework\Db\DoesNotExistException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Throwable;
@@ -65,6 +65,7 @@ use Throwable;
  * @spec       openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
 class GradeRollupHandler implements IEventListener {
+	use FindOrNull;
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
@@ -232,17 +233,9 @@ class GradeRollupHandler implements IEventListener {
 	 */
 	private function fetchGradeVisibilityPolicy(string $curriculumPlanId): ?array {
 		// A system read: the publishing teacher may not read the plan (D9).
-		try {
-			$plan = $this->objectService->find(
-				id: $curriculumPlanId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::CURRICULUM_PLAN_SCHEMA,
-				_rbac: false
-			);
-		} catch (DoesNotExistException) {
-			return null;
-		}
-
+		$find = fn () => $this->objectService
+			->find(id: $curriculumPlanId, register: self::LEARNIQ_REGISTER, schema: self::CURRICULUM_PLAN_SCHEMA, _rbac: false);
+		$plan = $this->findOrNull(find: $find);
 		if ($plan === null) {
 			return null;
 		}
