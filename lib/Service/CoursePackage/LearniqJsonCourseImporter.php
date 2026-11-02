@@ -121,15 +121,12 @@ class LearniqJsonCourseImporter {
 			resourceIdentifier: $this->sourceIdentifier(row: $courseData, fallback: 'course'),
 			resourceType: 'course',
 			title: (string)($courseData['name'] ?? ''),
-			outcome: 'imported',
-			targetType: 'course',
-			targetId: $courseId,
-			reason: null,
+			result: ['outcome' => 'imported', 'targetType' => 'course', 'targetId' => $courseId, 'reason' => null]
 		);
 
 		$this->importChildCourses(tree: $tree, courseId: $courseId, tenantId: $tenantId, entries: $entries);
 		$this->importLessons(tree: $tree, courseId: $courseId, tenantId: $tenantId, entries: $entries);
-		$this->importMaterials(tree: $tree, courseId: $courseId, importedBy: $importedBy, tenantId: $tenantId, entries: $entries);
+		$this->importMaterials(tree: $tree, courseId: $courseId, owner: ['importedBy' => $importedBy, 'tenantId' => $tenantId], entries: $entries);
 		$this->importRubrics(tree: $tree, tenantId: $tenantId, entries: $entries);
 		$this->importAssessments(tree: $tree, courseId: $courseId, tenantId: $tenantId, entries: $entries);
 		$this->importLtiPlacements(tree: $tree, courseId: $courseId, tenantId: $tenantId, entries: $entries);
@@ -161,10 +158,7 @@ class LearniqJsonCourseImporter {
 				resourceIdentifier: $this->sourceIdentifier(row: $child, fallback: 'child-course'),
 				resourceType: 'course',
 				title: (string)($child['name'] ?? ''),
-				outcome: 'imported',
-				targetType: 'course',
-				targetId: $childCourseId,
-				reason: null,
+				result: ['outcome' => 'imported', 'targetType' => 'course', 'targetId' => $childCourseId, 'reason' => null]
 			);
 		}
 	}//end importChildCourses()
@@ -185,21 +179,20 @@ class LearniqJsonCourseImporter {
 		foreach ((array)($tree['lessons'] ?? []) as $lesson) {
 			$lesson = (array)$lesson;
 			$lessonId = $this->objectWriter->createLesson(
-				courseId: $courseId,
-				title: (string)($lesson['name'] ?? ''),
-				order: (int)($lesson['order'] ?? 0),
-				contentType: (string)($lesson['contentType'] ?? 'text'),
-				contentRef: (string)($lesson['contentRef'] ?? ''),
+				lesson: [
+					'courseId' => $courseId,
+					'title' => (string)($lesson['name'] ?? ''),
+					'order' => (int)($lesson['order'] ?? 0),
+					'contentType' => (string)($lesson['contentType'] ?? 'text'),
+					'contentRef' => (string)($lesson['contentRef'] ?? ''),
+				],
 				tenantId: $tenantId
 			);
 			$entries[] = $this->reporter->entry(
 				resourceIdentifier: $this->sourceIdentifier(row: $lesson, fallback: 'lesson'),
 				resourceType: 'lesson',
 				title: (string)($lesson['name'] ?? ''),
-				outcome: 'imported',
-				targetType: 'lesson',
-				targetId: $lessonId,
-				reason: null,
+				result: ['outcome' => 'imported', 'targetType' => 'lesson', 'targetId' => $lessonId, 'reason' => null]
 			);
 		}
 	}//end importLessons()
@@ -210,15 +203,14 @@ class LearniqJsonCourseImporter {
 	 *
 	 * @param array<string, mixed> $tree The decoded scholiq-native JSON tree.
 	 * @param string|null $courseId Re-created top-level Course UUID.
-	 * @param string $importedBy NC user id (nc:files owner for resolved Material bytes).
-	 * @param string $tenantId Tenant UUID.
+	 * @param array{importedBy: string, tenantId: string} $owner The nc:files owner for resolved Material bytes, and the tenant.
 	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
-	private function importMaterials(array $tree, ?string $courseId, string $importedBy, string $tenantId, array &$entries): void {
+	private function importMaterials(array $tree, ?string $courseId, array $owner, array &$entries): void {
 		foreach ((array)($tree['materials'] ?? []) as $material) {
 			$material = (array)$material;
 			$fileRef = null;
@@ -226,27 +218,26 @@ class LearniqJsonCourseImporter {
 				$fileRef = $this->fileWriter->writeBase64ToFiles(
 					base64Content: (string)$material['contentBase64'],
 					title: (string)($material['title'] ?? 'material'),
-					importedBy: $importedBy,
-					tenantId: $tenantId,
+					importedBy: $owner['importedBy'],
+					tenantId: $owner['tenantId'],
 				);
 			}
 
 			$materialId = $this->objectWriter->createMaterial(
-				title: (string)($material['title'] ?? ''),
-				kind: (string)($material['kind'] ?? 'document'),
-				fileRef: $fileRef,
-				url: $material['url'] ?? null,
-				courseId: $courseId,
-				tenantId: $tenantId,
+				material: [
+					'title' => (string)($material['title'] ?? ''),
+					'kind' => (string)($material['kind'] ?? 'document'),
+					'fileRef' => $fileRef,
+					'url' => $material['url'] ?? null,
+					'courseId' => $courseId,
+				],
+				tenantId: $owner['tenantId']
 			);
 			$entries[] = $this->reporter->entry(
 				resourceIdentifier: $this->sourceIdentifier(row: $material, fallback: 'material'),
 				resourceType: 'material',
 				title: (string)($material['title'] ?? ''),
-				outcome: 'imported',
-				targetType: 'material',
-				targetId: $materialId,
-				reason: null,
+				result: ['outcome' => 'imported', 'targetType' => 'material', 'targetId' => $materialId, 'reason' => null]
 			);
 		}//end foreach
 	}//end importMaterials()
@@ -279,10 +270,7 @@ class LearniqJsonCourseImporter {
 				resourceIdentifier: $this->sourceIdentifier(row: $rubric, fallback: 'rubric'),
 				resourceType: 'rubric',
 				title: (string)($rubric['name'] ?? ''),
-				outcome: 'imported',
-				targetType: 'rubric',
-				targetId: $rubricId,
-				reason: null,
+				result: ['outcome' => 'imported', 'targetType' => 'rubric', 'targetId' => $rubricId, 'reason' => null]
 			);
 		}//end foreach
 	}//end importRubrics()
@@ -316,11 +304,13 @@ class LearniqJsonCourseImporter {
 				resourceIdentifier: $this->sourceIdentifier(row: $assessment, fallback: 'assessment'),
 				resourceType: 'assessment',
 				title: (string)($assessment['title'] ?? ''),
-				outcome: 'degraded',
-				targetType: 'assessment',
-				targetId: $assessmentId,
-				reason: 'Item references are source-tenant UUIDs and do not resolve here; '
+				result: [
+					'outcome' => 'degraded',
+					'targetType' => 'assessment',
+					'targetId' => $assessmentId,
+					'reason' => 'Item references are source-tenant UUIDs and do not resolve here; '
 					. 're-import the ItemBank via QTI package import to relink.',
+				]
 			);
 		}//end foreach
 	}//end importAssessments()
@@ -346,11 +336,13 @@ class LearniqJsonCourseImporter {
 				resourceIdentifier: $this->sourceIdentifier(row: $placement, fallback: 'lti-placement'),
 				resourceType: 'lti-tool-placement',
 				title: 'LTI tool placement',
-				outcome: 'degraded',
-				targetType: 'lti-tool-placement',
-				targetId: $placementId,
-				reason: 'LTI placement re-created without a configured OpenConnector deployment; '
+				result: [
+					'outcome' => 'degraded',
+					'targetType' => 'lti-tool-placement',
+					'targetId' => $placementId,
+					'reason' => 'LTI placement re-created without a configured OpenConnector deployment; '
 					. 'an admin must bind a deployment before this tool can be launched.',
+				]
 			);
 		}
 	}//end importLtiPlacements()
