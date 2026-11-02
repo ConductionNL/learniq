@@ -151,14 +151,7 @@ class SessionSeries {
 		$series = [];
 		foreach ($rows as $row) {
 			$data = $this->toArray(row: $row);
-			$same = $this->sameSlot(
-				anchor: $slot['anchor'],
-				anchorStart: $slot['anchorStart'],
-				candidate: $data,
-				untilDate: $slot['untilDate'],
-				tz: $slot['tz']
-			);
-			if ($same === true) {
+			if ($this->sameSlot(slot: $slot, candidate: $data) === true) {
 				$series[] = self::seriesEntry(data: $data);
 			}
 		}
@@ -188,27 +181,26 @@ class SessionSeries {
 	 * Whether a candidate lesson is in the anchor's weekly slot, not before it
 	 * and not after the until date.
 	 *
-	 * @param array<string, mixed> $anchor      The lesson the dialog opened on.
-	 * @param DateTimeImmutable    $anchorStart Its local start.
-	 * @param array<string, mixed> $candidate   Another lesson of the group.
-	 * @param string               $untilDate   Last date (Y-m-d).
-	 * @param DateTimeZone         $tz          The school's time zone.
+	 * @param array<string, mixed> $slot      The lesson the dialog opened on, its local start, the last date (Y-m-d) and the school's time zone.
+	 * @param array<string, mixed> $candidate Another lesson of the group.
 	 *
 	 * @return bool
 	 */
-	private function sameSlot(array $anchor, DateTimeImmutable $anchorStart, array $candidate, string $untilDate, DateTimeZone $tz): bool {
+	private function sameSlot(array $slot, array $candidate): bool {
+		$anchor = $slot['anchor'];
+		$anchorStart = $slot['anchorStart'];
 		if ((string)($candidate['cohortId'] ?? '') !== (string)($anchor['cohortId'] ?? '')
 			|| (string)($candidate['courseId'] ?? '') !== (string)($anchor['courseId'] ?? '')
 		) {
 			return false;
 		}
 
-		$start = $this->localTime(value: (string)($candidate['startsAt'] ?? ''), tz: $tz);
+		$start = $this->localTime(value: (string)($candidate['startsAt'] ?? ''), tz: $slot['tz']);
 		if ($start === null || $start < $anchorStart) {
 			return false;
 		}
 
-		return $start->format('N H:i') === $anchorStart->format('N H:i') && $start->format('Y-m-d') <= $untilDate;
+		return $start->format('N H:i') === $anchorStart->format('N H:i') && $start->format('Y-m-d') <= $slot['untilDate'];
 	}//end sameSlot()
 
 	/**

@@ -96,8 +96,7 @@ class TimetableProjector {
 	): array {
 		$sessions = $this->windowedSessions(
 			rawSessions: $rawSessions,
-			windowFrom: $windowFrom,
-			windowTo: $windowTo,
+			window: [$windowFrom, $windowTo],
 			roomCache: $roomCache,
 			notes: $this->noteReader->forSessions(sessions: $rawSessions, uid: $uid, taughtCohortIds: $taughtCohortIds)
 		);
@@ -157,8 +156,7 @@ class TimetableProjector {
 	 * globally by `startsAt`.
 	 *
 	 * @param array<int,array<string,mixed>> $rawSessions Raw session data arrays, all cohorts.
-	 * @param string $windowFrom Inclusive window start (ISO 8601).
-	 * @param string $windowTo Exclusive window end (ISO 8601).
+	 * @param array{0: string, 1: string} $window Inclusive window start and exclusive window end (ISO 8601).
 	 * @param array<string,array<string,mixed>> $roomCache Pre-loaded Room data keyed by UUID.
 	 * @param array<string,array<int,array<string,mixed>>> $notes Visible lesson notes keyed by session id (timetabling-lesson-note).
 	 *
@@ -167,9 +165,9 @@ class TimetableProjector {
 	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
 	 * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
 	 */
-	public function windowedSessions(array $rawSessions, string $windowFrom, string $windowTo, array $roomCache, array $notes = []): array {
-		$fromTs = strtotime($windowFrom);
-		$toTs = strtotime($windowTo);
+	public function windowedSessions(array $rawSessions, array $window, array $roomCache, array $notes = []): array {
+		$fromTs = strtotime($window[0]);
+		$toTs = strtotime($window[1]);
 
 		$sessions = [];
 		foreach ($rawSessions as $session) {
