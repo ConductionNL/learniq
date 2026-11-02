@@ -60,6 +60,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ConferenceBookingMode;
+use OCA\Learniq\Service\ConferenceSignupRequest;
+use OCA\Learniq\Service\ConferenceSlotPass;
 use OCA\Learniq\Service\ConferenceSlotSlicer;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
@@ -218,10 +220,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 
 		$outcome = $this->assignSignups(
 			signups: $signups,
-			roundId: (string)$roundId,
-			tenantId: (string)$tenantId,
-			queues: $queues,
-			activeSlotKeys: $pinned['activeSlotKeys'],
+			pass: new ConferenceSlotPass(roundId: (string)$roundId, tenantId: (string)$tenantId, queues: $queues, activeSlotKeys: $pinned['activeSlotKeys']),
 			intervalsBySignup: $pinned['intervalsBySignup']
 		);
 
@@ -353,9 +352,8 @@ class ConferenceScheduleGenerator implements IEventListener {
 			);
 
 			// Cast the key: this map is declared
-			// array<string,array<int,array<string,mixed>>> and passed BY
-			// REFERENCE into assignSlotsForSignup(), so an un-narrowed key
-			// degrades it at that boundary.
+			// array<string,array<int,array<string,mixed>>>, and an
+			// un-narrowed key would widen it.
 			$queues[(string)$teacherId] = array_merge(($queues[(string)$teacherId] ?? []), $free);
 		}//end foreach
 
@@ -375,25 +373,15 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 * with any unmet request becomes `waitlisted` with the unmet teachers named
 	 * in its notes, so the reason is never left implicit.
 	 *
-	 * @param array<int,array<string,mixed>> $signups Signups in submission order.
-	 * @param string $roundId The ConferenceRound id.
-	 * @param string $tenantId Tenant scope stamped on new slots.
-	 * @param array<string,array<int,array<string,mixed>>> $queues Per-teacher slot queues (mutated: slots are consumed).
-	 * @param array<string,true> $activeSlotKeys Satisfied (signupId|teacherId) keys (mutated: keys added).
+	 * @param array<int,array<string,mixed>>               $signups           Signups in submission order.
+	 * @param ConferenceSlotPass                           $pass              The pass: round, tenant, queues and satisfied requests.
 	 * @param array<string,array<int,array<string,mixed>>> $intervalsBySignup Intervals already assigned per signup.
 	 *
 	 * @return array{newSlots: array<int,array<string,mixed>>, signupSaves: array<int,array<string,mixed>>, scheduledCount: int, waitlistedCount: int}
 	 *
 	 * @spec openspec/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
 	 */
-	private function assignSignups(
-		array $signups,
-		string $roundId,
-		string $tenantId,
-		array &$queues,
-		array &$activeSlotKeys,
-		array $intervalsBySignup,
-	): array {
+	private function assignSignups(array $signups, ConferenceSlotPass $pass, array $intervalsBySignup): array {
 		$newSlots = [];
 		$signupSaves = [];
 		$scheduledCount = 0;
@@ -403,13 +391,12 @@ class ConferenceScheduleGenerator implements IEventListener {
 			$signupId = ($signup['id'] ?? ($signup['uuid'] ?? ''));
 
 			$assigned = $this->assignSlotsForSignup(
-				signup: $signup,
-				signupId: (string)$signupId,
-				roundId: $roundId,
-				tenantId: $tenantId,
-				queues: $queues,
-				activeSlotKeys: $activeSlotKeys,
-				assignedIntervals: ($intervalsBySignup[$signupId] ?? [])
+				request: new ConferenceSignupRequest(
+					signup: $signup,
+					signupId: (string)$signupId,
+					assignedIntervals: ($intervalsBySignup[$signupId] ?? [])
+				),
+				pass: $pass
 			);
 
 			$newSlots = array_merge($newSlots, $assigned['newSlots']);
@@ -449,43 +436,32 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 * A teacher-request already satisfied by an existing non-cancelled slot is an
 	 * idempotent no-op, which is what makes regeneration safe to re-run.
 	 *
-	 * @param array<string,mixed> $signup The signup row.
-	 * @param string $signupId The signup id.
-	 * @param string $roundId The ConferenceRound id.
-	 * @param string $tenantId Tenant scope stamped on new slots.
-	 * @param array<string,array<int,array<string,mixed>>> $queues Per-teacher slot queues (mutated: slots are consumed).
-	 * @param array<string,true> $activeSlotKeys Satisfied (signupId|teacherId) keys (mutated: keys added).
-	 * @param array<int,array<string,mixed>> $assignedIntervals Intervals this signup already occupies.
+	 * @param ConferenceSignupRequest $request The signup, its id and the intervals it already occupies.
+	 * @param ConferenceSlotPass      $pass    The pass (mutated: slots are consumed, satisfied keys added).
 	 *
 	 * @return array{newSlots: array<int,array<string,mixed>>, unmetTeacherIds: array<int,string>}
 	 *
 	 * @spec openspec/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
 	 */
-	private function assignSlotsForSignup(
-		array $signup,
-		string $signupId,
-		string $roundId,
-		string $tenantId,
-		array &$queues,
-		array &$activeSlotKeys,
-		array $assignedIntervals,
-	): array {
+	private function assignSlotsForSignup(ConferenceSignupRequest $request, ConferenceSlotPass $pass): array {
+		$signup = $request->signup;
+		$signupId = $request->signupId;
+		$assignedIntervals = $request->assignedIntervals;
 		$newSlots = [];
 		$unmetTeacherIds = [];
 
 		foreach (($signup['requestedTeacherIds'] ?? []) as $teacherId) {
-			if (isset($activeSlotKeys[$signupId . '|' . $teacherId]) === true) {
+			if (isset($pass->activeSlotKeys[$signupId . '|' . $teacherId]) === true) {
 				// Already satisfied by an existing non-cancelled slot — idempotent no-op.
 				continue;
 			}
 
-			// Cast the key — $queues is declared
-			// array<string,array<int,array<string,mixed>>> and is taken BY
-			// REFERENCE by this method, so writing with an un-narrowed
-			// $teacherId degrades it to array<...> at the boundary.
-			$queue = ($queues[(string)$teacherId] ?? []);
+			// Cast the key: the queues are declared
+			// array<string,array<int,array<string,mixed>>>, and writing with
+			// an un-narrowed $teacherId would widen them.
+			$queue = ($pass->queues[(string)$teacherId] ?? []);
 			$slot = $this->popNextNonOverlapping(queue: $queue, blocked: $assignedIntervals);
-			$queues[(string)$teacherId] = $queue;
+			$pass->queues[(string)$teacherId] = $queue;
 
 			if ($slot === null) {
 				$unmetTeacherIds[] = $teacherId;
@@ -493,7 +469,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 			}
 
 			$newSlots[] = [
-				'conferenceRoundId' => $roundId,
+				'conferenceRoundId' => $pass->roundId,
 				'teacherId' => $teacherId,
 				'teacherName' => ($this->users?->getDisplayName((string)$teacherId) ?? (string)$teacherId),
 				'learnerId' => ($signup['learnerId'] ?? ''),
@@ -502,12 +478,12 @@ class ConferenceScheduleGenerator implements IEventListener {
 				'startsAt' => $slot['startsAt'],
 				'endsAt' => $slot['endsAt'],
 				'location' => null,
-				'tenant_id' => $tenantId,
+				'tenant_id' => $pass->tenantId,
 				'lifecycle' => 'proposed',
 			];
 
 			$assignedIntervals[] = $slot;
-			$activeSlotKeys[$signupId . '|' . $teacherId] = true;
+			$pass->activeSlotKeys[$signupId . '|' . $teacherId] = true;
 		}//end foreach
 
 		return [
