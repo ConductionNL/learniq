@@ -43,6 +43,7 @@ use PHPUnit\Framework\TestCase;
  * With RECORD_GOLDEN=1 the file is written instead of compared.
  *
  * @covers \OCA\Learniq\Listener\ItemAnalysisRecomputeHandler
+ * @covers \OCA\Learniq\Listener\PicksFields
  * @covers \OCA\Learniq\Service\ItemAnalysisService
  * @covers \OCA\Learniq\Service\ItemDistractorAnalysis
  * @covers \OCA\Learniq\Service\ParsesQtiBody

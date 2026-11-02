@@ -68,6 +68,8 @@ use OCP\EventDispatcher\IEventListener;
  */
 class ItemAnalysisRecomputeHandler implements IEventListener {
 
+	use PicksFields;
+
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_SCHEMA = 'exam';
 	private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';
@@ -292,23 +294,6 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 
 		return $this->toArrayData(object: $existing[0]);
 	}//end existingRow()
-
-	/**
-	 * The row's values for the given keys, in the order of the keys.
-	 *
-	 * @param array<string,mixed> $row  The row.
-	 * @param list<string>        $keys The keys.
-	 *
-	 * @return array<string,mixed>
-	 */
-	private static function pick(array $row, array $keys): array {
-		$picked = [];
-		foreach ($keys as $key) {
-			$picked[$key] = $row[$key];
-		}
-
-		return $picked;
-	}//end pick()
 
 	/**
 	 * Evaluate an ItemStatistics row against the configured quality

@@ -40,6 +40,7 @@ use PHPUnit\Framework\TestCase;
  * RECORD_GOLDEN=1 the file is written instead of compared.
  *
  * @covers \OCA\Learniq\Listener\CourseQualityScoreRollupHandler
+ * @covers \OCA\Learniq\Listener\PicksFields
  * @uses   \OCA\Learniq\Service\ListenerSchemaResolver
  */
 class CourseQualityScoreRollupGoldenTest extends TestCase {

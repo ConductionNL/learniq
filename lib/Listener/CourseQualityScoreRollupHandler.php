@@ -49,6 +49,8 @@ use OCP\EventDispatcher\IEventListener;
  */
 class CourseQualityScoreRollupHandler implements IEventListener {
 
+	use PicksFields;
+
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const COURSE_EVALUATION_RESPONSE_SCHEMA = 'course-evaluation-response';
 	private const COURSE_QUALITY_SCORE_SCHEMA = 'course-quality-score';
@@ -147,23 +149,6 @@ class CourseQualityScoreRollupHandler implements IEventListener {
 
 		return $scope;
 	}//end scopeOf()
-
-	/**
-	 * The row's values for the given keys, in the order of the keys.
-	 *
-	 * @param array<string,mixed> $row  The row.
-	 * @param list<string>        $keys The keys.
-	 *
-	 * @return array<string,mixed>
-	 */
-	private static function pick(array $row, array $keys): array {
-		$picked = [];
-		foreach ($keys as $key) {
-			$picked[$key] = $row[$key];
-		}
-
-		return $picked;
-	}//end pick()
 
 	/**
 	 * The stored CourseQualityScore row of the scope, if any.
