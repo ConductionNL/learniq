@@ -37,6 +37,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\AppFramework\Db\DoesNotExistException;
 
 /**
  * Mapping-proposal and preview semantics for the school-year rollover.
@@ -266,7 +267,12 @@ class RolloverService {
 			return [];
 		}
 
-		$obj = $this->objectService->find(id: $cohortId, register: self::LEARNIQ_REGISTER, schema: 'cohort');
+		try {
+			$obj = $this->objectService->find(id: $cohortId, register: self::LEARNIQ_REGISTER, schema: 'cohort');
+		} catch (DoesNotExistException) {
+			return [];
+		}
+
 		if ($obj === null) {
 			return [];
 		}
