@@ -30,9 +30,9 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\CheckIn\CheckInCodeService;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
@@ -47,6 +47,7 @@ use OCP\IUserSession;
  * @spec openspec/specs/attendance/spec.md#requirement-a-teacher-opens-a-self-check-in-window-for-a-lesson
  */
 class CheckInCodeController extends Controller {
+	use FindOrNull;
 
 	/**
 	 * Groups that may read the code of a window.
@@ -97,11 +98,8 @@ class CheckInCodeController extends Controller {
 			return new JSONResponse(data: ['error' => 'forbidden'], statusCode: Http::STATUS_FORBIDDEN);
 		}
 
-		try {
-			$window = $this->objects->find(id: $windowId, register: 'learniq', schema: 'check-in-window', _rbac: false, _render: false)?->jsonSerialize();
-		} catch (DoesNotExistException) {
-			$window = null;
-		}
+		$find = fn () => $this->objects->find(id: $windowId, register: 'learniq', schema: 'check-in-window', _rbac: false, _render: false);
+		$window = $this->findRowOrNull(find: $find);
 
 		if (is_array($window) === false) {
 			return new JSONResponse(data: ['error' => 'not_found'], statusCode: Http::STATUS_NOT_FOUND);
