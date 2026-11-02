@@ -126,7 +126,7 @@ class LearniqJsonCourseImporter {
 
 		$this->importChildCourses(tree: $tree, courseId: $courseId, tenantId: $tenantId, entries: $entries);
 		$this->importLessons(tree: $tree, courseId: $courseId, tenantId: $tenantId, entries: $entries);
-		$this->importMaterials(tree: $tree, courseId: $courseId, importedBy: $importedBy, tenantId: $tenantId, entries: $entries);
+		$this->importMaterials(tree: $tree, courseId: $courseId, owner: ['importedBy' => $importedBy, 'tenantId' => $tenantId], entries: $entries);
 		$this->importRubrics(tree: $tree, tenantId: $tenantId, entries: $entries);
 		$this->importAssessments(tree: $tree, courseId: $courseId, tenantId: $tenantId, entries: $entries);
 		$this->importLtiPlacements(tree: $tree, courseId: $courseId, tenantId: $tenantId, entries: $entries);
@@ -203,15 +203,14 @@ class LearniqJsonCourseImporter {
 	 *
 	 * @param array<string, mixed> $tree The decoded scholiq-native JSON tree.
 	 * @param string|null $courseId Re-created top-level Course UUID.
-	 * @param string $importedBy NC user id (nc:files owner for resolved Material bytes).
-	 * @param string $tenantId Tenant UUID.
+	 * @param array{importedBy: string, tenantId: string} $owner The nc:files owner for resolved Material bytes, and the tenant.
 	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
-	private function importMaterials(array $tree, ?string $courseId, string $importedBy, string $tenantId, array &$entries): void {
+	private function importMaterials(array $tree, ?string $courseId, array $owner, array &$entries): void {
 		foreach ((array)($tree['materials'] ?? []) as $material) {
 			$material = (array)$material;
 			$fileRef = null;
@@ -219,8 +218,8 @@ class LearniqJsonCourseImporter {
 				$fileRef = $this->fileWriter->writeBase64ToFiles(
 					base64Content: (string)$material['contentBase64'],
 					title: (string)($material['title'] ?? 'material'),
-					importedBy: $importedBy,
-					tenantId: $tenantId,
+					importedBy: $owner['importedBy'],
+					tenantId: $owner['tenantId'],
 				);
 			}
 
@@ -232,7 +231,7 @@ class LearniqJsonCourseImporter {
 					'url' => $material['url'] ?? null,
 					'courseId' => $courseId,
 				],
-				tenantId: $tenantId
+				tenantId: $owner['tenantId']
 			);
 			$entries[] = $this->reporter->entry(
 				resourceIdentifier: $this->sourceIdentifier(row: $material, fallback: 'material'),
