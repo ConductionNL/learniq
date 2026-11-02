@@ -188,10 +188,7 @@ class CommonCartridgeCourseImporter {
 			resourceIdentifier: $node['identifier'],
 			resourceType: 'organization',
 			title: $node['title'],
-			outcome: 'imported',
-			targetType: 'course',
-			targetId: $courseId,
-			reason: null,
+			result: ['outcome' => 'imported', 'targetType' => 'course', 'targetId' => $courseId, 'reason' => null]
 		);
 	}//end importFolderNode()
 

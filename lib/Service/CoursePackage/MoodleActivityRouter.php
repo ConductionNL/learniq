@@ -175,19 +175,23 @@ class MoodleActivityRouter {
 		}
 
 		$materialId = $this->objectWriter->createMaterial(
-			title: $activity['title'],
-			kind: 'document',
-			fileRef: $this->fileWriter->resolveFileRef(dir: $dir, href: $contentHref, importedBy: $importedBy, tenantId: $tenantId),
-			url: null,
-			courseId: $courseId,
-			tenantId: $tenantId,
+			material: [
+				'title' => $activity['title'],
+				'kind' => 'document',
+				'fileRef' => $this->fileWriter->resolveFileRef(dir: $dir, href: $contentHref, importedBy: $importedBy, tenantId: $tenantId),
+				'url' => null,
+				'courseId' => $courseId,
+			],
+			tenantId: $tenantId
 		);
 		$this->objectWriter->createLesson(
-			courseId: $courseId,
-			title: $activity['title'],
-			order: $activity['order'],
-			contentType: 'text',
-			contentRef: (string)$materialId,
+			lesson: [
+				'courseId' => $courseId,
+				'title' => $activity['title'],
+				'order' => $activity['order'],
+				'contentType' => 'text',
+				'contentRef' => (string)$materialId,
+			],
 			tenantId: $tenantId
 		);
 
@@ -195,10 +199,7 @@ class MoodleActivityRouter {
 			resourceIdentifier: $activity['identifier'],
 			resourceType: $activity['moduleType'],
 			title: $activity['title'],
-			outcome: 'imported',
-			targetType: 'material',
-			targetId: $materialId,
-			reason: null,
+			result: ['outcome' => 'imported', 'targetType' => 'material', 'targetId' => $materialId, 'reason' => null]
 		);
 	}//end importResourceActivity()
 
@@ -216,22 +217,21 @@ class MoodleActivityRouter {
 	 */
 	private function importUrlActivity(array $activity, string $dir, string $courseId, string $tenantId): array {
 		$materialId = $this->objectWriter->createMaterial(
-			title: $activity['title'],
-			kind: 'link',
-			fileRef: null,
-			url: $this->resolveMoodleUrlModuleTarget(dir: $dir, directory: $activity['directory'], fallback: $activity['title']),
-			courseId: $courseId,
-			tenantId: $tenantId,
+			material: [
+				'title' => $activity['title'],
+				'kind' => 'link',
+				'fileRef' => null,
+				'url' => $this->resolveMoodleUrlModuleTarget(dir: $dir, directory: $activity['directory'], fallback: $activity['title']),
+				'courseId' => $courseId,
+			],
+			tenantId: $tenantId
 		);
 
 		return $this->reporter->entry(
 			resourceIdentifier: $activity['identifier'],
 			resourceType: $activity['moduleType'],
 			title: $activity['title'],
-			outcome: 'imported',
-			targetType: 'material',
-			targetId: $materialId,
-			reason: null,
+			result: ['outcome' => 'imported', 'targetType' => 'material', 'targetId' => $materialId, 'reason' => null]
 		);
 	}//end importUrlActivity()
 
@@ -263,10 +263,12 @@ class MoodleActivityRouter {
 			resourceIdentifier: $activity['identifier'],
 			resourceType: $activity['moduleType'],
 			title: $activity['title'],
-			outcome: 'degraded',
-			targetType: 'assignment',
-			targetId: $assignmentId,
-			reason: 'Moodle-specific grading-workflow configuration (peer review, group config) was not carried over.',
+			result: [
+				'outcome' => 'degraded',
+				'targetType' => 'assignment',
+				'targetId' => $assignmentId,
+				'reason' => 'Moodle-specific grading-workflow configuration (peer review, group config) was not carried over.',
+			]
 		);
 	}//end importAssignActivity()
 
@@ -294,10 +296,12 @@ class MoodleActivityRouter {
 				resourceIdentifier: $activity['identifier'],
 				resourceType: 'quiz',
 				title: $activity['title'],
-				outcome: 'dropped',
-				targetType: null,
-				targetId: null,
-				reason: 'Quiz activity has no readable question bank in the package.',
+				result: [
+					'outcome' => 'dropped',
+					'targetType' => null,
+					'targetId' => null,
+					'reason' => 'Quiz activity has no readable question bank in the package.',
+				]
 			);
 			return;
 		}
@@ -335,10 +339,7 @@ class MoodleActivityRouter {
 				resourceIdentifier: $resourceIdentifier,
 				resourceType: $resourceType,
 				title: $question['title'],
-				outcome: 'dropped',
-				targetType: null,
-				targetId: null,
-				reason: $question['reason'],
+				result: ['outcome' => 'dropped', 'targetType' => null, 'targetId' => null, 'reason' => $question['reason']]
 			);
 		}
 
@@ -348,10 +349,12 @@ class MoodleActivityRouter {
 			resourceIdentifier: $resourceIdentifier,
 			resourceType: $resourceType,
 			title: $question['title'],
-			outcome: 'degraded',
-			targetType: 'item',
-			targetId: $itemId,
-			reason: 'Mapped from Moodle question XML, not QTI — verify correctResponse before publishing.',
+			result: [
+				'outcome' => 'degraded',
+				'targetType' => 'item',
+				'targetId' => $itemId,
+				'reason' => 'Mapped from Moodle question XML, not QTI — verify correctResponse before publishing.',
+			]
 		);
 	}//end quizQuestionEntry()
 
@@ -370,10 +373,7 @@ class MoodleActivityRouter {
 			resourceIdentifier: $activity['identifier'],
 			resourceType: $activity['moduleType'],
 			title: $activity['title'],
-			outcome: 'dropped',
-			targetType: null,
-			targetId: null,
-			reason: $reason,
+			result: ['outcome' => 'dropped', 'targetType' => null, 'targetId' => null, 'reason' => $reason]
 		);
 	}//end droppedEntry()
 

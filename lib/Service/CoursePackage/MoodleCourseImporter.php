@@ -94,10 +94,7 @@ class MoodleCourseImporter {
 				resourceIdentifier: $section['identifier'],
 				resourceType: 'section',
 				title: $section['title'],
-				outcome: 'imported',
-				targetType: 'course',
-				targetId: $courseId,
-				reason: null,
+				result: ['outcome' => 'imported', 'targetType' => 'course', 'targetId' => $courseId, 'reason' => null]
 			);
 		}
 
