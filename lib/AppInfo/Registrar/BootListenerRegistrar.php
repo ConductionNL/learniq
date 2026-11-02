@@ -64,6 +64,85 @@ use OCP\EventDispatcher\IEventDispatcher;
  * would move the same coupling around without reducing it.
  */
 class BootListenerRegistrar {
+
+	/**
+	 * Filtered object listeners registered at boot: event, listener, registers, schemas.
+	 */
+	private const BOOT_LISTENERS = [
+		// ADR-031 legitimate exception: xAPI completion → Enrolment lifecycle transition.
+		// Listens for OR's ObjectCreatedEvent (fires when any OR object is saved); the
+		// handler filters to XapiStatement schema objects in the learniq register.
+		// All other Enrolment behaviour is declarative in learniq_register.json.
+		//
+		// The register/schema pair the handler's own guard tests is declared up
+		// front so an unrelated object write never constructs it.
+		[ObjectCreatedEvent::class, XapiCompletionHandler::class, ['learniq'], ['xapi-statement']],
+		// ADR-031 legitimate exception (competency-framework):
+		// WerkprocesAssessment creation -> server-side competencyId resolution
+		// bridge. Only the ObjectCreatedEvent half of
+		// CompetencyAttainmentRollupHandler is narrowed: handleObjectCreated()
+		// guards on register `learniq` + schema `werkproces-assessment`. Its
+		// ObjectTransitionedEvent half stays a plain registration in register().
+		[ObjectCreatedEvent::class, CompetencyAttainmentRollupHandler::class, ['learniq'], ['werkproces-assessment']],
+		// ADR-031 legitimate exception (learning-progress-and-analytics): xAPI
+		// completion statement -> per-lesson LessonCompletion upsert bridge.
+		// Listens for the SAME ObjectCreatedEvent<XapiStatement> XapiCompletionHandler
+		// already consumes — a sibling listener, NOT an edit to that class. No
+		// mandatoryTraining or last-lesson gate: every resolvable completed/passed
+		// statement produces or updates a LessonCompletion row.
+		[ObjectCreatedEvent::class, LessonProgressHandler::class, ['learniq'], ['xapi-statement']],
+		// ADR-031 legitimate exception (learning-progress-and-analytics):
+		// LessonCompletion creation -> Enrolment.progressPercent recompute bridge.
+		// Listens for ObjectCreatedEvent<LessonCompletion>; the DSL has no division
+		// operator (verified), mirrors FinalGrade/GradeRollupHandler's shape.
+		[ObjectCreatedEvent::class, EnrolmentProgressRollupHandler::class, ['learniq'], ['lesson-completion']],
+		// Updates too (learniq#945): a re-completion within the same enrolment
+		// or a changed score updates the existing row, and progress must follow.
+		[ObjectUpdatedEvent::class, EnrolmentProgressRollupHandler::class, ['learniq'], ['lesson-completion']],
+	];
+
+	/**
+	 * Filtered object listeners of the learning-analytics bridges: event, listener, registers, schemas.
+	 */
+	private const ANALYTICS_LISTENERS = [
+		// ADR-031 legitimate exception (learning-progress-and-analytics): xAPI
+		// statement -> EngagementScore recompute + EngagementRiskThreshold check ->
+		// EngagementRiskFlag creation bridge. Listens for the SAME
+		// ObjectCreatedEvent<XapiStatement> LessonProgressHandler independently
+		// reacts to. Mirrors BsaProgressFlagHandler's combined evaluate-then-flag
+		// shape. Rule-based only — no AI/ML inference; never auto-acts against the
+		// learner.
+		[ObjectCreatedEvent::class, EngagementSignalHandler::class, ['learniq'], ['xapi-statement']],
+		// ADR-031 legitimate exception (assessment-item-pools-and-analysis):
+		// AssessmentResult creation -> server-side item-pool draw + shuffle
+		// resolution bridge. Listens for OR's ObjectCreatedEvent, filtered to
+		// schema `assessment-result`. Resolves and persists drawnItemRefs —
+		// never trusts a client-supplied value, mirroring the trust boundary
+		// AssessmentScoringHandler already enforces for autoScore. Populated
+		// for EVERY attempt (fixed or random-draw) so exam-board review/
+		// appeal always has a faithful reconstruction of what the learner saw.
+		[ObjectCreatedEvent::class, AssessmentDrawResolver::class, ['learniq'], ['assessment-result']],
+		// ADR-031 legitimate exception (engagement-gamification): PointAward
+		// creation -> LearnerEngagement totals/level/streak recompute bridge,
+		// plus the streak-milestone bonus-award check (recursion-guarded on
+		// sourceKind). Mirrors GradeRollupHandler's FinalGrade roll-up shape;
+		// NOT a TimedJob (ADR-022) and NOT a declarative sum aggregation (no
+		// sum metric is precedented anywhere in this register).
+		[ObjectCreatedEvent::class, LearnerEngagementRollupHandler::class, ['learniq'], ['point-award']],
+		// ADR-031 legitimate exception (timetabling-and-substitution): Session
+		// create/update -> TimetableConflictDetector pairwise overlap scan
+		// dispatcher. Registered against BOTH ObjectCreatedEvent and
+		// ObjectUpdatedEvent (the latter is a real OpenRegister event class
+		// with no prior learniq listener precedent, needed here since a
+		// Session's roomId/startsAt/endsAt can be edited via the generic OR
+		// object-update endpoint without any lifecycle transition). The
+		// actual scan algorithm lives in TimetableConflictDetector, not here
+		// — it only ever creates TimetableConflict rows, never edits a
+		// Session.
+		[ObjectCreatedEvent::class, SessionConflictListener::class, ['learniq'], ['session']],
+		[ObjectUpdatedEvent::class, SessionConflictListener::class, ['learniq'], ['session']],
+	];
+
 	/**
 	 * Subscribe every boot-phase filtered object listener.
 	 *
@@ -75,174 +154,22 @@ class BootListenerRegistrar {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
 	 */
 	public function register(IEventDispatcher $dispatcher, string $appId): void {
-		// ADR-031 legitimate exception: xAPI completion → Enrolment lifecycle transition.
-		// Listens for OR's ObjectCreatedEvent (fires when any OR object is saved); the
-		// handler filters to XapiStatement schema objects in the learniq register.
-		// All other Enrolment behaviour is declarative in learniq_register.json.
-		//
-		// The register/schema pair the handler's own guard tests is declared up
-		// front so an unrelated object write never constructs it.
-		$this->registerFilteredObjectListener(
-			dispatcher: $dispatcher,
-			appId: $appId,
-			event: ObjectCreatedEvent::class,
-			listener: XapiCompletionHandler::class,
-			registers: ['learniq'],
-			schemas: ['xapi-statement']
-		);
+		// The boot listeners first, then the learning-analytics bridges, in table order.
+		foreach ([...self::BOOT_LISTENERS, ...self::ANALYTICS_LISTENERS] as [$event, $listener, $registers, $schemas]) {
+			$this->registerFilteredObjectListener(
+				dispatcher: $dispatcher,
+				appId: $appId,
+				event: $event,
+				listener: $listener,
+				registers: $registers,
+				schemas: $schemas
+			);
+		}
 
-		// ADR-031 legitimate exception (competency-framework):
-		// WerkprocesAssessment creation -> server-side competencyId resolution
-		// bridge. Only the ObjectCreatedEvent half of
-		// CompetencyAttainmentRollupHandler is narrowed: handleObjectCreated()
-		// guards on register `learniq` + schema `werkproces-assessment`. Its
-		// ObjectTransitionedEvent half stays a plain registration in register().
-		$this->registerFilteredObjectListener(
-			dispatcher: $dispatcher,
-			appId: $appId,
-			event: ObjectCreatedEvent::class,
-			listener: CompetencyAttainmentRollupHandler::class,
-			registers: ['learniq'],
-			schemas: ['werkproces-assessment']
-		);
-
-		// ADR-031 legitimate exception (learning-progress-and-analytics): xAPI
-		// completion statement -> per-lesson LessonCompletion upsert bridge.
-		// Listens for the SAME ObjectCreatedEvent<XapiStatement> XapiCompletionHandler
-		// already consumes — a sibling listener, NOT an edit to that class. No
-		// mandatoryTraining or last-lesson gate: every resolvable completed/passed
-		// statement produces or updates a LessonCompletion row.
-		$this->registerFilteredObjectListener(
-			dispatcher: $dispatcher,
-			appId: $appId,
-			event: ObjectCreatedEvent::class,
-			listener: LessonProgressHandler::class,
-			registers: ['learniq'],
-			schemas: ['xapi-statement']
-		);
-
-		// ADR-031 legitimate exception (learning-progress-and-analytics):
-		// LessonCompletion creation -> Enrolment.progressPercent recompute bridge.
-		// Listens for ObjectCreatedEvent<LessonCompletion>; the DSL has no division
-		// operator (verified), mirrors FinalGrade/GradeRollupHandler's shape.
-		$this->registerFilteredObjectListener(
-			dispatcher: $dispatcher,
-			appId: $appId,
-			event: ObjectCreatedEvent::class,
-			listener: EnrolmentProgressRollupHandler::class,
-			registers: ['learniq'],
-			schemas: ['lesson-completion']
-		);
-
-		// Updates too (learniq#945): a re-completion within the same enrolment
-		// or a changed score updates the existing row, and progress must follow.
-		$this->registerFilteredObjectListener(
-			dispatcher: $dispatcher,
-			appId: $appId,
-			event: ObjectUpdatedEvent::class,
-			listener: EnrolmentProgressRollupHandler::class,
-			registers: ['learniq'],
-			schemas: ['lesson-completion']
-		);
-
-		$this->registerAnalyticsListeners(dispatcher: $dispatcher, appId: $appId);
 		$this->registerPaymentListeners(dispatcher: $dispatcher, appId: $appId);
 		$this->registerAttendanceListeners(dispatcher: $dispatcher, appId: $appId);
 
 	}//end register()
-
-	/**
-	 * Wire the engagement, item-pool and timetabling listeners that declare the
-	 * register/schema pair they react to up front.
-	 *
-	 * Split out of register() only to keep each registration block readable; the
-	 * ordering between the two halves carries no meaning, because every
-	 * listener is filtered by its own declared register/schema pair.
-	 *
-	 * @param IEventDispatcher $dispatcher The event dispatcher resolved by boot().
-	 * @param string $appId The Learniq app id (log context only).
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
-	 */
-	private function registerAnalyticsListeners(IEventDispatcher $dispatcher, string $appId): void {
-		// ADR-031 legitimate exception (learning-progress-and-analytics): xAPI
-		// statement -> EngagementScore recompute + EngagementRiskThreshold check ->
-		// EngagementRiskFlag creation bridge. Listens for the SAME
-		// ObjectCreatedEvent<XapiStatement> LessonProgressHandler independently
-		// reacts to. Mirrors BsaProgressFlagHandler's combined evaluate-then-flag
-		// shape. Rule-based only — no AI/ML inference; never auto-acts against the
-		// learner.
-		$this->registerFilteredObjectListener(
-			dispatcher: $dispatcher,
-			appId: $appId,
-			event: ObjectCreatedEvent::class,
-			listener: EngagementSignalHandler::class,
-			registers: ['learniq'],
-			schemas: ['xapi-statement']
-		);
-
-		// ADR-031 legitimate exception (assessment-item-pools-and-analysis):
-		// AssessmentResult creation -> server-side item-pool draw + shuffle
-		// resolution bridge. Listens for OR's ObjectCreatedEvent, filtered to
-		// schema `assessment-result`. Resolves and persists drawnItemRefs —
-		// never trusts a client-supplied value, mirroring the trust boundary
-		// AssessmentScoringHandler already enforces for autoScore. Populated
-		// for EVERY attempt (fixed or random-draw) so exam-board review/
-		// appeal always has a faithful reconstruction of what the learner saw.
-		$this->registerFilteredObjectListener(
-			dispatcher: $dispatcher,
-			appId: $appId,
-			event: ObjectCreatedEvent::class,
-			listener: AssessmentDrawResolver::class,
-			registers: ['learniq'],
-			schemas: ['assessment-result']
-		);
-
-		// ADR-031 legitimate exception (engagement-gamification): PointAward
-		// creation -> LearnerEngagement totals/level/streak recompute bridge,
-		// plus the streak-milestone bonus-award check (recursion-guarded on
-		// sourceKind). Mirrors GradeRollupHandler's FinalGrade roll-up shape;
-		// NOT a TimedJob (ADR-022) and NOT a declarative sum aggregation (no
-		// sum metric is precedented anywhere in this register).
-		$this->registerFilteredObjectListener(
-			dispatcher: $dispatcher,
-			appId: $appId,
-			event: ObjectCreatedEvent::class,
-			listener: LearnerEngagementRollupHandler::class,
-			registers: ['learniq'],
-			schemas: ['point-award']
-		);
-
-		// ADR-031 legitimate exception (timetabling-and-substitution): Session
-		// create/update -> TimetableConflictDetector pairwise overlap scan
-		// dispatcher. Registered against BOTH ObjectCreatedEvent and
-		// ObjectUpdatedEvent (the latter is a real OpenRegister event class
-		// with no prior learniq listener precedent, needed here since a
-		// Session's roomId/startsAt/endsAt can be edited via the generic OR
-		// object-update endpoint without any lifecycle transition). The
-		// actual scan algorithm lives in TimetableConflictDetector, not here
-		// — it only ever creates TimetableConflict rows, never edits a
-		// Session.
-		$this->registerFilteredObjectListener(
-			dispatcher: $dispatcher,
-			appId: $appId,
-			event: ObjectCreatedEvent::class,
-			listener: SessionConflictListener::class,
-			registers: ['learniq'],
-			schemas: ['session']
-		);
-		$this->registerFilteredObjectListener(
-			dispatcher: $dispatcher,
-			appId: $appId,
-			event: ObjectUpdatedEvent::class,
-			listener: SessionConflictListener::class,
-			registers: ['learniq'],
-			schemas: ['session']
-		);
-
-	}//end registerAnalyticsListeners()
 
 	/**
 	 * Subscribe the listener that turns shillinq's settled contributions into Entitlement grants.
