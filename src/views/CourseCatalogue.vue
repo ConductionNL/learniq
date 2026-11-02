@@ -16,7 +16,7 @@
 -->
 <template>
 	<div class="course-catalogue">
-		<h2>{{ t('learniq', 'Course catalogue') }}</h2>
+		<CnPageHeader :title="t('learniq', 'Course catalogue')" />
 		<form class="course-catalogue__filters" @submit.prevent="load">
 			<NcTextField v-model="search" :label="t('learniq', 'Search courses')" />
 			<NcSelect
@@ -116,6 +116,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -132,6 +133,7 @@ export default {
 	name: 'CourseCatalogue',
 
 	components: {
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,

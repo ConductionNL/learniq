@@ -61,7 +61,7 @@
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<h2>{{ t('learniq', 'Peer review submitted') }}</h2>
+			<CnPageHeader :title="t('learniq', 'Peer review submitted')" />
 			<p>
 				{{
 					t('learniq', 'Score: {score} / {max}', {
@@ -75,7 +75,7 @@
 		<!-- Marking form -->
 		<template v-else-if="peerReview">
 			<header class="peer-review-marking-view__header">
-				<h2>{{ t('learniq', 'Complete peer review') }}</h2>
+				<CnPageHeader :title="t('learniq', 'Complete peer review')" />
 				<p class="peer-review-marking-view__meta">
 					{{
 						t('learniq', 'Assignment: {title}', {
@@ -223,12 +223,14 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { getRequestToken } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'PeerReviewMarkingView',
+	components: { CnPageHeader },
 
 	props: {
 		/**

@@ -21,7 +21,7 @@
 -->
 <template>
 	<div class="external-training-bulk">
-		<h2>{{ t('learniq', 'Record training for a group') }}</h2>
+		<CnPageHeader :title="t('learniq', 'Record training for a group')" />
 		<p class="external-training-bulk__intro">
 			{{
 				t(
@@ -186,6 +186,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
@@ -216,6 +217,7 @@ export default {
 	name: 'ExternalTrainingBulkRecordView',
 
 	components: {
+		CnPageHeader,
 		ExternalTrainingUploadDialog,
 		NcButton,
 		NcLoadingIcon,

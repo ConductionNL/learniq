@@ -24,7 +24,7 @@
 <template>
 	<div class="course-quality-report">
 		<header class="course-quality-report__header">
-			<h2>{{ t('learniq', 'Course quality report') }}</h2>
+			<CnPageHeader :title="t('learniq', 'Course quality report')" />
 			<p class="course-quality-report__subtitle">
 				{{
 					t(
@@ -144,6 +144,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcSelect } from '@nextcloud/vue'
 
@@ -151,6 +152,7 @@ export default {
 	name: 'CourseQualityReport',
 
 	components: {
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,

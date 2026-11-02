@@ -20,7 +20,7 @@
 -->
 <template>
 	<div class="export-request">
-		<h2>{{ heading }}</h2>
+		<CnPageHeader :title="heading" />
 		<form class="export-request__form" @submit.prevent="submit">
 			<template v-if="kind === 'audit-pack'">
 				<NcSelect
@@ -135,6 +135,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
@@ -160,7 +161,7 @@ import { normaliseStoreAccess } from '../utils/storeAccess.js'
 export default {
 	name: 'ExportRequestView',
 
-	components: { NcButton, NcCheckboxRadioSwitch, NcNoteCard, NcSelect },
+	components: { CnPageHeader, NcButton, NcCheckboxRadioSwitch, NcNoteCard, NcSelect },
 
 	props: {
 		/** 'audit-pack', 'course-package' or 'data-exchange' (page config). */

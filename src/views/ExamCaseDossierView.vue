@@ -34,13 +34,7 @@
 
 		<template v-else>
 			<header class="exam-case-dossier__header">
-				<h2>
-					{{
-						isExemption
-							? t('learniq', 'Exemption request')
-							: t('learniq', 'Fraud case')
-					}}
-				</h2>
+				<CnPageHeader :title="isExemption ? t('learniq', 'Exemption request') : t('learniq', 'Fraud case')" />
 				<span
 					class="exam-case-dossier__status"
 					:class="'exam-case-dossier__status--' + caseObject.lifecycle">
@@ -314,6 +308,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
@@ -321,6 +316,7 @@ import { canWithdrawExemption, isExamBoard } from '../utils/examBoard.js'
 
 export default {
 	name: 'ExamCaseDossierView',
+	components: { CnPageHeader },
 
 	props: {
 		/** OpenRegister object UUID, injected by vue-router from the `:id` route param. */

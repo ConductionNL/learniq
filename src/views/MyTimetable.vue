@@ -18,9 +18,7 @@
 <template>
 	<div class="my-timetable">
 		<div class="my-timetable__header">
-			<h2 class="my-timetable__title">
-				{{ t('learniq', 'My timetable') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'My timetable')" />
 			<div class="my-timetable__controls">
 				<NcButton
 					variant="tertiary"
@@ -291,6 +289,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
 import NoteTextOutline from 'vue-material-design-icons/NoteTextOutline.vue'
 import LessonNoteDialog from '../dialogs/LessonNoteDialog.vue'
@@ -321,11 +320,12 @@ function mondayOf(date) {
 export default {
 	name: 'MyTimetable',
 	components: {
+		CnPageHeader,
+		LessonNoteDialog,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
 		NcNoteCard,
-		LessonNoteDialog,
 		NoteTextOutline,
 		SubstitutionModal,
 		TimetableCalendarFeedDialog,

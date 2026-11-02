@@ -24,9 +24,7 @@
 <template>
 	<div class="leaderboard-view">
 		<header class="leaderboard-view__header">
-			<h2 class="leaderboard-view__title">
-				{{ t('learniq', 'Leaderboard') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Leaderboard')" />
 			<p class="leaderboard-view__subtitle">
 				{{
 					t(
@@ -127,6 +125,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -142,6 +141,7 @@ export default {
 	name: 'LeaderboardView',
 
 	components: {
+		CnPageHeader,
 		NcCheckboxRadioSwitch,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -299,11 +299,6 @@ export default {
 
 .leaderboard-view__header {
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.leaderboard-view__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
 }
 
 .leaderboard-view__subtitle {

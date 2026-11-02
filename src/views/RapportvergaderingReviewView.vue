@@ -23,7 +23,7 @@
 -->
 <template>
 	<div class="rapportvergadering-review">
-		<h2>{{ t('learniq', 'Rapportvergadering review') }}</h2>
+		<CnPageHeader :title="t('learniq', 'Rapportvergadering review')" />
 
 		<NcLoadingIcon v-if="loadingPeriod" :size="32" />
 
@@ -219,6 +219,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -229,6 +230,7 @@ export default {
 	name: 'RapportvergaderingReviewView',
 
 	components: {
+		CnPageHeader,
 		ComposeReportPeriodModal,
 		NcButton,
 		NcEmptyContent,

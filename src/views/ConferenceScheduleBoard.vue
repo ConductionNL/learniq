@@ -24,7 +24,7 @@
 -->
 <template>
 	<div class="conference-schedule-board">
-		<h2>{{ t('learniq', 'Conference schedule board') }}</h2>
+		<CnPageHeader :title="t('learniq', 'Conference schedule board')" />
 
 		<div class="conference-schedule-board__toolbar">
 			<NcSelect
@@ -129,6 +129,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -143,6 +144,7 @@ export default {
 	name: 'ConferenceScheduleBoard',
 
 	components: {
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,

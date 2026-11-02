@@ -22,9 +22,7 @@
 <template>
 	<div class="course-package-import">
 		<header class="course-package-import__header">
-			<h2 class="course-package-import__heading">
-				{{ t('learniq', 'Import course package') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Import course package')" />
 			<p class="course-package-import__intro">
 				{{
 					t(
@@ -175,6 +173,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import LessonOnboardingPanel from '../components/lesson/LessonOnboardingPanel.vue'
 
@@ -182,6 +181,7 @@ export default {
 	name: 'CoursePackageImportView',
 
 	components: {
+		CnPageHeader,
 		LessonOnboardingPanel,
 	},
 
@@ -322,12 +322,6 @@ export default {
 	margin: 0 auto;
 	padding: var(--default-grid-baseline, 8px)
 		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.course-package-import__heading {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-	margin-bottom: calc(var(--default-grid-baseline, 8px));
 }
 
 .course-package-import__intro {

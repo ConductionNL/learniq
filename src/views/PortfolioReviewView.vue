@@ -52,13 +52,7 @@
 
 		<template v-else-if="portfolio">
 			<header class="portfolio-review-view__header">
-				<h2>
-					{{
-						t('learniq', 'Review portfolio: {title}', {
-							title: portfolio.title || '',
-						})
-					}}
-				</h2>
+				<CnPageHeader :title="t('learniq', 'Review portfolio: {title}', { title: portfolio.title || '' })" />
 				<p class="portfolio-review-view__meta">
 					{{
 						t('learniq', 'Kind: {kind}', { kind: portfolio.kind || '' })
@@ -170,6 +164,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
@@ -197,6 +192,7 @@ const REFERENCE_SCHEMAS = {
 
 export default {
 	name: 'PortfolioReviewView',
+	components: { CnPageHeader },
 
 	props: {
 		/**

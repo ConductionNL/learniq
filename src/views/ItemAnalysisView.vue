@@ -51,9 +51,7 @@
 
 			<template v-else>
 				<header class="item-analysis__header">
-					<h2 class="item-analysis__heading">
-						{{ itemTitle || t('learniq', 'Item analysis') }}
-					</h2>
+					<CnPageHeader :title="itemTitle || t('learniq', 'Item analysis')" />
 				</header>
 
 				<section v-if="itemId" class="item-analysis__section">
@@ -174,12 +172,14 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
 import { canSeeHandInStatus } from '../utils/handInStatus.js'
 
 export default {
 	name: 'ItemAnalysisView',
+	components: { CnPageHeader },
 
 	props: {
 		/**
@@ -376,12 +376,6 @@ export default {
 	align-items: center;
 	gap: var(--default-grid-baseline, 8px);
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.item-analysis__heading {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .item-analysis__section {

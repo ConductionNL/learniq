@@ -26,9 +26,7 @@
 <template>
 	<div class="admissions-review-board">
 		<header class="admissions-review-board__header">
-			<h2 class="admissions-review-board__title">
-				{{ t('learniq', 'Admissions review board') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Admissions review board')" />
 			<p class="admissions-review-board__subtitle">
 				{{
 					t(
@@ -121,11 +119,13 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCanonicalLocale } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'AdmissionsReviewBoard',
+	components: { CnPageHeader },
 
 	data() {
 		return {
@@ -346,11 +346,6 @@ export default {
 
 .admissions-review-board__header {
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.admissions-review-board__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
 }
 
 .admissions-review-board__subtitle {

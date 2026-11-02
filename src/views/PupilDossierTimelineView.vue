@@ -39,9 +39,7 @@
 <template>
 	<div class="pupil-dossier-timeline">
 		<header class="pupil-dossier-timeline__header">
-			<h2 class="pupil-dossier-timeline__title">
-				{{ t('learniq', 'Pupil dossier timeline') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Pupil dossier timeline')" />
 			<p class="pupil-dossier-timeline__subtitle">
 				{{
 					t(
@@ -158,10 +156,12 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'PupilDossierTimelineView',
+	components: { CnPageHeader },
 
 	data() {
 		return {
@@ -496,11 +496,6 @@ export default {
 
 .pupil-dossier-timeline__header {
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.pupil-dossier-timeline__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
 }
 
 .pupil-dossier-timeline__subtitle {

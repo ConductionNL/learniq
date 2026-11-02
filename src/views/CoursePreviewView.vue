@@ -14,7 +14,7 @@
 -->
 <template>
 	<div class="course-preview">
-		<h2>{{ t('learniq', 'Preview as learner') }}</h2>
+		<CnPageHeader :title="t('learniq', 'Preview as learner')" />
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcNoteCard v-else-if="error" type="error">
 			{{ error }}
@@ -62,6 +62,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import {
 	NcButton,
@@ -75,7 +76,7 @@ import { previewQuery } from '../utils/lessonPreview.js'
 export default {
 	name: 'CoursePreviewView',
 
-	components: { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcTextField },
+	components: { CnPageHeader, NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcTextField },
 
 	props: {
 		/** Course UUID from the route :courseId param. */
