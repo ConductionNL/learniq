@@ -213,6 +213,14 @@
                 "endsAt": "2026-03-09T09:50:00+01:00",
                 "lifecycle": "cancelled",
                 "changeable": false
+            },
+            {
+                "id": "a-6",
+                "title": "Ma 9u, zes weken later",
+                "startsAt": "2026-04-13T09:00:00+02:00",
+                "endsAt": "",
+                "lifecycle": "scheduled",
+                "changeable": true
             }
         ],
         "a-1|2026-06-30": [
@@ -231,6 +239,14 @@
                 "endsAt": "2026-03-09T09:50:00+01:00",
                 "lifecycle": "cancelled",
                 "changeable": false
+            },
+            {
+                "id": "a-6",
+                "title": "Ma 9u, zes weken later",
+                "startsAt": "2026-04-13T09:00:00+02:00",
+                "endsAt": "",
+                "lifecycle": "scheduled",
+                "changeable": true
             },
             {
                 "id": "a-4",
@@ -257,6 +273,14 @@
                 "endsAt": "2026-03-09T09:50:00+01:00",
                 "lifecycle": "cancelled",
                 "changeable": false
+            },
+            {
+                "id": "a-6",
+                "title": "Ma 9u, zes weken later",
+                "startsAt": "2026-04-13T09:00:00+02:00",
+                "endsAt": "",
+                "lifecycle": "scheduled",
+                "changeable": true
             }
         ],
         "b-1|": [

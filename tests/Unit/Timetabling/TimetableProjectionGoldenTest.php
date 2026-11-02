@@ -139,6 +139,7 @@ class TimetableProjectionGoldenTest extends TestCase {
 			['id' => 'a-2', 'title' => 'Ma 9u', 'startsAt' => '2026-03-09T09:00:00+01:00', 'endsAt' => '2026-03-09T09:50:00+01:00', 'cohortId' => 'c-1', 'courseId' => 'k-1', 'lifecycle' => 'cancelled'],
 			['id' => 'a-3', 'title' => 'Ma 10u', 'startsAt' => '2026-03-09T10:00:00+01:00', 'cohortId' => 'c-1', 'courseId' => 'k-1'],
 			['id' => 'a-4', 'title' => 'Ma 9u laat', 'startsAt' => '2026-05-25T09:00:00+02:00', 'cohortId' => 'c-1', 'courseId' => 'k-1', 'lifecycle' => 'in-progress'],
+			['id' => 'a-6', 'title' => 'Ma 9u, zes weken later', 'startsAt' => '2026-04-13T09:00:00+02:00', 'cohortId' => 'c-1', 'courseId' => 'k-1'],
 			['id' => 'a-5', 'title' => 'Di 9u', 'startsAt' => '2026-03-03T09:00:00+01:00', 'cohortId' => 'c-1', 'courseId' => 'k-1'],
 			['id' => 'b-1', 'startsAt' => '2026-03-02T09:00:00+01:00', 'cohortId' => 'c-2', 'courseId' => ''],
 			['id' => 'b-2', 'startsAt' => '2026-03-16T09:00:00+01:00', 'cohortId' => 'c-2'],
