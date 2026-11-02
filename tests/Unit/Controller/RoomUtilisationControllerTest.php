@@ -22,6 +22,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\RoomUtilisationController;
+use OCA\Learniq\Service\CallerGroups;
 use OCA\Learniq\Service\OpeningHoursSettings;
 use OCA\Learniq\Service\RoomUtilisationService;
 use OCP\AppFramework\Http;
@@ -84,7 +85,15 @@ class RoomUtilisationControllerTest extends TestCase {
 			}
 		);
 
-		return new RoomUtilisationController($this->createMock(IRequest::class), $session, $groupManager, $report, new OpeningHoursSettings($config));
+		return new RoomUtilisationController(
+			request: $this->createMock(IRequest::class),
+			caller: new CallerGroups(
+				userSession: $session,
+				groupManager: $groupManager
+			),
+			report: $report,
+			openingHours: new OpeningHoursSettings($config)
+		);
 	}//end controller()
 
 	/**

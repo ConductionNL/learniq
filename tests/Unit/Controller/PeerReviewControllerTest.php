@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Learniq\Service\CallerGroups;
 use OCA\Learniq\Controller\PeerReviewController;
 use OCA\Learniq\Service\PeerReviewAllocationService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -98,10 +99,12 @@ class PeerReviewControllerTest extends TestCase {
 
 		return new PeerReviewController(
 			request: $this->createMock(IRequest::class),
-			userSession: $userSession,
-			groupManager: $groupManager,
+			caller: new CallerGroups(
+				userSession: $userSession,
+				groupManager: $groupManager
+			),
 			objectService: $objectService,
-			allocationService: $allocationService,
+			allocationService: $allocationService
 		);
 	}//end makeController()
 
@@ -270,10 +273,12 @@ class PeerReviewControllerTest extends TestCase {
 
 		$controller = new PeerReviewController(
 			request: $this->createMock(IRequest::class),
-			userSession: $userSession,
-			groupManager: $groupManager,
+			caller: new CallerGroups(
+				userSession: $userSession,
+				groupManager: $groupManager
+			),
 			objectService: $objectService,
-			allocationService: $this->createMock(PeerReviewAllocationService::class),
+			allocationService: $this->createMock(PeerReviewAllocationService::class)
 		);
 
 		$response = $controller->allocate(self::ASSIGNMENT_ID);

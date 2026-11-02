@@ -31,6 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\CallerGroups;
 use OCA\Learniq\Service\OpeningHoursSettings;
 use OCA\Learniq\Service\RoomUtilisationService;
 use OCP\AppFramework\Controller;
@@ -66,11 +67,24 @@ class RoomUtilisationController extends Controller {
 	private const MAX_DAYS = 400;
 
 	/**
+	 * The caller.
+	 *
+	 * @var IUserSession
+	 */
+	private readonly IUserSession $userSession;
+
+	/**
+	 * Group checks.
+	 *
+	 * @var IGroupManager
+	 */
+	private readonly IGroupManager $groupManager;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IRequest               $request      HTTP request.
-	 * @param IUserSession           $userSession  The caller.
-	 * @param IGroupManager          $groupManager Group checks.
+	 * @param CallerGroups           $caller      The user session and the group manager.
 	 * @param RoomUtilisationService $report       Computes room use.
 	 * @param OpeningHoursSettings   $openingHours Opening hours per weekday.
 	 *
@@ -78,11 +92,12 @@ class RoomUtilisationController extends Controller {
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly IUserSession $userSession,
-		private readonly IGroupManager $groupManager,
+		CallerGroups $caller,
 		private readonly RoomUtilisationService $report,
 		private readonly OpeningHoursSettings $openingHours,
 	) {
+		$this->userSession = $caller->userSession;
+		$this->groupManager = $caller->groupManager;
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
 
