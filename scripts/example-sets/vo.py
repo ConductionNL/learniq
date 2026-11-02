@@ -124,6 +124,10 @@ SCHEMAS = [
     "fraud-case",
     "fee-item",
     "confidential-note",
+    # The pupil boards (add_board_pupils): appended for the same reason.
+    "submission",
+    "submission-mark",
+    "regulation",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -1486,6 +1490,7 @@ def build() -> dict:
 
     # --- the board layer, after the story ------------------------------------------------------------
     add_boards(b, courses)
+    add_board_pupils(b, courses)
 
     # --- assemble ------------------------------------------------------------------------------------
     for rows in b.buckets.values():
@@ -1978,6 +1983,207 @@ def add_boards(b: Builder, courses: dict) -> None:
                  "bespreek ik met de melder wie we erbij halen."),
         "authorId": counsellor["ncUserId"], "participantIds": ["vo-zorgcoordinator-01"], "status": "open",
         "destroyAfter": "2027-07-01",
+    })
+
+
+# The 3HV-B pupils the boards draw, given to classmates of Fenna who carry no other story:
+# (pupil, given name, family name, the guardians' given names in the order the set holds them). Daan's
+# father is Jeroen Visser, as LqZoOndersteuning draws him.
+BOARD_PUPILS = [
+    ("vo-leerling-118", "Daan", "Visser", ["Samira", "Jeroen"]),
+    ("vo-leerling-126", "Lucas", "van Dijk", ["Esther", "Bas"]),
+    ("vo-leerling-129", "Julia", "Peters", ["Iris", "Hasan"]),
+]
+
+
+def add_board_pupils(b: Builder, courses: dict) -> None:
+    """The records the 3HV-B detail boards draw (identity.conduction.nl/screens):
+    Daan Visser's care note and support request (LqNotitie, LqDossierTijdlijn,
+    LqZoOndersteuning), Julia Peters's concept 8,2 for Nederlands (LqCijfer),
+    Lucas van Dijk's unexcused absence (LqRegistratie), the class's Biologie and
+    Nederlands tests (LqToetsInstellingen, LqLlToetsMaken, LqToetsNakijken),
+    Betoog schrijven with its submissions and marks (LqOpdracht,
+    LqBeoordelaars, LqInleveringNakijken), Emma de Vries after her intake in
+    the 2027-2028 round (LqCoAanmelding), the school's own 8-hour threshold
+    (LqVerzuimgrens), Biologie 3 tweetalig (LqCursusInstellingen) and the
+    Meldcode (LqCfVerplichting). Runs after the board layer and draws no random
+    number, so no earlier uuid moves; the only earlier values it edits are the
+    names of three classmates and their parents, and one component on the
+    Nederlands toetsplan of 3HV-B.
+
+    @spec openspec/changes/vo-board-records-for-the-pupil-boards/specs/example-sets/spec.md
+    """
+    h4b = next(c for c in b.buckets["cohort"] if c["name"] == "3HV-B")
+    profiles = {p["ncUserId"]: p for p in b.buckets["learner-profile"]}
+    by_ref = {p["uuid"]: p for p in b.buckets["learner-profile"]}
+    pupils = {}
+    for nc, given, family, guardians in BOARD_PUPILS:
+        profile = profiles[nc]
+        assert nc in h4b["learnerIds"] and not any(
+            q is not profile and set(q.get("guardianRefs") or []) & set(profile["guardianRefs"]) for q in profiles.values()
+        ), nc
+        old_given = profile["givenName"]
+        profile.update({"givenName": given, "familyName": family})
+        for ref, guardian_given in zip(profile["guardianRefs"], guardians, strict=True):
+            by_ref[ref].update({"givenName": guardian_given, "familyName": family})
+        for card in b.buckets["report-card"]:
+            if card["learnerId"] == nc:
+                card["mentorComment"] = card["mentorComment"].replace(old_given, given)
+        pupils[given] = profile
+    daan, lucas, julia = pupils["Daan"], pupils["Lucas"], pupils["Julia"]
+    fenna = next(p for p in b.buckets["learner-profile"] if (p.get("givenName"), p.get("familyName")) == ("Fenna", "de Jong"))
+    sessions = {(s["startsAt"], s["title"]): s for s in b.buckets["session"] if s["cohortId"] == h4b["uuid"]}
+    monday_ne = sessions[(stamp(TODAY, 8, 30), "Nederlands")]
+
+    # --- Daan: the mentor's notes and the zorgcoordinator's support request -------------------------------
+    care_team = [ZORG, STORY_MENTOR]
+    b.add("dossier-note", {
+        "learnerId": daan["ncUserId"], "authorId": STORY_MENTOR, "date": "2026-09-02", "category": "conversation",
+        "body": "Kennismaking mentor. Start leerjaar 3 goed verlopen, Daan wil havo halen.",
+        "confidentiality": "team-visible", "careTeamUserIds": care_team,
+    })
+    b.add("dossier-note", {
+        "learnerId": daan["ncUserId"], "authorId": STORY_MENTOR, "date": "2026-10-02", "category": "concern",
+        "body": ("Daan oogt al twee weken moe en teruggetrokken. Hij zit in de pauze alleen en levert zijn werk later in "
+                 "dan eerst. Vandaag besproken met de zorgcoördinator. Afgesproken: ik plan volgende week een gesprek "
+                 "met zijn ouders, zij sluit aan."),
+        "confidentiality": "care-team-only", "careTeamUserIds": care_team,
+    })
+    b.add("support-request", {
+        "learnerId": daan["ncUserId"], "raisedBy": ZORG, "supportDomain": "Gedrag en sociaal-emotionele ontwikkeling",
+        "description": ("Een kleinere groep met vaste begeleiding. Daan raakt in de klas snel overprikkeld en loopt dan "
+                        "weg uit de les, de laatste weken bijna dagelijks."),
+        "urgency": "high", "lifecycle": "in-deliberation",
+    })
+
+    # --- Lucas: absent without notice at Monday's Nederlands, and the call home --------------------------------
+    b.add("attendance-record", {
+        "sessionId": monday_ne["uuid"], "learnerId": lucas["ncUserId"], "learnerRef": lucas["uuid"], "cohortId": h4b["uuid"],
+        "status": "absent-unexcused", "minutesAttended": 0, "markedBy": STORY_MENTOR, "markedAt": stamp(TODAY, 13, 12),
+        "markedVia": "teacher", "absenceReasonKind": "other", "lesuren": 1,
+        "reason": "Niet gemeld. Moeder gebeld om 13:30: hij was bij de huisarts. Zij meldt het alsnog via het ouderportaal.",
+    })
+    b.add("dossier-note", {
+        "learnerId": lucas["ncUserId"], "authorId": STORY_MENTOR, "date": TODAY.isoformat(), "category": "phone-call-home",
+        "body": "Moeder gebeld over de afwezigheid bij Nederlands. Lucas was bij de huisarts; zij meldt het alsnog via het ouderportaal.",
+        "confidentiality": "team-visible", "careTeamUserIds": care_team,
+    })
+
+    # --- Julia: the grammar test's 8,2, entered as a concept on the Nederlands toetsplan ------------------------
+    plan = next(p for p in b.buckets["curriculum-plan"] if p["name"] == f"Toetsplan nederlands 3HV-B, {STORY_YEAR}")
+    plan["components"].append({"componentId": "toets-h1-grammatica", "label": "Toets hoofdstuk 1, grammatica", "weight": 2,
+                               "period": "1", "kind": "assessment"})
+    b.add("grade-entry", {
+        "learnerId": julia["ncUserId"], "learnerRef": julia["uuid"], "curriculumPlanId": plan["uuid"],
+        "componentId": "toets-h1-grammatica", "courseId": courses["NE"]["uuid"], "courseName": courses["NE"]["name"],
+        "cohortId": h4b["uuid"], "sourceKind": "manual", "value": 8.2, "gradeScaleId": b.buckets["grade-scale"][0]["uuid"],
+        "weight": 2, "period": "1", "grader": STORY_MENTOR, "gradedAt": stamp(TODAY, 15, 42), "visibleFrom": None,
+        "comment": "Sterk werk bij de zinsontleding. Let bij de werkwoordspelling op de voltooid deelwoorden.",
+        "lifecycle": "concept",
+    })
+
+    # --- tests of 3HV-B: Biologie open this week and next week, Monday's Nederlands test closed -----------------
+    b.add("exam", {
+        "title": "Toets hoofdstuk 2: cellen", "description": "Digitale toets over hoofdstuk 2. Maak hem deze week in de les of thuis.",
+        "courseId": courses["BI"]["uuid"], "cohortId": h4b["uuid"], "curriculumPlanComponentId": None, "itemSelectionMode": "fixed", "scoringScheme": "points",
+        "timeLimitMinutes": 45, "maxAttempts": 1, "keepScore": "best",
+        "availableFrom": stamp(TODAY, 8, 30), "availableUntil": stamp(dt.date(2026, 10, 9), 17, 0), "lifecycle": "published",
+    })
+    b.add("exam", {
+        "title": "Toets hoofdstuk 3: erfelijkheid", "description": "In het toetslokaal, met de toegangscode van de docent.",
+        "courseId": courses["BI"]["uuid"], "cohortId": h4b["uuid"], "curriculumPlanComponentId": None, "itemSelectionMode": "fixed", "shuffleItemOrder": True,
+        "scoringScheme": "passMark", "passMark": 55, "timeLimitMinutes": 50, "maxAttempts": 1, "accessCode": "4KX-27Q",
+        "availableFrom": stamp(dt.date(2026, 10, 13), 8, 30), "availableUntil": stamp(dt.date(2026, 10, 13), 10, 10),
+        "lifecycle": "published",
+    })
+    b.add("exam", {
+        "title": "Toets hoofdstuk 2, grammatica", "description": "Gemaakt in de les van maandag. De open vragen worden nagekeken.",
+        "courseId": courses["NE"]["uuid"], "sessionId": monday_ne["uuid"], "cohortId": h4b["uuid"], "curriculumPlanComponentId": None, "itemSelectionMode": "fixed",
+        "scoringScheme": "points", "timeLimitMinutes": 45, "maxAttempts": 1,
+        "availableFrom": monday_ne["startsAt"], "availableUntil": monday_ne["endsAt"], "lifecycle": "closed",
+    })
+
+    # --- Betoog schrijven: two markers per submission, 14 handed in and 2 drafts -------------------------------
+    learner_refs = [profiles[nc]["uuid"] for nc in h4b["learnerIds"]]
+    markers = [STORY_MENTOR, STORY_TEACHERS["EN"]]
+    betoog = b.add("assignment", {
+        "title": "Betoog schrijven",
+        "instructions": ("Schrijf een betoog van 600 tot 800 woorden over de stelling: de schooldag moet om 9:00 uur beginnen. "
+                         "Gebruik minstens drie argumenten en weerleg een tegenargument. Lever een Word- of pdf-bestand in."),
+        "courseId": courses["NE"]["uuid"], "sessionId": None, "cohortId": h4b["uuid"], "curriculumPlanComponentId": None,
+        "dueAt": stamp(dt.date(2026, 10, 9), 17, 0), "maxPoints": 10, "allowLateSubmission": True,
+        "markersPerSubmission": 2, "finalGradeRule": "manual", "peerReviewEnabled": True, "peerReviewersPerSubmission": 2,
+        "peerReviewAllocationStrategy": "round-robin", "lifecycle": "published",
+        # What AssignmentLearnerRefsStamp writes on a live save: the group's pupils.
+        "learnerRefs": learner_refs,
+    })
+    writers = [fenna, daan] + [profiles[nc] for nc in h4b["learnerIds"] if profiles[nc] not in (fenna, daan, lucas)][:14]
+    for i, writer in enumerate(writers):
+        draft = i >= 14
+        row = {"assignmentId": betoog["uuid"], "learnerIds": [writer["ncUserId"]], "learnerRefs": [writer["uuid"]],
+               "learnerRef": writer["uuid"], "attachmentRefs": []}
+        if writer is fenna:
+            row.update({"submittedAt": stamp(dt.date(2026, 10, 6), 21, 14)})
+        elif not draft:
+            row.update({"submittedAt": stamp(TODAY + dt.timedelta(days=i % 3), 15 + i % 6, (i * 7) % 60)})
+        row.update({"isLate": False, "markerIds": [] if draft else list(markers), "lifecycle": "draft" if draft else "submitted"})
+        submission = b.add("submission", row)
+        if writer is fenna:
+            b.add("submission-mark", {
+                "submissionId": submission["uuid"], "assignmentId": betoog["uuid"], "markerId": STORY_TEACHERS["EN"],
+                "proposedGrade": 7.6, "feedbackText": "Duidelijk standpunt en goede argumenten. Het slot mag krachtiger.",
+                "submittedAt": stamp(dt.date(2026, 10, 7), 10, 5), "submittedBy": STORY_TEACHERS["EN"], "lifecycle": "submitted",
+            })
+            b.add("submission-mark", {
+                "submissionId": submission["uuid"], "assignmentId": betoog["uuid"], "markerId": STORY_MENTOR, "proposedGrade": 8.0,
+                "feedbackText": ("Je standpunt is helder en je weerlegging over de bus is sterk. Let op je slot: vat samen in "
+                                 "plaats van te herhalen."),
+                "lifecycle": "draft",
+            })
+
+    # --- Emma de Vries: intake held in the 2027-2028 brugklas round ---------------------------------------------
+    brugklas = next(p for p in b.buckets["programme"] if p["name"] == "Brugklas havo/vwo")
+    round_ = b.add("admissions-round", {
+        "name": "Brugklas 2027-2028", "kind": "vo-schooladvies-doorstroomtoets", "programmeId": brugklas["uuid"], "level": "vo",
+        "academicYear": "2027-2028", "applicationDeadline": "2027-02-15", "mandatoryIntake": True, "capacity": 120,
+        "lifecycle": "open",
+    })
+    b.add("admission", {
+        "applicantGivenName": "Emma", "applicantFamilyName": "de Vries", "applicantBirthDate": "2015-05-14",
+        "priorSchool": "Voorbeeldschool De Regenboog", "admissionsRoundId": round_["uuid"], "programmeId": brugklas["uuid"],
+        "guardianGivenName": "Karin", "guardianFamilyName": "de Vries", "guardianEmail": "karin.devries@example.nl",
+        "guardianPhone": "06-00012345", "submittedAuthLevel": "substantial",
+        "intakeScheduledAt": "2027-02-16T11:00:00+01:00", "intakeConductedBy": STORY_MENTOR,
+        "intakeNotes": "Gemotiveerd, leest veel, wil graag naar het tweetalig onderwijs.", "intakeCompleted": True,
+        "schoolAdviceLevel": "havo", "progressionTestLevel": "vwo", "schoolAdviceAdjustedLevel": "vwo",
+        "adjustmentMotivation": "Opgehoogd na de doorstroomtoets.", "submittedAt": "2027-02-02T20:02:00+01:00",
+        "lifecycle": "intake-completed",
+    })
+
+    # --- the school's own threshold below the statutory 16 hours ----------------------------------------------
+    b.add("attendance-threshold", {
+        "name": "Vroeg signaal bij verzuim", "kind": "generic", "scope": "per-learner",
+        "window": {"type": "rolling-weeks", "weeks": 4, "termId": None}, "metric": "unexcused-lesuren", "limit": 8,
+        "lessonHourMinutes": LESSON,
+        "onCross": {"notify": True, "notifyRoles": ["mentor"], "createFlag": True, "dataExchangeTarget": None},
+        "active": True, "lifecycle": "active",
+    })
+
+    # --- the bilingual Biologie course, with its Dutch name beside the English one -----------------------------
+    b.add("course", {
+        "code": "BI-3TTO-2026", "name": "Biology 3 bilingual", "name_nl": "Biologie 3 tweetalig",
+        "description": "Biologie in leerjaar 3 van het tweetalig onderwijs, in het Engels gegeven.", "level": "vo",
+        "language": "en", "tags": ["voortgezet onderwijs", "tweetalig onderwijs"], "lifecycle": "published",
+    })
+
+    # --- the Meldcode: its own code is its slug, as in the company set ----------------------------------------
+    b.add("regulation", {
+        "slug": "MELDCODE", "name": "Meldcode huiselijk geweld en kindermishandeling",
+        "description": ("Wie met leerlingen werkt, kent de stappen van de meldcode bij een vermoeden van huiselijk geweld "
+                        "of kindermishandeling, en tekent elke twee jaar opnieuw."),
+        "applicabilityCriteria": "Alle medewerkers met leerlingcontact, elke 24 maanden opnieuw.",
+        "audienceScope": "all-employees", "requiresAnnualRenewal": False, "renewalCycleMonths": 24, "active": True,
+        "ragRedThreshold": 70, "ragAmberThreshold": 90, "lifecycle": "published",
     })
 
 
