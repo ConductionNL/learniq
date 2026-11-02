@@ -95,6 +95,7 @@ class SeedProfileService {
 	 * @param LoadedExampleSets  $loadedSets Remembers which sets were loaded, for the wizard's removal steps.
 	 * @param ExamplePortalProvisioner $examplePortals Gives the set's school its themed portal when portaliq is installed.
 	 * @param ExampleSetDates          $dates          Moves the set's dates to the week of the load (demo-dates-follow-the-load-week).
+	 * @param ExampleSetOrganisation   $organisation   Gives the set's rows the instance's default organisation.
 	 *
 	 * @return void
 	 */
@@ -107,6 +108,7 @@ class SeedProfileService {
 		private readonly LoadedExampleSets $loadedSets,
 		private readonly ExamplePortalProvisioner $examplePortals,
 		private readonly ExampleSetDates $dates,
+		private readonly ExampleSetOrganisation $organisation,
 	) {
 	}//end __construct()
 
@@ -203,10 +205,12 @@ class SeedProfileService {
 	 *
 	 * @return array{objects: int, skipped: int, profile: string, portal?: array{status: string, slug?: string, theme?: string}} What was imported.
 	 *
-	 * @throws RuntimeException When the id is unknown or OpenRegister is absent.
+	 * @throws RuntimeException When the id is unknown, OpenRegister is absent, no default
+	 *                          organisation resolves, or a row could not be given it.
 	 *
 	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-imports-exactly-its-descriptor
 	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
+	 * @spec openspec/specs/example-sets/spec.md#requirement-example-set-rows-carry-the-instances-organisation
 	 */
 	public function install(string $profileId): array {
 		if ($profileId === self::GENERATED_PROFILE) {
@@ -222,6 +226,10 @@ class SeedProfileService {
 		$data    = $this->descriptorFor(profileId: $profileId);
 		$objects = count($this->objectsOf(data: $data));
 
+		// Resolved before anything is written, so a load never leaves rows without one.
+		$importer     = $this->configurationService();
+		$organisation = $this->organisation->resolve();
+
 		// Every date moves to the week of this load (demo-dates-follow-the-load-week);
 		// what exists from a load in another week moves first, because the seed
 		// import skips an object that exists. A load in the same week moves nothing.
@@ -232,12 +240,16 @@ class SeedProfileService {
 		// A second set that ships a regulation code the first one already
 		// created leaves its own row out, so the code stays one row (VCA and
 		// NIS2 in the company and training sets).
-		$result = $this->configurationService()->importFromApp(
+		$result = $importer->importFromApp(
 			appId: $this->importAppId(profileId: $profileId),
 			data: $this->sharedCodes->withoutCodesHeldElsewhere(data: $data),
 			version: $this->appManager->getAppVersion(Application::APP_ID),
 			force: true
 		);
+
+		// The seed import writes rows without an organisation; each gets the
+		// instance's, which also fixes rows an earlier load left without one.
+		$this->organisation->stamp(objects: $this->objectsOf(data: $data), organisation: $organisation);
 
 		$this->loadedSets->recordFromChoices(setId: $profileId, choices: [$data['x-openregister']['profile']]);
 
