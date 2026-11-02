@@ -26,6 +26,7 @@ use OCA\Learniq\Service\CoursePackage\CourseMetadataFilter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
+use OCA\Learniq\Service\CoursePackage\ImportOrigin;
 use OCA\Learniq\Service\CoursePackage\LearniqJsonCourseImporter;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
@@ -36,6 +37,8 @@ use PHPUnit\Framework\TestCase;
  * @covers \OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter
  * @covers \OCA\Learniq\Service\CoursePackage\LearniqJsonCourseImporter
  * @uses   \OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter
+ * @uses   \OCA\Learniq\Service\CoursePackage\ImportOrigin
+ * @uses   \OCA\Learniq\Service\CoursePackage\ImportReportOutcome
  */
 class CourseMetadataFilterTest extends TestCase {
 
@@ -124,7 +127,7 @@ class CourseMetadataFilterTest extends TestCase {
 				]
 			)
 		);
-		$importer->importPackage($path, 'course-package-betoog-1.json', 'docent-07', '2026-09-27T10:00:00Z', 'tenant-1');
+		$importer->importPackage($path, new ImportOrigin('course-package-betoog-1.json', 'docent-07', '2026-09-27T10:00:00Z', 'tenant-1'));
 		unlink($path);
 
 		$course = $saved[0]['object'];
