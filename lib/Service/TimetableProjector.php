@@ -52,6 +52,11 @@ use Throwable;
  * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
  */
 class TimetableProjector {
+
+	/**
+	 * The lesson fields a projected session copies as strings, in order.
+	 */
+	private const LESSON_FIELDS = ['title', 'startsAt', 'endsAt', 'location', 'cohortId', 'courseId', 'lessonId', 'lifecycle'];
 	/**
 	 * Constructor.
 	 *
@@ -240,34 +245,67 @@ class TimetableProjector {
 	 */
 	private function projectSession(array $session, array $roomCache): array {
 		$roomId = (string)($session['roomId'] ?? '');
-		$room = null;
 		$roomIdOrNull = null;
 		if ($roomId !== '') {
 			$roomIdOrNull = $roomId;
 		}
 
-		if ($roomId !== '' && isset($roomCache[$roomId]) === true) {
-			$roomData = $roomCache[$roomId];
-			$room = [
-				'id' => (string)($roomData['id'] ?? ($roomData['uuid'] ?? $roomId)),
-				'name' => (string)($roomData['name'] ?? ''),
-				'capacity' => $roomData['capacity'] ?? null,
-				'facilities' => $roomData['facilities'] ?? [],
-			];
+		return ['id' => (string)($session['id'] ?? ($session['uuid'] ?? ''))]
+			+ self::strings(session: $session, fields: self::LESSON_FIELDS)
+			+ ['roomId' => $roomIdOrNull, 'room' => self::roomOf(roomCache: $roomCache, roomId: $roomId)]
+			+ self::changeFields(session: $session)
+			// Online lesson link (timetabling-online-lesson-link): only https reaches a page.
+			+ ['onlineMeetingUrl' => $this->httpsOrNull(value: $session['onlineMeetingUrl'] ?? null)];
+	}//end projectSession()
+
+	/**
+	 * The session's values for the fields, each as a string ('' when missing).
+	 *
+	 * @param array<string,mixed> $session The session.
+	 * @param list<string>        $fields  The fields.
+	 *
+	 * @return array<string,string>
+	 */
+	private static function strings(array $session, array $fields): array {
+		$values = [];
+		foreach ($fields as $field) {
+			$values[$field] = (string)($session[$field] ?? '');
 		}
 
+		return $values;
+	}//end strings()
+
+	/**
+	 * The room of the session from the scan's room cache, or null when it has none or the room is unknown.
+	 *
+	 * @param array<string,array<string,mixed>> $roomCache Rooms by id.
+	 * @param string                            $roomId    The session's room id ('' for none).
+	 *
+	 * @return array{id: string, name: string, capacity: mixed, facilities: mixed}|null
+	 */
+	private static function roomOf(array $roomCache, string $roomId): ?array {
+		if ($roomId === '' || isset($roomCache[$roomId]) === false) {
+			return null;
+		}
+
+		$roomData = $roomCache[$roomId];
 		return [
-			'id' => (string)($session['id'] ?? ($session['uuid'] ?? '')),
-			'title' => (string)($session['title'] ?? ''),
-			'startsAt' => (string)($session['startsAt'] ?? ''),
-			'endsAt' => (string)($session['endsAt'] ?? ''),
-			'location' => (string)($session['location'] ?? ''),
-			'cohortId' => (string)($session['cohortId'] ?? ''),
-			'courseId' => (string)($session['courseId'] ?? ''),
-			'lessonId' => (string)($session['lessonId'] ?? ''),
-			'lifecycle' => (string)($session['lifecycle'] ?? ''),
-			'roomId' => $roomIdOrNull,
-			'room' => $room,
+			'id' => (string)($roomData['id'] ?? ($roomData['uuid'] ?? $roomId)),
+			'name' => (string)($roomData['name'] ?? ''),
+			'capacity' => $roomData['capacity'] ?? null,
+			'facilities' => $roomData['facilities'] ?? [],
+		];
+	}//end roomOf()
+
+	/**
+	 * The session's cover, change and source fields.
+	 *
+	 * @param array<string,mixed> $session The session.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function changeFields(array $session): array {
+		return [
 			'substituteTeacherId' => $session['substituteTeacherId'] ?? null,
 			// A planninq lesson's teacher, and its key for a lesson note
 			// (timetabling-lesson-note); empty on a learniq Session.
@@ -282,10 +320,8 @@ class TimetableProjector {
 			// school timetable, sessions-from-planninq). A page opens only a
 			// learniq Session as a learniq Session.
 			'source' => (string)($session['source'] ?? 'learniq'),
-			// Online lesson link (timetabling-online-lesson-link): only https reaches a page.
-			'onlineMeetingUrl' => $this->httpsOrNull(value: $session['onlineMeetingUrl'] ?? null),
 		];
-	}//end projectSession()
+	}//end changeFields()
 
 	/**
 	 * An https link, or null for anything else (older data, another source).
