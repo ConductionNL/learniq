@@ -29,8 +29,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IConfig;
 use OCP\IUser;
 
@@ -51,6 +51,8 @@ use OCP\IUser;
  * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
  */
 class CallerTenantResolver {
+	use FindOrNull;
+
 	/**
 	 * The tenant of every user without a per-user binding.
 	 *
@@ -148,13 +150,7 @@ class CallerTenantResolver {
 	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
 	 */
 	public function findOwned(IUser $user, string $id, string $schema): ?array {
-		// ObjectService::find() THROWS DoesNotExistException for an unknown id.
-		try {
-			$object = $this->objectService->find(id: $id, register: Application::APP_ID, schema: $schema);
-		} catch (DoesNotExistException $e) {
-			return null;
-		}
-
+		$object = $this->findOrNull(find: fn () => $this->objectService->find(id: $id, register: Application::APP_ID, schema: $schema));
 		if ($object === null) {
 			return null;
 		}
