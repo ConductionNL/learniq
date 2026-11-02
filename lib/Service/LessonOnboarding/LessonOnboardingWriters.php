@@ -23,9 +23,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\LessonOnboarding;
 
-use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
-use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
+use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
+use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
 
 /**
  * What an import writes with: the object writer, the file writer and the transition engine that marks the row imported.
