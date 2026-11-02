@@ -9,7 +9,7 @@
 -->
 <template>
 	<div class="my-electives">
-		<h2>{{ t('learniq', 'Optional lessons') }}</h2>
+		<CnPageHeader :title="t('learniq', 'Optional lessons')" />
 		<NcNoteCard v-if="error" type="error">
 			{{ error }}
 		</NcNoteCard>
@@ -72,6 +72,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { translatePlural as n, translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
@@ -81,6 +82,7 @@ export default {
 	name: 'MyElectives',
 
 	components: {
+		CnPageHeader,
 		NcButton,
 		NcNoteCard,
 	},

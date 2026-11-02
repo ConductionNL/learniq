@@ -19,7 +19,7 @@
 -->
 <template>
 	<div class="assessment-scoring">
-		<h2>{{ t('learniq', 'Score open answers') }}</h2>
+		<CnPageHeader :title="t('learniq', 'Score open answers')" />
 
 		<NcLoadingIcon v-if="loading" :size="32" />
 
@@ -139,6 +139,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -170,6 +171,7 @@ export default {
 	name: 'AssessmentScoringView',
 
 	components: {
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,

@@ -17,10 +17,7 @@
 -->
 <template>
 	<div class="roll-call">
-		<h2 class="roll-call__title">
-			{{ t('learniq', 'Attendance register') }}
-			<span v-if="register.cohortName">· {{ register.cohortName }}</span>
-		</h2>
+		<CnPageHeader :title="title" />
 
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcNoteCard v-else-if="loadError" type="error">
@@ -278,6 +275,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -311,6 +309,7 @@ export default {
 	name: 'RollCallView',
 
 	components: {
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -342,6 +341,16 @@ export default {
 	},
 
 	computed: {
+		/**
+		 * The page title, naming the group once one is chosen.
+		 *
+		 * @return {string} The title.
+		 */
+		title() {
+			const title = this.t('learniq', 'Attendance register')
+			return this.register.cohortName ? `${title} · ${this.register.cohortName}` : title
+		},
+
 		/**
 		 * @return {object|null} The open group, as an NcSelect option.
 		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register

@@ -13,7 +13,7 @@
 -->
 <template>
 	<div class="qti-import">
-		<h2>{{ t('learniq', 'Import a QTI package') }}</h2>
+		<CnPageHeader :title="t('learniq', 'Import a QTI package')" />
 		<form class="qti-import__form" @submit.prevent="upload">
 			<label for="qti-file">{{
 				t('learniq', 'QTI package (.zip or .xml)')
@@ -53,6 +53,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcNoteCard } from '@nextcloud/vue'
@@ -60,7 +61,7 @@ import { NcButton, NcNoteCard } from '@nextcloud/vue'
 export default {
 	name: 'QtiImportView',
 
-	components: { NcButton, NcNoteCard },
+	components: { CnPageHeader, NcButton, NcNoteCard },
 
 	props: {
 		/** ItemBank UUID from the route. */

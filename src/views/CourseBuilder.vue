@@ -64,13 +64,7 @@
 			</p>
 
 			<header class="course-builder__header">
-				<h2>
-					{{
-						t('learniq', 'Course builder: {name}', {
-							name: course.name || '',
-						})
-					}}
-				</h2>
+				<CnPageHeader :title="t('learniq', 'Course builder: {name}', { name: course.name || '' })" />
 				<div class="course-builder__header-actions">
 					<button class="button-vue" @click="goBack">
 						{{ t('learniq', 'Back to course') }}
@@ -368,6 +362,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcSelect } from '@nextcloud/vue'
@@ -381,11 +376,12 @@ export default {
 	name: 'CourseBuilder',
 
 	components: {
-		NcSelect,
-		Draggable: draggable,
-		ChevronUp,
 		ChevronDown,
+		ChevronUp,
+		CnPageHeader,
 		DeleteOutline,
+		Draggable: draggable,
+		NcSelect,
 		PlusIcon,
 	},
 

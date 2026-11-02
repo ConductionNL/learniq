@@ -58,7 +58,7 @@
 
 		<template v-else>
 			<div class="accessibility-statement__header">
-				<h2>{{ t('learniq', 'Accessibility statement') }}</h2>
+				<CnPageHeader :title="t('learniq', 'Accessibility statement')" />
 				<NcButton variant="primary" @click="openFeedbackForm">
 					{{ t('learniq', 'Report an accessibility problem') }}
 				</NcButton>
@@ -224,7 +224,7 @@
 </template>
 
 <script>
-import { useObjectStore } from '@conduction/nextcloud-vue'
+import { CnPageHeader, useObjectStore } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
@@ -276,6 +276,7 @@ export default {
 	name: 'LearniqAccessibilityStatement',
 
 	components: {
+		CnPageHeader,
 		CriterionResultDialog,
 		NcButton,
 		NcEmptyContent,

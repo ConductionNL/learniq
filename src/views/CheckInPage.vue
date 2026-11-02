@@ -14,7 +14,7 @@
 -->
 <template>
 	<div class="check-in-page">
-		<h2>{{ t('learniq', 'Check in to a lesson') }}</h2>
+		<CnPageHeader :title="t('learniq', 'Check in to a lesson')" />
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<template v-else>
 			<ul v-if="open.length > 0" class="check-in-page__lessons">
@@ -56,6 +56,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -63,7 +64,7 @@ import { NcButton, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
 export default {
 	name: 'CheckInPage',
 
-	components: { NcButton, NcLoadingIcon, NcNoteCard },
+	components: { CnPageHeader, NcButton, NcLoadingIcon, NcNoteCard },
 
 	data() {
 		return {

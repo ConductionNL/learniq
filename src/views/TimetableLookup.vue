@@ -14,9 +14,7 @@
 <template>
 	<div class="timetables">
 		<header>
-			<h2 class="timetables__title">
-				{{ t('learniq', 'Timetables') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Timetables')" />
 			<p class="timetables__intro">
 				{{
 					t(
@@ -108,6 +106,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -133,7 +132,7 @@ function mondayOf(date) {
 export default {
 	name: 'TimetableLookup',
 
-	components: { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcSelect },
+	components: { CnPageHeader, NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcSelect },
 
 	data() {
 		return {
@@ -376,10 +375,6 @@ export default {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
-}
-
-.timetables__title {
-	margin: 0;
 }
 
 .timetables__intro {

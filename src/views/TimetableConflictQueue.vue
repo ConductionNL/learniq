@@ -22,9 +22,7 @@
 <template>
 	<div class="timetable-conflict-queue">
 		<header class="timetable-conflict-queue__header">
-			<h2 class="timetable-conflict-queue__title">
-				{{ t('learniq', 'Timetable conflicts') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Timetable conflicts')" />
 			<p class="timetable-conflict-queue__subtitle">
 				{{
 					t(
@@ -140,6 +138,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -150,6 +149,7 @@ export default {
 	name: 'TimetableConflictQueue',
 
 	components: {
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -349,11 +349,6 @@ export default {
 
 .timetable-conflict-queue__header {
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.timetable-conflict-queue__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
 }
 
 .timetable-conflict-queue__subtitle {

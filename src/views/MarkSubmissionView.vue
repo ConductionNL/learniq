@@ -70,7 +70,7 @@
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<h2>{{ t('learniq', 'Submission returned to learner') }}</h2>
+			<CnPageHeader :title="t('learniq', 'Submission returned to learner')" />
 			<p>
 				{{
 					t('learniq', 'Grade: {grade} / {max}', {
@@ -85,7 +85,7 @@
 		<template v-else-if="submission">
 			<!-- Header -->
 			<header class="mark-submission-view__header">
-				<h2>{{ t('learniq', 'Mark submission') }}</h2>
+				<CnPageHeader :title="t('learniq', 'Mark submission')" />
 				<p class="mark-submission-view__meta">
 					{{
 						t('learniq', 'Assignment: {title}', {
@@ -480,6 +480,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 import { resolveGradePlan } from '../utils/assignmentGradePlan.js'
@@ -488,6 +489,7 @@ import { markingMode, prefillFinalGrade } from '../utils/doubleMarking.js'
 
 export default {
 	name: 'MarkSubmissionView',
+	components: { CnPageHeader },
 
 	props: {
 		/**

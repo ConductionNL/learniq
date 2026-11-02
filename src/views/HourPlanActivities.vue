@@ -16,9 +16,7 @@
 <template>
 	<div class="hour-plan-activities">
 		<header class="hour-plan-activities__header">
-			<h2 class="hour-plan-activities__title">
-				{{ t('learniq', 'Teaching activities') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Teaching activities')" />
 			<p class="hour-plan-activities__intro">
 				{{
 					t(
@@ -129,6 +127,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -154,7 +153,7 @@ function schoolYearOf(date) {
 export default {
 	name: 'HourPlanActivities',
 
-	components: { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcSelect },
+	components: { CnPageHeader, NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcSelect },
 
 	data() {
 		return {
@@ -323,10 +322,6 @@ export default {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
-}
-
-.hour-plan-activities__title {
-	margin: 0;
 }
 
 .hour-plan-activities__intro {

@@ -26,9 +26,7 @@
 <template>
 	<div class="skills-gap-dashboard">
 		<header class="skills-gap-dashboard__header">
-			<h2 class="skills-gap-dashboard__title">
-				{{ t('learniq', 'Skills gap dashboard') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Skills gap dashboard')" />
 			<p class="skills-gap-dashboard__subtitle">
 				{{
 					t(
@@ -136,12 +134,14 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'SkillsGapDashboard',
+	components: { CnPageHeader },
 
 	data() {
 		return {
@@ -393,11 +393,6 @@ export default {
 
 .skills-gap-dashboard__header {
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.skills-gap-dashboard__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
 }
 
 .skills-gap-dashboard__subtitle {

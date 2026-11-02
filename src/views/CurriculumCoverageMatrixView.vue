@@ -18,9 +18,7 @@
 <template>
 	<div class="curriculum-coverage">
 		<header class="curriculum-coverage__header">
-			<h2 class="curriculum-coverage__title">
-				{{ t('learniq', 'Curriculum coverage') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Curriculum coverage')" />
 			<p class="curriculum-coverage__intro">
 				{{
 					t(
@@ -130,7 +128,7 @@
 </template>
 
 <script>
-import { CnDataMatrix } from '@conduction/nextcloud-vue'
+import { CnDataMatrix, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcEmptyContent, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
@@ -148,6 +146,7 @@ export default {
 
 	components: {
 		CnDataMatrix,
+		CnPageHeader,
 		NcEmptyContent,
 		NcLoadingIcon,
 		NcNoteCard,

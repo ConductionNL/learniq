@@ -22,9 +22,7 @@
 <template>
 	<div class="my-learning-record">
 		<header class="my-learning-record__header">
-			<h2 class="my-learning-record__heading">
-				{{ t('learniq', 'My learning record') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'My learning record')" />
 			<p class="my-learning-record__intro">
 				{{
 					t(
@@ -361,11 +359,13 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'MyLearningRecordView',
+	components: { CnPageHeader },
 
 	data() {
 		return {
@@ -672,12 +672,6 @@ export default {
 	margin: 0 auto;
 	padding: var(--default-grid-baseline, 8px)
 		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.my-learning-record__heading {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-	margin-bottom: calc(var(--default-grid-baseline, 8px));
 }
 
 .my-learning-record__intro {

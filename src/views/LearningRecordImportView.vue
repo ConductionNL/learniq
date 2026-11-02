@@ -20,9 +20,7 @@
 <template>
 	<div class="learning-record-import">
 		<header class="learning-record-import__header">
-			<h2 class="learning-record-import__heading">
-				{{ t('learniq', 'Import prior learning record') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Import prior learning record')" />
 			<p class="learning-record-import__intro">
 				{{
 					t(
@@ -158,10 +156,12 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'LearningRecordImportView',
+	components: { CnPageHeader },
 
 	data() {
 		return {
@@ -332,12 +332,6 @@ export default {
 	margin: 0 auto;
 	padding: var(--default-grid-baseline, 8px)
 		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.learning-record-import__heading {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-	margin-bottom: calc(var(--default-grid-baseline, 8px));
 }
 
 .learning-record-import__intro {

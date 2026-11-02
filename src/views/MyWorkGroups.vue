@@ -15,7 +15,7 @@
 -->
 <template>
 	<div class="my-work-groups">
-		<h2>{{ t('learniq', 'My work groups') }}</h2>
+		<CnPageHeader :title="t('learniq', 'My work groups')" />
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcEmptyContent
 			v-else-if="sets.length === 0"
@@ -95,6 +95,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -102,7 +103,7 @@ import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/
 export default {
 	name: 'MyWorkGroups',
 
-	components: { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard },
+	components: { CnPageHeader, NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard },
 
 	data() {
 		return {

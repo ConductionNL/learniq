@@ -26,7 +26,7 @@
 -->
 <template>
 	<div class="subject-choice-picker">
-		<h2>{{ t('learniq', 'Pick electives (vakkenpakket)') }}</h2>
+		<CnPageHeader :title="t('learniq', 'Pick electives (vakkenpakket)')" />
 
 		<NcLoadingIcon v-if="loading" :size="32" />
 
@@ -176,6 +176,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { getLanguage } from '@nextcloud/l10n'
@@ -193,6 +194,7 @@ export default {
 	name: 'SubjectChoicePicker',
 
 	components: {
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,

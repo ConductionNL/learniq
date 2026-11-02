@@ -9,7 +9,7 @@
 -->
 <template>
 	<div class="contact-hours">
-		<h2>{{ t('learniq', 'Contact hours') }}</h2>
+		<CnPageHeader :title="t('learniq', 'Contact hours')" />
 		<form class="contact-hours__filters" @submit.prevent="load">
 			<label>
 				{{ t('learniq', 'From') }}
@@ -149,6 +149,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
@@ -158,6 +159,7 @@ export default {
 	name: 'ContactHoursReport',
 
 	components: {
+		CnPageHeader,
 		NcButton,
 		NcNoteCard,
 	},

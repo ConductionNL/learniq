@@ -14,9 +14,7 @@
 	<div class="standby-planning">
 		<header class="standby-planning__header">
 			<div>
-				<h2 class="standby-planning__title">
-					{{ t('learniq', 'Standby hours') }}
-				</h2>
+				<CnPageHeader :title="t('learniq', 'Standby hours')" />
 				<p class="standby-planning__intro">
 					{{
 						t(
@@ -102,6 +100,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -113,6 +112,7 @@ export default {
 	name: 'StandbyPlanning',
 
 	components: {
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -271,10 +271,6 @@ export default {
 	flex-wrap: wrap;
 	justify-content: space-between;
 	gap: 12px;
-}
-
-.standby-planning__title {
-	margin: 0;
 }
 
 .standby-planning__intro {
