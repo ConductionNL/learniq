@@ -12,14 +12,14 @@
                         "selectedByLowGroup": 2
                     },
                     {
-                        "optionId": "B",
-                        "selectedByHighGroup": 1,
-                        "selectedByLowGroup": 1
+                        "optionId": "01",
+                        "selectedByHighGroup": 0,
+                        "selectedByLowGroup": 0
                     },
                     {
                         "optionId": "C",
                         "selectedByHighGroup": 0,
-                        "selectedByLowGroup": 2
+                        "selectedByLowGroup": 0
                     }
                 ],
                 "insufficientData": false,
@@ -153,14 +153,14 @@
                                 "selectedByLowGroup": 2
                             },
                             {
-                                "optionId": "B",
-                                "selectedByHighGroup": 1,
-                                "selectedByLowGroup": 1
+                                "optionId": "01",
+                                "selectedByHighGroup": 0,
+                                "selectedByLowGroup": 0
                             },
                             {
                                 "optionId": "C",
                                 "selectedByHighGroup": 0,
-                                "selectedByLowGroup": 2
+                                "selectedByLowGroup": 0
                             }
                         ],
                         "insufficientData": false,
@@ -1294,14 +1294,14 @@
                         "selectedByLowGroup": 2
                     },
                     {
-                        "optionId": "B",
+                        "optionId": "01",
                         "selectedByHighGroup": 0,
                         "selectedByLowGroup": 0
                     },
                     {
                         "optionId": "C",
-                        "selectedByHighGroup": 1,
-                        "selectedByLowGroup": 2
+                        "selectedByHighGroup": 0,
+                        "selectedByLowGroup": 0
                     }
                 ],
                 "insufficientData": false,
@@ -1443,14 +1443,14 @@
                                 "selectedByLowGroup": 2
                             },
                             {
-                                "optionId": "B",
+                                "optionId": "01",
                                 "selectedByHighGroup": 0,
                                 "selectedByLowGroup": 0
                             },
                             {
                                 "optionId": "C",
-                                "selectedByHighGroup": 1,
-                                "selectedByLowGroup": 2
+                                "selectedByHighGroup": 0,
+                                "selectedByLowGroup": 0
                             }
                         ],
                         "insufficientData": false,
@@ -1883,14 +1883,14 @@
                         "selectedByLowGroup": 1
                     },
                     {
-                        "optionId": "B",
+                        "optionId": "01",
                         "selectedByHighGroup": 0,
-                        "selectedByLowGroup": 2
+                        "selectedByLowGroup": 0
                     },
                     {
                         "optionId": "C",
-                        "selectedByHighGroup": 1,
-                        "selectedByLowGroup": 2
+                        "selectedByHighGroup": 0,
+                        "selectedByLowGroup": 0
                     }
                 ],
                 "insufficientData": false,
@@ -2024,14 +2024,14 @@
                                 "selectedByLowGroup": 1
                             },
                             {
-                                "optionId": "B",
+                                "optionId": "01",
                                 "selectedByHighGroup": 0,
-                                "selectedByLowGroup": 2
+                                "selectedByLowGroup": 0
                             },
                             {
                                 "optionId": "C",
-                                "selectedByHighGroup": 1,
-                                "selectedByLowGroup": 2
+                                "selectedByHighGroup": 0,
+                                "selectedByLowGroup": 0
                             }
                         ],
                         "insufficientData": false,
@@ -2276,14 +2276,14 @@
                         "selectedByLowGroup": 0
                     },
                     {
-                        "optionId": "B",
+                        "optionId": "01",
                         "selectedByHighGroup": 0,
                         "selectedByLowGroup": 0
                     },
                     {
                         "optionId": "C",
-                        "selectedByHighGroup": 1,
-                        "selectedByLowGroup": 1
+                        "selectedByHighGroup": 0,
+                        "selectedByLowGroup": 0
                     }
                 ],
                 "insufficientData": false,
@@ -2401,14 +2401,14 @@
                                 "selectedByLowGroup": 0
                             },
                             {
-                                "optionId": "B",
+                                "optionId": "01",
                                 "selectedByHighGroup": 0,
                                 "selectedByLowGroup": 0
                             },
                             {
                                 "optionId": "C",
-                                "selectedByHighGroup": 1,
-                                "selectedByLowGroup": 1
+                                "selectedByHighGroup": 0,
+                                "selectedByLowGroup": 0
                             }
                         ],
                         "insufficientData": false,
@@ -2523,14 +2523,14 @@
                         "selectedByLowGroup": 0
                     },
                     {
-                        "optionId": "B",
+                        "optionId": "01",
                         "selectedByHighGroup": 0,
                         "selectedByLowGroup": 0
                     },
                     {
                         "optionId": "C",
                         "selectedByHighGroup": 0,
-                        "selectedByLowGroup": 1
+                        "selectedByLowGroup": 0
                     }
                 ],
                 "insufficientData": false,
@@ -2705,14 +2705,14 @@
                                 "selectedByLowGroup": 0
                             },
                             {
-                                "optionId": "B",
+                                "optionId": "01",
                                 "selectedByHighGroup": 0,
                                 "selectedByLowGroup": 0
                             },
                             {
                                 "optionId": "C",
                                 "selectedByHighGroup": 0,
-                                "selectedByLowGroup": 1
+                                "selectedByLowGroup": 0
                             }
                         ],
                         "insufficientData": false,
@@ -3325,13 +3325,13 @@
                         "selectedByLowGroup": 0
                     },
                     {
-                        "optionId": "B",
-                        "selectedByHighGroup": 1,
-                        "selectedByLowGroup": 1
+                        "optionId": "01",
+                        "selectedByHighGroup": 0,
+                        "selectedByLowGroup": 0
                     },
                     {
                         "optionId": "C",
-                        "selectedByHighGroup": 1,
+                        "selectedByHighGroup": 0,
                         "selectedByLowGroup": 0
                     }
                 ],
@@ -3462,13 +3462,13 @@
                                 "selectedByLowGroup": 0
                             },
                             {
-                                "optionId": "B",
-                                "selectedByHighGroup": 1,
-                                "selectedByLowGroup": 1
+                                "optionId": "01",
+                                "selectedByHighGroup": 0,
+                                "selectedByLowGroup": 0
                             },
                             {
                                 "optionId": "C",
-                                "selectedByHighGroup": 1,
+                                "selectedByHighGroup": 0,
                                 "selectedByLowGroup": 0
                             }
                         ],
@@ -3832,14 +3832,14 @@
                         "selectedByLowGroup": 0
                     },
                     {
-                        "optionId": "B",
+                        "optionId": "01",
                         "selectedByHighGroup": 0,
                         "selectedByLowGroup": 0
                     },
                     {
                         "optionId": "C",
-                        "selectedByHighGroup": 1,
-                        "selectedByLowGroup": 1
+                        "selectedByHighGroup": 0,
+                        "selectedByLowGroup": 0
                     }
                 ],
                 "insufficientData": false,
@@ -3965,14 +3965,14 @@
                                 "selectedByLowGroup": 0
                             },
                             {
-                                "optionId": "B",
+                                "optionId": "01",
                                 "selectedByHighGroup": 0,
                                 "selectedByLowGroup": 0
                             },
                             {
                                 "optionId": "C",
-                                "selectedByHighGroup": 1,
-                                "selectedByLowGroup": 1
+                                "selectedByHighGroup": 0,
+                                "selectedByLowGroup": 0
                             }
                         ],
                         "insufficientData": false,
@@ -4275,14 +4275,14 @@
                         "selectedByLowGroup": 0
                     },
                     {
-                        "optionId": "B",
-                        "selectedByHighGroup": 1,
+                        "optionId": "01",
+                        "selectedByHighGroup": 0,
                         "selectedByLowGroup": 0
                     },
                     {
                         "optionId": "C",
                         "selectedByHighGroup": 0,
-                        "selectedByLowGroup": 1
+                        "selectedByLowGroup": 0
                     }
                 ],
                 "insufficientData": false,
@@ -4408,14 +4408,14 @@
                                 "selectedByLowGroup": 0
                             },
                             {
-                                "optionId": "B",
-                                "selectedByHighGroup": 1,
+                                "optionId": "01",
+                                "selectedByHighGroup": 0,
                                 "selectedByLowGroup": 0
                             },
                             {
                                 "optionId": "C",
                                 "selectedByHighGroup": 0,
-                                "selectedByLowGroup": 1
+                                "selectedByLowGroup": 0
                             }
                         ],
                         "insufficientData": false,

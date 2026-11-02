@@ -186,23 +186,15 @@ class ItemAnalysisGoldenTest extends TestCase {
 		}
 
 		$this->db['exam'] = [$assessment, ['id' => 'assessment-2', 'tenant_id' => $tenant]];
-		$bodies = [
-			'<assessmentItem><choiceInteraction><simpleChoice identifier="A"/><simpleChoice identifier="B"/><simpleChoice identifier="C"/><simpleChoice identifier=""/></choiceInteraction></assessmentItem>',
-			'<broken',
-			'   ',
-			'<assessmentItem><simpleChoice identifier="B"/><simpleChoice identifier="D"/></assessmentItem>',
+		$valid  = '<assessmentItem><choiceInteraction><simpleChoice identifier="A"/><simpleChoice identifier="01"/><simpleChoice identifier="C"/><simpleChoice identifier=""/></choiceInteraction></assessmentItem>';
+		$shapes = [
+			['interactionType' => 'choice', 'correctResponse' => 'A', 'qtiBody' => $valid],
+			['interactionType' => 'choice', 'correctResponse' => 'A', 'qtiBody' => '<broken'],
+			['interactionType' => 'choice', 'qtiBody' => $valid],
+			['interactionType' => 'text', 'correctResponse' => 'A', 'qtiBody' => $valid],
 		];
 		for ($i = 1; $i <= $items; $i++) {
-			$item = ['id' => 'item-' . $i, 'tenant_id' => $tenant, 'maxScore' => (1 + $this->next(3))];
-			if (($i % 4) !== 0) {
-				$item += ['interactionType' => 'choice', 'correctResponse' => 'A', 'qtiBody' => $bodies[($i - 1) % 4]];
-			}
-
-			if ($i === 3) {
-				unset($item['correctResponse']);
-			}
-
-			$this->db['item'][] = $item;
+			$this->db['item'][] = ['id' => 'item-' . $i, 'tenant_id' => $tenant, 'maxScore' => (1 + $this->next(3))] + $shapes[($i - 1) % 4];
 		}
 
 		for ($p = 0; $p < $people; $p++) {
@@ -241,7 +233,7 @@ class ItemAnalysisGoldenTest extends TestCase {
 				$score = 1.0;
 			}
 
-			$response = ['itemId' => 'item-' . $i, 'response' => ['value' => ['A', 'B', 'C', 'D', 7][$this->next(5)]], 'autoScore' => $score, 'manualScore' => null];
+			$response = ['itemId' => 'item-' . $i, 'response' => ['value' => ['A', 'B', '1', 'D', 7][$this->next(5)]], 'autoScore' => $score, 'manualScore' => null];
 			if ($roll === 1) {
 				$response['manualScore'] = 0.5;
 			}
