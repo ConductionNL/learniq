@@ -38,6 +38,9 @@ const views = {
 	BookConferenceSlotsView: 1,
 	AdmissionsReviewBoard: 1,
 	TimetableConflictQueue: 1,
+	LearniqAiProcessingDisclosure: 2,
+	AssessmentScoringView: 1,
+	ExportRequestView: 1,
 }
 
 /**
