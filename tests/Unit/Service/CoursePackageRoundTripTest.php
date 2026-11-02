@@ -35,6 +35,8 @@ use OCA\Learniq\Service\CoursePackage\CommonCartridgeResourceRouter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
+use OCA\Learniq\Service\CoursePackage\CoursePackageImporters;
+use OCA\Learniq\Service\CoursePackage\CoursePackageOutput;
 use OCA\Learniq\Service\CoursePackage\MoodleActivityRouter;
 use OCA\Learniq\Service\CoursePackage\MoodleCourseImporter;
 use OCA\Learniq\Service\CoursePackage\PackageXmlValueReader;
@@ -154,30 +156,22 @@ class CoursePackageRoundTripTest extends TestCase {
 		$xmlReader = new PackageXmlValueReader();
 
 		$importService = new CoursePackageImportService(
-			new CommonCartridgeCourseImporter(
-				new QtiImportService($importObjectService, $importLogger),
-				new CommonCartridgeParser(),
-				new CommonCartridgeResourceRouter($objectWriter, $fileWriter, $reporter, $xmlReader, $importLogger),
-				$objectWriter,
-				$reporter,
+			new CoursePackageImporters(new CommonCartridgeCourseImporter(
+				new QtiImportService($importObjectService, $importLogger), new CommonCartridgeParser(),
+				new CommonCartridgeResourceRouter(new CoursePackageOutput($objectWriter, $fileWriter, $reporter), $xmlReader, $importLogger),
+				new CoursePackageOutput($objectWriter, $fileWriter, $reporter),
 			),
 			new MoodleCourseImporter(
 				new MbzExtractor(),
 				new MoodleBackupParser(),
 				new MoodleActivityRouter(
-					new MoodleQuizQuestionMapper(),
-					$objectWriter,
-					$fileWriter,
-					$reporter,
+					new MoodleQuizQuestionMapper(), new CoursePackageOutput($objectWriter, $fileWriter, $reporter),
 					$xmlReader,
 					$importLogger
 				),
-				$objectWriter,
-				$reporter,
-			),
-			new LearniqJsonCourseImporter($objectWriter, $fileWriter, $reporter),
-			$fileWriter,
-			$reporter,
+				new CoursePackageOutput($objectWriter, $fileWriter, $reporter),
+			), new LearniqJsonCourseImporter($objectWriter, $fileWriter, $reporter)),
+			new CoursePackageOutput($objectWriter, $fileWriter, $reporter),
 			$importLogger,
 		);
 

@@ -39,13 +39,26 @@ use OCA\Learniq\Service\QtiImportService;
  */
 class CommonCartridgeCourseImporter {
 	/**
+	 * Creates the Learniq objects the package materialises.
+	 *
+	 * @var CoursePackageObjectWriter
+	 */
+	private readonly CoursePackageObjectWriter $objectWriter;
+
+	/**
+	 * Builds the report entry rows.
+	 *
+	 * @var CoursePackageImportReporter
+	 */
+	private readonly CoursePackageImportReporter $reporter;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param QtiImportService $qtiImportService QTI/CC assessment-item import (shared extraction + item parsing).
 	 * @param CommonCartridgeParser $ccParser Common Cartridge manifest parser.
 	 * @param CommonCartridgeResourceRouter $resourceRouter Per-resource routing to learniq targets.
-	 * @param CoursePackageObjectWriter $objectWriter Creates the learniq objects the package materialises.
-	 * @param CoursePackageImportReporter $reporter Builds the report entry rows.
+	 * @param CoursePackageOutput $output The object writer, file writer and report entry builder.
 	 *
 	 * @return void
 	 */
@@ -53,9 +66,10 @@ class CommonCartridgeCourseImporter {
 		private readonly QtiImportService $qtiImportService,
 		private readonly CommonCartridgeParser $ccParser,
 		private readonly CommonCartridgeResourceRouter $resourceRouter,
-		private readonly CoursePackageObjectWriter $objectWriter,
-		private readonly CoursePackageImportReporter $reporter,
+		CoursePackageOutput $output,
 	) {
+		$this->objectWriter = $output->objectWriter;
+		$this->reporter = $output->reporter;
 	}//end __construct()
 
 	/**
