@@ -1,0 +1,373 @@
+{
+    "feature read fails, policy read fails": {
+        "status": 200,
+        "data": {
+            "sovereigntyPolicy": {
+                "id": null,
+                "policy": "default-policy",
+                "rationale": null,
+                "setBy": null,
+                "setAt": null
+            },
+            "hermiqInstalled": true,
+            "features": []
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "hermiq",
+                    "schema": "agentaifeature"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "sovereignty-policy"
+                },
+                "limit": 1
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[AiProcessingDisclosureController] Hermiq agentaifeature read failed ({message}); returning an empty feature list rather than erroring.",
+                "context": {
+                    "message": "register down"
+                }
+            },
+            {
+                "level": "info",
+                "message": "[AiProcessingDisclosureController] SovereigntyPolicy read failed ({message}); returning the schema default.",
+                "context": {
+                    "message": "register down"
+                }
+            }
+        ]
+    },
+    "full disclosure": {
+        "status": 200,
+        "data": {
+            "sovereigntyPolicy": {
+                "id": "p-1",
+                "policy": "eu-only",
+                "rationale": "AVG",
+                "setBy": "admin",
+                "setAt": "2026-01-01"
+            },
+            "hermiqInstalled": true,
+            "features": [
+                {
+                    "slug": "proctor",
+                    "name": "AI proctoring",
+                    "riskCategory": "high",
+                    "lifecycle": "enabled",
+                    "aiProcessingActivity": {
+                        "code": "scholiq-ai-features",
+                        "doelbinding": "Operate adaptive learning paths and AI-assisted item generation for learners and record decision traces for transparency and accountability. EU AI Act high-risk classification, DPO acknowledgement, and enablement of these features are governed centrally in the Hermiq app (ADR-005).",
+                        "rechtsgrond": "consent",
+                        "dataCategories": [
+                            "learnerId",
+                            "decisionTrace"
+                        ]
+                    },
+                    "locality": "eu",
+                    "verified": true,
+                    "evidence": "because",
+                    "policyCompliant": true
+                },
+                {
+                    "slug": "summary",
+                    "name": "Summaries",
+                    "riskCategory": null,
+                    "lifecycle": "disabled",
+                    "aiProcessingActivity": {
+                        "code": "scholiq-ai-features",
+                        "doelbinding": "Operate adaptive learning paths and AI-assisted item generation for learners and record decision traces for transparency and accountability. EU AI Act high-risk classification, DPO acknowledgement, and enablement of these features are governed centrally in the Hermiq app (ADR-005).",
+                        "rechtsgrond": "consent",
+                        "dataCategories": [
+                            "learnerId",
+                            "decisionTrace"
+                        ]
+                    },
+                    "locality": "eu",
+                    "verified": true,
+                    "evidence": "because",
+                    "policyCompliant": true
+                },
+                {
+                    "slug": "",
+                    "name": "",
+                    "riskCategory": null,
+                    "lifecycle": "disabled",
+                    "aiProcessingActivity": {
+                        "code": "scholiq-ai-features",
+                        "doelbinding": "Operate adaptive learning paths and AI-assisted item generation for learners and record decision traces for transparency and accountability. EU AI Act high-risk classification, DPO acknowledgement, and enablement of these features are governed centrally in the Hermiq app (ADR-005).",
+                        "rechtsgrond": "consent",
+                        "dataCategories": [
+                            "learnerId",
+                            "decisionTrace"
+                        ]
+                    },
+                    "locality": "eu",
+                    "verified": true,
+                    "evidence": "because",
+                    "policyCompliant": true
+                }
+            ]
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "hermiq",
+                    "schema": "agentaifeature"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "sovereignty-policy"
+                },
+                "limit": 1
+            }
+        ],
+        "log": []
+    },
+    "hermiq not installed": {
+        "status": 200,
+        "data": {
+            "sovereigntyPolicy": {
+                "id": "p-1",
+                "policy": "eu-only",
+                "rationale": "AVG",
+                "setBy": "admin",
+                "setAt": "2026-01-01"
+            },
+            "hermiqInstalled": false,
+            "features": []
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "sovereignty-policy"
+                },
+                "limit": 1
+            }
+        ],
+        "log": []
+    },
+    "no policy row": {
+        "status": 200,
+        "data": {
+            "sovereigntyPolicy": {
+                "id": null,
+                "policy": "default-policy",
+                "rationale": null,
+                "setBy": null,
+                "setAt": null
+            },
+            "hermiqInstalled": true,
+            "features": [
+                {
+                    "slug": "proctor",
+                    "name": "AI proctoring",
+                    "riskCategory": "high",
+                    "lifecycle": "enabled",
+                    "aiProcessingActivity": {
+                        "code": "scholiq-ai-features",
+                        "doelbinding": "Operate adaptive learning paths and AI-assisted item generation for learners and record decision traces for transparency and accountability. EU AI Act high-risk classification, DPO acknowledgement, and enablement of these features are governed centrally in the Hermiq app (ADR-005).",
+                        "rechtsgrond": "consent",
+                        "dataCategories": [
+                            "learnerId",
+                            "decisionTrace"
+                        ]
+                    },
+                    "locality": "eu",
+                    "verified": true,
+                    "evidence": "because",
+                    "policyCompliant": true
+                },
+                {
+                    "slug": "summary",
+                    "name": "Summaries",
+                    "riskCategory": null,
+                    "lifecycle": "disabled",
+                    "aiProcessingActivity": {
+                        "code": "scholiq-ai-features",
+                        "doelbinding": "Operate adaptive learning paths and AI-assisted item generation for learners and record decision traces for transparency and accountability. EU AI Act high-risk classification, DPO acknowledgement, and enablement of these features are governed centrally in the Hermiq app (ADR-005).",
+                        "rechtsgrond": "consent",
+                        "dataCategories": [
+                            "learnerId",
+                            "decisionTrace"
+                        ]
+                    },
+                    "locality": "eu",
+                    "verified": true,
+                    "evidence": "because",
+                    "policyCompliant": true
+                },
+                {
+                    "slug": "",
+                    "name": "",
+                    "riskCategory": null,
+                    "lifecycle": "disabled",
+                    "aiProcessingActivity": {
+                        "code": "scholiq-ai-features",
+                        "doelbinding": "Operate adaptive learning paths and AI-assisted item generation for learners and record decision traces for transparency and accountability. EU AI Act high-risk classification, DPO acknowledgement, and enablement of these features are governed centrally in the Hermiq app (ADR-005).",
+                        "rechtsgrond": "consent",
+                        "dataCategories": [
+                            "learnerId",
+                            "decisionTrace"
+                        ]
+                    },
+                    "locality": "eu",
+                    "verified": true,
+                    "evidence": "because",
+                    "policyCompliant": true
+                }
+            ]
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "hermiq",
+                    "schema": "agentaifeature"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "sovereignty-policy"
+                },
+                "limit": 1
+            }
+        ],
+        "log": []
+    },
+    "policy as an entity, not compliant": {
+        "status": 200,
+        "data": {
+            "sovereigntyPolicy": {
+                "id": "p-2",
+                "policy": "default-policy",
+                "rationale": null,
+                "setBy": "dpo",
+                "setAt": null
+            },
+            "hermiqInstalled": true,
+            "features": [
+                {
+                    "slug": "proctor",
+                    "name": "AI proctoring",
+                    "riskCategory": "high",
+                    "lifecycle": "enabled",
+                    "aiProcessingActivity": {
+                        "code": "scholiq-ai-features",
+                        "doelbinding": "Operate adaptive learning paths and AI-assisted item generation for learners and record decision traces for transparency and accountability. EU AI Act high-risk classification, DPO acknowledgement, and enablement of these features are governed centrally in the Hermiq app (ADR-005).",
+                        "rechtsgrond": "consent",
+                        "dataCategories": [
+                            "learnerId",
+                            "decisionTrace"
+                        ]
+                    },
+                    "locality": "eu",
+                    "verified": true,
+                    "evidence": "because",
+                    "policyCompliant": false
+                },
+                {
+                    "slug": "summary",
+                    "name": "Summaries",
+                    "riskCategory": null,
+                    "lifecycle": "disabled",
+                    "aiProcessingActivity": {
+                        "code": "scholiq-ai-features",
+                        "doelbinding": "Operate adaptive learning paths and AI-assisted item generation for learners and record decision traces for transparency and accountability. EU AI Act high-risk classification, DPO acknowledgement, and enablement of these features are governed centrally in the Hermiq app (ADR-005).",
+                        "rechtsgrond": "consent",
+                        "dataCategories": [
+                            "learnerId",
+                            "decisionTrace"
+                        ]
+                    },
+                    "locality": "eu",
+                    "verified": true,
+                    "evidence": "because",
+                    "policyCompliant": false
+                },
+                {
+                    "slug": "",
+                    "name": "",
+                    "riskCategory": null,
+                    "lifecycle": "disabled",
+                    "aiProcessingActivity": {
+                        "code": "scholiq-ai-features",
+                        "doelbinding": "Operate adaptive learning paths and AI-assisted item generation for learners and record decision traces for transparency and accountability. EU AI Act high-risk classification, DPO acknowledgement, and enablement of these features are governed centrally in the Hermiq app (ADR-005).",
+                        "rechtsgrond": "consent",
+                        "dataCategories": [
+                            "learnerId",
+                            "decisionTrace"
+                        ]
+                    },
+                    "locality": "eu",
+                    "verified": true,
+                    "evidence": "because",
+                    "policyCompliant": false
+                }
+            ]
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "hermiq",
+                    "schema": "agentaifeature"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "sovereignty-policy"
+                },
+                "limit": 1
+            }
+        ],
+        "log": []
+    },
+    "policy row not an object": {
+        "status": 200,
+        "data": {
+            "sovereigntyPolicy": {
+                "id": null,
+                "policy": "default-policy",
+                "rationale": null,
+                "setBy": null,
+                "setAt": null
+            },
+            "hermiqInstalled": true,
+            "features": []
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "hermiq",
+                    "schema": "agentaifeature"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "sovereignty-policy"
+                },
+                "limit": 1
+            }
+        ],
+        "log": []
+    },
+    "signed out": {
+        "status": 401,
+        "data": {
+            "error": "Not authenticated"
+        },
+        "reads": [],
+        "log": []
+    }
+}

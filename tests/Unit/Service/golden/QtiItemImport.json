@@ -1,0 +1,160 @@
+{
+    "uuids": [
+        "item-1",
+        "item-2",
+        "item-3",
+        "item-4",
+        "item-5",
+        "item-6",
+        "item-7"
+    ],
+    "saved": [
+        [
+            "learniq",
+            "item",
+            {
+                "itemBankId": "bank-1",
+                "title": "Hoofdstad",
+                "interactionType": "choice",
+                "qtiBody": "<?xml version=\"1.0\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqtiasi_v3p0\" title=\"Hoofdstad\"><responseDeclaration identifier=\"RESPONSE\"><correctResponse><value> B </value></correctResponse></responseDeclaration><outcomeDeclaration identifier=\"SCORE\"><defaultValue><value>2.5</value></defaultValue></outcomeDeclaration><itemBody><choiceInteraction><simpleChoice identifier=\"A\">x</simpleChoice><simpleChoice identifier=\"B\">y</simpleChoice></choiceInteraction></itemBody></assessmentItem>\n",
+                "correctResponse": "B",
+                "maxScore": 2.5,
+                "subjectTags": [],
+                "difficulty": null,
+                "lifecycle": "draft",
+                "tenant_id": "tenant-1"
+            }
+        ],
+        [
+            "learniq",
+            "item",
+            {
+                "itemBankId": "bank-1",
+                "title": "b-choice-multi",
+                "interactionType": "choice",
+                "qtiBody": "<?xml version=\"1.0\"?>\n<assessmentItem><responseDeclaration><correctResponse><value>A</value><value>C</value></correctResponse></responseDeclaration><outcomeDeclaration identifier=\"MAXSCORE\"><defaultValue><value>x</value></defaultValue></outcomeDeclaration><outcomeDeclaration identifier=\"SCORE\"><defaultValue><value>4</value></defaultValue></outcomeDeclaration><itemBody><choiceInteraction/></itemBody></assessmentItem>\n",
+                "correctResponse": [
+                    "A",
+                    "C"
+                ],
+                "maxScore": 4.0,
+                "subjectTags": [],
+                "difficulty": null,
+                "lifecycle": "draft",
+                "tenant_id": "tenant-1"
+            }
+        ],
+        [
+            "learniq",
+            "item",
+            {
+                "itemBankId": "bank-1",
+                "title": "c-choice-no-key",
+                "interactionType": "choice",
+                "qtiBody": "<?xml version=\"1.0\"?>\n<assessmentItem title=\"\"><outcomeDeclaration identifier=\"OTHER\"><defaultValue><value>9</value></defaultValue></outcomeDeclaration><choiceInteraction/></assessmentItem>\n",
+                "correctResponse": null,
+                "maxScore": 1.0,
+                "subjectTags": [],
+                "difficulty": null,
+                "lifecycle": "draft",
+                "tenant_id": "tenant-1"
+            }
+        ],
+        [
+            "learniq",
+            "item",
+            {
+                "itemBankId": "bank-1",
+                "title": "Essay",
+                "interactionType": "extendedText",
+                "qtiBody": "<?xml version=\"1.0\"?>\n<assessmentItem title=\"Essay\"><outcomeDeclaration identifier=\"MAXSCORE\"><defaultValue><value>10</value></defaultValue></outcomeDeclaration><extendedTextInteraction/></assessmentItem>\n",
+                "correctResponse": null,
+                "maxScore": 10.0,
+                "subjectTags": [],
+                "difficulty": null,
+                "lifecycle": "draft",
+                "tenant_id": "tenant-1"
+            }
+        ],
+        [
+            "learniq",
+            "item",
+            {
+                "itemBankId": "bank-1",
+                "title": "e-essay-default",
+                "interactionType": "extendedText",
+                "qtiBody": "<?xml version=\"1.0\"?>\n<assessmentItem><itemBody><p>Schrijf</p></itemBody></assessmentItem>\n",
+                "correctResponse": null,
+                "maxScore": 1.0,
+                "subjectTags": [],
+                "difficulty": null,
+                "lifecycle": "draft",
+                "tenant_id": "tenant-1"
+            }
+        ],
+        [
+            "learniq",
+            "item",
+            {
+                "itemBankId": "bank-1",
+                "title": "Invul",
+                "interactionType": "textEntry",
+                "qtiBody": "<?xml version=\"1.0\"?>\n<assessmentItem title=\"Invul\"><outcomeDeclaration identifier=\"SCORE\"><defaultValue><value>3</value></defaultValue></outcomeDeclaration><textEntryInteraction/></assessmentItem>\n",
+                "correctResponse": null,
+                "maxScore": 1.0,
+                "subjectTags": [],
+                "difficulty": null,
+                "lifecycle": "draft",
+                "tenant_id": "tenant-1"
+            }
+        ],
+        [
+            "learniq",
+            "item",
+            {
+                "itemBankId": "bank-1",
+                "title": "g-match",
+                "interactionType": "order",
+                "qtiBody": "<?xml version=\"1.0\"?>\n<assessmentItem><matchInteraction/><orderInteraction/></assessmentItem>\n",
+                "correctResponse": null,
+                "maxScore": 1.0,
+                "subjectTags": [],
+                "difficulty": null,
+                "lifecycle": "draft",
+                "tenant_id": "tenant-1"
+            }
+        ],
+        [
+            "learniq",
+            "item",
+            {
+                "itemBankId": "bank-1",
+                "title": "nouuid",
+                "interactionType": "hotspot",
+                "qtiBody": "<?xml version=\"1.0\"?>\n<assessmentItem title=\"nouuid\"><hotspotInteraction/></assessmentItem>\n",
+                "correctResponse": null,
+                "maxScore": 1.0,
+                "subjectTags": [],
+                "difficulty": null,
+                "lifecycle": "draft",
+                "tenant_id": "tenant-1"
+            }
+        ]
+    ],
+    "log": [
+        {
+            "level": "warning",
+            "message": "[QtiImportService] Failed to parse XML: {path}",
+            "context": {
+                "path": "<dir>/items/h-broken.xml"
+            }
+        },
+        {
+            "level": "warning",
+            "message": "[QtiImportService] No assessmentItem in: {path}",
+            "context": {
+                "path": "<dir>/items/i-no-root.xml"
+            }
+        }
+    ]
+}
