@@ -141,37 +141,45 @@ class AiProcessingDisclosureController extends Controller {
 		}
 
 		$verdict = $this->localityClassifier->classifyActiveProvider();
-		$policyCompliant = $this->policyService->isCompliant(locality: $verdict['locality'], verified: $verdict['verified']);
-
-		$aiProcessingActivity = $this->loadAiProcessingActivity();
+		$verdict['policyCompliant'] = $this->policyService->isCompliant(locality: $verdict['locality'], verified: $verdict['verified']);
+		$verdict['aiProcessingActivity'] = $this->loadAiProcessingActivity();
 		$hermiqInstalled = $this->appManager->isInstalled(self::HERMIQ_APP_ID);
 
 		$features = [];
 		if ($hermiqInstalled === true) {
-			foreach ($this->fetchHermiqFeatures() as $feature) {
-				$features[] = [
-					'slug' => $feature['slug'] ?? '',
-					'name' => $feature['name'] ?? '',
-					'riskCategory' => $feature['riskCategory'] ?? null,
-					'lifecycle' => $feature['lifecycle'] ?? 'disabled',
-					'aiProcessingActivity' => $aiProcessingActivity,
-					'locality' => $verdict['locality'],
-					'verified' => $verdict['verified'],
-					'evidence' => $verdict['evidence'],
-					'policyCompliant' => $policyCompliant,
-				];
-			}
+			$features = array_map(
+				static fn (array $feature): array => self::disclosedFeature(feature: $feature, verdict: $verdict),
+				$this->fetchHermiqFeatures()
+			);
 		}
 
 		return new JSONResponse(
-			data: [
-				'sovereigntyPolicy' => $this->loadSovereigntyPolicy(),
-				'hermiqInstalled' => $hermiqInstalled,
-				'features' => $features,
-			]
+			data: ['sovereigntyPolicy' => $this->loadSovereigntyPolicy(), 'hermiqInstalled' => $hermiqInstalled, 'features' => $features]
 		);
-
 	}//end index()
+
+	/**
+	 * One AI feature as disclosed: its identity and lifecycle, plus the
+	 * processing activity and the locality verdict every feature shares.
+	 *
+	 * @param array<string,mixed> $feature The Hermiq agentaifeature row.
+	 * @param array<string,mixed> $verdict The locality verdict, policy compliance and processing activity.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function disclosedFeature(array $feature, array $verdict): array {
+		return [
+			'slug' => $feature['slug'] ?? '',
+			'name' => $feature['name'] ?? '',
+			'riskCategory' => $feature['riskCategory'] ?? null,
+			'lifecycle' => $feature['lifecycle'] ?? 'disabled',
+			'aiProcessingActivity' => $verdict['aiProcessingActivity'],
+			'locality' => $verdict['locality'],
+			'verified' => $verdict['verified'],
+			'evidence' => $verdict['evidence'],
+			'policyCompliant' => $verdict['policyCompliant'],
+		];
+	}//end disclosedFeature()
 
 	/**
 	 * Cross-app read of Hermiq's `agentaifeature` register. Never throws —
@@ -181,36 +189,17 @@ class AiProcessingDisclosureController extends Controller {
 	 * @return array<int,array<string,mixed>>
 	 */
 	private function fetchHermiqFeatures(): array {
-		try {
-			$features = $this->objectService->findAll(
-				[
-					'filters' => [
-						'register' => self::HERMIQ_REGISTER,
-						'schema' => self::HERMIQ_AI_FEATURE_SCHEMA,
-					],
-				]
-			);
-		} catch (Throwable $e) {
-			$this->logger->info(
-				'[AiProcessingDisclosureController] Hermiq agentaifeature read failed ({message}); '
-				. 'returning an empty feature list rather than erroring.',
-				['message' => $e->getMessage()]
-			);
-			return [];
-		}
+		$features = $this->readRows(
+			config: ['filters' => ['register' => self::HERMIQ_REGISTER, 'schema' => self::HERMIQ_AI_FEATURE_SCHEMA]],
+			failure: '[AiProcessingDisclosureController] Hermiq agentaifeature read failed ({message}); '
+			. 'returning an empty feature list rather than erroring.'
+		);
 
 		$normalised = [];
 		foreach ($features as $feature) {
-			if (is_array($feature) === true) {
-				$normalised[] = $feature;
-				continue;
-			}
-
-			if (is_object($feature) === true && method_exists($feature, 'jsonSerialize') === true) {
-				$serialized = $feature->jsonSerialize();
-				if (is_array($serialized) === true) {
-					$normalised[] = $serialized;
-				}
+			$row = self::asArray(row: $feature);
+			if ($row !== null) {
+				$normalised[] = $row;
 			}
 		}
 
@@ -225,43 +214,15 @@ class AiProcessingDisclosureController extends Controller {
 	 * @return array<string,mixed> `{id, policy, rationale, setBy, setAt}`.
 	 */
 	private function loadSovereigntyPolicy(): array {
-		try {
-			$existing = $this->objectService->findAll(
-				[
-					'filters' => [
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::SOVEREIGNTY_POLICY_SCHEMA,
-					],
-					'limit' => 1,
-				]
-			);
-		} catch (Throwable $e) {
-			$this->logger->info(
-				'[AiProcessingDisclosureController] SovereigntyPolicy read failed ({message}); '
-				. 'returning the schema default.',
-				['message' => $e->getMessage()]
-			);
-			$existing = [];
-		}
+		$existing = $this->readRows(
+			config: ['filters' => ['register' => self::LEARNIQ_REGISTER, 'schema' => self::SOVEREIGNTY_POLICY_SCHEMA], 'limit' => 1],
+			failure: '[AiProcessingDisclosureController] SovereigntyPolicy read failed ({message}); '
+			. 'returning the schema default.'
+		);
 
-		if (empty($existing) === true) {
-			return [
-				'id' => null,
-				'policy' => $this->policyService->currentPolicy(),
-				'rationale' => null,
-				'setBy' => null,
-				'setAt' => null,
-			];
-		}
-
-		$row = $existing[0];
-		if (is_array($row) === false) {
-			$serialised = [];
-			if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-				$serialised = $row->jsonSerialize();
-			}
-
-			$row = $serialised;
+		$row = [];
+		if (empty($existing) === false) {
+			$row = self::asArray(row: $existing[0]) ?? [];
 		}
 
 		return [
@@ -271,8 +232,46 @@ class AiProcessingDisclosureController extends Controller {
 			'setBy' => $row['setBy'] ?? null,
 			'setAt' => $row['setAt'] ?? null,
 		];
-
 	}//end loadSovereigntyPolicy()
+
+	/**
+	 * The rows a findAll returns, or none (logged) when the read fails.
+	 *
+	 * @param array<string,mixed> $config  The findAll config.
+	 * @param string              $failure The log message for a failed read, with a {message} placeholder.
+	 *
+	 * @return array<int|string,mixed>
+	 */
+	private function readRows(array $config, string $failure): array {
+		try {
+			return $this->objectService->findAll($config);
+		} catch (Throwable $e) {
+			$this->logger->info($failure, ['message' => $e->getMessage()]);
+			return [];
+		}
+	}//end readRows()
+
+	/**
+	 * A row as an array: an array as it is, an object through jsonSerialize(), anything else null.
+	 *
+	 * @param mixed $row The row.
+	 *
+	 * @return array<string,mixed>|null
+	 */
+	private static function asArray(mixed $row): ?array {
+		if (is_array($row) === true) {
+			return $row;
+		}
+
+		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
+			$serialized = $row->jsonSerialize();
+			if (is_array($serialized) === true) {
+				return $serialized;
+			}
+		}
+
+		return null;
+	}//end asArray()
 
 	/**
 	 * Read the `scholiq-ai-features` AVG Art. 30 catalogue annotation

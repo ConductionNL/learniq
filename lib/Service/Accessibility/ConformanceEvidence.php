@@ -194,58 +194,121 @@ class ConformanceEvidence {
 	 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-evidence-on-request
 	 */
 	public function build(array $statement, array $records, array $limitations): array {
-		$byCriterion = $this->latestByCriterion(records: $records);
-
-		$limitationsById = [];
-		foreach ($limitations as $limitation) {
-			$limitationsById[self::idOf(row: $limitation)] = $limitation;
-		}
-
-		$summary = array_fill_keys(self::RESULTS, 0);
+		$evidence = ['byCriterion' => $this->latestByCriterion(records: $records), 'limitations' => self::byId(rows: $limitations)];
 		$rows = [];
 		foreach ($this->catalogue->all() as $criterion) {
-			$record = $byCriterion[$criterion['criterion']] ?? [];
-			$result = 'not-tested';
-			if (in_array($record['result'] ?? null, self::RESULTS, true) === true) {
-				$result = $record['result'];
-			}
-
-			$summary[$result]++;
-
-			$limitation = $limitationsById[(string)($record['limitationId'] ?? '')] ?? null;
-			$limitationId = null;
-			$limitationText = null;
-			if ($limitation !== null) {
-				$limitationId = self::idOf(row: $limitation);
-				$limitationText = self::text(value: $limitation['description'] ?? null);
-			}
-
-			$rows[] = [
-				'criterion' => $criterion['criterion'],
-				'level' => $criterion['level'],
-				'title' => $criterion['title'],
-				'result' => $result,
-				'method' => self::text(value: $record['method'] ?? null),
-				'evidenceReference' => self::text(value: $record['evidenceReference'] ?? null),
-				'testedOn' => self::text(value: $record['testedOn'] ?? null),
-				'limitationId' => $limitationId,
-				'limitation' => $limitationText,
-			];
+			$rows[] = self::criterionRow(criterion: $criterion, evidence: $evidence);
 		}
 
+		return [
+			'statement' => self::publicStatement(statement: $statement),
+			'summary' => self::summaryOf(rows: $rows),
+			'criteria' => $rows,
+		];
+	}//end build()
+
+	/**
+	 * The rows keyed by their id.
+	 *
+	 * @param array<int,array<string,mixed>> $rows The rows.
+	 *
+	 * @return array<string,array<string,mixed>>
+	 */
+	private static function byId(array $rows): array {
+		$byId = [];
+		foreach ($rows as $row) {
+			$byId[self::idOf(row: $row)] = $row;
+		}
+
+		return $byId;
+	}//end byId()
+
+	/**
+	 * One criterion's conformance row: its latest result and the limitation that result links to.
+	 *
+	 * @param array<string,mixed> $criterion The catalogue criterion.
+	 * @param array<string,mixed> $evidence  The latest result per criterion and the limitations by id.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function criterionRow(array $criterion, array $evidence): array {
+		$record = $evidence['byCriterion'][$criterion['criterion']] ?? [];
+		$limitation = $evidence['limitations'][(string)($record['limitationId'] ?? '')] ?? null;
+
+		return [
+			'criterion' => $criterion['criterion'],
+			'level' => $criterion['level'],
+			'title' => $criterion['title'],
+			'result' => self::resultOf(record: $record),
+			'method' => self::text(value: $record['method'] ?? null),
+			'evidenceReference' => self::text(value: $record['evidenceReference'] ?? null),
+			'testedOn' => self::text(value: $record['testedOn'] ?? null),
+		] + self::limitationFields(limitation: $limitation);
+	}//end criterionRow()
+
+	/**
+	 * The record's result when it is a known one, else not-tested.
+	 *
+	 * @param array<string,mixed> $record The criterion result.
+	 *
+	 * @return string
+	 */
+	private static function resultOf(array $record): string {
+		if (in_array($record['result'] ?? null, self::RESULTS, true) === true) {
+			return $record['result'];
+		}
+
+		return 'not-tested';
+	}//end resultOf()
+
+	/**
+	 * The linked limitation's id and text, or nulls when the result links to none.
+	 *
+	 * @param array<string,mixed>|null $limitation The limitation.
+	 *
+	 * @return array{limitationId: string|null, limitation: string|null}
+	 */
+	private static function limitationFields(?array $limitation): array {
+		if ($limitation === null) {
+			return ['limitationId' => null, 'limitation' => null];
+		}
+
+		return ['limitationId' => self::idOf(row: $limitation), 'limitation' => self::text(value: $limitation['description'] ?? null)];
+	}//end limitationFields()
+
+	/**
+	 * The statement's public fields.
+	 *
+	 * @param array<string,mixed> $statement The statement.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function publicStatement(array $statement): array {
 		$publicStatement = ['id' => self::idOf(row: $statement)];
 		foreach (self::PUBLIC_STATEMENT_FIELDS as $field) {
 			$publicStatement[$field] = $statement[$field] ?? null;
 		}
 
+		return $publicStatement;
+	}//end publicStatement()
+
+	/**
+	 * The number of criteria per result, plus the total.
+	 *
+	 * @param list<array<string,mixed>> $rows The conformance rows.
+	 *
+	 * @return array<string,int>
+	 */
+	private static function summaryOf(array $rows): array {
+		$summary = array_fill_keys(self::RESULTS, 0);
+		foreach ($rows as $row) {
+			$summary[$row['result']]++;
+		}
+
 		$summary['total'] = count($rows);
 
-		return [
-			'statement' => $publicStatement,
-			'summary' => $summary,
-			'criteria' => $rows,
-		];
-	}//end build()
+		return $summary;
+	}//end summaryOf()
 
 	/**
 	 * The table as CSV: one row per criterion.
