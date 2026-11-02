@@ -154,33 +154,22 @@ class BootListenerRegistrar {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
 	 */
 	public function register(IEventDispatcher $dispatcher, string $appId): void {
-		$this->registerRows(dispatcher: $dispatcher, appId: $appId, rows: self::BOOT_LISTENERS);
+		// The boot listeners first, then the learning-analytics bridges, in table order.
+		foreach ([...self::BOOT_LISTENERS, ...self::ANALYTICS_LISTENERS] as [$event, $listener, $registers, $schemas]) {
+			$this->registerFilteredObjectListener(
+				dispatcher: $dispatcher,
+				appId: $appId,
+				event: $event,
+				listener: $listener,
+				registers: $registers,
+				schemas: $schemas
+			);
+		}
 
-		$this->registerAnalyticsListeners(dispatcher: $dispatcher, appId: $appId);
 		$this->registerPaymentListeners(dispatcher: $dispatcher, appId: $appId);
 		$this->registerAttendanceListeners(dispatcher: $dispatcher, appId: $appId);
 
 	}//end register()
-
-	/**
-	 * Wire the engagement, item-pool and timetabling listeners that declare the
-	 * register/schema pair they react to up front.
-	 *
-	 * Split out of register() only to keep each registration block readable; the
-	 * ordering between the two halves carries no meaning, because every
-	 * listener is filtered by its own declared register/schema pair.
-	 *
-	 * @param IEventDispatcher $dispatcher The event dispatcher resolved by boot().
-	 * @param string $appId The Learniq app id (log context only).
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
-	 */
-	private function registerAnalyticsListeners(IEventDispatcher $dispatcher, string $appId): void {
-		$this->registerRows(dispatcher: $dispatcher, appId: $appId, rows: self::ANALYTICS_LISTENERS);
-
-	}//end registerAnalyticsListeners()
 
 	/**
 	 * Subscribe the listener that turns shillinq's settled contributions into Entitlement grants.
@@ -237,28 +226,6 @@ class BootListenerRegistrar {
 			);
 		}
 	}//end registerAttendanceListeners()
-
-	/**
-	 * Register each row as a filtered object listener, in order.
-	 *
-	 * @param IEventDispatcher                                                         $dispatcher The dispatcher.
-	 * @param string                                                                   $appId      The app id.
-	 * @param array<int,array{0:string,1:string,2:array<int,string>,3:array<int,string>}> $rows       Event, listener, registers, schemas.
-	 *
-	 * @return void
-	 */
-	private function registerRows(IEventDispatcher $dispatcher, string $appId, array $rows): void {
-		foreach ($rows as [$event, $listener, $registers, $schemas]) {
-			$this->registerFilteredObjectListener(
-				dispatcher: $dispatcher,
-				appId: $appId,
-				event: $event,
-				listener: $listener,
-				registers: $registers,
-				schemas: $schemas
-			);
-		}
-	}//end registerRows()
 
 	/**
 	 * Register an object-lifecycle listener that declares its interest up front.
