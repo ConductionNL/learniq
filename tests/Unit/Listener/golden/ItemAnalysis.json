@@ -1870,6 +1870,541 @@
             }
         ]
     },
+    "five respondents": {
+        "direct": {
+            "item-1": {
+                "sampleSize": 5,
+                "pValue": 0.4,
+                "itemTotalCorrelation": 0.0,
+                "distractorAnalysis": [
+                    {
+                        "optionId": "A",
+                        "selectedByHighGroup": 0,
+                        "selectedByLowGroup": 1
+                    },
+                    {
+                        "optionId": "01",
+                        "selectedByHighGroup": 0,
+                        "selectedByLowGroup": 0
+                    },
+                    {
+                        "optionId": "C",
+                        "selectedByHighGroup": 0,
+                        "selectedByLowGroup": 0
+                    }
+                ],
+                "insufficientData": false,
+                "computedAt": "<now>"
+            },
+            "missing-item": {
+                "sampleSize": 0,
+                "pValue": null,
+                "itemTotalCorrelation": null,
+                "distractorAnalysis": null,
+                "insufficientData": true,
+                "computedAt": "<now>"
+            },
+            "reliability": {
+                "sampleSize": 5,
+                "itemCount": 1,
+                "cronbachAlpha": null,
+                "insufficientData": true,
+                "computedAt": "<now>"
+            },
+            "other assessment": {
+                "sampleSize": 0,
+                "itemCount": 0,
+                "cronbachAlpha": null,
+                "insufficientData": true,
+                "computedAt": "<now>"
+            }
+        },
+        "handler": [
+            {
+                "findAll": {
+                    "ids": [
+                        "assessment-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-a",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "assessmentId": "assessment-1",
+                        "lifecycle": "graded",
+                        "tenant_id": "tenant-a",
+                        "register": "learniq",
+                        "schema": "assessment-result"
+                    }
+                }
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "assessment-1"
+                    ],
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "item-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-a",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "assessmentId": "assessment-1",
+                        "lifecycle": "graded",
+                        "tenant_id": "tenant-a",
+                        "register": "learniq",
+                        "schema": "assessment-result"
+                    }
+                }
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "item-statistics",
+                        "itemId": "item-1",
+                        "assessmentId": "assessment-1"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "saveObject": [
+                    "learniq",
+                    "item-statistics",
+                    {
+                        "itemId": "item-1",
+                        "assessmentId": "assessment-1",
+                        "sampleSize": 5,
+                        "pValue": 0.4,
+                        "itemTotalCorrelation": 0.0,
+                        "distractorAnalysis": [
+                            {
+                                "optionId": "A",
+                                "selectedByHighGroup": 0,
+                                "selectedByLowGroup": 1
+                            },
+                            {
+                                "optionId": "01",
+                                "selectedByHighGroup": 0,
+                                "selectedByLowGroup": 0
+                            },
+                            {
+                                "optionId": "C",
+                                "selectedByHighGroup": 0,
+                                "selectedByLowGroup": 0
+                            }
+                        ],
+                        "insufficientData": false,
+                        "computedAt": "<now>",
+                        "tenant_id": "tenant-a"
+                    },
+                    false
+                ]
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "item-revision-flag",
+                        "itemId": "item-1",
+                        "reason": "low-discrimination",
+                        "lifecycle": "open"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "item-revision-flag",
+                        "itemId": "item-1",
+                        "reason": "low-discrimination",
+                        "lifecycle": "acknowledged"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "saveObject": [
+                    "learniq",
+                    "item-revision-flag",
+                    {
+                        "itemId": "item-1",
+                        "itemStatisticsId": "item-statistics-7",
+                        "reason": "low-discrimination",
+                        "pValueAtFlag": 0.4,
+                        "itemTotalCorrelationAtFlag": 0.0,
+                        "flaggedAt": "2026-03-04T05:06:07+00:00",
+                        "lifecycle": "open",
+                        "tenant_id": "tenant-a"
+                    },
+                    false
+                ]
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "assessment-1"
+                    ],
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "assessmentId": "assessment-1",
+                        "lifecycle": "graded",
+                        "tenant_id": "tenant-a",
+                        "register": "learniq",
+                        "schema": "assessment-result"
+                    }
+                }
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "assessment-reliability",
+                        "assessmentId": "assessment-1"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "saveObject": [
+                    "learniq",
+                    "assessment-reliability",
+                    {
+                        "assessmentId": "assessment-1",
+                        "sampleSize": 5,
+                        "itemCount": 1,
+                        "cronbachAlpha": null,
+                        "insufficientData": true,
+                        "computedAt": "<now>",
+                        "tenant_id": "tenant-a"
+                    },
+                    false
+                ]
+            }
+        ]
+    },
+    "four respondents": {
+        "direct": {
+            "item-1": {
+                "sampleSize": 4,
+                "pValue": 1.0,
+                "itemTotalCorrelation": 0.0,
+                "distractorAnalysis": [
+                    {
+                        "optionId": "A",
+                        "selectedByHighGroup": 0,
+                        "selectedByLowGroup": 0
+                    },
+                    {
+                        "optionId": "01",
+                        "selectedByHighGroup": 0,
+                        "selectedByLowGroup": 0
+                    },
+                    {
+                        "optionId": "C",
+                        "selectedByHighGroup": 0,
+                        "selectedByLowGroup": 0
+                    }
+                ],
+                "insufficientData": false,
+                "computedAt": "<now>"
+            },
+            "missing-item": {
+                "sampleSize": 0,
+                "pValue": null,
+                "itemTotalCorrelation": null,
+                "distractorAnalysis": null,
+                "insufficientData": true,
+                "computedAt": "<now>"
+            },
+            "reliability": {
+                "sampleSize": 4,
+                "itemCount": 1,
+                "cronbachAlpha": null,
+                "insufficientData": true,
+                "computedAt": "<now>"
+            },
+            "other assessment": {
+                "sampleSize": 0,
+                "itemCount": 0,
+                "cronbachAlpha": null,
+                "insufficientData": true,
+                "computedAt": "<now>"
+            }
+        },
+        "handler": [
+            {
+                "findAll": {
+                    "ids": [
+                        "assessment-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-a",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "assessmentId": "assessment-1",
+                        "lifecycle": "graded",
+                        "tenant_id": "tenant-a",
+                        "register": "learniq",
+                        "schema": "assessment-result"
+                    }
+                }
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "assessment-1"
+                    ],
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "item-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-a",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "assessmentId": "assessment-1",
+                        "lifecycle": "graded",
+                        "tenant_id": "tenant-a",
+                        "register": "learniq",
+                        "schema": "assessment-result"
+                    }
+                }
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "item-statistics",
+                        "itemId": "item-1",
+                        "assessmentId": "assessment-1"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "saveObject": [
+                    "learniq",
+                    "item-statistics",
+                    {
+                        "itemId": "item-1",
+                        "assessmentId": "assessment-1",
+                        "sampleSize": 4,
+                        "pValue": 1.0,
+                        "itemTotalCorrelation": 0.0,
+                        "distractorAnalysis": [
+                            {
+                                "optionId": "A",
+                                "selectedByHighGroup": 0,
+                                "selectedByLowGroup": 0
+                            },
+                            {
+                                "optionId": "01",
+                                "selectedByHighGroup": 0,
+                                "selectedByLowGroup": 0
+                            },
+                            {
+                                "optionId": "C",
+                                "selectedByHighGroup": 0,
+                                "selectedByLowGroup": 0
+                            }
+                        ],
+                        "insufficientData": false,
+                        "computedAt": "<now>",
+                        "tenant_id": "tenant-a"
+                    },
+                    false
+                ]
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "item-revision-flag",
+                        "itemId": "item-1",
+                        "reason": "too-easy",
+                        "lifecycle": "open"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "item-revision-flag",
+                        "itemId": "item-1",
+                        "reason": "too-easy",
+                        "lifecycle": "acknowledged"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "saveObject": [
+                    "learniq",
+                    "item-revision-flag",
+                    {
+                        "itemId": "item-1",
+                        "itemStatisticsId": "item-statistics-7",
+                        "reason": "too-easy",
+                        "pValueAtFlag": 1.0,
+                        "itemTotalCorrelationAtFlag": 0.0,
+                        "flaggedAt": "2026-03-04T05:06:07+00:00",
+                        "lifecycle": "open",
+                        "tenant_id": "tenant-a"
+                    },
+                    false
+                ]
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "item-revision-flag",
+                        "itemId": "item-1",
+                        "reason": "low-discrimination",
+                        "lifecycle": "open"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "item-revision-flag",
+                        "itemId": "item-1",
+                        "reason": "low-discrimination",
+                        "lifecycle": "acknowledged"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "saveObject": [
+                    "learniq",
+                    "item-revision-flag",
+                    {
+                        "itemId": "item-1",
+                        "itemStatisticsId": "item-statistics-7",
+                        "reason": "low-discrimination",
+                        "pValueAtFlag": 1.0,
+                        "itemTotalCorrelationAtFlag": 0.0,
+                        "flaggedAt": "2026-03-04T05:06:07+00:00",
+                        "lifecycle": "open",
+                        "tenant_id": "tenant-a"
+                    },
+                    false
+                ]
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "assessment-1"
+                    ],
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "assessmentId": "assessment-1",
+                        "lifecycle": "graded",
+                        "tenant_id": "tenant-a",
+                        "register": "learniq",
+                        "schema": "assessment-result"
+                    }
+                }
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "assessment-reliability",
+                        "assessmentId": "assessment-1"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "saveObject": [
+                    "learniq",
+                    "assessment-reliability",
+                    {
+                        "assessmentId": "assessment-1",
+                        "sampleSize": 4,
+                        "itemCount": 1,
+                        "cronbachAlpha": null,
+                        "insufficientData": true,
+                        "computedAt": "<now>",
+                        "tenant_id": "tenant-a"
+                    },
+                    false
+                ]
+            }
+        ]
+    },
     "items over the minimum, reliability under": {
         "direct": {
             "item-1": {

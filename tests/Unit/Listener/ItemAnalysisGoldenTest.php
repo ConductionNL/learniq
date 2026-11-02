@@ -88,6 +88,8 @@ class ItemAnalysisGoldenTest extends TestCase {
 			'low minimums, strict thresholds, existing rows and flags' => [6, 12, 4, ['minSampleSize' => 3, 'reliabilityMinSampleSize' => 3, 'tooDifficultyBelow' => 0.6, 'tooEasyAbove' => 0.4, 'lowDiscriminationBelow' => 0.9], ['existing' => true]],
 			'all the same score' => [7, 30, 3, ['minSampleSize' => 2, 'reliabilityMinSampleSize' => 2], ['flat' => true]],
 			'two respondents' => [8, 2, 2, ['minSampleSize' => 1, 'reliabilityMinSampleSize' => 1], []],
+			'four respondents' => [12, 4, 1, ['minSampleSize' => 1, 'reliabilityMinSampleSize' => 1], []],
+			'five respondents' => [13, 5, 1, ['minSampleSize' => 1, 'reliabilityMinSampleSize' => 1], []],
 			'one respondent' => [9, 1, 2, ['minSampleSize' => 1, 'reliabilityMinSampleSize' => 1], []],
 			'config not an array' => [10, 8, 2, null, ['badConfig' => true]],
 			'no tenant' => [11, 10, 3, ['minSampleSize' => 4, 'reliabilityMinSampleSize' => 4], ['noTenant' => true]],
