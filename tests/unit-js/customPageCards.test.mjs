@@ -31,6 +31,13 @@ const views = {
 	ItemAnalysisView: 2,
 	PeerReviewMarkingView: 3,
 	SubjectChoicePicker: 1,
+	MyLearningRecordView: 10,
+	GroupTrendHeatmap: 1,
+	AllocateMarkersView: 1,
+	ContactHoursReport: 2,
+	BookConferenceSlotsView: 1,
+	AdmissionsReviewBoard: 1,
+	TimetableConflictQueue: 1,
 }
 
 /**

@@ -3787,7 +3787,9 @@ OC.L10N.register(
         "Enrol a group": "Enrol a group",
         "Everyone in the group without an open enrolment for the course is enrolled.": "Everyone in the group without an open enrolment for the course is enrolled.",
         "Open evaluations": "Open evaluations",
-        "Lessons you can check in to now": "Lessons you can check in to now"
+        "Lessons you can check in to now": "Lessons you can check in to now",
+        "Heat map of your groups": "Heat map of your groups",
+        "Your request": "Your request"
     },
     "nplurals=2; plural=(n != 1);"
 )
