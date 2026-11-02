@@ -152,6 +152,13 @@
                 "classification": "other",
                 "href": null,
                 "title": "R11"
+            },
+            {
+                "identifier": "R12",
+                "type": "imsqti_test_xmlv1p2",
+                "classification": "imsqti_test",
+                "href": "test.xml",
+                "title": "test.xml"
             }
         ]
     },

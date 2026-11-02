@@ -68,6 +68,7 @@ class CommonCartridgeParserGoldenTest extends TestCase {
 				. '<resource identifier="R9" type="vendor/thing" href="x.bin"/>'
 				. '<resource identifier="R10" type="imsdt_webcontent"/>'
 				. '<resource identifier="R11" type=""/>'
+				. '<resource identifier="R12" type="imsqti_test_xmlv1p2" href="test.xml"/>'
 				. '</resources></manifest>'],
 			'no namespace falls back to plain tag names' => ['<manifest><organizations><organization>'
 				. '<item identifier="A"><title>A</title><item identifier="B" identifierref="X"/></item>'
