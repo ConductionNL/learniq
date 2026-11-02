@@ -92,16 +92,41 @@ class LessonProgress {
 		}
 
 		$this->upsertLessonCompletion(
-			learnerId: $learnerId,
-			lessonId: $lessonId,
-			courseId: $courseId,
-			enrolmentId: $this->resolveActiveEnrolmentId(learnerId: $learnerId, courseId: $courseId, tenantId: $tenantId),
-			verb: $verbId,
-			score: ($statement['result']['score']['scaled'] ?? null),
-			tenantId: $tenantId,
-			completedAt: $completedAt
+			completion: [
+				'learnerId' => $learnerId,
+				'lessonId' => $lessonId,
+				'courseId' => $courseId,
+				'enrolmentId' => $this->resolveActiveEnrolmentId(learnerId: $learnerId, courseId: $courseId, tenantId: $tenantId),
+				'source' => 'xapi',
+				'verb' => $verbId,
+				'score' => self::scaledScore(statement: $statement),
+				'completedAt' => $completedAt,
+				'tenant_id' => $tenantId,
+			]
 		);
 	}//end record()
+
+	/**
+	 * The statement's result.score.scaled as a float; a whole number becomes a float and any other type is a TypeError.
+	 *
+	 * @param array<string, mixed> $statement The XapiStatement as saved.
+	 *
+	 * @return float|null
+	 */
+	private static function scaledScore(array $statement): ?float {
+		return ($statement['result']['score']['scaled'] ?? null);
+	}//end scaledScore()
+
+	/**
+	 * The resolved Lesson's id as a string; any other type is a TypeError.
+	 *
+	 * @param string $id The Lesson row's id or uuid.
+	 *
+	 * @return string
+	 */
+	private static function lessonKey(string $id): string {
+		return $id;
+	}//end lessonKey()
 
 	/**
 	 * Resolve the learner identity this statement may act on.
@@ -238,36 +263,22 @@ class LessonProgress {
 	 * filter, so a legacy row without an enrolment is matched only by a
 	 * completion that also has none.
 	 *
-	 * @param string $learnerId NC user ID of the learner.
-	 * @param string $lessonId UUID of the completed Lesson.
-	 * @param string $courseId UUID of the Lesson's parent Course.
-	 * @param string|null $enrolmentId UUID of the learner's current Enrolment, if any.
-	 * @param string $verb The xAPI verb IRI.
-	 * @param float|null $score Optional result.score.scaled value.
-	 * @param string $tenantId Tenant identifier.
-	 * @param string $completedAt When the statement was queued, ISO 8601.
+	 * @param array<string, mixed> $completion The completion's fields: learnerId (NC user ID), lessonId,
+	 *                                         courseId, enrolmentId (the current Enrolment or null), source,
+	 *                                         verb (xAPI IRI), score (scaled or null), completedAt and tenant_id.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
 	 */
-	private function upsertLessonCompletion(
-		string $learnerId,
-		string $lessonId,
-		string $courseId,
-		?string $enrolmentId,
-		string $verb,
-		?float $score,
-		string $tenantId,
-		string $completedAt,
-	): void {
+	private function upsertLessonCompletion(array $completion): void {
 		$existing = $this->objectService->findAll(
 			[
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::LESSON_COMPLETION_SCHEMA,
-					'learnerId' => $learnerId,
-					'lessonId' => $lessonId,
+					'learnerId' => $completion['learnerId'],
+					'lessonId' => self::lessonKey(id: $completion['lessonId']),
 				],
 			]
 		);
@@ -278,26 +289,13 @@ class LessonProgress {
 				$row = $row->jsonSerialize();
 			}
 
-			if ((string)($row['enrolmentId'] ?? '') === (string)($enrolmentId ?? '')) {
+			if ((string)($row['enrolmentId'] ?? '') === (string)($completion['enrolmentId'] ?? '')) {
 				$existingData = $row;
 				break;
 			}
 		}
 
-		$data = array_merge(
-			$existingData ?? [],
-			[
-				'learnerId' => $learnerId,
-				'lessonId' => $lessonId,
-				'courseId' => $courseId,
-				'enrolmentId' => $enrolmentId,
-				'source' => 'xapi',
-				'verb' => $verb,
-				'score' => $score,
-				'completedAt' => $completedAt,
-				'tenant_id' => $tenantId,
-			]
-		);
+		$data = array_merge($existingData ?? [], $completion);
 
 		$this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,

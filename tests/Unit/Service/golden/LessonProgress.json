@@ -1,0 +1,850 @@
+{
+    "fresh, no enrolment": [
+        {
+            "findAll": {
+                "ids": [
+                    "lesson-1"
+                ],
+                "filters": {
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "lesson"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "active",
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "pending",
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "lesson-completion",
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1",
+                    "courseId": "course-1",
+                    "enrolmentId": null,
+                    "source": "xapi",
+                    "verb": "http://adlnet.gov/expapi/verbs/completed",
+                    "score": 0.75,
+                    "completedAt": "2026-10-01T09:00:00+00:00",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson-completion"
+            }
+        }
+    ],
+    "fresh, active enrolment": [
+        {
+            "findAll": {
+                "ids": [
+                    "lesson-1"
+                ],
+                "filters": {
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "lesson"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "active",
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "lesson-completion",
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1",
+                    "courseId": "course-1",
+                    "enrolmentId": "enr-active",
+                    "source": "xapi",
+                    "verb": "http://adlnet.gov/expapi/verbs/completed",
+                    "score": 0.75,
+                    "completedAt": "2026-10-01T09:00:00+00:00",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson-completion"
+            }
+        }
+    ],
+    "fresh, pending enrolment": [
+        {
+            "findAll": {
+                "ids": [
+                    "lesson-1"
+                ],
+                "filters": {
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "lesson"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "active",
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "pending",
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "lesson-completion",
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1",
+                    "courseId": "course-1",
+                    "enrolmentId": "enr-pending",
+                    "source": "xapi",
+                    "verb": "http://adlnet.gov/expapi/verbs/completed",
+                    "score": 0.75,
+                    "completedAt": "2026-10-01T09:00:00+00:00",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson-completion"
+            }
+        }
+    ],
+    "passed, no score": [
+        {
+            "findAll": {
+                "ids": [
+                    "lesson-1"
+                ],
+                "filters": {
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "lesson"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "active",
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "lesson-completion",
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1",
+                    "courseId": "course-1",
+                    "enrolmentId": "enr-active",
+                    "source": "xapi",
+                    "verb": "http://adlnet.gov/expapi/verbs/passed",
+                    "score": null,
+                    "completedAt": "2026-10-01T09:00:00+00:00",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson-completion"
+            }
+        }
+    ],
+    "updates the row of the same enrolment": [
+        {
+            "findAll": {
+                "ids": [
+                    "lesson-1"
+                ],
+                "filters": {
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "lesson"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "active",
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "lesson-completion",
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "lc-1",
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1",
+                    "enrolmentId": "enr-active",
+                    "score": 0.75,
+                    "note": "kept",
+                    "courseId": "course-1",
+                    "source": "xapi",
+                    "verb": "http://adlnet.gov/expapi/verbs/completed",
+                    "completedAt": "2026-10-01T09:00:00+00:00",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson-completion"
+            }
+        }
+    ],
+    "adds a row for another enrolment": [
+        {
+            "findAll": {
+                "ids": [
+                    "lesson-1"
+                ],
+                "filters": {
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "lesson"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "active",
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "lesson-completion",
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1",
+                    "courseId": "course-1",
+                    "enrolmentId": "enr-active",
+                    "source": "xapi",
+                    "verb": "http://adlnet.gov/expapi/verbs/completed",
+                    "score": 0.75,
+                    "completedAt": "2026-10-01T09:00:00+00:00",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson-completion"
+            }
+        }
+    ],
+    "legacy row matched by a completion without enrolment": [
+        {
+            "findAll": {
+                "ids": [
+                    "lesson-1"
+                ],
+                "filters": {
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "lesson"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "active",
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "pending",
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "lesson-completion",
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "lc-legacy",
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1",
+                    "verb": "http://adlnet.gov/expapi/verbs/completed",
+                    "courseId": "course-1",
+                    "enrolmentId": null,
+                    "source": "xapi",
+                    "score": 0.75,
+                    "completedAt": "2026-10-01T09:00:00+00:00",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson-completion"
+            }
+        }
+    ],
+    "rows as entities": [
+        {
+            "findAll": {
+                "ids": [
+                    "lesson-1"
+                ],
+                "filters": {
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "lesson"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "active",
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "lesson-completion",
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "lc-e",
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1",
+                    "enrolmentId": "enr-active",
+                    "courseId": "course-1",
+                    "source": "xapi",
+                    "verb": "http://adlnet.gov/expapi/verbs/completed",
+                    "score": 0.75,
+                    "completedAt": "2026-10-01T09:00:00+00:00",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson-completion"
+            }
+        }
+    ],
+    "no tenant": [
+        {
+            "findAll": {
+                "ids": [
+                    "lesson-1"
+                ],
+                "filters": {
+                    "register": "learniq",
+                    "schema": "lesson"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "active",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "pending",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "lesson-completion",
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1",
+                    "courseId": "course-1",
+                    "enrolmentId": null,
+                    "source": "xapi",
+                    "verb": "http://adlnet.gov/expapi/verbs/completed",
+                    "score": 0.75,
+                    "completedAt": "2026-10-01T09:00:00+00:00",
+                    "tenant_id": ""
+                },
+                "register": "learniq",
+                "schema": "lesson-completion"
+            }
+        }
+    ],
+    "unknown verb": [],
+    "no verified actor": [
+        {
+            "findAll": {
+                "ids": [
+                    "lesson-1"
+                ],
+                "filters": {
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "lesson"
+                },
+                "limit": 1
+            }
+        }
+    ],
+    "forged actor fields are ignored": [
+        {
+            "findAll": {
+                "ids": [
+                    "lesson-1"
+                ],
+                "filters": {
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "lesson"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "active",
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "lesson-completion",
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1",
+                    "courseId": "course-1",
+                    "enrolmentId": "enr-active",
+                    "source": "xapi",
+                    "verb": "http://adlnet.gov/expapi/verbs/completed",
+                    "score": 0.75,
+                    "completedAt": "2026-10-01T09:00:00+00:00",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson-completion"
+            }
+        }
+    ],
+    "lesson without course": [
+        {
+            "findAll": {
+                "ids": [
+                    "lesson-1"
+                ],
+                "filters": {
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "lesson"
+                },
+                "limit": 1
+            }
+        }
+    ],
+    "lesson by uuid": [
+        {
+            "findAll": {
+                "ids": [
+                    "lesson-u"
+                ],
+                "filters": {
+                    "register": "learniq",
+                    "schema": "lesson"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "active",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "pending",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "lesson-completion",
+                    "learnerId": "ann",
+                    "lessonId": "lesson-u"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "lessonId": "lesson-u",
+                    "courseId": "course-1",
+                    "enrolmentId": null,
+                    "source": "xapi",
+                    "verb": "http://adlnet.gov/expapi/verbs/completed",
+                    "score": 0.75,
+                    "completedAt": "2026-10-01T09:00:00+00:00",
+                    "tenant_id": ""
+                },
+                "register": "learniq",
+                "schema": "lesson-completion"
+            }
+        }
+    ],
+    "no lesson id": [],
+    "whole-number score": [
+        {
+            "findAll": {
+                "ids": [
+                    "lesson-1"
+                ],
+                "filters": {
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "lesson"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "active",
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "lesson-completion",
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "learnerId": "ann",
+                    "lessonId": "lesson-1",
+                    "courseId": "course-1",
+                    "enrolmentId": "enr-active",
+                    "source": "xapi",
+                    "verb": "http://adlnet.gov/expapi/verbs/completed",
+                    "score": 1.0,
+                    "completedAt": "2026-10-01T09:00:00+00:00",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson-completion"
+            }
+        }
+    ],
+    "text score": [
+        {
+            "findAll": {
+                "ids": [
+                    "lesson-1"
+                ],
+                "filters": {
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "lesson"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "active",
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "threw": "TypeError"
+        }
+    ],
+    "numeric course id": [
+        {
+            "findAll": {
+                "ids": [
+                    "lesson-1"
+                ],
+                "filters": {
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "lesson"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "threw": "TypeError"
+        }
+    ],
+    "numeric lesson id": [
+        {
+            "findAll": {
+                "ids": [
+                    "42"
+                ],
+                "filters": {
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "lesson"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "active",
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "learnerId": "ann",
+                    "courseId": "course-1",
+                    "lifecycle": "pending",
+                    "tenant_id": "t1",
+                    "register": "learniq",
+                    "schema": "enrolment"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "threw": "TypeError"
+        }
+    ]
+}
