@@ -32,3 +32,10 @@
 .lq-board-page > .cn-page-header {
 	margin-bottom: 0;
 }
+
+/* A card without a title keeps the board card's full inset: the board look
+ * starts a card's body just below its title, which a header-less card has
+ * not got. */
+.cn-look-board .lq-board-page .cn-detail-card:not(:has(> .cn-detail-card__header)) > .cn-detail-card__content {
+	padding: var(--cn-board-card-padding);
+}

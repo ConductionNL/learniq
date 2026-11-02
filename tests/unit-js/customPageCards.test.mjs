@@ -26,6 +26,11 @@ const views = {
 	MyWorkGroups: 1,
 	CheckInPage: 1,
 	ProctoringReviewQueue: 1,
+	PupilDossierTimelineView: 2,
+	CurriculumCoverageMatrixView: 3,
+	ItemAnalysisView: 2,
+	PeerReviewMarkingView: 3,
+	SubjectChoicePicker: 1,
 }
 
 /**

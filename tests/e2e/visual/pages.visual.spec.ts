@@ -413,9 +413,9 @@ authed.describe('gate-26 — every page component renders its own screen', () =>
 			`/assessments/items/${itemId}/analysis`,
 			'.item-analysis',
 		)
-		await expect(page.locator('.item-analysis__sub-heading').first()).toHaveText(
-			/Statistics per assessment/i,
-		)
+		await expect(
+			page.locator('.item-analysis__section .cn-detail-card__title').first(),
+		).toHaveText(/Statistics per assessment/i)
 		assertNoFatalErrors(errors)
 	})
 
