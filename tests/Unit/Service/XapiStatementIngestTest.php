@@ -243,4 +243,58 @@ class XapiStatementIngestTest extends TestCase {
 		$this->expectException(InvalidArgumentException::class);
 		$this->ingest()->ingest(statements: [self::statement(), self::statement()], actorId: 'pupil1');
 	}//end testDuplicateIdInOneBatchIsRefused()
+
+	/**
+	 * A scaled score outside -1..1, or one that is not a JSON number, refuses the batch and stores nothing.
+	 *
+	 * @return void
+	 */
+	public function testScaledScoreMustBeANumberFromMinusOneToOne(): void {
+		$cases = [
+			'above one'       => 1.5,
+			'below minus one' => -1.01,
+			'a percentage'    => 80,
+			'numeric string'  => '0.5',
+			'text'            => 'high',
+			'boolean'         => true,
+			'array'           => [0.5],
+		];
+		foreach ($cases as $label => $scaled) {
+			$new = self::statement(overrides: ['id' => '11111111-2222-4333-8444-555555555555']);
+			try {
+				$this->ingest()->ingest(
+					statements: [$new, self::statement(overrides: ['result' => ['score' => ['scaled' => $scaled]]])],
+					actorId: 'pupil1'
+				);
+				self::fail(message: $label . ': accepted');
+			} catch (InvalidArgumentException $e) {
+				self::assertSame(expected: 'result.score.scaled must be a number from -1 to 1', actual: $e->getMessage(), message: $label);
+			}
+		}
+
+		self::assertSame(expected: [], actual: $this->saves);
+	}//end testScaledScoreMustBeANumberFromMinusOneToOne()
+
+	/**
+	 * Scaled scores from -1 to 1, a whole number among them, and a result without one are stored.
+	 *
+	 * @return void
+	 */
+	public function testScaledScoreInRangeIsStored(): void {
+		$cases = [
+			'11111111-2222-4333-8444-000000000001' => ['score' => ['scaled' => -1]],
+			'11111111-2222-4333-8444-000000000002' => ['score' => ['scaled' => 1]],
+			'11111111-2222-4333-8444-000000000003' => ['score' => ['scaled' => 0.5]],
+			'11111111-2222-4333-8444-000000000004' => ['score' => ['scaled' => -1.0]],
+			'11111111-2222-4333-8444-000000000005' => ['score' => ['raw' => 80]],
+			'11111111-2222-4333-8444-000000000006' => ['success' => true],
+		];
+		$statements = [];
+		foreach ($cases as $id => $result) {
+			$statements[] = self::statement(overrides: ['id' => $id, 'result' => $result]);
+		}
+
+		self::assertSame(expected: array_keys($cases), actual: $this->ingest()->ingest(statements: $statements, actorId: 'pupil1'));
+		self::assertSame(expected: array_keys($cases), actual: $this->saves);
+	}//end testScaledScoreInRangeIsStored()
 }//end class
