@@ -39,6 +39,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Exception\RolloverInterruptedException;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -125,6 +126,10 @@ class RolloverExecutionHandler implements IEventListener {
 			$this->logger->info('[RolloverExecutionHandler] Rollover plan {p} completed.', ['p' => $planId]);
 		} catch (Throwable $e) {
 			// Record progress so far + fail; the plan is resumable via `retry`.
+			if ($e instanceof RolloverInterruptedException) {
+				$plan['perMappingProgress'] = $e->getProgress();
+			}
+
 			$this->logger->error('[RolloverExecutionHandler] Rollover plan {p} failed: {m}.', ['p' => $planId, 'm' => $e->getMessage()]);
 			$this->failPlan(plan: $plan, reason: $e->getMessage());
 		}
