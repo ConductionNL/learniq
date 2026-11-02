@@ -409,6 +409,30 @@ class RolloverServiceTest extends TestCase {
 	}//end testPreviewReadsAMissingFromCohortAsEmpty()
 
 	/**
+	 * Any other read failure is not read as a missing cohort: it stops the run and the preview.
+	 *
+	 * @return void
+	 */
+	public function testAReadFailureOtherThanAMissingCohortPropagates(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willThrowException(new RuntimeException('database gone'));
+		$objectService->method('findAll')->willReturn([]);
+		$objectService->expects($this->never())->method('saveObject');
+
+		try {
+			$this->makeService($objectService)->loadCohort(cohortId: 'c1');
+			$this->fail('loadCohort swallowed the failure');
+		} catch (RuntimeException $e) {
+			$this->assertSame('database gone', $e->getMessage());
+		}
+
+		$this->expectException(RuntimeException::class);
+		$this->makeExecutionService($objectService)->execute(
+			['toAcademicYear' => '2026/2027', 'mappings' => [['fromCohortId' => 'c1', 'action' => 'dissolve']]]
+		);
+	}//end testAReadFailureOtherThanAMissingCohortPropagates()
+
+	/**
 	 * groupName produces a stable, slugified identifier.
 	 *
 	 * @return void
