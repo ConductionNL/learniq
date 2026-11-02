@@ -309,68 +309,98 @@ class AccessibilityStatementPublishGuard implements LifecycleGuardInterface {
 	 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-per-criterion-conformance-record
 	 */
 	private function failuresWithoutLimitation(string $statementId, string $tenantId): array {
+		$filters = self::statementFilters(statementId: $statementId, tenantId: $tenantId);
+		$failures = $this->failedResults(filters: $filters);
+		if ($failures === []) {
+			return [];
+		}
+
+		$limitations = $this->limitationsById(filters: $filters);
+		$unlinked = [];
+		foreach ($failures as $failure) {
+			$limitation = $limitations[(string)($failure['limitationId'] ?? '')] ?? null;
+			if ($this->isCovered(failure: $failure, limitation: $limitation) === false) {
+				$unlinked[] = $this->catalogue->numberOf(reference: $failure['wcagCriterion'] ?? null) ?? '?';
+			}
+		}
+
+		return $unlinked;
+	}//end failuresWithoutLimitation()
+
+	/**
+	 * The filters for the statement's rows, scoped to the tenant when there is one.
+	 *
+	 * @param string $statementId The statement's UUID.
+	 * @param string $tenantId    Tenant scope ('' for none).
+	 *
+	 * @return array<string,string>
+	 */
+	private static function statementFilters(string $statementId, string $tenantId): array {
 		$filters = ['accessibilityStatementId' => $statementId];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
-		$failures = self::rows(
-			objects: $this->objectService->findAll(
-				[
-					'filters' => array_merge(
-						$filters,
-						[
-							'result' => 'fail',
-							'register' => self::LEARNIQ_REGISTER,
-							'schema' => self::RESULT_SCHEMA,
-						]
-					),
-				]
-			)
-		);
-		$failures = array_values(
-			array_filter($failures, static fn (array $row): bool => ($row['result'] ?? null) === 'fail')
-		);
-		if ($failures === []) {
-			return [];
-		}
+		return $filters;
+	}//end statementFilters()
 
-		$limitations = [];
-		$limitationRows = self::rows(
+	/**
+	 * The statement's criterion results that failed.
+	 *
+	 * @param array<string,string> $filters The statement (and tenant) filters.
+	 *
+	 * @return list<array<string,mixed>>
+	 */
+	private function failedResults(array $filters): array {
+		$results = self::rows(
 			objects: $this->objectService->findAll(
-				[
-					'filters' => array_merge(
-						$filters,
-						[
-							'register' => self::LEARNIQ_REGISTER,
-							'schema' => self::LIMITATION_SCHEMA,
-						]
-					),
-				]
+				['filters' => array_merge($filters, ['result' => 'fail', 'register' => self::LEARNIQ_REGISTER, 'schema' => self::RESULT_SCHEMA])]
 			)
 		);
-		foreach ($limitationRows as $limitation) {
+
+		return array_values(array_filter($results, static fn (array $row): bool => ($row['result'] ?? null) === 'fail'));
+	}//end failedResults()
+
+	/**
+	 * The statement's limitations keyed by id; limitations without a string id are left out.
+	 *
+	 * @param array<string,string> $filters The statement (and tenant) filters.
+	 *
+	 * @return array<string,array<string,mixed>>
+	 */
+	private function limitationsById(array $filters): array {
+		$rows = self::rows(
+			objects: $this->objectService->findAll(
+				['filters' => array_merge($filters, ['register' => self::LEARNIQ_REGISTER, 'schema' => self::LIMITATION_SCHEMA])]
+			)
+		);
+		$limitations = [];
+		foreach ($rows as $limitation) {
 			$limitationId = $limitation['id'] ?? $limitation['uuid'] ?? null;
 			if (is_string($limitationId) === true) {
 				$limitations[$limitationId] = $limitation;
 			}
 		}
 
-		$unlinked = [];
-		foreach ($failures as $failure) {
-			$number = $this->catalogue->numberOf(reference: $failure['wcagCriterion'] ?? null) ?? '?';
-			$limitation = $limitations[(string)($failure['limitationId'] ?? '')] ?? null;
+		return $limitations;
+	}//end limitationsById()
 
-			$covers = $limitation !== null
-				&& ($limitation['lifecycle'] ?? 'open') !== 'fixed'
-				&& $this->catalogue->numberOf(reference: $limitation['wcagCriterion'] ?? null) === $number;
-			if ($covers === false) {
-				$unlinked[] = $number;
-			}
+	/**
+	 * Whether the failure links to a limitation that is not fixed and names the same criterion.
+	 *
+	 * @param array<string,mixed>      $failure    The failed result.
+	 * @param array<string,mixed>|null $limitation The limitation it links to.
+	 *
+	 * @return bool
+	 */
+	private function isCovered(array $failure, ?array $limitation): bool {
+		if ($limitation === null || ($limitation['lifecycle'] ?? 'open') === 'fixed') {
+			return false;
 		}
 
-		return $unlinked;
-	}//end failuresWithoutLimitation()
+		$number = $this->catalogue->numberOf(reference: $failure['wcagCriterion'] ?? null) ?? '?';
+		return $this->catalogue->numberOf(reference: $limitation['wcagCriterion'] ?? null) === $number;
+	}//end isCovered()
 
 	/**
 	 * OpenRegister answers findAll() with ObjectEntity instances; read them as arrays.
