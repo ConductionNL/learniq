@@ -67,6 +67,9 @@ use ReflectionMethod;
  * @uses   \OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter
  * @uses   \OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter
  * @uses   \OCA\Learniq\Service\CoursePackage\MoodleActivityRouter
+ * @uses   \OCA\Learniq\Service\CoursePackage\OrganizationWalk
+ * @uses   \OCA\Learniq\Service\CoursePackage\PackageContext
+ * @uses   \OCA\Learniq\Service\CoursePackage\ResourceSlot
  * @uses   \OCA\Learniq\Service\CoursePackage\MoodleCourseImporter
  * @uses   \OCA\Learniq\Service\CoursePackage\PackageXmlValueReader
  * @uses   \OCA\Learniq\Service\MbzExtractor
