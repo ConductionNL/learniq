@@ -723,25 +723,11 @@
                     "authorId": "jan"
                 },
                 {
-                    "id": "n-2",
-                    "topic": null,
-                    "text": "Toets ligt in la",
-                    "audience": "cover",
-                    "authorId": ""
-                },
-                {
                     "id": "n-1",
                     "topic": "Breuken",
                     "text": "Boek mee",
                     "audience": "learners",
                     "authorId": "jan"
-                },
-                {
-                    "id": "n-2",
-                    "topic": null,
-                    "text": "Toets ligt in la",
-                    "audience": "cover",
-                    "authorId": ""
                 }
             ],
             "s-2": [
@@ -760,29 +746,11 @@
                     "authorId": ""
                 }
             ],
-            "s-3": [
-                {
-                    "id": "n-5",
-                    "topic": null,
-                    "text": "Alleen staf",
-                    "audience": "staff",
-                    "authorId": ""
-                }
-            ],
             "s-4": [
                 {
                     "id": "n-8",
                     "topic": null,
                     "text": "Invaller",
-                    "audience": "cover",
-                    "authorId": ""
-                }
-            ],
-            "s-7": [
-                {
-                    "id": "n-11",
-                    "topic": null,
-                    "text": "Cover als tekst",
                     "audience": "cover",
                     "authorId": ""
                 }
@@ -808,14 +776,14 @@
     },
     "writable for an empty uid": {
         "canAddNote": [
+            false,
+            false,
+            false,
             true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true
+            false,
+            false,
+            false,
+            false
         ],
         "asked": [
             {

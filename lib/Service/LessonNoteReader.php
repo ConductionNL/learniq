@@ -192,10 +192,26 @@ class LessonNoteReader {
 	 */
 	private function teachesOrCovers(array $session, string $uid, array $taughtCohortIds): bool {
 		return ($session['cover'] ?? false) === true
-			|| (string)($session['substituteTeacherId'] ?? '') === $uid
-			|| (string)($session['teacherUserId'] ?? '') === $uid
+			|| $this->isTeacherOrSubstitute(session: $session, uid: $uid) === true
 			|| in_array((string)($session['cohortId'] ?? ''), $taughtCohortIds, true) === true;
 	}//end teachesOrCovers()
+
+	/**
+	 * Whether the caller is a lesson's own teacher or its substitute. An empty
+	 * uid is nobody, so it never matches a lesson that names no one.
+	 *
+	 * @param array<string,mixed> $session The lesson.
+	 * @param string              $uid     The caller.
+	 *
+	 * @return bool
+	 */
+	private function isTeacherOrSubstitute(array $session, string $uid): bool {
+		if ($uid === '') {
+			return false;
+		}
+
+		return in_array($uid, [(string)($session['substituteTeacherId'] ?? ''), (string)($session['teacherUserId'] ?? '')], true);
+	}//end isTeacherOrSubstitute()
 
 	/**
 	 * Whether a note names this lesson.
