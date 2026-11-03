@@ -466,7 +466,7 @@ OC.L10N.register(
         "How each assessment item performed, question by question.": "Πώς απέδωσε κάθε ερώτημα αξιολόγησης, ερώτηση προς ερώτηση.",
         "What course evaluations said, per course.": "Τι είπαν οι αξιολογήσεις μαθημάτων, ανά μάθημα.",
         "What was found on placement visits.": "Τι διαπιστώθηκε στις επισκέψεις στον χώρο εργασίας.",
-        "Store": "Κατάστημα",
+        "Marketplace": "Κατάστημα",
         "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Εγκαταστήστε μητρώα, σχήματα και ροές που έχουν δημοσιεύσει άλλοι οργανισμοί.",
         "Enter the access code you were given to start this assessment.": "Εισαγάγετε τον κωδικό πρόσβασης που σας δόθηκε για να ξεκινήσετε αυτή την αξιολόγηση.",
         "Access code": "Κωδικός πρόσβασης",

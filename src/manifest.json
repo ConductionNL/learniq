@@ -167,7 +167,7 @@
     },
     {
       "id": "StoreMenu",
-      "label": "Store",
+      "label": "Marketplace",
       "icon": "StoreOutline",
       "route": "Store",
       "section": "footer",
@@ -268,10 +268,10 @@
       "id": "Store",
       "route": "/store",
       "type": "store",
-      "title": "Store",
+      "title": "Marketplace",
       "config": {
         "app": "learniq",
-        "title": "Store",
+        "title": "Marketplace",
         "description": "Find courses other schools share and install your own copy. Every course here carries an open licence and the name of its maker.",
         "publishRoute": "CoursePackageExport"
       },

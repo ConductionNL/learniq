@@ -11,7 +11,7 @@ Learniq resolves a user's tenant in one place, `CallerTenantResolver`:
 
 The default tenant is the one the example sets carry, so on an instance that serves one organisation every user, every example record and every record created in the app share it. You do not have to configure anything.
 
-Every learniq path that stamps or checks a tenant uses this resolution: the create dialog in the app, xAPI statements and documents, course package and QTI imports, the course store, lesson onboarding and the learning record intake.
+Every learniq path that stamps or checks a tenant uses this resolution: the create dialog in the app, xAPI statements and documents, course package and QTI imports, the course marketplace, lesson onboarding and the learning record intake.
 
 ## Serving more than one organisation
 

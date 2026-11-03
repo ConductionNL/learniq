@@ -16,7 +16,7 @@
 <template>
 	<NcSettingsSection
 		id="section-course-store"
-		:name="t('learniq', 'Course store')"
+		:name="t('learniq', 'Course marketplace')"
 		:description="
 			t(
 				'learniq',
@@ -28,7 +28,7 @@
 		</NcNoteCard>
 
 		<p v-if="loading">
-			{{ t('learniq', 'Loading the course store connection…') }}
+			{{ t('learniq', 'Loading the course marketplace connection…') }}
 		</p>
 
 		<form v-else class="learniq-store-registry" @submit.prevent="save">
@@ -38,7 +38,7 @@
 				:helperText="
 					t(
 						'learniq',
-						'For example https://store.example.nl. Leave empty to disconnect the store.',
+						'For example https://store.example.nl. Leave empty to disconnect the marketplace.',
 					)
 				"
 				type="url"
@@ -156,7 +156,7 @@ export default {
 			} catch {
 				this.error = this.t(
 					'learniq',
-					'The course store connection could not be loaded.',
+					'The course marketplace connection could not be loaded.',
 				)
 			} finally {
 				this.loading = false
@@ -186,13 +186,13 @@ export default {
 					body,
 				)
 				this.apply(data)
-				showSuccess(this.t('learniq', 'Course store connection saved.'))
+				showSuccess(this.t('learniq', 'Course marketplace connection saved.'))
 			} catch (e) {
 				this.error =
 					e?.response?.data?.error
 					?? this.t(
 						'learniq',
-						'The course store connection could not be saved.',
+						'The course marketplace connection could not be saved.',
 					)
 				showError(this.error)
 			} finally {
