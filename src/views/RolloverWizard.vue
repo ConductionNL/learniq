@@ -18,31 +18,33 @@
  @spec openspec/specs/school-year-rollover/spec.md#requirement-preview-must-be-side-effect-free-and-produce-a-complete-dry-run-report
 -->
 <template>
-	<div class="rollover-wizard">
+	<div class="rollover-wizard lq-board-page">
 		<CnPageHeader :title="t('learniq', 'School-year rollover')" />
 
-		<div class="rollover-wizard__years">
-			<label for="rollover-from">{{
-				t('learniq', 'From academic year')
-			}}</label>
-			<input
-				id="rollover-from"
-				v-model="fromAcademicYear"
-				type="text"
-				placeholder="2025/2026" />
-			<label for="rollover-to">{{ t('learniq', 'To academic year') }}</label>
-			<input
-				id="rollover-to"
-				v-model="toAcademicYear"
-				type="text"
-				placeholder="2026/2027" />
-			<NcButton
-				variant="secondary"
-				:disabled="!fromAcademicYear"
-				@click="propose">
-				{{ t('learniq', 'Propose mapping') }}
-			</NcButton>
-		</div>
+		<CnDetailCard :title="t('learniq', 'School years')">
+			<div class="rollover-wizard__years">
+				<label for="rollover-from">{{
+					t('learniq', 'From academic year')
+				}}</label>
+				<input
+					id="rollover-from"
+					v-model="fromAcademicYear"
+					type="text"
+					placeholder="2025/2026" />
+				<label for="rollover-to">{{ t('learniq', 'To academic year') }}</label>
+				<input
+					id="rollover-to"
+					v-model="toAcademicYear"
+					type="text"
+					placeholder="2026/2027" />
+				<NcButton
+					variant="secondary"
+					:disabled="!fromAcademicYear"
+					@click="propose">
+					{{ t('learniq', 'Propose mapping') }}
+				</NcButton>
+			</div>
+		</CnDetailCard>
 
 		<NcNoteCard
 			v-if="result"
@@ -54,42 +56,54 @@
 
 		<NcLoadingIcon v-if="loading" :size="32" />
 
-		<table v-else-if="mappings.length > 0" class="rollover-wizard__table">
-			<thead>
-				<tr>
-					<th scope="col">{{ t('learniq', 'From cohort') }}</th>
-					<th scope="col">{{ t('learniq', 'Action') }}</th>
-					<th scope="col">{{ t('learniq', 'To cohort') }}</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr
-					v-for="(m, i) in mappings"
-					:key="m.fromCohortId || i"
-					:class="{ 'rollover-wizard__row--blocked': !m.action }">
-					<td>{{ cohortName(m.fromCohortId) }}</td>
-					<td>
-						<NcSelect
-							:modelValue="actionOption(m.action)"
-							:options="actionOptions"
-							:inputLabel="t('learniq', 'Action')"
-							label="label"
-							@update:modelValue="m.action = $event ? $event.id : null" />
-					</td>
-					<td>
-						<input
-							v-model="m.toCohortName"
-							type="text"
-							:aria-label="
-								t('learniq', 'New cohort name for {from}', {
-									from: cohortName(m.fromCohortId),
-								})
-							"
-							:placeholder="t('learniq', 'New cohort name')" />
-					</td>
-				</tr>
-			</tbody>
-		</table>
+		<CnDetailCard
+			v-else-if="mappings.length > 0"
+			:title="t('learniq', 'Mapping per cohort')">
+			<table class="rollover-wizard__table">
+				<thead>
+					<tr>
+						<th scope="col">{{ t('learniq', 'From cohort') }}</th>
+						<th scope="col">{{ t('learniq', 'Action') }}</th>
+						<th scope="col">{{ t('learniq', 'To cohort') }}</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr
+						v-for="(m, i) in mappings"
+						:key="m.fromCohortId || i"
+						:class="{ 'rollover-wizard__row--blocked': !m.action }">
+						<td>{{ cohortName(m.fromCohortId) }}</td>
+						<td>
+							<NcSelect
+								:modelValue="actionOption(m.action)"
+								:options="actionOptions"
+								:inputLabel="t('learniq', 'Action')"
+								label="label"
+								@update:modelValue="m.action = $event ? $event.id : null" />
+						</td>
+						<td>
+							<input
+								v-model="m.toCohortName"
+								type="text"
+								:aria-label="
+									t('learniq', 'New cohort name for {from}', {
+										from: cohortName(m.fromCohortId),
+									})
+								"
+								:placeholder="t('learniq', 'New cohort name')" />
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<div class="rollover-wizard__actions">
+				<NcButton variant="secondary" @click="preview">
+					{{ t('learniq', 'Preview') }}
+				</NcButton>
+				<NcButton variant="primary" :disabled="!canExecute" @click="execute">
+					{{ t('learniq', 'Execute rollover') }}
+				</NcButton>
+			</div>
+		</CnDetailCard>
 
 		<NcEmptyContent
 			v-else
@@ -98,17 +112,10 @@
 				t('learniq', 'Enter a from-year and propose a mapping to begin.')
 			" />
 
-		<div v-if="mappings.length > 0" class="rollover-wizard__actions">
-			<NcButton variant="secondary" @click="preview">
-				{{ t('learniq', 'Preview') }}
-			</NcButton>
-			<NcButton variant="primary" :disabled="!canExecute" @click="execute">
-				{{ t('learniq', 'Execute rollover') }}
-			</NcButton>
-		</div>
-
-		<div v-if="report" class="rollover-wizard__report">
-			<h3>{{ t('learniq', 'Dry-run report') }}</h3>
+		<CnDetailCard
+			v-if="report"
+			:title="t('learniq', 'Dry-run report')"
+			class="rollover-wizard__report">
 			<p v-if="report.blocked" class="rollover-wizard__report--blocked">
 				{{
 					t(
@@ -131,12 +138,12 @@
 					{{ report.cohortsToCreate.length }}
 				</li>
 			</ul>
-		</div>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
-import { CnPageHeader } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { showConfirmation } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
@@ -157,6 +164,7 @@ export default {
 	name: 'RolloverWizard',
 
 	components: {
+		CnDetailCard,
 		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
@@ -371,16 +379,11 @@ export default {
 </script>
 
 <style scoped>
-.rollover-wizard {
-	padding: 1rem;
-}
-
 .rollover-wizard__years {
 	display: flex;
 	gap: 0.5rem;
 	align-items: flex-end;
 	flex-wrap: wrap;
-	margin-bottom: 1rem;
 }
 
 .rollover-wizard__table {
@@ -389,7 +392,7 @@ export default {
 }
 
 .rollover-wizard__row--blocked {
-	background: var(--cn-color-warning-background, var(--color-warning, #fdf4e3));
+	background: var(--cn-color-warning-background, var(--color-warning));
 }
 
 .rollover-wizard__actions {
@@ -399,6 +402,6 @@ export default {
 }
 
 .rollover-wizard__report--blocked {
-	color: var(--cn-color-error, var(--color-error, #c0392b));
+	color: var(--cn-color-error, var(--color-error));
 }
 </style>
