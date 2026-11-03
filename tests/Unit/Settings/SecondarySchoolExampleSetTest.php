@@ -706,7 +706,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 		self::assertSame('2026-2027', $h4b['academicYear']);
 		self::assertCount(27, $h4b['learnerIds']);
 		self::assertContains($noor['ncUserId'], $h4b['learnerIds']);
-		$enrolment = array_values(array_filter(self::of('enrolment'), static fn (array $e): bool => $e['learnerId'] === $noor['ncUserId'] && $e['lifecycle'] === 'active'));
+		$enrolment = array_values(array_filter(self::of('enrolment'), static fn (array $e): bool => $e['learnerId'] === $noor['ncUserId'] && $e['lifecycle'] === 'active' && isset($e['cohortId'])));
 		self::assertCount(1, $enrolment);
 		self::assertSame($h4b['uuid'], $enrolment[0]['cohortId']);
 		self::assertSame(expected: 3, actual: $enrolment[0]['leerjaar']);
@@ -839,6 +839,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 				'Paragraaf 3.3, opgave 23 tot en met 31 2026-10-08',
 				'Toets hoofdstuk 3 en 4 2026-11-10',
 				'Betoog schrijven 2026-10-09',
+				'Practicumverslag cellen 2026-10-16',
 			],
 			array_map(static fn (array $a): string => $a['title'] . ' ' . substr($a['dueAt'], 0, 10), $homework)
 		);
