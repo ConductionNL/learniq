@@ -1865,12 +1865,12 @@ def add_story(b: Builder, school: dict, locations: dict, rooms: dict, courses: d
     # --- the school calendar ---------------------------------------------------------------------------------
     events = [
         ("Mentorgesprekken", "2026-10-13", "2026-10-15", "event", None,
-         "Op dinsdag 13 oktober na school en donderdag 15 oktober in de avond. Kies een tijd in Mijn Vaartveld."),
+         "Op dinsdag 13 oktober na school en donderdag 15 oktober in de avond. Kies een tijd in Mijn Zuiddrecht."),
         ("Herfstvakantie", "2026-10-17", "2026-10-25", "other", None, "De school is dicht."),
         ("Informatieavond profielkeuze, klas 3", "2026-11-03T19:30:00+01:00", "2026-11-03T21:00:00+01:00", "event", None,
          "Voor leerlingen van klas 3 havo en vwo en hun ouders, in de aula. Je hoort hoe de profielkeuze gaat en wat je met elk profiel kunt."),
         ("Toetsweek 1, bovenbouw", "2026-11-09", "2026-11-13", "other", [h4b],
-         "Het toetsrooster staat in Mijn Vaartveld. Kijk goed welke toetsen meetellen voor je schoolexamen."),
+         "Het toetsrooster staat in Mijn Zuiddrecht. Kijk goed welke toetsen meetellen voor je schoolexamen."),
     ]
     for title, starts, ends, kind, groups, description in events:
         b.add("school-event", {

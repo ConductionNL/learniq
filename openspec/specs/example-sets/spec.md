@@ -563,7 +563,7 @@ An e2e suite MUST NOT write a portal's `authentication.modes`. Where a suite nee
 
 ### Requirement: Each example set is the school its portal was designed for
 
-The curated example sets MUST carry the schools of the four portal designs: po MUST be "Basisschool De Wilgenboom", vo MUST be "Vaartveld College", mbo MUST be "Esdoornveen" and training MUST be the "Warmtepompacademie", each in the fictional town of Zuiddrecht. Each set MUST contain the people its design names, with the dates and numbers its boards show, pinned to Monday 5 October 2026. A number on a board MUST come out of the data (an average from its grade entries, an hours total from its hour weeks), not from a stored copy that disagrees with them.
+The curated example sets MUST carry the schools of the four portal designs: po MUST be "Basisschool De Wilgenboom", vo MUST be "Zuiddrecht College", mbo MUST be "Esdoornveen" and training MUST be the "Warmtepompacademie", each in the fictional town of Zuiddrecht. Each set MUST contain the people its design names, with the dates and numbers its boards show, pinned to Monday 5 October 2026. A number on a board MUST come out of the data (an average from its grade entries, an hours total from its hour weeks), not from a stored copy that disagrees with them.
 
 #### Scenario: The po set holds the Hulstkamp family's autumn
 - **GIVEN** a fresh instance
@@ -577,7 +577,7 @@ The curated example sets MUST carry the schools of the four portal designs: po M
 #### Scenario: The vo set holds Noor Bakker's Monday
 - **GIVEN** a fresh instance
 - **WHEN** the operator loads the vo set
-- **THEN** Vaartveld College has a pupil Noor Bakker in class H4b with seven sessions on 5 October 2026, of which lesson 3 has a room change and lesson 7 is cancelled
+- **THEN** Zuiddrecht College has a pupil Noor Bakker in class H4b with seven sessions on 5 October 2026, of which lesson 3 has a room change and lesson 7 is cancelled
 - **AND** her wiskunde A grade entries 6,1 (weight 1), 4,7 (weight 3) and 5,8 (weight 1) average 5,2
 - @e2e exclude seed data, covered by PHPUnit `SecondarySchoolExampleSetTest`
 
@@ -632,7 +632,7 @@ When portaliq is installed, loading an example set MUST leave its school with a 
 #### Scenario: A set whose school has no portal gets a new themed one
 - **GIVEN** portaliq is installed and no portal has the slug `vaartveld`
 - **WHEN** the operator loads the vo set
-- **THEN** a published portal `vaartveld` titled "Mijn Vaartveld" exists with theme `example-voortgezet`, or with `vaartveld` when thematiq ships that set (example-portal-declares-its-site)
+- **THEN** a published portal `vaartveld` titled "Mijn Zuiddrecht" exists with theme `example-voortgezet`, or with `vaartveld` when thematiq ships that set (example-portal-declares-its-site)
 - @e2e exclude a write through OpenRegister with no screen of its own, covered by PHPUnit `ExamplePortalProvisionerTest::testAMissingPortalIsCreatedWithTheExampleTheme`
 
 #### Scenario: An existing portal without a theme gets the example theme
