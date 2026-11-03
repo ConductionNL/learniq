@@ -330,14 +330,14 @@ class DisplayScreenBoard {
 	 * @return array<string, mixed>|null
 	 */
 	private function rowData(mixed $row): ?array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
 		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
 			return (array)$row->jsonSerialize();
 		}
 
-		return null;
+		if (is_array($row) === false) {
+			return null;
+		}
+
+		return $row;
 	}//end rowData()
 }//end class
