@@ -240,6 +240,90 @@
             }
         ]
     },
+    "timetable of piet": {
+        "timetable": {
+            "sessions": [
+                {
+                    "id": "s-3",
+                    "title": "Engels",
+                    "startsAt": "2026-11-04T10:00:00+00:00",
+                    "endsAt": "2026-11-04T10:50:00+00:00",
+                    "location": "",
+                    "cohortId": "c-2",
+                    "courseId": "",
+                    "lessonId": "",
+                    "lifecycle": "changed",
+                    "roomId": null,
+                    "room": null,
+                    "substituteTeacherId": "sub",
+                    "teacherUserId": "",
+                    "externalRef": "",
+                    "sourceSystem": "",
+                    "cover": false,
+                    "changeReasonKind": null,
+                    "changeReason": null,
+                    "changedAt": null,
+                    "source": "learniq",
+                    "onlineMeetingUrl": null,
+                    "notes": [
+                        {
+                            "id": "n-3",
+                            "topic": null,
+                            "text": "Invaller",
+                            "audience": "cover",
+                            "authorId": ""
+                        }
+                    ],
+                    "canAddNote": true
+                }
+            ],
+            "source": "fake"
+        },
+        "asked": [
+            {
+                "sessionsForCohorts": [
+                    [
+                        "c-2"
+                    ],
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            },
+            {
+                "sessionsForTeacher": "piet"
+            },
+            {
+                "isAdmin": "piet"
+            },
+            {
+                "isInGroup": [
+                    "piet",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "piet",
+                    "compliance-officers"
+                ]
+            },
+            {
+                "isAdmin": "piet"
+            },
+            {
+                "isInGroup": [
+                    "piet",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "piet",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
     "timetable of sub": {
         "timetable": {
             "sessions": [

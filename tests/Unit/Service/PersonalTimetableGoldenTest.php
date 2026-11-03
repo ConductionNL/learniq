@@ -53,7 +53,7 @@ class PersonalTimetableGoldenTest extends TestCase {
 		$service = new PersonalTimetableService($this->objects(), new TimetableProjector(logger: $logger, noteReader: new LessonNoteReader($this->objects(), $this->groupManager(), $logger)), $this->resolver(), $logger);
 
 		$actual = [];
-		foreach (['anna', 'jan', 'sub', 'lead', 'nobody'] as $uid) {
+		foreach (['anna', 'jan', 'piet', 'sub', 'lead', 'nobody'] as $uid) {
 			$this->asked = [];
 			$timetable = $service->forUser(uid: $uid, windowFrom: '2026-11-02T00:00:00+00:00', windowTo: '2026-11-09T00:00:00+00:00');
 			// todaysChanges() reads the clock; it is not what this golden pins.
