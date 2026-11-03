@@ -263,7 +263,7 @@ class LessonNoteReader {
 	 *
 	 * @param array<int,array<string,mixed>> $sessions Lessons.
 	 *
-	 * @return array<int,string>
+	 * @return array<int,int|string>
 	 */
 	private function cohortsOf(array $sessions): array {
 		$ids = [];
@@ -282,14 +282,14 @@ class LessonNoteReader {
 	 *
 	 * Read without the caller's RBAC: forSessions() decides what is returned.
 	 *
-	 * @param array<int,string> $cohortIds Cohort uuids.
+	 * @param array<int,int|string> $cohortIds Cohort ids; an all-digit id comes back from array_keys() as an int.
 	 *
 	 * @return array<int,array<string,mixed>>
 	 */
 	private function notesOfCohorts(array $cohortIds): array {
 		$notes = [];
 		foreach ($cohortIds as $cohortId) {
-			$notes = array_merge($notes, $this->notesOfCohort(cohortId: $cohortId));
+			$notes = array_merge($notes, $this->notesOfCohort(cohortId: (string)$cohortId));
 		}
 
 		return $notes;
