@@ -303,17 +303,9 @@ class LessonNoteReader {
 	 * @return array<int,array<string,mixed>>
 	 */
 	private function notesOfCohort(string $cohortId): array {
+		$filters = ['register' => self::REGISTER, 'schema' => self::SCHEMA, 'cohortId' => $cohortId];
 		try {
-			$rows = $this->objectService->findAll(
-				[
-					'filters' => [
-						'register' => self::REGISTER,
-						'schema' => self::SCHEMA,
-						'cohortId' => $cohortId,
-					],
-				],
-				_rbac: false
-			);
+			$rows = $this->objectService->findAll(['filters' => $filters], _rbac: false);
 		} catch (Throwable $exception) {
 			// A timetable without its notes beats no timetable.
 			$this->logger->warning('[LessonNoteReader] Notes of cohort {id} not readable: {msg}', ['id' => $cohortId, 'msg' => $exception->getMessage()]);
