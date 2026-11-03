@@ -161,12 +161,24 @@ class DemoDates {
 			return $text;
 		}
 
+		return $this->moveText(text: $text, days: $days);
+	}//end shiftString()
+
+	/**
+	 * A string with a digit moved by the first shape it has: a date, a date-time, an ISO week, or prose.
+	 *
+	 * @param string $text The string.
+	 * @param int    $days The days to move, not 0.
+	 *
+	 * @return string
+	 */
+	private function moveText(string $text, int $days): string {
 		if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $text) === 1) {
 			return $this->moveDate(date: $text, days: $days);
 		}
 
 		if (preg_match('/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})(:\d{2}(?:\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/', $text, $parts) === 1) {
-			return $this->moveDateTime(text: $text, parts: $parts, days: $days);
+			return $this->moveDateTime(parts: $parts, days: $days);
 		}
 
 		if (preg_match('/^(\d{4})-W(\d{2})$/', $text, $parts) === 1) {
@@ -175,7 +187,7 @@ class DemoDates {
 		}
 
 		return $this->shiftProse(text: $text, days: $days);
-	}//end shiftString()
+	}//end moveText()
 
 	/**
 	 * A plain ISO date moved.
@@ -197,13 +209,13 @@ class DemoDates {
 	 * An ISO date-time moved with its wall-clock time kept in Amsterdam, so
 	 * 08.30 stays 08.30 across a change of summer time.
 	 *
-	 * @param string             $text  The date-time.
-	 * @param array<int, string> $parts The regex parts: date, hh:mm, :ss, zone.
+	 * @param array<int, string> $parts The regex parts: the whole date-time, date, hh:mm, :ss, zone.
 	 * @param int                $days  The days.
 	 *
 	 * @return string
 	 */
-	private function moveDateTime(string $text, array $parts, int $days): string {
+	private function moveDateTime(array $parts, int $days): string {
+		$text = $parts[0];
 		try {
 			$zone   = ($parts[4] ?? '');
 			$moment = new DateTimeImmutable($text);
@@ -283,16 +295,14 @@ class DemoDates {
 			$year = (int)$match[4];
 		}
 
-		$pieces = $this->movedPieces(days: $match[1] . $match[2], month: $month, year: $year, shift: $days);
+		$pieces = $this->movedPieces(phrase: ['days' => $match[1] . $match[2], 'month' => $month, 'year' => $year], shift: $days);
 		if ($pieces === null) {
 			return $match[0];
 		}
 
 		return $this->writePieces(
 			pieces: $pieces,
-			short: self::FULL[$month] !== $monthWord,
-			like: $match[3],
-			withYear: ($match[4] ?? '') !== ''
+			style: ['short' => self::FULL[$month] !== $monthWord, 'like' => $match[3], 'withYear' => ($match[4] ?? '') !== '']
 		);
 	}//end movePhrase()
 
@@ -300,14 +310,13 @@ class DemoDates {
 	 * The days and separators of a phrase, each day moved; null when a day
 	 * does not exist in that month.
 	 *
-	 * @param string $days  The days and separators ("3, 4 en 10").
-	 * @param int    $month The month.
-	 * @param int    $year  The year.
-	 * @param int    $shift The days to move.
+	 * @param array{days:string,month:int,year:int} $phrase The days and separators ("3, 4 en 10"), the month and the year.
+	 * @param int                                   $shift  The days to move.
 	 *
 	 * @return array<int, string|DateTimeImmutable>|null A separator string or a moved day.
 	 */
-	private function movedPieces(string $days, int $month, int $year, int $shift): ?array {
+	private function movedPieces(array $phrase, int $shift): ?array {
+		['days' => $days, 'month' => $month, 'year' => $year] = $phrase;
 		preg_match_all('/(\d{1,2})|(' . self::SEPARATOR . ')/u', $days, $tokens, PREG_SET_ORDER);
 		$pieces = [];
 		foreach ($tokens as $token) {
@@ -330,15 +339,14 @@ class DemoDates {
 	 * Write moved days back as a phrase, naming the month (and year) after
 	 * the last day of each month.
 	 *
-	 * @param array<int, string|DateTimeImmutable> $pieces   Separators and moved days.
-	 * @param bool                                 $short    Whether the phrase used a short month name.
-	 * @param string                               $like     The month word it used, for its case.
-	 * @param bool                                 $withYear Whether the phrase named a year.
+	 * @param array<int, string|DateTimeImmutable>          $pieces Separators and moved days.
+	 * @param array{short:bool,like:string,withYear:bool} $style  A short month name or not, the month word
+	 *                                                            used (for its case), a year named or not.
 	 *
 	 * @return string
 	 */
-	private function writePieces(array $pieces, bool $short, string $like, bool $withYear): string {
-		$days = array_values(array_filter($pieces, static fn ($piece): bool => $piece instanceof DateTimeImmutable));
+	private function writePieces(array $pieces, array $style): string {
+		$days  = array_values(array_filter($pieces, static fn ($piece): bool => $piece instanceof DateTimeImmutable));
 		$out   = '';
 		$index = 0;
 		foreach ($pieces as $piece) {
@@ -347,26 +355,63 @@ class DemoDates {
 				continue;
 			}
 
-			$next = ($days[$index + 1] ?? null);
 			$index++;
-			$out .= $piece->format('j');
-			if ($next !== null && $next->format('n') === $piece->format('n')) {
-				continue;
-			}
-
-			$names = self::FULL;
-			if ($short === true) {
-				$names = self::SHORT;
-			}
-
-			$out .= ' ' . $this->keepCase(word: $names[(int)$piece->format('n')], like: $like);
-			if ($withYear === true && ($next === null || $next->format('Y') !== $piece->format('Y'))) {
-				$out .= ' ' . $piece->format('Y');
-			}
-		}//end foreach
+			$out .= $this->writeDay(pair: [$piece, ($days[$index] ?? null)], style: $style);
+		}
 
 		return $out;
 	}//end writePieces()
+
+	/**
+	 * One moved day, followed by its month (and year) unless the next day is in the same month.
+	 *
+	 * @param array{0:DateTimeImmutable,1:DateTimeImmutable|null} $pair  The day and the next day of the phrase, or null.
+	 * @param array{short:bool,like:string,withYear:bool}         $style How the phrase named the month and year.
+	 *
+	 * @return string
+	 */
+	private function writeDay(array $pair, array $style): string {
+		[$day, $next] = $pair;
+		if ($next !== null && $next->format('n') === $day->format('n')) {
+			return $day->format('j');
+		}
+
+		return $day->format('j') . ' ' . $this->monthName(day: $day, style: $style) . $this->yearPart(pair: $pair, withYear: $style['withYear']);
+	}//end writeDay()
+
+	/**
+	 * The month of a day, named full or short as the phrase did, in its case.
+	 *
+	 * @param DateTimeImmutable                           $day   The day.
+	 * @param array{short:bool,like:string,withYear:bool} $style How the phrase named the month.
+	 *
+	 * @return string
+	 */
+	private function monthName(DateTimeImmutable $day, array $style): string {
+		$names = self::FULL;
+		if ($style['short'] === true) {
+			$names = self::SHORT;
+		}
+
+		return $this->keepCase(word: $names[(int)$day->format('n')], like: $style['like']);
+	}//end monthName()
+
+	/**
+	 * The year after a day, when the phrase named one and the next day is not in the same year.
+	 *
+	 * @param array{0:DateTimeImmutable,1:DateTimeImmutable|null} $pair     The day and the next day, or null.
+	 * @param bool                                                $withYear Whether the phrase named a year.
+	 *
+	 * @return string ' YYYY' or ''.
+	 */
+	private function yearPart(array $pair, bool $withYear): string {
+		[$day, $next] = $pair;
+		if ($withYear === true && ($next === null || $next->format('Y') !== $day->format('Y'))) {
+			return ' ' . $day->format('Y');
+		}
+
+		return '';
+	}//end yearPart()
 
 	/**
 	 * The year of a day-month phrase without a year: the one that puts it
