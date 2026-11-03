@@ -30,6 +30,7 @@ use PHPUnit\Framework\TestCase;
  * wall-clock time, so the golden does not depend on the day it runs.
  *
  * @covers \OCA\Learniq\Service\DisplayScreenBoard
+ * @uses   \OCA\Learniq\Service\DisplayScreenLesson
  */
 class DisplayScreenBoardGoldenTest extends TestCase {
 	use GoldenFile;
