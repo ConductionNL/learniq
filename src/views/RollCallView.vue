@@ -350,6 +350,7 @@ export default {
 		 * The page title, naming the group once one is chosen.
 		 *
 		 * @return {string} The title.
+		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		title() {
 			const title = this.t('learniq', 'Attendance register')
