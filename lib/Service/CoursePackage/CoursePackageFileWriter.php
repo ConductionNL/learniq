@@ -37,6 +37,8 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Writes resolved course-package file bytes into nc:files.
+ *
+ * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
  */
 class CoursePackageFileWriter {
 	/**
@@ -73,19 +75,32 @@ class CoursePackageFileWriter {
 			return null;
 		}
 
-		$sourcePath = $dir . '/' . $href;
-		if (is_dir($sourcePath) === true) {
-			// Directory-shaped source (e.g. a Moodle activity folder) — nothing to attach directly.
-			return null;
-		}
-
-		if (file_exists($sourcePath) === false) {
+		$sourcePath = $this->sourceFile(dir: $dir, href: $href);
+		if ($sourcePath === null) {
 			return null;
 		}
 
 		$content = (string)file_get_contents($sourcePath);
 		return $this->writeBytesToFiles(content: $content, filename: basename($sourcePath), importedBy: $importedBy, tenantId: $tenantId);
 	}//end resolveFileRef()
+
+	/**
+	 * The package file an href points at, or null when it is missing or a directory.
+	 *
+	 * @param string $dir  Extracted package directory.
+	 * @param string $href Package-relative path.
+	 *
+	 * @return string|null The absolute path of the file.
+	 */
+	private function sourceFile(string $dir, string $href): ?string {
+		$sourcePath = $dir . '/' . $href;
+		// A directory-shaped source (e.g. a Moodle activity folder) has nothing to attach directly.
+		if (is_dir($sourcePath) === true || file_exists($sourcePath) === false) {
+			return null;
+		}
+
+		return $sourcePath;
+	}//end sourceFile()
 
 	/**
 	 * Write a base64-encoded Material's bytes (from a scholiq-native JSON
@@ -107,13 +122,24 @@ class CoursePackageFileWriter {
 			return null;
 		}
 
+		return $this->writeBytesToFiles(content: $decoded, filename: $this->safeFilename(title: $title), importedBy: $importedBy, tenantId: $tenantId);
+	}//end writeBase64ToFiles()
+
+	/**
+	 * A title as a file name: runs of other characters become one dash; 'material' when nothing is left.
+	 *
+	 * @param string $title The title.
+	 *
+	 * @return string
+	 */
+	private function safeFilename(string $title): string {
 		$filename = preg_replace('/[^A-Za-z0-9_.-]+/', '-', $title);
 		if ($filename === null || $filename === '') {
-			$filename = 'material';
+			return 'material';
 		}
 
-		return $this->writeBytesToFiles(content: $decoded, filename: $filename, importedBy: $importedBy, tenantId: $tenantId);
-	}//end writeBase64ToFiles()
+		return $filename;
+	}//end safeFilename()
 
 	/**
 	 * Write raw bytes into the importing tenant's Scholiq course-imports
@@ -130,17 +156,12 @@ class CoursePackageFileWriter {
 	 */
 	public function writeBytesToFiles(string $content, string $filename, string $importedBy, string $tenantId): ?string {
 		try {
-			$tenantSegment = 'default';
-			if ($tenantId !== '') {
-				$tenantSegment = $tenantId;
-			}
-
-			$ncBaseDir = 'Learniq/' . $tenantSegment . '/course-imports';
+			$ncBaseDir = $this->importFolder(tenantId: $tenantId);
 			$ncPath = $ncBaseDir . '/' . $filename;
 
 			$userFolder = $this->rootFolder->getUserFolder($importedBy);
 			$this->ensureFolder(userFolder: $userFolder, path: $ncBaseDir);
-			$this->putFileContent(userFolder: $userFolder, path: $ncPath, content: $content);
+			$this->putFileContent(userFolder: $userFolder, file: ['path' => $ncPath, 'content' => $content]);
 
 			return '/' . $ncPath;
 		} catch (\Throwable $e) {
@@ -151,6 +172,22 @@ class CoursePackageFileWriter {
 			return null;
 		}//end try
 	}//end writeBytesToFiles()
+
+	/**
+	 * The course-imports folder of a tenant; 'default' when there is no tenant.
+	 *
+	 * @param string $tenantId Tenant UUID, or ''.
+	 *
+	 * @return string Folder-relative path.
+	 */
+	private function importFolder(string $tenantId): string {
+		$tenantSegment = 'default';
+		if ($tenantId !== '') {
+			$tenantSegment = $tenantId;
+		}
+
+		return 'Learniq/' . $tenantSegment . '/course-imports';
+	}//end importFolder()
 
 	/**
 	 * Recursively remove a directory and its contents.
@@ -166,38 +203,57 @@ class CoursePackageFileWriter {
 			return;
 		}
 
+		foreach ($this->entries(dir: $dir) as $item) {
+			$this->removeEntry(path: $dir . '/' . $item);
+		}
+
+		rmdir($dir);
+	}//end removeDirectory()
+
+	/**
+	 * The names in a directory without `.` and `..`; none when it cannot be read.
+	 *
+	 * @param string $dir Absolute path to the directory.
+	 *
+	 * @return array<int,string>
+	 */
+	private function entries(string $dir): array {
 		$items = scandir($dir);
 		if ($items === false) {
+			return [];
+		}
+
+		return array_diff($items, ['.', '..']);
+	}//end entries()
+
+	/**
+	 * Remove one directory entry: a directory's contents, or a file.
+	 *
+	 * @param string $path Absolute path.
+	 *
+	 * @return void
+	 */
+	private function removeEntry(string $path): void {
+		if (is_dir($path) === true) {
+			$this->removeDirectory(dir: $path);
 			return;
 		}
 
-		foreach ($items as $item) {
-			if ($item === '.' || $item === '..') {
-				continue;
-			}
-
-			$path = $dir . '/' . $item;
-			if (is_dir($path) === true) {
-				$this->removeDirectory(dir: $path);
-				continue;
-			}
-
-			unlink($path);
-		}
-	}//end removeDirectory()
+		unlink($path);
+	}//end removeEntry()
 
 	/**
 	 * Write (or overwrite) a file node at the given nc:files path.
 	 *
-	 * @param Folder $userFolder The root user folder.
-	 * @param string $path Folder-relative destination path.
-	 * @param string $content Raw file bytes.
+	 * @param Folder                           $userFolder The root user folder.
+	 * @param array{path:string,content:string} $file       Folder-relative destination path and raw file bytes.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
 	 */
-	private function putFileContent(Folder $userFolder, string $path, string $content): void {
+	private function putFileContent(Folder $userFolder, array $file): void {
+		['path' => $path, 'content' => $content] = $file;
 		if ($userFolder->nodeExists($path) === false) {
 			$userFolder->newFile($path, $content);
 			return;
