@@ -242,6 +242,25 @@ class ExternalTrainingImportTest extends TestCase {
 	}//end testAFutureDateIsRefusedPerRow()
 
 	/**
+	 * Whether a date is in the future is judged at the injected instant, not at the server clock.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#scenario-an-invalid-date-is-refused-per-row
+	 */
+	public function testTheFutureIsJudgedAtTheInjectedInstant(): void {
+		$rows   = [self::row(learner: 'P1', extra: ['completedAt' => '2026-12-01'])];
+		$import = $this->import(profiles: [self::profile(1)]);
+
+		$later = $import->import(rows: $rows, tenantId: self::TENANT, submittedBy: 'officer', run: ['dryRun' => true, 'now' => new DateTimeImmutable('2027-06-01T12:00:00+00:00')]);
+		self::assertSame('ready', $later['rows'][0]['status'], 'a date before the injected instant is not in the future');
+
+		$rows    = [self::row(learner: 'P1', extra: ['completedAt' => '2020-03-01'])];
+		$earlier = $import->import(rows: $rows, tenantId: self::TENANT, submittedBy: 'officer', run: ['dryRun' => true, 'now' => new DateTimeImmutable('2020-01-01T12:00:00+00:00')]);
+		self::assertSame('invalid', $earlier['rows'][0]['status'], 'a date after the injected instant is in the future');
+	}//end testTheFutureIsJudgedAtTheInjectedInstant()
+
+	/**
 	 * Each invalid field names its reason; Dutch day-month-year dates are read.
 	 *
 	 * @return void

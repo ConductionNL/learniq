@@ -103,6 +103,7 @@ class ActorForwardingWiringTest extends TestCase {
 		$instance = (new ReflectionClass($job))->newInstanceArgs($this->arguments(job: $job, shared: $shared));
 
 		self::assertInstanceOf(ActorForwardedJob::class, $instance);
+		self::assertSame($shared[ITimeFactory::class], $this->baseValue(job: $instance, property: 'time'));
 		self::assertSame($shared[IUserSession::class], $this->baseValue(job: $instance, property: 'userSession'));
 		self::assertSame($shared[IUserManager::class], $this->baseValue(job: $instance, property: 'userManager'));
 		self::assertSame($shared[OrganisationService::class], $this->baseValue(job: $instance, property: 'organisation'));
