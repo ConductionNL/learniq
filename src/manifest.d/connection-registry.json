@@ -38,6 +38,7 @@
 				"name": "Integriq"
 			},
 			"config": {
+				"showTitle": true,
 				"register": "integriq",
 				"schema": "app_connection",
 				"showViewAction": false,

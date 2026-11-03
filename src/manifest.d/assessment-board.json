@@ -122,6 +122,7 @@
 			"type": "index",
 			"title": "Item revision flags",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "item-revision-flag",
 				"readOnly": true
@@ -201,6 +202,7 @@
 			"type": "index",
 			"title": "Exemption requests",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "exemption-case",
 				"columns": [
