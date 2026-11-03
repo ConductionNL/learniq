@@ -40,6 +40,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \OCA\Learniq\AppInfo\Registrar\SafeguardingListenerRegistrar
  * @covers \OCA\Learniq\AppInfo\Registrar\SchedulingListenerRegistrar
  * @covers \OCA\Learniq\AppInfo\Registrar\RegistersEventListeners
+ * @uses   \OCA\Learniq\AppInfo\OpenRegisterAutoloader
  * @uses   \OCA\Learniq\AppInfo\Registrar\AttemptLimitListenerRegistrar
  * @uses   \OCA\Learniq\AppInfo\Registrar\GovernanceListenerRegistrar
  */

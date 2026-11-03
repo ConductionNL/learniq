@@ -22,8 +22,8 @@
             }
         },
         {
-            "saveObject": [
-                {
+            "saveObject": {
+                "object": {
                     "courseId": "c-1",
                     "teacherId": null,
                     "academicYear": "2026-2027",
@@ -35,18 +35,9 @@
                     "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
                     "tenant_id": "ten-1"
                 },
-                [],
-                "learniq",
-                "course-quality-score",
-                null,
-                true,
-                true,
-                false,
-                null,
-                null,
-                false,
-                false
-            ]
+                "register": "learniq",
+                "schema": "course-quality-score"
+            }
         }
     ],
     "course level, no teacher, no tenant": [
@@ -72,8 +63,8 @@
             }
         },
         {
-            "saveObject": [
-                {
+            "saveObject": {
+                "object": {
                     "courseId": "c-1",
                     "teacherId": null,
                     "academicYear": "2026-2027",
@@ -85,18 +76,9 @@
                     "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
                     "tenant_id": ""
                 },
-                [],
-                "learniq",
-                "course-quality-score",
-                null,
-                true,
-                true,
-                false,
-                null,
-                null,
-                false,
-                false
-            ]
+                "register": "learniq",
+                "schema": "course-quality-score"
+            }
         }
     ],
     "existing row as an array": [
@@ -122,8 +104,8 @@
             }
         },
         {
-            "saveObject": [
-                {
+            "saveObject": {
+                "object": {
                     "id": "score-1",
                     "courseId": "c-1",
                     "note": "kept",
@@ -137,18 +119,9 @@
                     "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
                     "tenant_id": "ten-1"
                 },
-                [],
-                "learniq",
-                "course-quality-score",
-                null,
-                true,
-                true,
-                false,
-                null,
-                null,
-                false,
-                false
-            ]
+                "register": "learniq",
+                "schema": "course-quality-score"
+            }
         }
     ],
     "existing row as an entity": [
@@ -174,8 +147,8 @@
             }
         },
         {
-            "saveObject": [
-                {
+            "saveObject": {
+                "object": {
                     "id": "score-1",
                     "courseId": "c-1",
                     "note": "kept",
@@ -220,18 +193,9 @@
                     "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
                     "tenant_id": "ten-1"
                 },
-                [],
-                "learniq",
-                "course-quality-score",
-                null,
-                true,
-                true,
-                false,
-                null,
-                null,
-                false,
-                false
-            ]
+                "register": "learniq",
+                "schema": "course-quality-score"
+            }
         }
     ],
     "first response, teacher scoped": [
@@ -257,8 +221,8 @@
             }
         },
         {
-            "saveObject": [
-                {
+            "saveObject": {
+                "object": {
                     "courseId": "c-1",
                     "teacherId": "t-9",
                     "academicYear": "2026-2027",
@@ -270,18 +234,9 @@
                     "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
                     "tenant_id": "ten-1"
                 },
-                [],
-                "learniq",
-                "course-quality-score",
-                null,
-                true,
-                true,
-                false,
-                null,
-                null,
-                false,
-                false
-            ]
+                "register": "learniq",
+                "schema": "course-quality-score"
+            }
         }
     ],
     "no course": [],

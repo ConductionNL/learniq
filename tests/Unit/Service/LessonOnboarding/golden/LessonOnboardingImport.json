@@ -136,8 +136,8 @@
                 ]
             },
             {
-                "saveObject": [
-                    {
+                "saveObject": {
+                    "object": {
                         "courseId": "course-1",
                         "name": "Breuken vergelijken",
                         "order": 8,
@@ -176,18 +176,10 @@
                         ],
                         "tenant_id": "t-course"
                     },
-                    [],
-                    "learniq",
-                    "lesson",
-                    "lesson-3",
-                    true,
-                    true,
-                    false,
-                    null,
-                    null,
-                    false,
-                    false
-                ]
+                    "register": "learniq",
+                    "schema": "lesson",
+                    "uuid": "lesson-3"
+                }
             },
             {
                 "create": [
@@ -430,8 +422,8 @@
                 ]
             },
             {
-                "saveObject": [
-                    {
+                "saveObject": {
+                    "object": {
                         "courseId": "course-1",
                         "name": "Breuken vergelijken",
                         "order": 8,
@@ -470,18 +462,10 @@
                         ],
                         "tenant_id": "t-course"
                     },
-                    [],
-                    "learniq",
-                    "lesson",
-                    "lesson-3",
-                    true,
-                    true,
-                    false,
-                    null,
-                    null,
-                    false,
-                    false
-                ]
+                    "register": "learniq",
+                    "schema": "lesson",
+                    "uuid": "lesson-3"
+                }
             },
             {
                 "create": [
@@ -876,8 +860,8 @@
                 ]
             },
             {
-                "saveObject": [
-                    {
+                "saveObject": {
+                    "object": {
                         "courseId": "course-1",
                         "name": "Breuken vergelijken",
                         "order": 8,
@@ -916,18 +900,10 @@
                         ],
                         "tenant_id": "t-course"
                     },
-                    [],
-                    "learniq",
-                    "lesson",
-                    "lesson-3",
-                    true,
-                    true,
-                    false,
-                    null,
-                    null,
-                    false,
-                    false
-                ]
+                    "register": "learniq",
+                    "schema": "lesson",
+                    "uuid": "lesson-3"
+                }
             },
             {
                 "create": [
@@ -1251,8 +1227,8 @@
                 ]
             },
             {
-                "saveObject": [
-                    {
+                "saveObject": {
+                    "object": {
                         "courseId": "course-1",
                         "name": "Breuken vergelijken",
                         "order": 8,
@@ -1291,18 +1267,10 @@
                         ],
                         "tenant_id": "t-folder"
                     },
-                    [],
-                    "learniq",
-                    "lesson",
-                    "lesson-4",
-                    true,
-                    true,
-                    false,
-                    null,
-                    null,
-                    false,
-                    false
-                ]
+                    "register": "learniq",
+                    "schema": "lesson",
+                    "uuid": "lesson-4"
+                }
             },
             {
                 "create": [
@@ -1679,8 +1647,8 @@
                 ]
             },
             {
-                "saveObject": [
-                    {
+                "saveObject": {
+                    "object": {
                         "courseId": "course-1",
                         "name": "Breuken vergelijken",
                         "order": 8,
@@ -1719,18 +1687,10 @@
                         ],
                         "tenant_id": "t-course"
                     },
-                    [],
-                    "learniq",
-                    "lesson",
-                    "lesson-3",
-                    true,
-                    true,
-                    false,
-                    null,
-                    null,
-                    false,
-                    false
-                ]
+                    "register": "learniq",
+                    "schema": "lesson",
+                    "uuid": "lesson-3"
+                }
             },
             {
                 "create": [

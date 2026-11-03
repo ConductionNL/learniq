@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\PassedArguments;
 use OCA\Learniq\Listener\CourseQualityScoreRollupHandler;
 use OCA\Learniq\Service\CourseQualityScoreEvaluator;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -137,7 +138,7 @@ class CourseQualityScoreRollupGoldenTest extends TestCase {
 		);
 		$service->method('saveObject')->willReturnCallback(
 			function (...$args): ObjectEntity {
-				$this->calls[] = ['saveObject' => $args];
+				$this->calls[] = ['saveObject' => PassedArguments::of(method: [ObjectService::class, 'saveObject'], args: $args)];
 				return OrEntityFactory::make([], 'course-quality-score');
 			}
 		);
