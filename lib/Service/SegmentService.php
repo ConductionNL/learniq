@@ -311,8 +311,33 @@ class SegmentService {
 	 * @return array{segment: string, uuid: string|null, setBy: string|null}|null The row's segment, uuid and chooser.
 	 */
 	private function currentRow(): ?array {
+		$rows = $this->settingsRows();
+		if ($rows === null) {
+			return null;
+		}
+
+		$current = null;
+		// An update time is never negative, so the first row with a known segment is always taken.
+		$newest = -1;
+		foreach ($this->knownRows(rows: $rows) as $data) {
+			$updated = $this->updatedAt(row: $data);
+			if ($updated > $newest) {
+				$newest  = $updated;
+				$current = $this->segmentRow(row: $data);
+			}
+		}
+
+		return $current;
+	}//end currentRow()
+
+	/**
+	 * The LearniqSettings rows, or null (logged) when they cannot be read.
+	 *
+	 * @return array<int,mixed>|null
+	 */
+	private function settingsRows(): ?array {
 		try {
-			$rows = $this->objectService->findAll(
+			return $this->objectService->findAll(
 				[
 					'filters' => [
 						'register' => self::LEARNIQ_REGISTER,
@@ -329,34 +354,58 @@ class SegmentService {
 			);
 			return null;
 		}
+	}//end settingsRows()
 
-		$current = null;
-		$newest  = null;
+	/**
+	 * The serialised rows that name one of the known segments, in order.
+	 *
+	 * @param array<int,mixed> $rows The rows as read.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function knownRows(array $rows): array {
+		$known = [];
 		foreach ($rows as $row) {
 			$data = $this->toRow(object: $row);
-			$code = ($data['segment'] ?? null);
-			if (is_string($code) === false || in_array($code, self::SEGMENTS, true) === false) {
-				continue;
-			}
-
-			$updated = $this->updatedAt(row: $data);
-			if ($newest === null || $updated > $newest) {
-				$newest  = $updated;
-				$setBy = ($data['setBy'] ?? null);
-				if (is_string($setBy) === false) {
-					$setBy = null;
-				}
-
-				$current = [
-					'segment' => $code,
-					'uuid'    => $this->uuidOf(row: $data),
-					'setBy'   => $setBy,
-				];
+			if ($this->hasKnownSegment(row: $data) === true) {
+				$known[] = $data;
 			}
 		}
 
-		return $current;
-	}//end currentRow()
+		return $known;
+	}//end knownRows()
+
+	/**
+	 * Whether a serialised row names one of the known segments.
+	 *
+	 * @param array<string,mixed> $row The row.
+	 *
+	 * @return bool
+	 */
+	private function hasKnownSegment(array $row): bool {
+		$code = ($row['segment'] ?? null);
+		return is_string($code) === true && in_array($code, self::SEGMENTS, true) === true;
+	}//end hasKnownSegment()
+
+	/**
+	 * The segment, uuid and chooser of a row with a known segment; a chooser that is not text is null.
+	 *
+	 * @param array<string,mixed> $row The row.
+	 *
+	 * @return array{segment: string, uuid: string|null, setBy: string|null}
+	 */
+	private function segmentRow(array $row): array {
+		$setBy = ($row['setBy'] ?? null);
+		if (is_string($setBy) === false) {
+			$setBy = null;
+		}
+
+		return [
+			'segment' => (string)$row['segment'],
+			'uuid'    => $this->uuidOf(row: $row),
+			'setBy'   => $setBy,
+		];
+	}//end segmentRow()
 
 	/**
 	 * The uuid of a serialised row, or null when it carries none.
