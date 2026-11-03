@@ -35,7 +35,6 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\LessonOnboarding;
 
-use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMXPath;
@@ -50,6 +49,8 @@ use ZipArchive;
  * @psalm-type LessonStructure = array{title: string, sections: list<LessonSection>, notes: list<string>}
  *
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity) One class per format keeps the whole docx walk readable in one place.
+ *
+ * @spec openspec/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
  */
 class DocxLessonReader {
 
@@ -77,8 +78,6 @@ class DocxLessonReader {
 	private const NS_W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 	private const NS_R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
 	private const NS_A = 'http://schemas.openxmlformats.org/drawingml/2006/main';
-	private const NS_REL = 'http://schemas.openxmlformats.org/package/2006/relationships';
-	private const NS_DC = 'http://purl.org/dc/elements/1.1/';
 
 	/**
 	 * Parts larger than the cap, or with a DOCTYPE, seen while reading (names only).
@@ -93,6 +92,21 @@ class DocxLessonReader {
 	 * @var int
 	 */
 	private int $imageCount = 0;
+
+	/**
+	 * The open package and what was read from it once: `package`, `xpath`,
+	 * `headingStyles` and `images` (relationship id to part name).
+	 *
+	 * @var array<string, mixed>
+	 */
+	private array $context = [];
+
+	/**
+	 * The lesson read so far: `title`, the finished `sections` and the `current` one.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private array $state = [];
 
 	/**
 	 * Read a docx from its bytes.
@@ -113,25 +127,14 @@ class DocxLessonReader {
 			return null;
 		}
 
-		$zip = new ZipArchive();
-		$opened = false;
 		try {
 			fwrite($tempFile, $content);
-			$opened = ($zip->open(stream_get_meta_data($tempFile)['uri'], ZipArchive::RDONLY) === true);
-			if ($opened === false) {
-				return null;
-			}
-
-			return $this->readPackage(zip: $zip);
+			return $this->readFile(path: stream_get_meta_data($tempFile)['uri']);
 		} catch (Throwable $e) {
 			return null;
 		} finally {
-			if ($opened === true) {
-				$zip->close();
-			}
-
 			fclose($tempFile);
-		}//end try
+		}
 	}//end read()
 
 	/**
@@ -146,16 +149,42 @@ class DocxLessonReader {
 	}//end refusedParts()
 
 	/**
-	 * Walk the opened package.
+	 * Open the package at this path and read it; the package is closed again.
 	 *
-	 * @param ZipArchive $zip The package.
+	 * @param string $path The temporary file.
 	 *
 	 * @return array|null
 	 *
 	 * @psalm-return LessonStructure|null
 	 */
-	private function readPackage(ZipArchive $zip): ?array {
-		$document = $this->readXml(zip: $zip, name: 'word/document.xml');
+	private function readFile(string $path): ?array {
+		$zip = new ZipArchive();
+		if ($zip->open($path, ZipArchive::RDONLY) !== true) {
+			return null;
+		}
+
+		$package = new DocxPackage(zip: $zip);
+		try {
+			return $this->readPackage(package: $package);
+		} finally {
+			$this->refused = $package->refused();
+			$zip->close();
+			$this->context = [];
+			$this->state = [];
+		}
+	}//end readFile()
+
+	/**
+	 * Walk the opened package.
+	 *
+	 * @param DocxPackage $package The package.
+	 *
+	 * @return array|null
+	 *
+	 * @psalm-return LessonStructure|null
+	 */
+	private function readPackage(DocxPackage $package): ?array {
+		$document = $package->xml(name: 'word/document.xml');
 		if ($document === null) {
 			return null;
 		}
@@ -165,17 +194,17 @@ class DocxLessonReader {
 		$xpath->registerNamespace('r', self::NS_R);
 		$xpath->registerNamespace('a', self::NS_A);
 
-		$context = [
-			'zip' => $zip,
+		$this->context = [
+			'package' => $package,
 			'xpath' => $xpath,
-			'headingStyles' => $this->headingStyles(zip: $zip),
-			'images' => $this->imageTargets(zip: $zip),
+			'headingStyles' => $package->headingStyles(),
+			'images' => $package->imageTargets(),
 		];
 
-		$state = [
-			'title' => $this->coreTitle(zip: $zip),
+		$this->state = [
+			'title' => $package->coreTitle(),
 			'sections' => [],
-			'current' => ['heading' => '', 'paragraphs' => [], 'images' => [], 'notes' => ''],
+			'current' => self::section(heading: ''),
 		];
 
 		$body = $xpath->query('/w:document/w:body')->item(0);
@@ -183,128 +212,174 @@ class DocxLessonReader {
 			return null;
 		}
 
-		$state = $this->walk(parent: $body, context: $context, state: $state);
-		$state['sections'] = $this->pushSection(sections: $state['sections'], section: $state['current']);
+		$this->walk(parent: $body);
+		$this->pushSection();
 
 		$notes = [];
 		if ($this->imageCount >= self::MAX_IMAGES) {
 			$notes[] = 'Only the first ' . self::MAX_IMAGES . ' images were taken';
 		}
 
-		return ['title' => $state['title'], 'sections' => $state['sections'], 'notes' => $notes];
+		return ['title' => $this->state['title'], 'sections' => $this->state['sections'], 'notes' => $notes];
 	}//end readPackage()
+
+	/**
+	 * An empty section under this heading.
+	 *
+	 * @param string $heading The heading.
+	 *
+	 * @return array{heading: string, paragraphs: list<string>, images: list<array{name: string, bytes: string}>, notes: string}
+	 */
+	private static function section(string $heading): array {
+		return ['heading' => $heading, 'paragraphs' => [], 'images' => [], 'notes' => ''];
+	}//end section()
 
 	/**
 	 * Walk the block-level children of a container (body, content control).
 	 *
 	 * @param DOMElement $parent The container.
-	 * @param array<string, mixed> $context Package, XPath, heading styles, image targets.
-	 * @param array<string, mixed> $state The title, finished sections and the open section.
 	 *
-	 * @return array<string, mixed> The updated state.
+	 * @return void
 	 */
-	private function walk(DOMElement $parent, array $context, array $state): array {
+	private function walk(DOMElement $parent): void {
 		foreach ($parent->childNodes as $child) {
-			if (($child instanceof DOMElement) === false || $child->namespaceURI !== self::NS_W) {
-				continue;
+			if (($child instanceof DOMElement) === true && $child->namespaceURI === self::NS_W) {
+				$this->block(node: $child);
 			}
-
-			if ($child->localName === 'p') {
-				$state = $this->paragraph(node: $child, context: $context, state: $state);
-				continue;
-			}
-
-			if ($child->localName === 'tbl') {
-				$table = $this->table(node: $child, xpath: $context['xpath']);
-				if ($table !== '') {
-					$state['current']['paragraphs'][] = $table;
-				}
-
-				continue;
-			}
-
-			if ($child->localName === 'sdt') {
-				$content = $context['xpath']->query('w:sdtContent', $child)->item(0);
-				if ($content instanceof DOMElement) {
-					$state = $this->walk(parent: $content, context: $context, state: $state);
-				}
-			}
-		}//end foreach
-
-		return $state;
+		}
 	}//end walk()
+
+	/**
+	 * Read one block: a paragraph, a table, or a content control's content.
+	 *
+	 * @param DOMElement $node The block.
+	 *
+	 * @return void
+	 */
+	private function block(DOMElement $node): void {
+		match ($node->localName) {
+			'p' => $this->paragraph(node: $node),
+			'tbl' => $this->tableParagraph(node: $node),
+			'sdt' => $this->contentControl(node: $node),
+			default => null,
+		};
+	}//end block()
+
+	/**
+	 * A table becomes one Markdown paragraph of the current section.
+	 *
+	 * @param DOMElement $node The w:tbl element.
+	 *
+	 * @return void
+	 */
+	private function tableParagraph(DOMElement $node): void {
+		$table = $this->table(node: $node);
+		if ($table !== '') {
+			$this->state['current']['paragraphs'][] = $table;
+		}
+	}//end tableParagraph()
+
+	/**
+	 * A content control's blocks are read as if they stood in its place.
+	 *
+	 * @param DOMElement $node The w:sdt element.
+	 *
+	 * @return void
+	 */
+	private function contentControl(DOMElement $node): void {
+		$content = $this->context['xpath']->query('w:sdtContent', $node)->item(0);
+		if ($content instanceof DOMElement) {
+			$this->walk(parent: $content);
+		}
+	}//end contentControl()
 
 	/**
 	 * Handle one paragraph: a heading opens a section, a Title names the
 	 * lesson once, a list item becomes a `- ` line, images are collected.
 	 *
 	 * @param DOMElement $node The w:p element.
-	 * @param array<string, mixed> $context Package, XPath, heading styles, image targets.
-	 * @param array<string, mixed> $state The reading state.
 	 *
-	 * @return array<string, mixed> The updated state.
+	 * @return void
 	 */
-	private function paragraph(DOMElement $node, array $context, array $state): array {
-		$xpath = $context['xpath'];
-		$text = $this->text(node: $node, xpath: $xpath);
-		$kind = $this->paragraphKind(node: $node, xpath: $xpath, headingStyles: $context['headingStyles']);
-
-		foreach ($this->images(node: $node, context: $context) as $image) {
-			$state['current']['images'][] = $image;
-		}
+	private function paragraph(DOMElement $node): void {
+		$text = $this->text(node: $node, xpath: $this->context['xpath']);
+		$kind = $this->paragraphKind(node: $node);
+		$this->takeImages(node: $node);
 
 		if ($text === '') {
-			return $state;
+			return;
 		}
 
-		if ($kind === 'title' && $state['title'] === '') {
-			$state['title'] = $text;
-			return $state;
+		if ($this->takesTitle(text: $text, kind: $kind) === true) {
+			return;
 		}
 
 		if ($kind === 'heading' || $kind === 'title') {
-			$state['sections'] = $this->pushSection(sections: $state['sections'], section: $state['current']);
-			$state['current'] = ['heading' => $text, 'paragraphs' => [], 'images' => [], 'notes' => ''];
-			return $state;
+			$this->pushSection();
+			$this->state['current'] = self::section(heading: $text);
+			return;
 		}
 
-		if ($kind === 'list') {
-			$text = '- ' . $text;
-		}
-
-		$state['current']['paragraphs'][] = $text;
-		return $state;
+		$this->state['current']['paragraphs'][] = self::line(text: $text, kind: $kind);
 	}//end paragraph()
 
 	/**
-	 * Add a section to the list when it holds anything.
+	 * The first Title paragraph names the lesson when nothing named it yet.
 	 *
-	 * @param list<array<string, mixed>> $sections Finished sections.
-	 * @param array<string, mixed> $section The section to close.
+	 * @param string $text The paragraph text.
+	 * @param string $kind The paragraph kind.
 	 *
-	 * @return list<array<string, mixed>>
+	 * @return bool Whether the text became the title.
 	 */
-	private function pushSection(array $sections, array $section): array {
-		if ($section['heading'] !== '' || $section['paragraphs'] !== [] || $section['images'] !== []) {
-			$sections[] = $section;
+	private function takesTitle(string $text, string $kind): bool {
+		if ($kind !== 'title' || $this->state['title'] !== '') {
+			return false;
 		}
 
-		return $sections;
+		$this->state['title'] = $text;
+		return true;
+	}//end takesTitle()
+
+	/**
+	 * A text paragraph as it is kept: a list item gets a Markdown dash.
+	 *
+	 * @param string $text The text.
+	 * @param string $kind The paragraph kind.
+	 *
+	 * @return string
+	 */
+	private static function line(string $text, string $kind): string {
+		if ($kind === 'list') {
+			return '- ' . $text;
+		}
+
+		return $text;
+	}//end line()
+
+	/**
+	 * Add the open section to the finished ones when it holds anything.
+	 *
+	 * @return void
+	 */
+	private function pushSection(): void {
+		$section = $this->state['current'];
+		if ($section['heading'] !== '' || $section['paragraphs'] !== [] || $section['images'] !== []) {
+			$this->state['sections'][] = $section;
+		}
 	}//end pushSection()
 
 	/**
 	 * Whether a paragraph is a title, a heading, a list item or plain text.
 	 *
 	 * @param DOMElement $node The w:p element.
-	 * @param DOMXPath $xpath XPath over the document.
-	 * @param array<string, string> $headingStyles Style id to `title` or `heading`.
 	 *
 	 * @return string `title`, `heading`, `list` or `text`.
 	 */
-	private function paragraphKind(DOMElement $node, DOMXPath $xpath, array $headingStyles): string {
+	private function paragraphKind(DOMElement $node): string {
+		$xpath = $this->context['xpath'];
 		$styleId = (string)$xpath->evaluate('string(w:pPr/w:pStyle/@w:val)', $node);
-		if (isset($headingStyles[$styleId]) === true) {
-			return $headingStyles[$styleId];
+		if (isset($this->context['headingStyles'][$styleId]) === true) {
+			return $this->context['headingStyles'][$styleId];
 		}
 
 		$outline = (string)$xpath->evaluate('string(w:pPr/w:outlineLvl/@w:val)', $node);
@@ -322,7 +397,7 @@ class DocxLessonReader {
 	/**
 	 * The text of a paragraph or cell: text runs, tabs as spaces, breaks as new lines.
 	 *
-	 * @param DOMNode $node The element.
+	 * @param DOMNode  $node  The element.
 	 * @param DOMXPath $xpath XPath over the document.
 	 *
 	 * @return string The trimmed text.
@@ -350,29 +425,52 @@ class DocxLessonReader {
 	 * A table as a markdown table: the first row as the header.
 	 *
 	 * @param DOMElement $node The w:tbl element.
-	 * @param DOMXPath $xpath XPath over the document.
 	 *
 	 * @return string The markdown table, or '' for an empty table.
 	 */
-	private function table(DOMElement $node, DOMXPath $xpath): string {
+	private function table(DOMElement $node): string {
 		$rows = [];
-		foreach ($xpath->query('w:tr', $node) as $row) {
-			$cells = [];
-			foreach ($xpath->query('w:tc', $row) as $cell) {
-				$parts = [];
-				foreach ($xpath->query('w:p', $cell) as $cellParagraph) {
-					$parts[] = $this->text(node: $cellParagraph, xpath: $xpath);
-				}
-
-				$cellText = trim(implode(' ', array_filter($parts, static fn (string $part): bool => $part !== '')));
-				$cells[] = str_replace(["\n", '|'], [' ', '\\|'], $cellText);
-			}
-
+		foreach ($this->context['xpath']->query('w:tr', $node) as $row) {
+			$cells = $this->cells(row: $row);
 			if (implode('', $cells) !== '') {
 				$rows[] = $cells;
 			}
 		}
 
+		return self::markdown(rows: $rows);
+	}//end table()
+
+	/**
+	 * The cell texts of one table row, escaped for Markdown.
+	 *
+	 * @param DOMNode $row The w:tr element.
+	 *
+	 * @return list<string>
+	 */
+	private function cells(DOMNode $row): array {
+		$xpath = $this->context['xpath'];
+		$cells = [];
+		foreach ($xpath->query('w:tc', $row) as $cell) {
+			$parts = [];
+			foreach ($xpath->query('w:p', $cell) as $cellParagraph) {
+				$parts[] = $this->text(node: $cellParagraph, xpath: $xpath);
+			}
+
+			$cellText = trim(implode(' ', array_filter($parts, static fn (string $part): bool => $part !== '')));
+			$cells[] = str_replace(["\n", '|'], [' ', '\\|'], $cellText);
+		}
+
+		return $cells;
+	}//end cells()
+
+	/**
+	 * Rows as a Markdown table whose first row is the header; '' for no rows.
+	 *
+	 * @param list<list<string>> $rows The rows.
+	 *
+	 * @return string
+	 */
+	private static function markdown(array $rows): string {
 		if ($rows === []) {
 			return '';
 		}
@@ -388,174 +486,29 @@ class DocxLessonReader {
 		}
 
 		return implode("\n", $lines);
-	}//end table()
+	}//end markdown()
 
 	/**
-	 * The images a paragraph embeds, with their bytes, up to the caps.
+	 * Add the images embedded in a paragraph to the current section, within the caps.
 	 *
 	 * @param DOMElement $node The w:p element.
-	 * @param array<string, mixed> $context Package, XPath and image targets.
 	 *
-	 * @return list<array{name: string, bytes: string}>
+	 * @return void
 	 */
-	private function images(DOMElement $node, array $context): array {
-		$images = [];
-		foreach ($context['xpath']->query('.//a:blip/@r:embed', $node) as $attribute) {
-			$target = ($context['images'][$attribute->nodeValue] ?? null);
-			if ($target === null || $this->imageCount >= self::MAX_IMAGES) {
+	private function takeImages(DOMElement $node): void {
+		foreach ($this->context['xpath']->query('.//a:blip/@r:embed', $node) as $attribute) {
+			if (isset($this->context['images'][$attribute->nodeValue]) === false || $this->imageCount >= self::MAX_IMAGES) {
 				continue;
 			}
 
-			$stat = $context['zip']->statName($target);
-			if ($stat === false || $stat['size'] > self::MAX_IMAGE_BYTES) {
-				continue;
-			}
-
-			$bytes = $context['zip']->getFromName($target);
-			if ($bytes === false || $bytes === '') {
+			$target = $this->context['images'][$attribute->nodeValue];
+			$bytes = $this->context['package']->image(target: $target);
+			if ($bytes === null) {
 				continue;
 			}
 
 			$this->imageCount++;
-			$images[] = ['name' => basename($target), 'bytes' => $bytes];
+			$this->state['current']['images'][] = ['name' => basename($target), 'bytes' => $bytes];
 		}
-
-		return $images;
-	}//end images()
-
-	/**
-	 * Style ids that mark a title or a heading, from word/styles.xml: by style
-	 * name (`Title`, `heading 1` to `heading 6`, stable across languages) and by
-	 * the English style ids Word writes when the styles part is missing.
-	 *
-	 * @param ZipArchive $zip The package.
-	 *
-	 * @return array<string, string> Style id to `title` or `heading`.
-	 */
-	private function headingStyles(ZipArchive $zip): array {
-		$styles = ['Title' => 'title'];
-		for ($level = 1; $level <= 6; $level++) {
-			$styles['Heading' . $level] = 'heading';
-		}
-
-		$document = $this->readXml(zip: $zip, name: 'word/styles.xml');
-		if ($document === null) {
-			return $styles;
-		}
-
-		$xpath = new DOMXPath($document);
-		$xpath->registerNamespace('w', self::NS_W);
-		foreach ($xpath->query('/w:styles/w:style[@w:type="paragraph"]') as $style) {
-			$styleId = (string)$xpath->evaluate('string(@w:styleId)', $style);
-			$name = strtolower(trim((string)$xpath->evaluate('string(w:name/@w:val)', $style)));
-			if ($name === 'title') {
-				$styles[$styleId] = 'title';
-				continue;
-			}
-
-			if (preg_match('/^heading\s*[1-6]$/', $name) === 1) {
-				$styles[$styleId] = 'heading';
-			}
-		}
-
-		return $styles;
-	}//end headingStyles()
-
-	/**
-	 * Image relationship ids of the main document, mapped to their part names.
-	 *
-	 * @param ZipArchive $zip The package.
-	 *
-	 * @return array<string, string> Relationship id to part name (`word/media/image1.png`).
-	 */
-	private function imageTargets(ZipArchive $zip): array {
-		$document = $this->readXml(zip: $zip, name: 'word/_rels/document.xml.rels');
-		if ($document === null) {
-			return [];
-		}
-
-		$targets = [];
-		foreach ($document->getElementsByTagNameNS(self::NS_REL, 'Relationship') as $relationship) {
-			if (str_ends_with($relationship->getAttribute('Type'), '/image') === false
-				|| $relationship->getAttribute('TargetMode') === 'External'
-			) {
-				continue;
-			}
-
-			$target = ltrim($relationship->getAttribute('Target'), '/');
-			if (str_starts_with($target, 'word/') === false) {
-				$target = 'word/' . $target;
-			}
-
-			// A target that climbs out of the package is not an image part.
-			if (str_contains($target, '..') === false) {
-				$targets[$relationship->getAttribute('Id')] = $target;
-			}
-		}
-
-		return $targets;
-	}//end imageTargets()
-
-	/**
-	 * The document title from docProps/core.xml, or ''.
-	 *
-	 * @param ZipArchive $zip The package.
-	 *
-	 * @return string The title.
-	 */
-	private function coreTitle(ZipArchive $zip): string {
-		$document = $this->readXml(zip: $zip, name: 'docProps/core.xml');
-		if ($document === null) {
-			return '';
-		}
-
-		$titles = $document->getElementsByTagNameNS(self::NS_DC, 'title');
-		if ($titles->length === 0) {
-			return '';
-		}
-
-		return trim((string)$titles->item(0)?->textContent);
-	}//end coreTitle()
-
-	/**
-	 * Load one XML part, refusing an oversized part or one with a DOCTYPE.
-	 *
-	 * @param ZipArchive $zip The package.
-	 * @param string $name The part name.
-	 *
-	 * @return DOMDocument|null The document, or null when absent or refused.
-	 */
-	private function readXml(ZipArchive $zip, string $name): ?DOMDocument {
-		$stat = $zip->statName($name);
-		if ($stat === false) {
-			return null;
-		}
-
-		if ($stat['size'] > self::MAX_PART_BYTES) {
-			$this->refused[] = $name;
-			return null;
-		}
-
-		$xml = $zip->getFromName($name);
-		if ($xml === false || $xml === '') {
-			return null;
-		}
-
-		if (stripos($xml, '<!DOCTYPE') !== false) {
-			$this->refused[] = $name;
-			return null;
-		}
-
-		$document = new DOMDocument();
-		$previous = libxml_use_internal_errors(true);
-		$loaded = $document->loadXML($xml, (LIBXML_NONET | LIBXML_COMPACT));
-		libxml_clear_errors();
-		libxml_use_internal_errors($previous);
-
-		if ($loaded === false) {
-			return null;
-		}
-
-		return $document;
-	}//end readXml()
+	}//end takeImages()
 }//end class
