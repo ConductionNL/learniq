@@ -189,16 +189,32 @@ class PortalEmployerController extends Controller {
 	 * @return string|null
 	 */
 	private function company(array $claims): ?string {
-		$body = $this->request->getParam(self::CLAIM);
 		$signed = ($claims[self::CLAIM] ?? null);
-		if (($claims['audience'] ?? '') !== self::AUDIENCE || is_string($body) === false || is_string($signed) === false) {
+		if (($claims['audience'] ?? '') !== self::AUDIENCE) {
 			return null;
 		}
 
-		if (trim($body) === '' || trim($body) !== trim($signed)) {
-			return null;
-		}
-
-		return trim($body);
+		return self::sameCompany(body: $this->request->getParam(self::CLAIM), signed: $signed);
 	}//end company()
+
+	/**
+	 * The trimmed company when the body and the signed claim are the same non-empty string, or null.
+	 *
+	 * @param mixed $body   The body's organisationRef.
+	 * @param mixed $signed The assertion's organisationRef claim.
+	 *
+	 * @return string|null
+	 */
+	private static function sameCompany(mixed $body, mixed $signed): ?string {
+		if (is_string($body) === false || is_string($signed) === false) {
+			return null;
+		}
+
+		$company = trim($body);
+		if ($company === '' || $company !== trim($signed)) {
+			return null;
+		}
+
+		return $company;
+	}//end sameCompany()
 }//end class

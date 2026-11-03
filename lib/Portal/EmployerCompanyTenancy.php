@@ -218,16 +218,47 @@ class EmployerCompanyTenancy {
 			_multitenancy: false
 		);
 		foreach ($objects as $object) {
-			$found = $object;
-			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-				$found = $object->jsonSerialize();
-			}
-
-			if (is_array($found) === true && ($found['id'] ?? null) === $uuid) {
+			$found = self::serialised(object: $object);
+			if (self::idOf(row: $found) === $uuid) {
 				return $found;
 			}
 		}
 
 		return null;
-	}//end company()
+	}//end row()
+
+	/**
+	 * An OpenRegister object as its serialised array; anything else as an empty one.
+	 *
+	 * @param mixed $object What the store returned.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function serialised(mixed $object): array {
+		if (is_array($object) === true) {
+			return $object;
+		}
+
+		$serialised = [];
+		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
+			$serialised = $object->jsonSerialize();
+		}
+
+		if (is_array($serialised) === false) {
+			return [];
+		}
+
+		return $serialised;
+	}//end serialised()
+
+	/**
+	 * The row's `id`, or null.
+	 *
+	 * @param array<string, mixed> $row The row.
+	 *
+	 * @return mixed
+	 */
+	private static function idOf(array $row): mixed {
+		return ($row['id'] ?? null);
+	}//end idOf()
 }//end class
