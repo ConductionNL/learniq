@@ -95,6 +95,13 @@ class ExampleSetOrganisationTest extends TestCase {
 
 		$finder = new class ($rows) {
 			/**
+			 * Every find, as id, register, schema and the four flags.
+			 *
+			 * @var array<int, array<int, mixed>>
+			 */
+			public array $reads = [];
+
+			/**
 			 * Constructor.
 			 *
 			 * @param array<string, ObjectEntity> $rows The stored rows.
@@ -116,6 +123,7 @@ class ExampleSetOrganisationTest extends TestCase {
 			 * @return ObjectEntity
 			 */
 			public function find(int|string $id, mixed $register=null, mixed $schema=null, bool $_rbac=true, bool $_multitenancy=true, bool $_render=true, bool $_audit=true): ObjectEntity {
+				$this->reads[] = [$id, $register, $schema, $_rbac, $_multitenancy, $_render, $_audit];
 				return $this->rows[(string)$id] ?? throw new \Exception('Object not found');
 			}//end find()
 		};
@@ -157,6 +165,15 @@ class ExampleSetOrganisationTest extends TestCase {
 		self::assertSame('org-instance', $bare->getOrganisation());
 		self::assertSame('org-elsewhere', $owned->getOrganisation());
 		self::assertSame(['ee000001-0000-4000-8000-000000000001'], $mapper->written);
+		$flags = [false, false, false, false];
+		self::assertSame(
+			[
+				['ee000001-0000-4000-8000-000000000001', 'learniq', 'school', ...$flags],
+				['ee000002-0000-4000-8000-000000000001', 'learniq', 'school', ...$flags],
+				['ee000003-0000-4000-8000-000000000001', 'learniq', 'school', ...$flags],
+			],
+			$finder->reads
+		);
 
 		$bare->setOrganisation(null);
 		$mapper->written = [];

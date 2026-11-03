@@ -67,13 +67,18 @@ class FakeObjectStore {
 	public array $saves = [];
 
 	/**
+	 * @var array<int, array<string, mixed>>
+	 */
+	public array $finds = [];
+
+	/**
 	 * @param string $id
 	 * @param mixed  ...$rest
 	 *
 	 * @return ObjectEntity|null
 	 */
 	public function find(string $id, mixed ...$rest): ?ObjectEntity {
-		unset($rest);
+		$this->finds[] = ['id' => $id] + $rest;
 		if (isset($this->objects[$id]) === false) {
 			return null;
 		}
@@ -178,5 +183,8 @@ class ExampleSetDatesTest extends TestCase {
 		self::assertCount(1, $store->saves);
 		self::assertSame(['id' => 'a', 'title' => 'Groep 7, maandag 12 oktober 2026', 'startsAt' => '2026-10-12T08:30:00+02:00'], $store->saves[0]['object']);
 		self::assertSame(['a', true], [$store->saves[0]['uuid'], $store->saves[0]['silent']]);
+		self::assertSame(['learniq', 'session', false, false], [$store->saves[0]['register'], $store->saves[0]['schema'], $store->saves[0]['_rbac'], $store->saves[0]['_multitenancy']]);
+		$read = ['register' => 'learniq', 'schema' => 'session', '_rbac' => false, '_multitenancy' => false, '_render' => false, '_audit' => false];
+		self::assertSame([['id' => 'a'] + $read, ['id' => 'b'] + $read, ['id' => 'gone'] + $read], $store->finds);
 	}//end testExistingObjectsMoveAndOnlyThoseWithADate()
 }//end class
