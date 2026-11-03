@@ -31,20 +31,17 @@
 				<table class="forecast__table" data-testid="forecast-rates">
 					<thead>
 						<tr>
-							<th scope="col">
-								{{ t('learniq', 'Programme') }}
-							</th>
-							<th scope="col">
-								{{ t('learniq', 'Year') }}
-							</th>
-							<th scope="col">
-								{{ t('learniq', 'Moves up') }}
-							</th>
-							<th scope="col">
-								{{ t('learniq', 'Repeats') }}
-							</th>
-							<th scope="col">
-								{{ t('learniq', 'Leaves') }}
+							<th
+								v-for="label in [
+									t('learniq', 'Programme'),
+									t('learniq', 'Year'),
+									t('learniq', 'Moves up'),
+									t('learniq', 'Repeats'),
+									t('learniq', 'Leaves'),
+								]"
+								:key="label"
+								scope="col">
+								{{ label }}
 							</th>
 						</tr>
 					</thead>
@@ -106,17 +103,16 @@
 			<table class="forecast__table" data-testid="forecast-years">
 				<thead>
 					<tr>
-						<th scope="col">
-							{{ t('learniq', 'Programme') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Year') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Learners') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Groups needed') }}
+						<th
+							v-for="label in [
+								t('learniq', 'Programme'),
+								t('learniq', 'Year'),
+								t('learniq', 'Learners'),
+								t('learniq', 'Groups needed'),
+							]"
+							:key="label"
+							scope="col">
+							{{ label }}
 						</th>
 					</tr>
 				</thead>
@@ -137,20 +133,17 @@
 				data-testid="forecast-subjects">
 				<thead>
 					<tr>
-						<th scope="col">
-							{{ t('learniq', 'Programme') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Year') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Subject') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Learners') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Groups needed') }}
+						<th
+							v-for="label in [
+								t('learniq', 'Programme'),
+								t('learniq', 'Year'),
+								t('learniq', 'Subject'),
+								t('learniq', 'Learners'),
+								t('learniq', 'Groups needed'),
+							]"
+							:key="label"
+							scope="col">
+							{{ label }}
 						</th>
 					</tr>
 				</thead>
