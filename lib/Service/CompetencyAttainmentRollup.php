@@ -349,9 +349,7 @@ class CompetencyAttainmentRollup {
 			learnerId: $learnerId,
 			competencyId: $competencyId,
 			tenantId: $tenantId,
-			evidenceAppend: ['werkprocesAssessmentIds' => $assessmentId],
-			percent: null,
-			levelId: $levelId
+			evidence: new AttainmentEvidence(append: ['werkprocesAssessmentIds' => $assessmentId], levelId: $levelId)
 		);
 
 	}//end handleWerkprocesConfirmed()

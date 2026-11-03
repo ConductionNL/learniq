@@ -164,6 +164,46 @@ class CatalogueSignUpServiceTest extends TestCase {
 	}//end testAnOpenCourseEnrolsTheCallerActive()
 
 	/**
+	 * The whole enrolment row a course and a programme sign-up write, but the
+	 * request time: tenant, programme, part default and manager included.
+	 *
+	 * @return void
+	 */
+	public function testTheSignUpsWriteTheWholeEnrolmentRow(): void {
+		$service = $this->service();
+		$service->signUpCourse(learner: $this->learner(), courseId: 'c-lead');
+		$service->signUpProgramme(learner: $this->learner(), programmeId: 'p-pm');
+
+		$rows = array_map(
+			static function (array $row): array {
+				self::assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}T/', (string)$row['requestedAt']);
+				unset($row['requestedAt']);
+				return $row;
+			},
+			$this->enrolments()
+		);
+		$expected = '[{"learnerId":"p.ganpat","learnerRef":"lp-1","courseId":"c-lead","source":"self","mandatory":false,"managerId":"m.visser","lifecycle":"pending","tenant_id":"t1","id":"new-1"},{"learnerId":"p.ganpat","learnerRef":"lp-1","courseId":"c-excel","programmeId":"p-pm","source":"self","mandatory":false,"managerId":"m.visser","lifecycle":"active","tenant_id":"t1","id":"new-2"},{"learnerId":"p.ganpat","learnerRef":"lp-1","courseId":"c-pm2","programmeId":"p-pm","source":"self","mandatory":false,"managerId":"m.visser","lifecycle":"active","tenant_id":"t1","id":"new-3"}]';
+		self::assertSame($expected, json_encode($rows));
+	}//end testTheSignUpsWriteTheWholeEnrolmentRow()
+
+	/**
+	 * The enrolment takes the course's tenant, and the learner's only when the
+	 * course names none.
+	 *
+	 * @return void
+	 */
+	public function testTheEnrolmentTakesTheCoursesTenantElseTheLearners(): void {
+		$service = $this->service();
+		$this->store->rows['course'][] = ['id' => 'c-other', 'name' => 'Elders', 'lifecycle' => 'published', 'selfEnrolment' => 'open', 'tenant_id' => 't2'];
+		$this->store->rows['course'][] = ['id' => 'c-none', 'name' => 'Nergens', 'lifecycle' => 'published', 'selfEnrolment' => 'open'];
+
+		$service->signUpCourse(learner: $this->learner(), courseId: 'c-other');
+		$service->signUpCourse(learner: $this->learner(), courseId: 'c-none');
+
+		self::assertSame(['c-other' => 't2', 'c-none' => 't1'], array_column($this->enrolments(), 'tenant_id', 'courseId'));
+	}//end testTheEnrolmentTakesTheCoursesTenantElseTheLearners()
+
+	/**
 	 * A course on request waits pending; a second sign-up is refused.
 	 *
 	 * @return void
