@@ -139,11 +139,8 @@ class SigningService {
 	/**
 	 * Record a signature by the user on the record's current version.
 	 *
-	 * @param string              $subject The subject slug: `learning-plan` or `placement-agreement`.
-	 * @param string              $id      The record uuid.
-	 * @param string              $userId  The signing user.
-	 * @param string              $role    The role asked for; empty takes the first role held.
-	 * @param array<string,mixed> $capture `{mode: typed|drawn, value: string, affirmed: bool}`.
+	 * @param string           $userId  The signing user, from the session.
+	 * @param SignatureRequest $request The subject, record, role and captured signature.
 	 *
 	 * @return array{id: string, signerRole: string, signedAt: string, subjectVersion: int}
 	 *
@@ -151,10 +148,10 @@ class SigningService {
 	 *
 	 * @spec openspec/specs/learning-plan/spec.md#requirement-a-signature-is-recorded-by-the-server-in-a-role-the-signer-holds
 	 */
-	public function sign(string $subject, string $id, string $userId, string $role, array $capture): array {
-		$config = $this->subjectConfig(subject: $subject);
-		[$mode, $value] = $this->validCapture(capture: $capture);
-		$record = $this->load(schema: $config['subjectSchema'], id: $id);
+	public function sign(string $userId, SignatureRequest $request): array {
+		$config = $this->subjectConfig(subject: $request->subject);
+		[$mode, $value] = $this->validCapture(capture: $request->capture);
+		$record = $this->load(schema: $config['subjectSchema'], id: $request->id);
 
 		if (in_array((string)($record['lifecycle'] ?? 'draft'), $config['states'], true) === false) {
 			throw new SigningRefusedException(
@@ -164,7 +161,8 @@ class SigningService {
 			);
 		}
 
-		$held = $this->heldRoles(subject: $subject, record: $record, userId: $userId);
+		$held = $this->heldRoles(subject: $request->subject, record: $record, userId: $userId);
+		$role = $request->role;
 		if ($role === '' && $held !== []) {
 			$role = $held[0];
 		}
@@ -173,9 +171,14 @@ class SigningService {
 			throw new SigningRefusedException(status: Http::STATUS_FORBIDDEN, reason: 'role-not-held', message: 'You cannot sign this document in that role.');
 		}
 
-		$subjectId = (string)($record['id'] ?? $id);
 		$version = (int)($record['version'] ?? 1);
-		if ($this->alreadySigned(schema: $config['signatureSchema'], subjectId: $subjectId, version: $version, userId: $userId, role: $role) === true) {
+		$signer = [
+			'subjectId' => (string)($record['id'] ?? $request->id),
+			'subjectVersion' => $version,
+			'signerId' => $userId,
+			'signerRole' => $role,
+		];
+		if ($this->alreadySigned(schema: $config['signatureSchema'], signer: $signer) === true) {
 			throw new SigningRefusedException(
 				status: Http::STATUS_CONFLICT,
 				reason: 'already-signed',
@@ -184,11 +187,7 @@ class SigningService {
 		}
 
 		$signedAt = $this->timeFactory->getDateTime('now', new DateTimeZone('UTC'))->format('Y-m-d\TH:i:s\Z');
-		$row = [
-			'subjectId' => $subjectId,
-			'subjectVersion' => $version,
-			'signerId' => $userId,
-			'signerRole' => $role,
+		$row = $signer + [
 			'signedAt' => $signedAt,
 			'assuranceLevel' => 'basic',
 			'method' => $mode . '-signature',
@@ -410,25 +409,15 @@ class SigningService {
 	/**
 	 * Whether the user already signed this version in this role.
 	 *
-	 * @param string $schema    The signature schema slug.
-	 * @param string $subjectId The record uuid.
-	 * @param int    $version   The record version.
-	 * @param string $userId    The user.
-	 * @param string $role      The role.
+	 * @param string                                                                         $schema The signature schema slug.
+	 * @param array{subjectId: string, subjectVersion: int, signerId: string, signerRole: string} $signer The record, its version, the user and the role.
 	 *
 	 * @return bool
 	 */
-	private function alreadySigned(string $schema, string $subjectId, int $version, string $userId, string $role): bool {
+	private function alreadySigned(string $schema, array $signer): bool {
 		$rows = $this->objects->findAll(
 			config: [
-				'filters' => [
-					'register' => self::REGISTER,
-					'schema' => $schema,
-					'subjectId' => $subjectId,
-					'subjectVersion' => $version,
-					'signerId' => $userId,
-					'signerRole' => $role,
-				],
+				'filters' => ['register' => self::REGISTER, 'schema' => $schema] + $signer,
 				'limit' => 1,
 			],
 			_rbac: false

@@ -30,6 +30,7 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Exception\SigningRefusedException;
+use OCA\Learniq\Service\Signing\SignatureRequest;
 use OCA\Learniq\Service\Signing\SigningService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -117,11 +118,8 @@ class SigningController extends Controller {
 
 		try {
 			$signature = $this->signing->sign(
-				subject: $subject,
-				id: $id,
 				userId: $userId,
-				role: $role,
-				capture: $capture
+				request: new SignatureRequest(subject: $subject, id: $id, role: $role, capture: $capture)
 			);
 		} catch (SigningRefusedException $refusal) {
 			return $this->refusal(refusal: $refusal);

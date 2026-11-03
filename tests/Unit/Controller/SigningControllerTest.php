@@ -25,6 +25,7 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\SigningController;
 use OCA\Learniq\Exception\SigningRefusedException;
+use OCA\Learniq\Service\Signing\SignatureRequest;
 use OCA\Learniq\Service\Signing\SigningService;
 use OCP\IRequest;
 use OCP\IUser;
@@ -81,7 +82,7 @@ class SigningControllerTest extends TestCase {
 		$capture = ['mode' => 'typed', 'value' => 'C', 'affirmed' => true];
 		$service = $this->createMock(SigningService::class);
 		$service->expects(self::once())->method('sign')
-			->with('learning-plan', 'plan-1', 'co', 'coordinator', $capture)
+			->with('co', new SignatureRequest(subject: 'learning-plan', id: 'plan-1', role: 'coordinator', capture: $capture))
 			->willReturn(['id' => 'sig-1', 'signerRole' => 'coordinator', 'signedAt' => '2026-10-21T08:30:00Z', 'subjectVersion' => 3]);
 		$controller = new SigningController(
 			request: $this->request(['role' => 'coordinator', 'capture' => $capture, 'signerId' => 'someone-else']),

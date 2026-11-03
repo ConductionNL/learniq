@@ -26,6 +26,7 @@ namespace OCA\Learniq\Tests\Unit\Service\Signing;
 use DateTime;
 use OCA\Learniq\Exception\SigningRefusedException;
 use OCA\Learniq\Service\PokParentSignatureRule;
+use OCA\Learniq\Service\Signing\SignatureRequest;
 use OCA\Learniq\Service\Signing\SigningService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
@@ -168,7 +169,7 @@ class SigningServiceTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheCoordinatorSignsAndTheServerSetsTheFacts(): void {
-		$result = $this->service(records: $this->plan())->sign(subject: 'learning-plan', id: 'plan-1', userId: 'co', role: 'coordinator', capture: self::TYPED);
+		$result = $this->service(records: $this->plan())->sign(userId: 'co', request: new SignatureRequest(subject: 'learning-plan', id: 'plan-1', role: 'coordinator', capture: self::TYPED));
 
 		self::assertSame(['id' => 'sig-new', 'signerRole' => 'coordinator', 'signedAt' => '2026-10-21T08:30:00Z', 'subjectVersion' => 3], $result);
 		self::assertCount(1, $this->saved);
@@ -198,13 +199,13 @@ class SigningServiceTest extends TestCase {
 	public function testARoleTheSignerDoesNotHoldIsRefused(): void {
 		$service = $this->service(records: $this->plan());
 
-		$refusal = $this->refusalOf(static fn () => $service->sign(subject: 'learning-plan', id: 'plan-1', userId: 'mallory', role: 'coordinator', capture: self::TYPED));
+		$refusal = $this->refusalOf(static fn () => $service->sign(userId: 'mallory', request: new SignatureRequest(subject: 'learning-plan', id: 'plan-1', role: 'coordinator', capture: self::TYPED)));
 
 		self::assertSame(403, $refusal->getStatus());
 		self::assertSame('role-not-held', $refusal->getReason());
 		self::assertSame([], $this->saved);
 
-		$learner = $this->refusalOf(static fn () => $service->sign(subject: 'learning-plan', id: 'plan-1', userId: 'lea', role: 'teacher', capture: self::TYPED));
+		$learner = $this->refusalOf(static fn () => $service->sign(userId: 'lea', request: new SignatureRequest(subject: 'learning-plan', id: 'plan-1', role: 'teacher', capture: self::TYPED)));
 		self::assertSame(403, $learner->getStatus());
 	}//end testARoleTheSignerDoesNotHoldIsRefused()
 
@@ -216,8 +217,8 @@ class SigningServiceTest extends TestCase {
 	public function testWithoutARoleTheFirstHeldRoleIsTaken(): void {
 		$service = $this->service(records: $this->plan(), groups: ['instructors' => ['lea']]);
 
-		self::assertSame('learner', $service->sign(subject: 'learning-plan', id: 'plan-1', userId: 'lea', role: '', capture: self::TYPED)['signerRole']);
-		self::assertSame(403, $this->refusalOf(static fn () => $service->sign(subject: 'learning-plan', id: 'plan-1', userId: 'lea', role: 'other', capture: self::TYPED))->getStatus());
+		self::assertSame('learner', $service->sign(userId: 'lea', request: new SignatureRequest(subject: 'learning-plan', id: 'plan-1', role: '', capture: self::TYPED))['signerRole']);
+		self::assertSame(403, $this->refusalOf(static fn () => $service->sign(userId: 'lea', request: new SignatureRequest(subject: 'learning-plan', id: 'plan-1', role: 'other', capture: self::TYPED)))->getStatus());
 	}//end testWithoutARoleTheFirstHeldRoleIsTaken()
 
 	/**
@@ -248,7 +249,7 @@ class SigningServiceTest extends TestCase {
 		self::assertSame(['school'], $service->rolesFor(subject: 'placement-agreement', id: 'pok-1', userId: 'bpv-office')['roles']);
 		self::assertSame([], $service->rolesFor(subject: 'placement-agreement', id: 'pok-1', userId: 'mallory')['roles']);
 
-		$service->sign(subject: 'placement-agreement', id: 'pok-1', userId: 'dad', role: 'parent', capture: ['mode' => 'drawn', 'value' => 'data:image/png;base64,AA', 'affirmed' => true]);
+		$service->sign(userId: 'dad', request: new SignatureRequest(subject: 'placement-agreement', id: 'pok-1', role: 'parent', capture: ['mode' => 'drawn', 'value' => 'data:image/png;base64,AA', 'affirmed' => true]));
 
 		self::assertSame('pok-signature', $this->saved[0]['schema']);
 		self::assertSame('parent', $this->saved[0]['row']['signerRole']);
@@ -257,7 +258,7 @@ class SigningServiceTest extends TestCase {
 		self::assertSame('drawn-signature', $this->saved[0]['row']['method']);
 		self::assertArrayNotHasKey('subjectKind', $this->saved[0]['row']);
 
-		self::assertSame(403, $this->refusalOf(static fn () => $service->sign(subject: 'placement-agreement', id: 'pok-1', userId: 'mallory', role: 'parent', capture: self::TYPED))->getStatus());
+		self::assertSame(403, $this->refusalOf(static fn () => $service->sign(userId: 'mallory', request: new SignatureRequest(subject: 'placement-agreement', id: 'pok-1', role: 'parent', capture: self::TYPED)))->getStatus());
 	}//end testTheRolesOnAnAgreementAndAParentSigning()
 
 	/**
@@ -275,7 +276,7 @@ class SigningServiceTest extends TestCase {
 			['mode' => 'scan', 'value' => 'x', 'affirmed' => true],
 		];
 		foreach ($captures as $capture) {
-			self::assertSame(422, $this->refusalOf(static fn () => $service->sign(subject: 'learning-plan', id: 'plan-1', userId: 'co', role: 'coordinator', capture: $capture))->getStatus());
+			self::assertSame(422, $this->refusalOf(static fn () => $service->sign(userId: 'co', request: new SignatureRequest(subject: 'learning-plan', id: 'plan-1', role: 'coordinator', capture: $capture)))->getStatus());
 		}
 
 		self::assertSame([], $this->saved);
@@ -288,11 +289,11 @@ class SigningServiceTest extends TestCase {
 	 */
 	public function testAClosedDocumentOrASecondSignatureIsRefused(): void {
 		$active = $this->service(records: $this->plan(lifecycle: 'active'));
-		self::assertSame('not-signable', $this->refusalOf(static fn () => $active->sign(subject: 'learning-plan', id: 'plan-1', userId: 'co', role: 'coordinator', capture: self::TYPED))->getReason());
+		self::assertSame('not-signable', $this->refusalOf(static fn () => $active->sign(userId: 'co', request: new SignatureRequest(subject: 'learning-plan', id: 'plan-1', role: 'coordinator', capture: self::TYPED)))->getReason());
 		self::assertFalse($active->rolesFor(subject: 'learning-plan', id: 'plan-1', userId: 'co')['signable']);
 
 		$twice = $this->service(records: $this->plan(), signedBefore: true);
-		self::assertSame('already-signed', $this->refusalOf(static fn () => $twice->sign(subject: 'learning-plan', id: 'plan-1', userId: 'co', role: 'coordinator', capture: self::TYPED))->getReason());
+		self::assertSame('already-signed', $this->refusalOf(static fn () => $twice->sign(userId: 'co', request: new SignatureRequest(subject: 'learning-plan', id: 'plan-1', role: 'coordinator', capture: self::TYPED)))->getReason());
 
 		self::assertSame([], $this->saved);
 	}//end testAClosedDocumentOrASecondSignatureIsRefused()
@@ -306,7 +307,7 @@ class SigningServiceTest extends TestCase {
 		$service = $this->service(records: $this->plan());
 
 		self::assertSame('unknown-subject', $this->refusalOf(static fn () => $service->rolesFor(subject: 'contract', id: 'plan-1', userId: 'co'))->getReason());
-		self::assertSame(404, $this->refusalOf(static fn () => $service->sign(subject: 'learning-plan', id: 'nope', userId: 'co', role: 'coordinator', capture: self::TYPED))->getStatus());
+		self::assertSame(404, $this->refusalOf(static fn () => $service->sign(userId: 'co', request: new SignatureRequest(subject: 'learning-plan', id: 'nope', role: 'coordinator', capture: self::TYPED)))->getStatus());
 	}//end testAnUnknownSubjectOrRecordIsNotFound()
 
 	/**
