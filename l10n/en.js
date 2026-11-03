@@ -3795,7 +3795,9 @@ OC.L10N.register(
         "Timetable of {name}": "Timetable of {name}",
         "Upload a package": "Upload a package",
         "Lesson blocks": "Lesson blocks",
-        "_%n pupil_::_%n pupils_": ["%n pupil","%n pupils"]
+        "_%n pupil_::_%n pupils_": ["%n pupil","%n pupils"],
+        "School years": "School years",
+        "Mapping per cohort": "Mapping per cohort"
     },
     "nplurals=2; plural=(n != 1);"
 )

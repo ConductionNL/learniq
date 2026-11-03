@@ -4249,7 +4249,9 @@ OC.L10N.register(
         "Timetable of {name}": "Rooster van {name}",
         "Upload a package": "Een pakket uploaden",
         "Lesson blocks": "Blokken van de les",
-        "_%n pupil_::_%n pupils_": ["%n leerling","%n leerlingen"]
+        "_%n pupil_::_%n pupils_": ["%n leerling","%n leerlingen"],
+        "School years": "Schooljaren",
+        "Mapping per cohort": "Indeling per klas"
     },
     "nplurals=2; plural=(n != 1);"
 )
