@@ -346,5 +346,112 @@
             }
         }
     ],
+    "a buffer separates the slots of one teacher": [
+        {
+            "saveObject": {
+                "object": {
+                    "conferenceRoundId": "round-1",
+                    "teacherId": "teacher-a",
+                    "teacherName": "Meester A",
+                    "learnerId": "learner-s1",
+                    "learnerRef": null,
+                    "signupId": "s1",
+                    "startsAt": "2026-09-01T09:00:00+00:00",
+                    "endsAt": "2026-09-01T09:10:00+00:00",
+                    "location": null,
+                    "tenant_id": "tenant-a",
+                    "lifecycle": "proposed"
+                },
+                "register": "learniq",
+                "schema": "conference-slot"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "conferenceRoundId": "round-1",
+                    "teacherId": "teacher-a",
+                    "teacherName": "Meester A",
+                    "learnerId": "learner-s2",
+                    "learnerRef": null,
+                    "signupId": "s2",
+                    "startsAt": "2026-09-01T09:15:00+00:00",
+                    "endsAt": "2026-09-01T09:25:00+00:00",
+                    "location": null,
+                    "tenant_id": "tenant-a",
+                    "lifecycle": "proposed"
+                },
+                "register": "learniq",
+                "schema": "conference-slot"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "conferenceRoundId": "round-1",
+                    "teacherId": "teacher-a",
+                    "teacherName": "Meester A",
+                    "learnerId": "learner-s3",
+                    "learnerRef": null,
+                    "signupId": "s3",
+                    "startsAt": "2026-09-01T09:30:00+00:00",
+                    "endsAt": "2026-09-01T09:40:00+00:00",
+                    "location": null,
+                    "tenant_id": "tenant-a",
+                    "lifecycle": "proposed"
+                },
+                "register": "learniq",
+                "schema": "conference-slot"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "s1",
+                    "conferenceRoundId": "round-1",
+                    "lifecycle": "scheduled",
+                    "learnerId": "learner-s1",
+                    "requestedTeacherIds": [
+                        "teacher-a"
+                    ],
+                    "createdAt": "2026-08-01T08:00"
+                },
+                "register": "learniq",
+                "schema": "conference-signup"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "s2",
+                    "conferenceRoundId": "round-1",
+                    "lifecycle": "scheduled",
+                    "learnerId": "learner-s2",
+                    "requestedTeacherIds": [
+                        "teacher-a"
+                    ],
+                    "createdAt": "2026-08-01T08:05"
+                },
+                "register": "learniq",
+                "schema": "conference-signup"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "s3",
+                    "conferenceRoundId": "round-1",
+                    "lifecycle": "scheduled",
+                    "learnerId": "learner-s3",
+                    "requestedTeacherIds": [
+                        "teacher-a"
+                    ],
+                    "createdAt": "2026-08-01T08:10"
+                },
+                "register": "learniq",
+                "schema": "conference-signup"
+            }
+        }
+    ],
     "a round without an id writes nothing": []
 }
