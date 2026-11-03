@@ -17,3 +17,5 @@
 - warmtepompacademie/LqBord cursusdagen per status https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqBord
 - learniq/LqKoppelingen integraties https://identity.conduction.nl/screens/board?id=learniq/LqKoppelingen
 - learniq/LqLesNotitie notitie toevoegen https://identity.conduction.nl/screens/board?id=learniq/LqLesNotitie
+- learniq/LqInstellingen beheerinstellingen: groepscodes per roostersysteem en de SWV-ontvanger https://identity.conduction.nl/screens/board?id=learniq/LqInstellingen
+- learniq/LqLeerling leerling: toetsaanpassingen aanvragen en goedkeuren https://identity.conduction.nl/screens/board?id=learniq/LqLeerling
