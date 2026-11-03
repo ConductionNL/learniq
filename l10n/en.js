@@ -3795,7 +3795,21 @@ OC.L10N.register(
         "Timetable of {name}": "Timetable of {name}",
         "Upload a package": "Upload a package",
         "Lesson blocks": "Lesson blocks",
-        "_%n pupil_::_%n pupils_": ["%n pupil","%n pupils"]
+        "_%n pupil_::_%n pupils_": ["%n pupil","%n pupils"],
+        "HR employee · school-wide, all locations": "HR employee · school-wide, all locations",
+        "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
+        "confidential adviser · your own mandatory training courses and points": "confidential adviser · your own mandatory training courses and points",
+        "My courses": "My courses",
+        "Assignments to grade": "Assignments to grade",
+        "Sessions to mark": "Sessions to mark",
+        "My cohorts": "My cohorts",
+        "My mandatory training": "My mandatory training",
+        "Learniq administration": "Learniq administration",
+        "visible to instance administrators": "visible to instance administrators",
+        "Menu": "Menu",
+        "Timetable exchange": "Timetable exchange",
+        "AI translations": "AI translations",
+        "Administration settings": "Administration settings"
     },
     "nplurals=2; plural=(n != 1);"
 )

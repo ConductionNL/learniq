@@ -219,7 +219,16 @@
 			"type": "custom",
 			"title": "Dashboards",
 			"component": "LearniqDashboards",
-			"_note": "Landing dashboard (ADR-009 §6): LearniqDashboards with no role prop resolves to the user's default view (initial state dashboardRole). The three explicit per-role pages below back the group-gated Administration/Teaching/My learning menu items — the in-page role switcher was removed."
+			"_note": "Landing dashboard (ADR-009 §6): LearniqDashboards with no role prop resolves to the user's default view (initial state dashboardRole). The three explicit per-role pages below back the group-gated Administration/Teaching/My learning menu items — the in-page role switcher was removed.",
+			"config": {
+				"title": "Today",
+				"greeting": "date",
+				"subtitleByRole": {
+					"hr": "HR employee · school-wide, all locations",
+					"team-lead": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
+					"confidential-counsellor": "confidential adviser · your own mandatory training courses and points"
+				}
+			}
 		},
 		{
 			"id": "DashboardAdmin",
@@ -227,7 +236,16 @@
 			"type": "custom",
 			"title": "Administration",
 			"component": "DashboardAdmin",
-			"_note": "Per-role dashboard (ADR-009 §6): DashboardAdmin renders LearniqDashboards in its admin view. Backs the group-gated Administration menu item (visibleIf user.canAdminDashboard)."
+			"_note": "Per-role dashboard (ADR-009 §6): DashboardAdmin renders LearniqDashboards in its admin view. Backs the group-gated Administration menu item (visibleIf user.canAdminDashboard).",
+			"config": {
+				"title": "Today",
+				"greeting": "date",
+				"subtitleByRole": {
+					"hr": "HR employee · school-wide, all locations",
+					"team-lead": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
+					"confidential-counsellor": "confidential adviser · your own mandatory training courses and points"
+				}
+			}
 		},
 		{
 			"id": "DashboardTeacher",
@@ -235,7 +253,16 @@
 			"type": "custom",
 			"title": "Teaching",
 			"component": "DashboardTeacher",
-			"_note": "Per-role dashboard (ADR-009 §6): DashboardTeacher renders LearniqDashboards in its teacher view. Backs the group-gated Teaching menu item (visibleIf user.canTeachDashboard)."
+			"_note": "Per-role dashboard (ADR-009 §6): DashboardTeacher renders LearniqDashboards in its teacher view. Backs the group-gated Teaching menu item (visibleIf user.canTeachDashboard).",
+			"config": {
+				"title": "Today",
+				"greeting": "date",
+				"subtitleByRole": {
+					"hr": "HR employee · school-wide, all locations",
+					"team-lead": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
+					"confidential-counsellor": "confidential adviser · your own mandatory training courses and points"
+				}
+			}
 		},
 		{
 			"id": "DashboardStudent",
@@ -243,7 +270,16 @@
 			"type": "custom",
 			"title": "My learning",
 			"component": "DashboardStudent",
-			"_note": "Per-role dashboard (ADR-009 §6): DashboardStudent renders LearniqDashboards in its student view. Backs the group-gated My learning menu item (visibleIf user.canLearnDashboard)."
+			"_note": "Per-role dashboard (ADR-009 §6): DashboardStudent renders LearniqDashboards in its student view. Backs the group-gated My learning menu item (visibleIf user.canLearnDashboard).",
+			"config": {
+				"title": "Today",
+				"greeting": "date",
+				"subtitleByRole": {
+					"hr": "HR employee · school-wide, all locations",
+					"team-lead": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
+					"confidential-counsellor": "confidential adviser · your own mandatory training courses and points"
+				}
+			}
 		},
 		{
 			"id": "Compliance",

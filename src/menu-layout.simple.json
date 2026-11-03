@@ -899,7 +899,9 @@
 						"showActions": false
 					}
 				],
+				"title": "Today",
 				"greeting": "date",
+				"subtitleByRole": null,
 				"showWidgetActions": false
 			}
 		},
