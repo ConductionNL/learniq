@@ -1,0 +1,797 @@
+{
+    "lessonsOf cohort c-1": {
+        "lessons": {
+            "sessions": [
+                {
+                    "id": "s-c-1",
+                    "cohortId": "c-1",
+                    "roomId": "r-1"
+                },
+                {
+                    "id": "s-c-1-ref",
+                    "cohortId": "c-1",
+                    "roomReference": "A2"
+                },
+                {
+                    "id": "s-c-1-both",
+                    "cohortId": "c-1",
+                    "roomId": "r-nocode",
+                    "roomReference": "A1"
+                },
+                {
+                    "cohortId": "c-1",
+                    "roomReference": "ZZ"
+                },
+                {
+                    "id": "s-shared",
+                    "cohortId": "c-1",
+                    "roomId": ""
+                }
+            ],
+            "source": "fake"
+        },
+        "calls": [
+            "current",
+            {
+                "sessionsForCohorts": [
+                    "c-1"
+                ],
+                "window": [
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            }
+        ]
+    },
+    "lessonsOf cohort ": {
+        "lessons": {
+            "sessions": [
+                {
+                    "id": "s-",
+                    "cohortId": "",
+                    "roomId": "r-1"
+                },
+                {
+                    "id": "s--ref",
+                    "cohortId": "",
+                    "roomReference": "A2"
+                },
+                {
+                    "id": "s--both",
+                    "cohortId": "",
+                    "roomId": "r-nocode",
+                    "roomReference": "A1"
+                },
+                {
+                    "cohortId": "",
+                    "roomReference": "ZZ"
+                },
+                {
+                    "id": "s-shared",
+                    "cohortId": "",
+                    "roomId": ""
+                }
+            ],
+            "source": "fake"
+        },
+        "calls": [
+            "current",
+            {
+                "sessionsForCohorts": [
+                    ""
+                ],
+                "window": [
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            }
+        ]
+    },
+    "lessonsOf teacher jan": {
+        "lessons": {
+            "sessions": [
+                {
+                    "id": "s-c-1",
+                    "cohortId": "c-1",
+                    "roomId": "r-1"
+                },
+                {
+                    "id": "s-c-1-ref",
+                    "cohortId": "c-1",
+                    "roomReference": "A2"
+                },
+                {
+                    "id": "s-c-1-both",
+                    "cohortId": "c-1",
+                    "roomId": "r-nocode",
+                    "roomReference": "A1"
+                },
+                {
+                    "cohortId": "c-1",
+                    "roomReference": "ZZ"
+                },
+                {
+                    "id": "s-shared",
+                    "cohortId": "c-1",
+                    "roomId": ""
+                },
+                {
+                    "id": "s-c-2",
+                    "cohortId": "c-2",
+                    "roomId": "r-1"
+                },
+                {
+                    "id": "s-c-2-ref",
+                    "cohortId": "c-2",
+                    "roomReference": "A2"
+                },
+                {
+                    "id": "s-c-2-both",
+                    "cohortId": "c-2",
+                    "roomId": "r-nocode",
+                    "roomReference": "A1"
+                },
+                {
+                    "cohortId": "c-2",
+                    "roomReference": "ZZ"
+                },
+                {
+                    "id": "s-c-3",
+                    "cohortId": "c-3",
+                    "roomId": "r-1"
+                },
+                {
+                    "id": "s-c-3-ref",
+                    "cohortId": "c-3",
+                    "roomReference": "A2"
+                },
+                {
+                    "id": "s-c-3-both",
+                    "cohortId": "c-3",
+                    "roomId": "r-nocode",
+                    "roomReference": "A1"
+                },
+                {
+                    "cohortId": "c-3",
+                    "roomReference": "ZZ"
+                },
+                {
+                    "id": "s-cover-jan",
+                    "cover": true
+                },
+                {
+                    "title": "zonder id"
+                }
+            ],
+            "source": "fake"
+        },
+        "calls": [
+            "current",
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "cohort"
+                },
+                "rbac": false
+            },
+            {
+                "sessionsForCohorts": [
+                    "c-1",
+                    "c-2",
+                    "c-3"
+                ],
+                "window": [
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            },
+            {
+                "sessionsForTeacher": "jan",
+                "window": [
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            }
+        ]
+    },
+    "lessonsOf teacher piet": {
+        "lessons": {
+            "sessions": [
+                {
+                    "id": "s-c-1",
+                    "cohortId": "c-1",
+                    "roomId": "r-1"
+                },
+                {
+                    "id": "s-c-1-ref",
+                    "cohortId": "c-1",
+                    "roomReference": "A2"
+                },
+                {
+                    "id": "s-c-1-both",
+                    "cohortId": "c-1",
+                    "roomId": "r-nocode",
+                    "roomReference": "A1"
+                },
+                {
+                    "cohortId": "c-1",
+                    "roomReference": "ZZ"
+                },
+                {
+                    "id": "s-shared",
+                    "cohortId": "c-1",
+                    "roomId": ""
+                },
+                {
+                    "id": "s-cover-piet",
+                    "cover": true
+                },
+                {
+                    "title": "zonder id"
+                }
+            ],
+            "source": "fake"
+        },
+        "calls": [
+            "current",
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "cohort"
+                },
+                "rbac": false
+            },
+            {
+                "sessionsForCohorts": [
+                    "c-1"
+                ],
+                "window": [
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            },
+            {
+                "sessionsForTeacher": "piet",
+                "window": [
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            }
+        ]
+    },
+    "lessonsOf teacher nobody": {
+        "lessons": {
+            "sessions": [
+                {
+                    "id": "s-c-1",
+                    "cover": true
+                },
+                {
+                    "id": "s-cover-nobody",
+                    "cover": true
+                },
+                {
+                    "title": "zonder id"
+                }
+            ],
+            "source": "fake"
+        },
+        "calls": [
+            "current",
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "cohort"
+                },
+                "rbac": false
+            },
+            {
+                "sessionsForCohorts": [],
+                "window": [
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            },
+            {
+                "sessionsForTeacher": "nobody",
+                "window": [
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            }
+        ]
+    },
+    "lessonsOf teacher 7": {
+        "lessons": {
+            "sessions": [
+                {
+                    "id": "s-c-1",
+                    "cover": true
+                },
+                {
+                    "id": "s-cover-7",
+                    "cover": true
+                },
+                {
+                    "title": "zonder id"
+                }
+            ],
+            "source": "fake"
+        },
+        "calls": [
+            "current",
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "cohort"
+                },
+                "rbac": false
+            },
+            {
+                "sessionsForCohorts": [],
+                "window": [
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            },
+            {
+                "sessionsForTeacher": "7",
+                "window": [
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            }
+        ]
+    },
+    "lessonsOf room r-1": {
+        "lessons": {
+            "sessions": [
+                {
+                    "id": "s-c-1",
+                    "cohortId": "c-1",
+                    "roomId": "r-1"
+                },
+                {
+                    "id": "s-c-1-both",
+                    "cohortId": "c-1",
+                    "roomId": "r-nocode",
+                    "roomReference": "A1"
+                },
+                {
+                    "id": "s-c-2",
+                    "cohortId": "c-2",
+                    "roomId": "r-1"
+                },
+                {
+                    "id": "s-c-2-both",
+                    "cohortId": "c-2",
+                    "roomId": "r-nocode",
+                    "roomReference": "A1"
+                },
+                {
+                    "id": "s-c-3",
+                    "cohortId": "c-3",
+                    "roomId": "r-1"
+                },
+                {
+                    "id": "s-c-3-both",
+                    "cohortId": "c-3",
+                    "roomId": "r-nocode",
+                    "roomReference": "A1"
+                },
+                {
+                    "id": "s-",
+                    "cohortId": "",
+                    "roomId": "r-1"
+                },
+                {
+                    "id": "s--both",
+                    "cohortId": "",
+                    "roomId": "r-nocode",
+                    "roomReference": "A1"
+                }
+            ],
+            "source": "fake"
+        },
+        "calls": [
+            "current",
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "cohort"
+                },
+                "rbac": false
+            },
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "room"
+                },
+                "rbac": false
+            },
+            {
+                "sessionsForCohorts": [
+                    "c-1",
+                    "c-2",
+                    "c-3",
+                    ""
+                ],
+                "window": [
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            }
+        ]
+    },
+    "lessonsOf room r-2": {
+        "lessons": {
+            "sessions": [
+                {
+                    "id": "s-c-1-ref",
+                    "cohortId": "c-1",
+                    "roomReference": "A2"
+                },
+                {
+                    "id": "s-c-2-ref",
+                    "cohortId": "c-2",
+                    "roomReference": "A2"
+                },
+                {
+                    "id": "s-c-3-ref",
+                    "cohortId": "c-3",
+                    "roomReference": "A2"
+                },
+                {
+                    "id": "s--ref",
+                    "cohortId": "",
+                    "roomReference": "A2"
+                }
+            ],
+            "source": "fake"
+        },
+        "calls": [
+            "current",
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "cohort"
+                },
+                "rbac": false
+            },
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "room"
+                },
+                "rbac": false
+            },
+            {
+                "sessionsForCohorts": [
+                    "c-1",
+                    "c-2",
+                    "c-3",
+                    ""
+                ],
+                "window": [
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            }
+        ]
+    },
+    "lessonsOf room r-nocode": {
+        "lessons": {
+            "sessions": [
+                {
+                    "id": "s-c-1-both",
+                    "cohortId": "c-1",
+                    "roomId": "r-nocode",
+                    "roomReference": "A1"
+                },
+                {
+                    "id": "s-c-2-both",
+                    "cohortId": "c-2",
+                    "roomId": "r-nocode",
+                    "roomReference": "A1"
+                },
+                {
+                    "id": "s-c-3-both",
+                    "cohortId": "c-3",
+                    "roomId": "r-nocode",
+                    "roomReference": "A1"
+                },
+                {
+                    "id": "s--both",
+                    "cohortId": "",
+                    "roomId": "r-nocode",
+                    "roomReference": "A1"
+                }
+            ],
+            "source": "fake"
+        },
+        "calls": [
+            "current",
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "cohort"
+                },
+                "rbac": false
+            },
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "room"
+                },
+                "rbac": false
+            },
+            {
+                "sessionsForCohorts": [
+                    "c-1",
+                    "c-2",
+                    "c-3",
+                    ""
+                ],
+                "window": [
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            }
+        ]
+    },
+    "lessonsOf room r-none": {
+        "lessons": {
+            "sessions": [],
+            "source": "fake"
+        },
+        "calls": [
+            "current",
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "cohort"
+                },
+                "rbac": false
+            },
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "room"
+                },
+                "rbac": false
+            },
+            {
+                "sessionsForCohorts": [
+                    "c-1",
+                    "c-2",
+                    "c-3",
+                    ""
+                ],
+                "window": [
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            }
+        ]
+    },
+    "lessonsOf other r-1": {
+        "lessons": {
+            "sessions": [
+                {
+                    "id": "s-c-1",
+                    "cohortId": "c-1",
+                    "roomId": "r-1"
+                },
+                {
+                    "id": "s-c-1-both",
+                    "cohortId": "c-1",
+                    "roomId": "r-nocode",
+                    "roomReference": "A1"
+                },
+                {
+                    "id": "s-c-2",
+                    "cohortId": "c-2",
+                    "roomId": "r-1"
+                },
+                {
+                    "id": "s-c-2-both",
+                    "cohortId": "c-2",
+                    "roomId": "r-nocode",
+                    "roomReference": "A1"
+                },
+                {
+                    "id": "s-c-3",
+                    "cohortId": "c-3",
+                    "roomId": "r-1"
+                },
+                {
+                    "id": "s-c-3-both",
+                    "cohortId": "c-3",
+                    "roomId": "r-nocode",
+                    "roomReference": "A1"
+                },
+                {
+                    "id": "s-",
+                    "cohortId": "",
+                    "roomId": "r-1"
+                },
+                {
+                    "id": "s--both",
+                    "cohortId": "",
+                    "roomId": "r-nocode",
+                    "roomReference": "A1"
+                }
+            ],
+            "source": "fake"
+        },
+        "calls": [
+            "current",
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "cohort"
+                },
+                "rbac": false
+            },
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "room"
+                },
+                "rbac": false
+            },
+            {
+                "sessionsForCohorts": [
+                    "c-1",
+                    "c-2",
+                    "c-3",
+                    ""
+                ],
+                "window": [
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            }
+        ]
+    },
+    "roomsOfCohorts ": {
+        "rooms": [],
+        "calls": []
+    },
+    "roomsOfCohorts c-1": {
+        "rooms": [
+            "r-1",
+            "r-2",
+            "r-nocode"
+        ],
+        "calls": [
+            "current",
+            {
+                "sessionsForCohorts": [
+                    "c-1"
+                ],
+                "window": {
+                    "days": 112
+                }
+            },
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "room"
+                },
+                "rbac": false
+            }
+        ]
+    },
+    "roomsOfCohorts c-2,c-1": {
+        "rooms": [
+            "r-1",
+            "r-2",
+            "r-nocode"
+        ],
+        "calls": [
+            "current",
+            {
+                "sessionsForCohorts": [
+                    "c-2",
+                    "c-1"
+                ],
+                "window": {
+                    "days": 112
+                }
+            },
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "room"
+                },
+                "rbac": false
+            }
+        ]
+    },
+    "roomsOfCohorts c-3": {
+        "rooms": [
+            "r-1",
+            "r-2",
+            "r-nocode"
+        ],
+        "calls": [
+            "current",
+            {
+                "sessionsForCohorts": [
+                    "c-3"
+                ],
+                "window": {
+                    "days": 112
+                }
+            },
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "room"
+                },
+                "rbac": false
+            }
+        ]
+    },
+    "roomsOfCohorts when the source fails": {
+        "rooms": [],
+        "calls": [
+            "current",
+            {
+                "sessionsForCohorts": [
+                    "c-1"
+                ],
+                "window": {
+                    "days": 112
+                }
+            }
+        ]
+    },
+    "labels cohort": {
+        "c-1": "4H1",
+        "c-2": "5V2",
+        "c-3": ""
+    },
+    "labels teacher": {
+        "jan": "jan",
+        "piet": "piet",
+        "7": "7"
+    },
+    "labels room": {
+        "r-1": "Lokaal 1",
+        "r-2": "Lokaal 2",
+        "r-nocode": "Kamer"
+    },
+    "labels other": {
+        "c-1": "4H1",
+        "c-2": "5V2",
+        "c-3": ""
+    },
+    "roomCodes": {
+        "ids": [
+            "r-1",
+            "r-2",
+            "r-nocode",
+            ""
+        ],
+        "codes": [
+            "A1",
+            "A2",
+            "",
+            "Z9"
+        ]
+    },
+    "policyRows": [
+        {
+            "id": "p-1",
+            "role": "learner"
+        }
+    ],
+    "enrolmentsOf": [
+        {
+            "id": "e-1",
+            "learnerId": "anna"
+        }
+    ]
+}

@@ -1,0 +1,2570 @@
+{
+    "default hours, whole week": {
+        "from": "2026-04-20",
+        "to": "2026-04-27",
+        "teachingDays": 4,
+        "openHoursPerRoom": 36.0,
+        "rooms": [
+            {
+                "roomId": "r-gym",
+                "name": "Gymzaal",
+                "code": "H-GYM",
+                "kind": "gym",
+                "buildingCode": "00X1",
+                "capacity": 35,
+                "hoursInUse": 8.0,
+                "hoursOpen": 36.0,
+                "occupancy": 0.222,
+                "fill": 0.8
+            },
+            {
+                "roomId": "r-lab",
+                "name": "Practicumlokaal",
+                "code": "H2.10",
+                "kind": "lab",
+                "buildingCode": "00X1",
+                "capacity": 28,
+                "hoursInUse": 4.5,
+                "hoursOpen": 36.0,
+                "occupancy": 0.125,
+                "fill": 0.667
+            },
+            {
+                "roomId": "r-small",
+                "name": "Kamer",
+                "code": null,
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 10,
+                "hoursInUse": 2.1,
+                "hoursOpen": 36.0,
+                "occupancy": 0.058,
+                "fill": 1.2
+            },
+            {
+                "roomId": "r-uuid",
+                "name": "Lokaal 3",
+                "code": "B0.03",
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 0,
+                "hoursInUse": 1.5,
+                "hoursOpen": 36.0,
+                "occupancy": 0.042,
+                "fill": null
+            }
+        ],
+        "grid": [
+            {
+                "weekday": 0,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.5
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 1,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.25
+                    }
+                ]
+            },
+            {
+                "weekday": 2,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.125
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.167
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.167
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 3,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.188
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.188
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.167
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.021
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            }
+        ],
+        "unassigned": {
+            "count": 2,
+            "sessions": [
+                {
+                    "id": "probe",
+                    "title": "[[\"c-1\",\"c-2\",\"c-3\"],\"2026-04-20T00:00:00+00:00\",\"2026-04-27T00:00:00+00:00\"]",
+                    "startsAt": "2026-04-20T09:00:00+02:00",
+                    "source": "learniq"
+                },
+                {
+                    "id": "s-5",
+                    "title": "Buiten",
+                    "startsAt": "2026-04-23T09:00:00+02:00",
+                    "source": "learniq"
+                }
+            ]
+        },
+        "source": "fake"
+    },
+    "default hours, two weeks": {
+        "from": "2026-04-20",
+        "to": "2026-05-04",
+        "teachingDays": 6,
+        "openHoursPerRoom": 54.0,
+        "rooms": [
+            {
+                "roomId": "r-gym",
+                "name": "Gymzaal",
+                "code": "H-GYM",
+                "kind": "gym",
+                "buildingCode": "00X1",
+                "capacity": 35,
+                "hoursInUse": 8.0,
+                "hoursOpen": 54.0,
+                "occupancy": 0.148,
+                "fill": 0.8
+            },
+            {
+                "roomId": "r-lab",
+                "name": "Practicumlokaal",
+                "code": "H2.10",
+                "kind": "lab",
+                "buildingCode": "00X1",
+                "capacity": 28,
+                "hoursInUse": 4.5,
+                "hoursOpen": 54.0,
+                "occupancy": 0.083,
+                "fill": 0.667
+            },
+            {
+                "roomId": "r-uuid",
+                "name": "Lokaal 3",
+                "code": "B0.03",
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 0,
+                "hoursInUse": 2.3,
+                "hoursOpen": 54.0,
+                "occupancy": 0.043,
+                "fill": null
+            },
+            {
+                "roomId": "r-small",
+                "name": "Kamer",
+                "code": null,
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 10,
+                "hoursInUse": 2.1,
+                "hoursOpen": 54.0,
+                "occupancy": 0.039,
+                "fill": 1.2
+            }
+        ],
+        "grid": [
+            {
+                "weekday": 0,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.354
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.125
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.125
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.125
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.125
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.125
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.125
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.125
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 1,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.125
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.125
+                    }
+                ]
+            },
+            {
+                "weekday": 2,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.125
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.167
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.167
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 3,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.188
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.188
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.167
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.021
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            }
+        ],
+        "unassigned": {
+            "count": 4,
+            "sessions": [
+                {
+                    "id": "probe",
+                    "title": "[[\"c-1\",\"c-2\",\"c-3\"],\"2026-04-20T00:00:00+00:00\",\"2026-05-04T00:00:00+00:00\"]",
+                    "startsAt": "2026-04-20T09:00:00+02:00",
+                    "source": "learniq"
+                },
+                {
+                    "id": "s-5",
+                    "title": "Buiten",
+                    "startsAt": "2026-04-23T09:00:00+02:00",
+                    "source": "learniq"
+                },
+                {
+                    "id": "s-16",
+                    "title": "",
+                    "startsAt": "2026-04-28T11:00:00+02:00",
+                    "source": "learniq"
+                },
+                {
+                    "id": "",
+                    "title": "geen id",
+                    "startsAt": "2026-04-28T11:00:00+02:00",
+                    "source": "learniq"
+                }
+            ]
+        },
+        "source": "fake"
+    },
+    "kind lab": {
+        "from": "2026-04-20",
+        "to": "2026-04-27",
+        "teachingDays": 4,
+        "openHoursPerRoom": 36.0,
+        "rooms": [
+            {
+                "roomId": "r-lab",
+                "name": "Practicumlokaal",
+                "code": "H2.10",
+                "kind": "lab",
+                "buildingCode": "00X1",
+                "capacity": 28,
+                "hoursInUse": 4.5,
+                "hoursOpen": 36.0,
+                "occupancy": 0.125,
+                "fill": 0.667
+            }
+        ],
+        "grid": [
+            {
+                "weekday": 0,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 1.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 1,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 1.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 1.0
+                    }
+                ]
+            },
+            {
+                "weekday": 2,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 3,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.75
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.75
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            }
+        ],
+        "unassigned": {
+            "count": 2,
+            "sessions": [
+                {
+                    "id": "probe",
+                    "title": "[[\"c-1\",\"c-2\",\"c-3\"],\"2026-04-20T00:00:00+00:00\",\"2026-04-27T00:00:00+00:00\"]",
+                    "startsAt": "2026-04-20T09:00:00+02:00",
+                    "source": "learniq"
+                },
+                {
+                    "id": "s-5",
+                    "title": "Buiten",
+                    "startsAt": "2026-04-23T09:00:00+02:00",
+                    "source": "learniq"
+                }
+            ]
+        },
+        "source": "fake"
+    },
+    "kind empty": {
+        "from": "2026-04-20",
+        "to": "2026-04-27",
+        "teachingDays": 4,
+        "openHoursPerRoom": 36.0,
+        "rooms": [
+            {
+                "roomId": "r-gym",
+                "name": "Gymzaal",
+                "code": "H-GYM",
+                "kind": "gym",
+                "buildingCode": "00X1",
+                "capacity": 35,
+                "hoursInUse": 8.0,
+                "hoursOpen": 36.0,
+                "occupancy": 0.222,
+                "fill": 0.8
+            },
+            {
+                "roomId": "r-lab",
+                "name": "Practicumlokaal",
+                "code": "H2.10",
+                "kind": "lab",
+                "buildingCode": "00X1",
+                "capacity": 28,
+                "hoursInUse": 4.5,
+                "hoursOpen": 36.0,
+                "occupancy": 0.125,
+                "fill": 0.667
+            },
+            {
+                "roomId": "r-small",
+                "name": "Kamer",
+                "code": null,
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 10,
+                "hoursInUse": 2.1,
+                "hoursOpen": 36.0,
+                "occupancy": 0.058,
+                "fill": 1.2
+            },
+            {
+                "roomId": "r-uuid",
+                "name": "Lokaal 3",
+                "code": "B0.03",
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 0,
+                "hoursInUse": 1.5,
+                "hoursOpen": 36.0,
+                "occupancy": 0.042,
+                "fill": null
+            }
+        ],
+        "grid": [
+            {
+                "weekday": 0,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.5
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 1,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.25
+                    }
+                ]
+            },
+            {
+                "weekday": 2,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.125
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.167
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.167
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 3,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.188
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.188
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.167
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.021
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            }
+        ],
+        "unassigned": {
+            "count": 2,
+            "sessions": [
+                {
+                    "id": "probe",
+                    "title": "[[\"c-1\",\"c-2\",\"c-3\"],\"2026-04-20T00:00:00+00:00\",\"2026-04-27T00:00:00+00:00\"]",
+                    "startsAt": "2026-04-20T09:00:00+02:00",
+                    "source": "learniq"
+                },
+                {
+                    "id": "s-5",
+                    "title": "Buiten",
+                    "startsAt": "2026-04-23T09:00:00+02:00",
+                    "source": "learniq"
+                }
+            ]
+        },
+        "source": "fake"
+    },
+    "building 00X2": {
+        "from": "2026-04-20",
+        "to": "2026-04-27",
+        "teachingDays": 4,
+        "openHoursPerRoom": 36.0,
+        "rooms": [
+            {
+                "roomId": "r-small",
+                "name": "Kamer",
+                "code": null,
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 10,
+                "hoursInUse": 2.1,
+                "hoursOpen": 36.0,
+                "occupancy": 0.058,
+                "fill": 1.2
+            },
+            {
+                "roomId": "r-uuid",
+                "name": "Lokaal 3",
+                "code": "B0.03",
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 0,
+                "hoursInUse": 1.5,
+                "hoursOpen": 36.0,
+                "occupancy": 0.042,
+                "fill": null
+            }
+        ],
+        "grid": [
+            {
+                "weekday": 0,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 1,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 2,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.5
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.333
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.333
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 3,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.333
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.042
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            }
+        ],
+        "unassigned": {
+            "count": 2,
+            "sessions": [
+                {
+                    "id": "probe",
+                    "title": "[[\"c-1\",\"c-2\",\"c-3\"],\"2026-04-20T00:00:00+00:00\",\"2026-04-27T00:00:00+00:00\"]",
+                    "startsAt": "2026-04-20T09:00:00+02:00",
+                    "source": "learniq"
+                },
+                {
+                    "id": "s-5",
+                    "title": "Buiten",
+                    "startsAt": "2026-04-23T09:00:00+02:00",
+                    "source": "learniq"
+                }
+            ]
+        },
+        "source": "fake"
+    },
+    "kind and building": {
+        "from": "2026-04-20",
+        "to": "2026-04-27",
+        "teachingDays": 4,
+        "openHoursPerRoom": 36.0,
+        "rooms": [
+            {
+                "roomId": "r-small",
+                "name": "Kamer",
+                "code": null,
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 10,
+                "hoursInUse": 2.1,
+                "hoursOpen": 36.0,
+                "occupancy": 0.058,
+                "fill": 1.2
+            },
+            {
+                "roomId": "r-uuid",
+                "name": "Lokaal 3",
+                "code": "B0.03",
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 0,
+                "hoursInUse": 1.5,
+                "hoursOpen": 36.0,
+                "occupancy": 0.042,
+                "fill": null
+            }
+        ],
+        "grid": [
+            {
+                "weekday": 0,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 1,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 2,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.5
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.333
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.333
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 3,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.333
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.042
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            }
+        ],
+        "unassigned": {
+            "count": 2,
+            "sessions": [
+                {
+                    "id": "probe",
+                    "title": "[[\"c-1\",\"c-2\",\"c-3\"],\"2026-04-20T00:00:00+00:00\",\"2026-04-27T00:00:00+00:00\"]",
+                    "startsAt": "2026-04-20T09:00:00+02:00",
+                    "source": "learniq"
+                },
+                {
+                    "id": "s-5",
+                    "title": "Buiten",
+                    "startsAt": "2026-04-23T09:00:00+02:00",
+                    "source": "learniq"
+                }
+            ]
+        },
+        "source": "fake"
+    },
+    "unknown kind": {
+        "from": "2026-04-20",
+        "to": "2026-04-27",
+        "teachingDays": 4,
+        "openHoursPerRoom": 36.0,
+        "rooms": [],
+        "grid": [
+            {
+                "weekday": 0,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 1,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 2,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 3,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            }
+        ],
+        "unassigned": {
+            "count": 2,
+            "sessions": [
+                {
+                    "id": "probe",
+                    "title": "[[\"c-1\",\"c-2\",\"c-3\"],\"2026-04-20T00:00:00+00:00\",\"2026-04-27T00:00:00+00:00\"]",
+                    "startsAt": "2026-04-20T09:00:00+02:00",
+                    "source": "learniq"
+                },
+                {
+                    "id": "s-5",
+                    "title": "Buiten",
+                    "startsAt": "2026-04-23T09:00:00+02:00",
+                    "source": "learniq"
+                }
+            ]
+        },
+        "source": "fake"
+    },
+    "custom hours with study days closed": {
+        "from": "2026-04-20",
+        "to": "2026-04-27",
+        "teachingDays": 3,
+        "openHoursPerRoom": 24.8,
+        "rooms": [
+            {
+                "roomId": "r-gym",
+                "name": "Gymzaal",
+                "code": "H-GYM",
+                "kind": "gym",
+                "buildingCode": "00X1",
+                "capacity": 35,
+                "hoursInUse": 8.0,
+                "hoursOpen": 24.8,
+                "occupancy": 0.323,
+                "fill": 0.8
+            },
+            {
+                "roomId": "r-lab",
+                "name": "Practicumlokaal",
+                "code": "H2.10",
+                "kind": "lab",
+                "buildingCode": "00X1",
+                "capacity": 28,
+                "hoursInUse": 3.8,
+                "hoursOpen": 24.8,
+                "occupancy": 0.152,
+                "fill": 0.667
+            },
+            {
+                "roomId": "r-small",
+                "name": "Kamer",
+                "code": null,
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 10,
+                "hoursInUse": 0.8,
+                "hoursOpen": 24.8,
+                "occupancy": 0.03,
+                "fill": null
+            },
+            {
+                "roomId": "r-uuid",
+                "name": "Lokaal 3",
+                "code": "B0.03",
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 0,
+                "hoursInUse": 0.0,
+                "hoursOpen": 24.8,
+                "occupancy": 0.0,
+                "fill": null
+            }
+        ],
+        "grid": [
+            {
+                "weekday": 0,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.5
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 1,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.063
+                    }
+                ]
+            },
+            {
+                "weekday": 3,
+                "hours": [
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.188
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.188
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.167
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.021
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            }
+        ],
+        "unassigned": {
+            "count": 2,
+            "sessions": [
+                {
+                    "id": "probe",
+                    "title": "[[\"c-1\",\"c-2\",\"c-3\"],\"2026-04-20T00:00:00+00:00\",\"2026-04-27T00:00:00+00:00\"]",
+                    "startsAt": "2026-04-20T09:00:00+02:00",
+                    "source": "learniq"
+                },
+                {
+                    "id": "s-5",
+                    "title": "Buiten",
+                    "startsAt": "2026-04-23T09:00:00+02:00",
+                    "source": "learniq"
+                }
+            ]
+        },
+        "source": "fake"
+    },
+    "custom hours, open study days": {
+        "from": "2026-04-20",
+        "to": "2026-04-27",
+        "teachingDays": 4,
+        "openHoursPerRoom": 28.8,
+        "rooms": [
+            {
+                "roomId": "r-gym",
+                "name": "Gymzaal",
+                "code": "H-GYM",
+                "kind": "gym",
+                "buildingCode": "00X1",
+                "capacity": 35,
+                "hoursInUse": 8.0,
+                "hoursOpen": 28.8,
+                "occupancy": 0.278,
+                "fill": 0.8
+            },
+            {
+                "roomId": "r-lab",
+                "name": "Practicumlokaal",
+                "code": "H2.10",
+                "kind": "lab",
+                "buildingCode": "00X1",
+                "capacity": 28,
+                "hoursInUse": 3.8,
+                "hoursOpen": 28.8,
+                "occupancy": 0.13,
+                "fill": 0.667
+            },
+            {
+                "roomId": "r-uuid",
+                "name": "Lokaal 3",
+                "code": "B0.03",
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 0,
+                "hoursInUse": 1.5,
+                "hoursOpen": 28.8,
+                "occupancy": 0.052,
+                "fill": null
+            },
+            {
+                "roomId": "r-small",
+                "name": "Kamer",
+                "code": null,
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 10,
+                "hoursInUse": 1.4,
+                "hoursOpen": 28.8,
+                "occupancy": 0.049,
+                "fill": 1.2
+            }
+        ],
+        "grid": [
+            {
+                "weekday": 0,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.5
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 1,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.063
+                    }
+                ]
+            },
+            {
+                "weekday": 2,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.125
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.167
+                    }
+                ]
+            },
+            {
+                "weekday": 3,
+                "hours": [
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.188
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.188
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.167
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.021
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            }
+        ],
+        "unassigned": {
+            "count": 2,
+            "sessions": [
+                {
+                    "id": "probe",
+                    "title": "[[\"c-1\",\"c-2\",\"c-3\"],\"2026-04-20T00:00:00+00:00\",\"2026-04-27T00:00:00+00:00\"]",
+                    "startsAt": "2026-04-20T09:00:00+02:00",
+                    "source": "learniq"
+                },
+                {
+                    "id": "s-5",
+                    "title": "Buiten",
+                    "startsAt": "2026-04-23T09:00:00+02:00",
+                    "source": "learniq"
+                }
+            ]
+        },
+        "source": "fake"
+    },
+    "end before start": {
+        "from": "2026-04-27",
+        "to": "2026-04-20",
+        "teachingDays": 0,
+        "openHoursPerRoom": 0.0,
+        "rooms": [
+            {
+                "roomId": "r-gym",
+                "name": "Gymzaal",
+                "code": "H-GYM",
+                "kind": "gym",
+                "buildingCode": "00X1",
+                "capacity": 35,
+                "hoursInUse": 0.0,
+                "hoursOpen": 0.0,
+                "occupancy": null,
+                "fill": null
+            },
+            {
+                "roomId": "r-lab",
+                "name": "Practicumlokaal",
+                "code": "H2.10",
+                "kind": "lab",
+                "buildingCode": "00X1",
+                "capacity": 28,
+                "hoursInUse": 0.0,
+                "hoursOpen": 0.0,
+                "occupancy": null,
+                "fill": null
+            },
+            {
+                "roomId": "r-uuid",
+                "name": "Lokaal 3",
+                "code": "B0.03",
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 0,
+                "hoursInUse": 0.0,
+                "hoursOpen": 0.0,
+                "occupancy": null,
+                "fill": null
+            },
+            {
+                "roomId": "r-small",
+                "name": "Kamer",
+                "code": null,
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 10,
+                "hoursInUse": 0.0,
+                "hoursOpen": 0.0,
+                "occupancy": null,
+                "fill": null
+            }
+        ],
+        "grid": [],
+        "unassigned": {
+            "count": 0,
+            "sessions": []
+        },
+        "source": "fake"
+    },
+    "same day": {
+        "from": "2026-04-20",
+        "to": "2026-04-20",
+        "teachingDays": 0,
+        "openHoursPerRoom": 0.0,
+        "rooms": [
+            {
+                "roomId": "r-gym",
+                "name": "Gymzaal",
+                "code": "H-GYM",
+                "kind": "gym",
+                "buildingCode": "00X1",
+                "capacity": 35,
+                "hoursInUse": 0.0,
+                "hoursOpen": 0.0,
+                "occupancy": null,
+                "fill": null
+            },
+            {
+                "roomId": "r-lab",
+                "name": "Practicumlokaal",
+                "code": "H2.10",
+                "kind": "lab",
+                "buildingCode": "00X1",
+                "capacity": 28,
+                "hoursInUse": 0.0,
+                "hoursOpen": 0.0,
+                "occupancy": null,
+                "fill": null
+            },
+            {
+                "roomId": "r-uuid",
+                "name": "Lokaal 3",
+                "code": "B0.03",
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 0,
+                "hoursInUse": 0.0,
+                "hoursOpen": 0.0,
+                "occupancy": null,
+                "fill": null
+            },
+            {
+                "roomId": "r-small",
+                "name": "Kamer",
+                "code": null,
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 10,
+                "hoursInUse": 0.0,
+                "hoursOpen": 0.0,
+                "occupancy": null,
+                "fill": null
+            }
+        ],
+        "grid": [],
+        "unassigned": {
+            "count": 0,
+            "sessions": []
+        },
+        "source": "fake"
+    },
+    "not a date": {
+        "from": "2026-02-30",
+        "to": "2026-03-05",
+        "teachingDays": 0,
+        "openHoursPerRoom": 0.0,
+        "rooms": [
+            {
+                "roomId": "r-gym",
+                "name": "Gymzaal",
+                "code": "H-GYM",
+                "kind": "gym",
+                "buildingCode": "00X1",
+                "capacity": 35,
+                "hoursInUse": 0.0,
+                "hoursOpen": 0.0,
+                "occupancy": null,
+                "fill": null
+            },
+            {
+                "roomId": "r-lab",
+                "name": "Practicumlokaal",
+                "code": "H2.10",
+                "kind": "lab",
+                "buildingCode": "00X1",
+                "capacity": 28,
+                "hoursInUse": 0.0,
+                "hoursOpen": 0.0,
+                "occupancy": null,
+                "fill": null
+            },
+            {
+                "roomId": "r-uuid",
+                "name": "Lokaal 3",
+                "code": "B0.03",
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 0,
+                "hoursInUse": 0.0,
+                "hoursOpen": 0.0,
+                "occupancy": null,
+                "fill": null
+            },
+            {
+                "roomId": "r-small",
+                "name": "Kamer",
+                "code": null,
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 10,
+                "hoursInUse": 0.0,
+                "hoursOpen": 0.0,
+                "occupancy": null,
+                "fill": null
+            }
+        ],
+        "grid": [],
+        "unassigned": {
+            "count": 0,
+            "sessions": []
+        },
+        "source": "fake"
+    },
+    "loose format": {
+        "from": "2026-4-20",
+        "to": "2026-04-27",
+        "teachingDays": 0,
+        "openHoursPerRoom": 0.0,
+        "rooms": [
+            {
+                "roomId": "r-gym",
+                "name": "Gymzaal",
+                "code": "H-GYM",
+                "kind": "gym",
+                "buildingCode": "00X1",
+                "capacity": 35,
+                "hoursInUse": 0.0,
+                "hoursOpen": 0.0,
+                "occupancy": null,
+                "fill": null
+            },
+            {
+                "roomId": "r-lab",
+                "name": "Practicumlokaal",
+                "code": "H2.10",
+                "kind": "lab",
+                "buildingCode": "00X1",
+                "capacity": 28,
+                "hoursInUse": 0.0,
+                "hoursOpen": 0.0,
+                "occupancy": null,
+                "fill": null
+            },
+            {
+                "roomId": "r-uuid",
+                "name": "Lokaal 3",
+                "code": "B0.03",
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 0,
+                "hoursInUse": 0.0,
+                "hoursOpen": 0.0,
+                "occupancy": null,
+                "fill": null
+            },
+            {
+                "roomId": "r-small",
+                "name": "Kamer",
+                "code": null,
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 10,
+                "hoursInUse": 0.0,
+                "hoursOpen": 0.0,
+                "occupancy": null,
+                "fill": null
+            }
+        ],
+        "grid": [],
+        "unassigned": {
+            "count": 0,
+            "sessions": []
+        },
+        "source": "fake"
+    },
+    "one day": {
+        "from": "2026-04-21",
+        "to": "2026-04-22",
+        "teachingDays": 1,
+        "openHoursPerRoom": 9.0,
+        "rooms": [
+            {
+                "roomId": "r-lab",
+                "name": "Practicumlokaal",
+                "code": "H2.10",
+                "kind": "lab",
+                "buildingCode": "00X1",
+                "capacity": 28,
+                "hoursInUse": 2.0,
+                "hoursOpen": 9.0,
+                "occupancy": 0.222,
+                "fill": 1.0
+            },
+            {
+                "roomId": "r-gym",
+                "name": "Gymzaal",
+                "code": "H-GYM",
+                "kind": "gym",
+                "buildingCode": "00X1",
+                "capacity": 35,
+                "hoursInUse": 0.0,
+                "hoursOpen": 9.0,
+                "occupancy": 0.0,
+                "fill": null
+            },
+            {
+                "roomId": "r-uuid",
+                "name": "Lokaal 3",
+                "code": "B0.03",
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 0,
+                "hoursInUse": 0.0,
+                "hoursOpen": 9.0,
+                "occupancy": 0.0,
+                "fill": null
+            },
+            {
+                "roomId": "r-small",
+                "name": "Kamer",
+                "code": null,
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 10,
+                "hoursInUse": 0.0,
+                "hoursOpen": 9.0,
+                "occupancy": 0.0,
+                "fill": null
+            }
+        ],
+        "grid": [
+            {
+                "weekday": 1,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.25
+                    }
+                ]
+            }
+        ],
+        "unassigned": {
+            "count": 0,
+            "sessions": []
+        },
+        "source": "fake"
+    },
+    "odd hours": {
+        "from": "2026-04-20",
+        "to": "2026-04-27",
+        "teachingDays": 4,
+        "openHoursPerRoom": 36.0,
+        "rooms": [
+            {
+                "roomId": "r-gym",
+                "name": "Gymzaal",
+                "code": "H-GYM",
+                "kind": "gym",
+                "buildingCode": "00X1",
+                "capacity": 35,
+                "hoursInUse": 8.0,
+                "hoursOpen": 36.0,
+                "occupancy": 0.222,
+                "fill": 0.8
+            },
+            {
+                "roomId": "r-lab",
+                "name": "Practicumlokaal",
+                "code": "H2.10",
+                "kind": "lab",
+                "buildingCode": "00X1",
+                "capacity": 28,
+                "hoursInUse": 4.5,
+                "hoursOpen": 36.0,
+                "occupancy": 0.125,
+                "fill": 0.667
+            },
+            {
+                "roomId": "r-small",
+                "name": "Kamer",
+                "code": null,
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 10,
+                "hoursInUse": 2.1,
+                "hoursOpen": 36.0,
+                "occupancy": 0.058,
+                "fill": 1.2
+            },
+            {
+                "roomId": "r-uuid",
+                "name": "Lokaal 3",
+                "code": "B0.03",
+                "kind": "classroom",
+                "buildingCode": "00X2",
+                "capacity": 0,
+                "hoursInUse": 1.5,
+                "hoursOpen": 36.0,
+                "occupancy": 0.042,
+                "fill": null
+            }
+        ],
+        "grid": [
+            {
+                "weekday": 0,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.5
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 1,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.25
+                    }
+                ]
+            },
+            {
+                "weekday": 2,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.25
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.125
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.167
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.167
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            },
+            {
+                "weekday": 3,
+                "hours": [
+                    {
+                        "hour": 8,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 9,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 10,
+                        "share": 0.188
+                    },
+                    {
+                        "hour": 11,
+                        "share": 0.188
+                    },
+                    {
+                        "hour": 12,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 13,
+                        "share": 0.167
+                    },
+                    {
+                        "hour": 14,
+                        "share": 0.021
+                    },
+                    {
+                        "hour": 15,
+                        "share": 0.0
+                    },
+                    {
+                        "hour": 16,
+                        "share": 0.0
+                    }
+                ]
+            }
+        ],
+        "unassigned": {
+            "count": 2,
+            "sessions": [
+                {
+                    "id": "probe",
+                    "title": "[[\"c-1\",\"c-2\",\"c-3\"],\"2026-04-20T00:00:00+00:00\",\"2026-04-27T00:00:00+00:00\"]",
+                    "startsAt": "2026-04-20T09:00:00+02:00",
+                    "source": "learniq"
+                },
+                {
+                    "id": "s-5",
+                    "title": "Buiten",
+                    "startsAt": "2026-04-23T09:00:00+02:00",
+                    "source": "learniq"
+                }
+            ]
+        },
+        "source": "fake"
+    },
+    "parseDay 2026-04-20": "2026-04-20 00:00:00",
+    "parseDay 2026-02-29": null,
+    "parseDay 2024-02-29": "2024-02-29 00:00:00",
+    "parseDay 2026-4-2": null,
+    "parseDay  2026-04-20": null,
+    "parseDay 2026-04-20T10:00": null
+}
