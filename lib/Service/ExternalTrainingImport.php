@@ -88,8 +88,8 @@ class ExternalTrainingImport {
 	 *                               completedAt, validUntil, regulationSlug, evidenceNote.
 	 * @param string $tenantId The caller's tenant; learners are matched in it only.
 	 * @param string $submittedBy The caller's user id.
-	 * @param bool $dryRun True to report without writing.
-	 * @param DateTimeInterface|null $now Evaluation instant (injectable for tests).
+	 * @param array{dryRun: bool, now?: ?DateTimeInterface} $run `dryRun` true to report without writing; `now` the
+	 *                                                           evaluation instant (injectable for tests).
 	 *
 	 * @return array{dryRun:bool,batchId:?string,summary:array<string,int>,rows:array<int,array<string,mixed>>} The report.
 	 *
@@ -100,10 +100,10 @@ class ExternalTrainingImport {
 		array $rows,
 		string $tenantId,
 		string $submittedBy,
-		bool $dryRun,
-		?DateTimeInterface $now = null,
+		array $run,
 	): array {
-		$now = ($now ?? new DateTimeImmutable('now', new DateTimeZone('UTC')));
+		$dryRun = $run['dryRun'];
+		$now = ($run['now'] ?? new DateTimeImmutable('now', new DateTimeZone('UTC')));
 		$batchId = null;
 		if ($dryRun === false) {
 			$batchId = bin2hex(random_bytes(16));
