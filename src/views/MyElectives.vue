@@ -8,7 +8,7 @@
  @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 -->
 <template>
-	<div class="my-electives">
+	<div class="my-electives lq-board-page">
 		<CnPageHeader :title="t('learniq', 'Optional lessons')" />
 		<NcNoteCard v-if="error" type="error">
 			{{ error }}
@@ -19,8 +19,11 @@
 		<p v-else-if="offers.length === 0">
 			{{ t('learniq', 'There are no optional lessons for you right now.') }}
 		</p>
-		<section v-for="offer in offers" :key="offer.id" class="my-electives__offer">
-			<h3>{{ offer.name }}</h3>
+		<CnDetailCard
+			v-for="offer in offers"
+			:key="offer.id"
+			:title="offer.name"
+			class="my-electives__offer">
 			<p v-if="offer.description">
 				{{ offer.description }}
 			</p>
@@ -67,12 +70,12 @@
 					</NcButton>
 				</li>
 			</ul>
-		</section>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
-import { CnPageHeader } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { translatePlural as n, translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
@@ -82,6 +85,7 @@ export default {
 	name: 'MyElectives',
 
 	components: {
+		CnDetailCard,
 		CnPageHeader,
 		NcButton,
 		NcNoteCard,
@@ -233,11 +237,6 @@ export default {
 </script>
 
 <style scoped>
-.my-electives {
-	padding: 16px;
-	max-width: 900px;
-}
-
 .my-electives__lessons {
 	display: flex;
 	flex-direction: column;

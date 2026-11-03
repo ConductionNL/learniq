@@ -16,7 +16,7 @@
  @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 -->
 <template>
-	<div class="curriculum-coverage">
+	<div class="curriculum-coverage lq-board-page">
 		<header class="curriculum-coverage__header">
 			<CnPageHeader :title="t('learniq', 'Curriculum coverage')" />
 			<p class="curriculum-coverage__intro">
@@ -40,22 +40,24 @@
 				t('learniq', 'Add a competency framework with its goals first.')
 			" />
 		<template v-else>
-			<div class="curriculum-coverage__filters">
-				<NcSelect
-					v-model="frameworkId"
-					:options="frameworkOptions"
-					:reduce="(o) => o.id"
-					label="label"
-					:clearable="false"
-					:inputLabel="t('learniq', 'Framework')" />
-				<NcSelect
-					v-model="subjectKey"
-					:options="subjectChoices"
-					:reduce="(o) => o.id"
-					label="label"
-					:clearable="false"
-					:inputLabel="t('learniq', 'Subject')" />
-			</div>
+			<CnDetailCard>
+				<div class="curriculum-coverage__filters">
+					<NcSelect
+						v-model="frameworkId"
+						:options="frameworkOptions"
+						:reduce="(o) => o.id"
+						label="label"
+						:clearable="false"
+						:inputLabel="t('learniq', 'Framework')" />
+					<NcSelect
+						v-model="subjectKey"
+						:options="subjectChoices"
+						:reduce="(o) => o.id"
+						label="label"
+						:clearable="false"
+						:inputLabel="t('learniq', 'Subject')" />
+				</div>
+			</CnDetailCard>
 
 			<NcLoadingIcon v-if="loadingFramework" :size="32" />
 			<NcNoteCard v-else-if="coverageRows.length === 0" type="info">
@@ -67,22 +69,24 @@
 				}}
 			</NcNoteCard>
 			<template v-else>
-				<p
-					v-if="matrix.total"
-					class="curriculum-coverage__summary"
-					role="status">
-					{{ summary }}
-				</p>
-				<CnDataMatrix
-					:rows="matrix.rows"
-					:columns="matrix.columns"
-					:readOnly="true"
-					:title="t('learniq', 'Goals by year')"
-					:rowHeader="t('learniq', 'Goal')"
-					:emptyLabel="t('learniq', 'No goals for this subject.')" />
+				<CnDetailCard :title="t('learniq', 'Goals by year')">
+					<p
+						v-if="matrix.total"
+						class="curriculum-coverage__summary"
+						role="status">
+						{{ summary }}
+					</p>
+					<CnDataMatrix
+						:rows="matrix.rows"
+						:columns="matrix.columns"
+						:readOnly="true"
+						:rowHeader="t('learniq', 'Goal')"
+						:emptyLabel="t('learniq', 'No goals for this subject.')" />
+				</CnDetailCard>
 
-				<section class="curriculum-coverage__gaps">
-					<h3>{{ t('learniq', 'Gaps per subject and year') }}</h3>
+				<CnDetailCard
+					:title="t('learniq', 'Gaps per subject and year')"
+					class="curriculum-coverage__gaps">
 					<p v-if="gaps.length === 0">
 						{{
 							t(
@@ -121,14 +125,14 @@
 							</ul>
 						</template>
 					</div>
-				</section>
+				</CnDetailCard>
 			</template>
 		</template>
 	</div>
 </template>
 
 <script>
-import { CnDataMatrix, CnPageHeader } from '@conduction/nextcloud-vue'
+import { CnDataMatrix, CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcEmptyContent, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
@@ -146,6 +150,7 @@ export default {
 
 	components: {
 		CnDataMatrix,
+		CnDetailCard,
 		CnPageHeader,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -381,10 +386,6 @@ export default {
 </script>
 
 <style scoped>
-.curriculum-coverage {
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
-}
-
 .curriculum-coverage__intro,
 .curriculum-coverage__summary {
 	color: var(--color-text-maxcontrast);
@@ -395,11 +396,6 @@ export default {
 	display: flex;
 	flex-wrap: wrap;
 	gap: calc(var(--default-grid-baseline, 4px) * 4);
-	margin-block-end: calc(var(--default-grid-baseline, 4px) * 4);
-}
-
-.curriculum-coverage__gaps {
-	margin-block-start: calc(var(--default-grid-baseline, 4px) * 6);
 }
 
 .curriculum-coverage__gap {
