@@ -1,11 +1,11 @@
 # Screens
 
-- LqOuVandaag https://identity.conduction.nl/screens/board?id=learniq/LqOuVandaag
-- MijnOverzicht https://identity.conduction.nl/screens/board?id=wilgenboom/MijnOverzicht
-- Detail https://identity.conduction.nl/screens/board?id=wilgenboom/Detail
-- Documenten https://identity.conduction.nl/screens/board?id=wilgenboom/Documenten
-- MobielDetail https://identity.conduction.nl/screens/board?id=wilgenboom/MobielDetail
-- Documenten https://identity.conduction.nl/screens/board?id=vaartveld/Documenten
+- learniq/LqOuVandaag vandaag (ouder) https://identity.conduction.nl/screens/board?id=learniq/LqOuVandaag
+- wilgenboom/MijnOverzicht overzicht https://identity.conduction.nl/screens/board?id=wilgenboom/MijnOverzicht
+- wilgenboom/Detail vera https://identity.conduction.nl/screens/board?id=wilgenboom/Detail
+- wilgenboom/Documenten rapporten en documenten https://identity.conduction.nl/screens/board?id=wilgenboom/Documenten
+- wilgenboom/MobielDetail afwezig melden https://identity.conduction.nl/screens/board?id=wilgenboom/MobielDetail
+- vaartveld/Documenten rapporten en documenten https://identity.conduction.nl/screens/board?id=vaartveld/Documenten
 - wilgenboom/Artikel de Kinderboekenweek is begonnen https://identity.conduction.nl/screens/board?id=wilgenboom/Artikel
 - wilgenboom/Berichten berichten https://identity.conduction.nl/screens/board?id=wilgenboom/Berichten
 - wilgenboom/MijnLijst afwezigheid https://identity.conduction.nl/screens/board?id=wilgenboom/MijnLijst

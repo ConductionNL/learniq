@@ -1,3 +1,3 @@
 # Screens
 
-- LqBeheerRechten https://identity.conduction.nl/screens/board?id=learniq/LqBeheerRechten
+- learniq/LqBeheerRechten actierechten https://identity.conduction.nl/screens/board?id=learniq/LqBeheerRechten

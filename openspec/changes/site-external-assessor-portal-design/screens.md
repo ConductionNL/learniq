@@ -1,3 +1,3 @@
 # Screens
 
-- LqPortfolioBeoordelen https://identity.conduction.nl/screens/board?id=learniq/LqPortfolioBeoordelen
+- learniq/LqPortfolioBeoordelen portfolio beoordelen https://identity.conduction.nl/screens/board?id=learniq/LqPortfolioBeoordelen

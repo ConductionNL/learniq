@@ -1,4 +1,4 @@
 # Screens
 
-- LqVandaag https://identity.conduction.nl/screens/board?id=wilgenboom/LqVandaag
-- LqVandaag https://identity.conduction.nl/screens/board?id=vaartveld/LqVandaag
+- wilgenboom/LqVandaag vandaag (leerkracht) https://identity.conduction.nl/screens/board?id=wilgenboom/LqVandaag
+- vaartveld/LqVandaag vandaag voor de docent https://identity.conduction.nl/screens/board?id=vaartveld/LqVandaag
