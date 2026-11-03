@@ -143,6 +143,7 @@
 			"type": "index",
 			"title": "Conference rounds",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "conference-round",
 				"columns": [
@@ -357,6 +358,7 @@
 			"type": "index",
 			"title": "Teacher availability",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "teacher-availability",
 				"columns": [
@@ -479,6 +481,7 @@
 			"type": "index",
 			"title": "Conference slots",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "conference-slot",
 				"columns": [
@@ -622,6 +625,7 @@
 			"type": "index",
 			"title": "Conference reports",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "conference-report",
 				"columns": [

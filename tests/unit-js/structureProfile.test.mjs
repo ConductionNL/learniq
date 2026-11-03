@@ -873,7 +873,7 @@ test('every string of the simple profile has a Dutch one', () => {
 			}
 		}
 	}
-	strings.push(TODAY.page.title, TODAY.config.description)
+	strings.push(TODAY.page.title)
 	for (const action of TODAY.config.headerActions) {
 		strings.push(action.label)
 	}
@@ -1716,24 +1716,21 @@ test('navTheming reads the emblem from thematiq, and an empty string when there 
 	assert.equal(navTheming({ theming: THEMING }).name, 'Gemeente Zuiddrecht')
 })
 
-test('Today has one header, on the page ground, and the navigation ends in Settings and Help', () => {
-	// LqDashboard: no page header above the greeting; the date and the
-	// heading sit on the page ground, one row high. The header's only button
-	// (Today's register) is the navigation's primary action already.
-	assert.equal(TODAY.config.showHeader, false)
+test('Today opens with the page header, as on the board, and the navigation ends in Settings and Help', () => {
+	// LqDashboard: the page header names the page with its h1 and the date
+	// under it, and carries Today's register; no greeting widget repeats it.
+	assert.notEqual(TODAY.config.showHeader, false)
+	assert.equal(TODAY.config.greeting, 'date')
+	assert.equal(TODAY.config.description, undefined)
 	assert.equal(TODAY.config.showWidgetActions, false)
-	const greeting = TODAY.config.widgets.find(
-		(widget) => widget.id === 'today-greeting',
+	assert.equal(
+		TODAY.config.widgets.some((widget) => widget.type === 'header'),
+		false,
 	)
-	assert.deepEqual(greeting.content, {
-		title: 'Today',
-		showDate: true,
-		ground: true,
-	})
-	const row = TODAY.config.layout.find(
-		(item) => item.widgetId === 'today-greeting',
+	assert.equal(
+		TODAY.config.layout.some((item) => item.widgetId === 'today-greeting'),
+		false,
 	)
-	assert.equal(row.gridHeight, 1)
 	const register = TODAY.config.headerActions.find(
 		(action) => action.id === 'open-roll-call',
 	)

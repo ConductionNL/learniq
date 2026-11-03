@@ -47,3 +47,16 @@ test('no custom page names itself with an <h2>', () => {
 	const offenders = components.filter((c) => firstHeading(c) === 'h2')
 	assert.deepEqual(offenders, [])
 })
+
+test('an index page shows its title, except where its board draws none', () => {
+	// On the board look CnIndexPage clips its <h1> unless `showTitle` is set;
+	// the learniq list boards draw the title above the list. LqCertificaten
+	// and LqExZaken draw none.
+	const untitled = new Set(['Credentials', 'FraudCases'])
+	const lists = pages.filter((p) => p.type === 'index')
+	assert.ok(lists.length > 100, 'the index pages are found')
+	const offenders = lists
+		.filter((p) => (p.config?.showTitle === true) === untitled.has(p.id))
+		.map((p) => p.id)
+	assert.deepEqual(offenders, [])
+})

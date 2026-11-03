@@ -120,6 +120,7 @@
 			"type": "index",
 			"title": "External training",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "external-training-record",
 				"headerActions": [
@@ -264,6 +265,7 @@
 			"type": "index",
 			"title": "Privacy requests",
 			"config": {
+				"showTitle": true,
 				"register": "data-subject-requests",
 				"schema": "dataSubjectRequest",
 				"_note": "privacy-reuse-openregister-register (D20): reads OpenRegister's shared data-subject-requests register through the generic objects API. Learniq no longer ships its own DataSubjectRequest schema; MigrateDataSubjectRequestsToOpenRegister moved the existing rows here."
@@ -327,6 +329,7 @@
 			"type": "index",
 			"title": "Partner approvals",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "exchange-partner-approval",
 				"_note": "privacy-governance-surfaces P-new-7 (\"Koppelingsgegevens inzien\"): every standing partner link per data exchange target, with its status and shared fields. Since data-exchange-to-integriq each row is an ExchangePartnerApproval with its own approve and reject lifecycle (detail page PartnerApprovalDetail), and learniq's exchange gate reads it before integriq runs a job."
@@ -525,6 +528,7 @@
 			"type": "index",
 			"title": "Exemptions",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "regulation-exemption",
 				"_note": "Reached by compliance officers, hr and admin through RegulationExemptionsMenu, and by a line manager through RequestExemptionMenu (user.managesLearners; its notIn list is the roles that already reach RegulationExemptionsMenu, so nobody sees the entry twice). The read rule narrows a line manager's list to the requests they made; RegulationExemptionRequestStamp refuses a person who does not report to them."

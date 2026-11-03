@@ -1,4 +1,4 @@
 # Screens
 
-- learniq/LqGroepen: https://identity.conduction.nl/screens/board?id=learniq/LqGroepen, planninq row sib-learniq-enr-sync-classes-from-school-admin (planninq adopts this)
-- LqGroep https://identity.conduction.nl/screens/board?id=learniq/LqGroep
+- learniq/LqGroepen groepen (planninq adopts this: row sib-learniq-enr-sync-classes-from-school-admin) https://identity.conduction.nl/screens/board?id=learniq/LqGroepen
+- learniq/LqGroep groep https://identity.conduction.nl/screens/board?id=learniq/LqGroep
