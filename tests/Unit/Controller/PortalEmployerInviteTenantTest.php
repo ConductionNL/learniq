@@ -130,6 +130,39 @@ class PortalEmployerInviteTenantTest extends TestCase {
 		$organisations = $this->createMock(CallerOrganisations::class);
 		$organisations->method('includes')->willReturnCallback(static fn (string $slug): bool => $slug === 'org');
 
-		return new PortalEmployerInviteController($this->createMock(IRequest::class), $invitations, $session, $groups, $organisations);
+		$given = [
+			IRequest::class => $this->createMock(IRequest::class),
+			EmployerPortalInvitation::class => $invitations,
+			IUserSession::class => $session,
+			IGroupManager::class => $groups,
+			CallerOrganisations::class => $organisations,
+		];
+		$arguments = [];
+		foreach ((new \ReflectionClass(PortalEmployerInviteController::class))->getConstructor()->getParameters() as $parameter) {
+			$type = $parameter->getType();
+			self::assertInstanceOf(\ReflectionNamedType::class, $type);
+			$arguments[] = $given[$type->getName()] ?? $this->bundle(class: $type->getName(), given: $given);
+		}
+
+		return new PortalEmployerInviteController(...$arguments);
 	}//end controller()
+
+	/**
+	 * A collaborator bundle built from the given doubles by constructor type.
+	 *
+	 * @param class-string         $class The bundle class.
+	 * @param array<string, mixed> $given The doubles by type.
+	 *
+	 * @return object
+	 */
+	private function bundle(string $class, array $given): object {
+		$arguments = [];
+		foreach ((new \ReflectionClass($class))->getConstructor()->getParameters() as $parameter) {
+			$type = $parameter->getType();
+			self::assertInstanceOf(\ReflectionNamedType::class, $type);
+			$arguments[] = $given[$type->getName()];
+		}
+
+		return new $class(...$arguments);
+	}//end bundle()
 }//end class
