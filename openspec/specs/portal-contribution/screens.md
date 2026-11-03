@@ -14,3 +14,6 @@
 - wilgenboom/Voet voettekst https://identity.conduction.nl/screens/board?id=wilgenboom/Voet
 - wilgenboom/LqDetail leerling Vera Hulstkamp https://identity.conduction.nl/screens/board?id=wilgenboom/LqDetail
 - wilgenboom/Home home https://identity.conduction.nl/screens/board?id=wilgenboom/Home
+- learniq/LqToestemmingen toestemmingen van ouders: wie nog niet heeft geantwoord https://identity.conduction.nl/screens/board?id=learniq/LqToestemmingen
+- vaartveld/Inleveren Mijn Zuiddrecht: werk inleveren, met een echt bestand of als concept https://identity.conduction.nl/screens/board?id=vaartveld/Inleveren
+- vaartveld/Toets Mijn Zuiddrecht: toets met tijd https://identity.conduction.nl/screens/board?id=vaartveld/Toets

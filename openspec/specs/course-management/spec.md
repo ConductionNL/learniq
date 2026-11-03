@@ -956,10 +956,10 @@ The app MUST provide initial state `storeAccess` as `{install, publish}` for the
 #### Scenario: A team lead opens the export screen
 - **GIVEN** a user in `team-leads` whose primary role is `team-lead`
 - **WHEN** the user opens the menu
-- **THEN** "Export course package" is listed, and the export screen shows "Publish to the course store"
+- **THEN** "Export course package" is listed, and the export screen shows "Publish to the Marketplace"
 
 ### Requirement: An administrator connects the course registry in the admin settings
-The Learniq admin settings page MUST offer a "Course store" section with the registry address, the register and the token. `GET /api/admin/store-registry` and `PUT /api/admin/store-registry` MUST be admin-only. The GET MUST return the address, the register and whether a token is set, and MUST NOT return the token. The PUT MUST accept an empty address (which disconnects the store) or an absolute `http` or `https` URL without user credentials, a register that is empty or a lowercase slug, and a token that is kept when omitted, replaced when given, and removed when `clearToken` is true. The token MUST be stored as a sensitive app config value under `registry_token`; the address and register under `registry_url` and `registry_register`, the keys the store plane reads.
+The Learniq admin settings page MUST offer a "Marketplace" section with the registry address, the register and the token. `GET /api/admin/store-registry` and `PUT /api/admin/store-registry` MUST be admin-only. The GET MUST return the address, the register and whether a token is set, and MUST NOT return the token. The PUT MUST accept an empty address (which disconnects the store) or an absolute `http` or `https` URL without user credentials, a register that is empty or a lowercase slug, and a token that is kept when omitted, replaced when given, and removed when `clearToken` is true. The token MUST be stored as a sensitive app config value under `registry_token`; the address and register under `registry_url` and `registry_register`, the keys the store plane reads.
 
 #### Scenario: An administrator connects a registry
 - **GIVEN** an administrator on the Learniq admin settings page
