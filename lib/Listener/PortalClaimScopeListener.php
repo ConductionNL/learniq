@@ -7,8 +7,9 @@
  * notice, whether the app that owns the claim lets it stand for the account's
  * organisation (portaliq's PortalClaimScopeEvent). Learniq refuses its
  * employer claim `organisationRef` when the company it names does not lie in
- * the organisation of the account's portal, so an account that carries
- * another tenant's company reads and changes nothing of it.
+ * the organisation of the account's portal, and its `editionLocationRef`
+ * when that location does not, so an account that carries another tenant's
+ * company or location reads and changes nothing of it.
  *
  * The event is portaliq's. Neither the registration nor the instanceof
  * check loads its class, so learniq still loads where portaliq is absent.
@@ -42,7 +43,7 @@ use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
 /**
- * Refuses an employer claim that names another tenant's company.
+ * Refuses an employer claim that names another tenant's company or location.
  *
  * @template-implements IEventListener<Event>
  *
@@ -58,7 +59,7 @@ class PortalClaimScopeListener implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param EmployerCompanyTenancy $tenancy Checks the company lies in the portal's organisation.
+	 * @param EmployerCompanyTenancy $tenancy Checks the company or location lies in the portal's organisation.
 	 *
 	 * @return void
 	 */
@@ -68,7 +69,7 @@ class PortalClaimScopeListener implements IEventListener {
 	}//end __construct()
 
 	/**
-	 * Refuse learniq's employer claim when its company lies in another organisation.
+	 * Refuse learniq's employer claims when their company or location lies in another organisation.
 	 *
 	 * @param Event $event The dispatched event.
 	 *
@@ -77,15 +78,27 @@ class PortalClaimScopeListener implements IEventListener {
 	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof PortalClaimScopeEvent === false
-			|| $event->getAppId() !== Application::APP_ID
-			|| $event->getClaimName() !== EmployerSitePages::CLAIM
-		) {
+		if ($event instanceof PortalClaimScopeEvent === false || $event->getAppId() !== Application::APP_ID) {
 			return;
 		}
 
-		if ($this->tenancy->holds(organisationRef: $event->getValue(), organisation: $event->getOrganisation()) === false) {
+		if ($this->stands(event: $event) === false) {
 			$event->refuse();
 		}
 	}//end handle()
+
+	/**
+	 * Whether the claim may stand: learniq's claims other than the company and the location always do.
+	 *
+	 * @param PortalClaimScopeEvent $event The claim check.
+	 *
+	 * @return bool
+	 */
+	private function stands(PortalClaimScopeEvent $event): bool {
+		return match ($event->getClaimName()) {
+			EmployerSitePages::CLAIM => $this->tenancy->holds(organisationRef: $event->getValue(), organisation: $event->getOrganisation()),
+			EmployerSitePages::LOCATION_CLAIM => $this->tenancy->holdsLocation(locationRef: $event->getValue(), organisation: $event->getOrganisation()),
+			default => true,
+		};
+	}//end stands()
 }//end class
