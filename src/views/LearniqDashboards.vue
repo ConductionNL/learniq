@@ -25,6 +25,8 @@
 		<CnDashboardPage
 			:key="activeRole"
 			:title="pageTitle"
+			:greeting="greeting"
+			:description="pageSubtitle"
 			:widgets="widgets"
 			:layout="layout"
 			:headerActions="headerActions">
@@ -156,6 +158,41 @@ export default {
 			type: Array,
 			default: () => [],
 		},
+
+		/**
+		 * The page title, from the page's manifest `config`, in English; the
+		 * page translates it. The boards call every role's start page Today.
+		 *
+		 * @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
+		 */
+		title: {
+			type: String,
+			default: 'Today',
+		},
+
+		/**
+		 * What leads the subtitle under the title (CnDashboardPage
+		 * `greeting`), from the page's manifest `config`. `date` puts the
+		 * date there, as the boards do.
+		 *
+		 * @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
+		 */
+		greeting: {
+			type: [Boolean, String],
+			default: false,
+		},
+
+		/**
+		 * The subtitle after the date, per primary role, from the page's
+		 * manifest `config` (`{ "<primary role>": "<English text>" }`). A
+		 * role without a line gets the date alone.
+		 *
+		 * @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
+		 */
+		subtitleByRole: {
+			type: Object,
+			default: () => ({}),
+		},
 	},
 
 	data() {
@@ -206,17 +243,25 @@ export default {
 		},
 
 		/**
-		 * The dashboard page title for the active role view.
+		 * The dashboard page title, translated.
 		 *
 		 * @return {string}
 		 * @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
 		 */
 		pageTitle() {
-			return (
-				this.roleLabel(this.activeRole)
-				+ ' · '
-				+ this.t('learniq', 'Dashboard')
-			)
+			return this.t('learniq', this.title)
+		},
+
+		/**
+		 * The subtitle line for the reader's primary role, translated, or ''.
+		 *
+		 * @return {string}
+		 * @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
+		 */
+		pageSubtitle() {
+			const role = loadState('learniq', 'primaryRole', '')
+			const line = (this.subtitleByRole || {})[role]
+			return typeof line === 'string' && line !== '' ? this.t('learniq', line) : ''
 		},
 
 		/**
@@ -758,23 +803,6 @@ export default {
 			)
 			const data = response.data ?? {}
 			return data.results ?? (Array.isArray(data) ? data : [])
-		},
-
-		/**
-		 * Localized human label for a dashboard role view.
-		 *
-		 * @param {string} role One of admin|teacher|student.
-		 * @return {string}
-		 * @spec exclude Presentation-only label map for the three fixed role names; the role-gating behaviour itself is covered by viewConfig/activeRole, not by this string lookup.
-		 */
-		roleLabel(role) {
-			if (role === 'admin') {
-				return this.t('learniq', 'Administrator')
-			}
-			if (role === 'teacher') {
-				return this.t('learniq', 'Teacher')
-			}
-			return this.t('learniq', 'Student')
 		},
 	},
 }
