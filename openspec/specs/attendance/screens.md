@@ -30,3 +30,5 @@
 - warmtepompacademie/LqRolB vandaag voor de trainer https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqRolB
 - learniq/LqVerzuimsignaal verzuimsignaal https://identity.conduction.nl/screens/board?id=learniq/LqVerzuimsignaal
 - wilgenboom/Berichten berichten https://identity.conduction.nl/screens/board?id=wilgenboom/Berichten
+- learniq/LqVerzuimsignalen verzuimsignalen: de lijst met per signaal de status en de volgende stap https://identity.conduction.nl/screens/board?id=learniq/LqVerzuimsignalen
+- wilgenboom/Verlofaanvraag verlofaanvraag beslissen: toestaan of afwijzen, en doorsturen boven tien schooldagen https://identity.conduction.nl/screens/board?id=wilgenboom/Verlofaanvraag

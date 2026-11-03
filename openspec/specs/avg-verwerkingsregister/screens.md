@@ -7,3 +7,4 @@
 - learniq/LqCfPartners koppelpartners https://identity.conduction.nl/screens/board?id=learniq/LqCfPartners
 - learniq/LqCfPrivacyverzoek privacyverzoek https://identity.conduction.nl/screens/board?id=learniq/LqCfPrivacyverzoek
 - learniq/LqCfPrivacyverzoeken privacyverzoeken https://identity.conduction.nl/screens/board?id=learniq/LqCfPrivacyverzoeken
+- learniq/LqLeerling leerling: toestemming beeldmateriaal per doel https://identity.conduction.nl/screens/board?id=learniq/LqLeerling

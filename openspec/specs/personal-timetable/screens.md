@@ -16,3 +16,4 @@
 - vaartveld/LqBord weekrooster https://identity.conduction.nl/screens/board?id=vaartveld/LqBord
 - esdoornveen/LqVandaag vandaag https://identity.conduction.nl/screens/board?id=esdoornveen/LqVandaag
 - warmtepompacademie/LqRolB vandaag voor de trainer https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqRolB
+- learniq/LqInfoscherm infoscherm: het scherm zonder inloggen, en het eenmalige adres instellen https://identity.conduction.nl/screens/board?id=learniq/LqInfoscherm

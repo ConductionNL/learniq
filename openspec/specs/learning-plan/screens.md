@@ -8,3 +8,4 @@
 - learniq/LqNotitie dossiernotitie https://identity.conduction.nl/screens/board?id=learniq/LqNotitie
 - wilgenboom/LqRolB intern begeleider https://identity.conduction.nl/screens/board?id=wilgenboom/LqRolB
 - learniq/LqAppInstellingen app-instellingen https://identity.conduction.nl/screens/board?id=learniq/LqAppInstellingen
+- learniq/LqTraject traject bovenschoolse voorziening: de stappen van een plaatsing https://identity.conduction.nl/screens/board?id=learniq/LqTraject
