@@ -902,6 +902,7 @@
 				"title": "Today",
 				"greeting": "date",
 				"subtitleByRole": null,
+				"subtitleOfSchoolByRole": null,
 				"showWidgetActions": false
 			}
 		},

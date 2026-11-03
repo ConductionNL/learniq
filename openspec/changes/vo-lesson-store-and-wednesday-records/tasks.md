@@ -6,3 +6,4 @@
 - [x] Name the Biologie teacher Anouk Smit and declare her account in `lib/Settings/portals/vo.json`
 - [x] Regenerate `lib/Settings/profiles/vo.json`; every existing uuid stays
 - [x] Assert the records in `SecondarySchoolLessonAndStoreRecordsTest`
+- [x] Read the sole school's name for the HR Today subtitle (`subtitleOfSchoolByRole`, `src/utils/schoolName.js`), with `tests/unit-js/schoolName.test.mjs`
