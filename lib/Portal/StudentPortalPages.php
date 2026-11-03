@@ -269,14 +269,19 @@ class StudentPortalPages {
 		],
 	];
 
+	/**
+	 * The student's placements to choose from, by the company's name.
+	 */
+	public const PLACEMENT_OPTIONS = [
+		'type' => 'collection',
+		'register' => self::REGISTER,
+		'schema' => 'bpv-placement',
+		'labelField' => 'trainingCompanyName',
+		'valueField' => 'id',
+	];
+
 	private const SUBMIT_HOUR_WEEK_OPTIONS_PROVIDERS = [
-		'bpvPlacementId' => [
-			'type' => 'collection',
-			'register' => self::REGISTER,
-			'schema' => 'bpv-placement',
-			'labelField' => 'trainingCompanyName',
-			'valueField' => 'id',
-		],
+		'bpvPlacementId' => self::PLACEMENT_OPTIONS,
 	];
 
 	private const SUBMIT_HOUR_WEEK_FIELD_CONFIGS = [

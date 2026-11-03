@@ -176,19 +176,7 @@ class TrainerSitePages {
 			'schema' => 'portfolio-share',
 			'scopeField' => 'sharedWithPracticalTrainerId',
 			'scopeClaim' => 'practicalTrainerId',
-			'label' => 'Portfolios shared with me',
-			'listable' => true,
-			'minTrust' => 'low',
-			// Only active grants resolve — a revoked share must return no rows.
-			'filter' => ['lifecycle' => 'active'],
-			'fields' => [
-				'portfolioId',
-				'entryIds',
-				'sharedWithKind',
-				'sharedBy',
-				'expiresAt',
-				'lifecycle',
-			],
+			...AssessorSitePages::SHARED_PORTFOLIO_LISTING,
 		],
 	];
 
@@ -218,13 +206,7 @@ class TrainerSitePages {
 	];
 
 	private const CREATE_WERKPROCES_ASSESSMENT_OPTIONS_PROVIDERS = [
-		'bpvPlacementId' => [
-			'type' => 'collection',
-			'register' => self::REGISTER,
-			'schema' => 'bpv-placement',
-			'labelField' => 'trainingCompanyName',
-			'valueField' => 'id',
-		],
+		'bpvPlacementId' => StudentPortalPages::PLACEMENT_OPTIONS,
 		'assessment' => [
 			'type' => 'static',
 			'options' => [

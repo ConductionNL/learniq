@@ -66,6 +66,25 @@ class AssessorSitePages {
 		['type' => 'inbox', 'label' => 'Messages', 'limit' => 2],
 	];
 
+	/**
+	 * How a list of shared portfolios reads, for the assessor and the trainer alike.
+	 */
+	public const SHARED_PORTFOLIO_LISTING = [
+		'label' => 'Portfolios shared with me',
+		'listable' => true,
+		'minTrust' => 'low',
+		// Only active grants resolve — a revoked share must return no rows.
+		'filter' => ['lifecycle' => 'active'],
+		'fields' => [
+			'portfolioId',
+			'entryIds',
+			'sharedWithKind',
+			'sharedBy',
+			'expiresAt',
+			'lifecycle',
+		],
+	];
+
 	private const ASSESSOR_COLLECTIONS = [
 		[
 			'id' => 'eaSharedPortfolios',
@@ -73,19 +92,7 @@ class AssessorSitePages {
 			'schema' => 'portfolio-share',
 			'scopeField' => 'sharedWithExternalAssessorId',
 			'scopeClaim' => 'externalAssessorId',
-			'label' => 'Portfolios shared with me',
-			'listable' => true,
-			'minTrust' => 'low',
-			// Only active grants resolve — a revoked share must return no rows.
-			'filter' => ['lifecycle' => 'active'],
-			'fields' => [
-				'portfolioId',
-				'entryIds',
-				'sharedWithKind',
-				'sharedBy',
-				'expiresAt',
-				'lifecycle',
-			],
+			...self::SHARED_PORTFOLIO_LISTING,
 		],
 	];
 

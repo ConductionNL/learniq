@@ -259,9 +259,7 @@ class EmployerSitePages {
 		'blocks' => [['type' => 'collection', 'collection' => 'employerCertificates']],
 	];
 
-	private const EMPLOYER_COMING_BOOKINGS_BLOCK = [
-		'type' => 'collection',
-		'collection' => 'employerComingBookings',
+	private const BOOKING_ROWS = [
 		'display' => 'rows',
 		'dateField' => 'firstDay',
 		'titleFields' => ['courseName'],
@@ -269,6 +267,12 @@ class EmployerSitePages {
 		'statusField' => 'employerStatus',
 		'statusTones' => self::BOOKING_TONES,
 		'statusNoteField' => 'statusNote',
+	];
+
+	private const EMPLOYER_COMING_BOOKINGS_BLOCK = [
+		'type' => 'collection',
+		'collection' => 'employerComingBookings',
+		...self::BOOKING_ROWS,
 		'limit' => 3,
 		'sort' => ['field' => 'firstDay', 'direction' => 'asc'],
 	];
@@ -289,13 +293,7 @@ class EmployerSitePages {
 		[
 			'type' => 'collection',
 			'collection' => 'employerBookings',
-			'display' => 'rows',
-			'dateField' => 'firstDay',
-			'titleFields' => ['courseName'],
-			'subtitleField' => 'participantNames',
-			'statusField' => 'employerStatus',
-			'statusTones' => self::BOOKING_TONES,
-			'statusNoteField' => 'statusNote',
+			...self::BOOKING_ROWS,
 			'sort' => ['field' => 'firstDay', 'direction' => 'asc'],
 		],
 		['type' => 'steps', 'collection' => 'employerBookings', 'label' => 'Where does this booking stand?'],
