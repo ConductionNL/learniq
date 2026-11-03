@@ -62,6 +62,7 @@ class ConferenceFreeSlotGoldenTest extends TestCase {
 			'default duration, no buffer' => [['id' => 'round-2', 'bookingMode' => 'direct', 'cohortIds' => 'c-1', 'invitedLearnerRefs' => ['ref-anna']], 'booking-open', 'learniq', 'conference-round'],
 			'preference round' => [['bookingMode' => 'preference'] + $round, 'booking-open', 'learniq', 'conference-round'],
 			'another state' => [$round, 'closed', 'learniq', 'conference-round'],
+			'invitations sent' => [$round, 'invitations-sent', 'learniq', 'conference-round'],
 			'another schema' => [$round, 'booking-open', 'learniq', 'conference-slot'],
 			'another register' => [$round, 'booking-open', 'other', 'conference-round'],
 			'round without id' => [['id' => ''] + $round, 'booking-open', 'learniq', 'conference-round'],
