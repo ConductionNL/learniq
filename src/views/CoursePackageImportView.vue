@@ -20,7 +20,7 @@
 -->
 
 <template>
-	<div class="course-package-import">
+	<div class="course-package-import lq-board-page">
 		<header class="course-package-import__header">
 			<CnPageHeader :title="t('learniq', 'Import course package')" />
 			<p class="course-package-import__intro">
@@ -34,7 +34,10 @@
 		</header>
 
 		<!-- Upload form -->
-		<div v-if="!report" class="course-package-import__upload">
+		<CnDetailCard
+			v-if="!report"
+			:title="t('learniq', 'Upload a package')"
+			class="course-package-import__upload">
 			<label class="course-package-import__label" for="course-package-file">
 				{{ t('learniq', 'Course package file') }}
 			</label>
@@ -66,10 +69,10 @@
 			<p v-if="uploadError" role="alert" class="course-package-import__error">
 				{{ uploadError }}
 			</p>
-		</div>
+		</CnDetailCard>
 
 		<!-- Report -->
-		<div v-else class="course-package-import__report">
+		<CnDetailCard v-else class="course-package-import__report">
 			<div
 				class="course-package-import__summary"
 				:class="`course-package-import__summary--${report.lifecycle}`"
@@ -164,7 +167,7 @@
 			<button class="button-vue" @click="reset">
 				{{ t('learniq', 'Import another package') }}
 			</button>
-		</div>
+		</CnDetailCard>
 
 		<!-- office-file-lesson-onboarding: Word and PowerPoint lessons from the
 		     teacher's onboarding folder, confirmed one file at a time (D17). -->
@@ -173,7 +176,7 @@
 </template>
 
 <script>
-import { CnPageHeader } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import LessonOnboardingPanel from '../components/lesson/LessonOnboardingPanel.vue'
 
@@ -181,6 +184,7 @@ export default {
 	name: 'CoursePackageImportView',
 
 	components: {
+		CnDetailCard,
 		CnPageHeader,
 		LessonOnboardingPanel,
 	},
@@ -317,13 +321,6 @@ export default {
 </script>
 
 <style scoped>
-.course-package-import {
-	max-width: 960px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .course-package-import__intro {
 	color: var(--color-text-maxcontrast);
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
