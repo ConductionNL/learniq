@@ -24,9 +24,12 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\Learniq\Service\ExampleSetOrganisation;
+use OCA\Learniq\Tests\Support\DelegatingDouble;
+use OCA\OpenRegister\Db\MagicMapper;
 use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\OpenRegister\Service\ObjectService;
+use OCA\OpenRegister\Service\OrganisationService;
 use PHPUnit\Framework\TestCase;
-use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
@@ -35,8 +38,10 @@ use RuntimeException;
  *
  * @covers \OCA\Learniq\Service\ExampleSetOrganisation
  * @uses \OCA\OpenRegister\Db\ObjectEntity
+ * @uses \OCA\OpenRegister\Db\Organisation
  */
 class ExampleSetOrganisationTest extends TestCase {
+	use DelegatingDouble;
 
 	/**
 	 * The default organisation's uuid is the answer.
@@ -46,7 +51,7 @@ class ExampleSetOrganisationTest extends TestCase {
 	 * @spec openspec/specs/example-sets/spec.md#scenario-a-loaded-row-carries-the-instances-organisation
 	 */
 	public function testResolveAnswersTheDefaultOrganisation(): void {
-		$service = new ExampleSetOrganisation($this->container(['OCA\OpenRegister\Service\OrganisationService' => $this->organisations('org-instance')]), $this->createMock(LoggerInterface::class));
+		$service = $this->organisation(['OCA\OpenRegister\Service\OrganisationService' => $this->organisations('org-instance')]);
 
 		self::assertSame('org-instance', $service->resolve());
 	}//end testResolveAnswersTheDefaultOrganisation()
@@ -60,7 +65,7 @@ class ExampleSetOrganisationTest extends TestCase {
 	 */
 	public function testResolveRefusesWhenNoOrganisationResolves(): void {
 		foreach ([null, ''] as $uuid) {
-			$service = new ExampleSetOrganisation($this->container(['OCA\OpenRegister\Service\OrganisationService' => $this->organisations($uuid)]), $this->createMock(LoggerInterface::class));
+			$service = $this->organisation(['OCA\OpenRegister\Service\OrganisationService' => $this->organisations($uuid)]);
 			try {
 				$service->resolve();
 				$message = null;
@@ -139,10 +144,7 @@ class ExampleSetOrganisationTest extends TestCase {
 			}//end update()
 		};
 
-		$service = new ExampleSetOrganisation(
-			$this->container(['OCA\OpenRegister\Service\ObjectService' => $finder, 'OCA\OpenRegister\Db\MagicMapper' => $mapper]),
-			$this->createMock(LoggerInterface::class)
-		);
+		$service = $this->organisation(['OCA\OpenRegister\Service\ObjectService' => $finder, 'OCA\OpenRegister\Db\MagicMapper' => $mapper]);
 		$self    = ['register' => 'learniq', 'schema' => 'school'];
 		$listed  = [
 			['uuid' => 'ee000001-0000-4000-8000-000000000001', '@self' => $self],
@@ -179,25 +181,40 @@ class ExampleSetOrganisationTest extends TestCase {
 	 * @spec openspec/specs/example-sets/spec.md#scenario-a-loaded-row-carries-the-instances-organisation
 	 */
 	public function testStampWithoutRowsTouchesNothing(): void {
-		$container = $this->createMock(ContainerInterface::class);
-		$container->expects(self::never())->method('get');
+		$objects = $this->createMock(ObjectService::class);
+		$objects->expects(self::never())->method('find');
+		$mapper = $this->createMock(MagicMapper::class);
+		$mapper->expects(self::never())->method('update');
 
-		$counts = (new ExampleSetOrganisation($container, $this->createMock(LoggerInterface::class)))->stamp([], 'org-instance');
+		$counts = (new ExampleSetOrganisation($this->createMock(OrganisationService::class), $objects, $mapper, $this->createMock(LoggerInterface::class)))->stamp([], 'org-instance');
 
 		self::assertSame(['given' => 0, 'kept' => 0, 'missing' => 0], $counts);
 	}//end testStampWithoutRowsTouchesNothing()
 
 	/**
-	 * A container that serves the given services by id.
+	 * The organisation step over the given doubles, by OpenRegister class name; a class left out is a plain mock.
 	 *
-	 * @param array<string, object> $services The services.
+	 * @param array<string, object> $services The doubles.
 	 *
-	 * @return ContainerInterface
+	 * @return ExampleSetOrganisation
 	 */
-	private function container(array $services): ContainerInterface {
-		$container = $this->createMock(ContainerInterface::class);
-		$container->method('get')->willReturnCallback(static fn (string $id): object => $services[$id]);
-		return $container;
+	private function organisation(array $services): ExampleSetOrganisation {
+		$organisations = $this->createMock(OrganisationService::class);
+		if (isset($services['OCA\OpenRegister\Service\OrganisationService']) === true) {
+			$organisations = $this->organisationServiceOver($services['OCA\OpenRegister\Service\OrganisationService']);
+		}
+
+		$objects = $this->createMock(ObjectService::class);
+		if (isset($services['OCA\OpenRegister\Service\ObjectService']) === true) {
+			$objects = $this->delegatingMock(ObjectService::class, [$services['OCA\OpenRegister\Service\ObjectService'], ['find']]);
+		}
+
+		$mapper = $this->createMock(MagicMapper::class);
+		if (isset($services['OCA\OpenRegister\Db\MagicMapper']) === true) {
+			$mapper = $this->delegatingMock(MagicMapper::class, [$services['OCA\OpenRegister\Db\MagicMapper'], ['update']]);
+		}
+
+		return new ExampleSetOrganisation($organisations, $objects, $mapper, $this->createMock(LoggerInterface::class));
 	}//end container()
 
 	/**

@@ -31,9 +31,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IAppConfig;
-use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -55,7 +55,7 @@ class ExampleSetDates {
 	 * @param IAppConfig         $appConfig  Remembers the offset per set.
 	 * @param ITimeFactory       $time       Today.
 	 * @param LoadedExampleSets  $loadedSets Whether a set was loaded before offsets were kept.
-	 * @param ContainerInterface $container  Resolves OpenRegister's object service.
+	 * @param ObjectService      $objects    OpenRegister's object service, to read and write the set's rows.
 	 * @param LoggerInterface    $logger     Records what moved.
 	 * @param DemoDates          $demoDates  Moves the dates.
 	 *
@@ -65,7 +65,7 @@ class ExampleSetDates {
 		private readonly IAppConfig $appConfig,
 		private readonly ITimeFactory $time,
 		private readonly LoadedExampleSets $loadedSets,
-		private readonly ContainerInterface $container,
+		private readonly ObjectService $objects,
 		private readonly LoggerInterface $logger,
 		private readonly DemoDates $demoDates=new DemoDates(),
 	) {
@@ -176,9 +176,8 @@ class ExampleSetDates {
 			return $counts;
 		}
 
-		$service = $this->container->get('OCA\OpenRegister\Service\ObjectService');
 		foreach ($objects as $object) {
-			$outcome = $this->moveOne(service: $service, object: $object, days: $days);
+			$outcome = $this->moveOne(object: $object, days: $days);
 			$counts[$outcome]++;
 		}
 
@@ -193,13 +192,12 @@ class ExampleSetDates {
 	/**
 	 * Move one object.
 	 *
-	 * @param object               $service OpenRegister's object service.
-	 * @param array<string, mixed> $object  The descriptor object.
-	 * @param int                  $days    The days.
+	 * @param array<string, mixed> $object The descriptor object.
+	 * @param int                  $days   The days.
 	 *
 	 * @return string `moved`, `unchanged`, `missing` or `failed`.
 	 */
-	private function moveOne(object $service, array $object, int $days): string {
+	private function moveOne(array $object, int $days): string {
 		$uuid     = (string)($object['uuid'] ?? '');
 		$register = (string)($object['@self']['register'] ?? '');
 		$schema   = (string)($object['@self']['schema'] ?? '');
@@ -208,7 +206,7 @@ class ExampleSetDates {
 		}
 
 		try {
-			$entity = $service->find(
+			$entity = $this->objects->find(
 				id: $uuid,
 				register: $register,
 				schema: $schema,
@@ -227,7 +225,7 @@ class ExampleSetDates {
 				return 'unchanged';
 			}
 
-			$service->saveObject(
+			$this->objects->saveObject(
 				object: $moved,
 				register: $register,
 				schema: $schema,

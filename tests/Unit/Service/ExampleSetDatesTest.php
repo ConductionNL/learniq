@@ -25,10 +25,13 @@ namespace OCA\Learniq\Tests\Unit\Service;
 use DateTimeImmutable;
 use OCA\Learniq\Service\ExampleSetDates;
 use OCA\Learniq\Service\LoadedExampleSets;
+use OCA\Learniq\Tests\Support\DelegatingDouble;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase;
-use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -67,21 +70,26 @@ class FakeObjectStore {
 	 * @param string $id
 	 * @param mixed  ...$rest
 	 *
-	 * @return FakeStoredObject|null
+	 * @return ObjectEntity|null
 	 */
-	public function find(string $id, mixed ...$rest): ?FakeStoredObject {
+	public function find(string $id, mixed ...$rest): ?ObjectEntity {
 		unset($rest);
-		return ($this->objects[$id] ?? null);
+		if (isset($this->objects[$id]) === false) {
+			return null;
+		}
+
+		return OrEntityFactory::make($this->objects[$id]->getObject(), uuid: $id);
 	}//end find()
 
 	/**
 	 * @param array<string, mixed> $object
 	 * @param mixed                ...$rest
 	 *
-	 * @return void
+	 * @return ObjectEntity
 	 */
-	public function saveObject(array $object, mixed ...$rest): void {
+	public function saveObject(array $object, mixed ...$rest): ObjectEntity {
 		$this->saves[] = ['object' => $object] + $rest;
+		return OrEntityFactory::make($object);
 	}//end saveObject()
 }//end class
 
@@ -91,6 +99,7 @@ class FakeObjectStore {
  * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
  */
 class ExampleSetDatesTest extends TestCase {
+	use DelegatingDouble;
 
 	/**
 	 * @var array<string, string>
@@ -125,10 +134,9 @@ class ExampleSetDatesTest extends TestCase {
 		$time->method('now')->willReturn(new DateTimeImmutable($today));
 		$sets = $this->createMock(LoadedExampleSets::class);
 		$sets->method('all')->willReturn(array_map(static fn (string $id): array => ['id' => $id, 'label' => $id], $loaded));
-		$container = $this->createMock(ContainerInterface::class);
-		$container->method('get')->willReturn($store ?? new FakeObjectStore());
+		$objects = $this->delegatingMock(ObjectService::class, [($store ?? new FakeObjectStore()), ['find', 'saveObject']]);
 
-		return new ExampleSetDates(appConfig: $config, time: $time, loadedSets: $sets, container: $container, logger: $this->createMock(LoggerInterface::class));
+		return new ExampleSetDates(appConfig: $config, time: $time, loadedSets: $sets, objects: $objects, logger: $this->createMock(LoggerInterface::class));
 	}//end dates()
 
 	/**
@@ -168,7 +176,7 @@ class ExampleSetDatesTest extends TestCase {
 
 		self::assertSame(['moved' => 1, 'unchanged' => 1, 'missing' => 1, 'failed' => 0], $dates->moveExisting($objects, 7));
 		self::assertCount(1, $store->saves);
-		self::assertSame(['title' => 'Groep 7, maandag 12 oktober 2026', 'startsAt' => '2026-10-12T08:30:00+02:00'], $store->saves[0]['object']);
+		self::assertSame(['id' => 'a', 'title' => 'Groep 7, maandag 12 oktober 2026', 'startsAt' => '2026-10-12T08:30:00+02:00'], $store->saves[0]['object']);
 		self::assertSame(['a', true], [$store->saves[0]['uuid'], $store->saves[0]['silent']]);
 	}//end testExistingObjectsMoveAndOnlyThoseWithADate()
 }//end class
