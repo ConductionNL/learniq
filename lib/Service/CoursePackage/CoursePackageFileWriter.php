@@ -206,6 +206,8 @@ class CoursePackageFileWriter {
 		foreach ($this->entries(dir: $dir) as $item) {
 			$this->removeEntry(path: $dir . '/' . $item);
 		}
+
+		rmdir($dir);
 	}//end removeDirectory()
 
 	/**
