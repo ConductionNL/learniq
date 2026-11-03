@@ -59,6 +59,103 @@ class ParticipantSitePages {
 
 	private const GROUP = 'My academy';
 
+	private const PARTICIPANT_CERTIFICATES_FIELDS = [
+		'learnerId',
+		'courseName',
+		'kind',
+		'validUntilLabel',
+		'expiresAt',
+		'expiryStatus',
+		'expiryLabel',
+		'renewalLine',
+		'verificationUrl',
+		'lifecycle',
+	];
+
+	private const PARTICIPANT_CERTIFICATES_EXTRA = [
+		// A certificate names its holder by the profile uuid in `learnerId`.
+		'scopeField' => 'learnerId',
+		'filter' => ['lifecycle' => 'issued', 'kind' => 'certificate'],
+		'defaultSort' => ['field' => 'expiresAt', 'direction' => 'asc'],
+		'fieldConfigs' => ['expiryStatus' => ['valueLabels' => EmployerSitePages::EXPIRY_STATUS]],
+		'columns' => [
+			['field' => 'courseName', 'label' => 'Certificate'],
+			['field' => 'expiresAt', 'label' => 'Valid until', 'render' => 'date'],
+			['field' => 'expiryLabel', 'label' => 'Status'],
+			['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link'],
+		],
+	];
+
+	private const PARTICIPANT_OVERVIEW = [
+		'id' => 'participantOverview',
+		'label' => 'Overview',
+		'icon' => 'ViewDashboard',
+		'group' => self::GROUP,
+		'home' => true,
+		'blocks' => [
+			['type' => 'greeting', 'label' => 'My course days', 'page' => 'participantCourseDays'],
+			[
+				'type' => 'tasks',
+				'label' => 'Your next course day',
+				'display' => 'highlight',
+				'eyebrow' => 'Your next course day',
+				'collection' => 'participantComingDays',
+				'titleFields' => ['courseName'],
+				'subtitleFields' => ['dayLabel', 'timeLabel', 'placeLabel'],
+				'dueField' => 'firstDay',
+				'buttonLabel' => 'Everything about this day',
+				// Only the next one; the rest is "Daarna" (REPORT-2, item 10).
+				'limit' => 1,
+			],
+			[
+				'type' => 'collection',
+				'collection' => 'participantCertificates',
+				'display' => 'rows',
+				'dateField' => 'expiresAt',
+				'titleFields' => ['courseName'],
+				'subtitleField' => 'validUntilLabel',
+				'quoteField' => 'renewalLine',
+				'statusField' => 'expiryStatus',
+				'statusTones' => ['valid' => 'success', 'none' => 'success', 'expiring' => 'warning', 'expiring-soon' => 'warning', 'expired' => 'error'],
+				'statusNoteField' => 'expiryLabel',
+				'limit' => 3,
+			],
+			[
+				'type' => 'collection',
+				// "Daarna": the days after the next one. `skip` leaves out the
+				// next day the highlight above shows (portaliq: requested).
+				'label' => 'After that',
+				'skip' => 1,
+				'collection' => 'participantComingDays',
+				'display' => 'rows',
+				'dateField' => 'firstDay',
+				'titleFields' => ['courseName'],
+				'subtitleField' => 'dayLabel',
+				'limit' => 4,
+				'sort' => ['field' => 'firstDay', 'direction' => 'asc'],
+			],
+		],
+	];
+
+	private const PARTICIPANT_COURSE_DAYS = [
+		'id' => 'participantCourseDays',
+		'label' => 'My course days',
+		'icon' => 'CalendarMonth',
+		'group' => self::GROUP,
+		'blocks' => [
+			['type' => 'collection', 'collection' => 'participantCourseDays'],
+			['type' => 'detail', 'collection' => 'participantCourseDays'],
+		],
+	];
+
+	private const PARTICIPANT_CERTIFICATES = [
+		'id' => 'participantCertificates',
+		'label' => 'My certificates',
+		'icon' => 'CertificateOutline',
+		'group' => self::GROUP,
+		'blocks' => [['type' => 'collection', 'collection' => 'participantCertificates']],
+	];
+
 	/**
 	 * The participant's manifest.
 	 *
@@ -117,31 +214,8 @@ class ParticipantSitePages {
 				id: 'participantCertificates',
 				schema: 'credential',
 				label: 'My certificates',
-				fields: [
-					'learnerId',
-					'courseName',
-					'kind',
-					'validUntilLabel',
-					'expiresAt',
-					'expiryStatus',
-					'expiryLabel',
-					'renewalLine',
-					'verificationUrl',
-					'lifecycle',
-				],
-				extra: [
-					// A certificate names its holder by the profile uuid in `learnerId`.
-					'scopeField' => 'learnerId',
-					'filter' => ['lifecycle' => 'issued', 'kind' => 'certificate'],
-					'defaultSort' => ['field' => 'expiresAt', 'direction' => 'asc'],
-					'fieldConfigs' => ['expiryStatus' => ['valueLabels' => EmployerSitePages::EXPIRY_STATUS]],
-					'columns' => [
-						['field' => 'courseName', 'label' => 'Certificate'],
-						['field' => 'expiresAt', 'label' => 'Valid until', 'render' => 'date'],
-						['field' => 'expiryLabel', 'label' => 'Status'],
-						['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link'],
-					],
-				]
+				fields: self::PARTICIPANT_CERTIFICATES_FIELDS,
+				extra: self::PARTICIPANT_CERTIFICATES_EXTRA
 			),
 		];
 	}//end collections()
@@ -155,73 +229,9 @@ class ParticipantSitePages {
 	 */
 	public function pages(): array {
 		return [
-			[
-				'id' => 'participantOverview',
-				'label' => 'Overview',
-				'icon' => 'ViewDashboard',
-				'group' => self::GROUP,
-				'home' => true,
-				'blocks' => [
-					['type' => 'greeting', 'label' => 'My course days', 'page' => 'participantCourseDays'],
-					[
-						'type' => 'tasks',
-						'label' => 'Your next course day',
-						'display' => 'highlight',
-						'eyebrow' => 'Your next course day',
-						'collection' => 'participantComingDays',
-						'titleFields' => ['courseName'],
-						'subtitleFields' => ['dayLabel', 'timeLabel', 'placeLabel'],
-						'dueField' => 'firstDay',
-						'buttonLabel' => 'Everything about this day',
-						// Only the next one; the rest is "Daarna" (REPORT-2, item 10).
-						'limit' => 1,
-					],
-					[
-						'type' => 'collection',
-						'collection' => 'participantCertificates',
-						'display' => 'rows',
-						'dateField' => 'expiresAt',
-						'titleFields' => ['courseName'],
-						'subtitleField' => 'validUntilLabel',
-						'quoteField' => 'renewalLine',
-						'statusField' => 'expiryStatus',
-						'statusTones' => ['valid' => 'success', 'none' => 'success', 'expiring' => 'warning', 'expiring-soon' => 'warning', 'expired' => 'error'],
-						'statusNoteField' => 'expiryLabel',
-						'limit' => 3,
-					],
-					[
-						'type' => 'collection',
-						// "Daarna": the days after the next one. `skip` leaves out the
-						// next day the highlight above shows (portaliq: requested).
-						'label' => 'After that',
-						'skip' => 1,
-						'collection' => 'participantComingDays',
-						'display' => 'rows',
-						'dateField' => 'firstDay',
-						'titleFields' => ['courseName'],
-						'subtitleField' => 'dayLabel',
-						'limit' => 4,
-						'sort' => ['field' => 'firstDay', 'direction' => 'asc'],
-					],
-				],
-			],
-			[
-				'id' => 'participantCourseDays',
-				'label' => 'My course days',
-				'icon' => 'CalendarMonth',
-				'group' => self::GROUP,
-				'blocks' => [
-					['type' => 'collection', 'collection' => 'participantCourseDays'],
-					['type' => 'detail', 'collection' => 'participantCourseDays'],
-				],
-			],
-			[
-				'id' => 'participantCertificates',
-				'label' => 'My certificates',
-				'icon' => 'CertificateOutline',
-				'group' => self::GROUP,
-				'blocks' => [['type' => 'collection', 'collection' => 'participantCertificates']],
-			],
+			self::PARTICIPANT_OVERVIEW,
+			self::PARTICIPANT_COURSE_DAYS,
+			self::PARTICIPANT_CERTIFICATES,
 		];
 	}//end pages()
 
