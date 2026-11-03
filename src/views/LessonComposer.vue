@@ -69,13 +69,7 @@
 			</p>
 
 			<header class="lesson-composer__header">
-				<h2>
-					{{
-						t('learniq', 'Compose lesson: {name}', {
-							name: lesson.name || '',
-						})
-					}}
-				</h2>
+				<CnPageHeader :title="t('learniq', 'Compose lesson: {name}', { name: lesson.name || '' })" />
 				<div class="lesson-composer__header-actions">
 					<button class="button-vue" @click="goBack">
 						{{ t('learniq', 'Back to builder') }}
@@ -441,7 +435,7 @@
 </template>
 
 <script>
-import { CnMarkdownEditor } from '@conduction/nextcloud-vue'
+import { CnMarkdownEditor, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
 import { NcSelect } from '@nextcloud/vue'
@@ -486,15 +480,16 @@ export default {
 	name: 'LessonComposer',
 
 	components: {
-		NcSelect,
+		AutoFix,
+		ChevronDown,
+		ChevronUp,
 		CnMarkdownEditor,
+		CnPageHeader,
+		DeleteOutline,
 		Draggable: draggable,
 		LessonAssistPanel,
 		LessonNextStepEditor,
-		AutoFix,
-		ChevronUp,
-		ChevronDown,
-		DeleteOutline,
+		NcSelect,
 		PlusIcon,
 	},
 

@@ -14,7 +14,7 @@
 -->
 <template>
 	<div class="campaign-results">
-		<h2>{{ t('learniq', 'Evaluation results') }}</h2>
+		<CnPageHeader :title="t('learniq', 'Evaluation results')" />
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcNoteCard v-else-if="error" type="error">
 			{{ error }}
@@ -41,6 +41,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -49,7 +50,7 @@ import { resultFigures } from '../utils/evaluationAnswers.js'
 export default {
 	name: 'EvaluationCampaignResultsView',
 
-	components: { NcLoadingIcon, NcNoteCard },
+	components: { CnPageHeader, NcLoadingIcon, NcNoteCard },
 
 	props: {
 		/** Campaign UUID from the route :campaignId param. */

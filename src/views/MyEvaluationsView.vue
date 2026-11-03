@@ -13,7 +13,7 @@
 -->
 <template>
 	<div class="my-evaluations">
-		<h2>{{ t('learniq', 'My evaluations') }}</h2>
+		<CnPageHeader :title="t('learniq', 'My evaluations')" />
 		<p class="my-evaluations__intro">
 			{{ t('learniq', 'Your answers are stored without your name.') }}
 		</p>
@@ -77,6 +77,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -86,6 +87,7 @@ export default {
 	name: 'MyEvaluationsView',
 
 	components: {
+		CnPageHeader,
 		EvaluationAnswerForm,
 		NcButton,
 		NcEmptyContent,

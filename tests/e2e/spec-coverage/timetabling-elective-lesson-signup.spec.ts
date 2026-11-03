@@ -41,7 +41,7 @@ test.describe('timetabling-elective-lesson-signup', () => {
 		const id = offer.id || offer['@self']?.id
 
 		await page.goto(`/index.php/apps/learniq/electives/offers/${id}/roster`)
-		await expect(page.getByRole('heading', { level: 2 })).toContainText(
+		await expect(page.getByRole('heading', { level: 1 })).toContainText(
 			'Keuzewerktijd wiskunde e2e',
 			{ timeout: 15_000 },
 		)

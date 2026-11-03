@@ -24,7 +24,7 @@
 -->
 <template>
 	<div class="book-conference-slots">
-		<h2>{{ t('learniq', 'Book a parent-teacher conversation') }}</h2>
+		<CnPageHeader :title="t('learniq', 'Book a parent-teacher conversation')" />
 
 		<NcLoadingIcon v-if="loading" :size="32" />
 
@@ -115,6 +115,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -131,6 +132,7 @@ export default {
 	name: 'BookConferenceSlotsView',
 
 	components: {
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,

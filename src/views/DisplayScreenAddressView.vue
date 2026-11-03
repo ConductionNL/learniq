@@ -8,7 +8,7 @@
 -->
 <template>
 	<div class="screen-address">
-		<h2>{{ t('learniq', 'Screen address') }}</h2>
+		<CnPageHeader :title="t('learniq', 'Screen address')" />
 		<p>
 			{{
 				t(
@@ -54,6 +54,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
@@ -63,6 +64,7 @@ export default {
 	name: 'DisplayScreenAddressView',
 
 	components: {
+		CnPageHeader,
 		NcButton,
 		NcNoteCard,
 	},

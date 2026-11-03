@@ -23,7 +23,7 @@
 			{{ loadError }}
 		</NcNoteCard>
 		<template v-else>
-			<h2>{{ heading }}</h2>
+			<CnPageHeader :title="heading" />
 			<p class="signature-view__version">
 				{{
 					t('learniq', 'Version {version}', {
@@ -97,7 +97,7 @@
 </template>
 
 <script>
-import { CnSignatureCapture } from '@conduction/nextcloud-vue'
+import { CnPageHeader, CnSignatureCapture } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
@@ -113,6 +113,7 @@ export default {
 	name: 'SignatureView',
 
 	components: {
+		CnPageHeader,
 		CnSignatureCapture,
 		NcButton,
 		NcLoadingIcon,

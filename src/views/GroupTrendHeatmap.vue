@@ -27,9 +27,7 @@
 <template>
 	<div class="group-trend-heatmap">
 		<header class="group-trend-heatmap__header">
-			<h2 class="group-trend-heatmap__title">
-				{{ t('learniq', 'Group trend heat map') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Group trend heat map')" />
 			<p class="group-trend-heatmap__subtitle">
 				{{
 					t(
@@ -106,10 +104,12 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'GroupTrendHeatmap',
+	components: { CnPageHeader },
 
 	data() {
 		return {
@@ -318,11 +318,6 @@ export default {
 
 .group-trend-heatmap__header {
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.group-trend-heatmap__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
 }
 
 .group-trend-heatmap__subtitle {

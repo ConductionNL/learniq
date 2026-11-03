@@ -15,7 +15,7 @@
 -->
 <template>
 	<div class="reissue-certificates">
-		<h2>{{ t('learniq', 'Reissue certificates') }}</h2>
+		<CnPageHeader :title="t('learniq', 'Reissue certificates')" />
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcNoteCard v-else-if="error" type="error">
 			{{ error }}
@@ -74,6 +74,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard, NcTextArea } from '@nextcloud/vue'
@@ -81,7 +82,7 @@ import { NcButton, NcLoadingIcon, NcNoteCard, NcTextArea } from '@nextcloud/vue'
 export default {
 	name: 'ReissueCertificatesView',
 
-	components: { NcButton, NcLoadingIcon, NcNoteCard, NcTextArea },
+	components: { CnPageHeader, NcButton, NcLoadingIcon, NcNoteCard, NcTextArea },
 
 	props: {
 		/** Course UUID from the route. */

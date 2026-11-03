@@ -20,9 +20,7 @@
 <template>
 	<div class="proctoring-review-queue">
 		<header class="proctoring-review-queue__header">
-			<h2 class="proctoring-review-queue__title">
-				{{ t('learniq', 'Proctoring flag review queue') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Proctoring flag review queue')" />
 			<p class="proctoring-review-queue__subtitle">
 				{{
 					t(
@@ -177,11 +175,13 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'ProctoringReviewQueue',
+	components: { CnPageHeader },
 
 	data() {
 		return {
@@ -403,11 +403,6 @@ export default {
 
 .proctoring-review-queue__header {
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.proctoring-review-queue__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
 }
 
 .proctoring-review-queue__subtitle {

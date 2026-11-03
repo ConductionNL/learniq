@@ -33,7 +33,7 @@
 			class="ai-processing-disclosure__loading" />
 
 		<template v-else>
-			<h2>{{ t('learniq', 'AI processing disclosure') }}</h2>
+			<CnPageHeader :title="t('learniq', 'AI processing disclosure')" />
 			<p class="ai-processing-disclosure__intro">
 				{{
 					t(
@@ -145,7 +145,7 @@
 </template>
 
 <script>
-import { useObjectStore } from '@conduction/nextcloud-vue'
+import { CnPageHeader, useObjectStore } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
 
@@ -162,6 +162,7 @@ export default {
 	name: 'LearniqAiProcessingDisclosure',
 
 	components: {
+		CnPageHeader,
 		NcButton,
 		NcLoadingIcon,
 		NcNoteCard,

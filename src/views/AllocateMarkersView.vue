@@ -15,7 +15,7 @@
 -->
 <template>
 	<div class="allocate-markers">
-		<h2>{{ t('learniq', 'Allocate markers') }}</h2>
+		<CnPageHeader :title="t('learniq', 'Allocate markers')" />
 		<NcNoteCard v-if="assignment && maxMarkers < 2" type="info">
 			{{
 				t(
@@ -93,6 +93,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl, generateUrl } from '@nextcloud/router'
 import { NcButton, NcNoteCard, NcSelect } from '@nextcloud/vue'
@@ -101,7 +102,7 @@ import { listRows, objectId, objectsUrl, oneObject } from '../utils/customPages.
 export default {
 	name: 'AllocateMarkersView',
 
-	components: { NcButton, NcNoteCard, NcSelect },
+	components: { CnPageHeader, NcButton, NcNoteCard, NcSelect },
 
 	props: {
 		/** Assignment UUID from the route. */

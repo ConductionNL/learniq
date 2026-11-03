@@ -17,9 +17,7 @@
 <template>
 	<div class="room-use">
 		<header>
-			<h2 class="room-use__title">
-				{{ t('learniq', 'Room use') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Room use')" />
 			<p class="room-use__intro">
 				{{
 					t(
@@ -264,6 +262,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -284,6 +283,7 @@ export default {
 	name: 'RoomUtilisationReport',
 
 	components: {
+		CnPageHeader,
 		NcButton,
 		NcCheckboxRadioSwitch,
 		NcDateTimePickerNative,
@@ -610,10 +610,6 @@ export default {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
-}
-
-.room-use__title {
-	margin: 0;
 }
 
 .room-use__intro,
