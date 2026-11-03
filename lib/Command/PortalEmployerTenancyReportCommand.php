@@ -112,6 +112,10 @@ class PortalEmployerTenancyReportCommand extends Command {
 		}
 
 		$output->writeln(sprintf('%d of %d employer accounts name a company outside their portal\'s organisation.', $affected, count($accounts)));
+		if ($this->accounts->stoppedAtCap() === true) {
+			$output->writeln(sprintf('The listing stopped at %d accounts; there may be more that this report did not check.', EmployerAccounts::CAP));
+		}
+
 		return self::SUCCESS;
 	}//end execute()
 }//end class
