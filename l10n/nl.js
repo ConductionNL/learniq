@@ -4250,6 +4250,8 @@ OC.L10N.register(
         "Upload a package": "Een pakket uploaden",
         "Lesson blocks": "Blokken van de les",
         "_%n pupil_::_%n pupils_": ["%n leerling","%n leerlingen"],
+        "School years": "Schooljaren",
+        "Mapping per cohort": "Indeling per klas",
         "HR employee · school-wide, all locations": "hr-medewerker · schoolbreed, alle locaties",
         "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups": "teamleider · schoolbreed: een teamleider ziet alle cursussen, opdrachten, lessen en groepen",
         "confidential adviser · your own mandatory training courses and points": "vertrouwenspersoon · uw eigen verplichte trainingen en punten",

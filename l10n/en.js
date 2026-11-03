@@ -3796,6 +3796,8 @@ OC.L10N.register(
         "Upload a package": "Upload a package",
         "Lesson blocks": "Lesson blocks",
         "_%n pupil_::_%n pupils_": ["%n pupil","%n pupils"],
+        "School years": "School years",
+        "Mapping per cohort": "Mapping per cohort",
         "HR employee · school-wide, all locations": "HR employee · school-wide, all locations",
         "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
         "confidential adviser · your own mandatory training courses and points": "confidential adviser · your own mandatory training courses and points",
