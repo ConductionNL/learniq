@@ -114,7 +114,10 @@ class SecondarySchoolLessonAndStoreRecordsTest extends TestCase {
 		$course   = self::one(rows: $objects['course'], field: 'name', value: 'Biologie leerjaar 3 havo/vwo');
 		$cohort   = self::one(rows: $objects['cohort'], field: 'name', value: '3HV-B');
 		$enrolled = array_column(
-			array: array_filter(array: $objects['enrolment'], callback: static fn (array $e): bool => $e['courseId'] === $course['uuid'] && $e['lifecycle'] === 'active'),
+			array: array_filter(
+				array: $objects['enrolment'],
+				callback: static fn (array $e): bool => $e['courseId'] === $course['uuid'] && $e['lifecycle'] === 'active'
+			),
 			column_key: 'learnerId'
 		);
 		sort(array: $enrolled);

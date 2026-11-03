@@ -16,3 +16,16 @@ export function soleSchoolName(schools) {
 	}
 	return String(schools[0]?.name ?? '').trim()
 }
+
+/**
+ * The subtitle line of a role from a page's manifest config.
+ *
+ * @param {object|null} lines The lines per role.
+ * @param {string} role The reader's primary role.
+ * @return {string} The line, or '' when the role has none.
+ * @spec openspec/changes/vo-lesson-store-and-wednesday-records/specs/dashboard/spec.md#requirement-the-hr-today-subtitle-names-the-school
+ */
+export function roleLine(lines, role) {
+	const line = (lines ?? {})[role]
+	return typeof line === 'string' ? line : ''
+}

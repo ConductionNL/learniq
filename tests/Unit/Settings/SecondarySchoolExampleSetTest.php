@@ -706,7 +706,13 @@ class SecondarySchoolExampleSetTest extends TestCase {
 		self::assertSame('2026-2027', $h4b['academicYear']);
 		self::assertCount(27, $h4b['learnerIds']);
 		self::assertContains($noor['ncUserId'], $h4b['learnerIds']);
-		$enrolment = array_values(array_filter(self::of('enrolment'), static fn (array $e): bool => $e['learnerId'] === $noor['ncUserId'] && $e['lifecycle'] === 'active' && isset($e['cohortId'])));
+		$enrolment = array_values(
+			array: array_filter(
+				array: self::of(schema: 'enrolment'),
+				callback: static fn (array $e): bool => $e['learnerId'] === $noor['ncUserId']
+					&& $e['lifecycle'] === 'active' && isset($e['cohortId'])
+			)
+		);
 		self::assertCount(1, $enrolment);
 		self::assertSame($h4b['uuid'], $enrolment[0]['cohortId']);
 		self::assertSame(expected: 3, actual: $enrolment[0]['leerjaar']);

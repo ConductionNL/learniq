@@ -110,7 +110,7 @@ import {
 	rollCallRoute,
 	sessionsToMarkFilter,
 } from '../utils/rollCall.js'
-import { soleSchoolName } from '../utils/schoolName.js'
+import { roleLine, soleSchoolName } from '../utils/schoolName.js'
 import {
 	appendFilter,
 	isScopedTeacher,
@@ -276,12 +276,12 @@ export default {
 		 */
 		pageSubtitle() {
 			const role = loadState('learniq', 'primaryRole', '')
-			const ofSchool = (this.subtitleOfSchoolByRole || {})[role]
-			if (this.schoolName !== '' && typeof ofSchool === 'string' && ofSchool !== '') {
+			const ofSchool = roleLine(this.subtitleOfSchoolByRole, role)
+			if (this.schoolName !== '' && ofSchool !== '') {
 				return this.t('learniq', ofSchool, { school: this.schoolName }, undefined, { escape: false })
 			}
-			const line = (this.subtitleByRole || {})[role]
-			return typeof line === 'string' && line !== '' ? this.t('learniq', line) : ''
+			const line = roleLine(this.subtitleByRole, role)
+			return line !== '' ? this.t('learniq', line) : ''
 		},
 
 		/**
@@ -727,6 +727,11 @@ export default {
 		},
 	},
 
+	/**
+	 * Load what the page's lists and subtitle read.
+	 *
+	 * @spec openspec/changes/vo-lesson-store-and-wednesday-records/specs/dashboard/spec.md#requirement-the-hr-today-subtitle-names-the-school
+	 */
 	created() {
 		this.loadTeacherScope()
 		this.loadSchoolName()
@@ -810,7 +815,7 @@ export default {
 		 */
 		async loadSchoolName() {
 			const role = loadState('learniq', 'primaryRole', '')
-			if (!(this.subtitleOfSchoolByRole || {})[role]) {
+			if (roleLine(this.subtitleOfSchoolByRole, role) === '') {
 				return
 			}
 			try {
