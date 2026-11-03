@@ -178,6 +178,10 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 			}
 
 			$eligible[$teacherId] ??= $this->eligibleRefs(round: $round, teacherId: $teacherId);
+			if ($eligible[$teacherId] === null) {
+				continue;
+			}
+
 			$free = $this->unheld(candidates: $this->candidates(round: $round, availability: $availability), held: ($held[$teacherId] ?? []));
 			$held[$teacherId] = array_merge(($held[$teacherId] ?? []), $free);
 			foreach ($free as $candidate) {
@@ -319,31 +323,58 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 	/**
 	 * The pupils whose parents may book this teacher: the invited pupils of
 	 * the round's groups the teacher teaches, or every invited pupil when the
-	 * teacher teaches none of them.
+	 * teacher teaches none of them. A group that cannot be read might be the
+	 * teacher's own, so it refuses the answer instead of opening the times to
+	 * every invited pupil.
 	 *
 	 * @param array<string, mixed> $round The round.
 	 * @param string $teacherId The teacher's uid.
 	 *
-	 * @return array<int, string> LearnerProfile uuids.
+	 * @return array<int, string>|null LearnerProfile uuids; null when a group cannot be read and the teacher teaches none of the others.
 	 */
-	private function eligibleRefs(array $round, string $teacherId): array {
+	private function eligibleRefs(array $round, string $teacherId): ?array {
 		$invited = array_values(array_filter((array)($round['invitedLearnerRefs'] ?? []), 'is_string'));
 		$refs = [];
-		foreach ((array)($round['cohortIds'] ?? []) as $cohortId) {
-			$cohort = $this->row(id: (string)$cohortId, schema: self::COHORT_SCHEMA);
-			if ($cohort === null || in_array($teacherId, (array)($cohort['teacherIds'] ?? []), true) === false) {
+		$teaches = false;
+		$unread = false;
+		foreach ($this->namedCohortIds(round: $round) as $cohortId) {
+			$cohort = $this->row(id: $cohortId, schema: self::COHORT_SCHEMA);
+			if ($cohort === null) {
+				$unread = true;
 				continue;
 			}
 
-			$refs += $this->invitedOfCohort(cohort: $cohort, round: ['invited' => $invited, 'tenantId' => (string)($round['tenant_id'] ?? '')]);
+			if (in_array($teacherId, (array)($cohort['teacherIds'] ?? []), true) === true) {
+				$teaches = true;
+				$refs += $this->invitedOfCohort(cohort: $cohort, round: ['invited' => $invited, 'tenantId' => (string)($round['tenant_id'] ?? '')]);
+			}
 		}
 
-		if ($refs === []) {
-			return $invited;
+		if ($teaches === true) {
+			return array_map('strval', array_keys($refs));
 		}
 
-		return array_map('strval', array_keys($refs));
+		if ($unread === true) {
+			$this->logger->error(
+				'[ConferenceFreeSlotGenerator] Round {round}: a group could not be read, so a teacher with no other group gets no free slots.',
+				['round' => ($round['id'] ?? '')]
+			);
+			return null;
+		}
+
+		return $invited;
 	}//end eligibleRefs()
+
+	/**
+	 * The ids of the round's groups, without blanks.
+	 *
+	 * @param array<string, mixed> $round The round.
+	 *
+	 * @return array<int, string>
+	 */
+	private function namedCohortIds(array $round): array {
+		return array_values(array_filter(array_map('strval', (array)($round['cohortIds'] ?? [])), static fn (string $id): bool => $id !== ''));
+	}//end namedCohortIds()
 
 	/**
 	 * The invited pupils of one group, as LearnerProfile uuids in the round's tenant.
