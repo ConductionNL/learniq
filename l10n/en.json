@@ -3836,7 +3836,9 @@
         "_%n pupil_::_%n pupils_": [
             "%n pupil",
             "%n pupils"
-        ]
+        ],
+        "School years": "School years",
+        "Mapping per cohort": "Mapping per cohort"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
