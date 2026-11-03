@@ -15,7 +15,7 @@
  @spec openspec/specs/school-structure/spec.md#requirement-lessons-without-a-room-are-counted-not-hidden
 -->
 <template>
-	<div class="room-use">
+	<div class="room-use lq-board-page">
 		<header>
 			<CnPageHeader :title="t('learniq', 'Room use')" />
 			<p class="room-use__intro">
@@ -109,58 +109,62 @@
 			<NcEmptyContent
 				v-if="report.rooms.length === 0"
 				:name="t('learniq', 'No rooms match these filters')" />
-			<table v-else class="room-use__table">
-				<caption class="hidden-visually">
-					{{
-						t('learniq', 'Room use per room')
-					}}
-				</caption>
-				<thead>
-					<tr>
-						<th scope="col">
-							{{ t('learniq', 'Room') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Room kind') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Building') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Capacity') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Hours in use') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Hours open') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Occupancy') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Average fill') }}
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-for="row in report.rooms" :key="row.roomId">
-						<th scope="row">
-							{{ row.name }}
-						</th>
-						<td>{{ kindLabel(row.kind) }}</td>
-						<td>{{ row.buildingCode || '' }}</td>
-						<td>{{ row.capacity ?? '' }}</td>
-						<td>{{ row.hoursInUse }}</td>
-						<td>{{ row.hoursOpen }}</td>
-						<td>{{ percent(row.occupancy) }}</td>
-						<td>{{ percent(row.fill) }}</td>
-					</tr>
-				</tbody>
-			</table>
+			<CnDetailCard v-else flush>
+				<table class="room-use__table">
+					<caption class="hidden-visually">
+						{{
+							t('learniq', 'Room use per room')
+						}}
+					</caption>
+					<thead>
+						<tr>
+							<th scope="col">
+								{{ t('learniq', 'Room') }}
+							</th>
+							<th scope="col">
+								{{ t('learniq', 'Room kind') }}
+							</th>
+							<th scope="col">
+								{{ t('learniq', 'Building') }}
+							</th>
+							<th scope="col">
+								{{ t('learniq', 'Capacity') }}
+							</th>
+							<th scope="col">
+								{{ t('learniq', 'Hours in use') }}
+							</th>
+							<th scope="col">
+								{{ t('learniq', 'Hours open') }}
+							</th>
+							<th scope="col">
+								{{ t('learniq', 'Occupancy') }}
+							</th>
+							<th scope="col">
+								{{ t('learniq', 'Average fill') }}
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="row in report.rooms" :key="row.roomId">
+							<th scope="row">
+								{{ row.name }}
+							</th>
+							<td>{{ kindLabel(row.kind) }}</td>
+							<td>{{ row.buildingCode || '' }}</td>
+							<td>{{ row.capacity ?? '' }}</td>
+							<td>{{ row.hoursInUse }}</td>
+							<td>{{ row.hoursOpen }}</td>
+							<td>{{ percent(row.occupancy) }}</td>
+							<td>{{ percent(row.fill) }}</td>
+						</tr>
+					</tbody>
+				</table>
+			</CnDetailCard>
 
-			<section v-if="report.grid.length > 0" class="room-use__grid">
-				<h3>{{ t('learniq', 'Share of rooms in use per hour') }}</h3>
+			<CnDetailCard
+				v-if="report.grid.length > 0"
+				:title="t('learniq', 'Share of rooms in use per hour')"
+				class="room-use__grid">
 				<table>
 					<thead>
 						<tr>
@@ -192,77 +196,79 @@
 						</tr>
 					</tbody>
 				</table>
-			</section>
+			</CnDetailCard>
 		</template>
 
-		<details v-if="openingHours" class="room-use__hours">
-			<summary>{{ t('learniq', 'Opening hours') }}</summary>
-			<p v-if="!canEdit" class="room-use__intro">
-				{{
-					t(
-						'learniq',
-						'Team leads and compliance officers can change the opening hours.',
-					)
-				}}
-			</p>
-			<table>
-				<tbody>
-					<tr v-for="day in weekdays" :key="day.key">
-						<th scope="row">
-							{{ day.label }}
-						</th>
-						<td>
-							<NcCheckboxRadioSwitch
-								:modelValue="openingHours.weekdays[day.key] !== null"
-								:disabled="!canEdit"
-								@update:modelValue="toggleDay(day.key, $event)">
-								{{ t('learniq', 'Open') }}
-							</NcCheckboxRadioSwitch>
-						</td>
-						<td>
-							<input
-								v-if="openingHours.weekdays[day.key]"
-								v-model="openingHours.weekdays[day.key].opens"
-								type="time"
-								:disabled="!canEdit"
-								:aria-label="
-									t('learniq', 'Opens on {day}', {
-										day: day.label,
-									})
-								" />
-						</td>
-						<td>
-							<input
-								v-if="openingHours.weekdays[day.key]"
-								v-model="openingHours.weekdays[day.key].closes"
-								type="time"
-								:disabled="!canEdit"
-								:aria-label="
-									t('learniq', 'Closes on {day}', {
-										day: day.label,
-									})
-								" />
-						</td>
-					</tr>
-				</tbody>
-			</table>
-			<NcCheckboxRadioSwitch
-				v-model="openingHours.closedOnStudyDays"
-				:disabled="!canEdit">
-				{{ t('learniq', 'Rooms are closed on study days') }}
-			</NcCheckboxRadioSwitch>
-			<NcButton v-if="canEdit" variant="primary" @click="saveOpeningHours">
-				{{ t('learniq', 'Save opening hours') }}
-			</NcButton>
-			<NcNoteCard v-if="hoursMessage" :type="hoursMessageType">
-				{{ hoursMessage }}
-			</NcNoteCard>
-		</details>
+		<CnDetailCard v-if="openingHours">
+			<details class="room-use__hours">
+				<summary>{{ t('learniq', 'Opening hours') }}</summary>
+				<p v-if="!canEdit" class="room-use__intro">
+					{{
+						t(
+							'learniq',
+							'Team leads and compliance officers can change the opening hours.',
+						)
+					}}
+				</p>
+				<table>
+					<tbody>
+						<tr v-for="day in weekdays" :key="day.key">
+							<th scope="row">
+								{{ day.label }}
+							</th>
+							<td>
+								<NcCheckboxRadioSwitch
+									:modelValue="openingHours.weekdays[day.key] !== null"
+									:disabled="!canEdit"
+									@update:modelValue="toggleDay(day.key, $event)">
+									{{ t('learniq', 'Open') }}
+								</NcCheckboxRadioSwitch>
+							</td>
+							<td>
+								<input
+									v-if="openingHours.weekdays[day.key]"
+									v-model="openingHours.weekdays[day.key].opens"
+									type="time"
+									:disabled="!canEdit"
+									:aria-label="
+										t('learniq', 'Opens on {day}', {
+											day: day.label,
+										})
+									" />
+							</td>
+							<td>
+								<input
+									v-if="openingHours.weekdays[day.key]"
+									v-model="openingHours.weekdays[day.key].closes"
+									type="time"
+									:disabled="!canEdit"
+									:aria-label="
+										t('learniq', 'Closes on {day}', {
+											day: day.label,
+										})
+									" />
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<NcCheckboxRadioSwitch
+					v-model="openingHours.closedOnStudyDays"
+					:disabled="!canEdit">
+					{{ t('learniq', 'Rooms are closed on study days') }}
+				</NcCheckboxRadioSwitch>
+				<NcButton v-if="canEdit" variant="primary" @click="saveOpeningHours">
+					{{ t('learniq', 'Save opening hours') }}
+				</NcButton>
+				<NcNoteCard v-if="hoursMessage" :type="hoursMessageType">
+					{{ hoursMessage }}
+				</NcNoteCard>
+			</details>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
-import { CnPageHeader } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -283,6 +289,7 @@ export default {
 	name: 'RoomUtilisationReport',
 
 	components: {
+		CnDetailCard,
 		CnPageHeader,
 		NcButton,
 		NcCheckboxRadioSwitch,
@@ -605,13 +612,6 @@ export default {
 </script>
 
 <style scoped>
-.room-use {
-	padding: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-}
-
 .room-use__intro,
 .room-use__summary {
 	margin: 4px 0 0;
@@ -629,6 +629,10 @@ export default {
 .room-use__grid table,
 .room-use__hours table {
 	border-collapse: collapse;
+}
+
+.room-use__table {
+	width: 100%;
 }
 
 .room-use__table th,
