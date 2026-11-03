@@ -87,6 +87,27 @@ class EmployerBookingOrganisationTest extends TestCase {
 		}
 	}//end testOnlyTheCreateActsForTheOrganisation()
 
+	public function testABodyCannotChooseTheBookingsOrganisation(): void {
+		$booked = $this->bookings(companySelf: ['organisation' => self::COMPANY_ORGANISATION], companyData: ['organisation' => 'forged-organisation'])->book(
+			organisationRef: self::COMPANY,
+			body: [
+				'cohortId' => 'ed-1',
+				'participantCount' => '1',
+				'organisation' => 'forged-organisation',
+				'@self' => ['organisation' => 'forged-organisation'],
+				'tenant_id' => 'forged-tenant',
+			]
+		);
+
+		self::assertSame(201, $booked->status);
+		self::assertSame([self::COMPANY_ORGANISATION], $this->asked);
+		self::assertSame(['course-booking', self::COMPANY_ORGANISATION], $this->saves[0]);
+		$stored = $this->store->rows['course-booking'][0];
+		self::assertArrayNotHasKey('organisation', $stored);
+		self::assertNotSame('forged-organisation', ($stored['@self']['organisation'] ?? null));
+		self::assertStringNotContainsString('forged-tenant', (string)json_encode($stored));
+	}//end testABodyCannotChooseTheBookingsOrganisation()
+
 	public function testACompanyWithoutAnOrganisationBooksAsBefore(): void {
 		$booked = $this->bookings(companySelf: null)
 			->book(organisationRef: self::COMPANY, body: ['cohortId' => 'ed-1', 'participantCount' => '1']);
@@ -110,11 +131,12 @@ class EmployerBookingOrganisationTest extends TestCase {
 	 * organisation as OpenRegister's runForOrganisation() does.
 	 *
 	 * @param array<string, mixed>|null $companySelf The company row's `@self`, or null for none.
+	 * @param array<string, mixed>      $companyData More data fields of the company row.
 	 *
 	 * @return PortalEmployerBookings
 	 */
-	private function bookings(?array $companySelf): PortalEmployerBookings {
-		$company = ['id' => self::COMPANY, 'name' => 'Jansen Installatietechniek BV', 'locationId' => 'loc-1', 'contactName' => 'Linda Jansen', 'lifecycle' => 'active'];
+	private function bookings(?array $companySelf, array $companyData = []): PortalEmployerBookings {
+		$company = ['id' => self::COMPANY, 'name' => 'Jansen Installatietechniek BV', 'locationId' => 'loc-1', 'contactName' => 'Linda Jansen', 'lifecycle' => 'active'] + $companyData;
 		if ($companySelf !== null) {
 			$company['@self'] = $companySelf;
 		}
