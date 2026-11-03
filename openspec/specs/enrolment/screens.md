@@ -27,3 +27,4 @@
 - LqVandaag https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqVandaag
 - LqLijst https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqLijst
 - LqDetail https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqDetail
+- learniq/LqLlAanbod cursuscatalogus met externe aanbieders (leerling) https://identity.conduction.nl/screens/board?id=learniq/LqLlAanbod

@@ -10,3 +10,5 @@
 - LqBsaBesluit https://identity.conduction.nl/screens/board?id=learniq/LqBsaBesluit
 - LqStore https://identity.conduction.nl/screens/board?id=learniq/LqStore
 - LqLessen https://identity.conduction.nl/screens/board?id=learniq/LqLessen
+- learniq/LqLlLesVolgen les volgen (leerling) https://identity.conduction.nl/screens/board?id=learniq/LqLlLesVolgen
+- learniq/LqKoppelingen integraties https://identity.conduction.nl/screens/board?id=learniq/LqKoppelingen

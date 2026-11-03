@@ -13,3 +13,5 @@
 - LqLijst https://identity.conduction.nl/screens/board?id=wilgenboom/LqLijst
 - LqLijst https://identity.conduction.nl/screens/board?id=vaartveld/LqLijst
 - LqLijst https://identity.conduction.nl/screens/board?id=esdoornveen/LqLijst
+- learniq/LqAanwezigheidLijst aanwezigheid https://identity.conduction.nl/screens/board?id=learniq/LqAanwezigheidLijst
+- learniq/LqLeerlingInschrijvingen inschrijvingen van een leerling (docent) https://identity.conduction.nl/screens/board?id=learniq/LqLeerlingInschrijvingen

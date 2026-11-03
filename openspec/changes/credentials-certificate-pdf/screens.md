@@ -4,3 +4,4 @@
 - Documenten https://identity.conduction.nl/screens/board?id=esdoornveen/Documenten
 - Documenten https://identity.conduction.nl/screens/board?id=warmtepompacademie/Documenten
 - LqRolC https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqRolC
+- learniq/LqLlCertificaat mijn certificaat (leerling) https://identity.conduction.nl/screens/board?id=learniq/LqLlCertificaat
