@@ -9,7 +9,7 @@
  @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 -->
 <template>
-	<div class="forecast">
+	<div class="forecast lq-board-page">
 		<CnPageHeader :title="t('learniq', 'Enrolment forecast')" />
 		<NcNoteCard v-if="error" type="error">
 			{{ error }}
@@ -27,54 +27,56 @@
 			</NcButton>
 		</div>
 		<template v-if="scenario">
-			<h3>{{ t('learniq', 'Rates per programme year') }}</h3>
-			<table class="forecast__table" data-testid="forecast-rates">
-				<thead>
-					<tr>
-						<th scope="col">
-							{{ t('learniq', 'Programme') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Year') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Moves up') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Repeats') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Leaves') }}
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-for="(rate, index) in scenario.rates" :key="index">
-						<td>{{ programmeName(rate.programmeId) }}</td>
-						<td>{{ rate.programmeYear }}</td>
-						<td
-							v-for="field in ['upRate', 'repeatRate', 'leaveRate']"
-							:key="field">
-							<input
-								v-model.number="rate[field]"
-								type="number"
-								min="0"
-								max="1"
-								step="0.01"
-								:aria-label="t('learniq', 'Rate')" />
-						</td>
-					</tr>
-				</tbody>
-			</table>
-			<h3>{{ t('learniq', 'Expected intake in year 1') }}</h3>
-			<ul class="forecast__intake">
-				<li v-for="(row, index) in scenario.intake" :key="index">
-					<label>
-						{{ programmeName(row.programmeId) }}
-						<input v-model.number="row.expected" type="number" min="0" />
-					</label>
-				</li>
-			</ul>
+			<CnDetailCard :title="t('learniq', 'Rates per programme year')">
+				<table class="forecast__table" data-testid="forecast-rates">
+					<thead>
+						<tr>
+							<th scope="col">
+								{{ t('learniq', 'Programme') }}
+							</th>
+							<th scope="col">
+								{{ t('learniq', 'Year') }}
+							</th>
+							<th scope="col">
+								{{ t('learniq', 'Moves up') }}
+							</th>
+							<th scope="col">
+								{{ t('learniq', 'Repeats') }}
+							</th>
+							<th scope="col">
+								{{ t('learniq', 'Leaves') }}
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="(rate, index) in scenario.rates" :key="index">
+							<td>{{ programmeName(rate.programmeId) }}</td>
+							<td>{{ rate.programmeYear }}</td>
+							<td
+								v-for="field in ['upRate', 'repeatRate', 'leaveRate']"
+								:key="field">
+								<input
+									v-model.number="rate[field]"
+									type="number"
+									min="0"
+									max="1"
+									step="0.01"
+									:aria-label="t('learniq', 'Rate')" />
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</CnDetailCard>
+			<CnDetailCard :title="t('learniq', 'Expected intake in year 1')">
+				<ul class="forecast__intake">
+					<li v-for="(row, index) in scenario.intake" :key="index">
+						<label>
+							{{ programmeName(row.programmeId) }}
+							<input v-model.number="row.expected" type="number" min="0" />
+						</label>
+					</li>
+				</ul>
+			</CnDetailCard>
 			<div class="forecast__bar">
 				<NcButton :disabled="busy" @click="save">
 					{{ t('learniq', 'Save scenario') }}
@@ -87,7 +89,7 @@
 				</NcButton>
 			</div>
 		</template>
-		<template v-if="result">
+		<CnDetailCard v-if="result" :title="t('learniq', 'Forecast')">
 			<p class="forecast__label">
 				{{
 					t(
@@ -169,12 +171,12 @@
 					</tr>
 				</tbody>
 			</table>
-		</template>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
-import { CnPageHeader } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
@@ -186,6 +188,7 @@ export default {
 	name: 'EnrolmentForecastView',
 
 	components: {
+		CnDetailCard,
 		CnPageHeader,
 		NcButton,
 		NcNoteCard,
@@ -453,17 +456,11 @@ export default {
 </script>
 
 <style scoped>
-.forecast {
-	padding: 16px;
-	max-width: 1100px;
-}
-
 .forecast__bar {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: end;
 	gap: 12px;
-	margin-block: 12px;
 }
 
 .forecast__table {

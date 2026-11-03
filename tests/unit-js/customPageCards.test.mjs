@@ -21,6 +21,16 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
  * CnDetailCard elements the template carries (a v-for card counts once).
  */
 const views = {
+	BsaRiskDashboard: 1,
+	CourseQualityReport: 2,
+	EnrolmentForecastView: 3,
+	EvaluationCampaignResultsView: 1,
+	ExternalTrainingBulkRecordView: 3,
+	LearningRecordImportView: 2,
+	LearniqAccessibilityStatement: 1,
+	RolloverWizard: 3,
+	RoomUtilisationReport: 3,
+	SkillsGapDashboard: 3,
 	MyElectives: 1,
 	MyEvaluationsView: 2,
 	MyWorkGroups: 1,
