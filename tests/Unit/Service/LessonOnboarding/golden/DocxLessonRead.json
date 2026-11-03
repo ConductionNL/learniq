@@ -1,0 +1,712 @@
+{
+    "not a zip": {
+        "read": null,
+        "refused": []
+    },
+    "empty string": {
+        "read": null,
+        "refused": []
+    },
+    "no document part": {
+        "read": null,
+        "refused": []
+    },
+    "empty document part": {
+        "read": null,
+        "refused": []
+    },
+    "broken document xml": {
+        "read": null,
+        "refused": []
+    },
+    "doctype in document": {
+        "read": null,
+        "refused": [
+            "word/document.xml"
+        ]
+    },
+    "no body": {
+        "read": null,
+        "refused": []
+    },
+    "empty body": {
+        "read": {
+            "title": "",
+            "sections": [],
+            "notes": []
+        },
+        "refused": []
+    },
+    "oversized document part": {
+        "read": null,
+        "refused": [
+            "word/document.xml"
+        ]
+    },
+    "text runs, tabs and breaks": {
+        "read": {
+            "title": "",
+            "sections": [
+                {
+                    "heading": "",
+                    "paragraphs": [
+                        "Een twee drie \nvier\nvijf"
+                    ],
+                    "images": [],
+                    "notes": ""
+                }
+            ],
+            "notes": []
+        },
+        "refused": []
+    },
+    "built-in styles and title twice": {
+        "read": {
+            "title": "Les één",
+            "sections": [
+                {
+                    "heading": "",
+                    "paragraphs": [
+                        "Inleiding"
+                    ],
+                    "images": [],
+                    "notes": ""
+                },
+                {
+                    "heading": "Tweede titel",
+                    "paragraphs": [],
+                    "images": [],
+                    "notes": ""
+                },
+                {
+                    "heading": "Kop drie",
+                    "paragraphs": [],
+                    "images": [],
+                    "notes": ""
+                },
+                {
+                    "heading": "Kop zes",
+                    "paragraphs": [
+                        "Geen kop",
+                        "Slot"
+                    ],
+                    "images": [],
+                    "notes": ""
+                }
+            ],
+            "notes": []
+        },
+        "refused": []
+    },
+    "core title wins over title style": {
+        "read": {
+            "title": "Kerntitel",
+            "sections": [
+                {
+                    "heading": "Stijltitel",
+                    "paragraphs": [
+                        "Tekst"
+                    ],
+                    "images": [],
+                    "notes": ""
+                }
+            ],
+            "notes": []
+        },
+        "refused": []
+    },
+    "empty core title": {
+        "read": {
+            "title": "Stijltitel",
+            "sections": [],
+            "notes": []
+        },
+        "refused": []
+    },
+    "core without title": {
+        "read": {
+            "title": "",
+            "sections": [
+                {
+                    "heading": "",
+                    "paragraphs": [
+                        "Tekst"
+                    ],
+                    "images": [],
+                    "notes": ""
+                }
+            ],
+            "notes": []
+        },
+        "refused": []
+    },
+    "doctype in core": {
+        "read": {
+            "title": "",
+            "sections": [
+                {
+                    "heading": "",
+                    "paragraphs": [
+                        "Tekst"
+                    ],
+                    "images": [],
+                    "notes": ""
+                }
+            ],
+            "notes": []
+        },
+        "refused": [
+            "docProps/core.xml"
+        ]
+    },
+    "named styles": {
+        "read": {
+            "title": "Titel via naam",
+            "sections": [
+                {
+                    "heading": "Titel als kop",
+                    "paragraphs": [],
+                    "images": [],
+                    "notes": ""
+                },
+                {
+                    "heading": "Kop via naam",
+                    "paragraphs": [],
+                    "images": [],
+                    "notes": ""
+                },
+                {
+                    "heading": "Kop met spatie",
+                    "paragraphs": [
+                        "Kop zeven",
+                        "Teken",
+                        "Gewoon"
+                    ],
+                    "images": [],
+                    "notes": ""
+                }
+            ],
+            "notes": []
+        },
+        "refused": []
+    },
+    "doctype in styles": {
+        "read": {
+            "title": "",
+            "sections": [
+                {
+                    "heading": "Kop",
+                    "paragraphs": [
+                        "Tekst"
+                    ],
+                    "images": [],
+                    "notes": ""
+                }
+            ],
+            "notes": []
+        },
+        "refused": [
+            "word/styles.xml"
+        ]
+    },
+    "outline levels": {
+        "read": {
+            "title": "",
+            "sections": [
+                {
+                    "heading": "Niveau 0",
+                    "paragraphs": [],
+                    "images": [],
+                    "notes": ""
+                },
+                {
+                    "heading": "Niveau 5",
+                    "paragraphs": [
+                        "Niveau 6",
+                        "Niveau 9",
+                        "Niveau",
+                        "Tekst"
+                    ],
+                    "images": [],
+                    "notes": ""
+                }
+            ],
+            "notes": []
+        },
+        "refused": []
+    },
+    "lists": {
+        "read": {
+            "title": "",
+            "sections": [
+                {
+                    "heading": "",
+                    "paragraphs": [
+                        "- Eén"
+                    ],
+                    "images": [],
+                    "notes": ""
+                },
+                {
+                    "heading": "Kop als lijst",
+                    "paragraphs": [],
+                    "images": [],
+                    "notes": ""
+                }
+            ],
+            "notes": []
+        },
+        "refused": []
+    },
+    "tables": {
+        "read": {
+            "title": "",
+            "sections": [
+                {
+                    "heading": "",
+                    "paragraphs": [
+                        "| A\\|B regel twee |  |  |\n| --- | --- | --- |\n| 1 | 2 | 3 |",
+                        "Na de tabel"
+                    ],
+                    "images": [],
+                    "notes": ""
+                }
+            ],
+            "notes": []
+        },
+        "refused": []
+    },
+    "content controls": {
+        "read": {
+            "title": "",
+            "sections": [
+                {
+                    "heading": "Kop in controle",
+                    "paragraphs": [
+                        "Diep",
+                        "Einde"
+                    ],
+                    "images": [],
+                    "notes": ""
+                }
+            ],
+            "notes": []
+        },
+        "refused": []
+    },
+    "images": {
+        "read": {
+            "title": "",
+            "sections": [
+                {
+                    "heading": "",
+                    "paragraphs": [
+                        "Met plaatje"
+                    ],
+                    "images": [
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "b.png",
+                            "bytes": "4:f50881ced34c7d9e6bce100bf33dec60"
+                        },
+                        {
+                            "name": "c.png",
+                            "bytes": "2:aa53ca0b650dfd85c4f59fa156f7a2cc"
+                        }
+                    ],
+                    "notes": ""
+                },
+                {
+                    "heading": "Kop met plaatje",
+                    "paragraphs": [
+                        "Extern",
+                        "Extern maar binnen",
+                        "Klimt binnen",
+                        "Klimt",
+                        "Geen beeld",
+                        "Ontbreekt",
+                        "Leeg",
+                        "Onbekend",
+                        "Te groot"
+                    ],
+                    "images": [],
+                    "notes": ""
+                }
+            ],
+            "notes": []
+        },
+        "refused": []
+    },
+    "more images than the cap": {
+        "read": {
+            "title": "",
+            "sections": [
+                {
+                    "heading": "",
+                    "paragraphs": [
+                        "Beeld 0",
+                        "Beeld 1",
+                        "Beeld 2",
+                        "Beeld 3",
+                        "Beeld 4",
+                        "Beeld 5",
+                        "Beeld 6",
+                        "Beeld 7",
+                        "Beeld 8",
+                        "Beeld 9",
+                        "Beeld 10",
+                        "Beeld 11",
+                        "Beeld 12",
+                        "Beeld 13",
+                        "Beeld 14",
+                        "Beeld 15",
+                        "Beeld 16",
+                        "Beeld 17",
+                        "Beeld 18",
+                        "Beeld 19",
+                        "Beeld 20",
+                        "Beeld 21",
+                        "Beeld 22",
+                        "Beeld 23",
+                        "Beeld 24",
+                        "Beeld 25",
+                        "Beeld 26",
+                        "Beeld 27",
+                        "Beeld 28",
+                        "Beeld 29",
+                        "Beeld 30",
+                        "Beeld 31",
+                        "Beeld 32",
+                        "Beeld 33",
+                        "Beeld 34",
+                        "Beeld 35",
+                        "Beeld 36",
+                        "Beeld 37",
+                        "Beeld 38",
+                        "Beeld 39",
+                        "Beeld 40",
+                        "Beeld 41",
+                        "Beeld 42",
+                        "Beeld 43",
+                        "Beeld 44",
+                        "Beeld 45",
+                        "Beeld 46",
+                        "Beeld 47",
+                        "Beeld 48",
+                        "Beeld 49",
+                        "Beeld 50",
+                        "Beeld 51"
+                    ],
+                    "images": [
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        },
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        }
+                    ],
+                    "notes": ""
+                }
+            ],
+            "notes": [
+                "Only the first 50 images were taken"
+            ]
+        },
+        "refused": []
+    },
+    "doctype in relationships": {
+        "read": {
+            "title": "",
+            "sections": [
+                {
+                    "heading": "",
+                    "paragraphs": [
+                        "Plaatje"
+                    ],
+                    "images": [],
+                    "notes": ""
+                }
+            ],
+            "notes": []
+        },
+        "refused": [
+            "word/_rels/document.xml.rels"
+        ]
+    },
+    "image before a heading stays with the previous section": {
+        "read": {
+            "title": "",
+            "sections": [
+                {
+                    "heading": "Kop A",
+                    "paragraphs": [],
+                    "images": [
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        }
+                    ],
+                    "notes": ""
+                },
+                {
+                    "heading": "Kop B",
+                    "paragraphs": [],
+                    "images": [],
+                    "notes": ""
+                }
+            ],
+            "notes": []
+        },
+        "refused": []
+    },
+    "a section of images only": {
+        "read": {
+            "title": "",
+            "sections": [
+                {
+                    "heading": "",
+                    "paragraphs": [],
+                    "images": [
+                        {
+                            "name": "a.png",
+                            "bytes": "3:e1faffb3e614e6c2fba74296962386b7"
+                        }
+                    ],
+                    "notes": ""
+                }
+            ],
+            "notes": []
+        },
+        "refused": []
+    },
+    "reused reader: doctype in document": {
+        "read": null,
+        "refused": [
+            "word/document.xml"
+        ]
+    },
+    "reused reader: not a zip": {
+        "read": null,
+        "refused": []
+    },
+    "reused reader: doctype in styles": {
+        "read": {
+            "title": "",
+            "sections": [
+                {
+                    "heading": "Kop",
+                    "paragraphs": [
+                        "Tekst"
+                    ],
+                    "images": [],
+                    "notes": ""
+                }
+            ],
+            "notes": []
+        },
+        "refused": [
+            "word/styles.xml"
+        ]
+    },
+    "reused reader: empty string": {
+        "read": null,
+        "refused": []
+    }
+}

@@ -201,6 +201,7 @@
 			"type": "index",
 			"title": "BPV placements",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "bpv-placement",
 				"columns": [
@@ -229,6 +230,7 @@
 			"type": "index",
 			"title": "Praktijkopleiders",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "praktijkopleider"
 			}
@@ -239,6 +241,7 @@
 			"type": "index",
 			"title": "Praktijkovereenkomsten",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "praktijkovereenkomst"
 			}
@@ -249,6 +252,7 @@
 			"type": "index",
 			"title": "Werkproces assessments",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "werkproces-assessment",
 				"columns": [
@@ -283,6 +287,7 @@
 			"type": "index",
 			"title": "BPV visit reports",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "bpv-visit-report"
 			}
@@ -293,6 +298,7 @@
 			"type": "index",
 			"title": "BPV hours",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "bpv-hour-week",
 				"_note": "internship-hours T6: the school's own list of weeks of BPV hours, so a BPV coach sees which weeks wait for the company, which were approved and which were sent back with a note. Newest week first.",
