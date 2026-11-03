@@ -169,4 +169,20 @@ class LessonNoteReaderTest extends TestCase {
 		self::assertSame([], $reader->forSessions(sessions: [['cohortId' => 'c-1', 'externalRef' => 'zm-1']], uid: 'alice', taughtCohortIds: []));
 		self::assertCount(1, $reader->forSessions(sessions: [['id' => 'p-1', 'cohortId' => 'c-1', 'externalRef' => 'zm-1']], uid: 'alice', taughtCohortIds: [])['p-1']);
 	}//end testIdlessLessonGetsNoNotesFromAMatchingReference()
+
+	/**
+	 * A cover mark on a row opens nothing by itself: the caller must be the lesson's substitute.
+	 *
+	 * @return void
+	 */
+	public function testACoverMarkAloneDoesNotOpenCoverNotes(): void {
+		$notes = [['id' => 'n-1', 'cohortId' => 'c-1', 'sessionId' => 's-1', 'text' => 'cover', 'audience' => 'cover']];
+		$reader = $this->reader(notes: $notes);
+		$lesson = ['id' => 's-1', 'cohortId' => 'c-1', 'cover' => true, 'substituteTeacherId' => 'sub'];
+
+		self::assertSame([], $reader->forSessions(sessions: [$lesson], uid: 'alice', taughtCohortIds: []));
+		self::assertFalse($reader->markWritable(sessions: [$lesson], uid: 'alice', taughtCohortIds: [])[0]['canAddNote']);
+		self::assertSame(['n-1'], array_column($reader->forSessions(sessions: [$lesson], uid: 'sub', taughtCohortIds: [])['s-1'], 'id'));
+		self::assertTrue($reader->markWritable(sessions: [$lesson], uid: 'sub', taughtCohortIds: [])[0]['canAddNote']);
+	}//end testACoverMarkAloneDoesNotOpenCoverNotes()
 }//end class

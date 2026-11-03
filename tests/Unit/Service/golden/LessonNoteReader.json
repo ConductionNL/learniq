@@ -32,15 +32,6 @@
                     "audience": "learners",
                     "authorId": ""
                 }
-            ],
-            "s-4": [
-                {
-                    "id": "n-8",
-                    "topic": null,
-                    "text": "Invaller",
-                    "audience": "cover",
-                    "authorId": ""
-                }
             ]
         },
         "asked": [
@@ -66,7 +57,7 @@
             false,
             false,
             false,
-            true,
+            false,
             false,
             false,
             false,
@@ -130,15 +121,6 @@
                     "audience": "learners",
                     "authorId": ""
                 }
-            ],
-            "s-4": [
-                {
-                    "id": "n-8",
-                    "topic": null,
-                    "text": "Invaller",
-                    "audience": "cover",
-                    "authorId": ""
-                }
             ]
         },
         "asked": [
@@ -164,7 +146,7 @@
             true,
             false,
             false,
-            true,
+            false,
             false,
             false,
             false,
@@ -221,15 +203,6 @@
                     "audience": "learners",
                     "authorId": ""
                 }
-            ],
-            "s-4": [
-                {
-                    "id": "n-8",
-                    "topic": null,
-                    "text": "Invaller",
-                    "audience": "cover",
-                    "authorId": ""
-                }
             ]
         },
         "asked": [
@@ -255,7 +228,7 @@
             false,
             true,
             false,
-            true,
+            false,
             false,
             false,
             false,
@@ -745,15 +718,6 @@
                     "audience": "learners",
                     "authorId": ""
                 }
-            ],
-            "s-4": [
-                {
-                    "id": "n-8",
-                    "topic": null,
-                    "text": "Invaller",
-                    "audience": "cover",
-                    "authorId": ""
-                }
             ]
         },
         "asked": [
@@ -779,7 +743,7 @@
             false,
             false,
             false,
-            true,
+            false,
             false,
             false,
             false,
