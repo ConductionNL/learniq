@@ -321,7 +321,10 @@ class ItemAnalysisGoldenTest extends TestCase {
 	}//end gradedEvent()
 
 	/**
-	 * The value with every computedAt replaced and floats rounded to 12 digits.
+	 * The value with every computedAt replaced, every `@self` entity metadata block replaced, and floats rounded to 12 digits.
+	 *
+	 * The `@self` block is what the loaded ObjectEntity class serialises, so it
+	 * follows OpenRegister's field list rather than anything learniq decides.
 	 *
 	 * @param mixed $value The value.
 	 *
@@ -340,6 +343,10 @@ class ItemAnalysisGoldenTest extends TestCase {
 			$value[$key] = self::normalise(value: $inner);
 			if ($key === 'computedAt' && is_string($inner) === true) {
 				$value[$key] = '<now>';
+			}
+
+			if ($key === '@self' && is_array($inner) === true) {
+				$value[$key] = '<entity metadata>';
 			}
 		}
 

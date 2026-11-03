@@ -99,8 +99,8 @@
                 }
             },
             {
-                "saveObject": [
-                    {
+                "saveObject": {
+                    "object": {
                         "id": "r-1",
                         "assessmentId": "a-1",
                         "tenant_id": "t-1",
@@ -123,18 +123,9 @@
                             }
                         ]
                     },
-                    [],
-                    "learniq",
-                    "assessment-result",
-                    null,
-                    true,
-                    true,
-                    false,
-                    null,
-                    null,
-                    false,
-                    false
-                ]
+                    "register": "learniq",
+                    "schema": "assessment-result"
+                }
             }
         ],
         "itemFetches": [],
@@ -226,8 +217,8 @@
                 "resolveOrder": "i-3"
             },
             {
-                "saveObject": [
-                    {
+                "saveObject": {
+                    "object": {
                         "id": "r-1",
                         "assessmentId": "a-1",
                         "tenant_id": "t-1",
@@ -256,18 +247,9 @@
                             }
                         ]
                     },
-                    [],
-                    "learniq",
-                    "assessment-result",
-                    null,
-                    true,
-                    true,
-                    false,
-                    null,
-                    null,
-                    false,
-                    false
-                ]
+                    "register": "learniq",
+                    "schema": "assessment-result"
+                }
             }
         ],
         "itemFetches": [],
@@ -298,8 +280,8 @@
                 }
             },
             {
-                "saveObject": [
-                    {
+                "saveObject": {
+                    "object": {
                         "id": "r-1",
                         "assessmentId": "a-1",
                         "tenant_id": "t-1",
@@ -322,18 +304,9 @@
                             }
                         ]
                     },
-                    [],
-                    "learniq",
-                    "assessment-result",
-                    null,
-                    true,
-                    true,
-                    false,
-                    null,
-                    null,
-                    false,
-                    false
-                ]
+                    "register": "learniq",
+                    "schema": "assessment-result"
+                }
             }
         ],
         "itemFetches": [
@@ -422,26 +395,17 @@
                 }
             },
             {
-                "saveObject": [
-                    {
+                "saveObject": {
+                    "object": {
                         "id": "r-1",
                         "assessmentId": "a-1",
                         "tenant_id": "t-1",
                         "responses": [],
                         "drawnItemRefs": []
                     },
-                    [],
-                    "learniq",
-                    "assessment-result",
-                    null,
-                    true,
-                    true,
-                    false,
-                    null,
-                    null,
-                    false,
-                    false
-                ]
+                    "register": "learniq",
+                    "schema": "assessment-result"
+                }
             }
         ],
         "itemFetches": [],
@@ -483,8 +447,8 @@
                 }
             },
             {
-                "saveObject": [
-                    {
+                "saveObject": {
+                    "object": {
                         "id": "r-1",
                         "assessmentId": "a-1",
                         "tenant_id": "t-1",
@@ -502,18 +466,9 @@
                             }
                         ]
                     },
-                    [],
-                    "learniq",
-                    "assessment-result",
-                    null,
-                    true,
-                    true,
-                    false,
-                    null,
-                    null,
-                    false,
-                    false
-                ]
+                    "register": "learniq",
+                    "schema": "assessment-result"
+                }
             }
         ],
         "itemFetches": [
@@ -672,8 +627,8 @@
                 }
             },
             {
-                "saveObject": [
-                    {
+                "saveObject": {
+                    "object": {
                         "id": "r-1",
                         "assessmentId": "a-1",
                         "tenant_id": "t-1",
@@ -701,18 +656,9 @@
                             }
                         ]
                     },
-                    [],
-                    "learniq",
-                    "assessment-result",
-                    null,
-                    true,
-                    true,
-                    false,
-                    null,
-                    null,
-                    false,
-                    false
-                ]
+                    "register": "learniq",
+                    "schema": "assessment-result"
+                }
             }
         ],
         "itemFetches": [
